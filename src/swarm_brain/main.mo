@@ -13,6 +13,119 @@ import Principal "mo:base/Principal";
 import Text      "mo:base/Text";
 import Time      "mo:base/Time";
 
+// ═══════════════════════════════════════════════════════════════════════════
+// MODULE IMPORTS — CORE COGNITIVE ENGINES
+// 70+ modules implementing the full NOVA cognitive architecture
+// Each module is a self-contained mathematical system
+// ═══════════════════════════════════════════════════════════════════════════
+
+import KuramotoEngine        "./modules/KuramotoEngine";
+import FristonEngine         "./modules/FristonEngine";
+import HebbianPlasticity     "./modules/HebbianPlasticity";
+import AttractorDynamics     "./modules/AttractorDynamics";
+import EntropyEngine         "./modules/EntropyEngine";
+import LyapunovStability     "./modules/LyapunovStability";
+import EmergenceCore         "./modules/EmergenceCore";
+import MedinaEngine          "./modules/MedinaEngine";
+import MedinaLaws            "./modules/MedinaLaws";
+import SphericalLaw          "./modules/SphericalLaw";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODULE IMPORTS — ANIMAL INTELLIGENCE SYSTEMS
+// Bio-inspired cognitive architectures from nature's designs
+// ═══════════════════════════════════════════════════════════════════════════
+
+import CrowCognition         "./modules/CrowCognition";
+import OctopusBrain          "./modules/OctopusBrain";
+import ElephantMemory        "./modules/ElephantMemory";
+import BeeSwarmIntelligence  "./modules/BeeSwarmIntelligence";
+import DolphinEcholocation   "./modules/DolphinEcholocation";
+import MantisShrimp          "./modules/MantisShrimp";
+import SpiderWeb             "./modules/SpiderWeb";
+import OwlAuditory           "./modules/OwlAuditory";
+import MedinaAnimalTraits    "./modules/MedinaAnimalTraits";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODULE IMPORTS — MEMORY & COGNITION
+// Advanced memory systems and meta-cognitive architectures
+// ═══════════════════════════════════════════════════════════════════════════
+
+import MembraneMemory        "./modules/MembraneMemory";
+import TemporalHologram      "./modules/TemporalHologram";
+import CompoundLearning      "./modules/CompoundLearning";
+import WorldModelSystem      "./modules/WorldModelSystem";
+import SimulatedWorld        "./modules/SimulatedWorld";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODULE IMPORTS — DEFENSE & SECURITY
+// Sovereign protection and autonomous defense systems
+// ═══════════════════════════════════════════════════════════════════════════
+
+import MedinaDefenseSystem   "./modules/MedinaDefenseSystem";
+import AEGIS                 "./modules/AEGIS";
+import PrincipalLock         "./modules/PrincipalLock";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODULE IMPORTS — SPECIALIZED SYSTEMS
+// Domain-specific cognitive modules
+// ═══════════════════════════════════════════════════════════════════════════
+
+import CognitiveScienceAdvisor "./modules/CognitiveScienceAdvisor";
+import DefenseIndustryAdvisor  "./modules/DefenseIndustryAdvisor";
+import QuantumOps              "./modules/QuantumOps";
+import SuccessionEngine        "./modules/SuccessionEngine";
+import MedinaGodsEngine        "./modules/MedinaGodsEngine";
+import MedinaBiblicalLaws      "./modules/MedinaBiblicalLaws";
+import MedinaSabbathProtocol   "./modules/MedinaSabbathProtocol";
+import MedinaCommunicationProtocol "./modules/MedinaCommunicationProtocol";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODULE IMPORTS — ADVANCED NEURAL ARCHITECTURES
+// Higher-order cognitive systems and consciousness models
+// ═══════════════════════════════════════════════════════════════════════════
+
+import MedinaAntColonySpherical   "./modules/MedinaAntColonySpherical";
+import MedinaCanisterArchitecture "./modules/MedinaCanisterArchitecture";
+import MedinaCatVisualCortex      "./modules/MedinaCatVisualCortex";
+import MedinaCodeGenesisEngine    "./modules/MedinaCodeGenesisEngine";
+import MedinaConsciousnessField   "./modules/MedinaConsciousnessField";
+import MedinaEnterpriseNeural     "./modules/MedinaEnterpriseNeural";
+import MedinaHelixFormation       "./modules/MedinaHelixFormation";
+import MedinaMathFoundation       "./modules/MedinaMathFoundation";
+import MedinaMetaCognitionSupreme "./modules/MedinaMetaCognitionSupreme";
+import MedinaNeuralOscillatorV3   "./modules/MedinaNeuralOscillatorV3";
+import MedinaOrganismTeams        "./modules/MedinaOrganismTeams";
+import MedinaPlanningHorizon      "./modules/MedinaPlanningHorizon";
+import MedinaQuantumBrain         "./modules/MedinaQuantumBrain";
+import MedinaQuantumCovenantChain "./modules/MedinaQuantumCovenantChain";
+import MedinaQuantumProtocols     "./modules/MedinaQuantumProtocols";
+import MedinaSelfModel            "./modules/MedinaSelfModel";
+import MedinaSharpWaveRipples     "./modules/MedinaSharpWaveRipples";
+import MedinaWolfPackIntelligence "./modules/MedinaWolfPackIntelligence";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODULE IMPORTS — ORCHESTRATION & COORDINATION
+// Multi-agent coordination and swarm control systems
+// ═══════════════════════════════════════════════════════════════════════════
+
+import AnimalBrainOrchestrator    "./modules/AnimalBrainOrchestrator";
+import AutonomousWarEngine        "./modules/AutonomousWarEngine";
+import BehavioralEconomics        "./modules/BehavioralEconomics";
+import CreationEngine             "./modules/CreationEngine";
+import DroneAvatar                "./modules/DroneAvatar";
+import FORMATokenEconomics        "./modules/FORMATokenEconomics";
+import MAVLinkBridge              "./modules/MAVLinkBridge";
+import MultiSwarmCoordinator      "./modules/MultiSwarmCoordinator";
+import Neurochemicals             "./modules/Neurochemicals";
+import PatentRegistry             "./modules/PatentRegistry";
+import PredictiveCoding           "./modules/PredictiveCoding";
+import QuantumMath                "./modules/QuantumMath";
+import SalmonNavigation           "./modules/SalmonNavigation";
+import SovereignHeartbeat         "./modules/SovereignHeartbeat";
+import TradeSecretProtection      "./modules/TradeSecretProtection";
+import WarSimEngine               "./modules/WarSimEngine";
+import WorldOrganism              "./modules/WorldOrganism";
+
 actor SwarmBrain {
 
   // ─── CONSTANTS ──────────────────────────────────────────────────────────────
