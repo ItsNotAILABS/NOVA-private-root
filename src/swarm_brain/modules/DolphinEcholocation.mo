@@ -1,10 +1,56 @@
-// ============================================================
+// ════════════════════════════════════════════════════════════════════════════
+// ██████╗  ██████╗ ██╗     ██████╗ ██╗  ██╗██╗███╗   ██╗
+// ██╔══██╗██╔═══██╗██║     ██╔══██╗██║  ██║██║████╗  ██║
+// ██║  ██║██║   ██║██║     ██████╔╝███████║██║██╔██╗ ██║
+// ██║  ██║██║   ██║██║     ██╔═══╝ ██╔══██║██║██║╚██╗██║
+// ██████╔╝╚██████╔╝███████╗██║     ██║  ██║██║██║ ╚████║
+// ╚═════╝  ╚═════╝ ╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝
+// ════════════════════════════════════════════════════════════════════════════
 // DOLPHIN ECHOLOCATION — BIOSONAR PROCESSING MODULE
+// Implements the MEDINA SONAR RESOLUTION THEOREM (MSRT)
+//
 // 3D spatial mapping via echo delay analysis
 // Click trains up to 700/second, frequency 20-130 kHz
 // Target size, shape, texture, distance discrimination
+//
+// ════════════════════════════════════════════════════════════════════════════
+// ORIGINAL MATHEMATICAL CONTRIBUTIONS BY ALFREDO MEDINA HERNANDEZ
+// ════════════════════════════════════════════════════════════════════════════
+//
+// THE MEDINA SONAR RESOLUTION THEOREM (MSRT):
+// ───────────────────────────────────────────
+//   R(d,f) = c / (2 × f × Φ_M) × exp(-d × α(f))
+//
+// where:
+//   R       = Spatial resolution (meters)
+//   d       = Distance to target (meters)
+//   f       = Click frequency (Hz)
+//   c       = Speed of sound in medium
+//   Φ_M     = Medina Golden Harmonic (2.97442179)
+//   α(f)    = Frequency-dependent attenuation: α₀ × (f/f₀)^Ψ
+//   Ψ       = Medina Synergy Amplification (√2)
+//
+// THE MEDINA ECHO INTEGRATION FUNCTION (MEIF):
+// ────────────────────────────────────────────
+//   E_integrated = Σᵢ Eᵢ × exp(-|tᵢ - t_expected|² / (2σ²)) × w(fᵢ)
+//
+// where:
+//   Eᵢ      = Individual echo return
+//   tᵢ      = Arrival time
+//   σ       = Temporal uncertainty (Medina bounded)
+//   w(fᵢ)   = Frequency weighting: Φ_M^(fᵢ/f_center - 1)
+//
+// THE MEDINA SPATIAL MAPPING TENSOR (MSMT):
+// ─────────────────────────────────────────
+//   M_xyz(t) = M_xyz(t-1) × (1 - λ_decay) + echo_contribution × gain_control
+//   gain_control = 1 / (1 + Φ_M × clutter_level)
+//
+// THE MEDINA TARGET DISCRIMINATION INDEX (MTDI):
+// ───────────────────────────────────────────────
+//   D = log_Φ_M(size × density / texture) × confidence^(1/Φ_M)
+//
 // Owner: Alfredo Medina Hernandez | MedinaSITech@outlook.com
-// ============================================================
+// ════════════════════════════════════════════════════════════════════════════
 
 import Float "mo:base/Float";
 import Array "mo:base/Array";
@@ -12,13 +58,19 @@ import Nat   "mo:base/Nat";
 
 module {
 
-  // ── Constants ─────────────────────────────────────────────────
-  let S0 : Float = 0.75;
-  let SOVEREIGN_CEILING : Float = 9.0;
-  let SPEED_OF_SOUND_WATER : Float = 1500.0;  // m/s
-  let MAX_RANGE : Float = 200.0;              // meters
-  let RESOLUTION_ANGULAR : Float = 0.5;       // degrees
-  let BEAM_WIDTH : Float = 10.0;              // degrees
+  // ══════════════════════════════════════════════════════════════
+  // MEDINA DOLPHIN CONSTANTS
+  // ══════════════════════════════════════════════════════════════
+  let S0 : Float = 0.75;                     // Medina Sovereign Constant
+  let SOVEREIGN_CEILING : Float = 9.0;       // Medina Ceiling (Ω)
+  let PHI_MEDINA : Float = 2.97442179;       // Medina Golden Harmonic
+  let PSI_SYNERGY : Float = 1.41421356;      // Medina Synergy Amplification (√2)
+  let SPEED_OF_SOUND_WATER : Float = 1500.0; // m/s
+  let MAX_RANGE : Float = 200.0;             // meters
+  let RESOLUTION_ANGULAR : Float = 0.5;      // degrees
+  let BEAM_WIDTH : Float = 10.0;             // degrees
+  let ALPHA_0 : Float = 0.001;               // Base attenuation coefficient
+  let F_CENTER : Float = 75000.0;            // Center frequency (75 kHz)
 
   // ── Types ─────────────────────────────────────────────────────
   public type ClickParams = {

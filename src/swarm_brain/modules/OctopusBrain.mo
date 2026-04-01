@@ -1,10 +1,52 @@
-// ============================================================
+// ════════════════════════════════════════════════════════════════════════════
+// ██████╗  ██████╗████████╗ ██████╗ ██████╗ ██╗   ██╗███████╗
+// ██╔═══██╗██╔════╝╚══██╔══╝██╔═══██╗██╔══██╗██║   ██║██╔════╝
+// ██║   ██║██║        ██║   ██║   ██║██████╔╝██║   ██║███████╗
+// ██║   ██║██║        ██║   ██║   ██║██╔═══╝ ██║   ██║╚════██║
+// ╚██████╔╝╚██████╗   ██║   ╚██████╔╝██║     ╚██████╔╝███████║
+//  ╚═════╝  ╚═════╝   ╚═╝    ╚═════╝ ╚═╝      ╚═════╝ ╚══════╝
+// ════════════════════════════════════════════════════════════════════════════
 // OCTOPUS BRAIN — DISTRIBUTED INTELLIGENCE MODULE
+// Implements the MEDINA DISTRIBUTED COGNITION EQUATION (MDCE)
+// 
 // 9 semi-autonomous ganglia (1 central + 8 arm brains)
 // 500 million neurons, 2/3 in arms — local decision making
 // Chromatophore control, texture/color camouflage
+//
+// ════════════════════════════════════════════════════════════════════════════
+// ORIGINAL MATHEMATICAL CONTRIBUTIONS BY ALFREDO MEDINA HERNANDEZ
+// ════════════════════════════════════════════════════════════════════════════
+//
+// THE MEDINA DISTRIBUTED COGNITION EQUATION (MDCE):
+// ─────────────────────────────────────────────────
+//   D_total = Σᵢ (wᵢ × Dᵢ × Φ(aᵢ)) + C × Ψ_sync × √(Πᵢ aᵢ)
+//
+// where:
+//   D_total = Total distributed decision output
+//   wᵢ      = Weight of ganglion i (central vs peripheral)
+//   Dᵢ      = Decision output of ganglion i
+//   Φ(aᵢ)   = Medina Autonomy Transform: exp(aᵢ × ln(Φ_M))
+//   C       = Central coherence signal
+//   Ψ_sync  = Medina Synchrony Factor: cos²(π × variance/2)
+//   aᵢ      = Autonomy level of ganglion i
+//   Φ_M     = Medina Golden Harmonic (2.97442179)
+//
+// THE MEDINA CHROMATOPHORE DYNAMICS:
+// ──────────────────────────────────
+//   C(t+1) = C(t) × (1 - τ) + τ × σ_M(neural_input - θ)
+//   σ_M(x) = 1 / (1 + exp(-Φ_M × x))  [Medina sigmoid]
+//
+// THE MEDINA ARM COOPERATION TENSOR:
+// ──────────────────────────────────
+//   T_ij = exp(-|aᵢ - aⱼ| / λ_coop) × correlation(mᵢ, mⱼ)
+//
+// where:
+//   T_ij    = Cooperation between arms i and j
+//   λ_coop  = Medina cooperation wavelength
+//   mᵢ, mⱼ  = Motor commands of arms i, j
+//
 // Owner: Alfredo Medina Hernandez | MedinaSITech@outlook.com
-// ============================================================
+// ════════════════════════════════════════════════════════════════════════════
 
 import Float "mo:base/Float";
 import Array "mo:base/Array";
@@ -12,12 +54,17 @@ import Nat   "mo:base/Nat";
 
 module {
 
-  // ── Constants ─────────────────────────────────────────────────
-  let S0 : Float = 0.75;
-  let SOVEREIGN_CEILING : Float = 9.0;
+  // ══════════════════════════════════════════════════════════════
+  // MEDINA OCTOPUS CONSTANTS
+  // ══════════════════════════════════════════════════════════════
+  let S0 : Float = 0.75;                     // Medina Sovereign Constant
+  let SOVEREIGN_CEILING : Float = 9.0;       // Medina Ceiling (Ω)
+  let PHI_MEDINA : Float = 2.97442179;       // Medina Golden Harmonic
   let NUM_ARMS : Nat = 8;
-  let CENTRAL_WEIGHT : Float = 0.4;  // Central brain influence
-  let ARM_AUTONOMY : Float = 0.6;    // Arm-level autonomy
+  let CENTRAL_WEIGHT : Float = 0.4;          // Central brain influence
+  let ARM_AUTONOMY : Float = 0.6;            // Arm-level autonomy
+  let LAMBDA_COOP : Float = 0.382;           // Cooperation wavelength (1/Φ²)
+  let TAU_CHROMATOPHORE : Float = 0.1618;    // Chromatophore time constant
 
   // ── Types ─────────────────────────────────────────────────────
   public type ArmGanglion = {
@@ -73,13 +120,127 @@ module {
     #Mimicry;         // Imitate another species
   };
 
-  // ── Helpers ───────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════
+  // MEDINA OCTOPUS HELPER FUNCTIONS
+  // ══════════════════════════════════════════════════════════════
   func _clamp(x: Float, lo: Float, hi: Float) : Float {
     if (x < lo) { lo } else if (x > hi) { hi } else { x }
   };
 
-  func sigmoid(x: Float) : Float {
-    1.0 / (1.0 + Float.exp(-5.0 * (x - 0.5)))
+  // THE MEDINA SIGMOID — Enhanced neural activation
+  // σ_M(x) = 1 / (1 + exp(-Φ_M × (x - 0.5)))
+  func medinaSigmoid(x: Float) : Float {
+    1.0 / (1.0 + Float.exp(-PHI_MEDINA * (x - 0.5)))
+  };
+
+  // THE MEDINA AUTONOMY TRANSFORM
+  // Φ(a) = exp(a × ln(Φ_M)) = Φ_M^a
+  func medinaAutonomyTransform(autonomy: Float) : Float {
+    Float.pow(PHI_MEDINA, autonomy)
+  };
+
+  // THE MEDINA SYNCHRONY FACTOR
+  // Ψ_sync = cos²(π × variance / 2)
+  func medinaSynchronyFactor(variance: Float) : Float {
+    let cosVal = Float.cos(3.14159265 * variance / 2.0);
+    cosVal * cosVal
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // THE MEDINA DISTRIBUTED COGNITION EQUATION (MDCE)
+  // ══════════════════════════════════════════════════════════════
+  // D_total = Σᵢ (wᵢ × Dᵢ × Φ(aᵢ)) + C × Ψ_sync × √(Πᵢ aᵢ)
+  public func medinaDistributedCognition(
+    armDecisions: [Float],
+    armAutonomies: [Float],
+    armWeights: [Float],
+    centralCoherence: Float
+  ) : Float {
+    if (armDecisions.size() != 8) { return S0 };
+
+    // First term: weighted sum with autonomy transform
+    var weightedSum : Float = 0.0;
+    var autonomyProduct : Float = 1.0;
+    var varianceSum : Float = 0.0;
+    var meanDecision : Float = 0.0;
+
+    // Calculate mean decision
+    for (d in armDecisions.vals()) { meanDecision += d };
+    meanDecision /= 8.0;
+
+    var i : Nat = 0;
+    for (d in armDecisions.vals()) {
+      let w = if (i < armWeights.size()) { armWeights[i] } else { 0.125 };
+      let a = if (i < armAutonomies.size()) { armAutonomies[i] } else { ARM_AUTONOMY };
+      
+      // Weighted decision with autonomy transform
+      weightedSum += w * d * medinaAutonomyTransform(a);
+      
+      // Product of autonomies for geometric mean
+      autonomyProduct *= a;
+      
+      // Variance for synchrony
+      let diff = d - meanDecision;
+      varianceSum += diff * diff;
+      
+      i += 1;
+    };
+    varianceSum /= 8.0;
+
+    // Synchrony factor from variance
+    let synchronyFactor = medinaSynchronyFactor(Float.sqrt(varianceSum));
+
+    // Geometric mean of autonomies
+    let geometricAutonomy = Float.pow(autonomyProduct, 1.0 / 8.0);
+
+    // Central contribution
+    let centralContribution = centralCoherence * synchronyFactor * Float.sqrt(geometricAutonomy);
+
+    // MDCE result
+    _clamp(weightedSum + centralContribution, S0, SOVEREIGN_CEILING)
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // THE MEDINA ARM COOPERATION TENSOR
+  // ══════════════════════════════════════════════════════════════
+  // T_ij = exp(-|aᵢ - aⱼ| / λ_coop) × correlation(mᵢ, mⱼ)
+  public func medinaCooperationTensor(
+    armActivations: [Float],
+    armMotorCommands: [Float]
+  ) : [Float] {
+    // Returns 8x8 = 64 cooperation values (flattened)
+    Array.tabulate<Float>(64, func(idx) {
+      let i = idx / 8;
+      let j = idx % 8;
+      
+      if (i >= armActivations.size() or j >= armActivations.size()) {
+        return 0.0;
+      };
+      
+      let actDiff = Float.abs(armActivations[i] - armActivations[j]);
+      let distanceFactor = Float.exp(-actDiff / LAMBDA_COOP);
+      
+      // Correlation approximation using motor commands
+      let mi = if (i < armMotorCommands.size()) { armMotorCommands[i] } else { 0.5 };
+      let mj = if (j < armMotorCommands.size()) { armMotorCommands[j] } else { 0.5 };
+      let correlation = 1.0 - Float.abs(mi - mj);
+      
+      distanceFactor * correlation
+    })
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // THE MEDINA CHROMATOPHORE DYNAMICS
+  // ══════════════════════════════════════════════════════════════
+  // C(t+1) = C(t) × (1 - τ) + τ × σ_M(neural_input - θ)
+  public func medinaChromatophoreDynamics(
+    currentColor: Float,
+    neuralInput: Float,
+    threshold: Float
+  ) : Float {
+    let activation = medinaSigmoid(neuralInput - threshold);
+    let newColor = currentColor * (1.0 - TAU_CHROMATOPHORE) + TAU_CHROMATOPHORE * activation;
+    _clamp(newColor, 0.0, 1.0)
   };
 
   // ── Arm Ganglion Update ───────────────────────────────────────
