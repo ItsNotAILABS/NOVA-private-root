@@ -13,6 +13,10 @@ const BRAIN_NODES  = 6;      // 0=SENSOR 1=MEMORY 2=EXECUTIVE 3=EMOTIONAL 4=MOTO
 const STDP_ALPHA   = 0.005;  // STDP learning rate
 const STDP_DECAY   = 0.001;  // STDP weight decay
 const DT           = 0.05;   // ODE integration step (beats)
+// Quantum cognitive channel update time-constant (beats) — matches swarm_quantum CHAN_TAU
+const CHAN_TAU      = 10.0;
+// Now-attention pull rate
+const NOW_RATE      = 0.05;
 
 // ─── MATH PRIMITIVES ─────────────────────────────────────────────────────────
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
@@ -64,6 +68,19 @@ function makeDrone(id) {
     // 6-node micro-brain
     brainWeights,
     brainActivation: Array(BRAIN_NODES).fill(0.5),
+    // Four 360-degree quantum cognitive channels
+    // ALPHA=spatial/sensor  BETA=temporal/memory
+    // GAMMA=relational      DELTA=executive-motor
+    qAlpha: 0.5,
+    qBeta:  0.5,
+    qGamma: 0.5,
+    qDelta: 0.5,
+    // Convergence: how much all 4 channels agree (0=diverge, 1=fully aligned)
+    qConvergence: 0.0,
+    // Quantum coherence (internal+swarm alignment)
+    qCoherence: 0.5,
+    // Present-moment attention weight [0,1]
+    nowAttention: 1.0,
   };
 }
 
@@ -232,6 +249,62 @@ function boidsUpdate(drone, allDrones, rSwarm) {
   };
 }
 
+// ─── QUANTUM COGNITIVE STATE UPDATE ─────────────────────────────────────────
+// Derives the Four 360-degree channel values from the 6-node brain activations.
+//   ALPHA (0): SENSOR node           — spatial / environmental awareness
+//   BETA  (1): MEMORY node           — temporal / past-state recall
+//   GAMMA (2): EXECUTIVE node        — relational / goal-directed reasoning
+//   DELTA (3): mean(EMOTIONAL+MOTOR) — embodied action drive
+//
+// Convergence = 1 − 4·variance(ALPHA, BETA, GAMMA, DELTA)
+//   When all four streams point the same way, convergence → 1 (single critical point).
+//   When channels are maximally spread, convergence → 0.
+//
+// Q-Coherence = 0.5·convergence + 0.5·rSwarm
+//   Blends internal 4-channel alignment with swarm-wide Kuramoto coherence.
+//
+// Now-attention exponentially tracks rSwarm·(1 − jDrift):
+//   A stable, coherent swarm anchors each drone to the present moment.
+function quantumStateUpdate(drone, rSwarm, jDrift) {
+  // brainActivation indices: [0=SENSOR, 1=MEMORY, 2=EXECUTIVE, 3=EMOTIONAL, 4=MOTOR, 5=OUTPUT]
+  // OUTPUT (index 5) is the convergence point — it is intentionally excluded as an
+  // input channel here because it already carries the integrated signal, not a
+  // raw perspective.
+  const [alpha, beta, gamma, emo, motor] = drone.brainActivation;
+  const delta = (emo + motor) / 2.0;
+
+  // Smooth channel update toward brain-derived targets
+  const newAlpha = drone.qAlpha + (alpha - drone.qAlpha) / CHAN_TAU;
+  const newBeta  = drone.qBeta  + (beta  - drone.qBeta)  / CHAN_TAU;
+  const newGamma = drone.qGamma + (gamma - drone.qGamma) / CHAN_TAU;
+  const newDelta = drone.qDelta + (delta - drone.qDelta) / CHAN_TAU;
+
+  // Convergence: 1 − 4·variance
+  const mean = (newAlpha + newBeta + newGamma + newDelta) / 4.0;
+  const variance = (
+    (newAlpha - mean) ** 2 + (newBeta - mean) ** 2 +
+    (newGamma - mean) ** 2 + (newDelta - mean) ** 2
+  ) / 4.0;
+  const newConvergence = clamp(1.0 - variance * 4.0, 0.0, 1.0);
+
+  // Q-Coherence: internal convergence + swarm coherence
+  const newQCoherence = 0.5 * newConvergence + 0.5 * rSwarm;
+
+  // Now-attention: pull toward present-moment target
+  const nowTarget = clamp(rSwarm * (1.0 - Math.min(1.0, jDrift)), 0.0, 1.0);
+  const newNow = drone.nowAttention + NOW_RATE * (nowTarget - drone.nowAttention);
+
+  return {
+    qAlpha: newAlpha,
+    qBeta:  newBeta,
+    qGamma: newGamma,
+    qDelta: newDelta,
+    qConvergence: newConvergence,
+    qCoherence:   newQCoherence,
+    nowAttention: newNow,
+  };
+}
+
 // ─── MAIN HOOK ────────────────────────────────────────────────────────────────
 export function useSwarmState() {
   const [beat, setBeat]       = useState(0);
@@ -247,6 +320,9 @@ export function useSwarmState() {
   const [emergencyActive, setEmergencyActive] = useState(false);
   const [architectSignal, setArchitectSignal] = useState(1.0);
   const [commsLost, setCommsLost]           = useState(false);
+  // Swarm-level quantum metrics (mean across drones)
+  const [swarmQCoherence, setSwarmQCoherence]   = useState(0.5);
+  const [swarmConvergence, setSwarmConvergence] = useState(0.0);
 
   // Inter-drone Hebbian weights (swarm-level, separate from intra-brain STDP)
   const swarmWeights = useRef(
@@ -408,6 +484,8 @@ export function useSwarmState() {
             posX,
             posZ,
             activation: sf(outputAct * energy),
+            // Quantum cognitive state (4-360 model)
+            ...quantumStateUpdate({ ...d, brainActivation }, r, jd),
           };
         });
 
@@ -456,6 +534,15 @@ export function useSwarmState() {
           }`, r, jd);
         }
 
+        // ── Step 7: Swarm-level quantum metrics ────────────────────────────────
+        const active = next.filter(x => !x.sacrificed);
+        if (active.length > 0) {
+          const meanQCoh  = active.reduce((s, x) => s + x.qCoherence,   0) / active.length;
+          const meanQConv = active.reduce((s, x) => s + x.qConvergence, 0) / active.length;
+          setSwarmQCoherence(meanQCoh);
+          setSwarmConvergence(meanQConv);
+        }
+
         return next;
       });
 
@@ -487,6 +574,9 @@ export function useSwarmState() {
     architectSignal,
     commsLost,
     swarmWeights: swarmWeights.current,
+    // Swarm-level quantum metrics
+    swarmQCoherence,
+    swarmConvergence,
     approve,
     deny,
     emergencyStop,

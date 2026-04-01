@@ -101,7 +101,7 @@ function timeLeft(deadline) {
 }
 
 export default function SwarmVitals({ swarm }) {
-  const { rSwarm, jDrift, drones, pendingActions, beat } = swarm;
+  const { rSwarm, jDrift, drones, pendingActions, beat, swarmQCoherence = 0.5, swarmConvergence = 0.0 } = swarm;
   const active = drones.filter(d => !d.sacrificed);
   const n = active.length || 1;
 
@@ -112,6 +112,11 @@ export default function SwarmVitals({ swarm }) {
   const avgOxy = active.reduce((s, d) => s + d.oxytocin, 0) / n;
   const avgEng = active.reduce((s, d) => s + (d.energy || 1.5), 0) / n;
   const avgOut = active.reduce((s, d) => s + (d.brainActivation ? d.brainActivation[5] || 0 : 0), 0) / n;
+
+  // Swarm-wide quantum averages
+  const avgNow  = active.reduce((s, d) => s + (d.nowAttention  || 0), 0) / n;
+  const avgConv = active.reduce((s, d) => s + (d.qConvergence  || 0), 0) / n;
+  const avgQCoh = active.reduce((s, d) => s + (d.qCoherence    || 0), 0) / n;
 
   const rColor = rSwarm >= 0.92 ? '#00ff88' : rSwarm < 0.5 ? '#ff3300' : '#00aaff';
   const jColor = jDrift > 1.0 ? '#ff4400' : jDrift > 0.5 ? '#ffaa00' : '#00aaff';
@@ -130,8 +135,57 @@ export default function SwarmVitals({ swarm }) {
       <BarMeter label="⚡ Mean Energy"            value={avgEng} min={0.2} max={2.0} color={eColor} warn={avgEng < 0.6} />
       <BarMeter label="🧠 Brain Output (mean)"   value={avgOut} min={0} max={1.0} color="#aa44ff" />
 
+      {/* ── Quantum Layer ─────────────────────────────────────────────────────── */}
+      <div style={{ ...s.title, marginTop: 4 }}>◈ Quantum Layer</div>
+      <BarMeter label="Q-Coherence (Convergence×Swarm)" value={avgQCoh} min={0} max={1} color="#33ccff" />
+      <BarMeter label="Convergence (4-Channel Alignment)" value={avgConv} min={0} max={1} color="#aa88ff" />
+      <BarMeter label="Now-Attention (Present Focus)"    value={avgNow}  min={0} max={1} color="#ffdd44" />
+
+      {/* Per-drone 4-channel quantum bars */}
+      <div style={s.section}>Per-drone Quantum Channels (α β γ δ)</div>
+      <div style={s.droneGrid}>
+        {drones.map(d => {
+          const alpha = d.qAlpha   || 0.5;
+          const beta  = d.qBeta    || 0.5;
+          const gamma = d.qGamma   || 0.5;
+          const delta = d.qDelta   || 0.5;
+          const total = alpha + beta + gamma + delta + 0.001;
+          const conv  = d.qConvergence || 0;
+          // Convergence tint: high = violet, low = dim
+          const convBorder = conv > 0.7 ? '#aa55ff' : conv > 0.4 ? '#443366' : '#1a3a5c';
+          return (
+            <div
+              key={d.id}
+              style={{
+                ...s.droneCell('neutral', d.sacrificed),
+                border: `1px solid ${convBorder}`,
+                flexDirection: 'column',
+                padding: 1,
+                overflow: 'hidden',
+              }}
+              title={`D${d.id} α=${alpha.toFixed(2)} β=${beta.toFixed(2)} γ=${gamma.toFixed(2)} δ=${delta.toFixed(2)} Conv=${conv.toFixed(2)} Now=${(d.nowAttention||0).toFixed(2)}`}
+            >
+              <div style={{ fontSize: 6, color: '#8ae', marginBottom: 1 }}>{d.id}</div>
+              {/* 4-channel proportional bar */}
+              <div style={{ display: 'flex', width: '100%', height: 3, borderRadius: 1, overflow: 'hidden' }}>
+                <div style={{ flex: alpha / total, background: '#33ccff' }} />
+                <div style={{ flex: beta  / total, background: '#aa88ff' }} />
+                <div style={{ flex: gamma / total, background: '#44dd88' }} />
+                <div style={{ flex: delta / total, background: '#ffaa33' }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {/* Quantum channel legend */}
+      <div style={{ ...s.section, display: 'flex', gap: 6, marginTop: 2 }}>
+        {[['α Spatial', '#33ccff'], ['β Memory', '#aa88ff'], ['γ Relational', '#44dd88'], ['δ Action', '#ffaa33']].map(([lbl, col]) => (
+          <span key={lbl} style={{ color: col, fontSize: 10 }}>■ {lbl}</span>
+        ))}
+      </div>
+
       {/* Swarm neurochemical legend */}
-      <div style={{ ...s.section, display: 'flex', gap: 8, marginTop: 2 }}>
+      <div style={{ ...s.section, display: 'flex', gap: 8, marginTop: 4 }}>
         {Object.entries(CHEM_COLORS).map(([k, c]) => (
           <span key={k} style={{ color: c, fontSize: 8 }}>
             ■ {k.slice(0, 3).toUpperCase()} {({ dopamine: avgDop, cortisol: avgCor, norepinephrine: avgNor, oxytocin: avgOxy })[k].toFixed(2)}
