@@ -15,7 +15,7 @@ import Time      "mo:base/Time";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // MODULE IMPORTS — CORE COGNITIVE ENGINES
-// 70+ modules implementing the full NOVA cognitive architecture
+// 71 modules implementing the full NOVA cognitive architecture
 // Each module is a self-contained mathematical system
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -58,12 +58,13 @@ import SimulatedWorld        "./modules/SimulatedWorld";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // MODULE IMPORTS — DEFENSE & SECURITY
-// Sovereign protection and autonomous defense systems
+// Sovereign protection, autonomous defense, and quantum-native encryption
 // ═══════════════════════════════════════════════════════════════════════════
 
-import MedinaDefenseSystem   "./modules/MedinaDefenseSystem";
-import AEGIS                 "./modules/AEGIS";
-import PrincipalLock         "./modules/PrincipalLock";
+import MedinaDefenseSystem        "./modules/MedinaDefenseSystem";
+import AEGIS                      "./modules/AEGIS";
+import PrincipalLock              "./modules/PrincipalLock";
+import QuantumCovenantEncryption  "./modules/QuantumCovenantEncryption";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // MODULE IMPORTS — SPECIALIZED SYSTEMS
@@ -230,6 +231,10 @@ actor SwarmBrain {
   stable var sovereignSeal            : Text      = ""; // immutable after genesis
   stable var genesisTimestamp         : Int       = 0;
   stable var genesisBeat              : Nat       = 0;
+
+  // ─── QUANTUM COVENANT ENCRYPTION STATE ──────────────────────────────────────
+  // QCE: Quantum-native encryption using ENTANGLA matrix eigenvalues
+  var qceState : QuantumCovenantEncryption.QCEState = QuantumCovenantEncryption.initQCEState();
 
   // ─── ACCESS CONTROL HELPERS ─────────────────────────────────────────────────
   func isAuthorized(caller : Principal) : Bool {
@@ -2233,5 +2238,67 @@ actor SwarmBrain {
   public query func getArchitectPrincipal()  : async Principal { architectPrincipal };
   public query func isGenesisClaimed()       : async Bool      { genesisLocked };
   public query func getGenesisTimestamp()    : async Int       { genesisTimestamp };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // QUANTUM COVENANT ENCRYPTION (QCE) PUBLIC INTERFACE
+  // Quantum-native encryption using ENTANGLA matrix eigenvalues
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Get QCE diagnostics (security status)
+  public query func getQCEDiagnostics() : async {
+    keyDerivable     : Bool;
+    currentCoherence : Float;
+    veritasLevel     : Float;
+    securityLevel    : Nat;
+    encryptionCount  : Nat;
+    decryptionCount  : Nat;
+    failedDecrypts   : Nat;
+    observerPresent  : Bool;
+    isLocked         : Bool;
+  } {
+    // Create mock shell states from current swarm coherence
+    let mockShells = Array.tabulate<QuantumCovenantEncryption.ShellState>(11, func(i) {
+      {
+        activation = rSwarm;
+        phase = Float.fromInt(i) * 0.57;
+        frequency = 5000.0 * Float.fromInt(i + 1);
+        coherence = rSwarm;
+      }
+    });
+    QuantumCovenantEncryption.diagnose(qceState, mockShells, rSwarm)
+  };
+
+  // Update observer state (Architect presence for measurement-based access control)
+  public shared(msg) func qceUpdateObserver(isPresent : Bool, strength : Float) : async () {
+    requireAuthorized(msg.caller);
+    let architectIsPresent = msg.caller == architectPrincipal and isPresent;
+    qceState := QuantumCovenantEncryption.updateObserver(
+      qceState,
+      architectIsPresent,
+      strength,
+      currentBeat
+    );
+  };
+
+  // Lock the QCE system (emergency lockdown)
+  public shared(msg) func qceLock() : async () {
+    requireAuthorized(msg.caller);
+    qceState := QuantumCovenantEncryption.lockQCE(qceState);
+  };
+
+  // Get encryption stats
+  public query func getQCEStats() : async {
+    encryptionCount : Nat;
+    decryptionCount : Nat;
+    failedDecrypts  : Nat;
+    isLocked        : Bool;
+  } {
+    {
+      encryptionCount = qceState.encryptionCount;
+      decryptionCount = qceState.decryptionCount;
+      failedDecrypts  = qceState.failedDecrypts;
+      isLocked        = qceState.isLocked;
+    }
+  };
 
 };
