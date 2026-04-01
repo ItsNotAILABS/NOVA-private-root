@@ -4,12 +4,14 @@
 // Kuramoto synchrony, Hebbian learning, Jasmine's Law, OMNIS emergence
 // are Medina Tech sovereign intellectual property.
 
-import Array "mo:base/Array";
-import Float "mo:base/Float";
-import Int "mo:base/Int";
-import Iter "mo:base/Iter";
-import Nat "mo:base/Nat";
-import Text "mo:base/Text";
+import Array     "mo:base/Array";
+import Float     "mo:base/Float";
+import Int       "mo:base/Int";
+import Iter      "mo:base/Iter";
+import Nat       "mo:base/Nat";
+import Principal "mo:base/Principal";
+import Text      "mo:base/Text";
+import Time      "mo:base/Time";
 
 actor SwarmBrain {
 
@@ -94,6 +96,39 @@ actor SwarmBrain {
   stable var prevJDrift             : Float = 0.0;
   stable var jRisingBeats           : Nat   = 0;
   stable var architectSignalLevel   : Float = 1.0;
+
+  // ─── SOVEREIGN SEAL — On-chain IP Attribution & Access Control ──────────────
+  // Attribution: Alfredo Medina Hernandez | Medina Tech | Dallas TX | 2026
+  // All mathematics, architecture, and doctrine within are sovereign IP.
+  //
+  // The architect calls claimArchitect() ONCE after deployment.
+  // This permanently binds the canister to the caller's ICP Principal.
+  // The sovereign seal is written into stable state and cannot be overwritten.
+  // The ICP blockchain itself enforces the lock — caller principals are
+  // cryptographically verified by the subnet; they cannot be spoofed.
+  //
+  // Post-genesis, only two principals may call write functions:
+  //   1. architectPrincipal   — the human owner (Alfredo Medina Hernandez)
+  //   2. trustedOrganismPrincipal — the registered swarm_organism canister
+  //      (set by the architect after deploying swarm_organism)
+  stable var architectPrincipal       : Principal = Principal.fromText("aaaaa-aa");
+  stable var trustedOrganismPrincipal : Principal = Principal.fromText("aaaaa-aa");
+  stable var genesisLocked            : Bool      = false;
+  stable var sovereignSeal            : Text      = ""; // immutable after genesis
+  stable var genesisTimestamp         : Int       = 0;
+  stable var genesisBeat              : Nat       = 0;
+
+  // ─── ACCESS CONTROL HELPERS ─────────────────────────────────────────────────
+  func isAuthorized(caller : Principal) : Bool {
+    // Pre-genesis: allow deployment setup
+    if (not genesisLocked) return true;
+    // Post-genesis: architect or registered organism canister only
+    caller == architectPrincipal or caller == trustedOrganismPrincipal
+  };
+
+  func requireAuthorized(caller : Principal) {
+    assert(isAuthorized(caller));
+  };
 
   // ─── HELPERS ────────────────────────────────────────────────────────────────
 
@@ -464,7 +499,8 @@ actor SwarmBrain {
 
   // ─── ADD DRONE ───────────────────────────────────────────────────────────────
 
-  public func addDrone(droneClass : DroneClass, omega : Float, posX : Float, posY : Float, posZ : Float) : async Nat {
+  public shared(msg) func addDrone(droneClass : DroneClass, omega : Float, posX : Float, posY : Float, posZ : Float) : async Nat {
+    requireAuthorized(msg.caller);
     let id = stableDroneCount;
     stableDroneCount += 1;
     ensureCapacity(stableDroneCount);
@@ -1055,7 +1091,11 @@ actor SwarmBrain {
   };
 
   // Main beat tick — advance simulation by one step
-  public func tick() : async { rSwarm : Float; jDrift : Float; beat : Nat } {
+  // ─── TICK CORE (private sync) ─────────────────────────────────────────────────
+  // All simulation phases extracted into a pure synchronous function.
+  // Both tick() and tickFull() call this directly — no self-await needed,
+  // which means no ICP inter-message overhead and no principal ambiguity.
+  func tickCore() : { rSwarm : Float; jDrift : Float; beat : Nat } {
     currentBeat += 1;
     let n = stableDroneCount;
     if (n == 0) return { rSwarm = 0.88; jDrift = 0.0; beat = currentBeat };
@@ -1094,7 +1134,6 @@ actor SwarmBrain {
     i := 0;
     while (i < n) {
       if (not stableSacrificed[i]) {
-        // Mean Hebbian weight to active neighbors (feeds oxytocin ODE)
         var hebbSum : Float = 0.0;
         var hebbCnt : Float = 0.0;
         var j = 0;
@@ -1111,7 +1150,7 @@ actor SwarmBrain {
       i += 1;
     };
 
-    // Phase 3c: 6-node brain forward pass with STDP (architectSignal = 1.0 stable default)
+    // Phase 3c: 6-node brain forward pass with STDP
     i := 0;
     while (i < n) {
       if (not stableSacrificed[i]) {
@@ -1135,10 +1174,10 @@ actor SwarmBrain {
       i += 1;
     };
 
-    // Phase 4: compute r_swarm
+    // Phase 4: compute r_swarm (Kuramoto order parameter)
     rSwarm := computeRSwarm();
 
-    // Phase 5: Jasmine's Law
+    // Phase 5: Jasmine's Law — 5-component Lyapunov V(x) = (1/2)||J||²
     prevJDrift := jDrift;
     jDrift := computeJDrift();
     if (jDrift > prevJDrift) {
@@ -1155,11 +1194,10 @@ actor SwarmBrain {
     factionResistance();
 
     // Phase 7: Signal = brain OUTPUT node activation × energy
-    // (replaces pure influence-based boost; embeds brain cognition in output)
     i := 0;
     while (i < n) {
       if (not stableSacrificed[i]) {
-        let outputAct = stableNodeActivations[i * BRAIN_NODES + 5]; // OUTPUT node
+        let outputAct = stableNodeActivations[i * BRAIN_NODES + 5];
         stableSignals[i]     := sf(outputAct * stableEnergy[i] * architectSignalLevel);
         stableActivations[i] := sf(outputAct * stableEnergy[i]);
       };
@@ -1167,6 +1205,13 @@ actor SwarmBrain {
     };
 
     { rSwarm = rSwarm; jDrift = jDrift; beat = currentBeat }
+  };
+
+  // Public tick — basic beat advance.
+  // Protected: only architect or trusted organism canister may call.
+  public shared(msg) func tick() : async { rSwarm : Float; jDrift : Float; beat : Nat } {
+    requireAuthorized(msg.caller);
+    tickCore()
   };
 
   // ─── QUERIES ─────────────────────────────────────────────────────────────────
@@ -1258,7 +1303,8 @@ actor SwarmBrain {
 
   // ─── DRONE POSITION UPDATE (from telemetry/MAVLink) ──────────────────────────
 
-  public func updatePosition(id : Nat, x : Float, y : Float, z : Float) : async () {
+  public shared(msg) func updatePosition(id : Nat, x : Float, y : Float, z : Float) : async () {
+    requireAuthorized(msg.caller);
     if (id >= stableDroneCount) return;
     stablePosX[id] := x;
     stablePosY[id] := y;
@@ -1268,7 +1314,8 @@ actor SwarmBrain {
   // ─── SACRIFICE DOCTRINE (Law 20) ─────────────────────────────────────────────
 
   // Execute sacrifice — only callable after HITL approval
-  public func executeSacrifice(id : Nat) : async Bool {
+  public shared(msg) func executeSacrifice(id : Nat) : async Bool {
+    requireAuthorized(msg.caller);
     if (id >= stableDroneCount) return false;
     if (stableSacrificed[id]) return false;
     let cortisol = stableNeuroChem[id * 4 + CORTISOL];
@@ -1311,7 +1358,8 @@ actor SwarmBrain {
   };
 
   // ─── ARCHITECT SIGNAL LEVEL ──────────────────────────────────────────────────
-  public func setArchitectSignalLevel(level : Float) : async () {
+  public shared(msg) func setArchitectSignalLevel(level : Float) : async () {
+    requireAuthorized(msg.caller);
     architectSignalLevel := Float.max(0.0, Float.min(2.0, level));
   };
 
@@ -1377,7 +1425,8 @@ actor SwarmBrain {
   // Broadcast a neurochemical delta to ALL active drones.
   // kind ∈ {"DOPAMINE","CORTISOL","NOREPINEPHRINE","OXYTOCIN"}
   // amount can be positive (boost) or negative (suppress, floored by sovereign floor)
-  public func broadcastNeurochemical(kind : Text; amount : Float) : async () {
+  public shared(msg) func broadcastNeurochemical(kind : Text; amount : Float) : async () {
+    requireAuthorized(msg.caller);
     var i = 0;
     while (i < stableDroneCount) {
       if (not stableSacrificed[i]) {
@@ -1405,7 +1454,8 @@ actor SwarmBrain {
   // Override the next-tick behavior of a specific drone.
   // Organism uses this when quorum, pheromone, or organ logic requires
   // a specific drone to act differently than its neurochemical state selects.
-  public func setDroneBehaviorOverride(id : Nat; beh : Text) : async () {
+  public shared(msg) func setDroneBehaviorOverride(id : Nat; beh : Text) : async () {
+    requireAuthorized(msg.caller);
     if (id >= stableDroneCount) return;
     ensureBehaviorCap(stableDroneCount);
     stableBehavior[id] := beh;
@@ -1990,29 +2040,85 @@ actor SwarmBrain {
     stableBehavior[id]
   };
 
-  // ─── TICK EXTENSION ──────────────────────────────────────────────────────────
-  // Behaviors, team management, and extended math are integrated into tick()
-  // via the new tickFull() method. The original tick() remains unchanged for
-  // backward compatibility; tickFull() calls tick() internals plus the new phases.
-  public func tickFull() : async { rSwarm : Float; jDrift : Float; beat : Nat; entropy : Float; isingM : Float } {
-    let base = await tick();
+  // ─── TICK FULL — Complete sovereign beat ──────────────────────────────────────
+  // Phases 1-7: core physics (via tickCore — no self-await, no principal issue)
+  // Phase 8:  behavior execution (9 behavior functions)
+  // Phase 9:  team AI — captain election + morale + oxytocin broadcast
+  // Phase 10: SACESI PD controller — synchrony error correction
+  // Phase 11: OMNIS 9-condition emergence check
+  // Phase 12: Frequency tier update (Silver/Gold/Platinum/Diamond)
+  //
+  // Protected: only architect or registered organism canister may call.
+  public shared(msg) func tickFull() : async {
+    rSwarm    : Float;
+    jDrift    : Float;
+    beat      : Nat;
+    entropy   : Float;
+    isingM    : Float;
+    tier      : Text;
+    omnis     : Bool;
+  } {
+    requireAuthorized(msg.caller);
+    let base = tickCore();
     // Phase 8: behavior execution
     ensureBehaviorCap(stableDroneCount);
     executeBehaviors();
     // Phase 9: team AI management
     electCaptains();
     updateTeamMorale();
+    // Phase 10: SACESI PD error correction
+    sacesiStep();
+    // Phase 11: OMNIS emergence event check
+    checkOMNIS();
+    // Phase 12: frequency tier
+    updateFrequencyTier();
     {
       rSwarm  = base.rSwarm;
       jDrift  = base.jDrift;
       beat    = base.beat;
       entropy = swarmEntropy();
       isingM  = isingConsensus();
+      tier    = frequencyTier;
+      omnis   = omnisFired and currentBeat < lastOMNISBeat + 500;
     }
   };
 
   // ─── PREUPGRADE / POSTUPGRADE ────────────────────────────────────────────────
   // Stable vars are persisted automatically by ICP runtime.
   // No migration needed for flat arrays.
+
+  // ─── SOVEREIGN GENESIS — one-time IP lock ────────────────────────────────────
+  // Call ONCE after deployment. Burns architect's principal into stable state.
+  // The ICP blockchain verifies msg.caller cryptographically — cannot be spoofed.
+  // After this call, all write functions require architect or organism principal.
+  public shared(msg) func claimArchitect() : async Text {
+    assert(not genesisLocked);
+    architectPrincipal := msg.caller;
+    genesisLocked      := true;
+    genesisTimestamp   := Time.now();
+    genesisBeat        := currentBeat;
+    sovereignSeal      :=
+      "NOVA:PARALLAX:MEDINA_TECH"
+      # ":Alfredo_Medina_Hernandez:Dallas_TX_2026"
+      # ":architect=" # Principal.toText(msg.caller)
+      # ":genesis_beat=" # Nat.toText(currentBeat)
+      # ":rSwarm_genesis=" # Float.toText(rSwarm)
+      # ":doctrine=Kuramoto+JasminesLaw+OMNIS+SACESI+Hebbian"
+      # ":ip_lock=SOVEREIGN_CANISTER_GENESIS"
+      # ":blockchain=ICP_IMMUTABLE";
+    sovereignSeal
+  };
+
+  // Register the organism canister so it can call tickFull() and directives.
+  // Only the architect may call this.
+  public shared(msg) func setTrustedOrganism(p : Principal) : async () {
+    requireAuthorized(msg.caller);
+    trustedOrganismPrincipal := p;
+  };
+
+  public query func getSovereignSeal()       : async Text      { sovereignSeal };
+  public query func getArchitectPrincipal()  : async Principal { architectPrincipal };
+  public query func isGenesisClaimed()       : async Bool      { genesisLocked };
+  public query func getGenesisTimestamp()    : async Int       { genesisTimestamp };
 
 };

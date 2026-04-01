@@ -19,13 +19,14 @@
 // external caller: tick brain → read state → run hive/ant/organs → push
 // directives back to brain.  The swarm lives.
 
-import Array "mo:base/Array";
-import Float "mo:base/Float";
-import Int   "mo:base/Int";
-import Nat   "mo:base/Nat";
-import Text  "mo:base/Text";
-import Time  "mo:base/Time";
-import Brain "canister:swarm_brain";
+import Array     "mo:base/Array";
+import Float     "mo:base/Float";
+import Int       "mo:base/Int";
+import Nat       "mo:base/Nat";
+import Principal "mo:base/Principal";
+import Text      "mo:base/Text";
+import Time      "mo:base/Time";
+import Brain     "canister:swarm_brain";
 
 actor SwarmOrganism {
 
