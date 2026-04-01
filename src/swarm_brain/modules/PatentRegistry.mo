@@ -1,12 +1,28 @@
-// ============================================================
-// NEUROEMERGENCE CORE — PATENT REGISTRY
-// Attorney-grade on-chain IP attribution
-// Auto-patent on novel events, coherence peaks, OMNIS events
-// Creator: Alfredo Medina Hernandez, Dallas TX, USA
-// All patents attributed to creator principal.
-// SACESI + FNV chain = court-replicable proof of authorship
-// Owner: Alfredo Medina Hernandez | MedinaSITech@outlook.com
-// ============================================================
+// ============================================================================
+// MEDINA TECH — CONFIDENTIAL & PROPRIETARY
+// ============================================================================
+// Module: PatentRegistry — On-Chain IP Attribution & Chain-of-Title
+// Classification: CONFIDENTIAL — ATTORNEY-CLIENT PRIVILEGED
+// 
+// Copyright © 2024-2026 Alfredo Medina Hernandez
+// Medina Tech | Dallas, Texas, USA
+// Contact: MedinaSITech@outlook.com
+//
+// NOTICE: This source code constitutes trade secret and proprietary 
+// information of Medina Tech. Unauthorized reproduction, distribution,
+// or disclosure is strictly prohibited. All rights reserved.
+//
+// PURPOSE:
+// Attorney-grade on-chain IP attribution with cryptographic chain-of-title.
+// Auto-patents novel events across ALL application domains (not just drones).
+// SACESI + FNV chain provides court-replicable proof of authorship.
+//
+// SCOPE OF IP (Domain-Agnostic):
+// This registry covers inventions applicable to ANY distributed intelligent
+// system including but not limited to: autonomous vehicles, robotics, smart
+// infrastructure, financial systems, telecommunications, blockchain consensus,
+// and artificial general intelligence architectures.
+// ============================================================================
 
 import Float  "mo:base/Float";
 import Int    "mo:base/Int";
@@ -227,6 +243,7 @@ module {
   // ── Event type names ──────────────────────────────────────────
   public func eventTypeName(t: Nat) : Text {
     switch (t) {
+      // Core Swarm Events (0-9)
       case 0 { "COHERENCE_PEAK" };
       case 1 { "OMNIS_EMERGENCE" };
       case 2 { "NOVEL_ARCHITECTURE" };
@@ -237,7 +254,84 @@ module {
       case 7 { "ANIMAL_KURAMOTO_PEAK" };
       case 8 { "SPHERE_COHERENCE_PEAK" };
       case 9 { "MANUAL_FILING" };
+      
+      // Domain-Agnostic IP Categories (10-29)
+      case 10 { "KURAMOTO_HEBBIAN_SYNC" };
+      case 11 { "JASMINE_LAW_EMERGENCE" };
+      case 12 { "NEUROCHEMICAL_ARCHITECTURE" };
+      case 13 { "BEHAVIORAL_ECONOMICS_AI" };
+      case 14 { "SOVEREIGN_TEMPORAL_GOVERNOR" };
+      case 15 { "MULTI_WORLD_MODEL" };
+      case 16 { "FORMA_TOKEN_ECONOMICS" };
+      case 17 { "HIERARCHICAL_MIND" };
+      case 18 { "OBSERVER_INDEPENDENT" };
+      case 19 { "BIOMIMETIC_FRAMEWORK" };
+      case 20 { "SPHERICAL_LAW_APPLICATION" };
+      case 21 { "MISSING_LINK_EVOLUTION" };
+      case 22 { "VALUE_ALIGNMENT_SYSTEM" };
+      case 23 { "ANTIFRAGILE_GROWTH" };
+      case 24 { "ATTRACTOR_BASIN_NAVIGATION" };
+      
+      // Application Domain Categories (30-49)
+      case 30 { "AUTONOMOUS_VEHICLE_APPLICATION" };
+      case 31 { "SMART_CITY_APPLICATION" };
+      case 32 { "HEALTHCARE_AI_APPLICATION" };
+      case 33 { "FINANCIAL_TRADING_APPLICATION" };
+      case 34 { "DEFENSE_MILITARY_APPLICATION" };
+      case 35 { "SPACE_SYSTEMS_APPLICATION" };
+      case 36 { "MANUFACTURING_APPLICATION" };
+      case 37 { "BLOCKCHAIN_CONSENSUS_APPLICATION" };
+      case 38 { "TELECOMMUNICATIONS_APPLICATION" };
+      case 39 { "AGRICULTURE_APPLICATION" };
+      
       case _ { "UNKNOWN" };
+    }
+  };
+
+  // ==========================================================================
+  // EXPANDED PATENT CATEGORY SYSTEM
+  // ==========================================================================
+  // Domain-agnostic IP registration for ALL distributed intelligence applications
+  
+  public type PatentCategory = {
+    #CoreSwarmEvent;
+    #FoundationalAlgorithm;
+    #CognitiveArchitecture;
+    #EconomicMechanism;
+    #ApplicationDomain;
+    #MathematicalLaw;
+  };
+
+  public type ExpandedPatent = {
+    basePatent    : Patent;
+    category      : PatentCategory;
+    domainScope   : [Text];        // Applicable domains
+    claimSummary  : Text;          // Brief claim description
+    priorArtDiff  : Text;          // How this differs from prior art
+    applicationNotes : Text;       // Specific application guidance
+  };
+
+  public func categorizePatent(eventType: Nat) : PatentCategory {
+    if (eventType < 10) { return #CoreSwarmEvent };
+    if (eventType < 20) { return #FoundationalAlgorithm };
+    if (eventType < 25) { return #MathematicalLaw };
+    if (eventType < 30) { return #CognitiveArchitecture };
+    #ApplicationDomain
+  };
+
+  public func getDomainScope(eventType: Nat) : [Text] {
+    switch (eventType) {
+      case 10 { ["Autonomous Vehicles", "Robotics", "Smart Infrastructure", "Blockchain", "Telecommunications"] };
+      case 11 { ["All AI Systems", "Swarm Robotics", "Neural Networks", "Organizational Behavior"] };
+      case 12 { ["All AI/Robotics", "Healthcare AI", "Psychology Simulation", "Game AI"] };
+      case 13 { ["Finance AI", "Trading Systems", "Consumer AI", "Game AI", "Decision Support"] };
+      case 14 { ["Real-Time Systems", "Trading", "Defense", "Autonomous Driving"] };
+      case 15 { ["All Predictive AI", "Planning Systems", "Simulation", "Robotics"] };
+      case 16 { ["Web3/Blockchain", "DAOs", "Tokenized Coordination", "Incentive Design"] };
+      case 17 { ["Distributed AI", "Swarm Systems", "Multi-Agent Systems", "Edge Computing"] };
+      case 18 { ["Defense", "Space", "Deep-Sea", "Remote Operations", "Contested Environments"] };
+      case 19 { ["All Robotics", "AI", "Sensing Systems", "Biomimetic Engineering"] };
+      case _ { ["General Distributed Intelligence"] };
     }
   };
 

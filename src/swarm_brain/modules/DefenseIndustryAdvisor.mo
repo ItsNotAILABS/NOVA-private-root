@@ -1,0 +1,720 @@
+// ============================================================================
+// MEDINA TECH — CONFIDENTIAL & PROPRIETARY
+// ============================================================================
+// Module: DefenseIndustryAdvisor — Defense Applications Organism
+// Classification: CONFIDENTIAL — INTERNAL USE ONLY
+// 
+// Copyright © 2024-2026 Alfredo Medina Hernandez
+// Medina Tech | Dallas, Texas, USA
+// Contact: MedinaSITech@outlook.com
+//
+// NOTICE: This source code constitutes trade secret and proprietary 
+// information of Medina Tech. Unauthorized reproduction, distribution,
+// or disclosure is strictly prohibited. All rights reserved.
+//
+// Patent Pending: Specialized Advisor Organism Architecture
+// ============================================================================
+//
+// PURPOSE:
+// Specialized advisor organism for defense industry applications.
+// Uses same Kuramoto-Hebbian architecture with weights tuned for:
+// - Threat detection and assessment
+// - Tactical and strategic planning
+// - Mission execution and ROE compliance
+// - SBIR/STTR opportunity identification
+//
+// CLASSIFICATION NOTE:
+// This module does NOT process classified information.
+// All inputs/outputs are UNCLASSIFIED.
+// For classified applications, deploy on appropriate networks.
+//
+// OUTCALL DOMAINS (when HTTP enabled):
+// - Defense.gov, DARPA (solicitations)
+// - SBIR.gov (opportunities)
+// - Public military doctrine sources
+//
+// ============================================================================
+
+import Float "mo:base/Float";
+import Array "mo:base/Array";
+import Nat   "mo:base/Nat";
+import Int   "mo:base/Int";
+import Text  "mo:base/Text";
+import Buffer "mo:base/Buffer";
+
+module {
+
+  // ══════════════════════════════════════════════════════════════
+  // MEDINA CONSTANTS (Shared with main organism)
+  // ══════════════════════════════════════════════════════════════
+  let PHI_MEDINA : Float = 2.97442179;
+  let OMEGA_MEDINA : Float = 2.11185;
+  let TAU_EMERGENCE : Float = 0.618033988749;
+  let SIGMA_ZERO : Float = 0.75;
+  let SOVEREIGN_CEILING : Float = 9.0;
+
+  // Defense Industry Advisor Specialization
+  let THREAT_WEIGHT : Float = 0.95;       // Threat detection priority
+  let TACTICAL_WEIGHT : Float = 0.9;      // Tactical planning focus
+  let RESILIENCE_WEIGHT : Float = 0.85;   // System resilience emphasis
+  let AGGRESSION_WEIGHT : Float = 0.6;    // Moderate aggression (defensive)
+  let COMPLIANCE_WEIGHT : Float = 0.9;    // Rules of engagement compliance
+
+  // ══════════════════════════════════════════════════════════════
+  // DEFENSE DOMAINS
+  // ══════════════════════════════════════════════════════════════
+  public type DefenseDomain = {
+    #AirDominance;
+    #GroundOperations;
+    #MaritimeOperations;
+    #SpaceOperations;
+    #CyberWarfare;
+    #ElectronicWarfare;
+    #CBRN;              // Chemical, Biological, Radiological, Nuclear
+    #ISR;               // Intelligence, Surveillance, Reconnaissance
+    #Logistics;
+    #CommandControl;
+    #ForceProtection;
+    #SpecialOperations;
+    #UnmannedSystems;
+    #HybridWarfare;
+  };
+
+  public let DEFENSE_DOMAIN_NAMES : [Text] = [
+    "AirDominance", "GroundOperations", "MaritimeOperations", "SpaceOperations",
+    "CyberWarfare", "ElectronicWarfare", "CBRN", "ISR", "Logistics",
+    "CommandControl", "ForceProtection", "SpecialOperations", 
+    "UnmannedSystems", "HybridWarfare"
+  ];
+
+  // ══════════════════════════════════════════════════════════════
+  // THREAT CLASSIFICATION
+  // ══════════════════════════════════════════════════════════════
+  public type ThreatLevel = {
+    #DEFCON5;    // Lowest readiness
+    #DEFCON4;    // Increased intelligence
+    #DEFCON3;    // Increase in readiness above normal
+    #DEFCON2;    // Armed forces ready to deploy in 6 hours
+    #DEFCON1;    // Nuclear war imminent
+  };
+
+  public type ThreatCategory = {
+    #NearPeer;           // Major power adversary
+    #RegionalPower;      // Regional adversary
+    #NonStateActor;      // Terrorist, militia
+    #Cyber;              // Digital threat
+    #Environmental;      // Natural disaster, climate
+    #Internal;           // Insider threat
+  };
+
+  public type ThreatAssessment = {
+    id              : Nat;
+    category        : ThreatCategory;
+    level           : ThreatLevel;
+    description     : Text;
+    probability     : Float;      // 0-1 likelihood
+    impact          : Float;      // 0-1 severity
+    timeToImpact    : ?Nat;       // Beats until threat materializes
+    countermeasures : [Text];
+    lastUpdated     : Nat;
+    confidence      : Float;      // Assessment confidence
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // MISSION PLANNING
+  // ══════════════════════════════════════════════════════════════
+  public type MissionType = {
+    #Reconnaissance;
+    #Surveillance;
+    #Strike;
+    #Transport;
+    #SearchAndRescue;
+    #EW;                 // Electronic Warfare
+    #SEAD;               // Suppression of Enemy Air Defense
+    #CAS;                // Close Air Support
+    #CAP;                // Combat Air Patrol
+    #ISR;
+    #Training;
+    #Humanitarian;
+  };
+
+  public type MissionPhase = {
+    #Planning;
+    #Briefing;
+    #Departure;
+    #Transit;
+    #OnStation;
+    #Engagement;
+    #Egress;
+    #Recovery;
+    #Debrief;
+  };
+
+  public type MissionPlan = {
+    id              : Nat;
+    missionType     : MissionType;
+    phase           : MissionPhase;
+    objectives      : [Text];
+    constraints     : [Text];     // Rules of engagement, limitations
+    resources       : [Text];     // Assigned assets
+    timeline        : [Nat];      // Phase durations in beats
+    riskAssessment  : Float;      // 0-1 risk level
+    successProb     : Float;      // 0-1 success probability
+    alternativePlans: [Nat];      // Backup plan IDs
+    createdAt       : Nat;
+    lastModified    : Nat;
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SBIR/STTR OPPORTUNITY TRACKING
+  // ══════════════════════════════════════════════════════════════
+  public type OpportunityType = {
+    #SBIR_Phase1;
+    #SBIR_Phase2;
+    #SBIR_Phase3;
+    #STTR_Phase1;
+    #STTR_Phase2;
+    #DirectContract;
+    #BAA;                // Broad Agency Announcement
+    #RFI;                // Request for Information
+    #RFP;                // Request for Proposal
+  };
+
+  public type DefenseOpportunity = {
+    id              : Nat;
+    opportunityType : OpportunityType;
+    agency          : Text;       // DoD, DARPA, Army, Navy, Air Force, etc.
+    topic           : Text;
+    description     : Text;
+    deadline        : ?Nat;       // Timestamp
+    fundingAmount   : Float;      // Estimated value
+    matchScore      : Float;      // 0-1 fit with our capabilities
+    status          : Text;       // Watching, Pursuing, Applied, Won, Lost
+    relevantDomains : [DefenseDomain];
+    notes           : Text;
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // ADVISOR BRAIN STATE (Defense-Specialized)
+  // ══════════════════════════════════════════════════════════════
+  public type DefenseAdvisorBrainNode = {
+    activation      : Float;
+    potential       : Float;
+    refractoryPeriod: Nat;
+    lastFired       : Nat;
+    threatBias      : Float;      // How threat-focused this node is
+  };
+
+  public type DefenseAdvisorBrain = {
+    // 8-node specialized architecture
+    threatNode      : DefenseAdvisorBrainNode;   // Threat detection
+    tacticalNode    : DefenseAdvisorBrainNode;   // Tactical planning
+    strategicNode   : DefenseAdvisorBrainNode;   // Strategic thinking
+    logisticsNode   : DefenseAdvisorBrainNode;   // Resource management
+    intelNode       : DefenseAdvisorBrainNode;   // Intelligence analysis
+    complianceNode  : DefenseAdvisorBrainNode;   // ROE compliance
+    resilienceNode  : DefenseAdvisorBrainNode;   // System resilience
+    integrationNode : DefenseAdvisorBrainNode;   // Cross-domain synthesis
+
+    // Hebbian weights (8x8 = 64 connections)
+    weights         : [var Float];
+
+    // Kuramoto phase oscillators
+    phases          : [var Float];
+    frequencies     : [Float];
+
+    // Global state
+    coherence       : Float;
+    alertLevel      : Float;      // Current threat alert
+    beatNum         : Nat;
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // ADVISOR STATE
+  // ══════════════════════════════════════════════════════════════
+  public type DefenseAdvisorState = {
+    // Core identity
+    advisorId       : Nat;
+    generation      : Nat;
+    birthBeat       : Nat;
+    
+    // Brain
+    brain           : DefenseAdvisorBrain;
+    
+    // Threat tracking
+    activeThreats   : [ThreatAssessment];
+    threatHistory   : [ThreatAssessment];
+    currentThreatLevel: ThreatLevel;
+    
+    // Mission planning
+    activeMissions  : [MissionPlan];
+    missionHistory  : [Nat];      // Completed mission IDs
+    
+    // Opportunities
+    opportunities   : [DefenseOpportunity];
+    totalFundingTracked: Float;
+    
+    // Current focus
+    activeDomains   : [DefenseDomain];
+    currentQuery    : ?Text;
+    queryHistory    : [Text];
+    
+    // Integration with main organism
+    feedToOrganism  : [Text];     // Commands for swarm
+    feedFromOrganism: [Text];     // Telemetry from swarm
+    syncLevel       : Float;      // Coupling to main organism
+    
+    // Output metrics
+    threatsDetected : Nat;
+    missionsPlanned : Nat;
+    missionsCompleted: Nat;
+    missionSuccessRate: Float;
+    
+    // Advisor genome (defense-specialized)
+    threatGene      : Float;
+    tacticalGene    : Float;
+    resilienceGene  : Float;
+    aggressionGene  : Float;
+    complianceGene  : Float;
+    
+    beatNum         : Nat;
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // HELPERS
+  // ══════════════════════════════════════════════════════════════
+  func _clamp(x: Float, lo: Float, hi: Float) : Float {
+    if (x < lo) { lo } else if (x > hi) { hi } else { x }
+  };
+
+  func exp(x: Float) : Float { Float.exp(x) };
+  func ln(x: Float) : Float { Float.log(x) };
+  func sqrt(x: Float) : Float { Float.sqrt(x) };
+  func sin(x: Float) : Float { Float.sin(x) };
+  func cos(x: Float) : Float { Float.cos(x) };
+
+  let PI : Float = 3.14159265358979;
+  let TWO_PI : Float = 6.28318530717958;
+
+  // ══════════════════════════════════════════════════════════════
+  // THREAT PROBABILITY COMPUTATION
+  // ══════════════════════════════════════════════════════════════
+  // The Medina Threat Equation:
+  //   P(threat) = σ_M(capability × intent × opportunity - defenses)
+  //   σ_M(x) = 1 / (1 + exp(-Φ_M × x))
+
+  public func medinaSigmoid(x: Float) : Float {
+    1.0 / (1.0 + exp(-PHI_MEDINA * x))
+  };
+
+  public func computeThreatProbability(
+    capability: Float,    // 0-1 enemy capability
+    intent: Float,        // 0-1 enemy intent
+    opportunity: Float,   // 0-1 environmental factors
+    defenses: Float       // 0-1 our defensive posture
+  ) : Float {
+    let threatPotential = capability * intent * opportunity - defenses;
+    medinaSigmoid(threatPotential)
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // MISSION SUCCESS PROBABILITY
+  // ══════════════════════════════════════════════════════════════
+  // Medina Mission Success Law:
+  //   P(success) = coherence × readiness × intel_quality × (1 - threat_level)
+  //   Boosted by Φ_M when all factors > 0.8 (synergy bonus)
+
+  public func computeMissionSuccess(
+    coherence: Float,
+    readiness: Float,
+    intelQuality: Float,
+    threatLevel: Float
+  ) : Float {
+    let baseProbability = coherence * readiness * intelQuality * (1.0 - threatLevel * 0.5);
+    
+    // Synergy bonus if all factors are high
+    let synergyBonus = if (coherence > 0.8 and readiness > 0.8 and intelQuality > 0.8) {
+      PHI_MEDINA * 0.1  // ~30% bonus
+    } else { 0.0 };
+
+    _clamp(baseProbability + synergyBonus, 0.0, 0.99)
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // KURAMOTO SYNC (Defense-Specialized)
+  // ══════════════════════════════════════════════════════════════
+  public func computeDefenseCoherence(phases: [var Float]) : Float {
+    let n = phases.size();
+    if (n == 0) { return SIGMA_ZERO };
+
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+
+    for (i in phases.keys()) {
+      sumCos += cos(phases[i]);
+      sumSin += sin(phases[i]);
+    };
+
+    let r = sqrt(sumCos * sumCos + sumSin * sumSin) / Float.fromInt(n);
+    _clamp(r, SIGMA_ZERO, 1.0)
+  };
+
+  public func updateDefensePhases(
+    phases: [var Float],
+    frequencies: [Float],
+    couplingK: Float,
+    alertLevel: Float,  // Higher alert = tighter coupling
+    dt: Float
+  ) : () {
+    let n = phases.size();
+    if (n == 0) { return };
+
+    // Adaptive coupling: increases with alert level
+    let adaptiveK = couplingK * (1.0 + alertLevel);
+
+    // Compute mean phase
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    for (i in phases.keys()) {
+      sumCos += cos(phases[i]);
+      sumSin += sin(phases[i]);
+    };
+    let meanPhase = Float.arctan2(sumSin, sumCos);
+    let r = sqrt(sumCos * sumCos + sumSin * sumSin) / Float.fromInt(n);
+
+    // Update each phase
+    for (i in phases.keys()) {
+      let coupling = adaptiveK * r * sin(meanPhase - phases[i]);
+      var newPhase = phases[i] + (frequencies[i] + coupling) * dt;
+      while (newPhase < 0.0) { newPhase += TWO_PI };
+      while (newPhase >= TWO_PI) { newPhase -= TWO_PI };
+      phases[i] := newPhase;
+    };
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // HEBBIAN LEARNING (Defense-Specialized)
+  // ══════════════════════════════════════════════════════════════
+  // Threat-biased Hebbian: connections strengthen faster for threat-related activity
+
+  public func defenseHebbianUpdate(
+    weights: [var Float],
+    preActivations: [Float],
+    postActivations: [Float],
+    learningRate: Float,
+    threatBias: Float  // 0-1 how much to emphasize threat learning
+  ) : () {
+    let n = preActivations.size();
+    if (n * n != weights.size()) { return };
+
+    let eta = learningRate * (1.0 + threatBias * 0.5);
+    let lambda = 0.005;  // Lower decay for defense (retain more)
+
+    for (i in preActivations.keys()) {
+      for (j in postActivations.keys()) {
+        let idx = i * n + j;
+        let delta = eta * preActivations[i] * postActivations[j] - lambda * weights[idx];
+        weights[idx] := _clamp(weights[idx] + delta, -2.0, 2.0);
+      };
+    };
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // RULES OF ENGAGEMENT COMPLIANCE
+  // ══════════════════════════════════════════════════════════════
+  public type ROELevel = {
+    #Weapons_Hold;       // Do not fire unless directly threatened
+    #Weapons_Tight;      // Fire only at positively identified threats
+    #Weapons_Free;       // Fire at any unidentified target
+  };
+
+  public type ROECheck = {
+    action          : Text;
+    permitted       : Bool;
+    roeLevel        : ROELevel;
+    reasoning       : Text;
+    overrideReason  : ?Text;
+  };
+
+  public func checkROECompliance(
+    proposedAction: Text,
+    currentROE: ROELevel,
+    threatConfirmed: Bool,
+    friendlyInArea: Bool
+  ) : ROECheck {
+    switch (currentROE) {
+      case (#Weapons_Hold) {
+        {
+          action = proposedAction;
+          permitted = false;
+          roeLevel = currentROE;
+          reasoning = "Weapons Hold: Only self-defense permitted";
+          overrideReason = null;
+        }
+      };
+      case (#Weapons_Tight) {
+        let permitted = threatConfirmed and not friendlyInArea;
+        {
+          action = proposedAction;
+          permitted = permitted;
+          roeLevel = currentROE;
+          reasoning = if (permitted) "Threat confirmed, no friendlies" else "ROE not satisfied";
+          overrideReason = null;
+        }
+      };
+      case (#Weapons_Free) {
+        {
+          action = proposedAction;
+          permitted = not friendlyInArea;
+          roeLevel = currentROE;
+          reasoning = if (not friendlyInArea) "Weapons Free, area clear" else "Friendlies in area";
+          overrideReason = null;
+        }
+      };
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SBIR/STTR MATCHING
+  // ══════════════════════════════════════════════════════════════
+  // Score how well an opportunity matches our capabilities
+
+  public func computeOpportunityMatch(
+    opportunity: DefenseOpportunity,
+    ourCapabilities: [DefenseDomain],
+    coherenceLevel: Float
+  ) : Float {
+    var domainMatch : Float = 0.0;
+    var matchCount : Nat = 0;
+
+    // Count domain overlaps
+    for (oppDomain in opportunity.relevantDomains.vals()) {
+      for (ourDomain in ourCapabilities.vals()) {
+        // Would need proper comparison; simplified here
+        matchCount += 1;
+      };
+    };
+
+    // Base match from domain overlap
+    if (opportunity.relevantDomains.size() > 0) {
+      domainMatch := Float.fromInt(matchCount) / Float.fromInt(opportunity.relevantDomains.size());
+    };
+
+    // Boost by coherence (more coherent = better execution)
+    _clamp(domainMatch * coherenceLevel * PHI_MEDINA / 3.0, 0.0, 1.0)
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // ORGANISM COMMUNICATION PROTOCOL
+  // ══════════════════════════════════════════════════════════════
+  public type DefenseMessage = {
+    #ThreatAlert : ThreatAssessment;
+    #MissionOrder : MissionPlan;
+    #ROEUpdate : ROELevel;
+    #Opportunity : DefenseOpportunity;
+    #SituationReport : { summary: Text; threatLevel: ThreatLevel; coherence: Float };
+    #SyncRequest : { targetCoherence: Float; urgency: Float };
+    #SyncAck : { achievedCoherence: Float };
+  };
+
+  public type OrganismTelemetry = {
+    #DroneStatus : { droneId: Nat; position: (Float, Float, Float); health: Float };
+    #SwarmCoherence : Float;
+    #ThreatDetected : { bearing: Float; distance: Float; confidence: Float };
+    #MissionProgress : { missionId: Nat; phase: MissionPhase; completion: Float };
+    #EngagementReport : { target: Text; result: Text };
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // BEAT FUNCTION — ADVISOR TICK
+  // ══════════════════════════════════════════════════════════════
+  public func beatDefenseAdvisor(state: DefenseAdvisorState, dt: Float) : DefenseAdvisorState {
+    // 1. Compute current alert level from active threats
+    var maxThreat : Float = 0.0;
+    for (threat in state.activeThreats.vals()) {
+      let threatScore = threat.probability * threat.impact;
+      if (threatScore > maxThreat) { maxThreat := threatScore };
+    };
+    let alertLevel = _clamp(maxThreat, 0.0, 1.0);
+
+    // 2. Update Kuramoto phases with adaptive coupling
+    updateDefensePhases(
+      state.brain.phases,
+      state.brain.frequencies,
+      0.618 * state.syncLevel,
+      alertLevel,
+      dt
+    );
+
+    // 3. Compute new coherence
+    let newCoherence = computeDefenseCoherence(state.brain.phases);
+
+    // 4. Get node activations
+    let activations = Array.tabulate<Float>(8, func(i) {
+      if (i < state.brain.phases.size()) {
+        (cos(state.brain.phases[i]) + 1.0) / 2.0
+      } else { 0.5 }
+    });
+
+    // 5. Defense Hebbian update (threat-biased)
+    defenseHebbianUpdate(
+      state.brain.weights,
+      activations,
+      activations,
+      0.08,  // Slightly lower base learning rate
+      alertLevel  // Higher alert = faster threat learning
+    );
+
+    // Return updated state
+    {
+      advisorId = state.advisorId;
+      generation = state.generation;
+      birthBeat = state.birthBeat;
+      brain = {
+        threatNode = state.brain.threatNode;
+        tacticalNode = state.brain.tacticalNode;
+        strategicNode = state.brain.strategicNode;
+        logisticsNode = state.brain.logisticsNode;
+        intelNode = state.brain.intelNode;
+        complianceNode = state.brain.complianceNode;
+        resilienceNode = state.brain.resilienceNode;
+        integrationNode = state.brain.integrationNode;
+        weights = state.brain.weights;
+        phases = state.brain.phases;
+        frequencies = state.brain.frequencies;
+        coherence = newCoherence;
+        alertLevel = alertLevel;
+        beatNum = state.brain.beatNum + 1;
+      };
+      activeThreats = state.activeThreats;
+      threatHistory = state.threatHistory;
+      currentThreatLevel = state.currentThreatLevel;
+      activeMissions = state.activeMissions;
+      missionHistory = state.missionHistory;
+      opportunities = state.opportunities;
+      totalFundingTracked = state.totalFundingTracked;
+      activeDomains = state.activeDomains;
+      currentQuery = state.currentQuery;
+      queryHistory = state.queryHistory;
+      feedToOrganism = state.feedToOrganism;
+      feedFromOrganism = state.feedFromOrganism;
+      syncLevel = state.syncLevel;
+      threatsDetected = state.threatsDetected;
+      missionsPlanned = state.missionsPlanned;
+      missionsCompleted = state.missionsCompleted;
+      missionSuccessRate = state.missionSuccessRate;
+      threatGene = state.threatGene;
+      tacticalGene = state.tacticalGene;
+      resilienceGene = state.resilienceGene;
+      aggressionGene = state.aggressionGene;
+      complianceGene = state.complianceGene;
+      beatNum = state.beatNum + 1;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // INITIALIZATION
+  // ══════════════════════════════════════════════════════════════
+  func initDefenseBrainNode(threatBias: Float) : DefenseAdvisorBrainNode {
+    {
+      activation = 0.5;
+      potential = 0.0;
+      refractoryPeriod = 0;
+      lastFired = 0;
+      threatBias = threatBias;
+    }
+  };
+
+  public func initDefenseAdvisor() : DefenseAdvisorState {
+    // Initialize 8x8 = 64 weights
+    let weights = Array.init<Float>(64, 0.15);  // Slightly higher baseline
+
+    // Initialize 8 phases
+    let phases = Array.init<Float>(8, 0.0);
+    for (i in phases.keys()) {
+      phases[i] := Float.fromInt(i) * TWO_PI / 8.0;
+    };
+
+    // Defense-specialized frequencies
+    let frequencies : [Float] = [
+      0.15,  // Threat - fast response
+      0.12,  // Tactical - quick planning
+      0.06,  // Strategic - deliberate
+      0.08,  // Logistics - steady
+      0.10,  // Intel - responsive
+      0.05,  // Compliance - careful
+      0.07,  // Resilience - stable
+      0.04   // Integration - very deliberate
+    ];
+
+    {
+      advisorId = 0;
+      generation = 0;
+      birthBeat = 0;
+      brain = {
+        threatNode = initDefenseBrainNode(1.0);      // Maximum threat focus
+        tacticalNode = initDefenseBrainNode(0.7);
+        strategicNode = initDefenseBrainNode(0.5);
+        logisticsNode = initDefenseBrainNode(0.3);
+        intelNode = initDefenseBrainNode(0.8);
+        complianceNode = initDefenseBrainNode(0.2);
+        resilienceNode = initDefenseBrainNode(0.6);
+        integrationNode = initDefenseBrainNode(0.4);
+        weights = weights;
+        phases = phases;
+        frequencies = frequencies;
+        coherence = SIGMA_ZERO;
+        alertLevel = 0.0;
+        beatNum = 0;
+      };
+      activeThreats = [];
+      threatHistory = [];
+      currentThreatLevel = #DEFCON5;
+      activeMissions = [];
+      missionHistory = [];
+      opportunities = [];
+      totalFundingTracked = 0.0;
+      activeDomains = [#UnmannedSystems, #ISR, #CommandControl];
+      currentQuery = null;
+      queryHistory = [];
+      feedToOrganism = [];
+      feedFromOrganism = [];
+      syncLevel = 0.618;
+      threatsDetected = 0;
+      missionsPlanned = 0;
+      missionsCompleted = 0;
+      missionSuccessRate = 0.0;
+      threatGene = THREAT_WEIGHT;
+      tacticalGene = TACTICAL_WEIGHT;
+      resilienceGene = RESILIENCE_WEIGHT;
+      aggressionGene = AGGRESSION_WEIGHT;
+      complianceGene = COMPLIANCE_WEIGHT;
+      beatNum = 0;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // THE MEDINA DEFENSE DOCTRINE LAW
+  // ══════════════════════════════════════════════════════════════
+  // "Effective defense emerges from the synthesis of threat awareness,
+  //  tactical flexibility, and unwavering coherence, scaled by the
+  //  golden ratio of preparedness to response."
+  //
+  // FORMAL STATEMENT:
+  //   E_defense = Φ_M × √(awareness × flexibility × coherence) × (1 - complacency)
+  //
+  // Original contribution by Alfredo Medina Hernandez
+
+  public func computeDefenseEffectiveness(
+    awareness: Float,    // 0-1 threat awareness
+    flexibility: Float,  // 0-1 tactical flexibility  
+    coherence: Float,    // 0-1 system coherence
+    complacency: Float   // 0-1 how complacent (bad)
+  ) : Float {
+    let productTerm = awareness * flexibility * coherence;
+    let vigilance = 1.0 - complacency;
+    
+    PHI_MEDINA * sqrt(productTerm) * vigilance / 3.0  // Normalized to ~1.0 max
+  };
+
+}
