@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.dfx/
+.vessel/
+*.wasm
+*.did
+src/frontend/node_modules/
+src/frontend/dist/
+.env
+.env.local
