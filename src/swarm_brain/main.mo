@@ -977,6 +977,100 @@ actor SwarmBrain {
 
   public query func getArchitectSignalLevel() : async Float { architectSignalLevel };
 
+  // ─── EXTENDED SNAPSHOT (for organism / telemetry inter-canister calls) ───────
+  // Returns all drone state in one call: every neurochemical, energy, velocity,
+  // current behavior assignment, entropy, and Ising consensus.
+  public query func getExtendedSnapshot() : async {
+    droneCount     : Nat;
+    rSwarm         : Float;
+    jDrift         : Float;
+    beat           : Nat;
+    phases         : [Float];
+    signals        : [Float];
+    positionsX     : [Float];
+    positionsY     : [Float];
+    positionsZ     : [Float];
+    velX           : [Float];
+    velZ           : [Float];
+    cortisolLevels : [Float];
+    dopamines      : [Float];
+    norepines      : [Float];
+    oxytocins      : [Float];
+    energies       : [Float];
+    behaviors      : [Text];
+    sacrificed     : [Bool];
+    classes        : [Text];
+    entropy        : Float;
+    isingM         : Float;
+  } {
+    let n = stableDroneCount;
+    {
+      droneCount     = n;
+      rSwarm         = rSwarm;
+      jDrift         = jDrift;
+      beat           = currentBeat;
+      phases         = Array.tabulate<Float>(n, func(i) { stablePhases[i] });
+      signals        = Array.tabulate<Float>(n, func(i) { stableSignals[i] });
+      positionsX     = Array.tabulate<Float>(n, func(i) { stablePosX[i] });
+      positionsY     = Array.tabulate<Float>(n, func(i) { stablePosY[i] });
+      positionsZ     = Array.tabulate<Float>(n, func(i) { stablePosZ[i] });
+      velX           = Array.tabulate<Float>(n, func(i) { stableVelX[i] });
+      velZ           = Array.tabulate<Float>(n, func(i) { stableVelZ[i] });
+      cortisolLevels = Array.tabulate<Float>(n, func(i) { stableNeuroChem[i * 4 + CORTISOL] });
+      dopamines      = Array.tabulate<Float>(n, func(i) { stableNeuroChem[i * 4 + DOPAMINE] });
+      norepines      = Array.tabulate<Float>(n, func(i) { stableNeuroChem[i * 4 + NOREPINEPHRINE] });
+      oxytocins      = Array.tabulate<Float>(n, func(i) { stableNeuroChem[i * 4 + OXYTOCIN] });
+      energies       = Array.tabulate<Float>(n, func(i) { stableEnergy[i] });
+      behaviors      = Array.tabulate<Text>(n, func(i) {
+        if (stableBehavior.size() > i) stableBehavior[i] else "IDLE"
+      });
+      sacrificed     = Array.tabulate<Bool>(n, func(i) { stableSacrificed[i] });
+      classes        = Array.tabulate<Text>(n, func(i) { stableClasses[i] });
+      entropy        = swarmEntropy();
+      isingM         = isingConsensus();
+    }
+  };
+
+  // ─── ORGANISM-LEVEL DIRECTIVES ────────────────────────────────────────────────
+  // These are called by swarm_organism.masterTick() after computing organ outputs.
+
+  // Broadcast a neurochemical delta to ALL active drones.
+  // kind ∈ {"DOPAMINE","CORTISOL","NOREPINEPHRINE","OXYTOCIN"}
+  // amount can be positive (boost) or negative (suppress, floored by sovereign floor)
+  public func broadcastNeurochemical(kind : Text; amount : Float) : async () {
+    var i = 0;
+    while (i < stableDroneCount) {
+      if (not stableSacrificed[i]) {
+        let ncBase = i * 4;
+        switch kind {
+          case "DOPAMINE"       {
+            stableNeuroChem[ncBase + DOPAMINE]       :=
+              sf(stableNeuroChem[ncBase + DOPAMINE] + amount) };
+          case "CORTISOL"       {
+            stableNeuroChem[ncBase + CORTISOL]       :=
+              sf(stableNeuroChem[ncBase + CORTISOL] + amount) };
+          case "NOREPINEPHRINE" {
+            stableNeuroChem[ncBase + NOREPINEPHRINE] :=
+              sf(stableNeuroChem[ncBase + NOREPINEPHRINE] + amount) };
+          case "OXYTOCIN"       {
+            stableNeuroChem[ncBase + OXYTOCIN]       :=
+              sf(stableNeuroChem[ncBase + OXYTOCIN] + amount) };
+          case _                {};
+        };
+      };
+      i += 1;
+    };
+  };
+
+  // Override the next-tick behavior of a specific drone.
+  // Organism uses this when quorum, pheromone, or organ logic requires
+  // a specific drone to act differently than its neurochemical state selects.
+  public func setDroneBehaviorOverride(id : Nat; beh : Text) : async () {
+    if (id >= stableDroneCount) return;
+    ensureBehaviorCap(stableDroneCount);
+    stableBehavior[id] := beh;
+  };
+
   // ═══════════════════════════════════════════════════════════════════════════
   // ─── EXTENDED MATHEMATICS ──────────────────────────────────────────────────
   // ═══════════════════════════════════════════════════════════════════════════

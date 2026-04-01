@@ -13,6 +13,11 @@
 // INTERNAL AI TEAMS (organism-level) — 5 specialist organ systems:
 //   NERVOUS (routing), IMMUNE (defence), METABOLIC (energy), SENSORY
 //   (perception), REPRODUCTIVE (swarm growth).
+//
+// ICP HEARTBEAT — The organism is autonomous. system func heartbeat() fires
+// every ICP round (~2 s) and drives the full control loop without any
+// external caller: tick brain → read state → run hive/ant/organs → push
+// directives back to brain.  The swarm lives.
 
 import Array "mo:base/Array";
 import Float "mo:base/Float";
@@ -20,6 +25,7 @@ import Int   "mo:base/Int";
 import Nat   "mo:base/Nat";
 import Text  "mo:base/Text";
 import Time  "mo:base/Time";
+import Brain "canister:swarm_brain";
 
 actor SwarmOrganism {
 
@@ -118,19 +124,24 @@ actor SwarmOrganism {
     gz * GRID_W + gx
   };
 
-  // Drone harvests nectar at its position
-  public func harvestNectar(droneId : Nat, posX : Float, posZ : Float) : async Float {
+  // Private synchronous implementation — called internally from masterTick
+  // without async overhead (avoids self-call through message queue).
+  func harvestNectarImpl(droneId : Nat, posX : Float, posZ : Float) : Float {
     let cell = worldToCell(posX, posZ);
     let harvested = nectarGrid[cell] * 0.1; // harvest 10%
     nectarGrid[cell] := Float.max(0.0, nectarGrid[cell] - harvested);
     nectarHarvests[cell] += 1;
-    // Report waggle dance for this source
     if (droneId < MAX_DRONES) {
       waggleQuality[droneId] := harvested;
       waggleAngle[droneId]   := Float.fromInt(cell) * 0.01572; // angle from cell index
       waggleActive[droneId]  := true;
     };
     harvested
+  };
+
+  // Public async wrapper — external callers use this
+  public func harvestNectar(droneId : Nat, posX : Float, posZ : Float) : async Float {
+    harvestNectarImpl(droneId, posX, posZ)
   };
 
   // ─── Quorum Decision ─────────────────────────────────────────────────────────
