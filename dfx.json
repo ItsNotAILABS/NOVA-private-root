@@ -5,7 +5,8 @@
   "canisters": {
     "swarm_brain": {
       "type": "motoko",
-      "main": "src/swarm_brain/main.mo"
+      "main": "src/swarm_brain/main.mo",
+      "dependencies": ["swarm_quantum", "swarm_audit"]
     },
     "swarm_quantum": {
       "type": "motoko",

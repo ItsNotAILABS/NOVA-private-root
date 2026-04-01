@@ -16,3 +16,4 @@ canister_ids.json
 .ic-assets.json5
 *.pem
 identity.pem
+src/frontend/dist/

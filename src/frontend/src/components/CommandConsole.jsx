@@ -77,9 +77,9 @@ function timeLeft(deadline) {
 
 export default function CommandConsole({ swarm }) {
   const {
-    missionStatus, missionName, emergencyActive,
+    missionStatus, missionName, emergencyActive, commsLost,
     pendingActions, auditLog,
-    approve, deny, emergencyStop, startMission,
+    approve, deny, emergencyStop, startMission, heartbeat,
     architectSignal, setArchitectSignal,
   } = swarm;
 
@@ -135,6 +135,22 @@ export default function CommandConsole({ swarm }) {
           ⛔ EMERGENCY STOP
         </button>
         {emergencyActive && <span style={{ fontSize: 9, color: '#f44' }}>ACTIVE</span>}
+      </div>
+
+      {/* Comms heartbeat (Law 23: Observer Independence) */}
+      <div style={s.row}>
+        <button
+          style={s.btn('#001122', '#1a3a5c', '#44ccff')}
+          onClick={heartbeat}
+          title="Ping the swarm to keep comms alive (timeout: 60s)"
+        >
+          📡 HEARTBEAT
+        </button>
+        {commsLost && (
+          <span style={{ fontSize: 9, color: '#ffaa00', fontWeight: 'bold' }}>
+            ⚠ COMMS LOST — Swarm autonomous (Law 23)
+          </span>
+        )}
       </div>
 
       {/* HITL approvals */}

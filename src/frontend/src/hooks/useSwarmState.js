@@ -17,6 +17,10 @@ const DT           = 0.05;   // ODE integration step (beats)
 const CHAN_TAU      = 10.0;
 // Now-attention pull rate
 const NOW_RATE      = 0.05;
+// Law 24: Faction Resistance thresholds — mirrors swarm_brain constants
+const FACTION_DOMINANCE_THRESHOLD = 0.7;  // signal dominance ratio above which resistance fires
+const FACTION_NOR_MULTIPLIER      = 1.3;  // norepinephrine surge multiplier for non-dominant drones
+const FACTION_SIGNAL_MULTIPLIER   = 1.1;  // signal boost multiplier for non-dominant drones
 
 // ─── MATH PRIMITIVES ─────────────────────────────────────────────────────────
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
@@ -249,7 +253,27 @@ function boidsUpdate(drone, allDrones, rSwarm) {
   };
 }
 
-// ─── QUANTUM COGNITIVE STATE UPDATE ─────────────────────────────────────────
+// ─── FACTION RESISTANCE (Law 24) ─────────────────────────────────────────────
+// If one drone dominates signal output (> 70% of total), all other drones
+// receive an autonomy-pressure surge: NOR × 1.3 and signal × 1.1.
+// Mirrors swarm_brain factionResistance() exactly.
+function factionResistance(drones) {
+  const active = drones.filter(d => !d.sacrificed);
+  if (!active.length) return drones;
+  const totalSig = active.reduce((s, d) => s + d.signal, 0);
+  if (totalSig === 0) return drones;
+  const dominant = active.reduce((best, d) => d.signal > best.signal ? d : best, active[0]);
+  const dominance = dominant.signal / totalSig;
+  if (dominance <= FACTION_DOMINANCE_THRESHOLD) return drones;
+  return drones.map(d => {
+    if (d.sacrificed || d.id === dominant.id) return d;
+    return {
+      ...d,
+      norepinephrine: sf(d.norepinephrine * FACTION_NOR_MULTIPLIER),
+      signal: sf(d.signal * FACTION_SIGNAL_MULTIPLIER),
+    };
+  });
+}
 // Derives the Four 360-degree channel values from the 6-node brain activations.
 //   ALPHA (0): SENSOR node           — spatial / environmental awareness
 //   BETA  (1): MEMORY node           — temporal / past-state recall
@@ -328,11 +352,14 @@ export function useSwarmState() {
   const swarmWeights = useRef(
     Array.from({ length: MAX_DRONES }, () => Array(MAX_DRONES).fill(0.1))
   );
-  const jRisingRef = useRef(0);
-  const prevJRef   = useRef(0.0);
-  const beatRef    = useRef(0);
-  const nextReqId  = useRef(0);
-  const pendingRef = useRef([]);
+  const jRisingRef       = useRef(0);
+  const prevJRef         = useRef(0.0);
+  const beatRef          = useRef(0);
+  const nextReqId        = useRef(0);
+  const pendingRef       = useRef([]);
+  // Law 23: Observer Independence — comms-lost if no operator heartbeat for 60 s
+  const COMMS_TIMEOUT_MS = 60_000;
+  const lastHeartbeatRef = useRef(Date.now());
 
   const addLog = useCallback((kind, droneId, desc, r, j) => {
     setAuditLog(prev => {
@@ -399,6 +426,14 @@ export function useSwarmState() {
     addLog('MISSION_START', null, `Mission started: ${name}`, 0, 0);
   }, [emergencyActive, addLog]);
 
+  // Law 23: Observer Independence — operator pings to keep comms alive.
+  // Mission continues even if comms is lost (drones act autonomously),
+  // but the operator is warned that they can no longer issue commands.
+  const heartbeat = useCallback(() => {
+    lastHeartbeatRef.current = Date.now();
+    setCommsLost(false);
+  }, []);
+
   // ─── SIMULATION TICK ────────────────────────────────────────────────────────
   useEffect(() => {
     const interval = setInterval(() => {
@@ -408,6 +443,11 @@ export function useSwarmState() {
       const b = beatRef.current;
       setBeat(b);
 
+      // Law 23: Observer Independence — detect comms loss if no operator heartbeat
+      if (Date.now() - lastHeartbeatRef.current > COMMS_TIMEOUT_MS) {
+        setCommsLost(true);
+      }
+
       setDrones(prev => {
         // ── Step 1: Kuramoto phase update ────────────────────────────────────
         let next = prev.map(d => {
@@ -415,7 +455,7 @@ export function useSwarmState() {
           const active = prev.filter(o => !o.sacrificed && o.id !== d.id);
           const kuramotoSum = active.reduce((s, o) => s + Math.sin(o.phase - d.phase), 0);
           const dTheta = d.omega + (KURAMOTO_K / prev.length) * kuramotoSum;
-          return { ...d, phase: d.phase + dTheta * 0.05, lastBeat: b };
+          return { ...d, phase: d.phase + dTheta * 0.1, lastBeat: b }; // dt = 0.1 matches swarm_brain
         });
 
         // ── Step 2: Inter-drone Hebbian learning (swarm weights) ─────────────
@@ -513,6 +553,11 @@ export function useSwarmState() {
           addLog('JASMINE_CORRECT', null, `Jasmine fired r=${r.toFixed(3)} J=${jd.toFixed(3)}`, r, jd);
         }
 
+        // ── Step 5b: Faction Resistance (Law 24) ─────────────────────────────
+        // If one drone dominates signal (> 70%), other drones receive an
+        // autonomy-pressure surge — mirrors swarm_brain.factionResistance().
+        next = factionResistance(next);
+
         // ── Step 6: Sacrifice doctrine + OMNIS log ────────────────────────────
         next.forEach(d => {
           if (!d.sacrificed && d.cortisol > 1.5) {
@@ -583,5 +628,6 @@ export function useSwarmState() {
     startMission,
     setArchitectSignal,
     setMissionStatus,
+    heartbeat,
   };
 }
