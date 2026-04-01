@@ -584,73 +584,137 @@ actor SwarmBrain {
     Float.max(0.5, Float.min(1.0, r))
   };
 
-  // Jasmine's Law: swarm-level Lyapunov drift
+  // ─── JASMINE'S LAW — 5-Component Lyapunov Stability ─────────────────────────
+  // Named and attributed: Alfredo Medina Hernandez | Medina Tech | Dallas TX 2026
+  //
+  // Drift vector J(t) = [coherenceDrift, arousalDrift, frequencyDrift,
+  //                       weightDrift, chemicalDrift]
+  // Lyapunov function: V(x) = (1/2) × ||J(t)||²
+  //                         = (1/2) × (j1² + j2² + j3² + j4² + j5²)
+  //
+  // While V(x) is non-increasing, the organism is asymptotically stable.
+  // Each component is normalised by active drone count so V scales correctly.
+
+  // Stable storage for the 5 drift components (updated each tick for SACESI use)
+  stable var jasmineJ : [var Float] = Array.init<Float>(5, 0.0);
+  // j0 = coherenceDrift (Kuramoto phase variance)
+  // j1 = arousalDrift   (cortisol variance)
+  // j2 = frequencyDrift (omega variance)
+  // j3 = weightDrift    (mean Hebbian weight deviation from 1.0)
+  // j4 = chemicalDrift  (signal variance)
+
   func computeJDrift() : Float {
     let n = stableDroneCount;
     if (n == 0) return 0.0;
-    var j : Float = 0.0;
-    var i = 0;
-    // Component 1: formation integrity (phase variance from mean)
-    var meanPhase : Float = 0.0;
     var cnt : Float = 0.0;
+    var i = 0;
+
+    // Collect means over active drones
+    var meanPhase  : Float = 0.0;
+    var meanCort   : Float = 0.0;
+    var meanOmega  : Float = 0.0;
+    var meanSig    : Float = 0.0;
     while (i < n) {
       if (not stableSacrificed[i]) {
         meanPhase += stablePhases[i];
+        meanCort  += stableNeuroChem[i * 4 + CORTISOL];
+        meanOmega += stableOmegas[i];
+        meanSig   += stableSignals[i];
         cnt += 1.0;
       };
       i += 1;
     };
-    if (cnt > 0.0) meanPhase /= cnt;
+    if (cnt == 0.0) return 0.0;
+    meanPhase /= cnt; meanCort /= cnt;
+    meanOmega /= cnt; meanSig  /= cnt;
+
+    // j0: coherenceDrift — Kuramoto phase variance (formation integrity)
+    var j0 : Float = 0.0;
     i := 0;
     while (i < n) {
       if (not stableSacrificed[i]) {
         let d = stablePhases[i] - meanPhase;
-        j += 0.4 * d * d;
+        j0 += d * d;
       };
       i += 1;
     };
-    // Component 2: mission coherence (cortisol variance)
-    var meanCort : Float = 0.0;
-    i := 0;
-    while (i < n) {
-      if (not stableSacrificed[i]) {
-        meanCort += stableNeuroChem[i * 4 + CORTISOL];
-      };
-      i += 1;
-    };
-    if (cnt > 0.0) meanCort /= cnt;
+    j0 /= cnt;
+
+    // j1: arousalDrift — cortisol variance (stress distribution)
+    var j1 : Float = 0.0;
     i := 0;
     while (i < n) {
       if (not stableSacrificed[i]) {
         let d = stableNeuroChem[i * 4 + CORTISOL] - meanCort;
-        j += 0.3 * d * d;
+        j1 += d * d;
       };
       i += 1;
     };
-    // Component 3: communication health (signal variance)
-    var meanSig : Float = 0.0;
+    j1 /= cnt;
+
+    // j2: frequencyDrift — natural frequency variance (oscillator spread)
+    var j2 : Float = 0.0;
     i := 0;
     while (i < n) {
       if (not stableSacrificed[i]) {
-        meanSig += stableSignals[i];
+        let d = stableOmegas[i] - meanOmega;
+        j2 += d * d;
       };
       i += 1;
     };
-    if (cnt > 0.0) meanSig /= cnt;
+    j2 /= cnt;
+
+    // j3: weightDrift — mean deviation of Hebbian weights from SOVEREIGN_FLOOR
+    // A weight of exactly 1.0 is equilibrium; higher = over-consolidated
+    var j3 : Float = 0.0;
+    var wCnt : Float = 0.0;
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        var j2_ = 0;
+        while (j2_ < n) {
+          if (i != j2_ and not stableSacrificed[j2_]) {
+            let w = stableSwarmWeights[i * MAX_DRONES + j2_];
+            let d = w - SOVEREIGN_FLOOR;
+            j3 += d * d;
+            wCnt += 1.0;
+          };
+          j2_ += 1;
+        };
+      };
+      i += 1;
+    };
+    j3 := if (wCnt > 0.0) j3 / wCnt else 0.0;
+
+    // j4: chemicalDrift — signal amplitude variance (communication health)
+    var j4 : Float = 0.0;
     i := 0;
     while (i < n) {
       if (not stableSacrificed[i]) {
         let d = stableSignals[i] - meanSig;
-        j += 0.3 * d * d;
+        j4 += d * d;
       };
       i += 1;
     };
-    if (cnt > 0.0) j / cnt else 0.0
+    j4 /= cnt;
+
+    // Store drift vector for SACESI
+    jasmineJ[0] := j0; jasmineJ[1] := j1; jasmineJ[2] := j2;
+    jasmineJ[3] := j3; jasmineJ[4] := j4;
+
+    // V(x) = (1/2) × ||J||²
+    0.5 * (j0*j0 + j1*j1 + j2*j2 + j3*j3 + j4*j4)
   };
 
-  // Jasmine correction: pull drones back to coherence
+  // Jasmine correction: κ = −α × ∇V(x)  where α = 0.275 (silver anchor rate)
+  // ∇V(x)_k = J_k  (gradient of (1/2)||J||² w.r.t. J_k is J_k itself)
+  // Correction dispatches a per-component pull toward equilibrium manifold.
   func jasmineCorrect() {
+    let ALPHA : Float = 0.275; // silver anchor rate
     let n = stableDroneCount;
+    if (n == 0) return;
+
+    // Recompute means needed for directional corrections
     var meanPhase : Float = 0.0;
     var cnt : Float = 0.0;
     var i = 0;
@@ -661,17 +725,62 @@ actor SwarmBrain {
       };
       i += 1;
     };
-    if (cnt > 0.0) meanPhase /= cnt;
+    if (cnt == 0.0) return;
+    meanPhase /= cnt;
+
+    // κ for each component (magnitude scales with drift size × alpha)
+    let kappa0 = ALPHA * jasmineJ[0]; // phase correction
+    let kappa1 = ALPHA * jasmineJ[1]; // cortisol correction
+    let kappa2 = ALPHA * jasmineJ[2]; // frequency correction
+    // j3 (weight drift) corrected via Hebbian decay below
+    let kappa4 = ALPHA * jasmineJ[4]; // signal correction
+
     i := 0;
     while (i < n) {
       if (not stableSacrificed[i]) {
-        // Pull phase toward mean by 10%
-        stablePhases[i] := stablePhases[i] * 0.9 + meanPhase * 0.1;
-        // Boost oxytocin (cohesion signal)
         let ncBase = i * 4;
-        stableNeuroChem[ncBase + OXYTOCIN] := sf(stableNeuroChem[ncBase + OXYTOCIN] + 0.05);
-        // Reduce cortisol
-        stableNeuroChem[ncBase + CORTISOL] := sf(stableNeuroChem[ncBase + CORTISOL] - 0.03);
+
+        // Phase: pull toward mean (κ0 governs step size)
+        stablePhases[i] := stablePhases[i]
+          - kappa0 * (stablePhases[i] - meanPhase);
+
+        // Frequency: pull toward SOVEREIGN_FLOOR × 2π (2.75 Hz)
+        let omegaFloor : Float = 2.75 * 6.28318;
+        stableOmegas[i] := stableOmegas[i]
+          - kappa2 * (stableOmegas[i] - omegaFloor);
+
+        // Cortisol: suppress excess (κ1 governs step size)
+        let corExcess = Float.max(0.0, stableNeuroChem[ncBase + CORTISOL] - 1.0);
+        stableNeuroChem[ncBase + CORTISOL] :=
+          sf(stableNeuroChem[ncBase + CORTISOL] - kappa1 * corExcess);
+
+        // Oxytocin: bonding boost proportional to coherence deficit
+        stableNeuroChem[ncBase + OXYTOCIN] :=
+          sf(stableNeuroChem[ncBase + OXYTOCIN] + kappa0 * 0.3);
+
+        // Signal: gentle pull toward mean via κ4
+        stableSignals[i] := Float.max(SOVEREIGN_FLOOR,
+          stableSignals[i] - kappa4 * 0.1 * (stableSignals[i] - 1.0));
+      };
+      i += 1;
+    };
+
+    // j3 correction: decay over-consolidated Hebbian weights toward sovereign floor
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        var j = 0;
+        while (j < n) {
+          if (i != j and not stableSacrificed[j]) {
+            let idx = i * MAX_DRONES + j;
+            let w = stableSwarmWeights[idx];
+            if (w > SOVEREIGN_FLOOR) {
+              stableSwarmWeights[idx] := Float.max(SOVEREIGN_FLOOR,
+                w - ALPHA * 0.001 * jasmineJ[3] * (w - SOVEREIGN_FLOOR));
+            };
+          };
+          j += 1;
+        };
       };
       i += 1;
     };
@@ -712,6 +821,237 @@ actor SwarmBrain {
         i += 1;
       };
     };
+  };
+
+  // ─── SACESI — PD CONTROL LAYER (Behavioral Error Correction) ─────────────────
+  // SACESI = Sovereign Adaptive Correction Engine for Swarm Intelligence.
+  //
+  // Proportional-Derivative controller on synchrony error:
+  //   e(t)  = 1.0 − r_swarm          (desired synchrony = 1.0)
+  //   u(t)  = Kp_eff × e(t) + Kd × de/dt
+  //
+  //   Kp = 0.55  (proportional gain)
+  //   Kd = 0.275 (derivative gain = silver anchor)
+  //
+  //   HELIX_ALPHA modulation:
+  //     Kp_eff = Kp × (1 + HELIX_ALPHA × r_swarm)
+  //   — sensitivity increases as the swarm approaches coherence peak.
+  //
+  // Rolling 64-sample buffer stores e(t) history.
+  // de/dt = backward difference over the full window for stable estimate.
+  //
+  // Correction u(t) is injected into drone phases: push lagging phases forward,
+  // pull leading phases back, proportional to their deviation from mean phase.
+
+  stable var saceBuffer  : [var Float] = Array.init<Float>(64, 0.0); // rolling error
+  stable var saceHead    : Nat         = 0;                          // ring-buffer pointer
+  stable var saceU       : Float       = 0.0;                        // last control output
+
+  func sacesiStep() {
+    let KP : Float = 0.55;
+    let KD : Float = 0.275;
+    let BUF : Nat  = 64;
+
+    // Current error
+    let e = 1.0 - rSwarm;
+
+    // Write to ring buffer
+    saceBuffer[saceHead] := e;
+    saceHead := (saceHead + 1) % BUF;
+
+    // de/dt via backward difference across full window
+    // oldest sample is at saceHead (just overwritten → next slot is oldest)
+    let oldestIdx = saceHead % BUF;
+    let eOld = saceBuffer[oldestIdx];
+    let dedt = (e - eOld) / Float.fromInt(BUF);
+
+    // HELIX_ALPHA modulated proportional gain
+    let kpEff = KP * (1.0 + HELIX_ALPHA * rSwarm);
+
+    // Control output
+    let u = kpEff * e + KD * dedt;
+    saceU := u;
+
+    // Apply correction to drone phases: drones further from mean phase
+    // get a stronger correction nudge proportional to u.
+    let n = stableDroneCount;
+    if (n == 0) return;
+    var meanPhase : Float = 0.0;
+    var cnt : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        meanPhase += stablePhases[i];
+        cnt += 1.0;
+      };
+      i += 1;
+    };
+    if (cnt == 0.0) return;
+    meanPhase /= cnt;
+
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        let err = meanPhase - stablePhases[i]; // signed deviation
+        // Nudge phase toward mean, scaled by control output
+        stablePhases[i] := stablePhases[i] + u * err * 0.1;
+        // Dopamine boost when error is being corrected (reward for compliance)
+        if (Float.abs(err) < 0.1 and u > 0.0) {
+          let ncBase = i * 4;
+          stableNeuroChem[ncBase + DOPAMINE] :=
+            sf(stableNeuroChem[ncBase + DOPAMINE] + 0.01 * u);
+        };
+      };
+      i += 1;
+    };
+  };
+
+  public query func getSacesiOutput() : async Float { saceU };
+
+  // ─── FREQUENCY TIERS ─────────────────────────────────────────────────────────
+  // All frequency math anchors at 2.75 Hz (silver floor).
+  //   Silver   2.75 Hz  — baseline sovereign state
+  //   Gold     5.50 Hz  — r > 0.88, chemical coherence nominal
+  //   Platinum 8.25 Hz  — r > 0.91, OMNIS eligible
+  //   Diamond 11.649 Hz — OMNIS active event
+
+  stable var frequencyTier    : Text  = "SILVER";
+  stable var frequencyHz      : Float = 2.75;
+
+  func updateFrequencyTier() {
+    if (omnisFired and currentBeat < lastOMNISBeat + 500) {
+      frequencyTier := "DIAMOND";
+      frequencyHz   := 11.649;
+    } else if (rSwarm > 0.91) {
+      frequencyTier := "PLATINUM";
+      frequencyHz   := 8.25;
+    } else if (rSwarm > 0.88) {
+      frequencyTier := "GOLD";
+      frequencyHz   := 5.50;
+    } else {
+      frequencyTier := "SILVER";
+      frequencyHz   := 2.75;
+    };
+  };
+
+  public query func getFrequencyTier() : async { tier : Text; hz : Float } {
+    { tier = frequencyTier; hz = frequencyHz }
+  };
+
+  // ─── OMNIS — 9-Condition Emergence Event ─────────────────────────────────────
+  // OMNIS fires when 9 conditions are simultaneously true.
+  // On fire: frequency tier jumps to Diamond, dopamine surges swarm-wide,
+  //          OMNIS beat logged, and oxytocin broadcast halts grief propagation.
+  //
+  //  1. rSwarm > 0.92              (global synchrony)
+  //  2. V(x) < 0.05                (Jasmine drift near zero → stability)
+  //  3. stableDroneCount >= 5      (minimum population floor)
+  //  4. no single class dominates  (faction balance: no class > 70% of swarm)
+  //  5. currentBeat > lastOMNIS+500(cooldown enforced)
+  //  6. architectSignalLevel > 0.618 (architect active)
+  //  7. mean dopamine > 1.1        (chemical reward state)
+  //  8. mean oxytocin > 1.1        (social cohesion)
+  //  9. swarmEntropy() < 2.0       (metacognitive gate: low disorder)
+
+  stable var lastOMNISBeat  : Nat   = 0;
+  stable var omnisFired     : Bool  = false;
+  stable var omnisCount     : Nat   = 0;  // total OMNIS events in session
+
+  func checkOMNIS() {
+    let n = stableDroneCount;
+    if (n == 0) return;
+
+    // Condition 1: global synchrony
+    if (rSwarm <= 0.92) return;
+
+    // Condition 2: Lyapunov stability (V(x) already stored in jDrift)
+    if (jDrift >= 0.05) return;
+
+    // Condition 3: population floor
+    var activeDrones : Nat = 0;
+    var i = 0;
+    while (i < n) { if (not stableSacrificed[i]) activeDrones += 1; i += 1 };
+    if (activeDrones < 5) return;
+
+    // Condition 4: faction balance — count per class, none > 70%
+    var scoutC:Nat=0; var strikC:Nat=0; var guardC:Nat=0;
+    var relayC:Nat=0; var medicC:Nat=0; var sovC:Nat=0;
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        switch (stableClasses[i]) {
+          case "SCOUT"    { scoutC += 1 };
+          case "STRIKER"  { strikC += 1 };
+          case "GUARDIAN" { guardC += 1 };
+          case "RELAY"    { relayC += 1 };
+          case "MEDIC"    { medicC += 1 };
+          case "SOVEREIGN"{ sovC += 1 };
+          case _          {};
+        };
+      };
+      i += 1;
+    };
+    let threshold70 = activeDrones * 7 / 10;
+    if (scoutC > threshold70 or strikC > threshold70 or
+        guardC > threshold70 or relayC > threshold70 or
+        medicC > threshold70 or sovC > threshold70) return;
+
+    // Condition 5: cooldown
+    if (currentBeat <= lastOMNISBeat + 500) return;
+
+    // Condition 6: architect active
+    if (architectSignalLevel <= 0.618) return;
+
+    // Condition 7 & 8: chemical coherence
+    var meanDop : Float = 0.0; var meanOxy : Float = 0.0;
+    i := 0;
+    while (i < activeDrones and i < n) {
+      if (not stableSacrificed[i]) {
+        meanDop += stableNeuroChem[i * 4 + DOPAMINE];
+        meanOxy += stableNeuroChem[i * 4 + OXYTOCIN];
+      };
+      i += 1;
+    };
+    let af = Float.fromInt(activeDrones);
+    meanDop /= af; meanOxy /= af;
+    if (meanDop <= 1.1) return;
+    if (meanOxy <= 1.1) return;
+
+    // Condition 9: metacognitive gate (low entropy = focused swarm)
+    if (swarmEntropy() >= 2.0) return;
+
+    // ── ALL 9 CONDITIONS MET — OMNIS FIRES ──────────────────────────────────
+    lastOMNISBeat := currentBeat;
+    omnisFired    := true;
+    omnisCount    += 1;
+
+    // Frequency jumps to Diamond
+    frequencyTier := "DIAMOND";
+    frequencyHz   := 11.649;
+
+    // Swarm-wide dopamine surge (FORMA mint analogue: reward the whole collective)
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        let ncBase = i * 4;
+        stableNeuroChem[ncBase + DOPAMINE] :=
+          Float.min(2.75, stableNeuroChem[ncBase + DOPAMINE] * 2.75);
+        stableNeuroChem[ncBase + OXYTOCIN] :=
+          Float.min(2.75, stableNeuroChem[ncBase + OXYTOCIN] + 0.5);
+        // Suppress cortisol — grief halted for duration
+        stableNeuroChem[ncBase + CORTISOL] :=
+          Float.max(1.0, stableNeuroChem[ncBase + CORTISOL] * 0.5);
+      };
+      i += 1;
+    };
+  };
+
+  public query func getOmnisFired()  : async Bool  { omnisFired };
+  public query func getOmnisCount()  : async Nat   { omnisCount };
+  public query func getLastOMNISBeat(): async Nat   { lastOMNISBeat };
+
+  public query func getJasmineVector() : async [Float] {
+    [jasmineJ[0], jasmineJ[1], jasmineJ[2], jasmineJ[3], jasmineJ[4]]
   };
 
   // Main beat tick — advance simulation by one step
