@@ -232,6 +232,237 @@ function boidsUpdate(drone, allDrones, rSwarm) {
   };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── ORGANISM LAYER MATH ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const GRID_W     = 20;
+const GRID_CELLS = 400;
+
+// Convert world position (range [-100, 100]) to a flat 20×20 grid cell index
+function worldToCell(posX, posZ) {
+  const gx = Math.min(GRID_W - 1, Math.floor(Math.max(0, (posX + 100) / 200 * GRID_W)));
+  const gz = Math.min(GRID_W - 1, Math.floor(Math.max(0, (posZ + 100) / 200 * GRID_W)));
+  return gz * GRID_W + gx;
+}
+
+// Shannon entropy of swarm signal distribution
+function swarmEntropy(drones) {
+  const active = drones.filter(d => !d.sacrificed);
+  const total  = active.reduce((s, d) => s + d.signal, 0);
+  if (total < 1e-6) return 0;
+  return -active.reduce((h, d) => {
+    const p = d.signal / total;
+    return p > 1e-4 ? h + p * Math.log(p) : h;
+  }, 0);
+}
+
+// Ising mean-field consensus: m = tanh(J · m), J=1.2
+function isingConsensus(drones) {
+  const active = drones.filter(d => !d.sacrificed);
+  if (!active.length) return 0;
+  const m = active.reduce((s, d) => s + (d.dopamine > 1.1 ? 1 : -1), 0) / active.length;
+  return Math.tanh(1.2 * m);
+}
+
+// Assign behavior label from neurochemistry + class
+function getBehavior(drone) {
+  const { cls, cortisol, norepinephrine, dopamine, sacrificed } = drone;
+  if (sacrificed) return 'IDLE';
+  if (cortisol > 2.0) return 'RETREAT';
+  switch (cls) {
+    case 'SCOUT':    return norepinephrine > 1.4 ? 'FORAGE' : 'SCOUT';
+    case 'STRIKER':  return (norepinephrine > 1.3 && cortisol < 1.6) ? 'ENGAGE' : (cortisol < 1.3 ? 'AMBUSH' : 'RETREAT');
+    case 'GUARDIAN': return 'DEFEND';
+    case 'RELAY':    return 'RELAY';
+    case 'MEDIC':    return 'HEAL';
+    case 'SOVEREIGN':return dopamine > 1.3 ? 'FORM' : 'DEFEND';
+    default:         return 'SCOUT';
+  }
+}
+
+// Elect team captain per class (highest signal drone in each class)
+function electCaptains(drones) {
+  const teams = ['SCOUT','STRIKER','GUARDIAN','RELAY','MEDIC'];
+  const captains = {};
+  for (const team of teams) {
+    const members = drones.filter(d => !d.sacrificed && (d.cls === team || (team === 'SCOUT' && d.cls === 'SOVEREIGN')));
+    if (members.length) {
+      captains[team] = members.reduce((best, d) => d.signal > best.signal ? d : best, members[0]).id;
+    } else {
+      captains[team] = null;
+    }
+  }
+  return captains;
+}
+
+// Team morale = mean activation per class
+function teamMorale(drones) {
+  const teams = ['SCOUT','STRIKER','GUARDIAN','RELAY','MEDIC'];
+  const morale = {};
+  for (const team of teams) {
+    const members = drones.filter(d => !d.sacrificed && d.cls === team);
+    morale[team] = members.length
+      ? members.reduce((s, d) => s + d.activation, 0) / members.length
+      : 1.0;
+  }
+  return morale;
+}
+
+// ─── BEE HIVE MIND ────────────────────────────────────────────────────────────
+
+// Waggle dance: encode scout discovery as quality + angle vector
+function computeWaggle(drones) {
+  return drones.map(d => ({
+    id:      d.id,
+    quality: d.cls === 'SCOUT' || d.cls === 'SOVEREIGN' ? clamp(d.signal * d.energy - 1, 0, 1) : 0,
+    angle:   d.phase % (2 * Math.PI),
+    active:  (d.cls === 'SCOUT' || d.cls === 'SOVEREIGN') && d.signal > 1.2,
+  }));
+}
+
+// Queen pheromone: decays exponentially, boosted by SOVEREIGN drone signal
+function updateQueenPheromone(prev, drones) {
+  const sovereign = drones.find(d => d.cls === 'SOVEREIGN' && !d.sacrificed);
+  const boost = sovereign ? sovereign.signal * 0.05 : 0;
+  return clamp(prev * Math.exp(-0.05) + boost, 0.5, 2.0);
+}
+
+// Quorum sensing: count scouts waggling the same "site" (phase bucket)
+function quorumSensing(waggle, threshold = 3) {
+  const buckets = {};
+  waggle.filter(w => w.active).forEach(w => {
+    const bucket = Math.floor(w.angle / (Math.PI / 4)); // 8 buckets
+    buckets[bucket] = (buckets[bucket] || 0) + 1;
+  });
+  const best = Object.entries(buckets).sort((a, b) => b[1] - a[1])[0];
+  return best
+    ? { decided: best[1] >= threshold, direction: Number(best[0]) * (Math.PI / 4), votes: best[1] }
+    : { decided: false, direction: 0, votes: 0 };
+}
+
+// Nectar grid: 20×20 cells, replenish slowly, depleted by forage behavior
+function nectarStep(grid) {
+  return grid.map(v => Math.min(1.0, v + 0.005));
+}
+
+function harvestNectar(grid, drones) {
+  const newGrid = [...grid];
+  drones.filter(d => !d.sacrificed && getBehavior(d) === 'FORAGE').forEach(d => {
+    const c = worldToCell(d.posX, d.posZ);
+    newGrid[c] = Math.max(0, newGrid[c] - 0.05);
+  });
+  return newGrid;
+}
+
+// Comb role assignment based on class + waggle quality
+function assignCombRoles(drones, waggle) {
+  return drones.map(d => {
+    const w = waggle.find(x => x.id === d.id) || { quality: 0 };
+    switch (d.cls) {
+      case 'SOVEREIGN': return 'QUEEN_GUARD';
+      case 'SCOUT':     return w.quality > 0.3 ? 'FORAGER' : 'SCOUT';
+      case 'MEDIC':     return 'NURSE';
+      case 'GUARDIAN':  return 'DEFENDER';
+      case 'RELAY':     return 'BUILDER';
+      case 'STRIKER':   return d.signal > 1.3 ? 'FORAGER' : 'DEFENDER';
+      default:          return 'WORKER';
+    }
+  });
+}
+
+// ─── ANT MIND ─────────────────────────────────────────────────────────────────
+
+// Pheromone evaporation
+function pheromoneEvaporate(grid, rate = 0.05) {
+  return grid.map(v => Math.max(0, v * (1 - rate)));
+}
+
+// Deposit pheromone at drone positions (foragers + scouts deposit food trail)
+function pheromoneDeposit(grid, drones) {
+  const newGrid = [...grid];
+  drones.filter(d => !d.sacrificed && (getBehavior(d) === 'FORAGE' || getBehavior(d) === 'SCOUT')).forEach(d => {
+    const c = worldToCell(d.posX, d.posZ);
+    newGrid[c] = Math.min(5.0, newGrid[c] + 0.1 / Math.max(0.1, d.signal));
+  });
+  return newGrid;
+}
+
+// Danger pheromone: deposited by retreating/high-cortisol drones
+function dangerDeposit(grid, drones) {
+  const newGrid = [...grid];
+  drones.filter(d => !d.sacrificed && d.cortisol > 1.5).forEach(d => {
+    const c = worldToCell(d.posX, d.posZ);
+    newGrid[c] = Math.min(5.0, newGrid[c] + (d.cortisol - 1.5) * 0.2);
+  });
+  return newGrid;
+}
+
+// Threshold-model ant role assignment
+function antThresholdRole(drone, foodPher, dangerPher) {
+  const c      = worldToCell(drone.posX, drone.posZ);
+  const food   = foodPher[c]   || 0;
+  const danger = dangerPher[c] || 0;
+  const tasks  = [
+    { role: 'FORAGER',  stim: food },
+    { role: 'DEFENDER', stim: danger },
+    { role: 'RELAY',    stim: 0.5 },
+    { role: 'NURSE',    stim: drone.cortisol > 1.2 ? 0.8 : 0.2 },
+    { role: 'SCOUT',    stim: 1.0 / (drone.signal + 0.5) },
+  ];
+  const theta = 1.0;
+  const probs = tasks.map(t => (t.stim ** 2) / (t.stim ** 2 + theta ** 2 + 1e-6));
+  const best  = tasks[probs.indexOf(Math.max(...probs))];
+  return best.role;
+}
+
+// ─── ORGAN SYSTEMS ────────────────────────────────────────────────────────────
+
+function organNervous(drones) {
+  const active = drones.filter(d => !d.sacrificed);
+  if (!active.length) return { state: 'IDLE', output: 1.0 };
+  const mean = active.reduce((s, d) => s + d.signal, 0) / active.length;
+  const variance = active.reduce((s, d) => s + (d.signal - mean) ** 2, 0) / active.length;
+  const coherence = 1 / (1 + variance);
+  return { state: coherence > 0.7 ? 'ROUTING_OPTIMAL' : 'ROUTING_DEGRADED', output: coherence };
+}
+
+function organImmune(drones) {
+  const active = drones.filter(d => !d.sacrificed);
+  const anomalies = active.filter(d => d.cortisol > 2.0).length;
+  const fraction  = active.length ? anomalies / active.length : 0;
+  return {
+    state:    anomalies === 0 ? 'HEALTHY' : fraction < 0.2 ? 'MONITORING' : 'ALERT',
+    output:   fraction,
+    anomalies,
+  };
+}
+
+function organMetabolic(drones) {
+  const active = drones.filter(d => !d.sacrificed);
+  if (!active.length) return { state: 'IDLE', output: 1.0 };
+  const mean = active.reduce((s, d) => s + d.energy, 0) / active.length;
+  const minE = active.reduce((m, d) => Math.min(m, d.energy), Infinity);
+  return {
+    state: minE < 0.5 ? 'CRITICAL_ENERGY' : mean < 1.0 ? 'LOW_ENERGY' : 'ENERGY_OK',
+    output: mean,
+    minEnergy: minE,
+  };
+}
+
+function organSensory(waggle, nectarGrid) {
+  const wqs   = waggle.map(w => w.quality);
+  const meanQ = wqs.length ? wqs.reduce((s, q) => s + q, 0) / wqs.length : 0;
+  const topN  = nectarGrid.length ? Math.max(...nectarGrid) : 0;
+  const awareness = meanQ * 0.5 + topN * 0.5;
+  return { state: awareness > 0.6 ? 'HIGH_AWARENESS' : 'LOW_AWARENESS', output: awareness };
+}
+
+function organReproductive(metabolic, rSwarm_, droneCount) {
+  const shouldSpawn = metabolic.output > 1.5 && rSwarm_ > 0.8 && droneCount < 50;
+  return { state: shouldSpawn ? 'SPAWN_RECOMMENDED' : 'HOLDING', output: shouldSpawn ? 1 : 0 };
+}
+
 // ─── MAIN HOOK ────────────────────────────────────────────────────────────────
 export function useSwarmState() {
   const [beat, setBeat]       = useState(0);
@@ -248,15 +479,45 @@ export function useSwarmState() {
   const [architectSignal, setArchitectSignal] = useState(1.0);
   const [commsLost, setCommsLost]           = useState(false);
 
+  // ─── ORGANISM STATE ─────────────────────────────────────────────────────────
+  const [organism, setOrganism] = useState({
+    mode:         'HYBRID',
+    // Swarm math
+    entropy:      0,
+    isingM:       0,
+    // Bee hive
+    queenPheromone: 1.5,
+    quorum:         { decided: false, direction: 0, votes: 0 },
+    combRoles:      [],
+    nectarGrid:     Array(GRID_CELLS).fill(0.5),
+    waggle:         [],
+    // Ant mind
+    foodPher:       Array(GRID_CELLS).fill(0.1),
+    dangerPher:     Array(GRID_CELLS).fill(0.0),
+    antRoles:       [],
+    // Teams
+    captains:       { SCOUT: null, STRIKER: null, GUARDIAN: null, RELAY: null, MEDIC: null },
+    morale:         { SCOUT: 1, STRIKER: 1, GUARDIAN: 1, RELAY: 1, MEDIC: 1 },
+    // Organs
+    organs: {
+      NERVOUS:      { state: 'IDLE', output: 1 },
+      IMMUNE:       { state: 'HEALTHY', output: 0, anomalies: 0 },
+      METABOLIC:    { state: 'ENERGY_OK', output: 1, minEnergy: 1 },
+      SENSORY:      { state: 'LOW_AWARENESS', output: 0 },
+      REPRODUCTIVE: { state: 'HOLDING', output: 0 },
+    },
+  });
+
   // Inter-drone Hebbian weights (swarm-level, separate from intra-brain STDP)
   const swarmWeights = useRef(
     Array.from({ length: MAX_DRONES }, () => Array(MAX_DRONES).fill(0.1))
   );
-  const jRisingRef = useRef(0);
-  const prevJRef   = useRef(0.0);
-  const beatRef    = useRef(0);
-  const nextReqId  = useRef(0);
-  const pendingRef = useRef([]);
+  const jRisingRef  = useRef(0);
+  const prevJRef    = useRef(0.0);
+  const beatRef     = useRef(0);
+  const nextReqId   = useRef(0);
+  const pendingRef  = useRef([]);
+  const latestDronesRef = useRef([]); // always holds the most recent drones snapshot
 
   const addLog = useCallback((kind, droneId, desc, r, j) => {
     setAuditLog(prev => {
@@ -456,7 +717,69 @@ export function useSwarmState() {
           }`, r, jd);
         }
 
+        latestDronesRef.current = next; // keep ref in sync for organism tick
         return next;
+      });
+
+      // ─── ORGANISM TICK ──────────────────────────────────────────────────────
+      // Reads from latestDronesRef to avoid nested state updater pattern.
+      setOrganism(prev => {
+        const latestDrones = latestDronesRef.current;
+        if (!latestDrones.length) return prev;
+          // ── Bee Hive ──
+          const waggle       = computeWaggle(latestDrones);
+          const queenPhero   = updateQueenPheromone(prev.queenPheromone, latestDrones);
+          const quorum       = quorumSensing(waggle);
+          const newNectar    = harvestNectar(nectarStep(prev.nectarGrid), latestDrones);
+          const combRoles    = assignCombRoles(latestDrones, waggle);
+
+          // ── Ant Mind ──
+          const evapFood     = pheromoneEvaporate(prev.foodPher);
+          const evapDanger   = pheromoneEvaporate(prev.dangerPher);
+          const newFoodPher  = pheromoneDeposit(evapFood, latestDrones);
+          const newDangerPher= dangerDeposit(evapDanger, latestDrones);
+          const antRoles     = latestDrones.map(d =>
+            d.sacrificed ? 'IDLE' : antThresholdRole(d, newFoodPher, newDangerPher)
+          );
+
+          // ── Team AI ──
+          const captains = electCaptains(latestDrones);
+          const morale   = teamMorale(latestDrones);
+
+          // ── Organ Systems ──
+          const nervous      = organNervous(latestDrones);
+          const immune       = organImmune(latestDrones);
+          const metabolic    = organMetabolic(latestDrones);
+          const r2           = computeRSwarm(latestDrones);
+          const sensory      = organSensory(waggle, newNectar);
+          const reproductive = organReproductive(metabolic, r2, latestDrones.length);
+
+          // ── Swarm math ──
+          const entropy = swarmEntropy(latestDrones);
+          const isingM  = isingConsensus(latestDrones);
+
+          return {
+            mode:           prev.mode,
+            entropy,
+            isingM,
+            queenPheromone: queenPhero,
+            quorum,
+            combRoles,
+            nectarGrid:     newNectar,
+            waggle,
+            foodPher:       newFoodPher,
+            dangerPher:     newDangerPher,
+            antRoles,
+            captains,
+            morale,
+            organs: {
+              NERVOUS:      nervous,
+              IMMUNE:       immune,
+              METABOLIC:    metabolic,
+              SENSORY:      sensory,
+              REPRODUCTIVE: reproductive,
+            },
+          };
       });
 
       // Expire pending actions
@@ -478,6 +801,7 @@ export function useSwarmState() {
     rSwarm,
     jDrift,
     drones,
+    organism,
     pendingActions: pendingActions.filter(r => r.status === 'PENDING'),
     allActions: pendingActions,
     auditLog,

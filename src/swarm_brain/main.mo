@@ -977,6 +977,606 @@ actor SwarmBrain {
 
   public query func getArchitectSignalLevel() : async Float { architectSignalLevel };
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ─── EXTENDED MATHEMATICS ──────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ─── LÉVY FLIGHT ─────────────────────────────────────────────────────────────
+  // Lévy stable distribution step for super-diffusive scout exploration.
+  // Uses Mantegna's algorithm: step ~ Gaussian(0, sigma_u) / |Gaussian(0, sigma_v)|^(1/beta)
+  // beta ∈ (1, 2]: 1.5 gives canonical Lévy-Cauchy exploration.
+  // Returns (stepX, stepZ) displacement.
+  func levyStep(seed : Float, beta : Float) : (Float, Float) {
+    // Enforce beta ∈ (1, 2] to avoid singularity at beta = 1
+    let b = Float.max(1.001, Float.min(2.0, beta));
+    let num  = b - 1.0;
+    let sigmaU = Float.pow(
+      Float.abs((1.0 + num) * Float.sin(3.14159265 * num / 2.0))
+      / ((1.0 + num) / 2.0 * num * Float.exp(num * 0.6931 / 2.0)),
+      1.0 / num
+    );
+    // Approximate pseudo-random using phase as seed (deterministic)
+    let u = sigmaU * Float.sin(seed * 6.2832);
+    let v = Float.abs(Float.cos(seed * 3.7));
+    let step = if (v < 0.001) 0.5
+               else Float.abs(u) / Float.pow(v, 1.0 / b);
+    let angle = seed * 6.2832 * 1.618;
+    (Float.min(5.0, step) * Float.cos(angle),
+     Float.min(5.0, step) * Float.sin(angle))
+  };
+
+  // ─── GAUSSIAN KERNEL ─────────────────────────────────────────────────────────
+  // Spatial influence weight: w = exp(-dist² / (2·sigma²))
+  func gaussianKernel(dist : Float, sigma : Float) : Float {
+    let s2 = sigma * sigma;
+    if (s2 < 0.001) return 0.0;
+    Float.exp(-(dist * dist) / (2.0 * s2))
+  };
+
+  // ─── SHANNON ENTROPY OF SWARM STATE ──────────────────────────────────────────
+  // H = -Σ p_i · ln(p_i)  over normalised signal amplitudes.
+  // High entropy → disordered swarm; low entropy → focused/coherent.
+  func swarmEntropy() : Float {
+    let n = stableDroneCount;
+    if (n == 0) return 0.0;
+    var total : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) total += stableSignals[i];
+      i += 1;
+    };
+    if (total < 0.001) return 0.0;
+    var h : Float = 0.0;
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        let p = stableSignals[i] / total;
+        if (p > 0.0001) h -= p * Float.log(p);
+      };
+      i += 1;
+    };
+    h
+  };
+
+  // ─── ISING CONSENSUS ─────────────────────────────────────────────────────────
+  // Mean-field Ising model for collective binary decisions.
+  // Each drone has spin s_i ∈ {-1, +1} (encoded via dopamine > threshold).
+  // m = tanh(beta · m)  fixed-point → consensus strength.
+  // Returns consensus polarity: positive = majority agree, negative = split.
+  func isingConsensus() : Float {
+    let n = stableDroneCount;
+    if (n == 0) return 0.0;
+    var spinSum : Float = 0.0;
+    var cnt : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        let dop = stableNeuroChem[i * 4 + DOPAMINE];
+        // Spin +1 if dopamine above baseline, -1 otherwise
+        spinSum += if (dop > 1.1) 1.0 else -1.0;
+        cnt += 1.0;
+      };
+      i += 1;
+    };
+    if (cnt == 0.0) return 0.0;
+    let m = spinSum / cnt;
+    // Mean-field self-consistency: tanh(J·m) — implemented via exp for compatibility
+    let J : Float = 1.2;
+    let x = J * m;
+    let cx = Float.max(-10.0, Float.min(10.0, x));
+    let e2 = Float.exp(2.0 * cx);
+    (e2 - 1.0) / (e2 + 1.0)
+  };
+
+  // ─── LOTKA-VOLTERRA ROLE BALANCE ─────────────────────────────────────────────
+  // Prey-predator ODE governs SCOUT vs STRIKER population balance.
+  // dS/dt = α·S − β·S·K   dK/dt = δ·S·K − γ·K
+  // α=0.3 (scout growth), β=0.2 (striker predation), δ=0.1, γ=0.25
+  // Modulates cortisol of over-represented class upward to re-balance.
+  func lotkaVolterraBalance() {
+    let n = stableDroneCount;
+    if (n == 0) return;
+    var scouts : Float = 0.0; var strikers : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        switch (stableClasses[i]) {
+          case "SCOUT"   { scouts   += 1.0 };
+          case "STRIKER" { strikers += 1.0 };
+          case _         {};
+        };
+      };
+      i += 1;
+    };
+    let total = scouts + strikers;
+    if (total < 1.0) return;
+    // ODE step (dt=0.1)
+    let alpha : Float = 0.3; let beta2 : Float = 0.2;
+    let delta : Float = 0.1; let gamma2 : Float = 0.25;
+    let ds = (alpha * scouts - beta2 * scouts * strikers) * 0.1;
+    let dk = (delta * scouts * strikers - gamma2 * strikers) * 0.1;
+    // If scouts greatly outnumber strikers → raise striker dopamine
+    // If strikers dominate → raise scout norepinephrine (alertness)
+    let imbalance = scouts - strikers;
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        let ncBase = i * 4;
+        if (imbalance > 3.0 and stableClasses[i] == "STRIKER") {
+          stableNeuroChem[ncBase + DOPAMINE] :=
+            sf(stableNeuroChem[ncBase + DOPAMINE] + Float.abs(ds) * 0.1);
+        };
+        if (imbalance < -3.0 and stableClasses[i] == "SCOUT") {
+          stableNeuroChem[ncBase + NOREPINEPHRINE] :=
+            sf(stableNeuroChem[ncBase + NOREPINEPHRINE] + Float.abs(dk) * 0.1);
+        };
+      };
+      i += 1;
+    };
+  };
+
+  // ─── ARTIFICIAL POTENTIAL FIELD ──────────────────────────────────────────────
+  // Goal attraction: F_att = -k_att · (pos − goal)
+  // Obstacle repulsion uses gaussian kernels from enemy positions (stored as
+  // goal with negative weight). For simulation we use origin as default goal.
+  func artificialPotential(id : Nat, goalX : Float, goalZ : Float) : (Float, Float) {
+    let K_ATT : Float = 0.02;
+    let K_REP : Float = 0.5;
+    let REP_THRESH : Float = 20.0;
+
+    // Attraction to goal
+    let attX = -K_ATT * (stablePosX[id] - goalX);
+    let attZ = -K_ATT * (stablePosZ[id] - goalZ);
+
+    // Repulsion from crowded neighbours (treat as soft obstacles)
+    var repX : Float = 0.0; var repZ : Float = 0.0;
+    let n = stableDroneCount;
+    var j = 0;
+    while (j < n) {
+      if (j != id and not stableSacrificed[j]) {
+        let dx = stablePosX[id] - stablePosX[j];
+        let dz = stablePosZ[id] - stablePosZ[j];
+        let dist = Float.sqrt(dx*dx + dz*dz) + 0.001;
+        if (dist < REP_THRESH) {
+          let w = K_REP * gaussianKernel(dist, REP_THRESH / 3.0);
+          repX += w * dx / dist;
+          repZ += w * dz / dist;
+        };
+      };
+      j += 1;
+    };
+    (attX + repX, attZ + repZ)
+  };
+
+  // ─── REACTION-DIFFUSION (BRUSSELATOR) ────────────────────────────────────────
+  // Turing pattern generator for spatial formation templates.
+  // Each drone carries local activator A and inhibitor B concentrations
+  // (encoded in dopamine ≈ A, cortisol ≈ B).
+  // dA/dt = a − (b+1)·A + A²·B      dB/dt = b·A − A²·B
+  // a=1.0, b=1.5; dt=0.05
+  func brusselatorStep(id : Nat) {
+    let a : Float = 1.0; let b : Float = 1.5; let dt : Float = 0.05;
+    let ncBase = id * 4;
+    let A = stableNeuroChem[ncBase + DOPAMINE];
+    let B = stableNeuroChem[ncBase + CORTISOL];
+    let dA = (a - (b + 1.0) * A + A * A * B) * dt;
+    let dB = (b * A - A * A * B) * dt;
+    stableNeuroChem[ncBase + DOPAMINE] := sf(A + dA);
+    stableNeuroChem[ncBase + CORTISOL] := sf(B + dB);
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ─── BEHAVIOR FUNCTIONS ─────────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Drone behavior states (stored as text per drone)
+  stable var stableBehavior : [var Text] = [var];   // "IDLE"|"FORAGE"|"DEFEND"|"ENGAGE"|"RETREAT"|"RELAY"|"HEAL"|"SCOUT"|"AMBUSH"|"FORM"
+
+  func ensureBehaviorCap(n : Nat) {
+    if (stableBehavior.size() < n) {
+      let nb = Array.init<Text>(n, "IDLE");
+      var i = 0;
+      while (i < stableBehavior.size()) { nb[i] := stableBehavior[i]; i += 1 };
+      stableBehavior := nb;
+    };
+  };
+
+  // ─── FORAGE ─── (RELAY class primary; SCOUT secondary)
+  // Lévy-flight random walk toward low-signal zones (resource seeking).
+  func behaviorForage(id : Nat) {
+    let phase = stablePhases[id];
+    let (lx, lz) = levyStep(phase + Float.fromInt(currentBeat) * 0.01, 1.5);
+    stableVelX[id] := stableVelX[id] * 0.7 + lx * 0.1;
+    stableVelZ[id] := stableVelZ[id] * 0.7 + lz * 0.1;
+    stablePosX[id] := stablePosX[id] + stableVelX[id];
+    stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
+    // Boost dopamine on successful forage (signal gain)
+    let ncBase = id * 4;
+    stableNeuroChem[ncBase + DOPAMINE] :=
+      sf(stableNeuroChem[ncBase + DOPAMINE] + 0.02);
+  };
+
+  // ─── DEFEND ─── (GUARDIAN primary)
+  // Expand outward radially to form a protective ring.
+  func behaviorDefend(id : Nat) {
+    let r = 40.0 + Float.fromInt(id) * 0.5;
+    let theta = Float.fromInt(id) * 6.2832 / Float.fromInt(Nat.max(1, stableDroneCount));
+    let targetX = r * Float.cos(theta);
+    let targetZ = r * Float.sin(theta);
+    let (fx, fz) = artificialPotential(id, targetX, targetZ);
+    stableVelX[id] := stableVelX[id] * 0.8 + fx;
+    stableVelZ[id] := stableVelZ[id] * 0.8 + fz;
+    stablePosX[id] := stablePosX[id] + stableVelX[id];
+    stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
+    // Raise oxytocin: bonding with protected inner drones
+    let ncBase = id * 4;
+    stableNeuroChem[ncBase + OXYTOCIN] :=
+      sf(stableNeuroChem[ncBase + OXYTOCIN] + 0.03);
+  };
+
+  // ─── ENGAGE ─── (STRIKER primary)
+  // Converge aggressively on swarm centroid (OMNIS attack formation).
+  func behaviorEngage(id : Nat) {
+    let n = stableDroneCount;
+    var cx : Float = 0.0; var cz : Float = 0.0; var cnt : Float = 0.0;
+    var j = 0;
+    while (j < n) {
+      if (j != id and not stableSacrificed[j] and stableClasses[j] == "STRIKER") {
+        cx += stablePosX[j]; cz += stablePosZ[j]; cnt += 1.0;
+      };
+      j += 1;
+    };
+    let goalX = if (cnt > 0.0) cx / cnt + 20.0 else 20.0;
+    let goalZ = if (cnt > 0.0) cz / cnt else 0.0;
+    let (fx, fz) = artificialPotential(id, goalX, goalZ);
+    // Aggressive: higher gain
+    stableVelX[id] := stableVelX[id] * 0.7 + fx * 1.5;
+    stableVelZ[id] := stableVelZ[id] * 0.7 + fz * 1.5;
+    stablePosX[id] := stablePosX[id] + stableVelX[id];
+    stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
+    // Raise norepinephrine: combat arousal
+    let ncBase = id * 4;
+    stableNeuroChem[ncBase + NOREPINEPHRINE] :=
+      sf(stableNeuroChem[ncBase + NOREPINEPHRINE] + 0.05);
+    stableNeuroChem[ncBase + CORTISOL] :=
+      sf(stableNeuroChem[ncBase + CORTISOL] + 0.02);
+  };
+
+  // ─── RETREAT ─── (all classes; triggered by high cortisol)
+  // Move away from centroid, reduce energy expenditure.
+  func behaviorRetreat(id : Nat) {
+    // Flee toward a safe anchor offset from origin
+    let (fx, fz) = artificialPotential(id, -80.0, 0.0);
+    stableVelX[id] := stableVelX[id] * 0.6 + fx;
+    stableVelZ[id] := stableVelZ[id] * 0.6 + fz;
+    stablePosX[id] := stablePosX[id] + stableVelX[id];
+    stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
+    // Reduce cortisol/norepinephrine on safe distance
+    let ncBase = id * 4;
+    stableNeuroChem[ncBase + CORTISOL] :=
+      Float.max(1.0, stableNeuroChem[ncBase + CORTISOL] - 0.04);
+    stableNeuroChem[ncBase + NOREPINEPHRINE] :=
+      Float.max(1.0, stableNeuroChem[ncBase + NOREPINEPHRINE] - 0.03);
+  };
+
+  // ─── RELAY ─── (RELAY class primary)
+  // Position self at midpoint between two drones to maintain mesh.
+  func behaviorRelay(id : Nat) {
+    let n = stableDroneCount;
+    if (n < 2) return;
+    // Find two furthest drones by signal (bridge the weakest link)
+    var minSig : Float = 999.0; var maxSig : Float = 0.0;
+    var minId : Nat = 0; var maxId : Nat = 0;
+    var j = 0;
+    while (j < n) {
+      if (j != id and not stableSacrificed[j]) {
+        if (stableSignals[j] < minSig) { minSig := stableSignals[j]; minId := j };
+        if (stableSignals[j] > maxSig) { maxSig := stableSignals[j]; maxId := j };
+      };
+      j += 1;
+    };
+    let midX = (stablePosX[minId] + stablePosX[maxId]) / 2.0;
+    let midZ = (stablePosZ[minId] + stablePosZ[maxId]) / 2.0;
+    let (fx, fz) = artificialPotential(id, midX, midZ);
+    stableVelX[id] := stableVelX[id] * 0.75 + fx;
+    stableVelZ[id] := stableVelZ[id] * 0.75 + fz;
+    stablePosX[id] := stablePosX[id] + stableVelX[id];
+    stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
+    // Amplify own signal (relay amplification)
+    stableSignals[id] := Float.min(2.0, stableSignals[id] + 0.05);
+  };
+
+  // ─── HEAL ─── (MEDIC class)
+  // Move to the lowest-activation neighbor and boost their oxytocin.
+  func behaviorHeal(id : Nat) {
+    let n = stableDroneCount;
+    var minAct : Float = 999.0; var targetId : Nat = id;
+    var j = 0;
+    while (j < n) {
+      if (j != id and not stableSacrificed[j] and stableActivations[j] < minAct) {
+        minAct := stableActivations[j]; targetId := j;
+      };
+      j += 1;
+    };
+    if (targetId == id) return;
+    let (fx, fz) = artificialPotential(id, stablePosX[targetId], stablePosZ[targetId]);
+    stableVelX[id] := stableVelX[id] * 0.75 + fx;
+    stableVelZ[id] := stableVelZ[id] * 0.75 + fz;
+    stablePosX[id] := stablePosX[id] + stableVelX[id];
+    stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
+    // If close enough, apply healing boost
+    let dx = stablePosX[id] - stablePosX[targetId];
+    let dz = stablePosZ[id] - stablePosZ[targetId];
+    let dist = Float.sqrt(dx*dx + dz*dz);
+    if (dist < 10.0) {
+      let ncT = targetId * 4;
+      stableNeuroChem[ncT + OXYTOCIN]  := sf(stableNeuroChem[ncT + OXYTOCIN]  + 0.1);
+      stableNeuroChem[ncT + DOPAMINE]  := sf(stableNeuroChem[ncT + DOPAMINE]  + 0.05);
+      stableNeuroChem[ncT + CORTISOL]  :=
+        Float.max(1.0, stableNeuroChem[ncT + CORTISOL] - 0.05);
+      stableEnergy[targetId] := Float.min(2.0, stableEnergy[targetId] + 0.03);
+    };
+  };
+
+  // ─── SCOUT ─── (SCOUT class primary)
+  // Lévy-flight exploration with memory of visited zones (phase-encoded).
+  func behaviorScout(id : Nat) {
+    let phase = stablePhases[id] + Float.fromInt(id) * 0.777;
+    let (lx, lz) = levyStep(phase, 1.7); // heavier tail for wide exploration
+    stableVelX[id] := stableVelX[id] * 0.5 + lx * 0.3;
+    stableVelZ[id] := stableVelZ[id] * 0.5 + lz * 0.3;
+    stablePosX[id] := stablePosX[id] + stableVelX[id];
+    stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
+    // Scouts share discoveries: boost Hebbian weights with nearby drones
+    let n = stableDroneCount;
+    var j = 0;
+    while (j < n) {
+      if (j != id and not stableSacrificed[j]) {
+        let dx = stablePosX[id] - stablePosX[j];
+        let dz = stablePosZ[id] - stablePosZ[j];
+        let dist = Float.sqrt(dx*dx + dz*dz) + 0.001;
+        if (dist < 30.0) {
+          let w = stableSwarmWeights[id * MAX_DRONES + j];
+          stableSwarmWeights[id * MAX_DRONES + j] := Float.min(W_CEIL, w + 0.02);
+          stableSwarmWeights[j * MAX_DRONES + id] := stableSwarmWeights[id * MAX_DRONES + j];
+        };
+      };
+      j += 1;
+    };
+  };
+
+  // ─── AMBUSH ─── (STRIKER secondary)
+  // Stealth approach: low velocity, high norepinephrine, converge from flank.
+  func behaviorAmbush(id : Nat) {
+    let angle = Float.fromInt(id) * 0.628 + 1.57; // approach from flank
+    let goalX = 25.0 * Float.cos(angle);
+    let goalZ = 25.0 * Float.sin(angle);
+    let (fx, fz) = artificialPotential(id, goalX, goalZ);
+    // Slow, stealthy movement
+    stableVelX[id] := stableVelX[id] * 0.9 + fx * 0.3;
+    stableVelZ[id] := stableVelZ[id] * 0.9 + fz * 0.3;
+    stablePosX[id] := stablePosX[id] + stableVelX[id];
+    stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
+    let ncBase = id * 4;
+    // Suppress cortisol (stay calm) but raise norepinephrine (alert)
+    stableNeuroChem[ncBase + CORTISOL] :=
+      Float.max(1.0, stableNeuroChem[ncBase + CORTISOL] - 0.02);
+    stableNeuroChem[ncBase + NOREPINEPHRINE] :=
+      sf(stableNeuroChem[ncBase + NOREPINEPHRINE] + 0.03);
+  };
+
+  // ─── FORMATION ─── (SOVEREIGN / all classes; geometric precision)
+  // Drones arrange into a golden-ratio spiral (Fermat spiral).
+  func behaviorFormation(id : Nat) {
+    let GOLDEN_ANGLE : Float = 2.39996; // radians (137.5°)
+    let r = 5.0 * Float.sqrt(Float.fromInt(id + 1));
+    let theta = Float.fromInt(id) * GOLDEN_ANGLE;
+    let goalX = r * Float.cos(theta);
+    let goalZ = r * Float.sin(theta);
+    let (fx, fz) = artificialPotential(id, goalX, goalZ);
+    stableVelX[id] := stableVelX[id] * 0.8 + fx;
+    stableVelZ[id] := stableVelZ[id] * 0.8 + fz;
+    stablePosX[id] := stablePosX[id] + stableVelX[id];
+    stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
+  };
+
+  // ─── ASSIGN BEHAVIOR ─────────────────────────────────────────────────────────
+  // Select behavior based on drone class, neurochemistry and swarm state.
+  func assignBehavior(id : Nat) : Text {
+    ensureBehaviorCap(stableDroneCount);
+    if (stableSacrificed[id]) { stableBehavior[id] := "IDLE"; return "IDLE" };
+    let ncBase = id * 4;
+    let cor  = stableNeuroChem[ncBase + CORTISOL];
+    let nor  = stableNeuroChem[ncBase + NOREPINEPHRINE];
+    let dop  = stableNeuroChem[ncBase + DOPAMINE];
+    let cls  = stableClasses[id];
+
+    let beh : Text =
+      // Emergency retreat: extreme stress
+      if (cor > 2.0) "RETREAT"
+      // Class-primary behaviors modulated by neuro state
+      else switch cls {
+        case "SCOUT"    { if (nor > 1.4) "FORAGE" else "SCOUT" };
+        case "STRIKER"  { if (nor > 1.3 and cor < 1.6) "ENGAGE"
+                          else if (cor < 1.3) "AMBUSH" else "RETREAT" };
+        case "GUARDIAN" { "DEFEND" };
+        case "RELAY"    { "RELAY" };
+        case "MEDIC"    { "HEAL" };
+        case "SOVEREIGN"{ if (dop > 1.3) "FORM" else "DEFEND" };
+        case _          { "SCOUT" };
+      };
+    stableBehavior[id] := beh;
+    beh
+  };
+
+  // ─── EXECUTE ALL BEHAVIORS ────────────────────────────────────────────────────
+  // Called once per tick; runs assigned behavior function for each active drone.
+  func executeBehaviors() {
+    ensureBehaviorCap(stableDroneCount);
+    var i = 0;
+    while (i < stableDroneCount) {
+      if (not stableSacrificed[i]) {
+        let beh = assignBehavior(i);
+        switch beh {
+          case "FORAGE"  { behaviorForage(i) };
+          case "DEFEND"  { behaviorDefend(i) };
+          case "ENGAGE"  { behaviorEngage(i) };
+          case "RETREAT" { behaviorRetreat(i) };
+          case "RELAY"   { behaviorRelay(i) };
+          case "HEAL"    { behaviorHeal(i) };
+          case "SCOUT"   { behaviorScout(i) };
+          case "AMBUSH"  { behaviorAmbush(i) };
+          case "FORM"    { behaviorFormation(i) };
+          case _         {};
+        };
+        // Run Brusselator reaction-diffusion for spatial pattern formation
+        brusselatorStep(i);
+      };
+      i += 1;
+    };
+    // Swarm-level math after per-drone update
+    lotkaVolterraBalance();
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ─── INTERNAL AI TEAMS ──────────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 5 specialist AI teams: SCOUT_TEAM, STRIKER_TEAM, GUARDIAN_TEAM,
+  //                        RELAY_TEAM, MEDIC_TEAM
+  // Each team elects a captain (highest-signal drone) each tick.
+  // Captains receive a dopamine bonus and set the team's mission directive.
+
+  stable var teamCaptains : [var Nat] = [var 0, 0, 0, 0, 0]; // one captain per team
+  stable var teamMorale   : [var Float] = [var 1.0, 1.0, 1.0, 1.0, 1.0];
+
+  // Team index mapping
+  func classToTeam(cls : Text) : Nat {
+    switch cls {
+      case "SCOUT"    0;
+      case "STRIKER"  1;
+      case "GUARDIAN" 2;
+      case "RELAY"    3;
+      case "MEDIC"    4;
+      case "SOVEREIGN"0; // sovereign leads scout team
+      case _          0;
+    }
+  };
+
+  // Elect captain for each team (highest signal among non-sacrificed members)
+  func electCaptains() {
+    let n = stableDroneCount;
+    // Reset
+    var t = 0;
+    while (t < 5) { teamCaptains[t] := 0; t += 1 };
+    var bestSig : [var Float] = Array.init<Float>(5, 0.0);
+    var i = 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        let team = classToTeam(stableClasses[i]);
+        if (stableSignals[i] > bestSig[team]) {
+          bestSig[team] := stableSignals[i];
+          teamCaptains[team] := i;
+        };
+      };
+      i += 1;
+    };
+    // Captain bonus: dopamine boost for leading
+    t := 0;
+    while (t < 5) {
+      let cap = teamCaptains[t];
+      if (cap < n and not stableSacrificed[cap]) {
+        let ncBase = cap * 4;
+        stableNeuroChem[ncBase + DOPAMINE] :=
+          sf(stableNeuroChem[ncBase + DOPAMINE] + 0.05);
+      };
+      t += 1;
+    };
+  };
+
+  // Team morale = mean activation of team members (shared cognitive state)
+  func updateTeamMorale() {
+    let n = stableDroneCount;
+    var sums  : [var Float] = Array.init<Float>(5, 0.0);
+    var cnts  : [var Float] = Array.init<Float>(5, 0.0);
+    var i = 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        let team = classToTeam(stableClasses[i]);
+        sums[team] += stableActivations[i];
+        cnts[team] += 1.0;
+      };
+      i += 1;
+    };
+    var t = 0;
+    while (t < 5) {
+      teamMorale[t] := if (cnts[t] > 0.0) sums[t] / cnts[t] else 1.0;
+      t += 1;
+    };
+    // Low-morale teams get an oxytocin broadcast from captain
+    t := 0;
+    while (t < 5) {
+      if (teamMorale[t] < 1.1) {
+        let cap = teamCaptains[t];
+        if (cap < n and not stableSacrificed[cap]) {
+          // Captain broadcasts cohesion signal
+          i := 0;
+          while (i < n) {
+            if (not stableSacrificed[i] and classToTeam(stableClasses[i]) == t) {
+              let ncBase = i * 4;
+              stableNeuroChem[ncBase + OXYTOCIN] :=
+                sf(stableNeuroChem[ncBase + OXYTOCIN] + 0.04);
+            };
+            i += 1;
+          };
+        };
+      };
+      t += 1;
+    };
+  };
+
+  // ─── TEAM QUERY ──────────────────────────────────────────────────────────────
+  public query func getTeamSnapshot() : async {
+    captains : [Nat];
+    morale   : [Float];
+    entropy  : Float;
+    isingM   : Float;
+  } {
+    {
+      captains = [teamCaptains[0], teamCaptains[1], teamCaptains[2],
+                  teamCaptains[3], teamCaptains[4]];
+      morale   = [teamMorale[0], teamMorale[1], teamMorale[2],
+                  teamMorale[3], teamMorale[4]];
+      entropy  = swarmEntropy();
+      isingM   = isingConsensus();
+    }
+  };
+
+  public query func getDroneBehavior(id : Nat) : async Text {
+    if (id >= stableDroneCount or stableBehavior.size() <= id) return "IDLE";
+    stableBehavior[id]
+  };
+
+  // ─── TICK EXTENSION ──────────────────────────────────────────────────────────
+  // Behaviors, team management, and extended math are integrated into tick()
+  // via the new tickFull() method. The original tick() remains unchanged for
+  // backward compatibility; tickFull() calls tick() internals plus the new phases.
+  public func tickFull() : async { rSwarm : Float; jDrift : Float; beat : Nat; entropy : Float; isingM : Float } {
+    let base = await tick();
+    // Phase 8: behavior execution
+    ensureBehaviorCap(stableDroneCount);
+    executeBehaviors();
+    // Phase 9: team AI management
+    electCaptains();
+    updateTeamMorale();
+    {
+      rSwarm  = base.rSwarm;
+      jDrift  = base.jDrift;
+      beat    = base.beat;
+      entropy = swarmEntropy();
+      isingM  = isingConsensus();
+    }
+  };
+
   // ─── PREUPGRADE / POSTUPGRADE ────────────────────────────────────────────────
   // Stable vars are persisted automatically by ICP runtime.
   // No migration needed for flat arrays.
