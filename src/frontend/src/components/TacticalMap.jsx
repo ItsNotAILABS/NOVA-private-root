@@ -3,7 +3,7 @@
 
 import React, { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Grid, Text } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 
 const CLASS_COLORS = {
@@ -19,22 +19,20 @@ function droneColor(drone, rSwarm) {
   if (drone.sacrificed) return new THREE.Color(0x334466);
   if (rSwarm >= 0.98) return new THREE.Color(0xffd700); // OMNIS: gold
   const cort = Math.min(drone.cortisol / 2.0, 1.0);
-  if (cort > 0.7) return new THREE.Color(0xff3322);      // high cortisol: red
+  if (cort > 0.7) return new THREE.Color(0xff3322);     // high cortisol: red
   return CLASS_COLORS[drone.cls] || new THREE.Color(0x00cfff);
 }
 
-function DroneNode({ drone, rSwarm, selected, onClick }) {
+function DroneNode({ drone, rSwarm }) {
   const meshRef = useRef();
   const col = droneColor(drone, rSwarm);
 
-  useFrame((_, delta) => {
+  useFrame(() => {
     if (!meshRef.current) return;
     if (!drone.sacrificed) {
-      // Pulse based on phase
       const pulse = 0.8 + 0.2 * Math.sin(Date.now() * 0.003 + drone.phase);
       meshRef.current.scale.setScalar(pulse);
     }
-    // OMNIS glow pulse
     if (rSwarm >= 0.98 && !drone.sacrificed) {
       const t = Date.now() * 0.005;
       meshRef.current.scale.setScalar(1.0 + 0.3 * Math.abs(Math.sin(t + drone.id)));
@@ -42,9 +40,9 @@ function DroneNode({ drone, rSwarm, selected, onClick }) {
   });
 
   return (
-    <group position={[drone.posX, drone.posY, drone.posZ]} onClick={onClick}>
+    <group position={[drone.posX, drone.posY, drone.posZ]}>
       <mesh ref={meshRef}>
-        <sphereGeometry args={[drone.id === 0 ? 1.5 : 1.0, 16, 16]} />
+        <sphereGeometry args={[drone.id === 0 ? 1.5 : 1.0, 12, 12]} />
         <meshStandardMaterial
           color={col}
           emissive={col}
@@ -55,16 +53,6 @@ function DroneNode({ drone, rSwarm, selected, onClick }) {
           metalness={0.6}
         />
       </mesh>
-      {/* Class label */}
-      <Text
-        position={[0, 1.8, 0]}
-        fontSize={0.8}
-        color={drone.sacrificed ? '#334' : '#adf'}
-        anchorX="center"
-        anchorY="bottom"
-      >
-        {drone.cls[0]}{drone.id}
-      </Text>
     </group>
   );
 }
@@ -87,12 +75,10 @@ function FormationLines({ drones, rSwarm, swarmWeights }) {
       }
     }
     if (!pts.length) return null;
-    const geo = new THREE.BufferGeometry().setFromPoints(pts);
-    return geo;
+    return new THREE.BufferGeometry().setFromPoints(pts);
   }, [drones, rSwarm, swarmWeights]);
 
   if (!lines) return null;
-
   const opacity = Math.max(0, (rSwarm - 0.90) / 0.1);
 
   return (
@@ -101,7 +87,6 @@ function FormationLines({ drones, rSwarm, swarmWeights }) {
         color={rSwarm >= 0.98 ? 0xffd700 : 0x00aaff}
         opacity={opacity}
         transparent
-        linewidth={1}
       />
     </lineSegments>
   );
@@ -133,6 +118,18 @@ function JasmineRing({ jDrift }) {
   );
 }
 
+function HexGrid() {
+  const geo = useMemo(() => {
+    const g = new THREE.PlaneGeometry(200, 200, 20, 20);
+    return g;
+  }, []);
+  return (
+    <mesh geometry={geo} rotation={[-Math.PI / 2, 0, 0]} position={[0, -2, 0]}>
+      <meshBasicMaterial color={0x0a1a2e} wireframe opacity={0.3} transparent />
+    </mesh>
+  );
+}
+
 export default function TacticalMap({ swarm }) {
   const { drones, rSwarm, jDrift, swarmWeights } = swarm;
 
@@ -146,45 +143,13 @@ export default function TacticalMap({ swarm }) {
       <directionalLight position={[50, 100, 50]} intensity={0.8} color={0x88aaff} />
       <pointLight position={[0, 20, 0]} intensity={0.5} color={0x0044ff} />
 
-      {/* Grid */}
-      <Grid
-        args={[200, 200]}
-        cellSize={10}
-        cellThickness={0.5}
-        cellColor="#0a1a2e"
-        sectionSize={50}
-        sectionThickness={1}
-        sectionColor="#1a3a5c"
-        fadeDistance={200}
-        position={[0, -2, 0]}
-      />
-
-      {/* Formation lines */}
+      <HexGrid />
       <FormationLines drones={drones} rSwarm={rSwarm} swarmWeights={swarmWeights} />
-
-      {/* Jasmine stress ring */}
       <JasmineRing jDrift={jDrift} />
 
-      {/* Drone nodes */}
       {drones.map(drone => (
-        <DroneNode
-          key={drone.id}
-          drone={drone}
-          rSwarm={rSwarm}
-          selected={false}
-          onClick={() => {}}
-        />
+        <DroneNode key={drone.id} drone={drone} rSwarm={rSwarm} />
       ))}
-
-      {/* r_swarm label */}
-      <Text
-        position={[-55, 5, -55]}
-        fontSize={3}
-        color={rSwarm >= 0.92 ? '#00ff88' : rSwarm < 0.5 ? '#ff3300' : '#4af'}
-        anchorX="left"
-      >
-        {`r=${rSwarm.toFixed(4)}`}
-      </Text>
 
       <OrbitControls
         enablePan
@@ -197,3 +162,4 @@ export default function TacticalMap({ swarm }) {
     </Canvas>
   );
 }
+
