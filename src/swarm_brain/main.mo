@@ -11,6 +11,10 @@ import Iter "mo:base/Iter";
 import Nat "mo:base/Nat";
 import Text "mo:base/Text";
 
+// Inter-canister coupling: drive quantum layer and audit trail from brain tick
+import SwarmQuantum "canister:swarm_quantum";
+import SwarmAudit   "canister:swarm_audit";
+
 actor SwarmBrain {
 
   // ─── CONSTANTS ──────────────────────────────────────────────────────────────
@@ -21,6 +25,8 @@ actor SwarmBrain {
   let KURAMOTO_K        : Float = 0.618;
   let MAX_DRONES        : Nat   = 50;
   let BRAIN_NODES       : Nat   = 6;
+  // r_swarm threshold at which OMNIS emergence is considered fully achieved
+  let OMNIS_THRESHOLD   : Float = 0.98;
 
   // Neurochemical indices
   let DOPAMINE          : Nat = 0;
@@ -567,6 +573,18 @@ actor SwarmBrain {
     stableQCoherence[id]        := 0.5;
     stableNowAttention[id]      := 1.0; // fully present at birth
 
+    // Register in swarm_quantum canister so quantumTick() includes this drone.
+    // Fire-and-forget: brain does not block on quantum canister response.
+    ignore SwarmQuantum.registerQuantumDrone(id);
+
+    // Audit: record drone birth event.
+    ignore SwarmAudit.log(
+      #DRONE_ADDED, currentBeat, ?id,
+      "Drone " # Nat.toText(id) # " registered class=" # cls,
+      rSwarm, jDrift, stableNeuroChem[id * 4 + CORTISOL],
+      "SYSTEM", "{}"
+    );
+
     id
   };
 
@@ -926,6 +944,20 @@ actor SwarmBrain {
       i += 1;
     };
 
+    // Phase 9: Drive swarm_quantum canister (fire-and-forget).
+    // Keeps the dedicated quantum canister's superposition, entanglement, and
+    // recognition-memory state in sync with every brain tick.
+    ignore SwarmQuantum.quantumTick(rSwarm, jDrift, currentBeat);
+
+    // Phase 10: Audit significant swarm events.
+    if (rSwarm >= OMNIS_THRESHOLD and currentBeat % 10 == 0) {
+      ignore SwarmAudit.log(
+        #OMNIS_STATE, currentBeat, null,
+        "OMNIS emergence: swarm fully synchronised",
+        rSwarm, jDrift, 0.0, "SYSTEM", "{}"
+      );
+    };
+
     { rSwarm = rSwarm; jDrift = jDrift; beat = currentBeat }
   };
 
@@ -1132,6 +1164,13 @@ actor SwarmBrain {
       };
       j += 1;
     };
+    // Audit: record the sacrifice event for immutable traceability.
+    ignore SwarmAudit.log(
+      #DRONE_SACRIFICED, currentBeat, ?id,
+      "Sacrifice executed for drone " # Nat.toText(id),
+      rSwarm, jDrift, cortisol, "SYSTEM", "{}"
+    );
+
     true
   };
 
