@@ -195,7 +195,7 @@ export default function OrganismPanel({ swarm }) {
           queenPheromone, nectarGrid, foodPher, dangerPher,
           entropy, isingM } = org;
 
-  const morialeEntries = Object.entries(morale);
+  const moraleEntries = Object.entries(morale);
   const activeWaggle   = waggle.filter(w => w.active);
 
   return (
