@@ -4,7 +4,7 @@
 // Module: PatentRegistry — On-Chain IP Attribution & Chain-of-Title
 // Classification: CONFIDENTIAL — ATTORNEY-CLIENT PRIVILEGED
 // 
-// Copyright © 2024-2026 Alfredo Medina Hernandez
+// Copyright © December 2024 - Present Alfredo Medina Hernandez
 // Medina Tech | Dallas, Texas, USA
 // Contact: MedinaSITech@outlook.com
 //

@@ -4,7 +4,8 @@
 **Author:** Alfredo Medina Hernandez  
 **Organization:** Medina Tech | Dallas, Texas, USA  
 **Contact:** MedinaSITech@outlook.com  
-**Date:** 2024-2026  
+**Project Start:** December 2024  
+**Framework Development:** Ongoing (conceptual foundation spans years)  
 
 ---
 

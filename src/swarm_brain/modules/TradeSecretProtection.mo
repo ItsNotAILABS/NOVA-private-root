@@ -4,7 +4,7 @@
 // Module: TradeSecretProtection — Legal & Technical IP Safeguards
 // Classification: CONFIDENTIAL — MAXIMUM PROTECTION
 // 
-// Copyright © 2024-2026 Alfredo Medina Hernandez
+// Copyright © December 2024 - Present Alfredo Medina Hernandez
 // Medina Tech | Dallas, Texas, USA
 // Contact: MedinaSITech@outlook.com
 //
@@ -90,7 +90,7 @@ module {
     "// ============================================================================\n" #
     "// Classification: CONFIDENTIAL — TRADE SECRET\n" #
     "// \n" #
-    "// Copyright © 2024-2026 Alfredo Medina Hernandez\n" #
+    "// Copyright © December 2024 - Present Alfredo Medina Hernandez\n" #
     "// Medina Tech | Dallas, Texas, USA\n" #
     "// Contact: MedinaSITech@outlook.com\n" #
     "// \n" #

@@ -1,6 +1,6 @@
 # MEDINA TECH — TRADE SECRET & CONFIDENTIALITY NOTICE
 
-**Effective Date:** January 1, 2024  
+**Effective Date:** December 2024  
 **Document Version:** 1.0  
 **Classification:** MAXIMUM PROTECTION  
 
@@ -9,6 +9,8 @@
 ## LEGAL NOTICE
 
 This repository and all contents herein constitute **TRADE SECRET** and **CONFIDENTIAL PROPRIETARY INFORMATION** of Medina Tech, solely owned by Alfredo Medina Hernandez.
+
+**Note:** Implementation began December 2024. The underlying thinking framework and mathematical foundations have been developed over an extended period.
 
 ---
 
@@ -128,6 +130,6 @@ By accessing this repository, you acknowledge that:
 
 ---
 
-**© 2024-2026 Alfredo Medina Hernandez. All Rights Reserved.**
+**© December 2024 - Present Alfredo Medina Hernandez. All Rights Reserved.**
 
 *This notice is legally binding and enforceable under applicable law.*

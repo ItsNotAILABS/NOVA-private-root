@@ -4,7 +4,7 @@
 // Module: SphericalLaw — 360° Holistic Law Application
 // Classification: CONFIDENTIAL — INTERNAL USE ONLY
 // 
-// Copyright © 2024-2026 Alfredo Medina Hernandez
+// Copyright © December 2024 - Present Alfredo Medina Hernandez
 // Medina Tech | Dallas, Texas, USA
 // Contact: MedinaSITech@outlook.com
 //

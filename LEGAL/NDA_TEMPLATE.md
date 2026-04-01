@@ -185,4 +185,4 @@ Date: _________________________
 
 ---
 
-**© 2024-2026 Alfredo Medina Hernandez / Medina Tech. All Rights Reserved.**
+**© December 2024 - Present Alfredo Medina Hernandez / Medina Tech. All Rights Reserved.**
