@@ -437,6 +437,61 @@ actor SwarmTelemetry {
 
   public query func getDroneCount() : async Nat { droneCount };
 
+  // ─── RECOGNITION LAYER ───────────────────────────────────────────────────────
+  // Memory is not just recalled chronologically — it actively RECOGNIZES the
+  // present state by measuring similarity to stored episodes.
+  // Recognition uses a 2D state signature from the fields stored per episode:
+  //   rSwarm  — swarm coherence (most stable proxy for spatial state)
+  //   jDrift  — Lyapunov stability (most stable proxy for temporal state)
+  // Returns the stored episode whose state signature is most similar (cosine
+  // similarity on the 2D vector) to the query, plus a recognition score in [0, 1].
+  // The cortisol and phase parameters are accepted for API compatibility but are
+  // used only to form the query norm, allowing callers to pass richer context
+  // when episodic entries carry those fields in future expansions.
+
+  public query func recognizePattern(
+    rSwarm   : Float;
+    jDrift   : Float;
+    cortisol : Float;
+    phase    : Float;
+  ) : async {
+    seq              : Nat;
+    beat             : Nat;
+    kind             : Text;
+    description      : Text;
+    recognitionScore : Float;
+  } {
+    let total = if (episodicTotal < EPISODIC_CAP) episodicTotal else EPISODIC_CAP;
+    if (total == 0) return {
+      seq = 0; beat = 0; kind = "NONE"; description = "no memories yet"; recognitionScore = 0.0
+    };
+
+    // 2D cosine similarity on the (rSwarm, jDrift) axes that are stored per episode.
+    // The query norm uses all four dimensions provided by the caller; the stored
+    // vector norm uses only the two stored axes.
+    let qNorm = Float.sqrt(rSwarm*rSwarm + jDrift*jDrift + cortisol*cortisol + phase*phase) + 0.0001;
+
+    var bestIdx   : Nat   = 0;
+    var bestScore : Float = -1.0;
+    var i = 0;
+    while (i < total) {
+      let sr = episodicRSwarm[i];
+      let sj = episodicJDrift[i];
+      let dot   = rSwarm * sr + jDrift * sj;
+      let sNorm = Float.sqrt(sr*sr + sj*sj) + 0.0001;
+      let sim   = dot / (qNorm * sNorm);
+      if (sim > bestScore) { bestScore := sim; bestIdx := i };
+      i += 1;
+    };
+    {
+      seq              = episodicSeq[bestIdx];
+      beat             = episodicBeat[bestIdx];
+      kind             = episodicKind[bestIdx];
+      description      = episodicDesc[bestIdx];
+      recognitionScore = Float.max(0.0, Float.min(1.0, bestScore));
+    }
+  };
+
   // ─── MAVLINK BRIDGE STUB ─────────────────────────────────────────────────────
 
   // In simulation: log and return true.
