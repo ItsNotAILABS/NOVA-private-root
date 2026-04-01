@@ -1,4 +1,6 @@
 {
+  "_PROTOTYPE": "PARALLAX DRONE SWARM — Medina Tech | Alfredo Medina Hernandez | Dallas TX | 2026",
+  "_CONFIDENTIAL": "STRICT PROTOTYPE — SELF-HOSTED LOCAL ONLY — DO NOT DEPLOY TO IC MAINNET",
   "version": 1,
   "canisters": {
     "swarm_brain": {
@@ -28,12 +30,15 @@
   "defaults": {
     "build": {
       "packtool": ""
+    },
+    "canister_http": {
+      "enabled": false
     }
   },
   "networks": {
     "local": {
       "bind": "127.0.0.1:8000",
-      "type": "ephemeral"
+      "type": "persistent"
     }
   }
 }

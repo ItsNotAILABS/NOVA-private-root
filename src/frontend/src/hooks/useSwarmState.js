@@ -1,6 +1,6 @@
-// Swarm state hook — simulates ICP canister calls locally
-// In production: replace with actual @dfinity/agent calls to deployed canisters
-// PARALLAX Drone Swarm Simulation — Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
+// Swarm state hook — self-hosted local simulation
+// STRICT PROTOTYPE / CONFIDENTIAL — Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
+// Self-hosted dfx local only. No IC mainnet. No external deployment.
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 

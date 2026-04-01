@@ -6,5 +6,13 @@ dist/
 *.did
 src/frontend/node_modules/
 src/frontend/dist/
-.env
-.env.local
+
+# Prototype — never commit deployment state or network configs
+canister_ids.json
+.dfx/network/ic/
+.dfx/ic/
+**/ic-wallet-state.json
+.ic-assets.json
+.ic-assets.json5
+*.pem
+identity.pem
