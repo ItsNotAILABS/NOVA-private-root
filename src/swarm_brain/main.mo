@@ -81,11 +81,19 @@ actor SwarmBrain {
   // Inter-drone Hebbian weights [i * MAX_DRONES + j]
   stable var stableSwarmWeights     : [var Float] = [var];
 
+  // New: velocity, energy, brain node activations
+  stable var stableVelX              : [var Float] = [var];
+  stable var stableVelZ              : [var Float] = [var];
+  stable var stableEnergy            : [var Float] = [var];
+  // 6 activation values per drone (SENSOR/MEMORY/EXECUTIVE/EMOTIONAL/MOTOR/OUTPUT)
+  stable var stableNodeActivations   : [var Float] = [var];
+
   stable var currentBeat            : Nat   = 0;
   stable var rSwarm                 : Float = 0.88;
   stable var jDrift                 : Float = 0.0;
   stable var prevJDrift             : Float = 0.0;
   stable var jRisingBeats           : Nat   = 0;
+  stable var architectSignalLevel   : Float = 1.0;
 
   // ─── HELPERS ────────────────────────────────────────────────────────────────
 
@@ -139,6 +147,205 @@ actor SwarmBrain {
 
   func sin(x : Float) : Float { Float.sin(x) };
   func cos(x : Float) : Float { Float.cos(x) };
+
+  // ─── SIGMOID ACTIVATION ──────────────────────────────────────────────────────
+  func sigmoid(x : Float) : Float {
+    let cx = Float.max(-10.0, Float.min(10.0, x));
+    1.0 / (1.0 + Float.exp(-cx))
+  };
+
+  // ─── NEUROCHEMICAL BASELINE PER CLASS ────────────────────────────────────────
+  // Returns (dopBase, corBase, norBase, oxyBase)
+  func chemBaseline(id : Nat) : (Float, Float, Float, Float) {
+    switch (stableClasses[id]) {
+      case "STRIKER"   (1.0, 1.3, 1.2, 1.0);
+      case "GUARDIAN"  (1.0, 1.1, 1.0, 1.5);
+      case "RELAY"     (1.5, 1.0, 1.0, 1.0);
+      case "MEDIC"     (1.0, 1.0, 1.0, 1.5);
+      case "SOVEREIGN" (1.2, 1.2, 1.2, 1.2);
+      case _           (1.0, 1.0, 1.5, 1.0); // SCOUT
+    }
+  };
+
+  // ─── 4-SPECIES NEUROCHEMICAL ODE (Euler, dt = 0.05) ─────────────────────────
+  // DOPAMINE:       reward ← r_swarm × energy; decay toward baseline
+  // CORTISOL:       stress ← J_drift; antagonized by OXY
+  // NOREPINEPHRINE: arousal ← excess COR above baseline; fast decay
+  // OXYTOCIN:       bonding ← mean Hebbian weight + r_swarm; homeostasis
+  func neurochemODE(id : Nat, meanHebb : Float) {
+    let ncBase = id * 4;
+    let dop = stableNeuroChem[ncBase + DOPAMINE];
+    let cor = stableNeuroChem[ncBase + CORTISOL];
+    let nor = stableNeuroChem[ncBase + NOREPINEPHRINE];
+    let oxy = stableNeuroChem[ncBase + OXYTOCIN];
+    let energy = stableEnergy[id];
+    let (dopBase, corBase, norBase, oxyBase) = chemBaseline(id);
+    let dt : Float = 0.05;
+
+    // DOPAMINE: formation reward
+    let dDop = (0.5 * rSwarm * Float.min(energy, 2.0) - 0.15 * (dop - dopBase)) * dt;
+    // CORTISOL: stress from Lyapunov drift, antagonized by oxytocin
+    let corExcess = Float.max(0.0, cor - 1.0);
+    let dCor = (0.8 * jDrift - 0.20 * oxy * corExcess - 0.10 * (cor - corBase)) * dt;
+    // NOREPINEPHRINE: arousal from cortisol exceeding class baseline
+    let dNor = (0.6 * Float.max(0.0, cor - corBase) - 0.25 * (nor - norBase)) * dt;
+    // OXYTOCIN: social bonding from Hebbian proximity + coherence
+    let dOxy = (0.4 * meanHebb + 0.3 * rSwarm - 0.20 * (oxy - oxyBase)) * dt;
+
+    stableNeuroChem[ncBase + DOPAMINE]       := sf(dop + dDop);
+    stableNeuroChem[ncBase + CORTISOL]       := sf(cor + dCor);
+    stableNeuroChem[ncBase + NOREPINEPHRINE] := sf(nor + dNor);
+    stableNeuroChem[ncBase + OXYTOCIN]       := sf(oxy + dOxy);
+  };
+
+  // ─── 6-NODE BRAIN FORWARD PASS ───────────────────────────────────────────────
+  // Nodes: 0=SENSOR 1=MEMORY 2=EXECUTIVE 3=EMOTIONAL 4=MOTOR 5=OUTPUT
+  // Two settling passes through the 6×6 recurrent weight matrix.
+  // Neurochemicals gate each node's additive bias.
+  func brainForwardPass(id : Nat, architectSignal : Float) {
+    let ncBase = id * 4;
+    let bwBase = id * BRAIN_NODES * BRAIN_NODES;
+    let naBase = id * BRAIN_NODES;
+    let dop = stableNeuroChem[ncBase + DOPAMINE];
+    let cor = stableNeuroChem[ncBase + CORTISOL];
+    let nor = stableNeuroChem[ncBase + NOREPINEPHRINE];
+    let oxy = stableNeuroChem[ncBase + OXYTOCIN];
+
+    // Neurochemical bias per node
+    let bias0 = nor * 0.25;                         // SENSOR: arousal sharpens sensing
+    let bias1 = dop * 0.20;                         // MEMORY: reward consolidates
+    let bias2 = dop * 0.15 - cor * 0.10;            // EXECUTIVE: reward enables, stress impairs
+    let bias3 = cor * 0.30 + nor * 0.20;            // EMOTIONAL: stress + arousal
+    let bias4 = nor * 0.35;                         // MOTOR: arousal drives action
+    let bias5 = oxy * 0.20 + architectSignal * 0.30; // OUTPUT: cohesion + external command
+
+    // Two forward settling passes
+    var pass = 0;
+    while (pass < 2) {
+      var ni = 0;
+      while (ni < BRAIN_NODES) {
+        let bias = switch ni {
+          case 0 bias0; case 1 bias1; case 2 bias2;
+          case 3 bias3; case 4 bias4; case _ bias5;
+        };
+        var sum : Float = bias;
+        var nj = 0;
+        while (nj < BRAIN_NODES) {
+          sum += stableBrainWeights[bwBase + ni * BRAIN_NODES + nj]
+                 * stableNodeActivations[naBase + nj];
+          nj += 1;
+        };
+        stableNodeActivations[naBase + ni] := sigmoid(sum);
+        ni += 1;
+      };
+      pass += 1;
+    };
+  };
+
+  // ─── STDP INTRA-BRAIN WEIGHT PLASTICITY ──────────────────────────────────────
+  // Δw_ij = α · a_i · a_j − decay · w_ij  (BCM-like unsupervised Hebbian)
+  func stdpUpdate(id : Nat) {
+    let STDP_ALPHA : Float = 0.005;
+    let DECAY      : Float = 0.001;
+    let bwBase = id * BRAIN_NODES * BRAIN_NODES;
+    let naBase = id * BRAIN_NODES;
+    var ni = 0;
+    while (ni < BRAIN_NODES) {
+      var nj = 0;
+      while (nj < BRAIN_NODES) {
+        let idx = bwBase + ni * BRAIN_NODES + nj;
+        let ai = stableNodeActivations[naBase + ni];
+        let aj = stableNodeActivations[naBase + nj];
+        let w  = stableBrainWeights[idx];
+        let dw = STDP_ALPHA * ai * aj - DECAY * w;
+        stableBrainWeights[idx] := Float.max(0.1, Float.min(3.0, w + dw));
+        nj += 1;
+      };
+      ni += 1;
+    };
+  };
+
+  // ─── ENERGY MODEL ─────────────────────────────────────────────────────────────
+  // Replenish slowly; deplete from signaling, neural activity, and movement.
+  func energyStep(id : Nat) {
+    let REPLENISH   : Float = 0.015;
+    let SIGNAL_COST : Float = 0.003;
+    let BRAIN_COST  : Float = 0.002;
+    let MOVE_COST   : Float = 0.005;
+    let naBase = id * BRAIN_NODES;
+    var actSum : Float = 0.0;
+    var ni = 0;
+    while (ni < BRAIN_NODES) { actSum += stableNodeActivations[naBase + ni]; ni += 1 };
+    let meanAct = actSum / Float.fromInt(BRAIN_NODES);
+    let speed = Float.sqrt(stableVelX[id] * stableVelX[id] + stableVelZ[id] * stableVelZ[id]);
+    let newE = stableEnergy[id]
+      + REPLENISH
+      - SIGNAL_COST * stableSignals[id]
+      - BRAIN_COST  * meanAct
+      - MOVE_COST   * speed;
+    stableEnergy[id] := Float.max(0.2, Float.min(2.0, newE));
+  };
+
+  // ─── REYNOLDS BOIDS VELOCITY UPDATE ──────────────────────────────────────────
+  // Separation · Alignment · Cohesion · Anchor-to-origin
+  // NOR modulates max speed (arousal → faster movement).
+  func boidsVelocity(id : Nat) {
+    let SEP_RADIUS : Float = 15.0;
+    let COH_RADIUS : Float = 50.0;
+    let MAX_SPEED  : Float = 0.5;
+    let W_SEP : Float = 1.5;
+    let W_ALI : Float = 0.8;
+    let W_COH : Float = 0.6;
+    let n = stableDroneCount;
+    var sepX : Float = 0.0; var sepZ : Float = 0.0;
+    var aliX : Float = 0.0; var aliZ : Float = 0.0;
+    var cohX : Float = 0.0; var cohZ : Float = 0.0;
+    var nSep : Float = 0.0; var nAli : Float = 0.0; var nCoh : Float = 0.0;
+    var j = 0;
+    while (j < n) {
+      if (j != id and not stableSacrificed[j]) {
+        let dx = stablePosX[id] - stablePosX[j];
+        let dz = stablePosZ[id] - stablePosZ[j];
+        let dist = Float.sqrt(dx * dx + dz * dz) + 0.001;
+        if (dist < SEP_RADIUS) { sepX += dx / dist; sepZ += dz / dist; nSep += 1.0 };
+        if (dist < COH_RADIUS) {
+          aliX += stableVelX[j]; aliZ += stableVelZ[j]; nAli += 1.0;
+          cohX += stablePosX[j]; cohZ += stablePosZ[j]; nCoh += 1.0;
+        };
+      };
+      j += 1;
+    };
+    if (nSep > 0.0) { sepX /= nSep; sepZ /= nSep };
+    if (nAli > 0.0) { aliX /= nAli; aliZ /= nAli };
+    if (nCoh > 0.0) {
+      cohX := cohX / nCoh - stablePosX[id];
+      cohZ := cohZ / nCoh - stablePosZ[id];
+    };
+    // Anchor: tighter when swarm is coherent (high r_swarm)
+    let anchorK = 0.005 + 0.02 * rSwarm;
+    let ancX = -stablePosX[id] * anchorK;
+    let ancZ = -stablePosZ[id] * anchorK;
+
+    let forceX = W_SEP * sepX + W_ALI * aliX + W_COH * cohX + ancX;
+    let forceZ = W_SEP * sepZ + W_ALI * aliZ + W_COH * cohZ + ancZ;
+
+    // Norepinephrine modulates speed
+    let nor = stableNeuroChem[id * 4 + NOREPINEPHRINE];
+    let norExcess = Float.max(0.0, nor - 1.0);
+    let speedMod  = Float.min(2.0, 0.5 + 0.8 * norExcess);
+
+    var newVX = stableVelX[id] * 0.85 + forceX * 0.05;
+    var newVZ = stableVelZ[id] * 0.85 + forceZ * 0.05;
+    let speed = Float.sqrt(newVX * newVX + newVZ * newVZ);
+    if (speed > MAX_SPEED * speedMod) {
+      newVX := newVX / speed * MAX_SPEED * speedMod;
+      newVZ := newVZ / speed * MAX_SPEED * speedMod;
+    };
+    stableVelX[id]  := newVX;
+    stableVelZ[id]  := newVZ;
+    stablePosX[id]  := stablePosX[id] + newVX;
+    stablePosZ[id]  := stablePosZ[id] + newVZ;
+  };
 
   // ─── INITIALISE / RESIZE STABLE ARRAYS ──────────────────────────────────────
 
@@ -225,6 +432,34 @@ actor SwarmBrain {
       while (i < stableSwarmWeights.size()) { newSW[i] := stableSwarmWeights[i]; i += 1 };
       stableSwarmWeights := newSW;
     };
+    // velocity X / Z
+    if (stableVelX.size() < n) {
+      let newVX = Array.init<Float>(n, 0.0);
+      var i = 0;
+      while (i < stableVelX.size()) { newVX[i] := stableVelX[i]; i += 1 };
+      stableVelX := newVX;
+    };
+    if (stableVelZ.size() < n) {
+      let newVZ = Array.init<Float>(n, 0.0);
+      var i = 0;
+      while (i < stableVelZ.size()) { newVZ[i] := stableVelZ[i]; i += 1 };
+      stableVelZ := newVZ;
+    };
+    // energy (sovereign floor for energy is 0.2)
+    if (stableEnergy.size() < n) {
+      let newE = Array.init<Float>(n, 1.5);
+      var i = 0;
+      while (i < stableEnergy.size()) { newE[i] := stableEnergy[i]; i += 1 };
+      stableEnergy := newE;
+    };
+    // node activations: 6 per drone
+    let naSize = n * BRAIN_NODES;
+    if (stableNodeActivations.size() < naSize) {
+      let newNA = Array.init<Float>(naSize, 0.5);
+      var i = 0;
+      while (i < stableNodeActivations.size()) { newNA[i] := stableNodeActivations[i]; i += 1 };
+      stableNodeActivations := newNA;
+    };
   };
 
   // ─── ADD DRONE ───────────────────────────────────────────────────────────────
@@ -272,6 +507,17 @@ actor SwarmBrain {
         stableSwarmWeights[j  * MAX_DRONES + id] := 0.1;
       };
       j += 1;
+    };
+
+    // Init velocity, energy, node activations
+    stableVelX[id]   := 0.0;
+    stableVelZ[id]   := 0.0;
+    stableEnergy[id] := 1.5;
+    let naBase = id * BRAIN_NODES;
+    var ni2 = 0;
+    while (ni2 < BRAIN_NODES) {
+      stableNodeActivations[naBase + ni2] := 0.5;
+      ni2 += 1;
     };
 
     id
@@ -504,6 +750,51 @@ actor SwarmBrain {
       i += 1;
     };
 
+    // Phase 3b: Neurochemical ODE step (4-species coupled equations)
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        // Mean Hebbian weight to active neighbors (feeds oxytocin ODE)
+        var hebbSum : Float = 0.0;
+        var hebbCnt : Float = 0.0;
+        var j = 0;
+        while (j < n) {
+          if (j != i and not stableSacrificed[j]) {
+            hebbSum += stableSwarmWeights[i * MAX_DRONES + j];
+            hebbCnt += 1.0;
+          };
+          j += 1;
+        };
+        let meanHebb = if (hebbCnt > 0.0) hebbSum / hebbCnt else 0.1;
+        neurochemODE(i, meanHebb);
+      };
+      i += 1;
+    };
+
+    // Phase 3c: 6-node brain forward pass with STDP (architectSignal = 1.0 stable default)
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        brainForwardPass(i, architectSignalLevel);
+        stdpUpdate(i);
+      };
+      i += 1;
+    };
+
+    // Phase 3d: Energy model
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) energyStep(i);
+      i += 1;
+    };
+
+    // Phase 3e: Reynolds boids velocity + position update
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) boidsVelocity(i);
+      i += 1;
+    };
+
     // Phase 4: compute r_swarm
     rSwarm := computeRSwarm();
 
@@ -523,20 +814,14 @@ actor SwarmBrain {
     // Phase 6: Faction Resistance (Law 24)
     factionResistance();
 
-    // Phase 7: Boost signals from Hebbian influence
+    // Phase 7: Signal = brain OUTPUT node activation × energy
+    // (replaces pure influence-based boost; embeds brain cognition in output)
     i := 0;
     while (i < n) {
       if (not stableSacrificed[i]) {
-        var influence : Float = 0.0;
-        var j = 0;
-        while (j < n) {
-          if (j != i and not stableSacrificed[j]) {
-            influence += stableSwarmWeights[i * MAX_DRONES + j] * stableSignals[j];
-          };
-          j += 1;
-        };
-        stableSignals[i] := sf(stableSignals[i] + 0.001 * influence);
-        stableActivations[i] := sf(stableActivations[i]);
+        let outputAct = stableNodeActivations[i * BRAIN_NODES + 5]; // OUTPUT node
+        stableSignals[i]     := sf(outputAct * stableEnergy[i] * architectSignalLevel);
+        stableActivations[i] := sf(outputAct * stableEnergy[i]);
       };
       i += 1;
     };
@@ -685,12 +970,12 @@ actor SwarmBrain {
     eligible
   };
 
-  // ─── SIGNAL BOOST (Architect Signal) ─────────────────────────────────────────
-
-  public func boostSignal(id : Nat, amount : Float) : async () {
-    if (id >= stableDroneCount) return;
-    stableSignals[id] := sf(stableSignals[id] + amount);
+  // ─── ARCHITECT SIGNAL LEVEL ──────────────────────────────────────────────────
+  public func setArchitectSignalLevel(level : Float) : async () {
+    architectSignalLevel := Float.max(0.0, Float.min(2.0, level));
   };
+
+  public query func getArchitectSignalLevel() : async Float { architectSignalLevel };
 
   // ─── PREUPGRADE / POSTUPGRADE ────────────────────────────────────────────────
   // Stable vars are persisted automatically by ICP runtime.
