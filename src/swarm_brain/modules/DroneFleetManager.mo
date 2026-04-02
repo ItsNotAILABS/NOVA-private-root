@@ -57,21 +57,43 @@ module DroneFleetManager {
   public let SPHERE_RADIUS_BASE : Float = 50.0;
   
   // ═══════════════════════════════════════════════════════════════════════════
-  // SQUADRON ORGANIZATION — 250 Drones in 3 Squadrons
+  // SQUADRON ORGANIZATION — 500 Drones in 5 Squadrons
   // ═══════════════════════════════════════════════════════════════════════════
-  // Each squadron has ~83 drones + 1 Sovereign commander
+  // Each squadron has 100 drones + 1 Sovereign commander
   // Squadrons are semi-autonomous: internal Kuramoto coupling + 
   // inter-squadron coupling through Sovereign command link
+  //
+  // SELF-COMPOUNDING ARCHITECTURE:
+  // The math works at ANY scale. N=500 or N=50,000 — same equations.
+  // SQUADRON_COUNT and DRONES_PER_SQUADRON are derived from fleet size,
+  // not hard-coded limits. The architecture UNFOLDS as it scales.
   // ═══════════════════════════════════════════════════════════════════════════
   
-  public let DEFAULT_FLEET_SIZE_250 : Nat = 250;
-  public let SQUADRON_COUNT : Nat = 3;
-  public let DRONES_PER_SQUADRON : Nat = 83;  // 250 / 3 ≈ 83
+  public let DEFAULT_FLEET_SIZE_500 : Nat = 500;
+  public let DEFAULT_SQUADRON_COUNT : Nat = 5;
+  public let DEFAULT_DRONES_PER_SQUADRON : Nat = 100;  // 500 / 5 = 100
   
-  // Squadron names
-  public let SQUADRON_ALPHA : Nat = 0;
-  public let SQUADRON_BETA : Nat = 1;
-  public let SQUADRON_GAMMA : Nat = 2;
+  // Squadron names — 5 squadrons for 500-drone fleet
+  public let SQUADRON_ALPHA : Nat = 0;    // Assault squadron
+  public let SQUADRON_BETA : Nat = 1;     // Recon squadron
+  public let SQUADRON_GAMMA : Nat = 2;    // Defense squadron
+  public let SQUADRON_DELTA : Nat = 3;    // Support squadron
+  public let SQUADRON_OMEGA : Nat = 4;    // Special ops (kamikaze, jammers)
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SELF-COMPOUNDING ECONOMICS — PARALLAX CYCLE FUNDING
+  // ═══════════════════════════════════════════════════════════════════════════
+  // The swarm pays for itself through coherence-driven FORMA minting.
+  // Higher coherence → more FORMA → more cycles → more compute → higher coherence
+  //
+  // CYCLE_COST_PER_DRONE: ~0.000001 ICP per beat per drone
+  // At 500 drones, 43,200 beats/day: ~21.6 ICP/day
+  // FORMA earnings must exceed this for immortality.
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  public let CYCLE_COST_PER_DRONE_PER_BEAT : Float = 0.000001;
+  public let FORMA_TO_CYCLE_RATE : Float = 0.01;  // 1 FORMA = 0.01 ICP worth of cycles
+  public let COHERENCE_FORMA_THRESHOLD : Float = 0.5;  // Mint only above r=0.5
   
   // Physics
   public let PI : Float = 3.14159265358979;
@@ -79,16 +101,174 @@ module DroneFleetManager {
   public let DT : Float = 0.0833;  // 1/12 Hz = 83.3ms
   
   // ═══════════════════════════════════════════════════════════════════════════
-  // TYPES — DRONE STRUCTURES
+  // TYPES — DRONE STRUCTURES (10 SPECIALIZED TYPES FOR FUTURISTIC WARFARE)
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Each drone type has different:
+  //   • Speed, range, payload
+  //   • Kuramoto coupling strength (how much it syncs)
+  //   • Combat role
+  //   • Energy consumption
+  //
+  // The math is the same for all types — only parameters differ.
+  // This is how we build for 200,000 drones without code changes.
   // ═══════════════════════════════════════════════════════════════════════════
   
   public type DroneClass = {
-    #Scout;       // Fast, low payload, high sensors
-    #Striker;     // Attack-focused, medium speed
-    #Guardian;    // Defensive, high durability
-    #Relay;       // Communication hub
-    #Medic;       // Repair/support
-    #Sovereign;   // Command drone (1 per swarm)
+    // ═══════════════════════════════════════════════════════════════════════
+    // TIER 1: RECONNAISSANCE & INTELLIGENCE
+    // ═══════════════════════════════════════════════════════════════════════
+    #Scout;         // Fast, small, long-range sensors, high stealth
+                    // Speed: 120 km/h, Range: 50km, Payload: 0kg
+                    // Role: Find enemies, map terrain, early warning
+    
+    #Recon;         // Medium speed, advanced sensors, SIGINT capability
+                    // Speed: 80 km/h, Range: 30km, Payload: 2kg (sensors)
+                    // Role: Electronic intelligence, comm intercept
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // TIER 2: STRIKE & ATTACK
+    // ═══════════════════════════════════════════════════════════════════════
+    #Strike;        // Armed attack drone, precision munitions
+                    // Speed: 100 km/h, Range: 25km, Payload: 10kg
+                    // Role: Surgical strikes, high-value targets
+    
+    #Hunter;        // Anti-drone hunter-killer, fast & agile
+                    // Speed: 150 km/h, Range: 15km, Payload: 2kg
+                    // Role: Intercept enemy drones, dogfighting
+    
+    #Kamikaze;      // One-way explosive drone, maximum damage
+                    // Speed: 200 km/h, Range: 100km, Payload: 20kg explosive
+                    // Role: Destroy hardened targets, sacrifice for swarm
+                    // Note: When sacrificed, triggers FORMA SACRIFICE_BONUS
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // TIER 3: ELECTRONIC WARFARE & SUPPORT
+    // ═══════════════════════════════════════════════════════════════════════
+    #Jammer;        // Electronic warfare, disrupts enemy comms & sensors
+                    // Speed: 60 km/h, Range: 20km, Payload: 15kg (EW gear)
+                    // Role: Blind enemy swarm, break their Kuramoto sync
+    
+    #Relay;         // Communication backbone, mesh network node
+                    // Speed: 70 km/h, Range: 40km, Payload: 5kg
+                    // Role: Extend swarm range, backup Sovereign link
+    
+    #Decoy;         // Fake signature generator, draws fire
+                    // Speed: 90 km/h, Range: 30km, Payload: 3kg
+                    // Role: Distract enemy, absorb missiles, protect Sovereigns
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // TIER 4: LOGISTICS & SUPPORT
+    // ═══════════════════════════════════════════════════════════════════════
+    #Carrier;       // Deploys micro-drones, mobile launch platform
+                    // Speed: 50 km/h, Range: 20km, Payload: 50kg (10 micro-drones)
+                    // Role: Expand swarm mid-mission, surprise attacks
+    
+    #Logistics;     // Resupply, battery swap, field repair
+                    // Speed: 60 km/h, Range: 15km, Payload: 30kg
+                    // Role: Keep other drones alive, energy injection
+    
+    #Medic;         // Emergency extraction, wounded pilot recovery
+                    // Speed: 100 km/h, Range: 25km, Payload: 80kg
+                    // Role: Save human operators, high ethical priority
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // TIER 5: COMMAND & CONTROL
+    // ═══════════════════════════════════════════════════════════════════════
+    #Sovereign;     // Squadron commander, highest compute, strongest sync
+                    // Speed: 80 km/h, Range: 30km, Payload: 20kg
+                    // Role: Lead squadron, inter-squadron Kuramoto coupling
+                    // Only 1 per squadron (5 total in 500-drone fleet)
+    
+    #MicroDrone;    // Tiny (10cm), deployed from Carrier, swarm-in-swarm
+                    // Speed: 40 km/h, Range: 2km, Payload: 0.1kg
+                    // Role: Infiltrate, overwhelm, N² superradiance at close range
+  };
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DRONE TYPE PARAMETERS — The math that makes each type unique
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  public type DroneTypeParams = {
+    speed           : Float;    // m/s
+    range           : Float;    // meters
+    payload         : Float;    // kg
+    stealthFactor   : Float;    // 0-1 (1 = invisible)
+    kuramotoK       : Float;    // Coupling strength
+    energyRate      : Float;    // Energy consumption per beat
+    combatPower     : Float;    // Damage output
+    armorFactor     : Float;    // Damage reduction
+    sensorRange     : Float;    // Detection range (meters)
+    cyclesCostMult  : Float;    // ICP cycle cost multiplier
+  };
+  
+  public func getDroneTypeParams(droneClass: DroneClass) : DroneTypeParams {
+    switch (droneClass) {
+      case (#Scout) {
+        speed = 33.3; range = 50000.0; payload = 0.0; stealthFactor = 0.9;
+        kuramotoK = 0.5; energyRate = 0.001; combatPower = 0.0; armorFactor = 0.1;
+        sensorRange = 5000.0; cyclesCostMult = 0.5;
+      };
+      case (#Recon) {
+        speed = 22.2; range = 30000.0; payload = 2.0; stealthFactor = 0.7;
+        kuramotoK = 0.6; energyRate = 0.002; combatPower = 0.0; armorFactor = 0.2;
+        sensorRange = 8000.0; cyclesCostMult = 0.8;
+      };
+      case (#Strike) {
+        speed = 27.8; range = 25000.0; payload = 10.0; stealthFactor = 0.3;
+        kuramotoK = 0.7; energyRate = 0.003; combatPower = 1.0; armorFactor = 0.4;
+        sensorRange = 3000.0; cyclesCostMult = 1.0;
+      };
+      case (#Hunter) {
+        speed = 41.7; range = 15000.0; payload = 2.0; stealthFactor = 0.5;
+        kuramotoK = 0.8; energyRate = 0.004; combatPower = 0.8; armorFactor = 0.3;
+        sensorRange = 4000.0; cyclesCostMult = 1.2;
+      };
+      case (#Kamikaze) {
+        speed = 55.6; range = 100000.0; payload = 20.0; stealthFactor = 0.2;
+        kuramotoK = 0.9; energyRate = 0.005; combatPower = 10.0; armorFactor = 0.1;
+        sensorRange = 2000.0; cyclesCostMult = 0.3;  // Cheap — expendable
+      };
+      case (#Jammer) {
+        speed = 16.7; range = 20000.0; payload = 15.0; stealthFactor = 0.1;
+        kuramotoK = 0.4; energyRate = 0.006; combatPower = 0.0; armorFactor = 0.3;
+        sensorRange = 10000.0; cyclesCostMult = 1.5;  // High compute for jamming
+      };
+      case (#Relay) {
+        speed = 19.4; range = 40000.0; payload = 5.0; stealthFactor = 0.6;
+        kuramotoK = 0.95; energyRate = 0.002; combatPower = 0.0; armorFactor = 0.2;
+        sensorRange = 2000.0; cyclesCostMult = 0.7;
+      };
+      case (#Decoy) {
+        speed = 25.0; range = 30000.0; payload = 3.0; stealthFactor = 0.0;  // Maximum visibility!
+        kuramotoK = 0.3; energyRate = 0.002; combatPower = 0.0; armorFactor = 0.5;
+        sensorRange = 500.0; cyclesCostMult = 0.4;
+      };
+      case (#Carrier) {
+        speed = 13.9; range = 20000.0; payload = 50.0; stealthFactor = 0.4;
+        kuramotoK = 0.7; energyRate = 0.008; combatPower = 0.2; armorFactor = 0.6;
+        sensorRange = 3000.0; cyclesCostMult = 2.0;  // Expensive — carries micro-drones
+      };
+      case (#Logistics) {
+        speed = 16.7; range = 15000.0; payload = 30.0; stealthFactor = 0.5;
+        kuramotoK = 0.6; energyRate = 0.003; combatPower = 0.0; armorFactor = 0.4;
+        sensorRange = 2000.0; cyclesCostMult = 0.8;
+      };
+      case (#Medic) {
+        speed = 27.8; range = 25000.0; payload = 80.0; stealthFactor = 0.6;
+        kuramotoK = 0.7; energyRate = 0.004; combatPower = 0.0; armorFactor = 0.5;
+        sensorRange = 3000.0; cyclesCostMult = 1.0;
+      };
+      case (#Sovereign) {
+        speed = 22.2; range = 30000.0; payload = 20.0; stealthFactor = 0.5;
+        kuramotoK = 1.0; energyRate = 0.010; combatPower = 0.5; armorFactor = 0.8;
+        sensorRange = 6000.0; cyclesCostMult = 3.0;  // Highest compute — brain of squadron
+      };
+      case (#MicroDrone) {
+        speed = 11.1; range = 2000.0; payload = 0.1; stealthFactor = 0.95;
+        kuramotoK = 0.3; energyRate = 0.0001; combatPower = 0.05; armorFactor = 0.0;
+        sensorRange = 100.0; cyclesCostMult = 0.01;  // Tiny cost — swarm of thousands
+      };
+    }
   };
   
   public type CoreValues = {
