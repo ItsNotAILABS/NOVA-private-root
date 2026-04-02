@@ -1,7 +1,7 @@
 // ============================================================================
 // MEDINA TECH — CONFIDENTIAL & PROPRIETARY
 // ============================================================================
-// Module: JubileeDreamCycle — The 1000-Beat Dream Consolidation System
+// Module: JubileeDreamCycle — The F(16)-Beat Dream Consolidation System
 // Classification: CONFIDENTIAL — SOVEREIGN DOCTRINE
 // 
 // Copyright © 2024-2026 Alfredo Medina Hernandez
@@ -10,13 +10,17 @@
 //
 // JUBILEE — THE DREAM CYCLE LAW
 // ============================================================================
-// Every 1,000 beats (~33 minutes ICP time):
-//   - Mint DRT (Dream Reserve Token)
-//   - Reset quantumMemoryReserve := 2.0
+// Every F(16)=987 beats (~33 minutes ICP time):
+//   - Mint DRT (Dream Reserve Token) at φ base rate
+//   - Reset quantumMemoryReserve := e (Euler's number)
 //   - Fire L-121 (Silver Sovereignty confirmation)
 //   - Log JUBILEE event to ANIMA chain
 //   - Log JUBILEE patent event
 //   - PROMETHEUS PRIME: reset anomaly baseline
+//
+// All constants derived from sacred mathematics:
+//   - φ (Golden Ratio), e (Euler), Fibonacci sequences
+//   - No arbitrary numbers
 //
 // The organism rests, consolidates, and resets its quantum memory reservoir.
 // ============================================================================
@@ -30,39 +34,76 @@ import Bool  "mo:base/Bool";
 import Buffer "mo:base/Buffer";
 import Time  "mo:base/Time";
 
+// Import sacred constants
+import SOC "SovereignOrganismConstants";
+
 module {
 
   // ==========================================================================
-  // CONSTANTS
+  // CONSTANTS — ALL DERIVED FROM SACRED MATHEMATICS
   // ==========================================================================
   
-  public let JUBILEE_INTERVAL : Nat = 1000;       // Beats between JUBILEEs
-  public let QUANTUM_MEMORY_MAX : Float = 2.0;    // Reset value for QMEM
-  public let DRT_BASE_MINT : Float = 1.0;         // Base DRT mint per JUBILEE
-  public let SILVER_CONDUCTANCE : Float = 1.0;    // L-121 constant
-  public let WORLD_MODEL_COUNT : Nat = 14;        // Number of world model EMAs
+  // JUBILEE interval: F(16) = 987 beats (Fibonacci)
+  public let JUBILEE_INTERVAL : Nat = SOC.JUBILEE_INTERVAL;  // 987
   
-  // Jacob's Ladder thresholds
-  public let RUNG_0_THRESHOLD : Nat = 0;
-  public let RUNG_1_THRESHOLD : Nat = 1000;       // 1,000 consecutive compliant beats
-  public let RUNG_2_THRESHOLD : Nat = 2000;       // 2,000 consecutive compliant beats
-  public let RUNG_3_THRESHOLD : Nat = 3000;       // 3,000 consecutive compliant beats
-  public let RUNG_4_THRESHOLD : Nat = 4000;       // 4,000 consecutive compliant beats
+  // Quantum memory maximum: e (Euler's number) ≈ 2.718
+  public let QUANTUM_MEMORY_MAX : Float = SOC.QMEM_MAX;  // e
   
-  // Compliance thresholds
-  public let COMPLIANCE_MAINTAIN : Float = 0.9;   // Minimum to maintain/climb
-  public let COMPLIANCE_DEMOTE : Float = 0.7;     // Below this triggers demotion
+  // DRT base mint: φ (Golden Ratio) ≈ 1.618
+  public let DRT_BASE_MINT : Float = SOC.DRT_BASE_MINT;  // φ
   
-  // FORMA multipliers per rung
-  public let RUNG_0_MULTIPLIER : Float = 1.0;     // Base
-  public let RUNG_1_MULTIPLIER : Float = 1.1;     // 10% boost
-  public let RUNG_2_MULTIPLIER : Float = 1.1;     // Sustained 10%
-  public let RUNG_3_MULTIPLIER : Float = 1.2;     // 20% boost
-  public let RUNG_4_MULTIPLIER : Float = 1.5;     // 50% boost - maximum velocity
+  // L-121 Silver Conductance: 1.0 (unity, full pass-through)
+  public let SILVER_CONDUCTANCE : Float = SOC.SILVER_CONDUCTANCE;  // 1.0
   
-  // SACESI constants
-  public let SACESI_INCREMENT : Float = 0.000001; // Increment per beat
-  public let SACESI_FLOOR : Float = 1.0;          // Minimum SACESI value
+  // World model count: 14 (2 × 7, prime structure)
+  public let WORLD_MODEL_COUNT : Nat = SOC.WORLD_MODEL_COUNT;  // 14
+  
+  // ==========================================================================
+  // JACOB'S LADDER — Fibonacci-based thresholds, φ-power multipliers
+  // ==========================================================================
+  
+  // Rung thresholds based on Fibonacci × 10
+  // Rung 0: 0 (genesis)
+  // Rung 1: F(10) × 10 = 55 × 10 = 550 beats
+  // Rung 2: F(11) × 10 = 89 × 10 = 890 beats  
+  // Rung 3: F(12) × 10 = 144 × 10 = 1440 beats
+  // Rung 4: F(13) × 10 = 233 × 10 = 2330 beats
+  public let RUNG_0_THRESHOLD : Nat = SOC.JACOB_THRESHOLDS[0];  // 0
+  public let RUNG_1_THRESHOLD : Nat = SOC.JACOB_THRESHOLDS[1];  // 550
+  public let RUNG_2_THRESHOLD : Nat = SOC.JACOB_THRESHOLDS[2];  // 890
+  public let RUNG_3_THRESHOLD : Nat = SOC.JACOB_THRESHOLDS[3];  // 1440
+  public let RUNG_4_THRESHOLD : Nat = SOC.JACOB_THRESHOLDS[4];  // 2330
+  
+  // Compliance thresholds: Golden ratios
+  // Maintain: ψ + 0.2 ≈ 0.818 (golden + fifth)
+  // Demote: ψ ≈ 0.618 (golden inverse)
+  public let COMPLIANCE_MAINTAIN : Float = SOC.COMPLIANCE_MAINTAIN;  // ≈ 0.818
+  public let COMPLIANCE_DEMOTE : Float = SOC.COMPLIANCE_DEMOTE;      // ≈ 0.618
+  
+  // FORMA multipliers: φ^(n/10) for smooth golden progression
+  // Rung 0: φ^0.0 = 1.0
+  // Rung 1: φ^0.1 ≈ 1.0481
+  // Rung 2: φ^0.2 ≈ 1.0979
+  // Rung 3: φ^0.3 ≈ 1.1498
+  // Rung 4: φ^0.5 ≈ 1.2720 (√φ)
+  public let RUNG_0_MULTIPLIER : Float = SOC.JACOB_MULTIPLIERS[0];  // 1.0
+  public let RUNG_1_MULTIPLIER : Float = SOC.JACOB_MULTIPLIERS[1];  // φ^0.1
+  public let RUNG_2_MULTIPLIER : Float = SOC.JACOB_MULTIPLIERS[2];  // φ^0.2
+  public let RUNG_3_MULTIPLIER : Float = SOC.JACOB_MULTIPLIERS[3];  // φ^0.3
+  public let RUNG_4_MULTIPLIER : Float = SOC.JACOB_MULTIPLIERS[4];  // φ^0.5 = √φ
+  
+  // ==========================================================================
+  // SACESI — Golden Power Increment
+  // ==========================================================================
+  
+  // SACESI increment: φ^(-13) ≈ 0.00134 per beat
+  // After F(16)=987 beats: SACESI ≈ 2.32
+  // After F(19)=4181 beats: SACESI ≈ 6.6
+  // Approaches infinity via golden compounding
+  public let SACESI_INCREMENT : Float = SOC.SACESI_INCREMENT;  // φ^(-13)
+  
+  // SACESI floor: 1.0 (unity, sovereign floor)
+  public let SACESI_FLOOR : Float = SOC.SACESI_FLOOR;  // 1.0
   
   // FNV-1a constants
   let FNV_OFFSET : Nat32 = 2166136261;
