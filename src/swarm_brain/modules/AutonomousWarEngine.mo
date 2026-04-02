@@ -977,4 +977,765 @@ module {
     }
   };
 
+  // ============================================================
+  // FACTION DOCTRINE — UNIQUE AI BEHAVIORS PER FACTION
+  // Each faction has distinct tactics, strengths, weaknesses
+  // ============================================================
+
+  public type FactionDoctrine = {
+    factionId        : FactionId;
+    
+    // Combat preferences
+    preferredRange   : Float;     // Optimal engagement distance
+    aggressionBias   : Float;     // How likely to attack vs defend
+    flankerPref      : Float;     // Preference for flanking maneuvers
+    directAssaultPref: Float;     // Preference for frontal attacks
+    ambushPref       : Float;     // Preference for ambushes
+    siegePref        : Float;     // Preference for siege warfare
+    
+    // Unit composition preferences
+    infantryRatio    : Float;     // Preferred infantry percentage
+    vehicleRatio     : Float;     // Preferred vehicle percentage
+    artilleryRatio   : Float;     // Preferred artillery percentage
+    airRatio         : Float;     // Preferred air unit percentage
+    specialOpsRatio  : Float;     // Preferred special ops percentage
+    
+    // Economic priorities
+    resourcePriority : Float;     // How much to prioritize resource territories
+    militaryPriority : Float;     // How much to prioritize military territories
+    populationPriority : Float;   // How much to prioritize population centers
+    
+    // Tactical modifiers
+    retreatThreshold : Float;     // When to retreat (morale level)
+    pursuitAggression: Float;     // How aggressively to pursue retreating enemies
+    fortificationRate: Float;     // How fast to build fortifications
+    
+    // Special abilities
+    stealthBonus     : Float;     // Bonus to stealth operations
+    armorBonus       : Float;     // Bonus to armor effectiveness
+    speedBonus       : Float;     // Bonus to movement speed
+    moraleBonus      : Float;     // Bonus to morale
+    accuracyBonus    : Float;     // Bonus to accuracy
+  };
+
+  // Get doctrine for each faction
+  public func getFactionDoctrine(faction : FactionId) : FactionDoctrine {
+    switch (faction) {
+      case (#GhostProtocol) {
+        // Stealth, infiltration, sabotage
+        {
+          factionId = #GhostProtocol;
+          preferredRange = 100.0;
+          aggressionBias = 0.4;
+          flankerPref = 0.8;
+          directAssaultPref = 0.1;
+          ambushPref = 0.9;
+          siegePref = 0.2;
+          infantryRatio = 0.5;
+          vehicleRatio = 0.1;
+          artilleryRatio = 0.0;
+          airRatio = 0.1;
+          specialOpsRatio = 0.3;
+          resourcePriority = 0.6;
+          militaryPriority = 0.2;
+          populationPriority = 0.2;
+          retreatThreshold = 0.3;
+          pursuitAggression = 0.4;
+          fortificationRate = 0.2;
+          stealthBonus = 0.5;
+          armorBonus = 0.0;
+          speedBonus = 0.2;
+          moraleBonus = 0.0;
+          accuracyBonus = 0.3;
+        }
+      };
+      case (#IronLegion) {
+        // Heavy armor, direct assault
+        {
+          factionId = #IronLegion;
+          preferredRange = 50.0;
+          aggressionBias = 0.8;
+          flankerPref = 0.2;
+          directAssaultPref = 0.9;
+          ambushPref = 0.1;
+          siegePref = 0.7;
+          infantryRatio = 0.3;
+          vehicleRatio = 0.4;
+          artilleryRatio = 0.2;
+          airRatio = 0.0;
+          specialOpsRatio = 0.1;
+          resourcePriority = 0.4;
+          militaryPriority = 0.5;
+          populationPriority = 0.1;
+          retreatThreshold = 0.2;
+          pursuitAggression = 0.7;
+          fortificationRate = 0.6;
+          stealthBonus = 0.0;
+          armorBonus = 0.5;
+          speedBonus = -0.1;
+          moraleBonus = 0.2;
+          accuracyBonus = 0.0;
+        }
+      };
+      case (#ShadowVanguard) {
+        // Fast strikes, guerrilla warfare
+        {
+          factionId = #ShadowVanguard;
+          preferredRange = 80.0;
+          aggressionBias = 0.6;
+          flankerPref = 0.7;
+          directAssaultPref = 0.3;
+          ambushPref = 0.6;
+          siegePref = 0.1;
+          infantryRatio = 0.4;
+          vehicleRatio = 0.3;
+          artilleryRatio = 0.0;
+          airRatio = 0.2;
+          specialOpsRatio = 0.1;
+          resourcePriority = 0.5;
+          militaryPriority = 0.3;
+          populationPriority = 0.2;
+          retreatThreshold = 0.4;
+          pursuitAggression = 0.6;
+          fortificationRate = 0.1;
+          stealthBonus = 0.2;
+          armorBonus = 0.0;
+          speedBonus = 0.4;
+          moraleBonus = 0.1;
+          accuracyBonus = 0.1;
+        }
+      };
+      case (#CrimsonOrder) {
+        // Religious zealots, suicide tactics
+        {
+          factionId = #CrimsonOrder;
+          preferredRange = 30.0;
+          aggressionBias = 0.9;
+          flankerPref = 0.3;
+          directAssaultPref = 0.8;
+          ambushPref = 0.3;
+          siegePref = 0.5;
+          infantryRatio = 0.6;
+          vehicleRatio = 0.2;
+          artilleryRatio = 0.1;
+          airRatio = 0.0;
+          specialOpsRatio = 0.1;
+          resourcePriority = 0.2;
+          militaryPriority = 0.4;
+          populationPriority = 0.4;
+          retreatThreshold = 0.1;
+          pursuitAggression = 0.9;
+          fortificationRate = 0.3;
+          stealthBonus = 0.0;
+          armorBonus = 0.0;
+          speedBonus = 0.1;
+          moraleBonus = 0.5;
+          accuracyBonus = -0.1;
+        }
+      };
+      case (#TechnoCore) {
+        // Drones, automation, cyber warfare
+        {
+          factionId = #TechnoCore;
+          preferredRange = 150.0;
+          aggressionBias = 0.5;
+          flankerPref = 0.4;
+          directAssaultPref = 0.4;
+          ambushPref = 0.4;
+          siegePref = 0.4;
+          infantryRatio = 0.2;
+          vehicleRatio = 0.2;
+          artilleryRatio = 0.2;
+          airRatio = 0.3;
+          specialOpsRatio = 0.1;
+          resourcePriority = 0.7;
+          militaryPriority = 0.2;
+          populationPriority = 0.1;
+          retreatThreshold = 0.4;
+          pursuitAggression = 0.5;
+          fortificationRate = 0.5;
+          stealthBonus = 0.1;
+          armorBonus = 0.1;
+          speedBonus = 0.1;
+          moraleBonus = 0.0;
+          accuracyBonus = 0.4;
+        }
+      };
+      case (#WildHunt) {
+        // Tribal, beast riders, nature warfare
+        {
+          factionId = #WildHunt;
+          preferredRange = 60.0;
+          aggressionBias = 0.7;
+          flankerPref = 0.6;
+          directAssaultPref = 0.5;
+          ambushPref = 0.5;
+          siegePref = 0.2;
+          infantryRatio = 0.5;
+          vehicleRatio = 0.3;
+          artilleryRatio = 0.0;
+          airRatio = 0.1;
+          specialOpsRatio = 0.1;
+          resourcePriority = 0.4;
+          militaryPriority = 0.3;
+          populationPriority = 0.3;
+          retreatThreshold = 0.35;
+          pursuitAggression = 0.8;
+          fortificationRate = 0.2;
+          stealthBonus = 0.3;
+          armorBonus = 0.0;
+          speedBonus = 0.3;
+          moraleBonus = 0.3;
+          accuracyBonus = 0.0;
+        }
+      };
+    }
+  };
+
+  // ============================================================
+  // STRATEGIC AI — DECISION MAKING
+  // ============================================================
+
+  public type StrategicDecision = {
+    #Attack : { target : Nat; force : Float };
+    #Defend : { territory : Nat; reinforcement : Float };
+    #Retreat : { from : Nat; to : Nat };
+    #Flank : { target : Nat; direction : Float };
+    #Ambush : { at : Nat; waitTime : Nat };
+    #Siege : { target : Nat };
+    #Reinforce : { territory : Nat; units : Nat };
+    #BuildFortification : { at : Nat };
+    #Rest : { duration : Nat };
+    #Resupply;
+    #NoAction;
+  };
+
+  // Evaluate territory value for a faction
+  public func evaluateTerritoryValue(
+    territory : TerritoryState,
+    brain : FactionBrainState,
+    doctrine : FactionDoctrine
+  ) : Float {
+    let resourceValue = territory.resourceValue * doctrine.resourcePriority;
+    let militaryValue = territory.militaryValue * doctrine.militaryPriority;
+    let populationValue = territory.populationValue * doctrine.populationPriority;
+    
+    // Bonus for adjacent territories
+    let adjacencyBonus = 0.0;  // Would calculate based on neighbors
+    
+    // Strategic value based on position
+    let positionValue = 0.5;  // Center territories are more valuable
+    
+    resourceValue + militaryValue + populationValue + adjacencyBonus + positionValue
+  };
+
+  // Decide strategic action for a faction
+  public func decideStrategicAction(
+    brain : FactionBrainState,
+    territories : [TerritoryState],
+    doctrine : FactionDoctrine
+  ) : StrategicDecision {
+    // High fatigue → rest
+    if (brain.fatigue > 0.8) {
+      return #Rest({ duration = 10 });
+    };
+    
+    // Low supplies → resupply
+    if (brain.supplies < 0.3) {
+      return #Resupply;
+    };
+    
+    // High desperation → aggressive attack
+    if (brain.desperation > 0.7 and brain.confidence > 0.3) {
+      // Find enemy territory to attack
+      var bestTarget : Nat = 0;
+      var bestValue : Float = 0.0;
+      var i = 0;
+      for (t in territories.vals()) {
+        switch (t.controller) {
+          case (?ctrl) {
+            if (factionToNat(ctrl) != factionToNat(brain.factionId)) {
+              let value = evaluateTerritoryValue(t, brain, doctrine);
+              if (value > bestValue) {
+                bestValue := value;
+                bestTarget := i;
+              };
+            };
+          };
+          case null {};
+        };
+        i += 1;
+      };
+      return #Attack({ target = bestTarget; force = 0.8 });
+    };
+    
+    // High confidence + high aggression → attack
+    if (brain.confidence > 0.7 and brain.aggression > 0.6) {
+      // Find weak enemy territory
+      var bestTarget : Nat = 0;
+      var weakestDefense : Float = 10.0;
+      var i = 0;
+      for (t in territories.vals()) {
+        switch (t.controller) {
+          case (?ctrl) {
+            if (factionToNat(ctrl) != factionToNat(brain.factionId)) {
+              if (t.defenseStrength < weakestDefense) {
+                weakestDefense := t.defenseStrength;
+                bestTarget := i;
+              };
+            };
+          };
+          case null {};
+        };
+        i += 1;
+      };
+      return #Attack({ target = bestTarget; force = brain.confidence * 0.7 });
+    };
+    
+    // High fear or low morale → defend
+    if (brain.fear > 0.6 or brain.morale < 0.4) {
+      // Find weakest own territory
+      var weakestOwn : Nat = 0;
+      var weakestDef : Float = 10.0;
+      var i = 0;
+      for (t in territories.vals()) {
+        switch (t.controller) {
+          case (?ctrl) {
+            if (factionToNat(ctrl) == factionToNat(brain.factionId)) {
+              if (t.defenseStrength < weakestDef) {
+                weakestDef := t.defenseStrength;
+                weakestOwn := i;
+              };
+            };
+          };
+          case null {};
+        };
+        i += 1;
+      };
+      return #Defend({ territory = weakestOwn; reinforcement = 0.5 });
+    };
+    
+    // Opportunism check — look for easy targets
+    if (brain.opportunism > 0.5) {
+      var bestOpportunity : Nat = 0;
+      var bestRatio : Float = 0.0;
+      var i = 0;
+      for (t in territories.vals()) {
+        switch (t.controller) {
+          case (?ctrl) {
+            if (factionToNat(ctrl) != factionToNat(brain.factionId)) {
+              let ratio = t.resourceValue / (t.defenseStrength + 0.1);
+              if (ratio > bestRatio) {
+                bestRatio := ratio;
+                bestOpportunity := i;
+              };
+            };
+          };
+          case null {};
+        };
+        i += 1;
+      };
+      if (bestRatio > 1.0) {
+        return #Attack({ target = bestOpportunity; force = 0.5 });
+      };
+    };
+    
+    #NoAction
+  };
+
+  // ============================================================
+  // BATTLE RESOLUTION — COMBAT MATHEMATICS
+  // ============================================================
+
+  // Lanchester's laws for combat modeling
+  // Linear law: dA/dt = -k_B × B (attrition proportional to enemy strength)
+  // Square law: dA/dt = -k_B × B / A (modern combat)
+  
+  public func lanchesterLinear(
+    attackerStrength : Float,
+    defenderStrength : Float,
+    attackerEfficiency : Float,
+    defenderEfficiency : Float,
+    dt : Float
+  ) : (Float, Float) {
+    let attackerLosses = defenderEfficiency * defenderStrength * dt;
+    let defenderLosses = attackerEfficiency * attackerStrength * dt;
+    
+    (Float.max(0.0, attackerStrength - attackerLosses),
+     Float.max(0.0, defenderStrength - defenderLosses))
+  };
+
+  public func lanchesterSquare(
+    attackerStrength : Float,
+    defenderStrength : Float,
+    attackerEfficiency : Float,
+    defenderEfficiency : Float,
+    dt : Float
+  ) : (Float, Float) {
+    // dA/dt = -k_B × B² / (A + ε)
+    let attackerLosses = defenderEfficiency * defenderStrength * defenderStrength / (attackerStrength + 0.01) * dt;
+    let defenderLosses = attackerEfficiency * attackerStrength * attackerStrength / (defenderStrength + 0.01) * dt;
+    
+    (Float.max(0.0, attackerStrength - attackerLosses),
+     Float.max(0.0, defenderStrength - defenderLosses))
+  };
+
+  // Resolve a single battle tick
+  public func resolveBattleTick(battle : BattleState, dt : Float) : BattleState {
+    // Get doctrines
+    let attackerDoctrine = getFactionDoctrine(battle.attackerFaction);
+    let defenderDoctrine = getFactionDoctrine(battle.defenderFaction);
+    
+    // Calculate efficiencies
+    let attackerEfficiency = 0.1 * (1.0 + attackerDoctrine.accuracyBonus) * (1.0 + battle.attackerMorale * 0.5);
+    let defenderEfficiency = 0.1 * (1.0 + defenderDoctrine.accuracyBonus + defenderDoctrine.armorBonus) * (1.0 + battle.defenderMorale * 0.5);
+    
+    // Apply terrain modifier
+    let terrainMod = 1.0 + battle.terrainAdvantage * 0.3;
+    
+    // Resolve combat using Lanchester's square law
+    let (newAttackerStrength, newDefenderStrength) = lanchesterSquare(
+      battle.attackerStrength,
+      battle.defenderStrength,
+      attackerEfficiency,
+      defenderEfficiency * terrainMod,
+      dt
+    );
+    
+    // Calculate casualties
+    let attackerCasualties = battle.attackerStrength - newAttackerStrength;
+    let defenderCasualties = battle.defenderStrength - newDefenderStrength;
+    
+    // Update morale based on casualties
+    let attackerMoraleChange = -attackerCasualties / (battle.attackerStrength + 0.01) * 0.5 + 
+                               defenderCasualties / (battle.defenderStrength + 0.01) * 0.3;
+    let defenderMoraleChange = -defenderCasualties / (battle.defenderStrength + 0.01) * 0.5 +
+                               attackerCasualties / (battle.attackerStrength + 0.01) * 0.3;
+    
+    let newAttackerMorale = Float.max(0.0, Float.min(1.0, battle.attackerMorale + attackerMoraleChange));
+    let newDefenderMorale = Float.max(0.0, Float.min(1.0, battle.defenderMorale + defenderMoraleChange));
+    
+    // Check for battle end
+    let isResolved = newAttackerStrength < 0.1 or newDefenderStrength < 0.1 or
+                     newAttackerMorale < attackerDoctrine.retreatThreshold or
+                     newDefenderMorale < defenderDoctrine.retreatThreshold;
+    
+    let winner = if (not isResolved) { null }
+                 else if (newAttackerStrength > newDefenderStrength) { ?battle.attackerFaction }
+                 else { ?battle.defenderFaction };
+    
+    {
+      battle with
+      attackerStrength = newAttackerStrength;
+      defenderStrength = newDefenderStrength;
+      attackerMorale = newAttackerMorale;
+      defenderMorale = newDefenderMorale;
+      attackerCasualties = battle.attackerCasualties + Nat.max(0, Float.toInt(Float.ceil(attackerCasualties)));
+      defenderCasualties = battle.defenderCasualties + Nat.max(0, Float.toInt(Float.ceil(defenderCasualties)));
+      duration = battle.duration + 1;
+      isResolved = isResolved;
+      winner = winner;
+    }
+  };
+
+  // ============================================================
+  // FACTION RELATIONSHIPS — DIPLOMACY
+  // ============================================================
+
+  public type DiplomaticRelation = {
+    faction1     : FactionId;
+    faction2     : FactionId;
+    hostility    : Float;       // [0, 1] — 0 = friendly, 1 = war
+    trustLevel   : Float;       // [0, 1]
+    tradeActive  : Bool;
+    nonAggressionPact : Bool;
+    alliance     : Bool;
+    warDeclared  : Bool;
+    lastInteraction : Nat;
+  };
+
+  // 6×6 relationship matrix (15 unique pairs)
+  public type DiplomacyState = {
+    relations : [DiplomaticRelation];
+    totalWars : Nat;
+    totalAlliances : Nat;
+    peaceTreaties : Nat;
+  };
+
+  // Initialize diplomacy between all factions
+  public func initDiplomacy() : DiplomacyState {
+    var relations = Buffer.Buffer<DiplomaticRelation>(15);
+    
+    // Create all unique pairs
+    let factions = [#GhostProtocol, #IronLegion, #ShadowVanguard, #CrimsonOrder, #TechnoCore, #WildHunt];
+    var i = 0;
+    while (i < 6) {
+      var j = i + 1;
+      while (j < 6) {
+        relations.add({
+          faction1 = factions[i];
+          faction2 = factions[j];
+          hostility = 0.5;
+          trustLevel = 0.3;
+          tradeActive = false;
+          nonAggressionPact = false;
+          alliance = false;
+          warDeclared = true;  // All at war by default
+          lastInteraction = 0;
+        });
+        j += 1;
+      };
+      i += 1;
+    };
+    
+    {
+      relations = Buffer.toArray(relations);
+      totalWars = 15;
+      totalAlliances = 0;
+      peaceTreaties = 0;
+    }
+  };
+
+  // Update hostility based on combat and territory changes
+  public func updateHostility(
+    relation : DiplomaticRelation,
+    combatIntensity : Float,
+    territoryLost : Bool
+  ) : DiplomaticRelation {
+    var newHostility = relation.hostility;
+    
+    // Combat increases hostility
+    newHostility += combatIntensity * 0.1;
+    
+    // Territory loss increases hostility significantly
+    if (territoryLost) {
+      newHostility += 0.2;
+    };
+    
+    // Natural decay toward neutral
+    newHostility := newHostility * 0.99;
+    
+    {
+      relation with
+      hostility = Float.max(0.0, Float.min(1.0, newHostility));
+    }
+  };
+
+  // ============================================================
+  // SUPPLY LINES AND LOGISTICS
+  // ============================================================
+
+  public type SupplyLine = {
+    fromTerritory : Nat;
+    toTerritory   : Nat;
+    capacity      : Float;      // Units per beat
+    currentFlow   : Float;
+    isIntact      : Bool;
+    threatLevel   : Float;      // Risk of interdiction
+    length        : Nat;        // Path length in territories
+    controller    : FactionId;
+  };
+
+  public type LogisticsState = {
+    supplyLines      : [SupplyLine];
+    totalSupplyFlow  : Float;
+    interdictedLines : Nat;
+    supplyEfficiency : Float;   // [0, 1]
+  };
+
+  // Calculate supply efficiency for a faction
+  public func calculateSupplyEfficiency(
+    lines : [SupplyLine],
+    faction : FactionId
+  ) : Float {
+    var totalCapacity : Float = 0.0;
+    var totalFlow : Float = 0.0;
+    
+    for (line in lines.vals()) {
+      if (factionToNat(line.controller) == factionToNat(faction)) {
+        totalCapacity += line.capacity;
+        if (line.isIntact) {
+          totalFlow += line.currentFlow;
+        };
+      };
+    };
+    
+    if (totalCapacity < 0.01) { return 1.0 };
+    totalFlow / totalCapacity
+  };
+
+  // ============================================================
+  // FOG OF WAR — INFORMATION WARFARE
+  // ============================================================
+
+  public type IntelligenceReport = {
+    aboutFaction : FactionId;
+    reportingFaction : FactionId;
+    estimatedStrength : Float;
+    estimatedPosition : ?(Nat, Nat);
+    confidence : Float;         // [0, 1] — how reliable
+    age : Nat;                  // Beats since gathered
+    source : IntelSource;
+  };
+
+  public type IntelSource = {
+    #Scout;
+    #Spy;
+    #Satellite;
+    #Intercept;
+    #Defector;
+    #Rumor;
+  };
+
+  public type FogOfWarState = {
+    knownTerritories : [Bool];  // Which territories are visible
+    lastSeen : [Nat];           // When each territory was last seen
+    intelReports : [IntelligenceReport];
+    intelAccuracy : Float;      // Overall intelligence quality
+  };
+
+  // Decay intelligence over time
+  public func decayIntelligence(intel : IntelligenceReport, currentBeat : Nat) : IntelligenceReport {
+    let age = currentBeat - intel.age;
+    let decayFactor = Float.exp(-Float.fromInt(age) / 100.0);
+    
+    {
+      intel with
+      confidence = intel.confidence * decayFactor;
+      age = age;
+    }
+  };
+
+  // ============================================================
+  // TERRAIN EFFECTS ON COMBAT
+  // ============================================================
+
+  public type TerrainEffect = {
+    defenseBonus    : Float;
+    movementPenalty : Float;
+    coverBonus      : Float;
+    visibilityMod   : Float;
+    supplyPenalty   : Float;
+  };
+
+  public func getTerrainEffects(terrainType : Nat) : TerrainEffect {
+    // 0 = plains, 1 = forest, 2 = mountain, 3 = urban, 4 = water, 5 = desert
+    switch (terrainType % 6) {
+      case 0 { { defenseBonus = 0.0; movementPenalty = 0.0; coverBonus = 0.1; visibilityMod = 1.0; supplyPenalty = 0.0 } };
+      case 1 { { defenseBonus = 0.3; movementPenalty = 0.2; coverBonus = 0.5; visibilityMod = 0.5; supplyPenalty = 0.1 } };
+      case 2 { { defenseBonus = 0.5; movementPenalty = 0.4; coverBonus = 0.6; visibilityMod = 0.7; supplyPenalty = 0.3 } };
+      case 3 { { defenseBonus = 0.4; movementPenalty = 0.1; coverBonus = 0.7; visibilityMod = 0.3; supplyPenalty = 0.0 } };
+      case 4 { { defenseBonus = 0.0; movementPenalty = 0.9; coverBonus = 0.0; visibilityMod = 1.0; supplyPenalty = 0.5 } };
+      case _ { { defenseBonus = 0.0; movementPenalty = 0.1; coverBonus = 0.1; visibilityMod = 1.0; supplyPenalty = 0.0 } };
+    }
+  };
+
+  // ============================================================
+  // REINFORCEMENT AND UNIT PRODUCTION
+  // ============================================================
+
+  public type ProductionQueue = {
+    factionId    : FactionId;
+    queuedUnits  : [UnitOrder];
+    totalCost    : Float;
+    productionRate : Float;    // Units per beat
+    resources    : Float;      // Available resources
+  };
+
+  public type UnitOrder = {
+    unitType     : Nat;        // Type of unit to produce
+    quantity     : Nat;
+    priority     : Nat;
+    turnsRemaining : Nat;
+    destination  : Nat;        // Territory to deploy to
+  };
+
+  // Process production queue
+  public func processProduction(queue : ProductionQueue, beat : Nat) : ProductionQueue {
+    var remainingResources = queue.resources;
+    var processed = Buffer.Buffer<UnitOrder>(queue.queuedUnits.size());
+    
+    for (order in queue.queuedUnits.vals()) {
+      if (order.turnsRemaining > 0) {
+        let costPerTurn = 10.0;  // Base cost
+        if (remainingResources >= costPerTurn) {
+          remainingResources -= costPerTurn;
+          processed.add({ order with turnsRemaining = order.turnsRemaining - 1 });
+        } else {
+          processed.add(order);
+        };
+      };
+    };
+    
+    {
+      queue with
+      queuedUnits = Buffer.toArray(processed);
+      resources = remainingResources;
+    }
+  };
+
+  // ============================================================
+  // FULL WAR TICK — AUTONOMOUS UPDATE
+  // ============================================================
+
+  public func autonomousWarTick(state : AutonomousWarState) : AutonomousWarState {
+    var newBrains = Array.thaw<FactionBrainState>(state.factionBrains);
+    var newTerritories = Array.thaw<TerritoryState>(state.territories);
+    var newBattles = Buffer.Buffer<BattleState>(state.activeBattles.size());
+    
+    // Update each faction's brain
+    var factionIdx = 0;
+    while (factionIdx < FACTION_COUNT) {
+      let brain = state.factionBrains[factionIdx];
+      let doctrine = getFactionDoctrine(brain.factionId);
+      
+      // Fatigue recovery
+      let newFatigue = Float.max(0.0, brain.fatigue - FATIGUE_RECOVERY_RATE);
+      
+      // Stress decay
+      let newStress = Float.max(0.0, brain.stress - STRESS_DECAY_RATE);
+      
+      // Update morale based on recent events
+      let moraleChange = Float.fromInt(brain.recentVictories) * 0.05 - Float.fromInt(brain.recentDefeats) * 0.08;
+      let newMorale = Float.max(0.1, Float.min(1.0, brain.morale + moraleChange));
+      
+      // Update confidence based on territory
+      let territoryRatio = Float.fromInt(brain.territoriesHeld) / Float.fromInt(TERRITORY_GRID_SIZE);
+      let newConfidence = territoryRatio * 0.5 + brain.morale * 0.3 + (1.0 - brain.fatigue) * 0.2;
+      
+      newBrains[factionIdx] := {
+        brain with
+        fatigue = newFatigue;
+        stress = newStress;
+        morale = newMorale;
+        confidence = newConfidence;
+        beatNum = state.beatNum + 1;
+      };
+      
+      factionIdx += 1;
+    };
+    
+    // Resolve active battles
+    for (battle in state.activeBattles.vals()) {
+      let resolved = resolveBattleTick(battle, 1.0);
+      if (not resolved.isResolved) {
+        newBattles.add(resolved);
+      };
+      // If resolved, update territory control
+    };
+    
+    // Update war intensity
+    let newIntensity = Float.fromInt(newBattles.size()) / 10.0;
+    
+    {
+      state with
+      factionBrains = Array.freeze(newBrains);
+      territories = Array.freeze(newTerritories);
+      activeBattles = Buffer.toArray(newBattles);
+      warIntensity = Float.max(0.0, Float.min(1.0, newIntensity));
+      beatNum = state.beatNum + 1;
+    }
+  };
+
 }
+
