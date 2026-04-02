@@ -2939,8 +2939,11 @@ actor SwarmBrain {
     // OBSERVA: Observer effect (architect presence)
     quantumOps[5] := fclamp(architectSignalLevel, 0.5, 2.0);
     
-    // RESONEX: Resonance with market
-    quantumOps[6] := fclamp((animalEngines[4] + animalEngines[2]) / 2.0, 0.5, 2.0);
+    // RESONEX: Resonance with market + DRONE SWARM SUPERRADIANCE
+    // N² superradiance: coherent drones emit collectively
+    let droneN = Float.fromInt(droneFleetState.droneCount);
+    let superradianceBoost = (droneN / 64.0) * (droneN / 64.0) * droneFleetState.swarmCoherence;
+    quantumOps[6] := fclamp((animalEngines[4] + animalEngines[2]) / 2.0 + superradianceBoost * 0.2, 0.5, 2.0);
     
     // INTEGRA: Global integration score
     var integraSum : Float = 0.0;
@@ -2953,6 +2956,55 @@ actor SwarmBrain {
     
     // Compute QSOV (Quantum Sovereignty Score)
     qsovScore := quantumOps[7] * rSwarm;
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // QUANTUM COUPLING TO DRONES — Coherent quantum field influences drone brains
+    // Bell violation bonus from ENTANGLA modulates drone decision-making
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // 1. QSOV score modulates drone sync strength (quantum-enhanced coupling)
+    let quantumBoost = qsovScore * 0.1;
+    for (d in Iter.range(0, droneFleetState.droneCount - 1)) {
+      if (droneFleetState.drones[d].active) {
+        let drone = droneFleetState.drones[d];
+        // Increase drone sync strength when organism quantum coherence is high
+        droneFleetState.drones[d] := {
+          drone with 
+          syncStrength = fclamp(drone.syncStrength + quantumBoost * 0.01, 0.3, 1.0);
+          brain = { drone.brain with coherence = fclamp(drone.brain.coherence + quantumBoost * 0.005, 0.5, 1.0) }
+        };
+      };
+    };
+    
+    // 2. ENTANGLA score boosts drone-to-drone phase coupling (entanglement mimicry)
+    if (quantumOps[1] > 1.5) {
+      // High entanglement → boost inter-drone Kuramoto coupling constant
+      for (d in Iter.range(0, droneFleetState.droneCount - 1)) {
+        if (droneFleetState.drones[d].active) {
+          let drone = droneFleetState.drones[d];
+          droneFleetState.drones[d] := {
+            drone with brain = { drone.brain with 
+              frequency = drone.brain.frequency * (1.0 + (quantumOps[1] - 1.5) * 0.01)
+            }
+          };
+        };
+      };
+    };
+    
+    // 3. VERITAS truth score → boost drone decision node activation
+    for (d in Iter.range(0, droneFleetState.droneCount - 1)) {
+      if (droneFleetState.drones[d].active) {
+        let drone = droneFleetState.drones[d];
+        let veritasBoost = (quantumOps[3] - 1.0) * 0.1;
+        droneFleetState.drones[d] := {
+          drone with brain = { drone.brain with 
+            decisionNode = { drone.brain.decisionNode with 
+              activation = fclamp(drone.brain.decisionNode.activation + veritasBoost, 0.0, 1.0)
+            }
+          }
+        };
+      };
+    };
   };
 
   // ─── WORKFLOW 11: EMERGENCY ROLLBACK — ARES ──────────────────────────────────
@@ -3259,6 +3311,47 @@ actor SwarmBrain {
     
     // Info hunger based on ATP level
     infoHunger := fclamp((100.0 - infoATP) / 100.0, 0.0, 1.0);
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ENERGY FLOW COUPLING: Organism ATP → Drone Energy
+    // The organism's metabolic energy cascades to the drone swarm
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // 1. Organism ATP level determines drone energy replenishment rate
+    let atpRatio = infoATP / 100.0;  // 0 to 2
+    let energyInjection = atpRatio * 0.01;  // Small per-beat injection
+    
+    // 2. Distribute energy to drones proportional to their coherence with organism
+    for (d in Iter.range(0, droneFleetState.droneCount - 1)) {
+      if (droneFleetState.drones[d].active and not droneFleetState.drones[d].sacrificed) {
+        let drone = droneFleetState.drones[d];
+        // More coherent drones get more energy (reward for synchrony)
+        let coherenceBonus = drone.brain.coherence * drone.valueAlignment;
+        let injection = energyInjection * coherenceBonus;
+        droneFleetState.drones[d] := {
+          drone with energy = fclamp(drone.energy + injection, 0.0, 1.0)
+        };
+      };
+    };
+    
+    // 3. High swarm coherence reduces organism ATP consumption (efficiency)
+    if (droneFleetState.swarmCoherence > 0.8) {
+      infoATP := fclamp(infoATP + 0.05, 0.0, 200.0);  // Coherence bonus
+    };
+    
+    // 4. Drones drain organism ATP when acting (action cost)
+    var totalDroneActivity : Float = 0.0;
+    for (d in Iter.range(0, droneFleetState.droneCount - 1)) {
+      if (droneFleetState.drones[d].active) {
+        // Motor activity costs ATP
+        totalDroneActivity += droneFleetState.drones[d].brain.motorNode.activation;
+      };
+    };
+    let activityCost = totalDroneActivity * 0.001;
+    infoATP := fclamp(infoATP - activityCost, 0.0, 200.0);
+    
+    // 5. Q-battery gets a share of info-ATP for superradiance
+    quantumOps[5] := fclamp(quantumOps[5] + atpRatio * 0.01, 0.5, 2.0);  // QMEM
   };
 
   // ─── WORKFLOW 21: SHELL 12 GLOBAL INTEGRATION ────────────────────────────────
@@ -3401,6 +3494,59 @@ actor SwarmBrain {
       currentBeat
     );
     
+    // ═══════════════════════════════════════════════════════════════════════════
+    // BIDIRECTIONAL COUPLING: Drone swarm coherence feeds back into organism
+    // This is the critical loop closure: Organism → Drones → Organism
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // 1. Drone swarm coherence modulates Shell 3 activity
+    let droneCoherenceSignal = droneFleetState.swarmCoherence * 0.1;
+    for (i in Iter.range(0, 255)) {
+      shell3Stim[i] := fclamp(shell3Stim[i] + droneCoherenceSignal, 0.0, 2.0);
+    };
+    
+    // 2. Drone swarm r_order reinforces organism r_swarm (resonance)
+    // When drones are synchronized, organism gets coherence boost
+    if (droneFleetState.rSwarm > 0.8) {
+      rSwarm := fclamp(rSwarm + 0.001 * droneFleetState.rSwarm, 0.0, 1.0);
+    };
+    
+    // 3. Animal engines receive drone behavior signals
+    // Bee engine gets drone formation coherence
+    animalEngines[14] := fclamp(animalEngines[14] + droneFleetState.jasmineScore * 0.05, 0.5, 2.0);
+    // Wolf engine gets drone pack coordination
+    animalEngines[9] := fclamp(animalEngines[9] + droneFleetState.rSwarm * 0.05, 0.5, 2.0);
+    
+    // 4. Quantum operators receive drone coherence signal (superradiance boost)
+    // RESONEX: N² superradiance from drone count
+    let droneN = Float.fromInt(droneFleetState.droneCount);
+    let resonexBoost = (droneN / 64.0) * (droneN / 64.0) * droneFleetState.swarmCoherence * 0.1;
+    quantumOps[6] := fclamp(quantumOps[6] + resonexBoost, 0.5, 2.0);
+    
+    // 5. Shell 12 global integration receives drone swarm signal
+    // First 64 nodes of Shell 12 get drone phase distribution
+    for (i in Iter.range(0, 63)) {
+      let droneIdx = i % droneFleetState.droneCount;
+      if (droneIdx < droneFleetState.droneCount and droneFleetState.drones[droneIdx].active) {
+        let dronePhaseContrib = droneFleetState.drones[droneIdx].brain.coherence * 0.05;
+        shell12Nodes[i] := fclamp(shell12Nodes[i] + dronePhaseContrib, 0.5, 2.0);
+      };
+    };
+    
+    // 6. Council coherence receives drone swarm alignment
+    // Each council gets feedback from drone formations
+    for (c in Iter.range(0, 6)) {
+      councilCoherence[c] := fclamp(
+        councilCoherence[c] * 0.99 + droneFleetState.swarmCoherence * 0.01, 
+        0.5, 2.0
+      );
+    };
+    
+    // 7. Dopamine/reward signal from drone synchronization
+    if (droneFleetState.rSwarm > 0.85) {
+      dopamineLevel := fclamp(dopamineLevel + 0.01, 0.5, 2.0);
+    };
+    
     // Update drone fleet beat offset (drones can be slightly out of phase)
     droneFleetBeatOffset := currentBeat % 3;  // Drones beat in 3-phase pattern
   };
@@ -3451,6 +3597,9 @@ actor SwarmBrain {
     // Get node activations from Shell 3
     let activations = Array.freeze(shell3Nodes);
     
+    // Track previous repair count
+    let prevRepairedCount = totalRepairsCompleted;
+    
     // Run self-repair tick
     let (newState, atpUsed) = SelfRepairEngine.tickSelfRepair(
       selfRepairState,
@@ -3472,6 +3621,37 @@ actor SwarmBrain {
     };
     
     lastSelfRepairBeat := currentBeat;
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SELF-REPAIR COUPLING TO DRONES — Distribute healing signals
+    // When organism self-repairs, drones receive health boost
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // Calculate repairs this beat
+    let repairsThisBeat = totalRepairsCompleted - prevRepairedCount;
+    
+    // If repair activity is high, boost drone health/energy
+    if (repairsThisBeat > 0) {
+      let healingSignal = Float.fromInt(repairsThisBeat) * 0.01;
+      for (i in Iter.range(0, droneFleetState.droneCount - 1)) {
+        if (droneFleetState.drones[i].active) {
+          // Heal drone energy
+          let drone = droneFleetState.drones[i];
+          droneFleetState.drones[i] := {
+            drone with 
+            energy = fclamp(drone.energy + healingSignal, 0.0, 1.0);
+            health = fclamp(drone.health + healingSignal * 0.5, 0.0, 1.0);
+          };
+        };
+      };
+      
+      // Medic drones get extra boost
+      for (i in Iter.range(0, stableDroneCount - 1)) {
+        if (not stableSacrificed[i] and stableClasses[i] == "MEDIC") {
+          stableActivations[i] := sf(stableActivations[i] + healingSignal * 2.0);
+        };
+      };
+    };
   };
   
   // ═══════════════════════════════════════════════════════════════════════════
@@ -3666,6 +3846,28 @@ actor SwarmBrain {
     
     // Phase 22: Succession check
     ignore workflowSuccession();
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // PHASE 23-27: MAXIMUM COUPLING — Full Organism Integration
+    // These 5 workflows MUST run every beat for complete neural circuit closure
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // Phase 23: DRONE FLEET TICK — 50+ drones with mini-minds sync with organism
+    workflowDroneFleetTick();
+    
+    // Phase 24: ENEMY SWARM COMPETITION — For training under pressure
+    workflowEnemySwarmTick();
+    
+    // Phase 25: SELF-REPAIR — Neuroplasticity, Turrigiano scaling, pruning
+    workflowSelfRepair();
+    
+    // Phase 26: JASMINE HIERARCHY — Balance J = r × √(N × σ_H × (1 - H)) at ALL levels
+    workflowJasmineHierarchy();
+    
+    // Phase 27: CREATOR DOCTRINE — 100% royalty enforcement, ethical bound = 1.0 ALWAYS
+    workflowCreatorDoctrine();
+    
+    // ═══════════════════════════════════════════════════════════════════════════
     
     // Execute behaviors and team AI
     ensureBehaviorCap(stableDroneCount);
