@@ -922,4 +922,764 @@ module {
     }
   };
 
+  // ============================================================
+  // PHYSICS ENGINE — FULL 3D WORLD SIMULATION
+  // Position, velocity, acceleration, forces, collisions
+  // ============================================================
+
+  // 3D Vector type
+  public type Vec3 = {
+    x : Float;
+    y : Float;
+    z : Float;
+  };
+
+  // 3D transform (position + rotation + scale)
+  public type Transform = {
+    position : Vec3;
+    rotation : Vec3;   // Euler angles (radians)
+    scale    : Vec3;
+  };
+
+  // Rigid body physics
+  public type RigidBody = {
+    id          : Nat32;
+    transform   : Transform;
+    velocity    : Vec3;
+    angularVel  : Vec3;
+    mass        : Float;
+    inertia     : Vec3;     // Moment of inertia (diagonal)
+    drag        : Float;    // Linear drag coefficient
+    angularDrag : Float;    // Angular drag coefficient
+    isKinematic : Bool;     // If true, not affected by physics
+    isStatic    : Bool;     // If true, never moves
+    collider    : ColliderType;
+  };
+
+  public type ColliderType = {
+    #Sphere : { radius : Float };
+    #Box : { halfExtents : Vec3 };
+    #Capsule : { radius : Float; height : Float };
+    #Mesh : { vertexCount : Nat };
+  };
+
+  // Vector operations
+  public func vec3Add(a : Vec3, b : Vec3) : Vec3 {
+    { x = a.x + b.x; y = a.y + b.y; z = a.z + b.z }
+  };
+
+  public func vec3Sub(a : Vec3, b : Vec3) : Vec3 {
+    { x = a.x - b.x; y = a.y - b.y; z = a.z - b.z }
+  };
+
+  public func vec3Scale(v : Vec3, s : Float) : Vec3 {
+    { x = v.x * s; y = v.y * s; z = v.z * s }
+  };
+
+  public func vec3Dot(a : Vec3, b : Vec3) : Float {
+    a.x * b.x + a.y * b.y + a.z * b.z
+  };
+
+  public func vec3Cross(a : Vec3, b : Vec3) : Vec3 {
+    {
+      x = a.y * b.z - a.z * b.y;
+      y = a.z * b.x - a.x * b.z;
+      z = a.x * b.y - a.y * b.x;
+    }
+  };
+
+  public func vec3Length(v : Vec3) : Float {
+    Float.sqrt(v.x * v.x + v.y * v.y + v.z * v.z)
+  };
+
+  public func vec3Normalize(v : Vec3) : Vec3 {
+    let len = vec3Length(v);
+    if (len < 0.0001) { { x = 0.0; y = 0.0; z = 0.0 } }
+    else { vec3Scale(v, 1.0 / len) }
+  };
+
+  public func vec3Distance(a : Vec3, b : Vec3) : Float {
+    vec3Length(vec3Sub(a, b))
+  };
+
+  public func vec3Lerp(a : Vec3, b : Vec3, t : Float) : Vec3 {
+    {
+      x = a.x + (b.x - a.x) * t;
+      y = a.y + (b.y - a.y) * t;
+      z = a.z + (b.z - a.z) * t;
+    }
+  };
+
+  public let VEC3_ZERO : Vec3 = { x = 0.0; y = 0.0; z = 0.0 };
+  public let VEC3_ONE : Vec3 = { x = 1.0; y = 1.0; z = 1.0 };
+  public let VEC3_UP : Vec3 = { x = 0.0; y = 1.0; z = 0.0 };
+  public let VEC3_FORWARD : Vec3 = { x = 0.0; y = 0.0; z = 1.0 };
+  public let VEC3_RIGHT : Vec3 = { x = 1.0; y = 0.0; z = 0.0 };
+
+  // Physics constants
+  public let GRAVITY : Float = 9.81;           // m/s²
+  public let AIR_DENSITY : Float = 1.225;       // kg/m³
+  public let SPEED_OF_SOUND : Float = 343.0;    // m/s at sea level
+  public let TERMINAL_VELOCITY : Float = 53.0;  // m/s for human
+
+  // Apply gravity to rigid body
+  public func applyGravity(body : RigidBody, dt : Float) : RigidBody {
+    if (body.isKinematic or body.isStatic) { return body };
+    
+    let gravityForce = { x = 0.0; y = -GRAVITY; z = 0.0 };
+    let acceleration = vec3Scale(gravityForce, 1.0);  // F = ma, a = F/m (mass normalized)
+    let newVelocity = vec3Add(body.velocity, vec3Scale(acceleration, dt));
+    
+    {
+      body with
+      velocity = newVelocity;
+    }
+  };
+
+  // Apply drag to rigid body
+  // F_drag = -0.5 × ρ × v² × C_d × A
+  public func applyDrag(body : RigidBody, dt : Float) : RigidBody {
+    if (body.isKinematic or body.isStatic) { return body };
+    
+    let speed = vec3Length(body.velocity);
+    if (speed < 0.001) { return body };
+    
+    // Drag force opposes velocity
+    let direction = vec3Normalize(body.velocity);
+    let dragMagnitude = 0.5 * AIR_DENSITY * speed * speed * body.drag;
+    let dragForce = vec3Scale(direction, -dragMagnitude);
+    let acceleration = vec3Scale(dragForce, 1.0 / body.mass);
+    
+    let newVelocity = vec3Add(body.velocity, vec3Scale(acceleration, dt));
+    
+    // Apply angular drag
+    let angularSpeed = vec3Length(body.angularVel);
+    let angularDragMag = angularSpeed * body.angularDrag;
+    let newAngularVel = if (angularSpeed < 0.001) {
+      body.angularVel
+    } else {
+      let angDir = vec3Normalize(body.angularVel);
+      vec3Add(body.angularVel, vec3Scale(angDir, -angularDragMag * dt))
+    };
+    
+    {
+      body with
+      velocity = newVelocity;
+      angularVel = newAngularVel;
+    }
+  };
+
+  // Integrate rigid body motion
+  public func integrateRigidBody(body : RigidBody, dt : Float) : RigidBody {
+    if (body.isStatic) { return body };
+    
+    // Update position from velocity
+    let newPosition = vec3Add(body.transform.position, vec3Scale(body.velocity, dt));
+    
+    // Update rotation from angular velocity
+    let newRotation = vec3Add(body.transform.rotation, vec3Scale(body.angularVel, dt));
+    
+    let newTransform = {
+      position = newPosition;
+      rotation = newRotation;
+      scale = body.transform.scale;
+    };
+    
+    {
+      body with
+      transform = newTransform;
+    }
+  };
+
+  // Full physics step
+  public func physicsStep(body : RigidBody, dt : Float) : RigidBody {
+    var b = body;
+    b := applyGravity(b, dt);
+    b := applyDrag(b, dt);
+    b := integrateRigidBody(b, dt);
+    b
+  };
+
+  // Sphere-sphere collision detection
+  public func sphereCollision(
+    posA : Vec3, radiusA : Float,
+    posB : Vec3, radiusB : Float
+  ) : Bool {
+    let dist = vec3Distance(posA, posB);
+    dist < (radiusA + radiusB)
+  };
+
+  // Sphere-sphere collision response
+  public func sphereCollisionResponse(
+    bodyA : RigidBody, radiusA : Float,
+    bodyB : RigidBody, radiusB : Float,
+    restitution : Float  // Bounciness [0, 1]
+  ) : (RigidBody, RigidBody) {
+    let posA = bodyA.transform.position;
+    let posB = bodyB.transform.position;
+    
+    let normal = vec3Normalize(vec3Sub(posB, posA));
+    let relativeVel = vec3Sub(bodyA.velocity, bodyB.velocity);
+    let velAlongNormal = vec3Dot(relativeVel, normal);
+    
+    // Don't resolve if velocities are separating
+    if (velAlongNormal > 0.0) { return (bodyA, bodyB) };
+    
+    // Impulse magnitude
+    let totalMass = bodyA.mass + bodyB.mass;
+    let j = -(1.0 + restitution) * velAlongNormal / totalMass;
+    
+    let impulse = vec3Scale(normal, j);
+    
+    let newVelA = if (bodyA.isKinematic or bodyA.isStatic) { bodyA.velocity } 
+                  else { vec3Add(bodyA.velocity, vec3Scale(impulse, 1.0 / bodyA.mass)) };
+    let newVelB = if (bodyB.isKinematic or bodyB.isStatic) { bodyB.velocity }
+                  else { vec3Sub(bodyB.velocity, vec3Scale(impulse, 1.0 / bodyB.mass)) };
+    
+    ({ bodyA with velocity = newVelA }, { bodyB with velocity = newVelB })
+  };
+
+  // ============================================================
+  // TERRAIN SYSTEM — HEIGHT MAPS, BIOMES, RESOURCES
+  // ============================================================
+
+  public type TerrainType = {
+    #Plains;
+    #Forest;
+    #Mountain;
+    #Desert;
+    #Water;
+    #Snow;
+    #Swamp;
+    #Urban;
+    #Industrial;
+    #Wasteland;
+  };
+
+  public type TerrainCell = {
+    x           : Nat;
+    y           : Nat;
+    height      : Float;       // Height in meters
+    terrainType : TerrainType;
+    
+    // Navigation
+    walkable    : Bool;
+    movementCost: Float;       // 1.0 = normal, higher = slower
+    
+    // Resources
+    resourceType: ?ResourceType;
+    resourceAmount: Float;
+    
+    // Cover (for combat)
+    coverLevel  : Float;       // [0, 1] — protection from fire
+    
+    // Visibility
+    visibilityRange : Float;   // How far can see from here
+    isObstructed    : Bool;    // Blocks line of sight
+    
+    // Environmental
+    temperature : Float;       // Celsius
+    humidity    : Float;       // [0, 1]
+    radiation   : Float;       // [0, 1] hazard level
+  };
+
+  public type TerrainGrid = {
+    width    : Nat;
+    height   : Nat;
+    cells    : [TerrainCell];
+    minHeight: Float;
+    maxHeight: Float;
+    seaLevel : Float;
+  };
+
+  // Generate procedural terrain height
+  // Uses simple fractal noise approximation
+  public func generateHeight(x : Nat, y : Nat, seed : Nat) : Float {
+    // Pseudo-random based on position and seed
+    let n1 = (x * 374761393 + y * 668265263 + seed) % 1000000;
+    let n2 = (x * 1274126177 + y * 1572833513 + seed) % 1000000;
+    let n3 = (x * 2174126177 + y * 2572833513 + seed) % 1000000;
+    
+    // Multi-octave noise
+    let octave1 = Float.fromInt(n1) / 1000000.0;
+    let octave2 = Float.fromInt(n2) / 1000000.0 * 0.5;
+    let octave3 = Float.fromInt(n3) / 1000000.0 * 0.25;
+    
+    (octave1 + octave2 + octave3) / 1.75 * 100.0  // Height in meters
+  };
+
+  // Determine terrain type from height and position
+  public func determineTerrainType(height : Float, humidity : Float) : TerrainType {
+    if (height < 0.0) { #Water }
+    else if (height > 80.0) { #Snow }
+    else if (height > 60.0) { #Mountain }
+    else if (humidity < 0.2) { #Desert }
+    else if (humidity > 0.8) { #Swamp }
+    else if (humidity > 0.5) { #Forest }
+    else { #Plains }
+  };
+
+  // Initialize terrain cell
+  public func initTerrainCell(x : Nat, y : Nat, seed : Nat) : TerrainCell {
+    let height = generateHeight(x, y, seed);
+    let humidity = Float.fromInt((x * 123 + y * 456 + seed) % 100) / 100.0;
+    let terrainType = determineTerrainType(height, humidity);
+    
+    let (walkable, movementCost, coverLevel) = switch (terrainType) {
+      case (#Plains) { (true, 1.0, 0.1) };
+      case (#Forest) { (true, 1.5, 0.6) };
+      case (#Mountain) { (true, 3.0, 0.8) };
+      case (#Desert) { (true, 1.2, 0.0) };
+      case (#Water) { (false, 10.0, 0.0) };
+      case (#Snow) { (true, 2.0, 0.2) };
+      case (#Swamp) { (true, 2.5, 0.3) };
+      case (#Urban) { (true, 1.0, 0.7) };
+      case (#Industrial) { (true, 1.0, 0.5) };
+      case (#Wasteland) { (true, 1.3, 0.2) };
+    };
+    
+    {
+      x = x;
+      y = y;
+      height = height;
+      terrainType = terrainType;
+      walkable = walkable;
+      movementCost = movementCost;
+      resourceType = null;
+      resourceAmount = 0.0;
+      coverLevel = coverLevel;
+      visibilityRange = 100.0 - coverLevel * 50.0;
+      isObstructed = not walkable;
+      temperature = 20.0 - height * 0.1;
+      humidity = humidity;
+      radiation = 0.0;
+    }
+  };
+
+  // Initialize full terrain grid
+  public func initTerrainGrid(width : Nat, height : Nat, seed : Nat) : TerrainGrid {
+    let cells = Array.tabulate<TerrainCell>(width * height, func(i) {
+      let x = i % width;
+      let y = i / width;
+      initTerrainCell(x, y, seed)
+    });
+    
+    var minH : Float = 10000.0;
+    var maxH : Float = -10000.0;
+    for (cell in cells.vals()) {
+      if (cell.height < minH) { minH := cell.height };
+      if (cell.height > maxH) { maxH := cell.height };
+    };
+    
+    {
+      width = width;
+      height = height;
+      cells = cells;
+      minHeight = minH;
+      maxHeight = maxH;
+      seaLevel = 0.0;
+    }
+  };
+
+  // Get terrain cell at position
+  public func getTerrainCell(grid : TerrainGrid, x : Nat, y : Nat) : ?TerrainCell {
+    if (x >= grid.width or y >= grid.height) { return null };
+    let idx = y * grid.width + x;
+    if (idx >= grid.cells.size()) { return null };
+    ?grid.cells[idx]
+  };
+
+  // ============================================================
+  // WEATHER SYSTEM — FULL ATMOSPHERIC SIMULATION
+  // ============================================================
+
+  public type WeatherType = {
+    #Clear;
+    #Cloudy;
+    #Overcast;
+    #Rain;
+    #HeavyRain;
+    #Thunderstorm;
+    #Snow;
+    #Blizzard;
+    #Fog;
+    #Sandstorm;
+  };
+
+  public type WeatherState = {
+    weatherType     : WeatherType;
+    temperature     : Float;      // Celsius
+    humidity        : Float;      // [0, 1]
+    pressure        : Float;      // hPa
+    windSpeed       : Float;      // m/s
+    windDirection   : Float;      // Radians from north
+    precipitation   : Float;      // mm/hour
+    visibility      : Float;      // km
+    cloudCover      : Float;      // [0, 1]
+    uvIndex         : Float;      // [0, 11+]
+    
+    // Time of day
+    sunAltitude     : Float;      // Degrees above horizon
+    sunAzimuth      : Float;      // Degrees from north
+    moonPhase       : Float;      // [0, 1] — 0 = new, 0.5 = full
+    isDay           : Bool;
+    
+    // Forecast
+    forecastType    : WeatherType;
+    forecastHours   : Nat;
+    
+    // History
+    lastUpdate      : Nat;
+  };
+
+  // Weather effects on gameplay
+  public type WeatherEffects = {
+    visibilityMultiplier : Float;    // How much visibility is reduced
+    movementMultiplier   : Float;    // How much movement is slowed
+    accuracyMultiplier   : Float;    // How much accuracy is reduced
+    moralePenalty        : Float;    // Penalty to troop morale
+    fuelConsumption      : Float;    // Extra fuel consumption
+    communicationPenalty : Float;    // Radio/comm degradation
+  };
+
+  // Compute weather effects
+  public func computeWeatherEffects(weather : WeatherState) : WeatherEffects {
+    let (visMult, movMult, accMult, moralePen, fuelCons, commPen) = switch (weather.weatherType) {
+      case (#Clear) { (1.0, 1.0, 1.0, 0.0, 1.0, 1.0) };
+      case (#Cloudy) { (0.95, 1.0, 0.98, 0.0, 1.0, 1.0) };
+      case (#Overcast) { (0.85, 1.0, 0.95, 0.02, 1.0, 0.98) };
+      case (#Rain) { (0.6, 0.9, 0.85, 0.05, 1.1, 0.9) };
+      case (#HeavyRain) { (0.3, 0.7, 0.6, 0.15, 1.3, 0.7) };
+      case (#Thunderstorm) { (0.2, 0.5, 0.4, 0.25, 1.5, 0.3) };
+      case (#Snow) { (0.5, 0.6, 0.7, 0.1, 1.4, 0.85) };
+      case (#Blizzard) { (0.1, 0.3, 0.3, 0.3, 2.0, 0.2) };
+      case (#Fog) { (0.15, 0.8, 0.5, 0.08, 1.0, 0.95) };
+      case (#Sandstorm) { (0.1, 0.4, 0.3, 0.2, 1.8, 0.4) };
+    };
+    
+    {
+      visibilityMultiplier = visMult;
+      movementMultiplier = movMult;
+      accuracyMultiplier = accMult;
+      moralePenalty = moralePen;
+      fuelConsumption = fuelCons;
+      communicationPenalty = commPen;
+    }
+  };
+
+  // Initialize weather
+  public func initWeather() : WeatherState {
+    {
+      weatherType = #Clear;
+      temperature = 20.0;
+      humidity = 0.5;
+      pressure = 1013.25;
+      windSpeed = 5.0;
+      windDirection = 0.0;
+      precipitation = 0.0;
+      visibility = 10.0;
+      cloudCover = 0.2;
+      uvIndex = 5.0;
+      sunAltitude = 45.0;
+      sunAzimuth = 180.0;
+      moonPhase = 0.5;
+      isDay = true;
+      forecastType = #Clear;
+      forecastHours = 6;
+      lastUpdate = 0;
+    }
+  };
+
+  // Update weather based on time and season
+  public func updateWeather(weather : WeatherState, beat : Nat, seed : Nat) : WeatherState {
+    // Pseudo-random weather change
+    let rand = (beat * 1274126177 + seed) % 1000;
+    
+    // Weather transitions based on random value
+    let newType = if (rand < 400) { #Clear }
+                  else if (rand < 600) { #Cloudy }
+                  else if (rand < 750) { #Rain }
+                  else if (rand < 850) { #Overcast }
+                  else if (rand < 900) { #Fog }
+                  else if (rand < 950) { #HeavyRain }
+                  else if (rand < 980) { #Thunderstorm }
+                  else { #Snow };
+    
+    // Update sun position based on beat (assume 1 beat = 1 minute, 1440 beats = 1 day)
+    let minuteOfDay = beat % 1440;
+    let hourFloat = Float.fromInt(minuteOfDay) / 60.0;
+    let sunAlt = 45.0 * Float.sin((hourFloat - 6.0) * π / 12.0);
+    let sunAz = 180.0 + (hourFloat - 12.0) * 15.0;
+    let isDay = sunAlt > 0.0;
+    
+    // Moon phase cycles every ~30 days (43200 beats)
+    let moonPhase = Float.fromInt(beat % 43200) / 43200.0;
+    
+    {
+      weather with
+      weatherType = newType;
+      sunAltitude = sunAlt;
+      sunAzimuth = sunAz;
+      moonPhase = moonPhase;
+      isDay = isDay;
+      lastUpdate = beat;
+    }
+  };
+
+  // ============================================================
+  // PATHFINDING — A* ALGORITHM IMPLEMENTATION
+  // ============================================================
+
+  public type PathNode = {
+    x        : Nat;
+    y        : Nat;
+    gCost    : Float;     // Cost from start
+    hCost    : Float;     // Heuristic cost to end
+    fCost    : Float;     // g + h
+    parent   : ?(Nat, Nat);
+  };
+
+  // Manhattan distance heuristic
+  public func manhattanDistance(x1 : Nat, y1 : Nat, x2 : Nat, y2 : Nat) : Float {
+    let dx = if (x1 > x2) { x1 - x2 } else { x2 - x1 };
+    let dy = if (y1 > y2) { y1 - y2 } else { y2 - y1 };
+    Float.fromInt(dx + dy)
+  };
+
+  // Euclidean distance heuristic
+  public func euclideanDistance(x1 : Nat, y1 : Nat, x2 : Nat, y2 : Nat) : Float {
+    let dx = Float.fromInt(x1) - Float.fromInt(x2);
+    let dy = Float.fromInt(y1) - Float.fromInt(y2);
+    Float.sqrt(dx * dx + dy * dy)
+  };
+
+  // Get neighbors for pathfinding (8-directional)
+  public func getNeighbors(x : Nat, y : Nat, width : Nat, height : Nat) : [(Nat, Nat)] {
+    var neighbors = Buffer.Buffer<(Nat, Nat)>(8);
+    
+    // Cardinal directions
+    if (x > 0) { neighbors.add((x - 1, y)) };
+    if (x < width - 1) { neighbors.add((x + 1, y)) };
+    if (y > 0) { neighbors.add((x, y - 1)) };
+    if (y < height - 1) { neighbors.add((x, y + 1)) };
+    
+    // Diagonal directions
+    if (x > 0 and y > 0) { neighbors.add((x - 1, y - 1)) };
+    if (x > 0 and y < height - 1) { neighbors.add((x - 1, y + 1)) };
+    if (x < width - 1 and y > 0) { neighbors.add((x + 1, y - 1)) };
+    if (x < width - 1 and y < height - 1) { neighbors.add((x + 1, y + 1)) };
+    
+    Buffer.toArray(neighbors)
+  };
+
+  // ============================================================
+  // LINE OF SIGHT — BRESENHAM'S LINE ALGORITHM
+  // ============================================================
+
+  // Check if there's a clear line of sight between two points
+  public func hasLineOfSight(
+    grid : TerrainGrid,
+    x1 : Nat, y1 : Nat,
+    x2 : Nat, y2 : Nat
+  ) : Bool {
+    // Bresenham's line algorithm
+    var x = Int.abs(x1);
+    var y = Int.abs(y1);
+    let x2i = Int.abs(x2);
+    let y2i = Int.abs(y2);
+    
+    let dx = Int.abs(x2i - x);
+    let dy = Int.abs(y2i - y);
+    let sx = if (x < x2i) { 1 } else { -1 };
+    let sy = if (y < y2i) { 1 } else { -1 };
+    var err = dx - dy;
+    
+    var blocked = false;
+    var iterations = 0;
+    let maxIterations = dx + dy + 1;
+    
+    while (not blocked and iterations < maxIterations) {
+      // Check current cell
+      let cellOpt = getTerrainCell(grid, Int.abs(x), Int.abs(y));
+      switch (cellOpt) {
+        case (?cell) {
+          if (cell.isObstructed and (x != x1 or y != y1) and (x != x2i or y != y2i)) {
+            blocked := true;
+          };
+        };
+        case null { blocked := true };
+      };
+      
+      if (x == x2i and y == y2i) { iterations := maxIterations }
+      else {
+        let e2 = 2 * err;
+        if (e2 > -dy) { err -= dy; x += sx };
+        if (e2 < dx) { err += dx; y += sy };
+      };
+      
+      iterations += 1;
+    };
+    
+    not blocked
+  };
+
+  // ============================================================
+  // RESOURCE EXTRACTION AND ECONOMY
+  // ============================================================
+
+  public type ResourceNode = {
+    id           : Nat32;
+    resourceType : ResourceType;
+    position     : (Nat, Nat);
+    totalAmount  : Float;
+    remainingAmount : Float;
+    extractionRate : Float;    // Units per beat
+    quality      : Float;      // [0, 1] — affects yield
+    isActive     : Bool;
+    controlledBy : ?Nat;       // Faction ID
+  };
+
+  // Extract resources from a node
+  public func extractResource(node : ResourceNode, efficiency : Float) : (ResourceNode, Float) {
+    if (not node.isActive or node.remainingAmount <= 0.0) {
+      return (node, 0.0);
+    };
+    
+    let extraction = Float.min(node.extractionRate * efficiency * node.quality, node.remainingAmount);
+    let newRemaining = node.remainingAmount - extraction;
+    let newNode = { node with remainingAmount = newRemaining; isActive = newRemaining > 0.0 };
+    
+    (newNode, extraction)
+  };
+
+  // ============================================================
+  // UNIT SPAWNING AND MANAGEMENT
+  // ============================================================
+
+  public type UnitType = {
+    #Infantry;
+    #HeavyInfantry;
+    #Sniper;
+    #Medic;
+    #Engineer;
+    #LightVehicle;
+    #HeavyVehicle;
+    #Tank;
+    #Artillery;
+    #Helicopter;
+    #Drone;
+    #SpecOps;
+  };
+
+  public type UnitStats = {
+    health       : Float;
+    maxHealth    : Float;
+    armor        : Float;      // Damage reduction [0, 1]
+    speed        : Float;      // Movement speed
+    attackPower  : Float;
+    attackRange  : Float;
+    fireRate     : Float;      // Attacks per beat
+    accuracy     : Float;      // [0, 1]
+    morale       : Float;      // [0, 1]
+    fatigue      : Float;      // [0, 1]
+    suppression  : Float;      // [0, 1] — reduces effectiveness
+  };
+
+  public type Unit = {
+    id         : Nat32;
+    unitType   : UnitType;
+    factionId  : Nat;
+    stats      : UnitStats;
+    position   : Vec3;
+    destination: ?Vec3;
+    state      : UnitState;
+    kills      : Nat;
+    experience : Float;
+  };
+
+  public type UnitState = {
+    #Idle;
+    #Moving;
+    #Attacking;
+    #Defending;
+    #Retreating;
+    #Healing;
+    #Dead;
+  };
+
+  // Base stats for each unit type
+  public func getBaseStats(unitType : UnitType) : UnitStats {
+    switch (unitType) {
+      case (#Infantry) {
+        { health = 100.0; maxHealth = 100.0; armor = 0.1; speed = 5.0; attackPower = 20.0; attackRange = 50.0; fireRate = 2.0; accuracy = 0.7; morale = 0.8; fatigue = 0.0; suppression = 0.0 }
+      };
+      case (#HeavyInfantry) {
+        { health = 150.0; maxHealth = 150.0; armor = 0.3; speed = 4.0; attackPower = 30.0; attackRange = 40.0; fireRate = 1.5; accuracy = 0.65; morale = 0.85; fatigue = 0.0; suppression = 0.0 }
+      };
+      case (#Sniper) {
+        { health = 80.0; maxHealth = 80.0; armor = 0.05; speed = 4.5; attackPower = 80.0; attackRange = 200.0; fireRate = 0.3; accuracy = 0.95; morale = 0.75; fatigue = 0.0; suppression = 0.0 }
+      };
+      case (#Medic) {
+        { health = 90.0; maxHealth = 90.0; armor = 0.05; speed = 5.5; attackPower = 10.0; attackRange = 30.0; fireRate = 1.0; accuracy = 0.6; morale = 0.9; fatigue = 0.0; suppression = 0.0 }
+      };
+      case (#Engineer) {
+        { health = 100.0; maxHealth = 100.0; armor = 0.15; speed = 4.5; attackPower = 15.0; attackRange = 30.0; fireRate = 1.5; accuracy = 0.65; morale = 0.8; fatigue = 0.0; suppression = 0.0 }
+      };
+      case (#LightVehicle) {
+        { health = 200.0; maxHealth = 200.0; armor = 0.4; speed = 15.0; attackPower = 40.0; attackRange = 80.0; fireRate = 3.0; accuracy = 0.6; morale = 0.9; fatigue = 0.0; suppression = 0.0 }
+      };
+      case (#HeavyVehicle) {
+        { health = 400.0; maxHealth = 400.0; armor = 0.6; speed = 8.0; attackPower = 60.0; attackRange = 100.0; fireRate = 2.0; accuracy = 0.7; morale = 0.95; fatigue = 0.0; suppression = 0.0 }
+      };
+      case (#Tank) {
+        { health = 800.0; maxHealth = 800.0; armor = 0.8; speed = 10.0; attackPower = 150.0; attackRange = 150.0; fireRate = 0.5; accuracy = 0.75; morale = 0.95; fatigue = 0.0; suppression = 0.0 }
+      };
+      case (#Artillery) {
+        { health = 300.0; maxHealth = 300.0; armor = 0.3; speed = 5.0; attackPower = 200.0; attackRange = 500.0; fireRate = 0.2; accuracy = 0.5; morale = 0.85; fatigue = 0.0; suppression = 0.0 }
+      };
+      case (#Helicopter) {
+        { health = 250.0; maxHealth = 250.0; armor = 0.2; speed = 25.0; attackPower = 80.0; attackRange = 150.0; fireRate = 2.0; accuracy = 0.7; morale = 0.9; fatigue = 0.0; suppression = 0.0 }
+      };
+      case (#Drone) {
+        { health = 50.0; maxHealth = 50.0; armor = 0.0; speed = 30.0; attackPower = 30.0; attackRange = 100.0; fireRate = 1.0; accuracy = 0.8; morale = 1.0; fatigue = 0.0; suppression = 0.0 }
+      };
+      case (#SpecOps) {
+        { health = 120.0; maxHealth = 120.0; armor = 0.2; speed = 6.0; attackPower = 50.0; attackRange = 80.0; fireRate = 2.5; accuracy = 0.9; morale = 0.95; fatigue = 0.0; suppression = 0.0 }
+      };
+    }
+  };
+
+  // Combat damage calculation
+  public func calculateDamage(
+    attacker : Unit,
+    defender : Unit,
+    distance : Float,
+    weather : WeatherState
+  ) : Float {
+    // Base damage
+    var damage = attacker.stats.attackPower;
+    
+    // Range falloff
+    let rangeFactor = if (distance > attacker.stats.attackRange) { 0.0 }
+                      else { 1.0 - (distance / attacker.stats.attackRange) * 0.5 };
+    damage *= rangeFactor;
+    
+    // Accuracy
+    let weatherEffects = computeWeatherEffects(weather);
+    let hitChance = attacker.stats.accuracy * weatherEffects.accuracyMultiplier * (1.0 - attacker.stats.suppression);
+    damage *= hitChance;
+    
+    // Armor reduction
+    damage *= (1.0 - defender.stats.armor);
+    
+    // Morale factor
+    damage *= attacker.stats.morale;
+    
+    // Fatigue reduction
+    damage *= (1.0 - attacker.stats.fatigue * 0.3);
+    
+    Float.max(0.0, damage)
+  };
+
 }
+
