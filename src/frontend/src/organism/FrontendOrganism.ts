@@ -16,18 +16,58 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CONSTANTS
+// CONSTANTS — NOVA'S ACTUAL ARCHITECTURE (NOT BETA NUMBERS)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export const FRONTEND_HZ = 60;                    // 60 frames per second
-export const BACKEND_HZ = 1.5;                    // Backend heartbeat
-export const SPEED_RATIO = FRONTEND_HZ / BACKEND_HZ;  // ~40x faster
-export const SYNC_INTERVAL_MS = 5000;             // Sync every 5 seconds
-export const HEBBIAN_LEARNING_RATE = 0.01;        // η = 0.01
+// NOVA's Frequency Tier System (from main.mo)
+export const FREQUENCY_TIERS = {
+  SILVER:   2.75,     // Baseline sovereign state
+  GOLD:     5.50,     // r > 0.88, chemical coherence nominal
+  PLATINUM: 8.25,     // r > 0.91, OMNIS eligible
+  DIAMOND:  11.649    // OMNIS active event
+} as const;
+
+export const BACKEND_HZ_SILVER = 2.75;            // NOVA's baseline (from main.mo line 1140)
+export const BACKEND_HZ_DIAMOND = 11.649;         // NOVA's peak (from main.mo line 1143)
+
+// NOVA runs at browser's requestAnimationFrame — typically 60fps on desktop
+// But the actual cognitive tick rate should match the organism's rhythm
+export const FRONTEND_HZ = 60;                    // Browser animation frame rate
+export const SPEED_RATIO_SILVER = FRONTEND_HZ / BACKEND_HZ_SILVER;    // ~21.8x faster at baseline
+export const SPEED_RATIO_DIAMOND = FRONTEND_HZ / BACKEND_HZ_DIAMOND;  // ~5.2x faster at OMNIS
+
+export const SYNC_INTERVAL_MS = 3000;             // Sync every 3 seconds (tighter coupling)
+export const HEBBIAN_LEARNING_RATE = 0.01;        // η = 0.01 (from HebbianPlasticity.mo)
 export const HEBBIAN_DECAY = 0.001;               // Weight decay
 export const MEMORY_TRACE_SIZE = 15;              // Ring buffer size
+
+// NOVA's Sacred Constants (from NeuroEmergenceCore.mo)
 export const PHI = 1.6180339887498948482;         // Golden ratio
-export const PHI_MEDINA = 2.97442179;             // Medina constant
+export const PHI_INV = 0.6180339887498948482;     // Golden ratio inverse  
+export const PHI_MEDINA = 2.97442179;             // Medina constant (from SovereignHeartbeat.mo)
+export const OMEGA_MEDINA = 2.11185;              // Medina omega
+export const TAU_EMERGENCE = 0.618033988749;      // Emergence tau
+export const SIGMA_ZERO = 0.75;                   // Sigma zero
+export const KURAMOTO_K = 0.618;                  // Kuramoto coupling (from main.mo line 149)
+export const SOVEREIGN_FLOOR = 1.0;               // S₀ = 1.0 (never below love)
+export const OMNIS_THRESHOLD = 0.98;              // r threshold for emergence (from main.mo line 153)
+
+// NOVA's Architecture Counts (from main.mo and SovereignHeartbeat.mo)
+export const SHELL_COUNT = 10;                    // Shell 2-11 (from SovereignHeartbeat.mo line 74)
+export const ANIMAL_ENGINE_COUNT = 9;             // 9 animal engines (line 75)
+export const LAW_COUNT = 126;                     // 126 Medina Laws (line 76)
+export const HEARTBEAT_STEPS = 24;                // 24-step sovereign sequence (line 73)
+export const BRAIN_NODES = 6;                     // Micro-brain nodes per drone (main.mo line 151)
+export const MAX_DRONES = 50;                     // Maximum drones (main.mo line 150)
+
+// NOVA's Shell Dimensions (from NeuroEmergenceCore.mo)
+export const SHELL_3_NODES = 64;                  // 64 nodes
+export const SHELL_3_WEIGHTS = 4096;              // 64×64 weights
+export const SHELL_12_NODES = 128;                // 128 nodes
+export const SHELL_12_WEIGHTS = 16384;            // 128×128 weights
+export const ATLAS_SIZE = 64;                     // 64×64 territory grid
+export const ATLAS_CELLS = 4096;                  // 4096 cells
+export const PRED_STEPS = 60;                     // 60-step predictive field
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // BRAIN REGIONS — 7-Region Architecture
