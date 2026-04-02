@@ -411,6 +411,24 @@ Everything else — the 60 laws, SACESI, Jacob's Ladder, ARES, VAEL, PROMETHEUS,
 
 ---
 
+## IMPLEMENTATION MODULES
+
+The governance architecture is implemented across the following Motoko modules:
+
+| Module | Purpose |
+|--------|---------|
+| `SovereigntyLaws60.mo` | All 60 Sovereignty Laws with full mathematical evaluation |
+| `VetusThreatSystem.mo` | 9 Threat Vector system with auto-response triggers |
+| `VaelDefenseFamily.mo` | 7 Defense entities (VAEL, SENTINEL, VEIL, AEGIS-ROOT, DURA, RIFT, MEMORIA) |
+| `JubileeDreamCycle.mo` | JUBILEE, Jacob's Ladder, SACESI, L-121 Silver Sovereignty |
+| `DoctrineFingerprint.mo` | FNV-1a doctrine fingerprinting, ANIMA audit chain, Patent registry |
+| `GovernanceHeartbeat.mo` | Unified governance engine integrating all subsystems |
+| `PrincipalLock.mo` | Quantum-resistant principal authentication |
+| `AresRollbackEngine.mo` | K=7 snapshot rollback system |
+| `SovereignOrganisms.mo` | MERIDIAN PRIME, LEXIS PRIME, PROMETHEUS PRIME |
+
+---
+
 ## DOCUMENT CONTROL
 
 | Property | Value |
@@ -421,7 +439,7 @@ Everything else — the 60 laws, SACESI, Jacob's Ladder, ARES, VAEL, PROMETHEUS,
 | **Location** | Dallas, Texas, USA |
 | **Year** | 2026 |
 | **Contact** | MedinaSITech@outlook.com |
-| **Version** | 1.0 |
+| **Version** | 1.1 |
 
 ---
 
