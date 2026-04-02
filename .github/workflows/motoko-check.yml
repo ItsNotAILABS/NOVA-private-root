@@ -21,6 +21,10 @@ on:
       - 'dfx.json'
   workflow_dispatch:  # Allow manual trigger
 
+# Minimal permissions for security
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build & Verify Canisters

@@ -269,7 +269,7 @@ module SharkElectroreceptionEngine {
   ) : Nat {
     if (energyBalance < ENERGY_DESCENT_THRESHOLD) {
       // Descend to conserve energy
-      min(currentDepth + 1, DEPTH_DEEP)
+      Nat.min(currentDepth + 1, DEPTH_DEEP)
     } else if (energyBalance > ENERGY_ASCEND_THRESHOLD) {
       // Ascend when energy recovered
       if (currentDepth > 0) currentDepth - 1 else 0
