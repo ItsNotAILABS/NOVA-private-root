@@ -26,10 +26,20 @@
       "type": "motoko",
       "main": "src/swarm_audit/main.mo"
     },
+    "swarm_metals": {
+      "type": "motoko",
+      "main": "src/swarm_metals/main.mo",
+      "dependencies": []
+    },
+    "swarm_organism": {
+      "type": "motoko",
+      "main": "src/swarm_organism/main.mo",
+      "dependencies": ["swarm_brain", "swarm_command", "swarm_telemetry", "swarm_audit", "swarm_metals"]
+    },
     "frontend": {
       "type": "assets",
       "source": ["src/frontend/dist"],
-      "dependencies": ["swarm_brain", "swarm_command", "swarm_telemetry", "swarm_audit", "swarm_quantum"]
+      "dependencies": ["swarm_brain", "swarm_command", "swarm_telemetry", "swarm_audit", "swarm_organism", "swarm_metals", "swarm_quantum"]
     }
   },
   "defaults": {

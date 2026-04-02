@@ -5,12 +5,13 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import TacticalMap from './components/TacticalMap.jsx';
 import SwarmVitals from './components/SwarmVitals.jsx';
 import CommandConsole from './components/CommandConsole.jsx';
+import OrganismPanel from './components/OrganismPanel.jsx';
 import { useSwarmState } from './hooks/useSwarmState.js';
 
 const styles = {
   root: {
     display: 'grid',
-    gridTemplateColumns: '1fr 320px',
+    gridTemplateColumns: '1fr 320px 260px',
     gridTemplateRows: '1fr 280px',
     width: '100vw',
     height: '100vh',
@@ -35,6 +36,13 @@ const styles = {
   consolePanel: {
     gridColumn: '2',
     gridRow: '2',
+    background: '#070e1e',
+    border: '1px solid #1a3a5c',
+    overflow: 'hidden',
+  },
+  organismPanel: {
+    gridColumn: '3',
+    gridRow: '1 / 3',
     background: '#070e1e',
     border: '1px solid #1a3a5c',
     overflow: 'hidden',
@@ -81,6 +89,10 @@ export default function App() {
       <div style={styles.consolePanel}>
         <CommandConsole swarm={swarm} />
       </div>
+      <div style={styles.organismPanel}>
+        <OrganismPanel swarm={swarm} />
+      </div>
     </div>
   );
 }
+

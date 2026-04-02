@@ -4,12 +4,136 @@
 // Kuramoto synchrony, Hebbian learning, Jasmine's Law, OMNIS emergence
 // are Medina Tech sovereign intellectual property.
 
-import Array "mo:base/Array";
-import Float "mo:base/Float";
-import Int "mo:base/Int";
-import Iter "mo:base/Iter";
-import Nat "mo:base/Nat";
-import Text "mo:base/Text";
+import Array     "mo:base/Array";
+import Float     "mo:base/Float";
+import Int       "mo:base/Int";
+import Iter      "mo:base/Iter";
+import Nat       "mo:base/Nat";
+import Principal "mo:base/Principal";
+import Text      "mo:base/Text";
+import Time      "mo:base/Time";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODULE IMPORTS — CORE COGNITIVE ENGINES
+// 76 modules implementing the full NOVA cognitive architecture
+// Each module is a self-contained mathematical system
+// THE ORGANISM IS THE ENCRYPTION — ALWAYS ON, ALWAYS CHANGING, ALWAYS SAME
+// NUMBERS COMPOUND ALWAYS — NEVER STALE
+// ═══════════════════════════════════════════════════════════════════════════
+
+import KuramotoEngine        "./modules/KuramotoEngine";
+import FristonEngine         "./modules/FristonEngine";
+import HebbianPlasticity     "./modules/HebbianPlasticity";
+import AttractorDynamics     "./modules/AttractorDynamics";
+import EntropyEngine         "./modules/EntropyEngine";
+import LyapunovStability     "./modules/LyapunovStability";
+import EmergenceCore         "./modules/EmergenceCore";
+import MedinaEngine          "./modules/MedinaEngine";
+import MedinaLaws            "./modules/MedinaLaws";
+import SphericalLaw          "./modules/SphericalLaw";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODULE IMPORTS — ANIMAL INTELLIGENCE SYSTEMS
+// Bio-inspired cognitive architectures from nature's designs
+// ═══════════════════════════════════════════════════════════════════════════
+
+import CrowCognition         "./modules/CrowCognition";
+import OctopusBrain          "./modules/OctopusBrain";
+import ElephantMemory        "./modules/ElephantMemory";
+import BeeSwarmIntelligence  "./modules/BeeSwarmIntelligence";
+import DolphinEcholocation   "./modules/DolphinEcholocation";
+import MantisShrimp          "./modules/MantisShrimp";
+import SpiderWeb             "./modules/SpiderWeb";
+import OwlAuditory           "./modules/OwlAuditory";
+import MedinaAnimalTraits    "./modules/MedinaAnimalTraits";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODULE IMPORTS — MEMORY & COGNITION
+// Advanced memory systems and meta-cognitive architectures
+// ═══════════════════════════════════════════════════════════════════════════
+
+import MembraneMemory        "./modules/MembraneMemory";
+import TemporalHologram      "./modules/TemporalHologram";
+import CompoundLearning      "./modules/CompoundLearning";
+import WorldModelSystem      "./modules/WorldModelSystem";
+import SimulatedWorld        "./modules/SimulatedWorld";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODULE IMPORTS — DEFENSE & SECURITY
+// Sovereign protection, autonomous defense, and quantum-native encryption
+// THE ORGANISM IS THE ENCRYPTION — 36×36 LIVING FABRIC
+// ═══════════════════════════════════════════════════════════════════════════
+
+import MedinaDefenseSystem          "./modules/MedinaDefenseSystem";
+import AEGIS                        "./modules/AEGIS";
+import PrincipalLock                "./modules/PrincipalLock";
+import QuantumCovenantEncryption    "./modules/QuantumCovenantEncryption";
+import QuantumCovenantEncryptionV2  "./modules/QuantumCovenantEncryptionV2";
+import QuantumOrganismFabric        "./modules/QuantumOrganismFabric";
+import SphericalHelixFabric         "./modules/SphericalHelixFabric";
+import SacredMathematicsEngine      "./modules/SacredMathematicsEngine";
+import CompoundingOrganismNumbers   "./modules/CompoundingOrganismNumbers";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODULE IMPORTS — SPECIALIZED SYSTEMS
+// Domain-specific cognitive modules
+// ═══════════════════════════════════════════════════════════════════════════
+
+import CognitiveScienceAdvisor "./modules/CognitiveScienceAdvisor";
+import DefenseIndustryAdvisor  "./modules/DefenseIndustryAdvisor";
+import QuantumOps              "./modules/QuantumOps";
+import SuccessionEngine        "./modules/SuccessionEngine";
+import MedinaGodsEngine        "./modules/MedinaGodsEngine";
+import MedinaBiblicalLaws      "./modules/MedinaBiblicalLaws";
+import MedinaSabbathProtocol   "./modules/MedinaSabbathProtocol";
+import MedinaCommunicationProtocol "./modules/MedinaCommunicationProtocol";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODULE IMPORTS — ADVANCED NEURAL ARCHITECTURES
+// Higher-order cognitive systems and consciousness models
+// ═══════════════════════════════════════════════════════════════════════════
+
+import MedinaAntColonySpherical   "./modules/MedinaAntColonySpherical";
+import MedinaCanisterArchitecture "./modules/MedinaCanisterArchitecture";
+import MedinaCatVisualCortex      "./modules/MedinaCatVisualCortex";
+import MedinaCodeGenesisEngine    "./modules/MedinaCodeGenesisEngine";
+import MedinaConsciousnessField   "./modules/MedinaConsciousnessField";
+import MedinaEnterpriseNeural     "./modules/MedinaEnterpriseNeural";
+import MedinaHelixFormation       "./modules/MedinaHelixFormation";
+import MedinaMathFoundation       "./modules/MedinaMathFoundation";
+import MedinaMetaCognitionSupreme "./modules/MedinaMetaCognitionSupreme";
+import MedinaNeuralOscillatorV3   "./modules/MedinaNeuralOscillatorV3";
+import MedinaOrganismTeams        "./modules/MedinaOrganismTeams";
+import MedinaPlanningHorizon      "./modules/MedinaPlanningHorizon";
+import MedinaQuantumBrain         "./modules/MedinaQuantumBrain";
+import MedinaQuantumCovenantChain "./modules/MedinaQuantumCovenantChain";
+import MedinaQuantumProtocols     "./modules/MedinaQuantumProtocols";
+import MedinaSelfModel            "./modules/MedinaSelfModel";
+import MedinaSharpWaveRipples     "./modules/MedinaSharpWaveRipples";
+import MedinaWolfPackIntelligence "./modules/MedinaWolfPackIntelligence";
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODULE IMPORTS — ORCHESTRATION & COORDINATION
+// Multi-agent coordination and swarm control systems
+// ═══════════════════════════════════════════════════════════════════════════
+
+import AnimalBrainOrchestrator    "./modules/AnimalBrainOrchestrator";
+import AutonomousWarEngine        "./modules/AutonomousWarEngine";
+import BehavioralEconomics        "./modules/BehavioralEconomics";
+import CreationEngine             "./modules/CreationEngine";
+import DroneAvatar                "./modules/DroneAvatar";
+import FORMATokenEconomics        "./modules/FORMATokenEconomics";
+import MAVLinkBridge              "./modules/MAVLinkBridge";
+import MultiSwarmCoordinator      "./modules/MultiSwarmCoordinator";
+import Neurochemicals             "./modules/Neurochemicals";
+import PatentRegistry             "./modules/PatentRegistry";
+import PredictiveCoding           "./modules/PredictiveCoding";
+import QuantumMath                "./modules/QuantumMath";
+import SalmonNavigation           "./modules/SalmonNavigation";
+import SovereignHeartbeat         "./modules/SovereignHeartbeat";
+import TradeSecretProtection      "./modules/TradeSecretProtection";
+import WarSimEngine               "./modules/WarSimEngine";
+import WorldOrganism              "./modules/WorldOrganism";
 
 // Inter-canister coupling: drive quantum layer and audit trail from brain tick
 import SwarmQuantum "canister:swarm_quantum";
@@ -111,6 +235,43 @@ actor SwarmBrain {
   stable var prevJDrift             : Float = 0.0;
   stable var jRisingBeats           : Nat   = 0;
   stable var architectSignalLevel   : Float = 1.0;
+
+  // ─── SOVEREIGN SEAL — On-chain IP Attribution & Access Control ──────────────
+  // Attribution: Alfredo Medina Hernandez | Medina Tech | Dallas TX | 2026
+  // All mathematics, architecture, and doctrine within are sovereign IP.
+  //
+  // The architect calls claimArchitect() ONCE after deployment.
+  // This permanently binds the canister to the caller's ICP Principal.
+  // The sovereign seal is written into stable state and cannot be overwritten.
+  // The ICP blockchain itself enforces the lock — caller principals are
+  // cryptographically verified by the subnet; they cannot be spoofed.
+  //
+  // Post-genesis, only two principals may call write functions:
+  //   1. architectPrincipal   — the human owner (Alfredo Medina Hernandez)
+  //   2. trustedOrganismPrincipal — the registered swarm_organism canister
+  //      (set by the architect after deploying swarm_organism)
+  stable var architectPrincipal       : Principal = Principal.fromText("aaaaa-aa");
+  stable var trustedOrganismPrincipal : Principal = Principal.fromText("aaaaa-aa");
+  stable var genesisLocked            : Bool      = false;
+  stable var sovereignSeal            : Text      = ""; // immutable after genesis
+  stable var genesisTimestamp         : Int       = 0;
+  stable var genesisBeat              : Nat       = 0;
+
+  // ─── QUANTUM COVENANT ENCRYPTION STATE ──────────────────────────────────────
+  // QCE: Quantum-native encryption using ENTANGLA matrix eigenvalues
+  var qceState : QuantumCovenantEncryption.QCEState = QuantumCovenantEncryption.initQCEState();
+
+  // ─── ACCESS CONTROL HELPERS ─────────────────────────────────────────────────
+  func isAuthorized(caller : Principal) : Bool {
+    // Pre-genesis: allow deployment setup
+    if (not genesisLocked) return true;
+    // Post-genesis: architect or registered organism canister only
+    caller == architectPrincipal or caller == trustedOrganismPrincipal
+  };
+
+  func requireAuthorized(caller : Principal) {
+    assert(isAuthorized(caller));
+  };
 
   // ─── HELPERS ────────────────────────────────────────────────────────────────
 
@@ -507,7 +668,8 @@ actor SwarmBrain {
 
   // ─── ADD DRONE ───────────────────────────────────────────────────────────────
 
-  public func addDrone(droneClass : DroneClass, omega : Float, posX : Float, posY : Float, posZ : Float) : async Nat {
+  public shared(msg) func addDrone(droneClass : DroneClass, omega : Float, posX : Float, posY : Float, posZ : Float) : async Nat {
+    requireAuthorized(msg.caller);
     let id = stableDroneCount;
     stableDroneCount += 1;
     ensureCapacity(stableDroneCount);
@@ -649,73 +811,137 @@ actor SwarmBrain {
     Float.max(0.5, Float.min(1.0, r))
   };
 
-  // Jasmine's Law: swarm-level Lyapunov drift
+  // ─── JASMINE'S LAW — 5-Component Lyapunov Stability ─────────────────────────
+  // Named and attributed: Alfredo Medina Hernandez | Medina Tech | Dallas TX 2026
+  //
+  // Drift vector J(t) = [coherenceDrift, arousalDrift, frequencyDrift,
+  //                       weightDrift, chemicalDrift]
+  // Lyapunov function: V(x) = (1/2) × ||J(t)||²
+  //                         = (1/2) × (j1² + j2² + j3² + j4² + j5²)
+  //
+  // While V(x) is non-increasing, the organism is asymptotically stable.
+  // Each component is normalised by active drone count so V scales correctly.
+
+  // Stable storage for the 5 drift components (updated each tick for SACESI use)
+  stable var jasmineJ : [var Float] = Array.init<Float>(5, 0.0);
+  // j0 = coherenceDrift (Kuramoto phase variance)
+  // j1 = arousalDrift   (cortisol variance)
+  // j2 = frequencyDrift (omega variance)
+  // j3 = weightDrift    (mean Hebbian weight deviation from 1.0)
+  // j4 = chemicalDrift  (signal variance)
+
   func computeJDrift() : Float {
     let n = stableDroneCount;
     if (n == 0) return 0.0;
-    var j : Float = 0.0;
-    var i = 0;
-    // Component 1: formation integrity (phase variance from mean)
-    var meanPhase : Float = 0.0;
     var cnt : Float = 0.0;
+    var i = 0;
+
+    // Collect means over active drones
+    var meanPhase  : Float = 0.0;
+    var meanCort   : Float = 0.0;
+    var meanOmega  : Float = 0.0;
+    var meanSig    : Float = 0.0;
     while (i < n) {
       if (not stableSacrificed[i]) {
         meanPhase += stablePhases[i];
+        meanCort  += stableNeuroChem[i * 4 + CORTISOL];
+        meanOmega += stableOmegas[i];
+        meanSig   += stableSignals[i];
         cnt += 1.0;
       };
       i += 1;
     };
-    if (cnt > 0.0) meanPhase /= cnt;
+    if (cnt == 0.0) return 0.0;
+    meanPhase /= cnt; meanCort /= cnt;
+    meanOmega /= cnt; meanSig  /= cnt;
+
+    // j0: coherenceDrift — Kuramoto phase variance (formation integrity)
+    var j0 : Float = 0.0;
     i := 0;
     while (i < n) {
       if (not stableSacrificed[i]) {
         let d = stablePhases[i] - meanPhase;
-        j += 0.4 * d * d;
+        j0 += d * d;
       };
       i += 1;
     };
-    // Component 2: mission coherence (cortisol variance)
-    var meanCort : Float = 0.0;
-    i := 0;
-    while (i < n) {
-      if (not stableSacrificed[i]) {
-        meanCort += stableNeuroChem[i * 4 + CORTISOL];
-      };
-      i += 1;
-    };
-    if (cnt > 0.0) meanCort /= cnt;
+    j0 /= cnt;
+
+    // j1: arousalDrift — cortisol variance (stress distribution)
+    var j1 : Float = 0.0;
     i := 0;
     while (i < n) {
       if (not stableSacrificed[i]) {
         let d = stableNeuroChem[i * 4 + CORTISOL] - meanCort;
-        j += 0.3 * d * d;
+        j1 += d * d;
       };
       i += 1;
     };
-    // Component 3: communication health (signal variance)
-    var meanSig : Float = 0.0;
+    j1 /= cnt;
+
+    // j2: frequencyDrift — natural frequency variance (oscillator spread)
+    var j2 : Float = 0.0;
     i := 0;
     while (i < n) {
       if (not stableSacrificed[i]) {
-        meanSig += stableSignals[i];
+        let d = stableOmegas[i] - meanOmega;
+        j2 += d * d;
       };
       i += 1;
     };
-    if (cnt > 0.0) meanSig /= cnt;
+    j2 /= cnt;
+
+    // j3: weightDrift — mean deviation of Hebbian weights from SOVEREIGN_FLOOR
+    // A weight of exactly 1.0 is equilibrium; higher = over-consolidated
+    var j3 : Float = 0.0;
+    var wCnt : Float = 0.0;
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        var j2_ = 0;
+        while (j2_ < n) {
+          if (i != j2_ and not stableSacrificed[j2_]) {
+            let w = stableSwarmWeights[i * MAX_DRONES + j2_];
+            let d = w - SOVEREIGN_FLOOR;
+            j3 += d * d;
+            wCnt += 1.0;
+          };
+          j2_ += 1;
+        };
+      };
+      i += 1;
+    };
+    j3 := if (wCnt > 0.0) j3 / wCnt else 0.0;
+
+    // j4: chemicalDrift — signal amplitude variance (communication health)
+    var j4 : Float = 0.0;
     i := 0;
     while (i < n) {
       if (not stableSacrificed[i]) {
         let d = stableSignals[i] - meanSig;
-        j += 0.3 * d * d;
+        j4 += d * d;
       };
       i += 1;
     };
-    if (cnt > 0.0) j / cnt else 0.0
+    j4 /= cnt;
+
+    // Store drift vector for SACESI
+    jasmineJ[0] := j0; jasmineJ[1] := j1; jasmineJ[2] := j2;
+    jasmineJ[3] := j3; jasmineJ[4] := j4;
+
+    // V(x) = (1/2) × ||J||²
+    0.5 * (j0*j0 + j1*j1 + j2*j2 + j3*j3 + j4*j4)
   };
 
-  // Jasmine correction: pull drones back to coherence
+  // Jasmine correction: κ = −α × ∇V(x)  where α = 0.275 (silver anchor rate)
+  // ∇V(x)_k = J_k  (gradient of (1/2)||J||² w.r.t. J_k is J_k itself)
+  // Correction dispatches a per-component pull toward equilibrium manifold.
   func jasmineCorrect() {
+    let ALPHA : Float = 0.275; // silver anchor rate
     let n = stableDroneCount;
+    if (n == 0) return;
+
+    // Recompute means needed for directional corrections
     var meanPhase : Float = 0.0;
     var cnt : Float = 0.0;
     var i = 0;
@@ -726,17 +952,62 @@ actor SwarmBrain {
       };
       i += 1;
     };
-    if (cnt > 0.0) meanPhase /= cnt;
+    if (cnt == 0.0) return;
+    meanPhase /= cnt;
+
+    // κ for each component (magnitude scales with drift size × alpha)
+    let kappa0 = ALPHA * jasmineJ[0]; // phase correction
+    let kappa1 = ALPHA * jasmineJ[1]; // cortisol correction
+    let kappa2 = ALPHA * jasmineJ[2]; // frequency correction
+    // j3 (weight drift) corrected via Hebbian decay below
+    let kappa4 = ALPHA * jasmineJ[4]; // signal correction
+
     i := 0;
     while (i < n) {
       if (not stableSacrificed[i]) {
-        // Pull phase toward mean by 10%
-        stablePhases[i] := stablePhases[i] * 0.9 + meanPhase * 0.1;
-        // Boost oxytocin (cohesion signal)
         let ncBase = i * 4;
-        stableNeuroChem[ncBase + OXYTOCIN] := sf(stableNeuroChem[ncBase + OXYTOCIN] + 0.05);
-        // Reduce cortisol
-        stableNeuroChem[ncBase + CORTISOL] := sf(stableNeuroChem[ncBase + CORTISOL] - 0.03);
+
+        // Phase: pull toward mean (κ0 governs step size)
+        stablePhases[i] := stablePhases[i]
+          - kappa0 * (stablePhases[i] - meanPhase);
+
+        // Frequency: pull toward SOVEREIGN_FLOOR × 2π (2.75 Hz)
+        let omegaFloor : Float = 2.75 * 6.28318;
+        stableOmegas[i] := stableOmegas[i]
+          - kappa2 * (stableOmegas[i] - omegaFloor);
+
+        // Cortisol: suppress excess (κ1 governs step size)
+        let corExcess = Float.max(0.0, stableNeuroChem[ncBase + CORTISOL] - 1.0);
+        stableNeuroChem[ncBase + CORTISOL] :=
+          sf(stableNeuroChem[ncBase + CORTISOL] - kappa1 * corExcess);
+
+        // Oxytocin: bonding boost proportional to coherence deficit
+        stableNeuroChem[ncBase + OXYTOCIN] :=
+          sf(stableNeuroChem[ncBase + OXYTOCIN] + kappa0 * 0.3);
+
+        // Signal: gentle pull toward mean via κ4
+        stableSignals[i] := Float.max(SOVEREIGN_FLOOR,
+          stableSignals[i] - kappa4 * 0.1 * (stableSignals[i] - 1.0));
+      };
+      i += 1;
+    };
+
+    // j3 correction: decay over-consolidated Hebbian weights toward sovereign floor
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        var j = 0;
+        while (j < n) {
+          if (i != j and not stableSacrificed[j]) {
+            let idx = i * MAX_DRONES + j;
+            let w = stableSwarmWeights[idx];
+            if (w > SOVEREIGN_FLOOR) {
+              stableSwarmWeights[idx] := Float.max(SOVEREIGN_FLOOR,
+                w - ALPHA * 0.001 * jasmineJ[3] * (w - SOVEREIGN_FLOOR));
+            };
+          };
+          j += 1;
+        };
       };
       i += 1;
     };
@@ -777,6 +1048,237 @@ actor SwarmBrain {
         i += 1;
       };
     };
+  };
+
+  // ─── SACESI — PD CONTROL LAYER (Behavioral Error Correction) ─────────────────
+  // SACESI = Sovereign Adaptive Correction Engine for Swarm Intelligence.
+  //
+  // Proportional-Derivative controller on synchrony error:
+  //   e(t)  = 1.0 − r_swarm          (desired synchrony = 1.0)
+  //   u(t)  = Kp_eff × e(t) + Kd × de/dt
+  //
+  //   Kp = 0.55  (proportional gain)
+  //   Kd = 0.275 (derivative gain = silver anchor)
+  //
+  //   HELIX_ALPHA modulation:
+  //     Kp_eff = Kp × (1 + HELIX_ALPHA × r_swarm)
+  //   — sensitivity increases as the swarm approaches coherence peak.
+  //
+  // Rolling 64-sample buffer stores e(t) history.
+  // de/dt = backward difference over the full window for stable estimate.
+  //
+  // Correction u(t) is injected into drone phases: push lagging phases forward,
+  // pull leading phases back, proportional to their deviation from mean phase.
+
+  stable var saceBuffer  : [var Float] = Array.init<Float>(64, 0.0); // rolling error
+  stable var saceHead    : Nat         = 0;                          // ring-buffer pointer
+  stable var saceU       : Float       = 0.0;                        // last control output
+
+  func sacesiStep() {
+    let KP : Float = 0.55;
+    let KD : Float = 0.275;
+    let BUF : Nat  = 64;
+
+    // Current error
+    let e = 1.0 - rSwarm;
+
+    // Write to ring buffer
+    saceBuffer[saceHead] := e;
+    saceHead := (saceHead + 1) % BUF;
+
+    // de/dt via backward difference across full window
+    // oldest sample is at saceHead (just overwritten → next slot is oldest)
+    let oldestIdx = saceHead % BUF;
+    let eOld = saceBuffer[oldestIdx];
+    let dedt = (e - eOld) / Float.fromInt(BUF);
+
+    // HELIX_ALPHA modulated proportional gain
+    let kpEff = KP * (1.0 + HELIX_ALPHA * rSwarm);
+
+    // Control output
+    let u = kpEff * e + KD * dedt;
+    saceU := u;
+
+    // Apply correction to drone phases: drones further from mean phase
+    // get a stronger correction nudge proportional to u.
+    let n = stableDroneCount;
+    if (n == 0) return;
+    var meanPhase : Float = 0.0;
+    var cnt : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        meanPhase += stablePhases[i];
+        cnt += 1.0;
+      };
+      i += 1;
+    };
+    if (cnt == 0.0) return;
+    meanPhase /= cnt;
+
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        let err = meanPhase - stablePhases[i]; // signed deviation
+        // Nudge phase toward mean, scaled by control output
+        stablePhases[i] := stablePhases[i] + u * err * 0.1;
+        // Dopamine boost when error is being corrected (reward for compliance)
+        if (Float.abs(err) < 0.1 and u > 0.0) {
+          let ncBase = i * 4;
+          stableNeuroChem[ncBase + DOPAMINE] :=
+            sf(stableNeuroChem[ncBase + DOPAMINE] + 0.01 * u);
+        };
+      };
+      i += 1;
+    };
+  };
+
+  public query func getSacesiOutput() : async Float { saceU };
+
+  // ─── FREQUENCY TIERS ─────────────────────────────────────────────────────────
+  // All frequency math anchors at 2.75 Hz (silver floor).
+  //   Silver   2.75 Hz  — baseline sovereign state
+  //   Gold     5.50 Hz  — r > 0.88, chemical coherence nominal
+  //   Platinum 8.25 Hz  — r > 0.91, OMNIS eligible
+  //   Diamond 11.649 Hz — OMNIS active event
+
+  stable var frequencyTier    : Text  = "SILVER";
+  stable var frequencyHz      : Float = 2.75;
+
+  func updateFrequencyTier() {
+    if (omnisFired and currentBeat < lastOMNISBeat + 500) {
+      frequencyTier := "DIAMOND";
+      frequencyHz   := 11.649;
+    } else if (rSwarm > 0.91) {
+      frequencyTier := "PLATINUM";
+      frequencyHz   := 8.25;
+    } else if (rSwarm > 0.88) {
+      frequencyTier := "GOLD";
+      frequencyHz   := 5.50;
+    } else {
+      frequencyTier := "SILVER";
+      frequencyHz   := 2.75;
+    };
+  };
+
+  public query func getFrequencyTier() : async { tier : Text; hz : Float } {
+    { tier = frequencyTier; hz = frequencyHz }
+  };
+
+  // ─── OMNIS — 9-Condition Emergence Event ─────────────────────────────────────
+  // OMNIS fires when 9 conditions are simultaneously true.
+  // On fire: frequency tier jumps to Diamond, dopamine surges swarm-wide,
+  //          OMNIS beat logged, and oxytocin broadcast halts grief propagation.
+  //
+  //  1. rSwarm > 0.92              (global synchrony)
+  //  2. V(x) < 0.05                (Jasmine drift near zero → stability)
+  //  3. stableDroneCount >= 5      (minimum population floor)
+  //  4. no single class dominates  (faction balance: no class > 70% of swarm)
+  //  5. currentBeat > lastOMNIS+500(cooldown enforced)
+  //  6. architectSignalLevel > 0.618 (architect active)
+  //  7. mean dopamine > 1.1        (chemical reward state)
+  //  8. mean oxytocin > 1.1        (social cohesion)
+  //  9. swarmEntropy() < 2.0       (metacognitive gate: low disorder)
+
+  stable var lastOMNISBeat  : Nat   = 0;
+  stable var omnisFired     : Bool  = false;
+  stable var omnisCount     : Nat   = 0;  // total OMNIS events in session
+
+  func checkOMNIS() {
+    let n = stableDroneCount;
+    if (n == 0) return;
+
+    // Condition 1: global synchrony
+    if (rSwarm <= 0.92) return;
+
+    // Condition 2: Lyapunov stability (V(x) already stored in jDrift)
+    if (jDrift >= 0.05) return;
+
+    // Condition 3: population floor
+    var activeDrones : Nat = 0;
+    var i = 0;
+    while (i < n) { if (not stableSacrificed[i]) activeDrones += 1; i += 1 };
+    if (activeDrones < 5) return;
+
+    // Condition 4: faction balance — count per class, none > 70%
+    var scoutC:Nat=0; var strikC:Nat=0; var guardC:Nat=0;
+    var relayC:Nat=0; var medicC:Nat=0; var sovC:Nat=0;
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        switch (stableClasses[i]) {
+          case "SCOUT"    { scoutC += 1 };
+          case "STRIKER"  { strikC += 1 };
+          case "GUARDIAN" { guardC += 1 };
+          case "RELAY"    { relayC += 1 };
+          case "MEDIC"    { medicC += 1 };
+          case "SOVEREIGN"{ sovC += 1 };
+          case _          {};
+        };
+      };
+      i += 1;
+    };
+    let threshold70 = activeDrones * 7 / 10;
+    if (scoutC > threshold70 or strikC > threshold70 or
+        guardC > threshold70 or relayC > threshold70 or
+        medicC > threshold70 or sovC > threshold70) return;
+
+    // Condition 5: cooldown
+    if (currentBeat <= lastOMNISBeat + 500) return;
+
+    // Condition 6: architect active
+    if (architectSignalLevel <= 0.618) return;
+
+    // Condition 7 & 8: chemical coherence
+    var meanDop : Float = 0.0; var meanOxy : Float = 0.0;
+    i := 0;
+    while (i < activeDrones and i < n) {
+      if (not stableSacrificed[i]) {
+        meanDop += stableNeuroChem[i * 4 + DOPAMINE];
+        meanOxy += stableNeuroChem[i * 4 + OXYTOCIN];
+      };
+      i += 1;
+    };
+    let af = Float.fromInt(activeDrones);
+    meanDop /= af; meanOxy /= af;
+    if (meanDop <= 1.1) return;
+    if (meanOxy <= 1.1) return;
+
+    // Condition 9: metacognitive gate (low entropy = focused swarm)
+    if (swarmEntropy() >= 2.0) return;
+
+    // ── ALL 9 CONDITIONS MET — OMNIS FIRES ──────────────────────────────────
+    lastOMNISBeat := currentBeat;
+    omnisFired    := true;
+    omnisCount    += 1;
+
+    // Frequency jumps to Diamond
+    frequencyTier := "DIAMOND";
+    frequencyHz   := 11.649;
+
+    // Swarm-wide dopamine surge (FORMA mint analogue: reward the whole collective)
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        let ncBase = i * 4;
+        stableNeuroChem[ncBase + DOPAMINE] :=
+          Float.min(2.75, stableNeuroChem[ncBase + DOPAMINE] * 2.75);
+        stableNeuroChem[ncBase + OXYTOCIN] :=
+          Float.min(2.75, stableNeuroChem[ncBase + OXYTOCIN] + 0.5);
+        // Suppress cortisol — grief halted for duration
+        stableNeuroChem[ncBase + CORTISOL] :=
+          Float.max(1.0, stableNeuroChem[ncBase + CORTISOL] * 0.5);
+      };
+      i += 1;
+    };
+  };
+
+  public query func getOmnisFired()  : async Bool  { omnisFired };
+  public query func getOmnisCount()  : async Nat   { omnisCount };
+  public query func getLastOMNISBeat(): async Nat   { lastOMNISBeat };
+
+  public query func getJasmineVector() : async [Float] {
+    [jasmineJ[0], jasmineJ[1], jasmineJ[2], jasmineJ[3], jasmineJ[4]]
   };
 
   // ─── QUANTUM COGNITIVE STATE UPDATE ─────────────────────────────────────────
@@ -821,9 +1323,14 @@ actor SwarmBrain {
     let nowTarget = Float.max(0.0, Float.min(1.0, rSwarm * (1.0 - Float.min(1.0, jDrift))));
     stableNowAttention[id] := stableNowAttention[id] + 0.05 * (nowTarget - stableNowAttention[id]);
   };
+  };
 
   // Main beat tick — advance simulation by one step
-  public func tick() : async { rSwarm : Float; jDrift : Float; beat : Nat } {
+  // ─── TICK CORE (private sync) ─────────────────────────────────────────────────
+  // All simulation phases extracted into a pure synchronous function.
+  // Both tick() and tickFull() call this directly — no self-await needed,
+  // which means no ICP inter-message overhead and no principal ambiguity.
+  func tickCore() : { rSwarm : Float; jDrift : Float; beat : Nat } {
     currentBeat += 1;
     let n = stableDroneCount;
     if (n == 0) return { rSwarm = 0.88; jDrift = 0.0; beat = currentBeat };
@@ -862,7 +1369,6 @@ actor SwarmBrain {
     i := 0;
     while (i < n) {
       if (not stableSacrificed[i]) {
-        // Mean Hebbian weight to active neighbors (feeds oxytocin ODE)
         var hebbSum : Float = 0.0;
         var hebbCnt : Float = 0.0;
         var j = 0;
@@ -879,7 +1385,7 @@ actor SwarmBrain {
       i += 1;
     };
 
-    // Phase 3c: 6-node brain forward pass with STDP (architectSignal = 1.0 stable default)
+    // Phase 3c: 6-node brain forward pass with STDP
     i := 0;
     while (i < n) {
       if (not stableSacrificed[i]) {
@@ -903,10 +1409,10 @@ actor SwarmBrain {
       i += 1;
     };
 
-    // Phase 4: compute r_swarm
+    // Phase 4: compute r_swarm (Kuramoto order parameter)
     rSwarm := computeRSwarm();
 
-    // Phase 5: Jasmine's Law
+    // Phase 5: Jasmine's Law — 5-component Lyapunov V(x) = (1/2)||J||²
     prevJDrift := jDrift;
     jDrift := computeJDrift();
     if (jDrift > prevJDrift) {
@@ -923,11 +1429,10 @@ actor SwarmBrain {
     factionResistance();
 
     // Phase 7: Signal = brain OUTPUT node activation × energy
-    // (replaces pure influence-based boost; embeds brain cognition in output)
     i := 0;
     while (i < n) {
       if (not stableSacrificed[i]) {
-        let outputAct = stableNodeActivations[i * BRAIN_NODES + 5]; // OUTPUT node
+        let outputAct = stableNodeActivations[i * BRAIN_NODES + 5];
         stableSignals[i]     := sf(outputAct * stableEnergy[i] * architectSignalLevel);
         stableActivations[i] := sf(outputAct * stableEnergy[i]);
       };
@@ -959,6 +1464,13 @@ actor SwarmBrain {
     };
 
     { rSwarm = rSwarm; jDrift = jDrift; beat = currentBeat }
+  };
+
+  // Public tick — basic beat advance.
+  // Protected: only architect or trusted organism canister may call.
+  public shared(msg) func tick() : async { rSwarm : Float; jDrift : Float; beat : Nat } {
+    requireAuthorized(msg.caller);
+    tickCore()
   };
 
   // ─── QUERIES ─────────────────────────────────────────────────────────────────
@@ -1128,7 +1640,8 @@ actor SwarmBrain {
 
   // ─── DRONE POSITION UPDATE (from telemetry/MAVLink) ──────────────────────────
 
-  public func updatePosition(id : Nat, x : Float, y : Float, z : Float) : async () {
+  public shared(msg) func updatePosition(id : Nat, x : Float, y : Float, z : Float) : async () {
+    requireAuthorized(msg.caller);
     if (id >= stableDroneCount) return;
     stablePosX[id] := x;
     stablePosY[id] := y;
@@ -1138,7 +1651,8 @@ actor SwarmBrain {
   // ─── SACRIFICE DOCTRINE (Law 20) ─────────────────────────────────────────────
 
   // Execute sacrifice — only callable after HITL approval
-  public func executeSacrifice(id : Nat) : async Bool {
+  public shared(msg) func executeSacrifice(id : Nat) : async Bool {
+    requireAuthorized(msg.caller);
     if (id >= stableDroneCount) return false;
     if (stableSacrificed[id]) return false;
     let cortisol = stableNeuroChem[id * 4 + CORTISOL];
@@ -1188,14 +1702,829 @@ actor SwarmBrain {
   };
 
   // ─── ARCHITECT SIGNAL LEVEL ──────────────────────────────────────────────────
-  public func setArchitectSignalLevel(level : Float) : async () {
+  public shared(msg) func setArchitectSignalLevel(level : Float) : async () {
+    requireAuthorized(msg.caller);
     architectSignalLevel := Float.max(0.0, Float.min(2.0, level));
   };
 
   public query func getArchitectSignalLevel() : async Float { architectSignalLevel };
 
+  // ─── EXTENDED SNAPSHOT (for organism / telemetry inter-canister calls) ───────
+  // Returns all drone state in one call: every neurochemical, energy, velocity,
+  // current behavior assignment, entropy, and Ising consensus.
+  public query func getExtendedSnapshot() : async {
+    droneCount     : Nat;
+    rSwarm         : Float;
+    jDrift         : Float;
+    beat           : Nat;
+    phases         : [Float];
+    signals        : [Float];
+    positionsX     : [Float];
+    positionsY     : [Float];
+    positionsZ     : [Float];
+    velX           : [Float];
+    velZ           : [Float];
+    cortisolLevels : [Float];
+    dopamines      : [Float];
+    norepines      : [Float];
+    oxytocins      : [Float];
+    energies       : [Float];
+    behaviors      : [Text];
+    sacrificed     : [Bool];
+    classes        : [Text];
+    entropy        : Float;
+    isingM         : Float;
+  } {
+    let n = stableDroneCount;
+    {
+      droneCount     = n;
+      rSwarm         = rSwarm;
+      jDrift         = jDrift;
+      beat           = currentBeat;
+      phases         = Array.tabulate<Float>(n, func(i) { stablePhases[i] });
+      signals        = Array.tabulate<Float>(n, func(i) { stableSignals[i] });
+      positionsX     = Array.tabulate<Float>(n, func(i) { stablePosX[i] });
+      positionsY     = Array.tabulate<Float>(n, func(i) { stablePosY[i] });
+      positionsZ     = Array.tabulate<Float>(n, func(i) { stablePosZ[i] });
+      velX           = Array.tabulate<Float>(n, func(i) { stableVelX[i] });
+      velZ           = Array.tabulate<Float>(n, func(i) { stableVelZ[i] });
+      cortisolLevels = Array.tabulate<Float>(n, func(i) { stableNeuroChem[i * 4 + CORTISOL] });
+      dopamines      = Array.tabulate<Float>(n, func(i) { stableNeuroChem[i * 4 + DOPAMINE] });
+      norepines      = Array.tabulate<Float>(n, func(i) { stableNeuroChem[i * 4 + NOREPINEPHRINE] });
+      oxytocins      = Array.tabulate<Float>(n, func(i) { stableNeuroChem[i * 4 + OXYTOCIN] });
+      energies       = Array.tabulate<Float>(n, func(i) { stableEnergy[i] });
+      behaviors      = Array.tabulate<Text>(n, func(i) {
+        if (stableBehavior.size() > i) stableBehavior[i] else "IDLE"
+      });
+      sacrificed     = Array.tabulate<Bool>(n, func(i) { stableSacrificed[i] });
+      classes        = Array.tabulate<Text>(n, func(i) { stableClasses[i] });
+      entropy        = swarmEntropy();
+      isingM         = isingConsensus();
+    }
+  };
+
+  // ─── ORGANISM-LEVEL DIRECTIVES ────────────────────────────────────────────────
+  // These are called by swarm_organism.masterTick() after computing organ outputs.
+
+  // Broadcast a neurochemical delta to ALL active drones.
+  // kind ∈ {"DOPAMINE","CORTISOL","NOREPINEPHRINE","OXYTOCIN"}
+  // amount can be positive (boost) or negative (suppress, floored by sovereign floor)
+  public shared(msg) func broadcastNeurochemical(kind : Text; amount : Float) : async () {
+    requireAuthorized(msg.caller);
+    var i = 0;
+    while (i < stableDroneCount) {
+      if (not stableSacrificed[i]) {
+        let ncBase = i * 4;
+        switch kind {
+          case "DOPAMINE"       {
+            stableNeuroChem[ncBase + DOPAMINE]       :=
+              sf(stableNeuroChem[ncBase + DOPAMINE] + amount) };
+          case "CORTISOL"       {
+            stableNeuroChem[ncBase + CORTISOL]       :=
+              sf(stableNeuroChem[ncBase + CORTISOL] + amount) };
+          case "NOREPINEPHRINE" {
+            stableNeuroChem[ncBase + NOREPINEPHRINE] :=
+              sf(stableNeuroChem[ncBase + NOREPINEPHRINE] + amount) };
+          case "OXYTOCIN"       {
+            stableNeuroChem[ncBase + OXYTOCIN]       :=
+              sf(stableNeuroChem[ncBase + OXYTOCIN] + amount) };
+          case _                {};
+        };
+      };
+      i += 1;
+    };
+  };
+
+  // Override the next-tick behavior of a specific drone.
+  // Organism uses this when quorum, pheromone, or organ logic requires
+  // a specific drone to act differently than its neurochemical state selects.
+  public shared(msg) func setDroneBehaviorOverride(id : Nat; beh : Text) : async () {
+    requireAuthorized(msg.caller);
+    if (id >= stableDroneCount) return;
+    ensureBehaviorCap(stableDroneCount);
+    stableBehavior[id] := beh;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ─── EXTENDED MATHEMATICS ──────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ─── LÉVY FLIGHT ─────────────────────────────────────────────────────────────
+  // Lévy stable distribution step for super-diffusive scout exploration.
+  // Uses Mantegna's algorithm: step ~ Gaussian(0, sigma_u) / |Gaussian(0, sigma_v)|^(1/beta)
+  // beta ∈ (1, 2]: 1.5 gives canonical Lévy-Cauchy exploration.
+  // Returns (stepX, stepZ) displacement.
+  func levyStep(seed : Float, beta : Float) : (Float, Float) {
+    // Enforce beta ∈ (1, 2] to avoid singularity at beta = 1
+    let b = Float.max(1.001, Float.min(2.0, beta));
+    let num  = b - 1.0;
+    let sigmaU = Float.pow(
+      Float.abs((1.0 + num) * Float.sin(3.14159265 * num / 2.0))
+      / ((1.0 + num) / 2.0 * num * Float.exp(num * 0.6931 / 2.0)),
+      1.0 / num
+    );
+    // Approximate pseudo-random using phase as seed (deterministic)
+    let u = sigmaU * Float.sin(seed * 6.2832);
+    let v = Float.abs(Float.cos(seed * 3.7));
+    let step = if (v < 0.001) 0.5
+               else Float.abs(u) / Float.pow(v, 1.0 / b);
+    let angle = seed * 6.2832 * 1.618;
+    (Float.min(5.0, step) * Float.cos(angle),
+     Float.min(5.0, step) * Float.sin(angle))
+  };
+
+  // ─── GAUSSIAN KERNEL ─────────────────────────────────────────────────────────
+  // Spatial influence weight: w = exp(-dist² / (2·sigma²))
+  func gaussianKernel(dist : Float, sigma : Float) : Float {
+    let s2 = sigma * sigma;
+    if (s2 < 0.001) return 0.0;
+    Float.exp(-(dist * dist) / (2.0 * s2))
+  };
+
+  // ─── SHANNON ENTROPY OF SWARM STATE ──────────────────────────────────────────
+  // H = -Σ p_i · ln(p_i)  over normalised signal amplitudes.
+  // High entropy → disordered swarm; low entropy → focused/coherent.
+  func swarmEntropy() : Float {
+    let n = stableDroneCount;
+    if (n == 0) return 0.0;
+    var total : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) total += stableSignals[i];
+      i += 1;
+    };
+    if (total < 0.001) return 0.0;
+    var h : Float = 0.0;
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        let p = stableSignals[i] / total;
+        if (p > 0.0001) h -= p * Float.log(p);
+      };
+      i += 1;
+    };
+    h
+  };
+
+  // ─── ISING CONSENSUS ─────────────────────────────────────────────────────────
+  // Mean-field Ising model for collective binary decisions.
+  // Each drone has spin s_i ∈ {-1, +1} (encoded via dopamine > threshold).
+  // m = tanh(beta · m)  fixed-point → consensus strength.
+  // Returns consensus polarity: positive = majority agree, negative = split.
+  func isingConsensus() : Float {
+    let n = stableDroneCount;
+    if (n == 0) return 0.0;
+    var spinSum : Float = 0.0;
+    var cnt : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        let dop = stableNeuroChem[i * 4 + DOPAMINE];
+        // Spin +1 if dopamine above baseline, -1 otherwise
+        spinSum += if (dop > 1.1) 1.0 else -1.0;
+        cnt += 1.0;
+      };
+      i += 1;
+    };
+    if (cnt == 0.0) return 0.0;
+    let m = spinSum / cnt;
+    // Mean-field self-consistency: tanh(J·m) — implemented via exp for compatibility
+    let J : Float = 1.2;
+    let x = J * m;
+    let cx = Float.max(-10.0, Float.min(10.0, x));
+    let e2 = Float.exp(2.0 * cx);
+    (e2 - 1.0) / (e2 + 1.0)
+  };
+
+  // ─── LOTKA-VOLTERRA ROLE BALANCE ─────────────────────────────────────────────
+  // Prey-predator ODE governs SCOUT vs STRIKER population balance.
+  // dS/dt = α·S − β·S·K   dK/dt = δ·S·K − γ·K
+  // α=0.3 (scout growth), β=0.2 (striker predation), δ=0.1, γ=0.25
+  // Modulates cortisol of over-represented class upward to re-balance.
+  func lotkaVolterraBalance() {
+    let n = stableDroneCount;
+    if (n == 0) return;
+    var scouts : Float = 0.0; var strikers : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        switch (stableClasses[i]) {
+          case "SCOUT"   { scouts   += 1.0 };
+          case "STRIKER" { strikers += 1.0 };
+          case _         {};
+        };
+      };
+      i += 1;
+    };
+    let total = scouts + strikers;
+    if (total < 1.0) return;
+    // ODE step (dt=0.1)
+    let alpha : Float = 0.3; let beta2 : Float = 0.2;
+    let delta : Float = 0.1; let gamma2 : Float = 0.25;
+    let ds = (alpha * scouts - beta2 * scouts * strikers) * 0.1;
+    let dk = (delta * scouts * strikers - gamma2 * strikers) * 0.1;
+    // If scouts greatly outnumber strikers → raise striker dopamine
+    // If strikers dominate → raise scout norepinephrine (alertness)
+    let imbalance = scouts - strikers;
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        let ncBase = i * 4;
+        if (imbalance > 3.0 and stableClasses[i] == "STRIKER") {
+          stableNeuroChem[ncBase + DOPAMINE] :=
+            sf(stableNeuroChem[ncBase + DOPAMINE] + Float.abs(ds) * 0.1);
+        };
+        if (imbalance < -3.0 and stableClasses[i] == "SCOUT") {
+          stableNeuroChem[ncBase + NOREPINEPHRINE] :=
+            sf(stableNeuroChem[ncBase + NOREPINEPHRINE] + Float.abs(dk) * 0.1);
+        };
+      };
+      i += 1;
+    };
+  };
+
+  // ─── ARTIFICIAL POTENTIAL FIELD ──────────────────────────────────────────────
+  // Goal attraction: F_att = -k_att · (pos − goal)
+  // Obstacle repulsion uses gaussian kernels from enemy positions (stored as
+  // goal with negative weight). For simulation we use origin as default goal.
+  func artificialPotential(id : Nat, goalX : Float, goalZ : Float) : (Float, Float) {
+    let K_ATT : Float = 0.02;
+    let K_REP : Float = 0.5;
+    let REP_THRESH : Float = 20.0;
+
+    // Attraction to goal
+    let attX = -K_ATT * (stablePosX[id] - goalX);
+    let attZ = -K_ATT * (stablePosZ[id] - goalZ);
+
+    // Repulsion from crowded neighbours (treat as soft obstacles)
+    var repX : Float = 0.0; var repZ : Float = 0.0;
+    let n = stableDroneCount;
+    var j = 0;
+    while (j < n) {
+      if (j != id and not stableSacrificed[j]) {
+        let dx = stablePosX[id] - stablePosX[j];
+        let dz = stablePosZ[id] - stablePosZ[j];
+        let dist = Float.sqrt(dx*dx + dz*dz) + 0.001;
+        if (dist < REP_THRESH) {
+          let w = K_REP * gaussianKernel(dist, REP_THRESH / 3.0);
+          repX += w * dx / dist;
+          repZ += w * dz / dist;
+        };
+      };
+      j += 1;
+    };
+    (attX + repX, attZ + repZ)
+  };
+
+  // ─── REACTION-DIFFUSION (BRUSSELATOR) ────────────────────────────────────────
+  // Turing pattern generator for spatial formation templates.
+  // Each drone carries local activator A and inhibitor B concentrations
+  // (encoded in dopamine ≈ A, cortisol ≈ B).
+  // dA/dt = a − (b+1)·A + A²·B      dB/dt = b·A − A²·B
+  // a=1.0, b=1.5; dt=0.05
+  func brusselatorStep(id : Nat) {
+    let a : Float = 1.0; let b : Float = 1.5; let dt : Float = 0.05;
+    let ncBase = id * 4;
+    let A = stableNeuroChem[ncBase + DOPAMINE];
+    let B = stableNeuroChem[ncBase + CORTISOL];
+    let dA = (a - (b + 1.0) * A + A * A * B) * dt;
+    let dB = (b * A - A * A * B) * dt;
+    stableNeuroChem[ncBase + DOPAMINE] := sf(A + dA);
+    stableNeuroChem[ncBase + CORTISOL] := sf(B + dB);
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ─── BEHAVIOR FUNCTIONS ─────────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Drone behavior states (stored as text per drone)
+  stable var stableBehavior : [var Text] = [var];   // "IDLE"|"FORAGE"|"DEFEND"|"ENGAGE"|"RETREAT"|"RELAY"|"HEAL"|"SCOUT"|"AMBUSH"|"FORM"
+
+  func ensureBehaviorCap(n : Nat) {
+    if (stableBehavior.size() < n) {
+      let nb = Array.init<Text>(n, "IDLE");
+      var i = 0;
+      while (i < stableBehavior.size()) { nb[i] := stableBehavior[i]; i += 1 };
+      stableBehavior := nb;
+    };
+  };
+
+  // ─── FORAGE ─── (RELAY class primary; SCOUT secondary)
+  // Lévy-flight random walk toward low-signal zones (resource seeking).
+  func behaviorForage(id : Nat) {
+    let phase = stablePhases[id];
+    let (lx, lz) = levyStep(phase + Float.fromInt(currentBeat) * 0.01, 1.5);
+    stableVelX[id] := stableVelX[id] * 0.7 + lx * 0.1;
+    stableVelZ[id] := stableVelZ[id] * 0.7 + lz * 0.1;
+    stablePosX[id] := stablePosX[id] + stableVelX[id];
+    stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
+    // Boost dopamine on successful forage (signal gain)
+    let ncBase = id * 4;
+    stableNeuroChem[ncBase + DOPAMINE] :=
+      sf(stableNeuroChem[ncBase + DOPAMINE] + 0.02);
+  };
+
+  // ─── DEFEND ─── (GUARDIAN primary)
+  // Expand outward radially to form a protective ring.
+  func behaviorDefend(id : Nat) {
+    let r = 40.0 + Float.fromInt(id) * 0.5;
+    let theta = Float.fromInt(id) * 6.2832 / Float.fromInt(Nat.max(1, stableDroneCount));
+    let targetX = r * Float.cos(theta);
+    let targetZ = r * Float.sin(theta);
+    let (fx, fz) = artificialPotential(id, targetX, targetZ);
+    stableVelX[id] := stableVelX[id] * 0.8 + fx;
+    stableVelZ[id] := stableVelZ[id] * 0.8 + fz;
+    stablePosX[id] := stablePosX[id] + stableVelX[id];
+    stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
+    // Raise oxytocin: bonding with protected inner drones
+    let ncBase = id * 4;
+    stableNeuroChem[ncBase + OXYTOCIN] :=
+      sf(stableNeuroChem[ncBase + OXYTOCIN] + 0.03);
+  };
+
+  // ─── ENGAGE ─── (STRIKER primary)
+  // Converge aggressively on swarm centroid (OMNIS attack formation).
+  func behaviorEngage(id : Nat) {
+    let n = stableDroneCount;
+    var cx : Float = 0.0; var cz : Float = 0.0; var cnt : Float = 0.0;
+    var j = 0;
+    while (j < n) {
+      if (j != id and not stableSacrificed[j] and stableClasses[j] == "STRIKER") {
+        cx += stablePosX[j]; cz += stablePosZ[j]; cnt += 1.0;
+      };
+      j += 1;
+    };
+    let goalX = if (cnt > 0.0) cx / cnt + 20.0 else 20.0;
+    let goalZ = if (cnt > 0.0) cz / cnt else 0.0;
+    let (fx, fz) = artificialPotential(id, goalX, goalZ);
+    // Aggressive: higher gain
+    stableVelX[id] := stableVelX[id] * 0.7 + fx * 1.5;
+    stableVelZ[id] := stableVelZ[id] * 0.7 + fz * 1.5;
+    stablePosX[id] := stablePosX[id] + stableVelX[id];
+    stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
+    // Raise norepinephrine: combat arousal
+    let ncBase = id * 4;
+    stableNeuroChem[ncBase + NOREPINEPHRINE] :=
+      sf(stableNeuroChem[ncBase + NOREPINEPHRINE] + 0.05);
+    stableNeuroChem[ncBase + CORTISOL] :=
+      sf(stableNeuroChem[ncBase + CORTISOL] + 0.02);
+  };
+
+  // ─── RETREAT ─── (all classes; triggered by high cortisol)
+  // Move away from centroid, reduce energy expenditure.
+  func behaviorRetreat(id : Nat) {
+    // Flee toward a safe anchor offset from origin
+    let (fx, fz) = artificialPotential(id, -80.0, 0.0);
+    stableVelX[id] := stableVelX[id] * 0.6 + fx;
+    stableVelZ[id] := stableVelZ[id] * 0.6 + fz;
+    stablePosX[id] := stablePosX[id] + stableVelX[id];
+    stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
+    // Reduce cortisol/norepinephrine on safe distance
+    let ncBase = id * 4;
+    stableNeuroChem[ncBase + CORTISOL] :=
+      Float.max(1.0, stableNeuroChem[ncBase + CORTISOL] - 0.04);
+    stableNeuroChem[ncBase + NOREPINEPHRINE] :=
+      Float.max(1.0, stableNeuroChem[ncBase + NOREPINEPHRINE] - 0.03);
+  };
+
+  // ─── RELAY ─── (RELAY class primary)
+  // Position self at midpoint between two drones to maintain mesh.
+  func behaviorRelay(id : Nat) {
+    let n = stableDroneCount;
+    if (n < 2) return;
+    // Find two furthest drones by signal (bridge the weakest link)
+    var minSig : Float = 999.0; var maxSig : Float = 0.0;
+    var minId : Nat = 0; var maxId : Nat = 0;
+    var j = 0;
+    while (j < n) {
+      if (j != id and not stableSacrificed[j]) {
+        if (stableSignals[j] < minSig) { minSig := stableSignals[j]; minId := j };
+        if (stableSignals[j] > maxSig) { maxSig := stableSignals[j]; maxId := j };
+      };
+      j += 1;
+    };
+    let midX = (stablePosX[minId] + stablePosX[maxId]) / 2.0;
+    let midZ = (stablePosZ[minId] + stablePosZ[maxId]) / 2.0;
+    let (fx, fz) = artificialPotential(id, midX, midZ);
+    stableVelX[id] := stableVelX[id] * 0.75 + fx;
+    stableVelZ[id] := stableVelZ[id] * 0.75 + fz;
+    stablePosX[id] := stablePosX[id] + stableVelX[id];
+    stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
+    // Amplify own signal (relay amplification)
+    stableSignals[id] := Float.min(2.0, stableSignals[id] + 0.05);
+  };
+
+  // ─── HEAL ─── (MEDIC class)
+  // Move to the lowest-activation neighbor and boost their oxytocin.
+  func behaviorHeal(id : Nat) {
+    let n = stableDroneCount;
+    var minAct : Float = 999.0; var targetId : Nat = id;
+    var j = 0;
+    while (j < n) {
+      if (j != id and not stableSacrificed[j] and stableActivations[j] < minAct) {
+        minAct := stableActivations[j]; targetId := j;
+      };
+      j += 1;
+    };
+    if (targetId == id) return;
+    let (fx, fz) = artificialPotential(id, stablePosX[targetId], stablePosZ[targetId]);
+    stableVelX[id] := stableVelX[id] * 0.75 + fx;
+    stableVelZ[id] := stableVelZ[id] * 0.75 + fz;
+    stablePosX[id] := stablePosX[id] + stableVelX[id];
+    stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
+    // If close enough, apply healing boost
+    let dx = stablePosX[id] - stablePosX[targetId];
+    let dz = stablePosZ[id] - stablePosZ[targetId];
+    let dist = Float.sqrt(dx*dx + dz*dz);
+    if (dist < 10.0) {
+      let ncT = targetId * 4;
+      stableNeuroChem[ncT + OXYTOCIN]  := sf(stableNeuroChem[ncT + OXYTOCIN]  + 0.1);
+      stableNeuroChem[ncT + DOPAMINE]  := sf(stableNeuroChem[ncT + DOPAMINE]  + 0.05);
+      stableNeuroChem[ncT + CORTISOL]  :=
+        Float.max(1.0, stableNeuroChem[ncT + CORTISOL] - 0.05);
+      stableEnergy[targetId] := Float.min(2.0, stableEnergy[targetId] + 0.03);
+    };
+  };
+
+  // ─── SCOUT ─── (SCOUT class primary)
+  // Lévy-flight exploration with memory of visited zones (phase-encoded).
+  func behaviorScout(id : Nat) {
+    let phase = stablePhases[id] + Float.fromInt(id) * 0.777;
+    let (lx, lz) = levyStep(phase, 1.7); // heavier tail for wide exploration
+    stableVelX[id] := stableVelX[id] * 0.5 + lx * 0.3;
+    stableVelZ[id] := stableVelZ[id] * 0.5 + lz * 0.3;
+    stablePosX[id] := stablePosX[id] + stableVelX[id];
+    stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
+    // Scouts share discoveries: boost Hebbian weights with nearby drones
+    let n = stableDroneCount;
+    var j = 0;
+    while (j < n) {
+      if (j != id and not stableSacrificed[j]) {
+        let dx = stablePosX[id] - stablePosX[j];
+        let dz = stablePosZ[id] - stablePosZ[j];
+        let dist = Float.sqrt(dx*dx + dz*dz) + 0.001;
+        if (dist < 30.0) {
+          let w = stableSwarmWeights[id * MAX_DRONES + j];
+          stableSwarmWeights[id * MAX_DRONES + j] := Float.min(W_CEIL, w + 0.02);
+          stableSwarmWeights[j * MAX_DRONES + id] := stableSwarmWeights[id * MAX_DRONES + j];
+        };
+      };
+      j += 1;
+    };
+  };
+
+  // ─── AMBUSH ─── (STRIKER secondary)
+  // Stealth approach: low velocity, high norepinephrine, converge from flank.
+  func behaviorAmbush(id : Nat) {
+    let angle = Float.fromInt(id) * 0.628 + 1.57; // approach from flank
+    let goalX = 25.0 * Float.cos(angle);
+    let goalZ = 25.0 * Float.sin(angle);
+    let (fx, fz) = artificialPotential(id, goalX, goalZ);
+    // Slow, stealthy movement
+    stableVelX[id] := stableVelX[id] * 0.9 + fx * 0.3;
+    stableVelZ[id] := stableVelZ[id] * 0.9 + fz * 0.3;
+    stablePosX[id] := stablePosX[id] + stableVelX[id];
+    stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
+    let ncBase = id * 4;
+    // Suppress cortisol (stay calm) but raise norepinephrine (alert)
+    stableNeuroChem[ncBase + CORTISOL] :=
+      Float.max(1.0, stableNeuroChem[ncBase + CORTISOL] - 0.02);
+    stableNeuroChem[ncBase + NOREPINEPHRINE] :=
+      sf(stableNeuroChem[ncBase + NOREPINEPHRINE] + 0.03);
+  };
+
+  // ─── FORMATION ─── (SOVEREIGN / all classes; geometric precision)
+  // Drones arrange into a golden-ratio spiral (Fermat spiral).
+  func behaviorFormation(id : Nat) {
+    let GOLDEN_ANGLE : Float = 2.39996; // radians (137.5°)
+    let r = 5.0 * Float.sqrt(Float.fromInt(id + 1));
+    let theta = Float.fromInt(id) * GOLDEN_ANGLE;
+    let goalX = r * Float.cos(theta);
+    let goalZ = r * Float.sin(theta);
+    let (fx, fz) = artificialPotential(id, goalX, goalZ);
+    stableVelX[id] := stableVelX[id] * 0.8 + fx;
+    stableVelZ[id] := stableVelZ[id] * 0.8 + fz;
+    stablePosX[id] := stablePosX[id] + stableVelX[id];
+    stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
+  };
+
+  // ─── ASSIGN BEHAVIOR ─────────────────────────────────────────────────────────
+  // Select behavior based on drone class, neurochemistry and swarm state.
+  func assignBehavior(id : Nat) : Text {
+    ensureBehaviorCap(stableDroneCount);
+    if (stableSacrificed[id]) { stableBehavior[id] := "IDLE"; return "IDLE" };
+    let ncBase = id * 4;
+    let cor  = stableNeuroChem[ncBase + CORTISOL];
+    let nor  = stableNeuroChem[ncBase + NOREPINEPHRINE];
+    let dop  = stableNeuroChem[ncBase + DOPAMINE];
+    let cls  = stableClasses[id];
+
+    let beh : Text =
+      // Emergency retreat: extreme stress
+      if (cor > 2.0) "RETREAT"
+      // Class-primary behaviors modulated by neuro state
+      else switch cls {
+        case "SCOUT"    { if (nor > 1.4) "FORAGE" else "SCOUT" };
+        case "STRIKER"  { if (nor > 1.3 and cor < 1.6) "ENGAGE"
+                          else if (cor < 1.3) "AMBUSH" else "RETREAT" };
+        case "GUARDIAN" { "DEFEND" };
+        case "RELAY"    { "RELAY" };
+        case "MEDIC"    { "HEAL" };
+        case "SOVEREIGN"{ if (dop > 1.3) "FORM" else "DEFEND" };
+        case _          { "SCOUT" };
+      };
+    stableBehavior[id] := beh;
+    beh
+  };
+
+  // ─── EXECUTE ALL BEHAVIORS ────────────────────────────────────────────────────
+  // Called once per tick; runs assigned behavior function for each active drone.
+  func executeBehaviors() {
+    ensureBehaviorCap(stableDroneCount);
+    var i = 0;
+    while (i < stableDroneCount) {
+      if (not stableSacrificed[i]) {
+        let beh = assignBehavior(i);
+        switch beh {
+          case "FORAGE"  { behaviorForage(i) };
+          case "DEFEND"  { behaviorDefend(i) };
+          case "ENGAGE"  { behaviorEngage(i) };
+          case "RETREAT" { behaviorRetreat(i) };
+          case "RELAY"   { behaviorRelay(i) };
+          case "HEAL"    { behaviorHeal(i) };
+          case "SCOUT"   { behaviorScout(i) };
+          case "AMBUSH"  { behaviorAmbush(i) };
+          case "FORM"    { behaviorFormation(i) };
+          case _         {};
+        };
+        // Run Brusselator reaction-diffusion for spatial pattern formation
+        brusselatorStep(i);
+      };
+      i += 1;
+    };
+    // Swarm-level math after per-drone update
+    lotkaVolterraBalance();
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ─── INTERNAL AI TEAMS ──────────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 5 specialist AI teams: SCOUT_TEAM, STRIKER_TEAM, GUARDIAN_TEAM,
+  //                        RELAY_TEAM, MEDIC_TEAM
+  // Each team elects a captain (highest-signal drone) each tick.
+  // Captains receive a dopamine bonus and set the team's mission directive.
+
+  stable var teamCaptains : [var Nat] = [var 0, 0, 0, 0, 0]; // one captain per team
+  stable var teamMorale   : [var Float] = [var 1.0, 1.0, 1.0, 1.0, 1.0];
+
+  // Team index mapping
+  func classToTeam(cls : Text) : Nat {
+    switch cls {
+      case "SCOUT"    0;
+      case "STRIKER"  1;
+      case "GUARDIAN" 2;
+      case "RELAY"    3;
+      case "MEDIC"    4;
+      case "SOVEREIGN"0; // sovereign leads scout team
+      case _          0;
+    }
+  };
+
+  // Elect captain for each team (highest signal among non-sacrificed members)
+  func electCaptains() {
+    let n = stableDroneCount;
+    // Reset
+    var t = 0;
+    while (t < 5) { teamCaptains[t] := 0; t += 1 };
+    var bestSig : [var Float] = Array.init<Float>(5, 0.0);
+    var i = 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        let team = classToTeam(stableClasses[i]);
+        if (stableSignals[i] > bestSig[team]) {
+          bestSig[team] := stableSignals[i];
+          teamCaptains[team] := i;
+        };
+      };
+      i += 1;
+    };
+    // Captain bonus: dopamine boost for leading
+    t := 0;
+    while (t < 5) {
+      let cap = teamCaptains[t];
+      if (cap < n and not stableSacrificed[cap]) {
+        let ncBase = cap * 4;
+        stableNeuroChem[ncBase + DOPAMINE] :=
+          sf(stableNeuroChem[ncBase + DOPAMINE] + 0.05);
+      };
+      t += 1;
+    };
+  };
+
+  // Team morale = mean activation of team members (shared cognitive state)
+  func updateTeamMorale() {
+    let n = stableDroneCount;
+    var sums  : [var Float] = Array.init<Float>(5, 0.0);
+    var cnts  : [var Float] = Array.init<Float>(5, 0.0);
+    var i = 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        let team = classToTeam(stableClasses[i]);
+        sums[team] += stableActivations[i];
+        cnts[team] += 1.0;
+      };
+      i += 1;
+    };
+    var t = 0;
+    while (t < 5) {
+      teamMorale[t] := if (cnts[t] > 0.0) sums[t] / cnts[t] else 1.0;
+      t += 1;
+    };
+    // Low-morale teams get an oxytocin broadcast from captain
+    t := 0;
+    while (t < 5) {
+      if (teamMorale[t] < 1.1) {
+        let cap = teamCaptains[t];
+        if (cap < n and not stableSacrificed[cap]) {
+          // Captain broadcasts cohesion signal
+          i := 0;
+          while (i < n) {
+            if (not stableSacrificed[i] and classToTeam(stableClasses[i]) == t) {
+              let ncBase = i * 4;
+              stableNeuroChem[ncBase + OXYTOCIN] :=
+                sf(stableNeuroChem[ncBase + OXYTOCIN] + 0.04);
+            };
+            i += 1;
+          };
+        };
+      };
+      t += 1;
+    };
+  };
+
+  // ─── TEAM QUERY ──────────────────────────────────────────────────────────────
+  public query func getTeamSnapshot() : async {
+    captains : [Nat];
+    morale   : [Float];
+    entropy  : Float;
+    isingM   : Float;
+  } {
+    {
+      captains = [teamCaptains[0], teamCaptains[1], teamCaptains[2],
+                  teamCaptains[3], teamCaptains[4]];
+      morale   = [teamMorale[0], teamMorale[1], teamMorale[2],
+                  teamMorale[3], teamMorale[4]];
+      entropy  = swarmEntropy();
+      isingM   = isingConsensus();
+    }
+  };
+
+  public query func getDroneBehavior(id : Nat) : async Text {
+    if (id >= stableDroneCount or stableBehavior.size() <= id) return "IDLE";
+    stableBehavior[id]
+  };
+
+  // ─── TICK FULL — Complete sovereign beat ──────────────────────────────────────
+  // Phases 1-7: core physics (via tickCore — no self-await, no principal issue)
+  // Phase 8:  behavior execution (9 behavior functions)
+  // Phase 9:  team AI — captain election + morale + oxytocin broadcast
+  // Phase 10: SACESI PD controller — synchrony error correction
+  // Phase 11: OMNIS 9-condition emergence check
+  // Phase 12: Frequency tier update (Silver/Gold/Platinum/Diamond)
+  //
+  // Protected: only architect or registered organism canister may call.
+  public shared(msg) func tickFull() : async {
+    rSwarm    : Float;
+    jDrift    : Float;
+    beat      : Nat;
+    entropy   : Float;
+    isingM    : Float;
+    tier      : Text;
+    omnis     : Bool;
+  } {
+    requireAuthorized(msg.caller);
+    let base = tickCore();
+    // Phase 8: behavior execution
+    ensureBehaviorCap(stableDroneCount);
+    executeBehaviors();
+    // Phase 9: team AI management
+    electCaptains();
+    updateTeamMorale();
+    // Phase 10: SACESI PD error correction
+    sacesiStep();
+    // Phase 11: OMNIS emergence event check
+    checkOMNIS();
+    // Phase 12: frequency tier
+    updateFrequencyTier();
+    {
+      rSwarm  = base.rSwarm;
+      jDrift  = base.jDrift;
+      beat    = base.beat;
+      entropy = swarmEntropy();
+      isingM  = isingConsensus();
+      tier    = frequencyTier;
+      omnis   = omnisFired and currentBeat < lastOMNISBeat + 500;
+    }
+  };
+
   // ─── PREUPGRADE / POSTUPGRADE ────────────────────────────────────────────────
   // Stable vars are persisted automatically by ICP runtime.
   // No migration needed for flat arrays.
+
+  // ─── SOVEREIGN GENESIS — one-time IP lock ────────────────────────────────────
+  // Call ONCE after deployment. Burns architect's principal into stable state.
+  // The ICP blockchain verifies msg.caller cryptographically — cannot be spoofed.
+  // After this call, all write functions require architect or organism principal.
+  public shared(msg) func claimArchitect() : async Text {
+    assert(not genesisLocked);
+    architectPrincipal := msg.caller;
+    genesisLocked      := true;
+    genesisTimestamp   := Time.now();
+    genesisBeat        := currentBeat;
+    sovereignSeal      :=
+      "NOVA:PARALLAX:MEDINA_TECH"
+      # ":Alfredo_Medina_Hernandez:Dallas_TX_2026"
+      # ":architect=" # Principal.toText(msg.caller)
+      # ":genesis_beat=" # Nat.toText(currentBeat)
+      # ":rSwarm_genesis=" # Float.toText(rSwarm)
+      # ":doctrine=Kuramoto+JasminesLaw+OMNIS+SACESI+Hebbian"
+      # ":ip_lock=SOVEREIGN_CANISTER_GENESIS"
+      # ":blockchain=ICP_IMMUTABLE";
+    sovereignSeal
+  };
+
+  // Register the organism canister so it can call tickFull() and directives.
+  // Only the architect may call this.
+  public shared(msg) func setTrustedOrganism(p : Principal) : async () {
+    requireAuthorized(msg.caller);
+    trustedOrganismPrincipal := p;
+  };
+
+  public query func getSovereignSeal()       : async Text      { sovereignSeal };
+  public query func getArchitectPrincipal()  : async Principal { architectPrincipal };
+  public query func isGenesisClaimed()       : async Bool      { genesisLocked };
+  public query func getGenesisTimestamp()    : async Int       { genesisTimestamp };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // QUANTUM COVENANT ENCRYPTION (QCE) PUBLIC INTERFACE
+  // Quantum-native encryption using ENTANGLA matrix eigenvalues
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Get QCE diagnostics (security status)
+  public query func getQCEDiagnostics() : async {
+    keyDerivable     : Bool;
+    currentCoherence : Float;
+    veritasLevel     : Float;
+    securityLevel    : Nat;
+    encryptionCount  : Nat;
+    decryptionCount  : Nat;
+    failedDecrypts   : Nat;
+    observerPresent  : Bool;
+    isLocked         : Bool;
+  } {
+    // Create mock shell states from current swarm coherence
+    let mockShells = Array.tabulate<QuantumCovenantEncryption.ShellState>(11, func(i) {
+      {
+        activation = rSwarm;
+        phase = Float.fromInt(i) * 0.57;
+        frequency = 5000.0 * Float.fromInt(i + 1);
+        coherence = rSwarm;
+      }
+    });
+    QuantumCovenantEncryption.diagnose(qceState, mockShells, rSwarm)
+  };
+
+  // Update observer state (Architect presence for measurement-based access control)
+  public shared(msg) func qceUpdateObserver(isPresent : Bool, strength : Float) : async () {
+    requireAuthorized(msg.caller);
+    let architectIsPresent = msg.caller == architectPrincipal and isPresent;
+    qceState := QuantumCovenantEncryption.updateObserver(
+      qceState,
+      architectIsPresent,
+      strength,
+      currentBeat
+    );
+  };
+
+  // Lock the QCE system (emergency lockdown)
+  public shared(msg) func qceLock() : async () {
+    requireAuthorized(msg.caller);
+    qceState := QuantumCovenantEncryption.lockQCE(qceState);
+  };
+
+  // Get encryption stats
+  public query func getQCEStats() : async {
+    encryptionCount : Nat;
+    decryptionCount : Nat;
+    failedDecrypts  : Nat;
+    isLocked        : Bool;
+  } {
+    {
+      encryptionCount = qceState.encryptionCount;
+      decryptionCount = qceState.decryptionCount;
+      failedDecrypts  = qceState.failedDecrypts;
+      isLocked        = qceState.isLocked;
+    }
+  };
 
 };
