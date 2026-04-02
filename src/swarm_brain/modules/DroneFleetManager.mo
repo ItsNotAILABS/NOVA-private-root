@@ -56,6 +56,23 @@ module DroneFleetManager {
   public let FORMATION_SPACING : Float = 10.0;  // meters
   public let SPHERE_RADIUS_BASE : Float = 50.0;
   
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SQUADRON ORGANIZATION — 250 Drones in 3 Squadrons
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Each squadron has ~83 drones + 1 Sovereign commander
+  // Squadrons are semi-autonomous: internal Kuramoto coupling + 
+  // inter-squadron coupling through Sovereign command link
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  public let DEFAULT_FLEET_SIZE_250 : Nat = 250;
+  public let SQUADRON_COUNT : Nat = 3;
+  public let DRONES_PER_SQUADRON : Nat = 83;  // 250 / 3 ≈ 83
+  
+  // Squadron names
+  public let SQUADRON_ALPHA : Nat = 0;
+  public let SQUADRON_BETA : Nat = 1;
+  public let SQUADRON_GAMMA : Nat = 2;
+  
   // Physics
   public let PI : Float = 3.14159265358979;
   public let TWO_PI : Float = 6.28318530717958;
@@ -107,6 +124,12 @@ module DroneFleetManager {
     droneClass    : DroneClass;
     brain         : MiniBrain;
     values        : CoreValues;
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SQUADRON ASSIGNMENT — Each drone belongs to Alpha, Beta, or Gamma
+    // ═══════════════════════════════════════════════════════════════════════════
+    squadron      : Nat;          // 0=Alpha, 1=Beta, 2=Gamma
+    isSquadronCommander : Bool;   // True if this drone is the Sovereign for its squadron
     
     // Position & motion
     posX          : Float;
@@ -163,6 +186,16 @@ module DroneFleetManager {
     centerY       : Float;
     centerZ       : Float;
     
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SQUADRON STATE — 3 semi-autonomous squadrons
+    // ═══════════════════════════════════════════════════════════════════════════
+    squadronRSwarm     : [Float];   // Kuramoto r for each squadron [3]
+    squadronMeanPhase  : [Float];   // Mean phase for each squadron [3]
+    squadronCenterX    : [Float];   // Squadron centers [3]
+    squadronCenterY    : [Float];
+    squadronCenterZ    : [Float];
+    squadronCommanders : [Nat];     // Drone IDs of the 3 Sovereigns
+    
     // Organism values (to propagate)
     organismValues: CoreValues;
     
@@ -172,6 +205,23 @@ module DroneFleetManager {
     combatMode       : Bool;
     
     beatNum       : Nat;
+  };
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SQUADRON TYPE — Per-squadron state for internal coupling
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  public type SquadronState = {
+    squadronId    : Nat;          // 0=Alpha, 1=Beta, 2=Gamma
+    name          : Text;         // "ALPHA", "BETA", "GAMMA"
+    commanderId   : Nat;          // Drone ID of Sovereign
+    droneIds      : [Nat];        // All drone IDs in this squadron
+    rSwarm        : Float;        // Squadron's internal coherence
+    meanPhase     : Float;        // Squadron's mean phase
+    centerX       : Float;        // Squadron center of mass
+    centerY       : Float;
+    centerZ       : Float;
+    currentMission: Text;         // "PATROL", "ATTACK", "DEFEND", etc.
   };
   
   // ═══════════════════════════════════════════════════════════════════════════
@@ -228,43 +278,65 @@ module DroneFleetManager {
     }
   };
   
-  func initDrone(id: Nat) : DroneState {
-    // Assign class based on ID
-    let droneClass : DroneClass = switch (id % 6) {
-      case 0 #Scout;
-      case 1 #Striker;
-      case 2 #Guardian;
-      case 3 #Relay;
-      case 4 #Medic;
-      case _ #Scout;
+  func initDrone(id: Nat, totalDrones: Nat) : DroneState {
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SQUADRON ASSIGNMENT — Distribute drones across 3 squadrons
+    // Squadron 0 (Alpha): drones 0-82 + Sovereign at 0
+    // Squadron 1 (Beta):  drones 83-165 + Sovereign at 83
+    // Squadron 2 (Gamma): drones 166-249 + Sovereign at 166
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    let dronesPerSquad = totalDrones / 3;
+    let squadron = id / dronesPerSquad;
+    let squadronIdx = if (squadron > 2) 2 else squadron;  // Cap at 2
+    
+    // First drone of each squadron is the Sovereign commander
+    let isCommander = (id == squadronIdx * dronesPerSquad);
+    
+    // Assign class: commanders are Sovereign, others distributed
+    let droneClass : DroneClass = if (isCommander) {
+      #Sovereign
+    } else {
+      switch ((id - 1) % 5) {  // Distribute non-commanders across other classes
+        case 0 #Scout;
+        case 1 #Striker;
+        case 2 #Guardian;
+        case 3 #Relay;
+        case _ #Medic;
+      }
     };
     
-    // Initial position in a sphere
-    let angle1 = Float.fromInt(id) * 2.4; // Golden angle
-    let angle2 = Float.fromInt(id) * 0.5;
-    let radius = 20.0 + Float.fromInt(id % 10) * 5.0;
+    // Initial position: squadrons form separate spheres
+    // Alpha at (-100, 50, 0), Beta at (0, 50, 0), Gamma at (100, 50, 0)
+    let squadronOffset = Float.fromInt(squadronIdx) * 100.0 - 100.0;
+    let localId = id - squadronIdx * dronesPerSquad;
+    let angle1 = Float.fromInt(localId) * 2.4; // Golden angle
+    let angle2 = Float.fromInt(localId) * 0.5;
+    let radius = 15.0 + Float.fromInt(localId % 10) * 3.0;
     
     {
       id = id;
       droneClass = droneClass;
       brain = initBrain(id);
       values = initValues();
-      posX = radius * fcos(angle1) * fcos(angle2);
+      squadron = squadronIdx;
+      isSquadronCommander = isCommander;
+      posX = squadronOffset + radius * fcos(angle1) * fcos(angle2);
       posY = 50.0 + radius * fsin(angle2);  // Base altitude 50m
       posZ = radius * fsin(angle1) * fcos(angle2);
       velX = 0.0;
       velY = 0.0;
       velZ = 0.0;
       energy = 1.0;
-      health = 1.0;
+      health = if (isCommander) 1.5 else 1.0;  // Sovereigns are tougher
       active = true;
       sacrificed = false;
       organismPhase = 0.0;
-      syncStrength = KURAMOTO_K;
+      syncStrength = if (isCommander) KURAMOTO_K * 1.5 else KURAMOTO_K;  // Commanders sync stronger
       syncDrift = 0.0;
       valueAlignment = 1.0;
       currentTask = null;
-      targetX = 0.0;
+      targetX = squadronOffset;
       targetY = 50.0;
       targetZ = 0.0;
       lastBeat = 0;
@@ -272,17 +344,28 @@ module DroneFleetManager {
   };
   
   public func initFleet(droneCount: Nat) : FleetState {
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 250 DRONE FLEET — 3 SQUADRONS (Alpha, Beta, Gamma)
+    // Each squadron has ~83 drones + 1 Sovereign commander
+    // ═══════════════════════════════════════════════════════════════════════════
+    
     let count = if (droneCount > MAX_DRONES) MAX_DRONES 
                 else if (droneCount < MIN_DRONES) MIN_DRONES 
                 else droneCount;
     
-    let drones = Array.init<DroneState>(count, initDrone(0));
+    let drones = Array.init<DroneState>(count, initDrone(0, count));
     for (i in Iter.range(0, count - 1)) {
-      drones[i] := initDrone(i);
+      drones[i] := initDrone(i, count);
     };
     
-    // Set one drone as Sovereign (command drone)
-    drones[0] := { drones[0] with droneClass = #Sovereign };
+    // Calculate squadron commanders (first drone of each squadron)
+    let dronesPerSquad = count / 3;
+    let commanders : [Nat] = [0, dronesPerSquad, dronesPerSquad * 2];
+    
+    // Initialize squadron centers
+    let squadCentersX : [Float] = [-100.0, 0.0, 100.0];  // Alpha left, Beta center, Gamma right
+    let squadCentersY : [Float] = [50.0, 50.0, 50.0];
+    let squadCentersZ : [Float] = [0.0, 0.0, 0.0];
     
     {
       drones = drones;
@@ -295,12 +378,48 @@ module DroneFleetManager {
       centerX = 0.0;
       centerY = 50.0;
       centerZ = 0.0;
+      
+      // Squadron state
+      squadronRSwarm = [0.85, 0.85, 0.85];
+      squadronMeanPhase = [0.0, 2.094, 4.189];  // Spread by 120° (2π/3)
+      squadronCenterX = squadCentersX;
+      squadronCenterY = squadCentersY;
+      squadronCenterZ = squadCentersZ;
+      squadronCommanders = commanders;
+      
       organismValues = initValues();
       enemySwarmActive = false;
       enemyCount = 0;
       combatMode = false;
       beatNum = 0;
     }
+  };
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SQUADRON-LEVEL KURAMOTO — Compute r and ψ for each squadron
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  public func computeSquadronOrder(state: FleetState, squadronId: Nat) : (Float, Float) {
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    var count : Nat = 0;
+    
+    for (i in Iter.range(0, state.droneCount - 1)) {
+      let drone = state.drones[i];
+      if (drone.squadron == squadronId and drone.active and not drone.sacrificed) {
+        sumCos += fcos(drone.brain.phase);
+        sumSin += fsin(drone.brain.phase);
+        count += 1;
+      };
+    };
+    
+    if (count == 0) { return (0.85, 0.0) };
+    
+    let n = Float.fromInt(count);
+    let r = fsqrt((sumCos/n)*(sumCos/n) + (sumSin/n)*(sumSin/n));
+    let meanPhase = Float.arctan2(sumSin/n, sumCos/n);
+    
+    (r, wrapPhase(meanPhase))
   };
   
   // ═══════════════════════════════════════════════════════════════════════════

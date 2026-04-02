@@ -408,15 +408,17 @@ actor SwarmBrain {
   stable var worldModelInput : [var Float] = Array.init<Float>(64, 1.0);
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // DRONE FLEET STATE — Mini-minds with their OWN heartbeats
-  // Drones sync WITH the organism but have LOCAL autonomy
+  // DRONE FLEET STATE — 250 Drones in 3 Squadrons (Alpha, Beta, Gamma)
+  // Each squadron: ~83 drones + 1 Sovereign commander
+  // Drones sync WITH the organism but have LOCAL + SQUADRON autonomy
   // ═══════════════════════════════════════════════════════════════════════════
   
-  var droneFleetState : DroneFleetManager.FleetState = DroneFleetManager.initFleet(64);
+  var droneFleetState : DroneFleetManager.FleetState = DroneFleetManager.initFleet(250);
   stable var droneFleetInitialized : Bool = false;
   stable var droneFleetBeatOffset : Nat = 0;  // Drones can beat at different offset
   
   // ─── ENEMY AI SWARM — For competition training ───────────────────────────────
+  // Enemy uses the SAME IRONCLAD architecture: Kuramoto + Hebbian + mean-field
   var enemySwarmState : ?EnemyAISwarm.EnemySwarmState = null;
   stable var enemySwarmActive : Bool = false;
   stable var combatSessionId : Nat = 0;
