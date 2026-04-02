@@ -54,6 +54,9 @@ jobs:
     - name: Start local replica
       run: dfx start --background --clean
       
+    - name: Create canisters
+      run: dfx canister create --all
+      
     - name: Build all canisters
       id: build
       run: |
