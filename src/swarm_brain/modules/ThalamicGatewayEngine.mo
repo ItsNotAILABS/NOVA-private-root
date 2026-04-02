@@ -93,7 +93,7 @@ module {
     
     // Oscillations
     alphaPhase     : Float;         // 8-12 Hz alpha rhythm
-    spindle Phase   : Float;         // 12-15 Hz spindle rhythm
+    spindlePhase   : Float;         // 12-15 Hz spindle rhythm
     
     // Parameters
     baselineGain   : Float;
