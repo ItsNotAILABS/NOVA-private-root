@@ -135,6 +135,10 @@ import TradeSecretProtection      "./modules/TradeSecretProtection";
 import WarSimEngine               "./modules/WarSimEngine";
 import WorldOrganism              "./modules/WorldOrganism";
 
+// Inter-canister coupling: drive quantum layer and audit trail from brain tick
+import SwarmQuantum "canister:swarm_quantum";
+import SwarmAudit   "canister:swarm_audit";
+
 actor SwarmBrain {
 
   // ─── CONSTANTS ──────────────────────────────────────────────────────────────
@@ -145,6 +149,8 @@ actor SwarmBrain {
   let KURAMOTO_K        : Float = 0.618;
   let MAX_DRONES        : Nat   = 50;
   let BRAIN_NODES       : Nat   = 6;
+  // r_swarm threshold at which OMNIS emergence is considered fully achieved
+  let OMNIS_THRESHOLD   : Float = 0.98;
 
   // Neurochemical indices
   let DOPAMINE          : Nat = 0;
@@ -211,6 +217,17 @@ actor SwarmBrain {
   stable var stableEnergy            : [var Float] = [var];
   // 6 activation values per drone (SENSOR/MEMORY/EXECUTIVE/EMOTIONAL/MOTOR/OUTPUT)
   stable var stableNodeActivations   : [var Float] = [var];
+
+  // Quantum cognitive state per drone:
+  //   Four 360-degree channels [droneId * 4 + chanIdx]
+  //     ALPHA=0 (spatial/sensor)  BETA=1 (temporal/memory)
+  //     GAMMA=2 (relational)      DELTA=3 (executive-motor)
+  //   All four channels converge at convergenceScore.
+  //   nowAttention keeps each drone anchored to the present moment.
+  stable var stableQChannels         : [var Float] = [var]; // droneId*4 + chanIdx
+  stable var stableQConvergence      : [var Float] = [var]; // per drone [0,1]
+  stable var stableQCoherence        : [var Float] = [var]; // per drone [0,1]
+  stable var stableNowAttention      : [var Float] = [var]; // per drone [0,1]
 
   stable var currentBeat            : Nat   = 0;
   stable var rSwarm                 : Float = 0.88;
@@ -621,6 +638,32 @@ actor SwarmBrain {
       while (i < stableNodeActivations.size()) { newNA[i] := stableNodeActivations[i]; i += 1 };
       stableNodeActivations := newNA;
     };
+    // Quantum cognitive channels: 4 per drone
+    let qcSize = n * 4;
+    if (stableQChannels.size() < qcSize) {
+      let newQC = Array.init<Float>(qcSize, 0.5);
+      var i = 0;
+      while (i < stableQChannels.size()) { newQC[i] := stableQChannels[i]; i += 1 };
+      stableQChannels := newQC;
+    };
+    if (stableQConvergence.size() < n) {
+      let newQV = Array.init<Float>(n, 0.0);
+      var i = 0;
+      while (i < stableQConvergence.size()) { newQV[i] := stableQConvergence[i]; i += 1 };
+      stableQConvergence := newQV;
+    };
+    if (stableQCoherence.size() < n) {
+      let newQCoh = Array.init<Float>(n, 0.5);
+      var i = 0;
+      while (i < stableQCoherence.size()) { newQCoh[i] := stableQCoherence[i]; i += 1 };
+      stableQCoherence := newQCoh;
+    };
+    if (stableNowAttention.size() < n) {
+      let newNA2 = Array.init<Float>(n, 1.0);
+      var i = 0;
+      while (i < stableNowAttention.size()) { newNA2[i] := stableNowAttention[i]; i += 1 };
+      stableNowAttention := newNA2;
+    };
   };
 
   // ─── ADD DRONE ───────────────────────────────────────────────────────────────
@@ -681,6 +724,28 @@ actor SwarmBrain {
       stableNodeActivations[naBase + ni2] := 0.5;
       ni2 += 1;
     };
+
+    // Init quantum cognitive channels (4-360 model)
+    let qcBase = id * 4;
+    stableQChannels[qcBase]     := 0.5; // ALPHA: spatial
+    stableQChannels[qcBase + 1] := 0.5; // BETA:  temporal
+    stableQChannels[qcBase + 2] := 0.5; // GAMMA: relational
+    stableQChannels[qcBase + 3] := 0.5; // DELTA: executive-motor
+    stableQConvergence[id]      := 0.0;
+    stableQCoherence[id]        := 0.5;
+    stableNowAttention[id]      := 1.0; // fully present at birth
+
+    // Register in swarm_quantum canister so quantumTick() includes this drone.
+    // Fire-and-forget: brain does not block on quantum canister response.
+    ignore SwarmQuantum.registerQuantumDrone(id);
+
+    // Audit: record drone birth event.
+    ignore SwarmAudit.log(
+      #DRONE_ADDED, currentBeat, ?id,
+      "Drone " # Nat.toText(id) # " registered class=" # cls,
+      rSwarm, jDrift, stableNeuroChem[id * 4 + CORTISOL],
+      "SYSTEM", "{}"
+    );
 
     id
   };
@@ -1216,6 +1281,50 @@ actor SwarmBrain {
     [jasmineJ[0], jasmineJ[1], jasmineJ[2], jasmineJ[3], jasmineJ[4]]
   };
 
+  // ─── QUANTUM COGNITIVE STATE UPDATE ─────────────────────────────────────────
+  // Derive the four 360-degree channel values directly from the 6-node brain:
+  //   ALPHA (0): SENSOR node    — spatial / environmental awareness
+  //   BETA  (1): MEMORY node    — temporal / past-state consolidation
+  //   GAMMA (2): EXECUTIVE node — relational / goal-directed reasoning
+  //   DELTA (3): mean(EMOTIONAL+MOTOR) nodes — embodied action drive
+  //
+  // Convergence = how much all four channels agree (1 − 4·variance).
+  // Q-Coherence = 0.5·convergence + 0.5·rSwarm (internal + collective alignment).
+  // Now-attention pulls toward rSwarm×(1−jDrift) — the swarm's stable present.
+  func quantumStateUpdate(id : Nat) {
+    let naBase = id * BRAIN_NODES;
+    let alpha  = stableNodeActivations[naBase + 0]; // SENSOR
+    let beta   = stableNodeActivations[naBase + 1]; // MEMORY
+    let gamma  = stableNodeActivations[naBase + 2]; // EXECUTIVE
+    let delta  = (stableNodeActivations[naBase + 3] + stableNodeActivations[naBase + 4]) / 2.0; // EMOTIONAL+MOTOR
+
+    let qcBase = id * 4;
+    // Smooth update toward brain-derived targets (τ = 10 beats)
+    let tau : Float = 10.0;
+    stableQChannels[qcBase]     := stableQChannels[qcBase]     + (alpha - stableQChannels[qcBase])     / tau;
+    stableQChannels[qcBase + 1] := stableQChannels[qcBase + 1] + (beta  - stableQChannels[qcBase + 1]) / tau;
+    stableQChannels[qcBase + 2] := stableQChannels[qcBase + 2] + (gamma - stableQChannels[qcBase + 2]) / tau;
+    stableQChannels[qcBase + 3] := stableQChannels[qcBase + 3] + (delta - stableQChannels[qcBase + 3]) / tau;
+
+    // Convergence: 1 − 4·variance of the 4 channel values
+    let a = stableQChannels[qcBase];
+    let b = stableQChannels[qcBase + 1];
+    let c = stableQChannels[qcBase + 2];
+    let d = stableQChannels[qcBase + 3];
+    let mean = (a + b + c + d) / 4.0;
+    let v    = ((a-mean)*(a-mean) + (b-mean)*(b-mean) +
+                (c-mean)*(c-mean) + (d-mean)*(d-mean)) / 4.0;
+    stableQConvergence[id] := Float.max(0.0, Float.min(1.0, 1.0 - v * 4.0));
+
+    // Q-Coherence: blend of internal convergence and swarm-level coherence
+    stableQCoherence[id] := 0.5 * stableQConvergence[id] + 0.5 * rSwarm;
+
+    // Now-attention: pull toward present-moment target
+    let nowTarget = Float.max(0.0, Float.min(1.0, rSwarm * (1.0 - Float.min(1.0, jDrift))));
+    stableNowAttention[id] := stableNowAttention[id] + 0.05 * (nowTarget - stableNowAttention[id]);
+  };
+  };
+
   // Main beat tick — advance simulation by one step
   // ─── TICK CORE (private sync) ─────────────────────────────────────────────────
   // All simulation phases extracted into a pure synchronous function.
@@ -1330,6 +1439,30 @@ actor SwarmBrain {
       i += 1;
     };
 
+    // Phase 8: Quantum cognitive state update (4-360 model per drone)
+    // Derives ALPHA/BETA/GAMMA/DELTA channels from brain node activations,
+    // computes convergence (multi-stream → single point), Q-coherence,
+    // and present-moment now-attention.
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) quantumStateUpdate(i);
+      i += 1;
+    };
+
+    // Phase 9: Drive swarm_quantum canister (fire-and-forget).
+    // Keeps the dedicated quantum canister's superposition, entanglement, and
+    // recognition-memory state in sync with every brain tick.
+    ignore SwarmQuantum.quantumTick(rSwarm, jDrift, currentBeat);
+
+    // Phase 10: Audit significant swarm events.
+    if (rSwarm >= OMNIS_THRESHOLD and currentBeat % 10 == 0) {
+      ignore SwarmAudit.log(
+        #OMNIS_STATE, currentBeat, null,
+        "OMNIS emergence: swarm fully synchronised",
+        rSwarm, jDrift, 0.0, "SYSTEM", "{}"
+      );
+    };
+
     { rSwarm = rSwarm; jDrift = jDrift; beat = currentBeat }
   };
 
@@ -1389,18 +1522,26 @@ actor SwarmBrain {
 
   // Retrieve full swarm snapshot for frontend
   public query func getSwarmSnapshot() : async {
-    droneCount  : Nat;
-    rSwarm      : Float;
-    jDrift      : Float;
-    beat        : Nat;
-    phases      : [Float];
-    signals     : [Float];
-    positionsX  : [Float];
-    positionsY  : [Float];
-    positionsZ  : [Float];
+    droneCount     : Nat;
+    rSwarm         : Float;
+    jDrift         : Float;
+    beat           : Nat;
+    phases         : [Float];
+    signals        : [Float];
+    positionsX     : [Float];
+    positionsY     : [Float];
+    positionsZ     : [Float];
     cortisolLevels : [Float];
-    sacrificed  : [Bool];
-    classes     : [Text];
+    sacrificed     : [Bool];
+    classes        : [Text];
+    // Quantum cognitive state per drone (4-360 model)
+    qChannelsAlpha  : [Float];
+    qChannelsBeta   : [Float];
+    qChannelsGamma  : [Float];
+    qChannelsDelta  : [Float];
+    qConvergence    : [Float];
+    qCoherence      : [Float];
+    nowAttention    : [Float];
   } {
     let n = stableDroneCount;
     let phases   = Array.tabulate<Float>(n, func(i) { stablePhases[i] });
@@ -1411,19 +1552,89 @@ actor SwarmBrain {
     let cort     = Array.tabulate<Float>(n, func(i) { stableNeuroChem[i * 4 + CORTISOL] });
     let sac      = Array.tabulate<Bool>(n, func(i) { stableSacrificed[i] });
     let cls      = Array.tabulate<Text>(n, func(i) { stableClasses[i] });
+    let qcA      = Array.tabulate<Float>(n, func(i) { stableQChannels[i * 4]     });
+    let qcB      = Array.tabulate<Float>(n, func(i) { stableQChannels[i * 4 + 1] });
+    let qcG      = Array.tabulate<Float>(n, func(i) { stableQChannels[i * 4 + 2] });
+    let qcD      = Array.tabulate<Float>(n, func(i) { stableQChannels[i * 4 + 3] });
+    let qconv    = Array.tabulate<Float>(n, func(i) { stableQConvergence[i] });
+    let qcoh     = Array.tabulate<Float>(n, func(i) { stableQCoherence[i] });
+    let nowA     = Array.tabulate<Float>(n, func(i) { stableNowAttention[i] });
     {
-      droneCount     = n;
-      rSwarm         = rSwarm;
-      jDrift         = jDrift;
-      beat           = currentBeat;
-      phases         = phases;
-      signals        = sigs;
-      positionsX     = px;
-      positionsY     = py;
-      positionsZ     = pz;
-      cortisolLevels = cort;
-      sacrificed     = sac;
-      classes        = cls;
+      droneCount      = n;
+      rSwarm          = rSwarm;
+      jDrift          = jDrift;
+      beat            = currentBeat;
+      phases          = phases;
+      signals         = sigs;
+      positionsX      = px;
+      positionsY      = py;
+      positionsZ      = pz;
+      cortisolLevels  = cort;
+      sacrificed      = sac;
+      classes         = cls;
+      qChannelsAlpha  = qcA;
+      qChannelsBeta   = qcB;
+      qChannelsGamma  = qcG;
+      qChannelsDelta  = qcD;
+      qConvergence    = qconv;
+      qCoherence      = qcoh;
+      nowAttention    = nowA;
+    }
+  };
+
+  // ─── QUANTUM QUERIES ─────────────────────────────────────────────────────────
+
+  // Four 360-degree channel values for a single drone [ALPHA, BETA, GAMMA, DELTA]
+  public query func getDroneQChannels(id : Nat) : async [Float] {
+    if (id >= stableDroneCount) return [0.5, 0.5, 0.5, 0.5];
+    let cb = id * 4;
+    [stableQChannels[cb], stableQChannels[cb+1],
+     stableQChannels[cb+2], stableQChannels[cb+3]]
+  };
+
+  // Convergence score for a single drone (all 4 channels pointing same way)
+  public query func getDroneConvergence(id : Nat) : async Float {
+    if (id >= stableDroneCount) return 0.0;
+    stableQConvergence[id]
+  };
+
+  // Quantum coherence for a single drone
+  public query func getDroneQCoherence(id : Nat) : async Float {
+    if (id >= stableDroneCount) return 0.0;
+    stableQCoherence[id]
+  };
+
+  // Present-moment attention for a single drone
+  public query func getDroneNowAttention(id : Nat) : async Float {
+    if (id >= stableDroneCount) return 0.0;
+    stableNowAttention[id]
+  };
+
+  // Swarm-level mean quantum coherence and convergence
+  public query func getSwarmQMetrics() : async {
+    swarmQCoherence  : Float;
+    swarmConvergence : Float;
+    swarmNowIndex    : Float;
+  } {
+    let n = stableDroneCount;
+    if (n == 0) return { swarmQCoherence = 0.0; swarmConvergence = 0.0; swarmNowIndex = 0.0 };
+    var sumCoh  : Float = 0.0;
+    var sumConv : Float = 0.0;
+    var sumNow  : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        sumCoh  += stableQCoherence[i];
+        sumConv += stableQConvergence[i];
+        sumNow  += stableNowAttention[i];
+      };
+      i += 1;
+    };
+    let fn = Float.fromInt(n);
+    {
+      swarmQCoherence  = sumCoh  / fn;
+      swarmConvergence = sumConv / fn;
+      swarmNowIndex    = sumNow  / fn;
     }
   };
 
@@ -1467,6 +1678,13 @@ actor SwarmBrain {
       };
       j += 1;
     };
+    // Audit: record the sacrifice event for immutable traceability.
+    ignore SwarmAudit.log(
+      #DRONE_SACRIFICED, currentBeat, ?id,
+      "Sacrifice executed for drone " # Nat.toText(id),
+      rSwarm, jDrift, cortisol, "SYSTEM", "{}"
+    );
+
     true
   };
 

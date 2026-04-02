@@ -13,6 +13,14 @@ const BRAIN_NODES  = 6;      // 0=SENSOR 1=MEMORY 2=EXECUTIVE 3=EMOTIONAL 4=MOTO
 const STDP_ALPHA   = 0.005;  // STDP learning rate
 const STDP_DECAY   = 0.001;  // STDP weight decay
 const DT           = 0.05;   // ODE integration step (beats)
+// Quantum cognitive channel update time-constant (beats) — matches swarm_quantum CHAN_TAU
+const CHAN_TAU      = 10.0;
+// Now-attention pull rate
+const NOW_RATE      = 0.05;
+// Law 24: Faction Resistance thresholds — mirrors swarm_brain constants
+const FACTION_DOMINANCE_THRESHOLD = 0.7;  // signal dominance ratio above which resistance fires
+const FACTION_NOR_MULTIPLIER      = 1.3;  // norepinephrine surge multiplier for non-dominant drones
+const FACTION_SIGNAL_MULTIPLIER   = 1.1;  // signal boost multiplier for non-dominant drones
 
 // ─── MATH PRIMITIVES ─────────────────────────────────────────────────────────
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
@@ -64,6 +72,19 @@ function makeDrone(id) {
     // 6-node micro-brain
     brainWeights,
     brainActivation: Array(BRAIN_NODES).fill(0.5),
+    // Four 360-degree quantum cognitive channels
+    // ALPHA=spatial/sensor  BETA=temporal/memory
+    // GAMMA=relational      DELTA=executive-motor
+    qAlpha: 0.5,
+    qBeta:  0.5,
+    qGamma: 0.5,
+    qDelta: 0.5,
+    // Convergence: how much all 4 channels agree (0=diverge, 1=fully aligned)
+    qConvergence: 0.0,
+    // Quantum coherence (internal+swarm alignment)
+    qCoherence: 0.5,
+    // Present-moment attention weight [0,1]
+    nowAttention: 1.0,
   };
 }
 
@@ -463,6 +484,82 @@ function organReproductive(metabolic, rSwarm_, droneCount) {
   return { state: shouldSpawn ? 'SPAWN_RECOMMENDED' : 'HOLDING', output: shouldSpawn ? 1 : 0 };
 }
 
+// ─── FACTION RESISTANCE (Law 24) ─────────────────────────────────────────────
+// If one drone dominates signal output (> 70% of total), all other drones
+// receive an autonomy-pressure surge: NOR × 1.3 and signal × 1.1.
+// Mirrors swarm_brain factionResistance() exactly.
+function factionResistance(drones) {
+  const active = drones.filter(d => !d.sacrificed);
+  if (!active.length) return drones;
+  const totalSig = active.reduce((s, d) => s + d.signal, 0);
+  if (totalSig === 0) return drones;
+  const dominant = active.reduce((best, d) => d.signal > best.signal ? d : best, active[0]);
+  const dominance = dominant.signal / totalSig;
+  if (dominance <= FACTION_DOMINANCE_THRESHOLD) return drones;
+  return drones.map(d => {
+    if (d.sacrificed || d.id === dominant.id) return d;
+    return {
+      ...d,
+      norepinephrine: sf(d.norepinephrine * FACTION_NOR_MULTIPLIER),
+      signal: sf(d.signal * FACTION_SIGNAL_MULTIPLIER),
+    };
+  });
+}
+
+// Derives the Four 360-degree channel values from the 6-node brain activations.
+//   ALPHA (0): SENSOR node           — spatial / environmental awareness
+//   BETA  (1): MEMORY node           — temporal / past-state recall
+//   GAMMA (2): EXECUTIVE node        — relational / goal-directed reasoning
+//   DELTA (3): mean(EMOTIONAL+MOTOR) — embodied action drive
+//
+// Convergence = 1 − 4·variance(ALPHA, BETA, GAMMA, DELTA)
+//   When all four streams point the same way, convergence → 1 (single critical point).
+//   When channels are maximally spread, convergence → 0.
+//
+// Q-Coherence = 0.5·convergence + 0.5·rSwarm
+//   Blends internal 4-channel alignment with swarm-wide Kuramoto coherence.
+//
+// Now-attention exponentially tracks rSwarm·(1 − jDrift):
+//   A stable, coherent swarm anchors each drone to the present moment.
+function quantumStateUpdate(drone, rSwarm, jDrift) {
+  // brainActivation indices: [0=SENSOR, 1=MEMORY, 2=EXECUTIVE, 3=EMOTIONAL, 4=MOTOR, 5=OUTPUT]
+  // OUTPUT (index 5) is the convergence point — it is intentionally excluded as an
+  // input channel here because it already carries the integrated signal, not a
+  // raw perspective.
+  const [alpha, beta, gamma, emo, motor] = drone.brainActivation;
+  const delta = (emo + motor) / 2.0;
+
+  // Smooth channel update toward brain-derived targets
+  const newAlpha = drone.qAlpha + (alpha - drone.qAlpha) / CHAN_TAU;
+  const newBeta  = drone.qBeta  + (beta  - drone.qBeta)  / CHAN_TAU;
+  const newGamma = drone.qGamma + (gamma - drone.qGamma) / CHAN_TAU;
+  const newDelta = drone.qDelta + (delta - drone.qDelta) / CHAN_TAU;
+
+  // Convergence: 1 − 4·variance
+  const mean = (newAlpha + newBeta + newGamma + newDelta) / 4.0;
+  const variance = (
+    (newAlpha - mean) ** 2 + (newBeta - mean) ** 2 +
+    (newGamma - mean) ** 2 + (newDelta - mean) ** 2
+  ) / 4.0;
+  const newConvergence = clamp(1.0 - variance * 4.0, 0.0, 1.0);
+
+  // Q-Coherence: internal convergence + swarm coherence
+  const newQCoherence = 0.5 * newConvergence + 0.5 * rSwarm;
+
+  // Now-attention: pull toward present-moment target
+  const nowTarget = clamp(rSwarm * (1.0 - Math.min(1.0, jDrift)), 0.0, 1.0);
+  const newNow = drone.nowAttention + NOW_RATE * (nowTarget - drone.nowAttention);
+
+  return {
+    qAlpha: newAlpha,
+    qBeta:  newBeta,
+    qGamma: newGamma,
+    qDelta: newDelta,
+    qConvergence: newConvergence,
+    qCoherence:   newQCoherence,
+    nowAttention: newNow,
+  };
+}
 // ─── MAIN HOOK ────────────────────────────────────────────────────────────────
 export function useSwarmState() {
   const [beat, setBeat]       = useState(0);
@@ -478,6 +575,9 @@ export function useSwarmState() {
   const [emergencyActive, setEmergencyActive] = useState(false);
   const [architectSignal, setArchitectSignal] = useState(1.0);
   const [commsLost, setCommsLost]           = useState(false);
+  // Swarm-level quantum metrics (mean across drones)
+  const [swarmQCoherence, setSwarmQCoherence]   = useState(0.5);
+  const [swarmConvergence, setSwarmConvergence] = useState(0.0);
 
   // ─── ORGANISM STATE ─────────────────────────────────────────────────────────
   const [organism, setOrganism] = useState({
@@ -512,12 +612,15 @@ export function useSwarmState() {
   const swarmWeights = useRef(
     Array.from({ length: MAX_DRONES }, () => Array(MAX_DRONES).fill(0.1))
   );
-  const jRisingRef  = useRef(0);
-  const prevJRef    = useRef(0.0);
-  const beatRef     = useRef(0);
-  const nextReqId   = useRef(0);
-  const pendingRef  = useRef([]);
-  const latestDronesRef = useRef([]); // always holds the most recent drones snapshot
+  const jRisingRef       = useRef(0);
+  const prevJRef         = useRef(0.0);
+  const beatRef          = useRef(0);
+  const nextReqId        = useRef(0);
+  const pendingRef       = useRef([]);
+  const latestDronesRef  = useRef([]); // always holds the most recent drones snapshot
+  // Law 23: Observer Independence — comms-lost if no operator heartbeat for 60 s
+  const COMMS_TIMEOUT_MS = 60_000;
+  const lastHeartbeatRef = useRef(Date.now());
 
   const addLog = useCallback((kind, droneId, desc, r, j) => {
     setAuditLog(prev => {
@@ -584,6 +687,14 @@ export function useSwarmState() {
     addLog('MISSION_START', null, `Mission started: ${name}`, 0, 0);
   }, [emergencyActive, addLog]);
 
+  // Law 23: Observer Independence — operator pings to keep comms alive.
+  // Mission continues even if comms is lost (drones act autonomously),
+  // but the operator is warned that they can no longer issue commands.
+  const heartbeat = useCallback(() => {
+    lastHeartbeatRef.current = Date.now();
+    setCommsLost(false);
+  }, []);
+
   // ─── SIMULATION TICK ────────────────────────────────────────────────────────
   useEffect(() => {
     const interval = setInterval(() => {
@@ -593,6 +704,11 @@ export function useSwarmState() {
       const b = beatRef.current;
       setBeat(b);
 
+      // Law 23: Observer Independence — detect comms loss if no operator heartbeat
+      if (Date.now() - lastHeartbeatRef.current > COMMS_TIMEOUT_MS) {
+        setCommsLost(true);
+      }
+
       setDrones(prev => {
         // ── Step 1: Kuramoto phase update ────────────────────────────────────
         let next = prev.map(d => {
@@ -600,7 +716,7 @@ export function useSwarmState() {
           const active = prev.filter(o => !o.sacrificed && o.id !== d.id);
           const kuramotoSum = active.reduce((s, o) => s + Math.sin(o.phase - d.phase), 0);
           const dTheta = d.omega + (KURAMOTO_K / prev.length) * kuramotoSum;
-          return { ...d, phase: d.phase + dTheta * 0.05, lastBeat: b };
+          return { ...d, phase: d.phase + dTheta * 0.1, lastBeat: b }; // dt = 0.1 matches swarm_brain
         });
 
         // ── Step 2: Inter-drone Hebbian learning (swarm weights) ─────────────
@@ -669,6 +785,8 @@ export function useSwarmState() {
             posX,
             posZ,
             activation: sf(outputAct * energy),
+            // Quantum cognitive state (4-360 model)
+            ...quantumStateUpdate({ ...d, brainActivation }, r, jd),
           };
         });
 
@@ -696,6 +814,11 @@ export function useSwarmState() {
           addLog('JASMINE_CORRECT', null, `Jasmine fired r=${r.toFixed(3)} J=${jd.toFixed(3)}`, r, jd);
         }
 
+        // ── Step 5b: Faction Resistance (Law 24) ─────────────────────────────
+        // If one drone dominates signal (> 70%), other drones receive an
+        // autonomy-pressure surge — mirrors swarm_brain.factionResistance().
+        next = factionResistance(next);
+
         // ── Step 6: Sacrifice doctrine + OMNIS log ────────────────────────────
         next.forEach(d => {
           if (!d.sacrificed && d.cortisol > 1.5) {
@@ -718,6 +841,15 @@ export function useSwarmState() {
         }
 
         latestDronesRef.current = next; // keep ref in sync for organism tick
+
+        // ── Step 7: Swarm-level quantum metrics ────────────────────────────────
+        const active = next.filter(x => !x.sacrificed);
+        if (active.length > 0) {
+          const meanQCoh  = active.reduce((s, x) => s + x.qCoherence,   0) / active.length;
+          const meanQConv = active.reduce((s, x) => s + x.qConvergence, 0) / active.length;
+          setSwarmQCoherence(meanQCoh);
+          setSwarmConvergence(meanQConv);
+        }
         return next;
       });
 
@@ -811,11 +943,15 @@ export function useSwarmState() {
     architectSignal,
     commsLost,
     swarmWeights: swarmWeights.current,
+    // Swarm-level quantum metrics
+    swarmQCoherence,
+    swarmConvergence,
     approve,
     deny,
     emergencyStop,
     startMission,
     setArchitectSignal,
     setMissionStatus,
+    heartbeat,
   };
 }
