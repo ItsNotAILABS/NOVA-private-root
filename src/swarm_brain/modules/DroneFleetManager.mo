@@ -24,14 +24,26 @@ import Iter "mo:base/Iter";
 module DroneFleetManager {
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // CONSTANTS
+  // CONSTANTS — SCALE-INVARIANT ARCHITECTURE
+  // ═══════════════════════════════════════════════════════════════════════════
+  // The organism is PURE MATH. The Kuramoto coupling equation:
+  //   dθᵢ/dt = ωᵢ + (K/N) Σⱼ sin(θⱼ - θᵢ)
+  // works for N = 50 or N = 50,000. The math doesn't care about limits.
+  //
+  // With MEAN-FIELD APPROXIMATION, we replace the O(N²) pairwise coupling with:
+  //   dθᵢ/dt = ωᵢ + K·r·sin(ψ - θᵢ)
+  // where r·e^(iψ) = (1/N)Σⱼ e^(iθⱼ) is the order parameter.
+  // This is O(N) — scales to ANY fleet size.
+  //
+  // SPHERICAL ORGANIZATION: Drones are points on an expanding sphere.
+  // More drones = larger sphere, same coupling strength per unit solid angle.
   // ═══════════════════════════════════════════════════════════════════════════
   
-  public let MAX_DRONES : Nat = 256;
-  public let MIN_DRONES : Nat = 8;
-  public let DEFAULT_FLEET_SIZE : Nat = 64;
+  public let MAX_DRONES : Nat = 65536;      // 2^16 — can handle 65K drones
+  public let MIN_DRONES : Nat = 1;          // Even 1 drone is valid
+  public let DEFAULT_FLEET_SIZE : Nat = 64; // Starting point, but not a limit
   
-  // Kuramoto synchronization
+  // Kuramoto synchronization — SCALE-INVARIANT
   public let KURAMOTO_K : Float = 0.618;        // Coupling strength (golden ratio)
   public let NATURAL_FREQ_BASE : Float = 0.1;   // Base natural frequency
   public let NATURAL_FREQ_SPREAD : Float = 0.05; // Frequency variation
@@ -322,7 +334,37 @@ module DroneFleetManager {
     (r, wrapPhase(meanPhase))
   };
   
-  // Sync single drone phase with organism and neighbors
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SCALE-INVARIANT MEAN-FIELD KURAMOTO
+  // ═══════════════════════════════════════════════════════════════════════════
+  // For massive fleets (2,000 - 40,000 drones), we use MEAN-FIELD:
+  //   dθᵢ/dt = ωᵢ + K·r·sin(ψ - θᵢ)
+  // Each drone couples to the COLLECTIVE (r, ψ), not to every neighbor.
+  // This is O(1) per drone instead of O(N).
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  // Mean-field phase sync: drone couples to organism + collective — O(1)
+  func syncDronePhaseMeanField(
+    drone: DroneState,
+    organismPhase: Float,
+    collectiveR: Float,
+    collectivePsi: Float,
+    dt: Float
+  ) : Float {
+    // Mean-field Kuramoto: dθ/dt = ω + K·r·sin(ψ - θ)
+    var coupling : Float = 0.0;
+    
+    // Couple to organism phase (strong — the organism IS the collective mind)
+    coupling += drone.syncStrength * fsin(organismPhase - drone.brain.phase);
+    
+    // Couple to collective mean field (the swarm's r·e^(iψ))
+    coupling += 0.5 * drone.syncStrength * collectiveR * fsin(collectivePsi - drone.brain.phase);
+    
+    let newPhase = drone.brain.phase + (drone.brain.frequency + coupling) * dt;
+    wrapPhase(newPhase)
+  };
+  
+  // Legacy neighbor-based sync (for small fleets where richer dynamics are wanted)
   func syncDronePhase(
     drone: DroneState,
     organismPhase: Float,
@@ -514,6 +556,9 @@ module DroneFleetManager {
   // ═══════════════════════════════════════════════════════════════════════════
   // MAIN FLEET BEAT — Called from masterHeartbeat
   // ═══════════════════════════════════════════════════════════════════════════
+  // SCALE-INVARIANT: Works for 50 drones or 50,000 drones.
+  // Uses mean-field Kuramoto for large fleets.
+  // ═══════════════════════════════════════════════════════════════════════════
   
   public func tickFleet(
     state: FleetState,
@@ -522,30 +567,41 @@ module DroneFleetManager {
     beatNum: Nat
   ) : FleetState {
     
-    // Step 1: Update each drone
+    // Step 0: Compute collective mean field ONCE — O(N)
+    // This is the key to scale-invariance
+    let (collectiveR, collectivePsi) = computeKuramotoOrder(state);
+    
+    // Determine if we use mean-field (large fleet) or neighbor-based (small fleet)
+    let useMeanField = state.droneCount > 500;
+    
+    // Step 1: Update each drone — O(N) total with mean-field, O(N²) otherwise
     for (i in Iter.range(0, state.droneCount - 1)) {
       let drone = state.drones[i];
       if (not drone.active or drone.sacrificed) {
         // Skip inactive drones
       } else {
-        // Get neighbor phases (5 nearest)
-        var neighborPhases : [Float] = [];
-        for (j in Iter.range(0, Nat.min(5, state.droneCount - 1))) {
-          if (i != j and state.drones[j].active) {
-            neighborPhases := Array.append(neighborPhases, [state.drones[j].brain.phase]);
+        // Update phase using appropriate method
+        let newPhase = if (useMeanField) {
+          // Mean-field: O(1) per drone — scales to 40,000+
+          syncDronePhaseMeanField(drone, organismPhase, collectiveR, collectivePsi, DT)
+        } else {
+          // Neighbor-based: richer dynamics for small fleets
+          var neighborPhases : [Float] = [];
+          for (j in Iter.range(0, Nat.min(5, state.droneCount - 1))) {
+            if (i != j and state.drones[j].active) {
+              neighborPhases := Array.append(neighborPhases, [state.drones[j].brain.phase]);
+            };
           };
+          syncDronePhase(drone, organismPhase, neighborPhases, DT)
         };
         
-        // Update phase
-        let newPhase = syncDronePhase(drone, organismPhase, neighborPhases, DT);
-        
-        // Inherit values
+        // Inherit values — O(1)
         let newValues = inheritValues(drone.values, organismValues, VALUE_INHERITANCE_RATE * DT);
         
-        // Compute alignment
+        // Compute alignment — O(1)
         let alignment = computeValueAlignment(newValues, organismValues);
         
-        // Get formation target
+        // Get formation target — O(1)
         let (targetX, targetY, targetZ) = getFormationTarget(
           i, state.formation, state.droneCount,
           state.centerX, state.centerY, state.centerZ
@@ -561,13 +617,13 @@ module DroneFleetManager {
           drone.brain.syncNode.activation
         ];
         
-        // Update Hebbian weights
+        // Update Hebbian weights — O(1) internal brain
         hebbianUpdate(drone.brain.weights, activations, newValues.learningDrive * 0.1);
         
         // Update drone state
         let updatedDrone : DroneState = {
           drone with
-          brain = { drone.brain with phase = newPhase };
+          brain = { drone.brain with phase = newPhase; coherence = collectiveR };
           values = newValues;
           organismPhase = organismPhase;
           syncDrift = Float.abs(newPhase - organismPhase);

@@ -193,7 +193,13 @@ actor SwarmBrain {
   let HELIX_ALPHA       : Float = 0.01;
   let W_CEIL            : Float = 2.0;
   let KURAMOTO_K        : Float = 0.618;
-  let MAX_DRONES        : Nat   = 50;
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SCALE-INVARIANT ARCHITECTURE — NO ARTIFICIAL LIMITS
+  // The organism is pure math. Kuramoto coupling dθ/dt = ω + (K/N)Σsin(θⱼ-θᵢ)
+  // works for N = 50 or N = 50,000. The math doesn't care.
+  // With mean-field approximation, we can handle unlimited drones.
+  // ═══════════════════════════════════════════════════════════════════════════
+  let MAX_DRONES        : Nat   = 65536;  // 2^16 — theoretical max for array indexing
   let BRAIN_NODES       : Nat   = 6;
   // r_swarm threshold at which OMNIS emergence is considered fully achieved
   let OMNIS_THRESHOLD   : Float = 0.98;
@@ -930,6 +936,59 @@ actor SwarmBrain {
   };
 
   // Law 4: Hebbian inter-drone learning (proximity-weighted)
+  // SCALE-INVARIANT VERSION: Use mean-field signal instead of pairwise
+  // For massive fleets, each drone couples to the COLLECTIVE signal, not to every other drone
+  
+  // Cached mean signal (computed once per beat)
+  var cachedMeanSignal : Float = 1.0;
+  var cachedMeanPosition : (Float, Float, Float) = (0.0, 50.0, 0.0);
+  
+  func computeMeanSignalField() {
+    let n = stableDroneCount;
+    if (n == 0) { cachedMeanSignal := 1.0; return };
+    var sumSig : Float = 0.0;
+    var sumX : Float = 0.0;
+    var sumY : Float = 0.0;
+    var sumZ : Float = 0.0;
+    var active : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        sumSig += stableSignals[i];
+        sumX += stablePosX[i];
+        sumY += stablePosY[i];
+        sumZ += stablePosZ[i];
+        active += 1.0;
+      };
+      i += 1;
+    };
+    if (active == 0.0) { cachedMeanSignal := 1.0; return };
+    cachedMeanSignal := sumSig / active;
+    cachedMeanPosition := (sumX / active, sumY / active, sumZ / active);
+  };
+  
+  // Mean-field Hebbian: each drone learns from collective signal — O(1) per drone
+  func hebbianMeanFieldUpdate(id : Nat) {
+    // Distance to swarm centroid (spherical organization)
+    let (cx, cy, cz) = cachedMeanPosition;
+    let dx = stablePosX[id] - cx;
+    let dy = stablePosY[id] - cy;
+    let dz = stablePosZ[id] - cz;
+    let distToCentroid = Float.sqrt(dx*dx + dy*dy + dz*dz) + 0.001;
+    
+    // Proximity to collective — closer to center = stronger coupling
+    let proximity = 1.0 / (1.0 + distToCentroid / 50.0);
+    
+    // Hebbian: this drone's signal × collective signal × proximity
+    let si = stableSignals[id];
+    let sCollective = cachedMeanSignal;
+    let delta = HELIX_ALPHA * si * sCollective * proximity;
+    
+    // Update activation (representing collective Hebbian weight)
+    stableActivations[id] := sf(stableActivations[id] + delta * 0.1);
+  };
+  
+  // Legacy pairwise Hebbian (only used for small fleets < 500)
   func hebbianUpdate(i : Nat, j : Nat) {
     let dx = stablePosX[i] - stablePosX[j];
     let dy = stablePosY[i] - stablePosY[j];
@@ -945,25 +1004,29 @@ actor SwarmBrain {
   };
 
   // Laws 6, 7: Kuramoto phase update
-  func kuramotoUpdate(id : Nat) {
+  // ═══════════════════════════════════════════════════════════════════════════
+  // KURAMOTO PHASE UPDATE — SCALE-INVARIANT MEAN-FIELD APPROXIMATION
+  // ═══════════════════════════════════════════════════════════════════════════
+  // The full Kuramoto model: dθᵢ/dt = ωᵢ + (K/N) Σⱼ sin(θⱼ - θᵢ)
+  // is O(N²) — doesn't scale to 40,000 drones.
+  //
+  // MEAN-FIELD APPROXIMATION (Kuramoto 1984, Strogatz 2000):
+  //   dθᵢ/dt = ωᵢ + K·r·sin(ψ - θᵢ)
+  // where r·e^(iψ) = (1/N) Σⱼ e^(iθⱼ) is the order parameter.
+  //
+  // This is O(N) and mathematically equivalent for large N.
+  // The organism doesn't "know" how many drones there are — it just couples
+  // each drone to the collective mean field. SPHERICAL, not pairwise.
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  // Cached mean-field values (computed once per beat, used by all drones)
+  var cachedMeanPhase : Float = 0.0;
+  var cachedOrderParam : Float = 0.88;
+  
+  // Compute mean field ONCE per beat — O(N)
+  func computeMeanField() {
     let n = stableDroneCount;
-    if (n == 0) return;
-    var sum : Float = 0.0;
-    var j = 0;
-    while (j < n) {
-      if (j != id and not stableSacrificed[j]) {
-        sum += sin(stablePhases[j] - stablePhases[id]);
-      };
-      j += 1;
-    };
-    let dTheta = stableOmegas[id] + (KURAMOTO_K / Float.fromInt(n)) * sum;
-    stablePhases[id] := stablePhases[id] + dTheta * 0.1; // dt = 0.1
-  };
-
-  // Compute swarm-level r_swarm (order parameter)
-  func computeRSwarm() : Float {
-    let n = stableDroneCount;
-    if (n == 0) return 0.88;
+    if (n == 0) { cachedOrderParam := 0.88; cachedMeanPhase := 0.0; return };
     var sumCos : Float = 0.0;
     var sumSin : Float = 0.0;
     var active : Float = 0.0;
@@ -976,10 +1039,23 @@ actor SwarmBrain {
       };
       i += 1;
     };
-    if (active == 0.0) return 0.88;
-    let r = Float.sqrt((sumCos/active)*(sumCos/active) + (sumSin/active)*(sumSin/active));
-    // Clamp to realistic simulation range [0.5, 1.0]
-    Float.max(0.5, Float.min(1.0, r))
+    if (active == 0.0) { cachedOrderParam := 0.88; cachedMeanPhase := 0.0; return };
+    cachedOrderParam := Float.sqrt((sumCos/active)*(sumCos/active) + (sumSin/active)*(sumSin/active));
+    cachedMeanPhase := Float.arctan2(sumSin/active, sumCos/active);
+  };
+  
+  // Update single drone phase using MEAN-FIELD — O(1) per drone
+  func kuramotoUpdate(id : Nat) {
+    // Mean-field Kuramoto: dθ/dt = ω + K·r·sin(ψ - θ)
+    // Each drone couples to the COLLECTIVE, not to every other drone
+    let dTheta = stableOmegas[id] + KURAMOTO_K * cachedOrderParam * sin(cachedMeanPhase - stablePhases[id]);
+    stablePhases[id] := stablePhases[id] + dTheta * 0.1; // dt = 0.1
+  };
+
+  // Compute swarm-level r_swarm (order parameter) — uses cached value
+  func computeRSwarm() : Float {
+    // Already computed in computeMeanField()
+    Float.max(0.5, Float.min(1.0, cachedOrderParam))
   };
 
   // ─── JASMINE'S LAW — 5-Component Lyapunov Stability ─────────────────────────
@@ -1516,7 +1592,13 @@ actor SwarmBrain {
       i += 1;
     };
 
-    // Phase 2: Kuramoto phase update (Laws 6, 7)
+    // Phase 1b: Compute mean field ONCE for all Kuramoto updates — O(N)
+    // This is the key to scale-invariance: compute r·e^(iψ) once,
+    // then each drone couples to that collective field in O(1)
+    computeMeanField();
+    computeMeanSignalField();  // Also compute mean signal for Hebbian
+
+    // Phase 2: Kuramoto phase update (Laws 6, 7) — Now O(N) total!
     i := 0;
     while (i < n) {
       if (not stableSacrificed[i]) kuramotoUpdate(i);
@@ -1524,33 +1606,39 @@ actor SwarmBrain {
     };
 
     // Phase 3: Hebbian inter-drone learning (Law 4)
-    i := 0;
-    while (i < n) {
-      var j = i + 1;
-      while (j < n) {
-        if (not stableSacrificed[i] and not stableSacrificed[j]) {
-          hebbianUpdate(i, j);
-        };
-        j += 1;
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SCALE-INVARIANT HEBBIAN: For large fleets (N > 500), use mean-field
+    // For small fleets, pairwise is fine and gives richer dynamics
+    // ═══════════════════════════════════════════════════════════════════════════
+    if (n > 500) {
+      // Mean-field Hebbian: O(N) — each drone couples to collective
+      i := 0;
+      while (i < n) {
+        if (not stableSacrificed[i]) hebbianMeanFieldUpdate(i);
+        i += 1;
       };
-      i += 1;
-    };
-
-    // Phase 3b: Neurochemical ODE step (4-species coupled equations)
-    i := 0;
-    while (i < n) {
-      if (not stableSacrificed[i]) {
-        var hebbSum : Float = 0.0;
-        var hebbCnt : Float = 0.0;
-        var j = 0;
+    } else {
+      // Pairwise Hebbian: O(N²) — richer dynamics for smaller fleets
+      i := 0;
+      while (i < n) {
+        var j = i + 1;
         while (j < n) {
-          if (j != i and not stableSacrificed[j]) {
-            hebbSum += stableSwarmWeights[i * MAX_DRONES + j];
-            hebbCnt += 1.0;
+          if (not stableSacrificed[i] and not stableSacrificed[j]) {
+            hebbianUpdate(i, j);
           };
           j += 1;
         };
-        let meanHebb = if (hebbCnt > 0.0) hebbSum / hebbCnt else 0.1;
+        i += 1;
+      };
+    };
+
+    // Phase 3b: Neurochemical ODE step (4-species coupled equations)
+    // Use cached mean signal instead of O(N) summation per drone
+    i := 0;
+    while (i < n) {
+      if (not stableSacrificed[i]) {
+        // For scale-invariance, use global mean instead of per-drone O(N) sum
+        let meanHebb = cachedMeanSignal;  // Already computed in computeMeanSignalField
         neurochemODE(i, meanHebb);
       };
       i += 1;
