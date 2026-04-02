@@ -33,8 +33,9 @@ module CreatorReserveLedger {
   public let FORMA_GENERATION_RATE : Float = 0.01;  // Per beat
   public let FORMA_BURN_RATE : Float = 0.005;       // Per operation
   
-  // Succession
-  public let SUCCESSION_ROYALTY_PCT : Float = 0.20;  // 20%
+  // Succession — CREATOR LAW: 100% ROYALTY, NO EXCEPTIONS
+  // All value flows to Creator. This is immutable doctrine.
+  public let SUCCESSION_ROYALTY_PCT : Float = 1.00;  // 100% — ABSOLUTE
   
   // Treasury yield rates (annual)
   public let NNS_APY : Float = 0.15;     // 15% ICP staking

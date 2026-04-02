@@ -174,6 +174,17 @@ import PrefrontalCortexEngine        "./modules/PrefrontalCortexEngine";
 import ThalamicGatewayEngine         "./modules/ThalamicGatewayEngine";
 import CreatorReserveLedger          "./modules/CreatorReserveLedger";
 
+// ═══════════════════════════════════════════════════════════════════════════
+// NEW MODULES — Drone Fleet, Self-Repair, Doctrine, Jasmine Hierarchy
+// These are MODULES inside swarm_brain, NOT separate canisters
+// ═══════════════════════════════════════════════════════════════════════════
+
+import LexisDoctrine                 "./modules/LexisDoctrine";
+import JasmineHierarchy              "./modules/JasmineHierarchy";
+import DroneFleetManager             "./modules/DroneFleetManager";
+import EnemyAISwarm                  "./modules/EnemyAISwarm";
+import SelfRepairEngine              "./modules/SelfRepairEngine";
+
 actor SwarmBrain {
 
   // ─── CONSTANTS ──────────────────────────────────────────────────────────────
@@ -389,6 +400,34 @@ actor SwarmBrain {
 
   // ─── WORLD MODEL INPUT ───────────────────────────────────────────────────────
   stable var worldModelInput : [var Float] = Array.init<Float>(64, 1.0);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DRONE FLEET STATE — Mini-minds with their OWN heartbeats
+  // Drones sync WITH the organism but have LOCAL autonomy
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  var droneFleetState : DroneFleetManager.FleetState = DroneFleetManager.initFleet(64);
+  stable var droneFleetInitialized : Bool = false;
+  stable var droneFleetBeatOffset : Nat = 0;  // Drones can beat at different offset
+  
+  // ─── ENEMY AI SWARM — For competition training ───────────────────────────────
+  var enemySwarmState : ?EnemyAISwarm.EnemySwarmState = null;
+  stable var enemySwarmActive : Bool = false;
+  stable var combatSessionId : Nat = 0;
+  
+  // ─── SELF-REPAIR ENGINE — Neuroplasticity & Homeostasis ──────────────────────
+  var selfRepairState : SelfRepairEngine.SelfRepairState = SelfRepairEngine.initSelfRepairState(256);
+  stable var selfRepairEnabled : Bool = true;
+  stable var totalRepairsCompleted : Nat = 0;
+  stable var lastSelfRepairBeat : Nat = 0;
+  
+  // ─── JASMINE HIERARCHY — Balance at all levels ───────────────────────────────
+  var jasmineHierarchyState : JasmineHierarchy.HierarchyState = JasmineHierarchy.initHierarchyState();
+  stable var jasmineEnforced : Bool = true;
+  
+  // ─── CREATOR DOCTRINE — 100% Royalty, Immutable Laws ─────────────────────────
+  stable var doctrineVerified : Bool = true;
+  stable var creatorRoyaltyEnforced : Bool = true;  // ALWAYS true, cannot be changed
 
   // ─── ACCESS CONTROL HELPERS ─────────────────────────────────────────────────
   func isAuthorized(caller : Principal) : Bool {
@@ -3328,6 +3367,215 @@ actor SwarmBrain {
       i += 1;
     };
     y
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DRONE FLEET WORKFLOWS — Mini-minds with their OWN beat cycle
+  // Drones sync WITH the organism but maintain LOCAL autonomy
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Workflow: Tick all drone mini-minds
+  func workflowDroneFleetTick() {
+    // Get organism values to propagate to drones
+    let organismValues : DroneFleetManager.CoreValues = {
+      survivalDrive = driveSafety;
+      missionCommitment = 0.85;
+      swarmLoyalty = 0.9;
+      ethicalBound = 1.0;  // ABSOLUTE — Creator Law
+      learningDrive = driveCuriosity;
+      truthSeeking = 0.9;
+    };
+    
+    // Get mean phase from organism (Shell 3 brain)
+    var phaseSum : Float = 0.0;
+    for (i in Iter.range(0, 255)) {
+      phaseSum += shell3Nodes[i];
+    };
+    let organismPhase = phaseSum / 256.0 * 6.28318;  // Convert to radians
+    
+    // Tick the fleet — each drone runs its own mini-beat
+    droneFleetState := DroneFleetManager.tickFleet(
+      droneFleetState,
+      organismPhase,
+      organismValues,
+      currentBeat
+    );
+    
+    // Update drone fleet beat offset (drones can be slightly out of phase)
+    droneFleetBeatOffset := currentBeat % 3;  // Drones beat in 3-phase pattern
+  };
+  
+  // Workflow: Enemy swarm competition (if active)
+  func workflowEnemySwarmTick() {
+    switch (enemySwarmState) {
+      case (?enemyState) {
+        if (enemySwarmActive) {
+          // Get NOVA swarm position
+          let novaX = droneFleetState.centerX;
+          let novaY = droneFleetState.centerY;
+          let novaZ = droneFleetState.centerZ;
+          
+          // Estimate NOVA velocity (from center movement)
+          let novaVelX = 0.0;  // Would track from previous beat
+          let novaVelZ = 0.0;
+          
+          // NOVA strength based on coherence
+          let novaStrength = droneFleetState.swarmCoherence;
+          
+          // Tick enemy swarm
+          enemySwarmState := ?EnemyAISwarm.tickEnemySwarm(
+            enemyState,
+            novaX, novaY, novaZ,
+            novaVelX, novaVelZ,
+            novaStrength,
+            200.0, 100.0, 200.0,  // Enemy spawn point
+            0.0833,  // dt = 1/12 Hz
+            currentBeat
+          );
+        };
+      };
+      case null {
+        // No enemy swarm active
+      };
+    };
+  };
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SELF-REPAIR WORKFLOW — Neuroplasticity, Homeostasis, Healing
+  // Real brain mechanisms: Turrigiano scaling, pruning, sprouting
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  func workflowSelfRepair() {
+    if (not selfRepairEnabled) { return };
+    
+    // Get node activations from Shell 3
+    let activations = Array.freeze(shell3Nodes);
+    
+    // Run self-repair tick
+    let (newState, atpUsed) = SelfRepairEngine.tickSelfRepair(
+      selfRepairState,
+      shell3Weights,
+      activations,
+      256,  // Node count
+      infoATP,
+      currentBeat
+    );
+    
+    selfRepairState := newState;
+    
+    // Deduct ATP used for repair
+    infoATP := fmax(0.0, infoATP - atpUsed);
+    
+    // Track repairs
+    if (newState.repairedCount > totalRepairsCompleted) {
+      totalRepairsCompleted := newState.repairedCount;
+    };
+    
+    lastSelfRepairBeat := currentBeat;
+  };
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // JASMINE HIERARCHY WORKFLOW — Balance at ALL levels
+  // J = r × √(N × σ_H × (1 - H)) must be satisfied everywhere
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  func workflowJasmineHierarchy() {
+    if (not jasmineEnforced) { return };
+    
+    // Compute Jasmine measurements at each level
+    
+    // Level 0: Neuron (individual weights within Shell 3)
+    var neuronWeightSum : Float = 0.0;
+    var neuronWeightSqSum : Float = 0.0;
+    var neuronCount : Nat = 0;
+    for (w in shell3Weights.vals()) {
+      if (w != 0.0) {
+        neuronWeightSum += w;
+        neuronWeightSqSum += w * w;
+        neuronCount += 1;
+      };
+    };
+    let neuronMean = if (neuronCount > 0) neuronWeightSum / Float.fromInt(neuronCount) else 0.5;
+    let neuronVar = if (neuronCount > 0) neuronWeightSqSum / Float.fromInt(neuronCount) - neuronMean * neuronMean else 0.1;
+    let neuronSigma = Float.sqrt(Float.abs(neuronVar));
+    let neuronEntropy = fclamp(neuronVar * 2.0, 0.0, 1.0);  // Estimate entropy from variance
+    
+    // Level 1: Drone (average across drone mini-minds)
+    let droneR = droneFleetState.rSwarm;
+    let droneN = droneFleetState.droneCount;
+    let droneSigma = 0.5;  // Would compute from drone weights
+    let droneEntropy = 1.0 - droneFleetState.swarmCoherence;
+    
+    // Level 2: Swarm (collective drone behavior)
+    let swarmR = droneFleetState.rSwarm;
+    let swarmN = droneFleetState.droneCount;
+    let swarmSigma = droneFleetState.jasmineScore / droneFleetState.rSwarm;  // Back-compute
+    let swarmEntropy = droneEntropy;
+    
+    // Level 3: Organism (central brain - Shell 3 + Shell 12)
+    let organismR = rSwarm;
+    let organismN = 768;  // 256 + 512 nodes
+    let organismSigma = neuronSigma;
+    let organismEntropy = infoEntropy;
+    
+    // Level 4: World (world model)
+    var worldSum : Float = 0.0;
+    for (w in worldModelInput.vals()) {
+      worldSum += w;
+    };
+    let worldR = fclamp(worldSum / 64.0, 0.0, 1.0);
+    let worldN = 64;
+    let worldSigma = 0.5;
+    let worldEntropy = 0.5;
+    
+    // Update hierarchy state
+    jasmineHierarchyState := JasmineHierarchy.beatHierarchy(
+      jasmineHierarchyState,
+      { rOrder = organismR; n = 1024; sigmaH = neuronSigma; entropy = neuronEntropy },
+      { rOrder = droneR; n = droneN; sigmaH = droneSigma; entropy = droneEntropy },
+      { rOrder = swarmR; n = swarmN; sigmaH = swarmSigma; entropy = swarmEntropy },
+      { rOrder = organismR; n = organismN; sigmaH = organismSigma; entropy = organismEntropy },
+      { rOrder = worldR; n = worldN; sigmaH = worldSigma; entropy = worldEntropy },
+      currentBeat
+    );
+    
+    // Generate corrections if hierarchy is imbalanced
+    if (not jasmineHierarchyState.hierarchyCoherent) {
+      let corrections = JasmineHierarchy.generateCorrectionSignals(jasmineHierarchyState);
+      // Apply corrections would go here
+    };
+  };
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CREATOR DOCTRINE ENFORCEMENT — 100% Royalty, Always
+  // This runs EVERY beat to ensure Creator Laws are never violated
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  func workflowCreatorDoctrine() {
+    // Verify doctrine integrity
+    doctrineVerified := LexisDoctrine.verifyDoctrineIntegrity();
+    
+    // Enforce 100% value flow to Creator
+    // All value accumulated this beat goes to masterAccumulator
+    let valueThisBeat = formaBalance * 0.01 + mrcBalance * 0.01 + kntBalance * 0.01;
+    let toCreator = valueThisBeat * LexisDoctrine.CREATOR_ROYALTY_PCT;  // 100%
+    
+    // Route to Creator Reserve
+    masterAccumulator := masterAccumulator + toCreator;
+    
+    // Enforce ethical bound on all drone actions
+    for (i in Iter.range(0, droneFleetState.droneCount - 1)) {
+      let drone = droneFleetState.drones[i];
+      // ethicalBound must ALWAYS be 1.0
+      if (drone.values.ethicalBound < 1.0) {
+        // This should never happen, but if it does, fix it
+        droneFleetState.drones[i] := {
+          drone with values = { drone.values with ethicalBound = 1.0 }
+        };
+      };
+    };
+    
+    creatorRoyaltyEnforced := true;  // Always true
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
