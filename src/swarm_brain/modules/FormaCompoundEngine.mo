@@ -39,8 +39,8 @@ module {
   // CONSTANTS
   // ==========================================================================
   
-  // FORMA floor from doctrine
-  public let FORMA_GENESIS_FLOOR : Float = 1000.0;
+  // FORMA genesis floor: F(10) × F(8) = 55 × 21 = 1155 (Fibonacci product)
+  public let FORMA_GENESIS_FLOOR : Float = 1155.0;
   
   // Base compound rate per beat (small to prevent explosion)
   public let BASE_COMPOUND_RATE : Float = 0.0001;  // 0.01% per beat base
@@ -58,13 +58,18 @@ module {
   public let CHRONO_MAX_DILATION : Float = 2.0;  // Maximum time acceleration
   public let CHRONO_MIN_DILATION : Float = 0.5;  // Maximum time deceleration
   
-  // Jacob's Ladder multipliers (from doctrine)
+  // Jacob's Ladder multipliers: φ^(n/10) for golden progression
+  // Rung 0: φ^0.0 = 1.0
+  // Rung 1: φ^0.1 ≈ 1.0481
+  // Rung 2: φ^0.2 ≈ 1.0979
+  // Rung 3: φ^0.3 ≈ 1.1498
+  // Rung 4: φ^0.5 ≈ 1.2720 (√φ)
   public let JACOB_MULTIPLIERS : [Float] = [
-    1.0,   // Rung 0: Base
-    1.1,   // Rung 1: 10% boost
-    1.1,   // Rung 2: Sustained 10%
-    1.2,   // Rung 3: 20% boost
-    1.5    // Rung 4: 50% boost - maximum sovereign velocity
+    1.0,                    // Rung 0: φ^0
+    1.0481260851154197,     // Rung 1: φ^0.1
+    1.0979227945558847,     // Rung 2: φ^0.2
+    1.1497806867531882,     // Rung 3: φ^0.3
+    1.2720196495140689      // Rung 4: φ^0.5 = √φ
   ];
   
   // Dopamine constants

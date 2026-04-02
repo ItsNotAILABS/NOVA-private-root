@@ -13,6 +13,7 @@
 // 9 threat vectors continuously updated with auto-response triggers.
 // Each vector has mathematical detection thresholds and response actions.
 //
+// 10 threat vectors (VTV-0 through VTV-9):
 // VTV-0: Identity drift       → SACESI correction injection
 // VTV-1: Coherence collapse   → JUBILEE early trigger
 // VTV-2: Economic threat      → FORMA floor enforcement
@@ -60,8 +61,8 @@ module {
   public let THREAT_DECAY_RATE : Float = 0.95;  // Decay per beat
   public let THREAT_ACCUMULATION_RATE : Float = 0.1;
   
-  // Sovereign floor
-  public let S0 : Float = 1.0;
+  // Sovereign floor: S₀ = ψ² ≈ 0.382 (golden inverse squared)
+  public let S0 : Float = 0.3819660112501051518;
   
   // FNV-1a constants
   let FNV_OFFSET : Nat32 = 2166136261;

@@ -41,7 +41,7 @@ module {
   public let TOTAL_LAWS : Nat = 60;
   public let SOVEREIGN_FLOOR : Float = 1.0;
   public let MTH_HARD_CAP : Float = 100_000_000.0;
-  public let FORMA_GENESIS_FLOOR : Float = 1000.0;
+  public let FORMA_GENESIS_FLOOR : Float = 1155.0;  // F(10) × F(8) = 55 × 21
   public let MIN_COHERENCE : Float = 0.5;
   public let SACESI_INCREMENT : Float = 0.000001;
   public let JACOB_MAX_RUNG : Nat = 4;
