@@ -3159,3 +3159,691 @@ module {
       expressionSuppressed = expressionSuppressed;
     }
   };
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  // SECTION 24: MAIN UPDATE FUNCTION — COMPLETE STARTLE SYSTEM BEAT
+  // ══════════════════════════════════════════════════════════════════════════════
+
+  /// Main startle system update — called BEFORE perceptionCore() every beat
+  /// This is the pre-conscious gate that can bypass the full cognitive pipeline
+  public func updateStartleSystem(
+    state: StartleSystemState,
+    // Sensory inputs
+    acousticInput: Float,
+    tactileInput: Float,
+    vestibularInput: Float,
+    visualInput: Float,
+    trigeminalInput: Float,
+    proprioceptiveInput: Float,
+    nociceptiveInput: Float,
+    // Organism state inputs
+    threatLevel: Float,
+    contextThreat: Float,
+    immuneActivation: Float,
+    agentThreat: Float,
+    arousal: Float,
+    fatigue: Float,
+    damageLevel: Float,
+    overloadIndex: Float,
+    // Neurochemical inputs
+    neLevel: Float,
+    cortLevel: Float,
+    daLevel: Float,
+    serotoninLevel: Float,
+    // Shell state inputs
+    shell3Mean: Float,
+    kfEng: Float,
+    hzActivations: [Float]
+  ) : StartleSystemState {
+    let currentBeat = state.beatNum + 1;
+    
+    // ══════════════════════════════════════════════════════════════════════════
+    // PHASE 0: CHECK REFRACTORY PERIOD
+    // ══════════════════════════════════════════════════════════════════════════
+    if (state.refractoryRemaining > 0) {
+      // Update modulation systems even during refractory
+      let newHabituation = updateHabituation(state.habituation, false, 0.0, currentBeat, arousal);
+      let newSensitization = updateSensitization(state.sensitization, threatLevel, neLevel, cortLevel, currentBeat);
+      let newFear = updateFearPotentiation(state.fearPotentiation, threatLevel, contextThreat, cortLevel, serotoninLevel, currentBeat);
+      
+      return {
+        state with
+        beatNum = currentBeat;
+        systemUptime = state.systemUptime + 1;
+        refractoryRemaining = state.refractoryRemaining - 1;
+        currentPhase = #Recovery;
+        habituation = newHabituation;
+        sensitization = newSensitization;
+        fearPotentiation = newFear;
+        skipFullPipeline = false;
+        forceEmergencyMode = false;
+        suppressExpression = false;
+        currentArousal = arousal;
+        currentFatigue = fatigue;
+        currentDamage = damageLevel;
+        currentOverload = overloadIndex;
+        currentAgentThreat = agentThreat;
+        currentContextThreat = contextThreat;
+        currentImmuneActivation = immuneActivation;
+        currentNE = neLevel;
+        currentCORT = cortLevel;
+        currentDA = daLevel;
+        current5HT = serotoninLevel;
+        currentShell3Mean = shell3Mean;
+        currentKfEng = kfEng;
+      };
+    };
+    
+    // ══════════════════════════════════════════════════════════════════════════
+    // PHASE 1: IMMEDIATE THREAT CHECK — BRAINSTEM SHORT-CIRCUIT
+    // ══════════════════════════════════════════════════════════════════════════
+    // This fires BEFORE any sensory processing if threat is extreme
+    let immuneTrigger = immuneActivation > 0.85;
+    let threatTrigger = agentThreat > 0.90;
+    
+    if (immuneTrigger or threatTrigger) {
+      // IMMEDIATE STARTLE — Skip full pipeline, force Q_EMERGENCY
+      let triggerIntensity = Float.max(
+        (immuneActivation - 0.85) / 0.15,
+        (agentThreat - 0.90) / 0.10
+      );
+      let magnitude = fclamp(triggerIntensity * 1.5, 0.0, 1.0);
+      
+      // Update habituation (startle occurred)
+      let newHabituation = updateHabituation(state.habituation, true, magnitude, currentBeat, arousal);
+      
+      // Compute all organism integrations
+      let shell3Stim = computeShell3Stimulation(magnitude, state.sensitization.totalSensitization, ?#MultiModal);
+      let hzAct = computeHzSpectrumActivation(magnitude, state.sensitization.totalSensitization, state.fearPotentiation.totalPotentiation);
+      let quantumEff = computeQuantumOperatorEffects(magnitude, false, 0.0);
+      let neuroInj = computeNeurochemicalInjection(magnitude, damageLevel, neLevel, cortLevel, daLevel);
+      let vetusEsc = computeVetusThreatEscalation(magnitude, true);
+      let aegisEff = computeAegisMembraneEffects(magnitude, quantumEff.chronoBoost, quantumEff.qmemSalienceSpike);
+      let driveMod = computeDriveModulation(magnitude, damageLevel, true);
+      let councilEff = computeCouncilEffects(magnitude);
+      let animalMod = computeAnimalTraitModulation(magnitude);
+      
+      // Create memory event
+      let memEvent = createStartleMemoryEvent(
+        currentBeat,
+        Float.max(immuneActivation, agentThreat),
+        #MultiModal,
+        magnitude,
+        STARTLE_LATENCY_BEATS,
+        #WholeBody,
+        newHabituation.totalHabituation,
+        state.sensitization.totalSensitization,
+        state.fearPotentiation.totalPotentiation,
+        false,
+        threatLevel,
+        arousal,
+        kfEng,
+        true,
+        true,
+        true
+      );
+      
+      // Create response record
+      let response : StartleResponse = {
+        magnitude = magnitude;
+        latency = STARTLE_LATENCY_BEATS;
+        duration = 50 + Float.toInt(Float.floor(magnitude * 50.0));
+        peakTime = currentBeat + STARTLE_LATENCY_BEATS;
+        modalityTriggered = #MultiModal;
+        stimulusIntensity = Float.max(immuneActivation, agentThreat);
+        stimulusRiseTime = 0.0;
+        motorPatternActivated = [#Eyeblink, #HeadRetraction, #GlobalPosture];
+        motorPatternType = #WholeBody;
+        habituationApplied = newHabituation.totalHabituation;
+        sensitizationApplied = state.sensitization.totalSensitization;
+        fearPotentiationApplied = state.fearPotentiation.totalPotentiation;
+        ppiApplied = 0.0;
+        wasInhibited = false;
+        wasPotentiated = true;
+        wasSensitized = state.sensitization.totalSensitization > 0.2;
+        wasHabituated = newHabituation.totalHabituation > 0.3;
+        pipelineSkipped = true;
+        emergencyModeForced = true;
+        expressionSuppressed = true;
+        shell3Stimulation = shell3Stim;
+        hzActivation = hzAct;
+        quantumEffects = quantumEff;
+        neurochemicalInjection = neuroInj;
+        vetusThreatEscalation = vetusEsc;
+        aegisEffects = aegisEff;
+        driveModulation = driveMod;
+        councilEffects = councilEff;
+        animalModulation = animalMod;
+        memoryEvent = memEvent;
+      };
+      
+      // Update event history
+      let newHistory = if (state.eventHistory.size() >= state.historyMaxSize) {
+        let tail = Array.tabulate<StartleMemoryEvent>(state.historyMaxSize - 1, func(i) {
+          state.eventHistory[i + 1]
+        });
+        Array.append<StartleMemoryEvent>(tail, [memEvent])
+      } else {
+        Array.append<StartleMemoryEvent>(state.eventHistory, [memEvent])
+      };
+      
+      // Update statistics
+      let newCount = state.totalStartleCount + 1;
+      let newAvgMag = (state.averageMagnitude * Float.fromInt(state.totalStartleCount) + magnitude) /
+                      Float.fromInt(newCount);
+      
+      return {
+        state with
+        beatNum = currentBeat;
+        systemUptime = state.systemUptime + 1;
+        currentPhase = #MotorExecution;
+        habituation = newHabituation;
+        currentResponse = ?response;
+        lastResponse = state.currentResponse;
+        eventHistory = newHistory;
+        totalStartleCount = newCount;
+        averageMagnitude = newAvgMag;
+        lastStartleBeat = currentBeat;
+        refractoryRemaining = REFRACTORY_PERIOD_BASE;
+        skipFullPipeline = true;
+        forceEmergencyMode = true;
+        suppressExpression = true;
+        pendingShell3Stim = ?shell3Stim;
+        pendingHzActivation = ?hzAct;
+        pendingQuantumEffects = ?quantumEff;
+        pendingNeurochemicals = ?neuroInj;
+        pendingVetusEscalation = ?vetusEsc;
+        pendingAegisEffects = ?aegisEff;
+        pendingDriveModulation = ?driveMod;
+        pendingCouncilEffects = ?councilEff;
+        pendingAnimalModulation = ?animalMod;
+        pendingMemoryWrite = ?memEvent;
+        currentArousal = arousal;
+        currentAgentThreat = agentThreat;
+        currentImmuneActivation = immuneActivation;
+      };
+    };
+    
+    // ══════════════════════════════════════════════════════════════════════════
+    // PHASE 2: SENSORY PROCESSING
+    // ══════════════════════════════════════════════════════════════════════════
+    let sensoryInputs = [acousticInput, tactileInput, vestibularInput, visualInput,
+                         trigeminalInput, 0.0, proprioceptiveInput, nociceptiveInput];
+    
+    // Update all sensory channels
+    let updatedChannels = Array.tabulate<SensoryChannel>(state.sensoryChannels.size(), func(i) {
+      let input = if (i < sensoryInputs.size()) { sensoryInputs[i] } else { 0.0 };
+      updateSensoryChannel(state.sensoryChannels[i], input, currentBeat,
+                           state.globalSensitivity, state.globalThresholdBias)
+    });
+    
+    // Integrate sensory channels
+    let sensoryIntegration = integrateSensoryChannels(updatedChannels, state.sensoryIntegration, currentBeat);
+    
+    // ══════════════════════════════════════════════════════════════════════════
+    // PHASE 3: UPDATE MODULATORY SYSTEMS
+    // ══════════════════════════════════════════════════════════════════════════
+    
+    // Update PPI
+    let newPPI = updatePPI(state.ppi, sensoryIntegration.integratedIntensity, currentBeat, daLevel, arousal);
+    
+    // Update fear potentiation
+    let newFear = updateFearPotentiation(state.fearPotentiation, threatLevel, contextThreat, cortLevel, serotoninLevel, currentBeat);
+    
+    // Update sensitization
+    let newSensitization = updateSensitization(state.sensitization, threatLevel, neLevel, cortLevel, currentBeat);
+    
+    // ══════════════════════════════════════════════════════════════════════════
+    // PHASE 4: CHECK IF STARTLE SHOULD TRIGGER
+    // ══════════════════════════════════════════════════════════════════════════
+    if (not sensoryIntegration.startleEligible) {
+      // No startle - just update habituation for recovery
+      let newHabituation = updateHabituation(state.habituation, false, 0.0, currentBeat, arousal);
+      
+      return {
+        state with
+        beatNum = currentBeat;
+        systemUptime = state.systemUptime + 1;
+        currentPhase = #Idle;
+        sensoryChannels = updatedChannels;
+        sensoryIntegration = sensoryIntegration;
+        integratedInput = sensoryIntegration.integratedIntensity;
+        dominantModality = sensoryIntegration.dominantModality;
+        sensoryConfidence = sensoryIntegration.startleProbability;
+        ppi = newPPI;
+        fearPotentiation = newFear;
+        sensitization = newSensitization;
+        habituation = newHabituation;
+        currentResponse = null;
+        skipFullPipeline = false;
+        forceEmergencyMode = false;
+        suppressExpression = false;
+        currentArousal = arousal;
+        currentFatigue = fatigue;
+        currentDamage = damageLevel;
+        currentNE = neLevel;
+        currentCORT = cortLevel;
+        currentDA = daLevel;
+        current5HT = serotoninLevel;
+        currentShell3Mean = shell3Mean;
+        currentKfEng = kfEng;
+      };
+    };
+    
+    // ══════════════════════════════════════════════════════════════════════════
+    // PHASE 5: RETICULAR FORMATION PROCESSING
+    // ══════════════════════════════════════════════════════════════════════════
+    let channelIntensities = Array.map<SensoryChannel, Float>(updatedChannels, func(c) {
+      c.currentIntensity
+    });
+    
+    let newReticularFormation = processReticularFormation(
+      state.reticularFormation,
+      updatedChannels,
+      newSensitization.totalSensitization,
+      state.habituation.totalHabituation,
+      arousal,
+      newFear.amygdalaActivation,
+      0.0  // No cortical input during startle
+    );
+    
+    // ══════════════════════════════════════════════════════════════════════════
+    // PHASE 6: COMPUTE STARTLE MAGNITUDE
+    // ══════════════════════════════════════════════════════════════════════════
+    let quantumMod = 1.0 + (kfEng - 0.5) * 0.2;  // Kuramoto coherence affects startle
+    
+    let magnitude = computeStartleMagnitude(
+      sensoryIntegration.integratedIntensity,
+      newReticularFormation.globalGain,
+      state.habituation.totalHabituation,
+      newFear.totalPotentiation,
+      newPPI.inhibitionLevel,
+      newSensitization.totalSensitization,
+      quantumMod,
+      state.globalSensitivity
+    );
+    
+    // Update habituation (startle occurred)
+    let newHabituation = updateHabituation(state.habituation, true, magnitude, currentBeat, arousal);
+    
+    // ══════════════════════════════════════════════════════════════════════════
+    // PHASE 7: COMPUTE ORGANISM INTEGRATION EFFECTS
+    // ══════════════════════════════════════════════════════════════════════════
+    let dominantMod = sensoryIntegration.dominantModality;
+    let shell3Stim = computeShell3Stimulation(magnitude, newSensitization.totalSensitization, dominantMod);
+    let hzAct = computeHzSpectrumActivation(magnitude, newSensitization.totalSensitization, newFear.totalPotentiation);
+    let quantumEff = computeQuantumOperatorEffects(magnitude, newPPI.inhibitionLevel > 0.2, sensoryIntegration.riseTimeMs);
+    let neuroInj = computeNeurochemicalInjection(magnitude, damageLevel, neLevel, cortLevel, daLevel);
+    let vetusEsc = computeVetusThreatEscalation(magnitude, magnitude > SKIP_PIPELINE_THRESHOLD);
+    let aegisEff = computeAegisMembraneEffects(magnitude, quantumEff.chronoBoost, quantumEff.qmemSalienceSpike);
+    let driveMod = computeDriveModulation(magnitude, damageLevel, magnitude > FORCE_EMERGENCY_THRESHOLD);
+    let councilEff = computeCouncilEffects(magnitude);
+    let animalMod = computeAnimalTraitModulation(magnitude);
+    
+    // Determine organism control flags
+    let shouldSkipPipeline = magnitude > SKIP_PIPELINE_THRESHOLD;
+    let shouldForceEmergency = magnitude > FORCE_EMERGENCY_THRESHOLD;
+    let shouldSuppressExpression = magnitude > SUPPRESS_EXPRESSION_THRESHOLD;
+    
+    // Determine motor pattern
+    let motorPattern : StartlePattern = 
+      if (magnitude > 0.8) { #WholeBody }
+      else if (magnitude > 0.6) { #UpperBody }
+      else if (magnitude > 0.4) { #HeadAndShoulder }
+      else { #EyeblinkOnly };
+    
+    // ══════════════════════════════════════════════════════════════════════════
+    // PHASE 8: CREATE RESPONSE AND MEMORY EVENT
+    // ══════════════════════════════════════════════════════════════════════════
+    let actualModality = switch (dominantMod) {
+      case (?m) { m };
+      case (null) { #Acoustic };
+    };
+    
+    let memEvent = createStartleMemoryEvent(
+      currentBeat,
+      sensoryIntegration.integratedIntensity,
+      actualModality,
+      magnitude,
+      STARTLE_LATENCY_BEATS,
+      motorPattern,
+      newHabituation.totalHabituation,
+      newSensitization.totalSensitization,
+      newFear.totalPotentiation,
+      newPPI.inhibitionLevel > 0.2,
+      threatLevel,
+      arousal,
+      kfEng,
+      shouldSkipPipeline,
+      shouldForceEmergency,
+      shouldSuppressExpression
+    );
+    
+    // Activated motor targets based on pattern
+    let motorTargets : [MotorTarget] = switch (motorPattern) {
+      case (#WholeBody) { [#Eyeblink, #HeadRetraction, #ShoulderElevation, #ArmFlexion, #TrunkFlexion, #LegFlexion, #GlobalPosture] };
+      case (#UpperBody) { [#Eyeblink, #HeadRetraction, #ShoulderElevation, #ArmFlexion, #TrunkFlexion] };
+      case (#HeadAndShoulder) { [#Eyeblink, #HeadRetraction, #ShoulderElevation] };
+      case (#EyeblinkOnly) { [#Eyeblink] };
+      case (_) { [#Eyeblink] };
+    };
+    
+    let response : StartleResponse = {
+      magnitude = magnitude;
+      latency = STARTLE_LATENCY_BEATS;
+      duration = 50 + Float.toInt(Float.floor(magnitude * 50.0));
+      peakTime = currentBeat + STARTLE_LATENCY_BEATS;
+      modalityTriggered = actualModality;
+      stimulusIntensity = sensoryIntegration.integratedIntensity;
+      stimulusRiseTime = sensoryIntegration.riseTimeMs;
+      motorPatternActivated = motorTargets;
+      motorPatternType = motorPattern;
+      habituationApplied = newHabituation.totalHabituation;
+      sensitizationApplied = newSensitization.totalSensitization;
+      fearPotentiationApplied = newFear.totalPotentiation;
+      ppiApplied = newPPI.inhibitionLevel;
+      wasInhibited = newPPI.inhibitionLevel > 0.2;
+      wasPotentiated = newFear.totalPotentiation > 1.2;
+      wasSensitized = newSensitization.totalSensitization > 0.2;
+      wasHabituated = newHabituation.totalHabituation > 0.3;
+      pipelineSkipped = shouldSkipPipeline;
+      emergencyModeForced = shouldForceEmergency;
+      expressionSuppressed = shouldSuppressExpression;
+      shell3Stimulation = shell3Stim;
+      hzActivation = hzAct;
+      quantumEffects = quantumEff;
+      neurochemicalInjection = neuroInj;
+      vetusThreatEscalation = vetusEsc;
+      aegisEffects = aegisEff;
+      driveModulation = driveMod;
+      councilEffects = councilEff;
+      animalModulation = animalMod;
+      memoryEvent = memEvent;
+    };
+    
+    // Update event history
+    let newHistory = if (state.eventHistory.size() >= state.historyMaxSize) {
+      let tail = Array.tabulate<StartleMemoryEvent>(state.historyMaxSize - 1, func(i) {
+        state.eventHistory[i + 1]
+      });
+      Array.append<StartleMemoryEvent>(tail, [memEvent])
+    } else {
+      Array.append<StartleMemoryEvent>(state.eventHistory, [memEvent])
+    };
+    
+    // Update recent statistics
+    let newRecentMagnitudes = if (state.recentMagnitudes.size() >= 20) {
+      let tail = Array.tabulate<Float>(19, func(i) { state.recentMagnitudes[i + 1] });
+      Array.append<Float>(tail, [magnitude])
+    } else {
+      Array.append<Float>(state.recentMagnitudes, [magnitude])
+    };
+    
+    // Update statistics
+    let newCount = state.totalStartleCount + 1;
+    let newAvgMag = (state.averageMagnitude * Float.fromInt(state.totalStartleCount) + magnitude) /
+                    Float.fromInt(newCount);
+    let newAvgLat = (state.averageLatency * Float.fromInt(state.totalStartleCount) + 
+                     Float.fromInt(STARTLE_LATENCY_BEATS)) / Float.fromInt(newCount);
+    
+    // Compute refractory period (scales with magnitude)
+    let refractoryDuration = Float.toInt(Float.floor(magnitude * Float.fromInt(REFRACTORY_PERIOD_BASE)));
+    
+    // ══════════════════════════════════════════════════════════════════════════
+    // PHASE 9: RETURN UPDATED STATE
+    // ══════════════════════════════════════════════════════════════════════════
+    {
+      // Core system state
+      isActive = true;
+      isInitialized = true;
+      currentPhase = #MotorExecution;
+      beatNum = currentBeat;
+      lastStartleBeat = currentBeat;
+      refractoryRemaining = refractoryDuration;
+      systemUptime = state.systemUptime + 1;
+      
+      // Sensory system
+      sensoryChannels = updatedChannels;
+      sensoryIntegration = sensoryIntegration;
+      integratedInput = sensoryIntegration.integratedIntensity;
+      dominantModality = dominantMod;
+      sensoryConfidence = sensoryIntegration.startleProbability;
+      
+      // Reticular formation
+      reticularFormation = newReticularFormation;
+      reticularOutput = newReticularFormation.totalOutput;
+      reticularConfidence = newReticularFormation.outputConfidence;
+      
+      // Motor system
+      motorOutput = state.motorOutput;  // Would update motor pathways
+      motorCommandPending = true;
+      motorPattern = motorPattern;
+      
+      // Modulatory systems
+      ppi = newPPI;
+      fearPotentiation = newFear;
+      habituation = newHabituation;
+      sensitization = newSensitization;
+      
+      // Current response
+      currentResponse = ?response;
+      lastResponse = state.currentResponse;
+      
+      // History and statistics
+      eventHistory = newHistory;
+      historyMaxSize = state.historyMaxSize;
+      totalStartleCount = newCount;
+      averageMagnitude = newAvgMag;
+      averageLatency = newAvgLat;
+      magnitudeVariance = state.magnitudeVariance;  // Would compute
+      recentMagnitudes = newRecentMagnitudes;
+      recentLatencies = state.recentLatencies;
+      recentModalities = state.recentModalities;
+      
+      // Organism integration flags
+      skipFullPipeline = shouldSkipPipeline;
+      forceEmergencyMode = shouldForceEmergency;
+      suppressExpression = shouldSuppressExpression;
+      
+      // Integration requests
+      pendingShell3Stim = ?shell3Stim;
+      pendingHzActivation = ?hzAct;
+      pendingQuantumEffects = ?quantumEff;
+      pendingNeurochemicals = ?neuroInj;
+      pendingVetusEscalation = ?vetusEsc;
+      pendingAegisEffects = ?aegisEff;
+      pendingDriveModulation = ?driveMod;
+      pendingCouncilEffects = ?councilEff;
+      pendingAnimalModulation = ?animalMod;
+      pendingMemoryWrite = ?memEvent;
+      
+      // External inputs (updated)
+      currentArousal = arousal;
+      currentFatigue = fatigue;
+      currentDamage = damageLevel;
+      currentOverload = overloadIndex;
+      currentAgentThreat = agentThreat;
+      currentContextThreat = contextThreat;
+      currentImmuneActivation = immuneActivation;
+      currentImmuneThreatMemory = state.currentImmuneThreatMemory;
+      currentNE = neLevel;
+      currentCORT = cortLevel;
+      currentDA = daLevel;
+      current5HT = serotoninLevel;
+      currentShell3Mean = shell3Mean;
+      currentKfEng = kfEng;
+      currentHzAct = hzActivations;
+      
+      // Configuration (unchanged)
+      enablePPI = state.enablePPI;
+      enableFearPotentiation = state.enableFearPotentiation;
+      enableHabituation = state.enableHabituation;
+      enableSensitization = state.enableSensitization;
+      enableOrganismIntegration = state.enableOrganismIntegration;
+      globalSensitivity = state.globalSensitivity;
+      globalThresholdBias = state.globalThresholdBias;
+      globalGainBias = state.globalGainBias;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════════
+  // SECTION 25: QUERY AND HELPER FUNCTIONS
+  // ══════════════════════════════════════════════════════════════════════════════
+
+  /// Get summary of current startle state for external systems
+  public type StartleSummary = {
+    isActive          : Bool;
+    currentPhase      : StartlePhase;
+    integratedInput   : Float;
+    reticularOutput   : Float;
+    currentMagnitude  : Float;
+    habituation       : Float;
+    sensitization     : Float;
+    fearPotentiation  : Float;
+    ppiLevel          : Float;
+    totalStartles     : Nat;
+    averageMagnitude  : Float;
+    skipPipeline      : Bool;
+    forceEmergency    : Bool;
+    suppressExpression: Bool;
+    lastStartleBeat   : Nat;
+    refractoryRemaining: Nat;
+  };
+
+  public func getStartleSummary(state: StartleSystemState) : StartleSummary {
+    {
+      isActive = state.isActive;
+      currentPhase = state.currentPhase;
+      integratedInput = state.integratedInput;
+      reticularOutput = state.reticularOutput;
+      currentMagnitude = switch (state.currentResponse) {
+        case (?r) { r.magnitude };
+        case (null) { 0.0 };
+      };
+      habituation = state.habituation.totalHabituation;
+      sensitization = state.sensitization.totalSensitization;
+      fearPotentiation = state.fearPotentiation.totalPotentiation;
+      ppiLevel = state.ppi.inhibitionLevel;
+      totalStartles = state.totalStartleCount;
+      averageMagnitude = state.averageMagnitude;
+      skipPipeline = state.skipFullPipeline;
+      forceEmergency = state.forceEmergencyMode;
+      suppressExpression = state.suppressExpression;
+      lastStartleBeat = state.lastStartleBeat;
+      refractoryRemaining = state.refractoryRemaining;
+    }
+  };
+
+  /// Check if startle should skip full cognitive pipeline
+  public func shouldSkipPipeline(state: StartleSystemState) : Bool {
+    state.skipFullPipeline
+  };
+
+  /// Check if startle should force Q_EMERGENCY mode
+  public func shouldForceEmergency(state: StartleSystemState) : Bool {
+    state.forceEmergencyMode
+  };
+
+  /// Check if startle should suppress expression
+  public func shouldSuppressExpression(state: StartleSystemState) : Bool {
+    state.suppressExpression
+  };
+
+  /// Get pending Shell 3 stimulation
+  public func getPendingShell3Stim(state: StartleSystemState) : ?Shell3Stimulation {
+    state.pendingShell3Stim
+  };
+
+  /// Get pending Hz spectrum activation
+  public func getPendingHzActivation(state: StartleSystemState) : ?HzSpectrumActivation {
+    state.pendingHzActivation
+  };
+
+  /// Get pending neurochemical injections
+  public func getPendingNeurochemicals(state: StartleSystemState) : ?NeurochemicalInjection {
+    state.pendingNeurochemicals
+  };
+
+  /// Get pending VETUS escalation
+  public func getPendingVetusEscalation(state: StartleSystemState) : ?VetusThreatEscalation {
+    state.pendingVetusEscalation
+  };
+
+  /// Get pending drive modulation
+  public func getPendingDriveModulation(state: StartleSystemState) : ?DriveModulation {
+    state.pendingDriveModulation
+  };
+
+  /// Get pending memory write
+  public func getPendingMemoryWrite(state: StartleSystemState) : ?StartleMemoryEvent {
+    state.pendingMemoryWrite
+  };
+
+  /// Clear all pending integration requests (after they've been applied)
+  public func clearPendingIntegrations(state: StartleSystemState) : StartleSystemState {
+    {
+      state with
+      pendingShell3Stim = null;
+      pendingHzActivation = null;
+      pendingQuantumEffects = null;
+      pendingNeurochemicals = null;
+      pendingVetusEscalation = null;
+      pendingAegisEffects = null;
+      pendingDriveModulation = null;
+      pendingCouncilEffects = null;
+      pendingAnimalModulation = null;
+      pendingMemoryWrite = null;
+    }
+  };
+
+  /// Get recent startle events (last n)
+  public func getRecentEvents(state: StartleSystemState, n: Nat) : [StartleMemoryEvent] {
+    let total = state.eventHistory.size();
+    if (n >= total) { return state.eventHistory };
+    
+    let start = total - n;
+    Array.tabulate<StartleMemoryEvent>(n, func(i) { state.eventHistory[start + i] })
+  };
+
+  /// Trigger dishabituation (strong novel stimulus resets habituation)
+  public func triggerDishabituation(state: StartleSystemState) : StartleSystemState {
+    if (state.habituation.dishabituationReady) {
+      let newHab : HabituationState = {
+        state.habituation with
+        shortTermHabituation = state.habituation.shortTermHabituation * DISHABITUATION_RESET_FACTOR;
+        trialsSinceRecovery = 0;
+        recoveryProgress = 1.0;
+        dishabituationReady = false;
+        lastDishabituation = state.beatNum;
+      };
+      return { state with habituation = newHab };
+    };
+    state
+  };
+
+  /// Set global sensitivity (0.5 to 2.0)
+  public func setGlobalSensitivity(state: StartleSystemState, sensitivity: Float) : StartleSystemState {
+    { state with globalSensitivity = fclamp(sensitivity, 0.5, 2.0) }
+  };
+
+  /// Set global threshold bias (-0.2 to 0.2)
+  public func setGlobalThresholdBias(state: StartleSystemState, bias: Float) : StartleSystemState {
+    { state with globalThresholdBias = fclamp(bias, -0.2, 0.2) }
+  };
+
+  /// Enable/disable PPI
+  public func setEnablePPI(state: StartleSystemState, enable: Bool) : StartleSystemState {
+    { state with enablePPI = enable }
+  };
+
+  /// Enable/disable fear potentiation
+  public func setEnableFearPotentiation(state: StartleSystemState, enable: Bool) : StartleSystemState {
+    { state with enableFearPotentiation = enable }
+  };
+
+  /// Enable/disable organism integration
+  public func setEnableOrganismIntegration(state: StartleSystemState, enable: Bool) : StartleSystemState {
+    { state with enableOrganismIntegration = enable }
+  };
+
+}
