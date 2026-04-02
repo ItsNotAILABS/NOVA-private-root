@@ -231,6 +231,8 @@ import UniversalLawDriftVerifier     "./modules/UniversalLawDriftVerifier";
 import GovernanceLaws                "./modules/GovernanceLaws";
 import SwarmCoherenceMatrix          "./modules/SwarmCoherenceMatrix";
 import SovereigntyLaws60             "./modules/SovereigntyLaws60";
+import DoctrineGenesisEngine         "./modules/DoctrineGenesisEngine";
+import ArchitectureExtractionFramework "./modules/ArchitectureExtractionFramework";
 
 actor SwarmBrain {
 
