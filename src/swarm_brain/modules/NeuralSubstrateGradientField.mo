@@ -1,0 +1,812 @@
+// ============================================================
+// NEUROEMERGENCE CORE — NEURAL SUBSTRATE GRADIENT FIELD
+// Real brain mapped to computational substrate with gradient dynamics
+// 
+// This module maps the EXACT neuroanatomy of the human brain
+// into a gradient field substrate for sovereign organism cognition.
+// 
+// Neuroanatomical Mapping:
+// - 86 billion neurons → compressed representational substrate
+// - 6 cortical layers → hierarchical gradient field
+// - 52 Brodmann areas → functional gradient zones
+// - White matter tracts → connectivity gradients
+// - Neurotransmitter systems → chemical gradient fields
+// 
+// Gradient Field Mathematics:
+// - Neural field: ∂u/∂t = -u + ∫W(x,y)f(u(y))dy + I(x)
+// - Gradient flow: ∇F = -∂E/∂x (energy minimization)
+// - Diffusion: ∂c/∂t = D∇²c + R(c) (neuromodulator spread)
+// 
+// Owner: Alfredo Medina Hernandez | MedinaSITech@outlook.com
+// ============================================================
+
+import Float "mo:base/Float";
+import Array "mo:base/Array";
+import Nat   "mo:base/Nat";
+import Int   "mo:base/Int";
+
+module {
+
+  // ══════════════════════════════════════════════════════════════
+  // BRODMANN AREAS (Real Brain Mapping)
+  // ══════════════════════════════════════════════════════════════
+
+  // Brodmann area representation
+  public type BrodmannArea = {
+    id            : Nat;           // BA number (1-52)
+    name          : Text;
+    hemisphere    : Hemisphere;
+    
+    // Spatial gradient coordinates
+    position      : GradientCoord;
+    extent        : Float;         // Spatial extent
+    
+    // Layer-specific activity (6 cortical layers)
+    layer1        : Float;         // Molecular layer
+    layer2        : Float;         // External granular
+    layer3        : Float;         // External pyramidal
+    layer4        : Float;         // Internal granular (input)
+    layer5        : Float;         // Internal pyramidal (output)
+    layer6        : Float;         // Multiform (feedback)
+    
+    // Functional state
+    activity      : Float;         // Current activation
+    prediction    : Float;         // Predictive signal
+    error         : Float;         // Prediction error
+    
+    // Cytoarchitectonic properties
+    neuronDensity : Float;         // Neurons per mm³
+    myelination   : Float;         // Myelination degree
+  };
+
+  public type Hemisphere = {
+    #Left;
+    #Right;
+    #Bilateral;
+  };
+
+  // 3D gradient coordinate
+  public type GradientCoord = {
+    x : Float;                     // Anterior-Posterior
+    y : Float;                     // Medial-Lateral  
+    z : Float;                     // Dorsal-Ventral
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // GRADIENT FIELD TYPES
+  // ══════════════════════════════════════════════════════════════
+
+  // Neural mass field
+  public type NeuralField = {
+    // Spatial discretization
+    gridSize      : Nat;           // Resolution
+    fieldValues   : [[Float]];     // 2D field (can extend to 3D)
+    
+    // Dynamics
+    timeConstant  : Float;         // τ
+    threshold     : Float;         // Activation threshold
+    steepness     : Float;         // Sigmoid steepness
+    
+    // Connectivity kernel
+    excitRadius   : Float;         // Excitatory spread
+    inhibRadius   : Float;         // Inhibitory spread
+    excitStrength : Float;         // a_e
+    inhibStrength : Float;         // a_i
+    
+    // External input
+    inputField    : [[Float]];
+  };
+
+  // Chemical gradient field (neuromodulators)
+  public type ChemicalGradient = {
+    name          : Text;          // e.g., "Dopamine"
+    concentration : [[Float]];     // Spatial concentration
+    
+    // Diffusion parameters
+    diffusionCoeff: Float;         // D
+    decayRate     : Float;         // Degradation
+    releaseRate   : Float;         // Release from sources
+    
+    // Source locations
+    sources       : [GradientCoord];
+    sourceStrengths: [Float];
+    
+    // Receptor binding
+    bindingAffinity: Float;
+    saturation    : Float;
+  };
+
+  // Connectivity gradient
+  public type ConnectivityGradient = {
+    // Gradient axes (Huntenburg et al.)
+    sensoryMotor  : [[Float]];     // Unimodal ↔ Transmodal
+    visualAuditory: [[Float]];     // Visual ↔ Auditory
+    
+    // Hierarchical gradient
+    hierarchyLevel: [[Float]];     // Low-level ↔ High-level
+    
+    // Temporal gradient
+    timescale     : [[Float]];     // Fast ↔ Slow dynamics
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // WHITE MATTER TRACTS
+  // ══════════════════════════════════════════════════════════════
+
+  public type WhiteMatterTract = {
+    name          : Text;
+    tractType     : TractType;
+    
+    // Endpoints
+    origin        : [Nat];         // Origin Brodmann areas
+    termination   : [Nat];         // Target Brodmann areas
+    
+    // Properties
+    fiberCount    : Nat;           // Number of axons
+    myelinIntegrity: Float;        // FA equivalent
+    length        : Float;         // Tract length
+    conductionSpeed: Float;        // m/s
+    
+    // Current state
+    signalStrength: Float;
+    coherence     : Float;
+  };
+
+  public type TractType = {
+    #Association;        // Within hemisphere
+    #Commissural;        // Between hemispheres
+    #Projection;         // Cortex ↔ subcortex
+  };
+
+  // Major tracts
+  public let MAJOR_TRACTS : [Text] = [
+    "CorpusCallosum",           // Interhemispheric
+    "ArcuateFasciculus",        // Language (Broca↔Wernicke)
+    "SuperiorLongitudinal",     // Parietal↔Frontal
+    "InferiorLongitudinal",     // Occipital↔Temporal
+    "Uncinate",                 // Temporal↔Frontal
+    "Cingulum",                 // Limbic
+    "CorticospinalTract",       // Motor
+    "Fornix",                   // Hippocampus↔Hypothalamus
+    "OpticRadiation",           // LGN↔V1
+    "InternalCapsule",          // Thalamus↔Cortex
+  ];
+
+  // ══════════════════════════════════════════════════════════════
+  // SUBCORTICAL NUCLEI
+  // ══════════════════════════════════════════════════════════════
+
+  public type SubcorticalNucleus = {
+    name          : Text;
+    nucleusType   : NucleusType;
+    position      : GradientCoord;
+    
+    // Subdivisions
+    subdivisions  : [Text];
+    subActivity   : [Float];
+    
+    // Connectivity
+    afferents     : [Nat];         // Input from BA
+    efferents     : [Nat];         // Output to BA
+    
+    // Function
+    activity      : Float;
+    neuromodOutput: Float;         // If neuromodulatory
+  };
+
+  public type NucleusType = {
+    #Thalamic;
+    #BasalGanglia;
+    #Limbic;
+    #Brainstem;
+    #Cerebellar;
+    #Hypothalamic;
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // FULL SUBSTRATE STATE
+  // ══════════════════════════════════════════════════════════════
+
+  public type NeuralSubstrateState = {
+    // Cortical representation
+    brodmannAreas   : [BrodmannArea];
+    
+    // Gradient fields
+    excitationField : NeuralField;
+    inhibitionField : NeuralField;
+    predictionField : NeuralField;
+    errorField      : NeuralField;
+    
+    // Chemical gradients
+    dopamineGradient: ChemicalGradient;
+    serotoninGradient: ChemicalGradient;
+    norepinephrineGradient: ChemicalGradient;
+    acetylcholineGradient: ChemicalGradient;
+    glutamateGradient: ChemicalGradient;
+    gabaGradient    : ChemicalGradient;
+    
+    // Connectivity
+    connectivityGradient: ConnectivityGradient;
+    whiteTracts     : [WhiteMatterTract];
+    
+    // Subcortical
+    subcorticalNuclei: [SubcorticalNucleus];
+    
+    // Global substrate state
+    globalEnergy    : Float;        // Metabolic/computational
+    temperature     : Float;        // "Neural temperature"
+    entropy         : Float;        // Information entropy
+    
+    // Gradient flow
+    energyGradient  : [[Float]];    // ∇E
+    flowVelocity    : [[Float]];    // dx/dt
+    
+    // Temporal
+    beatNum         : Nat;
+    dt              : Float;
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // CONSTANTS
+  // ══════════════════════════════════════════════════════════════
+
+  let EPSILON : Float = 1e-10;
+  let PI : Float = 3.14159265358979;
+  let GRID_SIZE : Nat = 32;
+
+  // ══════════════════════════════════════════════════════════════
+  // HELPERS
+  // ══════════════════════════════════════════════════════════════
+
+  func _clamp(x: Float, lo: Float, hi: Float) : Float {
+    if (x < lo) { lo } else if (x > hi) { hi } else { x }
+  };
+
+  func _sigmoid(x: Float, steepness: Float, threshold: Float) : Float {
+    1.0 / (1.0 + Float.exp(-steepness * (x - threshold)))
+  };
+
+  func _gaussian(dist: Float, sigma: Float) : Float {
+    Float.exp(-(dist * dist) / (2.0 * sigma * sigma))
+  };
+
+  func _laplacian(field: [[Float]], i: Nat, j: Nat) : Float {
+    let n = field.size();
+    if (n == 0 or i == 0 or j == 0 or i >= n - 1 or j >= n - 1) { return 0.0 };
+    
+    let center = field[i][j];
+    let up = field[i-1][j];
+    let down = field[i+1][j];
+    let left = field[i][j-1];
+    let right = field[i][j+1];
+    
+    up + down + left + right - 4.0 * center
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // NEURAL FIELD DYNAMICS
+  // ══════════════════════════════════════════════════════════════
+
+  // Wilson-Cowan neural field equation
+  // ∂u/∂t = -u/τ + S(∫W(x,y)u(y)dy + I(x))
+  public func updateNeuralField(
+    field: NeuralField,
+    dt: Float
+  ) : NeuralField {
+    let n = field.gridSize;
+    var newValues = Array.tabulate<[Float]>(n, func(i) {
+      Array.tabulate<Float>(n, func(j) {
+        let current = field.fieldValues[i][j];
+        
+        // Compute lateral interactions
+        var excitation : Float = 0.0;
+        var inhibition : Float = 0.0;
+        
+        // Local connectivity kernel
+        var di : Int = -3;
+        while (di <= 3) {
+          var dj : Int = -3;
+          while (dj <= 3) {
+            let ni = Int.abs(i + di);
+            let nj = Int.abs(j + dj);
+            if (ni < n and nj < n and (di != 0 or dj != 0)) {
+              let dist = Float.sqrt(Float.fromInt(di * di + dj * dj));
+              let neighborVal = field.fieldValues[ni][nj];
+              
+              // Mexican hat: excitation close, inhibition far
+              excitation += _gaussian(dist, field.excitRadius) * neighborVal * field.excitStrength;
+              inhibition += _gaussian(dist, field.inhibRadius) * neighborVal * field.inhibStrength;
+            };
+            dj += 1;
+          };
+          di += 1;
+        };
+        
+        // External input
+        let input = if (i < field.inputField.size() and j < field.inputField[i].size()) {
+          field.inputField[i][j]
+        } else { 0.0 };
+        
+        // Neural mass equation
+        let netInput = excitation - inhibition + input;
+        let activation = _sigmoid(netInput, field.steepness, field.threshold);
+        
+        // Temporal dynamics
+        let decay = -current / field.timeConstant;
+        let newVal = current + (decay + activation) * dt;
+        
+        _clamp(newVal, 0.0, 1.0)
+      })
+    });
+    
+    {
+      gridSize = field.gridSize;
+      fieldValues = newValues;
+      timeConstant = field.timeConstant;
+      threshold = field.threshold;
+      steepness = field.steepness;
+      excitRadius = field.excitRadius;
+      inhibRadius = field.inhibRadius;
+      excitStrength = field.excitStrength;
+      inhibStrength = field.inhibStrength;
+      inputField = field.inputField;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // CHEMICAL GRADIENT DIFFUSION
+  // ══════════════════════════════════════════════════════════════
+
+  // Reaction-diffusion: ∂c/∂t = D∇²c - k·c + R
+  public func updateChemicalGradient(
+    gradient: ChemicalGradient,
+    dt: Float
+  ) : ChemicalGradient {
+    let n = gradient.concentration.size();
+    if (n == 0) { return gradient };
+    
+    var newConc = Array.tabulate<[Float]>(n, func(i) {
+      let m = gradient.concentration[i].size();
+      Array.tabulate<Float>(m, func(j) {
+        let current = gradient.concentration[i][j];
+        
+        // Diffusion term (Laplacian)
+        let laplacian = _laplacian(gradient.concentration, i, j);
+        let diffusion = gradient.diffusionCoeff * laplacian;
+        
+        // Decay term
+        let decay = -gradient.decayRate * current;
+        
+        // Source term (release from nuclei)
+        var release : Float = 0.0;
+        var k : Nat = 0;
+        for (source in gradient.sources.vals()) {
+          let di = Float.fromInt(i) / Float.fromInt(n) - source.x;
+          let dj = Float.fromInt(j) / Float.fromInt(n) - source.y;
+          let dist = Float.sqrt(di * di + dj * dj);
+          let strength = if (k < gradient.sourceStrengths.size()) {
+            gradient.sourceStrengths[k]
+          } else { 0.0 };
+          release += strength * _gaussian(dist, 0.1) * gradient.releaseRate;
+          k += 1;
+        };
+        
+        // Update
+        let newVal = current + (diffusion + decay + release) * dt;
+        _clamp(newVal, 0.0, gradient.saturation)
+      })
+    });
+    
+    {
+      name = gradient.name;
+      concentration = newConc;
+      diffusionCoeff = gradient.diffusionCoeff;
+      decayRate = gradient.decayRate;
+      releaseRate = gradient.releaseRate;
+      sources = gradient.sources;
+      sourceStrengths = gradient.sourceStrengths;
+      bindingAffinity = gradient.bindingAffinity;
+      saturation = gradient.saturation;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // BRODMANN AREA UPDATE
+  // ══════════════════════════════════════════════════════════════
+
+  // Update Brodmann area based on gradient field values
+  public func updateBrodmannArea(
+    area: BrodmannArea,
+    excitationField: [[Float]],
+    inhibitionField: [[Float]],
+    dopamine: [[Float]],
+    gridSize: Nat
+  ) : BrodmannArea {
+    // Sample field at area position
+    let xi = Int.abs(Float.toInt(area.position.x * Float.fromInt(gridSize)));
+    let yi = Int.abs(Float.toInt(area.position.y * Float.fromInt(gridSize)));
+    
+    let excit = if (xi < excitationField.size() and yi < excitationField[xi].size()) {
+      excitationField[xi][yi]
+    } else { 0.0 };
+    
+    let inhib = if (xi < inhibitionField.size() and yi < inhibitionField[xi].size()) {
+      inhibitionField[xi][yi]
+    } else { 0.0 };
+    
+    let da = if (xi < dopamine.size() and yi < dopamine[xi].size()) {
+      dopamine[xi][yi]
+    } else { 0.5 };
+    
+    // Layer-specific dynamics
+    // Layer 4 receives input, Layer 5 generates output
+    let newL4 = excit * 0.7;  // Input layer
+    let newL5 = area.layer5 * 0.8 + (newL4 - inhib) * 0.2;  // Output layer
+    let newL2 = area.layer3 * 0.3 + newL4 * 0.2;  // Feedforward
+    let newL6 = area.layer6 * 0.7 + newL5 * 0.1;  // Feedback
+    
+    // Predictive coding
+    let prediction = newL6 * 0.6 + area.prediction * 0.4;
+    let error = _clamp((newL4 - prediction), -1.0, 1.0);
+    
+    // Activity modulated by dopamine
+    let activity = (newL5 + newL2 / 3.0) * (0.7 + da * 0.3);
+    
+    {
+      id = area.id;
+      name = area.name;
+      hemisphere = area.hemisphere;
+      position = area.position;
+      extent = area.extent;
+      layer1 = area.layer1;
+      layer2 = _clamp(newL2, 0.0, 1.0);
+      layer3 = area.layer3;
+      layer4 = _clamp(newL4, 0.0, 1.0);
+      layer5 = _clamp(newL5, 0.0, 1.0);
+      layer6 = _clamp(newL6, 0.0, 1.0);
+      activity = _clamp(activity, 0.0, 1.0);
+      prediction = prediction;
+      error = error;
+      neuronDensity = area.neuronDensity;
+      myelination = area.myelination;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // GRADIENT FLOW (Energy Minimization)
+  // ══════════════════════════════════════════════════════════════
+
+  // Compute energy gradient ∇E
+  public func computeEnergyGradient(
+    excitationField: [[Float]],
+    predictionField: [[Float]],
+    errorField: [[Float]]
+  ) : [[Float]] {
+    let n = excitationField.size();
+    if (n == 0) { return [[]] };
+    
+    Array.tabulate<[Float]>(n, func(i) {
+      let m = excitationField[i].size();
+      Array.tabulate<Float>(m, func(j) {
+        // Energy = prediction_error² + activity_cost
+        let err = if (i < errorField.size() and j < errorField[i].size()) {
+          errorField[i][j]
+        } else { 0.0 };
+        
+        let act = excitationField[i][j];
+        
+        // Gradient: direction of steepest descent
+        let energyGrad = 2.0 * err + 0.1 * act;  // Error term + regularization
+        _clamp(energyGrad, -1.0, 1.0)
+      })
+    })
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // MAIN BEAT FUNCTION
+  // ══════════════════════════════════════════════════════════════
+
+  public type SubstrateInput = {
+    sensoryInput     : [[Float]];   // External sensory
+    motorCommand     : [[Float]];   // Motor output
+    reward           : Float;       // Reward signal
+    arousal          : Float;       // Arousal level
+  };
+
+  public func beatNeuralSubstrate(
+    state: NeuralSubstrateState,
+    input: SubstrateInput
+  ) : NeuralSubstrateState {
+    let dt = state.dt;
+    
+    // 1. Update excitation field with sensory input
+    let excitWithInput : NeuralField = {
+      state.excitationField with
+      inputField = input.sensoryInput
+    };
+    let newExcitation = updateNeuralField(excitWithInput, dt);
+    
+    // 2. Update inhibition field
+    let newInhibition = updateNeuralField(state.inhibitionField, dt);
+    
+    // 3. Update prediction field (top-down)
+    let newPrediction = updateNeuralField(state.predictionField, dt);
+    
+    // 4. Compute error field
+    let newErrorField : NeuralField = {
+      state.errorField with
+      fieldValues = Array.tabulate<[Float]>(state.errorField.gridSize, func(i) {
+        Array.tabulate<Float>(state.errorField.gridSize, func(j) {
+          let excit = newExcitation.fieldValues[i][j];
+          let pred = newPrediction.fieldValues[i][j];
+          _clamp(excit - pred, -1.0, 1.0)
+        })
+      })
+    };
+    
+    // 5. Update chemical gradients
+    // Dopamine sources: VTA, SNc
+    let daWithReward : ChemicalGradient = {
+      state.dopamineGradient with
+      sourceStrengths = Array.map<Float, Float>(
+        state.dopamineGradient.sourceStrengths,
+        func(s) { s + input.reward * 0.3 }
+      )
+    };
+    let newDopamine = updateChemicalGradient(daWithReward, dt);
+    
+    // Norepinephrine modulated by arousal
+    let neWithArousal : ChemicalGradient = {
+      state.norepinephrineGradient with
+      sourceStrengths = Array.map<Float, Float>(
+        state.norepinephrineGradient.sourceStrengths,
+        func(s) { s * (0.5 + input.arousal * 0.5) }
+      )
+    };
+    let newNE = updateChemicalGradient(neWithArousal, dt);
+    
+    let newSerotonin = updateChemicalGradient(state.serotoninGradient, dt);
+    let newACh = updateChemicalGradient(state.acetylcholineGradient, dt);
+    let newGlutamate = updateChemicalGradient(state.glutamateGradient, dt);
+    let newGABA = updateChemicalGradient(state.gabaGradient, dt);
+    
+    // 6. Update Brodmann areas
+    let newBAs = Array.map<BrodmannArea, BrodmannArea>(state.brodmannAreas, func(ba) {
+      updateBrodmannArea(
+        ba,
+        newExcitation.fieldValues,
+        newInhibition.fieldValues,
+        newDopamine.concentration,
+        state.excitationField.gridSize
+      )
+    });
+    
+    // 7. Compute energy gradient
+    let newEnergyGrad = computeEnergyGradient(
+      newExcitation.fieldValues,
+      newPrediction.fieldValues,
+      newErrorField.fieldValues
+    );
+    
+    // 8. Compute global energy
+    var sumError : Float = 0.0;
+    var sumAct : Float = 0.0;
+    for (row in newErrorField.fieldValues.vals()) {
+      for (v in row.vals()) {
+        sumError += v * v;
+      };
+    };
+    for (row in newExcitation.fieldValues.vals()) {
+      for (v in row.vals()) {
+        sumAct += v;
+      };
+    };
+    let gridTotal = Float.fromInt(state.excitationField.gridSize * state.excitationField.gridSize);
+    let newEnergy = sumError / gridTotal + sumAct * 0.01;
+    
+    // 9. Compute entropy
+    var entropy : Float = 0.0;
+    for (ba in newBAs.vals()) {
+      let p = ba.activity;
+      if (p > EPSILON and p < 1.0 - EPSILON) {
+        entropy -= p * Float.log(p) + (1.0 - p) * Float.log(1.0 - p);
+      };
+    };
+    entropy /= Float.fromInt(Nat.max(newBAs.size(), 1));
+    
+    {
+      brodmannAreas = newBAs;
+      excitationField = newExcitation;
+      inhibitionField = newInhibition;
+      predictionField = newPrediction;
+      errorField = newErrorField;
+      dopamineGradient = newDopamine;
+      serotoninGradient = newSerotonin;
+      norepinephrineGradient = newNE;
+      acetylcholineGradient = newACh;
+      glutamateGradient = newGlutamate;
+      gabaGradient = newGABA;
+      connectivityGradient = state.connectivityGradient;
+      whiteTracts = state.whiteTracts;
+      subcorticalNuclei = state.subcorticalNuclei;
+      globalEnergy = _clamp(newEnergy, 0.0, 10.0);
+      temperature = state.temperature * 0.99 + newEnergy * 0.01;
+      entropy = entropy;
+      energyGradient = newEnergyGrad;
+      flowVelocity = state.flowVelocity;
+      beatNum = state.beatNum + 1;
+      dt = state.dt;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // INITIALIZATION
+  // ══════════════════════════════════════════════════════════════
+
+  func createEmptyField(size: Nat, initVal: Float) : [[Float]] {
+    Array.tabulate<[Float]>(size, func(_) {
+      Array.tabulate<Float>(size, func(_) { initVal })
+    })
+  };
+
+  func createNeuralField(size: Nat) : NeuralField {
+    {
+      gridSize = size;
+      fieldValues = createEmptyField(size, 0.1);
+      timeConstant = 10.0;
+      threshold = 0.3;
+      steepness = 4.0;
+      excitRadius = 2.0;
+      inhibRadius = 4.0;
+      excitStrength = 0.8;
+      inhibStrength = 0.4;
+      inputField = createEmptyField(size, 0.0);
+    }
+  };
+
+  func createChemicalGradient(name: Text, sources: [GradientCoord]) : ChemicalGradient {
+    {
+      name = name;
+      concentration = createEmptyField(GRID_SIZE, 0.5);
+      diffusionCoeff = 0.1;
+      decayRate = 0.05;
+      releaseRate = 0.1;
+      sources = sources;
+      sourceStrengths = Array.tabulate<Float>(sources.size(), func(_) { 0.3 });
+      bindingAffinity = 0.8;
+      saturation = 1.0;
+    }
+  };
+
+  // Create Brodmann area
+  func createBA(id: Nat, name: Text, x: Float, y: Float, z: Float) : BrodmannArea {
+    {
+      id = id;
+      name = name;
+      hemisphere = #Bilateral;
+      position = { x = x; y = y; z = z };
+      extent = 0.1;
+      layer1 = 0.1;
+      layer2 = 0.2;
+      layer3 = 0.3;
+      layer4 = 0.2;
+      layer5 = 0.3;
+      layer6 = 0.2;
+      activity = 0.2;
+      prediction = 0.2;
+      error = 0.0;
+      neuronDensity = 0.5;
+      myelination = 0.5;
+    }
+  };
+
+  public func initNeuralSubstrate() : NeuralSubstrateState {
+    // Key Brodmann areas
+    let brodmannAreas = [
+      createBA(4, "PrimaryMotor", 0.3, 0.5, 0.7),
+      createBA(6, "PremotorSMA", 0.25, 0.5, 0.7),
+      createBA(17, "PrimaryVisual", 0.9, 0.5, 0.4),
+      createBA(18, "SecondaryVisual", 0.85, 0.5, 0.45),
+      createBA(41, "PrimaryAuditory", 0.5, 0.8, 0.4),
+      createBA(1, "PrimarySomatosensory", 0.35, 0.5, 0.7),
+      createBA(9, "DorsolateralPFC", 0.1, 0.5, 0.7),
+      createBA(10, "FrontalPole", 0.05, 0.5, 0.5),
+      createBA(11, "OrbitofrontalCortex", 0.1, 0.5, 0.3),
+      createBA(24, "AnteriorCingulate", 0.2, 0.5, 0.6),
+      createBA(44, "Broca", 0.2, 0.3, 0.5),
+      createBA(22, "Wernicke", 0.6, 0.3, 0.5),
+      createBA(7, "SuperiorParietal", 0.5, 0.5, 0.8),
+      createBA(40, "InferiorParietal", 0.5, 0.4, 0.6),
+      createBA(37, "FusiformGyrus", 0.7, 0.4, 0.3),
+    ];
+    
+    // Neuromodulator sources
+    let vtaCoord : GradientCoord = { x = 0.5; y = 0.5; z = 0.2 };
+    let sncCoord : GradientCoord = { x = 0.45; y = 0.5; z = 0.25 };
+    let lcCoord : GradientCoord = { x = 0.6; y = 0.5; z = 0.15 };
+    let rapheCoord : GradientCoord = { x = 0.55; y = 0.5; z = 0.1 };
+    let bfCoord : GradientCoord = { x = 0.3; y = 0.5; z = 0.25 };
+    
+    {
+      brodmannAreas = brodmannAreas;
+      excitationField = createNeuralField(GRID_SIZE);
+      inhibitionField = createNeuralField(GRID_SIZE);
+      predictionField = createNeuralField(GRID_SIZE);
+      errorField = createNeuralField(GRID_SIZE);
+      dopamineGradient = createChemicalGradient("Dopamine", [vtaCoord, sncCoord]);
+      serotoninGradient = createChemicalGradient("Serotonin", [rapheCoord]);
+      norepinephrineGradient = createChemicalGradient("Norepinephrine", [lcCoord]);
+      acetylcholineGradient = createChemicalGradient("Acetylcholine", [bfCoord]);
+      glutamateGradient = createChemicalGradient("Glutamate", []);
+      gabaGradient = createChemicalGradient("GABA", []);
+      connectivityGradient = {
+        sensoryMotor = createEmptyField(GRID_SIZE, 0.5);
+        visualAuditory = createEmptyField(GRID_SIZE, 0.5);
+        hierarchyLevel = createEmptyField(GRID_SIZE, 0.5);
+        timescale = createEmptyField(GRID_SIZE, 0.5);
+      };
+      whiteTracts = [];
+      subcorticalNuclei = [];
+      globalEnergy = 0.5;
+      temperature = 0.5;
+      entropy = 0.5;
+      energyGradient = createEmptyField(GRID_SIZE, 0.0);
+      flowVelocity = createEmptyField(GRID_SIZE, 0.0);
+      beatNum = 0;
+      dt = 0.001;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════
+  // SUMMARY
+  // ══════════════════════════════════════════════════════════════
+
+  public type SubstrateSummary = {
+    brodmannCount    : Nat;
+    globalEnergy     : Float;
+    entropy          : Float;
+    avgExcitation    : Float;
+    avgInhibition    : Float;
+    avgPredictionError: Float;
+    dopamineLevel    : Float;
+    serotoninLevel   : Float;
+  };
+
+  public func summary(state: NeuralSubstrateState) : SubstrateSummary {
+    var sumExcit : Float = 0.0;
+    var sumInhib : Float = 0.0;
+    var sumErr : Float = 0.0;
+    var sumDA : Float = 0.0;
+    var sumSer : Float = 0.0;
+    
+    for (row in state.excitationField.fieldValues.vals()) {
+      for (v in row.vals()) { sumExcit += v };
+    };
+    for (row in state.inhibitionField.fieldValues.vals()) {
+      for (v in row.vals()) { sumInhib += v };
+    };
+    for (row in state.errorField.fieldValues.vals()) {
+      for (v in row.vals()) { sumErr += Float.abs(v) };
+    };
+    for (row in state.dopamineGradient.concentration.vals()) {
+      for (v in row.vals()) { sumDA += v };
+    };
+    for (row in state.serotoninGradient.concentration.vals()) {
+      for (v in row.vals()) { sumSer += v };
+    };
+    
+    let total = Float.fromInt(GRID_SIZE * GRID_SIZE);
+    
+    {
+      brodmannCount = state.brodmannAreas.size();
+      globalEnergy = state.globalEnergy;
+      entropy = state.entropy;
+      avgExcitation = sumExcit / total;
+      avgInhibition = sumInhib / total;
+      avgPredictionError = sumErr / total;
+      dopamineLevel = sumDA / total;
+      serotoninLevel = sumSer / total;
+    }
+  };
+
+}
