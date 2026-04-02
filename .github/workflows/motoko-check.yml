@@ -1,0 +1,88 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# NOVA MOTOKO BUILD VERIFICATION
+# Medina Tech | Dallas TX | 2026
+# ═══════════════════════════════════════════════════════════════════════════
+# This workflow verifies that all Motoko code compiles correctly.
+# It runs on every push and PR that modifies .mo files.
+# ═══════════════════════════════════════════════════════════════════════════
+
+name: Motoko Build Check
+
+on:
+  push:
+    branches: [ main, master, develop ]
+    paths:
+      - 'src/**/*.mo'
+      - 'dfx.json'
+  pull_request:
+    branches: [ main, master, develop ]
+    paths:
+      - 'src/**/*.mo'
+      - 'dfx.json'
+  workflow_dispatch:  # Allow manual trigger
+
+# Minimal permissions for security
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build & Verify Canisters
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install DFX SDK
+      uses: dfinity/setup-dfx@main
+      with:
+        dfx-version: '0.24.3'
+        
+    - name: Verify DFX installation
+      run: |
+        dfx --version
+        which moc || echo "moc not in PATH (expected)"
+        
+    - name: Count Motoko lines
+      run: |
+        echo "=== MOTOKO CODE STATISTICS ==="
+        find src -name "*.mo" -type f | wc -l | xargs -I {} echo "Total .mo files: {}"
+        find src -name "*.mo" -type f -exec cat {} \; | wc -l | xargs -I {} echo "Total lines: {}"
+        
+    - name: Start local replica
+      run: dfx start --background --clean
+      
+    - name: Build all canisters
+      id: build
+      run: |
+        echo "=== BUILDING NOVA CANISTERS ==="
+        set -o pipefail
+        dfx build 2>&1 | tee build.log
+        echo "build_status=$?" >> $GITHUB_OUTPUT
+        
+    - name: Check for type errors
+      if: failure()
+      run: |
+        echo "=== BUILD ERRORS ==="
+        grep -i "error\|type mismatch\|unbound\|syntax" build.log || true
+        
+    - name: Report success
+      if: success()
+      run: |
+        echo "✓ All NOVA canisters compiled successfully!"
+        echo "=== CANISTER BUILD SUMMARY ==="
+        ls -la .dfx/local/canisters/ 2>/dev/null || echo "Build artifacts in .dfx/"
+        
+    - name: Stop replica
+      if: always()
+      run: dfx stop || true
+      
+    - name: Upload build log
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-log
+        path: build.log
+        retention-days: 7
