@@ -1,0 +1,241 @@
+// NOVA — METALS PIPELINE MODULE (Consolidated from swarm_metals)
+// Medina Tech | Alfredo Medina Hernandez | Dallas TX | 2026
+// Sovereign Cognitive Swarm Engine. All doctrine attributed herein.
+//
+// ─── METALS MODULE ────────────────────────────────────────────────────────────
+// 12 metal transfer functions applied sequentially to any input signal vector.
+// Each metal models a distinct physical/metaphysical property that modulates
+// how organism signals flow, amplify, stabilise, and conduct.
+//
+// CONSOLIDATED: This was previously a separate canister (swarm_metals).
+// Now a module within swarm_brain for 12 Hz heartbeat temporal coherence.
+
+import Float     "mo:base/Float";
+import Int       "mo:base/Int";
+import Nat       "mo:base/Nat";
+import Principal "mo:base/Principal";
+import Text      "mo:base/Text";
+import Time      "mo:base/Time";
+import Array     "mo:base/Array";
+
+module {
+
+  // ─── CONSTANTS ──────────────────────────────────────────────────────────────
+  let SOVEREIGN_FLOOR : Float = 1.0;
+  let PI              : Float = 3.14159265358979;
+  let VECTOR_SIZE     : Nat   = 18;
+
+  // ─── STATE CLASS ────────────────────────────────────────────────────────────
+  
+  public class MetalsState() {
+    // Sovereign Seal — On-chain IP Attribution
+    public var architectPrincipal   : Principal = Principal.fromText("aaaaa-aa");
+    public var trustedCallerPrincipal: Principal = Principal.fromText("aaaaa-aa");
+    public var genesisLocked         : Bool      = false;
+    public var sovereignSeal         : Text      = "";
+    public var genesisTimestamp      : Int       = 0;
+    public var totalProcessedVectors : Nat       = 0;
+
+    // 12 METAL RESONANCE CONSTANTS — MAXIMIZED VALUES
+    public var metalGold     : Float = 10.0;
+    public var metalSilver   : Float = 10.0;
+    public var silverConductance : Float = 1.0;
+    public var metalIron     : Float = 10.0;
+    public var metalCopper   : Float = 10.0;
+    public var metalPlatinum : Float = 10.0;
+    public var metalTitanium : Float = 10.0;
+    public var metalLithium  : Float = 10.0;
+    public var metalCobalt   : Float = 0.0;
+    public var metalMercury  : Float = 10.0;
+    public var metalTungsten : Float = 10.0;
+    public var metalZinc     : Float = 10.0;
+    public var metalOsmium   : Float = 10.0;
+
+    // Rolling previous-cycle output (silver conductor needs prior values)
+    public var prevOutput : [var Float] = Array.init<Float>(VECTOR_SIZE, SOVEREIGN_FLOOR);
+  };
+
+  // ─── ACCESS CONTROL ─────────────────────────────────────────────────────────
+  
+  public func isAuthorized(state : MetalsState, caller : Principal) : Bool {
+    if (not state.genesisLocked) return true;
+    caller == state.architectPrincipal or caller == state.trustedCallerPrincipal
+  };
+
+  // ─── SINGLE-ELEMENT METAL PIPELINE ──────────────────────────────────────────
+  
+  func metalPipeline(
+      state         : MetalsState,
+      input         : Float,
+      prevVal       : Float,
+      threatDeflect : Float,
+      formaMintRate : Float,
+      rSwarm        : Float,
+      beat          : Nat) : Float {
+    var v = input;
+
+    // 1. GOLD — amplifier
+    v := v * (1.0 + state.metalGold * 0.1);
+
+    // 2. SILVER — conductor
+    v := v + state.metalSilver * prevVal * 0.05;
+
+    // 3. IRON — hardener
+    v := Float.max(SOVEREIGN_FLOOR, v * state.metalIron);
+
+    // 4. COPPER — connector
+    v := v * (1.0 + state.metalCopper * rSwarm);
+
+    // 5. PLATINUM — catalyst
+    let platExp = 1.0 + state.metalPlatinum * 0.01;
+    v := Float.pow(Float.max(0.001, v), platExp);
+
+    // 6. TITANIUM — shield
+    v := v + state.metalTitanium * threatDeflect;
+
+    // 7. LITHIUM — stabiliser
+    v := 0.9 * v + 0.1 * state.metalLithium * SOVEREIGN_FLOOR;
+
+    // 8. COBALT — magnetiser
+    v := v * Float.cos(state.metalCobalt * PI / 180.0);
+
+    // 9. MERCURY — transformer
+    v := v * (1.0 + state.metalMercury * Float.sin(Float.fromInt(beat) * 0.001));
+
+    // 10. TUNGSTEN — temperature
+    v := v * (1.0 + state.metalTungsten * formaMintRate * 0.001);
+
+    // 11. ZINC — healer
+    v := v + state.metalZinc * (SOVEREIGN_FLOOR - Float.min(SOVEREIGN_FLOOR, prevVal));
+
+    // 12. OSMIUM — density
+    v := v * state.metalOsmium * rSwarm;
+
+    // Sovereign floor clamp
+    Float.max(SOVEREIGN_FLOOR, v)
+  };
+
+  // ─── PROCESS VECTOR — SYNC (no async!) ──────────────────────────────────────
+  
+  public func processVector(
+      state        : MetalsState,
+      organVector  : [Float],
+      rSwarm       : Float,
+      beat         : Nat,
+      threatLevel  : Float,
+      energyLevel  : Float) : [Float] {
+
+    let n = Nat.min(organVector.size(), VECTOR_SIZE);
+    let threatDeflect = Float.max(0.0, 1.0 - threatLevel);
+    let formaMintRate = energyLevel * rSwarm;
+
+    let result = Array.tabulate<Float>(VECTOR_SIZE, func(i) {
+      let raw   = if (i < n) Float.max(SOVEREIGN_FLOOR, organVector[i]) else SOVEREIGN_FLOOR;
+      let prev  = state.prevOutput[i];
+      let out   = metalPipeline(state, raw, prev, threatDeflect, formaMintRate, rSwarm, beat);
+      state.prevOutput[i] := raw;
+      out
+    });
+
+    state.totalProcessedVectors += 1;
+    result
+  };
+
+  // ─── QUERY — METAL STATE SNAPSHOT ───────────────────────────────────────────
+  
+  public func getMetalsSnapshot(state : MetalsState) : {
+    resonances : [Float];
+    names      : [Text];
+    prevOutput : [Float];
+    processedCount : Nat;
+    seal       : Text;
+  } {
+    {
+      resonances = [state.metalGold, state.metalSilver, state.metalIron, state.metalCopper,
+                    state.metalPlatinum, state.metalTitanium, state.metalLithium, state.metalCobalt,
+                    state.metalMercury, state.metalTungsten, state.metalZinc, state.metalOsmium];
+      names      = ["GOLD","SILVER","IRON","COPPER","PLATINUM","TITANIUM",
+                    "LITHIUM","COBALT","MERCURY","TUNGSTEN","ZINC","OSMIUM"];
+      prevOutput = Array.tabulate<Float>(VECTOR_SIZE, func(i) { state.prevOutput[i] });
+      processedCount = state.totalProcessedVectors;
+      seal = state.sovereignSeal;
+    }
+  };
+
+  // ─── SET METAL RESONANCE ─────────────────────────────────────────────────────
+  
+  public func setMetalResonance(state : MetalsState, metal : Text, value : Float) {
+    switch metal {
+      case "GOLD"     { state.metalGold     := Float.max(0.0, Float.min(10.0, value)) };
+      case "SILVER"   { state.metalSilver   := Float.max(0.0, Float.min(10.0, value)) };
+      case "IRON"     { state.metalIron     := Float.max(0.0, Float.min(10.0, value)) };
+      case "COPPER"   { state.metalCopper   := Float.max(0.0, Float.min(10.0, value)) };
+      case "PLATINUM" { state.metalPlatinum := Float.max(0.0, Float.min(10.0, value)) };
+      case "TITANIUM" { state.metalTitanium := Float.max(0.0, Float.min(10.0, value)) };
+      case "LITHIUM"  { state.metalLithium  := Float.max(0.0, Float.min(10.0, value)) };
+      case "COBALT"   { state.metalCobalt   := Float.max(-360.0, Float.min(360.0, value)) };
+      case "MERCURY"  { state.metalMercury  := Float.max(0.0, Float.min(10.0, value)) };
+      case "TUNGSTEN" { state.metalTungsten := Float.max(0.0, Float.min(10.0, value)) };
+      case "ZINC"     { state.metalZinc     := Float.max(0.0, Float.min(10.0, value)) };
+      case "OSMIUM"   { state.metalOsmium   := Float.max(0.0, Float.min(10.0, value)) };
+      case _          {};
+    };
+  };
+
+  // ─── SET ALL RESONANCES AT ONCE ──────────────────────────────────────────────
+  
+  public func setAllResonances(state : MetalsState, vals : [Float]) {
+    if (vals.size() < 12) return;
+    state.metalGold     := Float.max(0.0, Float.min(10.0, vals[0]));
+    state.metalSilver   := Float.max(0.0, Float.min(10.0, vals[1]));
+    state.metalIron     := Float.max(0.0, Float.min(10.0, vals[2]));
+    state.metalCopper   := Float.max(0.0, Float.min(10.0, vals[3]));
+    state.metalPlatinum := Float.max(0.0, Float.min(10.0, vals[4]));
+    state.metalTitanium := Float.max(0.0, Float.min(10.0, vals[5]));
+    state.metalLithium  := Float.max(0.0, Float.min(10.0, vals[6]));
+    state.metalCobalt   := Float.max(-360.0, Float.min(360.0, vals[7]));
+    state.metalMercury  := Float.max(0.0, Float.min(10.0, vals[8]));
+    state.metalTungsten := Float.max(0.0, Float.min(10.0, vals[9]));
+    state.metalZinc     := Float.max(0.0, Float.min(10.0, vals[10]));
+    state.metalOsmium   := Float.max(0.0, Float.min(10.0, vals[11]));
+  };
+
+  // ─── RESET PREVIOUS OUTPUT ───────────────────────────────────────────────────
+  
+  public func resetPrevOutput(state : MetalsState) {
+    var i = 0;
+    while (i < VECTOR_SIZE) { state.prevOutput[i] := SOVEREIGN_FLOOR; i += 1 };
+  };
+
+  // ─── SOVEREIGN GENESIS — one-time IP lock ────────────────────────────────────
+  
+  public func claimArchitect(state : MetalsState, caller : Principal) : Text {
+    assert(not state.genesisLocked);
+    state.architectPrincipal := caller;
+    state.genesisLocked      := true;
+    state.genesisTimestamp   := Time.now();
+    state.sovereignSeal      :=
+      "NOVA:METALS_PIPELINE:MEDINA_TECH"
+      # ":Alfredo_Medina_Hernandez:Dallas_TX_2026"
+      # ":architect=" # Principal.toText(caller)
+      # ":genesis_ts=" # Int.toText(state.genesisTimestamp)
+      # ":metals=12:pipeline=GOLD>SILVER>IRON>COPPER>PLATINUM"
+      # ">TITANIUM>LITHIUM>COBALT>MERCURY>TUNGSTEN>ZINC>OSMIUM"
+      # ":silver_anchor=1.0"
+      # ":sovereign_floor=1.0"
+      # ":ip_lock=METALS_PIPELINE_GENESIS"
+      # ":blockchain=ICP_IMMUTABLE"
+      # ":consolidated=true";
+    state.sovereignSeal
+  };
+
+  public func setTrustedCaller(state : MetalsState, p : Principal) {
+    state.trustedCallerPrincipal := p;
+  };
+
+  public func getSovereignSeal(state : MetalsState)      : Text      { state.sovereignSeal };
+  public func getArchitectPrincipal(state : MetalsState) : Principal { state.architectPrincipal };
+  public func isGenesisClaimed(state : MetalsState)      : Bool      { state.genesisLocked };
+  public func getGenesisTimestamp(state : MetalsState)   : Int       { state.genesisTimestamp };
+
+}

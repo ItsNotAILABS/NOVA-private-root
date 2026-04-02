@@ -135,9 +135,17 @@ import TradeSecretProtection      "./modules/TradeSecretProtection";
 import WarSimEngine               "./modules/WarSimEngine";
 import WorldOrganism              "./modules/WorldOrganism";
 
-// Inter-canister coupling: drive quantum layer and audit trail from brain tick
-import SwarmQuantum "canister:swarm_quantum";
-import SwarmAudit   "canister:swarm_audit";
+// ═══════════════════════════════════════════════════════════════════════════
+// CONSOLIDATED MODULES — FORMERLY SEPARATE CANISTERS
+// 2026-04-02: Absorbed into swarm_brain for 12 Hz heartbeat temporal coherence
+// Inter-canister async calls broke the heartbeat — modules are sync
+// ═══════════════════════════════════════════════════════════════════════════
+
+import QuantumChannels            "./modules/QuantumChannels";
+import MetalsPipeline             "./modules/MetalsPipeline";
+import AuditLog                   "./modules/AuditLog";
+import CommandActions             "./modules/CommandActions";
+import TelemetryStore             "./modules/TelemetryStore";
 
 actor SwarmBrain {
 
@@ -260,6 +268,14 @@ actor SwarmBrain {
   // ─── QUANTUM COVENANT ENCRYPTION STATE ──────────────────────────────────────
   // QCE: Quantum-native encryption using ENTANGLA matrix eigenvalues
   var qceState : QuantumCovenantEncryption.QCEState = QuantumCovenantEncryption.initQCEState();
+
+  // ─── CONSOLIDATED MODULE STATES ─────────────────────────────────────────────
+  // These were previously separate canisters. Now local state for 12 Hz coherence.
+  var quantumState   : QuantumChannels.QuantumState     = QuantumChannels.QuantumState();
+  var metalsState    : MetalsPipeline.MetalsState       = MetalsPipeline.MetalsState();
+  var auditState     : AuditLog.AuditState              = AuditLog.AuditState();
+  var commandState   : CommandActions.CommandState     = CommandActions.CommandState();
+  var telemetryState : TelemetryStore.TelemetryState   = TelemetryStore.TelemetryState();
 
   // ─── ACCESS CONTROL HELPERS ─────────────────────────────────────────────────
   func isAuthorized(caller : Principal) : Bool {
@@ -735,12 +751,15 @@ actor SwarmBrain {
     stableQCoherence[id]        := 0.5;
     stableNowAttention[id]      := 1.0; // fully present at birth
 
-    // Register in swarm_quantum canister so quantumTick() includes this drone.
-    // Fire-and-forget: brain does not block on quantum canister response.
-    ignore SwarmQuantum.registerQuantumDrone(id);
+    // Register in quantum channels module (now local, sync).
+    QuantumChannels.registerQuantumDrone(quantumState, id);
 
-    // Audit: record drone birth event.
-    ignore SwarmAudit.log(
+    // Register in telemetry store module.
+    TelemetryStore.registerDrone(telemetryState, id, cls);
+
+    // Audit: record drone birth event (now local, sync).
+    ignore AuditLog.log(
+      auditState,
       #DRONE_ADDED, currentBeat, ?id,
       "Drone " # Nat.toText(id) # " registered class=" # cls,
       rSwarm, jDrift, stableNeuroChem[id * 4 + CORTISOL],
@@ -1449,14 +1468,14 @@ actor SwarmBrain {
       i += 1;
     };
 
-    // Phase 9: Drive swarm_quantum canister (fire-and-forget).
-    // Keeps the dedicated quantum canister's superposition, entanglement, and
-    // recognition-memory state in sync with every brain tick.
-    ignore SwarmQuantum.quantumTick(rSwarm, jDrift, currentBeat);
+    // Phase 9: Drive quantum channels module (now local, SYNC — no async latency!).
+    // This is the key fix: quantumTick now runs in the same beat, not 200ms later.
+    ignore QuantumChannels.quantumTick(quantumState, rSwarm, jDrift, currentBeat);
 
-    // Phase 10: Audit significant swarm events.
+    // Phase 10: Audit significant swarm events (now local, sync).
     if (rSwarm >= OMNIS_THRESHOLD and currentBeat % 10 == 0) {
-      ignore SwarmAudit.log(
+      ignore AuditLog.log(
+        auditState,
         #OMNIS_STATE, currentBeat, null,
         "OMNIS emergence: swarm fully synchronised",
         rSwarm, jDrift, 0.0, "SYSTEM", "{}"
@@ -1678,8 +1697,9 @@ actor SwarmBrain {
       };
       j += 1;
     };
-    // Audit: record the sacrifice event for immutable traceability.
-    ignore SwarmAudit.log(
+    // Audit: record the sacrifice event for immutable traceability (now local, sync).
+    ignore AuditLog.log(
+      auditState,
       #DRONE_SACRIFICED, currentBeat, ?id,
       "Sacrifice executed for drone " # Nat.toText(id),
       rSwarm, jDrift, cortisol, "SYSTEM", "{}"
