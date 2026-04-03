@@ -2849,9 +2849,10 @@ actor SwarmBrain {
   //   network-attested and cannot be reproduced off-chain.
   public shared(msg) func claimArchitect() : async Text {
     assert(not genesisLocked);
-    // Lock immediately before any await to prevent re-entrancy
-    architectPrincipal := msg.caller;
+    // Lock immediately — MUST be the first mutation after the assertion to
+    // prevent a concurrent caller from slipping through during the await.
     genesisLocked      := true;
+    architectPrincipal := msg.caller;
     genesisTimestamp   := Time.now();
     genesisBeat        := currentBeat;
 
@@ -2859,12 +2860,15 @@ actor SwarmBrain {
     let ic : actor { raw_rand : () -> async Blob } = actor "aaaaa-aa";
     let entropyBlob = await ic.raw_rand();
 
-    // Fold first 4 bytes of entropy into a Nat32 genesis nonce
+    // ICP guarantees ic_raw_rand() returns exactly 32 bytes; assert defensively
     let entropyBytes = Blob.toArray(entropyBlob);
-    let e0 : Nat32 = if (entropyBytes.size() > 0) Nat32.fromNat(Nat8.toNat(entropyBytes[0])) else 0;
-    let e1 : Nat32 = if (entropyBytes.size() > 1) Nat32.fromNat(Nat8.toNat(entropyBytes[1])) else 0;
-    let e2 : Nat32 = if (entropyBytes.size() > 2) Nat32.fromNat(Nat8.toNat(entropyBytes[2])) else 0;
-    let e3 : Nat32 = if (entropyBytes.size() > 3) Nat32.fromNat(Nat8.toNat(entropyBytes[3])) else 0;
+    assert(entropyBytes.size() >= 4);
+
+    // Fold first 4 bytes into a Nat32 genesis nonce
+    let e0 : Nat32 = Nat32.fromNat(Nat8.toNat(entropyBytes[0]));
+    let e1 : Nat32 = Nat32.fromNat(Nat8.toNat(entropyBytes[1]));
+    let e2 : Nat32 = Nat32.fromNat(Nat8.toNat(entropyBytes[2]));
+    let e3 : Nat32 = Nat32.fromNat(Nat8.toNat(entropyBytes[3]));
     let genesisNonce : Nat32 = (e0 << 24) | (e1 << 16) | (e2 << 8) | e3;
 
     sovereignSeal      :=
