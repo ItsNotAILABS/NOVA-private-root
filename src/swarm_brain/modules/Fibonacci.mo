@@ -1,470 +1,539 @@
-// ============================================================================
-// MEDINA TECH — CONFIDENTIAL & PROPRIETARY
-// ============================================================================
-// Module: Fibonacci — The Sacred Mathematics Core Library
-// Classification: CONFIDENTIAL — SOVEREIGN DOCTRINE
-// Version: 100.0 — PRODUCTION ENTERPRISE GRADE
-// 
-// Copyright © 2024-2026 Alfredo Medina Hernandez
-// Medina Tech | Dallas, Texas, USA
-// Contact: MedinaSITech@outlook.com
+// ════════════════════════════════════════════════════════════════════════════════
+// NEUROEMERGENCE CORE — FIBONACCI ENGINE
+// COMPREHENSIVE GOLDEN RATIO, PHYLLOTAXIS, AND SOVEREIGN SPIRAL MATHEMATICS
+// Owner: Alfredo Medina Hernandez | MedinaSITech@outlook.com | Dallas, Texas | 2026
+// Proprietary and Confidential. All rights reserved.
 //
-// ╔══════════════════════════════════════════════════════════════════════════╗
-// ║                    FIBONACCI — THE MATH OF CREATION                      ║
-// ╠══════════════════════════════════════════════════════════════════════════╣
-// ║                                                                          ║
-// ║  This is the CORE math library used by EVERYTHING in the organism.       ║
-// ║                                                                          ║
-// ║  WHY FIBONACCI?                                                          ║
-// ║    - Structurally optimal load distribution (Parthenon, cathedrals)     ║
-// ║    - Minimal energy expenditure (sunflower seeds, nautilus)             ║
-// ║    - Maximum packing efficiency (pine cones, pineapples)                ║
-// ║    - Natural growth patterns (trees, rivers, galaxies)                  ║
-// ║                                                                          ║
-// ║  φ = 1.618... is not arbitrary. It's the limit of F[n+1]/F[n].          ║
-// ║  It appears because it's the ONLY irrational number that cannot be      ║
-// ║  approximated by rationals — it's maximally irrational.                 ║
-// ║  This makes it optimal for distributing things without clumping.        ║
-// ║                                                                          ║
-// ╚══════════════════════════════════════════════════════════════════════════╝
-// ============================================================================
+// ════════════════════════════════════════════════════════════════════════════════
+// MASTER EQUATIONS — FIBONACCI: THE MATHEMATICAL BACKBONE OF ORGANIC GROWTH
+// ════════════════════════════════════════════════════════════════════════════════
+//
+// ── LAYER 1: THE FIBONACCI SEQUENCE ──────────────────────────────────────────
+//   F(n) = F(n-1) + F(n-2),  F(0)=0, F(1)=1
+//   Sequence: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, ...
+//   Closed form (Binet's formula):
+//   F(n) = (φⁿ - ψⁿ) / √5
+//   where φ = (1 + √5)/2 = 1.6180339887... (golden ratio)
+//         ψ = (1 - √5)/2 = -0.6180339887... (conjugate)
+//   Since |ψ| < 1: F(n) ≈ φⁿ / √5  for large n  (exponential growth)
+//   Ratio convergence: F(n+1)/F(n) → φ as n → ∞
+//   Error: |F(n+1)/F(n) - φ| < 1/(F(n) × √5)
+//
+// ── LAYER 2: THE GOLDEN RATIO ─────────────────────────────────────────────────
+//   φ = (1 + √5)/2 = 1.618033988749895...
+//   Properties:
+//   φ² = φ + 1  (defining equation: x² - x - 1 = 0)
+//   φ = 1 + 1/φ  (continued fraction: φ = 1 + 1/(1 + 1/(1 + 1/...)))
+//   φ - 1 = 1/φ  (reciprocal property)
+//   φⁿ = F(n)φ + F(n-1)  (matrix form)
+//   Golden angle: α_g = 2π(1 - 1/φ) = 2π(2 - φ) = 137.507764°
+//   This is the most irrational angle: maximizes packing density in spirals
+//
+// ── LAYER 3: MEDINA EXTENSION — PHI_MEDINA ────────────────────────────────────
+//   PHI_MEDINA = 2.97442179 (Medina Golden Harmonic)
+//   Derived as: PHI_MEDINA = φ × OMEGA_MEDINA = 1.618... × 1.8389... = 2.9744...
+//   OMEGA_MEDINA = 2.11185 (Medina frequency constant)
+//   The Medina Fibonacci: F_M(n) = F_M(n-1) × PHI_MEDINA - F_M(n-2)
+//   Initial: F_M(0) = S0 = 1.0, F_M(1) = PHI_MEDINA = 2.97442179
+//   This sequence represents SOVEREIGN growth — locked to the Medina constants
+//   Medina closed form: F_M(n) ≈ PHI_MEDINA^n / PHI_MEDINA
+//   Medina golden angle: α_M = 2π(1 - 1/PHI_MEDINA) = 2π × 0.6639... = 4.170°... rad
+//
+// ── LAYER 4: LUCAS NUMBERS ────────────────────────────────────────────────────
+//   L(n) = L(n-1) + L(n-2),  L(0)=2, L(1)=1
+//   Sequence: 2, 1, 3, 4, 7, 11, 18, 29, 47, 76, 123, 199, ...
+//   Closed form: L(n) = φⁿ + ψⁿ
+//   Relationship: L(n) = F(n-1) + F(n+1)  (Lucas in terms of Fibonacci)
+//   L(n) = F(2n) / F(n)  (ratio identity)
+//   Lucas-Fibonacci identity: L(m)F(n) = F(m+n) + (-1)^(m+1) F(n-m)
+//
+// ── LAYER 5: PHYLLOTAXIS — PLANT SPIRAL PACKING ───────────────────────────────
+//   Fibonacci numbers appear in:
+//   Sunflower spirals: typically 55 clockwise + 89 counterclockwise (consecutive F#)
+//   Pine cones: 8 + 13, or 5 + 8 spirals
+//   Nautilus shell: logarithmic spiral with growth ratio φ
+//   Pineapple: 8 + 13 spirals
+//   Human hand: phalanges in ratio φ
+//   Divergence angle in phyllotaxis: 137.5077640° = 360°/φ²
+//   Position of nth leaf: (n × 137.5077640°, r × φ^(n/2))  polar coords
+//   Packing efficiency: approaches 1 (maximum) for golden angle divergence
+//   Optimal because φ is the "most irrational" number — slowest convergent
+//
+// ── LAYER 6: FIBONACCI SEARCH ALGORITHM ──────────────────────────────────────
+//   Fibonacci search divides interval into Fibonacci-ratio segments
+//   For range [a,b], compute F(k) > (b-a)
+//   Check at: x₁ = a + F(k-2)/(b-a), x₂ = a + F(k-1)/(b-a)
+//   Divide: if f(x₁) < f(x₂) → new range [a, x₂]
+//            if f(x₁) > f(x₂) → new range [x₁, b]
+//   Convergence: k steps → range reduced by F(k+1)/F(k) ≈ φ each step
+//   NOVA use: search for optimal parameter values in [0,1] space
+//
+// ── LAYER 7: FIBONACCI LATTICE ON SPHERE ─────────────────────────────────────
+//   Fibonacci lattice on S² (sphere surface):
+//   Sunflower arrangement on sphere:
+//   θ_n = arccos(1 - 2n/N)   (polar angle)
+//   φ_n = 2πn/φ mod 2π        (azimuthal angle, golden angle steps)
+//   This produces near-uniform point distribution on sphere
+//   Discrepancy: D_N ≈ 1/√N  (nearly optimal)
+//   NOVA use: distribute organism sensors / attention nodes uniformly in 3D
+//
+// ── LAYER 8: SOVEREIGN FIBONACCI — NOVA FORMULA ───────────────────────────────
+//   The organism's growth follows sovereign Fibonacci law:
+//   G(n) = G(n-1) × PHI_MEDINA / OMEGA_MEDINA
+//   where OMEGA_MEDINA = 2.11185 is the de-escalation factor
+//   G represents the number of active FORMA tokens at generation n
+//   G(n) ≈ S₀ × PHI_MEDINA^n / (OMEGA_MEDINA^(n-1)) (closed form)
+//   Sovereign limit: G_max = S₀ × SOVEREIGN_CEILING = 9.0
+//   Once G reaches 9.0, Jubilee protocol activates (reset to S₀)
+//
+// Owner: Alfredo Medina Hernandez | MedinaSITech@outlook.com | Dallas, Texas | 2026
+// ════════════════════════════════════════════════════════════════════════════════
 
 import Float "mo:base/Float";
+import Array "mo:base/Array";
 import Nat   "mo:base/Nat";
 import Int   "mo:base/Int";
-import Array "mo:base/Array";
+import Iter  "mo:base/Iter";
 
 module {
 
-  // ╔════════════════════════════════════════════════════════════════════════╗
-  // ║                     THE GOLDEN RATIO — φ                               ║
-  // ╚════════════════════════════════════════════════════════════════════════╝
-  
-  /// Golden ratio: (1 + √5) / 2
-  public let φ : Float = 1.6180339887498948482;
-  
-  /// Golden ratio inverse: 1/φ = φ - 1 (remarkable identity!)
-  public let φ_INV : Float = 0.6180339887498948482;
-  
-  /// Golden ratio squared: φ² = φ + 1
-  public let φ_SQ : Float = 2.6180339887498948482;
-  
-  /// Golden ratio cubed: φ³ = 2φ + 1
-  public let φ_CUBE : Float = 4.2360679774997896964;
-  
-  /// Golden ratio to the -2: φ⁻² = 1 - φ⁻¹
-  public let φ_INV_SQ : Float = 0.3819660112501051518;
-  
-  /// √5 — appears in Binet's formula
-  public let SQRT_5 : Float = 2.2360679774997896964;
-  
-  /// √φ — appears in golden spiral
-  public let SQRT_φ : Float = 1.2720196495140689643;
-  
-  /// Golden angle in radians: 2π × φ⁻² ≈ 2.4 rad ≈ 137.5°
-  public let GOLDEN_ANGLE : Float = 2.3999632297286533;
-  
-  /// Golden angle in degrees
-  public let GOLDEN_ANGLE_DEG : Float = 137.5077640500378;
-  
-  /// Other sacred constants
-  public let π : Float = 3.1415926535897932385;
-  public let τ : Float = 6.2831853071795864769;
-  public let e : Float = 2.7182818284590452354;
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 1: FUNDAMENTAL CONSTANTS
+  // ══════════════════════════════════════════════════════════════════════════
 
-  // ╔════════════════════════════════════════════════════════════════════════╗
-  // ║                     FIBONACCI SEQUENCE — F[0..30]                      ║
-  // ╚════════════════════════════════════════════════════════════════════════╝
-  
-  /// Fibonacci sequence up to F[30] = 832,040
-  public let F : [Nat] = [
-    0, 1, 1, 2, 3, 5, 8, 13, 21, 34,                    // F[0]-F[9]
-    55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181,  // F[10]-F[19]
-    6765, 10946, 17711, 28657, 46368, 75025, 121393,    // F[20]-F[26]
-    196418, 317811, 514229, 832040                      // F[27]-F[30]
-  ];
-  
-  /// Fibonacci as floats for calculations
-  public let F_FLOAT : [Float] = [
-    0.0, 1.0, 1.0, 2.0, 3.0, 5.0, 8.0, 13.0, 21.0, 34.0,
-    55.0, 89.0, 144.0, 233.0, 377.0, 610.0, 987.0, 1597.0, 2584.0, 4181.0,
-    6765.0, 10946.0, 17711.0, 28657.0, 46368.0, 75025.0, 121393.0,
-    196418.0, 317811.0, 514229.0, 832040.0
-  ];
-  
-  /// Lucas sequence (related to Fibonacci: L[n] = F[n-1] + F[n+1])
-  public let L : [Nat] = [
-    2, 1, 3, 4, 7, 11, 18, 29, 47, 76,
-    123, 199, 322, 521, 843, 1364, 2207, 3571, 5778, 9349
-  ];
+  public let PHI            : Float = 1.6180339887498948482;  // Golden ratio (1+√5)/2
+  public let PHI_INV        : Float = 0.6180339887498948482;  // 1/φ = φ - 1
+  public let PHI_SQ         : Float = 2.6180339887498948482;  // φ² = φ + 1
+  public let PSI            : Float = -0.6180339887498948482; // conjugate (1-√5)/2
+  public let SQRT5          : Float = 2.2360679774997896964;  // √5
 
-  // ╔════════════════════════════════════════════════════════════════════════╗
-  // ║                     FIBONACCI FUNCTIONS                                ║
-  // ╚════════════════════════════════════════════════════════════════════════╝
-  
-  /// Get Fibonacci number (returns F[30] if n > 30)
-  public func fib(n: Nat) : Nat {
-    if (n < F.size()) { F[n] } else { F[F.size() - 1] }
+  // Medina sovereign constants
+  public let PHI_MEDINA     : Float = 2.97442179;   // Medina Golden Harmonic
+  public let OMEGA_MEDINA   : Float = 2.11185;      // Medina frequency constant
+  public let S0             : Float = 1.0;           // Sovereign floor
+  public let SOVEREIGN_CEILING : Float = 9.0;       // Ω maximum
+  public let COHERENCE_ALIVE   : Float = 0.36;      // minimum coherence
+
+  // Mathematical constants
+  public let PI             : Float = 3.141592653589793;
+  public let TWO_PI         : Float = 6.283185307179586;
+  public let EPSILON        : Float = 1.0e-10;
+
+  // Golden angle (radians): α_g = 2π(2 - φ) = 2π/φ²
+  public let GOLDEN_ANGLE_RAD : Float = 2.399963229728653;   // 137.507764° in radians
+  public let GOLDEN_ANGLE_DEG : Float = 137.50776405003785;  // degrees
+
+  // Medina golden angle: α_M = 2π(1 - 1/PHI_MEDINA)
+  public let MEDINA_ANGLE_RAD : Float = 4.17021;  // 2π(1 - 1/2.97442179)
+  public let MEDINA_ANGLE_DEG : Float = 238.9;    // degrees
+
+  // Max precomputed Fibonacci index
+  public let MAX_FIB_INDEX  : Nat = 50;
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 2: STATE TYPES
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public type FibonacciState = {
+    f_n_1   : Float;     // F(n-1)
+    f_n     : Float;     // F(n)
+    n       : Nat;       // current index
+    ratio   : Float;     // F(n)/F(n-1) — approaches φ
+    phiError: Float;     // |ratio - φ|
   };
-  
-  /// Get Fibonacci as float
-  public func fibF(n: Nat) : Float {
-    if (n < F_FLOAT.size()) { F_FLOAT[n] } else { F_FLOAT[F_FLOAT.size() - 1] }
+
+  public type MedinaFibState = {
+    fm_n_1  : Float;     // F_M(n-1)
+    fm_n    : Float;     // F_M(n)
+    n       : Nat;
+    growth  : Float;     // current growth multiplier
+    atCeiling : Bool;    // has reached SOVEREIGN_CEILING?
   };
-  
-  /// Binet's formula: F[n] = (φⁿ - ψⁿ) / √5 where ψ = -1/φ
-  /// Accurate for large n (floating point)
-  public func binetApprox(n: Nat) : Float {
+
+  public type SovereignSpiral = {
+    n          : Nat;    // point index
+    theta_rad  : Float;  // polar angle
+    r          : Float;  // radial distance (log scale)
+    x          : Float;  // Cartesian x
+    y          : Float;  // Cartesian y
+    divergenceAngle : Float;  // radians
+    packingDensity  : Float;  // local packing density [0,1]
+  };
+
+  public type FibLatticePoint = {
+    n       : Nat;
+    lat_rad : Float;    // polar angle on sphere
+    lon_rad : Float;    // azimuthal angle on sphere
+    x       : Float;    // Cartesian x on unit sphere
+    y       : Float;    // y
+    z       : Float;    // z
+  };
+
+  public type FibonacciEngineState = {
+    sequence     : FibonacciState;
+    medinaSeq    : MedinaFibState;
+    lucasN       : Float;       // current Lucas number
+    lucasN_1     : Float;       // previous Lucas number
+    spiralIndex  : Nat;         // current position in phyllotaxis spiral
+    sovereignG   : Float;       // current sovereign growth value
+    latticeN     : Nat;         // current Fibonacci lattice size
+    beatNum      : Nat;
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 3: MATH HELPERS
+  // ══════════════════════════════════════════════════════════════════════════
+
+  func _clamp(x : Float, lo : Float, hi : Float) : Float {
+    if (x < lo) lo else if (x > hi) hi else x
+  };
+
+  func _abs(x : Float) : Float { if (x < 0.0) (-x) else x };
+  func _sqrt(x : Float) : Float { if (x <= 0.0) 0.0 else Float.sqrt(x) };
+  func _pow(base : Float, exp : Float) : Float {
+    if (base <= 0.0) 0.0 else Float.exp(exp * Float.log(base))
+  };
+  func _sin(x : Float) : Float { Float.sin(x) };
+  func _cos(x : Float) : Float { Float.cos(x) };
+  func _arccos(x : Float) : Float {
+    let xc = _clamp(x, -1.0, 1.0);
+    Float.arctan2(_sqrt(1.0 - xc * xc), xc)
+  };
+
+  func _mod(a : Float, b : Float) : Float {
+    if (b < EPSILON) 0.0
+    else a - Float.fromInt(Int.abs(Float.toInt(a / b))) * b
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 4: FIBONACCI SEQUENCE
+  // F(n) = F(n-1) + F(n-2), F(0)=0, F(1)=1
+  // Binet: F(n) = (φⁿ - ψⁿ) / √5
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Binet's formula: exact for small n, approximate for large n
+  // F(n) = (φⁿ - ψⁿ) / √5
+  public func fibonacci_binet(n : Nat) : Float {
     let nf = Float.fromInt(n);
-    let psi = -φ_INV;  // ψ = -1/φ ≈ -0.618
-    (Float.pow(φ, nf) - Float.pow(psi, nf)) / SQRT_5
+    let phi_n = _pow(PHI, nf);
+    let psi_n = if (n mod 2 == 0) _pow(-PHI_INV, nf) else -_pow(PHI_INV, nf);
+    (phi_n - psi_n) / SQRT5
   };
-  
-  /// Check if a number is Fibonacci
-  public func isFibonacci(n: Nat) : Bool {
-    for (f in F.vals()) {
-      if (f == n) { return true };
-      if (f > n) { return false };
-    };
-    false
+
+  // Iterative Fibonacci (exact, no floating point error)
+  public func fibonacci_step(state : FibonacciState) : FibonacciState {
+    let f_new = state.f_n + state.f_n_1;
+    let ratio = if (state.f_n_1 < EPSILON) PHI else state.f_n / state.f_n_1;
+    {
+      f_n_1    = state.f_n;
+      f_n      = f_new;
+      n        = state.n + 1;
+      ratio    = ratio;
+      phiError = _abs(ratio - PHI);
+    }
   };
-  
-  /// Find closest Fibonacci number
-  public func closestFib(n: Nat) : Nat {
-    var closest = F[0];
-    var minDist = n;
-    
-    for (f in F.vals()) {
-      let dist = if (f > n) { f - n } else { n - f };
-      if (dist < minDist) {
-        minDist := dist;
-        closest := f;
-      };
-    };
-    closest
+
+  // F(n) / F(n-1) → φ: how close is current ratio to golden ratio?
+  public func fibonacciRatioError(state : FibonacciState) : Float {
+    _abs(state.ratio - PHI)
   };
-  
-  /// Find Fibonacci index (returns 0 if not found)
-  public func fibIndex(n: Nat) : Nat {
-    var i = 0;
-    while (i < F.size()) {
-      if (F[i] == n) { return i };
+
+  // Nth Fibonacci number (iterative from scratch)
+  public func nthFibonacci(n : Nat) : Float {
+    if (n == 0) { return 0.0 };
+    if (n == 1) { return 1.0 };
+    var a : Float = 0.0;
+    var b : Float = 1.0;
+    var i : Nat = 2;
+    while (i <= n) {
+      let c = a + b;
+      a := b;
+      b := c;
       i += 1;
     };
-    0
-  };
-  
-  /// Fibonacci floor: largest F[n] ≤ x
-  public func fibFloor(x: Nat) : Nat {
-    var result = F[0];
-    for (f in F.vals()) {
-      if (f <= x) { result := f }
-      else { return result };
-    };
-    result
-  };
-  
-  /// Fibonacci ceiling: smallest F[n] ≥ x
-  public func fibCeil(x: Nat) : Nat {
-    for (f in F.vals()) {
-      if (f >= x) { return f };
-    };
-    F[F.size() - 1]
+    b
   };
 
-  // ╔════════════════════════════════════════════════════════════════════════╗
-  // ║                     GOLDEN RECTANGLE & SPIRAL                          ║
-  // ╚════════════════════════════════════════════════════════════════════════╝
-  
-  /// Golden rectangle dimensions from width
-  public func goldenRect(width: Float) : (Float, Float) {
-    (width, width * φ)
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 5: LUCAS NUMBERS
+  // L(n) = L(n-1) + L(n-2), L(0)=2, L(1)=1
+  // L(n) = φⁿ + ψⁿ
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public func lucas_step(L_n : Float, L_n_1 : Float) : (Float, Float) {
+    let L_new = L_n + L_n_1;
+    (L_n, L_new)
   };
-  
-  /// Golden rectangle from height
-  public func goldenRectFromHeight(height: Float) : (Float, Float) {
-    (height * φ_INV, height)
-  };
-  
-  /// Golden spiral position: r = a × φ^(θ/90°)
-  /// Returns (x, y) for given angle θ (in radians) and scale a
-  public func goldenSpiralPos(theta: Float, scale: Float) : (Float, Float) {
-    // r = scale × φ^(θ × 2/π) = scale × φ^(θ/90° in radians)
-    let r = scale * Float.pow(φ, theta * 2.0 / π);
-    let x = r * Float.cos(theta);
-    let y = r * Float.sin(theta);
-    (x, y)
-  };
-  
-  /// Fibonacci spiral position (discrete version)
-  /// Shell = which ring, index = position within ring
-  /// Returns (x, y) position
-  public func spiralPos(shell: Nat, index: Nat) : (Float, Float) {
-    let shellF = Float.fromInt(shell);
-    let indexF = Float.fromInt(index);
-    
-    // Angle: index × golden angle
-    let theta = indexF * GOLDEN_ANGLE;
-    
-    // Radius: F[shell] scaled
-    let radius = fibF(shell + 3) * 0.5;
-    
-    let x = radius * Float.cos(theta);
-    let y = radius * Float.sin(theta);
-    (x, y)
-  };
-  
-  /// Phyllotactic position (sunflower seed arrangement)
-  /// n = element index, returns (x, y)
-  public func phyllotacticPos(n: Nat, scale: Float) : (Float, Float) {
+
+  // Binet for Lucas: L(n) = φⁿ + ψⁿ
+  public func lucas_binet(n : Nat) : Float {
     let nf = Float.fromInt(n);
-    let angle = nf * GOLDEN_ANGLE;
-    let radius = scale * Float.sqrt(nf);
-    
-    let x = radius * Float.cos(angle);
-    let y = radius * Float.sin(angle);
-    (x, y)
+    let phi_n = _pow(PHI, nf);
+    let psi_n = if (n mod 2 == 0) _pow(PHI_INV, nf) else -_pow(PHI_INV, nf);
+    phi_n + psi_n
   };
 
-  // ╔════════════════════════════════════════════════════════════════════════╗
-  // ║                     BUILDING TIERS — FIBONACCI HP                      ║
-  // ╚════════════════════════════════════════════════════════════════════════╝
-  //
-  // Building tier sizes and HP follow Fibonacci:
-  //   Tier 1:  F[1]  =   1 cell   →  F[6]  =  8 HP
-  //   Tier 2:  F[2]  =   1 cell   →  F[7]  = 13 HP
-  //   Tier 3:  F[3]  =   2 cells  →  F[8]  = 21 HP
-  //   Tier 4:  F[4]  =   3 cells  →  F[9]  = 34 HP
-  //   Tier 5:  F[5]  =   5 cells  →  F[10] = 55 HP
-  //   Tier 6:  F[6]  =   8 cells  →  F[11] = 89 HP  (fortress)
-  //   Tier 7:  F[7]  = 13 cells   →  F[12] = 144 HP (citadel)
-  //
-  
-  /// Get building size (cells) for tier
-  public func tierSize(tier: Nat) : Nat {
-    if (tier == 0) { 1 } else { fib(tier) }
-  };
-  
-  /// Get building HP for tier
-  public func tierHP(tier: Nat) : Nat {
-    fib(tier + 5)  // Tier 1 → F[6] = 8 HP
-  };
-  
-  /// Get cascade threshold HP for tier (when cascade failure starts)
-  public func cascadeThreshold(tier: Nat) : Nat {
-    if (tier < 2) { 1 } else { fib(tier + 3) }  // F[tier-2+5] = F[tier+3]
-  };
-  
-  /// Cascade damage amount (damage to adjacent nodes)
-  public func cascadeDamage(tier: Nat) : Nat {
-    if (tier < 3) { 1 } else { fib(tier + 2) }  // F[tier-3+5] = F[tier+2]
-  };
-  
-  /// Check if cascade should fire
-  public func cascadeCheck(nodeHP: Nat, tier: Nat) : Bool {
-    nodeHP < cascadeThreshold(tier)
-  };
-  
-  /// Cascade probability calculation
-  public func cascadeProbability(nodeHP: Nat, tier: Nat) : Float {
-    let tierHPFloat = Float.fromInt(tierHP(tier));
-    let nodeHPFloat = Float.fromInt(nodeHP);
-    
-    // cascade_probability = (φ - nodeHP/F[tier]) × 0.618
-    let ratio = nodeHPFloat / tierHPFloat;
-    let prob = (φ - ratio) * φ_INV;
-    
-    _clamp(prob, 0.0, 1.0)
+  // Lucas-Fibonacci identity: L(n) = F(n-1) + F(n+1)
+  public func lucasFromFibonacci(n : Nat) : Float {
+    if (n == 0) { return 2.0 };
+    nthFibonacci(n + 1) + nthFibonacci(n - 1)
   };
 
-  // ╔════════════════════════════════════════════════════════════════════════╗
-  // ║                     TERRITORY RINGS — FIBONACCI EXPANSION              ║
-  // ╚════════════════════════════════════════════════════════════════════════╝
-  //
-  // Territory expands in Fibonacci rings:
-  //   Ring 0 (core):   1 biome   — F[2]
-  //   Ring 1:          1 biome   — F[2]
-  //   Ring 2:          2 biomes  — F[3]
-  //   Ring 3:          3 biomes  — F[4]
-  //   Ring 4:          5 biomes  — F[5]
-  //   Ring 5:          8 biomes  — F[6]
-  //   ...
-  //   Ring N:          F[N+1] biomes
-  //
-  // Total biomes at ring N = F[1]+F[2]+...+F[N+1] = F[N+3] - 1
-  //
-  
-  /// Biomes in a specific ring
-  public func ringBiomes(ring: Nat) : Nat {
-    fib(ring + 2)  // Ring 0 → F[2] = 1
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 6: MEDINA FIBONACCI
+  // F_M(n) = F_M(n-1) × PHI_MEDINA - F_M(n-2)
+  // F_M(0) = S0 = 1.0, F_M(1) = PHI_MEDINA = 2.97442179
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public func medinaFib_step(state : MedinaFibState) : MedinaFibState {
+    let fm_new = state.fm_n * PHI_MEDINA - state.fm_n_1;
+    let atCeil = fm_new >= SOVEREIGN_CEILING;
+    // Jubilee: if ceiling reached, wrap back to S0
+    let actual = if (atCeil) S0 else fm_new;
+    {
+      fm_n_1  = state.fm_n;
+      fm_n    = actual;
+      n       = state.n + 1;
+      growth  = if (state.fm_n_1 < EPSILON) PHI_MEDINA else state.fm_n / state.fm_n_1;
+      atCeiling = atCeil;
+    }
   };
-  
-  /// Total biomes controlled at ring N
-  public func totalBiomesAtRing(ring: Nat) : Nat {
-    // Sum of F[2] to F[ring+2] = F[ring+4] - 1
-    if (ring + 4 < F.size()) {
-      F[ring + 4] - 1
-    } else {
-      // Approximate for large rings
-      var sum : Nat = 0;
-      var i : Nat = 2;
-      while (i <= ring + 2 and i < F.size()) {
-        sum += F[i];
-        i += 1;
+
+  // Sovereign Fibonacci growth value: G(n)
+  // G grows multiplicatively by PHI_MEDINA/OMEGA_MEDINA each generation
+  public func sovereignGrowth(n : Nat) : Float {
+    let ratio = PHI_MEDINA / OMEGA_MEDINA;  // ≈ 1.408
+    let g = S0 * _pow(ratio, Float.fromInt(n));
+    _clamp(g, 0.0, SOVEREIGN_CEILING)
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 7: GOLDEN RATIO PROPERTIES AND IDENTITIES
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // φ² = φ + 1: verify at given approximation
+  public func verifyPhiSquare(phi : Float) : Float {
+    _abs(phi * phi - phi - 1.0)
+  };
+
+  // φ = 1 + 1/φ: continued fraction property
+  public func cfApproximation(iterations : Nat) : Float {
+    var x : Float = 1.0;
+    var i : Nat = 0;
+    while (i < iterations) {
+      x := 1.0 + 1.0 / x;
+      i += 1;
+    };
+    x
+  };
+
+  // Fibonacci matrix power: [F(n+1), F(n); F(n), F(n-1)] = [[1,1],[1,0]]^n
+  // Matrix [[a,b],[c,d]]^2 = [[a²+bc, ab+bd],[ca+dc, cb+d²]]
+  public func fibonacciMatrix(n : Nat) : (Float, Float, Float, Float) {
+    if (n == 0) { return (1.0, 0.0, 0.0, 1.0) };  // identity
+    // Use doubling method: φ^n via binary exponentiation
+    var a : Float = 1.0; var b : Float = 1.0;
+    var c : Float = 1.0; var d : Float = 0.0;
+    var ra : Float = 1.0; var rb : Float = 0.0;
+    var rc : Float = 0.0; var rd : Float = 1.0;  // result = identity
+    var m = n;
+    while (m > 0) {
+      if (m mod 2 == 1) {
+        let na = ra * a + rb * c;
+        let nb = ra * b + rb * d;
+        let nc = rc * a + rd * c;
+        let nd = rc * b + rd * d;
+        ra := na; rb := nb; rc := nc; rd := nd;
       };
-      sum
-    }
-  };
-  
-  /// Find ring number given total biome count
-  public func ringFromBiomes(totalBiomes: Nat) : Nat {
-    var ring : Nat = 0;
-    while (totalBiomesAtRing(ring) < totalBiomes and ring < 20) {
-      ring += 1;
+      let na = a*a + b*c;
+      let nb = a*b + b*d;
+      let nc = c*a + d*c;
+      let nd = c*b + d*d;
+      a := na; b := nb; c := nc; d := nd;
+      m := m / 2;
     };
-    ring
-  };
-  
-  /// Check if expansion to next ring is possible
-  public func canExpandRing(currentRing: Nat, availableBiomes: Nat) : Bool {
-    availableBiomes >= ringBiomes(currentRing + 1)
+    (ra, rb, rc, rd)
   };
 
-  // ╔════════════════════════════════════════════════════════════════════════╗
-  // ║                     DAMAGE PROPAGATION — FIBONACCI PHYSICS             ║
-  // ╚════════════════════════════════════════════════════════════════════════╝
-  //
-  // Damage propagates via inverse square law weighted by φ:
-  //   damage_at_node_i = impact_force × φ^(-distance)
-  //
-  // This creates realistic structural failure patterns.
-  //
-  
-  /// Calculate damage at distance from impact point
-  public func damageAtDistance(impactForce: Float, distance: Float) : Float {
-    if (distance < 0.001) {
-      impactForce  // Direct hit
-    } else {
-      impactForce * Float.pow(φ_INV, distance)
+  // φⁿ = F(n)φ + F(n-1)
+  public func phiPower(n : Nat) : Float {
+    let fn  = nthFibonacci(n);
+    let fn1 = if (n == 0) 1.0 else nthFibonacci(n - 1);
+    fn * PHI + fn1
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 8: PHYLLOTAXIS SPIRAL
+  // Position of nth element: θ = n × α_g, r = r₀ × φ^(n/4)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Position of nth element in phyllotaxis spiral
+  // θ_n = n × golden_angle_rad
+  // r_n = r₀ × φ^(n/5) (5 = typical scaling parameter)
+  public func phyllotaxisPosition(n : Nat, r0 : Float) : SovereignSpiral {
+    let nf     = Float.fromInt(n);
+    let theta  = _mod(nf * GOLDEN_ANGLE_RAD, TWO_PI);
+    let r      = r0 * _pow(PHI, nf / 5.0);
+    let x      = r * _cos(theta);
+    let y      = r * _sin(theta);
+
+    // Packing density: estimate from nearby point distance
+    // Adjacent points differ by golden angle and sqrt(phi) in radius
+    let rNext  = r0 * _pow(PHI, (nf + 1.0) / 5.0);
+    let dNext  = _sqrt((r - rNext) * (r - rNext) + r * r * GOLDEN_ANGLE_RAD * GOLDEN_ANGLE_RAD);
+    let packD  = _clamp(1.0 / (dNext + 0.01), 0.0, 1.0);
+
+    {
+      n              = n;
+      theta_rad      = theta;
+      r              = r;
+      x              = x;
+      y              = y;
+      divergenceAngle = GOLDEN_ANGLE_RAD;
+      packingDensity = packD;
     }
   };
-  
-  /// Calculate total damage to a node given impact
-  public func nodeDamage(
-    impactForce: Float,
-    impactX: Float, impactZ: Float,
-    nodeX: Float, nodeZ: Float
-  ) : Float {
-    let dx = nodeX - impactX;
-    let dz = nodeZ - impactZ;
-    let distance = Float.sqrt(dx * dx + dz * dz);
-    
-    damageAtDistance(impactForce, distance)
+
+  // Medina phyllotaxis: use Medina angle instead of golden angle
+  public func medinaPhyllotaxis(n : Nat, r0 : Float) : SovereignSpiral {
+    let nf    = Float.fromInt(n);
+    let theta = _mod(nf * MEDINA_ANGLE_RAD, TWO_PI);
+    let r     = r0 * _pow(PHI_MEDINA / OMEGA_MEDINA, nf / 5.0);
+    {
+      n              = n;
+      theta_rad      = theta;
+      r              = r;
+      x              = r * _cos(theta);
+      y              = r * _sin(theta);
+      divergenceAngle = MEDINA_ANGLE_RAD;
+      packingDensity = 0.5;
+    }
   };
-  
-  /// Collapse direction: buildings fall TOWARD most damaged side
-  /// Returns angle in radians
-  public func collapseDirection(
-    nodeDamages: [(Float, Float, Float)]  // (x, z, damage)
-  ) : Float {
-    // Weighted average of damage positions
-    var weightedX : Float = 0.0;
-    var weightedZ : Float = 0.0;
-    var totalWeight : Float = 0.0;
-    
-    for ((x, z, damage) in nodeDamages.vals()) {
-      weightedX += x * damage;
-      weightedZ += z * damage;
-      totalWeight += damage;
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 9: FIBONACCI LATTICE ON SPHERE
+  // θ_n = arccos(1 - 2n/N), φ_n = 2πn/φ mod 2π
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public func fibLatticePoint(n : Nat, totalN : Nat) : FibLatticePoint {
+    if (totalN == 0) {
+      return { n=0; lat_rad=0.0; lon_rad=0.0; x=0.0; y=0.0; z=1.0 }
     };
-    
-    if (totalWeight > 0.001) {
-      let avgX = weightedX / totalWeight;
-      let avgZ = weightedZ / totalWeight;
-      Float.arctan2(avgZ, avgX)
-    } else {
-      0.0  // No clear direction
+    let nf = Float.fromInt(n);
+    let Nf = Float.fromInt(totalN);
+    let lat = _arccos(1.0 - 2.0 * nf / Nf);
+    let lon = _mod(TWO_PI * nf / PHI, TWO_PI);
+    let sinLat = _sin(lat);
+    {
+      n       = n;
+      lat_rad = lat;
+      lon_rad = lon;
+      x       = sinLat * _cos(lon);
+      y       = sinLat * _sin(lon);
+      z       = _cos(lat);
     }
   };
-  
-  /// Collapse arc follows logarithmic spiral: r = φ^(θ/π)
-  public func collapseArcPosition(theta: Float, startRadius: Float) : Float {
-    startRadius * Float.pow(φ, theta / π)
+
+  // Generate N lattice points on sphere
+  public func fibLattice(N : Nat) : [FibLatticePoint] {
+    Array.tabulate<FibLatticePoint>(N, func(i) { fibLatticePoint(i, N) })
   };
 
-  // ╔════════════════════════════════════════════════════════════════════════╗
-  // ║                     GOLDEN RATIO PROPORTIONS                           ║
-  // ╚════════════════════════════════════════════════════════════════════════╝
-  //
-  // Real architecture uses φ for:
-  //   - Column spacing: primary at φ×base, secondary at φ⁻¹×base
-  //   - Floor heights: decrease by φ⁻¹ each floor up
-  //   - Window ratios: width:height = 1:φ
-  //   - Facade: height:width = φ:1
-  //
-  
-  /// Column spacing levels
-  public func columnSpacing(baseUnit: Float, level: Nat) : Float {
-    // Primary: φ × base
-    // Secondary: φ⁻¹ × base
-    // Tertiary: φ⁻² × base
-    baseUnit * Float.pow(φ_INV, Float.fromInt(level))
-  };
-  
-  /// Floor height (decreases as you go up)
-  public func floorHeight(baseHeight: Float, floor: Nat) : Float {
-    // Ground: F[5] = 5 units
-    // Floor 2: F[4] = 3 units
-    // etc.
-    if (floor == 0) { baseHeight }
-    else { baseHeight * Float.pow(φ_INV, Float.fromInt(floor)) }
-  };
-  
-  /// Window dimensions (golden rectangle)
-  public func windowDimensions(width: Float) : (Float, Float) {
-    (width, width * φ)  // width : height = 1 : φ
-  };
-  
-  /// Facade proportions
-  public func facadeProportions(totalWidth: Float) : (Float, Float, Float) {
-    let totalHeight = totalWidth * φ;
-    let upperSection = totalHeight * φ_INV;
-    let lowerSection = totalHeight - upperSection;
-    (totalWidth, upperSection, lowerSection)
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 10: FIBONACCI SEARCH
+  // Minimize f(x) on [a,b] via Fibonacci-ratio bisection
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // One Fibonacci search step — returns new [a, x1, x2, b]
+  public func fibonacciSearchStep(a : Float, b : Float, f_ratio : Float) : (Float, Float) {
+    let r1 = 1.0 - f_ratio;
+    let r2 = f_ratio;
+    let x1 = a + r1 * (b - a);
+    let x2 = a + r2 * (b - a);
+    (x1, x2)
   };
 
-  // ╔════════════════════════════════════════════════════════════════════════╗
-  // ║                     HELPER FUNCTIONS                                   ║
-  // ╚════════════════════════════════════════════════════════════════════════╝
-  
-  func _clamp(x: Float, lo: Float, hi: Float) : Float {
-    if (x < lo) { lo } else if (x > hi) { hi } else { x }
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 11: GOLDEN RATIO IN ORGANISM ARCHITECTURE
+  // φ appears in: aspect ratios, timing intervals, growth cascades
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Scale value by golden ratio (upward): v × φ
+  public func goldenScale(v : Float) : Float { v * PHI };
+
+  // Scale value by golden ratio (downward): v / φ = v × (φ-1)
+  public func goldenDescale(v : Float) : Float { v * PHI_INV };
+
+  // n-fold golden scaling: v × φⁿ
+  public func goldenPower(v : Float, n : Int) : Float {
+    if (n >= 0) {
+      v * _pow(PHI, Float.fromInt(n))
+    } else {
+      v * _pow(PHI_INV, Float.fromInt(-n))
+    }
   };
-  
-  /// Golden power: φⁿ
-  public func phiPow(n: Float) : Float {
-    Float.pow(φ, n)
+
+  // Medina sovereign scaling: v × PHI_MEDINA / OMEGA_MEDINA per generation
+  public func medinaScale(v : Float, generations : Nat) : Float {
+    let ratio = PHI_MEDINA / OMEGA_MEDINA;
+    _clamp(v * _pow(ratio, Float.fromInt(generations)), 0.0, SOVEREIGN_CEILING)
   };
-  
-  /// Inverse golden power: φ⁻ⁿ
-  public func phiInvPow(n: Float) : Float {
-    Float.pow(φ_INV, n)
+
+  // Is a value near a Fibonacci number? (within tolerance)
+  public func isNearFibonacci(x : Float, tolerance : Float) : Bool {
+    // F(n) ≈ φⁿ/√5, so n ≈ log_φ(x√5)
+    if (x < 0.5) { return false };
+    let n_approx = Float.log(x * SQRT5) / Float.log(PHI);
+    let n_round  = Float.toInt(n_approx + 0.5);
+    let f_near   = nthFibonacci(Int.abs(n_round));
+    _abs(x - f_near) < tolerance * f_near
   };
-  
-  /// Check if ratio is approximately golden
-  public func isGoldenRatio(ratio: Float, tolerance: Float) : Bool {
-    Float.abs(ratio - φ) < tolerance or Float.abs(ratio - φ_INV) < tolerance
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 12: BEAT UPDATE
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public func beatFibonacci(state : FibonacciEngineState) : FibonacciEngineState {
+    let newFib    = fibonacci_step(state.sequence);
+    let newMedina = medinaFib_step(state.medinaSeq);
+    let (_, newLucas) = lucas_step(state.lucasN, state.lucasN_1);
+    let newG = sovereignGrowth(state.spiralIndex);
+
+    {
+      sequence     = newFib;
+      medinaSeq    = newMedina;
+      lucasN       = newLucas;
+      lucasN_1     = state.lucasN;
+      spiralIndex  = state.spiralIndex + 1;
+      sovereignG   = newG;
+      latticeN     = state.latticeN + 1;
+      beatNum      = state.beatNum + 1;
+    }
   };
-  
-  /// Normalize to golden proportion
-  public func goldenNormalize(value: Float, min: Float, max: Float) : Float {
-    let range = max - min;
-    if (range < 0.001) { return 0.5 };
-    
-    let normalized = (value - min) / range;
-    // Apply golden sigmoid
-    let goldenSig = 1.0 / (1.0 + Float.pow(φ, -10.0 * (normalized - 0.5)));
-    goldenSig
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 13: INITIALIZATION
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public func initFibonacci() : FibonacciEngineState {
+    let initFib : FibonacciState = {
+      f_n_1 = 0.0; f_n = 1.0; n = 1;
+      ratio = 1.0; phiError = _abs(1.0 - PHI);
+    };
+    let initMedina : MedinaFibState = {
+      fm_n_1 = S0; fm_n = PHI_MEDINA; n = 1;
+      growth = PHI_MEDINA; atCeiling = false;
+    };
+    {
+      sequence    = initFib;
+      medinaSeq   = initMedina;
+      lucasN      = 1.0;      // L(1) = 1
+      lucasN_1    = 2.0;      // L(0) = 2
+      spiralIndex = 0;
+      sovereignG  = S0;
+      latticeN    = 1;
+      beatNum     = 0;
+    }
   };
 
 }
