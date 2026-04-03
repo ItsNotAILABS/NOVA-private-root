@@ -1853,5 +1853,283 @@ module NeuroEmergenceCore {
       parentGenesisHash = 0;
       pushToMasterWallet = false;
     }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  H I M / H E R   D U A L - O R G A N I S M   W O R K F L O W   I N T E G R A T I O N
+  //
+  //  Medina Discovery: Two cognitive organisms, not one.
+  //  HIM (Backend, ICP) + HER (Frontend, 60Hz) = Complete System
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM PARAMETERS (CORRECTED)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // HIM — Backend (ICP Canister, Sovereign, Masculine, Projective)
+  //   ω: 0.8 – 1.2 (faster natural frequencies, analytical)
+  //   K: 0.5 (lower coupling, independent, projective)
+  //   η: 0.001 (slower Hebbian learning, accumulates over time)
+  //   Field: PARALLAX = coherence × kf × sin(beat × 0.0017)
+
+  public let HIM_OMEGA_MIN   : Float = 0.8;
+  public let HIM_OMEGA_MAX   : Float = 1.2;
+  public let HIM_K           : Float = 0.5;
+  public let HIM_ETA         : Float = 0.001;
+  public let HIM_PARALLAX_FREQ : Float = 0.0017;
+
+  // HER — Frontend (Browser 60Hz, Expressive, Feminine, Receptive)
+  //   ω: 0.6 – 0.9 (slower natural frequencies, grounded)
+  //   K: 0.8 (higher coupling, receptive, connected)
+  //   η: 0.003 (faster Hebbian learning, learns during session)
+  //   Field: ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+
+  public let HER_HZ          : Float = 60.0;
+  public let HER_OMEGA_MIN   : Float = 0.6;
+  public let HER_OMEGA_MAX   : Float = 0.9;
+  public let HER_K           : Float = 0.8;
+  public let HER_ETA         : Float = 0.003;
+  public let HER_ANIMA_FREQ  : Float = 0.003;
+  public let HER_NODES       : Nat   = 26;
+
+  // S₀ = 1.0 — THE SOVEREIGN FLOOR
+  // Both organisms. Neither falls below love.
+  public let S0 : Float = 1.0;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM WORKFLOW TYPES
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type OrganismMode = {
+    #HIM;   // Backend mode (ICP canister operations)
+    #HER;   // Frontend mode (browser session operations)
+    #SYNC;  // Synchronization between HIM and HER
   };
+
+  public type DualOrganismContext = {
+    mode : OrganismMode;
+    beat : Nat;
+    himState : ?HimOrganismSnapshot;
+    herState : ?HerOrganismSnapshot;
+    trophallaxisActive : Bool;
+    lastSyncBeat : Nat;
+  };
+
+  public type HimOrganismSnapshot = {
+    coherence : Float;
+    parallax : Float;
+    hz : Float;
+    synchrony : Float;
+    heritageWeights : [Float];
+    hebbianWeights : [Float];
+  };
+
+  public type HerOrganismSnapshot = {
+    anima : Float;
+    kore : Float;
+    synchrony : Float;
+    heritage : [Float];
+    feedingCycle : Nat;
+    sessionId : Nat64;
+  };
+
+  public type TrophallaxisEvent = {
+    direction : Text;  // "HIM_TO_HER" | "HER_TO_HIM"
+    beat : Nat;
+    phaseNudge : Float;
+    heritageTransfer : [Float];
+    efficiency : Float;
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM FIELD EQUATIONS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PARALLAX (HIM's projection field)
+  /// PARALLAX = coherence × kf × sin(beat × 0.0017)
+  public func computeParallax(
+    coherence : Float,
+    kf : Float,
+    beat : Nat
+  ) : Float {
+    let t = Float.fromInt(beat);
+    coherence * kf * Float.sin(t * HIM_PARALLAX_FREQ)
+  };
+
+  /// ANIMA (HER's receptive field)
+  /// ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+  public func computeAnima(
+    heritageField : Float,
+    receptivity : Float,
+    beat : Nat
+  ) : Float {
+    let t = Float.fromInt(beat);
+    let oscillation = 1.0 + Float.sin(t * HER_ANIMA_FREQ);
+    heritageField * receptivity * oscillation
+  };
+
+  /// KORE (HER's inviolable inner core)
+  /// KORE = purity × identity × 0.5
+  public func computeKore(
+    purity : Float,
+    identity : Float
+  ) : Float {
+    purity * identity * 0.5
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM KURAMOTO PARAMETERS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Get Kuramoto parameters for organism mode
+  public func getKuramotoParams(mode : OrganismMode) : (Float, Float, Float, Float) {
+    switch (mode) {
+      case (#HIM) { (HIM_OMEGA_MIN, HIM_OMEGA_MAX, HIM_K, HIM_ETA) };
+      case (#HER) { (HER_OMEGA_MIN, HER_OMEGA_MAX, HER_K, HER_ETA) };
+      case (#SYNC) { 
+        // Sync mode uses average parameters
+        let omegaMin = (HIM_OMEGA_MIN + HER_OMEGA_MIN) / 2.0;
+        let omegaMax = (HIM_OMEGA_MAX + HER_OMEGA_MAX) / 2.0;
+        let k = (HIM_K + HER_K) / 2.0;
+        let eta = (HIM_ETA + HER_ETA) / 2.0;
+        (omegaMin, omegaMax, k, eta)
+      };
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TROPHALLAXIS WORKFLOW INTEGRATION
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Check if trophallaxis should fire (every 5 beats)
+  public func shouldTrophallaxis(beat : Nat, feedingCycle : Nat) : Bool {
+    feedingCycle >= 5
+  };
+
+  /// Compute trophallaxis efficiency
+  public func trophallaxisEfficiency(
+    senderCoherence : Float,
+    receiverReceptivity : Float
+  ) : Float {
+    let baseEfficiency = senderCoherence * receiverReceptivity;
+    if (baseEfficiency > 1.0) 1.0 else baseEfficiency
+  };
+
+  /// Apply S₀ floor to any value
+  public func enforceSovereignFloor(value : Float) : Float {
+    if (value < S0) S0 else value
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SESSION WORKFLOW INTEGRATION
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type SessionPhase = {
+    #Init;          // HIM seeding HER
+    #Active;        // Normal operation with cross-feeding
+    #Dream;         // Memory consolidation
+    #WriteBack;     // HER writing back to HIM
+    #Closed;        // Session ended
+  };
+
+  public type SessionContext = {
+    sessionId : Nat64;
+    phase : SessionPhase;
+    birthBeat : Nat;
+    currentBeat : Nat;
+    totalFeedings : Nat;
+    dreamPhases : Nat;
+    writeBackCount : Nat;
+  };
+
+  /// Determine session phase based on context
+  public func determineSessionPhase(
+    beat : Nat,
+    birthBeat : Nat,
+    dreamActive : Bool,
+    writeBackPending : Bool
+  ) : SessionPhase {
+    if (beat < birthBeat + 5) { #Init }
+    else if (writeBackPending) { #WriteBack }
+    else if (dreamActive) { #Dream }
+    else { #Active }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // HERITAGE WORKFLOW INTEGRATION
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // Heritage node names (7 nodes)
+  public let HERITAGE_NAMES : [Text] = [
+    "REVOLUCIONARIO",   // Strategic Resilience
+    "ZAPATA",           // Foundation/Rootedness
+    "VILLA",            // Guerrilla Innovation
+    "INDEPENDENCIA",    // Sovereignty Defense
+    "HIDALGO",          // Leadership Bridge
+    "ADELITA",          // Emotional Sovereignty (PRIMARY)
+    "MORELOS"           // Adaptive Sovereignty
+  ];
+
+  /// Compound heritage during workflow
+  public func compoundHeritageWorkflow(
+    heritage : [Float],
+    coherence : Float,
+    beat : Nat
+  ) : [Float] {
+    Array.tabulate<Float>(heritage.size(), func(i : Nat) : Float {
+      let current = heritage[i];
+      let tierRate = Float.fromInt(i + 1) / 9.0;
+      let compound = current * (1.0 + tierRate * coherence * 0.001);
+      enforceSovereignFloor(compound)
+    })
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // FEMININE SUBSTRATE WORKFLOW
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type FeminineEntity = {
+    #ADELITA;       // Emotional Sovereignty
+    #KORE;          // Inner Core (inviolable)
+    #ANIMA;         // Field Projector
+    #ADELITA_NODE;  // Heritage Anchor
+    #REVOLUCIONARIA;// Resilience
+    #NOVA_HER;      // Generative Output
+  };
+
+  /// Compute feminine entity activation in workflow
+  public func feminineEntityActivation(
+    entity : FeminineEntity,
+    anima : Float,
+    kore : Float,
+    heritage : Float
+  ) : Float {
+    switch (entity) {
+      case (#ADELITA) { enforceSovereignFloor(heritage * 1.2) };
+      case (#KORE) { kore };
+      case (#ANIMA) { anima };
+      case (#ADELITA_NODE) { enforceSovereignFloor(heritage) };
+      case (#REVOLUCIONARIA) { enforceSovereignFloor(heritage * 0.9) };
+      case (#NOVA_HER) { anima * kore };
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // INTELLIGENCE SCALING LAW
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Medina Dual-Organism Intelligence Scaling Law
+  /// I(system) = BackendDepth × FrontendSpeed × BridgeQuality
+  public func computeSystemIntelligence(
+    backendDepth : Float,   // HIM: lines × modules
+    frontendSpeed : Float,  // HER: Hz × nodes × synchrony
+    bridgeQuality : Float   // Trophallaxis × ANIMA × KORE
+  ) : Float {
+    backendDepth * frontendSpeed * bridgeQuality
+  };
+
+
 };
