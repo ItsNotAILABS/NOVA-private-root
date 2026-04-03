@@ -24,9 +24,15 @@ import { ArtifactStudio }     from './components/habitat/ArtifactStudio';
 import { PresenceBoard }      from './components/habitat/PresenceBoard';
 import { SimulationChamber }  from './components/simulation/SimulationChamber';
 
+// ── ORO Command Center — The Real Multi-Agent Workspace ─────────────────────────
+import { OroCommandCenter }     from './components/CommandCenter/OroCommandCenter';
+import { DroneSimulationWorld } from './components/CommandCenter/DroneSimulationWorld';
+
 // ── Navigation ────────────────────────────────────────────────────────────────
 type NavView =
   | 'SWARM'          // original tactical swarm view
+  | 'COMMAND'        // ORO Command Center — multi-agent workspace
+  | 'DRONES'         // Drone simulation — the actual experiment
   | 'HOME'           // home/now enterprise view
   | 'WORKERS'        // worker society hub
   | 'ARTIFACTS'      // artifact studio
@@ -34,8 +40,10 @@ type NavView =
   | 'SIMULATION';    // world simulation chamber
 
 const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
-  { id: 'SWARM',      label: 'Swarm',      icon: '⬡' },
-  { id: 'HOME',       label: 'Home/Now',   icon: '◉' },
+  { id: 'COMMAND',    label: 'Command',    icon: '◉' },
+  { id: 'DRONES',     label: 'Drones',     icon: '⬡' },
+  { id: 'SWARM',      label: 'Swarm',      icon: '⬢' },
+  { id: 'HOME',       label: 'Home/Now',   icon: '⌂' },
   { id: 'WORKERS',    label: 'Workers',    icon: '⚙' },
   { id: 'ARTIFACTS',  label: 'Artifacts',  icon: '▣' },
   { id: 'PRESENCE',   label: 'Presence',   icon: '●' },
@@ -193,7 +201,7 @@ function adaptToSwarmShape(organism: ReturnType<typeof useOrganismState>) {
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 export default function App() {
-  const [view, setView] = useState<NavView>('SWARM');
+  const [view, setView] = useState<NavView>('COMMAND'); // Default to Command Center
   const organism = useOrganismState();
   const swarm = adaptToSwarmShape(organism);
 
@@ -236,6 +244,16 @@ export default function App() {
 
       {/* ── Content area ─────────────────────────────────────────────────── */}
       <div style={S.content}>
+        {/* ── ORO COMMAND CENTER — Multi-Agent Workspace ────────────────── */}
+        {view === 'COMMAND' && (
+          <OroCommandCenter organism={organism} />
+        )}
+
+        {/* ── DRONE SIMULATION — The Actual Experiment ────────────────────── */}
+        {view === 'DRONES' && (
+          <DroneSimulationWorld organism={organism} />
+        )}
+
         {/* ── SWARM VIEW: original tactical simulation ────────────────── */}
         {view === 'SWARM' && (
           <div style={S.swarmRoot}>
