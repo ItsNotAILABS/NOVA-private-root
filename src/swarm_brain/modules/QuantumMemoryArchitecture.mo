@@ -33,13 +33,7 @@
 // ============================================================
 
 import Float  "mo:base/Float";
-import Nat    "mo:base/Nat";
-import Nat32  "mo:base/Nat32";
-import Nat64  "mo:base/Nat64";
 import Array  "mo:base/Array";
-import Int    "mo:base/Int";
-import Iter   "mo:base/Iter";
-import Buffer "mo:base/Buffer";
 
 module {
 
@@ -183,8 +177,8 @@ module {
     accessedAt     : Nat;          // Heartbeat of last access
     
     // Sovereignty
-    creatorPrincipal : Nat64;      // Who created this
-    ownerPrincipal   : Nat64;      // Who owns this
+    creatorPrincipal : Text;       // Who created this (ICP principal as text)
+    ownerPrincipal   : Text;       // Who owns this (ICP principal as text)
     permissionMask   : Nat32;      // Access permissions
     
     // Integrity
