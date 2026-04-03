@@ -9,7 +9,7 @@ import { WorldGenerator } from '../world/world-generator';
 import { EnterpriseHabitat } from '../enterprise/habitat';
 import {
   clamp,
-  continuitySore, trustScore, anomalyScore, loadPulseScore, simulationConfidenceScore,
+  continuityScore, trustScore, anomalyScore, loadPulseScore, simulationConfidenceScore,
   computeKuramotoOrder,
 } from '../math/core';
 
@@ -127,7 +127,7 @@ export function useOrganismState(): OrganismState {
     const swarmNowAtt  = active.reduce((s, d) => s + d.nowAttention, 0) / n;
 
     // 3. Scores
-    const Kc = continuitySore({
+    const Kc = continuityScore({
       contextGap:          clamp(j / 3, 0, 1),
       lostReferences:      clamp(1 - r, 0, 1),
       contradictionBurden: 0.05,

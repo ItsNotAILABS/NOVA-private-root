@@ -5,7 +5,7 @@
 // Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
 
 import {
-  clamp, continuitySore, trustScore, anomalyScore, loadPulseScore,
+  clamp, continuityScore, trustScore, anomalyScore, loadPulseScore,
   workPriorityScore, artifactTrustScore, conflictSeverityScore,
   mahalanobisApprox, zScore,
 } from '../math/core';
@@ -501,7 +501,7 @@ export class ContinuityEngine {
     handoffBreakage:     number;
     memoryDecay:         number;
   }): number {
-    this.kc = continuitySore(inputs);
+    this.kc = continuityScore(inputs);
     this.history.push(this.kc);
     if (this.history.length > 500) this.history.shift();
     return this.kc;

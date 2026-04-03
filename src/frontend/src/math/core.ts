@@ -419,7 +419,7 @@ export interface ContinuityInputs {
   memoryDecay:        number;  // D ∈ [0,1]
 }
 
-export function continuitySore(inp: ContinuityInputs): number {
+export function continuityScore(inp: ContinuityInputs): number {
   const { contextGap: G, lostReferences: L, contradictionBurden: X, handoffBreakage: H, memoryDecay: D } = inp;
   return clamp(1 - (0.25 * G + 0.20 * L + 0.20 * X + 0.20 * H + 0.15 * D), 0, 1);
 }
