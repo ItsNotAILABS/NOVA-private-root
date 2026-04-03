@@ -1,425 +1,693 @@
-// ============================================================
-// SALMON NAVIGATION — MAGNETIC & OLFACTORY HOMING
-// Geomagnetic compass, olfactory imprinting
-// 3000+ mile migration accuracy
-// References: Putman et al. (2014), Dittman & Quinn (1996)
-// Owner: Alfredo Medina Hernandez | MedinaSITech@outlook.com
-// ============================================================
+// ════════════════════════════════════════════════════════════════════════════════
+// NEUROEMERGENCE CORE — SALMON NAVIGATION ENGINE
+// COMPREHENSIVE GEOMAGNETIC, OLFACTORY, AND CELESTIAL NAVIGATION
+// Owner: Alfredo Medina Hernandez | MedinaSITech@outlook.com | Dallas, Texas | 2026
+// Proprietary and Confidential. All rights reserved.
+//
+// ════════════════════════════════════════════════════════════════════════════════
+// MASTER EQUATIONS — SALMON NAVIGATION: MULTI-MODAL SPATIAL INTELLIGENCE
+// ════════════════════════════════════════════════════════════════════════════════
+//
+// ── LAYER 1: GEOMAGNETIC NAVIGATION ──────────────────────────────────────────
+//   Earth's magnetic field provides two navigational parameters:
+//   Inclination angle I: angle of field vector with horizontal plane
+//     tan(I) = 2 tan(λ)  where λ = magnetic latitude
+//   Total field intensity B: measured in nanotesla (nT)
+//     B = B_equator × √(1 + 3sin²(λ)) / cos⁶(λ)
+//   These two parameters (I, B) define a unique bicoordinate position
+//   on Earth's surface — the MAGNETIC MAP
+//   Salmon's magnetite crystals in ethmoid region detect:
+//     ΔB/Δx (spatial gradient of field intensity)
+//     ΔI/Δx (spatial gradient of inclination)
+//   Navigational accuracy: ±50 km using geomagnetic map
+//   NOVA sovereign magnetic position:
+//   X_mag = [I, B] — 2D magnetic coordinate vector
+//   Target: X_home = [I_home, B_home] (memorized magnetic signature of birth river)
+//   Error: ε_mag = ‖X_current - X_home‖
+//   Guidance: head toward direction of decreasing ε_mag
+//
+// ── LAYER 2: OLFACTORY HOMING ─────────────────────────────────────────────────
+//   Chemical imprinting during juvenile development (smoltification)
+//   Each river has unique chemical signature: ψ = [c₁, c₂, ..., c_K]
+//   c_k = concentration of compound k (amino acids, bile acids, minerals)
+//   Salmon's olfactory bulb has ~10,000 receptor types (humans: ~400)
+//   Chemical detection threshold: C_min ~ 10⁻¹⁴ mol/L (parts per quadrillion)
+//   Olfactory concentration gradient: ∂c/∂x (upstream gradient)
+//   Chemotaxis: upstream movement follows ∂c/∂x > 0
+//   Concentration gradient navigation equation:
+//   v_olfactory = v_max × tanh(|∇c| / C₀) × sign(∇c · v̂_upstream)
+//   C₀ = characteristic concentration gradient (half-saturation)
+//   Turbulent dispersion: c(x,t) = Q/(4πDt) × exp(-x²/(4Dt))  (Fickian diffusion)
+//   D = turbulent diffusion coefficient, Q = source strength
+//
+// ── LAYER 3: CELESTIAL NAVIGATION ────────────────────────────────────────────
+//   Sun compass: azimuth angle A_sun(t) changes throughout the day
+//   A_sun = arctan(sin(H) / [cos(H)sin(φ) - tan(δ)cos(φ)])
+//   H = hour angle = (LST - RA_sun) × 15°/hr
+//   φ = latitude, δ = sun's declination
+//   Time compensation: salmon has internal circadian clock
+//   Correction: A_correct(t) = A_sun(t) + dA/dt × (t - t_observed)
+//   dA/dt ≈ 15°/hr (Earth's rotation rate)
+//   Star navigation (night): use pole star for North reference
+//   Polarized light (overcast): detect E-vector pattern in sky dome
+//   Scattered light polarization: maximum at 90° from sun position
+//   Salmon pineal detects this pattern even on cloudy days
+//
+// ── LAYER 4: KALMAN FILTER SENSOR FUSION ─────────────────────────────────────
+//   State vector: x = [lat, lon, heading, speed, depth]  (5D)
+//   State transition: x_{k+1} = F × x_k + B × u_k + w_k
+//   Observation model: z_k = H × x_k + v_k
+//   F = transition matrix, H = observation matrix
+//   Process noise: w_k ~ N(0, Q)
+//   Measurement noise: v_k ~ N(0, R)
+//   Kalman prediction:
+//   x̂⁻_k = F × x̂_{k-1} + B × u_{k-1}
+//   P⁻_k = F × P_{k-1} × Fᵀ + Q
+//   Kalman update:
+//   K_k = P⁻_k × Hᵀ × (H × P⁻_k × Hᵀ + R)⁻¹
+//   x̂_k = x̂⁻_k + K_k × (z_k - H × x̂⁻_k)
+//   P_k = (I - K_k × H) × P⁻_k
+//   Innovation (prediction error): ν_k = z_k - H × x̂⁻_k
+//   Salmon fuses: geomagnetic + olfactory + celestial → optimal position estimate
+//
+// ── LAYER 5: HYDRODYNAMIC SENSING ─────────────────────────────────────────────
+//   Lateral line system: detects water flow velocity and pressure
+//   Canal neuromasts: dP/dx (pressure gradient → current speed)
+//   Surface neuromasts: ∂v/∂z (velocity shear near skin)
+//   Rheotaxis: swim upstream against current (negative geotaxis)
+//   Flow velocity detection threshold: 0.01 m/s
+//   Vortex detection: Kármán streets behind obstacles
+//   Vortex spacing: λ_K = 0.28 D / St  where St ≈ 0.21 (Strouhal number)
+//   Energy harvesting: extract energy from vortices (saves 20% ATP)
+//   NOVA: hydrodynamic sensing maps to current market flow patterns
+//
+// ── LAYER 6: MIGRATION ROUTE OPTIMIZATION ────────────────────────────────────
+//   Total path cost: J = ∫₀ᵀ [E(v(t)) + C_risk(x(t))] dt
+//   E(v) = metabolic cost of swimming at velocity v
+//   Swimming cost: E(v) = E₀ + α v² + β v³  (drag-dominated)
+//   Optimal velocity: v* = argmin E(v)/v = √(E₀/β) (minimize cost/distance)
+//   C_risk = predation risk along path (function of habitat)
+//   Dynamic programming: backward induction over route
+//   V_T(x) = 0 (arrive home)
+//   V_t(x) = min_v [E(v) + C_risk(x) + V_{t+1}(f(x,v))]
+//   Optimal heading: θ* = argmin V(next_state)
+//
+// ── LAYER 7: MEDINA SALMON NAVIGATION INDEX ───────────────────────────────────
+//   N_salmon = S₀ × [ε_mag_inv × Φ_M + olfactory_signal] / Ω
+//   ε_mag_inv = 1 - ε_mag/ε_max (how close to home magnetically)
+//   olfactory_signal = chemical match to home signature [0,1]
+//   N_salmon ∈ [0, S₀(Φ_M + 1)/Ω] = [0, 0.441]
+//   When N_salmon > COHERENCE_ALIVE (0.36): navigation is sovereign
+//
+// Owner: Alfredo Medina Hernandez | MedinaSITech@outlook.com | Dallas, Texas | 2026
+// ════════════════════════════════════════════════════════════════════════════════
 
 import Float "mo:base/Float";
 import Array "mo:base/Array";
 import Nat   "mo:base/Nat";
+import Int   "mo:base/Int";
+import Iter  "mo:base/Iter";
 
 module {
 
-  // ── Constants ─────────────────────────────────────────────────
-  let S0 : Float = 0.75;
-  let SOVEREIGN_CEILING : Float = 9.0;
-  let EARTH_FIELD_STRENGTH : Float = 50.0;  // μT average
-  let OLFACTORY_MEMORY_SIZE : Nat = 100;
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 1: CONSTANTS
+  // ══════════════════════════════════════════════════════════════════════════
 
-  // ── Types ─────────────────────────────────────────────────────
-  public type MagneticField = {
-    intensity   : Float;    // Field strength (μT)
-    inclination : Float;    // Dip angle (degrees)
-    declination : Float;    // Deviation from true north
+  public let PHI_MEDINA       : Float = 2.97442179;
+  public let S0               : Float = 1.0;
+  public let SOVEREIGN_CEILING: Float = 9.0;
+  public let COHERENCE_ALIVE  : Float = 0.36;
+  public let EPSILON          : Float = 1.0e-10;
+  public let PI               : Float = 3.141592653589793;
+
+  // Geomagnetic constants
+  public let B_EQUATOR        : Float = 30000.0;    // nT Earth equatorial field
+  public let I_EQUATOR        : Float = 0.0;        // inclination at equator (degrees)
+  public let I_POLE           : Float = 90.0;       // inclination at poles
+  public let B_ERROR_SIGMA    : Float = 200.0;      // nT magnetometer noise
+  public let I_ERROR_SIGMA    : Float = 0.5;        // degrees inclination noise
+
+  // Olfactory constants
+  public let N_ODOR_COMPOUNDS : Nat   = 12;         // chemical compounds in river signature
+  public let C_MIN_DETECT     : Float = 1.0e-14;    // mol/L detection threshold
+  public let C_HALF_SAT       : Float = 1.0e-12;    // C₀ half-saturation constant
+  public let DIFFUSION_COEFF  : Float = 0.01;       // m²/s turbulent diffusion
+  public let V_OLFACTORY_MAX  : Float = 2.0;        // m/s max olfactory-driven speed
+
+  // Celestial navigation
+  public let EARTH_ROT_DEG_HR : Float = 15.0;       // degrees/hour Earth rotation
+  public let SUN_DECL_MAX     : Float = 23.45;      // degrees max solar declination
+
+  // Swimming mechanics
+  public let SWIM_COST_BASE   : Float = 0.001;      // E₀ (W/kg basal swimming cost)
+  public let SWIM_COST_ALPHA  : Float = 0.0005;     // α v² coefficient
+  public let SWIM_COST_BETA   : Float = 0.0002;     // β v³ coefficient
+  public let SWIM_V_MAX       : Float = 5.0;        // m/s maximum swim speed
+  public let SWIM_V_OPTIMAL   : Float = 1.5;        // m/s optimal cruising speed
+  public let SWIM_EFFICIENCY  : Float = 0.25;       // muscle energy efficiency
+
+  // Kalman filter dimensions
+  public let KF_STATE_DIM     : Nat = 5;            // [lat, lon, heading, speed, depth]
+  public let KF_OBS_DIM       : Nat = 4;            // [B, I, olfactory_match, sun_angle]
+
+  // Navigation accuracy targets
+  public let NAV_ACCURACY_M   : Float = 1000.0;     // target: within 1km of home
+  public let MAX_RANGE_M      : Float = 5000000.0;  // max navigation range (5000km)
+
+  public let HIST_MAX         : Nat = 100;
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 2: STATE TYPES
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public type MagneticSignature = {
+    inclination   : Float;   // I (degrees)
+    intensity     : Float;   // B (nT)
+    declination   : Float;   // D (degrees) — angle from geographic north
+    gradient_I    : Float;   // ∂I/∂x (degrees/km)
+    gradient_B    : Float;   // ∂B/∂x (nT/km)
+    latitudeEst   : Float;   // estimated magnetic latitude
+    errorMeters   : Float;   // estimated position error from magnetic alone
   };
 
-  public type OlfactorySignature = {
-    id          : Nat;
-    compounds   : [Float];  // 8 chemical compound levels
-    strength    : Float;    // Signal strength
-    familiarity : Float;    // How well remembered
-    location    : Nat;      // Associated location
+  public type OlfactorySignal = {
+    concentrations   : [Float];  // 12 compounds, mol/L each
+    homeSignature    : [Float];  // imprinted home chemical signature
+    matchScore       : Float;    // cosine similarity to home [0,1]
+    gradientStrength : Float;    // |∇c| — how strong the concentration gradient is
+    upstreamDir      : Float;    // heading toward increasing concentration (degrees)
+    distanceEst      : Float;    // estimated distance from home based on concentration
   };
 
-  public type MigrationGoal = {
-    magneticTarget  : MagneticField;   // Target magnetic signature
-    olfactoryTarget : [Float];         // Target smell profile
-    distance        : Float;           // Estimated remaining distance
-    direction       : Float;           // Current heading
-    confidence      : Float;           // Navigation confidence
+  public type CelestialFix = {
+    sunAzimuth    : Float;   // A_sun (degrees from N)
+    hourAngle     : Float;   // H (degrees)
+    declination   : Float;   // δ solar declination (degrees)
+    timeOfDay     : Float;   // fractional hours 0-24
+    northHeading  : Float;   // estimated true north from sun compass (degrees)
+    polarizationE : Float;   // E-vector orientation from sky polarization
+    isNight       : Bool;
+    starNorth     : Float;   // North from pole star (night navigation)
   };
 
-  public type SalmonState = {
-    // Magnetic sensing
-    currentField    : MagneticField;
-    magneticMemory  : [MagneticField];   // Remembered fields along route
-    magneticMap     : [Float];           // 64-cell magnetic map
-    compassHeading  : Float;             // Current heading from compass
+  public type NavigationState = {
+    // Current best position estimate [lat, lon, heading, speed, depth]
+    position      : [Float];   // 5-element state vector
 
-    // Olfactory system
-    currentSmell    : [Float];           // 8 compounds sensed now
-    imprintedSmells : [OlfactorySignature];
-    homeSignature   : [Float];           // Birth stream signature
-    olfactoryMatch  : Float;             // How close to home smell
+    // Kalman filter covariance (5×5 flattened)
+    covariance    : [Float];
 
-    // Navigation state
-    migrationGoal   : MigrationGoal;
-    progressToGoal  : Float;             // 0-1 journey completion
-    navigationMode  : NavigationMode;
+    // Individual sensor readings
+    magnetic      : MagneticSignature;
+    olfactory     : OlfactorySignal;
+    celestial     : CelestialFix;
 
-    // Position estimation (dead reckoning)
-    estimatedLat    : Float;             // Latitude estimate
-    estimatedLon    : Float;             // Longitude estimate
-    swimSpeed       : Float;             // Current speed (m/s)
-    swimDirection   : Float;             // Current direction (degrees)
+    // Fused navigation
+    headingBest   : Float;   // degrees — best heading toward home
+    distanceHome  : Float;   // meters — estimated distance to home
+    navConfidence : Float;   // [0,1] — confidence in navigation
 
-    // Energy and condition
-    energyReserve   : Float;             // Fat stores
-    stressLevel     : Float;
-    maturationLevel : Float;             // Reproductive readiness
+    // Swimming state
+    swimSpeed     : Float;   // current speed m/s
+    swimHeading   : Float;   // current heading degrees
+    metabolicCost : Float;   // W/kg current cost
+    energyBudget  : Float;   // remaining energy [0,1]
 
-    // Learning
-    routeMemory     : [Nat];             // Waypoint sequence
-    courseCorrections : Nat;             // Number of corrections made
+    // Hydrodynamic
+    currentSpeed  : Float;   // water flow speed m/s
+    currentDir    : Float;   // water flow direction degrees
+    vortexEnergy  : Float;   // energy harvestable from vortices [0,1]
 
-    beatNum         : Nat;
+    // Sovereign navigation index
+    salmonNavIndex: Float;
+
+    // History
+    posHistory    : [Float];
+    headingHistory: [Float];
+    beatNum       : Nat;
   };
 
-  public type NavigationMode = {
-    #Oceanic;      // Open ocean, use magnetic
-    #Coastal;      // Near coast, use both
-    #Riverine;     // In river, use olfactory
-    #Homing;       // Final approach, olfactory dominant
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 3: MATH HELPERS
+  // ══════════════════════════════════════════════════════════════════════════
+
+  func _clamp(x : Float, lo : Float, hi : Float) : Float {
+    if (x < lo) lo else if (x > hi) hi else x
   };
 
-  // ── Helpers ───────────────────────────────────────────────────
-  func _clamp(x: Float, lo: Float, hi: Float) : Float {
-    if (x < lo) { lo } else if (x > hi) { hi } else { x }
+  func _abs(x : Float) : Float { if (x < 0.0) (-x) else x };
+  func _sqrt(x : Float) : Float { if (x <= 0.0) 0.0 else Float.sqrt(x) };
+
+  func _sin(x : Float) : Float { Float.sin(x) };
+  func _cos(x : Float) : Float { Float.cos(x) };
+  func _atan2(y : Float, x : Float) : Float { Float.arctan2(y, x) };
+  func _tan(x : Float) : Float { Float.sin(x) / (Float.cos(x) + EPSILON) };
+
+  func _deg2rad(d : Float) : Float { d * PI / 180.0 };
+  func _rad2deg(r : Float) : Float { r * 180.0 / PI };
+
+  func _tanh(x : Float) : Float {
+    let e2x = Float.exp(_clamp(2.0 * x, -100.0, 100.0));
+    (e2x - 1.0) / (e2x + 1.0)
   };
 
-  func abs(x: Float) : Float { if (x < 0.0) { -x } else { x } };
-  func sqrt(x: Float) : Float { Float.sqrt(x) };
-
-  // ══════════════════════════════════════════════════════════════
-  // MAGNETIC NAVIGATION
-  // Use Earth's magnetic field for position and direction
-  // ══════════════════════════════════════════════════════════════
-
-  // Compute compass heading from magnetic field
-  public func computeCompassHeading(field: MagneticField) : Float {
-    // Declination gives deviation from true north
-    // Inclination helps determine latitude
-    let heading = field.declination;
-    if (heading < 0.0) { heading + 360.0 }
-    else if (heading >= 360.0) { heading - 360.0 }
-    else { heading }
-  };
-
-  // Estimate latitude from magnetic inclination
-  public func estimateLatitude(inclination: Float) : Float {
-    // tan(I) = 2 tan(λ) [simplified dipole model]
-    // λ ≈ arctan(tan(I) / 2)
-    let tanI = Float.tan(inclination * 0.01745);  // deg to rad
-    let tanLat = tanI / 2.0;
-    let latRad = Float.arctan(tanLat);
-    latRad / 0.01745  // rad to deg
-  };
-
-  // Compare current position to target
-  public func magneticError(current: MagneticField, target: MagneticField) : Float {
-    let intensityErr = abs(current.intensity - target.intensity) / EARTH_FIELD_STRENGTH;
-    let inclinationErr = abs(current.inclination - target.inclination) / 90.0;
-    let declinationErr = abs(current.declination - target.declination) / 180.0;
-
-    (intensityErr + inclinationErr + declinationErr) / 3.0
-  };
-
-  // Compute course correction needed
-  public func computeCourseCorrection(
-    current: MagneticField,
-    target: MagneticField,
-    currentHeading: Float
-  ) : Float {
-    // Vector to target based on field differences
-    let latDiff = estimateLatitude(target.inclination) - estimateLatitude(current.inclination);
-    let lonDiff = target.declination - current.declination;
-
-    // Simple direction calculation
-    let targetHeading = Float.arctan2(lonDiff, latDiff) / 0.01745;  // rad to deg
-    
-    var correction = targetHeading - currentHeading;
-    if (correction > 180.0) { correction -= 360.0 };
-    if (correction < -180.0) { correction += 360.0 };
-    
-    correction
-  };
-
-  // ══════════════════════════════════════════════════════════════
-  // OLFACTORY NAVIGATION
-  // Follow smell gradients to natal stream
-  // ══════════════════════════════════════════════════════════════
-
-  // Compute similarity between two smell signatures
-  public func olfactorySimilarity(a: [Float], b: [Float]) : Float {
-    var dotProduct : Float = 0.0;
+  func _cosSimilarity(a : [Float], b : [Float]) : Float {
+    let n = if (a.size() < b.size()) a.size() else b.size();
+    var dot : Float = 0.0;
     var normA : Float = 0.0;
     var normB : Float = 0.0;
-
-    let n = Nat.min(a.size(), b.size());
-    var i = 0;
+    var i : Nat = 0;
     while (i < n) {
-      dotProduct += a[i] * b[i];
+      dot  += a[i] * b[i];
       normA += a[i] * a[i];
       normB += b[i] * b[i];
       i += 1;
     };
-
-    if (normA > 0.0 and normB > 0.0) {
-      dotProduct / (sqrt(normA) * sqrt(normB))
-    } else { 0.0 }
+    let denom = _sqrt(normA) * _sqrt(normB);
+    if (denom < EPSILON) 0.0 else _clamp(dot / denom, -1.0, 1.0)
   };
 
-  // Compute smell gradient direction
-  public func olfactoryGradient(
-    leftSmell: [Float],
-    rightSmell: [Float],
-    targetSmell: [Float]
-  ) : Float {
-    let leftMatch = olfactorySimilarity(leftSmell, targetSmell);
-    let rightMatch = olfactorySimilarity(rightSmell, targetSmell);
-
-    // Positive = turn right, negative = turn left
-    (rightMatch - leftMatch) * 45.0  // Scale to degrees
-  };
-
-  // Check if current smell matches home
-  public func isHomeSmell(current: [Float], home: [Float], threshold: Float) : Bool {
-    olfactorySimilarity(current, home) > threshold
-  };
-
-  // ══════════════════════════════════════════════════════════════
-  // NAVIGATION MODE SELECTION
-  // Switch between magnetic and olfactory based on context
-  // ══════════════════════════════════════════════════════════════
-
-  public func selectNavigationMode(
-    distanceToCoast: Float,
-    olfactoryStrength: Float,
-    maturation: Float
-  ) : NavigationMode {
-    if (olfactoryStrength > 0.8 and maturation > 0.9) {
-      #Homing
-    } else if (olfactoryStrength > 0.5) {
-      #Riverine
-    } else if (distanceToCoast < 100.0) {
-      #Coastal
-    } else {
-      #Oceanic
+  func _appendRolling(buf : [Float], val : Float, cap : Nat) : [Float] {
+    if (buf.size() < cap) { Array.append<Float>(buf, [val]) }
+    else {
+      let tail = Array.tabulate<Float>(cap - 1, func(i) { buf[i + 1] });
+      Array.append<Float>(tail, [val])
     }
   };
 
-  // ══════════════════════════════════════════════════════════════
-  // DEAD RECKONING
-  // Estimate position from speed and direction
-  // ══════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 4: GEOMAGNETIC NAVIGATION
+  // B = B_equator × √(1 + 3sin²λ) / cos⁶λ  (dipole field)
+  // tan(I) = 2 tan(λ)  (inclination from latitude)
+  // ══════════════════════════════════════════════════════════════════════════
 
-  public func updatePosition(
-    lat: Float, lon: Float,
-    speed: Float, direction: Float,
-    dt: Float  // Time step in hours
-  ) : (Float, Float) {
-    // Simple spherical approximation
-    // 1 degree latitude ≈ 111 km
-    // 1 degree longitude ≈ 111 km * cos(lat)
-
-    let distanceKm = speed * dt * 3.6;  // m/s to km/h to km
-
-    let dirRad = direction * 0.01745;
-    let dLat = distanceKm * Float.cos(dirRad) / 111.0;
-    let dLon = distanceKm * Float.sin(dirRad) / (111.0 * Float.cos(lat * 0.01745));
-
-    (lat + dLat, lon + dLon)
+  // Theoretical inclination from magnetic latitude λ (degrees)
+  // tan(I) = 2 tan(λ)
+  public func inclinationFromLatitude(latitude_deg : Float) : Float {
+    let lat = _deg2rad(latitude_deg);
+    _rad2deg(Float.arctan(2.0 * _tan(lat)))
   };
 
-  // ══════════════════════════════════════════════════════════════
-  // FULL BEAT UPDATE
-  // ══════════════════════════════════════════════════════════════
+  // Theoretical field intensity at magnetic latitude λ (dipole model)
+  // B(λ) = B_equator × √(1 + 3sin²λ) / cos⁶λ
+  public func fieldIntensity(latitude_deg : Float) : Float {
+    let lat = _deg2rad(latitude_deg);
+    let sinLat = _sin(lat);
+    let cosLat = _cos(lat);
+    if (_abs(cosLat) < EPSILON) { return B_EQUATOR * 2.0 };
+    let cos6 = cosLat * cosLat * cosLat * cosLat * cosLat * cosLat;
+    B_EQUATOR * _sqrt(1.0 + 3.0 * sinLat * sinLat) / cos6
+  };
+
+  // Inverse: estimate latitude from measured inclination
+  // I = arctan(2 tan λ) → λ = arctan(tan(I)/2)
+  public func latitudeFromInclination(inclination_deg : Float) : Float {
+    let I = _deg2rad(inclination_deg);
+    _rad2deg(Float.arctan(_tan(I) / 2.0))
+  };
+
+  // Magnetic position error from (I_meas, B_meas) vs (I_home, B_home)
+  public func magneticPositionError(
+    I_meas : Float, B_meas : Float,
+    I_home : Float, B_home : Float
+  ) : Float {
+    // Error in two-parameter space (normalized)
+    let dI = (I_meas - I_home) / (I_POLE + EPSILON);
+    let dB = (B_meas - B_home) / (B_EQUATOR * 2.0 + EPSILON);
+    _sqrt(dI * dI + dB * dB) * MAX_RANGE_M
+  };
+
+  // Compute magnetic signature from position
+  public func computeMagneticSignature(
+    latitude_deg : Float,
+    addNoise     : Float  // noise level (0 = perfect)
+  ) : MagneticSignature {
+    let I = inclinationFromLatitude(latitude_deg) + addNoise * I_ERROR_SIGMA;
+    let B = fieldIntensity(latitude_deg) + addNoise * B_ERROR_SIGMA;
+    let latEst = latitudeFromInclination(I);
+    let grad_I = 0.5 / (latitude_deg + EPSILON);  // dI/dλ ≈ 1/cos²(λ)
+    let grad_B = 100.0 / (latitude_deg + EPSILON); // dB/dλ approximate
+    let errorM = (I_ERROR_SIGMA / (_abs(grad_I) + EPSILON)) * 111000.0;  // 1° lat = 111km
+
+    {
+      inclination  = I;
+      intensity    = B;
+      declination  = 0.0;   // simplified (no declination correction)
+      gradient_I   = grad_I;
+      gradient_B   = grad_B;
+      latitudeEst  = latEst;
+      errorMeters  = errorM;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 5: OLFACTORY NAVIGATION
+  // Chemotaxis: follow ∇c toward home signature
+  // Concentration gradient: ∂c/∂x from turbulent diffusion model
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Turbulent diffusion concentration at distance x from source
+  // c(x,t) = Q/(4πDt) × exp(-x²/(4Dt))  [1D Fickian]
+  public func odorConcentration(sourceStrength : Float, distance_m : Float, time_s : Float) : Float {
+    if (time_s < EPSILON or distance_s < EPSILON) { return sourceStrength };
+    let t = time_s;
+    let prefactor = sourceStrength / (4.0 * PI * DIFFUSION_COEFF * t);
+    let exponent  = -(distance_m * distance_m) / (4.0 * DIFFUSION_COEFF * t);
+    prefactor * Float.exp(_clamp(exponent, -100.0, 0.0))
+  };
+
+  // Olfactory match score: cosine similarity to imprinted home signature
+  public func olfactoryMatch(current : [Float], homeSignature : [Float]) : Float {
+    let raw = _cosSimilarity(current, homeSignature);
+    _clamp((raw + 1.0) / 2.0, 0.0, 1.0)  // shift from [-1,1] to [0,1]
+  };
+
+  // Chemotaxis velocity: v = v_max × tanh(|∇c| / C₀) × upstream_sign
+  public func chemotaxisVelocity(gradMag : Float, upstreamSign : Float) : Float {
+    V_OLFACTORY_MAX * _tanh(gradMag / (C_HALF_SAT + EPSILON)) * upstreamSign
+  };
+
+  // Estimate distance to home from concentration (inverse diffusion)
+  public func estimateDistanceFromOdor(concentration : Float, sourceStrength : Float, time_s : Float) : Float {
+    if (concentration < EPSILON or sourceStrength < EPSILON) { return MAX_RANGE_M };
+    // c ≈ Q / (4πDt) × exp(-x²/(4Dt))  → x = √(-4Dt × ln(c × 4πDt / Q))
+    let prefactor = 4.0 * PI * DIFFUSION_COEFF * time_s;
+    if (prefactor < EPSILON) { return MAX_RANGE_M };
+    let ratio = concentration * prefactor / sourceStrength;
+    if (ratio <= 0.0 or ratio >= 1.0) { return MAX_RANGE_M };
+    let x = _sqrt(-4.0 * DIFFUSION_COEFF * time_s * Float.log(ratio));
+    _clamp(x, 0.0, MAX_RANGE_M)
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 6: CELESTIAL NAVIGATION
+  // Sun azimuth from hour angle H, declination δ, latitude φ
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Solar azimuth from hour angle, declination, latitude
+  // A = arctan(sin(H) / [cos(H)sin(φ) - tan(δ)cos(φ)])
+  public func solarAzimuth(hourAngle_deg : Float, declination_deg : Float, latitude_deg : Float) : Float {
+    let H = _deg2rad(hourAngle_deg);
+    let delta = _deg2rad(declination_deg);
+    let phi = _deg2rad(latitude_deg);
+    let y = _sin(H);
+    let x = _cos(H) * _sin(phi) - _tan(delta) * _cos(phi);
+    let A = _rad2deg(_atan2(y, x));
+    // Normalize to [0, 360)
+    let normalized = if (A < 0.0) A + 360.0 else A;
+    _clamp(normalized, 0.0, 360.0)
+  };
+
+  // Solar declination as function of day of year
+  // δ = 23.45° × sin(360/365 × (DOY - 81))
+  public func solarDeclination(dayOfYear : Float) : Float {
+    23.45 * _sin(_deg2rad(360.0 / 365.0 * (dayOfYear - 81.0)))
+  };
+
+  // Hour angle from time of day and longitude
+  // H = (LST - 12) × 15°/hr  (solar noon at H=0)
+  public func hourAngle(localSolarTime_hr : Float) : Float {
+    (localSolarTime_hr - 12.0) * EARTH_ROT_DEG_HR
+  };
+
+  // True north from sun azimuth (compensated for time of day)
+  // North_true = A_sun - A_expected_from_true_north
+  public func trueNorthFromSun(
+    measuredAzimuth_deg : Float,
+    timeOfDay_hr : Float,
+    latitude_deg : Float,
+    dayOfYear : Float
+  ) : Float {
+    let H = hourAngle(timeOfDay_hr);
+    let delta = solarDeclination(dayOfYear);
+    let expectedA = solarAzimuth(H, delta, latitude_deg);
+    // Compass heading = measured - expected + actual sun azimuth
+    let northCorrection = measuredAzimuth_deg - expectedA;
+    let trueNorth = 0.0 - northCorrection;  // 0° = North
+    let normalized = if (trueNorth < 0.0) trueNorth + 360.0 else trueNorth;
+    _clamp(normalized, 0.0, 360.0)
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 7: KALMAN FILTER NAVIGATION FUSION
+  // State: [lat, lon, heading, speed, depth]
+  // 5D state × 5D transition — simplified scalar version for efficiency
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Kalman gain: K = P⁻ / (P⁻ + R)  (scalar version per dimension)
+  public func kalmanGain(priorVar : Float, measurementVar : Float) : Float {
+    if (priorVar + measurementVar < EPSILON) { return 0.5 };
+    priorVar / (priorVar + measurementVar)
+  };
+
+  // Kalman update: x̂ = x̂⁻ + K(z - x̂⁻)
+  public func kalmanUpdate(prior : Float, measurement : Float, K : Float) : Float {
+    prior + K * (measurement - prior)
+  };
+
+  // Kalman variance update: P = (1-K) × P⁻
+  public func kalmanVarianceUpdate(priorVar : Float, K : Float) : Float {
+    _clamp((1.0 - K) * priorVar, EPSILON, 1.0e10)
+  };
+
+  // Fuse 3 independent position estimates (geomagnetic, olfactory, celestial)
+  // Returns fused estimate and uncertainty
+  public func fuseThreeEstimates(
+    est1 : Float, var1 : Float,
+    est2 : Float, var2 : Float,
+    est3 : Float, var3 : Float
+  ) : (Float, Float) {
+    // Inverse-variance weighting: x_fused = Σ(xᵢ/σᵢ²) / Σ(1/σᵢ²)
+    let w1 = if (var1 > EPSILON) 1.0 / var1 else 0.0;
+    let w2 = if (var2 > EPSILON) 1.0 / var2 else 0.0;
+    let w3 = if (var3 > EPSILON) 1.0 / var3 else 0.0;
+    let wTotal = w1 + w2 + w3;
+    if (wTotal < EPSILON) { return (est1, var1) };
+    let fused = (est1 * w1 + est2 * w2 + est3 * w3) / wTotal;
+    let fusedVar = 1.0 / wTotal;
+    (fused, fusedVar)
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 8: SWIMMING MECHANICS
+  // E(v) = E₀ + α v² + β v³  (total cost)
+  // Cost of transport: COT = E(v)/v = E₀/v + α v + β v²
+  // Minimum COT at: v* = √(E₀/β)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public func swimmingCost(speed : Float) : Float {
+    let v = _clamp(speed, 0.0, SWIM_V_MAX);
+    SWIM_COST_BASE + SWIM_COST_ALPHA * v * v + SWIM_COST_BETA * v * v * v
+  };
+
+  // Cost of transport (per meter): COT = E(v)/v
+  public func costOfTransport(speed : Float) : Float {
+    if (speed < EPSILON) { return 9999.0 };
+    swimmingCost(speed) / speed
+  };
+
+  // Optimal speed (minimize COT)
+  public func optimalSpeed() : Float {
+    // v* = (E₀/β)^(1/3) from d(COT)/dv = 0
+    let vOpt = Float.exp(Float.log(SWIM_COST_BASE / (SWIM_COST_BETA + EPSILON)) / 3.0);
+    _clamp(vOpt, 0.1, SWIM_V_MAX)
+  };
+
+  // Vortex energy harvesting from Kármán street
+  // Energy flux: P_vortex = 0.5 × ρ_water × v_vortex³ × A_body × Cd_harvest
+  public func vortexHarvestEnergy(flowSpeed : Float, bodyArea : Float) : Float {
+    let Cd = 0.3;  // harvesting drag coefficient
+    let rho = 1000.0;  // water density kg/m³
+    0.5 * rho * flowSpeed * flowSpeed * flowSpeed * bodyArea * Cd
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 9: MEDINA SALMON NAVIGATION INDEX
+  // N_salmon = S₀ × [ε_mag_inv × Φ_M + olfactory_match] / Ω
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public func salmonNavIndex(
+    magneticError  : Float,   // ε_mag (meters)
+    olfactoryMatch : Float    // [0,1]
+  ) : Float {
+    let epsilonInv = _clamp(1.0 - magneticError / MAX_RANGE_M, 0.0, 1.0);
+    let idx = S0 * (epsilonInv * PHI_MEDINA + olfactoryMatch) / SOVEREIGN_CEILING;
+    _clamp(idx, 0.0, 1.0)
+  };
+
+  // Heading toward home (from current position vs home magnetic signature)
+  public func computeHomeHeading(
+    current_lat : Float, current_lon : Float,
+    home_lat    : Float, home_lon    : Float
+  ) : Float {
+    let dLat = home_lat - current_lat;
+    let dLon = home_lon - current_lon;
+    let heading = _rad2deg(_atan2(dLon, dLat));
+    let normalized = if (heading < 0.0) heading + 360.0 else heading;
+    _clamp(normalized, 0.0, 360.0)
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 10: BEAT UPDATE
+  // ══════════════════════════════════════════════════════════════════════════
 
   public func beatSalmon(
-    state: SalmonState,
-    magneticInput: MagneticField,
-    olfactoryInput: [Float],
-    waterSpeed: Float
-  ) : SalmonState {
-    // 1. Update magnetic sensing
-    let newCompass = computeCompassHeading(magneticInput);
-
-    // 2. Compute olfactory match to home
-    let newOlfactoryMatch = olfactorySimilarity(olfactoryInput, state.homeSignature);
-
-    // 3. Select navigation mode
-    let olfactoryStrength = newOlfactoryMatch;
-    let distanceToCoast = 1000.0 - state.progressToGoal * 1000.0;  // Simplified
-    let newMode = selectNavigationMode(distanceToCoast, olfactoryStrength, state.maturationLevel);
-
-    // 4. Compute course correction based on mode
-    let courseCorrection = switch (newMode) {
-      case (#Oceanic) {
-        computeCourseCorrection(magneticInput, state.migrationGoal.magneticTarget, state.swimDirection)
-      };
-      case (#Coastal) {
-        let magCorrection = computeCourseCorrection(magneticInput, state.migrationGoal.magneticTarget, state.swimDirection);
-        let olfCorrection = olfactoryGradient(
-          olfactoryInput,  // Use same for both (simplified)
-          olfactoryInput,
-          state.homeSignature
-        );
-        (magCorrection + olfCorrection) / 2.0
-      };
-      case (#Riverine) {
-        olfactoryGradient(olfactoryInput, olfactoryInput, state.homeSignature)
-      };
-      case (#Homing) {
-        olfactoryGradient(olfactoryInput, olfactoryInput, state.homeSignature) * 2.0
-      };
+    state           : NavigationState,
+    measuredI       : Float,   // measured magnetic inclination
+    measuredB       : Float,   // measured field intensity
+    olfactoryConc   : [Float], // current chemical concentrations
+    sunAzimuth      : Float,   // measured sun azimuth
+    timeOfDay       : Float,   // hours 0-24
+    currentSpeed    : Float,   // water current m/s
+    currentDir      : Float,   // water current direction degrees
+    dayOfYear       : Float
+  ) : NavigationState {
+    // Update magnetic signature
+    let lat_est = latitudeFromInclination(measuredI);
+    let magSig : MagneticSignature = {
+      inclination  = measuredI;
+      intensity    = measuredB;
+      declination  = 0.0;
+      gradient_I   = state.magnetic.gradient_I;
+      gradient_B   = state.magnetic.gradient_B;
+      latitudeEst  = lat_est;
+      errorMeters  = B_ERROR_SIGMA * 100.0;  // rough
     };
 
-    // 5. Update swim direction
-    let newDirection = state.swimDirection + _clamp(courseCorrection, -30.0, 30.0);
-    let normalizedDirection = if (newDirection < 0.0) { newDirection + 360.0 }
-                              else if (newDirection >= 360.0) { newDirection - 360.0 }
-                              else { newDirection };
-
-    // 6. Update position (dead reckoning)
-    let swimSpeed = _clamp(state.swimSpeed + waterSpeed * 0.1 - state.stressLevel * 0.5, 0.5, 3.0);
-    let (newLat, newLon) = updatePosition(
-      state.estimatedLat,
-      state.estimatedLon,
-      swimSpeed,
-      normalizedDirection,
-      0.01  // Time step
-    );
-
-    // 7. Compute progress
-    let magneticErr = magneticError(magneticInput, state.migrationGoal.magneticTarget);
-    let newProgress = _clamp(
-      state.progressToGoal + (1.0 - magneticErr) * 0.001 + newOlfactoryMatch * 0.002,
-      0.0, 1.0
-    );
-
-    // 8. Update energy (decreases with swimming)
-    let newEnergy = _clamp(
-      state.energyReserve - swimSpeed * 0.001 - state.stressLevel * 0.0005,
-      0.0, 1.0
-    );
-
-    // 9. Update maturation (increases over time)
-    let newMaturation = _clamp(state.maturationLevel + 0.0001, 0.0, 1.0);
-
-    // 10. Update stress (increases with magnetic confusion)
-    let newStress = _clamp(
-      state.stressLevel * 0.99 + magneticErr * 0.1,
-      0.0, 1.0
-    );
-
-    // 11. Update navigation confidence
-    let newConfidence = switch (newMode) {
-      case (#Oceanic) { 1.0 - magneticErr };
-      case (#Coastal) { (1.0 - magneticErr + newOlfactoryMatch) / 2.0 };
-      case (#Riverine) { newOlfactoryMatch };
-      case (#Homing) { newOlfactoryMatch };
+    // Olfactory match
+    let matchScore = olfactoryMatch(olfactoryConc, state.olfactory.homeSignature);
+    let gradMag = if (olfactoryConc.size() > 0) olfactoryConc[0] else 0.0;
+    let olfSig : OlfactorySignal = {
+      concentrations   = olfactoryConc;
+      homeSignature    = state.olfactory.homeSignature;
+      matchScore       = matchScore;
+      gradientStrength = gradMag;
+      upstreamDir      = state.olfactory.upstreamDir;
+      distanceEst      = state.olfactory.distanceEst;
     };
 
-    // 12. Track course corrections
-    let newCorrections = if (abs(courseCorrection) > 5.0) {
-      state.courseCorrections + 1
-    } else { state.courseCorrections };
-
-    // 13. Update migration goal
-    let newGoal = {
-      magneticTarget = state.migrationGoal.magneticTarget;
-      olfactoryTarget = state.migrationGoal.olfactoryTarget;
-      distance = state.migrationGoal.distance * (1.0 - newProgress);
-      direction = normalizedDirection;
-      confidence = newConfidence;
+    // Celestial fix
+    let delta = solarDeclination(dayOfYear);
+    let H = hourAngle(timeOfDay);
+    let lat_curr = if (state.position.size() > 0) state.position[0] else 45.0;
+    let expectedA = solarAzimuth(H, delta, lat_curr);
+    let celFix : CelestialFix = {
+      sunAzimuth    = sunAzimuth;
+      hourAngle     = H;
+      declination   = delta;
+      timeOfDay     = timeOfDay;
+      northHeading  = trueNorthFromSun(sunAzimuth, timeOfDay, lat_curr, dayOfYear);
+      polarizationE = (sunAzimuth + 90.0) mod 360.0;
+      isNight       = timeOfDay < 6.0 or timeOfDay > 20.0;
+      starNorth     = 0.0;
     };
+
+    // Compute magnetic error vs home
+    let home_lat = if (state.position.size() > 1) state.position[1] else 55.0;
+    let I_home = inclinationFromLatitude(home_lat);
+    let B_home = fieldIntensity(home_lat);
+    let magError = magneticPositionError(measuredI, measuredB, I_home, B_home);
+
+    // Navigation confidence
+    let navConf = _clamp(matchScore * 0.4 + (1.0 - magError/MAX_RANGE_M) * 0.4 + 0.2, 0.0, 1.0);
+
+    // Swim cost
+    let cost = swimmingCost(state.swimSpeed);
+
+    // Vortex energy
+    let bodyArea = 0.02;  // salmon cross-section m²
+    let vortexE  = vortexHarvestEnergy(currentSpeed, bodyArea);
+
+    // Sovereign index
+    let navIdx = salmonNavIndex(magError, matchScore);
+
+    // Update history
+    let newPosH = _appendRolling(state.posHistory, lat_est, HIST_MAX);
+    let homeHeading = computeHomeHeading(lat_est, 0.0, home_lat, 0.0);
+    let newHdgH = _appendRolling(state.headingHistory, homeHeading, HIST_MAX);
 
     {
-      currentField = magneticInput;
-      magneticMemory = state.magneticMemory;
-      magneticMap = state.magneticMap;
-      compassHeading = newCompass;
-      currentSmell = olfactoryInput;
-      imprintedSmells = state.imprintedSmells;
-      homeSignature = state.homeSignature;
-      olfactoryMatch = newOlfactoryMatch;
-      migrationGoal = newGoal;
-      progressToGoal = newProgress;
-      navigationMode = newMode;
-      estimatedLat = newLat;
-      estimatedLon = newLon;
-      swimSpeed = swimSpeed;
-      swimDirection = normalizedDirection;
-      energyReserve = newEnergy;
-      stressLevel = newStress;
-      maturationLevel = newMaturation;
-      routeMemory = state.routeMemory;
-      courseCorrections = newCorrections;
-      beatNum = state.beatNum + 1;
+      position      = state.position;
+      covariance    = state.covariance;
+      magnetic      = magSig;
+      olfactory     = olfSig;
+      celestial     = celFix;
+      headingBest   = homeHeading;
+      distanceHome  = magError;
+      navConfidence = navConf;
+      swimSpeed     = state.swimSpeed;
+      swimHeading   = homeHeading;
+      metabolicCost = cost;
+      energyBudget  = _clamp(state.energyBudget - cost * 0.001, 0.0, 1.0);
+      currentSpeed  = currentSpeed;
+      currentDir    = currentDir;
+      vortexEnergy  = vortexE / (cost + EPSILON);
+      salmonNavIndex = navIdx;
+      posHistory    = newPosH;
+      headingHistory = newHdgH;
+      beatNum       = state.beatNum + 1;
     }
   };
 
-  // ══════════════════════════════════════════════════════════════
-  // INITIALIZATION
-  // ══════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 11: INITIALIZATION
+  // ══════════════════════════════════════════════════════════════════════════
 
-  public func initSalmon() : SalmonState {
+  // Home signature: 12 compounds at characteristic concentrations
+  public let HOME_SIGNATURE : [Float] = [
+    5.0e-13, 3.0e-13, 8.0e-13, 2.0e-13,  // amino acids
+    1.0e-13, 4.0e-13, 6.0e-13, 2.0e-13,  // bile acids
+    7.0e-13, 3.0e-13, 5.0e-13, 4.0e-13,  // minerals / organics
+  ];
+
+  public func initSalmonNavigation() : NavigationState {
+    let initPosition = [45.0, -120.0, 0.0, SWIM_V_OPTIMAL, 0.5];  // [lat, lon, hdg, spd, depth]
+    let initCov = Array.tabulate<Float>(KF_STATE_DIM * KF_STATE_DIM, func(i) {
+      if (i mod (KF_STATE_DIM + 1) == 0) { 10.0 } else { 0.0 }  // diagonal covariance
+    });
+
+    let initMag : MagneticSignature = {
+      inclination  = inclinationFromLatitude(45.0);
+      intensity    = fieldIntensity(45.0);
+      declination  = 0.0; gradient_I = 0.5; gradient_B = 100.0;
+      latitudeEst  = 45.0; errorMeters = 50000.0;
+    };
+
+    let initOlf : OlfactorySignal = {
+      concentrations   = HOME_SIGNATURE;
+      homeSignature    = HOME_SIGNATURE;
+      matchScore       = 1.0;
+      gradientStrength = 0.0;
+      upstreamDir      = 0.0;
+      distanceEst      = 0.0;
+    };
+
+    let initCel : CelestialFix = {
+      sunAzimuth=180.0; hourAngle=0.0; declination=0.0; timeOfDay=12.0;
+      northHeading=0.0; polarizationE=90.0; isNight=false; starNorth=0.0;
+    };
+
     {
-      currentField = { intensity = 50.0; inclination = 60.0; declination = 0.0 };
-      magneticMemory = [];
-      magneticMap = Array.tabulate<Float>(64, func(_) { 0.0 });
-      compassHeading = 0.0;
-      currentSmell = Array.tabulate<Float>(8, func(_) { 0.0 });
-      imprintedSmells = [];
-      homeSignature = Array.tabulate<Float>(8, func(i) { Float.fromInt(i + 1) * 0.1 });
-      olfactoryMatch = 0.0;
-      migrationGoal = {
-        magneticTarget = { intensity = 52.0; inclination = 65.0; declination = -10.0 };
-        olfactoryTarget = Array.tabulate<Float>(8, func(i) { Float.fromInt(i + 1) * 0.1 });
-        distance = 3000.0;
-        direction = 45.0;
-        confidence = 0.5;
-      };
-      progressToGoal = 0.0;
-      navigationMode = #Oceanic;
-      estimatedLat = 45.0;
-      estimatedLon = -125.0;
-      swimSpeed = 1.5;
-      swimDirection = 45.0;
-      energyReserve = 1.0;
-      stressLevel = 0.0;
-      maturationLevel = 0.0;
-      routeMemory = [];
-      courseCorrections = 0;
-      beatNum = 0;
-    }
-  };
-
-  // ══════════════════════════════════════════════════════════════
-  // SUMMARY
-  // ══════════════════════════════════════════════════════════════
-
-  public type SalmonSummary = {
-    progressToGoal    : Float;
-    navigationMode    : NavigationMode;
-    olfactoryMatch    : Float;
-    compassHeading    : Float;
-    confidence        : Float;
-    energyReserve     : Float;
-    courseCorrections : Nat;
-  };
-
-  public func summary(state: SalmonState) : SalmonSummary {
-    {
-      progressToGoal = state.progressToGoal;
-      navigationMode = state.navigationMode;
-      olfactoryMatch = state.olfactoryMatch;
-      compassHeading = state.compassHeading;
-      confidence = state.migrationGoal.confidence;
-      energyReserve = state.energyReserve;
-      courseCorrections = state.courseCorrections;
+      position       = initPosition;
+      covariance     = initCov;
+      magnetic       = initMag;
+      olfactory      = initOlf;
+      celestial      = initCel;
+      headingBest    = 0.0;
+      distanceHome   = 100000.0;
+      navConfidence  = 0.5;
+      swimSpeed      = SWIM_V_OPTIMAL;
+      swimHeading    = 0.0;
+      metabolicCost  = swimmingCost(SWIM_V_OPTIMAL);
+      energyBudget   = 1.0;
+      currentSpeed   = 0.5;
+      currentDir     = 180.0;
+      vortexEnergy   = 0.1;
+      salmonNavIndex = 0.0;
+      posHistory     = [];
+      headingHistory = [];
+      beatNum        = 0;
     }
   };
 

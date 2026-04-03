@@ -1,467 +1,622 @@
-// ============================================================
-// OWL AUDITORY — 3D SOUND LOCALIZATION MODULE
-// Asymmetric ears: left higher than right
-// Microsecond timing resolution (10 microseconds)
-// Facial disc as acoustic dish
-// Owner: Alfredo Medina Hernandez | MedinaSITech@outlook.com
-// ============================================================
+// ════════════════════════════════════════════════════════════════════════════════
+// NEUROEMERGENCE CORE — OWL AUDITORY SYSTEM
+// COMPREHENSIVE BINAURAL SOUND LOCALIZATION AND SPECTRAL ANALYSIS
+// Owner: Alfredo Medina Hernandez | MedinaSITech@outlook.com | Dallas, Texas | 2026
+// Proprietary and Confidential. All rights reserved.
+//
+// ════════════════════════════════════════════════════════════════════════════════
+// MASTER EQUATIONS — OWL HEARING: MOST PRECISE AUDITORY LOCALIZATION IN NATURE
+// ════════════════════════════════════════════════════════════════════════════════
+//
+// ── LAYER 1: INTERAURAL TIME DIFFERENCE (ITD) ─────────────────────────────────
+//   The barn owl can detect sound source azimuth with ~1° precision
+//   using ITD = τ = d × sin(θ) / c
+//   where: d = inter-ear distance (cm), θ = azimuth angle, c = sound speed (m/s)
+//   Barn owl ear separation: d = 1.4 cm (asymmetric skull for vertical resolution)
+//   Maximum ITD: τ_max = d/c = 0.014 / 343 = 40.8 μs
+//   Neural resolution: Δτ_min = 10 μs (detectable via phase-locking)
+//   Angular resolution from ITD: Δθ = Δτ × c / (d × cos θ)
+//   At θ=0°: Δθ = 10×10⁻⁶ × 343 / 0.014 ≈ 0.25° (incredible precision)
+//   Jeffress model: coincidence detectors fire when signals arrive simultaneously
+//   Delay line array: axons of different lengths create range of ITDs
+//
+// ── LAYER 2: INTERAURAL LEVEL DIFFERENCE (ILD) ─────────────────────────────────
+//   ILD = 20 × log₁₀(A_left / A_right)  [decibels]
+//   Encodes ELEVATION (vertical angle) in owls
+//   Owl's asymmetric ears: left ear higher, right ear lower
+//   ILD vs elevation: ILD = ILD_max × sin(φ)  where φ = elevation angle
+//   Typical: ILD_max ≈ 30 dB (complete head shadow at high frequencies)
+//   ILD increases with frequency: head shadow larger relative to wavelength
+//   Neural computation: MSO → LSO → ICX (external nucleus of inferior colliculus)
+//   Combined ITD+ILD → 2D sound map in ICX
+//
+// ── LAYER 3: HEAD-RELATED TRANSFER FUNCTION (HRTF) ────────────────────────────
+//   HRTF_L(f, θ, φ) = |H_L(f, θ, φ)|² (power spectrum from left ear)
+//   HRTF modifies incident sound based on pinna, head, body geometry
+//   Pinna creates frequency-dependent peaks (notches) vs elevation
+//   Key notches: first pinna notch at f_notch = c/(2l_pinna) ≈ 8-10 kHz
+//   Owl's facial disc: parabolic reflector that focuses sound on ears
+//   Gain from disc: G_disc ≈ 10 dB at 8-12 kHz
+//   Total spatial sensitivity: S(θ, φ, f) = HRTF_L(f,θ,φ) × HRTF_R(f,θ,φ)
+//
+// ── LAYER 4: PHASE LOCKING AND COCHLEAR MECHANICS ─────────────────────────────
+//   Phase locking: auditory nerve fires preferentially at specific phase of sound
+//   Phase lock range: up to 9 kHz in owls (vs 4 kHz in mammals)
+//   Vector strength: VS = |Σ exp(i × 2π × f × tₙ)| / N  ∈ [0,1]
+//   VS = 1: perfect phase lock, VS = 0: random
+//   Basilar membrane resonance: x_BM(f) = L × (1 - log(f/f_apex) / log(f_base/f_apex))
+//   Place theory: position x encodes frequency f
+//   Owl basilar membrane length: L = 8.5 mm, f_range = 200 Hz - 12 kHz
+//   Traveling wave: ∂²y/∂t² = T/ρ × ∂²y/∂x² - b/ρ × ∂y/∂t
+//   T = tension, ρ = mass density, b = damping
+//
+// ── LAYER 5: COINCIDENCE DETECTION — JEFFRESS MODEL ───────────────────────────
+//   Binary model: two ears provide input, coincidence detector fires when both arrive
+//   Delay line creates systematic ITD mapping:
+//   For neuron at delay position Δd:
+//   ITD_preferred(Δd) = Δd/v_axon  where v_axon = conduction velocity
+//   Firing probability: P(fire) = exp(-|ITD - ITD_preferred|² / (2σ_ITD²))
+//   σ_ITD = ITD tuning width ≈ half period of characteristic frequency
+//   Population response: r(ITD) = Σᵢ P(fire_i | ITD) × w_i
+//   The 2D ITD-ILD map in ICX creates a complete soundscape coordinate system
+//
+// ── LAYER 6: SPECTRAL ANALYSIS — SHORT-TIME FOURIER TRANSFORM ─────────────────
+//   X(k, n) = Σ_{m=0}^{N-1} x(n-m) × w(m) × exp(-i2πkm/N)
+//   x = input signal, w = window function, N = FFT size, k = frequency bin
+//   Power spectrum: P(k,n) = |X(k,n)|² / N²
+//   Mel filterbank: simulate cochlear frequency spacing
+//   Mel scale: m = 2595 × log₁₀(1 + f/700)
+//   f = 700 × (10^(m/2595) - 1)
+//   Triangular filters spaced linearly on mel scale
+//   Log power: L(k) = 10 × log₁₀(P(k) + ε)  [dB]
+//   MFCC: DCT of log mel filterbank energies
+//   c_n = Σ_{k=1}^{K} log(M_k) × cos(π n (k-0.5)/K)
+//
+// ── LAYER 7: NEURAL SOUND MAP ─────────────────────────────────────────────────
+//   Inferior colliculus (ICX): 2D map of space (azimuth × elevation)
+//   Each cell has receptive field: RF(θ, φ) = G × exp(-((θ-θ₀)²/2σ_θ² + (φ-φ₀)²/2σ_φ²))
+//   G = peak response, θ₀, φ₀ = preferred location, σ = tuning width
+//   Population vector code: estimated angle = Σᵢ θᵢ rᵢ / Σᵢ rᵢ
+//   Optic tectum: audio-visual alignment
+//   Visual RF matched to auditory RF for each cell
+//   Alignment requires experience (Hebbian plasticity during development)
+//   NOVA: auditory map integrates with visual map for prey localization
+//
+// ── LAYER 8: MEDINA OWL AUDITORY INDEX ───────────────────────────────────────
+//   A_owl = S₀ × [ITD_precision × Φ_M + ILD_precision] / Ω
+//   ITD_precision = 1 - Δτ/τ_max ∈ [0,1]  (low = high noise)
+//   ILD_precision = 1 - ΔILD/ILD_max ∈ [0,1]
+//   A_owl ∈ [0, S₀(Φ_M + 1)/Ω] = [0, 0.441]
+//   When A_owl > COHERENCE_ALIVE: auditory sovereignty achieved
+//
+// Owner: Alfredo Medina Hernandez | MedinaSITech@outlook.com | Dallas, Texas | 2026
+// ════════════════════════════════════════════════════════════════════════════════
 
 import Float "mo:base/Float";
 import Array "mo:base/Array";
 import Nat   "mo:base/Nat";
+import Int   "mo:base/Int";
+import Iter  "mo:base/Iter";
 
 module {
 
-  // ── Constants ─────────────────────────────────────────────────
-  let S0 : Float = 0.75;
-  let SOVEREIGN_CEILING : Float = 9.0;
-  let SPEED_OF_SOUND : Float = 343.0;     // m/s in air
-  let HEAD_WIDTH : Float = 0.1;           // meters (10cm)
-  let MAX_ITD : Float = 0.0003;           // max interaural time difference (300 μs)
-  let FREQUENCY_BANDS : Nat = 8;          // Frequency analysis bands
+  public let PHI_MEDINA       : Float = 2.97442179;
+  public let S0               : Float = 1.0;
+  public let SOVEREIGN_CEILING: Float = 9.0;
+  public let COHERENCE_ALIVE  : Float = 0.36;
+  public let EPSILON          : Float = 1.0e-10;
+  public let PI               : Float = 3.141592653589793;
+  public let TWO_PI           : Float = 6.283185307179586;
 
-  // ── Types ─────────────────────────────────────────────────────
-  public type AuditoryInput = {
-    leftEar       : [Float];    // 8 frequency bands
-    rightEar      : [Float];    // 8 frequency bands
-    leftTiming    : Float;      // Arrival time (ms)
-    rightTiming   : Float;      // Arrival time (ms)
+  // Owl auditory constants
+  public let SOUND_SPEED_MS   : Float = 343.0;      // m/s sound speed in air
+  public let EAR_SEPARATION_M : Float = 0.014;      // 1.4 cm inter-ear distance
+  public let MAX_ITD_US       : Float = 40.8;       // μs maximum ITD
+  public let MIN_ITD_US       : Float = 10.0;       // μs minimum detectable ITD
+  public let MAX_ILD_DB       : Float = 30.0;       // dB maximum ILD
+  public let DISC_GAIN_DB     : Float = 10.0;       // dB facial disc gain
+  public let PHASE_LOCK_MAX_HZ: Float = 9000.0;     // Hz max phase locking freq
+  public let BASILAR_LENGTH_M : Float = 0.0085;     // 8.5mm basilar membrane
+  public let F_APEX_HZ        : Float = 200.0;      // Hz apex (low freq)
+  public let F_BASE_HZ        : Float = 12000.0;    // Hz base (high freq)
+
+  // Spectral analysis
+  public let N_FFT            : Nat   = 512;        // FFT size
+  public let N_MEL_FILTERS    : Nat   = 40;         // mel filterbank channels
+  public let N_MFCC           : Nat   = 13;         // MFCC coefficients
+  public let MEL_F_MIN        : Float = 200.0;      // Hz minimum mel frequency
+  public let MEL_F_MAX        : Float = 12000.0;    // Hz maximum mel frequency
+
+  // Neural map
+  public let N_AZ_CELLS       : Nat   = 36;         // azimuth cells (10° spacing)
+  public let N_EL_CELLS       : Nat   = 18;         // elevation cells (10° spacing)
+  public let N_MAP_CELLS      : Nat   = 648;        // 36 × 18 total map cells
+  public let AZ_TUNING_DEG    : Float = 8.0;        // azimuth tuning width σ
+  public let EL_TUNING_DEG    : Float = 10.0;       // elevation tuning width σ
+
+  // ITD delay line
+  public let N_COINCIDENCE    : Nat   = 64;         // coincidence detector neurons
+  public let ITD_SIGMA_US     : Float = 15.0;       // ITD tuning width μs
+
+  public let HIST_MAX         : Nat   = 100;
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 2: STATE TYPES
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public type BinauraSignal = {
+    leftAmplitude  : Float;    // dB SPL
+    rightAmplitude : Float;    // dB SPL
+    leftPhase      : Float;    // radians (at characteristic frequency)
+    rightPhase     : Float;
+    frequency      : Float;    // Hz center frequency
+    itd_us         : Float;    // interaural time difference μs
+    ild_db         : Float;    // interaural level difference dB
   };
 
-  public type SoundSource = {
-    id            : Nat;
-    azimuth       : Float;      // Horizontal angle (-180 to 180)
-    elevation     : Float;      // Vertical angle (-90 to 90)
-    distance      : Float;      // Estimated distance (meters)
-    intensity     : Float;      // Sound level
-    frequency     : Float;      // Dominant frequency
-    confidence    : Float;      // Localization certainty
-    velocity      : Float;      // Movement in space
-    lastUpdate    : Nat;
+  public type SoundLocation = {
+    azimuth_deg    : Float;    // θ horizontal angle (0=front, +right)
+    elevation_deg  : Float;    // φ vertical angle (+up)
+    distance_m     : Float;    // estimated distance
+    confidence     : Float;    // [0,1] localization confidence
+    itdEstimate    : Float;    // ITD used for azimuth
+    ildEstimate    : Float;    // ILD used for elevation
   };
 
-  public type AuditoryMap = {
-    cells         : [Float];    // 32x16 azimuth-elevation grid (512 cells)
-    peakAzimuth   : Float;
-    peakElevation : Float;
-    mapConfidence : Float;
+  public type SpectralAnalysis = {
+    powerSpectrum  : [Float];  // N_FFT/2 power values (dB)
+    melFilterbank  : [Float];  // N_MEL_FILTERS energies
+    mfcc           : [Float];  // N_MFCC coefficients
+    dominantFreq   : Float;    // Hz peak frequency
+    spectralCentroid : Float;  // Hz spectral center of mass
+    spectralFlux   : Float;    // frame-to-frame spectral change
+    logEnergy      : Float;    // total log energy dB
   };
 
-  public type HeadPosition = {
-    azimuth       : Float;      // Head orientation horizontal
-    elevation     : Float;      // Head orientation vertical
-    facialDiscAngle: Float;     // Acoustic disc aim
+  public type NeuralAuditoryMap = {
+    responses      : [Float];  // N_MAP_CELLS firing rates
+    peakAzimuth    : Float;    // azimuth of peak activity (degrees)
+    peakElevation  : Float;    // elevation of peak activity (degrees)
+    mapEntropy     : Float;    // Shannon entropy of map (diffuse vs focal)
+    spatialConfidence : Float; // how well-localized is the target
   };
 
-  public type OwlState = {
-    // Ear processing
-    leftSpectrum    : [Float];   // Current left frequency analysis
-    rightSpectrum   : [Float];   // Current right frequency analysis
-    interauralTime  : Float;     // ITD (interaural time difference)
-    interauralLevel : Float;     // ILD (interaural level difference)
-
-    // Sound localization
-    trackedSources  : [SoundSource];
-    primarySource   : ?Nat;
-    auditoryMap     : AuditoryMap;
-
-    // Head control
-    headPosition    : HeadPosition;
-    headTrackTarget : ?Nat;       // Source index being tracked
-    headMovement    : Float;      // Recent head motion
-
-    // Attention
-    auditoryFocus   : Float;      // How much attention on hearing
-    visualAuditory  : Float;      // Balance between modalities
-
-    // Prey detection
-    preyLikelihood  : Float;      // Probability sound is prey
-    rustleDetection : Float;      // Leaf/grass rustle detection
-    squeakDetection : Float;      // High-frequency squeak detection
-
-    // Ambient noise
-    noiseFloor      : Float;      // Background noise level
-    snr             : Float;      // Signal to noise ratio
-
-    beatNum         : Nat;
+  public type CoincidenceDetectors = {
+    responses      : [Float];  // N_COINCIDENCE responses
+    peakITD_us     : Float;    // ITD with maximum coincidence
+    peakIdx        : Nat;      // index of peak coincidence neuron
+    vectorStrength : Float;    // VS measure of phase locking
   };
 
-  // ── Helpers ───────────────────────────────────────────────────
-  func _clamp(x: Float, lo: Float, hi: Float) : Float {
-    if (x < lo) { lo } else if (x > hi) { hi } else { x }
+  public type OwlAuditoryState = {
+    left           : BinauraSignal;
+    right          : BinauraSignal;
+    location       : SoundLocation;
+    spectrum       : SpectralAnalysis;
+    neuralMap      : NeuralAuditoryMap;
+    coincidence    : CoincidenceDetectors;
+    owlAudIndex    : Float;   // A_owl sovereign index
+    detectionFlag  : Bool;    // prey detected?
+    alertLevel     : Float;   // [0,1]
+    spectrumHistory : [Float];
+    beatNum        : Nat;
   };
 
-  func abs(x: Float) : Float {
-    if (x < 0.0) { -x } else { x }
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 3: MATH HELPERS
+  // ══════════════════════════════════════════════════════════════════════════
+
+  func _clamp(x : Float, lo : Float, hi : Float) : Float {
+    if (x < lo) lo else if (x > hi) hi else x
   };
 
-  // ── Interaural Time Difference ────────────────────────────────
-  // Convert ITD to azimuth angle
-  public func itdToAzimuth(itd: Float) : Float {
-    // ITD = d * sin(θ) / c, where d is head width
-    // θ = arcsin(ITD * c / d)
-    let ratio = _clamp(itd * SPEED_OF_SOUND / HEAD_WIDTH, -1.0, 1.0);
-    // Approximate arcsin using polynomial
-    let azimuth = ratio * 90.0;  // Simplified linear mapping
-    azimuth
+  func _abs(x : Float) : Float { if (x < 0.0) (-x) else x };
+  func _sqrt(x : Float) : Float { if (x <= 0.0) 0.0 else Float.sqrt(x) };
+  func _log10(x : Float) : Float { if (x <= 0.0) -100.0 else Float.log(x) / 2.302585092994046 };
+  func _sin(x : Float) : Float { Float.sin(x) };
+  func _cos(x : Float) : Float { Float.cos(x) };
+  func _exp(x : Float) : Float { Float.exp(_clamp(x, -100.0, 100.0)) };
+
+  func _gaussianResponse(x : Float, x0 : Float, sigma : Float) : Float {
+    if (sigma < EPSILON) { if (_abs(x - x0) < EPSILON) 1.0 else 0.0 }
+    else { _exp(-((x - x0) * (x - x0)) / (2.0 * sigma * sigma)) }
   };
 
-  // ── Interaural Level Difference ───────────────────────────────
-  // Higher frequencies have greater ILD (head shadow effect)
-  public func computeILD(leftSpectrum: [Float], rightSpectrum: [Float]) : Float {
-    var leftTotal : Float = 0.0;
-    var rightTotal : Float = 0.0;
-
-    // Weight higher frequencies more (head shadow is frequency-dependent)
-    var i = 0;
-    while (i < FREQUENCY_BANDS and i < leftSpectrum.size() and i < rightSpectrum.size()) {
-      let weight = 1.0 + Float.fromInt(i) * 0.3;  // Higher bands weighted more
-      leftTotal += leftSpectrum[i] * weight;
-      rightTotal += rightSpectrum[i] * weight;
-      i += 1;
-    };
-
-    if (leftTotal + rightTotal > 0.0) {
-      (leftTotal - rightTotal) / (leftTotal + rightTotal)
-    } else { 0.0 }
-  };
-
-  // ── Elevation from Asymmetric Ears ────────────────────────────
-  // Owl ears are asymmetric: left ear points up, right ear points down
-  // This creates elevation-dependent ILD patterns
-  public func ildToElevation(ild: Float, highFreqRatio: Float) : Float {
-    // Positive ILD (louder in left) = sound from above (left ear aims up)
-    // Negative ILD (louder in right) = sound from below
-    // High frequencies are more direction-sensitive
-    let elevationSensitivity = highFreqRatio * 90.0;
-    _clamp(ild * elevationSensitivity, -90.0, 90.0)
-  };
-
-  // ── Distance Estimation ───────────────────────────────────────
-  public func estimateDistance(intensity: Float, frequency: Float) : Float {
-    // Inverse square law: intensity ∝ 1/d²
-    // Higher frequencies attenuate faster
-    let freqAttenuation = 1.0 + frequency * 0.001;
-    let distance = Float.sqrt(1.0 / (intensity * freqAttenuation + 0.01));
-    _clamp(distance, 0.1, 100.0)
-  };
-
-  // ── Source Localization ───────────────────────────────────────
-  public func localizeSoundSource(
-    input: AuditoryInput, noiseFloor: Float
-  ) : ?SoundSource {
-    // Check if there's a significant sound above noise
-    var leftEnergy : Float = 0.0;
-    var rightEnergy : Float = 0.0;
-    var peakFreq : Nat = 0;
-    var peakEnergy : Float = 0.0;
-
-    var i = 0;
-    while (i < FREQUENCY_BANDS and i < input.leftEar.size()) {
-      leftEnergy += input.leftEar[i];
-      if (i < input.rightEar.size()) {
-        rightEnergy += input.rightEar[i];
-      };
-      let bandEnergy = input.leftEar[i] + (if (i < input.rightEar.size()) { input.rightEar[i] } else { 0.0 });
-      if (bandEnergy > peakEnergy) {
-        peakEnergy := bandEnergy;
-        peakFreq := i;
-      };
-      i += 1;
-    };
-
-    let totalEnergy = (leftEnergy + rightEnergy) / 2.0;
-    if (totalEnergy < noiseFloor * 1.5) {
-      return null;  // Below detection threshold
-    };
-
-    // Compute ITD (time difference)
-    let itd = input.leftTiming - input.rightTiming;
-    let azimuth = itdToAzimuth(itd);
-
-    // Compute ILD
-    let ild = computeILD(input.leftEar, input.rightEar);
-
-    // Compute high frequency ratio for elevation
-    let highFreqRatio = if (input.leftEar.size() >= 6 and input.rightEar.size() >= 6) {
-      (input.leftEar[5] + input.leftEar[6] + input.leftEar[7] +
-       input.rightEar[5] + input.rightEar[6] + input.rightEar[7]) /
-      (totalEnergy * 2.0 + 0.01)
-    } else { 0.5 };
-
-    let elevation = ildToElevation(ild, highFreqRatio);
-
-    // Estimate distance
-    let frequency = Float.fromInt(peakFreq) * 1000.0 + 500.0;  // Map band to Hz
-    let distance = estimateDistance(totalEnergy, frequency);
-
-    // Confidence based on signal strength and ITD consistency
-    let confidence = _clamp(
-      (totalEnergy - noiseFloor) / noiseFloor * 0.5,
-      0.0, 1.0
-    );
-
-    ?{
-      id = 0;
-      azimuth = azimuth;
-      elevation = elevation;
-      distance = distance;
-      intensity = totalEnergy;
-      frequency = frequency;
-      confidence = confidence;
-      velocity = 0.0;
-      lastUpdate = 0;
+  func _appendRolling(buf : [Float], val : Float, cap : Nat) : [Float] {
+    if (buf.size() < cap) { Array.append<Float>(buf, [val]) }
+    else {
+      let tail = Array.tabulate<Float>(cap - 1, func(i) { buf[i + 1] });
+      Array.append<Float>(tail, [val])
     }
   };
 
-  // ── Update Auditory Map ───────────────────────────────────────
-  public func updateAuditoryMap(
-    map: AuditoryMap, sources: [SoundSource]
-  ) : AuditoryMap {
-    var newCells = Array.thaw<Float>(map.cells);
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 4: ITD AND ILD COMPUTATION
+  // ══════════════════════════════════════════════════════════════════════════
 
-    // Decay all cells
-    var i = 0;
-    while (i < 512) {
-      newCells[i] := map.cells[i] * 0.9;
-      i += 1;
-    };
+  // Theoretical ITD for given azimuth
+  // τ = d × sin(θ) / c  [seconds → μs via ×10⁶]
+  public func theoreticalITD_us(azimuth_deg : Float) : Float {
+    let theta = azimuth_deg * PI / 180.0;
+    EAR_SEPARATION_M * _sin(theta) / SOUND_SPEED_MS * 1.0e6
+  };
 
-    // Add source contributions
-    var peakVal : Float = 0.0;
-    var peakAz : Float = 0.0;
-    var peakEl : Float = 0.0;
-
-    for (s in sources.vals()) {
-      // Convert angles to grid indices
-      // Azimuth: -180 to 180 → 0 to 31
-      // Elevation: -90 to 90 → 0 to 15
-      let azIdx = Nat.min(31, Int.abs(Float.toInt((s.azimuth + 180.0) / 11.25)));
-      let elIdx = Nat.min(15, Int.abs(Float.toInt((s.elevation + 90.0) / 11.25)));
-      let cellIdx = elIdx * 32 + azIdx;
-
-      if (cellIdx < 512) {
-        let newVal = _clamp(newCells[cellIdx] + s.confidence * s.intensity, 0.0, 1.0);
-        newCells[cellIdx] := newVal;
-
-        if (newVal > peakVal) {
-          peakVal := newVal;
-          peakAz := s.azimuth;
-          peakEl := s.elevation;
-        };
-      };
-    };
-
-    {
-      cells = Array.freeze(newCells);
-      peakAzimuth = peakAz;
-      peakElevation = peakEl;
-      mapConfidence = peakVal;
+  // Azimuth from measured ITD
+  // θ = arcsin(τ × c / d)
+  public func azimuthFromITD(itd_us : Float) : Float {
+    let itd_s = itd_us * 1.0e-6;
+    let sinTheta = itd_s * SOUND_SPEED_MS / EAR_SEPARATION_M;
+    if (_abs(sinTheta) > 1.0) {
+      if (sinTheta > 0.0) 90.0 else -90.0
+    } else {
+      Float.arctan2(sinTheta, _sqrt(1.0 - sinTheta * sinTheta)) * 180.0 / PI
     }
   };
 
-  // ── Head Tracking ─────────────────────────────────────────────
-  public func computeHeadMovement(
-    current: HeadPosition, targetAz: Float, targetEl: Float
-  ) : HeadPosition {
-    // Smooth pursuit: move head toward target
-    let azError = targetAz - current.azimuth;
-    let elError = targetEl - current.elevation;
-
-    let maxSpeed = 20.0;  // degrees per beat
-    let newAz = current.azimuth + _clamp(azError * 0.3, -maxSpeed, maxSpeed);
-    let newEl = current.elevation + _clamp(elError * 0.3, -maxSpeed, maxSpeed);
-
-    {
-      azimuth = _clamp(newAz, -180.0, 180.0);
-      elevation = _clamp(newEl, -90.0, 90.0);
-      facialDiscAngle = (newAz + newEl) * 0.1;  // Subtle disc adjustment
-    }
+  // ILD from amplitude difference
+  // ILD = 20 log₁₀(A_L / A_R) [dB]
+  public func computeILD_dB(ampLeft_dB : Float, ampRight_dB : Float) : Float {
+    ampLeft_dB - ampRight_dB
   };
 
-  // ── Prey Detection ────────────────────────────────────────────
-  public func detectPrey(spectrum: [Float]) : (Float, Float) {
-    // Rustle: low frequency broadband noise (bands 0-2)
-    // Squeak: high frequency narrowband (bands 5-7)
-
-    var rustleEnergy : Float = 0.0;
-    var squeakEnergy : Float = 0.0;
-
-    var i = 0;
-    while (i < spectrum.size()) {
-      if (i < 3) {
-        rustleEnergy += spectrum[i];
-      } else if (i >= 5) {
-        squeakEnergy += spectrum[i];
-      };
-      i += 1;
-    };
-
-    (rustleEnergy / 3.0, squeakEnergy / 3.0)
+  // Elevation from ILD
+  // φ = arcsin(ILD / ILD_max)
+  public func elevationFromILD(ild_db : Float) : Float {
+    let sinPhi = _clamp(ild_db / MAX_ILD_DB, -1.0, 1.0);
+    Float.arctan2(sinPhi, _sqrt(1.0 - sinPhi * sinPhi)) * 180.0 / PI
   };
 
-  // ── Full Beat Update ──────────────────────────────────────────
-  public func beatOwl(
-    state: OwlState,
-    input: AuditoryInput
-  ) : OwlState {
-    // Update noise floor (slow adaptation)
-    var avgEnergy : Float = 0.0;
-    for (e in input.leftEar.vals()) { avgEnergy += e };
-    for (e in input.rightEar.vals()) { avgEnergy += e };
-    avgEnergy /= Float.fromInt(input.leftEar.size() + input.rightEar.size());
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 5: COINCIDENCE DETECTION (JEFFRESS MODEL)
+  // P(fire_i) = exp(-|ITD - ITD_pref_i|² / (2σ_ITD²))
+  // ══════════════════════════════════════════════════════════════════════════
 
-    let newNoiseFloor = 0.95 * state.noiseFloor + 0.05 * avgEnergy * 0.5;
+  // Preferred ITD for coincidence detector i (evenly spaced delay line)
+  public func preferredITD(idx : Nat) : Float {
+    let n = Float.fromInt(N_COINCIDENCE);
+    let i = Float.fromInt(idx);
+    -MAX_ITD_US + (2.0 * MAX_ITD_US * i / (n - 1.0))
+  };
 
-    // Localize sound source
-    let newSource = localizeSoundSource(input, newNoiseFloor);
-
-    // Update tracked sources
-    var newSources = state.trackedSources;
-    var primaryIdx : ?Nat = null;
-
-    switch (newSource) {
-      case (null) {
-        // Decay confidence of existing sources
-        newSources := Array.map<SoundSource, SoundSource>(newSources, func(s) {
-          { id = s.id; azimuth = s.azimuth; elevation = s.elevation;
-            distance = s.distance; intensity = s.intensity * 0.9;
-            frequency = s.frequency; confidence = s.confidence * 0.9;
-            velocity = s.velocity; lastUpdate = s.lastUpdate; }
-        });
-      };
-      case (?src) {
-        // Add or update source
-        let newSrc = {
-          id = newSources.size();
-          azimuth = src.azimuth;
-          elevation = src.elevation;
-          distance = src.distance;
-          intensity = src.intensity;
-          frequency = src.frequency;
-          confidence = src.confidence;
-          velocity = 0.0;
-          lastUpdate = state.beatNum + 1;
-        };
-
-        // Simple: replace single tracked source
-        newSources := [newSrc];
-        primaryIdx := ?0;
-      };
-    };
-
-    // Update auditory map
-    let newMap = updateAuditoryMap(state.auditoryMap, newSources);
-
-    // Head tracking
-    let newHead = if (newSources.size() > 0) {
-      computeHeadMovement(
-        state.headPosition,
-        newSources[0].azimuth,
-        newSources[0].elevation
-      )
-    } else { state.headPosition };
-
-    // Compute ITD and ILD
-    let newITD = input.leftTiming - input.rightTiming;
-    let newILD = computeILD(input.leftEar, input.rightEar);
-
-    // Prey detection
-    let combinedSpectrum = Array.tabulate<Float>(FREQUENCY_BANDS, func(i) {
-      if (i < input.leftEar.size() and i < input.rightEar.size()) {
-        (input.leftEar[i] + input.rightEar[i]) / 2.0
-      } else { 0.0 }
+  // Compute coincidence detector population response
+  public func computeCoincidenceDetectors(itd_us : Float, leftSignal : Float) : CoincidenceDetectors {
+    let responses = Array.tabulate<Float>(N_COINCIDENCE, func(i) {
+      let itdPref = preferredITD(i);
+      leftSignal * _gaussianResponse(itd_us, itdPref, ITD_SIGMA_US)
     });
-    let (rustle, squeak) = detectPrey(combinedSpectrum);
 
-    // Prey likelihood
-    let newPreyLikelihood = _clamp(
-      state.preyLikelihood * 0.8 + (rustle + squeak) * 0.2,
-      0.0, 1.0
-    );
+    // Find peak
+    var maxR : Float = 0.0;
+    var maxIdx : Nat = 0;
+    var i : Nat = 0;
+    while (i < responses.size()) {
+      if (responses[i] > maxR) { maxR := responses[i]; maxIdx := i };
+      i += 1;
+    };
 
-    // SNR
-    let signalStrength = if (newSources.size() > 0) { newSources[0].intensity } else { 0.0 };
-    let newSNR = if (newNoiseFloor > 0.01) { signalStrength / newNoiseFloor } else { 0.0 };
+    // Vector strength (phase locking measure)
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    var total  : Float = 0.0;
+    i := 0;
+    while (i < responses.size()) {
+      let angle = TWO_PI * Float.fromInt(i) / Float.fromInt(N_COINCIDENCE);
+      sumCos += responses[i] * _cos(angle);
+      sumSin += responses[i] * _sin(angle);
+      total  += responses[i];
+      i += 1;
+    };
+    let vs = if (total < EPSILON) 0.0 else _sqrt(sumCos * sumCos + sumSin * sumSin) / total;
 
     {
-      leftSpectrum = input.leftEar;
-      rightSpectrum = input.rightEar;
-      interauralTime = newITD;
-      interauralLevel = newILD;
-      trackedSources = newSources;
-      primarySource = primaryIdx;
-      auditoryMap = newMap;
-      headPosition = newHead;
-      headTrackTarget = primaryIdx;
-      headMovement = abs(newHead.azimuth - state.headPosition.azimuth) +
-                     abs(newHead.elevation - state.headPosition.elevation);
-      auditoryFocus = _clamp(state.auditoryFocus + newPreyLikelihood * 0.1 - 0.02, 0.0, 1.0);
-      visualAuditory = state.visualAuditory;
-      preyLikelihood = newPreyLikelihood;
-      rustleDetection = rustle;
-      squeakDetection = squeak;
-      noiseFloor = newNoiseFloor;
-      snr = _clamp(newSNR, 0.0, 10.0);
-      beatNum = state.beatNum + 1;
+      responses      = responses;
+      peakITD_us     = preferredITD(maxIdx);
+      peakIdx        = maxIdx;
+      vectorStrength = _clamp(vs, 0.0, 1.0);
     }
   };
 
-  // ── Init ─────────────────────────────────────────────────────
-  public func initOwl() : OwlState {
-    {
-      leftSpectrum = Array.tabulate<Float>(FREQUENCY_BANDS, func(_) { 0.0 });
-      rightSpectrum = Array.tabulate<Float>(FREQUENCY_BANDS, func(_) { 0.0 });
-      interauralTime = 0.0;
-      interauralLevel = 0.0;
-      trackedSources = [];
-      primarySource = null;
-      auditoryMap = {
-        cells = Array.tabulate<Float>(512, func(_) { 0.0 });
-        peakAzimuth = 0.0;
-        peakElevation = 0.0;
-        mapConfidence = 0.0;
-      };
-      headPosition = {
-        azimuth = 0.0;
-        elevation = 0.0;
-        facialDiscAngle = 0.0;
-      };
-      headTrackTarget = null;
-      headMovement = 0.0;
-      auditoryFocus = 0.5;
-      visualAuditory = 0.5;
-      preyLikelihood = 0.0;
-      rustleDetection = 0.0;
-      squeakDetection = 0.0;
-      noiseFloor = 0.1;
-      snr = 1.0;
-      beatNum = 0;
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 6: SPECTRAL ANALYSIS
+  // Mel filterbank and MFCC computation
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Frequency to mel scale: m = 2595 × log₁₀(1 + f/700)
+  public func hzToMel(f_hz : Float) : Float {
+    2595.0 * _log10(1.0 + f_hz / 700.0)
+  };
+
+  // Mel to frequency: f = 700 × (10^(m/2595) - 1)
+  public func melToHz(m_mel : Float) : Float {
+    700.0 * (_exp(m_mel / 1127.0) - 1.0)  // using natural log form
+  };
+
+  // Mel filterbank response for channel k at frequency f
+  // Triangular filters spaced linearly on mel scale
+  public func melFilterResponse(f_hz : Float, channelIdx : Nat) : Float {
+    let n = Float.fromInt(N_MEL_FILTERS);
+    let k = Float.fromInt(channelIdx);
+    let mMin = hzToMel(MEL_F_MIN);
+    let mMax = hzToMel(MEL_F_MAX);
+    let dm   = (mMax - mMin) / (n + 1.0);
+    let mk   = mMin + (k + 1.0) * dm;
+    let mk_1 = mMin + k * dm;
+    let mk1  = mMin + (k + 2.0) * dm;
+    let m    = hzToMel(f_hz);
+    if (m < mk_1 or m > mk1) { return 0.0 };
+    if (m <= mk) {
+      (m - mk_1) / (mk - mk_1)
+    } else {
+      (mk1 - m) / (mk1 - mk)
     }
   };
 
-  // ── Summary ───────────────────────────────────────────────────
-  public type OwlSummary = {
-    trackedSources  : Nat;
-    primaryAzimuth  : Float;
-    primaryElevation: Float;
-    snr             : Float;
-    preyLikelihood  : Float;
-    headAzimuth     : Float;
+  // Spectral centroid: f_c = Σ f × P(f) / Σ P(f)
+  public func spectralCentroid(powerSpec : [Float], freqBins : [Float]) : Float {
+    var numSum : Float = 0.0;
+    var denSum : Float = 0.0;
+    let n = if (powerSpec.size() < freqBins.size()) powerSpec.size() else freqBins.size();
+    var i : Nat = 0;
+    while (i < n) {
+      numSum += freqBins[i] * powerSpec[i];
+      denSum += powerSpec[i];
+      i += 1;
+    };
+    if (denSum < EPSILON) { return 0.0 };
+    numSum / denSum
   };
 
-  public func summary(state: OwlState) : OwlSummary {
-    let (az, el) = if (state.trackedSources.size() > 0) {
-      (state.trackedSources[0].azimuth, state.trackedSources[0].elevation)
-    } else { (0.0, 0.0) };
+  // Apply N mel filters to power spectrum (simplified: use filter center response)
+  public func applyMelFilterbank(powerSpec : [Float]) : [Float] {
+    let n_fft_half = powerSpec.size();
+    Array.tabulate<Float>(N_MEL_FILTERS, func(k) {
+      var energy : Float = 0.0;
+      var i : Nat = 0;
+      while (i < n_fft_half) {
+        // Map FFT bin to frequency
+        let f = MEL_F_MIN + (MEL_F_MAX - MEL_F_MIN) * Float.fromInt(i) / Float.fromInt(n_fft_half);
+        let response = melFilterResponse(f, k);
+        energy += powerSpec[i] * response;
+        i += 1;
+      };
+      _clamp(_log10(energy + EPSILON) * 10.0, -100.0, 100.0)  // log energy dB
+    })
+  };
+
+  // DCT for MFCC: c_n = Σ_{k=1}^{K} log(M_k) × cos(π n (k-0.5)/K)
+  public func computeMFCC(melEnergies : [Float]) : [Float] {
+    let K = Float.fromInt(melEnergies.size());
+    Array.tabulate<Float>(N_MFCC, func(n) {
+      let nf = Float.fromInt(n);
+      var sum : Float = 0.0;
+      var k : Nat = 0;
+      while (k < melEnergies.size()) {
+        let kf = Float.fromInt(k + 1);
+        sum += melEnergies[k] * _cos(PI * nf * (kf - 0.5) / K);
+        k += 1;
+      };
+      sum
+    })
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 7: NEURAL AUDITORY MAP
+  // 36×18 cells in ICX (azimuth × elevation)
+  // Each cell: Gaussian receptive field in azimuth and elevation
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Cell index from azimuth/elevation indices
+  public func cellIndex(azIdx : Nat, elIdx : Nat) : Nat {
+    azIdx * N_EL_CELLS + elIdx
+  };
+
+  // Preferred azimuth for cell at azimuth index i (10° spacing, -175 to +175)
+  public func preferredAzimuth(azIdx : Nat) : Float {
+    -175.0 + Float.fromInt(azIdx) * 10.0
+  };
+
+  // Preferred elevation for cell at elevation index i (10° spacing, -85 to +85)
+  public func preferredElevation(elIdx : Nat) : Float {
+    -85.0 + Float.fromInt(elIdx) * 10.0
+  };
+
+  // Neural map response for target at (az, el) degrees
+  public func computeNeuralMap(az_deg : Float, el_deg : Float, signalStrength : Float) : NeuralAuditoryMap {
+    let responses = Array.tabulate<Float>(N_MAP_CELLS, func(cellIdx) {
+      let azIdx = cellIdx / N_EL_CELLS;
+      let elIdx = cellIdx mod N_EL_CELLS;
+      let prefAz = preferredAzimuth(azIdx);
+      let prefEl = preferredElevation(elIdx);
+      let azR = _gaussianResponse(az_deg, prefAz, AZ_TUNING_DEG);
+      let elR = _gaussianResponse(el_deg, prefEl, EL_TUNING_DEG);
+      signalStrength * azR * elR
+    });
+
+    // Find peak cell
+    var maxR : Float = 0.0;
+    var maxAzIdx : Nat = 0;
+    var maxElIdx : Nat = 0;
+    var i : Nat = 0;
+    while (i < responses.size()) {
+      if (responses[i] > maxR) {
+        maxR := responses[i];
+        maxAzIdx := i / N_EL_CELLS;
+        maxElIdx := i mod N_EL_CELLS;
+      };
+      i += 1;
+    };
+
+    // Shannon entropy of map
+    var totalR : Float = 0.0;
+    for (r in responses.vals()) { totalR += r };
+    var entropy : Float = 0.0;
+    if (totalR > EPSILON) {
+      for (r in responses.vals()) {
+        let p = r / totalR;
+        if (p > EPSILON) { entropy -= p * Float.log(p) };
+      };
+    };
+    // Max possible entropy = ln(N_MAP_CELLS)
+    let maxH = Float.log(Float.fromInt(N_MAP_CELLS));
+    let spatialConf = if (maxH < EPSILON) 0.0 else 1.0 - entropy / maxH;
 
     {
-      trackedSources = state.trackedSources.size();
-      primaryAzimuth = az;
-      primaryElevation = el;
-      snr = state.snr;
-      preyLikelihood = state.preyLikelihood;
-      headAzimuth = state.headPosition.azimuth;
+      responses         = responses;
+      peakAzimuth       = preferredAzimuth(maxAzIdx);
+      peakElevation     = preferredElevation(maxElIdx);
+      mapEntropy        = entropy;
+      spatialConfidence = _clamp(spatialConf, 0.0, 1.0);
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 8: SOUND LOCALIZATION
+  // Combine ITD→azimuth and ILD→elevation
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public func localizeSound(binaural : BinauraSignal) : SoundLocation {
+    let az = azimuthFromITD(binaural.itd_us);
+    let el = elevationFromILD(binaural.ild_db);
+    // Distance estimated from amplitude (inverse square law)
+    // I = P / (4πr²) → r = √(P / (4πI))
+    let refAmplitude_dB = 94.0;  // reference at 1m
+    let ampAvg = (binaural.leftAmplitude + binaural.rightAmplitude) / 2.0;
+    let dist = Float.exp((refAmplitude_dB - ampAvg) * Float.log(10.0) / 20.0);
+
+    // Confidence: how precise is each cue?
+    let itdPrec = _clamp(1.0 - _abs(binaural.itd_us) / MAX_ITD_US, 0.0, 1.0);
+    let ildPrec = _clamp(1.0 - _abs(binaural.ild_db) / MAX_ILD_DB, 0.0, 1.0);
+    let conf    = (itdPrec + ildPrec) / 2.0;
+
+    {
+      azimuth_deg  = _clamp(az, -180.0, 180.0);
+      elevation_deg = _clamp(el, -90.0, 90.0);
+      distance_m   = _clamp(dist, 0.01, 1000.0);
+      confidence   = conf;
+      itdEstimate  = binaural.itd_us;
+      ildEstimate  = binaural.ild_db;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 9: MEDINA OWL AUDITORY INDEX
+  // A_owl = S₀ × [ITD_precision × Φ_M + ILD_precision] / Ω
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public func owlAudIndex(itd_us : Float, ild_db : Float) : Float {
+    let itdPrec = _clamp(1.0 - _abs(itd_us) / MAX_ITD_US, 0.0, 1.0);
+    let ildPrec = _clamp(1.0 - _abs(ild_db) / MAX_ILD_DB, 0.0, 1.0);
+    let idx = S0 * (itdPrec * PHI_MEDINA + ildPrec) / SOVEREIGN_CEILING;
+    _clamp(idx, 0.0, 1.0)
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 10: BEAT UPDATE
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public func beatOwlAuditory(
+    state         : OwlAuditoryState,
+    leftAmp_dB    : Float,
+    rightAmp_dB   : Float,
+    leftPhase_rad : Float,
+    rightPhase_rad: Float,
+    frequency_hz  : Float,
+    powerSpectrum : [Float]
+  ) : OwlAuditoryState {
+    let itd = (leftPhase_rad - rightPhase_rad) / (TWO_PI * frequency_hz) * 1.0e6;  // μs
+    let ild = computeILD_dB(leftAmp_dB, rightAmp_dB);
+
+    let newLeft : BinauraSignal = {
+      leftAmplitude  = leftAmp_dB;
+      rightAmplitude = rightAmp_dB;
+      leftPhase      = leftPhase_rad;
+      rightPhase     = rightPhase_rad;
+      frequency      = frequency_hz;
+      itd_us         = itd;
+      ild_db         = ild;
+    };
+
+    let newLoc = localizeSound(newLeft);
+    let avgAmp = (leftAmp_dB + rightAmp_dB) / 2.0;
+
+    // Mel filterbank
+    let melEnergy = applyMelFilterbank(powerSpectrum);
+    let mfcc      = computeMFCC(melEnergy);
+
+    // Dominant frequency
+    var maxP : Float = 0.0;
+    var maxBin : Nat = 0;
+    var bi : Nat = 0;
+    while (bi < powerSpectrum.size()) {
+      if (powerSpectrum[bi] > maxP) { maxP := powerSpectrum[bi]; maxBin := bi };
+      bi += 1;
+    };
+    let domFreq = MEL_F_MIN + (MEL_F_MAX - MEL_F_MIN) * Float.fromInt(maxBin) / Float.fromInt(powerSpectrum.size());
+
+    let newSpec : SpectralAnalysis = {
+      powerSpectrum    = powerSpectrum;
+      melFilterbank    = melEnergy;
+      mfcc             = mfcc;
+      dominantFreq     = domFreq;
+      spectralCentroid = domFreq;  // simplified
+      spectralFlux     = 0.0;
+      logEnergy        = _log10(maxP + EPSILON) * 10.0;
+    };
+
+    let newCoinc   = computeCoincidenceDetectors(itd, avgAmp / 100.0);
+    let newMap     = computeNeuralMap(newLoc.azimuth_deg, newLoc.elevation_deg, avgAmp / 100.0);
+    let newIdx     = owlAudIndex(itd, ild);
+    let detected   = avgAmp > 40.0 and newLoc.confidence > 0.5;
+    let alertLvl   = _clamp(avgAmp / 100.0, 0.0, 1.0);
+
+    let newSpecHist = _appendRolling(state.spectrumHistory, newSpec.logEnergy, HIST_MAX);
+
+    {
+      left           = newLeft;
+      right          = { newLeft with leftAmplitude = rightAmp_dB };
+      location       = newLoc;
+      spectrum       = newSpec;
+      neuralMap      = newMap;
+      coincidence    = newCoinc;
+      owlAudIndex    = newIdx;
+      detectionFlag  = detected;
+      alertLevel     = alertLvl;
+      spectrumHistory = newSpecHist;
+      beatNum        = state.beatNum + 1;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 11: INITIALIZATION
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public func initOwlAuditory() : OwlAuditoryState {
+    let initBin : BinauraSignal = {
+      leftAmplitude=30.0; rightAmplitude=30.0; leftPhase=0.0; rightPhase=0.0;
+      frequency=2000.0; itd_us=0.0; ild_db=0.0;
+    };
+    let flatSpec = Array.tabulate<Float>(N_FFT / 2, func(_) { 0.001 });
+    let initLoc : SoundLocation = {
+      azimuth_deg=0.0; elevation_deg=0.0; distance_m=10.0; confidence=0.5;
+      itdEstimate=0.0; ildEstimate=0.0;
+    };
+    let initSpec : SpectralAnalysis = {
+      powerSpectrum=flatSpec; melFilterbank=Array.tabulate<Float>(N_MEL_FILTERS, func(_) {0.0});
+      mfcc=Array.tabulate<Float>(N_MFCC, func(_) {0.0});
+      dominantFreq=2000.0; spectralCentroid=2000.0; spectralFlux=0.0; logEnergy=30.0;
+    };
+    let initMap : NeuralAuditoryMap = {
+      responses=Array.tabulate<Float>(N_MAP_CELLS, func(_) {0.0});
+      peakAzimuth=0.0; peakElevation=0.0; mapEntropy=6.0; spatialConfidence=0.5;
+    };
+    let initCoinc : CoincidenceDetectors = {
+      responses=Array.tabulate<Float>(N_COINCIDENCE, func(_) {0.0});
+      peakITD_us=0.0; peakIdx=N_COINCIDENCE/2; vectorStrength=0.5;
+    };
+    {
+      left=initBin; right=initBin; location=initLoc; spectrum=initSpec;
+      neuralMap=initMap; coincidence=initCoinc; owlAudIndex=0.0;
+      detectionFlag=false; alertLevel=0.0; spectrumHistory=[]; beatNum=0;
     }
   };
 
