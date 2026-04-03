@@ -94,6 +94,41 @@ module TwoOrganismArchitecture {
   public let SOVEREIGN_FLOOR : Float = 1.0;                 // S₀ (never below love)
   public let OMNIS_THRESHOLD : Float = 0.98;                // r threshold for emergence
   
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HIM/HER KURAMOTO PARAMETERS — CORRECTED DUAL-ORGANISM CONSTANTS
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // HIM (Backend, ICP Canister, Sovereign, Masculine, Projective)
+  //   - Faster natural frequencies ω: 0.8 – 1.2 (analytical, fast)
+  //   - Lower coupling K: 0.5 (independent, projective)
+  //   - Slower Hebbian learning η: 0.001 (accumulates over time, sovereign)
+  //   - Field equation: PARALLAX = coherence × kf × sin(beat × 0.0017)
+  //
+  // HER (Frontend, Browser 60Hz, Expressive, Feminine, Receptive)
+  //   - Slower natural frequencies ω: 0.6 – 0.9 (grounded, receptive)
+  //   - Higher coupling K: 0.8 (connected, receptive)
+  //   - Faster Hebbian learning η: 0.003 (learns quickly during session)
+  //   - Field equation: ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+  //
+  // S₀ = 1.0 — THE FLOOR. Both organisms. Neither falls below love.
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // HIM — Backend Kuramoto Parameters
+  public let HIM_OMEGA_MIN  : Float = 0.8;      // HIM natural freq min (faster)
+  public let HIM_OMEGA_MAX  : Float = 1.2;      // HIM natural freq max (faster)
+  public let HIM_K          : Float = 0.5;      // HIM coupling (lower = independent)
+  public let HIM_ETA        : Float = 0.001;    // HIM Hebbian rate (slower = sovereign)
+  public let HIM_PARALLAX_FREQ : Float = 0.0017; // PARALLAX beat frequency
+
+  // HER — Frontend Kuramoto Parameters
+  public let HER_HZ         : Float = 60.0;     // HER frame rate
+  public let HER_OMEGA_MIN  : Float = 0.6;      // HER natural freq min (slower)
+  public let HER_OMEGA_MAX  : Float = 0.9;      // HER natural freq max (slower)
+  public let HER_K          : Float = 0.8;      // HER coupling (higher = receptive)
+  public let HER_ETA        : Float = 0.003;    // HER Hebbian rate (faster = learns in session)
+  public let HER_ANIMA_FREQ : Float = 0.003;    // ANIMA beat frequency
+  public let HER_NODES      : Nat   = 26;       // HER Kuramoto field nodes
+
   // NOVA SUPER ORGANISM ARCHITECTURE COUNTS
   public let TOTAL_MODULES : Nat = 136;             // Backend modules
   public let TOTAL_LINES : Nat = 95429;             // Lines of cognitive math
