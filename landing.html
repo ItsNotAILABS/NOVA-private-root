@@ -1568,6 +1568,7 @@
                 if (tickCount % 60 === 0) {
                     beatCount++;
                     const ts = Date.now();
+                    // Golden ratio hash constant (φ × 2^32) for fast hash mixing
                     const hash = (ts ^ (beatCount * 0x9e3779b9)).toString(16).slice(0, 8).toUpperCase();
                     const phase = r > CRITICAL_R ? 'COHERENT' : r > 0.4 ? 'TRANS' : 'DISORD';
                     const event = `[BEAT:${String(beatCount).padStart(5,'0')}] r=${r.toFixed(4)} kf=${kf.toFixed(4)} ${phase.padEnd(7,' ')} #${hash}`;

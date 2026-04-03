@@ -278,9 +278,19 @@ function initNodes(): OscillatorNode[] {
 // ── Chain event log ───────────────────────────────────────────────────────────
 function mkEvent(beat: number, r: number, kf: number): string {
   const ts = Date.now();
-  const hash = (ts ^ (beat * 0x9e3779b9)).toString(16).slice(0, 8).toUpperCase();
+  // Golden ratio hash constant (φ × 2^32) for fast hash mixing
+  const PHI_HASH = 0x9e3779b9;
+  const hash = (ts ^ (beat * PHI_HASH)).toString(16).slice(0, 8).toUpperCase();
   const phase = r > CRITICAL_R ? 'COHERENT' : r > 0.4 ? 'TRANS' : 'DISORD';
   return `[BEAT:${beat.toString().padStart(5, '0')}] r=${r.toFixed(4)} kf=${kf.toFixed(4)} ${phase} #${hash}`;
+}
+
+// ── Convert hex color to rgba string ─────────────────────────────────────────
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
 }
 
 // ── Draw oscillator network ───────────────────────────────────────────────────
@@ -333,8 +343,7 @@ function drawNetwork(
       const alpha = sync * 0.35 * r;
       if (alpha < 0.02) continue;
       const color = LAYER_COLORS[ni.layer] ?? '#D4AF37';
-      ctx.strokeStyle = color.replace(')', `,${alpha.toFixed(2)})`).replace('rgb', 'rgba').replace('#', 'rgba(').replace(/rgba\(([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2}),/, (_, r2, g2, b2) =>
-        `rgba(${parseInt(r2, 16)},${parseInt(g2, 16)},${parseInt(b2, 16)},`);
+      ctx.strokeStyle = hexToRgba(color, alpha);
       ctx.lineWidth = sync * 0.8;
       ctx.beginPath();
       ctx.moveTo(px, py);
@@ -353,7 +362,7 @@ function drawNetwork(
 
     // Glow
     const grd = ctx.createRadialGradient(px, py, 0, px, py, size * 3);
-    grd.addColorStop(0, baseColor + '60');
+    grd.addColorStop(0, hexToRgba(baseColor, 0.376));
     grd.addColorStop(1, 'transparent');
     ctx.fillStyle = grd;
     ctx.beginPath();
@@ -367,7 +376,7 @@ function drawNetwork(
     ctx.fill();
 
     // Phase indicator line
-    ctx.strokeStyle = baseColor + '80';
+    ctx.strokeStyle = hexToRgba(baseColor, 0.502);
     ctx.lineWidth = 0.8;
     ctx.beginPath();
     ctx.moveTo(px, py);

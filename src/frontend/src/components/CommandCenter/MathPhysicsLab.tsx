@@ -275,15 +275,19 @@ function drawLorenz(
   const offY = h / 2 - 25 * scaleY;
 
   const len = trail.length;
+  // Gradient colors: cyan [0,212,255] → gold [212,175,55] → purple [107,70,193]
+  const CYAN_R = 0,   CYAN_G = 212, CYAN_B = 255;
+  const GOLD_R = 212, GOLD_G = 175, GOLD_B = 55;
+  const PURP_R = 107, PURP_G = 70,  PURP_B = 193;
   for (let i = 1; i < len; i++) {
     const [x0, , z0] = trail[i - 1];
     const [x1, , z1] = trail[i];
     const alpha = (i / len) * 0.8;
     const t = i / len;
     // Color gradient: cyan → gold → purple
-    const r2 = Math.floor(t < 0.5 ? t * 2 * 212 : 212 + (t - 0.5) * 2 * (107 - 212));
-    const g2 = Math.floor(t < 0.5 ? t * 2 * 175 : 175 - (t - 0.5) * 2 * 175);
-    const b2 = Math.floor(t < 0.5 ? 255 - t * 2 * 200 : 55 + (t - 0.5) * 2 * (193 - 55));
+    const r2 = Math.floor(t < 0.5 ? CYAN_R + t * 2 * (GOLD_R - CYAN_R) : GOLD_R + (t - 0.5) * 2 * (PURP_R - GOLD_R));
+    const g2 = Math.floor(t < 0.5 ? CYAN_G + t * 2 * (GOLD_G - CYAN_G) : GOLD_G + (t - 0.5) * 2 * (PURP_G - GOLD_G));
+    const b2 = Math.floor(t < 0.5 ? CYAN_B + t * 2 * (GOLD_B - CYAN_B) : GOLD_B + (t - 0.5) * 2 * (PURP_B - GOLD_B));
 
     ctx.strokeStyle = `rgba(${Math.max(0, Math.min(255, r2))},${Math.max(0, Math.min(255, g2))},${Math.max(0, Math.min(255, b2))},${alpha})`;
     ctx.lineWidth = 0.8 + r * 0.5;
