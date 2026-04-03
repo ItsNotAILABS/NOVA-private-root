@@ -236,6 +236,8 @@ import SwarmCoherenceMatrix          "./modules/SwarmCoherenceMatrix";
 import SovereigntyLaws60             "./modules/SovereigntyLaws60";
 import DoctrineGenesisEngine         "./modules/DoctrineGenesisEngine";
 import ArchitectureExtractionFramework "./modules/ArchitectureExtractionFramework";
+import HerOrganismEngine           "./modules/HerOrganismEngine";
+import TwoOrganismArchitecture     "./modules/TwoOrganismArchitecture";
 
 actor SwarmBrain {
 
