@@ -1,5 +1,7 @@
 // ─── NOVA / PARALLAX — DroneMind TypeScript Class ────────────────────────────
 // The cognitive model for one drone. All math mirrors the Motoko backend.
+// Wires in the full math expansion: Kuramoto, Lyapunov, Hz substrate,
+// 21-species neurochemistry, emergence physics, quantum engine, 60 laws.
 // Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
 
 import {
@@ -13,6 +15,16 @@ import {
   PHI_INV,
 } from '../math/core';
 
+// Full expanded math modules
+import { stepOrganKuramoto, initOrganKuramoto, computeOrderParameter, frequencyCoherence, type OrganKuramotoState } from '../math/kuramoto';
+import { lyapunovTick, initLyapunov, lyapunovExponent, type LyapunovState5 } from '../math/lyapunov';
+import { hzSubstrateTick, initHzSubstrate, hzCoherenceContribution, memoryEncodingBoost, type HzSubstrateState } from '../math/hz-substrate';
+import { neurochemFullStep, projectTo4Species, vitalityScore, allostaticLoad, metalPipelineStep, type NeurochemFull, type NeurochemStimuli, type MetalState, NEURO_BASELINES, METAL_BASELINES } from '../math/neurochemistry';
+import { initQuantumSystem, quantumBeat, quantumToSovereign, type QuantumSystemState } from '../math/quantum';
+import { jasmineCalculate, jasmineTemporalEmergence, classifyFormation, computeVitality, computeFullCoherence, type JasmineState, type Position3D } from '../math/scoring-extended';
+import { buildSnapshotFromSwarm, fireLaws, type LawEngineResult } from '../math/laws';
+import { computeEmergenceScore, initLorenzState, lorenzStep, type LorenzState } from '../math/emergence';
+
 import type { DroneState, DroneClass } from '../types/organism';
 
 // ── Faction structure for Law 24 ──────────────────────────────────────────────
@@ -25,6 +37,18 @@ interface FactionSignal {
 export class DroneMind {
   private state: DroneState;
   private baseline = CHEM_BASELINES;
+
+  // ── Extended math state ───────────────────────────────────────────────────
+  private organKuramoto: OrganKuramotoState = initOrganKuramoto();
+  private lyapunov5:     LyapunovState5     = initLyapunov();
+  private hzSubstrate:   HzSubstrateState   = initHzSubstrate('Wake');
+  private neurochemFull: NeurochemFull      = { ...NEURO_BASELINES };
+  private metals:        MetalState         = { ...METAL_BASELINES };
+  private quantum4:      QuantumSystemState = initQuantumSystem(4);
+  private lorenz:        LorenzState        = initLorenzState();
+  private jasmine:       JasmineState       = jasmineCalculate(0.5, 1.0, 1.0);
+  private coherenceHistory: number[]        = [];
+  private lawResult?:    LawEngineResult;
 
   constructor(id: number, cls: DroneClass) {
     this.state = DroneMind.makeDroneState(id, cls);
@@ -206,6 +230,128 @@ export class DroneMind {
     const diff = wrapPhase(psi - this.state.phase);
     this.state = { ...this.state, phase: this.state.phase + strength * diff };
   }
+
+  /**
+   * Expanded math tick — runs after the main tick().
+   * Executes: 18-organ Kuramoto, Lyapunov 5-state, Hz substrate,
+   * full 21-species neurochemistry, quantum Lindblad, Lorenz, Jasmine,
+   * 60 Laws, and computes full coherence.
+   */
+  tickExpanded(beat: number): {
+    fullCoherence: number;
+    vitality:      number;
+    orchOrProb:    number;
+    lawCompliance: number;
+    hzKf:          number;
+    lorenzX:       number;
+    jasmine:       JasmineState;
+  } {
+    const s = this.state;
+
+    // ── 21-species neurochemistry (full model) ─────────────────────────────
+    const stimuli: NeurochemStimuli = {
+      reward:   clamp(s.dopamine - 1, 0, 1),
+      threat:   clamp(s.cortisol - 1, 0, 1),
+      social:   clamp(s.oxytocin - 1, 0, 1),
+      learning: clamp(s.qAlpha, 0, 1),
+      arousal:  clamp(s.norepinephrine - 1, 0, 1),
+      flow:     clamp(s.qCoherence, 0, 1),
+      pain:     0,
+      fatigue:  clamp(1 - s.energy, 0, 1),
+    };
+    this.neurochemFull = neurochemFullStep(this.neurochemFull, stimuli, NEURO_DT);
+    this.metals        = metalPipelineStep(this.metals, NEURO_DT);
+
+    // ── 18-organ Kuramoto ──────────────────────────────────────────────────
+    this.organKuramoto = stepOrganKuramoto(this.organKuramoto, PHI_INV, NEURO_DT);
+    const r18 = this.organKuramoto.r;
+
+    // ── Hz substrate ───────────────────────────────────────────────────────
+    this.hzSubstrate = hzSubstrateTick(this.hzSubstrate, 1.0);
+    const hzKf = hzCoherenceContribution(this.hzSubstrate);
+    const memBoost = memoryEncodingBoost(this.hzSubstrate);
+
+    // ── Lyapunov stability (5-component) ──────────────────────────────────
+    const vitFull = vitalityScore(this.neurochemFull);
+    const allostatic = allostaticLoad(this.neurochemFull);
+    this.lyapunov5 = lyapunovTick(
+      this.lyapunov5,
+      s.qCoherence,          // x₁ coherence
+      4 + allostatic * 4,    // x₂ entropy (4..8 bits)
+      clamp(s.norepinephrine - 1, 0, 1),  // x₃ arousal
+      clamp(1 - allostatic, 0, 1),        // x₄ stability
+      clamp(this.jasmine.emergenceProbability, 0, 1)  // x₅ emergence
+    );
+
+    // ── Quantum Lindblad ───────────────────────────────────────────────────
+    this.quantum4 = quantumBeat(this.quantum4, 0.01, NEURO_DT);
+    const orchOrProb = this.quantum4.orchOrProb;
+
+    // ── Lorenz chaos tracker ───────────────────────────────────────────────
+    this.lorenz = lorenzStep(this.lorenz, 0.01);
+    const lorenzNorm = clamp(
+      Math.sqrt(this.lorenz.x ** 2 + this.lorenz.y ** 2 + this.lorenz.z ** 2) / 60,
+      0, 1
+    );
+
+    // ── Full Jasmine emergence ─────────────────────────────────────────────
+    const hebbSum = s.brainWeights.reduce((a, b) => a + b, 0) / BRAIN_NODES;
+    this.coherenceHistory = [...this.coherenceHistory.slice(-49), s.qCoherence];
+    const jasE = jasmineTemporalEmergence(this.coherenceHistory, hebbSum, s.qCoherence, 0.5);
+    this.jasmine = jasmineCalculate(s.qCoherence, hebbSum, s.qCoherence);
+
+    // ── Full coherence C ───────────────────────────────────────────────────
+    const { silver, gold, platinum } = this.metals;
+    const metalC = clamp((gold/10)*0.15 + (silver/10)*0.10 + (platinum/10)*0.05, 0, 0.30);
+    const qSov = quantumToSovereign(this.quantum4);
+    const fullCoherence = computeFullCoherence({
+      rSwarm:           r18,
+      hzFreqCoherence:  hzKf,
+      metalContrib:     metalC,
+      jasmineProb:      jasE,
+      quantumSovereign: qSov,
+    });
+
+    // ── 60 Laws ────────────────────────────────────────────────────────────
+    const snap = buildSnapshotFromSwarm(
+      fullCoherence, this.organKuramoto.r, s.trustScore ?? 0.8, s.trustScore ?? 0.8,
+      s.anomalyScore ?? 0.05, hzKf, clamp(this.quantum4.purity, 0, 1),
+      this.lyapunov5.isAsymptotic, 1000 + beat * 10, beat
+    );
+    this.lawResult = fireLaws(snap);
+    const lawCompliance = this.lawResult.complianceScore;
+
+    // ── Vitality ───────────────────────────────────────────────────────────
+    const lx = lyapunovExponent(this.coherenceHistory, 20);
+    const vitality = computeVitality(
+      this.jasmine, r18, vitFull,
+      0.8,  // formation confidence (per-drone estimate)
+      lx
+    );
+
+    return { fullCoherence, vitality, orchOrProb, lawCompliance, hzKf, lorenzX: this.lorenz.x, jasmine: this.jasmine };
+  }
+
+  /** Get 18-organ Kuramoto state */
+  getOrganKuramoto(): OrganKuramotoState { return this.organKuramoto; }
+
+  /** Get Lyapunov stability state */
+  getLyapunov(): LyapunovState5 { return this.lyapunov5; }
+
+  /** Get Hz substrate state */
+  getHzSubstrate(): HzSubstrateState { return this.hzSubstrate; }
+
+  /** Get full neurochemical state */
+  getNeurochemFull(): NeurochemFull { return this.neurochemFull; }
+
+  /** Get quantum system state */
+  getQuantumSystem(): QuantumSystemState { return this.quantum4; }
+
+  /** Get most recent law engine result */
+  getLawResult(): LawEngineResult | undefined { return this.lawResult; }
+
+  /** Get Jasmine emergence state */
+  getJasmine(): JasmineState { return this.jasmine; }
 }
 
 // ── SwarmCoordinator ──────────────────────────────────────────────────────────
