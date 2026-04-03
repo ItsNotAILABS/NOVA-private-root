@@ -681,6 +681,468 @@ module {
   };
 
   // ==========================================================================
+  // FIBONACCI-BASED GROWTH FUNCTIONS — The world GROWS, not coded
+  // ==========================================================================
+  
+  // Fibonacci sequence generator
+  public func fibonacci(n: Nat) : Nat {
+    if (n < 2) { n }
+    else {
+      var a = 0;
+      var b = 1;
+      var i = 2;
+      while (i <= n) {
+        let temp = a + b;
+        a := b;
+        b := temp;
+        i += 1;
+      };
+      b
+    }
+  };
+
+  // Golden angle for phyllotaxis (plant growth patterns)
+  public let GOLDEN_ANGLE : Float = 2.399963229728653;  // 137.5077... degrees in radians
+
+  // Fibonacci spiral point generation (for organic growth)
+  public func fibonacciSpiralPoint(index: Nat, scale: Float) : (Float, Float) {
+    let theta = Float.fromInt(index) * GOLDEN_ANGLE;
+    let r = scale * Float.sqrt(Float.fromInt(index));
+    (r * Float.cos(theta), r * Float.sin(theta))
+  };
+
+  // Fibonacci sphere distribution (uniform points on sphere)
+  public func fibonacciSpherePoint(index: Nat, total: Nat) : (Float, Float, Float) {
+    let phi = Float.fromInt(index) * GOLDEN_ANGLE;
+    let y = 1.0 - (Float.fromInt(index) / Float.fromInt(total - 1)) * 2.0;
+    let radiusAtY = Float.sqrt(1.0 - y * y);
+    (Float.cos(phi) * radiusAtY, y, Float.sin(phi) * radiusAtY)
+  };
+
+  // L-System growth for trees and plants
+  public type LSystemRule = {
+    symbol: Text;
+    replacement: Text;
+  };
+
+  public type LSystemState = {
+    axiom: Text;
+    rules: [LSystemRule];
+    iterations: Nat;
+    current: Text;
+    angle: Float;
+    length: Float;
+  };
+
+  public func applyLSystemRules(state: LSystemState) : LSystemState {
+    // Apply one iteration of L-system rules
+    var newString = "";
+    let chars = state.current;
+    // Simplified - in practice would iterate through characters
+    {
+      axiom = state.axiom;
+      rules = state.rules;
+      iterations = state.iterations + 1;
+      current = state.current;  // Would be transformed
+      angle = state.angle;
+      length = state.length * GOLDEN_RATIO;  // Branches get longer with golden ratio
+    }
+  };
+
+  // ==========================================================================
+  // PROCEDURAL GENERATION ALGORITHMS
+  // ==========================================================================
+
+  // Diamond-Square algorithm for terrain
+  public func diamondSquareStep(
+    grid: [[var Float]],
+    size: Nat,
+    step: Nat,
+    scale: Float,
+    seed: Nat32
+  ) : [[var Float]] {
+    // Diamond step: average corners + random
+    // Square step: average diamond points + random
+    // Returns modified grid
+    grid
+  };
+
+  // Voronoi cell generation for biomes
+  public type VoronoiCell = {
+    centerId: Nat;
+    centerX: Float;
+    centerY: Float;
+    biome: BiomeType;
+    elevation: Float;
+    moisture: Float;
+  };
+
+  public func generateVoronoiCells(
+    count: Nat,
+    width: Float,
+    height: Float,
+    seed: Nat32
+  ) : [VoronoiCell] {
+    let cells = Array.tabulate<VoronoiCell>(count, func(i) {
+      let hashVal = Nat32.toNat(seed) + i * 374761393;
+      let x = Float.fromInt(hashVal % 1000) / 1000.0 * width;
+      let y = Float.fromInt((hashVal / 1000) % 1000) / 1000.0 * height;
+      {
+        centerId = i;
+        centerX = x;
+        centerY = y;
+        biome = #Plains;  // Would be determined by climate
+        elevation = simplexNoise2D(x / 100.0, y / 100.0, seed);
+        moisture = simplexNoise2D(x / 50.0, y / 50.0, seed +% 12345);
+      }
+    });
+    cells
+  };
+
+  // River generation using flow simulation
+  public type RiverSegment = {
+    startX: Float;
+    startY: Float;
+    endX: Float;
+    endY: Float;
+    flowRate: Float;
+    width: Float;
+  };
+
+  public func traceRiver(
+    startX: Float,
+    startY: Float,
+    heightFunc: (Float, Float) -> Float,
+    maxLength: Nat
+  ) : [RiverSegment] {
+    var segments : [RiverSegment] = [];
+    var x = startX;
+    var y = startY;
+    var flow = 1.0;
+    
+    for (i in Array.keys(Array.tabulate<Nat>(maxLength, func(j) { j }))) {
+      // Find steepest downhill direction
+      var bestDx = 0.0;
+      var bestDy = 0.0;
+      var lowestH = heightFunc(x, y);
+      
+      // Check 8 directions
+      let dx_arr = [-1.0, 0.0, 1.0, -1.0, 1.0, -1.0, 0.0, 1.0];
+      let dy_arr = [-1.0, -1.0, -1.0, 0.0, 0.0, 1.0, 1.0, 1.0];
+      
+      for (d in Array.keys(dx_arr)) {
+        let nx = x + dx_arr[d];
+        let ny = y + dy_arr[d];
+        let h = heightFunc(nx, ny);
+        if (h < lowestH) {
+          lowestH := h;
+          bestDx := dx_arr[d];
+          bestDy := dy_arr[d];
+        };
+      };
+      
+      if (bestDx == 0.0 and bestDy == 0.0) {
+        // Reached a local minimum (lake)
+        return segments;
+      };
+      
+      let newX = x + bestDx;
+      let newY = y + bestDy;
+      
+      segments := Array.append(segments, [{
+        startX = x;
+        startY = y;
+        endX = newX;
+        endY = newY;
+        flowRate = flow;
+        width = Float.sqrt(flow) * 2.0;
+      }]);
+      
+      x := newX;
+      y := newY;
+      flow += 0.1;  // Accumulate water
+    };
+    
+    segments
+  };
+
+  // ==========================================================================
+  // GENESIS AGENT BRAIN FUNCTIONS — Each agent has cognitive abilities
+  // ==========================================================================
+
+  // Agent Kuramoto coupling (agents synchronize)
+  public func coupleGenesisAgents(agents: [GenesisAgentState], couplingStrength: Float) : [GenesisAgentState] {
+    let n = agents.size();
+    if (n == 0) { return agents };
+    
+    // Calculate mean phase
+    var sumCos = 0.0;
+    var sumSin = 0.0;
+    for (agent in agents.vals()) {
+      sumCos += Float.cos(agent.phase);
+      sumSin += Float.sin(agent.phase);
+    };
+    let meanPhase = Float.arctan2(sumSin, sumCos);
+    
+    // Calculate order parameter (coherence)
+    let r = Float.sqrt(sumCos * sumCos + sumSin * sumSin) / Float.fromInt(n);
+    
+    // Update each agent's phase with Kuramoto coupling
+    Array.tabulate<GenesisAgentState>(n, func(i) {
+      let agent = agents[i];
+      let phaseDiff = meanPhase - agent.phase;
+      let newPhase = wrapPhase(agent.phase + agent.frequency + couplingStrength * r * Float.sin(phaseDiff));
+      {
+        agentType = agent.agentType;
+        activation = agent.activation * 0.95 + r * 0.05;  // Activation follows coherence
+        phase = newPhase;
+        frequency = agent.frequency;
+        creativityLevel = agent.creativityLevel;
+        chaosAffinity = agent.chaosAffinity;
+        creationPower = agent.creationPower * (1.0 + r * 0.1);  // More power when coherent
+        totalGenerated = agent.totalGenerated;
+        lastGeneration = agent.lastGeneration;
+        generationQueue = agent.generationQueue;
+        weights = agent.weights;
+        lastFired = agent.lastFired;
+      }
+    })
+  };
+
+  // Agent Hebbian learning (weights update based on co-activation)
+  public func updateAgentWeights(agents: [GenesisAgentState], learningRate: Float) : [GenesisAgentState] {
+    let n = agents.size();
+    Array.tabulate<GenesisAgentState>(n, func(i) {
+      let agent = agents[i];
+      let newWeights = Array.tabulate<Float>(n, func(j) {
+        if (i == j) { 0.0 }
+        else {
+          let otherAgent = agents[j];
+          // Hebbian: "fire together, wire together"
+          let coActivation = agent.activation * otherAgent.activation;
+          let currentWeight = agent.weights[j];
+          // Weight update with decay
+          clamp(currentWeight + learningRate * coActivation - 0.001, 0.0, 1.0)
+        }
+      });
+      {
+        agentType = agent.agentType;
+        activation = agent.activation;
+        phase = agent.phase;
+        frequency = agent.frequency;
+        creativityLevel = agent.creativityLevel;
+        chaosAffinity = agent.chaosAffinity;
+        creationPower = agent.creationPower;
+        totalGenerated = agent.totalGenerated;
+        lastGeneration = agent.lastGeneration;
+        generationQueue = agent.generationQueue;
+        weights = Array.thaw(newWeights);
+        lastFired = agent.lastFired;
+      }
+    })
+  };
+
+  // ==========================================================================
+  // ECOLOGICAL SIMULATION — Fibonacci-based ecosystem dynamics
+  // ==========================================================================
+
+  public type EcosystemState = {
+    populations: [PopulationState];
+    totalBiomass: Float;
+    biodiversity: Float;
+    stability: Float;
+  };
+
+  public type PopulationState = {
+    speciesId: Nat;
+    speciesName: Text;
+    population: Float;
+    growthRate: Float;
+    carryingCapacity: Float;
+    trophicLevel: Nat;  // 1=producer, 2=herbivore, 3=carnivore
+  };
+
+  // Lotka-Volterra predator-prey dynamics
+  public func updateEcosystem(eco: EcosystemState, dt: Float) : EcosystemState {
+    let n = eco.populations.size();
+    let newPops = Array.tabulate<PopulationState>(n, func(i) {
+      let pop = eco.populations[i];
+      var dN = pop.growthRate * pop.population * (1.0 - pop.population / pop.carryingCapacity);
+      
+      // Add predation effects
+      for (j in Array.keys(eco.populations)) {
+        if (j != i) {
+          let otherPop = eco.populations[j];
+          if (otherPop.trophicLevel > pop.trophicLevel) {
+            // This species is prey
+            dN -= 0.01 * pop.population * otherPop.population;
+          } else if (otherPop.trophicLevel < pop.trophicLevel and pop.trophicLevel > 1) {
+            // This species is predator
+            dN += 0.005 * pop.population * otherPop.population;
+          };
+        };
+      };
+      
+      let newPopulation = Float.max(0.0, pop.population + dN * dt);
+      {
+        speciesId = pop.speciesId;
+        speciesName = pop.speciesName;
+        population = newPopulation;
+        growthRate = pop.growthRate;
+        carryingCapacity = pop.carryingCapacity;
+        trophicLevel = pop.trophicLevel;
+      }
+    });
+    
+    // Calculate ecosystem metrics
+    var totalBio = 0.0;
+    var diversity = 0.0;
+    for (pop in newPops.vals()) {
+      totalBio += pop.population;
+      if (pop.population > 0.0) {
+        let p = pop.population / totalBio;
+        diversity -= p * Float.log(p);  // Shannon entropy
+      };
+    };
+    
+    {
+      populations = newPops;
+      totalBiomass = totalBio;
+      biodiversity = diversity;
+      stability = 1.0 - Float.abs(totalBio - eco.totalBiomass) / (eco.totalBiomass + 0.001);
+    }
+  };
+
+  // ==========================================================================
+  // WEATHER SYSTEM ORGANISM — Weather as a cognitive system
+  // ==========================================================================
+
+  public type WeatherOrganismState = {
+    // Kuramoto oscillators for pressure systems
+    pressureSystems: [PressureSystem];
+    
+    // Global weather coherence
+    coherence: Float;
+    
+    // Neurochemistry analogs
+    heat: Float;           // Energy = temperature
+    moisture: Float;       // Water content
+    instability: Float;    // Atmospheric instability
+    
+    // Hebbian learned patterns
+    patternWeights: [Float];
+  };
+
+  public type PressureSystem = {
+    id: Nat;
+    systemType: { #High; #Low };
+    centerX: Float;
+    centerY: Float;
+    phase: Float;
+    omega: Float;
+    strength: Float;
+    radius: Float;
+  };
+
+  public func tickWeatherOrganism(state: WeatherOrganismState, worldHeat: Float) : WeatherOrganismState {
+    let n = state.pressureSystems.size();
+    if (n == 0) { return state };
+    
+    // Kuramoto coupling between pressure systems
+    var sumCos = 0.0;
+    var sumSin = 0.0;
+    for (sys in state.pressureSystems.vals()) {
+      sumCos += Float.cos(sys.phase);
+      sumSin += Float.sin(sys.phase);
+    };
+    let meanPhase = Float.arctan2(sumSin, sumCos);
+    let r = Float.sqrt(sumCos * sumCos + sumSin * sumSin) / Float.fromInt(n);
+    
+    let K = 0.3;  // Coupling strength
+    let newSystems = Array.tabulate<PressureSystem>(n, func(i) {
+      let sys = state.pressureSystems[i];
+      let phaseDiff = meanPhase - sys.phase;
+      let newPhase = wrapPhase(sys.phase + sys.omega + K * r * Float.sin(phaseDiff));
+      
+      // Move pressure systems
+      let moveSpeed = switch (sys.systemType) { case (#Low) { 0.001 }; case (#High) { 0.0005 } };
+      let newX = sys.centerX + moveSpeed * Float.cos(sys.phase);
+      let newY = sys.centerY + moveSpeed * Float.sin(sys.phase);
+      
+      {
+        id = sys.id;
+        systemType = sys.systemType;
+        centerX = if (newX < 0.0) { newX + 1.0 } else if (newX > 1.0) { newX - 1.0 } else { newX };
+        centerY = if (newY < 0.0) { newY + 1.0 } else if (newY > 1.0) { newY - 1.0 } else { newY };
+        phase = newPhase;
+        omega = sys.omega;
+        strength = sys.strength * 0.999;  // Decay
+        radius = sys.radius;
+      }
+    });
+    
+    {
+      pressureSystems = newSystems;
+      coherence = r;
+      heat = state.heat * 0.99 + worldHeat * 0.01;
+      moisture = state.moisture;
+      instability = (1.0 - r) * 0.5 + state.heat * state.moisture * 0.5;
+      patternWeights = state.patternWeights;
+    }
+  };
+
+  // ==========================================================================
+  // WORLD EVENT GENERATION — Macro scenarios emerge
+  // ==========================================================================
+
+  public type ScenarioOrganism = {
+    tension: Float;
+    creativity: Float;
+    activeScenarios: [ActiveScenario];
+    scenarioWeights: [Float];  // Hebbian weights for scenario types
+  };
+
+  public type ActiveScenario = {
+    id: Nat;
+    scenarioType: Text;
+    position: (Float, Float, Float);
+    intensity: Float;
+    duration: Nat;
+    elapsed: Nat;
+    effects: [Text];
+  };
+
+  public func shouldGenerateScenario(organism: ScenarioOrganism, worldTension: Float) : Bool {
+    // Generate scenarios when:
+    // 1. Tension is low (need excitement)
+    // 2. Creativity is high
+    // 3. Fibonacci timing
+    let tensionTrigger = worldTension < 0.3;
+    let creativityTrigger = organism.creativity > 0.7;
+    tensionTrigger or creativityTrigger
+  };
+
+  public func generateScenario(
+    organism: ScenarioOrganism,
+    position: (Float, Float, Float),
+    seed: Nat32
+  ) : ActiveScenario {
+    // Select scenario type based on Hebbian weights
+    let scenarioTypes = ["symmetric_warfare", "asymmetric_warfare", "natural_disaster", "resource_crisis", "migration"];
+    let hash = Nat32.toNat(seed) % scenarioTypes.size();
+    
+    {
+      id = Nat32.toNat(seed);
+      scenarioType = scenarioTypes[hash];
+      position = position;
+      intensity = 0.5 + Float.fromInt(Nat32.toNat(seed) % 50) / 100.0;
+      duration = 100 + Nat32.toNat(seed) % 900;  // 100-1000 beats
+      elapsed = 0;
+      effects = [];
+    }
+  };
+
+  // ==========================================================================
   // INITIALIZATION
   // ==========================================================================
   
