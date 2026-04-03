@@ -8,19 +8,21 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "three": "^0.162.0",
-    "@react-three/fiber": "^8.15.0",
-    "@react-three/drei": "^9.99.0",
     "@dfinity/agent": "^1.4.0",
     "@dfinity/candid": "^1.4.0",
-    "@dfinity/principal": "^1.4.0"
+    "@dfinity/principal": "^1.4.0",
+    "@react-three/drei": "^9.99.0",
+    "@react-three/fiber": "^8.15.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "three": "^0.162.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "@types/three": "^0.183.1",
     "@vitejs/plugin-react": "^4.2.0",
+    "typescript": "^6.0.2",
     "vite": "^5.1.0"
   }
 }
