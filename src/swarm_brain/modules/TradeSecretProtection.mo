@@ -670,4 +670,271 @@ module {
     backendDepth * frontendSpeed * bridgeQuality
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  D E F E N S E   &   S E C U R I T Y   M A T H E M A T I C S
+  //
+  //  Enterprise-Level Security Algorithms and Threat Response
+  //  Full HIM/HER Dual-Organism Protection Integration
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // THREAT DETECTION MATHEMATICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Anomaly score using Mahalanobis distance
+  public func defenseAnomalyScore(
+    observation : [Float],
+    mean : [Float],
+    invCovariance : [[Float]]
+  ) : Float {
+    let n = observation.size();
+    if (n == 0 or mean.size() != n) { return 0.0 };
+    
+    var score : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      var j = 0;
+      while (j < n) {
+        let diff_i = observation[i] - mean[i];
+        let diff_j = observation[j] - mean[j];
+        score += diff_i * invCovariance[i][j] * diff_j;
+        j += 1;
+      };
+      i += 1;
+    };
+    Float.sqrt(Float.abs(score))
+  };
+
+  /// Exponential moving average for baseline
+  public func defenseEMABaseline(
+    current : Float,
+    observation : Float,
+    alpha : Float
+  ) : Float {
+    alpha * observation + (1.0 - alpha) * current
+  };
+
+  /// Z-score anomaly detection
+  public func defenseZScoreAnomaly(
+    value : Float,
+    mean : Float,
+    stdDev : Float
+  ) : Float {
+    if (stdDev < 0.0001) { 0.0 }
+    else { Float.abs((value - mean) / stdDev) }
+  };
+
+  /// Threat probability from multiple indicators
+  public func defenseThreatProbability(
+    indicators : [Float],
+    weights : [Float]
+  ) : Float {
+    let n = if (indicators.size() < weights.size()) indicators.size() else weights.size();
+    if (n == 0) { return 0.0 };
+    var weightedSum : Float = 0.0;
+    var totalWeight : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      weightedSum += indicators[i] * weights[i];
+      totalWeight += weights[i];
+      i += 1;
+    };
+    if (totalWeight < 0.0001) { 0.0 }
+    else { weightedSum / totalWeight }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // RESPONSE COORDINATION
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Priority queue score
+  public func defenseResponsePriority(
+    threatLevel : Float,
+    urgency : Float,
+    resources : Float
+  ) : Float {
+    threatLevel * urgency / (resources + 0.1)
+  };
+
+  /// Resource allocation optimization
+  public func defenseResourceAllocation(
+    available : Float,
+    demands : [Float]
+  ) : [Float] {
+    var totalDemand : Float = 0.0;
+    var i = 0;
+    while (i < demands.size()) {
+      totalDemand += demands[i];
+      i += 1;
+    };
+    if (totalDemand < 0.0001) {
+      return Array.tabulate<Float>(demands.size(), func(_ : Nat) : Float { 0.0 });
+    };
+    Array.tabulate<Float>(demands.size(), func(j : Nat) : Float {
+      available * demands[j] / totalDemand
+    })
+  };
+
+  /// Cascade failure probability
+  public func defenseCascadeFailureProb(
+    nodeFailProb : Float,
+    connectivity : Float,
+    loadFactor : Float
+  ) : Float {
+    let amplified = nodeFailProb * (1.0 + connectivity * loadFactor);
+    if (amplified > 1.0) { 1.0 } else { amplified }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // CRYPTOGRAPHIC PRIMITIVES
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Hash chain verification
+  public func defenseHashChainVerify(
+    expectedHash : Nat,
+    computedHash : Nat,
+    tolerance : Nat
+  ) : Bool {
+    let diff = if (expectedHash > computedHash) 
+               expectedHash - computedHash 
+               else computedHash - expectedHash;
+    diff <= tolerance
+  };
+
+  /// Key derivation strength
+  public func defenseKeyStrength(
+    entropy : Float,
+    iterations : Nat
+  ) : Float {
+    entropy * Float.log(Float.fromInt(iterations + 1))
+  };
+
+  /// Time-based token window
+  public func defenseTokenWindow(
+    currentTime : Nat,
+    windowSize : Nat,
+    secret : Nat
+  ) : Nat {
+    let window = currentTime / windowSize;
+    (window * secret) % 1000000
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // NETWORK SECURITY
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Rate limiting token bucket
+  public func defenseTokenBucket(
+    tokens : Float,
+    maxTokens : Float,
+    refillRate : Float,
+    requested : Float,
+    dt : Float
+  ) : (Float, Bool) {
+    let refilled = Float.min(tokens + refillRate * dt, maxTokens);
+    if (refilled >= requested) {
+      (refilled - requested, true)
+    } else {
+      (refilled, false)
+    }
+  };
+
+  /// Connection trust score
+  public func defenseTrustScore(
+    successfulInteractions : Nat,
+    failedInteractions : Nat,
+    age : Nat
+  ) : Float {
+    let total = successfulInteractions + failedInteractions;
+    if (total == 0) { return 0.5 };
+    let successRate = Float.fromInt(successfulInteractions) / Float.fromInt(total);
+    let ageFactor = Float.log(Float.fromInt(age + 1)) / 10.0;
+    (successRate + ageFactor) / 2.0
+  };
+
+  /// DDoS detection metric
+  public func defenseDDoSMetric(
+    requestRate : Float,
+    baseline : Float,
+    variance : Float
+  ) : Float {
+    let deviation = (requestRate - baseline) / (Float.sqrt(variance) + 0.01);
+    Float.abs(deviation)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SOVEREIGNTY PROTECTION
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Sovereignty assertion strength
+  public func defenseSovereigntyStrength(
+    autonomyLevel : Float,
+    resourceControl : Float,
+    decisionLatency : Float
+  ) : Float {
+    let efficiency = 1.0 / (decisionLatency + 0.01);
+    autonomyLevel * resourceControl * efficiency
+  };
+
+  /// Integrity verification score
+  public func defenseIntegrityScore(
+    originalHash : Nat,
+    currentHash : Nat,
+    mutations : Nat
+  ) : Float {
+    let match = if (originalHash == currentHash) 1.0 else 0.0;
+    let mutationPenalty = 1.0 / (Float.fromInt(mutations + 1));
+    (match + mutationPenalty) / 2.0
+  };
+
+  /// Rollback safety margin
+  public func defenseRollbackMargin(
+    currentState : Float,
+    checkpoint : Float,
+    volatility : Float
+  ) : Float {
+    let diff = Float.abs(currentState - checkpoint);
+    diff / (volatility + 0.01)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ADAPTIVE IMMUNE RESPONSE
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Antibody-antigen affinity
+  public func defenseAffinity(
+    antibody : [Float],
+    antigen : [Float]
+  ) : Float {
+    let n = if (antibody.size() < antigen.size()) antibody.size() else antigen.size();
+    if (n == 0) { return 0.0 };
+    var matchScore : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      matchScore += 1.0 - Float.abs(antibody[i] - antigen[i]);
+      i += 1;
+    };
+    matchScore / Float.fromInt(n)
+  };
+
+  /// Clonal selection probability
+  public func defenseClonalSelection(
+    affinity : Float,
+    temperature : Float
+  ) : Float {
+    Float.exp(affinity / (temperature + 0.01))
+  };
+
+  /// Memory cell formation rate
+  public func defenseMemoryCellRate(
+    exposureCount : Nat,
+    affinitySum : Float
+  ) : Float {
+    let exposureFactor = Float.log(Float.fromInt(exposureCount + 1));
+    affinitySum * exposureFactor
+  };
+
 }
