@@ -340,6 +340,20 @@ actor SwarmBrain {
   stable var jRisingBeats           : Nat   = 0;
   stable var architectSignalLevel   : Float = 1.0;
 
+  // ─── INTEGRATION STABILITY STATE ─────────────────────────────────────────────
+  // Solution 1 (staged snapshot): rSwarm snapshotted AFTER Phase 4 (Kuramoto R
+  // computed) and BEFORE Phase 5 (Jasmine's Law runs).  SACESI reads this value
+  // so both correctors base their error signal on the SAME pre-correction state.
+  // Jasmine's Law is untouched — it still runs on live state as designed.
+  stable var preCorrectionRSwarm    : Float = 0.88;
+
+  // Solution 3 (bootstrap sequencing): counts beats 0-9 (warm-up phase).
+  //   < 5  → SACESI suppressed (ring-buffer not yet filled)
+  //   < 10 → OMNIS suppressed (upstream EMA/conditions not yet converged)
+  //   ≥ 10 → full pipeline live
+  let BOOTSTRAP_BEATS : Nat = 10;
+  stable var pipelineBootstrapPhase : Nat = 0;
+
   // ─── SOVEREIGN SEAL — On-chain IP Attribution & Access Control ──────────────
   // Attribution: Alfredo Medina Hernandez | Medina Tech | Dallas TX | 2026
   // All mathematics, architecture, and doctrine within are sovereign IP.
@@ -1472,8 +1486,10 @@ actor SwarmBrain {
     let KD : Float = 0.275;
     let BUF : Nat  = 64;
 
-    // Current error
-    let e = 1.0 - rSwarm;
+    // Solution 1 — use preCorrectionRSwarm (snapshotted before Jasmine's Law ran)
+    // so SACESI and Jasmine's Law both see the same pre-correction synchrony state.
+    // This eliminates the complex eigenvalue: λ = -α ± √(α² - Kp·α).
+    let e = 1.0 - preCorrectionRSwarm;
 
     // Write to ring buffer
     saceBuffer[saceHead] := e;
@@ -1486,10 +1502,21 @@ actor SwarmBrain {
     let dedt = (e - eOld) / Float.fromInt(BUF);
 
     // HELIX_ALPHA modulated proportional gain
-    let kpEff = KP * (1.0 + HELIX_ALPHA * rSwarm);
+    let kpEff = KP * (1.0 + HELIX_ALPHA * preCorrectionRSwarm);
 
-    // Control output
-    let u = kpEff * e + KD * dedt;
+    // Raw control output
+    let uRaw = kpEff * e + KD * dedt;
+
+    // Solution 2 — Lyapunov gate: if Jasmine's V(x) is RISING, scale SACESI
+    // down proportionally so it does not fight Jasmine's active correction.
+    // When V is stable or falling the gate factor is 1.0 (full authority).
+    let lyapunovGateFactor : Float =
+      if (jDrift > prevJDrift and jDrift > 0.01) {
+        let excess = jDrift - prevJDrift;
+        Float.max(0.0, 1.0 - excess / 0.01)
+      } else { 1.0 };
+
+    let u = uRaw * lyapunovGateFactor;
     saceU := u;
 
     // Apply correction to drone phases: drones further from mean phase
@@ -1816,7 +1843,18 @@ actor SwarmBrain {
     // Phase 4: compute r_swarm (Kuramoto order parameter)
     rSwarm := computeRSwarm();
 
+    // ── INTEGRATION STABILITY: capture snapshot BEFORE Jasmine's Law runs ──────
+    // SACESI reads preCorrectionRSwarm so both correctors base their error signal
+    // on the same pre-correction state and cannot fight each other (Solution 1).
+    preCorrectionRSwarm := rSwarm;
+
+    // Advance bootstrap counter (saturates at BOOTSTRAP_BEATS — stays live forever)
+    if (pipelineBootstrapPhase < BOOTSTRAP_BEATS) {
+      pipelineBootstrapPhase += 1;
+    };
+
     // Phase 5: Jasmine's Law — 5-component Lyapunov V(x) = (1/2)||J||²
+    // Sovereign anti-drift law — runs on live state, UNTOUCHED.
     prevJDrift := jDrift;
     jDrift := computeJDrift();
     if (jDrift > prevJDrift) {
@@ -2816,9 +2854,11 @@ actor SwarmBrain {
     electCaptains();
     updateTeamMorale();
     // Phase 10: SACESI PD error correction
-    sacesiStep();
+    // Solution 3 — suppress during warm-up (ring-buffer needs ≥5 beats of data)
+    if (pipelineBootstrapPhase >= 5) { sacesiStep() };
     // Phase 11: OMNIS emergence event check
-    checkOMNIS();
+    // Solution 3 — suppress until pipeline is fully live (all upstream EMAs converged)
+    if (pipelineBootstrapPhase >= BOOTSTRAP_BEATS) { checkOMNIS() };
     // Phase 12: frequency tier
     updateFrequencyTier();
     {
@@ -4134,8 +4174,9 @@ actor SwarmBrain {
     executeBehaviors();
     electCaptains();
     updateTeamMorale();
-    sacesiStep();
-    checkOMNIS();
+    // Solution 3 — bootstrap guards
+    if (pipelineBootstrapPhase >= 5) { sacesiStep() };
+    if (pipelineBootstrapPhase >= BOOTSTRAP_BEATS) { checkOMNIS() };
     updateFrequencyTier();
     
     {
