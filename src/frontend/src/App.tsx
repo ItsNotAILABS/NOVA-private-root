@@ -28,6 +28,11 @@ import { SimulationChamber }  from './components/simulation/SimulationChamber';
 import { OroCommandCenter }     from './components/CommandCenter/OroCommandCenter';
 import { DroneSimulationWorld } from './components/CommandCenter/DroneSimulationWorld';
 
+// ── Emergence · Math/Physics · NeuroCog Labs ────────────────────────────────
+import { EmergenceLab }   from './components/CommandCenter/EmergenceLab';
+import { MathPhysicsLab } from './components/CommandCenter/MathPhysicsLab';
+import { NeuroCogLab }    from './components/CommandCenter/NeuroCogLab';
+
 // ── Navigation ────────────────────────────────────────────────────────────────
 type NavView =
   | 'SWARM'          // original tactical swarm view
@@ -37,7 +42,10 @@ type NavView =
   | 'WORKERS'        // worker society hub
   | 'ARTIFACTS'      // artifact studio
   | 'PRESENCE'       // presence board
-  | 'SIMULATION';    // world simulation chamber
+  | 'SIMULATION'     // world simulation chamber
+  | 'EMERGENCE'      // Emergence Lab — Kuramoto coherence dynamics
+  | 'MATHPHYSICS'    // Math & Physics Lab — all governing equations live
+  | 'NEUROCOG';      // Neuroscience & Cognitive Architecture Lab
 
 const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
   { id: 'COMMAND',    label: 'Command',    icon: '◉' },
@@ -48,6 +56,9 @@ const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
   { id: 'ARTIFACTS',  label: 'Artifacts',  icon: '▣' },
   { id: 'PRESENCE',   label: 'Presence',   icon: '●' },
   { id: 'SIMULATION', label: 'World Sim',  icon: '✦' },
+  { id: 'EMERGENCE',  label: 'Emergence',  icon: '◎' },
+  { id: 'MATHPHYSICS',label: 'Math·Phys',  icon: '∿' },
+  { id: 'NEUROCOG',   label: 'NeuroCog',   icon: '⌬' },
 ];
 
 // ── Styles ────────────────────────────────────────────────────────────────────
@@ -299,6 +310,21 @@ export default function App() {
           <div style={{ width: '100%', height: '100%' }}>
             <SimulationChamber organism={organism} />
           </div>
+        )}
+
+        {/* ── EMERGENCE LAB — Kuramoto Phase Sync Observatory ─────────── */}
+        {view === 'EMERGENCE' && (
+          <EmergenceLab organism={organism} />
+        )}
+
+        {/* ── MATH & PHYSICS LAB — All Governing Equations Live ────────── */}
+        {view === 'MATHPHYSICS' && (
+          <MathPhysicsLab organism={organism} />
+        )}
+
+        {/* ── NEUROSCIENCE & COGNITIVE LAB — Brain Architecture Observer ─ */}
+        {view === 'NEUROCOG' && (
+          <NeuroCogLab organism={organism} />
         )}
       </div>
     </div>
