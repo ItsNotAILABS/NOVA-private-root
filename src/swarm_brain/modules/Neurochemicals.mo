@@ -299,4 +299,857 @@ module {
   // ── Initialize NC to baseline ─────────────────────────────────────────
   public func initNC() : NC { NC_BASELINE };
 
+  // ============================================================
+  // 21×21 CROSSTALK MATRIX — FULL EXPLICIT INTERACTIONS
+  // Every chemical affects every other chemical
+  // M[i][j] = how chemical j modulates chemical i
+  // Positive = excitatory, Negative = inhibitory
+  // ALL 441 INTERACTIONS EXPLICITLY DEFINED
+  // ============================================================
+
+  // Chemical indices for reference:
+  // 0: dopamine, 1: serotonin, 2: norepinephrine, 3: epinephrine,
+  // 4: acetylcholine, 5: gaba, 6: glycine, 7: glutamate,
+  // 8: oxytocin, 9: vasopressin, 10: beta_endorphin, 11: substance_p,
+  // 12: neuropeptide_y, 13: adenosine, 14: anandamide, 15: two_ag,
+  // 16: nitric_oxide, 17: bdnf, 18: ngf, 19: cortisol, 20: testosterone
+
+  // ROW 0: How each chemical affects DOPAMINE
+  // Dopamine is modulated by: reward signals, inhibition, stress
+  public let CROSSTALK_DOPAMINE : [Float] = [
+    0.000,   // 0: dopamine → dopamine (self, no direct effect)
+    -0.150,  // 1: serotonin → dopamine (5-HT inhibits DA release in striatum)
+    0.200,   // 2: norepinephrine → dopamine (NE potentiates DA via α1 receptors)
+    0.100,   // 3: epinephrine → dopamine (emergency boost)
+    0.180,   // 4: acetylcholine → dopamine (ACh modulates DA in VTA)
+    -0.250,  // 5: gaba → dopamine (GABAergic inhibition of DA neurons)
+    -0.080,  // 6: glycine → dopamine (mild inhibition)
+    0.300,   // 7: glutamate → dopamine (glutamatergic excitation of DA)
+    0.120,   // 8: oxytocin → dopamine (social reward pathway)
+    0.080,   // 9: vasopressin → dopamine (stress-reward coupling)
+    0.150,   // 10: beta_endorphin → dopamine (opioid-DA reward link)
+    -0.100,  // 11: substance_p → dopamine (pain suppresses reward)
+    0.050,   // 12: neuropeptide_y → dopamine (resilience supports reward)
+    -0.200,  // 13: adenosine → dopamine (adenosine inhibits DA release)
+    0.180,   // 14: anandamide → dopamine (cannabinoid-DA interaction)
+    0.100,   // 15: two_ag → dopamine (endocannabinoid modulation)
+    0.120,   // 16: nitric_oxide → dopamine (NO potentiates DA release)
+    0.200,   // 17: bdnf → dopamine (neurotrophic support of DA neurons)
+    0.080,   // 18: ngf → dopamine (growth factor support)
+    -0.300,  // 19: cortisol → dopamine (chronic stress suppresses DA)
+    0.150    // 20: testosterone → dopamine (androgens boost DA)
+  ];
+
+  // ROW 1: How each chemical affects SEROTONIN
+  // Serotonin is modulated by: mood, stress, social signals
+  public let CROSSTALK_SEROTONIN : [Float] = [
+    -0.100,  // 0: dopamine → serotonin (DA inhibits 5-HT in raphe)
+    0.000,   // 1: serotonin → serotonin (self)
+    -0.080,  // 2: norepinephrine → serotonin (NE mild inhibition)
+    -0.150,  // 3: epinephrine → serotonin (stress reduces 5-HT)
+    0.120,   // 4: acetylcholine → serotonin (ACh modulates 5-HT release)
+    0.080,   // 5: gaba → serotonin (GABAergic modulation)
+    0.050,   // 6: glycine → serotonin (mild effect)
+    -0.100,  // 7: glutamate → serotonin (excitotoxic stress)
+    0.250,   // 8: oxytocin → serotonin (social bonding boosts 5-HT)
+    0.100,   // 9: vasopressin → serotonin (stress-mood coupling)
+    0.180,   // 10: beta_endorphin → serotonin (opioid-mood link)
+    -0.150,  // 11: substance_p → serotonin (pain suppresses mood)
+    0.120,   // 12: neuropeptide_y → serotonin (resilience supports mood)
+    -0.080,  // 13: adenosine → serotonin (fatigue reduces mood)
+    0.150,   // 14: anandamide → serotonin (cannabinoid-mood interaction)
+    0.080,   // 15: two_ag → serotonin (endocannabinoid modulation)
+    0.100,   // 16: nitric_oxide → serotonin (NO supports 5-HT release)
+    0.150,   // 17: bdnf → serotonin (neurotrophic antidepressant effect)
+    0.080,   // 18: ngf → serotonin (growth factor support)
+    -0.350,  // 19: cortisol → serotonin (chronic stress depletes 5-HT)
+    -0.100   // 20: testosterone → serotonin (androgens mildly suppress 5-HT)
+  ];
+
+  // ROW 2: How each chemical affects NOREPINEPHRINE
+  // Norepinephrine is modulated by: arousal, stress, attention
+  public let CROSSTALK_NOREPINEPHRINE : [Float] = [
+    0.150,   // 0: dopamine → norepinephrine (DA potentiates NE)
+    -0.100,  // 1: serotonin → norepinephrine (5-HT inhibits NE in locus coeruleus)
+    0.000,   // 2: norepinephrine → norepinephrine (self)
+    0.300,   // 3: epinephrine → norepinephrine (emergency cascade)
+    0.200,   // 4: acetylcholine → norepinephrine (attention boost)
+    -0.200,  // 5: gaba → norepinephrine (inhibition dampens arousal)
+    -0.080,  // 6: glycine → norepinephrine (mild inhibition)
+    0.250,   // 7: glutamate → norepinephrine (excitatory drive)
+    -0.050,  // 8: oxytocin → norepinephrine (social calm reduces arousal)
+    0.150,   // 9: vasopressin → norepinephrine (stress coupling)
+    -0.100,  // 10: beta_endorphin → norepinephrine (opioids dampen arousal)
+    0.200,   // 11: substance_p → norepinephrine (pain increases arousal)
+    -0.080,  // 12: neuropeptide_y → norepinephrine (resilience dampens arousal)
+    -0.150,  // 13: adenosine → norepinephrine (fatigue reduces arousal)
+    -0.100,  // 14: anandamide → norepinephrine (cannabinoid calming)
+    -0.050,  // 15: two_ag → norepinephrine (endocannabinoid modulation)
+    0.100,   // 16: nitric_oxide → norepinephrine (vascular arousal support)
+    0.120,   // 17: bdnf → norepinephrine (neurotrophic support)
+    0.050,   // 18: ngf → norepinephrine (growth factor)
+    0.350,   // 19: cortisol → norepinephrine (stress amplifies arousal)
+    0.200    // 20: testosterone → norepinephrine (androgens boost arousal)
+  ];
+
+  // ROW 3: How each chemical affects EPINEPHRINE
+  // Epinephrine is modulated by: emergency, threat, extreme arousal
+  public let CROSSTALK_EPINEPHRINE : [Float] = [
+    0.100,   // 0: dopamine → epinephrine (reward doesn't trigger emergency)
+    -0.150,  // 1: serotonin → epinephrine (calm suppresses emergency)
+    0.400,   // 2: norepinephrine → epinephrine (arousal cascade)
+    0.000,   // 3: epinephrine → epinephrine (self)
+    0.080,   // 4: acetylcholine → epinephrine (mild facilitation)
+    -0.300,  // 5: gaba → epinephrine (strong inhibition of emergency)
+    -0.150,  // 6: glycine → epinephrine (inhibition)
+    0.300,   // 7: glutamate → epinephrine (excitatory drive to adrenals)
+    -0.100,  // 8: oxytocin → epinephrine (social safety reduces emergency)
+    0.200,   // 9: vasopressin → epinephrine (stress amplifies emergency)
+    -0.150,  // 10: beta_endorphin → epinephrine (opioids dampen emergency)
+    0.350,   // 11: substance_p → epinephrine (pain triggers emergency)
+    -0.150,  // 12: neuropeptide_y → epinephrine (resilience prevents emergency)
+    -0.100,  // 13: adenosine → epinephrine (fatigue suppresses emergency)
+    -0.200,  // 14: anandamide → epinephrine (cannabinoid calm)
+    -0.100,  // 15: two_ag → epinephrine (endocannabinoid calm)
+    0.080,   // 16: nitric_oxide → epinephrine (vascular emergency support)
+    0.050,   // 17: bdnf → epinephrine (minimal effect)
+    0.030,   // 18: ngf → epinephrine (minimal effect)
+    0.400,   // 19: cortisol → epinephrine (stress amplifies emergency)
+    0.250    // 20: testosterone → epinephrine (androgens boost emergency response)
+  ];
+
+  // ROW 4: How each chemical affects ACETYLCHOLINE
+  // Acetylcholine is modulated by: attention, learning, arousal
+  public let CROSSTALK_ACETYLCHOLINE : [Float] = [
+    0.150,   // 0: dopamine → acetylcholine (reward enhances attention)
+    0.080,   // 1: serotonin → acetylcholine (mood supports attention)
+    0.200,   // 2: norepinephrine → acetylcholine (arousal enhances attention)
+    0.100,   // 3: epinephrine → acetylcholine (emergency attention)
+    0.000,   // 4: acetylcholine → acetylcholine (self)
+    -0.150,  // 5: gaba → acetylcholine (inhibition reduces attention)
+    -0.050,  // 6: glycine → acetylcholine (mild inhibition)
+    0.180,   // 7: glutamate → acetylcholine (excitatory drive)
+    0.100,   // 8: oxytocin → acetylcholine (social attention)
+    0.080,   // 9: vasopressin → acetylcholine (memory-attention coupling)
+    -0.050,  // 10: beta_endorphin → acetylcholine (opioids reduce attention)
+    -0.100,  // 11: substance_p → acetylcholine (pain disrupts attention)
+    0.050,   // 12: neuropeptide_y → acetylcholine (resilience supports attention)
+    -0.200,  // 13: adenosine → acetylcholine (fatigue reduces attention)
+    0.080,   // 14: anandamide → acetylcholine (cannabinoid modulation)
+    0.050,   // 15: two_ag → acetylcholine (endocannabinoid modulation)
+    0.100,   // 16: nitric_oxide → acetylcholine (vascular support)
+    0.250,   // 17: bdnf → acetylcholine (neurotrophic enhances learning)
+    0.150,   // 18: ngf → acetylcholine (growth factor supports cholinergic neurons)
+    -0.200,  // 19: cortisol → acetylcholine (stress impairs attention)
+    0.100    // 20: testosterone → acetylcholine (androgens support attention)
+  ];
+
+  // ROW 5: How each chemical affects GABA
+  // GABA is modulated by: need for inhibition, stress, arousal level
+  public let CROSSTALK_GABA : [Float] = [
+    -0.100,  // 0: dopamine → gaba (reward reduces inhibition need)
+    0.150,   // 1: serotonin → gaba (calm promotes inhibition)
+    -0.200,  // 2: norepinephrine → gaba (arousal suppresses inhibition)
+    -0.250,  // 3: epinephrine → gaba (emergency suppresses inhibition)
+    -0.080,  // 4: acetylcholine → gaba (attention reduces global inhibition)
+    0.000,   // 5: gaba → gaba (self)
+    0.150,   // 6: glycine → gaba (co-inhibition)
+    -0.200,  // 7: glutamate → gaba (excitation suppresses inhibition)
+    0.100,   // 8: oxytocin → gaba (social safety promotes calm)
+    -0.050,  // 9: vasopressin → gaba (stress coupling)
+    0.200,   // 10: beta_endorphin → gaba (opioids potentiate GABA)
+    -0.150,  // 11: substance_p → gaba (pain suppresses inhibition)
+    0.100,   // 12: neuropeptide_y → gaba (resilience supports inhibition)
+    0.150,   // 13: adenosine → gaba (sleep pressure promotes inhibition)
+    0.180,   // 14: anandamide → gaba (cannabinoid potentiates GABA)
+    0.100,   // 15: two_ag → gaba (endocannabinoid modulation)
+    0.050,   // 16: nitric_oxide → gaba (mild effect)
+    0.080,   // 17: bdnf → gaba (neurotrophic supports inhibitory neurons)
+    0.050,   // 18: ngf → gaba (growth factor)
+    -0.150,  // 19: cortisol → gaba (chronic stress impairs GABA)
+    -0.100   // 20: testosterone → gaba (androgens reduce inhibition)
+  ];
+
+  // ROW 6: How each chemical affects GLYCINE
+  // Glycine is modulated by: spinal inhibition needs, reflex gating
+  public let CROSSTALK_GLYCINE : [Float] = [
+    -0.050,  // 0: dopamine → glycine (minimal effect)
+    0.080,   // 1: serotonin → glycine (descending modulation)
+    -0.100,  // 2: norepinephrine → glycine (arousal reduces spinal inhibition)
+    -0.150,  // 3: epinephrine → glycine (emergency reflex ungating)
+    -0.050,  // 4: acetylcholine → glycine (motor activation)
+    0.200,   // 5: gaba → glycine (co-inhibition synergy)
+    0.000,   // 6: glycine → glycine (self)
+    -0.150,  // 7: glutamate → glycine (excitation opposes inhibition)
+    0.050,   // 8: oxytocin → glycine (mild calming)
+    -0.030,  // 9: vasopressin → glycine (minimal effect)
+    0.100,   // 10: beta_endorphin → glycine (opioid-spinal interaction)
+    -0.200,  // 11: substance_p → glycine (pain ungates reflexes)
+    0.050,   // 12: neuropeptide_y → glycine (resilience)
+    0.080,   // 13: adenosine → glycine (fatigue promotes inhibition)
+    0.100,   // 14: anandamide → glycine (cannabinoid modulation)
+    0.050,   // 15: two_ag → glycine (endocannabinoid)
+    0.030,   // 16: nitric_oxide → glycine (vascular)
+    0.050,   // 17: bdnf → glycine (neurotrophic)
+    0.030,   // 18: ngf → glycine (growth factor)
+    -0.100,  // 19: cortisol → glycine (stress impairs inhibition)
+    -0.050   // 20: testosterone → glycine (androgens reduce inhibition)
+  ];
+
+  // ROW 7: How each chemical affects GLUTAMATE
+  // Glutamate is modulated by: excitation needs, learning, arousal
+  public let CROSSTALK_GLUTAMATE : [Float] = [
+    0.200,   // 0: dopamine → glutamate (reward enhances excitation)
+    -0.100,  // 1: serotonin → glutamate (calm dampens excitation)
+    0.250,   // 2: norepinephrine → glutamate (arousal drives excitation)
+    0.300,   // 3: epinephrine → glutamate (emergency excitation)
+    0.200,   // 4: acetylcholine → glutamate (attention-excitation coupling)
+    -0.300,  // 5: gaba → glutamate (inhibition suppresses excitation)
+    -0.150,  // 6: glycine → glutamate (spinal inhibition)
+    0.000,   // 7: glutamate → glutamate (self)
+    -0.050,  // 8: oxytocin → glutamate (social calm)
+    0.100,   // 9: vasopressin → glutamate (stress-excitation)
+    -0.100,  // 10: beta_endorphin → glutamate (opioids dampen excitation)
+    0.200,   // 11: substance_p → glutamate (pain drives excitation)
+    -0.050,  // 12: neuropeptide_y → glutamate (resilience)
+    -0.150,  // 13: adenosine → glutamate (fatigue reduces excitation)
+    -0.100,  // 14: anandamide → glutamate (cannabinoid dampening)
+    -0.080,  // 15: two_ag → glutamate (endocannabinoid modulation)
+    0.100,   // 16: nitric_oxide → glutamate (vascular support)
+    0.200,   // 17: bdnf → glutamate (neurotrophic potentiates plasticity)
+    0.100,   // 18: ngf → glutamate (growth factor)
+    0.150,   // 19: cortisol → glutamate (stress drives excitotoxicity risk)
+    0.150    // 20: testosterone → glutamate (androgens enhance excitation)
+  ];
+
+  // ROW 8: How each chemical affects OXYTOCIN
+  // Oxytocin is modulated by: social signals, bonding, safety
+  public let CROSSTALK_OXYTOCIN : [Float] = [
+    0.150,   // 0: dopamine → oxytocin (reward enhances bonding)
+    0.200,   // 1: serotonin → oxytocin (mood supports social)
+    -0.100,  // 2: norepinephrine → oxytocin (arousal suppresses bonding)
+    -0.200,  // 3: epinephrine → oxytocin (emergency suppresses social)
+    0.100,   // 4: acetylcholine → oxytocin (attention to social cues)
+    0.080,   // 5: gaba → oxytocin (calm promotes bonding)
+    0.030,   // 6: glycine → oxytocin (minimal effect)
+    -0.080,  // 7: glutamate → oxytocin (excitation disrupts calm bonding)
+    0.000,   // 8: oxytocin → oxytocin (self)
+    0.150,   // 9: vasopressin → oxytocin (pair bonding synergy)
+    0.100,   // 10: beta_endorphin → oxytocin (pleasure-social coupling)
+    -0.150,  // 11: substance_p → oxytocin (pain disrupts bonding)
+    0.050,   // 12: neuropeptide_y → oxytocin (resilience supports social)
+    -0.050,  // 13: adenosine → oxytocin (fatigue reduces social drive)
+    0.120,   // 14: anandamide → oxytocin (cannabinoid-social coupling)
+    0.080,   // 15: two_ag → oxytocin (endocannabinoid)
+    0.050,   // 16: nitric_oxide → oxytocin (vascular support)
+    0.100,   // 17: bdnf → oxytocin (neurotrophic supports social neurons)
+    0.080,   // 18: ngf → oxytocin (growth factor)
+    -0.250,  // 19: cortisol → oxytocin (chronic stress suppresses bonding)
+    -0.050   // 20: testosterone → oxytocin (androgens mildly suppress oxytocin)
+  ];
+
+  // ROW 9: How each chemical affects VASOPRESSIN
+  // Vasopressin is modulated by: stress, memory, dominance
+  public let CROSSTALK_VASOPRESSIN : [Float] = [
+    0.100,   // 0: dopamine → vasopressin (reward-memory coupling)
+    0.050,   // 1: serotonin → vasopressin (mood-memory)
+    0.200,   // 2: norepinephrine → vasopressin (arousal-memory)
+    0.150,   // 3: epinephrine → vasopressin (emergency memory encoding)
+    0.150,   // 4: acetylcholine → vasopressin (attention-memory coupling)
+    -0.050,  // 5: gaba → vasopressin (inhibition dampens)
+    0.020,   // 6: glycine → vasopressin (minimal effect)
+    0.100,   // 7: glutamate → vasopressin (excitation-memory)
+    0.200,   // 8: oxytocin → vasopressin (bonding-memory synergy)
+    0.000,   // 9: vasopressin → vasopressin (self)
+    0.050,   // 10: beta_endorphin → vasopressin (opioid-memory)
+    0.150,   // 11: substance_p → vasopressin (pain encodes memory)
+    0.080,   // 12: neuropeptide_y → vasopressin (resilience-memory)
+    -0.050,  // 13: adenosine → vasopressin (fatigue impairs memory)
+    0.050,   // 14: anandamide → vasopressin (cannabinoid-memory)
+    0.100,   // 15: two_ag → vasopressin (endocannabinoid consolidation)
+    0.030,   // 16: nitric_oxide → vasopressin (vascular)
+    0.150,   // 17: bdnf → vasopressin (neurotrophic-memory synergy)
+    0.080,   // 18: ngf → vasopressin (growth factor)
+    0.200,   // 19: cortisol → vasopressin (stress enhances encoding)
+    0.150    // 20: testosterone → vasopressin (androgens-dominance-memory)
+  ];
+
+  // ROW 10: How each chemical affects BETA_ENDORPHIN
+  // Beta-endorphin is modulated by: pain, pleasure, stress
+  public let CROSSTALK_BETA_ENDORPHIN : [Float] = [
+    0.200,   // 0: dopamine → beta_endorphin (reward triggers pleasure)
+    0.150,   // 1: serotonin → beta_endorphin (mood supports pleasure)
+    0.100,   // 2: norepinephrine → beta_endorphin (arousal-triggered release)
+    0.200,   // 3: epinephrine → beta_endorphin (stress-induced analgesia)
+    0.050,   // 4: acetylcholine → beta_endorphin (minimal effect)
+    0.100,   // 5: gaba → beta_endorphin (calm supports opioid tone)
+    0.030,   // 6: glycine → beta_endorphin (minimal effect)
+    -0.050,  // 7: glutamate → beta_endorphin (excitation can deplete)
+    0.150,   // 8: oxytocin → beta_endorphin (social pleasure)
+    0.080,   // 9: vasopressin → beta_endorphin (stress-analgesia)
+    0.000,   // 10: beta_endorphin → beta_endorphin (self)
+    0.300,   // 11: substance_p → beta_endorphin (pain triggers analgesia)
+    0.100,   // 12: neuropeptide_y → beta_endorphin (resilience supports opioid)
+    0.050,   // 13: adenosine → beta_endorphin (fatigue-comfort)
+    0.200,   // 14: anandamide → beta_endorphin (cannabinoid-opioid synergy)
+    0.150,   // 15: two_ag → beta_endorphin (endocannabinoid synergy)
+    0.030,   // 16: nitric_oxide → beta_endorphin (vascular)
+    0.100,   // 17: bdnf → beta_endorphin (neurotrophic)
+    0.050,   // 18: ngf → beta_endorphin (growth factor)
+    0.200,   // 19: cortisol → beta_endorphin (acute stress triggers analgesia)
+    0.080    // 20: testosterone → beta_endorphin (androgens)
+  ];
+
+  // ROW 11: How each chemical affects SUBSTANCE_P
+  // Substance P is modulated by: pain signals, threat, inflammation
+  public let CROSSTALK_SUBSTANCE_P : [Float] = [
+    -0.100,  // 0: dopamine → substance_p (reward suppresses pain)
+    -0.150,  // 1: serotonin → substance_p (descending modulation)
+    0.150,   // 2: norepinephrine → substance_p (arousal-pain coupling)
+    0.200,   // 3: epinephrine → substance_p (emergency pain amplification)
+    -0.050,  // 4: acetylcholine → substance_p (minimal effect)
+    -0.100,  // 5: gaba → substance_p (inhibition reduces pain)
+    -0.150,  // 6: glycine → substance_p (spinal inhibition of pain)
+    0.200,   // 7: glutamate → substance_p (excitation amplifies pain)
+    -0.100,  // 8: oxytocin → substance_p (social analgesia)
+    0.100,   // 9: vasopressin → substance_p (stress-pain)
+    -0.250,  // 10: beta_endorphin → substance_p (opioid analgesia)
+    0.000,   // 11: substance_p → substance_p (self)
+    -0.080,  // 12: neuropeptide_y → substance_p (resilience)
+    0.050,   // 13: adenosine → substance_p (fatigue-pain)
+    -0.150,  // 14: anandamide → substance_p (cannabinoid analgesia)
+    -0.100,  // 15: two_ag → substance_p (endocannabinoid analgesia)
+    -0.030,  // 16: nitric_oxide → substance_p (vascular)
+    -0.080,  // 17: bdnf → substance_p (neurotrophic can reduce chronic pain)
+    -0.050,  // 18: ngf → substance_p (NGF paradoxically enhances pain sensitivity)
+    0.250,   // 19: cortisol → substance_p (chronic stress amplifies pain)
+    0.100    // 20: testosterone → substance_p (androgens-pain coupling)
+  ];
+
+  // ROW 12: How each chemical affects NEUROPEPTIDE_Y
+  // Neuropeptide Y is modulated by: stress resilience, metabolism, energy
+  public let CROSSTALK_NEUROPEPTIDE_Y : [Float] = [
+    0.100,   // 0: dopamine → neuropeptide_y (reward supports resilience)
+    0.150,   // 1: serotonin → neuropeptide_y (mood supports resilience)
+    -0.100,  // 2: norepinephrine → neuropeptide_y (acute stress depletes)
+    -0.150,  // 3: epinephrine → neuropeptide_y (emergency depletes)
+    0.080,   // 4: acetylcholine → neuropeptide_y (attention supports)
+    0.100,   // 5: gaba → neuropeptide_y (inhibition supports resilience)
+    0.050,   // 6: glycine → neuropeptide_y (minimal effect)
+    -0.080,  // 7: glutamate → neuropeptide_y (excitation depletes)
+    0.150,   // 8: oxytocin → neuropeptide_y (social resilience)
+    0.050,   // 9: vasopressin → neuropeptide_y (stress-resilience coupling)
+    0.100,   // 10: beta_endorphin → neuropeptide_y (opioid-resilience)
+    -0.150,  // 11: substance_p → neuropeptide_y (pain depletes resilience)
+    0.000,   // 12: neuropeptide_y → neuropeptide_y (self)
+    0.050,   // 13: adenosine → neuropeptide_y (energy-resilience)
+    0.100,   // 14: anandamide → neuropeptide_y (cannabinoid-resilience)
+    0.080,   // 15: two_ag → neuropeptide_y (endocannabinoid)
+    0.030,   // 16: nitric_oxide → neuropeptide_y (vascular)
+    0.150,   // 17: bdnf → neuropeptide_y (neurotrophic supports resilience)
+    0.100,   // 18: ngf → neuropeptide_y (growth factor)
+    -0.300,  // 19: cortisol → neuropeptide_y (chronic stress depletes NPY)
+    0.050    // 20: testosterone → neuropeptide_y (androgens support)
+  ];
+
+  // ROW 13: How each chemical affects ADENOSINE
+  // Adenosine is modulated by: activity level, sleep pressure, ATP depletion
+  public let CROSSTALK_ADENOSINE : [Float] = [
+    0.100,   // 0: dopamine → adenosine (activity generates adenosine)
+    -0.050,  // 1: serotonin → adenosine (mood state)
+    0.200,   // 2: norepinephrine → adenosine (high activity builds adenosine)
+    0.150,   // 3: epinephrine → adenosine (emergency depletes ATP → adenosine)
+    0.100,   // 4: acetylcholine → adenosine (cognitive work builds pressure)
+    -0.100,  // 5: gaba → adenosine (rest clears adenosine)
+    -0.050,  // 6: glycine → adenosine (rest)
+    0.250,   // 7: glutamate → adenosine (excitatory activity builds pressure)
+    -0.050,  // 8: oxytocin → adenosine (social rest)
+    0.050,   // 9: vasopressin → adenosine (minimal effect)
+    -0.080,  // 10: beta_endorphin → adenosine (opioid rest)
+    0.100,   // 11: substance_p → adenosine (pain activity)
+    -0.100,  // 12: neuropeptide_y → adenosine (resilience clears)
+    0.000,   // 13: adenosine → adenosine (self)
+    -0.100,  // 14: anandamide → adenosine (cannabinoid clearance)
+    -0.050,  // 15: two_ag → adenosine (endocannabinoid)
+    -0.050,  // 16: nitric_oxide → adenosine (vascular clearance)
+    -0.050,  // 17: bdnf → adenosine (recovery)
+    -0.030,  // 18: ngf → adenosine (growth factor)
+    0.200,   // 19: cortisol → adenosine (chronic stress builds fatigue)
+    0.080    // 20: testosterone → adenosine (activity)
+  ];
+
+  // ROW 14: How each chemical affects ANANDAMIDE
+  // Anandamide is modulated by: flow state, pleasure, relaxation
+  public let CROSSTALK_ANANDAMIDE : [Float] = [
+    0.200,   // 0: dopamine → anandamide (reward triggers endocannabinoid)
+    0.150,   // 1: serotonin → anandamide (mood supports flow)
+    -0.100,  // 2: norepinephrine → anandamide (high arousal opposes flow)
+    -0.200,  // 3: epinephrine → anandamide (emergency opposes flow)
+    0.100,   // 4: acetylcholine → anandamide (focused attention → flow)
+    0.150,   // 5: gaba → anandamide (calm supports flow)
+    0.050,   // 6: glycine → anandamide (relaxation)
+    -0.100,  // 7: glutamate → anandamide (overexcitation opposes flow)
+    0.150,   // 8: oxytocin → anandamide (social flow)
+    0.050,   // 9: vasopressin → anandamide (minimal effect)
+    0.200,   // 10: beta_endorphin → anandamide (opioid-cannabinoid synergy)
+    -0.150,  // 11: substance_p → anandamide (pain opposes flow)
+    0.100,   // 12: neuropeptide_y → anandamide (resilience supports flow)
+    -0.100,  // 13: adenosine → anandamide (fatigue opposes flow)
+    0.000,   // 14: anandamide → anandamide (self)
+    0.150,   // 15: two_ag → anandamide (endocannabinoid synergy)
+    0.080,   // 16: nitric_oxide → anandamide (vascular flow)
+    0.150,   // 17: bdnf → anandamide (neurotrophic supports flow)
+    0.080,   // 18: ngf → anandamide (growth factor)
+    -0.250,  // 19: cortisol → anandamide (chronic stress opposes flow)
+    0.050    // 20: testosterone → anandamide (androgens)
+  ];
+
+  // ROW 15: How each chemical affects TWO_AG (2-Arachidonoylglycerol)
+  // 2-AG is modulated by: synaptic activity, memory, retrograde signaling
+  public let CROSSTALK_TWO_AG : [Float] = [
+    0.150,   // 0: dopamine → two_ag (reward triggers release)
+    0.080,   // 1: serotonin → two_ag (mood)
+    0.100,   // 2: norepinephrine → two_ag (arousal-memory)
+    0.050,   // 3: epinephrine → two_ag (emergency encoding)
+    0.180,   // 4: acetylcholine → two_ag (learning triggers release)
+    0.050,   // 5: gaba → two_ag (inhibitory-retrograde)
+    0.030,   // 6: glycine → two_ag (minimal effect)
+    0.200,   // 7: glutamate → two_ag (excitation triggers retrograde)
+    0.100,   // 8: oxytocin → two_ag (social memory)
+    0.150,   // 9: vasopressin → two_ag (memory consolidation)
+    0.100,   // 10: beta_endorphin → two_ag (opioid-cannabinoid)
+    -0.050,  // 11: substance_p → two_ag (pain)
+    0.080,   // 12: neuropeptide_y → two_ag (resilience)
+    -0.050,  // 13: adenosine → two_ag (fatigue)
+    0.200,   // 14: anandamide → two_ag (endocannabinoid synergy)
+    0.000,   // 15: two_ag → two_ag (self)
+    0.050,   // 16: nitric_oxide → two_ag (vascular)
+    0.150,   // 17: bdnf → two_ag (neurotrophic-memory)
+    0.080,   // 18: ngf → two_ag (growth factor)
+    -0.100,  // 19: cortisol → two_ag (chronic stress impairs)
+    0.050    // 20: testosterone → two_ag (androgens)
+  ];
+
+  // ROW 16: How each chemical affects NITRIC_OXIDE
+  // Nitric oxide is modulated by: vascular needs, long-range signaling
+  public let CROSSTALK_NITRIC_OXIDE : [Float] = [
+    0.150,   // 0: dopamine → nitric_oxide (reward vascular)
+    0.100,   // 1: serotonin → nitric_oxide (mood vascular)
+    0.200,   // 2: norepinephrine → nitric_oxide (arousal vascular)
+    0.250,   // 3: epinephrine → nitric_oxide (emergency vascular)
+    0.150,   // 4: acetylcholine → nitric_oxide (ACh triggers NO release)
+    -0.050,  // 5: gaba → nitric_oxide (minimal effect)
+    0.020,   // 6: glycine → nitric_oxide (minimal effect)
+    0.180,   // 7: glutamate → nitric_oxide (NMDA-NO coupling)
+    0.100,   // 8: oxytocin → nitric_oxide (social vascular)
+    0.080,   // 9: vasopressin → nitric_oxide (stress vascular)
+    0.050,   // 10: beta_endorphin → nitric_oxide (opioid vascular)
+    -0.050,  // 11: substance_p → nitric_oxide (pain vascular)
+    0.050,   // 12: neuropeptide_y → nitric_oxide (resilience)
+    -0.100,  // 13: adenosine → nitric_oxide (fatigue impairs)
+    0.100,   // 14: anandamide → nitric_oxide (cannabinoid vascular)
+    0.080,   // 15: two_ag → nitric_oxide (endocannabinoid)
+    0.000,   // 16: nitric_oxide → nitric_oxide (self)
+    0.150,   // 17: bdnf → nitric_oxide (neurotrophic vascular)
+    0.080,   // 18: ngf → nitric_oxide (growth factor)
+    -0.150,  // 19: cortisol → nitric_oxide (chronic stress impairs vascular)
+    0.100    // 20: testosterone → nitric_oxide (androgens vascular)
+  ];
+
+  // ROW 17: How each chemical affects BDNF
+  // BDNF is modulated by: learning, exercise, growth signals
+  public let CROSSTALK_BDNF : [Float] = [
+    0.200,   // 0: dopamine → bdnf (reward learning)
+    0.150,   // 1: serotonin → bdnf (antidepressant effect)
+    0.100,   // 2: norepinephrine → bdnf (arousal learning)
+    0.050,   // 3: epinephrine → bdnf (emergency learning)
+    0.250,   // 4: acetylcholine → bdnf (cholinergic-neurotrophic coupling)
+    0.050,   // 5: gaba → bdnf (inhibitory plasticity)
+    0.030,   // 6: glycine → bdnf (minimal effect)
+    0.200,   // 7: glutamate → bdnf (activity-dependent BDNF)
+    0.150,   // 8: oxytocin → bdnf (social learning)
+    0.100,   // 9: vasopressin → bdnf (memory-neurotrophic)
+    0.080,   // 10: beta_endorphin → bdnf (exercise-induced)
+    -0.100,  // 11: substance_p → bdnf (chronic pain impairs)
+    0.150,   // 12: neuropeptide_y → bdnf (resilience-neurotrophic)
+    -0.100,  // 13: adenosine → bdnf (fatigue impairs)
+    0.150,   // 14: anandamide → bdnf (cannabinoid-neurotrophic)
+    0.100,   // 15: two_ag → bdnf (endocannabinoid)
+    0.150,   // 16: nitric_oxide → bdnf (vascular supports growth)
+    0.000,   // 17: bdnf → bdnf (self)
+    0.200,   // 18: ngf → bdnf (neurotrophin synergy)
+    -0.300,  // 19: cortisol → bdnf (chronic stress suppresses BDNF)
+    0.100    // 20: testosterone → bdnf (androgens support)
+  ];
+
+  // ROW 18: How each chemical affects NGF
+  // NGF is modulated by: growth needs, injury, development
+  public let CROSSTALK_NGF : [Float] = [
+    0.100,   // 0: dopamine → ngf (reward growth)
+    0.100,   // 1: serotonin → ngf (mood growth)
+    0.050,   // 2: norepinephrine → ngf (arousal)
+    0.030,   // 3: epinephrine → ngf (emergency)
+    0.150,   // 4: acetylcholine → ngf (cholinergic-NGF coupling)
+    0.030,   // 5: gaba → ngf (minimal effect)
+    0.020,   // 6: glycine → ngf (minimal effect)
+    0.100,   // 7: glutamate → ngf (activity-dependent)
+    0.100,   // 8: oxytocin → ngf (social growth)
+    0.080,   // 9: vasopressin → ngf (memory-growth)
+    0.050,   // 10: beta_endorphin → ngf (opioid-growth)
+    0.150,   // 11: substance_p → ngf (injury-NGF coupling)
+    0.100,   // 12: neuropeptide_y → ngf (resilience-growth)
+    -0.050,  // 13: adenosine → ngf (fatigue impairs)
+    0.100,   // 14: anandamide → ngf (cannabinoid-growth)
+    0.080,   // 15: two_ag → ngf (endocannabinoid)
+    0.080,   // 16: nitric_oxide → ngf (vascular supports growth)
+    0.250,   // 17: bdnf → ngf (neurotrophin synergy)
+    0.000,   // 18: ngf → ngf (self)
+    -0.200,  // 19: cortisol → ngf (chronic stress impairs growth)
+    0.080    // 20: testosterone → ngf (androgens support)
+  ];
+
+  // ROW 19: How each chemical affects CORTISOL
+  // Cortisol is modulated by: stress, threat, chronic load
+  public let CROSSTALK_CORTISOL : [Float] = [
+    -0.150,  // 0: dopamine → cortisol (reward suppresses stress)
+    -0.200,  // 1: serotonin → cortisol (mood suppresses stress)
+    0.250,   // 2: norepinephrine → cortisol (arousal drives HPA)
+    0.300,   // 3: epinephrine → cortisol (emergency drives HPA)
+    -0.050,  // 4: acetylcholine → cortisol (minimal effect)
+    -0.150,  // 5: gaba → cortisol (inhibition suppresses stress)
+    -0.050,  // 6: glycine → cortisol (minimal effect)
+    0.200,   // 7: glutamate → cortisol (excitation drives stress)
+    -0.200,  // 8: oxytocin → cortisol (social safety suppresses stress)
+    0.150,   // 9: vasopressin → cortisol (AVP-cortisol coupling)
+    -0.100,  // 10: beta_endorphin → cortisol (opioid dampens stress)
+    0.250,   // 11: substance_p → cortisol (pain drives stress)
+    -0.200,  // 12: neuropeptide_y → cortisol (resilience suppresses cortisol)
+    0.100,   // 13: adenosine → cortisol (fatigue-stress coupling)
+    -0.150,  // 14: anandamide → cortisol (cannabinoid reduces stress)
+    -0.100,  // 15: two_ag → cortisol (endocannabinoid)
+    -0.050,  // 16: nitric_oxide → cortisol (vascular)
+    -0.150,  // 17: bdnf → cortisol (neurotrophic suppresses chronic stress)
+    -0.100,  // 18: ngf → cortisol (growth factor)
+    0.000,   // 19: cortisol → cortisol (self)
+    0.150    // 20: testosterone → cortisol (androgens-stress coupling)
+  ];
+
+  // ROW 20: How each chemical affects TESTOSTERONE
+  // Testosterone is modulated by: dominance, competition, aggression
+  public let CROSSTALK_TESTOSTERONE : [Float] = [
+    0.200,   // 0: dopamine → testosterone (reward-dominance)
+    -0.100,  // 1: serotonin → testosterone (calm reduces aggression)
+    0.200,   // 2: norepinephrine → testosterone (arousal-dominance)
+    0.150,   // 3: epinephrine → testosterone (emergency-aggression)
+    0.050,   // 4: acetylcholine → testosterone (minimal effect)
+    -0.100,  // 5: gaba → testosterone (inhibition reduces)
+    -0.030,  // 6: glycine → testosterone (minimal effect)
+    0.150,   // 7: glutamate → testosterone (excitation-aggression)
+    -0.150,  // 8: oxytocin → testosterone (bonding opposes aggression)
+    0.150,   // 9: vasopressin → testosterone (dominance-memory)
+    0.050,   // 10: beta_endorphin → testosterone (winner effect)
+    0.100,   // 11: substance_p → testosterone (pain-aggression)
+    0.050,   // 12: neuropeptide_y → testosterone (resilience)
+    -0.080,  // 13: adenosine → testosterone (fatigue reduces)
+    0.080,   // 14: anandamide → testosterone (cannabinoid)
+    0.050,   // 15: two_ag → testosterone (endocannabinoid)
+    0.100,   // 16: nitric_oxide → testosterone (vascular)
+    0.100,   // 17: bdnf → testosterone (neurotrophic)
+    0.080,   // 18: ngf → testosterone (growth factor)
+    0.200,   // 19: cortisol → testosterone (acute stress boosts, chronic depletes)
+    0.000    // 20: testosterone → testosterone (self)
+  ];
+
+  // Full 21×21 crosstalk matrix as 2D array
+  public let CROSSTALK_MATRIX : [[Float]] = [
+    CROSSTALK_DOPAMINE,
+    CROSSTALK_SEROTONIN,
+    CROSSTALK_NOREPINEPHRINE,
+    CROSSTALK_EPINEPHRINE,
+    CROSSTALK_ACETYLCHOLINE,
+    CROSSTALK_GABA,
+    CROSSTALK_GLYCINE,
+    CROSSTALK_GLUTAMATE,
+    CROSSTALK_OXYTOCIN,
+    CROSSTALK_VASOPRESSIN,
+    CROSSTALK_BETA_ENDORPHIN,
+    CROSSTALK_SUBSTANCE_P,
+    CROSSTALK_NEUROPEPTIDE_Y,
+    CROSSTALK_ADENOSINE,
+    CROSSTALK_ANANDAMIDE,
+    CROSSTALK_TWO_AG,
+    CROSSTALK_NITRIC_OXIDE,
+    CROSSTALK_BDNF,
+    CROSSTALK_NGF,
+    CROSSTALK_CORTISOL,
+    CROSSTALK_TESTOSTERONE
+  ];
+
+  // ============================================================
+  // CROSSTALK APPLICATION — FULL MATRIX MULTIPLICATION
+  // ============================================================
+
+  // Convert NC to array for matrix operations
+  public func ncToArray(nc: NC) : [Float] {
+    [
+      nc.dopamine, nc.serotonin, nc.norepinephrine, nc.epinephrine,
+      nc.acetylcholine, nc.gaba, nc.glycine, nc.glutamate,
+      nc.oxytocin, nc.vasopressin, nc.beta_endorphin, nc.substance_p,
+      nc.neuropeptide_y, nc.adenosine, nc.anandamide, nc.two_ag,
+      nc.nitric_oxide, nc.bdnf, nc.ngf, nc.cortisol, nc.testosterone
+    ]
+  };
+
+  // Convert array back to NC
+  public func arrayToNC(arr: [Float]) : NC {
+    {
+      dopamine = arr[0];
+      serotonin = arr[1];
+      norepinephrine = arr[2];
+      epinephrine = arr[3];
+      acetylcholine = arr[4];
+      gaba = arr[5];
+      glycine = arr[6];
+      glutamate = arr[7];
+      oxytocin = arr[8];
+      vasopressin = arr[9];
+      beta_endorphin = arr[10];
+      substance_p = arr[11];
+      neuropeptide_y = arr[12];
+      adenosine = arr[13];
+      anandamide = arr[14];
+      two_ag = arr[15];
+      nitric_oxide = arr[16];
+      bdnf = arr[17];
+      ngf = arr[18];
+      cortisol = arr[19];
+      testosterone = arr[20];
+    }
+  };
+
+  // Apply crosstalk: for each chemical i, sum contributions from all chemicals j
+  // Δnc[i] = Σⱼ (CROSSTALK[i][j] × nc[j] × crosstalkStrength)
+  public func applyCrosstalk(nc: NC, crosstalkStrength: Float) : NC {
+    let ncArr = ncToArray(nc);
+    let maxArr = ncToArray(NC_MAX);
+    var result = Array.init<Float>(21, 0.0);
+    
+    // Matrix-vector multiplication
+    var i = 0;
+    while (i < 21) {
+      var sum : Float = ncArr[i]; // Start with current value
+      var j = 0;
+      while (j < 21) {
+        // Add crosstalk contribution
+        sum += CROSSTALK_MATRIX[i][j] * ncArr[j] * crosstalkStrength;
+        j += 1;
+      };
+      // Clamp to valid range
+      result[i] := _clamp(sum, 0.0, maxArr[i]);
+      i += 1;
+    };
+    
+    arrayToNC(Array.freeze(result))
+  };
+
+  // ============================================================
+  // FULL NC UPDATE WITH CROSSTALK
+  // ============================================================
+
+  // Beat with crosstalk applied
+  public func beatNCWithCrosstalk(nc: NC, org: OrgState, crosstalkStrength: Float) : NC {
+    // First apply standard dynamics
+    let ncAfterDynamics = beatNC(nc, org);
+    // Then apply crosstalk
+    applyCrosstalk(ncAfterDynamics, crosstalkStrength)
+  };
+
+  // ============================================================
+  // RECEPTOR DYNAMICS — EXPLICIT SATURATION CURVES
+  // ============================================================
+
+  // Michaelis-Menten receptor saturation
+  // Effect = Emax × [C] / (EC50 + [C])
+  public func receptorSaturation(
+    concentration: Float,
+    emax: Float,    // Maximum effect
+    ec50: Float     // Half-maximal concentration
+  ) : Float {
+    emax * concentration / (ec50 + concentration)
+  };
+
+  // EC50 values for each neurochemical (concentration at half-max effect)
+  public let EC50_VALUES : [Float] = [
+    0.40,  // 0: dopamine EC50
+    0.45,  // 1: serotonin EC50
+    0.35,  // 2: norepinephrine EC50
+    0.25,  // 3: epinephrine EC50
+    0.40,  // 4: acetylcholine EC50
+    0.50,  // 5: gaba EC50
+    0.45,  // 6: glycine EC50
+    0.35,  // 7: glutamate EC50
+    0.30,  // 8: oxytocin EC50
+    0.35,  // 9: vasopressin EC50
+    0.40,  // 10: beta_endorphin EC50
+    0.25,  // 11: substance_p EC50
+    0.45,  // 12: neuropeptide_y EC50
+    0.30,  // 13: adenosine EC50
+    0.35,  // 14: anandamide EC50
+    0.35,  // 15: two_ag EC50
+    0.40,  // 16: nitric_oxide EC50
+    0.50,  // 17: bdnf EC50
+    0.45,  // 18: ngf EC50
+    0.30,  // 19: cortisol EC50
+    0.40   // 20: testosterone EC50
+  ];
+
+  // Compute effective receptor activation for all chemicals
+  public func computeReceptorActivation(nc: NC) : [Float] {
+    let ncArr = ncToArray(nc);
+    Array.tabulate<Float>(21, func(i) {
+      receptorSaturation(ncArr[i], 1.0, EC50_VALUES[i])
+    })
+  };
+
+  // ============================================================
+  // TOLERANCE DYNAMICS — RECEPTOR DOWNREGULATION
+  // ============================================================
+
+  // Tolerance state for each chemical
+  public type ToleranceState = {
+    tolerances: [Float];  // 21 tolerance values [0, 1]
+    lastUpdate: Nat;
+  };
+
+  // Update tolerance: prolonged high levels → downregulation
+  // dT/dt = α × (C - threshold) - β × T
+  public func updateTolerance(
+    tolerance: Float,
+    concentration: Float,
+    threshold: Float,    // Level above which tolerance builds
+    buildRate: Float,    // α
+    decayRate: Float     // β
+  ) : Float {
+    let build = if (concentration > threshold) {
+      buildRate * (concentration - threshold)
+    } else { 0.0 };
+    let decay = decayRate * tolerance;
+    _clamp(tolerance + build - decay, 0.0, 0.8) // Max 80% tolerance
+  };
+
+  // Thresholds above which tolerance builds
+  public let TOLERANCE_THRESHOLDS : [Float] = [
+    0.70,  // 0: dopamine
+    0.75,  // 1: serotonin
+    0.65,  // 2: norepinephrine
+    0.50,  // 3: epinephrine
+    0.70,  // 4: acetylcholine
+    0.75,  // 5: gaba
+    0.70,  // 6: glycine
+    0.65,  // 7: glutamate
+    0.60,  // 8: oxytocin
+    0.65,  // 9: vasopressin
+    0.60,  // 10: beta_endorphin
+    0.50,  // 11: substance_p
+    0.70,  // 12: neuropeptide_y
+    0.55,  // 13: adenosine
+    0.60,  // 14: anandamide
+    0.60,  // 15: two_ag
+    0.70,  // 16: nitric_oxide
+    0.80,  // 17: bdnf
+    0.75,  // 18: ngf
+    0.50,  // 19: cortisol
+    0.65   // 20: testosterone
+  ];
+
+  // Build rates for tolerance
+  public let TOLERANCE_BUILD_RATES : [Float] = [
+    0.02,  // 0: dopamine (fast tolerance)
+    0.01,  // 1: serotonin
+    0.015, // 2: norepinephrine
+    0.03,  // 3: epinephrine (very fast)
+    0.01,  // 4: acetylcholine
+    0.02,  // 5: gaba
+    0.015, // 6: glycine
+    0.025, // 7: glutamate
+    0.01,  // 8: oxytocin
+    0.01,  // 9: vasopressin
+    0.03,  // 10: beta_endorphin (opioid tolerance)
+    0.02,  // 11: substance_p
+    0.01,  // 12: neuropeptide_y
+    0.02,  // 13: adenosine
+    0.025, // 14: anandamide
+    0.02,  // 15: two_ag
+    0.015, // 16: nitric_oxide
+    0.005, // 17: bdnf (slow tolerance)
+    0.005, // 18: ngf
+    0.015, // 19: cortisol
+    0.01   // 20: testosterone
+  ];
+
+  // Decay rates for tolerance recovery
+  public let TOLERANCE_DECAY_RATES : [Float] = [
+    0.01,  // 0: dopamine
+    0.008, // 1: serotonin
+    0.012, // 2: norepinephrine
+    0.02,  // 3: epinephrine (fast recovery)
+    0.008, // 4: acetylcholine
+    0.01,  // 5: gaba
+    0.01,  // 6: glycine
+    0.015, // 7: glutamate
+    0.008, // 8: oxytocin
+    0.008, // 9: vasopressin
+    0.005, // 10: beta_endorphin (slow recovery)
+    0.015, // 11: substance_p
+    0.008, // 12: neuropeptide_y
+    0.01,  // 13: adenosine
+    0.01,  // 14: anandamide
+    0.01,  // 15: two_ag
+    0.012, // 16: nitric_oxide
+    0.003, // 17: bdnf
+    0.003, // 18: ngf
+    0.008, // 19: cortisol
+    0.006  // 20: testosterone
+  ];
+
+  // Update all tolerances
+  public func updateAllTolerances(
+    toleranceState: ToleranceState,
+    nc: NC,
+    beat: Nat
+  ) : ToleranceState {
+    let ncArr = ncToArray(nc);
+    let newTolerances = Array.tabulate<Float>(21, func(i) {
+      updateTolerance(
+        toleranceState.tolerances[i],
+        ncArr[i],
+        TOLERANCE_THRESHOLDS[i],
+        TOLERANCE_BUILD_RATES[i],
+        TOLERANCE_DECAY_RATES[i]
+      )
+    });
+    {
+      tolerances = newTolerances;
+      lastUpdate = beat;
+    }
+  };
+
+  // Apply tolerance to get effective levels
+  public func applyTolerance(nc: NC, toleranceState: ToleranceState) : NC {
+    let ncArr = ncToArray(nc);
+    let effectiveArr = Array.tabulate<Float>(21, func(i) {
+      ncArr[i] * (1.0 - toleranceState.tolerances[i] * 0.5)
+    });
+    arrayToNC(effectiveArr)
+  };
+
+  // Initialize tolerance state
+  public func initToleranceState() : ToleranceState {
+    {
+      tolerances = Array.tabulate<Float>(21, func(_) { 0.0 });
+      lastUpdate = 0;
+    }
+  };
+
 }
+

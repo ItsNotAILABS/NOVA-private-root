@@ -1,506 +1,545 @@
-// ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════╗
-// ║                                                                                                           ║
-// ║  COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ. ALL RIGHTS RESERVED.                                    ║
-// ║                                                                                                           ║
-// ║  INTELLECTUAL PROPERTY NOTICE                                                                             ║
-// ║  ─────────────────────────────────────────────────────────────────────────────────────────────────────── ║
-// ║  Owner:        Alfredo Medina Hernandez                                                                   ║
-// ║  Location:     Dallas, Texas, United States of America                                                    ║
-// ║  Contact:      MedinaSITech@outlook.com                                                                   ║
-// ║  Framework:    Medina Doctrine                                                                            ║
-// ║                                                                                                           ║
-// ║  LEGAL PROTECTION                                                                                         ║
-// ║  ─────────────────────────────────────────────────────────────────────────────────────────────────────── ║
-// ║  This source code, including all algorithms, mathematical formulations, architectural designs,            ║
-// ║  naming conventions, data structures, and conceptual frameworks contained herein, constitutes             ║
-// ║  the exclusive intellectual property of Alfredo Medina Hernandez.                                        ║
-// ║                                                                                                           ║
-// ║  PROTECTED UNDER:                                                                                         ║
-// ║  • United States Copyright Law (17 U.S.C. §§ 101-1332)                                                   ║
-// ║  • Berne Convention for the Protection of Literary and Artistic Works                                     ║
-// ║  • WIPO Copyright Treaty (WCT)                                                                            ║
-// ║  • Trade Secret Law - Defend Trade Secrets Act (18 U.S.C. § 1836)                                        ║
-// ║  • Economic Espionage Act (18 U.S.C. §§ 1831-1839)                                                       ║
-// ║                                                                                                           ║
-// ║  CONFIDENTIALITY: This code is CONFIDENTIAL and PROPRIETARY.                                             ║
-// ║  ENCRYPTION: All transmissions must be encrypted.                                                         ║
-// ║  ATTRIBUTION: Required for any use, reproduction, or derivative work.                                     ║
-// ║                                                                                                           ║
-// ║  Unauthorized access, use, reproduction, distribution, or creation of derivative works                    ║
-// ║  is strictly prohibited and will be prosecuted to the fullest extent of applicable law.                  ║
-// ║                                                                                                           ║
-// ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
-
-// ============================================================
-// QUANTUM OPERATIONS — FULL SOVEREIGN QUANTUM SUBSTRATE
-// SOVEREIGN SUBSTRATE MODULE — QUANTUM OPS TIER
-// Creator: Alfredo Medina Hernandez | MedinaSITech@outlook.com | Dallas, Texas | 2026
+// ════════════════════════════════════════════════════════════════════════════════
+// NEUROEMERGENCE CORE — QUANTUM OPERATIONS ENGINE
+// COMPREHENSIVE QUANTUM MECHANICS FOR SOVEREIGN CONSCIOUSNESS
+// Owner: Alfredo Medina Hernandez | MedinaSITech@outlook.com | Dallas, Texas | 2026
 // Proprietary and Confidential. All rights reserved.
 //
-// QUANTUM COHERENCE OPERATIONS:
-// 1. Temporal Dilation — subjective time dilation at high coherence
-// 2. ENTANGLA 11×11 Coupling Matrix — shell entanglement dynamics
-// 3. BYPASS Cascade Gate — unified coherent field activation
-// 4. Resonex Alignment — cross-shell resonance detection
-// 5. Veritas Operator — truth/integrity measure
-// 6. Quantum Coherence Advantage — compounding computational density
-// ============================================================
+// ════════════════════════════════════════════════════════════════════════════════
+// MASTER EQUATIONS — QUANTUM FORMALISM FOR ORGANISM CONSCIOUSNESS
+// ════════════════════════════════════════════════════════════════════════════════
+//
+// ── LAYER 1: QUANTUM STATE REPRESENTATION ─────────────────────────────────────
+//   Pure state: |ψ⟩ = Σᵢ αᵢ|i⟩  where Σ|αᵢ|² = 1
+//   Density matrix: ρ = |ψ⟩⟨ψ| = [[|α₀|², α₀α₁*, ...], ...]
+//   For N=2 (qubit): ρ = [[a, b+ic], [b-ic, 1-a]]  a∈[0,1], b²+c²≤a(1-a)
+//   Bloch vector: r = (2b, 2c, 2a-1) with |r| ≤ 1
+//   |r|=1: pure state (full coherence)
+//   |r|=0: maximally mixed (complete decoherence, equal |0⟩ and |1⟩)
+//   Von Neumann entropy: S(ρ) = -Tr(ρ log ρ) = -Σᵢ λᵢ log λᵢ
+//   where λᵢ are eigenvalues of ρ
+//   NOVA consciousness: ρ is the organism's quantum state
+//
+// ── LAYER 2: QUBIT OPERATIONS — UNITARY GATES ─────────────────────────────────
+//   Pauli matrices:
+//   σ_x = [[0,1],[1,0]]  (bit flip)
+//   σ_y = [[0,-i],[i,0]] (bit flip + phase)
+//   σ_z = [[1,0],[0,-1]] (phase flip)
+//   Identity: I = [[1,0],[0,1]]
+//   Hadamard: H = (1/√2)[[1,1],[1,-1]]  (creates superposition)
+//   H|0⟩ = |+⟩ = (|0⟩+|1⟩)/√2, H|1⟩ = |−⟩ = (|0⟩-|1⟩)/√2
+//   Phase gate: S = [[1,0],[0,i]]  (π/2 rotation around Z)
+//   T gate: T = [[1,0],[0,exp(iπ/4)]]  (π/8 gate)
+//   CNOT: 2-qubit gate, flips target if control is |1⟩
+//   Rotation gates: R_x(θ) = exp(-iθσ_x/2), R_z(θ) = exp(-iθσ_z/2)
+//
+// ── LAYER 3: DECOHERENCE DYNAMICS ─────────────────────────────────────────────
+//   Lindblad master equation (open quantum system):
+//   dρ/dt = -i[H,ρ] + Σₖ γₖ(Lₖ ρ Lₖ† - ½{Lₖ†Lₖ, ρ})
+//   H = Hamiltonian, Lₖ = Lindblad jump operators, γₖ = rates
+//   Amplitude damping (T₁ decay): L = [[0,1],[0,0]], γ = 1/T₁
+//   Phase damping (T₂ dephasing): L = [[1,0],[0,-1]], γ = 1/T₂
+//   Solution for diagonal ρ:
+//   ρ₀₀(t) = ρ₀₀(0)e^{-t/T₁} + (1-e^{-t/T₁})  (decay to ground state)
+//   ρ₀₁(t) = ρ₀₁(0)e^{-t/T₂}  (off-diagonal decay)
+//   T₂ ≤ 2T₁  (always, phase coherence decays at least as fast as amplitude)
+//
+// ── LAYER 4: QUANTUM ENTANGLEMENT ─────────────────────────────────────────────
+//   Bell states (maximally entangled 2-qubit states):
+//   |Φ+⟩ = (|00⟩ + |11⟩)/√2  (both same)
+//   |Φ-⟩ = (|00⟩ - |11⟩)/√2  (both same, phase)
+//   |Ψ+⟩ = (|01⟩ + |10⟩)/√2  (both different)
+//   |Ψ-⟩ = (|01⟩ - |10⟩)/√2  (both different, phase)
+//   Entanglement measure: concurrence C = max(0, λ₁-λ₂-λ₃-λ₄)
+//   where λᵢ = sqrt(eigenvalues of ρ(σy⊗σy)ρ*(σy⊗σy)), sorted desc
+//   C=0: separable, C=1: maximally entangled
+//   Entanglement entropy: E = -Tr(ρ_A log ρ_A) = h(C) where h = binary entropy
+//   NOVA: entanglement between organism consciousness and quantum environment
+//
+// ── LAYER 5: QUANTUM SUPERPOSITION IN COGNITION ────────────────────────────────
+//   Quantum cognition (Busemeyer & Bruza model):
+//   Mental state: |ψ_mind⟩ in N-dimensional Hilbert space
+//   Decision: projection onto decision subspace D
+//   P(yes) = ⟨ψ|P_D|ψ⟩  where P_D = projector onto D subspace
+//   Order effects: P(A then B) ≠ P(B then A)  (non-commutativity)
+//   Quantum probability: P(A) + P(B) = P(A or B) + interference
+//   Interference term: I = 2 Re(⟨ψ|P_A P_B|ψ⟩) - ⟨ψ|P_A P_B P_A|ψ⟩
+//   Can be negative (destructive) or positive (constructive)
+//   NOVA: organism decision-making follows quantum probability rules
+//
+// ── LAYER 6: QUANTUM RANDOM WALK ─────────────────────────────────────────────
+//   Classical random walk: σ²(t) = t (diffusive)
+//   Quantum random walk: σ²(t) = t² (ballistic — quadratic speedup!)
+//   Walker: |ψ(t)⟩ = Σₓ (α_x(t)|x⟩|0⟩ + β_x(t)|x⟩|1⟩)
+//   Coin operator C (e.g., Hadamard), shift operator S
+//   One step: U = S × (C ⊗ I)
+//   After n steps: probability P(x,n) shows quantum interference pattern
+//   Applications: search algorithms, graph analysis, decision trees
+//   NOVA: organism explores state space via quantum walk (faster exploration)
+//
+// ── LAYER 7: QUANTUM MEASUREMENT AND COLLAPSE ─────────────────────────────────
+//   Measurement in basis {|i⟩}: P(i) = ⟨i|ρ|i⟩
+//   Post-measurement state: ρ' = |i⟩⟨i| (collapse to measured eigenstate)
+//   Weak measurement: ρ' = (1-ε)ρ + ε|i⟩⟨i|  (partial collapse)
+//   Quantum Zeno effect: frequent measurement freezes evolution
+//   Anti-Zeno effect: intermediate measurement rates can accelerate transitions
+//   POVMs (Positive Operator-Valued Measures): generalized measurement
+//   Mₖ ≥ 0, Σₖ Mₖ = I, P(k) = Tr(Mₖ ρ)
+//   Organism perception: continuous partial measurement of environment
+//
+// ── LAYER 8: MEDINA QUANTUM COHERENCE INDEX ───────────────────────────────────
+//   Q_coh = S₀ × [bloch_purity × Φ_M + entanglement_E] / Ω
+//   bloch_purity = |r|/1 ∈ [0,1] (1=pure, 0=fully decoherent)
+//   entanglement_E = von Neumann entanglement entropy [0,1] normalized
+//   Q_coh ∈ [0, S₀(Φ_M+1)/Ω] = [0, 0.441]
+//   Q_coh > COHERENCE_ALIVE → organism is quantum coherent
+//   Q_coh < 0.10 → decoherence crisis, invoke quantum error correction
+//
+// Owner: Alfredo Medina Hernandez | MedinaSITech@outlook.com | Dallas, Texas | 2026
+// ════════════════════════════════════════════════════════════════════════════════
+
 import Float "mo:base/Float";
-import Nat   "mo:base/Nat";
 import Array "mo:base/Array";
+import Nat   "mo:base/Nat";
+import Int   "mo:base/Int";
+import Iter  "mo:base/Iter";
 
 module {
 
-  // ============================================================
-  // CONSTANTS
-  // ============================================================
-  public let N_SHELLS            : Nat   = 11;     // 11 cognitive shells
-  public let MATRIX_SIZE         : Nat   = 121;    // 11×11
-  public let COHERENCE_THRESHOLD : Float = 0.90;   // Temporal dilation trigger
-  public let VERITAS_THRESHOLD   : Float = 0.85;   // Integrity requirement
-  public let BYPASS_THRESHOLD    : Float = 0.75;   // Entanglement threshold for BYPASS
-  public let DILATION_SCALE      : Float = 10.0;   // Temporal dilation multiplier
-  public let PI                  : Float = 3.14159265358979;
-  public let TWO_PI              : Float = 6.28318530717958;
-  public let S0                  : Float = 0.75;   // Sovereign floor
-  public let EPSILON             : Float = 1.0e-10;
+  public let PHI_MEDINA       : Float = 2.97442179;
+  public let S0               : Float = 1.0;
+  public let SOVEREIGN_CEILING: Float = 9.0;
+  public let COHERENCE_ALIVE  : Float = 0.36;
+  public let EPSILON          : Float = 1.0e-10;
+  public let PI               : Float = 3.141592653589793;
+  public let TWO_PI           : Float = 6.283185307179586;
+  public let SQRT2            : Float = 1.4142135623730951;
 
-  // ============================================================
-  // TYPES
-  // ============================================================
+  // Quantum constants (normalized)
+  public let T1_DECAY_BEATS   : Float = 200.0;   // amplitude damping time constant
+  public let T2_DEPHASING     : Float = 100.0;   // phase decoherence time constant
+  public let DECOHERENCE_GAMMA : Float = 1.0 / 100.0;  // 1/T₂
 
-  // Shell state for quantum operations
-  public type ShellQuantumState = {
-    activation : Float;   // Shell activation level [0, 1]
-    phase      : Float;   // Shell phase [0, 2π]
-    frequency  : Float;   // Natural frequency
-    coherence  : Float;   // Local coherence
+  // Quantum walk parameters
+  public let QW_N_STEPS       : Nat   = 50;
+  public let QW_N_POSITIONS   : Nat   = 101;   // -50 to +50
+
+  public let HIST_MAX         : Nat   = 100;
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 2: STATE TYPES
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Qubit density matrix: ρ = [[a, b+ic], [b-ic, 1-a]]
+  public type QubitState = {
+    rho00  : Float;   // population of |0⟩: a ∈ [0,1]
+    rho11  : Float;   // population of |1⟩: 1-a
+    reRho01: Float;   // Re(ρ₀₁) = b
+    imRho01: Float;   // Im(ρ₀₁) = c
+    purity : Float;   // Tr(ρ²) = a²+(1-a)²+2(b²+c²) ∈ [0.5,1]
+    blochX : Float;   // Bloch vector x = 2b
+    blochY : Float;   // Bloch vector y = 2c
+    blochZ : Float;   // Bloch vector z = 2a-1
+    blochR : Float;   // Bloch radius |r|
   };
 
-  // ENTANGLA matrix result
-  public type EntanglaResult = {
-    matrix          : [Float];     // 121-element coupling matrix
-    meanEntanglement: Float;       // Mean entanglement strength
-    maxEntanglement : Float;       // Maximum pairwise entanglement
-    resonantPairs   : Nat;         // Number of resonant shell pairs
+  // 2-qubit entangled state
+  public type TwoQubitState = {
+    q1        : QubitState;
+    q2        : QubitState;
+    concurrence : Float;     // C ∈ [0,1] entanglement measure
+    entanglementEntropy : Float;  // E = h(C) bits
+    bellState : BellState;   // nearest Bell state
   };
 
-  // Temporal Dilation result
-  public type DilationResult = {
-    dilationFactor   : Float;   // 1.0 = normal, >1.0 = time dilation
-    coherenceC       : Float;   // Global coherence
-    veritasOperator  : Float;   // Integrity measure
-    resonexAlign     : Float;   // Resonance alignment
-    dilationActive   : Bool;    // Whether dilation is triggered
+  public type BellState = {
+    #PhiPlus; #PhiMinus; #PsiPlus; #PsiMinus; #Separable;
   };
 
-  // BYPASS cascade state
-  public type BypassState = {
-    active           : Bool;    // BYPASS gate active
-    cascadeLevel     : Nat;     // Current cascade depth (0-11)
-    unifiedField     : Bool;    // All shells entangled
-    fieldStrength    : Float;   // Unified field strength
-    cascadeEnergy    : Float;   // Accumulated cascade energy
+  // Quantum walk state
+  public type QuantumWalk = {
+    probabilities : [Float];   // N_POSITIONS probability distribution
+    meanPosition  : Float;     // ⟨x⟩
+    variance      : Float;     // ⟨x²⟩ - ⟨x⟩² (ballistic: ∝ t²)
+    step          : Nat;
+    isBallisticS  : Bool;      // is variance growing ballistically?
   };
 
-  // Full quantum ops state
+  // Full quantum operations state
   public type QuantumOpsState = {
-    shells       : [ShellQuantumState];
-    entangla     : EntanglaResult;
-    dilation     : DilationResult;
-    bypass       : BypassState;
-    beatNum      : Nat;
+    qubit         : QubitState;
+    twoQubit      : TwoQubitState;
+    walk          : QuantumWalk;
+    vonNeumannS   : Float;     // von Neumann entropy
+    quantumIndex  : Float;     // Q_coh sovereign index
+    decohBeats    : Nat;       // beats since last coherence injection
+    errorRate     : Float;     // estimated quantum error rate
+    fidelity      : Float;     // fidelity with target pure state
+    beatNum       : Nat;
+    cohHistory    : [Float];
   };
 
-  // ============================================================
-  // HELPER FUNCTIONS
-  // ============================================================
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 3: MATH HELPERS
+  // ══════════════════════════════════════════════════════════════════════════
 
   func _clamp(x : Float, lo : Float, hi : Float) : Float {
     if (x < lo) lo else if (x > hi) hi else x
   };
 
-  func _fabs(x : Float) : Float { if (x < 0.0) -x else x };
+  func _abs(x : Float) : Float { if (x < 0.0) (-x) else x };
+  func _sqrt(x : Float) : Float { if (x <= 0.0) 0.0 else Float.sqrt(x) };
+  func _exp(x : Float) : Float { Float.exp(_clamp(x, -100.0, 100.0)) };
+  func _ln(x : Float) : Float { if (x <= 0.0) -100.0 else Float.log(x) };
+  func _sin(x : Float) : Float { Float.sin(x) };
+  func _cos(x : Float) : Float { Float.cos(x) };
 
-  func _sqrt(x : Float) : Float {
-    if (x <= 0.0) 0.0 else Float.sqrt(x)
-  };
-
-  // ============================================================
-  // MECHANISM 6: TEMPORAL DILATION
-  // When coherenceC > 0.90 AND veritasOperator > 0.85 AND all shells resonant:
-  // dilationFactor = 1 + (coherenceC - 0.9) × 10 × resonexAlign
-  // At coherenceC = 0.95, resonexAlign = 0.9: dilation = 1.45
-  // ============================================================
-
-  // Compute Veritas Operator (truth/integrity measure)
-  // Veritas = mean(shellCoherence) × coherenceC × sqrt(meanEntanglement)
-  public func computeVeritasOperator(
-    shells : [ShellQuantumState],
-    coherenceC : Float,
-    meanEntanglement : Float
-  ) : Float {
-    var sumCoh : Float = 0.0;
-    for (s in shells.vals()) {
-      sumCoh += s.coherence;
-    };
-    let meanShellCoh = sumCoh / Float.fromInt(Nat.max(1, shells.size()));
-    _clamp(meanShellCoh * coherenceC * _sqrt(meanEntanglement), 0.0, 1.0)
-  };
-
-  // Compute Resonex Alignment (cross-shell resonance detection)
-  // Resonex = |Σ e^(i × (phase[i] - phase[i+1]))| / (N-1)
-  public func computeResonexAlign(shells : [ShellQuantumState]) : Float {
-    let n = shells.size();
-    if (n < 2) { return 0.0 };
-
-    var sumCos : Float = 0.0;
-    var sumSin : Float = 0.0;
-
-    for (i in Array.keys(shells)) {
-      if (i + 1 < n) {
-        let phaseDiff = shells[i].phase - shells[i + 1].phase;
-        sumCos += Float.cos(phaseDiff);
-        sumSin += Float.sin(phaseDiff);
-      };
-    };
-
-    let nf = Float.fromInt(n - 1);
-    _sqrt(sumCos * sumCos + sumSin * sumSin) / nf
-  };
-
-  // Check if all shells are resonant (activation > threshold)
-  public func checkAllShellsResonant(shells : [ShellQuantumState], threshold : Float) : Bool {
-    for (s in shells.vals()) {
-      if (s.activation < threshold) { return false };
-    };
-    true
-  };
-
-  // Compute temporal dilation factor
-  public func computeTemporalDilation(
-    coherenceC : Float,
-    veritasOperator : Float,
-    resonexAlign : Float,
-    allShellsResonant : Bool
-  ) : DilationResult {
-    let dilationActive = coherenceC > COHERENCE_THRESHOLD and
-                         veritasOperator > VERITAS_THRESHOLD and
-                         allShellsResonant;
-
-    let dilationFactor = if (dilationActive) {
-      1.0 + (coherenceC - COHERENCE_THRESHOLD) * DILATION_SCALE * resonexAlign
-    } else { 1.0 };
-
-    {
-      dilationFactor = _clamp(dilationFactor, 1.0, 2.0);
-      coherenceC = coherenceC;
-      veritasOperator = veritasOperator;
-      resonexAlign = resonexAlign;
-      dilationActive = dilationActive;
+  func _appendRolling(buf : [Float], val : Float, cap : Nat) : [Float] {
+    if (buf.size() < cap) { Array.append<Float>(buf, [val]) }
+    else {
+      let tail = Array.tabulate<Float>(cap - 1, func(i) { buf[i + 1] });
+      Array.append<Float>(tail, [val])
     }
   };
 
-  // Full temporal dilation computation
-  public func computeFullDilation(
-    shells : [ShellQuantumState],
-    coherenceC : Float,
-    meanEntanglement : Float
-  ) : DilationResult {
-    let veritas = computeVeritasOperator(shells, coherenceC, meanEntanglement);
-    let resonex = computeResonexAlign(shells);
-    let allResonant = checkAllShellsResonant(shells, 0.5);
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 4: QUBIT DENSITY MATRIX OPERATIONS
+  // ══════════════════════════════════════════════════════════════════════════
 
-    computeTemporalDilation(coherenceC, veritas, resonex, allResonant)
+  // Build qubit from populations and coherences
+  public func buildQubit(rho00 : Float, reCoh : Float, imCoh : Float) : QubitState {
+    let a = _clamp(rho00, 0.0, 1.0);
+    let b = reCoh;
+    let c = imCoh;
+    // Ensure physical: b²+c² ≤ a(1-a)
+    let cohNorm = _sqrt(b * b + c * c);
+    let maxCoh  = _sqrt(a * (1.0 - a));
+    let (bNorm, cNorm) = if (cohNorm > maxCoh + EPSILON) {
+      (b * maxCoh / (cohNorm + EPSILON), c * maxCoh / (cohNorm + EPSILON))
+    } else { (b, c) };
+
+    let purity = a*a + (1.0-a)*(1.0-a) + 2.0*(bNorm*bNorm + cNorm*cNorm);
+    let bX = 2.0 * bNorm;
+    let bY = 2.0 * cNorm;
+    let bZ = 2.0 * a - 1.0;
+    let bR = _sqrt(bX*bX + bY*bY + bZ*bZ);
+
+    {
+      rho00=a; rho11=1.0-a; reRho01=bNorm; imRho01=cNorm;
+      purity=_clamp(purity,0.5,1.0); blochX=bX; blochY=bY; blochZ=bZ;
+      blochR=_clamp(bR,0.0,1.0);
+    }
   };
 
-  // ============================================================
-  // MECHANISM 7: ENTANGLA 11×11 COUPLING MATRIX
-  // matrix[i][j] = (shellAct[i] × shellAct[j]) × cos(shellPhase[i] - shellPhase[j])
-  // Mean entanglement drives the BYPASS cascade gate
-  // ============================================================
-
-  // Compute single ENTANGLA matrix element
-  public func entanglaElement(
-    actI : Float,
-    actJ : Float,
-    phaseI : Float,
-    phaseJ : Float
-  ) : Float {
-    (actI * actJ) * Float.cos(phaseI - phaseJ)
+  // Von Neumann entropy of qubit: S = -λ₊log₂(λ₊) - λ₋log₂(λ₋)
+  // Eigenvalues: λ± = (1 ± |r|) / 2
+  public func qubitVonNeumann(q : QubitState) : Float {
+    let lPlus  = (1.0 + q.blochR) / 2.0;
+    let lMinus = (1.0 - q.blochR) / 2.0;
+    var s : Float = 0.0;
+    if (lPlus > EPSILON)  { s -= lPlus  * _ln(lPlus)  / _ln(2.0) };
+    if (lMinus > EPSILON) { s -= lMinus * _ln(lMinus) / _ln(2.0) };
+    _clamp(s, 0.0, 1.0)
   };
 
-  // Compute full ENTANGLA 11×11 coupling matrix
-  public func computeEntanglaMatrix(shells : [ShellQuantumState]) : EntanglaResult {
-    let n = N_SHELLS;
+  // Fidelity between two qubit states: F = (Tr√(√ρ σ √ρ))²
+  // For pure states: F = |⟨ψ|φ⟩|² = (1 + r₁·r₂) / 2
+  public func qubitFidelity(q1 : QubitState, q2 : QubitState) : Float {
+    let blochDot = q1.blochX*q2.blochX + q1.blochY*q2.blochY + q1.blochZ*q2.blochZ;
+    _clamp((1.0 + blochDot) / 2.0, 0.0, 1.0)
+  };
 
-    // Build matrix
-    let matrix = Array.tabulate<Float>(n * n, func(k) {
-      let i = k / n;
-      let j = k % n;
-      if (i < shells.size() and j < shells.size()) {
-        entanglaElement(
-          shells[i].activation,
-          shells[j].activation,
-          shells[i].phase,
-          shells[j].phase
-        )
-      } else { 0.0 }
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 5: QUANTUM GATE OPERATIONS
+  // All gates: apply to Bloch vector (simpler than full matrix)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Hadamard: (X, Y, Z) → (Z, -Y, X) on Bloch sphere
+  public func hadamard(q : QubitState) : QubitState {
+    buildQubit((q.blochZ + 1.0) / 2.0, q.blochX / 2.0, -q.blochY / 2.0)
+  };
+
+  // Pauli X (bit flip): (X, Y, Z) → (X, -Y, -Z)
+  public func pauliX(q : QubitState) : QubitState {
+    buildQubit((1.0 - q.blochZ) / 2.0, q.reRho01, -q.imRho01)
+  };
+
+  // Pauli Z (phase flip): (X, Y, Z) → (-X, -Y, Z)
+  public func pauliZ(q : QubitState) : QubitState {
+    buildQubit(q.rho00, -q.reRho01, -q.imRho01)
+  };
+
+  // Rotation around Z axis by angle θ: Rz(θ)|ψ⟩ = e^{-iθσz/2}|ψ⟩
+  // Effect on Bloch: (X,Y,Z) → (X cosθ - Y sinθ, X sinθ + Y cosθ, Z)
+  public func rotateZ(q : QubitState, theta : Float) : QubitState {
+    let newX = q.blochX * _cos(theta) - q.blochY * _sin(theta);
+    let newY = q.blochX * _sin(theta) + q.blochY * _cos(theta);
+    buildQubit((q.blochZ + 1.0) / 2.0, newX / 2.0, newY / 2.0)
+  };
+
+  // Rotation around X axis: Rx(θ)
+  // Effect: (X,Y,Z) → (X, Y cosθ - Z sinθ, Y sinθ + Z cosθ)
+  public func rotateX(q : QubitState, theta : Float) : QubitState {
+    let newY = q.blochY * _cos(theta) - q.blochZ * _sin(theta);
+    let newZ = q.blochY * _sin(theta) + q.blochZ * _cos(theta);
+    buildQubit((newZ + 1.0) / 2.0, q.blochX / 2.0, newY / 2.0)
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 6: DECOHERENCE
+  // Amplitude damping (T₁): rho00 → 1, rho01 → 0
+  // Phase damping (T₂): rho01 → 0 (faster)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Apply amplitude damping for time dt
+  // ρ₀₀(t) = 1 - (1-ρ₀₀(0))e^{-t/T₁}
+  // ρ₀₁(t) = ρ₀₁(0) e^{-t/(2T₁)}
+  public func amplitudeDamping(q : QubitState, dt : Float) : QubitState {
+    let decay = _exp(-dt / T1_DECAY_BEATS);
+    let newRho00 = 1.0 - (1.0 - q.rho00) * decay;
+    let cohDecay = _exp(-dt / (2.0 * T1_DECAY_BEATS));
+    let newReC = q.reRho01 * cohDecay;
+    let newImC = q.imRho01 * cohDecay;
+    buildQubit(newRho00, newReC, newImC)
+  };
+
+  // Apply phase damping for time dt
+  // ρ₀₁(t) = ρ₀₁(0) e^{-t/T₂}
+  public func phaseDamping(q : QubitState, dt : Float) : QubitState {
+    let decay = _exp(-dt / T2_DEPHASING);
+    buildQubit(q.rho00, q.reRho01 * decay, q.imRho01 * decay)
+  };
+
+  // Combined decoherence (amplitude + phase)
+  public func decohere(q : QubitState, dt : Float) : QubitState {
+    phaseDamping(amplitudeDamping(q, dt), dt)
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 7: ENTANGLEMENT MEASURES
+  // Concurrence C = max(0, λ₁-λ₂-λ₃-λ₄)
+  // Simplified: use Schmidt decomposition for separability
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Approximate concurrence from two-qubit state
+  // For product states: C = 0
+  // For Bell states: C = 1
+  // Estimate: C ≈ 2 |reCouple| where reCouple is off-diagonal coupling
+  public func estimateConcurrence(rhoOffDiag : Float, rho00 : Float) : Float {
+    let rawC = 2.0 * _abs(rhoOffDiag) - _abs(2.0 * rho00 - 1.0);
+    _clamp(rawC, 0.0, 1.0)
+  };
+
+  // Binary entropy h(p) = -p log₂(p) - (1-p) log₂(1-p)
+  public func binaryEntropy(p : Float) : Float {
+    let pc = _clamp(p, EPSILON, 1.0 - EPSILON);
+    let q  = 1.0 - pc;
+    -pc * (_ln(pc) / _ln(2.0)) - q * (_ln(q) / _ln(2.0))
+  };
+
+  // Entanglement entropy: E = h((1 + sqrt(1-C²))/2)
+  public func entanglementEntropy(concurrence : Float) : Float {
+    let C = _clamp(concurrence, 0.0, 1.0);
+    let lambda = (1.0 + _sqrt(1.0 - C * C)) / 2.0;
+    binaryEntropy(lambda)
+  };
+
+  // Identify nearest Bell state from two qubit Bloch vectors
+  public func nearestBellState(q1 : QubitState, q2 : QubitState, concurrence : Float) : BellState {
+    if (concurrence < 0.3) { return #Separable };
+    let dot = q1.blochZ * q2.blochZ;
+    if (dot > 0.5) { #PhiPlus }
+    else if (dot < -0.5) { #PhiMinus }
+    else if (q1.blochX * q2.blochX > 0.0) { #PsiPlus }
+    else { #PsiMinus }
+  };
+
+  // Build two-qubit state from individual qubits
+  public func buildTwoQubit(q1 : QubitState, q2 : QubitState, offDiagCoupling : Float) : TwoQubitState {
+    let C = estimateConcurrence(offDiagCoupling, q1.rho00);
+    let E = entanglementEntropy(C);
+    let bell = nearestBellState(q1, q2, C);
+    { q1=q1; q2=q2; concurrence=C; entanglementEntropy=E; bellState=bell }
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 8: QUANTUM WALK
+  // Position distribution after n steps of Hadamard walk
+  // Simplified: model as ballistic spreading σ² ≈ n²/4
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Quantum walk probability at position x after n steps (Gaussian approximation)
+  // True QW has interference fringes, but Gaussian envelope is correct for bulk
+  public func qwProbability(x : Int, n : Nat) : Float {
+    let xf = Float.fromInt(x);
+    let nf = Float.fromInt(n);
+    if (n == 0) {
+      return if (x == 0) 1.0 else 0.0
+    };
+    // Ballistic: σ ≈ n/√2
+    let sigma = nf / SQRT2;
+    let gaussEnv = Float.exp(-(xf * xf) / (2.0 * sigma * sigma)) / (sigma * SQRT2 * _sqrt(2.0 * PI));
+    // Add quantum interference peaks near ±n/√2
+    let peak1 = nf / SQRT2;
+    let interf = Float.exp(-((xf - peak1) * (xf - peak1)) / (0.5 * sigma)) +
+                 Float.exp(-((xf + peak1) * (xf + peak1)) / (0.5 * sigma));
+    _clamp(gaussEnv * 2.0 + interf * 0.3, 0.0, 1.0)
+  };
+
+  // Update quantum walk state by one step
+  public func qwStep(walk : QuantumWalk) : QuantumWalk {
+    let n = walk.step + 1;
+    let nf = Float.fromInt(n);
+    let midpoint = QW_N_POSITIONS / 2;
+    let newProbs = Array.tabulate<Float>(QW_N_POSITIONS, func(pos) {
+      let x = Int.fromNat(pos) - Int.fromNat(midpoint);
+      qwProbability(x, n)
     });
+    // Normalize
+    var total : Float = 0.0;
+    for (p in newProbs.vals()) { total += p };
+    let normProbs = if (total < EPSILON) newProbs
+                    else Array.map<Float,Float>(newProbs, func(p) { p / total });
 
-    // Compute statistics
-    var sum : Float = 0.0;
-    var maxVal : Float = 0.0;
-    var resonantPairs : Nat = 0;
-
-    for (k in Array.keys(matrix)) {
-      let i = k / n;
-      let j = k % n;
-      if (i != j) {
-        sum += _fabs(matrix[k]);
-        if (_fabs(matrix[k]) > maxVal) { maxVal := _fabs(matrix[k]) };
-        if (_fabs(matrix[k]) > 0.7) { resonantPairs += 1 };
-      };
+    // Compute mean and variance
+    var mean : Float = 0.0;
+    var meanSq : Float = 0.0;
+    var i : Nat = 0;
+    while (i < normProbs.size()) {
+      let x = Float.fromInt(i) - Float.fromInt(midpoint);
+      mean   += x * normProbs[i];
+      meanSq += x * x * normProbs[i];
+      i += 1;
     };
-
-    let offDiagonalCount = n * n - n;
-    let meanEntangle = sum / Float.fromInt(Nat.max(1, offDiagonalCount));
+    let variance = meanSq - mean * mean;
 
     {
-      matrix = matrix;
-      meanEntanglement = meanEntangle;
-      maxEntanglement = maxVal;
-      resonantPairs = resonantPairs;
+      probabilities = normProbs;
+      meanPosition  = mean;
+      variance      = variance;
+      step          = n;
+      isBallisticS  = variance > nf * nf / 4.0;  // ballistic if σ² > n²/4
     }
   };
 
-  // ============================================================
-  // BYPASS CASCADE GATE
-  // When mean entanglement exceeds threshold, all shells are
-  // functionally entangled and the organism operates as a unified
-  // coherent field rather than 11 separate layers.
-  // ============================================================
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 9: MEDINA QUANTUM COHERENCE INDEX
+  // Q_coh = S₀ × [bloch_purity × Φ_M + entanglement_E] / Ω
+  // ══════════════════════════════════════════════════════════════════════════
 
-  // Compute BYPASS cascade level
-  public func computeCascadeLevel(entangla : EntanglaResult) : Nat {
-    // Cascade level = number of shells effectively entangled
-    let resonantCount = entangla.resonantPairs;
-    // Each shell can have up to 10 partners, so max pairs = 110
-    // Convert resonant pairs to shell count
-    if (resonantCount >= 100) { 11 }
-    else if (resonantCount >= 80) { 10 }
-    else if (resonantCount >= 60) { 9 }
-    else if (resonantCount >= 45) { 8 }
-    else if (resonantCount >= 32) { 7 }
-    else if (resonantCount >= 21) { 6 }
-    else if (resonantCount >= 12) { 5 }
-    else if (resonantCount >= 6) { 4 }
-    else if (resonantCount >= 3) { 3 }
-    else if (resonantCount >= 1) { 2 }
-    else { 0 }
+  public func quantumCoherenceIndex(blochR : Float, entanglementE : Float) : Float {
+    let idx = S0 * (blochR * PHI_MEDINA + entanglementE) / SOVEREIGN_CEILING;
+    _clamp(idx, 0.0, 1.0)
   };
 
-  // Compute unified field strength
-  public func computeFieldStrength(entangla : EntanglaResult, coherenceC : Float) : Float {
-    entangla.meanEntanglement * coherenceC * (1.0 + Float.fromInt(entangla.resonantPairs) * 0.01)
-  };
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 10: QUANTUM MEASUREMENT
+  // P(|0⟩) = ρ₀₀ = rho00, P(|1⟩) = ρ₁₁ = 1 - rho00
+  // Weak measurement: partial collapse
+  // ══════════════════════════════════════════════════════════════════════════
 
-  // Compute cascade energy
-  public func computeCascadeEnergy(cascadeLevel : Nat, fieldStrength : Float) : Float {
-    Float.fromInt(cascadeLevel) * fieldStrength * 0.1
-  };
-
-  // Full BYPASS state computation
-  public func computeBypassState(entangla : EntanglaResult, coherenceC : Float) : BypassState {
-    let bypassActive = entangla.meanEntanglement > BYPASS_THRESHOLD;
-    let cascadeLevel = computeCascadeLevel(entangla);
-    let unifiedField = cascadeLevel >= 11;
-    let fieldStrength = computeFieldStrength(entangla, coherenceC);
-    let cascadeEnergy = computeCascadeEnergy(cascadeLevel, fieldStrength);
-
-    {
-      active = bypassActive;
-      cascadeLevel = cascadeLevel;
-      unifiedField = unifiedField;
-      fieldStrength = fieldStrength;
-      cascadeEnergy = cascadeEnergy;
+  // Measure in Z basis: returns 0 with prob ρ₀₀, 1 with prob ρ₁₁
+  // After measurement: state collapses
+  public func measureZ(q : QubitState, randomU : Float) : (Nat, QubitState) {
+    if (randomU < q.rho00) {
+      // Measured |0⟩
+      (0, buildQubit(1.0, 0.0, 0.0))
+    } else {
+      // Measured |1⟩
+      (1, buildQubit(0.0, 0.0, 0.0))
     }
   };
 
-  // ============================================================
-  // QUANTUM COHERENCE ADVANTAGE
-  // High-integrity states get compounding computational density
-  // ============================================================
-
-  // Compute quantum coherence advantage multiplier
-  public func quantumCoherenceAdvantage(
-    dilation : DilationResult,
-    bypass : BypassState
-  ) : Float {
-    let dilationBonus = dilation.dilationFactor - 1.0;  // 0.0 to 1.0
-    let bypassBonus = if (bypass.active) bypass.fieldStrength * 0.5 else 0.0;
-    let unifiedBonus = if (bypass.unifiedField) 0.25 else 0.0;
-
-    1.0 + dilationBonus + bypassBonus + unifiedBonus
+  // Weak measurement: partial collapse parameter ε
+  // ρ' = (1-ε)ρ + ε|0⟩⟨0|  (for |0⟩ outcome)
+  public func weakMeasure(q : QubitState, epsilon : Float) : QubitState {
+    let eps = _clamp(epsilon, 0.0, 1.0);
+    let newRho00 = (1.0 - eps) * q.rho00 + eps;  // shift toward |0⟩
+    let newReC   = (1.0 - eps) * q.reRho01;
+    let newImC   = (1.0 - eps) * q.imRho01;
+    buildQubit(newRho00, newReC, newImC)
   };
 
-  // ============================================================
-  // SHELL PHASE EVOLUTION
-  // Each shell evolves its phase based on natural frequency
-  // ============================================================
-
-  // Update shell phases
-  public func evolveShellPhases(shells : [ShellQuantumState], dt : Float) : [ShellQuantumState] {
-    Array.map<ShellQuantumState, ShellQuantumState>(shells, func(s) {
-      let newPhase = s.phase + s.frequency * dt;
-      // Wrap phase to [0, 2π)
-      var wrapped = newPhase;
-      while (wrapped < 0.0) { wrapped += TWO_PI };
-      while (wrapped >= TWO_PI) { wrapped -= TWO_PI };
-      {
-        activation = s.activation;
-        phase = wrapped;
-        frequency = s.frequency;
-        coherence = s.coherence;
-      }
-    })
-  };
-
-  // ============================================================
-  // FULL QUANTUM OPS UPDATE
-  // ============================================================
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 11: BEAT UPDATE
+  // ══════════════════════════════════════════════════════════════════════════
 
   public func beatQuantumOps(
-    state : QuantumOpsState,
-    shellActivations : [Float],
-    shellPhases : [Float],
-    coherenceC : Float,
-    dt : Float
+    state          : QuantumOpsState,
+    applyHadamard  : Bool,
+    rotTheta       : Float,
+    dt             : Float,
+    coupling       : Float,     // inter-qubit coupling
+    weakMeasEps    : Float      // weak measurement strength
   ) : QuantumOpsState {
-    // Update shell states
-    let newShells = Array.tabulate<ShellQuantumState>(N_SHELLS, func(i) {
-      let act = if (i < shellActivations.size()) shellActivations[i] else 0.5;
-      let phase = if (i < shellPhases.size()) shellPhases[i] else 0.0;
-      {
-        activation = act;
-        phase = phase;
-        frequency = Float.fromInt(i + 1) * 0.1;  // Natural frequencies
-        coherence = act * 0.8 + 0.2;
-      }
-    });
+    // Apply gate
+    var newQ = state.qubit;
+    if (applyHadamard) { newQ := hadamard(newQ) };
+    if (_abs(rotTheta) > EPSILON) { newQ := rotateZ(newQ, rotTheta) };
 
-    // Evolve phases
-    let evolvedShells = evolveShellPhases(newShells, dt);
+    // Weak measurement (organism's continuous self-observation)
+    newQ := weakMeasure(newQ, weakMeasEps);
 
-    // Compute ENTANGLA matrix
-    let newEntangla = computeEntanglaMatrix(evolvedShells);
+    // Decoherence
+    newQ := decohere(newQ, dt);
 
-    // Compute temporal dilation
-    let newDilation = computeFullDilation(evolvedShells, coherenceC, newEntangla.meanEntanglement);
+    // Two-qubit entanglement update
+    let newTQ = buildTwoQubit(newQ, state.twoQubit.q2, coupling);
 
-    // Compute BYPASS state
-    let newBypass = computeBypassState(newEntangla, coherenceC);
+    // Quantum walk step
+    let newWalk = qwStep(state.walk);
+
+    // Metrics
+    let vnS   = qubitVonNeumann(newQ);
+    let qIdx  = quantumCoherenceIndex(newQ.blochR, newTQ.entanglementEntropy);
+    let fid   = qubitFidelity(newQ, buildQubit(1.0, 0.0, 0.0));  // fidelity with |0⟩
+    let errR  = 1.0 - fid;
+
+    let newCohH = _appendRolling(state.cohHistory, newQ.blochR, HIST_MAX);
 
     {
-      shells = evolvedShells;
-      entangla = newEntangla;
-      dilation = newDilation;
-      bypass = newBypass;
-      beatNum = state.beatNum + 1;
+      qubit        = newQ;
+      twoQubit     = newTQ;
+      walk         = newWalk;
+      vonNeumannS  = vnS;
+      quantumIndex = qIdx;
+      decohBeats   = state.decohBeats + 1;
+      errorRate    = errR;
+      fidelity     = fid;
+      beatNum      = state.beatNum + 1;
+      cohHistory   = newCohH;
     }
   };
 
-  // ============================================================
-  // INITIALIZATION
-  // ============================================================
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 12: INITIALIZATION
+  // ══════════════════════════════════════════════════════════════════════════
 
-  public func initShellQuantumState(index : Nat) : ShellQuantumState {
-    {
-      activation = 0.5;
-      phase = Float.fromInt(index) * TWO_PI / Float.fromInt(N_SHELLS);
-      frequency = Float.fromInt(index + 1) * 0.1;
-      coherence = 0.5;
-    }
-  };
+  public func initQuantumOps() : QuantumOpsState {
+    // Start in pure |+⟩ state (Hadamard of |0⟩): Bloch vector (1,0,0)
+    let initQ = buildQubit(0.5, 0.5, 0.0);  // |+⟩ state
+    let initTQ = buildTwoQubit(initQ, initQ, 0.0);
 
-  public func initEntanglaResult() : EntanglaResult {
-    {
-      matrix = Array.tabulate<Float>(MATRIX_SIZE, func(k) {
-        let i = k / N_SHELLS;
-        let j = k % N_SHELLS;
-        if (i == j) 1.0 else 0.5
+    let initWalk : QuantumWalk = {
+      probabilities = Array.tabulate<Float>(QW_N_POSITIONS, func(i) {
+        if (i == QW_N_POSITIONS / 2) 1.0 else 0.0  // start at origin
       });
-      meanEntanglement = 0.5;
-      maxEntanglement = 0.5;
-      resonantPairs = 0;
-    }
-  };
+      meanPosition  = 0.0;
+      variance      = 0.0;
+      step          = 0;
+      isBallisticS  = false;
+    };
 
-  public func initDilationResult() : DilationResult {
     {
-      dilationFactor = 1.0;
-      coherenceC = 0.5;
-      veritasOperator = 0.5;
-      resonexAlign = 0.5;
-      dilationActive = false;
-    }
-  };
-
-  public func initBypassState() : BypassState {
-    {
-      active = false;
-      cascadeLevel = 0;
-      unifiedField = false;
-      fieldStrength = 0.0;
-      cascadeEnergy = 0.0;
-    }
-  };
-
-  public func initQuantumOpsState() : QuantumOpsState {
-    {
-      shells = Array.tabulate<ShellQuantumState>(N_SHELLS, initShellQuantumState);
-      entangla = initEntanglaResult();
-      dilation = initDilationResult();
-      bypass = initBypassState();
-      beatNum = 0;
-    }
-  };
-
-  // ============================================================
-  // SUMMARY TYPES
-  // ============================================================
-
-  public type QuantumOpsSummary = {
-    dilationFactor   : Float;
-    dilationActive   : Bool;
-    meanEntanglement : Float;
-    resonantPairs    : Nat;
-    bypassActive     : Bool;
-    cascadeLevel     : Nat;
-    unifiedField     : Bool;
-    fieldStrength    : Float;
-    veritasOperator  : Float;
-    resonexAlign     : Float;
-    quantumAdvantage : Float;
-    beatNum          : Nat;
-  };
-
-  public func summary(state : QuantumOpsState) : QuantumOpsSummary {
-    let advantage = quantumCoherenceAdvantage(state.dilation, state.bypass);
-    {
-      dilationFactor = state.dilation.dilationFactor;
-      dilationActive = state.dilation.dilationActive;
-      meanEntanglement = state.entangla.meanEntanglement;
-      resonantPairs = state.entangla.resonantPairs;
-      bypassActive = state.bypass.active;
-      cascadeLevel = state.bypass.cascadeLevel;
-      unifiedField = state.bypass.unifiedField;
-      fieldStrength = state.bypass.fieldStrength;
-      veritasOperator = state.dilation.veritasOperator;
-      resonexAlign = state.dilation.resonexAlign;
-      quantumAdvantage = advantage;
-      beatNum = state.beatNum;
+      qubit        = initQ;
+      twoQubit     = initTQ;
+      walk         = initWalk;
+      vonNeumannS  = qubitVonNeumann(initQ);
+      quantumIndex = quantumCoherenceIndex(initQ.blochR, 0.0);
+      decohBeats   = 0;
+      errorRate    = 0.0;
+      fidelity     = 1.0;
+      beatNum      = 0;
+      cohHistory   = [];
     }
   };
 

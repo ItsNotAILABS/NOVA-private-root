@@ -1713,7 +1713,6 @@ actor SwarmBrain {
     let nowTarget = Float.max(0.0, Float.min(1.0, rSwarm * (1.0 - Float.min(1.0, jDrift))));
     stableNowAttention[id] := stableNowAttention[id] + 0.05 * (nowTarget - stableNowAttention[id]);
   };
-  };
 
   // Main beat tick — advance simulation by one step
   // ─── TICK CORE (private sync) ─────────────────────────────────────────────────
@@ -2172,7 +2171,7 @@ actor SwarmBrain {
   // Broadcast a neurochemical delta to ALL active drones.
   // kind ∈ {"DOPAMINE","CORTISOL","NOREPINEPHRINE","OXYTOCIN"}
   // amount can be positive (boost) or negative (suppress, floored by sovereign floor)
-  public shared(msg) func broadcastNeurochemical(kind : Text; amount : Float) : async () {
+  public shared(msg) func broadcastNeurochemical(kind : Text, amount : Float) : async () {
     requireAuthorized(msg.caller);
     var i = 0;
     while (i < stableDroneCount) {
@@ -2201,7 +2200,7 @@ actor SwarmBrain {
   // Override the next-tick behavior of a specific drone.
   // Organism uses this when quorum, pheromone, or organ logic requires
   // a specific drone to act differently than its neurochemical state selects.
-  public shared(msg) func setDroneBehaviorOverride(id : Nat; beh : Text) : async () {
+  public shared(msg) func setDroneBehaviorOverride(id : Nat, beh : Text) : async () {
     requireAuthorized(msg.caller);
     if (id >= stableDroneCount) return;
     ensureBehaviorCap(stableDroneCount);

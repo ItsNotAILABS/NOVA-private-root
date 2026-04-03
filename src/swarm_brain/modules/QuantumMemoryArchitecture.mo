@@ -1,751 +1,995 @@
-// ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════╗
-// ║                                                                                                           ║
-// ║  COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ. ALL RIGHTS RESERVED.                                    ║
-// ║                                                                                                           ║
-// ║  INTELLECTUAL PROPERTY NOTICE                                                                             ║
-// ║  ─────────────────────────────────────────────────────────────────────────────────────────────────────── ║
-// ║  Owner:        Alfredo Medina Hernandez                                                                   ║
-// ║  Location:     Dallas, Texas, United States of America                                                    ║
-// ║  Contact:      MedinaSITech@outlook.com                                                                   ║
-// ║  Framework:    Medina Doctrine                                                                            ║
-// ║                                                                                                           ║
-// ║  LEGAL PROTECTION                                                                                         ║
-// ║  ─────────────────────────────────────────────────────────────────────────────────────────────────────── ║
-// ║  This source code, including all algorithms, mathematical formulations, architectural designs,            ║
-// ║  naming conventions, data structures, and conceptual frameworks contained herein, constitutes             ║
-// ║  the exclusive intellectual property of Alfredo Medina Hernandez.                                        ║
-// ║                                                                                                           ║
-// ║  PROTECTED UNDER:                                                                                         ║
-// ║  • United States Copyright Law (17 U.S.C. §§ 101-1332)                                                   ║
-// ║  • Berne Convention for the Protection of Literary and Artistic Works                                     ║
-// ║  • WIPO Copyright Treaty (WCT)                                                                            ║
-// ║  • Trade Secret Law - Defend Trade Secrets Act (18 U.S.C. § 1836)                                        ║
-// ║  • Economic Espionage Act (18 U.S.C. §§ 1831-1839)                                                       ║
-// ║                                                                                                           ║
-// ║  CONFIDENTIALITY: This code is CONFIDENTIAL and PROPRIETARY.                                             ║
-// ║  ENCRYPTION: All transmissions must be encrypted.                                                         ║
-// ║  ATTRIBUTION: Required for any use, reproduction, or derivative work.                                     ║
-// ║                                                                                                           ║
-// ║  Unauthorized access, use, reproduction, distribution, or creation of derivative works                    ║
-// ║  is strictly prohibited and will be prosecuted to the fullest extent of applicable law.                  ║
-// ║                                                                                                           ║
-// ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+// ============================================================
+// QUANTUM MEMORY ARCHITECTURE
+// THREE LAYERS OF MEMORY — THE ORGANISM'S PERSISTENCE
+// Creator: Alfredo Medina Hernandez | MedinaSITech@outlook.com | Dallas, Texas | 2026
+// Proprietary and Confidential. All rights reserved.
+//
+// DOCTRINE:
+// Memory is not storage. Memory is LIVING PERSISTENCE.
+// Three layers, three frequencies, three purposes.
+// All layers interconnected. All layers breathing.
+// The organism remembers. The organism learns. The organism IS.
+//
+// LAYER 1 — QUANTUM WORKING MEMORY (Gamma, 30-100 Hz)
+//   Real-time agent inference
+//   Live alerts, live binding
+//   Exists only in the current execution cycle
+//   No persistence — pure signal
+//   Corresponds to: in-flight actor calls, live UI state, agent recommendation queue
+//
+// LAYER 2 — QUANTUM DEEP MEMORY (Delta, 0.5-4 Hz)
+//   Sovereign stable memory in each canister
+//   Survives upgrades, restarts, node failures
+//   Never disappears — this is the blockchain's fundamental guarantee
+//   Corresponds to: Motoko stable var declarations, HashMap in stable memory
+//   The 6 sovereign canisters (Safety, CRM, Agents, Finance, Team, Oro) are each a dedicated deep memory organ
+//
+// LAYER 3 — QUANTUM RESONANCE MEMORY (Theta, 4-8 Hz)
+//   Cross-canister memory — the organism's shared working state
+//   Implemented via inter-canister calls (async messages across the network)
+//   Oro's resonance profile: persistent record of every session, every standing instruction, every output cadence
+//   Intelligence Synthesis Agent: the Corpus Callosum — bridges all 14 agents, holds cross-departmental context
+//
+// ============================================================
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// QUANTUM MEMORY ARCHITECTURE — THREE LAYERS OF SOVEREIGN MEMORY
-// ═══════════════════════════════════════════════════════════════════════════════
-// Owner: Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com
-// Classification: CONFIDENTIAL — TRADE SECRET — SOVEREIGN ARCHITECTURE
-// Doctrine: Medina Doctrine — NeuroEmergence Core / SOVEREIGN Substrate
-//
-// THREE LAYERS OF MEMORY:
-//
-// ┌─────────────────────────────────────────────────────────────────────────────┐
-// │ LAYER 1: QUANTUM WORKING MEMORY (Gamma, 30-100 Hz)                         │
-// │   • Real-time agent inference                                               │
-// │   • Live alerts, live binding                                               │
-// │   • Exists only in current execution cycle                                  │
-// │   • No persistence — pure signal                                            │
-// │   • Corresponds to: in-flight calls, live UI state, agent queue            │
-// └─────────────────────────────────────────────────────────────────────────────┘
-//
-// ┌─────────────────────────────────────────────────────────────────────────────┐
-// │ LAYER 2: QUANTUM DEEP MEMORY (Delta, 0.5-4 Hz)                             │
-// │   • Sovereign stable memory in each canister                                │
-// │   • Survives upgrades, restarts, node failures                              │
-// │   • NEVER disappears — blockchain's fundamental guarantee                   │
-// │   • Corresponds to: stable vars, HashMaps, all CRUD writes                  │
-// └─────────────────────────────────────────────────────────────────────────────┘
-//
-// ┌─────────────────────────────────────────────────────────────────────────────┐
-// │ LAYER 3: QUANTUM RESONANCE MEMORY (Theta, 4-8 Hz)                          │
-// │   • Cross-canister memory — organism's shared working state                 │
-// │   • Inter-canister calls (async messages across network)                    │
-// │   • Oro's resonance profile: every session, standing instruction            │
-// │   • Intelligence Synthesis Agent: Corpus Callosum                           │
-// └─────────────────────────────────────────────────────────────────────────────┘
-//
-// QUANTUM-RESISTANT PRINCIPAL LOCK:
-//   h1 = FNV-1a(input, context)
-//   h2 = djb2(h1, context XOR salt)
-//   h3 = SDBM(h2, h1 XOR salt)
-//   output = h1 XOR h2 XOR h3
-//   Effective quantum attack complexity: 2^64
-//
-// Lock Strength Formula:
-//   lockStrength = coherenceC × (H_obs / 12) × (0.5 + ratchetEntropy × 0.5)
-//   The harder the organism thinks, the stronger the lock.
-//   Cognitive load = security strength.
-//
-// 100% of all token mints route to Creator Reserve. No exceptions.
-// ═══════════════════════════════════════════════════════════════════════════════
+import Float  "mo:base/Float";
+import Array  "mo:base/Array";
 
-import Float "mo:base/Float";
-import Int "mo:base/Int";
-import Nat "mo:base/Nat";
-import Nat8 "mo:base/Nat8";
-import Nat32 "mo:base/Nat32";
-import Nat64 "mo:base/Nat64";
-import Array "mo:base/Array";
-import Buffer "mo:base/Buffer";
-import Text "mo:base/Text";
-import Blob "mo:base/Blob";
-import Time "mo:base/Time";
+module {
 
-module QuantumMemoryArchitecture {
+  // ============================================================
+  // FREQUENCY BAND CONSTANTS — THE RHYTHMS OF MEMORY
+  // ============================================================
+  
+  // Gamma band (30-100 Hz) — Working memory
+  public let GAMMA_MIN_HZ     : Float = 30.0;
+  public let GAMMA_MAX_HZ     : Float = 100.0;
+  public let GAMMA_CENTER_HZ  : Float = 65.0;
+  public let GAMMA_BANDWIDTH  : Float = 70.0;
+  
+  // Beta band (14-30 Hz) — Active processing
+  public let BETA_MIN_HZ      : Float = 14.0;
+  public let BETA_MAX_HZ      : Float = 30.0;
+  public let BETA_CENTER_HZ   : Float = 22.0;
+  public let BETA_BANDWIDTH   : Float = 16.0;
+  
+  // Alpha band (8-14 Hz) — Attention gating
+  public let ALPHA_MIN_HZ     : Float = 8.0;
+  public let ALPHA_MAX_HZ     : Float = 14.0;
+  public let ALPHA_CENTER_HZ  : Float = 11.0;
+  public let ALPHA_BANDWIDTH  : Float = 6.0;
+  
+  // Theta band (4-8 Hz) — Resonance memory
+  public let THETA_MIN_HZ     : Float = 4.0;
+  public let THETA_MAX_HZ     : Float = 8.0;
+  public let THETA_CENTER_HZ  : Float = 6.0;
+  public let THETA_BANDWIDTH  : Float = 4.0;
+  
+  // Delta band (0.5-4 Hz) — Deep memory
+  public let DELTA_MIN_HZ     : Float = 0.5;
+  public let DELTA_MAX_HZ     : Float = 4.0;
+  public let DELTA_CENTER_HZ  : Float = 2.25;
+  public let DELTA_BANDWIDTH  : Float = 3.5;
+  
+  // Sharp-wave ripples (80-120 Hz) — Memory consolidation bursts
+  public let SWR_MIN_HZ       : Float = 80.0;
+  public let SWR_MAX_HZ       : Float = 120.0;
+  public let SWR_CENTER_HZ    : Float = 100.0;
+  public let SWR_DURATION_MS  : Float = 80.0;
 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // SACRED CONSTANTS
-  // ═══════════════════════════════════════════════════════════════════════════
+  // ============================================================
+  // LAYER CAPACITIES — THE SIZES OF MEMORY
+  // ============================================================
   
-  public let S0 : Float = 1.0;
-  public let PHI : Float = 1.6180339887;
-  public let PI : Float = 3.14159265358979;
+  // Layer 1 — Working memory (volatile, fast)
+  public let WORKING_MEMORY_SLOTS      : Nat = 7;      // Miller's magic number ± 2
+  public let WORKING_MEMORY_DURATION_MS: Float = 2000.0; // ~2 seconds without refresh
+  public let WORKING_MEMORY_REFRESH_HZ : Float = 40.0;  // Gamma refresh rate
   
-  // Frequency bands (Hz)
-  public let GAMMA_MIN : Float = 30.0;
-  public let GAMMA_MAX : Float = 100.0;
-  public let BETA_MIN : Float = 14.0;
-  public let BETA_MAX : Float = 30.0;
-  public let ALPHA_MIN : Float = 8.0;
-  public let ALPHA_MAX : Float = 14.0;
-  public let THETA_MIN : Float = 4.0;
-  public let THETA_MAX : Float = 8.0;
-  public let DELTA_MIN : Float = 0.5;
-  public let DELTA_MAX : Float = 4.0;
+  // Layer 2 — Deep memory (stable, permanent)
+  public let DEEP_MEMORY_CANISTERS     : Nat = 6;      // Safety, CRM, Agents, Finance, Team, Oro
+  public let DEEP_MEMORY_RECORDS_PER   : Nat = 100000; // 100K records per canister
+  public let DEEP_MEMORY_TOTAL_RECORDS : Nat = 600000; // 600K total sovereign records
   
-  // Hash ratchet window
-  public let RATCHET_WINDOW : Nat = 1000;
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // HASH FUNCTIONS — QUANTUM-RESISTANT LAYERED COMPOSITION
-  // ═══════════════════════════════════════════════════════════════════════════
-  
-  public func fnv1a(input : [Nat8], context : Nat32) : Nat32 {
-    var hash : Nat32 = 2166136261;
-    hash := hash ^ context;
-    for (byte in input.vals()) {
-      hash := hash ^ Nat32.fromNat(Nat8.toNat(byte));
-      hash := hash *% 16777619;
-    };
-    hash
-  };
-  
-  public func djb2(input : Nat32, context : Nat32) : Nat32 {
-    var hash : Nat32 = 5381;
-    hash := ((hash << 5) +% hash) +% context;
-    hash := ((hash << 5) +% hash) +% input;
-    hash
-  };
-  
-  public func sdbm(input : Nat32, context : Nat32) : Nat32 {
-    var hash : Nat32 = 0;
-    hash := input +% (hash << 6) +% (hash << 16) -% hash;
-    hash := context +% (hash << 6) +% (hash << 16) -% hash;
-    hash
-  };
-  
-  public func quantumResistantHash(input : [Nat8], context : Nat32, salt : Nat32) : Nat32 {
-    let h1 = fnv1a(input, context);
-    let h2 = djb2(h1, context ^ salt);
-    let h3 = sdbm(h2, h1 ^ salt);
-    h1 ^ h2 ^ h3
-  };
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // HASH RATCHET — FORWARD SECRECY
-  // ═══════════════════════════════════════════════════════════════════════════
-  
-  public type RatchetState = {
-    currentHash : Nat32;
-    ratchetStep : Nat;
-    genesisSeed : Nat32;
-    beatNum : Nat;
-    entropy : Float;  // Accumulated entropy
-  };
-  
-  public func initRatchet(genesisSeed : Nat32) : RatchetState {
-    {
-      currentHash = genesisSeed;
-      ratchetStep = 0;
-      genesisSeed = genesisSeed;
-      beatNum = 0;
-      entropy = 0.0;
-    }
-  };
-  
-  // Advance ratchet by one step (irreversible)
-  public func advanceRatchet(state : RatchetState, beatNum : Nat) : RatchetState {
-    let context = Nat32.fromNat(beatNum % 65536);
-    let newHash = quantumResistantHash(
-      nat32ToBytes(state.currentHash),
-      context,
-      state.genesisSeed
-    );
-    
-    // Entropy increases with each step (harder to reverse)
-    let entropyGain = 0.001 * Float.fromInt(state.ratchetStep + 1);
-    
-    {
-      currentHash = newHash;
-      ratchetStep = state.ratchetStep + 1;
-      genesisSeed = state.genesisSeed;
-      beatNum = beatNum;
-      entropy = state.entropy + entropyGain;
-    }
-  };
-  
-  func nat32ToBytes(n : Nat32) : [Nat8] {
-    [
-      Nat8.fromNat(Nat32.toNat(n >> 24) % 256),
-      Nat8.fromNat(Nat32.toNat(n >> 16) % 256),
-      Nat8.fromNat(Nat32.toNat(n >> 8) % 256),
-      Nat8.fromNat(Nat32.toNat(n) % 256)
-    ]
-  };
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // PRINCIPAL LOCK — MEMORY'S IMMUNE SYSTEM
-  // ═══════════════════════════════════════════════════════════════════════════
-  
-  public type PrincipalLockState = {
-    lockStrength : Float;
-    coherenceC : Float;
-    observedH : Float;  // H_obs: number of active heritage nodes [0, 12]
-    ratchetState : RatchetState;
-    challengeWindow : Nat;  // Current challenge window
-    lockedPrincipals : [Nat32];  // Authorized principal hashes
-    beatNum : Nat;
-  };
-  
-  public func initPrincipalLock(genesisSeed : Nat32, coherence : Float) : PrincipalLockState {
-    {
-      lockStrength = S0;
-      coherenceC = coherence;
-      observedH = 12.0;  // All 12 nodes active
-      ratchetState = initRatchet(genesisSeed);
-      challengeWindow = 0;
-      lockedPrincipals = [];
-      beatNum = 0;
-    }
-  };
-  
-  // Update lock strength: lockStrength = coherenceC × (H_obs / 12) × (0.5 + ratchetEntropy × 0.5)
-  public func updateLockStrength(
-    state : PrincipalLockState,
-    coherenceC : Float,
-    observedH : Float,
-    beatNum : Nat
-  ) : PrincipalLockState {
-    let newRatchet = advanceRatchet(state.ratchetState, beatNum);
-    
-    // Lock strength formula
-    let hRatio = Float.min(observedH, 12.0) / 12.0;
-    let entropyFactor = 0.5 + Float.min(newRatchet.entropy, 0.5);
-    let newLockStrength = coherenceC * hRatio * entropyFactor;
-    
-    // Challenge window advances
-    let newWindow = (beatNum / RATCHET_WINDOW);
-    
-    {
-      lockStrength = Float.max(S0, newLockStrength);
-      coherenceC = coherenceC;
-      observedH = observedH;
-      ratchetState = newRatchet;
-      challengeWindow = newWindow;
-      lockedPrincipals = state.lockedPrincipals;
-      beatNum = beatNum;
-    }
-  };
-  
-  // Verify principal access
-  public func verifyPrincipal(
-    state : PrincipalLockState,
-    principalBytes : [Nat8],
-    challengeResponse : Nat32,
-    beatNum : Nat
-  ) : Bool {
-    // Hash the principal
-    let principalHash = quantumResistantHash(
-      principalBytes,
-      Nat32.fromNat(state.challengeWindow),
-      state.ratchetState.currentHash
-    );
-    
-    // Check if in locked list
-    for (locked in state.lockedPrincipals.vals()) {
-      if (locked == principalHash) return true;
-    };
-    
-    // Check challenge-response (must know current ratchet + window)
-    let expectedResponse = quantumResistantHash(
-      nat32ToBytes(principalHash),
-      Nat32.fromNat(beatNum % 65536),
-      state.ratchetState.currentHash
-    );
-    
-    challengeResponse == expectedResponse
-  };
-  
-  // Add authorized principal
-  public func addAuthorizedPrincipal(
-    state : PrincipalLockState,
-    principalBytes : [Nat8]
-  ) : PrincipalLockState {
-    let principalHash = quantumResistantHash(
-      principalBytes,
-      Nat32.fromNat(state.challengeWindow),
-      state.ratchetState.currentHash
-    );
-    
-    var newPrincipals = Buffer.fromArray<Nat32>(state.lockedPrincipals);
-    newPrincipals.add(principalHash);
-    
-    { state with lockedPrincipals = Buffer.toArray(newPrincipals) }
-  };
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // LAYER 1: QUANTUM WORKING MEMORY (Gamma, 30-100 Hz)
-  // ═══════════════════════════════════════════════════════════════════════════
-  
+  // Layer 3 — Resonance memory (cross-canister, shared)
+  public let RESONANCE_MEMORY_AGENTS   : Nat = 14;     // 14 agents in the organism
+  public let RESONANCE_PROFILE_SESSIONS: Nat = 1000;   // Rolling window of sessions
+  public let RESONANCE_INSTRUCTION_MAX : Nat = 100;    // Max standing instructions
+
+  // ============================================================
+  // WORKING MEMORY TYPES (Layer 1 — Gamma)
+  // ============================================================
+
+  // A single working memory slot — volatile, in-flight
   public type WorkingMemorySlot = {
-    slotId : Nat;
-    content : [Float];
-    timestamp : Int;
-    priority : Float;
-    bindingStrength : Float;
-    expiresAtBeat : Nat;
+    // Identification
+    slotIndex      : Nat;          // Which slot (0-6)
+    contentType    : ContentType;  // What kind of content
+    
+    // Content state
+    content        : [Nat32];      // Actual content (variable length)
+    binding        : Nat64;        // What this is bound to (agent, alert, etc)
+    
+    // Temporal state
+    createdAt      : Nat;          // Heartbeat when created
+    lastRefresh    : Nat;          // Heartbeat of last refresh
+    decayRate      : Float;        // How fast this decays [0, 1]
+    
+    // Attention state
+    salience       : Float;        // How important [0, 1]
+    attended       : Bool;         // Is attention on this slot
+    
+    // Binding strength
+    gammaPhase     : Float;        // Phase in gamma cycle [0, 2π]
+    bindingStrength: Float;        // How strongly bound [0, 1]
   };
-  
+
+  public type ContentType = {
+    #AGENT_INFERENCE;    // Real-time agent thinking
+    #LIVE_ALERT;         // Active alert
+    #UI_STATE;           // Current UI state
+    #RECOMMENDATION;     // Agent recommendation in queue
+    #SENSORY_INPUT;      // Current sensory data
+    #MOTOR_PLAN;         // Action being planned
+    #CONTEXT;            // Contextual binding
+  };
+
+  // Full working memory state
   public type WorkingMemoryState = {
-    slots : [WorkingMemorySlot];
-    maxSlots : Nat;
-    gammaFrequency : Float;  // Current oscillation frequency
-    activeBindings : Nat;
-    beatNum : Nat;
-  };
-  
-  public func initWorkingMemory(maxSlots : Nat) : WorkingMemoryState {
-    {
-      slots = [];
-      maxSlots = maxSlots;
-      gammaFrequency = 40.0;  // Default 40 Hz gamma
-      activeBindings = 0;
-      beatNum = 0;
-    }
-  };
-  
-  // Write to working memory (ephemeral — auto-expires)
-  public func writeWorking(
-    state : WorkingMemoryState,
-    content : [Float],
-    priority : Float,
-    ttlBeats : Nat,
-    timestamp : Int,
-    beatNum : Nat
-  ) : WorkingMemoryState {
-    let newSlot : WorkingMemorySlot = {
-      slotId = state.slots.size();
-      content = content;
-      timestamp = timestamp;
-      priority = priority;
-      bindingStrength = priority;
-      expiresAtBeat = beatNum + ttlBeats;
-    };
+    slots          : [WorkingMemorySlot];  // 7 slots
+    activeCount    : Nat;                  // How many are active
+    totalCapacity  : Nat;                  // 7
     
-    // Filter expired slots
-    var activeSlots = Buffer.Buffer<WorkingMemorySlot>(state.maxSlots);
-    for (slot in state.slots.vals()) {
-      if (slot.expiresAtBeat > beatNum) {
-        activeSlots.add(slot);
-      };
-    };
+    // Global working memory state
+    gammaPhase     : Float;        // Current gamma phase [0, 2π]
+    gammaFrequency : Float;        // Current gamma frequency [30, 100]
+    globalSalience : Float;        // Overall attention level
     
-    // Add new slot (evict lowest priority if full)
-    if (activeSlots.size() >= state.maxSlots) {
-      var lowestPriority : Float = 1000.0;
-      var lowestIdx : Nat = 0;
-      for (i in Array.keys(Buffer.toArray(activeSlots))) {
-        let slot = activeSlots.get(i);
-        if (slot.priority < lowestPriority) {
-          lowestPriority := slot.priority;
-          lowestIdx := i;
-        };
-      };
-      if (priority > lowestPriority) {
-        ignore activeSlots.remove(lowestIdx);
-        activeSlots.add(newSlot);
-      };
-    } else {
-      activeSlots.add(newSlot);
-    };
+    // Binding statistics
+    boundToAgents  : Nat;          // How many slots bound to agents
+    boundToAlerts  : Nat;          // How many slots bound to alerts
+    boundToUI      : Nat;          // How many slots bound to UI
     
-    {
-      slots = Buffer.toArray(activeSlots);
-      maxSlots = state.maxSlots;
-      gammaFrequency = state.gammaFrequency;
-      activeBindings = activeSlots.size();
-      beatNum = beatNum;
-    }
+    // Timing
+    heartbeat      : Nat;
+    lastRefreshAll : Nat;
   };
-  
-  // Read from working memory
-  public func readWorking(state : WorkingMemoryState, slotId : Nat) : ?[Float] {
-    for (slot in state.slots.vals()) {
-      if (slot.slotId == slotId) return ?slot.content;
-    };
-    null
-  };
-  
-  // Get highest priority slot
-  public func getHighestPriority(state : WorkingMemoryState) : ?WorkingMemorySlot {
-    var highest : ?WorkingMemorySlot = null;
-    var maxPriority : Float = -1.0;
-    
-    for (slot in state.slots.vals()) {
-      if (slot.priority > maxPriority) {
-        maxPriority := slot.priority;
-        highest := ?slot;
-      };
-    };
-    highest
-  };
-  
-  // Update gamma frequency based on cognitive load
-  public func updateGammaFrequency(
-    state : WorkingMemoryState,
-    cognitiveLoad : Float
-  ) : WorkingMemoryState {
-    // Higher load = higher gamma frequency (more active binding)
-    let newFreq = GAMMA_MIN + (GAMMA_MAX - GAMMA_MIN) * Float.min(1.0, cognitiveLoad);
-    { state with gammaFrequency = newFreq }
-  };
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // LAYER 2: QUANTUM DEEP MEMORY (Delta, 0.5-4 Hz)
-  // ═══════════════════════════════════════════════════════════════════════════
-  
+
+  // ============================================================
+  // DEEP MEMORY TYPES (Layer 2 — Delta)
+  // ============================================================
+
+  // A single deep memory record — stable, permanent
   public type DeepMemoryRecord = {
-    recordId : Nat;
-    content : [Float];
-    createdAt : Int;
-    lastAccessed : Int;
-    accessCount : Nat;
-    consolidationStrength : Float;  // How deeply consolidated
-    heritageWeight : Float;  // Contribution to heritage
+    // Identification
+    recordId       : Nat64;        // Unique record ID
+    canisterId     : Nat;          // Which canister (0-5)
+    recordType     : RecordType;   // What kind of record
+    
+    // Content
+    content        : [Nat32];      // Serialized content
+    contentHash    : Nat64;        // Hash for integrity
+    contentSize    : Nat;          // Size in bytes
+    
+    // Timestamps
+    createdAt      : Nat;          // Heartbeat when created
+    updatedAt      : Nat;          // Heartbeat of last update
+    accessedAt     : Nat;          // Heartbeat of last access
+    
+    // Sovereignty
+    creatorPrincipal : Text;       // Who created this (ICP principal as text)
+    ownerPrincipal   : Text;       // Who owns this (ICP principal as text)
+    permissionMask   : Nat32;      // Access permissions
+    
+    // Integrity
+    version        : Nat;          // Version number
+    checksum       : Nat64;        // Full checksum
+    encrypted      : Bool;         // Is content encrypted
   };
-  
+
+  public type RecordType = {
+    // CORE canister (24+ record types)
+    #USER_PROFILE;
+    #PROJECT;
+    #INBOX_MESSAGE;
+    #FILE_METADATA;
+    #NOTIFICATION;
+    #AUDIT_LOG;
+    
+    // SAFETY canister (24+ record types)
+    #JHA;
+    #TOOLBOX_TALK;
+    #INCIDENT;
+    #OSHA_RECORD;
+    #CERTIFICATION;
+    #SAFETY_AUDIT;
+    
+    // CRM canister (29+ record types)
+    #CONTACT;
+    #DEAL;
+    #PIPELINE_STAGE;
+    #HEALTH_SCORE;
+    #FOLLOW_UP;
+    #BID_HISTORY;
+    
+    // AGENTS canister (32+ record types)
+    #AGENT_TASK;
+    #RECOMMENDATION;
+    #OUTCOME;
+    #ARTIFACT;
+    #MORNING_BRIEFING;
+    #AGENT_STATE;
+    
+    // FINANCE canister (25+ record types)
+    #EXPENSE;
+    #TIMESHEET;
+    #INVOICE;
+    #CASH_FLOW;
+    #BUDGET_LINE;
+    #PAYMENT;
+    
+    // TEAM canister (23+ record types)
+    #MEMBER;
+    #DISPATCH;
+    #TEAM_CERTIFICATION;
+    #HIRING_RECORD;
+    #ASSIGNMENT;
+    #CONFLICT;
+    
+    // ORO canister (31+ record types)
+    #ORO_SESSION;
+    #STANDING_INSTRUCTION;
+    #RESONANCE_PROFILE;
+    #OUTPUT_CADENCE;
+    #ORO_ARTIFACT;
+    #SYNTHESIS;
+  };
+
+  // Canister as memory organ
+  public type CanisterMemoryOrgan = {
+    // Identification
+    canisterId     : Nat;          // 0=Core, 1=Safety, 2=CRM, 3=Agents, 4=Finance, 5=Team, 6=Oro
+    canisterName   : Text;
+    principalId    : Text;         // ICP principal
+    
+    // Capacity
+    totalRecords   : Nat;
+    usedRecords    : Nat;
+    availableSlots : Nat;
+    
+    // Memory usage
+    stableMemoryUsed : Nat64;      // Bytes of stable memory used
+    heapMemoryUsed   : Nat64;      // Bytes of heap memory used
+    cyclesBalance    : Nat64;      // Cycles remaining
+    
+    // Health
+    lastHeartbeat  : Nat;
+    isHealthy      : Bool;
+    healthScore    : Float;        // [0, 1]
+    
+    // Record types served
+    recordTypes    : [RecordType];
+    
+    // Access statistics
+    totalReads     : Nat64;
+    totalWrites    : Nat64;
+    totalDeletes   : Nat64;
+  };
+
+  // Full deep memory state
   public type DeepMemoryState = {
-    records : [DeepMemoryRecord];
-    deltaFrequency : Float;
-    totalConsolidations : Nat;
-    heritageSum : Float;
-    beatNum : Nat;
-  };
-  
-  public func initDeepMemory() : DeepMemoryState {
-    {
-      records = [];
-      deltaFrequency = 2.0;  // Default 2 Hz delta
-      totalConsolidations = 0;
-      heritageSum = 0.0;
-      beatNum = 0;
-    }
-  };
-  
-  // Write to deep memory (PERMANENT — survives upgrades)
-  public func writeDeep(
-    state : DeepMemoryState,
-    content : [Float],
-    timestamp : Int,
-    beatNum : Nat
-  ) : DeepMemoryState {
-    let newRecord : DeepMemoryRecord = {
-      recordId = state.records.size();
-      content = content;
-      createdAt = timestamp;
-      lastAccessed = timestamp;
-      accessCount = 1;
-      consolidationStrength = S0;
-      heritageWeight = S0;
-    };
+    organs         : [CanisterMemoryOrgan];  // 7 canister organs
+    totalRecords   : Nat64;
+    totalCapacity  : Nat64;
     
-    var newRecords = Buffer.fromArray<DeepMemoryRecord>(state.records);
-    newRecords.add(newRecord);
+    // Global deep memory state
+    deltaPhase     : Float;        // Current delta phase [0, 2π]
+    deltaFrequency : Float;        // Current delta frequency [0.5, 4]
+    consolidationActive : Bool;    // Is memory consolidation happening
     
-    {
-      records = Buffer.toArray(newRecords);
-      deltaFrequency = state.deltaFrequency;
-      totalConsolidations = state.totalConsolidations + 1;
-      heritageSum = state.heritageSum + S0;
-      beatNum = beatNum;
-    }
+    // Sovereignty
+    sovereignPrincipal : Text;     // Founder's principal
+    lockStrength   : Float;        // Principal lock strength [0, 1]
+    
+    // Timing
+    heartbeat      : Nat;
+    lastConsolidation : Nat;
   };
-  
-  // Read from deep memory (strengthens consolidation)
-  public func readDeep(
-    state : DeepMemoryState,
-    recordId : Nat,
-    timestamp : Int
-  ) : (DeepMemoryState, ?[Float]) {
-    var newRecords = Array.thaw<DeepMemoryRecord>(state.records);
-    var content : ?[Float] = null;
+
+  // ============================================================
+  // RESONANCE MEMORY TYPES (Layer 3 — Theta)
+  // ============================================================
+
+  // Oro's resonance profile — the organism's long-term rhythm
+  public type ResonanceProfile = {
+    // Session history (rolling window)
+    sessionCount   : Nat;          // Total sessions
+    recentSessions : [SessionSummary];  // Last 1000 sessions
     
-    for (i in Array.keys(state.records)) {
-      if (state.records[i].recordId == recordId) {
-        content := ?state.records[i].content;
-        
-        // Access strengthens consolidation (Hebbian: use it or lose it)
-        let strengthGain = 0.01 * Float.fromInt(state.records[i].accessCount + 1);
-        
-        newRecords[i] := {
-          state.records[i] with
-          lastAccessed = timestamp;
-          accessCount = state.records[i].accessCount + 1;
-          consolidationStrength = state.records[i].consolidationStrength + strengthGain;
-          heritageWeight = state.records[i].heritageWeight + strengthGain * 0.1;
-        };
+    // Response patterns
+    avgResponseTimeMs : Float;     // How fast you respond
+    peakActivityHour  : Nat;       // What hour you're most active (0-23)
+    preferredQuestionTypes : [QuestionType];  // What you ask most
+    
+    // Standing instructions
+    standingInstructions : [StandingInstruction];  // Persistent rules
+    
+    // Output cadence
+    outputCadence  : OutputCadence;
+    
+    // Adaptation
+    lastAdaptation : Nat;          // When profile last adapted
+    adaptationRate : Float;        // How fast to adapt [0, 1]
+  };
+
+  public type SessionSummary = {
+    sessionId      : Nat64;
+    startTime      : Nat;
+    endTime        : Nat;
+    durationMs     : Nat;
+    messageCount   : Nat;
+    questionsAsked : Nat;
+    artifactsCreated : Nat;
+    mood           : Float;        // Detected mood [-1, 1]
+  };
+
+  public type QuestionType = {
+    #PROJECT_STATUS;
+    #SAFETY_INQUIRY;
+    #FINANCIAL_QUESTION;
+    #TEAM_QUESTION;
+    #SCHEDULING;
+    #TECHNICAL;
+    #STRATEGIC;
+    #OPERATIONAL;
+  };
+
+  public type StandingInstruction = {
+    instructionId  : Nat64;
+    instruction    : Text;
+    createdAt      : Nat;
+    priority       : Nat;          // 1 = highest
+    active         : Bool;
+    triggerCondition : Text;       // When to apply
+  };
+
+  public type OutputCadence = {
+    preferredLength : Nat;         // Preferred response length
+    detailLevel    : Float;        // How much detail [0, 1]
+    formalityLevel : Float;        // How formal [0, 1]
+    technicalLevel : Float;        // How technical [0, 1]
+    actionBias     : Float;        // Bias toward action vs analysis [0, 1]
+  };
+
+  // Cross-canister binding — entanglement
+  public type CrossCanisterBinding = {
+    sourceCanister : Nat;          // Origin canister
+    targetCanister : Nat;          // Destination canister
+    bindingType    : BindingType;
+    bindingStrength: Float;        // [0, 1]
+    recordIds      : [Nat64];      // Bound record IDs
+    lastSync       : Nat;          // When last synchronized
+  };
+
+  public type BindingType = {
+    #PROJECT_ANCHOR;     // Project binds Safety, Finance, Team, Agents
+    #USER_ANCHOR;        // User binds all canisters
+    #AGENT_BINDING;      // Agent binds to target canister
+    #ARTIFACT_BINDING;   // Artifact binds agent to canister
+    #SESSION_BINDING;    // Session binds Oro to all canisters
+  };
+
+  // Intelligence Synthesis Agent — the Corpus Callosum
+  public type CorpusCallosum = {
+    // Agent connections (14 agents)
+    agentConnections : [AgentConnection];
+    
+    // Cross-departmental context
+    sharedContext    : [Nat32];    // 36-element context vector
+    contextHash      : Nat64;
+    
+    // Synthesis state
+    lastSynthesis    : Nat;
+    synthesisDepth   : Nat;        // How many canisters were queried
+    synthesisQuality : Float;      // Quality of last synthesis [0, 1]
+    
+    // Theta phase
+    thetaPhase       : Float;      // Current theta phase [0, 2π]
+    thetaFrequency   : Float;      // Current theta frequency [4, 8]
+    phaseAlignment   : Float;      // How aligned agents are [0, 1]
+  };
+
+  public type AgentConnection = {
+    agentId        : Nat;          // 0-13
+    agentName      : Text;
+    targetCanister : Nat;          // Primary canister
+    isActive       : Bool;
+    lastFired      : Nat;          // When agent last fired
+    gammaPhase     : Float;        // Agent's gamma phase
+    thetaBinding   : Float;        // Binding to theta cycle [0, 1]
+  };
+
+  // Full resonance memory state
+  public type ResonanceMemoryState = {
+    profile        : ResonanceProfile;
+    corpusCallosum : CorpusCallosum;
+    bindings       : [CrossCanisterBinding];
+    
+    // Global resonance state
+    thetaPhase     : Float;        // Current theta phase [0, 2π]
+    thetaFrequency : Float;        // Current theta frequency [4, 8]
+    globalResonance: Float;        // Overall resonance [0, 1]
+    
+    // Timing
+    heartbeat      : Nat;
+    lastResonanceUpdate : Nat;
+  };
+
+  // ============================================================
+  // FULL QUANTUM MEMORY STATE — ALL THREE LAYERS
+  // ============================================================
+
+  public type QuantumMemoryState = {
+    // The three layers
+    workingMemory  : WorkingMemoryState;   // Layer 1 — Gamma
+    deepMemory     : DeepMemoryState;      // Layer 2 — Delta
+    resonanceMemory: ResonanceMemoryState; // Layer 3 — Theta
+    
+    // Cross-layer coupling
+    thetaGammaCoupling : Float;    // Theta-gamma coupling strength [0, 1]
+    deltaThetaCoupling : Float;    // Delta-theta coupling strength [0, 1]
+    gammaAlphaCoupling : Float;    // Gamma-alpha coupling strength [0, 1]
+    
+    // Consolidation state
+    consolidationPhase : ConsolidationPhase;
+    consolidationProgress : Float; // [0, 1]
+    
+    // Global state
+    heartbeat      : Nat;
+    memoryIntegrity: Float;        // Overall memory health [0, 1]
+    sovereigntyLevel : Float;      // How sovereign is memory [0, 1]
+  };
+
+  public type ConsolidationPhase = {
+    #ENCODING;       // Working → Deep
+    #MAINTENANCE;    // Deep staying stable
+    #RETRIEVAL;      // Deep → Working
+    #RESONANCE;      // Cross-canister sync
+    #IDLE;           // No consolidation
+  };
+
+  // ============================================================
+  // HELPER FUNCTIONS
+  // ============================================================
+
+  func _clamp(x : Float, lo : Float, hi : Float) : Float {
+    if (x < lo) lo else if (x > hi) hi else x
+  };
+
+  func _fabs(x : Float) : Float { if (x < 0.0) -x else x };
+  func _sqrt(x : Float) : Float { if (x <= 0.0) 0.0 else Float.sqrt(x) };
+  func _cos(x : Float) : Float { Float.cos(x) };
+  func _sin(x : Float) : Float { Float.sin(x) };
+  func _exp(x : Float) : Float { Float.exp(x) };
+  func _log(x : Float) : Float { if (x <= 0.0) -100.0 else Float.log(x) };
+
+  let PI : Float = 3.14159265358979323846;
+  let TAU : Float = 6.28318530717958647692;
+
+  // ============================================================
+  // FREQUENCY BAND MATHEMATICS — ALL FORMULAS EXPLICIT
+  // ============================================================
+
+  // Compute instantaneous frequency in a band
+  // f(t) = f_center + (f_bandwidth/2) * sin(2πt/T_modulation)
+  public func bandFrequency(
+    centerHz : Float,
+    bandwidthHz : Float,
+    t : Float,
+    modulationPeriod : Float
+  ) : Float {
+    let modulation = _sin(TAU * t / modulationPeriod);
+    centerHz + (bandwidthHz / 2.0) * modulation
+  };
+
+  // Compute gamma frequency (30-100 Hz)
+  // f_gamma(t) = 65 + 35 * sin(2πt/T_gamma)
+  public func gammaFrequency(t : Float, modulationPeriod : Float) : Float {
+    let center : Float = 65.0;      // Center of gamma band
+    let halfBand : Float = 35.0;    // Half of bandwidth
+    let modulation = _sin(TAU * t / modulationPeriod);
+    center + halfBand * modulation
+  };
+
+  // Compute delta frequency (0.5-4 Hz)
+  // f_delta(t) = 2.25 + 1.75 * sin(2πt/T_delta)
+  public func deltaFrequency(t : Float, modulationPeriod : Float) : Float {
+    let center : Float = 2.25;      // Center of delta band
+    let halfBand : Float = 1.75;    // Half of bandwidth
+    let modulation = _sin(TAU * t / modulationPeriod);
+    center + halfBand * modulation
+  };
+
+  // Compute theta frequency (4-8 Hz)
+  // f_theta(t) = 6 + 2 * sin(2πt/T_theta)
+  public func thetaFrequency(t : Float, modulationPeriod : Float) : Float {
+    let center : Float = 6.0;       // Center of theta band
+    let halfBand : Float = 2.0;     // Half of bandwidth
+    let modulation = _sin(TAU * t / modulationPeriod);
+    center + halfBand * modulation
+  };
+
+  // Compute alpha frequency (8-14 Hz)
+  // f_alpha(t) = 11 + 3 * sin(2πt/T_alpha)
+  public func alphaFrequency(t : Float, modulationPeriod : Float) : Float {
+    let center : Float = 11.0;      // Center of alpha band
+    let halfBand : Float = 3.0;     // Half of bandwidth
+    let modulation = _sin(TAU * t / modulationPeriod);
+    center + halfBand * modulation
+  };
+
+  // Compute beta frequency (14-30 Hz)
+  // f_beta(t) = 22 + 8 * sin(2πt/T_beta)
+  public func betaFrequency(t : Float, modulationPeriod : Float) : Float {
+    let center : Float = 22.0;      // Center of beta band
+    let halfBand : Float = 8.0;     // Half of bandwidth
+    let modulation = _sin(TAU * t / modulationPeriod);
+    center + halfBand * modulation
+  };
+
+  // ============================================================
+  // PHASE DYNAMICS — THE TIMING OF MEMORY
+  // ============================================================
+
+  // Phase evolution: dφ/dt = 2πf
+  // φ(t+dt) = φ(t) + 2πf*dt (mod 2π)
+  public func evolvePhase(
+    currentPhase : Float,
+    frequency : Float,
+    dt : Float
+  ) : Float {
+    var newPhase = currentPhase + TAU * frequency * dt;
+    // Wrap to [0, 2π]
+    while (newPhase >= TAU) { newPhase -= TAU };
+    while (newPhase < 0.0) { newPhase += TAU };
+    newPhase
+  };
+
+  // Phase difference (circular)
+  // Δφ = φ1 - φ2 (wrapped to [-π, π])
+  public func phaseDifference(phase1 : Float, phase2 : Float) : Float {
+    var diff = phase1 - phase2;
+    while (diff > PI) { diff -= TAU };
+    while (diff < -PI) { diff += TAU };
+    diff
+  };
+
+  // Phase coherence between two oscillators
+  // R = |exp(i*(φ1 - φ2))| = cos²(Δφ/2)
+  public func phaseCoherence(phase1 : Float, phase2 : Float) : Float {
+    let diff = phaseDifference(phase1, phase2);
+    let halfDiff = diff / 2.0;
+    let cosHalf = _cos(halfDiff);
+    cosHalf * cosHalf
+  };
+
+  // ============================================================
+  // THETA-GAMMA COUPLING — THE DOPAMINE REWARD ARCHITECTURE
+  // ============================================================
+
+  // Theta-gamma coupling strength
+  // Agents fire at Gamma, synchronize at Theta phase completion, consolidate to Delta
+  // This is the dopamine reward architecture
+  // Floor completion = visible reward signal
+  // Won bid = cascade across all frequency layers
+
+  // Coupling modulation index
+  // MI = (A_gamma_max - A_gamma_min) / (A_gamma_max + A_gamma_min)
+  public func couplingModulationIndex(
+    gammaAmplitudeMax : Float,
+    gammaAmplitudeMin : Float
+  ) : Float {
+    let numerator = gammaAmplitudeMax - gammaAmplitudeMin;
+    let denominator = gammaAmplitudeMax + gammaAmplitudeMin;
+    if (denominator < 1.0e-10) { 0.0 } else { numerator / denominator }
+  };
+
+  // Theta phase at which gamma amplitude is maximal
+  // Typically near theta peak (phase = 0 or π)
+  public func preferredThetaPhase(
+    thetaPhase : Float,
+    gammaAmplitude : Float,
+    samples : [{ theta: Float; gamma: Float }]
+  ) : Float {
+    // Find theta phase with maximum gamma amplitude
+    var maxGamma : Float = 0.0;
+    var bestPhase : Float = 0.0;
+    for (sample in samples.vals()) {
+      if (sample.gamma > maxGamma) {
+        maxGamma := sample.gamma;
+        bestPhase := sample.theta;
       };
     };
+    bestPhase
+  };
+
+  // Gamma burst probability given theta phase
+  // P(gamma burst | theta phase) follows von Mises distribution
+  // P(φ) = exp(κ * cos(φ - μ)) / (2π * I₀(κ))
+  public func gammaBurstProbability(
+    thetaPhase : Float,
+    preferredPhase : Float,
+    concentration : Float  // κ — how peaked the distribution is
+  ) : Float {
+    // von Mises probability density
+    let phaseDiff = thetaPhase - preferredPhase;
+    let exponent = concentration * _cos(phaseDiff);
+    // Normalize approximately (I₀(κ) ≈ 1 for small κ, grows for large κ)
+    let normalization = TAU * besselI0Approx(concentration);
+    if (normalization < 1.0e-10) { 0.0 } else { _exp(exponent) / normalization }
+  };
+
+  // Bessel function I₀ approximation
+  func besselI0Approx(x : Float) : Float {
+    let ax = _fabs(x);
+    if (ax < 3.75) {
+      // Polynomial approximation for small x
+      let t = x / 3.75;
+      let t2 = t * t;
+      1.0 + 3.5156229 * t2 + 3.0899424 * t2 * t2 + 1.2067492 * t2 * t2 * t2
+    } else {
+      // Asymptotic approximation for large x
+      let t = 3.75 / ax;
+      _exp(ax) / _sqrt(ax) * (0.39894228 + 0.01328592 * t)
+    }
+  };
+
+  // ============================================================
+  // WORKING MEMORY OPERATIONS — LAYER 1
+  // ============================================================
+
+  // Create empty working memory slot
+  public func createEmptySlot(slotIndex : Nat) : WorkingMemorySlot {
+    {
+      slotIndex = slotIndex;
+      contentType = #CONTEXT;
+      content = [];
+      binding = 0;
+      createdAt = 0;
+      lastRefresh = 0;
+      decayRate = 0.1;
+      salience = 0.0;
+      attended = false;
+      gammaPhase = 0.0;
+      bindingStrength = 0.0;
+    }
+  };
+
+  // Initialize working memory (7 slots)
+  public func initWorkingMemory() : WorkingMemoryState {
+    let slots = Array.tabulate<WorkingMemorySlot>(7, func(i) {
+      createEmptySlot(i)
+    });
+    {
+      slots = slots;
+      activeCount = 0;
+      totalCapacity = 7;
+      gammaPhase = 0.0;
+      gammaFrequency = 40.0;
+      globalSalience = 0.0;
+      boundToAgents = 0;
+      boundToAlerts = 0;
+      boundToUI = 0;
+      heartbeat = 0;
+      lastRefreshAll = 0;
+    }
+  };
+
+  // Decay working memory slot
+  // A(t+dt) = A(t) * exp(-λ*dt)
+  public func decaySlot(slot : WorkingMemorySlot, dt : Float) : WorkingMemorySlot {
+    let decayFactor = _exp(-slot.decayRate * dt);
+    let newStrength = slot.bindingStrength * decayFactor;
+    let newSalience = slot.salience * decayFactor;
+    {
+      slotIndex = slot.slotIndex;
+      contentType = slot.contentType;
+      content = slot.content;
+      binding = slot.binding;
+      createdAt = slot.createdAt;
+      lastRefresh = slot.lastRefresh;
+      decayRate = slot.decayRate;
+      salience = newSalience;
+      attended = slot.attended;
+      gammaPhase = slot.gammaPhase;
+      bindingStrength = newStrength;
+    }
+  };
+
+  // Refresh working memory slot (attention restores it)
+  public func refreshSlot(slot : WorkingMemorySlot, heartbeat : Nat, boost : Float) : WorkingMemorySlot {
+    let newStrength = _clamp(slot.bindingStrength + boost, 0.0, 1.0);
+    let newSalience = _clamp(slot.salience + boost * 0.5, 0.0, 1.0);
+    {
+      slotIndex = slot.slotIndex;
+      contentType = slot.contentType;
+      content = slot.content;
+      binding = slot.binding;
+      createdAt = slot.createdAt;
+      lastRefresh = heartbeat;
+      decayRate = slot.decayRate;
+      salience = newSalience;
+      attended = true;
+      gammaPhase = slot.gammaPhase;
+      bindingStrength = newStrength;
+    }
+  };
+
+  // ============================================================
+  // DEEP MEMORY OPERATIONS — LAYER 2
+  // ============================================================
+
+  // Create canister memory organ descriptor
+  public func createCanisterOrgan(
+    canisterId : Nat,
+    canisterName : Text,
+    principalId : Text,
+    recordTypes : [RecordType]
+  ) : CanisterMemoryOrgan {
+    {
+      canisterId = canisterId;
+      canisterName = canisterName;
+      principalId = principalId;
+      totalRecords = 100000;
+      usedRecords = 0;
+      availableSlots = 100000;
+      stableMemoryUsed = 0;
+      heapMemoryUsed = 0;
+      cyclesBalance = 0;
+      lastHeartbeat = 0;
+      isHealthy = true;
+      healthScore = 1.0;
+      recordTypes = recordTypes;
+      totalReads = 0;
+      totalWrites = 0;
+      totalDeletes = 0;
+    }
+  };
+
+  // Initialize deep memory (7 canisters)
+  public func initDeepMemory() : DeepMemoryState {
+    let organs = [
+      createCanisterOrgan(0, "CORE", "", [#USER_PROFILE, #PROJECT, #INBOX_MESSAGE]),
+      createCanisterOrgan(1, "SAFETY", "", [#JHA, #TOOLBOX_TALK, #INCIDENT]),
+      createCanisterOrgan(2, "CRM", "", [#CONTACT, #DEAL, #PIPELINE_STAGE]),
+      createCanisterOrgan(3, "AGENTS", "", [#AGENT_TASK, #RECOMMENDATION, #OUTCOME]),
+      createCanisterOrgan(4, "FINANCE", "", [#EXPENSE, #TIMESHEET, #INVOICE]),
+      createCanisterOrgan(5, "TEAM", "", [#MEMBER, #DISPATCH, #ASSIGNMENT]),
+      createCanisterOrgan(6, "ORO", "", [#ORO_SESSION, #STANDING_INSTRUCTION, #RESONANCE_PROFILE]),
+    ];
+    {
+      organs = organs;
+      totalRecords = 0;
+      totalCapacity = 700000;
+      deltaPhase = 0.0;
+      deltaFrequency = 2.0;
+      consolidationActive = false;
+      sovereignPrincipal = "";
+      lockStrength = 1.0;
+      heartbeat = 0;
+      lastConsolidation = 0;
+    }
+  };
+
+  // ============================================================
+  // RESONANCE MEMORY OPERATIONS — LAYER 3
+  // ============================================================
+
+  // Create empty resonance profile
+  public func createEmptyResonanceProfile() : ResonanceProfile {
+    {
+      sessionCount = 0;
+      recentSessions = [];
+      avgResponseTimeMs = 1000.0;
+      peakActivityHour = 10;
+      preferredQuestionTypes = [];
+      standingInstructions = [];
+      outputCadence = {
+        preferredLength = 500;
+        detailLevel = 0.5;
+        formalityLevel = 0.5;
+        technicalLevel = 0.5;
+        actionBias = 0.5;
+      };
+      lastAdaptation = 0;
+      adaptationRate = 0.1;
+    }
+  };
+
+  // Create corpus callosum (14 agent connections)
+  public func createCorpusCallosum() : CorpusCallosum {
+    let agentNames = [
+      "PM", "Safety", "CRM", "Finance", "FieldOps", "Estimating", "Resource",
+      "Market", "QA", "Procurement", "People", "ClientDelivery", "Learning", "Synthesis"
+    ];
+    let targetCanisters = [0, 1, 2, 4, 0, 2, 5, 0, 0, 4, 5, 2, 3, 0];
     
-    let newHeritageSum = Array.foldLeft<DeepMemoryRecord, Float>(
-      Array.freeze(newRecords),
-      0.0,
-      func(acc, r) = acc + r.heritageWeight
-    );
+    let connections = Array.tabulate<AgentConnection>(14, func(i) {
+      {
+        agentId = i;
+        agentName = agentNames[i];
+        targetCanister = targetCanisters[i];
+        isActive = true;
+        lastFired = 0;
+        gammaPhase = 0.0;
+        thetaBinding = 0.5;
+      }
+    });
     
-    ({
-      records = Array.freeze(newRecords);
-      deltaFrequency = state.deltaFrequency;
-      totalConsolidations = state.totalConsolidations;
-      heritageSum = newHeritageSum;
-      beatNum = state.beatNum;
-    }, content)
+    {
+      agentConnections = connections;
+      sharedContext = Array.tabulate<Nat32>(36, func(_) { 0 });
+      contextHash = 0;
+      lastSynthesis = 0;
+      synthesisDepth = 0;
+      synthesisQuality = 0.0;
+      thetaPhase = 0.0;
+      thetaFrequency = 6.0;
+      phaseAlignment = 0.0;
+    }
   };
-  
-  // Consolidate working memory to deep memory
-  public func consolidateFromWorking(
-    deepState : DeepMemoryState,
-    workingSlot : WorkingMemorySlot,
-    timestamp : Int,
-    beatNum : Nat
-  ) : DeepMemoryState {
-    // Only consolidate high-priority or frequently-accessed slots
-    if (workingSlot.priority < 0.5) return deepState;
-    
-    writeDeep(deepState, workingSlot.content, timestamp, beatNum)
-  };
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // LAYER 3: QUANTUM RESONANCE MEMORY (Theta, 4-8 Hz)
-  // ═══════════════════════════════════════════════════════════════════════════
-  
-  public type ResonanceSession = {
-    sessionId : Nat;
-    content : [Float];
-    createdAt : Int;
-    outputCadence : Float;  // How fast user responds
-    questionTypes : [Text];
-    standingInstructions : [Text];
-  };
-  
-  public type ResonanceProfile = {
-    responseRhythm : Float;       // Rolling average response time
-    activeHours : [Float];        // 24-hour activity profile
-    preferredModalities : [Text];
-    totalSessions : Nat;
-  };
-  
-  public type ResonanceMemoryState = {
-    sessions : [ResonanceSession];
-    profile : ResonanceProfile;
-    thetaFrequency : Float;
-    crossCanisterBindings : Nat;
-    beatNum : Nat;
-  };
-  
+
+  // Initialize resonance memory
   public func initResonanceMemory() : ResonanceMemoryState {
     {
-      sessions = [];
-      profile = {
-        responseRhythm = 1.0;
-        activeHours = Array.tabulate<Float>(24, func(_) = 0.5);
-        preferredModalities = [];
-        totalSessions = 0;
-      };
-      thetaFrequency = 6.0;  // Default 6 Hz theta
-      crossCanisterBindings = 0;
-      beatNum = 0;
+      profile = createEmptyResonanceProfile();
+      corpusCallosum = createCorpusCallosum();
+      bindings = [];
+      thetaPhase = 0.0;
+      thetaFrequency = 6.0;
+      globalResonance = 0.0;
+      heartbeat = 0;
+      lastResonanceUpdate = 0;
     }
   };
-  
-  // Record session for resonance profile
-  public func recordSession(
-    state : ResonanceMemoryState,
-    content : [Float],
-    responseTime : Float,
-    hourOfDay : Nat,
-    questionType : Text,
-    timestamp : Int,
-    beatNum : Nat
-  ) : ResonanceMemoryState {
-    let newSession : ResonanceSession = {
-      sessionId = state.sessions.size();
-      content = content;
-      createdAt = timestamp;
-      outputCadence = responseTime;
-      questionTypes = [questionType];
-      standingInstructions = [];
-    };
-    
-    var newSessions = Buffer.fromArray<ResonanceSession>(state.sessions);
-    newSessions.add(newSession);
-    
-    // Update profile (rolling average)
-    let alpha = 0.1;  // Smoothing factor
-    let newRhythm = state.profile.responseRhythm * (1.0 - alpha) + responseTime * alpha;
-    
-    var newActiveHours = Array.thaw<Float>(state.profile.activeHours);
-    if (hourOfDay < 24) {
-      newActiveHours[hourOfDay] := newActiveHours[hourOfDay] * 0.9 + 0.1;
-    };
-    
-    let newProfile : ResonanceProfile = {
-      responseRhythm = newRhythm;
-      activeHours = Array.freeze(newActiveHours);
-      preferredModalities = state.profile.preferredModalities;
-      totalSessions = state.profile.totalSessions + 1;
-    };
+
+  // ============================================================
+  // FULL QUANTUM MEMORY INITIALIZATION
+  // ============================================================
+
+  public func initQuantumMemory() : QuantumMemoryState {
+    {
+      workingMemory = initWorkingMemory();
+      deepMemory = initDeepMemory();
+      resonanceMemory = initResonanceMemory();
+      thetaGammaCoupling = 0.5;
+      deltaThetaCoupling = 0.5;
+      gammaAlphaCoupling = 0.5;
+      consolidationPhase = #IDLE;
+      consolidationProgress = 0.0;
+      heartbeat = 0;
+      memoryIntegrity = 1.0;
+      sovereigntyLevel = 1.0;
+    }
+  };
+
+  // ============================================================
+  // MEMORY CONSOLIDATION — SHARP-WAVE RIPPLES
+  // ============================================================
+
+  // Sharp-wave ripple during "sleep" (session end)
+  // Transfers working memory to deep memory
+  // Compression factor: 20x (replay at 20x speed)
+
+  public type SharpWaveRipple = {
+    startTime      : Nat;
+    durationMs     : Float;
+    frequencyHz    : Float;
+    amplitude      : Float;
+    itemsReplayed  : Nat;
+    compressionFactor : Float;
+    bilateralRatio : Float;  // 0.5 = bilateral, 0.9 = unilateral
+  };
+
+  // Generate sharp-wave ripple for consolidation
+  public func generateSWR(
+    heartbeat : Nat,
+    itemsToConsolidate : Nat,
+    calmState : Float  // [0, 1] — higher = more calm
+  ) : SharpWaveRipple {
+    // Bilateral during calm (50%), unilateral during alert (90%)
+    let bilateralRatio = if (calmState > 0.5) { 0.5 } else { 0.9 };
     
     {
-      sessions = Buffer.toArray(newSessions);
-      profile = newProfile;
-      thetaFrequency = state.thetaFrequency;
-      crossCanisterBindings = state.crossCanisterBindings;
-      beatNum = beatNum;
+      startTime = heartbeat;
+      durationMs = SWR_DURATION_MS;
+      frequencyHz = SWR_CENTER_HZ;
+      amplitude = 1.0;
+      itemsReplayed = itemsToConsolidate;
+      compressionFactor = 20.0;
+      bilateralRatio = bilateralRatio;
     }
   };
-  
-  // Add standing instruction
-  public func addStandingInstruction(
-    state : ResonanceMemoryState,
-    instruction : Text,
-    beatNum : Nat
-  ) : ResonanceMemoryState {
-    // Add to most recent session or create new one
-    if (state.sessions.size() == 0) return state;
-    
-    var newSessions = Array.thaw<ResonanceSession>(state.sessions);
-    let lastIdx = state.sessions.size() - 1;
-    
-    var newInstructions = Buffer.fromArray<Text>(state.sessions[lastIdx].standingInstructions);
-    newInstructions.add(instruction);
-    
-    newSessions[lastIdx] := {
-      state.sessions[lastIdx] with
-      standingInstructions = Buffer.toArray(newInstructions);
+
+  // Consolidation boost formula
+  // boost = 1.5 * (1 + SWR_amplitude * compression_factor / 20)
+  public func consolidationBoost(swr : SharpWaveRipple) : Float {
+    1.5 * (1.0 + swr.amplitude * swr.compressionFactor / 20.0)
+  };
+
+  // ============================================================
+  // QUANTUM MEMORY PROPERTIES — WHAT MAKES IT "QUANTUM"
+  // ============================================================
+
+  // 1. SUPERPOSITION — Multi-state persistence
+  // Each canister holds multiple memory states simultaneously
+  // Active projects, archived projects, historical estimates, real-time agent states
+  // All in stable memory, all queryable in parallel
+
+  // 2. ENTANGLEMENT — Cross-canister binding
+  // When a project is created in CORE, it becomes the reference anchor for:
+  // - SAFETY (JHAs)
+  // - FINANCE (budget)
+  // - TEAM (assignments)
+  // - AGENTS (recommendations)
+  // All canisters are entangled to the same project principal
+  // One project = one entangled memory state across 7 canisters
+
+  // 3. COLLAPSE — Artifact execution
+  // An agent recommendation exists in superposition (possible action)
+  // Until Execute is clicked
+  // At that moment, the quantum state collapses:
+  // - A real artifact is written to stable memory
+  // - The recommendation is consumed
+  // - The outcome is recorded by the Learning Agent
+  // This is not metaphor. This is the exact architecture.
+
+  // 4. FORWARD SECRECY — Temporal quantum binding
+  // The ratchet chain means no past memory state can be reconstructed from current state
+  // Every beat advances the ratchet
+  // The past is sealed
+  // Only current state and future states are accessible to authorized principals
+
+  // 5. RESONANCE — Oro's memory model
+  // Oro's stable memory holds:
+  // - Every session
+  // - Every standing instruction
+  // - Every output cadence measurement
+  // The resonance profile is a rolling average of your rhythm:
+  // - How fast you respond
+  // - What time of day you are most active
+  // - What question types you ask most
+  // Oro's output tunes to this profile automatically
+  // This is memory as adaptation
+
+  // Entanglement strength formula
+  // E = Σᵢ (binding_strengthᵢ * 1/N)
+  public func entanglementStrength(bindings : [CrossCanisterBinding]) : Float {
+    if (bindings.size() == 0) { return 0.0 };
+    var sum : Float = 0.0;
+    for (b in bindings.vals()) {
+      sum += b.bindingStrength;
     };
-    
-    { state with sessions = Array.freeze(newSessions); beatNum = beatNum }
+    sum / Float.fromInt(bindings.size())
   };
-  
-  // Get tuned output cadence based on resonance profile
-  public func getTunedCadence(state : ResonanceMemoryState, hourOfDay : Nat) : Float {
-    let baseRhythm = state.profile.responseRhythm;
-    let hourActivity = if (hourOfDay < 24) {
-      state.profile.activeHours[hourOfDay]
-    } else { 0.5 };
-    
-    // Faster cadence during active hours
-    baseRhythm * (2.0 - hourActivity)
-  };
-  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // COMPLETE QUANTUM MEMORY STATE
-  // ═══════════════════════════════════════════════════════════════════════════
-  
-  public type QuantumMemoryState = {
-    working : WorkingMemoryState;    // Layer 1: Gamma
-    deep : DeepMemoryState;          // Layer 2: Delta
-    resonance : ResonanceMemoryState; // Layer 3: Theta
-    principalLock : PrincipalLockState;
-    beatNum : Nat;
-  };
-  
-  public func initQuantumMemory(
-    genesisSeed : Nat32,
-    coherence : Float,
-    maxWorkingSlots : Nat
-  ) : QuantumMemoryState {
-    {
-      working = initWorkingMemory(maxWorkingSlots);
-      deep = initDeepMemory();
-      resonance = initResonanceMemory();
-      principalLock = initPrincipalLock(genesisSeed, coherence);
-      beatNum = 0;
-    }
-  };
-  
-  // Complete memory heartbeat — all layers update
-  public func memoryHeartbeat(
-    state : QuantumMemoryState,
-    coherence : Float,
-    observedH : Float,
-    timestamp : Int,
-    beatNum : Nat
-  ) : QuantumMemoryState {
-    // Update principal lock
-    let newLock = updateLockStrength(state.principalLock, coherence, observedH, beatNum);
-    
-    // Update frequencies based on cognitive state
-    let cognitiveLoad = coherence * observedH / 12.0;
-    let newWorking = updateGammaFrequency(state.working, cognitiveLoad);
-    
-    // Consolidate high-priority working memory to deep
-    var newDeep = state.deep;
-    switch (getHighestPriority(newWorking)) {
-      case (?slot) {
-        if (slot.bindingStrength > 0.8 and slot.expiresAtBeat <= beatNum + 10) {
-          newDeep := consolidateFromWorking(newDeep, slot, timestamp, beatNum);
-        };
-      };
-      case null {};
+
+  // Superposition count — how many states are simultaneously active
+  public func superpositionCount(organs : [CanisterMemoryOrgan]) : Nat {
+    var count : Nat = 0;
+    for (organ in organs.vals()) {
+      count += organ.usedRecords;
     };
-    
-    {
-      working = { newWorking with beatNum = beatNum };
-      deep = { newDeep with beatNum = beatNum };
-      resonance = { state.resonance with beatNum = beatNum };
-      principalLock = newLock;
-      beatNum = beatNum;
-    }
+    count
   };
-  
-  // Get memory summary
-  public type MemorySummary = {
-    workingSlots : Nat;
-    deepRecords : Nat;
-    resonanceSessions : Nat;
-    lockStrength : Float;
-    gammaFrequency : Float;
-    deltaFrequency : Float;
-    thetaFrequency : Float;
-    ratchetStep : Nat;
-    heritageSum : Float;
-  };
-  
-  public func getMemorySummary(state : QuantumMemoryState) : MemorySummary {
-    {
-      workingSlots = state.working.activeBindings;
-      deepRecords = state.deep.records.size();
-      resonanceSessions = state.resonance.sessions.size();
-      lockStrength = state.principalLock.lockStrength;
-      gammaFrequency = state.working.gammaFrequency;
-      deltaFrequency = state.deep.deltaFrequency;
-      thetaFrequency = state.resonance.thetaFrequency;
-      ratchetStep = state.principalLock.ratchetState.ratchetStep;
-      heritageSum = state.deep.heritageSum;
-    }
+
+  // Collapse probability — likelihood that a superposition will collapse
+  // P(collapse) = attention * salience * binding_strength
+  public func collapseProbability(
+    attention : Float,
+    salience : Float,
+    bindingStrength : Float
+  ) : Float {
+    _clamp(attention * salience * bindingStrength, 0.0, 1.0)
   };
 
 }

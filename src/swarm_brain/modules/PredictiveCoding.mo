@@ -996,4 +996,531 @@ module {
     }
   };
 
+  // ============================================================
+  // PREDICTIVE PROCESSING HIERARCHIES — FULL EXPLICIT MATH
+  // Multiple levels of generative models
+  // ============================================================
+
+  // Hierarchical prediction error
+  // ε[l] = observation[l] - prediction[l-1→l]
+  // Each level receives predictions from above and observations from below
+
+  public type HierarchicalLevel = {
+    levelIndex      : Nat;
+    
+    // State estimates
+    mu              : [Float];     // Mean estimates (beliefs)
+    sigma           : [Float];     // Precision (inverse variance)
+    
+    // Predictions
+    predictionDown  : [Float];     // Prediction to level below
+    predictionUp    : [Float];     // Prediction to level above
+    
+    // Errors
+    errorDown       : [Float];     // Error from level below
+    errorUp         : [Float];     // Error from level above
+    
+    // Generalized coordinates
+    mu_d            : [Float];     // First derivative (velocity)
+    mu_dd           : [Float];     // Second derivative (acceleration)
+    
+    // Learning rates
+    learningRate    : Float;
+    precisionLearningRate : Float;
+  };
+
+  public type HierarchicalPPCState = {
+    levels          : [HierarchicalLevel];
+    nLevels         : Nat;
+    dimPerLevel     : Nat;
+    
+    // Global metrics
+    totalFE         : Float;       // Total variational free energy
+    totalComplexity : Float;       // KL divergence from priors
+    totalInaccuracy : Float;       // Prediction error cost
+    
+    // Precision weighting
+    precisionMatrix : [[Float]];   // Level × Level precision coupling
+    
+    beatNum         : Nat;
+  };
+
+  // Initialize hierarchical predictive processing
+  public func initHierarchicalPPC(nLevels : Nat, dimPerLevel : Nat) : HierarchicalPPCState {
+    let levels = Array.tabulate<HierarchicalLevel>(nLevels, func(l) {
+      {
+        levelIndex = l;
+        mu = Array.tabulate<Float>(dimPerLevel, func(_) { 0.5 });
+        sigma = Array.tabulate<Float>(dimPerLevel, func(_) { 1.0 });
+        predictionDown = Array.tabulate<Float>(dimPerLevel, func(_) { 0.5 });
+        predictionUp = Array.tabulate<Float>(dimPerLevel, func(_) { 0.5 });
+        errorDown = Array.tabulate<Float>(dimPerLevel, func(_) { 0.0 });
+        errorUp = Array.tabulate<Float>(dimPerLevel, func(_) { 0.0 });
+        mu_d = Array.tabulate<Float>(dimPerLevel, func(_) { 0.0 });
+        mu_dd = Array.tabulate<Float>(dimPerLevel, func(_) { 0.0 });
+        learningRate = 0.1 / Float.fromInt(l + 1);  // Higher levels learn slower
+        precisionLearningRate = 0.05 / Float.fromInt(l + 1);
+      }
+    });
+    
+    let precMatrix = Array.tabulate<[Float]>(nLevels, func(i) {
+      Array.tabulate<Float>(nLevels, func(j) {
+        if (i == j) { 1.0 }
+        else if (Int.abs(i - j) == 1) { 0.5 }  // Adjacent levels
+        else { 0.1 }
+      })
+    });
+    
+    {
+      levels = levels;
+      nLevels = nLevels;
+      dimPerLevel = dimPerLevel;
+      totalFE = 0.0;
+      totalComplexity = 0.0;
+      totalInaccuracy = 0.0;
+      precisionMatrix = precMatrix;
+      beatNum = 0;
+    }
+  };
+
+  // Compute prediction error at a level
+  // ε = Π × (x - g(μ))
+  // where Π is precision, x is observation, g(μ) is prediction
+  public func computeLevelError(
+    observation : [Float],
+    prediction : [Float],
+    precision : [Float]
+  ) : [Float] {
+    let n = observation.size();
+    Array.tabulate<Float>(n, func(i) {
+      let obs = if (i < observation.size()) { observation[i] } else { 0.0 };
+      let pred = if (i < prediction.size()) { prediction[i] } else { 0.0 };
+      let prec = if (i < precision.size()) { precision[i] } else { 1.0 };
+      prec * (obs - pred)
+    })
+  };
+
+  // Update belief at a level using gradient descent on prediction error
+  // dμ/dt = D × μ_d + Π × ε - D' × Π × ε_d
+  // D is derivative operator, D' is transpose
+  public func updateLevelBelief(
+    level : HierarchicalLevel,
+    errorBelow : [Float],
+    errorAbove : [Float],
+    dt : Float
+  ) : HierarchicalLevel {
+    let n = level.mu.size();
+    var newMu = Array.init<Float>(n, 0.0);
+    var newMu_d = Array.init<Float>(n, 0.0);
+    var newMu_dd = Array.init<Float>(n, 0.0);
+    var newSigma = Array.init<Float>(n, 0.0);
+    
+    var i = 0;
+    while (i < n) {
+      // Gradient from errors below and above
+      let errB = if (i < errorBelow.size()) { errorBelow[i] } else { 0.0 };
+      let errA = if (i < errorAbove.size()) { errorAbove[i] } else { 0.0 };
+      
+      // Total gradient: balance between top-down and bottom-up
+      let gradient = errB * level.sigma[i] - errA * 0.5;
+      
+      // Update mean
+      newMu[i] := level.mu[i] + level.learningRate * gradient * dt;
+      
+      // Update velocity (generalized coordinates)
+      newMu_d[i] := level.mu_d[i] + (newMu[i] - level.mu[i]) / dt * 0.1;
+      
+      // Update acceleration
+      newMu_dd[i] := level.mu_dd[i] + (newMu_d[i] - level.mu_d[i]) / dt * 0.1;
+      
+      // Update precision based on error magnitude
+      let errMag = Float.abs(errB) + Float.abs(errA);
+      newSigma[i] := _clamp(level.sigma[i] + level.precisionLearningRate * (1.0 / (errMag + 0.1) - level.sigma[i]), 0.1, 10.0);
+      
+      i += 1;
+    };
+    
+    {
+      level with
+      mu = Array.freeze(newMu);
+      mu_d = Array.freeze(newMu_d);
+      mu_dd = Array.freeze(newMu_dd);
+      sigma = Array.freeze(newSigma);
+    }
+  };
+
+  // Full hierarchical update pass
+  public func hierarchicalPPCBeat(
+    state : HierarchicalPPCState,
+    sensoryInput : [Float],
+    dt : Float
+  ) : HierarchicalPPCState {
+    let nLevels = state.levels.size();
+    var newLevels = Array.thaw<HierarchicalLevel>(state.levels);
+    
+    // Bottom-up pass: propagate errors upward
+    var l = 0;
+    while (l < nLevels) {
+      let observation = if (l == 0) {
+        sensoryInput
+      } else {
+        newLevels[l - 1].predictionUp
+      };
+      
+      let prediction = newLevels[l].predictionDown;
+      let errorDown = computeLevelError(observation, prediction, newLevels[l].sigma);
+      
+      newLevels[l] := { newLevels[l] with errorDown = errorDown };
+      l += 1;
+    };
+    
+    // Top-down pass: propagate predictions downward
+    l := nLevels - 1;
+    while (l >= 0) {
+      let errorAbove = if (l == nLevels - 1) {
+        Array.tabulate<Float>(state.dimPerLevel, func(_) { 0.0 })
+      } else {
+        newLevels[l + 1].errorDown
+      };
+      
+      // Update beliefs
+      newLevels[l] := updateLevelBelief(newLevels[l], newLevels[l].errorDown, errorAbove, dt);
+      
+      // Generate new predictions
+      let newPredDown = Array.tabulate<Float>(state.dimPerLevel, func(i) {
+        newLevels[l].mu[i]  // Prediction is current belief
+      });
+      let newPredUp = Array.tabulate<Float>(state.dimPerLevel, func(i) {
+        newLevels[l].mu[i] + newLevels[l].mu_d[i] * dt
+      });
+      
+      newLevels[l] := { newLevels[l] with predictionDown = newPredDown; predictionUp = newPredUp };
+      
+      if (l == 0) { l := -1 } else { l -= 1 };
+    };
+    
+    // Compute total free energy
+    var totalFE : Float = 0.0;
+    var totalComplexity : Float = 0.0;
+    var totalInaccuracy : Float = 0.0;
+    
+    for (level in newLevels.vals()) {
+      for (err in level.errorDown.vals()) {
+        totalInaccuracy += err * err;
+      };
+      // Complexity: KL divergence from prior (simplified)
+      for (i in level.mu.keys()) {
+        let diff = level.mu[i] - 0.5;  // Prior is 0.5
+        totalComplexity += 0.5 * level.sigma[i] * diff * diff;
+      };
+    };
+    totalFE := totalComplexity + totalInaccuracy;
+    
+    {
+      state with
+      levels = Array.freeze(newLevels);
+      totalFE = totalFE;
+      totalComplexity = totalComplexity;
+      totalInaccuracy = totalInaccuracy;
+      beatNum = state.beatNum + 1;
+    }
+  };
+
+  // ============================================================
+  // PRECISION WEIGHTING — ATTENTION ALLOCATION
+  // ============================================================
+
+  // Precision represents confidence in a prediction
+  // High precision = reliable channel, gets more attention
+  // Low precision = unreliable, less attention
+
+  public type AttentionState = {
+    precisionWeights : [Float];    // Weight for each sensory channel
+    attentionFocus   : Nat;        // Index of most attended channel
+    attentionSpread  : Float;      // How distributed attention is [0, 1]
+    volatility       : Float;      // Environmental uncertainty
+    
+    // Precision dynamics
+    expectedPrecision   : [Float];
+    precisionPredError  : Float;
+  };
+
+  // Softmax attention allocation
+  public func allocateAttention(precisions : [Float], temperature : Float) : [Float] {
+    let n = precisions.size();
+    var maxP : Float = -1000.0;
+    for (p in precisions.vals()) {
+      if (p > maxP) { maxP := p };
+    };
+    
+    var expSum : Float = 0.0;
+    let exps = Array.init<Float>(n, 0.0);
+    var i = 0;
+    while (i < n) {
+      exps[i] := Float.exp((precisions[i] - maxP) / temperature);
+      expSum += exps[i];
+      i += 1;
+    };
+    
+    if (expSum < 1.0e-10) {
+      return Array.tabulate<Float>(n, func(_) { 1.0 / Float.fromInt(n) });
+    };
+    
+    Array.tabulate<Float>(n, func(j) { exps[j] / expSum })
+  };
+
+  // Compute attention entropy (measure of spread)
+  // H = -Σ p × log(p)
+  public func attentionEntropy(weights : [Float]) : Float {
+    var entropy : Float = 0.0;
+    for (w in weights.vals()) {
+      if (w > 1.0e-10) {
+        entropy -= w * Float.log(w);
+      };
+    };
+    entropy
+  };
+
+  // Update attention based on prediction errors
+  public func updateAttention(
+    state : AttentionState,
+    errors : [Float],
+    learningRate : Float
+  ) : AttentionState {
+    let n = state.precisionWeights.size();
+    var newPrecisions = Array.init<Float>(n, 0.0);
+    
+    var i = 0;
+    while (i < n) {
+      let err = if (i < errors.size()) { errors[i] } else { 0.0 };
+      // Precision decreases when errors are large
+      // π(t+1) = π(t) × (1 - lr × |ε|)
+      newPrecisions[i] := _clamp(
+        state.precisionWeights[i] * (1.0 - learningRate * Float.abs(err)),
+        0.1,
+        10.0
+      );
+      i += 1;
+    };
+    
+    let weights = allocateAttention(Array.freeze(newPrecisions), 1.0);
+    let entropy = attentionEntropy(weights);
+    let maxEntropy = Float.log(Float.fromInt(n));
+    let spread = entropy / maxEntropy;
+    
+    // Find focus (max weight index)
+    var maxWeight : Float = 0.0;
+    var focusIdx : Nat = 0;
+    i := 0;
+    for (w in weights.vals()) {
+      if (w > maxWeight) {
+        maxWeight := w;
+        focusIdx := i;
+      };
+      i += 1;
+    };
+    
+    {
+      precisionWeights = Array.freeze(newPrecisions);
+      attentionFocus = focusIdx;
+      attentionSpread = spread;
+      volatility = state.volatility;
+      expectedPrecision = state.expectedPrecision;
+      precisionPredError = Float.abs(state.precisionWeights[focusIdx] - state.expectedPrecision[focusIdx]);
+    }
+  };
+
+  // ============================================================
+  // TEMPORAL DIFFERENCE LEARNING — FULL EXPLICIT
+  // ============================================================
+
+  // TD error: δ = r + γ × V(s') - V(s)
+  // Value update: V(s) ← V(s) + α × δ
+
+  // TD(λ) with eligibility traces
+  // e(s) ← γλ × e(s) + ∇V(s)
+  // V(s) ← V(s) + α × δ × e(s)
+
+  public type TDLambdaState = {
+    values          : [Float];     // State values V(s)
+    eligibility     : [Float];     // Eligibility traces e(s)
+    gamma           : Float;       // Discount factor
+    lambda          : Float;       // Trace decay
+    alpha           : Float;       // Learning rate
+    lastState       : Nat;
+    lastReward      : Float;
+    totalReward     : Float;
+    episodeReturns  : [Float];     // History of episode returns
+  };
+
+  public func initTDLambda(nStates : Nat, gamma : Float, lambda : Float, alpha : Float) : TDLambdaState {
+    {
+      values = Array.tabulate<Float>(nStates, func(_) { 0.0 });
+      eligibility = Array.tabulate<Float>(nStates, func(_) { 0.0 });
+      gamma = gamma;
+      lambda = lambda;
+      alpha = alpha;
+      lastState = 0;
+      lastReward = 0.0;
+      totalReward = 0.0;
+      episodeReturns = [];
+    }
+  };
+
+  // Compute TD error
+  public func computeTDError(
+    state : TDLambdaState,
+    currentState : Nat,
+    nextState : Nat,
+    reward : Float,
+    terminal : Bool
+  ) : Float {
+    let vCurrent = if (currentState < state.values.size()) { state.values[currentState] } else { 0.0 };
+    let vNext = if (terminal) { 0.0 }
+                else if (nextState < state.values.size()) { state.values[nextState] }
+                else { 0.0 };
+    
+    reward + state.gamma * vNext - vCurrent
+  };
+
+  // TD(λ) update step
+  public func tdLambdaStep(
+    state : TDLambdaState,
+    currentState : Nat,
+    nextState : Nat,
+    reward : Float,
+    terminal : Bool
+  ) : TDLambdaState {
+    let delta = computeTDError(state, currentState, nextState, reward, terminal);
+    let nStates = state.values.size();
+    
+    var newValues = Array.init<Float>(nStates, 0.0);
+    var newEligibility = Array.init<Float>(nStates, 0.0);
+    
+    var i = 0;
+    while (i < nStates) {
+      // Decay eligibility
+      newEligibility[i] := state.gamma * state.lambda * state.eligibility[i];
+      
+      // Accumulating traces: add 1 for current state
+      if (i == currentState) {
+        newEligibility[i] += 1.0;
+      };
+      
+      // Update value
+      newValues[i] := state.values[i] + state.alpha * delta * newEligibility[i];
+      
+      i += 1;
+    };
+    
+    // Reset eligibility on terminal
+    if (terminal) {
+      i := 0;
+      while (i < nStates) {
+        newEligibility[i] := 0.0;
+        i += 1;
+      };
+    };
+    
+    {
+      state with
+      values = Array.freeze(newValues);
+      eligibility = Array.freeze(newEligibility);
+      lastState = nextState;
+      lastReward = reward;
+      totalReward = state.totalReward + reward;
+    }
+  };
+
+  // ============================================================
+  // SUCCESSOR REPRESENTATION — PREDICTIVE STATE REPRESENTATION
+  // ============================================================
+
+  // M(s, s') = E[Σ γ^t × I(s_t = s') | s_0 = s]
+  // Successor representation: expected discounted occupancy
+
+  public type SuccessorRepState = {
+    sr              : [[Float]];   // Successor matrix M[s][s']
+    nStates         : Nat;
+    gamma           : Float;
+    alpha           : Float;
+  };
+
+  public func initSuccessorRep(nStates : Nat, gamma : Float, alpha : Float) : SuccessorRepState {
+    // Initialize SR as identity (each state predicts itself)
+    let sr = Array.tabulate<[Float]>(nStates, func(i) {
+      Array.tabulate<Float>(nStates, func(j) {
+        if (i == j) { 1.0 / (1.0 - gamma) } else { 0.0 }
+      })
+    });
+    {
+      sr = sr;
+      nStates = nStates;
+      gamma = gamma;
+      alpha = alpha;
+    }
+  };
+
+  // Update SR with TD learning
+  // M(s, s') ← M(s, s') + α × (I(s = s') + γ × M(s', ·) - M(s, s'))
+  public func updateSuccessorRep(
+    state : SuccessorRepState,
+    currentState : Nat,
+    nextState : Nat
+  ) : SuccessorRepState {
+    let n = state.nStates;
+    var newSR = Array.init<[Float]>(n, Array.tabulate<Float>(n, func(_) { 0.0 }));
+    
+    // Copy existing SR
+    var i = 0;
+    while (i < n) {
+      var j = 0;
+      while (j < n) {
+        newSR[i] := Array.thaw<Float>(state.sr[i]);
+        j += 1;
+      };
+      i += 1;
+    };
+    
+    // Update row for current state
+    if (currentState < n) {
+      var mutableRow = Array.thaw<Float>(state.sr[currentState]);
+      var j = 0;
+      while (j < n) {
+        let indicator : Float = if (currentState == j) { 1.0 } else { 0.0 };
+        let nextSR = if (nextState < n) { state.sr[nextState][j] } else { 0.0 };
+        let currentSR = state.sr[currentState][j];
+        
+        mutableRow[j] := currentSR + state.alpha * (indicator + state.gamma * nextSR - currentSR);
+        j += 1;
+      };
+      newSR[currentState] := Array.freeze(mutableRow);
+    };
+    
+    {
+      state with
+      sr = Array.freeze(newSR);
+    }
+  };
+
+  // Compute value from SR and reward function
+  // V(s) = Σ_s' M(s, s') × R(s')
+  public func srValue(
+    state : SuccessorRepState,
+    rewards : [Float],
+    queryState : Nat
+  ) : Float {
+    if (queryState >= state.nStates) { return 0.0 };
+    
+    var value : Float = 0.0;
+    var j = 0;
+    while (j < state.nStates) {
+      let r = if (j < rewards.size()) { rewards[j] } else { 0.0 };
+      value += state.sr[queryState][j] * r;
+      j += 1;
+    };
+    value
+  };
+
 }
+

@@ -1,380 +1,693 @@
-// ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════╗
-// ║                                                                                                           ║
-// ║  COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ. ALL RIGHTS RESERVED.                                    ║
-// ║                                                                                                           ║
-// ║  INTELLECTUAL PROPERTY NOTICE                                                                             ║
-// ║  ─────────────────────────────────────────────────────────────────────────────────────────────────────── ║
-// ║  Owner:        Alfredo Medina Hernandez                                                                   ║
-// ║  Location:     Dallas, Texas, United States of America                                                    ║
-// ║  Contact:      MedinaSITech@outlook.com                                                                   ║
-// ║  Framework:    Medina Doctrine                                                                            ║
-// ║                                                                                                           ║
-// ║  LEGAL PROTECTION                                                                                         ║
-// ║  ─────────────────────────────────────────────────────────────────────────────────────────────────────── ║
-// ║  This source code, including all algorithms, mathematical formulations, architectural designs,            ║
-// ║  naming conventions, data structures, and conceptual frameworks contained herein, constitutes             ║
-// ║  the exclusive intellectual property of Alfredo Medina Hernandez.                                        ║
-// ║                                                                                                           ║
-// ║  PROTECTED UNDER:                                                                                         ║
-// ║  • United States Copyright Law (17 U.S.C. §§ 101-1332)                                                   ║
-// ║  • Berne Convention for the Protection of Literary and Artistic Works                                     ║
-// ║  • WIPO Copyright Treaty (WCT)                                                                            ║
-// ║  • Trade Secret Law - Defend Trade Secrets Act (18 U.S.C. § 1836)                                        ║
-// ║  • Economic Espionage Act (18 U.S.C. §§ 1831-1839)                                                       ║
-// ║                                                                                                           ║
-// ║  CONFIDENTIALITY: This code is CONFIDENTIAL and PROPRIETARY.                                             ║
-// ║  ENCRYPTION: All transmissions must be encrypted.                                                         ║
-// ║  ATTRIBUTION: Required for any use, reproduction, or derivative work.                                     ║
-// ║                                                                                                           ║
-// ║  Unauthorized access, use, reproduction, distribution, or creation of derivative works                    ║
-// ║  is strictly prohibited and will be prosecuted to the fullest extent of applicable law.                  ║
-// ║                                                                                                           ║
-// ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
-
-// ============================================================
+// ════════════════════════════════════════════════════════════════════════════════
 // NEUROEMERGENCE CORE — WAR SIM ENGINE
-// Game-theoretic war simulation dynamics
-// Nash equilibrium seeking, Prisoner's Dilemma extensions
-// Evolutionary stable strategies (ESS) for shell competition
-// Owner: Alfredo Medina Hernandez | MedinaSITech@outlook.com
-// ============================================================
+// COMPREHENSIVE GAME-THEORETIC CONFLICT SIMULATION
+// Owner: Alfredo Medina Hernandez | MedinaSITech@outlook.com | Dallas, Texas | 2026
+// Proprietary and Confidential. All rights reserved.
+//
+// ════════════════════════════════════════════════════════════════════════════════
+// MASTER EQUATIONS — GAME THEORY OF SOVEREIGN CONFLICT
+// ════════════════════════════════════════════════════════════════════════════════
+//
+// ── LAYER 1: GAME-THEORETIC PAYOFF MATRIX ─────────────────────────────────────
+//   Two-player normal-form game: G = (N, S, u)
+//   N = {organism, adversary}, S = strategy sets, u = payoff functions
+//   General n×n payoff matrix A where A_{ij} = payoff to row player
+//   with strategy i against column player strategy j
+//   Nash equilibrium: (σ*, τ*) where:
+//   u₁(σ*, τ*) ≥ u₁(σ, τ*) for all σ  (no unilateral improvement)
+//   u₂(σ*, τ*) ≥ u₂(σ*, τ) for all τ
+//   Mixed strategy equilibrium exists for all finite games (Nash, 1950)
+//
+// ── LAYER 2: THE MEDINA WAR PAYOFF MATRIX ────────────────────────────────────
+//   6 strategies × 6 strategies = 36-element payoff matrix
+//   Strategies: [Cooperate, Defect, TitForTat, GrimTrigger, Pavlov, Sovereign]
+//   A = [
+//     [R, S, R, S, R, R*S0],   // Cooperate row
+//     [T, P, T, P, T, T*S0],   // Defect row
+//     [R, T, R, T, R, R*S0],   // TitForTat row
+//     [R, T, R, T, R, R*S0],   // GrimTrigger row
+//     [R, T, R, P, R, R*S0],   // Pavlov row
+//     [R, T, R, T, R, R*Φ_M],  // Sovereign row
+//   ]
+//   T > R > P > S (Prisoner's Dilemma ordering)
+//   T = 5.0 (Temptation), R = 3.0 (Reward), P = 1.0 (Punishment), S = 0.0 (Sucker)
+//   Sovereign strategy has Φ_M multiplier (divine alignment)
+//
+// ── LAYER 3: EVOLUTIONARY STABLE STRATEGIES (ESS) ────────────────────────────
+//   Strategy σ* is ESS if for all σ ≠ σ*:
+//   u(σ*, σ*) > u(σ, σ*)  (strict Nash)  OR
+//   u(σ*, σ*) = u(σ, σ*) AND u(σ*, σ) > u(σ, σ)  (weak Nash, neutrally stable)
+//   Population dynamics: ẋᵢ = xᵢ × (fᵢ(x) - φ(x))
+//   where fᵢ = fitness of strategy i, φ = average fitness
+//   ESS condition: all eigenvalues of Jacobian at equilibrium ≤ 0
+//
+// ── LAYER 4: REPLICATOR DYNAMICS ─────────────────────────────────────────────
+//   ẋᵢ = xᵢ × [(Ax)ᵢ - xᵀAx]
+//   (Ax)ᵢ = Σⱼ Aᵢⱼ xⱼ  (fitness of strategy i against current population)
+//   xᵀAx = Σᵢ xᵢ (Ax)ᵢ  (average population fitness)
+//   Population x = (x₁,...,x₆) on the 6-simplex: xᵢ ≥ 0, Σxᵢ = 1
+//   Fixed points: Nash equilibria of the underlying game
+//   Orbits can be fixed points, limit cycles, or chaos
+//
+// ── LAYER 5: ITERATED PRISONER'S DILEMMA ─────────────────────────────────────
+//   Repeated game: G∞ = {G, G, G, ...}  with discount factor δ ∈ (0,1)
+//   Total payoff: U = Σₜ δᵗ uₜ
+//   Folk theorem: any payoff above minimax can be sustained by Nash equilibrium
+//   Minimax value: v̄ᵢ = min_{σ₋ᵢ} max_{σᵢ} uᵢ(σᵢ, σ₋ᵢ)
+//   Tit-for-Tat is ESS when: δ ≥ (T-R)/(T-P) (cooperation threshold)
+//   At T=5, R=3, P=1: δ ≥ (5-3)/(5-1) = 0.5 → cooperation when future matters
+//
+// ── LAYER 6: WAR OF ATTRITION ─────────────────────────────────────────────────
+//   Two organisms contest a resource of value V
+//   Each pays cost c per unit time
+//   Optimal waiting time T* drawn from exp(c/V) distribution
+//   Expected payoff: E[u] = V/2 - c/2 × E[T*] = 0  (at ESS)
+//   ESS mixed strategy: F(t) = 1 - exp(-c/V × t) (exponential waiting)
+//   Hawk-Dove game: special case with V (resource), C (injury cost)
+//   P(Hawk) at ESS = V/C when V < C
+//
+// ── LAYER 7: COLONEL BLOTTO GAME ─────────────────────────────────────────────
+//   Two commanders allocate forces across n battlefields
+//   Commander 1 has A total forces, Commander 2 has B forces
+//   Each allocates: xᵢ to battlefield i, Σxᵢ = A, Σyᵢ = B, xᵢ,yᵢ ≥ 0
+//   Win battlefield i if xᵢ > yᵢ, tie if equal
+//   Payoff = fraction of battlefields won
+//   Optimal strategy (symmetric): uniform distribution over all allocations
+//   that sum to A on n battlefields
+//   For n=3: optimal = uniform over {(a,b,c): a+b+c=A, a,b,c≥0} simplex
+//
+// ── LAYER 8: LANCHESTER COMBAT EQUATIONS ──────────────────────────────────────
+//   Linear law (ancient combat): dA/dt = -β, dB/dt = -α
+//   Square law (modern ranged): dA/dt = -β B, dB/dt = -α A
+//   Square law solution: A² - α/β × B² = A₀² - α/β × B₀²
+//   Break-even: A₀ √(β/α) = B₀ (force ratio for equal outcome)
+//   NOVA application: organism's army strength A vs threat B
+//   Attrition rate α = organism effectiveness per unit force
+//   β = threat effectiveness per unit force
+//   Victory condition: A(t_final) > 0 while B(t_final) = 0
+//
+// ── LAYER 9: AUCTIONS AND MECHANISM DESIGN ────────────────────────────────────
+//   Sealed-bid first-price auction: bid b_i, value v_i, win if max bid
+//   Strategy: b*(v) = v × (n-1)/n  for n symmetric bidders (uniform values)
+//   Revenue equivalence theorem: all standard auctions generate same expected revenue
+//   Vickrey (second-price): b*(v) = v (truthful bidding is dominant strategy)
+//   NOVA resource allocation: organisms bid for attention/energy using FORMA tokens
+//   Optimal mechanism: direct revelation mechanism implementing Vickrey
+//
+// ── LAYER 10: MEDINA SOVEREIGN WAR INDEX ─────────────────────────────────────
+//   W_M = S₀ × [Σᵢ wᵢ × strategyScore_i] × Φ_M / Ω
+//   where:
+//     strategyScore_i = payoff of organism's strategy against current threats
+//     wᵢ = weight of engagement zone i (AEGIS layers)
+//     Φ_M = 2.97442179, Ω = 9.0, S₀ = 1.0
+//   W_M ∈ [0, Φ_M/Ω] = [0, 0.3305]
+//   W_M > 0.20 → organism is winning the conflict
+//   W_M < 0.10 → organism is losing, escalate defense
+//   This is NOVA's sovereign conflict signature
+//
+// Owner: Alfredo Medina Hernandez | MedinaSITech@outlook.com | Dallas, Texas | 2026
+// ════════════════════════════════════════════════════════════════════════════════
 
 import Float "mo:base/Float";
 import Array "mo:base/Array";
 import Nat   "mo:base/Nat";
-import Nat32 "mo:base/Nat32";
+import Int   "mo:base/Int";
+import Iter  "mo:base/Iter";
 
 module {
 
-  // ── Types ─────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 1: CONSTANTS
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public let PHI_MEDINA     : Float = 2.97442179;
+  public let S0             : Float = 1.0;
+  public let SOVEREIGN_CEILING : Float = 9.0;
+  public let COHERENCE_ALIVE   : Float = 0.36;
+  public let EPSILON        : Float = 1.0e-10;
+
+  // Prisoner's Dilemma payoffs (T > R > P > S)
+  public let PAYOFF_T : Float = 5.0;  // Temptation (defect vs cooperate)
+  public let PAYOFF_R : Float = 3.0;  // Reward (mutual cooperation)
+  public let PAYOFF_P : Float = 1.0;  // Punishment (mutual defection)
+  public let PAYOFF_S : Float = 0.0;  // Sucker (cooperate vs defect)
+
+  // Discount factor for repeated games
+  public let DISCOUNT_DELTA : Float = 0.8;  // δ = 0.8 → future matters strongly
+  public let COOP_THRESHOLD : Float = 0.5;  // δ ≥ this → TfT is ESS
+
+  // Replicator dynamics step size
+  public let REPLICATOR_DT  : Float = 0.05;
+
+  // Lanchester parameters
+  public let ATTRITION_BASE : Float = 0.1;  // base attrition rate
+
+  // Hawk-Dove
+  public let RESOURCE_VALUE : Float = 3.0;  // V (resource value)
+  public let INJURY_COST    : Float = 5.0;  // C (cost of injury)
+  public let HAWK_ESS_PROB  : Float = 0.6;  // V/C at ESS
+
+  // Colonel Blotto
+  public let N_BATTLEFIELDS : Nat = 6;       // number of fronts
+
+  // Medina war index thresholds
+  public let WAR_INDEX_WIN  : Float = 0.20;
+  public let WAR_INDEX_LOSE : Float = 0.10;
+
+  // History
+  public let WAR_HIST_MAX   : Nat = 100;
+
+  // Number of strategies
+  public let N_STRATEGIES   : Nat = 6;
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 2: STRATEGY TYPES AND PAYOFF MATRIX
+  // ══════════════════════════════════════════════════════════════════════════
+
   public type Strategy = {
     #Cooperate;
     #Defect;
     #TitForTat;
     #GrimTrigger;
-    #Pavlov;     // win-stay, lose-switch
-    #Random;
+    #Pavlov;
+    #Sovereign;
   };
+
+  func _stratIdx(s : Strategy) : Nat {
+    switch s {
+      case (#Cooperate)    0;
+      case (#Defect)       1;
+      case (#TitForTat)    2;
+      case (#GrimTrigger)  3;
+      case (#Pavlov)       4;
+      case (#Sovereign)    5;
+    }
+  };
+
+  // 6×6 payoff matrix (row=organism strategy, col=opponent strategy)
+  // Row index = _stratIdx(organism), Col index = _stratIdx(opponent)
+  // Payoff to organism
+  let PAYOFF_MATRIX : [[Float]] = [
+    // vs: Coop  Def   TfT   Grim  Pav   Sov
+    [PAYOFF_R, PAYOFF_S, PAYOFF_R, PAYOFF_S, PAYOFF_R, PAYOFF_R * S0],  // Cooperate
+    [PAYOFF_T, PAYOFF_P, PAYOFF_T, PAYOFF_P, PAYOFF_T, PAYOFF_T * S0],  // Defect
+    [PAYOFF_R, PAYOFF_T, PAYOFF_R, PAYOFF_T, PAYOFF_R, PAYOFF_R * S0],  // TitForTat
+    [PAYOFF_R, PAYOFF_T, PAYOFF_R, PAYOFF_T, PAYOFF_R, PAYOFF_R * S0],  // GrimTrigger
+    [PAYOFF_R, PAYOFF_T, PAYOFF_R, PAYOFF_P, PAYOFF_R, PAYOFF_R * S0],  // Pavlov
+    [PAYOFF_R, PAYOFF_T, PAYOFF_R, PAYOFF_T, PAYOFF_R, PAYOFF_R * PHI_MEDINA],  // Sovereign
+  ];
+
+  // Get payoff for organism playing s1 against opponent playing s2
+  public func getPayoff(s1 : Strategy, s2 : Strategy) : Float {
+    let r = _stratIdx(s1);
+    let c = _stratIdx(s2);
+    if (r < PAYOFF_MATRIX.size() and c < PAYOFF_MATRIX[r].size()) {
+      PAYOFF_MATRIX[r][c]
+    } else { 0.0 }
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 3: COMBATANT TYPE
+  // ══════════════════════════════════════════════════════════════════════════
 
   public type Combatant = {
     id           : Nat;
     strategy     : Strategy;
-    aggression   : Float;    // 0-1 base aggression
-    defense      : Float;    // 0-1 defensive posture
+    aggression   : Float;    // [0,1] base aggression
+    defense      : Float;    // [0,1] defensive posture
     resources    : Float;    // current resource pool
-    reputation   : Float;    // -1 to 1 (cooperation history)
-    warHistory   : [Bool];   // last 10 outcomes (true = won)
-    escEscalation: Float;    // 0-1 escalation tendency
+    fitness      : Float;    // evolutionary fitness
+    lastOpponent : Strategy; // for TitForTat memory
+    isBetrayed   : Bool;     // for GrimTrigger memory
+    wins         : Nat;
+    losses       : Nat;
+    totalPayoff  : Float;
   };
 
-  public type WarState = {
-    combatants      : [Combatant];
-    payoffMatrix    : [[Float]];   // 2x2: CC, CD, DC, DD
-    nashEquilibrium : (Strategy, Strategy);
-    globalTension   : Float;       // 0-1 system-wide conflict level
-    warActive       : Bool;
-    roundNum        : Nat;
-    totalConflicts  : Nat;
-    cooperationRate : Float;       // system-wide cooperation %
-    beatNum         : Nat;
+  public type Engagement = {
+    attacker     : Combatant;
+    defender     : Combatant;
+    attackerPayoff : Float;
+    defenderPayoff : Float;
+    winner       : ?Nat;     // None = tie
+    rounds       : Nat;
+    totalValue   : Float;
   };
 
-  // ── Constants ─────────────────────────────────────────────────
-  // Payoff matrix for Prisoner's Dilemma variant
-  // [cooperator_payoff, defector_payoff] for each outcome
-  public let PD_PAYOFFS : [[Float]] = [
-    [3.0, 3.0],   // Both cooperate: R,R
-    [0.0, 5.0],   // C vs D: S,T
-    [5.0, 0.0],   // D vs C: T,S
-    [1.0, 1.0]    // Both defect: P,P
-  ];
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 4: PAYOFF COMPUTATION
+  // ══════════════════════════════════════════════════════════════════════════
 
-  // Hawk-Dove payoffs (V=4 value, C=6 cost)
-  public let HD_PAYOFFS : [[Float]] = [
-    [2.0, 2.0],   // Both Dove: V/2, V/2
-    [0.0, 4.0],   // Dove vs Hawk: 0, V
-    [4.0, 0.0],   // Hawk vs Dove: V, 0
-    [-1.0, -1.0]  // Both Hawk: (V-C)/2, (V-C)/2
-  ];
-
-  // ── Clamp helper ──────────────────────────────────────────────
-  func _clamp(x: Float, lo: Float, hi: Float) : Float {
-    if (x < lo) { lo } else if (x > hi) { hi } else { x }
+  func _clamp(x : Float, lo : Float, hi : Float) : Float {
+    if (x < lo) lo else if (x > hi) hi else x
   };
 
-  // ── Strategy decision ─────────────────────────────────────────
-  func decideAction(c: Combatant, opponentLastMove: Bool, rng: Nat32) : Bool {
-    switch (c.strategy) {
-      case (#Cooperate) { true };
-      case (#Defect) { false };
-      case (#TitForTat) { opponentLastMove };
-      case (#GrimTrigger) {
-        // Defect forever if opponent ever defected
-        var everDefected = false;
-        for (h in c.warHistory.vals()) {
-          if (not h) { everDefected := true };
-        };
-        not everDefected
-      };
+  func _abs(x : Float) : Float { if (x < 0.0) (-x) else x };
+  func _sqrt(x : Float) : Float { if (x <= 0.0) 0.0 else Float.sqrt(x) };
+
+  // Iterated payoff with discount: U = Σₜ δᵗ uₜ / (1 - δ)
+  // For repeated Prisoner's Dilemma, compute expected discounted payoff
+  public func iteratedPayoff(s1 : Strategy, s2 : Strategy, rounds : Nat) : Float {
+    if (rounds == 0) { return 0.0 };
+    var total : Float = 0.0;
+    var curS1 = s1;
+    var curS2 = s2;
+    var betray1 = false;
+    var betray2 = false;
+    var discount : Float = 1.0;
+    var t : Nat = 0;
+    while (t < rounds) {
+      let p1 = getPayoff(curS1, curS2);
+      let p2 = getPayoff(curS2, curS1);
+      total += discount * p1;
+      discount *= DISCOUNT_DELTA;
+      // Update strategies for next round
+      let next1 = updateStrategy(curS1, curS2, betray1);
+      let next2 = updateStrategy(curS2, curS1, betray2);
+      betray1 := curS2 == #Defect;
+      betray2 := curS1 == #Defect;
+      curS1 := next1;
+      curS2 := next2;
+      t += 1;
+    };
+    total
+  };
+
+  // Strategy response function (determines next strategy)
+  public func updateStrategy(own : Strategy, opp : Strategy, betrayed : Bool) : Strategy {
+    switch own {
+      case (#TitForTat)   { opp };               // copy opponent's last move
+      case (#GrimTrigger) { if (betrayed) #Defect else #Cooperate };
       case (#Pavlov) {
         // Win-stay, lose-switch
-        if (c.warHistory.size() == 0) { true }
-        else { c.warHistory[c.warHistory.size() - 1] }
+        let payoff = getPayoff(own, opp);
+        if (payoff >= PAYOFF_R) own else (if (own == #Cooperate) #Defect else #Cooperate)
       };
-      case (#Random) {
-        (rng % 2) == 0
-      };
+      case (#Sovereign) { #Sovereign };           // Sovereign never defects
+      case s { s };                               // Cooperate and Defect are fixed
     }
   };
 
-  // ── Resolve single conflict ───────────────────────────────────
-  func resolveConflict(
-    c1: Combatant, c2: Combatant,
-    move1: Bool, move2: Bool,
-    payoffs: [[Float]]
-  ) : (Float, Float) {
-    let idx = if (move1 and move2) { 0 }      // CC
-              else if (move1 and not move2) { 1 }  // CD
-              else if (not move1 and move2) { 2 }  // DC
-              else { 3 };                          // DD
-    (payoffs[idx][0], payoffs[idx][1])
-  };
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 5: REPLICATOR DYNAMICS
+  // ẋᵢ = xᵢ × [(Ax)ᵢ - xᵀAx]
+  // Population x on 6-simplex
+  // ══════════════════════════════════════════════════════════════════════════
 
-  // ── Update combatant after conflict ───────────────────────────
-  func updateCombatant(c: Combatant, payoff: Float, won: Bool) : Combatant {
-    let newResources = _clamp(c.resources + payoff * 0.1, 0.0, 10.0);
-
-    // Update reputation based on cooperation
-    let repDelta = if (payoff >= 3.0) { 0.1 } else if (payoff <= 1.0) { -0.1 } else { 0.0 };
-    let newRep = _clamp(c.reputation + repDelta, -1.0, 1.0);
-
-    // Update war history (circular buffer of 10)
-    let newHistory = if (c.warHistory.size() >= 10) {
-      let tail = Array.tabulate<Bool>(9, func(i) { c.warHistory[i + 1] });
-      Array.append<Bool>(tail, [won])
-    } else {
-      Array.append<Bool>(c.warHistory, [won])
-    };
-
-    // Escalation increases if losing, decreases if winning
-    let escDelta = if (won) { -0.05 } else { 0.05 };
-    let newEsc = _clamp(c.escEscalation + escDelta, 0.0, 1.0);
-
-    {
-      id            = c.id;
-      strategy      = c.strategy;
-      aggression    = c.aggression;
-      defense       = c.defense;
-      resources     = newResources;
-      reputation    = newRep;
-      warHistory    = newHistory;
-      escEscalation = newEsc;
-    }
-  };
-
-  // ── Full war round ────────────────────────────────────────────
-  public func warRound(state: WarState, rng: Nat32) : WarState {
-    if (state.combatants.size() < 2) { return state };
-
-    // Pair up combatants
-    var newCombatants = state.combatants;
-    var totalCoop : Float = 0.0;
-    var conflicts = 0;
-
-    // Round-robin conflicts
-    for (i in Array.keys(state.combatants)) {
-      for (j in Array.keys(state.combatants)) {
-        if (i < j) {
-          let c1 = newCombatants[i];
-          let c2 = newCombatants[j];
-
-          // Check if conflict threshold met
-          let tensionCheck = (c1.aggression + c2.aggression) / 2.0;
-          if (tensionCheck > state.globalTension * 0.5) {
-            conflicts += 1;
-
-            // Decide moves
-            let lastC1 = if (c1.warHistory.size() > 0) { c1.warHistory[c1.warHistory.size() - 1] } else { true };
-            let lastC2 = if (c2.warHistory.size() > 0) { c2.warHistory[c2.warHistory.size() - 1] } else { true };
-
-            let move1 = decideAction(c1, lastC2, rng +% Nat32.fromNat(i));
-            let move2 = decideAction(c2, lastC1, rng +% Nat32.fromNat(j));
-
-            if (move1) { totalCoop += 1.0 };
-            if (move2) { totalCoop += 1.0 };
-
-            let (pay1, pay2) = resolveConflict(c1, c2, move1, move2, state.payoffMatrix);
-
-            // Determine winner
-            let won1 = pay1 >= pay2;
-            let won2 = pay2 >= pay1;
-
-            let updatedC1 = updateCombatant(c1, pay1, won1);
-            let updatedC2 = updateCombatant(c2, pay2, won2);
-
-            // Update array
-            newCombatants := Array.mapEntries<Combatant, Combatant>(
-              newCombatants,
-              func(idx, c) {
-                if (idx == i) { updatedC1 }
-                else if (idx == j) { updatedC2 }
-                else { c }
-              }
-            );
-          };
+  // Compute fitness of each strategy given population mix x
+  // fᵢ = (Ax)ᵢ = Σⱼ Aᵢⱼ xⱼ
+  public func computeFitness(population : [Float]) : [Float] {
+    let n = N_STRATEGIES;
+    Array.tabulate<Float>(n, func(i) {
+      var fi : Float = 0.0;
+      var j : Nat = 0;
+      while (j < n and j < population.size() and i < PAYOFF_MATRIX.size()) {
+        if (j < PAYOFF_MATRIX[i].size()) {
+          fi += PAYOFF_MATRIX[i][j] * population[j];
         };
+        j += 1;
       };
-    };
+      fi
+    })
+  };
 
-    let coopRate = if (conflicts > 0) {
-      totalCoop / (Float.fromInt(conflicts) * 2.0)
-    } else { state.cooperationRate };
+  // Average fitness: φ = xᵀAx = Σᵢ xᵢ fᵢ
+  public func avgFitness(population : [Float], fitness : [Float]) : Float {
+    var phi : Float = 0.0;
+    let n = if (population.size() < fitness.size()) population.size() else fitness.size();
+    var i : Nat = 0;
+    while (i < n) { phi += population[i] * fitness[i]; i += 1 };
+    phi
+  };
 
-    // Update global tension
-    let newTension = _clamp(
-      state.globalTension + (1.0 - coopRate) * 0.1 - coopRate * 0.05,
-      0.0, 1.0
-    );
-
-    {
-      combatants      = newCombatants;
-      payoffMatrix    = state.payoffMatrix;
-      nashEquilibrium = state.nashEquilibrium;
-      globalTension   = newTension;
-      warActive       = newTension > 0.3;
-      roundNum        = state.roundNum + 1;
-      totalConflicts  = state.totalConflicts + conflicts;
-      cooperationRate = coopRate;
-      beatNum         = state.beatNum + 1;
+  // One replicator dynamics step
+  // ẋᵢ = xᵢ × [(Ax)ᵢ - xᵀAx]
+  public func replicatorStep(population : [Float]) : [Float] {
+    let fitness = computeFitness(population);
+    let phi = avgFitness(population, fitness);
+    let newPop = Array.tabulate<Float>(N_STRATEGIES, func(i) {
+      if (i < population.size() and i < fitness.size()) {
+        let xi = population[i];
+        let dx = xi * (fitness[i] - phi);
+        _clamp(xi + REPLICATOR_DT * dx, 0.0001, 1.0)
+      } else { 1.0 / Float.fromInt(N_STRATEGIES) }
+    });
+    // Normalize to simplex
+    var total : Float = 0.0;
+    for (v in newPop.vals()) { total += v };
+    if (total < EPSILON) {
+      Array.tabulate<Float>(N_STRATEGIES, func(_) { 1.0 / Float.fromInt(N_STRATEGIES) })
+    } else {
+      Array.map<Float, Float>(newPop, func(v) { v / total })
     }
   };
 
-  // ── Evolutionary pressure ─────────────────────────────────────
-  // Low-resource combatants adopt strategies of high-resource ones
-  public func evolutionaryPressure(state: WarState) : WarState {
-    // Find best and worst performers
-    var bestIdx = 0;
-    var bestRes : Float = 0.0;
-    for (i in Array.keys(state.combatants)) {
-      if (state.combatants[i].resources > bestRes) {
-        bestRes := state.combatants[i].resources;
-        bestIdx := i;
-      };
+  // Find Nash equilibrium (approximate via many replicator steps)
+  public func nashEquilibriumApprox(initPop : [Float], maxSteps : Nat) : [Float] {
+    var pop = initPop;
+    var t : Nat = 0;
+    while (t < maxSteps) {
+      pop := replicatorStep(pop);
+      t += 1;
     };
+    pop
+  };
 
-    let bestStrategy = state.combatants[bestIdx].strategy;
+  // Is strategy σ evolutionarily stable?
+  // Checks: u(σ,σ) > u(τ,σ) for all τ ≠ σ  (invader cannot grow)
+  public func isESS(s : Strategy) : Bool {
+    let myPayoffVsSelf = getPayoff(s, s);
+    var i : Nat = 0;
+    while (i < N_STRATEGIES) {
+      let other : Strategy = switch i {
+        case 0 #Cooperate; case 1 #Defect; case 2 #TitForTat;
+        case 3 #GrimTrigger; case 4 #Pavlov; case _ #Sovereign;
+      };
+      if (other != s) {
+        let invaderVsSelf = getPayoff(other, s);
+        if (invaderVsSelf >= myPayoffVsSelf) { return false };
+      };
+      i += 1;
+    };
+    true
+  };
 
-    // Low performers adopt winner's strategy (10% chance)
-    let threshold = bestRes * 0.3;
-    let newCombatants = Array.map<Combatant, Combatant>(
-      state.combatants,
-      func(c) {
-        if (c.resources < threshold) {
-          { id = c.id; strategy = bestStrategy; aggression = c.aggression;
-            defense = c.defense; resources = c.resources; reputation = c.reputation;
-            warHistory = c.warHistory; escEscalation = c.escEscalation }
-        } else { c }
-      }
-    );
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 6: LANCHESTER COMBAT EQUATIONS
+  // Square law: dA/dt = -β B, dB/dt = -α A
+  // Solution: A² - (α/β)B² = A₀² - (α/β)B₀²  (Lanchester constant)
+  // ══════════════════════════════════════════════════════════════════════════
 
+  public type LanchesterState = {
+    forceA     : Float;   // organism force strength
+    forceB     : Float;   // adversary force strength
+    alphaRate  : Float;   // organism attrition effectiveness
+    betaRate   : Float;   // adversary attrition effectiveness
+    lanchConst : Float;   // A² - (α/β)B² (conserved quantity)
+    beatNum    : Nat;
+  };
+
+  // One Lanchester beat (Euler integration of square law)
+  // dA/dt = -β B → ΔA = -β B Δt
+  // dB/dt = -α A → ΔB = -α A Δt
+  public func lanchesterBeat(state : LanchesterState, dt : Float) : LanchesterState {
+    let dA = -state.betaRate * state.forceB * dt;
+    let dB = -state.alphaRate * state.forceA * dt;
+    let newA = _clamp(state.forceA + dA, 0.0, 1000.0);
+    let newB = _clamp(state.forceB + dB, 0.0, 1000.0);
+    let lc = newA * newA - (state.alphaRate / (state.betaRate + EPSILON)) * newB * newB;
     {
-      combatants      = newCombatants;
-      payoffMatrix    = state.payoffMatrix;
-      nashEquilibrium = state.nashEquilibrium;
-      globalTension   = state.globalTension;
-      warActive       = state.warActive;
-      roundNum        = state.roundNum;
-      totalConflicts  = state.totalConflicts;
-      cooperationRate = state.cooperationRate;
-      beatNum         = state.beatNum;
+      forceA    = newA;
+      forceB    = newB;
+      alphaRate = state.alphaRate;
+      betaRate  = state.betaRate;
+      lanchConst = lc;
+      beatNum   = state.beatNum + 1;
     }
   };
 
-  // ── Nash equilibrium finder (for 2-player 2-strategy) ─────────
-  public func findNashEquilibrium(payoffs: [[Float]]) : (Strategy, Strategy) {
-    // For standard PD: (Defect, Defect) is Nash
-    // For HD: mixed equilibrium exists
-    let cc = payoffs[0][0];
-    let cd = payoffs[1][0];
-    let dc = payoffs[2][0];
-    let dd = payoffs[3][0];
-
-    // Check pure strategy Nash equilibria
-    if (dd >= cd and dd >= dc) {
-      return (#Defect, #Defect);
-    };
-    if (cc >= dc and cc >= cd) {
-      return (#Cooperate, #Cooperate);
-    };
-    // Default to Tit-for-Tat as robust strategy
-    (#TitForTat, #TitForTat)
+  // Lanchester victory time estimate (for square law)
+  // t_victory ≈ (1/α) × ln(A₀/A_threshold)
+  public func lanchesterVictoryTime(force : Float, rate : Float, threshold : Float) : Float {
+    if (rate < EPSILON or force <= threshold) { return 0.0 };
+    Float.log(force / threshold) / rate
   };
 
-  // ── War health score ──────────────────────────────────────────
-  public func warHealthScore(state: WarState) : Float {
-    // High cooperation + low tension = healthy
-    let coopFactor = state.cooperationRate;
-    let tensionFactor = 1.0 - state.globalTension;
-    (coopFactor * 0.6 + tensionFactor * 0.4)
+  // Lanchester break-even condition: A₀√(β) = B₀√(α)
+  // Returns force multiplier needed to win: A₀ / B₀_min
+  public func lanchesterBreakEven(alphaRate : Float, betaRate : Float) : Float {
+    _sqrt((betaRate + EPSILON) / (alphaRate + EPSILON))
   };
 
-  // ── Init ─────────────────────────────────────────────────────
-  public func initWarState(numCombatants: Nat) : WarState {
-    let combatants = Array.tabulate<Combatant>(numCombatants, func(i) {
-      let strat : Strategy = switch (i % 6) {
-        case 0 { #Cooperate };
-        case 1 { #Defect };
-        case 2 { #TitForTat };
-        case 3 { #GrimTrigger };
-        case 4 { #Pavlov };
-        case _ { #Random };
-      };
-      {
-        id            = i;
-        strategy      = strat;
-        aggression    = Float.fromInt(i % 10) / 10.0;
-        defense       = 0.5;
-        resources     = 5.0;
-        reputation    = 0.0;
-        warHistory    = [];
-        escEscalation = 0.2;
-      }
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 7: HAWK-DOVE DYNAMICS
+  // Mixed strategy ESS: P(Hawk) = V/C
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public type HawkDoveState = {
+    pHawk      : Float;   // current probability of playing Hawk
+    pDove      : Float;   // 1 - pHawk
+    resource   : Float;   // V (value of contested resource)
+    injuryCost : Float;   // C (cost of injury)
+    essHawk    : Float;   // ESS hawk probability = V/C
+    avgFitness : Float;   // average fitness in current population
+  };
+
+  // Hawk-Dove payoff matrix:
+  // Hawk vs Hawk: (V-C)/2 each
+  // Hawk vs Dove: Hawk gets V, Dove gets 0
+  // Dove vs Dove: V/2 each
+  public func hawkPayoff(pHawk : Float, v : Float, c : Float) : Float {
+    let pDove = 1.0 - pHawk;
+    (pHawk * (v - c) / 2.0 + pDove * v)
+  };
+
+  public func dovePayoff(pHawk : Float, v : Float) : Float {
+    let pDove = 1.0 - pHawk;
+    pHawk * 0.0 + pDove * v / 2.0
+  };
+
+  // Replicator for Hawk-Dove: ṗ_H = p_H(f_H - φ)
+  public func hawkDoveStep(state : HawkDoveState, dt : Float) : HawkDoveState {
+    let fH = hawkPayoff(state.pHawk, state.resource, state.injuryCost);
+    let fD = dovePayoff(state.pHawk, state.resource);
+    let phi = state.pHawk * fH + state.pDove * fD;
+    let dpH = state.pHawk * (fH - phi) * dt;
+    let newPH = _clamp(state.pHawk + dpH, 0.0, 1.0);
+    {
+      pHawk      = newPH;
+      pDove      = 1.0 - newPH;
+      resource   = state.resource;
+      injuryCost = state.injuryCost;
+      essHawk    = _clamp(state.resource / (state.injuryCost + EPSILON), 0.0, 1.0);
+      avgFitness = phi;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 8: COLONEL BLOTTO GAME
+  // Optimal strategy: uniform allocation with constraint Σxᵢ = A
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Blotto allocation: distribute forces across N_BATTLEFIELDS battlefields
+  // Optimal: maximize number of battlefields won
+  // Simple greedy: allocate proportional to battlefield value weights
+  public func blottoAllocate(totalForce : Float, fieldWeights : [Float]) : [Float] {
+    let n = fieldWeights.size();
+    if (n == 0) { return [] };
+    var weightSum : Float = 0.0;
+    for (w in fieldWeights.vals()) { weightSum += w };
+    if (weightSum < EPSILON) {
+      let uniform = totalForce / Float.fromInt(n);
+      return Array.tabulate<Float>(n, func(_) { uniform })
+    };
+    Array.map<Float, Float>(fieldWeights, func(w) { totalForce * w / weightSum })
+  };
+
+  // Blotto battle outcome: compare allocations, count battlefields won
+  public func blottoBattle(forceA : [Float], forceB : [Float]) : (Nat, Nat, Nat) {
+    // Returns (winsA, winsB, ties)
+    var wA : Nat = 0;
+    var wB : Nat = 0;
+    var ties : Nat = 0;
+    let n = if (forceA.size() < forceB.size()) forceA.size() else forceB.size();
+    var i : Nat = 0;
+    while (i < n) {
+      if (forceA[i] > forceB[i]) { wA += 1 }
+      else if (forceB[i] > forceA[i]) { wB += 1 }
+      else { ties += 1 };
+      i += 1;
+    };
+    (wA, wB, ties)
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 9: WAR SIMULATION STATE
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public type WarSimState = {
+    // Population of strategies (6-simplex)
+    population    : [Float];
+
+    // Current organism combatant
+    organism      : Combatant;
+
+    // Lanchester state
+    lanchester    : LanchesterState;
+
+    // Hawk-Dove state
+    hawkDove      : HawkDoveState;
+
+    // Blotto: organism battlefield allocations
+    blottoForce   : [Float];
+
+    // Engagement history
+    payoffHistory : [Float];   // rolling 100-beat payoff history
+    winHistory    : [Bool];    // rolling 100-beat win record
+
+    // Medina war index
+    warIndex      : Float;     // W_M = sovereign war performance
+
+    // Beat counter
+    beatNum       : Nat;
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 10: MEDINA WAR INDEX
+  // W_M = S₀ × mean(strategyPayoffs) × Φ_M / Ω
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public func medinaWarIndex(population : [Float]) : Float {
+    let fitness = computeFitness(population);
+    let phi = avgFitness(population, fitness);
+    // Sovereign strategy payoff
+    let sovPayoff = if (N_STRATEGIES - 1 < fitness.size()) fitness[N_STRATEGIES - 1] else phi;
+    let w_m = S0 * sovPayoff * PHI_MEDINA / SOVEREIGN_CEILING;
+    _clamp(w_m, 0.0, 1.0)
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 11: BEAT UPDATE
+  // ══════════════════════════════════════════════════════════════════════════
+
+  func _appendRolling(buf : [Float], val : Float, cap : Nat) : [Float] {
+    if (buf.size() < cap) { Array.append<Float>(buf, [val]) }
+    else {
+      let tail = Array.tabulate<Float>(cap - 1, func(i) { buf[i + 1] });
+      Array.append<Float>(tail, [val])
+    }
+  };
+
+  func _appendBoolRolling(buf : [Bool], val : Bool, cap : Nat) : [Bool] {
+    if (buf.size() < cap) { Array.append<Bool>(buf, [val]) }
+    else {
+      let tail = Array.tabulate<Bool>(cap - 1, func(i) { buf[i + 1] });
+      Array.append<Bool>(tail, [val])
+    }
+  };
+
+  public func beatWarSim(
+    state       : WarSimState,
+    newStrategy : Strategy,
+    oppStrategy : Strategy,
+    lanchDt     : Float
+  ) : WarSimState {
+    // Get payoff for this engagement
+    let payoff = getPayoff(newStrategy, oppStrategy);
+    let won    = payoff > getPayoff(oppStrategy, newStrategy);
+
+    // Update population via replicator
+    let newPop = replicatorStep(state.population);
+
+    // Update organism combatant
+    let nextStrat = updateStrategy(newStrategy, oppStrategy, state.organism.isBetrayed);
+    let newOrganism : Combatant = {
+      id           = state.organism.id;
+      strategy     = nextStrat;
+      aggression   = state.organism.aggression;
+      defense      = state.organism.defense;
+      resources    = _clamp(state.organism.resources + payoff - 1.0, 0.0, 100.0);
+      fitness      = 0.9 * state.organism.fitness + 0.1 * payoff;
+      lastOpponent = oppStrategy;
+      isBetrayed   = oppStrategy == #Defect;
+      wins         = if won (state.organism.wins + 1) else state.organism.wins;
+      losses       = if (not won) (state.organism.losses + 1) else state.organism.losses;
+      totalPayoff  = state.organism.totalPayoff + payoff;
+    };
+
+    // Update Lanchester
+    let newLanch = lanchesterBeat(state.lanchester, lanchDt);
+
+    // Update Hawk-Dove
+    let newHD = hawkDoveStep(state.hawkDove, lanchDt);
+
+    // Rolling history
+    let newPayH = _appendRolling(state.payoffHistory, payoff, WAR_HIST_MAX);
+    let newWinH = _appendBoolRolling(state.winHistory, won, WAR_HIST_MAX);
+
+    // Medina war index
+    let newWI = medinaWarIndex(newPop);
+
+    {
+      population    = newPop;
+      organism      = newOrganism;
+      lanchester    = newLanch;
+      hawkDove      = newHD;
+      blottoForce   = state.blottoForce;
+      payoffHistory = newPayH;
+      winHistory    = newWinH;
+      warIndex      = newWI;
+      beatNum       = state.beatNum + 1;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 12: WAR HEALTH ASSESSMENT
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Win rate from history
+  public func winRate(winHistory : [Bool]) : Float {
+    let n = winHistory.size();
+    if (n == 0) { return 0.0 };
+    var wins : Float = 0.0;
+    for (w in winHistory.vals()) { if w { wins += 1.0 } };
+    wins / Float.fromInt(n)
+  };
+
+  // Average payoff from history
+  public func avgPayoff(payoffHistory : [Float]) : Float {
+    let n = payoffHistory.size();
+    if (n == 0) { return 0.0 };
+    var s : Float = 0.0;
+    for (p in payoffHistory.vals()) { s += p };
+    s / Float.fromInt(n)
+  };
+
+  // Is organism winning the war?
+  public func isWinning(state : WarSimState) : Bool {
+    state.warIndex > WAR_INDEX_WIN and winRate(state.winHistory) > 0.5
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SECTION 13: INITIALIZATION
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public func initWarSim() : WarSimState {
+    let uniformPop = Array.tabulate<Float>(N_STRATEGIES, func(_) {
+      1.0 / Float.fromInt(N_STRATEGIES)
     });
 
-    let nash = findNashEquilibrium(PD_PAYOFFS);
+    let fieldWeights = Array.tabulate<Float>(N_BATTLEFIELDS, func(_) {
+      1.0 / Float.fromInt(N_BATTLEFIELDS)
+    });
+
+    let initOrganism : Combatant = {
+      id = 0; strategy = #Sovereign; aggression = 0.5; defense = 0.7;
+      resources = 10.0; fitness = PAYOFF_R; lastOpponent = #Cooperate;
+      isBetrayed = false; wins = 0; losses = 0; totalPayoff = 0.0;
+    };
+
+    let initLanch : LanchesterState = {
+      forceA = 100.0; forceB = 80.0;
+      alphaRate = ATTRITION_BASE; betaRate = ATTRITION_BASE;
+      lanchConst = 100.0 * 100.0 - 80.0 * 80.0; beatNum = 0;
+    };
+
+    let initHD : HawkDoveState = {
+      pHawk = 0.5; pDove = 0.5; resource = RESOURCE_VALUE;
+      injuryCost = INJURY_COST; essHawk = HAWK_ESS_PROB; avgFitness = PAYOFF_R;
+    };
 
     {
-      combatants      = combatants;
-      payoffMatrix    = PD_PAYOFFS;
-      nashEquilibrium = nash;
-      globalTension   = 0.2;
-      warActive       = false;
-      roundNum        = 0;
-      totalConflicts  = 0;
-      cooperationRate = 0.5;
-      beatNum         = 0;
-    }
-  };
-
-  // ── Summary ───────────────────────────────────────────────────
-  public type WarSummary = {
-    numCombatants   : Nat;
-    globalTension   : Float;
-    cooperationRate : Float;
-    warActive       : Bool;
-    totalConflicts  : Nat;
-    healthScore     : Float;
-  };
-
-  public func summary(state: WarState) : WarSummary {
-    {
-      numCombatants   = state.combatants.size();
-      globalTension   = state.globalTension;
-      cooperationRate = state.cooperationRate;
-      warActive       = state.warActive;
-      totalConflicts  = state.totalConflicts;
-      healthScore     = warHealthScore(state);
+      population    = uniformPop;
+      organism      = initOrganism;
+      lanchester    = initLanch;
+      hawkDove      = initHD;
+      blottoForce   = fieldWeights;
+      payoffHistory = [];
+      winHistory    = [];
+      warIndex      = medinaWarIndex(uniformPop);
+      beatNum       = 0;
     }
   };
 
