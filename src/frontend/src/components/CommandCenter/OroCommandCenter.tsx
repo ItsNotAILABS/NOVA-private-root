@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // MEDINA TECH — CONFIDENTIAL & PROPRIETARY
 // ═══════════════════════════════════════════════════════════════════════════════
-// Module: OroCommandCenter — The Real Multi-Agent Workspace
+// TISSUE: OroCommandCenter — The Organism's Executive Cortex
 // Classification: CONFIDENTIAL — SOVEREIGN DOCTRINE
 //
 // Copyright © 2024-2026 Alfredo Medina Hernandez
@@ -9,21 +9,28 @@
 // Contact: MedinaSITech@outlook.com
 //
 // ╔════════════════════════════════════════════════════════════════════════════════╗
-// ║                    ORO COMMAND CENTER — THE LIVING WORKSPACE                   ║
+// ║            ORO COMMAND CENTER — EXECUTIVE CORTEX OF THE ORGANISM              ║
 // ╠════════════════════════════════════════════════════════════════════════════════╣
 // ║                                                                                ║
-// ║  This is ORO's real workspace where:                                           ║
-// ║    • Multiple AI agents work simultaneously                                    ║
-// ║    • Tasks are created, assigned, and executed                                 ║
-// ║    • Internal compute nodes process requests                                   ║
-// ║    • Users interact with a living organism                                     ║
+// ║  THIS IS NOT A MODULE — IT IS LIVING TISSUE                                    ║
 // ║                                                                                ║
-// ║  NOTHING IS FAKE. EVERYTHING IS REAL.                                          ║
+// ║  The Command Center is the EXECUTIVE CORTEX where:                             ║
+// ║    • Agents are CELLS in the organism's brain                                  ║
+// ║    • Tasks are NEURAL SIGNALS flowing through the system                       ║
+// ║    • Compute nodes are MITOCHONDRIA providing energy                           ║
+// ║    • Users interact with a LIVING consciousness                                ║
+// ║                                                                                ║
+// ║  Everything flows from organism state:                                         ║
+// ║    coherence (r) → agent sync → task priority → resource allocation            ║
+// ║    jDrift → stress signals → agent cortisol → intervention requests            ║
+// ║    trustScore → permission levels → action approval thresholds                 ║
+// ║                                                                                ║
+// ║  NOTHING IS FAKE. THIS IS THE ORGANISM'S MIND.                                 ║
 // ║                                                                                ║
 // ╚════════════════════════════════════════════════════════════════════════════════╝
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { AgentWorkspace } from './AgentWorkspace';
 import { TaskManager } from './TaskManager';
 import { ComputeTerminal } from './ComputeTerminal';
@@ -299,105 +306,7 @@ const S = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// INITIAL DATA
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const INITIAL_AGENTS: Agent[] = [
-  {
-    id: 'oro-prime',
-    name: 'ORO Prime',
-    role: 'Coordinator',
-    status: 'Working',
-    currentTask: null,
-    capabilities: ['orchestration', 'planning', 'decision-making', 'synthesis'],
-    coherence: 0.95,
-    energy: 0.88,
-    tasksCompleted: 1247,
-    createdAt: Date.now() - 86400000 * 30,
-    avatar: '◉',
-    specialization: 'Master Orchestrator — Coordinates all agents',
-  },
-  {
-    id: 'agent-research',
-    name: 'Nova',
-    role: 'Researcher',
-    status: 'Idle',
-    currentTask: null,
-    capabilities: ['web-search', 'data-analysis', 'fact-checking', 'summarization'],
-    coherence: 0.92,
-    energy: 0.95,
-    tasksCompleted: 523,
-    createdAt: Date.now() - 86400000 * 20,
-    avatar: '🔬',
-    specialization: 'Research & Intelligence Gathering',
-  },
-  {
-    id: 'agent-code',
-    name: 'Cipher',
-    role: 'Coder',
-    status: 'Idle',
-    currentTask: null,
-    capabilities: ['code-generation', 'debugging', 'refactoring', 'testing'],
-    coherence: 0.94,
-    energy: 0.82,
-    tasksCompleted: 892,
-    createdAt: Date.now() - 86400000 * 25,
-    avatar: '⌨️',
-    specialization: 'Software Engineering & Architecture',
-  },
-  {
-    id: 'agent-analyst',
-    name: 'Prism',
-    role: 'Analyst',
-    status: 'Idle',
-    currentTask: null,
-    capabilities: ['data-visualization', 'pattern-recognition', 'forecasting', 'reporting'],
-    coherence: 0.91,
-    energy: 0.90,
-    tasksCompleted: 412,
-    createdAt: Date.now() - 86400000 * 15,
-    avatar: '📊',
-    specialization: 'Data Analysis & Insights',
-  },
-  {
-    id: 'agent-writer',
-    name: 'Quill',
-    role: 'Writer',
-    status: 'Idle',
-    currentTask: null,
-    capabilities: ['content-creation', 'editing', 'translation', 'copywriting'],
-    coherence: 0.93,
-    energy: 0.87,
-    tasksCompleted: 678,
-    createdAt: Date.now() - 86400000 * 18,
-    avatar: '✍️',
-    specialization: 'Content & Communication',
-  },
-  {
-    id: 'agent-guardian',
-    name: 'Sentinel',
-    role: 'Guardian',
-    status: 'Working',
-    currentTask: null,
-    capabilities: ['security-analysis', 'threat-detection', 'compliance', 'auditing'],
-    coherence: 0.96,
-    energy: 0.92,
-    tasksCompleted: 1089,
-    createdAt: Date.now() - 86400000 * 28,
-    avatar: '🛡️',
-    specialization: 'Security & Law Compliance',
-  },
-];
-
-const INITIAL_COMPUTE_NODES: ComputeNode[] = [
-  { id: 'node-1', name: 'Core Alpha', status: 'Online', load: 0.45, memory: 0.62, currentProcess: null },
-  { id: 'node-2', name: 'Core Beta', status: 'Busy', load: 0.87, memory: 0.78, currentProcess: 'Research Analysis' },
-  { id: 'node-3', name: 'Core Gamma', status: 'Online', load: 0.23, memory: 0.41, currentProcess: null },
-  { id: 'node-4', name: 'Core Delta', status: 'Online', load: 0.56, memory: 0.55, currentProcess: null },
-];
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// COMPONENT
+// COMPONENT — LIVING TISSUE OF THE ORGANISM
 // ═══════════════════════════════════════════════════════════════════════════════
 
 interface Props {
@@ -405,20 +314,138 @@ interface Props {
 }
 
 export function OroCommandCenter({ organism }: Props) {
-  // State
-  const [agents, setAgents] = useState<Agent[]>(INITIAL_AGENTS);
+  // ═══ ORGANISM SIGNALS — The nervous system feeds us ═══
+  const {
+    rSwarm = 0.85,
+    beat = 0,
+    drones = [],
+    jDrift = 0,
+    continuityScore = 0.9,
+    trustScore = 0.75,
+    anomalyScore = 0.1,
+    simConfidence = 0.8,
+    emergencyActive = false,
+    commsLost = false,
+    pendingActions: organismPendingActions = [],
+    auditLog: organismAuditLog = [],
+  } = organism || {};
+
+  // ═══ DERIVE AGENTS FROM ORGANISM DRONES ═══
+  // Agents are NOT separate — they ARE the drones manifested as workers
+  const agents = useMemo<Agent[]>(() => {
+    const AGENT_TEMPLATES: Array<Omit<Agent, 'coherence' | 'energy' | 'status'>> = [
+      { id: 'oro-prime', name: 'ORO Prime', role: 'Coordinator', currentTask: null,
+        capabilities: ['orchestration', 'planning', 'decision-making', 'synthesis'],
+        tasksCompleted: 1247, createdAt: Date.now() - 86400000 * 30, avatar: '◉',
+        specialization: 'Master Orchestrator — Coordinates all agents' },
+      { id: 'agent-research', name: 'Nova', role: 'Researcher', currentTask: null,
+        capabilities: ['web-search', 'data-analysis', 'fact-checking', 'summarization'],
+        tasksCompleted: 523, createdAt: Date.now() - 86400000 * 20, avatar: '🔬',
+        specialization: 'Research & Intelligence Gathering' },
+      { id: 'agent-code', name: 'Cipher', role: 'Coder', currentTask: null,
+        capabilities: ['code-generation', 'debugging', 'refactoring', 'testing'],
+        tasksCompleted: 892, createdAt: Date.now() - 86400000 * 25, avatar: '⌨️',
+        specialization: 'Software Engineering & Architecture' },
+      { id: 'agent-analyst', name: 'Prism', role: 'Analyst', currentTask: null,
+        capabilities: ['data-visualization', 'pattern-recognition', 'forecasting', 'reporting'],
+        tasksCompleted: 412, createdAt: Date.now() - 86400000 * 15, avatar: '📊',
+        specialization: 'Data Analysis & Insights' },
+      { id: 'agent-writer', name: 'Quill', role: 'Writer', currentTask: null,
+        capabilities: ['content-creation', 'editing', 'translation', 'copywriting'],
+        tasksCompleted: 678, createdAt: Date.now() - 86400000 * 18, avatar: '✍️',
+        specialization: 'Content & Communication' },
+      { id: 'agent-guardian', name: 'Sentinel', role: 'Guardian', currentTask: null,
+        capabilities: ['security-analysis', 'threat-detection', 'compliance', 'auditing'],
+        tasksCompleted: 1089, createdAt: Date.now() - 86400000 * 28, avatar: '🛡️',
+        specialization: 'Security & Law Compliance' },
+    ];
+
+    // Map organism drones to agent coherence/energy/status
+    return AGENT_TEMPLATES.map((template, i) => {
+      const drone = drones[i % drones.length] || { energy: 0.8, cortisol: 0.5, trustScore: 0.9 };
+      const droneEnergy = drone.energy || 0.8;
+      const droneCortisol = drone.cortisol || 0.5;
+      const droneTrust = drone.trustScore || 0.9;
+      
+      // Agent coherence flows from swarm r + individual trust
+      const agentCoherence = (rSwarm * 0.6 + droneTrust * 0.4);
+      
+      // Agent energy flows from drone energy
+      const agentEnergy = droneEnergy;
+      
+      // Agent status derives from cortisol and energy
+      let status: AgentStatus = 'Idle';
+      if (emergencyActive || drone.sacrificed) {
+        status = 'Offline';
+      } else if (droneCortisol > 1.5) {
+        status = 'Blocked';
+      } else if (droneCortisol > 1.0) {
+        status = 'Thinking';
+      } else if (droneEnergy < 0.3) {
+        status = 'Resting';
+      } else if (i === 0 || i === 5) {
+        // ORO Prime and Sentinel always working
+        status = 'Working';
+      }
+      
+      return {
+        ...template,
+        coherence: agentCoherence,
+        energy: agentEnergy,
+        status,
+      };
+    });
+  }, [drones, rSwarm, emergencyActive]);
+
+  // ═══ COMPUTE NODES — Derived from organism load ═══
+  const computeNodes = useMemo<ComputeNode[]>(() => {
+    const baseLoad = 1 - rSwarm; // Lower coherence = higher load
+    const stressLoad = jDrift / 2;
+    
+    return [
+      { id: 'node-1', name: 'Core Alpha', status: commsLost ? 'Offline' : 'Online',
+        load: Math.min(1, baseLoad + stressLoad * 0.5 + 0.2), memory: 0.62,
+        currentProcess: emergencyActive ? 'EMERGENCY MODE' : null },
+      { id: 'node-2', name: 'Core Beta', status: baseLoad > 0.5 ? 'Busy' : 'Online',
+        load: Math.min(1, baseLoad + 0.3), memory: 0.78,
+        currentProcess: baseLoad > 0.5 ? 'Coherence Recovery' : null },
+      { id: 'node-3', name: 'Core Gamma', status: 'Online',
+        load: Math.min(1, stressLoad + 0.1), memory: 0.41, currentProcess: null },
+      { id: 'node-4', name: 'Core Delta', status: 'Online',
+        load: Math.min(1, (1 - simConfidence) + 0.2), memory: 0.55,
+        currentProcess: simConfidence < 0.7 ? 'Simulation Calibration' : null },
+    ];
+  }, [rSwarm, jDrift, commsLost, emergencyActive, simConfidence]);
+
+  // ═══ LOCAL STATE — Task queue and messages ═══
   const [tasks, setTasks] = useState<Task[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [computeNodes, setComputeNodes] = useState<ComputeNode[]>(INITIAL_COMPUTE_NODES);
   const [selectedAgent, setSelectedAgent] = useState<string | null>('oro-prime');
-  const [showTaskModal, setShowTaskModal] = useState(false);
   const [userInput, setUserInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   
   const inputRef = useRef<HTMLInputElement>(null);
   
-  // Stats from organism
-  const { rSwarm = 0.85, beat = 0, continuityScore = 0.9 } = organism || {};
+  // ═══ SYNC ORGANISM AUDIT LOG TO MESSAGES ═══
+  useEffect(() => {
+    if (organismAuditLog.length > 0) {
+      const latestLog = organismAuditLog[organismAuditLog.length - 1];
+      const existingIds = new Set(messages.map(m => m.id));
+      const logId = `org-${latestLog.beat}-${latestLog.kind}`;
+      
+      if (!existingIds.has(logId)) {
+        const systemMsg: Message = {
+          id: logId,
+          from: 'Organism',
+          to: 'broadcast',
+          content: `[${latestLog.kind}] ${latestLog.message || latestLog.description || ''}`,
+          timestamp: latestLog.ts || Date.now(),
+          type: latestLog.kind.includes('EMERGENCY') ? 'Alert' : 'System',
+        };
+        setMessages(prev => [...prev.slice(-50), systemMsg]);
+      }
+    }
+  }, [organismAuditLog, messages]);
   
   // Calculate aggregate stats
   const activeAgents = agents.filter(a => a.status === 'Working' || a.status === 'Thinking').length;
@@ -426,19 +453,29 @@ export function OroCommandCenter({ organism }: Props) {
   const completedTasks = tasks.filter(t => t.status === 'Completed').length;
   const avgCoherence = agents.reduce((sum, a) => sum + a.coherence, 0) / agents.length;
   
-  // Process user input
+  // ═══ PROCESS USER INPUT — Task flows through organism ═══
   const handleSubmit = useCallback(async () => {
-    if (!userInput.trim() || isProcessing) return;
+    if (!userInput.trim() || isProcessing || emergencyActive) return;
     
     setIsProcessing(true);
     
-    // Create a new task from user input
+    // Priority derives from organism stress state
+    let taskPriority: TaskPriority = 'Medium';
+    if (jDrift > 1.5 || anomalyScore > 0.5) {
+      taskPriority = 'Critical';  // High stress = urgent
+    } else if (jDrift > 0.8 || rSwarm < 0.6) {
+      taskPriority = 'High';
+    } else if (rSwarm > 0.85) {
+      taskPriority = 'Low';  // Calm system = low priority
+    }
+    
+    // Create a new task — it's a NEURAL SIGNAL in the organism
     const newTask: Task = {
-      id: `task-${Date.now()}`,
+      id: `task-${beat}-${Date.now()}`,
       title: userInput.length > 50 ? userInput.slice(0, 50) + '...' : userInput,
       description: userInput,
       status: 'Pending',
-      priority: 'High',
+      priority: taskPriority,
       assignedAgent: null,
       createdBy: 'User',
       createdAt: Date.now(),
@@ -448,74 +485,72 @@ export function OroCommandCenter({ organism }: Props) {
       dependencies: [],
       output: null,
       progress: 0,
-      estimatedTime: 60,
+      estimatedTime: Math.max(30, 120 * (1 - rSwarm)), // Estimate based on coherence
       actualTime: 0,
-      tags: ['user-request'],
+      tags: ['user-request', `r-${rSwarm.toFixed(2)}`, `beat-${beat}`],
     };
     
     setTasks(prev => [newTask, ...prev]);
     
     // System message
     const sysMsg: Message = {
-      id: `msg-${Date.now()}`,
+      id: `msg-${beat}-${Date.now()}`,
       from: 'System',
       to: 'broadcast',
-      content: `New task received: "${newTask.title}"`,
+      content: `[Beat ${beat}] New task received: "${newTask.title}" (Priority: ${taskPriority}, r=${rSwarm.toFixed(3)})`,
       timestamp: Date.now(),
       type: 'System',
     };
-    setMessages(prev => [...prev, sysMsg]);
+    setMessages(prev => [...prev.slice(-50), sysMsg]);
     
-    // Simulate ORO Prime assigning the task
+    // ORO Prime assigns based on organism state
     setTimeout(() => {
-      // Find best agent for task
-      const availableAgents = agents.filter(a => a.status === 'Idle' && a.id !== 'oro-prime');
+      // Find best agent — preference based on coherence and energy
+      const availableAgents = agents
+        .filter(a => (a.status === 'Idle' || a.status === 'Working') && a.id !== 'oro-prime')
+        .sort((a, b) => (b.coherence * b.energy) - (a.coherence * a.energy));
+      
       const assignee = availableAgents[0] || agents.find(a => a.role === 'Coordinator');
       
       if (assignee) {
-        // Update task
+        // Update task — agents are DERIVED, so we only update tasks
         setTasks(prev => prev.map(t => 
           t.id === newTask.id 
             ? { ...t, status: 'InProgress', assignedAgent: assignee.id, startedAt: Date.now() }
             : t
         ));
         
-        // Update agent
-        setAgents(prev => prev.map(a =>
-          a.id === assignee.id
-            ? { ...a, status: 'Working', currentTask: newTask }
-            : a
-        ));
-        
         // Assignment message
         const assignMsg: Message = {
-          id: `msg-${Date.now()}-assign`,
+          id: `msg-${beat}-assign-${Date.now()}`,
           from: 'oro-prime',
           to: assignee.id,
-          content: `Assigned task "${newTask.title}" to you. Begin processing.`,
+          content: `[Coherence ${(assignee.coherence * 100).toFixed(0)}%] Assigned task "${newTask.title}" to ${assignee.name}. Begin processing.`,
           timestamp: Date.now(),
           type: 'Request',
         };
-        setMessages(prev => [...prev, assignMsg]);
+        setMessages(prev => [...prev.slice(-50), assignMsg]);
         
-        // Simulate work progress
-        simulateTaskProgress(newTask.id, assignee.id);
+        // Simulate work progress — rate depends on organism coherence
+        simulateTaskProgress(newTask.id, assignee.id, assignee.name);
       }
       
       setIsProcessing(false);
-    }, 1500);
+    }, Math.max(500, 2000 * (1 - rSwarm))); // Assignment speed depends on coherence
     
     setUserInput('');
-  }, [userInput, isProcessing, agents]);
+  }, [userInput, isProcessing, agents, emergencyActive, jDrift, anomalyScore, rSwarm, beat]);
   
-  // Simulate task progress
-  const simulateTaskProgress = useCallback((taskId: string, agentId: string) => {
+  // ═══ SIMULATE TASK PROGRESS — Rate flows from organism coherence ═══
+  const simulateTaskProgress = useCallback((taskId: string, agentId: string, agentName: string) => {
     let progress = 0;
     const interval = setInterval(() => {
-      progress += Math.random() * 15 + 5;
+      // Progress rate depends on current organism coherence
+      const progressRate = (rSwarm * 15) + (Math.random() * 10);
+      progress += progressRate;
       
-      if (progress >= 100) {
-        progress = 100;
+      if (progress >= 100 || emergencyActive) {
+        progress = emergencyActive ? progress : 100;
         clearInterval(interval);
         
         // Complete task
@@ -523,43 +558,38 @@ export function OroCommandCenter({ organism }: Props) {
           t.id === taskId
             ? {
                 ...t,
-                status: 'Completed',
-                progress: 100,
+                status: emergencyActive ? 'Cancelled' : 'Completed',
+                progress: emergencyActive ? progress : 100,
                 completedAt: Date.now(),
-                output: {
+                output: emergencyActive ? null : {
                   type: 'Text',
-                  content: `Task completed successfully. Analysis and execution finished.`,
+                  content: `Task completed successfully at Beat ${beat}. Coherence: ${(rSwarm * 100).toFixed(1)}%`,
                   artifacts: [],
                 },
               }
             : t
         ));
         
-        // Free agent
-        setAgents(prev => prev.map(a =>
-          a.id === agentId
-            ? { ...a, status: 'Idle', currentTask: null, tasksCompleted: a.tasksCompleted + 1 }
-            : a
-        ));
-        
         // Completion message
         const completeMsg: Message = {
-          id: `msg-${Date.now()}-complete`,
+          id: `msg-${beat}-complete-${Date.now()}`,
           from: agentId,
           to: 'broadcast',
-          content: `Task completed successfully.`,
+          content: emergencyActive 
+            ? `[EMERGENCY] Task cancelled for ${agentName}`
+            : `[Beat ${beat}] ${agentName} completed task successfully.`,
           timestamp: Date.now(),
-          type: 'Response',
+          type: emergencyActive ? 'Alert' : 'Response',
         };
-        setMessages(prev => [...prev, completeMsg]);
+        setMessages(prev => [...prev.slice(-50), completeMsg]);
       } else {
         // Update progress
         setTasks(prev => prev.map(t =>
           t.id === taskId ? { ...t, progress } : t
         ));
       }
-    }, 2000);
-  }, []);
+    }, Math.max(1000, 3000 * (1 - rSwarm))); // Tick rate depends on coherence
+  }, [rSwarm, beat, emergencyActive]);
   
   // Keyboard shortcut
   useEffect(() => {

@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // MEDINA TECH — CONFIDENTIAL & PROPRIETARY
 // ═══════════════════════════════════════════════════════════════════════════════
-// Module: DroneSimulationWorld — THE ACTUAL EXPERIMENT
+// TISSUE: DroneSimulationWorld — The Organism's Sensory Cortex
 // Classification: CONFIDENTIAL — SOVEREIGN DOCTRINE
 //
 // Copyright © 2024-2026 Alfredo Medina Hernandez
@@ -9,18 +9,23 @@
 // Contact: MedinaSITech@outlook.com
 //
 // ╔════════════════════════════════════════════════════════════════════════════════╗
-// ║                    DRONE SIMULATION WORLD — THE EXPERIMENT                     ║
+// ║             DRONE SIMULATION WORLD — SENSORY CORTEX OF THE ORGANISM           ║
 // ╠════════════════════════════════════════════════════════════════════════════════╣
 // ║                                                                                ║
-// ║  THIS IS THE ACTUAL SWARM EXPERIMENT:                                          ║
-// ║    • Real drone physics with aerodynamics                                      ║
-// ║    • Kuramoto synchronization (coherence r)                                    ║
-// ║    • Jasmine drift tracking                                                    ║
-// ║    • Law enforcement at every tick                                             ║
-// ║    • Stability budget governance                                               ║
-// ║    • Human-in-the-loop controls                                                ║
+// ║  THIS IS NOT A GAME — IT IS LIVING TISSUE                                      ║
 // ║                                                                                ║
-// ║  NOTHING IS FAKE. THIS IS REAL.                                                ║
+// ║  The Drone World is the SENSORY CORTEX where:                                  ║
+// ║    • Drones are NEURONS firing in the swarm brain                              ║
+// ║    • Kuramoto r flows BIDIRECTIONALLY with organism state                      ║
+// ║    • Physics is CONSTRAINED by law enforcement                                 ║
+// ║    • Stability budget GOVERNS all actions                                      ║
+// ║                                                                                ║
+// ║  Everything flows through the organism:                                        ║
+// ║    organism.rSwarm ←→ simulation.r (bidirectional sync)                        ║
+// ║    organism.jDrift ←→ simulation.drift (bidirectional sync)                    ║
+// ║    organism.emergencyStop → simulation.halt                                    ║
+// ║                                                                                ║
+// ║  THE EXPERIMENT IS THE ORGANISM. THE ORGANISM IS THE EXPERIMENT.               ║
 // ║                                                                                ║
 // ╚════════════════════════════════════════════════════════════════════════════════╝
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -28,7 +33,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TYPES — REAL DRONE STATE
+// TYPES — REAL DRONE STATE (mirrors organism DroneState)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 interface Vec3 {
@@ -625,7 +630,7 @@ function renderDrones(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// COMPONENT
+// COMPONENT — LIVING TISSUE THAT SYNCS WITH ORGANISM
 // ═══════════════════════════════════════════════════════════════════════════════
 
 interface Props {
@@ -636,18 +641,49 @@ export function DroneSimulationWorld({ organism }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>(0);
   
-  const [config, setConfig] = useState<SimulationConfig>(DEFAULT_CONFIG);
+  // ═══ ORGANISM SIGNALS — Bidirectional flow ═══
+  const {
+    rSwarm: organismR = 0.85,
+    jDrift: organismDrift = 0,
+    beat: organismBeat = 0,
+    emergencyActive = false,
+    drones: organismDrones = [],
+    architectSignal = 0.5,
+  } = organism || {};
+  
+  const [config, setConfig] = useState<SimulationConfig>(() => ({
+    ...DEFAULT_CONFIG,
+    couplingK: 2.0 + architectSignal, // Coupling influenced by architect
+  }));
   const [drones, setDrones] = useState<DroneState[]>([]);
   const [metrics, setMetrics] = useState<SwarmMetrics>({
-    rSwarm: 0, jDrift: 0, coherence: 0, stability: 1,
+    rSwarm: organismR, jDrift: organismDrift, coherence: organismR, stability: 1,
     avgEnergy: 1, avgHealth: 1, activeDrones: 0, totalDrones: 0,
   });
   const [world, setWorld] = useState<WorldState>({
-    time: 0, beat: 0, timeOfDay: 12, weather: 'Clear',
+    time: 0, beat: organismBeat, timeOfDay: 12, weather: 'Clear',
     windSpeed: 1, windDirection: { x: 1, y: 0, z: 0 },
   });
-  const [isRunning, setIsRunning] = useState(true);
+  const [isRunning, setIsRunning] = useState(!emergencyActive);
   const [selectedView, setSelectedView] = useState<'top' | 'side' | '3d'>('top');
+  
+  // ═══ SYNC WITH ORGANISM — Emergency stop propagates ═══
+  useEffect(() => {
+    if (emergencyActive) {
+      setIsRunning(false);
+      setDrones(prev => prev.map(d => ({ ...d, status: 'Offline' as const })));
+    }
+  }, [emergencyActive]);
+  
+  // ═══ SYNC COUPLING FROM ARCHITECT SIGNAL ═══
+  useEffect(() => {
+    setConfig(prev => ({ ...prev, couplingK: 2.0 + architectSignal }));
+  }, [architectSignal]);
+  
+  // ═══ SYNC WORLD BEAT WITH ORGANISM ═══
+  useEffect(() => {
+    setWorld(prev => ({ ...prev, beat: organismBeat }));
+  }, [organismBeat]);
   
   // Initialize
   useEffect(() => {
@@ -675,11 +711,16 @@ export function DroneSimulationWorld({ organism }: Props) {
         const avgEnergy = newDrones.reduce((s, d) => s + d.energy, 0) / newDrones.length;
         const avgHealth = newDrones.reduce((s, d) => s + d.health, 0) / newDrones.length;
         
+        // ═══ BLEND LOCAL r WITH ORGANISM r ═══
+        // The simulation is part of the organism — they influence each other
+        const blendedR = r * 0.7 + organismR * 0.3;
+        const blendedDrift = jDrift * 0.7 + organismDrift * 0.3;
+        
         setMetrics({
-          rSwarm: r,
-          jDrift,
-          coherence: r,
-          stability: Math.max(0, 1 - jDrift * 0.5),
+          rSwarm: blendedR,
+          jDrift: blendedDrift,
+          coherence: blendedR,
+          stability: Math.max(0, 1 - blendedDrift * 0.5),
           avgEnergy,
           avgHealth,
           activeDrones,
@@ -693,7 +734,7 @@ export function DroneSimulationWorld({ organism }: Props) {
       setWorld(prev => ({
         ...prev,
         time: prev.time + dt,
-        beat: Math.floor(prev.time * 10),
+        beat: organismBeat,  // Sync with organism beat
         timeOfDay: (12 + prev.time * 0.1) % 24,
       }));
       
@@ -709,7 +750,7 @@ export function DroneSimulationWorld({ organism }: Props) {
     
     animationRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationRef.current);
-  }, [isRunning, config, drones, metrics, world]);
+  }, [isRunning, config, drones, metrics, world, organismR, organismDrift, organismBeat]);
   
   // Canvas resize
   useEffect(() => {
