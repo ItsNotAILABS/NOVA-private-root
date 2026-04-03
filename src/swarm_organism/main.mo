@@ -619,8 +619,8 @@ actor SwarmOrganism {
 
   // ─── Organism neurochemical update ───────────────────────────────────────────
   // Derives body-level chemistry from swarm aggregate signals each beat.
-  func updateOrgNeuroChem(meanDop : Float; meanCort : Float;
-                          meanNor : Float; meanOxy  : Float;
+  func updateOrgNeuroChem(meanDop : Float, meanCort : Float,
+                          meanNor : Float, meanOxy  : Float,
                           meanEnergy : Float) {
     // Serotonin: stability — rises with bonding (oxytocin) and low cortisol
     let serTarget = meanOxy * 0.4 + (1.0 / Float.max(0.1, meanCort)) * 0.6;
@@ -648,8 +648,8 @@ actor SwarmOrganism {
 
   // 0. HYPOTHALAMUS — homeostatic setpoint regulator
   // output = S0 + alpha × (target − current) × dopamine_mod
-  func organ0Hypothalamus(meanDop : Float; meanCort : Float;
-                          meanNor : Float; meanOxy  : Float) : Float {
+  func organ0Hypothalamus(meanDop : Float, meanCort : Float,
+                          meanNor : Float, meanOxy  : Float) : Float {
     let alpha = 0.15;
     let current = (Float.abs(meanDop  - 1.0) + Float.abs(meanCort - 1.0)
                  + Float.abs(meanNor  - 1.0) + Float.abs(meanOxy  - 1.0)) / 4.0;
@@ -664,7 +664,7 @@ actor SwarmOrganism {
 
   // 1. AMYGDALA — threat detection and fear response
   // output = S0 + beta × cortisol × norepinephrine × threat_signal
-  func organ1Amygdala(meanCort : Float; meanNor : Float;
+  func organ1Amygdala(meanCort : Float, meanNor : Float,
                       threatSignal : Float) : Float {
     let beta = 0.2;
     let out = Float.max(SOVEREIGN_FLOOR,
@@ -680,7 +680,7 @@ actor SwarmOrganism {
 
   // 2. HIPPOCAMPUS — memory consolidation gate
   // output = S0 + gamma × acetylcholine × coherence × novelty
-  func organ2Hippocampus(rSwarm : Float; novelty : Float) : Float {
+  func organ2Hippocampus(rSwarm : Float, novelty : Float) : Float {
     let gamma = 0.3;
     let out = Float.max(SOVEREIGN_FLOOR,
       SOVEREIGN_FLOOR + gamma * orgAcetylcholine * rSwarm * novelty);
@@ -712,7 +712,7 @@ actor SwarmOrganism {
   // 4. CEREBELLUM — prediction error correction
   // output = S0 + epsilon × (predicted − actual)² × dopamine
   // predicted = running average rSwarm stored in organMemory[40]
-  func organ4Cerebellum(meanDop : Float; rSwarm : Float) : Float {
+  func organ4Cerebellum(meanDop : Float, rSwarm : Float) : Float {
     let epsilon = 0.1;
     let predicted = organMemory[40];
     let err = predicted - rSwarm;
@@ -742,7 +742,7 @@ actor SwarmOrganism {
 
   // 6. THALAMUS — sensory routing and gating
   // output = S0 + eta × acetylcholine × norepinephrine × attention
-  func organ6Thalamus(meanNor : Float; attention : Float) : Float {
+  func organ6Thalamus(meanNor : Float, attention : Float) : Float {
     let eta = 0.2;
     let out = Float.max(SOVEREIGN_FLOOR,
       SOVEREIGN_FLOOR + eta * orgAcetylcholine * meanNor * attention);
@@ -759,8 +759,8 @@ actor SwarmOrganism {
   // output = S0 + theta × (pain_signal × cortisol + reward_signal × dopamine)
   // pain_signal   = fraction drones with energy < 0.5
   // reward_signal = fraction drones with dopamine > 1.3
-  func organ7Insula(meanDop : Float; meanCort : Float;
-                    painSignal : Float; rewardSignal : Float) : Float {
+  func organ7Insula(meanDop : Float, meanCort : Float,
+                    painSignal : Float, rewardSignal : Float) : Float {
     let theta = 0.15;
     let out = Float.max(SOVEREIGN_FLOOR,
       SOVEREIGN_FLOOR + theta * (painSignal * meanCort + rewardSignal * meanDop));
@@ -866,7 +866,7 @@ actor SwarmOrganism {
   // 13. PANCREAS — energy regulation (insulin / glucagon analog)
   // output = S0 + xi × (FORMA_capital / 1000.0) × insulin_analog
   // FORMA_capital proxy = mean energy × drone count
-  func organ13Pancreas(meanEnergy : Float; n : Nat) : Float {
+  func organ13Pancreas(meanEnergy : Float, n : Nat) : Float {
     let xi = 0.3;
     let formaCap = meanEnergy * Float.fromInt(n);
     orgInsulin := Float.max(SOVEREIGN_FLOOR,
@@ -884,7 +884,7 @@ actor SwarmOrganism {
 
   // 14. LIVER — metabolic processing and toxin clearance
   // output = S0 + omicron × (metabolite_load × 0.5 + clearance_rate)
-  func organ14Liver(meanCort : Float; meanNor : Float) : Float {
+  func organ14Liver(meanCort : Float, meanNor : Float) : Float {
     let omicron = 0.2;
     let metaboliteLoad = Float.max(0.0,
       (meanCort - SOVEREIGN_FLOOR) + (meanNor - SOVEREIGN_FLOOR));
@@ -903,7 +903,7 @@ actor SwarmOrganism {
   // 15. HEART — rhythmic pulse and circulation
   // output = S0 + pi_organ × coherence × oxytocin × cardiovascular
   // pi_organ = 0.275 (silver anchor); cardiovascular = rSwarm × oxytocin
-  func organ15Heart(rSwarm : Float; meanOxy : Float) : Float {
+  func organ15Heart(rSwarm : Float, meanOxy : Float) : Float {
     let piOrgan = 0.275;
     let cardiovascular = rSwarm * meanOxy;
     let out = Float.max(SOVEREIGN_FLOOR,
@@ -920,7 +920,7 @@ actor SwarmOrganism {
   // 16. IMMUNE — threat neutralization
   // output = S0 + rho × (pathogen_load × cytokine − antibody × 0.5)
   // cytokine = cortisol excess; antibody = acquired immunity EMA
-  func organ16Immune(meanCort : Float; pathogenLoad : Float) : Float {
+  func organ16Immune(meanCort : Float, pathogenLoad : Float) : Float {
     let rho = 0.3;
     let cytokine = Float.max(0.0, meanCort - SOVEREIGN_FLOOR);
     let antibody = organMemory[160];
@@ -937,7 +937,7 @@ actor SwarmOrganism {
 
   // 17. REPRODUCTIVE — growth and succession drive
   // output = S0 + sigma_organ × testosterone × (NOVA_network_size × 0.01)
-  func organ17Reproductive(n : Nat; meanDop : Float) : Float {
+  func organ17Reproductive(n : Nat, meanDop : Float) : Float {
     let sigmaOrgan = 0.2;
     orgTestosterone := Float.max(SOVEREIGN_FLOOR,
       meanDop * Float.fromInt(n) * 0.02);
@@ -961,11 +961,11 @@ actor SwarmOrganism {
   // Elements are processed independently (element-wise pipeline).
   // All outputs clamped: max(SOVEREIGN_FLOOR, output)
 
-  func metalPipeline(input        : Float;
-                     prevVal       : Float;
-                     threatDeflect : Float;
-                     formaMintRate : Float;
-                     rSwarm        : Float;
+  func metalPipeline(input        : Float,
+                     prevVal       : Float,
+                     threatDeflect : Float,
+                     formaMintRate : Float,
+                     rSwarm        : Float,
                      beat          : Nat) : Float {
     var v = input;
 
@@ -1011,8 +1011,8 @@ actor SwarmOrganism {
   };
 
   // Process all 18 organ outputs through the metals pipeline
-  func processMetals(rSwarm : Float; beat : Nat;
-                     pathogenLoad : Float; meanEnergy : Float) {
+  func processMetals(rSwarm : Float, beat : Nat,
+                     pathogenLoad : Float, meanEnergy : Float) {
     let threatDeflect = Float.max(0.0, 1.0 - pathogenLoad);
     let formaMintRate = meanEnergy * rSwarm;
     var i = 0;
@@ -1027,18 +1027,18 @@ actor SwarmOrganism {
   };
 
   // ─── Run all 18 organs then the metals pipeline ───────────────────────────────
-  func runAllOrgans(n            : Nat;
-                   meanDop       : Float;
-                   meanCort      : Float;
-                   meanNor       : Float;
-                   meanOxy       : Float;
-                   meanEnergy    : Float;
-                   meanSignal    : Float;
-                   rSwarm        : Float;
-                   novelty       : Float;
-                   pathogenLoad  : Float;
-                   painSignal    : Float;
-                   rewardSignal  : Float;
+  func runAllOrgans(n            : Nat,
+                   meanDop       : Float,
+                   meanCort      : Float,
+                   meanNor       : Float,
+                   meanOxy       : Float,
+                   meanEnergy    : Float,
+                   meanSignal    : Float,
+                   rSwarm        : Float,
+                   novelty       : Float,
+                   pathogenLoad  : Float,
+                   painSignal    : Float,
+                   rewardSignal  : Float,
                    beat          : Nat) {
     ensureOrganCap();
     updateOrgNeuroChem(meanDop, meanCort, meanNor, meanOxy, meanEnergy);
@@ -1123,7 +1123,7 @@ actor SwarmOrganism {
   };
 
   // Architect tunes individual metal resonance values
-  public shared(msg) func setMetalResonance(metal : Text; value : Float) : async () {
+  public shared(msg) func setMetalResonance(metal : Text, value : Float) : async () {
     requireAuthorized(msg.caller);
     let v = Float.max(0.0, Float.min(10.0, value));
     switch metal {
@@ -1148,13 +1148,13 @@ actor SwarmOrganism {
   // ═══════════════════════════════════════════════════════════════════════════
   // External callers pass swarm aggregate data; full organ + metals pipeline runs.
   public func organismTick(
-    n           : Nat;
-    signals     : [Float];
-    cortisols   : [Float];
-    energies    : [Float];
-    positionsX  : [Float];
-    positionsZ  : [Float];
-    rSwarm      : Float;
+    n           : Nat,
+    signals     : [Float],
+    cortisols   : [Float],
+    energies    : [Float],
+    positionsX  : [Float],
+    positionsZ  : [Float],
+    rSwarm      : Float,
   ) : async {
     mode         : Text;
     organOut     : [Float];
