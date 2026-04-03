@@ -2900,16 +2900,16 @@ actor SwarmBrain {
     let ic : actor { raw_rand : () -> async Blob } = actor "aaaaa-aa";
     let entropyBlob = await ic.raw_rand();
 
-    // ICP guarantees ic_raw_rand() returns exactly 32 bytes; assert defensively
+    // ICP guarantees ic_raw_rand() returns exactly 32 bytes
     let entropyBytes = Blob.toArray(entropyBlob);
-    assert(entropyBytes.size() >= 4);
+    assert(entropyBytes.size() == 32);
 
-    // Fold first 4 bytes into a Nat32 genesis nonce
+    // Fold first 4 bytes into a Nat32 genesis nonce using safe addition
     let e0 : Nat32 = Nat32.fromNat(Nat8.toNat(entropyBytes[0]));
     let e1 : Nat32 = Nat32.fromNat(Nat8.toNat(entropyBytes[1]));
     let e2 : Nat32 = Nat32.fromNat(Nat8.toNat(entropyBytes[2]));
     let e3 : Nat32 = Nat32.fromNat(Nat8.toNat(entropyBytes[3]));
-    let genesisNonce : Nat32 = (e0 << 24) | (e1 << 16) | (e2 << 8) | e3;
+    let genesisNonce : Nat32 = (e0 *% 16777216) +% (e1 *% 65536) +% (e2 *% 256) +% e3;
 
     sovereignSeal      :=
       "NOVA:PARALLAX:MEDINA_TECH"
