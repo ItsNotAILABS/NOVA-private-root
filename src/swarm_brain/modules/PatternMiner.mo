@@ -700,4 +700,290 @@ module {
     backendDepth * frontendSpeed * bridgeQuality
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  L E A R N I N G   &   M E M O R Y   M A T H E M A T I C S
+  //
+  //  Enterprise-Level Learning and Memory Algorithms
+  //  Full HIM/HER Dual-Organism Memory Integration
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // MEMORY CONSOLIDATION
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Ebbinghaus forgetting curve
+  public func memoryForgettingCurve(
+    initialStrength : Float,
+    timePassed : Float,
+    decayRate : Float
+  ) : Float {
+    initialStrength * Float.exp(-decayRate * timePassed)
+  };
+
+  /// Spaced repetition optimal interval
+  public func memorySpacedRepetitionInterval(
+    previousInterval : Float,
+    easeFactor : Float,
+    performance : Float
+  ) : Float {
+    let adjustedEase = easeFactor + 0.1 - (5.0 - performance) * 0.08;
+    let newEase = if (adjustedEase < 1.3) 1.3 else adjustedEase;
+    previousInterval * newEase
+  };
+
+  /// Memory strength update
+  public func memoryStrengthUpdate(
+    currentStrength : Float,
+    rehearsal : Bool,
+    decayRate : Float,
+    boostAmount : Float
+  ) : Float {
+    let decayed = currentStrength * (1.0 - decayRate);
+    if (rehearsal) { Float.min(decayed + boostAmount, 1.0) }
+    else { decayed }
+  };
+
+  /// Sleep consolidation effect
+  public func memorySleepConsolidation(
+    hippocampalStrength : Float,
+    corticalStrength : Float,
+    sleepQuality : Float,
+    transferRate : Float
+  ) : (Float, Float) {
+    let transfer = hippocampalStrength * sleepQuality * transferRate;
+    (hippocampalStrength - transfer, corticalStrength + transfer)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ASSOCIATIVE LEARNING
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Rescorla-Wagner learning rule
+  public func memoryRescorlaWagner(
+    association : Float,
+    learningRate : Float,
+    reward : Float,
+    maxAssociation : Float
+  ) : Float {
+    let predictionError = reward - association;
+    association + learningRate * predictionError * (maxAssociation - association)
+  };
+
+  /// Temporal difference error
+  public func memoryTDError(
+    reward : Float,
+    currentValue : Float,
+    nextValue : Float,
+    discountFactor : Float
+  ) : Float {
+    reward + discountFactor * nextValue - currentValue
+  };
+
+  /// Eligibility trace update
+  public func memoryEligibilityTrace(
+    trace : Float,
+    decayRate : Float,
+    visited : Bool
+  ) : Float {
+    let decayed = trace * decayRate;
+    if (visited) { decayed + 1.0 } else { decayed }
+  };
+
+  /// Q-learning update
+  public func memoryQLearningUpdate(
+    qValue : Float,
+    learningRate : Float,
+    reward : Float,
+    maxNextQ : Float,
+    discountFactor : Float
+  ) : Float {
+    let target = reward + discountFactor * maxNextQ;
+    qValue + learningRate * (target - qValue)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PATTERN COMPLETION
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Hopfield network energy
+  public func memoryHopfieldEnergy(
+    state : [Float],
+    weights : [[Float]]
+  ) : Float {
+    let n = state.size();
+    var energy : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      var j = 0;
+      while (j < n) {
+        if (i != j) {
+          energy -= 0.5 * weights[i][j] * state[i] * state[j];
+        };
+        j += 1;
+      };
+      i += 1;
+    };
+    energy
+  };
+
+  /// Pattern completion update
+  public func memoryPatternCompletion(
+    state : Float,
+    weights : [Float],
+    inputs : [Float],
+    threshold : Float
+  ) : Float {
+    var sum : Float = 0.0;
+    var i = 0;
+    while (i < weights.size() and i < inputs.size()) {
+      sum += weights[i] * inputs[i];
+      i += 1;
+    };
+    if (sum > threshold) { 1.0 } else if (sum < -threshold) { -1.0 } else { state }
+  };
+
+  /// Sparse coding activation
+  public func memorySparseCoding(
+    input : Float,
+    dictionary : [Float],
+    sparsityPenalty : Float
+  ) : [Float] {
+    Array.tabulate<Float>(dictionary.size(), func(i : Nat) : Float {
+      let activation = input * dictionary[i];
+      let penalized = activation - sparsityPenalty;
+      if (penalized > 0.0) { penalized } else { 0.0 }
+    })
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // EPISODIC MEMORY
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Episode binding strength
+  public func memoryEpisodeBinding(
+    contextualSimilarity : Float,
+    temporalProximity : Float,
+    emotionalSalience : Float
+  ) : Float {
+    contextualSimilarity * temporalProximity * (1.0 + emotionalSalience)
+  };
+
+  /// Temporal context update
+  public func memoryTemporalContext(
+    currentContext : Float,
+    input : Float,
+    driftRate : Float
+  ) : Float {
+    (1.0 - driftRate) * currentContext + driftRate * input
+  };
+
+  /// Recollection probability
+  public func memoryRecollectionProbability(
+    cueStrength : Float,
+    memoryStrength : Float,
+    noise : Float
+  ) : Float {
+    let signal = cueStrength * memoryStrength;
+    1.0 / (1.0 + Float.exp(-(signal - noise) / 0.5))
+  };
+
+  /// Familiarity signal
+  public func memoryFamiliarity(
+    featureMatch : Float,
+    priorExposure : Float
+  ) : Float {
+    featureMatch * (1.0 + Float.log(priorExposure + 1.0))
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // CURRICULUM LEARNING
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Task difficulty assessment
+  public func memoryTaskDifficulty(
+    complexity : Float,
+    novelty : Float,
+    performance : Float
+  ) : Float {
+    complexity * (1.0 + novelty) / (performance + 0.1)
+  };
+
+  /// Optimal learning zone
+  public func memoryOptimalLearningZone(
+    currentSkill : Float,
+    taskDifficulty : Float,
+    zoneWidth : Float
+  ) : Float {
+    let diff = Float.abs(taskDifficulty - currentSkill);
+    if (diff < zoneWidth) { 1.0 - diff / zoneWidth } else { 0.0 }
+  };
+
+  /// Skill progression rate
+  public func memorySkillProgression(
+    practice : Float,
+    difficulty : Float,
+    currentSkill : Float
+  ) : Float {
+    let challenge = difficulty - currentSkill;
+    if (challenge > 0.0) {
+      practice * challenge * Float.exp(-challenge * challenge)
+    } else {
+      practice * 0.1  // Minimal progress if too easy
+    }
+  };
+
+  /// Knowledge transfer coefficient
+  public func memoryKnowledgeTransfer(
+    sourceSkill : Float,
+    targetSimilarity : Float
+  ) : Float {
+    sourceSkill * targetSimilarity * targetSimilarity
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // METACOGNITION
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Confidence calibration
+  public func memoryConfidenceCalibration(
+    predicted : Float,
+    actual : Float,
+    history : [Float]
+  ) : Float {
+    let currentError = Float.abs(predicted - actual);
+    var avgError : Float = 0.0;
+    var i = 0;
+    while (i < history.size()) {
+      avgError += history[i];
+      i += 1;
+    };
+    if (history.size() > 0) {
+      avgError /= Float.fromInt(history.size());
+    };
+    1.0 - (currentError + avgError) / 2.0
+  };
+
+  /// Feeling of knowing
+  public func memoryFeelingOfKnowing(
+    partialRetrieval : Float,
+    relatedActivation : Float
+  ) : Float {
+    (partialRetrieval + relatedActivation) / 2.0
+  };
+
+  /// Judgment of learning
+  public func memoryJudgmentOfLearning(
+    fluency : Float,
+    effort : Float,
+    priorKnowledge : Float
+  ) : Float {
+    let fluencyWeight = 0.4;
+    let effortWeight = 0.3;
+    let priorWeight = 0.3;
+    fluencyWeight * fluency + effortWeight * (1.0 - effort) + priorWeight * priorKnowledge
+  };
+
 }

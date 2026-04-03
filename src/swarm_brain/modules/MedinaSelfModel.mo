@@ -938,4 +938,248 @@ module {
     backendDepth * frontendSpeed * bridgeQuality
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  C O N S C I O U S N E S S   &   E M E R G E N C E   M A T H
+  //
+  //  Enterprise-Level Consciousness Modeling Mathematics
+  //  Full HIM/HER Dual-Organism Consciousness Integration
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // INTEGRATED INFORMATION THEORY (IIT)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Phi (Φ) - integrated information approximation
+  public func consciousnessPhiApprox(
+    connections : Nat,
+    totalNodes : Nat,
+    avgStrength : Float
+  ) : Float {
+    if (totalNodes == 0) { return 0.0 };
+    let connectivity = Float.fromInt(connections) / Float.fromInt(totalNodes * totalNodes);
+    Float.log(Float.fromInt(totalNodes) + 1.0) * connectivity * avgStrength
+  };
+
+  /// Minimum information partition
+  public func consciousnessMIP(
+    wholeInfo : Float,
+    part1Info : Float,
+    part2Info : Float
+  ) : Float {
+    let partitionedInfo = part1Info + part2Info;
+    Float.max(wholeInfo - partitionedInfo, 0.0)
+  };
+
+  /// Cause-effect repertoire overlap
+  public func consciousnessCERepertoireOverlap(
+    causeProbs : [Float],
+    effectProbs : [Float]
+  ) : Float {
+    let n = if (causeProbs.size() < effectProbs.size()) causeProbs.size() else effectProbs.size();
+    if (n == 0) { return 0.0 };
+    var overlap : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      overlap += Float.min(causeProbs[i], effectProbs[i]);
+      i += 1;
+    };
+    overlap
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // GLOBAL WORKSPACE THEORY (GWT)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Global broadcast strength
+  public func consciousnessGlobalBroadcast(
+    sourceActivation : Float,
+    workspaceAccess : Float,
+    competitorCount : Nat
+  ) : Float {
+    let competition = 1.0 / (Float.fromInt(competitorCount) + 1.0);
+    sourceActivation * workspaceAccess * competition
+  };
+
+  /// Workspace ignition threshold
+  public func consciousnessIgnitionThreshold(
+    inputStrength : Float,
+    threshold : Float,
+    gain : Float
+  ) : Bool {
+    let amplified = inputStrength * gain;
+    amplified > threshold
+  };
+
+  /// Coalition strength
+  public func consciousnessCoalitionStrength(
+    memberActivations : [Float],
+    coherence : Float
+  ) : Float {
+    var sum : Float = 0.0;
+    var i = 0;
+    while (i < memberActivations.size()) {
+      sum += memberActivations[i];
+      i += 1;
+    };
+    sum * coherence
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // HIGHER-ORDER THEORIES
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Metacognitive signal strength
+  public func consciousnessMetacognition(
+    firstOrderState : Float,
+    monitoringStrength : Float
+  ) : Float {
+    firstOrderState * monitoringStrength
+  };
+
+  /// Self-model accuracy
+  public func consciousnessSelfModelAccuracy(
+    predicted : Float,
+    actual : Float
+  ) : Float {
+    let error = Float.abs(predicted - actual);
+    Float.exp(-error)
+  };
+
+  /// Recursive self-representation depth
+  public func consciousnessRecursiveDepth(
+    representation : Float,
+    decayFactor : Float,
+    maxDepth : Nat
+  ) : Float {
+    var total : Float = representation;
+    var current : Float = representation;
+    var depth = 1;
+    while (depth < maxDepth) {
+      current *= decayFactor;
+      total += current;
+      depth += 1;
+    };
+    total
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ATTENTION SCHEMA THEORY
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Attention model internal state
+  public func consciousnessAttentionModel(
+    externalSignal : Float,
+    internalState : Float,
+    modelWeight : Float
+  ) : Float {
+    (1.0 - modelWeight) * externalSignal + modelWeight * internalState
+  };
+
+  /// Awareness attribution
+  public func consciousnessAwarenessAttribution(
+    attentionStrength : Float,
+    modelConfidence : Float
+  ) : Float {
+    attentionStrength * modelConfidence
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // EMERGENCE MATHEMATICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Downward causation strength
+  public func consciousnessDownwardCausation(
+    macroState : Float,
+    microStates : [Float]
+  ) : Float {
+    if (microStates.size() == 0) { return 0.0 };
+    var microSum : Float = 0.0;
+    var i = 0;
+    while (i < microStates.size()) {
+      microSum += microStates[i];
+      i += 1;
+    };
+    let microAvg = microSum / Float.fromInt(microStates.size());
+    Float.abs(macroState - microAvg)
+  };
+
+  /// Emergence level (synergy)
+  public func consciousnessEmergenceLevel(
+    wholeEntropy : Float,
+    partEntropies : [Float]
+  ) : Float {
+    var sumParts : Float = 0.0;
+    var i = 0;
+    while (i < partEntropies.size()) {
+      sumParts += partEntropies[i];
+      i += 1;
+    };
+    Float.max(sumParts - wholeEntropy, 0.0)
+  };
+
+  /// Phase transition detection
+  public func consciousnessPhaseTransition(
+    orderParameter : Float,
+    prevOrderParameter : Float,
+    threshold : Float
+  ) : Bool {
+    Float.abs(orderParameter - prevOrderParameter) > threshold
+  };
+
+  /// Criticality measure
+  public func consciousnessCriticality(
+    clusterSizeVariance : Float,
+    correlationLength : Float
+  ) : Float {
+    Float.sqrt(clusterSizeVariance) * correlationLength
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // QUALIA MODELING
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Qualitative state vector
+  public func consciousnessQualiaVector(
+    sensorInputs : [Float],
+    emotionalContext : Float,
+    attentionalGain : Float
+  ) : [Float] {
+    Array.tabulate<Float>(sensorInputs.size(), func(i : Nat) : Float {
+      sensorInputs[i] * emotionalContext * attentionalGain
+    })
+  };
+
+  /// Phenomenal similarity
+  public func consciousnessPhenomenalSimilarity(
+    qualia1 : [Float],
+    qualia2 : [Float]
+  ) : Float {
+    let n = if (qualia1.size() < qualia2.size()) qualia1.size() else qualia2.size();
+    if (n == 0) { return 0.0 };
+    var dotProduct : Float = 0.0;
+    var norm1 : Float = 0.0;
+    var norm2 : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      dotProduct += qualia1[i] * qualia2[i];
+      norm1 += qualia1[i] * qualia1[i];
+      norm2 += qualia2[i] * qualia2[i];
+      i += 1;
+    };
+    let denom = Float.sqrt(norm1) * Float.sqrt(norm2);
+    if (denom < 0.0001) { 0.0 } else { dotProduct / denom }
+  };
+
+  /// Experience intensity
+  public func consciousnessExperienceIntensity(
+    sensorStrength : Float,
+    emotionalArousal : Float,
+    attentionalFocus : Float
+  ) : Float {
+    sensorStrength * (1.0 + emotionalArousal) * attentionalFocus
+  };
+
 }
