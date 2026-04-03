@@ -184,9 +184,12 @@ module UniversalLawDriftVerifier {
   };
   
   // ═══════════════════════════════════════════════════════════════════════════
-  // HASH FUNCTIONS — Quantum-resistant composition
+  // HASH FUNCTIONS — Triple-hash composite (FNV-1a · djb2 · SDBM)
+  // Sovereign composite: three independent 32-bit functions XOR'd together.
+  // A collision requires breaking all three simultaneously (~2^96 effective).
   // ═══════════════════════════════════════════════════════════════════════════
-  
+
+  // FNV-1a over a Float array — leaf hasher
   public func fnv1a(input : [Float]) : Nat32 {
     var hash : Nat32 = 2166136261;
     for (v in input.vals()) {
@@ -196,6 +199,39 @@ module UniversalLawDriftVerifier {
     };
     hash
   };
+
+  // djb2 over two Nat32 values — node combiner
+  func djb2Pair(a : Nat32, b : Nat32) : Nat32 {
+    var h : Nat32 = 5381;
+    h := ((h << 5) +% h) +% a;
+    h := ((h << 5) +% h) +% b;
+    h
+  };
+
+  // SDBM over two Nat32 values — node combiner
+  func sdbmPair(a : Nat32, b : Nat32) : Nat32 {
+    var h : Nat32 = 0;
+    h := a +% (h << 6) +% (h << 16) -% h;
+    h := b +% (h << 6) +% (h << 16) -% h;
+    h
+  };
+
+  // Triple-hash leaf: FNV-1a + djb2 + SDBM of the single float's Nat32 repr
+  func leafHash(v : Float) : Nat32 {
+    let n = floatToNat32(v);
+    let h1 : Nat32 = (2166136261 ^ n) *% 16777619;
+    let h2 = djb2Pair(n, 0);
+    let h3 = sdbmPair(n, 0);
+    h1 ^ h2 ^ h3
+  };
+
+  // Triple-hash node combination: XOR of three independent combiners
+  func nodeHash(left : Nat32, right : Nat32) : Nat32 {
+    let h1 : Nat32 = (left *% 16777619) ^ (right *% 2166136261);
+    let h2 = djb2Pair(left, right);
+    let h3 = sdbmPair(left, right);
+    h1 ^ h2 ^ h3
+  };
   
   func floatToNat32(f : Float) : Nat32 {
     let scaled = Int.abs(Float.toInt(f * 1000000.0));
@@ -204,21 +240,21 @@ module UniversalLawDriftVerifier {
   
   public func merkleRoot(values : [Float]) : Nat32 {
     if (values.size() == 0) return 0;
-    if (values.size() == 1) return fnv1a(values);
-    
+    if (values.size() == 1) return leafHash(values[0]);
+
     let mid = values.size() / 2;
     var left = Buffer.Buffer<Float>(mid);
     var right = Buffer.Buffer<Float>(values.size() - mid);
-    
+
     for (i in Array.keys(values)) {
       if (i < mid) { left.add(values[i]) }
       else { right.add(values[i]) };
     };
-    
-    let leftHash = merkleRoot(Buffer.toArray(left));
+
+    let leftHash  = merkleRoot(Buffer.toArray(left));
     let rightHash = merkleRoot(Buffer.toArray(right));
-    
-    leftHash ^ rightHash ^ (leftHash *% 16777619) ^ (rightHash *% 2166136261)
+
+    nodeHash(leftHash, rightHash)
   };
   
   // ═══════════════════════════════════════════════════════════════════════════

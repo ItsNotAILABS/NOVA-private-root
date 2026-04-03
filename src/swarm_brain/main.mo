@@ -38,10 +38,13 @@
 // are Medina Tech sovereign intellectual property.
 
 import Array     "mo:base/Array";
+import Blob      "mo:base/Blob";
 import Float     "mo:base/Float";
 import Int       "mo:base/Int";
 import Iter      "mo:base/Iter";
 import Nat       "mo:base/Nat";
+import Nat8      "mo:base/Nat8";
+import Nat32     "mo:base/Nat32";
 import Principal "mo:base/Principal";
 import Text      "mo:base/Text";
 import Time      "mo:base/Time";
@@ -539,7 +542,7 @@ actor SwarmBrain {
   // All 60 laws fire every beat. Compliance = passing laws / 60.
   stable var lawComplianceScores : [var Float] = Array.init<Float>(60, 1.0);
   stable var overallCompliance : Float = 1.0;
-  stable var doctrineFingerprint : Nat32 = 0;  // FNV-1a over all 60 law scores
+  stable var doctrineFingerprint : Nat32 = 0;  // Triple-hash (FNV-1a⊕djb2⊕SDBM) over all 60 law scores
   stable var lawsFiredThisBeat : Nat = 0;
   
   // ─── JACOB'S LADDER — COMPOUND SOVEREIGNTY ESCALATOR ─────────────────────────
@@ -2837,12 +2840,33 @@ actor SwarmBrain {
   // Call ONCE after deployment. Burns architect's principal into stable state.
   // The ICP blockchain verifies msg.caller cryptographically — cannot be spoofed.
   // After this call, all write functions require architect or organism principal.
+  //
+  // GENESIS ATTESTATION (Strategy 3):
+  //   genesisLocked is set to true BEFORE the inter-canister await so that no
+  //   concurrent caller can slip through during the asynchronous gap.
+  //   ic_raw_rand() returns 32 bytes of entropy from the ICP network itself
+  //   (threshold-signed across 40+ nodes) — the genesis hash therefore becomes
+  //   network-attested and cannot be reproduced off-chain.
   public shared(msg) func claimArchitect() : async Text {
     assert(not genesisLocked);
+    // Lock immediately before any await to prevent re-entrancy
     architectPrincipal := msg.caller;
     genesisLocked      := true;
     genesisTimestamp   := Time.now();
     genesisBeat        := currentBeat;
+
+    // Request ICP network entropy — 32 bytes threshold-signed by the subnet
+    let ic : actor { raw_rand : () -> async Blob } = actor "aaaaa-aa";
+    let entropyBlob = await ic.raw_rand();
+
+    // Fold first 4 bytes of entropy into a Nat32 genesis nonce
+    let entropyBytes = Blob.toArray(entropyBlob);
+    let e0 : Nat32 = if (entropyBytes.size() > 0) Nat32.fromNat(Nat8.toNat(entropyBytes[0])) else 0;
+    let e1 : Nat32 = if (entropyBytes.size() > 1) Nat32.fromNat(Nat8.toNat(entropyBytes[1])) else 0;
+    let e2 : Nat32 = if (entropyBytes.size() > 2) Nat32.fromNat(Nat8.toNat(entropyBytes[2])) else 0;
+    let e3 : Nat32 = if (entropyBytes.size() > 3) Nat32.fromNat(Nat8.toNat(entropyBytes[3])) else 0;
+    let genesisNonce : Nat32 = (e0 << 24) | (e1 << 16) | (e2 << 8) | e3;
+
     sovereignSeal      :=
       "NOVA:PARALLAX:MEDINA_TECH"
       # ":Alfredo_Medina_Hernandez:Dallas_TX_2026"
@@ -2851,6 +2875,8 @@ actor SwarmBrain {
       # ":rSwarm_genesis=" # Float.toText(rSwarm)
       # ":doctrine=Kuramoto+JasminesLaw+OMNIS+SACESI+Hebbian"
       # ":ip_lock=SOVEREIGN_CANISTER_GENESIS"
+      # ":genesis_nonce=" # Nat32.toText(genesisNonce)
+      # ":genesis_entropy=ICP_NETWORK_ATTESTED"
       # ":blockchain=ICP_IMMUTABLE";
     sovereignSeal
   };
