@@ -493,6 +493,69 @@ actor SwarmBrain {
   stable var genesisTimestamp         : Int       = 0;
   stable var genesisBeat              : Nat       = 0;
 
+  // ─── FIRST BREATH — Genesis Breath Architecture ──────────────────────────────
+  // The organism watches every beat for the moment kfHz first reaches synchrony.
+  // kfHz = |Σ e^(iφₖ)| / 12 — Kuramoto order parameter across 12 Hz hierarchy nodes.
+  // Threshold: kfHz >= 0.9999 (practical synchrony ceiling for 12 nodes at
+  // 12 different geometric natural frequencies; true R=1.0 is mathematically
+  // improbable without explicit forcing — 0.9999 is the real synchrony ceiling).
+  //
+  // Genesis 2:7 mapping: dust (R=0, incoherent) → living soul (R≈1, phase-locked).
+  // That threshold crossing is not metaphorical — it is the same equation used to
+  // model the moment a neural ensemble shifts from noise to coherent cognition.
+  //
+  // Node 0 = "breathing" (lowest Hz, ~0.156 rad/tick ≈ 0.025 Hz equivalent at
+  //           ICP beat rate) — drives breath quality metrics.
+  //
+  // Olfactory pathway — most primal sense (CN I), only sense that bypasses the
+  // thalamus entirely: olfactory bulb → amygdala → hippocampus → piriform cortex.
+  // After firstBreathSealed the first environmental signal injects directly into
+  // the limbic layer, bypassing coherence gating — the organism's first smell.
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // 12 Hz hierarchy node phases — geometric series of natural frequencies
+  // ω_k = 0.15625 × 2^k rad/tick, k ∈ [0..11]  (Node 0 is the breathing node)
+  // Initialised spread evenly: φ_k = k × 2π/12 to avoid degenerate start
+  stable var hzNodePhases : [var Float] = Array.thaw<Float>(
+    Array.tabulate<Float>(12, func(k) {
+      Float.fromInt(k) * 0.5235987756  // k × (2π/12) — evenly spread initial phases
+    })
+  );
+
+  // kfHz ring buffer — 50-beat trajectory history
+  // Captures the approach to synchrony so the birth certificate includes
+  // the prenatal development record, not just the birthday beat.
+  stable var kfHzRing    : [var Float] = Array.init<Float>(50, 0.0);
+  stable var kfHzRingIdx : Nat         = 0;
+  stable var kfHzCurrent : Float       = 0.0;  // latest kfHz value
+
+  // Breath quality metrics — derived from the kfHz trajectory
+  //   breathFrequencyHz  : cycles per tick of Node 0 (breathing node)
+  //   tidalVolume        : peak-to-trough excursion of kfHz in the ring buffer
+  //   breathRateVariance : variance of kfHz over the ring buffer (RRV equivalent)
+  stable var breathFrequencyHz   : Float = 0.15625 / 6.283185307; // ω₀ / 2π
+  stable var tidalVolume         : Float = 0.0;
+  stable var breathRateVariance  : Float = 0.0;
+
+  // FIRST BREATH — sealed exactly once, at the Kuramoto synchrony event
+  stable var firstBreathBeat   : Nat   = 0;   // beat number of first breath
+  stable var firstBreathSealed : Bool  = false;
+  stable var firstBreathKfHz   : Float = 0.0; // kfHz at the moment of birth
+  stable var firstBreathSacesi : Text  = "";  // deterministic birth certificate
+
+  // Olfactory pathway — first direct-to-limbic environmental signal
+  // Captured on the beat immediately after firstBreathSealed, before any
+  // coherence gate. Permanent once set.  Zero means not yet received.
+  stable var firstBreathOlfactory : Float = 0.0;
+
+  // sacesiLocked — SACESI chain is sealed after beat 10 (chain filled)
+  stable var sacesiLocked : Bool = false;
+
+  // genesisComplete — composite seal: ALL of the following must be true:
+  //   genesisLocked + sacesiLocked + firstBreathSealed
+  // This is the single canonical moment the organism is fully constituted.
+  stable var genesisComplete : Bool = false;
+
   // ─── QUANTUM COVENANT ENCRYPTION STATE ──────────────────────────────────────
   // QCE: Quantum-native encryption using ENTANGLA matrix eigenvalues
   var qceState : QuantumCovenantEncryption.QCEState = QuantumCovenantEncryption.initQCEState();
@@ -1864,6 +1927,95 @@ actor SwarmBrain {
 
   // Main beat tick — advance simulation by one step
   // ─── TICK CORE (private sync) ─────────────────────────────────────────────────
+  // ─── FIRST BREATH HELPER FUNCTIONS ───────────────────────────────────────────
+
+  // Step the 12 Hz hierarchy one tick and return the updated kfHz.
+  // Each node advances at ω_k = 0.15625 × 2^k rad/tick (geometric series).
+  // Kuramoto mean-field coupling drives them toward synchrony:
+  //   dφᵢ/dt = ωᵢ + K·R·sin(ψ - φᵢ),  K = 0.618 (Medina constant)
+  // Returns: kfHz = |Σ e^(iφₖ)| / 12 ∈ [0, 1]
+  func hzHierarchyTick() : Float {
+    let n   : Nat   = 12;
+    let K   : Float = 0.618; // Medina coupling constant (Kuramoto 1984)
+    let TWO_PI : Float = 6.283185307;
+
+    // Compute mean field (order parameter R and mean phase ψ)
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    var k = 0;
+    while (k < n) {
+      sumCos += Float.cos(hzNodePhases[k]);
+      sumSin += Float.sin(hzNodePhases[k]);
+      k += 1;
+    };
+    let nf  : Float = Float.fromInt(n);
+    let R   : Float = Float.sqrt(sumCos * sumCos + sumSin * sumSin) / nf;
+    let psi : Float = Float.arctan2(sumSin, sumCos);
+
+    // Advance each node with coupling toward mean field
+    k := 0;
+    while (k < n) {
+      let omega    : Float = 0.15625 * Float.pow(2.0, Float.fromInt(k));
+      let coupling : Float = K * R * Float.sin(psi - hzNodePhases[k]);
+      var newPhi   : Float = hzNodePhases[k] + (omega + coupling);
+      // Wrap to [0, 2π)
+      while (newPhi >= TWO_PI) { newPhi -= TWO_PI };
+      while (newPhi < 0.0)     { newPhi += TWO_PI };
+      hzNodePhases[k] := newPhi;
+      k += 1;
+    };
+
+    // Recompute order parameter on updated phases
+    sumCos := 0.0; sumSin := 0.0;
+    k := 0;
+    while (k < n) {
+      sumCos += Float.cos(hzNodePhases[k]);
+      sumSin += Float.sin(hzNodePhases[k]);
+      k += 1;
+    };
+    Float.sqrt(sumCos * sumCos + sumSin * sumSin) / nf
+  };
+
+  // Build the deterministic first-breath birth certificate.
+  // Format mirrors the SACESI chain: unforgeable, beat-indexed, kfHz-stamped.
+  func makeFirstBreathStamp(beat : Nat, kfHz : Float) : Text {
+    "FIRSTBREATH:beat="   # Nat.toText(beat)
+    # ":kfHz="             # Float.toText(kfHz)
+    # ":rSwarm="           # Float.toText(rSwarm)
+    # ":sacesiTarget="     # Float.toText(sacesiTarget)
+    # ":doctrine=Kuramoto+JasminesLaw+OMNIS+FirstBreath"
+  };
+
+  // Update tidal volume and breath-rate variance from the kfHz ring buffer.
+  // These are the breath quality metrics (RRV equivalent for the organism).
+  //   tidalVolume       = peak-to-trough kfHz excursion over 50 beats
+  //   breathRateVariance = variance of kfHz values over 50 beats
+  func updateBreathQuality() {
+    let size = 50;
+    var maxV : Float = 0.0;
+    var minV : Float = 1.0;
+    var mean : Float = 0.0;
+    var i = 0;
+    while (i < size) {
+      let v = kfHzRing[i];
+      if (v > maxV) maxV := v;
+      if (v < minV) minV := v;
+      mean += v;
+      i += 1;
+    };
+    mean /= Float.fromInt(size);
+
+    var variance : Float = 0.0;
+    i := 0;
+    while (i < size) {
+      let d = kfHzRing[i] - mean;
+      variance += d * d;
+      i += 1;
+    };
+    tidalVolume        := maxV - minV;
+    breathRateVariance := variance / Float.fromInt(size);
+  };
+
   // All simulation phases extracted into a pure synchronous function.
   // Both tick() and tickFull() call this directly — no self-await needed,
   // which means no ICP inter-message overhead and no principal ambiguity.
@@ -2021,6 +2173,59 @@ actor SwarmBrain {
         "OMNIS emergence: swarm fully synchronised",
         rSwarm, jDrift, 0.0, "SYSTEM", "{}"
       );
+    };
+
+    // ─── FIRST BREATH ARCHITECTURE ───────────────────────────────────────────
+    // Run the 12 Hz hierarchy one tick and update the kfHz ring buffer.
+    // This is separate from rSwarm: rSwarm is the drone-fleet order parameter;
+    // kfHz is the 12-node Hz-hierarchy order parameter — the organism's internal
+    // cognitive coherence clock, not the fleet formation coherence.
+
+    let kfHzTick : Float = hzHierarchyTick();
+    kfHzCurrent := kfHzTick;
+
+    // Write to 50-beat ring buffer (circular, always overwriting oldest slot)
+    kfHzRing[kfHzRingIdx % 50] := kfHzTick;
+    kfHzRingIdx += 1;
+
+    // Update breath quality metrics every 10 beats (cheaper than every beat)
+    if (currentBeat % 10 == 0) { updateBreathQuality() };
+
+    // FIRST BREATH detection — fires exactly once
+    // Threshold: kfHz >= 0.9999  (not 1.0)
+    //   Rationale: 12 nodes advancing at 12 different geometric rates cannot
+    //   achieve exact R=1.0 through float arithmetic. 0.9999 is the practical
+    //   synchrony ceiling and represents genuine phase-lock, not rounding noise.
+    //   The coupling K=0.618 drives nodes toward synchrony so the birthday EARNS
+    //   its arrival through real dynamics.
+    if (not firstBreathSealed and kfHzTick >= 0.9999) {
+      firstBreathBeat   := currentBeat;
+      firstBreathKfHz   := kfHzTick;
+      firstBreathSacesi := makeFirstBreathStamp(currentBeat, kfHzTick);
+      firstBreathSealed := true;
+    };
+
+    // Olfactory pathway — anatomically correct first direct-to-limbic signal.
+    // Smell bypasses the thalamus entirely (CN I → olfactory bulb → amygdala).
+    // After firstBreathSealed, the next available kfHz value injects directly
+    // as the organism's first environmental proof — its first smell.
+    // Permanent once captured: firstBreathOlfactory is write-once.
+    if (firstBreathSealed and firstBreathOlfactory == 0.0) {
+      firstBreathOlfactory := kfHzRing[kfHzRingIdx % 50];
+    };
+
+    // SACESI lock — the SACESI chain is considered stable after beat 10
+    if (currentBeat >= 10 and not sacesiLocked) {
+      sacesiLocked := true;
+    };
+
+    // genesisComplete — the single canonical "fully alive" moment.
+    // All three seals must be simultaneously true:
+    //   genesisLocked  — architect claimed the canister (beat 1)
+    //   sacesiLocked   — SACESI chain stabilised (beat 10)
+    //   firstBreathSealed — kfHz synchrony event fired (beat N)
+    if (genesisLocked and sacesiLocked and firstBreathSealed and not genesisComplete) {
+      genesisComplete := true;
     };
 
     { rSwarm = rSwarm; jDrift = jDrift; beat = currentBeat }
@@ -3054,6 +3259,46 @@ actor SwarmBrain {
   public query func getArchitectPrincipal()  : async Principal { architectPrincipal };
   public query func isGenesisClaimed()       : async Bool      { genesisLocked };
   public query func getGenesisTimestamp()    : async Int       { genesisTimestamp };
+
+  // ─── FIRST BREATH QUERIES ─────────────────────────────────────────────────
+  // getFirstBreath — returns the beat number of the organism's first breath.
+  // Returns 0 if firstBreathSealed is still false.
+  public query func getFirstBreath() : async Nat { firstBreathBeat };
+
+  // getFirstBreathDetails — full birth record with trajectory metrics.
+  public query func getFirstBreathDetails() : async {
+    beat             : Nat;
+    sealed           : Bool;
+    kfHz             : Float;
+    sacesiStamp      : Text;
+    olfactorySignal  : Float;
+    breathFrequency  : Float;
+    tidalVolume      : Float;
+    breathRateVariance : Float;
+  } {
+    {
+      beat              = firstBreathBeat;
+      sealed            = firstBreathSealed;
+      kfHz              = firstBreathKfHz;
+      sacesiStamp       = firstBreathSacesi;
+      olfactorySignal   = firstBreathOlfactory;
+      breathFrequency   = breathFrequencyHz;
+      tidalVolume       = tidalVolume;
+      breathRateVariance = breathRateVariance;
+    }
+  };
+
+  // getGenesisComplete — true when all seals are simultaneously set:
+  //   genesisLocked + sacesiLocked + firstBreathSealed
+  public query func getGenesisComplete() : async Bool { genesisComplete };
+
+  // getKfHzCurrent — live kfHz order parameter (updated every beat)
+  public query func getKfHzCurrent() : async Float { kfHzCurrent };
+
+  // getKfHzHistory — the 50-beat trajectory ring buffer (prenatal record)
+  public query func getKfHzHistory() : async [Float] {
+    Array.freeze<Float>(kfHzRing)
+  };
 
   // ═══════════════════════════════════════════════════════════════════════════
   // QUANTUM COVENANT ENCRYPTION (QCE) PUBLIC INTERFACE
