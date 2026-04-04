@@ -676,7 +676,7 @@ export interface AirframeSpec {
   /** Configuration (multirotor, fixed-wing, hybrid) */
   configuration: 'Hexarotor' | 'Quadrotor' | 'Octorotor' | 'Fixed-wing' | 'Hybrid-VTOL';
   /** Diagonal wheelbase [mm] */
-  wheelbasseMm: number;
+  wheelbaseMm: number;
   /** Empty mass (without battery/payload) [kg] */
   emptyMassKg: number;
   /** Maximum take-off mass [kg] */
@@ -727,7 +727,7 @@ export const AIRFRAME_SPECS: Record<string, AirframeSpec> = {
     manufacturer: 'DJI',
     model: 'Matrice 350 RTK',
     configuration: 'Hexarotor',
-    wheelbasseMm: 895,
+    wheelbaseMm: 895,
     emptyMassKg: 3.64,
     mtowKg: 9.2,
     maxPayloadKg: 2.73,
@@ -755,7 +755,7 @@ export const AIRFRAME_SPECS: Record<string, AirframeSpec> = {
     manufacturer: 'DJI',
     model: 'Mavic 3 Enterprise',
     configuration: 'Quadrotor',
-    wheelbasseMm: 380,
+    wheelbaseMm: 380,
     emptyMassKg: 0.915,
     mtowKg: 0.92,
     maxPayloadKg: 0.13,
@@ -783,7 +783,7 @@ export const AIRFRAME_SPECS: Record<string, AirframeSpec> = {
     manufacturer: 'Autel Robotics',
     model: 'EVO MAX 4T',
     configuration: 'Quadrotor',
-    wheelbasseMm: 320,
+    wheelbaseMm: 320,
     emptyMassKg: 1.35,
     mtowKg: 1.35,
     maxPayloadKg: 0.0,
@@ -811,7 +811,7 @@ export const AIRFRAME_SPECS: Record<string, AirframeSpec> = {
     manufacturer: 'Skydio',
     model: 'X10',
     configuration: 'Quadrotor',
-    wheelbasseMm: 300,
+    wheelbaseMm: 300,
     emptyMassKg: 1.1,
     mtowKg: 1.1,
     maxPayloadKg: 0.0,
@@ -839,7 +839,7 @@ export const AIRFRAME_SPECS: Record<string, AirframeSpec> = {
     manufacturer: 'DJI',
     model: 'Agras T40',
     configuration: 'Quadrotor',
-    wheelbasseMm: 2400,
+    wheelbaseMm: 2400,
     emptyMassKg: 47.5,
     mtowKg: 95.5,
     maxPayloadKg: 40.0,
@@ -953,12 +953,12 @@ export interface DroneUnitSpec {
 /**
  * Fleet breakdown for 500 drones:
  *
- *   Indices 0–49   → COMMAND CLASS: DJI Matrice 350 RTK   (50 units)
- *   Indices 50–199 → SCOUT CLASS A:  DJI Mavic 3E          (75 units)
- *   Indices 125–199→ SCOUT CLASS B:  Autel EVO MAX 4T       (75 units)
- *   Indices 200–274→ SUPPORT CLASS A: Skydio X10           (75 units)
- *   Indices 275–399→ SUPPORT CLASS B: Autel EVO MAX 4T     (125 units)
- *   Indices 400–499→ HEAVY CLASS:    DJI Agras T40         (100 units)
+ *   Indices   0–49  → COMMAND CLASS:   DJI Matrice 350 RTK   (50 units)
+ *   Indices  50–124 → SCOUT CLASS A:   DJI Mavic 3E           (75 units)
+ *   Indices 125–199 → SCOUT CLASS B:   Autel EVO MAX 4T       (75 units)
+ *   Indices 200–274 → SUPPORT CLASS A: Skydio X10             (75 units)
+ *   Indices 275–399 → SUPPORT CLASS B: Autel EVO MAX 4T      (125 units)
+ *   Indices 400–499 → HEAVY CLASS:     DJI Agras T40         (100 units)
  */
 
 export interface FleetAllocation {
@@ -1314,7 +1314,8 @@ export function computeBatteryThermal(
   // Capacity derating at temperature extremes
   let capacityRatio = 1.0;
   if (batteryTemp < 0) {
-    capacityRatio = 0.7 + 0.3 * (batteryTemp / 0);
+    // Linear derating from 1.0 at 0°C to 0.4 at -20°C
+    capacityRatio = 0.7 + 0.3 * (batteryTemp / -20);
     capacityRatio = Math.max(0.4, capacityRatio);
   } else if (batteryTemp > 45) {
     capacityRatio = 1.0 - 0.01 * (batteryTemp - 45);
