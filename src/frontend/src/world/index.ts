@@ -307,3 +307,160 @@ export const WorldSystem = {
 };
 
 export default WorldSystem;
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DRONE FLEET SPECS — 500-unit real-world specifications
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export {
+  // ISA atmosphere constants
+  ISA,
+  airDensity,
+  dynamicPressure,
+  reynoldsNumber,
+
+  // Battery specs
+  type BatterySpec,
+  BATTERY_SPECS,
+  computeBatteryThermal,
+  type BatteryThermalState,
+
+  // Propulsion
+  type PropulsionSystem,
+  PROPULSION_SYSTEMS,
+
+  // Sensors
+  type SensorPayload,
+  SENSOR_PAYLOADS,
+
+  // Comms
+  type CommSystem,
+  COMM_SYSTEMS,
+
+  // Airframe
+  type AirframeSpec,
+  AIRFRAME_SPECS,
+
+  // Fleet allocation
+  type DroneClass,
+  type DroneMission,
+  type DroneStatus,
+  type DroneUnitSpec,
+  type FleetAllocation,
+  FLEET_ALLOCATION,
+
+  // Factory
+  buildDroneUnitSpec,
+  buildFleet500,
+
+  // Utility
+  droneClassColor,
+  droneStatusColor,
+
+  // Aerodynamics
+  computeDragForce,
+  computeHoverThrust,
+  computeEnduranceMin,
+  computeRangeKm,
+
+  // Acoustics
+  droneSPLAtDistance,
+  swarmNoiseLevel,
+
+  // Flight envelope
+  type FlightEnvelope,
+  buildFlightEnvelope,
+
+  // Maintenance
+  type MaintenanceItem,
+  MAINTENANCE_SCHEDULE,
+
+  // Statistics
+  type FleetStatistics,
+  computeFleetStatistics,
+} from './DroneFleetSpecs';
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// VIRTUAL AIRSTRIP — 500-spot holding area
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export {
+  // Constants
+  AIRSTRIP,
+
+  // Types
+  type Vec3 as AirstripVec3,
+  type Vec2,
+  type BoundingBox,
+  type ParkingSpot,
+  type RunwaySegment,
+  type TaxiwayNode,
+  type TaxiwayEdge,
+  type SurfaceMarking,
+  type AirstripStructure,
+  type AirstripLight,
+  type AirstripWorld,
+  type AirstripStats,
+  type GroundRoute,
+
+  // Generators
+  generateParkingGrid,
+  generateRunwaySegments,
+  generateTaxiwayNetwork,
+  generateSurfaceMarkings,
+  generateAirstripStructures,
+  generateAirstripLights,
+  buildAirstripWorld,
+  getAirstripStats,
+
+  // Ground ops
+  computeTakeoffRoute,
+  computeLandingRoute,
+} from './VirtualAirstrip';
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DRONE FLEET 500 — Runtime simulation engine
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export {
+  // Types
+  type RuntimeDroneState,
+  type FleetState,
+  type FleetStats,
+  type MaintenanceAlert,
+  type SwarmConfig,
+  DEFAULT_SWARM_CONFIG,
+  type WorldEnv,
+  DEFAULT_WORLD_ENV,
+  type FormationPattern,
+  type DroneTelemetrySnapshot,
+
+  // Init
+  initializeFleet500,
+  initializeFleetState,
+
+  // Step
+  stepFleet,
+
+  // Metrics
+  computeKuramotoOrder,
+  computeJasmineDrift,
+
+  // Formation
+  computeFormationTargets,
+
+  // Dispatch
+  dispatchDrone,
+  commandRTB,
+  batchDispatch,
+  emergencyStopAll,
+  rtbAll,
+
+  // Telemetry
+  extractTelemetry,
+  extractAllTelemetry,
+
+  // Helpers
+  BASE_LAT,
+  BASE_LON,
+} from './DroneFleet500';
