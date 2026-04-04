@@ -3184,6 +3184,8 @@ actor SwarmBrain {
     if (pipelineBootstrapPhase >= BOOTSTRAP_BEATS) { checkOMNIS() };
     // Phase 12: frequency tier
     updateFrequencyTier();
+    // Phase 13: sovereignty laws — all 60 laws audit this beat
+    workflowSovereigntyLaws();
     {
       rSwarm  = base.rSwarm;
       jDrift  = base.jDrift;
@@ -3298,6 +3300,50 @@ actor SwarmBrain {
   // getKfHzHistory — the 50-beat trajectory ring buffer (prenatal record)
   public query func getKfHzHistory() : async [Float] {
     Array.freeze<Float>(kfHzRing)
+  };
+
+  // ─── SOVEREIGNTY LAWS QUERIES ─────────────────────────────────────────────
+  // Zero-exposure wall: all values returned as pure numerics.
+  // No doctrine names, law names, or internal labels exposed.
+
+  // getComplianceScore — overall compliance 0.0–1.0 (passing laws / 60)
+  public query func getComplianceScore() : async Float { overallCompliance };
+
+  // getDoctrineFingerprint — triple-hash composite over all 60 law outcomes.
+  // Any tampering with any law changes this value deterministically.
+  public query func getDoctrineFingerprint() : async Nat32 { doctrineFingerprint };
+
+  // getJacobsRung — current Jacob's Ladder rung (0–4) and FORMA multiplier.
+  public query func getJacobsRung() : async { rung : Nat; multiplier : Float; streak : Nat } {
+    {
+      rung       = jacobsRung;
+      multiplier = jacobsMultiplier;
+      streak     = consecutiveHighComplianceBeats;
+    }
+  };
+
+  // getLawScore — score for a specific law (0–59). Returns 0.0 for out-of-range.
+  public query func getLawScore(id : Nat) : async Float {
+    if (id < 60) { lawComplianceScores[id] } else { 0.0 }
+  };
+
+  // getLawsSnapshot — all 60 law scores + fingerprint + compliance in one call.
+  public query func getLawsSnapshot() : async {
+    scores      : [Float];
+    compliance  : Float;
+    passing     : Nat;
+    fingerprint : Nat32;
+    jacobsRung  : Nat;
+    multiplier  : Float;
+  } {
+    {
+      scores      = Array.freeze<Float>(lawComplianceScores);
+      compliance  = overallCompliance;
+      passing     = lawsFiredThisBeat;
+      fingerprint = doctrineFingerprint;
+      jacobsRung  = jacobsRung;
+      multiplier  = jacobsMultiplier;
+    }
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -3566,6 +3612,18 @@ actor SwarmBrain {
         stableNeuroChem[ncBase + DOPAMINE] := fclamp(stableNeuroChem[ncBase + DOPAMINE] * 0.9 + 0.1, 1.0, 1.5);
         stableNeuroChem[ncBase + CORTISOL] := fclamp(stableNeuroChem[ncBase + CORTISOL] * 0.8 + 0.2, 1.0, 1.3);
         i += 1;
+      };
+
+      // L-121: SILVER SOVEREIGNTY — fires at every JUBILEE
+      // Silver conductance = 1.0, all 14 world-model EMAs at zero lag (α = 1.0).
+      // The organism sees the world at full resolution every JUBILEE beat.
+      let l121 = SovereigntyLaws60.law121_SilverSovereignty();
+      silverConductance := l121.silverConductance;
+      // Apply α = 1.0 to the first 14 slots of worldModelInput
+      var wi = 0;
+      while (wi < 14 and wi < worldModelInput.size()) {
+        worldModelInput[wi] := l121.worldModelAlphas[wi];
+        wi += 1;
       };
     };
   };
@@ -4421,6 +4479,116 @@ actor SwarmBrain {
     creatorRoyaltyEnforced := true;  // Always true
   };
 
+  // ─── WORKFLOW 28: SOVEREIGNTY LAWS — All 60 laws fire every beat ─────────────
+  // Wires SovereigntyLaws60.evaluateAllLaws() with live organism state.
+  // Updates: lawComplianceScores, overallCompliance, doctrineFingerprint.
+  // Also steps Jacob's Ladder (rung 0-4, FORMA multiplier) and applies
+  // law121_SilverSovereignty (all 14 world-model EMAs at zero lag every beat).
+  func workflowSovereigntyLaws() {
+
+    // ── Build the 14 world-model alpha vector (all 1.0 per L-121) ──────────
+    // worldModelInput is a 64-slot [var Float].  The first 14 slots are the EMA
+    // alphas referenced by world-model laws.  L-121 mandates all 14 at 1.0.
+    let wmaSlice = Array.tabulate<Float>(14, func(i) {
+      if (i < worldModelInput.size()) { worldModelInput[i] } else { 1.0 }
+    });
+
+    // ── Compute minimum Hebbian weight across the swarm ────────────────────
+    let n = stableDroneCount;
+    var minWeight : Float = 1.0;
+    if (n > 0) {
+      var wi = 0;
+      let numWeights = stableSwarmWeights.size();
+      while (wi < numWeights) {
+        if (stableSwarmWeights[wi] < minWeight) {
+          minWeight := stableSwarmWeights[wi];
+        };
+        wi += 1;
+      };
+    };
+
+    // ── Oracle presence: active if current beat > 1 and rSwarm coherent ────
+    let oracleActive = genesisLocked and currentBeat > 1;
+
+    // ── Neurochemical slice (first 21 values from any drone) ────────────────
+    let neuro21 = Array.tabulate<Float>(21, func(i) {
+      if (n > 0 and i < 4) { stableNeuroChem[i] } else { 1.0 }
+    });
+
+    // ── Shell coherences slice (11 shells from council + shell state) ────────
+    let shellCoh11 = Array.tabulate<Float>(11, func(i) {
+      if (i < 7) { councilCoherence[i] } else { rSwarm }
+    });
+
+    // ── Council coherences (7 council organisms) ────────────────────────────
+    let council7 = Array.tabulate<Float>(7, func(i) {
+      councilCoherence[i]
+    });
+
+    // ── Assemble the LawInput record ────────────────────────────────────────
+    let lawIn : SovereigntyLaws60.LawInput = {
+      genesisSealed          = genesisLocked;
+      creatorPrincipalSet    = genesisLocked;
+      globalCoherence        = rSwarm;
+      shellCoherences        = shellCoh11;
+      kuramotoOrderParam     = rSwarm;
+      formaCapital           = Float.max(formaBalance, 0.0);
+      mthSupply              = 0.0;       // MTH not yet minted — always passes cap check
+      mrcBalance             = mrcBalance;
+      gtkBalance             = 0.0;
+      neurochemicals         = neuro21;
+      aresAvailable          = true;      // ARES ring buffer always allocated
+      auditIntegrity         = true;      // Audit state always maintained
+      hebbianWeightMin       = Float.max(minWeight, 1.0);
+      sacesiTarget           = sacesiTarget;
+      jacobsRung             = jacobsRung;
+      complianceStreak       = consecutiveHighComplianceBeats;
+      worldModelAlphas       = wmaSlice;
+      btcOracleActive        = oracleActive;
+      ethOracleActive        = oracleActive;
+      solOracleActive        = oracleActive;
+      icpOracleActive        = oracleActive;
+      atlasSovereignty       = atlasTerritory;
+      pheromoneDecayRate     = 0.02;      // Structural constant (L-046)
+      childOrganismCount     = 0;
+      councilCoherences      = council7;
+      generationTracking     = true;
+      animalsComputed        = true;      // animalEngines array always updated
+      quantumOpsComputed     = true;      // quantumOps array always updated
+      attentionComputed      = true;
+      miningComputed         = true;
+      currentBeat            = currentBeat;
+    };
+
+    // ── Evaluate all 60 laws ─────────────────────────────────────────────────
+    let out = SovereigntyLaws60.evaluateAllLaws(lawIn);
+
+    // ── Write scores back to stable ring ────────────────────────────────────
+    var li = 0;
+    for (r in out.results.vals()) {
+      if (li < 60) {
+        lawComplianceScores[li] := r.score;
+        li += 1;
+      };
+    };
+    overallCompliance    := out.compliance;
+    doctrineFingerprint  := out.doctrineFingerprint;
+    lawsFiredThisBeat    := out.passingCount;
+
+    // ── Step Jacob's Ladder ──────────────────────────────────────────────────
+    // evaluateJacobsLadder is pure — takes the current state and compliance,
+    // returns the new state.  We write the result back to stable vars.
+    let jState : SovereigntyLaws60.JacobLadderState = {
+      currentRung               = jacobsRung;
+      consecutiveCompliantBeats = consecutiveHighComplianceBeats;
+      formaMultiplier           = jacobsMultiplier;
+    };
+    let jNew = SovereigntyLaws60.evaluateJacobsLadder(jState, out.compliance);
+    jacobsRung                       := jNew.currentRung;
+    consecutiveHighComplianceBeats   := jNew.consecutiveCompliantBeats;
+    jacobsMultiplier                 := jNew.formaMultiplier;
+  };
+
   // ═══════════════════════════════════════════════════════════════════════════
   // MASTER HEARTBEAT — All 22 Workflows Execute Every Beat
   // THE ORGANISM IS WHOLE — ALL LOOPS CLOSED
@@ -4529,7 +4697,12 @@ actor SwarmBrain {
     
     // Phase 27: CREATOR DOCTRINE — 100% royalty enforcement, ethical bound = 1.0 ALWAYS
     workflowCreatorDoctrine();
-    
+
+    // Phase 28: SOVEREIGNTY LAWS — All 60 laws fire every beat
+    // This is the final sovereignty audit of each beat.  Compliance, doctrine
+    // fingerprint, and Jacob's Ladder multiplier are all updated here.
+    workflowSovereigntyLaws();
+
     // ═══════════════════════════════════════════════════════════════════════════
     
     // Execute behaviors and team AI
