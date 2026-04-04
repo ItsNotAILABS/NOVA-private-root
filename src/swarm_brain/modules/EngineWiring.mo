@@ -1096,6 +1096,311 @@ module {
   /// Frame skip detection
   public func frameSkipDetected(prevFrame : Nat, currentFrame : Nat) : Bool {
     currentFrame > prevFrame + 1
+
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║                   KURAMOTO COUPLING BETWEEN ENGINES                    ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  //
+  // All engines are Kuramoto-coupled oscillators.
+  // They synchronize through phase coupling.
+  //
+  public func kuramotoCoupleEngines(state : EngineWiringState, couplingStrength : Float) : EngineWiringState {
+    let n = state.engines.size();
+    if (n == 0) { return state };
+    
+    // Calculate mean phase (order parameter)
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    var activeCount : Float = 0.0;
+    
+    for (engine in state.engines.vals()) {
+      if (engine.isOn) {
+        sumCos += Float.cos(engine.phase);
+        sumSin += Float.sin(engine.phase);
+        activeCount += 1.0;
+      };
+    };
+    
+    if (activeCount == 0.0) { return state };
+    
+    let meanPhase = Float.arctan2(sumSin, sumCos);
+    let r = Float.sqrt(sumCos * sumCos + sumSin * sumSin) / activeCount;
+    
+    // Update each engine's phase using Kuramoto dynamics
+    let newEngines = Array.map<Engine, Engine>(state.engines, func(e : Engine) : Engine {
+      if (e.isOn) {
+        // Kuramoto equation: dθ/dt = ω + K·r·sin(ψ - θ)
+        let phaseDiff = meanPhase - e.phase;
+        let phaseUpdate = e.hz * τ / 1000.0 + couplingStrength * r * Float.sin(phaseDiff);
+        var newPhase = e.phase + phaseUpdate;
+        
+        // Wrap phase to [0, 2π)
+        while (newPhase >= τ) { newPhase -= τ };
+        while (newPhase < 0.0) { newPhase += τ };
+        
+        { e with 
+          phase = newPhase;
+          coherence = r;  // Local coherence tracks global
+        }
+      } else {
+        e
+      }
+    });
+    
+    { state with 
+      engines = newEngines;
+      globalCoherence = r;
+    }
+  };
+
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║                   TRANSMIT DATA THROUGH FIBERS                         ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  //
+  // Data flows through fiber optic cables between engines.
+  // Phase and coherence are transmitted with signal strength decay.
+  //
+  public func transmitThroughFibers(state : EngineWiringState, beat : Nat) : EngineWiringState {
+    // For each fiber cable, transmit phase/coherence from source to destination
+    let engineMap = Array.foldLeft<Engine, [(Nat, Engine)]>(
+      state.engines,
+      [],
+      func(acc, e) { Array.append(acc, [(e.id, e)]) }
+    );
+    
+    let updatedCables = Array.map<FiberCable, FiberCable>(state.fiberCables, func(cable : FiberCable) : FiberCable {
+      if (not cable.isActive) { return cable };
+      
+      // Find source engine
+      var sourcePhase : Float = 0.0;
+      var sourceCoherence : Float = 0.0;
+      
+      for (e in state.engines.vals()) {
+        if (e.id == cable.sourceEngine) {
+          sourcePhase := e.phase;
+          sourceCoherence := e.coherence;
+        };
+      };
+      
+      // Attenuate signal based on strength
+      let transmittedPhase = sourcePhase * cable.signalStrength;
+      let transmittedCoherence = sourceCoherence * cable.signalStrength;
+      
+      { cable with 
+        phaseCarrier = transmittedPhase;
+        coherenceCarrier = transmittedCoherence;
+        lastTransmission = beat;
+      }
+    });
+    
+    { state with fiberCables = updatedCables }
+  };
+
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║                   RECEIVE DATA FROM FIBERS                             ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  //
+  // Engines receive phase/coherence signals from their input fibers.
+  // This influences their dynamics.
+  //
+  public func receiveFromFibers(state : EngineWiringState) : EngineWiringState {
+    let newEngines = Array.map<Engine, Engine>(state.engines, func(e : Engine) : Engine {
+      if (not e.isOn) { return e };
+      
+      // Sum inputs from all fibers targeting this engine
+      var inputPhaseSum : Float = 0.0;
+      var inputCoherenceSum : Float = 0.0;
+      var inputCount : Float = 0.0;
+      
+      for (cable in state.fiberCables.vals()) {
+        if (cable.destEngine == e.id and cable.isActive) {
+          inputPhaseSum += cable.phaseCarrier;
+          inputCoherenceSum += cable.coherenceCarrier;
+          inputCount += 1.0;
+        };
+      };
+      
+      if (inputCount == 0.0) { return e };
+      
+      // Average inputs and blend with current state
+      let avgInputPhase = inputPhaseSum / inputCount;
+      let avgInputCoherence = inputCoherenceSum / inputCount;
+      
+      // Blend factor (how much to trust inputs)
+      let blendFactor = 0.1;  // 10% from inputs, 90% from self
+      
+      var blendedPhase = e.phase * (1.0 - blendFactor) + avgInputPhase * blendFactor;
+      while (blendedPhase >= τ) { blendedPhase -= τ };
+      while (blendedPhase < 0.0) { blendedPhase += τ };
+      
+      let blendedCoherence = e.coherence * (1.0 - blendFactor) + avgInputCoherence * blendFactor;
+      
+      { e with 
+        phase = blendedPhase;
+        coherence = blendedCoherence;
+      }
+    });
+    
+    { state with engines = newEngines }
+  };
+
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║                   FULL ORCHESTRATION TICK                              ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  //
+  // This is the MASTER tick function that:
+  //   1. Kuramoto couples all engines
+  //   2. Transmits through fibers
+  //   3. Receives from fibers
+  //   4. Fires all engines
+  //   5. Computes global coherence
+  //
+  public func tickOrchestration(state : EngineWiringState, beat : Nat) : EngineWiringState {
+    // Step 1: Kuramoto coupling (φ-weighted)
+    let coupled = kuramotoCoupleEngines(state, φ * 0.1);
+    
+    // Step 2: Transmit phase/coherence through fibers
+    let transmitted = transmitThroughFibers(coupled, beat);
+    
+    // Step 3: Receive inputs from fibers
+    let received = receiveFromFibers(transmitted);
+    
+    // Step 4: Fire all engines
+    let fired = fireAllEngines(received, beat);
+    
+    // Step 5: Compute global metrics
+    let globalPow = computeGlobalPower(fired);
+    let globalCoh = computeGlobalCoherence(fired);
+    
+    { fired with 
+      globalPower = globalPow;
+      globalCoherence = globalCoh;
+      currentBeat = beat;
+    }
+  };
+
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║                   GLOBAL METRICS                                       ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  
+  public func computeGlobalPower(state : EngineWiringState) : Float {
+    var totalPower : Float = 0.0;
+    var count : Float = 0.0;
+    
+    for (e in state.engines.vals()) {
+      if (e.isOn) {
+        totalPower += e.power;
+        count += 1.0;
+      };
+    };
+    
+    if (count == 0.0) { 0.0 } else { totalPower / count }
+  };
+
+  public func computeGlobalCoherence(state : EngineWiringState) : Float {
+    let n = state.engines.size();
+    if (n == 0) { return 0.0 };
+    
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    var activeCount : Float = 0.0;
+    
+    for (e in state.engines.vals()) {
+      if (e.isOn) {
+        sumCos += Float.cos(e.phase);
+        sumSin += Float.sin(e.phase);
+        activeCount += 1.0;
+      };
+    };
+    
+    if (activeCount == 0.0) { return 0.0 };
+    
+    Float.sqrt(sumCos * sumCos + sumSin * sumSin) / activeCount
+  };
+
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║                   ENGINE CATEGORY QUERIES                              ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  
+  public func getEnginesByCategory(state : EngineWiringState, category : EngineCategory) : [Engine] {
+    Array.filter<Engine>(state.engines, func(e) { e.category == category })
+  };
+
+  public func getCategoryCoherence(state : EngineWiringState, category : EngineCategory) : Float {
+    let categoryEngines = getEnginesByCategory(state, category);
+    let n = categoryEngines.size();
+    if (n == 0) { return 0.0 };
+    
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    
+    for (e in categoryEngines.vals()) {
+      sumCos += Float.cos(e.phase);
+      sumSin += Float.sin(e.phase);
+    };
+    
+    Float.sqrt(sumCos * sumCos + sumSin * sumSin) / Float.fromInt(n)
+  };
+
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║                   SHELL-SPECIFIC OPERATIONS                            ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  
+  public func getShellEngine(state : EngineWiringState, shellIndex : Nat) : ?Engine {
+    let shellId = 30 + shellIndex;
+    for (e in state.engines.vals()) {
+      if (e.id == shellId) { return ?e };
+    };
+    null
+  };
+
+  public func getShellCoherence(state : EngineWiringState) : [Float] {
+    Array.tabulate<Float>(12, func(i) {
+      switch (getShellEngine(state, i)) {
+        case (?e) { e.coherence };
+        case null { 0.0 };
+      }
+    })
+  };
+
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║                   FIBER CABLE STATISTICS                               ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  
+  public func getFiberStats(state : EngineWiringState) : { total: Nat; active: Nat; avgSignal: Float } {
+    var active = 0;
+    var totalSignal : Float = 0.0;
+    
+    for (c in state.fiberCables.vals()) {
+      if (c.isActive) { 
+        active += 1;
+        totalSignal += c.signalStrength;
+      };
+    };
+    
+    {
+      total = state.fiberCables.size();
+      active = active;
+      avgSignal = if (active == 0) { 0.0 } else { totalSignal / Float.fromInt(active) };
+    }
+  };
+
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║                   DIAGNOSTIC FUNCTIONS                                 ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  
+  public func diagnoseWiring(state : EngineWiringState) : Text {
+    let engineCount = state.engines.size();
+    let activeEngines = getActiveEngineCount(state);
+    let fiberStats = getFiberStats(state);
+    let coreCoherence = getCategoryCoherence(state, #Core);
+    let shellCoherence = getCategoryCoherence(state, #Shell);
+    
+    "Engines: " # debug_show(activeEngines) # "/" # debug_show(engineCount) # " | " #
+    "Fibers: " # debug_show(fiberStats.active) # "/" # debug_show(fiberStats.total) # " | " #
+    "Global Coherence: " # debug_show(state.globalCoherence) # " | " #
+    "Core: " # debug_show(coreCoherence) # " | " #
+    "Shells: " # debug_show(shellCoherence)
   };
 
 }
