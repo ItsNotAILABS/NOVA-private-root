@@ -1586,4 +1586,757 @@ module {
     if (mag1 < 0.0001 or mag2 < 0.0001) { 0.0 } else { dot / (mag1 * mag2) }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ║                                                                             ║
+  // ║  FRISTON ENGINE — EXTENDED ORGANISM ARCHITECTURE                            ║
+  // ║  Full Active Inference Integration with All Organism Subsystems             ║
+  // ║                                                                             ║
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─── ORGANISM FREE ENERGY LANDSCAPE ───────────────────────────────────────────
+  
+  /// Complete organism free energy state
+  public type OrganismFreeEnergyState = {
+    // Core free energy components
+    coreState : FristonState;
+    
+    // Hierarchical prediction errors
+    sensoryPredictionError : Float;
+    proprioceptivePredictionError : Float;
+    interoceptivePredictionError : Float;
+    exteroceptivePredictionError : Float;
+    
+    // Precision matrices (diagonal approximation)
+    sensoryPrecision : Float;
+    motorPrecision : Float;
+    cognitivePresion : Float;
+    emotionalPrecision : Float;
+    
+    // Generative model parameters
+    modelComplexity : Float;
+    modelAccuracy : Float;
+    evidenceLowerBound : Float;
+    
+    // Allostatic regulation
+    allostaticSetpoint : Float;
+    allostaticError : Float;
+    allostaticDrive : Float;
+    
+    // Temporal depth
+    pastHorizon : Nat;
+    futureHorizon : Nat;
+    temporalDiscount : Float;
+    
+    // Counterfactual processing
+    counterfactualDepth : Nat;
+    alternativeScenarios : [Float];
+    expectedUtility : Float;
+    
+    // Metacognitive monitoring
+    modelConfidence : Float;
+    uncertaintyAboutUncertainty : Float;
+    epismicValue : Float;
+  };
+
+  /// Initialize organism free energy state
+  public func initOrganismFreeEnergy() : OrganismFreeEnergyState {
+    {
+      coreState = defaultState();
+      sensoryPredictionError = 0.1;
+      proprioceptivePredictionError = 0.1;
+      interoceptivePredictionError = 0.1;
+      exteroceptivePredictionError = 0.1;
+      sensoryPrecision = 1.0;
+      motorPrecision = 1.0;
+      cognitivePresion = 1.0;
+      emotionalPrecision = 1.0;
+      modelComplexity = 0.5;
+      modelAccuracy = 0.8;
+      evidenceLowerBound = -10.0;
+      allostaticSetpoint = 0.5;
+      allostaticError = 0.0;
+      allostaticDrive = 0.0;
+      pastHorizon = 10;
+      futureHorizon = 5;
+      temporalDiscount = 0.95;
+      counterfactualDepth = 3;
+      alternativeScenarios = [0.5, 0.5, 0.5];
+      expectedUtility = 0.0;
+      modelConfidence = 0.7;
+      uncertaintyAboutUncertainty = 0.3;
+      epismicValue = 0.2;
+    }
+  };
+
+  // ─── ACTIVE INFERENCE ACTION SELECTION ────────────────────────────────────────
+  
+  /// Expected free energy for policy evaluation
+  public type PolicyEvaluation = {
+    policy : [Float];
+    expectedFreeEnergy : Float;
+    pragmaticValue : Float;
+    epistemicValue : Float;
+    riskSensitivity : Float;
+  };
+
+  /// Evaluate expected free energy of a policy
+  public func evaluatePolicy(
+    state : FristonState,
+    policy : [Float],
+    desiredOutcome : Float,
+    ambiguity : Float
+  ) : PolicyEvaluation {
+    // Expected free energy = risk + ambiguity
+    // Risk = KL[Q(o|π) || P(o)] - expected divergence from preferred outcomes
+    // Ambiguity = expected entropy of observations given policy
+    
+    let n = policy.size();
+    var pragmatic : Float = 0.0;
+    var epistemic : Float = 0.0;
+    
+    var i : Nat = 0;
+    while (i < n) {
+      let action = policy[i];
+      // Pragmatic value: How much does this reduce prediction error?
+      let predError = Float.abs(action - desiredOutcome);
+      pragmatic -= predError;
+      
+      // Epistemic value: How much information does this action provide?
+      epistemic += ambiguity * action;
+      i += 1;
+    };
+    
+    // Expected free energy combines both
+    let efe = -pragmatic + ambiguity - epistemic;
+    
+    {
+      policy = policy;
+      expectedFreeEnergy = efe;
+      pragmaticValue = pragmatic;
+      epistemicValue = epistemic;
+      riskSensitivity = state.riskSensitivity;
+    }
+  };
+
+  /// Select optimal action via active inference
+  public func selectAction(
+    state : FristonState,
+    possibleActions : [Float],
+    desiredOutcome : Float
+  ) : Float {
+    if (possibleActions.size() == 0) { return 0.0 };
+    
+    var bestAction = possibleActions[0];
+    var bestEFE = 999999.0;
+    
+    for (action in possibleActions.vals()) {
+      // Evaluate single-action policy
+      let eval = evaluatePolicy(state, [action], desiredOutcome, state.ambiguity);
+      if (eval.expectedFreeEnergy < bestEFE) {
+        bestEFE := eval.expectedFreeEnergy;
+        bestAction := action;
+      };
+    };
+    
+    bestAction
+  };
+
+  // ─── CROSS-MODULE INTEGRATION ─────────────────────────────────────────────────
+  
+  /// Integrate with Kuramoto oscillator coherence
+  public func integrateWithKuramoto(
+    state : FristonState,
+    orderParameter : Float,
+    meanPhase : Float,
+    coupling : Float
+  ) : FristonState {
+    // High Kuramoto coherence → lower sensory precision (more certainty)
+    // Phase alignment affects prediction timing
+    let coherenceFactor = 1.0 + (orderParameter - 0.5) * 0.5;
+    let phaseMod = Float.cos(meanPhase) * 0.1;
+    
+    let newPrecision = _clamp(state.sensoryPrecision * coherenceFactor, 0.1, 10.0);
+    let newPrediction = state.prediction + phaseMod;
+    
+    {
+      freeEnergy = state.freeEnergy;
+      predictionError = state.predictionError;
+      prediction = _clamp(newPrediction, 0.0, 1.0);
+      observation = state.observation;
+      precision = newPrecision;
+      learningRate = state.learningRate;
+      complexity = state.complexity;
+      rSwarm = state.rSwarm;
+      jDrift = state.jDrift;
+      sensoryPrecision = newPrecision;
+      motorPrecision = state.motorPrecision;
+      beliefs = state.beliefs;
+      ambiguity = state.ambiguity * (2.0 - orderParameter);
+      surprisal = state.surprisal;
+      riskSensitivity = state.riskSensitivity;
+      explorationBias = state.explorationBias;
+      beliefEntropy = state.beliefEntropy;
+    }
+  };
+
+  /// Integrate with Hebbian plasticity
+  public func integrateWithHebbian(
+    state : FristonState,
+    hebbianWeights : [Float],
+    plasticityRate : Float
+  ) : FristonState {
+    // Hebbian learning modulates model complexity and learning rate
+    var avgWeight : Float = 0.0;
+    if (hebbianWeights.size() > 0) {
+      for (w in hebbianWeights.vals()) { avgWeight += w };
+      avgWeight := avgWeight / Float.fromInt(hebbianWeights.size());
+    };
+    
+    let newLearningRate = _clamp(state.learningRate + plasticityRate * avgWeight, 0.001, 1.0);
+    let newComplexity = _clamp(state.complexity + plasticityRate * 0.01, 0.0, 10.0);
+    
+    {
+      freeEnergy = state.freeEnergy;
+      predictionError = state.predictionError;
+      prediction = state.prediction;
+      observation = state.observation;
+      precision = state.precision;
+      learningRate = newLearningRate;
+      complexity = newComplexity;
+      rSwarm = state.rSwarm;
+      jDrift = state.jDrift;
+      sensoryPrecision = state.sensoryPrecision;
+      motorPrecision = state.motorPrecision;
+      beliefs = state.beliefs;
+      ambiguity = state.ambiguity;
+      surprisal = state.surprisal;
+      riskSensitivity = state.riskSensitivity;
+      explorationBias = state.explorationBias;
+      beliefEntropy = state.beliefEntropy;
+    }
+  };
+
+  /// Integrate with Attractor dynamics
+  public func integrateWithAttractor(
+    state : FristonState,
+    attractorEnergy : Float,
+    basinDepth : Float
+  ) : FristonState {
+    // Attractor basin depth affects free energy landscape
+    // Deep basins → lower free energy, higher stability
+    let energyMod = attractorEnergy * 0.1;
+    let stabilityFactor = 1.0 / (1.0 + basinDepth);
+    
+    let newFreeEnergy = state.freeEnergy + energyMod;
+    let newRisk = _clamp(state.riskSensitivity * stabilityFactor, 0.0, 2.0);
+    
+    {
+      freeEnergy = newFreeEnergy;
+      predictionError = state.predictionError;
+      prediction = state.prediction;
+      observation = state.observation;
+      precision = state.precision;
+      learningRate = state.learningRate;
+      complexity = state.complexity;
+      rSwarm = state.rSwarm;
+      jDrift = state.jDrift;
+      sensoryPrecision = state.sensoryPrecision;
+      motorPrecision = state.motorPrecision;
+      beliefs = state.beliefs;
+      ambiguity = state.ambiguity;
+      surprisal = state.surprisal;
+      riskSensitivity = newRisk;
+      explorationBias = state.explorationBias;
+      beliefEntropy = state.beliefEntropy;
+    }
+  };
+
+  /// Integrate with Predictive Coding
+  public func integrateWithPredictive(
+    state : FristonState,
+    hierarchicalErrors : [Float],
+    contextualPrior : Float
+  ) : FristonState {
+    // Hierarchical prediction errors sum into total free energy
+    var totalError : Float = 0.0;
+    for (err in hierarchicalErrors.vals()) {
+      totalError += err * err;
+    };
+    
+    // Contextual prior modulates beliefs
+    let contextMod = (contextualPrior - 0.5) * 0.2;
+    let newBeliefs = Array.tabulate<Float>(state.beliefs.size(), func(i) {
+      _clamp(state.beliefs[i] + contextMod, 0.0, 1.0)
+    });
+    
+    {
+      freeEnergy = state.freeEnergy + totalError;
+      predictionError = state.predictionError + Float.sqrt(totalError) * 0.1;
+      prediction = state.prediction;
+      observation = state.observation;
+      precision = state.precision;
+      learningRate = state.learningRate;
+      complexity = state.complexity;
+      rSwarm = state.rSwarm;
+      jDrift = state.jDrift;
+      sensoryPrecision = state.sensoryPrecision;
+      motorPrecision = state.motorPrecision;
+      beliefs = newBeliefs;
+      ambiguity = state.ambiguity;
+      surprisal = state.surprisal + Float.sqrt(totalError) * 0.05;
+      riskSensitivity = state.riskSensitivity;
+      explorationBias = state.explorationBias;
+      beliefEntropy = state.beliefEntropy;
+    }
+  };
+
+  /// Integrate with Quantum systems
+  public func integrateWithQuantum(
+    state : FristonState,
+    quantumCoherence : Float,
+    superpositionWeight : Float
+  ) : FristonState {
+    // Quantum coherence affects belief superposition
+    // Higher coherence → more parallel hypothesis evaluation
+    let coherenceFactor = 1.0 + quantumCoherence * 0.3;
+    let newEntropy = _clamp(state.beliefEntropy * (1.0 + superpositionWeight * 0.2), 0.0, 10.0);
+    let newExploration = _clamp(state.explorationBias + superpositionWeight * 0.1, 0.0, 1.0);
+    
+    {
+      freeEnergy = state.freeEnergy;
+      predictionError = state.predictionError;
+      prediction = state.prediction;
+      observation = state.observation;
+      precision = state.precision * coherenceFactor;
+      learningRate = state.learningRate;
+      complexity = state.complexity;
+      rSwarm = state.rSwarm;
+      jDrift = state.jDrift;
+      sensoryPrecision = state.sensoryPrecision;
+      motorPrecision = state.motorPrecision;
+      beliefs = state.beliefs;
+      ambiguity = state.ambiguity;
+      surprisal = state.surprisal;
+      riskSensitivity = state.riskSensitivity;
+      explorationBias = newExploration;
+      beliefEntropy = newEntropy;
+    }
+  };
+
+  // ─── ALLOSTATIC REGULATION ────────────────────────────────────────────────────
+  
+  /// Allostatic state for homeostatic predictive regulation
+  public type AllostaticState = {
+    setpoints : [Float];
+    currentValues : [Float];
+    errors : [Float];
+    drives : [Float];
+    totalDrive : Float;
+    regulatoryCapacity : Float;
+  };
+
+  /// Compute allostatic error and drive
+  public func computeAllostasis(
+    setpoints : [Float],
+    currentValues : [Float]
+  ) : AllostaticState {
+    let n = setpoints.size();
+    let m = currentValues.size();
+    let size = if (n < m) { n } else { m };
+    
+    var errors : [Float] = [];
+    var drives : [Float] = [];
+    var totalDrive : Float = 0.0;
+    
+    var i : Nat = 0;
+    while (i < size) {
+      let err = currentValues[i] - setpoints[i];
+      let drive = Float.abs(err);
+      errors := Array.append(errors, [err]);
+      drives := Array.append(drives, [drive]);
+      totalDrive += drive;
+      i += 1;
+    };
+    
+    let capacity = 1.0 / (1.0 + totalDrive);
+    
+    {
+      setpoints = setpoints;
+      currentValues = currentValues;
+      errors = errors;
+      drives = drives;
+      totalDrive = totalDrive;
+      regulatoryCapacity = _clamp(capacity, 0.0, 1.0);
+    }
+  };
+
+  /// Update free energy with allostatic regulation
+  public func updateWithAllostasis(
+    state : FristonState,
+    allostasis : AllostaticState
+  ) : FristonState {
+    // Allostatic error contributes to free energy
+    let allostaticFreeEnergy = allostasis.totalDrive * 0.5;
+    
+    // High allostatic drive → increase motor precision (prioritize action)
+    let newMotorPrecision = _clamp(
+      state.motorPrecision + allostasis.totalDrive * 0.1,
+      0.1, 5.0
+    );
+    
+    {
+      freeEnergy = state.freeEnergy + allostaticFreeEnergy;
+      predictionError = state.predictionError;
+      prediction = state.prediction;
+      observation = state.observation;
+      precision = state.precision;
+      learningRate = state.learningRate;
+      complexity = state.complexity;
+      rSwarm = state.rSwarm;
+      jDrift = state.jDrift;
+      sensoryPrecision = state.sensoryPrecision;
+      motorPrecision = newMotorPrecision;
+      beliefs = state.beliefs;
+      ambiguity = state.ambiguity;
+      surprisal = state.surprisal;
+      riskSensitivity = state.riskSensitivity + allostasis.totalDrive * 0.05;
+      explorationBias = state.explorationBias;
+      beliefEntropy = state.beliefEntropy;
+    }
+  };
+
+  // ─── TEMPORAL DEEP INFERENCE ──────────────────────────────────────────────────
+  
+  /// Temporal inference state
+  public type TemporalInferenceState = {
+    pastBeliefs : [[Float]];
+    currentBeliefs : [Float];
+    futureBeliefs : [[Float]];
+    temporalCoherence : Float;
+    narrativeIntegration : Float;
+  };
+
+  /// Compute temporal depth inference
+  public func temporalInference(
+    state : FristonState,
+    pastObservations : [Float],
+    futureGoals : [Float],
+    discount : Float
+  ) : TemporalInferenceState {
+    let pastSize = pastObservations.size();
+    let futureSize = futureGoals.size();
+    
+    // Reconstruct past beliefs from observations
+    var pastBeliefs : [[Float]] = [];
+    var i : Nat = 0;
+    while (i < pastSize) {
+      let weight = Float.pow(discount, Float.fromInt(pastSize - i));
+      let belief = [pastObservations[i] * weight];
+      pastBeliefs := Array.append(pastBeliefs, [belief]);
+      i += 1;
+    };
+    
+    // Project future beliefs from goals
+    var futureBeliefs : [[Float]] = [];
+    var j : Nat = 0;
+    while (j < futureSize) {
+      let weight = Float.pow(discount, Float.fromInt(j + 1));
+      let belief = [futureGoals[j] * weight];
+      futureBeliefs := Array.append(futureBeliefs, [belief]);
+      j += 1;
+    };
+    
+    // Temporal coherence: how consistent are beliefs over time?
+    var coherence : Float = 0.0;
+    if (pastSize > 1) {
+      var k : Nat = 1;
+      while (k < pastSize) {
+        let diff = Float.abs(pastObservations[k] - pastObservations[k - 1]);
+        coherence += 1.0 - _clamp(diff, 0.0, 1.0);
+        k += 1;
+      };
+      coherence := coherence / Float.fromInt(pastSize - 1);
+    };
+    
+    // Narrative integration: connection between past and future
+    var narrative : Float = 0.5;
+    if (pastSize > 0 and futureSize > 0) {
+      let pastMean = pastObservations[pastSize - 1];
+      let futureMean = futureGoals[0];
+      narrative := 1.0 - Float.abs(pastMean - futureMean);
+    };
+    
+    {
+      pastBeliefs = pastBeliefs;
+      currentBeliefs = state.beliefs;
+      futureBeliefs = futureBeliefs;
+      temporalCoherence = _clamp(coherence, 0.0, 1.0);
+      narrativeIntegration = _clamp(narrative, 0.0, 1.0);
+    }
+  };
+
+  // ─── HIERARCHICAL MESSAGE PASSING ─────────────────────────────────────────────
+  
+  /// Hierarchical level state
+  public type HierarchicalLevel = {
+    level : Nat;
+    predictions : [Float];
+    errors : [Float];
+    precision : Float;
+    modelParameters : [Float];
+  };
+
+  /// Full hierarchical model
+  public type HierarchicalModel = {
+    levels : [HierarchicalLevel];
+    totalFreeEnergy : Float;
+    convergence : Float;
+  };
+
+  /// Perform hierarchical message passing
+  public func hierarchicalMessagePassing(
+    observations : [Float],
+    numLevels : Nat,
+    iterations : Nat
+  ) : HierarchicalModel {
+    // Initialize levels
+    var levels : [HierarchicalLevel] = [];
+    var currentInput = observations;
+    
+    var l : Nat = 0;
+    while (l < numLevels) {
+      // Each level predicts the level below
+      var predictions : [Float] = [];
+      var errors : [Float] = [];
+      
+      for (obs in currentInput.vals()) {
+        let pred = obs * 0.9;  // Simple decay prediction
+        predictions := Array.append(predictions, [pred]);
+        errors := Array.append(errors, [obs - pred]);
+      };
+      
+      levels := Array.append(levels, [{
+        level = l;
+        predictions = predictions;
+        errors = errors;
+        precision = 1.0 / Float.fromInt(l + 1);
+        modelParameters = [0.9, 0.1];  // Simple params
+      }]);
+      
+      // Higher level receives predictions from below
+      currentInput := predictions;
+      l += 1;
+    };
+    
+    // Compute total free energy
+    var totalFE : Float = 0.0;
+    for (level in levels.vals()) {
+      for (err in level.errors.vals()) {
+        totalFE += level.precision * err * err;
+      };
+    };
+    
+    // Convergence metric (simplified)
+    let convergence = 1.0 / (1.0 + totalFE);
+    
+    {
+      levels = levels;
+      totalFreeEnergy = totalFE;
+      convergence = _clamp(convergence, 0.0, 1.0);
+    }
+  };
+
+  // ─── ORGANISM OUTPUT INTEGRATION ──────────────────────────────────────────────
+  
+  /// Complete organism output from Friston engine
+  public type FristonOrganismOutput = {
+    // Core metrics
+    totalFreeEnergy : Float;
+    predictionError : Float;
+    surprisal : Float;
+    
+    // Precision-weighted metrics
+    sensoryPrecision : Float;
+    motorPrecision : Float;
+    
+    // Active inference
+    expectedFreeEnergy : Float;
+    optimalAction : Float;
+    explorationVsExploitation : Float;
+    
+    // Allostatic state
+    allostaticDrive : Float;
+    regulatoryCapacity : Float;
+    
+    // Temporal integration
+    temporalCoherence : Float;
+    narrativeIntegration : Float;
+    
+    // Model quality
+    modelComplexity : Float;
+    modelAccuracy : Float;
+    evidenceLowerBound : Float;
+  };
+
+  /// Generate full organism output
+  public func generateOrganismOutput(
+    state : FristonState,
+    allostaticSetpoints : [Float],
+    currentValues : [Float]
+  ) : FristonOrganismOutput {
+    let allostasis = computeAllostasis(allostaticSetpoints, currentValues);
+    
+    // Compute expected free energy for default action
+    let efe = state.freeEnergy + state.ambiguity - state.explorationBias;
+    
+    // Exploration vs exploitation balance
+    let exploreExploit = state.explorationBias / (state.riskSensitivity + 0.01);
+    
+    // Model accuracy from prediction error
+    let accuracy = 1.0 / (1.0 + state.predictionError);
+    
+    // Evidence lower bound approximation
+    let elbo = -state.freeEnergy + state.complexity * 0.1;
+    
+    {
+      totalFreeEnergy = state.freeEnergy;
+      predictionError = state.predictionError;
+      surprisal = state.surprisal;
+      sensoryPrecision = state.sensoryPrecision;
+      motorPrecision = state.motorPrecision;
+      expectedFreeEnergy = efe;
+      optimalAction = selectAction(state, [0.0, 0.25, 0.5, 0.75, 1.0], 0.5);
+      explorationVsExploitation = _clamp(exploreExploit, 0.0, 1.0);
+      allostaticDrive = allostasis.totalDrive;
+      regulatoryCapacity = allostasis.regulatoryCapacity;
+      temporalCoherence = 0.5;  // Would come from temporal inference
+      narrativeIntegration = 0.5;
+      modelComplexity = state.complexity;
+      modelAccuracy = _clamp(accuracy, 0.0, 1.0);
+      evidenceLowerBound = elbo;
+    }
+  };
+
+  // ─── OUTWARD EXTENSIONS TO OTHER SYSTEMS ──────────────────────────────────────
+  
+  /// Output for Kuramoto
+  public func outputToKuramoto(state : FristonState) : { couplingMod : Float; phaseBias : Float } {
+    // Free energy modulates coupling strength
+    let coupling = 1.0 / (1.0 + state.freeEnergy * 0.1);
+    // Prediction bias affects phase preference
+    let phase = state.prediction * 6.28318;
+    {
+      couplingMod = _clamp(coupling, 0.1, 2.0);
+      phaseBias = phase;
+    }
+  };
+
+  /// Output for Hebbian
+  public func outputToHebbian(state : FristonState) : { learningSignal : Float; consolidationStrength : Float } {
+    // Low free energy → high consolidation
+    let consolidation = 1.0 / (1.0 + state.freeEnergy);
+    // Surprisal drives learning
+    let learning = state.surprisal * state.learningRate;
+    {
+      learningSignal = _clamp(learning, 0.0, 1.0);
+      consolidationStrength = _clamp(consolidation, 0.0, 1.0);
+    }
+  };
+
+  /// Output for Attractor
+  public func outputToAttractor(state : FristonState) : { basinAttraction : Float; energyLandscape : Float } {
+    // Beliefs define attractor basins
+    var meanBelief : Float = 0.0;
+    if (state.beliefs.size() > 0) {
+      for (b in state.beliefs.vals()) { meanBelief += b };
+      meanBelief := meanBelief / Float.fromInt(state.beliefs.size());
+    };
+    {
+      basinAttraction = meanBelief;
+      energyLandscape = state.freeEnergy;
+    }
+  };
+
+  /// Output for Predictive Coding
+  public func outputToPredictive(state : FristonState) : { topDownPrediction : Float; bottomUpError : Float } {
+    {
+      topDownPrediction = state.prediction;
+      bottomUpError = state.predictionError;
+    }
+  };
+
+  /// Output for Quantum
+  public func outputToQuantum(state : FristonState) : { coherenceTarget : Float; measurementBasis : Float } {
+    // Precision determines measurement basis
+    {
+      coherenceTarget = state.precision / (state.precision + 1.0);
+      measurementBasis = state.beliefEntropy;
+    }
+  };
+
+  /// Output for Defense
+  public func outputToDefense(state : FristonState) : { threatAssessment : Float; responseUrgency : Float } {
+    // High free energy = potential threat
+    let threat = _clamp(state.freeEnergy / 10.0, 0.0, 1.0);
+    // High surprisal = urgent response needed
+    let urgency = _clamp(state.surprisal, 0.0, 1.0);
+    {
+      threatAssessment = threat;
+      responseUrgency = urgency;
+    }
+  };
+
+  /// Master output function
+  public func generateAllOutputs(state : FristonState) : {
+    kuramoto : { couplingMod : Float; phaseBias : Float };
+    hebbian : { learningSignal : Float; consolidationStrength : Float };
+    attractor : { basinAttraction : Float; energyLandscape : Float };
+    predictive : { topDownPrediction : Float; bottomUpError : Float };
+    quantum : { coherenceTarget : Float; measurementBasis : Float };
+    defense : { threatAssessment : Float; responseUrgency : Float };
+    organism : FristonOrganismOutput;
+  } {
+    {
+      kuramoto = outputToKuramoto(state);
+      hebbian = outputToHebbian(state);
+      attractor = outputToAttractor(state);
+      predictive = outputToPredictive(state);
+      quantum = outputToQuantum(state);
+      defense = outputToDefense(state);
+      organism = generateOrganismOutput(state, [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]);
+    }
+  };
+
+  // ─── FULL ORGANISM BEAT ───────────────────────────────────────────────────────
+  
+  /// Complete organism integration beat
+  public func fullOrganismBeat(
+    state : FristonState,
+    observation : Float,
+    kuramotoOrder : Float,
+    hebbianWeights : [Float],
+    attractorEnergy : Float,
+    quantumCoherence : Float
+  ) : (FristonState, FristonOrganismOutput) {
+    // Layer 1: Core free energy minimization
+    var newState = minimizeFreeEnergy(state, observation, 1.0);
+    
+    // Layer 2: Kuramoto integration
+    newState := integrateWithKuramoto(newState, kuramotoOrder, 0.0, 1.0);
+    
+    // Layer 3: Hebbian integration
+    newState := integrateWithHebbian(newState, hebbianWeights, 0.01);
+    
+    // Layer 4: Attractor integration
+    newState := integrateWithAttractor(newState, attractorEnergy, 0.5);
+    
+    // Layer 5: Quantum integration
+    newState := integrateWithQuantum(newState, quantumCoherence, 0.3);
+    
+    // Generate organism output
+    let output = generateOrganismOutput(newState, [0.5], [observation]);
+    
+    (newState, output)
+  };
+
 }
