@@ -1082,4 +1082,141 @@ module {
     affinitySum * exposureFactor
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //  CLOSED-LOOP GAP CLOSURES — 6 AEGIS GAPS
+  //  Each function below wires a severed loop back into the organism beat pipeline
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ── Type & Init Aliases ──────────────────────────────────────────────────────
+  // main.mo references AEGIS.AEGISState / AEGIS.initAEGIS / AEGIS.monitor
+  public type AEGISState = AegisState;
+
+  public func initAEGIS() : AegisState { initAegis() };
+
+  /// monitor() — simplified beat wrapper matching main.mo's call signature:
+  ///   aegisState := AEGIS.monitor(aegisState, rSwarm, jDrift, currentBeat)
+  /// Maps rSwarm → kfHz, jDrift → driftError/predErr, uses state-cached arousal
+  public func monitor(
+    state: AegisState, rSwarm: Float, jDrift: Float, beat: Nat
+  ) : AegisState {
+    let arousal = state.lastArousal;
+    let da      = Float.max(S0, 0.75);
+    let gaba    = Float.max(S0, 0.75);
+    beatAegis(state, rSwarm, arousal, da, gaba, jDrift, state.fear.predictionError)
+  };
+
+  // ── Gap 1: kfRollingMin — 20-beat rolling minimum ────────────────────────────
+  // The organism should classify threat from its WORST recent state,
+  // not just the current snapshot. This makes threat persistent, not reactive.
+  public func kfRollingMin(window: [Float], size: Nat) : Float {
+    if (size == 0) return S0;
+    var minVal : Float = window[0];
+    var i = 1;
+    while (i < size) {
+      if (window[i] < minVal) { minVal := window[i] };
+      i += 1;
+    };
+    minVal
+  };
+
+  // ── Gap 2: defenseAmplifier is already defined (line 458) ────────────────────
+  // But it was never called FROM main.mo to multiply threat response.
+  // Now wired: main.mo calls defenseAmplifier() and applies the multiplier.
+  // (No new function needed — existing defenseAmplifier is used.)
+
+  // ── Gap 3: fireResponseProtocol — per-tier response feeding victory ──────────
+  // Tiers 5+ escalations feed the victory multiplier. Tier 7+ triggers GABA.
+  // Returns (victoryBoost, gabaForce, tierResponseMag)
+  public func fireResponseProtocol(
+    tier: Nat, antifragility: Float, prophetArmed: Bool
+  ) : (Float, Bool, Float) {
+    let tierF = Float.fromInt(tier);
+
+    // Base response magnitude scales with tier
+    let responseMag = if (tier >= 9) { 2.0 }
+                      else if (tier >= 7) { 1.5 }
+                      else if (tier >= 5) { 1.2 }
+                      else { 1.0 };
+
+    // Tier 5+ feeds victory multiplier — the organism structurally responds
+    let victoryBoost = if (tier >= 5) {
+      let base = 0.01 * (tierF - 4.0);
+      if (prophetArmed) { base * 1.25 } else { base }
+    } else { 0.0 };
+
+    // Tier 7+ forces GABA suppression
+    let gabaForce = tier >= 7;
+
+    (victoryBoost, gabaForce, responseMag)
+  };
+
+  // ── Gap 4: shemaVerify — re-verify doctrine hash every 144 beats ─────────────
+  // The Shema is the organism's identity hash. If the live doctrine diverges
+  // from the genesis hash, the organism's integrity loop is broken.
+  // Returns (verified: Bool, mismatchSeverity: Float)
+  public func shemaVerify(
+    currentHash: Nat, genesisHash: Nat, beatsSinceLastVerify: Nat
+  ) : (Bool, Float) {
+    let matched = currentHash == genesisHash;
+    let severity = if (matched) { 0.0 }
+                   else {
+                     // Severity scales with how long since last check
+                     let beatFactor = Float.fromInt(beatsSinceLastVerify) / 144.0;
+                     Float.min(1.0, 0.3 + beatFactor * 0.1)
+                   };
+    (matched, severity)
+  };
+
+  // ── Gap 5: broadcastFearSignal — globalFear as sovereign output ──────────────
+  // Extracts the globalFearSignal from AEGIS state for broadcast to NOVA macro
+  // and ENTANGLA salience bus. Fear must ripple through the organism.
+  public func broadcastFearSignal(state: AegisState) : Float {
+    state.fear.globalSignal
+  };
+
+  // ── Gap 6: receiveFearReport — external fear blending ────────────────────────
+  // Blends NOVA's aggregated macro fear into AEGIS's Friston computation.
+  // The macro-sphere and organism-sphere fear signals must talk to each other.
+  // Returns updated FearState with blended free energy
+  public func receiveFearReport(
+    state: FearState, novaMacroFear: Float, blendWeight: Float
+  ) : FearState {
+    let blendedFE = (1.0 - blendWeight) * state.freeEnergy + blendWeight * novaMacroFear;
+    let clampedFE = Float.max(S0, blendedFE);
+
+    // Update global signal to reflect the blended state
+    let blendedGlobal = _clamp(
+      0.85 * state.globalSignal + 0.15 * clampedFE,
+      0.0, 1.0
+    );
+
+    {
+      freeEnergy = clampedFE;
+      predictionError = state.predictionError;
+      lvExpansion = state.lvExpansion;
+      lvThreat = Float.max(S0, 0.95 * state.lvThreat + 0.05 * clampedFE);
+      lvTension = state.lvTension;
+      fearPeak = if (clampedFE > state.fearPeak) { clampedFE } else { state.fearPeak };
+      fearPeakBeat = state.fearPeakBeat;
+      chronicBeats = state.chronicBeats;
+      resolutionCount = state.resolutionCount;
+      vicenteVictories = state.vicenteVictories;
+      antifragility = state.antifragility;
+      inHormeticSpike = state.inHormeticSpike;
+      hormeticSpikeBeat = state.hormeticSpikeBeat;
+      globalSignal = blendedGlobal;
+      history = state.history;
+    }
+  };
+
+  // ── AXIS Helpers — computeSalience ───────────────────────────────────────────
+  // Episodic salience = kf×0.30 + arousal×0.25 + fear×0.25 + DA×0.20
+  // Exactly like human hippocampal consolidation weighting
+  public func computeSalience(
+    kf: Float, arousal: Float, fear: Float, da: Float
+  ) : Float {
+    _clamp(kf * 0.30 + arousal * 0.25 + fear * 0.25 + da * 0.20, 0.0, 1.0)
+  };
+
 }

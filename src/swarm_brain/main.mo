@@ -853,6 +853,68 @@ actor SwarmBrain {
   // ─── INTEGRATED WORLD — Full world with drone swarms, entities, weather ───────
   var integratedWorldState : OrganismWorldIntegration.IntegratedWorldState = OrganismWorldIntegration.initWorld();
   
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 11 CLOSED-LOOP GAP STATE — AEGIS (6) + AXIS (5)
+  // Every node feeds the next. The organism talks to itself.
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ── Gap 1: kfRollingWindow — 20-beat rolling minimum for persistent threat ──
+  stable var kfRollingWindow : [var Float] = Array.init<Float>(20, 0.88);
+  stable var kfRollingWindowIdx : Nat = 0;
+  stable var kfRollingMinValue : Float = 0.88;
+
+  // ── Gap 5+6: NOVA Macro Fear — bilateral fear signal bus ────────────────────
+  stable var novaMacroFear : Float = 0.75;  // Aggregated organism-sphere fear
+  stable var novaMacroFearBlendWeight : Float = 0.20;  // Blend into AEGIS FE
+
+  // ── Gap 4: Shema Doctrine Integrity — re-verify every 144 beats ─────────────
+  stable var shemaGenesisHash : Nat = 0;  // Set once at genesis
+  stable var shemaLastVerifyBeat : Nat = 0;
+  stable var shemaVerified : Bool = true;
+  stable var shemaMismatchSeverity : Float = 0.0;
+
+  // ── AXIS Gap 1: 10-field Episodic Ring — full emotional fingerprint ──────────
+  // Each episode: [beat, coherence, omnis, arousal, daLevel, fearEnergy,
+  //                domainBitmask, eventHash, salienceScore, attribution]
+  let EPISODIC_RING_SIZE : Nat = 256;
+  let EPISODIC_FIELDS : Nat = 10;
+  stable var episodicRing : [var Float] = Array.init<Float>(256 * 10, 0.0);
+  stable var episodicRingIdx : Nat = 0;
+  stable var episodicRingCount : Nat = 0;
+
+  // ── AXIS Gap 2: computeSalience — emotional weighting per episode ───────────
+  // (Function lives in AEGIS.mo: AEGIS.computeSalience(kf, arousal, fear, da))
+
+  // ── AXIS Gap 3: 10-Matriarch Dynasty per Domain ─────────────────────────────
+  // 8 domains × 10 matriarchs = 80 slots, each storing (beat, coherence, salience)
+  let MATRIARCH_DOMAINS : Nat = 8;
+  let MATRIARCHS_PER_DOMAIN : Nat = 10;
+  stable var matriarchBeats : [var Nat] = Array.init<Nat>(80, 0);
+  stable var matriarchCoherence : [var Float] = Array.init<Float>(80, 0.0);
+  stable var matriarchSalience : [var Float] = Array.init<Float>(80, 0.0);
+
+  // ── AXIS Gap 4: VELA OLS — 60-sample ring with T30/T40/T50 projections ─────
+  let VELA_RING_SIZE : Nat = 60;
+  stable var velaRing : [var Float] = Array.init<Float>(60, 0.88);
+  stable var velaRingIdx : Nat = 0;
+  stable var velaRingCount : Nat = 0;
+  stable var velaT30 : Float = 0.0;
+  stable var velaT40 : Float = 0.0;
+  stable var velaT50 : Float = 0.0;
+  stable var velaSlope : Float = 0.0;
+  stable var velaConfidence : Float = 0.0;
+
+  // ── AXIS Gap 5: Cloud of Witnesses — 144-slot permanent high-coherence ring ─
+  // Episodes where kf > 0.8 are promoted here. These are the organism's
+  // sovereign reference class — permanent anchors, never decayed.
+  let CLOUD_SIZE : Nat = 144;
+  stable var cloudBeat : [var Nat] = Array.init<Nat>(144, 0);
+  stable var cloudCoherence : [var Float] = Array.init<Float>(144, 0.0);
+  stable var cloudSalience : [var Float] = Array.init<Float>(144, 0.0);
+  stable var cloudDomain : [var Nat] = Array.init<Nat>(144, 0);
+  stable var cloudIdx : Nat = 0;
+  stable var cloudCount : Nat = 0;
+
   // ─── MODULE ACTIVATION TRACKING ─────────────────────────────────────────────
   stable var modulesCalledThisBeat : Nat = 0;
   stable var totalModuleCallsAllTime : Nat = 0;
@@ -2269,6 +2331,18 @@ actor SwarmBrain {
     kfHzRing[kfHzRingIdx % 50] := kfHzTick;
     kfHzRingIdx += 1;
 
+    // ── CLOSED LOOP Step 2 (Kuramoto): kfRollingWindow[20] + kfRollingMin ────
+    // The organism classifies threat from its WORST recent state, not its
+    // current snapshot. 20-beat rolling minimum makes threat persistent.
+    kfRollingWindow[kfRollingWindowIdx % 20] := kfHzTick;
+    kfRollingWindowIdx += 1;
+    // Compute rolling minimum over the filled portion of the window
+    let kfWindowFilled = if (kfRollingWindowIdx < 20) { kfRollingWindowIdx } else { 20 };
+    let kfWindowSlice = Array.tabulate<Float>(kfWindowFilled, func(wi : Nat) : Float {
+      kfRollingWindow[wi]
+    });
+    kfRollingMinValue := AEGIS.kfRollingMin(kfWindowSlice, kfWindowFilled);
+
     // Update breath quality metrics every 10 beats (cheaper than every beat)
     if (currentBeat % 10 == 0) { updateBreathQuality() };
 
@@ -2453,9 +2527,89 @@ actor SwarmBrain {
     
     // ─── LAYER 8: DEFENSE & WAR ─────────────────────────────────────────────────
     if (animalCognitionActive and currentBeat % 1 == 0) {
-      // AEGIS threat monitoring
+      // AEGIS threat monitoring — core beat
       aegisState := AEGIS.monitor(aegisState, rSwarm, jDrift, currentBeat);
       modulesCalledThisBeat += 1;
+
+      // ── CLOSED LOOP Step 9b (NeuroChem→Fear): globalFearSignal broadcast ──
+      // When chronic fear > 50 beats, broadcast into novaMacroFear AND
+      // blend back into aegis FE at 0.20 weight. Fear ripples through organism.
+      let aegisFearSignal = AEGIS.broadcastFearSignal(aegisState);
+      if (aegisState.fear.chronicBeats > 50) {
+        // Broadcast: organism fear → macro sphere
+        novaMacroFear := 0.80 * novaMacroFear + 0.20 * aegisFearSignal;
+      };
+      // Receive: macro sphere fear → organism FE (always blend, closing the loop)
+      let blendedFear = AEGIS.receiveFearReport(
+        aegisState.fear, novaMacroFear, novaMacroFearBlendWeight
+      );
+      aegisState := {
+        beatCount = aegisState.beatCount;
+        threat = aegisState.threat;
+        armor = aegisState.armor;
+        prophet = aegisState.prophet;
+        fear = blendedFear;
+        innerSphere = aegisState.innerSphere;
+        gabaSuppress = aegisState.gabaSuppress;
+        gabaSuppressSignal = aegisState.gabaSuppressSignal;
+        firePillarActive = aegisState.firePillarActive;
+        firePillarTriggers = aegisState.firePillarTriggers;
+        lastKfHz = aegisState.lastKfHz;
+        lastArousal = aegisState.lastArousal;
+      };
+
+      // ── CLOSED LOOP Step 16b (AEGIS): fireResponseProtocol + defenseAmplifier ─
+      // Tier 5+ feeds victory. Tier 7+ forces GABA. defenseAmplifier multiplies.
+      let currentTier = aegisState.threat.currentTier;
+      let (victoryBoost, gabaForce, tierMag) = AEGIS.fireResponseProtocol(
+        currentTier, aegisState.fear.antifragility, aegisState.prophet.armed
+      );
+      // defenseAmplifier: prophet armed × 1.25, armor full × 1.10
+      let ampFactor = AEGIS.defenseAmplifier(aegisState.prophet.armed, aegisState.armor.fullActive);
+      // Apply: victory boost compounds antifragility (Vicente's Law compound chain)
+      if (victoryBoost > 0.0) {
+        let boostedAntifrag = Float.min(9.0, aegisState.fear.antifragility + victoryBoost);
+        aegisState := {
+          beatCount = aegisState.beatCount;
+          threat = {
+            currentTier = aegisState.threat.currentTier;
+            intensity = Float.min(1.0, aegisState.threat.intensity * ampFactor * tierMag);
+            beatsActive = aegisState.threat.beatsActive;
+            escalations = aegisState.threat.escalations;
+            resolutions = aegisState.threat.resolutions;
+            peakTier = aegisState.threat.peakTier;
+            peakBeat = aegisState.threat.peakBeat;
+            tierHits = aegisState.threat.tierHits;
+            history = aegisState.threat.history;
+          };
+          armor = aegisState.armor;
+          prophet = aegisState.prophet;
+          fear = {
+            freeEnergy = aegisState.fear.freeEnergy;
+            predictionError = aegisState.fear.predictionError;
+            lvExpansion = aegisState.fear.lvExpansion;
+            lvThreat = aegisState.fear.lvThreat;
+            lvTension = aegisState.fear.lvTension;
+            fearPeak = aegisState.fear.fearPeak;
+            fearPeakBeat = aegisState.fear.fearPeakBeat;
+            chronicBeats = aegisState.fear.chronicBeats;
+            resolutionCount = aegisState.fear.resolutionCount;
+            vicenteVictories = aegisState.fear.vicenteVictories;
+            antifragility = boostedAntifrag;
+            inHormeticSpike = aegisState.fear.inHormeticSpike;
+            hormeticSpikeBeat = aegisState.fear.hormeticSpikeBeat;
+            globalSignal = aegisState.fear.globalSignal;
+            history = aegisState.fear.history;
+          };
+          innerSphere = aegisState.innerSphere;
+          gabaSuppress = if (gabaForce) { true } else { aegisState.gabaSuppress };
+          gabaSuppressSignal = if (gabaForce) { Float.min(1.0, aegisState.gabaSuppressSignal + 0.05) } else { aegisState.gabaSuppressSignal };
+          firePillarActive = aegisState.firePillarActive;
+          firePillarTriggers = aegisState.firePillarTriggers;
+          lastKfHz = aegisState.lastKfHz;
+          lastArousal = aegisState.lastArousal;
+        };
+      };
       
       // Autonomous war engine
       autonomousWarState := AutonomousWarEngine.defend(autonomousWarState, rSwarm);
@@ -3036,6 +3190,149 @@ actor SwarmBrain {
       // Coherence validator
       ignore CoherenceValidator.validate(rSwarm, jDrift);
       modulesCalledThisBeat += 1;
+    };
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CLOSED-LOOP EPISODIC & PROJECTION ENGINE — Steps 10 + 20
+    // The organism's memory, fear, and threat systems are ONE system.
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // ── CLOSED LOOP Step 10: 10-field Episodic Ring with computeSalience() ─────
+    // Every beat records a full emotional fingerprint, not just coherence.
+    // Arousal, dopamine, fear energy, domain, eventHash, salience, attribution.
+    if (orchestrationActive) {
+      let epBase = (episodicRingIdx % EPISODIC_RING_SIZE) * EPISODIC_FIELDS;
+      // Field 0: beat
+      episodicRing[epBase + 0] := Float.fromInt(currentBeat);
+      // Field 1: coherence (rSwarm)
+      episodicRing[epBase + 1] := rSwarm;
+      // Field 2: omnis (1.0 if above threshold, else rSwarm)
+      episodicRing[epBase + 2] := if (rSwarm >= 0.98) { 1.0 } else { rSwarm };
+      // Field 3: arousal (derived from AEGIS state)
+      let epArousal = aegisState.lastArousal;
+      episodicRing[epBase + 3] := epArousal;
+      // Field 4: dopamine level
+      episodicRing[epBase + 4] := dopamineLevel;
+      // Field 5: fear energy (from AEGIS Friston computation)
+      let epFear = aegisState.fear.freeEnergy;
+      episodicRing[epBase + 5] := epFear;
+      // Field 6: domain bitmask (threat tier encodes domain)
+      let epDomain = aegisState.threat.currentTier;
+      episodicRing[epBase + 6] := Float.fromInt(epDomain);
+      // Field 7: event hash (fnv1a of beat + coherence quantized)
+      let epHashRaw = currentBeat * 16777619 + Nat32.toNat(Nat32.fromIntWrap(Float.toInt(rSwarm * 1000.0)));
+      episodicRing[epBase + 7] := Float.fromInt(epHashRaw % 4294967296);
+      // Field 8: salience score (kf×0.30 + arousal×0.25 + fear×0.25 + DA×0.20)
+      let epSalience = AEGIS.computeSalience(rSwarm, epArousal, epFear, dopamineLevel);
+      episodicRing[epBase + 8] := epSalience;
+      // Field 9: attribution (antifragility — how much this moment compounds)
+      episodicRing[epBase + 9] := aegisState.fear.antifragility;
+
+      episodicRingIdx += 1;
+      if (episodicRingCount < EPISODIC_RING_SIZE) { episodicRingCount += 1 };
+
+      // ── CLOSED LOOP Step 20a: Cloud of Witnesses — promote high-kf episodes ──
+      // Episodes where kf > 0.8 are elevated to the 144-slot permanent ring.
+      // These become the organism's sovereign reference class.
+      if (rSwarm > 0.80) {
+        let cIdx = cloudIdx % CLOUD_SIZE;
+        cloudBeat[cIdx] := currentBeat;
+        cloudCoherence[cIdx] := rSwarm;
+        cloudSalience[cIdx] := epSalience;
+        cloudDomain[cIdx] := epDomain;
+        cloudIdx += 1;
+        if (cloudCount < CLOUD_SIZE) { cloudCount += 1 };
+      };
+
+      // ── CLOSED LOOP Step 20b: 10-Matriarch Dynasty per Domain ────────────────
+      // Track the 10 highest-salience episodes per domain bitmask.
+      // The organism can answer: "what was the most significant coherence event
+      // in the threat domain vs the reward domain?"
+      if (epDomain < MATRIARCH_DOMAINS) {
+        let domBase = epDomain * MATRIARCHS_PER_DOMAIN;
+        // Find the matriarch slot with lowest salience in this domain
+        var minSlot = 0;
+        var minSal : Float = matriarchSalience[domBase];
+        var mi = 1;
+        while (mi < MATRIARCHS_PER_DOMAIN) {
+          if (matriarchSalience[domBase + mi] < minSal) {
+            minSlot := mi;
+            minSal := matriarchSalience[domBase + mi];
+          };
+          mi += 1;
+        };
+        // Replace if current episode's salience exceeds the minimum
+        if (epSalience > minSal) {
+          matriarchBeats[domBase + minSlot] := currentBeat;
+          matriarchCoherence[domBase + minSlot] := rSwarm;
+          matriarchSalience[domBase + minSlot] := epSalience;
+        };
+      };
+    };
+
+    // ── CLOSED LOOP Step 20c: VELA OLS — 60-sample ring with T30/T40/T50 ──────
+    // Genuine ordinary least squares regression for coherence trajectory
+    // projection. Eagle T+10 is real — now T+30/T+40/T+50 are real too.
+    if (orchestrationActive) {
+      velaRing[velaRingIdx % VELA_RING_SIZE] := rSwarm;
+      velaRingIdx += 1;
+      if (velaRingCount < VELA_RING_SIZE) { velaRingCount += 1 };
+
+      // Compute OLS slope and intercept from filled ring samples
+      // y = a + b*x where x is sample index, y is coherence
+      if (velaRingCount >= 10) {
+        let nSamples = velaRingCount;
+        let nF = Float.fromInt(nSamples);
+        var sumX : Float = 0.0;
+        var sumY : Float = 0.0;
+        var sumXX : Float = 0.0;
+        var sumXY : Float = 0.0;
+        var vi = 0;
+        while (vi < nSamples) {
+          let xVal = Float.fromInt(vi);
+          // Read from ring in chronological order
+          let ringStart = if (velaRingCount >= VELA_RING_SIZE) {
+            velaRingIdx % VELA_RING_SIZE
+          } else { 0 };
+          let yVal = velaRing[(ringStart + vi) % VELA_RING_SIZE];
+          sumX += xVal;
+          sumY += yVal;
+          sumXX += xVal * xVal;
+          sumXY += xVal * yVal;
+          vi += 1;
+        };
+        let denom = nF * sumXX - sumX * sumX;
+        if (Float.abs(denom) > 0.0001) {
+          let slope = (nF * sumXY - sumX * sumY) / denom;
+          let intercept = (sumY - slope * sumX) / nF;
+          velaSlope := slope;
+
+          // Project forward: T+30, T+40, T+50
+          let lastX = Float.fromInt(nSamples - 1);
+          velaT30 := Float.max(0.0, Float.min(1.0, intercept + slope * (lastX + 30.0)));
+          velaT40 := Float.max(0.0, Float.min(1.0, intercept + slope * (lastX + 40.0)));
+          velaT50 := Float.max(0.0, Float.min(1.0, intercept + slope * (lastX + 50.0)));
+
+          // Confidence: R² — coefficient of determination
+          let meanY = sumY / nF;
+          var ssTot : Float = 0.0;
+          var ssRes : Float = 0.0;
+          vi := 0;
+          while (vi < nSamples) {
+            let ringStart2 = if (velaRingCount >= VELA_RING_SIZE) {
+              velaRingIdx % VELA_RING_SIZE
+            } else { 0 };
+            let yActual = velaRing[(ringStart2 + vi) % VELA_RING_SIZE];
+            let yPred = intercept + slope * Float.fromInt(vi);
+            ssTot += (yActual - meanY) * (yActual - meanY);
+            ssRes += (yActual - yPred) * (yActual - yPred);
+            vi += 1;
+          };
+          velaConfidence := if (ssTot > 0.0001) {
+            Float.max(0.0, 1.0 - ssRes / ssTot)
+          } else { 0.0 };
+        };
+      };
     };
     
     // ─── LAYER 35: FINAL OUTPUT COMPUTATION ─────────────────────────────────────
@@ -5436,6 +5733,54 @@ actor SwarmBrain {
     jacobsRung                       := jNew.currentRung;
     consecutiveHighComplianceBeats   := jNew.consecutiveCompliantBeats;
     jacobsMultiplier                 := jNew.formaMultiplier;
+
+    // ── CLOSED LOOP Step 19: Shema re-verify every 144 beats ────────────────
+    // The Shema is the organism's identity hash. Every 144 beats (a sacred
+    // cycle), re-verify the live doctrine fingerprint against the genesis hash.
+    // Failure arms tier 5 — the organism detects its own mutation.
+    if (shemaGenesisHash == 0 and genesisLocked) {
+      // Seal genesis hash once at first sovereignty evaluation
+      shemaGenesisHash := Nat32.toNat(out.doctrineFingerprint);
+    };
+    if (currentBeat > 0 and (currentBeat - shemaLastVerifyBeat) >= 144) {
+      shemaLastVerifyBeat := currentBeat;
+      let liveHash = Nat32.toNat(out.doctrineFingerprint);
+      let (verified, severity) = AEGIS.shemaVerify(
+        liveHash, shemaGenesisHash, currentBeat - shemaLastVerifyBeat + 144
+      );
+      shemaVerified := verified;
+      shemaMismatchSeverity := severity;
+      // If Shema verification fails, arm tier 5 threat in AEGIS
+      if (not verified) {
+        let currentTier = aegisState.threat.currentTier;
+        if (currentTier < 5) {
+          aegisState := {
+            beatCount = aegisState.beatCount;
+            threat = {
+              currentTier = 5;
+              intensity = Float.max(aegisState.threat.intensity, 0.89);
+              beatsActive = aegisState.threat.beatsActive;
+              escalations = aegisState.threat.escalations + 1;
+              resolutions = aegisState.threat.resolutions;
+              peakTier = if (5 > aegisState.threat.peakTier) { 5 } else { aegisState.threat.peakTier };
+              peakBeat = if (5 > aegisState.threat.peakTier) { currentBeat } else { aegisState.threat.peakBeat };
+              tierHits = aegisState.threat.tierHits;
+              history = aegisState.threat.history;
+            };
+            armor = aegisState.armor;
+            prophet = aegisState.prophet;
+            fear = aegisState.fear;
+            innerSphere = aegisState.innerSphere;
+            gabaSuppress = aegisState.gabaSuppress;
+            gabaSuppressSignal = aegisState.gabaSuppressSignal;
+            firePillarActive = aegisState.firePillarActive;
+            firePillarTriggers = aegisState.firePillarTriggers;
+            lastKfHz = aegisState.lastKfHz;
+            lastArousal = aegisState.lastArousal;
+          };
+        };
+      };
+    };
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
