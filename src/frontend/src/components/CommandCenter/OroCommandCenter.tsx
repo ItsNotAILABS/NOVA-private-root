@@ -39,6 +39,10 @@ import { MissionBriefing } from './MissionBriefing';
 import { EmergenceLab } from './EmergenceLab';
 import { MathPhysicsLab } from './MathPhysicsLab';
 import { NeuroCogLab } from './NeuroCogLab';
+import {
+  OrganismState, organismInit, organismTick, getOrganismStatus,
+  EmergenceLabData, NeuroCogLabData, MathPhysicsLabData,
+} from '../../math/organism-wiring';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -428,6 +432,74 @@ export function OroCommandCenter({ organism }: Props) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState<'command' | 'emergence' | 'physics' | 'neurocog'>('command');
   
+  // ═══ UNIFIED ORGANISM STATE — The living wiring ═══
+  const organismStateRef = useRef<OrganismState>(organismInit());
+  const [organismSnapshot, setOrganismSnapshot] = useState<OrganismState>(organismStateRef.current);
+  
+  // ═══ ORGANISM TICK LOOP — The heartbeat ═══
+  useEffect(() => {
+    const interval = setInterval(() => {
+      organismStateRef.current = organismTick(organismStateRef.current);
+      // Update snapshot every 8 ticks for performance
+      if (organismStateRef.current.beat % 8 === 0) {
+        setOrganismSnapshot({ ...organismStateRef.current });
+      }
+    }, 50); // 20Hz tick rate
+    return () => clearInterval(interval);
+  }, []);
+  
+  // ═══ SYNC EXTERNAL ORGANISM PROPS INTO UNIFIED STATE ═══
+  useEffect(() => {
+    if (organism) {
+      // External r modulates internal r
+      if (organism.r !== undefined) {
+        organismStateRef.current.r = organismStateRef.current.r * 0.7 + organism.r * 0.3;
+      }
+      // External beat syncs
+      if (organism.beat !== undefined) {
+        // Keep our own beat but acknowledge external
+      }
+    }
+  }, [organism?.r, organism?.beat]);
+  
+  // ═══ PREPARE LAB DATA ═══
+  const emergenceLabData: EmergenceLabData = useMemo(() => ({
+    r: organismSnapshot.r,
+    kf: organismSnapshot.kf,
+    emergence: organismSnapshot.emergence,
+    genesis: organismSnapshot.genesis,
+    kuramoto: organismSnapshot.kuramoto,
+    lyapunov: organismSnapshot.lyapunov,
+    quantum: organismSnapshot.quantum,
+    hz: organismSnapshot.hz,
+    beat: organismSnapshot.beat,
+    neuro: organismSnapshot.neuro,
+  }), [organismSnapshot]);
+  
+  const neuroCogLabData: NeuroCogLabData = useMemo(() => ({
+    neuro: organismSnapshot.neuro,
+    metals: organismSnapshot.metals,
+    drives: organismSnapshot.drives,
+    immune: organismSnapshot.immune,
+    olfactory: organismSnapshot.olfactory,
+    circadian: organismSnapshot.circadian,
+    beat: organismSnapshot.beat,
+    r: organismSnapshot.r,
+  }), [organismSnapshot]);
+  
+  const mathPhysicsLabData: MathPhysicsLabData = useMemo(() => ({
+    r: organismSnapshot.r,
+    kf: organismSnapshot.kf,
+    kuramoto: organismSnapshot.kuramoto,
+    lyapunov: organismSnapshot.lyapunov,
+    quantum: organismSnapshot.quantum,
+    beat: organismSnapshot.beat,
+    neuro: organismSnapshot.neuro,
+  }), [organismSnapshot]);
+  
+  // Get status for display
+  const organismStatus = useMemo(() => getOrganismStatus(organismSnapshot), [organismSnapshot]);
+  
   const inputRef = useRef<HTMLInputElement>(null);
   
   // ═══ SYNC ORGANISM AUDIT LOG TO MESSAGES ═══
@@ -672,6 +744,34 @@ export function OroCommandCenter({ organism }: Props) {
               {rSwarm.toFixed(3)}
             </span>
           </div>
+          <div style={S.stat}>
+            <span style={S.statLabel}>Org r</span>
+            <span style={S.statValue(organismStatus.r > 0.7 ? '#4f8' : '#f44')}>
+              {organismStatus.r.toFixed(3)}
+            </span>
+          </div>
+          <div style={S.stat}>
+            <span style={S.statLabel}>kf</span>
+            <span style={S.statValue(organismStatus.kf > 0.6 ? '#4f8' : '#fa4')}>
+              {organismStatus.kf.toFixed(3)}
+            </span>
+          </div>
+          <div style={S.stat}>
+            <span style={S.statLabel}>Emerge</span>
+            <span style={S.statValue(organismStatus.emergence > 0.5 ? '#D4AF37' : '#4af')}>
+              {(organismStatus.emergence * 100).toFixed(0)}%
+            </span>
+          </div>
+          <div style={S.stat}>
+            <span style={S.statLabel}>Vitality</span>
+            <span style={S.statValue(organismStatus.vitality > 0.6 ? '#4f8' : '#f44')}>
+              {(organismStatus.vitality * 100).toFixed(0)}%
+            </span>
+          </div>
+          <div style={S.stat}>
+            <span style={S.statLabel}>Mode</span>
+            <span style={S.statValue('#4af')}>{organismStatus.hzMode}</span>
+          </div>
         </div>
       </header>
       
@@ -732,15 +832,15 @@ export function OroCommandCenter({ organism }: Props) {
         </>
       ) : activeTab === 'emergence' ? (
         <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
-          <EmergenceLab organism={organism} />
+          <EmergenceLab organism={{ ...organism, ...emergenceLabData }} />
         </div>
       ) : activeTab === 'physics' ? (
         <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
-          <MathPhysicsLab organism={organism} />
+          <MathPhysicsLab organism={{ ...organism, ...mathPhysicsLabData }} />
         </div>
       ) : (
         <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
-          <NeuroCogLab organism={organism} />
+          <NeuroCogLab organism={{ ...organism, ...neuroCogLabData }} />
         </div>
       )}
       
