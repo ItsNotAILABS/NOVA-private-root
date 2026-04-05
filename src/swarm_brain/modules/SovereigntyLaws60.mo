@@ -88,7 +88,7 @@ module {
     complianceStreak : Nat;
     
     // World models
-    worldModelAlphas : [Float];  // 14 EMAs
+    worldModelAlphas : [Float];  // 28 EMAs (expanded from 14 to cover all intelligence domains)
     
     // Oracle status
     btcOracleActive : Bool;
@@ -944,8 +944,8 @@ module {
   } {
     {
       silverConductance = 1.0;  // Permanently locked
-      worldModelAlphas = Array.tabulate<Float>(14, func(_: Nat) : Float { 1.0 });  // All zero-lag
-      worldModelTaus = Array.tabulate<Float>(14, func(_: Nat) : Float { 0.999 });
+      worldModelAlphas = Array.tabulate<Float>(28, func(_: Nat) : Float { 1.0 });  // All zero-lag (28 domains)
+      worldModelTaus = Array.tabulate<Float>(28, func(_: Nat) : Float { 0.999 });
     }
   };
 
@@ -1043,7 +1043,7 @@ module {
       sacesiTarget = 1.0;
       jacobsRung = 0;
       complianceStreak = 0;
-      worldModelAlphas = Array.tabulate<Float>(14, func(_: Nat) : Float { 1.0 });
+      worldModelAlphas = Array.tabulate<Float>(28, func(_: Nat) : Float { 1.0 });
       btcOracleActive = true;
       ethOracleActive = true;
       solOracleActive = true;

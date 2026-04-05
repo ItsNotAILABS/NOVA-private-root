@@ -557,26 +557,26 @@ module {
   // ║                     INITIALIZATION                                     ║
   // ╚════════════════════════════════════════════════════════════════════════╝
   
-  /// Create initial biomes (6x6 grid = 36 biomes)
+  /// Create initial biomes (20x20 grid = 400 biomes — 20× expansion)
   public func createBiomes() : [Biome] {
-    let biomes = Buffer.Buffer<Biome>(36);
-    let spacing = 500.0;  // 500m per biome
+    let biomes = Buffer.Buffer<Biome>(400);
+    let spacing = 3000.0;  // 3000m per biome (20× expansion: 60000m / 20 = 3000m)
     
     var id = 0;
     var row = 0;
-    while (row < 6) {
+    while (row < 20) {
       var col = 0;
-      while (col < 6) {
+      while (col < 20) {
         let centerX = Float.fromInt(col) * spacing + spacing / 2.0;
         let centerZ = Float.fromInt(row) * spacing + spacing / 2.0;
         
         // Determine biome type based on position
-        let biomeType : BiomeType = if (row == 0 or row == 5 or col == 0 or col == 5) {
+        let biomeType : BiomeType = if (row == 0 or row == 19 or col == 0 or col == 19) {
           #Ocean
-        } else if (row == 1 or row == 4) {
+        } else if (row == 1 or row == 18) {
           #Plains
-        } else if (col == 2 or col == 3) {
-          if (row == 2 or row == 3) { #Urban } else { #Forest }
+        } else if (col == 8 or col == 9 or col == 10 or col == 11) {
+          if (row >= 5 and row <= 14) { #Urban } else { #Forest }
         } else {
           #Mountain
         };
@@ -626,8 +626,8 @@ module {
       frameNumber = 0;
       deltaTime = 0.0;
       accumulator = 0.0;
-      worldSizeX = 3000.0;
-      worldSizeZ = 3000.0;
+      worldSizeX = 60000.0;
+      worldSizeZ = 60000.0;
       entities = [];
       nextEntityId = 1;
       biomes = createBiomes();

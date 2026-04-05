@@ -55,8 +55,8 @@ module {
   // L-121 Silver Conductance: 1.0 (unity, full pass-through)
   public let SILVER_CONDUCTANCE : Float = SOC.SILVER_CONDUCTANCE;  // 1.0
   
-  // World model count: 14 (2 × 7, prime structure)
-  public let WORLD_MODEL_COUNT : Nat = SOC.WORLD_MODEL_COUNT;  // 14
+  // World model count: 28 (4 × 7, all intelligence domains connected)
+  public let WORLD_MODEL_COUNT : Nat = SOC.WORLD_MODEL_COUNT;  // 28
   
   // ==========================================================================
   // JACOB'S LADDER — Fibonacci-based thresholds, φ-power multipliers
@@ -140,8 +140,8 @@ module {
     
     // L-121 Silver Sovereignty
     silverConductance : Float;
-    worldModelAlphas : [Float];   // 14 EMAs at α=1.0
-    worldModelTaus : [Float];     // 14 τ values at 0.999
+    worldModelAlphas : [Float];   // 28 EMAs at α=1.0 (all intelligence domains)
+    worldModelTaus : [Float];     // 28 τ values at 0.999
     l121FireCount : Nat;
     
     // PROMETHEUS baseline

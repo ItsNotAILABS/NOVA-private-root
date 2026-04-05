@@ -106,7 +106,7 @@ module {
 
   // ─── CONSTANTS ──────────────────────────────────────────────────────────────
 
-  let MAX_DRONES         : Nat = 50;
+  let MAX_DRONES         : Nat = 1000;  // Expanded 20×: 50 → 1000
   let EPISODIC_CAP       : Nat = 1000;
   let PATTERN_CAP        : Nat = 10;
 

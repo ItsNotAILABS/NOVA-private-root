@@ -81,12 +81,12 @@ module {
   let DRAG_COEFF : Float = 0.5;         // Typical drone Cd
   let PI : Float = 3.14159265358979;
 
-  // World dimensions
-  public let WORLD_SIZE_X : Float = 2000.0;   // meters
-  public let WORLD_SIZE_Y : Float = 500.0;    // altitude ceiling
-  public let WORLD_SIZE_Z : Float = 2000.0;   // meters
-  public let GRID_RESOLUTION : Nat = 100;     // Terrain grid cells per axis
-  public let WORLD_CENTER : (Float, Float, Float) = (0.0, 50.0, 0.0);
+  // World dimensions — 20× expansion for massive simulation scale
+  public let WORLD_SIZE_X : Float = 40000.0;  // meters (expanded 20×: 2000 → 40000)
+  public let WORLD_SIZE_Y : Float = 10000.0;  // altitude ceiling (expanded 20×: 500 → 10000)
+  public let WORLD_SIZE_Z : Float = 40000.0;  // meters (expanded 20×: 2000 → 40000)
+  public let GRID_RESOLUTION : Nat = 2000;    // Terrain grid cells per axis (expanded 20×: 100 → 2000)
+  public let WORLD_CENTER : (Float, Float, Float) = (0.0, 1000.0, 0.0);  // Y = WORLD_SIZE_Y * 0.1 (10% of altitude ceiling)
 
   // ══════════════════════════════════════════════════════════════
   // 3D VECTOR TYPE

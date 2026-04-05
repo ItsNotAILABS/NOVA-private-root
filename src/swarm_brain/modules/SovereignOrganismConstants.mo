@@ -296,8 +296,8 @@ module {
   // WORLD MODEL CONSTANTS (14 EMAs)
   // ==========================================================================
   
-  // 14 world models (F(7) = 13, rounded to 14 for even pairing)
-  public let WORLD_MODEL_COUNT : Nat = 14;
+  // 28 world models — expanded to cover all intelligence domains (original 14 + 14 new cognitive domains)
+  public let WORLD_MODEL_COUNT : Nat = 28;
   
   // EMA alpha for zero-lag (L-121): 1.0 (full pass-through)
   public let SILVER_CONDUCTANCE : Float = 1.0;

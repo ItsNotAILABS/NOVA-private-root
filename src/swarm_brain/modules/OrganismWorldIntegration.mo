@@ -49,9 +49,9 @@ module {
   public let ψ : Float = 0.6180339887498948482;
   public let π : Float = 3.1415926535897932385;
   
-  // World constants
-  public let WORLD_SIZE : Float = 10000.0;        // 10km × 10km
-  public let WORLD_HEIGHT : Float = 1000.0;       // 1km max altitude
+  // World constants — 20× expansion for massive simulation scale
+  public let WORLD_SIZE : Float = 200000.0;       // 200km × 200km (expanded 20×: 10000 → 200000)
+  public let WORLD_HEIGHT : Float = 20000.0;      // 20km max altitude (expanded 20×: 1000 → 20000)
   public let TICK_RATE : Float = 60.0;            // 60 Hz simulation
 
   // ╔════════════════════════════════════════════════════════════════════════╗

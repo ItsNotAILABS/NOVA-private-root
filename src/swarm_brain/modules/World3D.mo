@@ -45,13 +45,13 @@ module {
   // ║                     WORLD CONSTANTS                                    ║
   // ╚════════════════════════════════════════════════════════════════════════╝
   
-  /// World dimensions (in voxels/meters)
-  public let WORLD_SIZE_X : Nat = 256;
-  public let WORLD_SIZE_Y : Nat = 128;   // Height
-  public let WORLD_SIZE_Z : Nat = 256;
+  /// World dimensions (in voxels/meters) — expanded 20×
+  public let WORLD_SIZE_X : Nat = 5120;   // Expanded 20×: 256 → 5120
+  public let WORLD_SIZE_Y : Nat = 2560;   // Height expanded 20×: 128 → 2560
+  public let WORLD_SIZE_Z : Nat = 5120;   // Expanded 20×: 256 → 5120
   
-  /// Sea level (Y coordinate)
-  public let SEA_LEVEL : Nat = 32;
+  /// Sea level (Y coordinate) — scaled 20×
+  public let SEA_LEVEL : Nat = 640;       // Expanded 20×: 32 → 640
   
   /// Fibonacci for terrain generation
   public let φ : Float = 1.6180339887498948482;
