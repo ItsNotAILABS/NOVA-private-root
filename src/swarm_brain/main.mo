@@ -3705,54 +3705,556 @@ actor SwarmBrain {
 
   // ─── WORKFLOW 2: COUNCIL DELIBERATION — 7 councils vote ──────────────────────
   func workflowCouncilDeliberation() : Float {
-    // LOGOS, PATHOS, ETHOS, KAIROS, SOPHIA, PHRONESIS, TECHNE
-    var totalVote : Float = 0.0;
-    var i = 0;
-    while (i < 7) {
-      // Each council computes vote from its coherence + relevant shell nodes
-      let shellSlice = i * 36;  // 256/7 ≈ 36 nodes per council
+    // ═══════════════════════════════════════════════════════════════════════════
+    // COMPREHENSIVE COUNCIL DELIBERATION — QUANTUM VOTING + NEUROCHEMICAL PROFILES
+    // 7 Councils (LOGOS, PATHOS, ETHOS, KAIROS, SOPHIA, PHRONESIS, TECHNE)
+    // Each has unique neurochemical signature and quantum operator affinity
+    // This workflow implements:
+    // - Kuramoto phase synchronization between councils
+    // - Bell violation-gated voting (ENTANGLA correlations)
+    // - Neurochemical voting bias (DA=optimistic, CORT=pessimistic, 5-HT=balanced)
+    // - QSOV contribution weighting
+    // - Quantum quorum calculation
+    // Owner: Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 1: UPDATE COUNCIL COHERENCE FROM SHELL 3 SLICES
+    // Each council receives input from a specific Shell 3 region
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    var councilIdx = 0;
+    while (councilIdx < 7) {
+      let shellSlice = councilIdx * 36;  // 256/7 ≈ 36 nodes per council
       var councilSum : Float = 0.0;
-      var j = 0;
-      while (j < 36 and shellSlice + j < 256) {
-        councilSum += shell3Nodes[shellSlice + j];
-        j += 1;
+      var sliceIdx = 0;
+      while (sliceIdx < 36 and shellSlice + sliceIdx < 256) {
+        councilSum += shell3Nodes[shellSlice + sliceIdx];
+        sliceIdx += 1;
       };
       let councilMean = councilSum / 36.0;
-      councilCoherence[i] := fclamp(councilCoherence[i] * 0.9 + councilMean * 0.1, 0.5, 2.0);
       
-      // Vote = sigmoid of coherence deviation from threshold
-      let vote = 1.0 / (1.0 + fexp(-(councilCoherence[i] - 1.0) * 5.0));
-      councilVotes[i] := vote;
-      totalVote += vote;
-      i += 1;
+      // Update coherence with EMA
+      councilCoherence[councilIdx] := fclamp(
+        councilCoherence[councilIdx] * 0.9 + councilMean * 0.1,
+        0.5, 2.0
+      );
+      
+      councilIdx += 1;
     };
-    totalVote / 7.0  // Quorum decision
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 2: APPLY QUANTUM COHERENCE TO COUNCILS
+    // Kuramoto r, Bell violations, QSOV contributions from spherical state
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    councilIdx := 0;
+    while (councilIdx < 7) {
+      // Quantum Kuramoto r (phase synchronization)
+      let kuramotoR = councilQuantumKuramotoR[councilIdx];
+      councilCoherence[councilIdx] := councilCoherence[councilIdx] * (0.9 + kuramotoR * 0.1);
+      
+      // Bell violation bonus (quantum entanglement enhances voting power)
+      let bellViolation = councilQuantumBellViolations[councilIdx];
+      if (bellViolation > 0.1) {
+        councilCoherence[councilIdx] := councilCoherence[councilIdx] * (1.0 + bellViolation * 0.05);
+      };
+      
+      councilIdx += 1;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 3: NEUROCHEMICAL VOTING BIAS
+    // Each council's vote is biased by neurochemical state
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    var totalVote : Float = 0.0;
+    councilIdx := 0;
+    
+    while (councilIdx < 7) {
+      var councilVoteBias : Float = 0.0;
+      
+      // LOGOS (Logic) - biased by ACh (attention to facts)
+      if (councilIdx == 0) {
+        councilVoteBias := (acetylcholineConcent - 1.0) * 0.2;
+      };
+      
+      // PATHOS (Emotion) - biased by OT (empathy) and DA (positive emotion)
+      if (councilIdx == 1) {
+        councilVoteBias := ((oxytocinConcent - 1.0) + (dopamineConcent - 1.0)) * 0.15;
+      };
+      
+      // ETHOS (Ethics) - biased by 5-HT (moral stability) and GABA (restraint)
+      if (councilIdx == 2) {
+        councilVoteBias := ((serotoninConcent - 1.0) + (gabaConcent - 1.0)) * 0.15;
+      };
+      
+      // KAIROS (Timing) - biased by NE (arousal/urgency) and HA (wakefulness)
+      if (councilIdx == 3) {
+        councilVoteBias := ((norepinephrineConcent - 1.0) + (histamineConcent - 1.0)) * 0.15;
+      };
+      
+      // SOPHIA (Wisdom) - biased by BDNF (learning) and NGF (growth)
+      if (councilIdx == 4) {
+        councilVoteBias := ((bdnfConcent - 1.0) + (ngfConcent - 1.0)) * 0.15;
+      };
+      
+      // PHRONESIS (Practical Wisdom) - biased by DA (motivation) and NE (action)
+      if (councilIdx == 5) {
+        councilVoteBias := ((dopamineConcent - 1.0) + (norepinephrineConcent - 1.0)) * 0.15;
+      };
+      
+      // TECHNE (Skill) - biased by ACh (attention) and Glu (excitation/practice)
+      if (councilIdx == 6) {
+        councilVoteBias := ((acetylcholineConcent - 1.0) + (glutamateConcent - 1.0)) * 0.15;
+      };
+      
+      // ─────────────────────────────────────────────────────────────────────────
+      // COMPUTE VOTE WITH SIGMOID ACTIVATION
+      // ─────────────────────────────────────────────────────────────────────────
+      
+      let coherenceInput = councilCoherence[councilIdx] - 1.0;  // Deviation from baseline
+      let biasedInput = coherenceInput + councilVoteBias;
+      
+      // Sigmoid: vote = 1 / (1 + exp(-5 × input))
+      let vote = 1.0 / (1.0 + Float.exp(-biasedInput * 5.0));
+      councilVotes[councilIdx] := vote;
+      
+      // Weight vote by QSOV contribution (councils with higher sovereignty have more weight)
+      let qsovWeight = councilQuantumQSOVContributions[councilIdx];
+      let weightedVote = vote * qsovWeight;
+      
+      totalVote += weightedVote;
+      
+      councilIdx += 1;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 4: QUANTUM QUORUM CALCULATION
+    // Quorum requires both classical majority AND quantum entanglement
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let classicalQuorum = totalVote / 7.0;
+    
+    // Quantum quorum: requires high entanglement between voting councils
+    var councilEntanglement : Float = 0.0;
+    var entanglaPairCount = 0;
+    var councilI = 0;
+    while (councilI < 7) {
+      var councilJ = councilI + 1;
+      while (councilJ < 7) {
+        // Phase coupling between councils
+        let phaseI = Float.fromInt(councilI) * HeartbeatEngine.τ / 7.0;
+        let phaseJ = Float.fromInt(councilJ) * HeartbeatEngine.τ / 7.0;
+        let phaseCoupling = Float.cos(phaseI - phaseJ);
+        
+        // Bell violation between councils
+        let bellIJ = if (councilI < councilQuantumBellViolations.size() and councilJ < councilQuantumBellViolations.size()) {
+          (councilQuantumBellViolations[councilI] + councilQuantumBellViolations[councilJ]) / 2.0
+        } else { 0.0 };
+        
+        // Entanglement = phase coupling × Bell violation
+        let entanglement = (phaseCoupling + 1.0) / 2.0 * (1.0 + bellIJ);
+        councilEntanglement += entanglement;
+        entanglaPairCount += 1;
+        
+        councilJ += 1;
+      };
+      councilI += 1;
+    };
+    
+    let avgCouncilEntanglement = if (entanglaPairCount > 0) {
+      councilEntanglement / Float.fromInt(entanglaPairCount)
+    } else { 0.5 };
+    
+    // Quantum quorum = classical quorum × entanglement factor
+    let quantumQuorum = classicalQuorum * (0.5 + avgCouncilEntanglement * 0.5);
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 5: COUNCIL DISPUTE RESOLUTION
+    // When councils disagree, use quantum tie-breaking
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // Find highest and lowest voting councils
+    var maxVote : Float = 0.0;
+    var minVote : Float = 1.0;
+    var maxCouncilIdx : Nat = 0;
+    var minCouncilIdx : Nat = 0;
+    
+    councilIdx := 0;
+    while (councilIdx < 7) {
+      let vote = councilVotes[councilIdx];
+      if (vote > maxVote) {
+        maxVote := vote;
+        maxCouncilIdx := councilIdx;
+      };
+      if (vote < minVote) {
+        minVote := vote;
+        minCouncilIdx := councilIdx;
+      };
+      councilIdx += 1;
+    };
+    
+    let voteSpread = maxVote - minVote;
+    
+    // High spread = disagreement
+    if (voteSpread > 0.4) {
+      // Use PARALLAX quantum path to break tie
+      let tieBreakPath = quantumHeartbeatState.parallaxWinnerPath;
+      
+      // Different paths favor different councils
+      let favoredCouncil = switch (tieBreakPath) {
+        case 0 { 4 };  // Cardiac → SOPHIA (wisdom)
+        case 1 { 0 };  // Alpha → LOGOS (logic)
+        case 2 { 2 };  // Fibonacci → ETHOS (ethics)
+        case 3 { 3 };  // Respiratory → KAIROS (timing)
+        case _ { 1 };  // Free-running → PATHOS (emotion)
+      };
+      
+      // Boost favored council's vote
+      if (favoredCouncil < 7) {
+        councilVotes[favoredCouncil] := councilVotes[favoredCouncil] * 1.1;
+      };
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 6: COUNCIL-DRIVEN SYSTEM MODULATION
+    // Council decisions affect organism-wide parameters
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // LOGOS high vote → boost logical processing (Shell 3 executive nodes)
+    if (councilVotes[0] > 0.7) {
+      var logosNodeIdx = 128;  // Executive region
+      while (logosNodeIdx < 192) {
+        shell3Nodes[logosNodeIdx] := shell3Nodes[logosNodeIdx] * (1.0 + (councilVotes[0] - 0.7) * 0.1);
+        logosNodeIdx += 1;
+      };
+    };
+    
+    // PATHOS high vote → boost emotional processing (Shell 3 emotional nodes)
+    if (councilVotes[1] > 0.7) {
+      var pathosNodeIdx = 192;  // Emotional region
+      while (pathosNodeIdx < 256) {
+        shell3Nodes[pathosNodeIdx] := shell3Nodes[pathosNodeIdx] * (1.0 + (councilVotes[1] - 0.7) * 0.1);
+        pathosNodeIdx += 1;
+      };
+    };
+    
+    // ETHOS high vote → enforce ethical bounds on all drones
+    if (councilVotes[2] > 0.8) {
+      var ethicsDroneIdx = 0;
+      while (ethicsDroneIdx < droneFleetState.droneCount) {
+        if (droneFleetState.drones[ethicsDroneIdx].active) {
+          let drone = droneFleetState.drones[ethicsDroneIdx];
+          droneFleetState.drones[ethicsDroneIdx] := {
+            drone with values = { drone.values with ethicalBound = 1.0 }  // Always 1.0
+          };
+        };
+        ethicsDroneIdx += 1;
+      };
+    };
+    
+    // KAIROS high vote → temporal synchronization boost
+    if (councilVotes[3] > 0.7) {
+      // Boost Kuramoto coupling (tighten synchronization)
+      var kairosIdx = 0;
+      while (kairosIdx < stableDroneCount) {
+        if (not stableSacrificed[kairosIdx]) {
+          // Pull drone phases toward mean phase
+          let phaseDiff = masterBeatPhase - stablePhases[kairosIdx];
+          stablePhases[kairosIdx] := stablePhases[kairosIdx] + phaseDiff * (councilVotes[3] - 0.7) * 0.05;
+        };
+        kairosIdx += 1;
+      };
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 7: COMPUTE QUORUM WITH QUANTUM WEIGHTING
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let quorum = quantumQuorum;
+    quorum  // Return quorum decision
   };
 
   // ─── WORKFLOW 3: PREDICTION-ERROR — Kalman-style ─────────────────────────────
   func workflowPredictionError() {
-    // predict → observe → update → learn
-    var totalError : Float = 0.0;
-    var i = 0;
-    while (i < 256) {
-      // Prediction from previous step (stored in predField[0..255])
-      let predicted = predField[i];
-      // Observation from current shell3
-      let observed = shell3Nodes[i];
-      // Prediction error
-      let error = observed - predicted;
-      totalError += fabs(error);
-      
-      // Kalman update: next prediction = predicted + K × error
-      let K = 0.3;  // Kalman gain
-      predField[i] := predicted + K * error;
-      
-      // Hebbian learning from prediction error
-      let learningSignal = error * shell3Stim[i] * 0.01;
-      shell3Nodes[i] := fclamp(shell3Nodes[i] + learningSignal, 0.5, 2.0);
-      i += 1;
+    // ═══════════════════════════════════════════════════════════════════════════
+    // COMPREHENSIVE PREDICTION-ERROR MINIMIZATION ENGINE
+    // This workflow implements:
+    // - Predictive coding (Friston Free Energy Principle)
+    // - Kalman filtering with ACh-modulated gain
+    // - Sparse coding (bee-inspired efficient representation)
+    // - Multi-scale prediction (60 temporal steps)
+    // - Quantum-modulated prediction windows (CHRONO precision)
+    // - Neurochemical prediction confidence (5-HT stability, NE arousal)
+    // Owner: Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 1: MULTI-SCALE TEMPORAL PREDICTION
+    // Predict at 60 future time steps (stored in predField[0..15359])
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // Current observation = Shell 3 state
+    var currentObservation : [var Float] = Array.init<Float>(256, 1.0);
+    var obsIdx = 0;
+    while (obsIdx < 256) {
+      currentObservation[obsIdx] := shell3Nodes[obsIdx];
+      obsIdx += 1;
     };
-    predictionError := totalError / 256.0;
+    
+    // Predict future states using dynamics model
+    // xt+1 = A × xt + B × ut + noise
+    // A = transition matrix (learned), ut = control input
+    
+    var totalPredictionError : Float = 0.0;
+    var timeStep = 0;
+    
+    // CHRONO quantum temporal precision affects prediction window width
+    let chronoPrecision = 1.0 / (quantumHeartbeatState.chronoCramerRao + 1.0);
+    let predictionHorizon = Float.toInt(60.0 * chronoPrecision);  // Shorter horizon when precision is low
+    
+    while (timeStep < 60) {
+      var nodeIdx = 0;
+      while (nodeIdx < 256) {
+        let predFieldIdx = timeStep * 256 + nodeIdx;
+        
+        if (predFieldIdx < 15360) {
+          // Current prediction for this time step
+          let predicted = predField[predFieldIdx];
+          
+          // Observation (at time step 0, use current; later use propagated prediction)
+          let observed = if (timeStep == 0) {
+            currentObservation[nodeIdx]
+          } else {
+            // Use previous time step's updated prediction
+            let prevPredFieldIdx = (timeStep - 1) * 256 + nodeIdx;
+            if (prevPredFieldIdx < 15360) { predField[prevPredFieldIdx] } else { 1.0 }
+          };
+          
+          // Prediction error
+          let error = observed - predicted;
+          totalPredictionError += Float.abs(error);
+          
+          // ───────────────────────────────────────────────────────────────────────
+          // KALMAN FILTERING WITH ACh-MODULATED GAIN
+          // K = P × H^T × (H × P × H^T + R)^-1
+          // Simplified: K = function(ACh, prediction uncertainty)
+          // ───────────────────────────────────────────────────────────────────────
+          
+          let baseKalmanGain = 0.3;
+          let achModulation = acetylcholineConcent;  // High ACh = high attention = higher gain (trust observation)
+          let uncertaintyModulation = Float.abs(error);  // High error = high uncertainty = lower gain (trust model)
+          
+          let kalmanGain = baseKalmanGain * achModulation / (1.0 + uncertaintyModulation);
+          
+          // Kalman update: prediction[t] = prediction[t] + K × error
+          let updatedPrediction = predicted + kalmanGain * error;
+          predField[predFieldIdx] := fclamp(updatedPrediction, 0.5, 2.0);
+          
+          // ───────────────────────────────────────────────────────────────────────
+          // SPARSE CODING (Bee-inspired efficient representation)
+          // Minimize number of active units while maintaining prediction accuracy
+          // ───────────────────────────────────────────────────────────────────────
+          
+          // Sparse penalty: λ × Σ|a_i|
+          let sparsityLambda = 0.01;
+          let sparsityPenalty = sparsityLambda * Float.abs(updatedPrediction - 1.0);
+          
+          // Apply sparsity: push predictions toward baseline (1.0)
+          predField[predFieldIdx] := predField[predFieldIdx] - sparsityPenalty * 0.1;
+          
+          // ───────────────────────────────────────────────────────────────────────
+          // PREDICTIVE CODING: Update generative model
+          // Error signals propagate up the hierarchy (Shell 3 → Shell 12)
+          // ───────────────────────────────────────────────────────────────────────
+          
+          if (timeStep == 0 and Float.abs(error) > 0.1) {
+            // Significant error: update higher-level model (Shell 12)
+            if (nodeIdx < 512) {
+              let modelUpdateRate = 0.001 * bdnfConcent;  // BDNF gates model plasticity
+              shell12Nodes[nodeIdx] := fclamp(
+                shell12Nodes[nodeIdx] + modelUpdateRate * error,
+                0.5, 2.0
+              );
+            };
+          };
+        };
+        
+        nodeIdx += 1;
+      };
+      
+      timeStep += 1;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 2: COMPUTE OVERALL PREDICTION ERROR
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    predictionError := totalPredictionError / (256.0 * 60.0);  // Average across all predictions
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 3: FREE ENERGY MINIMIZATION (Friston)
+    // F = DKL(q||p) + E_q[-log p(observation|state)]
+    // Minimizing free energy = maximizing evidence lower bound (ELBO)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // Complexity cost: KL divergence between posterior q and prior p
+    var complexityCost : Float = 0.0;
+    var nodeIdx2 = 0;
+    while (nodeIdx2 < 256) {
+      let posterior = shell3Nodes[nodeIdx2];  // Current belief
+      let prior = if (nodeIdx2 < 512) { shell12Nodes[nodeIdx2] } else { 1.0 };  // Prior from Shell 12
+      
+      // KL divergence (simplified): ∫q log(q/p)
+      let kl = posterior * Float.log(posterior / (prior + 0.01));
+      complexityCost += Float.abs(kl);
+      
+      nodeIdx2 += 1;
+    };
+    complexityCost := complexityCost / 256.0;
+    
+    // Accuracy cost: negative log likelihood
+    let accuracyCost = predictionError;
+    
+    // Total free energy
+    let freeEnergy = complexityCost + accuracyCost;
+    
+    // Minimize free energy by updating Shell 3 nodes
+    var freeEnergyIdx = 0;
+    while (freeEnergyIdx < 256) {
+      let gradient = -freeEnergy * 0.01;  // Negative gradient descent
+      shell3Nodes[freeEnergyIdx] := fclamp(
+        shell3Nodes[freeEnergyIdx] + gradient,
+        0.5, 2.0
+      );
+      freeEnergyIdx += 1;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 4: NOREPINEPHRINE PREDICTION SURPRISE
+    // High prediction error = surprise = trigger NE release
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    if (predictionError > 0.2) {
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.NOREPINEPHRINE,
+        predictionError * 0.4  // Surprise → arousal
+      );
+      
+      // Also trigger ACh (attention to unexpected)
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.ACETYLCHOLINE,
+        predictionError * 0.3
+      );
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 5: DOPAMINE PREDICTION ERROR (Reward Prediction Error)
+    // TD error = r + γV(s') - V(s)
+    // Positive error → DA burst, Negative error → DA dip
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // Reward signal from current state
+    let currentStateValue = rSwarm * qsovScore;
+    
+    // Predicted value from value function
+    let predictedValue = valueFunctionV;
+    
+    // TD error
+    let tdError = currentStateValue - predictedValue;
+    
+    // DA response to TD error
+    if (tdError > 0.05) {
+      // Positive error → DA burst
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.DOPAMINE,
+        tdError * 0.5
+      );
+    } else if (tdError < -0.05) {
+      // Negative error → DA dip (relative decrease)
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.DOPAMINE,
+        tdError * 0.3  // Negative stimulus
+      );
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 6: SEROTONIN PREDICTION STABILITY
+    // Low 5-HT = unstable predictions, high 5-HT = stable predictions
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let serotoninStability = serotoninConcent;
+    
+    // Apply stability to predictions (reduce variance)
+    var stabilityIdx = 0;
+    while (stabilityIdx < 256) {
+      let predFieldIdx0 = stabilityIdx;  // Time step 0
+      
+      if (predFieldIdx0 < 15360) {
+        let prediction = predField[predFieldIdx0];
+        let deviation = prediction - 1.0;
+        
+        // High 5-HT = pull toward baseline (reduce variance)
+        let stabilizationForce = deviation * serotoninStability * 0.01;
+        predField[predFieldIdx0] := prediction - stabilizationForce;
+      };
+      
+      stabilityIdx += 1;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 7: BEE SPARSE PREDICTIVE FIELD
+    // Bee swarm uses sparse coding: only represent salient features
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let beeActivation = animalEngines[HeartbeatEngine.ANIMAL_BEE];
+    
+    if (beeActivation > 1.2) {
+      // Bee-driven sparsification: suppress low-activation predictions
+      var sparseIdx = 0;
+      while (sparseIdx < 15360) {
+        let predValue = predField[sparseIdx];
+        
+        if (Float.abs(predValue - 1.0) < 0.1) {
+          // Near baseline = suppress (make sparse)
+          predField[sparseIdx] := 1.0 + (predValue - 1.0) * 0.9;
+        };
+        
+        sparseIdx += 1;
+      };
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 8: HEBBIAN LEARNING FROM PREDICTION ERROR
+    // Error-driven weight updates in Shell 3
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    var errorLearningIdx = 0;
+    while (errorLearningIdx < 256) {
+      let error = if (errorLearningIdx < 15360) {
+        predField[errorLearningIdx] - currentObservation[errorLearningIdx]
+      } else { 0.0 };
+      
+      // Update Shell 3 stimulation based on error
+      let errorSignal = error * 0.1;
+      shell3Stim[errorLearningIdx] := fclamp(
+        shell3Stim[errorLearningIdx] + errorSignal,
+        0.5, 2.0
+      );
+      
+      // Error-driven Hebbian updates to Shell 3 nodes
+      shell3Nodes[errorLearningIdx] := fclamp(
+        shell3Nodes[errorLearningIdx] + errorSignal * achModulation * 0.01,
+        0.5, 2.0
+      );
+      
+      errorLearningIdx += 1;
+    };
   };
 
   // ─── WORKFLOW 4: LEARNING INTEGRATION — Hebbian + TD + Curriculum ────────────
@@ -6795,30 +7297,526 @@ actor SwarmBrain {
 
   // ─── WORKFLOW 21: SHELL 12 GLOBAL INTEGRATION ────────────────────────────────
   func workflowShell12Integration() {
-    // Shell 12 integrates Shell 3 + Councils + Animals + Quantum Ops
-    var i = 0;
-    while (i < 512) {
+    // ═══════════════════════════════════════════════════════════════════════════
+    // COMPREHENSIVE SHELL 12 GLOBAL INTEGRATION — THE BINDING PROBLEM SOLVED
+    // Shell 12 is the highest cognitive layer that integrates:
+    // - Shell 3 (256 sensory/working memory nodes)
+    // - 7 Councils (deliberative organisms)
+    // - 12 Animal brains (instinctive intelligence)
+    // - 8 Quantum operators (coherence substrate)
+    // - 21 Neurochemicals (modulation layer)
+    // - 64 Hz spectrum (oscillatory substrate)
+    // - 60 Laws (verification layer)
+    // - 250 Drones (distributed memory/execution)
+    //
+    // This solves the BINDING PROBLEM: how disparate features become unified percepts
+    // Owner: Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 1: GATHER INPUT FROM ALL SUBSYSTEMS
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // Shell 3 sensory/working memory (256 nodes)
+    var shell3Input : [var Float] = Array.init<Float>(256, 1.0);
+    var s3Idx = 0;
+    while (s3Idx < 256) {
+      shell3Input[s3Idx] := shell3Nodes[s3Idx];
+      s3Idx += 1;
+    };
+    
+    // Council deliberation (7 councils)
+    var councilInput : [var Float] = Array.init<Float>(7, 1.0);
+    var cIdx = 0;
+    while (cIdx < 7) {
+      councilInput[cIdx] := councilCoherence[cIdx] * councilVotes[cIdx];
+      cIdx += 1;
+    };
+    
+    // Animal brains (16 engines)
+    var animalInput : [var Float] = Array.init<Float>(16, 1.0);
+    var aIdx = 0;
+    while (aIdx < 16) {
+      animalInput[aIdx] := animalEngines[aIdx];
+      aIdx += 1;
+    };
+    
+    // Quantum operators (8)
+    var quantumInput : [var Float] = Array.init<Float>(8, 1.0);
+    var qIdx = 0;
+    while (qIdx < 8 and qIdx < quantumOps.size()) {
+      quantumInput[qIdx] := quantumOps[qIdx];
+      qIdx += 1;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 2: QUANTUM-GATED GLOBAL BINDING
+    // Shell 12 binding strength modulated by quantum coherence
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let quantumBindingStrength = quantumHeartbeatState.quantumCoherence;  // [0,1]
+    let entanglaBindingBoost = quantumHeartbeatState.entanglaTotalEntanglement * 0.2;  // Entanglement aids binding
+    let chronoBindingPrecision = 1.0 / (quantumHeartbeatState.chronoCramerRao + 1.0);  // Temporal precision
+    
+    let totalBindingStrength = quantumBindingStrength * (1.0 + entanglaBindingBoost) * chronoBindingPrecision;
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 3: NEUROCHEMICAL MODULATION OF BINDING
+    // Different neurochemicals affect different types of binding
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let achBindingAttention = acetylcholineConcent;  // ACh gates attention binding
+    let daBindingReward = dopamineConcent;           // DA gates reward-relevant binding
+    let serotoninBindingStability = serotoninConcent; // 5-HT stabilizes bindings
+    let bdnfBindingPlasticity = bdnfConcent;         // BDNF allows new bindings to form
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 4: INTEGRATE ALL INPUTS INTO SHELL 12 NODES (512 nodes)
+    // Each Shell 12 node receives weighted inputs from all subsystems
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    var shell12Idx = 0;
+    while (shell12Idx < 512) {
       var integrationSum : Float = 0.0;
       
-      // Shell 3 contribution (256 nodes → first 256 of Shell 12)
-      if (i < 256) {
-        integrationSum += shell3Nodes[i] * 0.3;
+      // ─────────────────────────────────────────────────────────────────────────
+      // INPUT 1: Shell 3 contribution (direct sensory/working memory)
+      // ─────────────────────────────────────────────────────────────────────────
+      
+      if (shell12Idx < 256) {
+        // Direct 1:1 mapping for first 256 nodes
+        integrationSum += shell3Input[shell12Idx] * 0.25 * achBindingAttention;
+      } else {
+        // Second 256 nodes receive distributed Shell 3 patterns
+        let shell3MapIdx = shell12Idx % 256;
+        integrationSum += shell3Input[shell3MapIdx] * 0.15 * achBindingAttention;
       };
       
-      // Council contribution (7 councils spread across)
-      let councilIdx = i % 7;
-      integrationSum += councilCoherence[councilIdx] * 0.2;
+      // ─────────────────────────────────────────────────────────────────────────
+      // INPUT 2: Council contribution (deliberative layer)
+      // ─────────────────────────────────────────────────────────────────────────
       
-      // Animal contribution (16 animals spread)
-      let animalIdx = i % 16;
-      integrationSum += animalEngines[animalIdx] * 0.2;
+      let councilIdx = shell12Idx % 7;
+      integrationSum += councilInput[councilIdx] * 0.2 * totalBindingStrength;
       
-      // Quantum operator contribution (8 ops spread)
-      let qopIdx = i % 8;
-      integrationSum += quantumOps[qopIdx] * 0.3;
+      // ─────────────────────────────────────────────────────────────────────────
+      // INPUT 3: Animal contribution (instinctive layer)
+      // ─────────────────────────────────────────────────────────────────────────
       
-      shell12Nodes[i] := fclamp(shell12Nodes[i] * 0.9 + integrationSum * 0.1, 0.5, 2.0);
-      i += 1;
+      let animalIdx = shell12Idx % 16;
+      integrationSum += animalInput[animalIdx] * 0.2 * daBindingReward;
+      
+      // ─────────────────────────────────────────────────────────────────────────
+      // INPUT 4: Quantum operator contribution (coherence substrate)
+      // ─────────────────────────────────────────────────────────────────────────
+      
+      let qopIdx = shell12Idx % 8;
+      integrationSum += quantumInput[qopIdx] * 0.3 * quantumBindingStrength;
+      
+      // ─────────────────────────────────────────────────────────────────────────
+      // INPUT 5: Hz spectrum contribution (oscillatory binding)
+      // ─────────────────────────────────────────────────────────────────────────
+      
+      let hzIdx = shell12Idx % 64;
+      if (hzIdx < hzSpectrumModulations.size()) {
+        let hzMod = hzSpectrumModulations[hzIdx];
+        integrationSum += hzMod * 0.15;
+      };
+      
+      // ─────────────────────────────────────────────────────────────────────────
+      // INPUT 6: Neurochemical contribution (modulation layer)
+      // ─────────────────────────────────────────────────────────────────────────
+      
+      // Different Shell 12 regions receive different neurochemical profiles
+      // Nodes 0-127: DA/ACh (executive/attention)
+      if (shell12Idx < 128) {
+        integrationSum += (dopamineConcent + acetylcholineConcent) / 2.0 * 0.1;
+      }
+      // Nodes 128-255: 5-HT/OT (emotional/social)
+      else if (shell12Idx < 256) {
+        integrationSum += (serotoninConcent + oxytocinConcent) / 2.0 * 0.1;
+      }
+      // Nodes 256-383: BDNF/NGF (memory/plasticity)
+      else if (shell12Idx < 384) {
+        integrationSum += (bdnfConcent + ngfConcent) / 2.0 * 0.1;
+      }
+      // Nodes 384-512: NE/CORT (arousal/stress)
+      else {
+        integrationSum += (norepinephrineConcent + cortisolConcent) / 2.0 * 0.1;
+      };
+      
+      // ─────────────────────────────────────────────────────────────────────────
+      // STEP 5: APPLY INTEGRATED VALUE WITH STABILITY
+      // ─────────────────────────────────────────────────────────────────────────
+      
+      // EMA update with serotonin-modulated stability
+      let integrationRate = 0.1 / serotoninBindingStability;  // Low 5-HT = fast integration, high 5-HT = slow/stable
+      shell12Nodes[shell12Idx] := fclamp(
+        shell12Nodes[shell12Idx] * (1.0 - integrationRate) + integrationSum * integrationRate,
+        0.5, 2.0
+      );
+      
+      shell12Idx += 1;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 6: GLOBAL WORKSPACE BROADCASTING
+    // Shell 12 high-activation nodes broadcast to entire organism
+    // (Global Workspace Theory of Consciousness)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    var broadcastIdx = 0;
+    while (broadcastIdx < 512) {
+      let shell12Activation = shell12Nodes[broadcastIdx];
+      
+      // Broadcast threshold: only very active nodes broadcast globally
+      if (shell12Activation > 1.5) {
+        let broadcastStrength = (shell12Activation - 1.5) * 0.1;
+        
+        // Broadcast to Shell 3 (top-down modulation)
+        if (broadcastIdx < 256) {
+          shell3Nodes[broadcastIdx] := fclamp(
+            shell3Nodes[broadcastIdx] * (1.0 + broadcastStrength),
+            0.5, 2.0
+          );
+        };
+        
+        // Broadcast to councils (consciousness influences deliberation)
+        let councilTarget = broadcastIdx % 7;
+        councilCoherence[councilTarget] := fclamp(
+          councilCoherence[councilTarget] * (1.0 + broadcastStrength * 0.5),
+          0.5, 2.0
+        );
+        
+        // Broadcast to animals (consciousness influences instincts)
+        let animalTarget = broadcastIdx % 16;
+        animalEngines[animalTarget] := fclamp(
+          animalEngines[animalTarget] * (1.0 + broadcastStrength * 0.3),
+          0.5, 2.5
+        );
+      };
+      
+      broadcastIdx += 1;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 7: SHELL 12 WEIGHT UPDATES (262,144 weights)
+    // Hebbian learning on Shell 12 connections
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let shell12LearningRate = 0.00001 * bdnfBindingPlasticity;
+    
+    var weightIdx = 0;
+    while (weightIdx < 10000) {  // Sample of 262,144 weights
+      let preIdx = weightIdx / 512;
+      let postIdx = weightIdx % 512;
+      
+      if (preIdx < 512 and postIdx < 512) {
+        let preAct = shell12Nodes[preIdx];
+        let postAct = shell12Nodes[postIdx];
+        
+        // Hebbian: pre × post
+        let hebbian = preAct * postAct;
+        
+        // Weight decay
+        let currentW = shell12Weights[weightIdx];
+        let decay = 0.00001 * currentW;
+        
+        // Weight update
+        let deltaW = shell12LearningRate * hebbian - decay;
+        shell12Weights[weightIdx] := fclamp(currentW + deltaW, 0.1, 2.0);
+      };
+      
+      weightIdx += 1;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 8: CROSS-SHELL SYNCHRONIZATION (Shell 3 ↔ Shell 12)
+    // Phase locking between working memory and global workspace
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // Compute phase of Shell 3 (mean activation angle)
+    var shell3PhaseReal : Float = 0.0;
+    var shell3PhaseImag : Float = 0.0;
+    var s3PhaseIdx = 0;
+    while (s3PhaseIdx < 256) {
+      let activation = shell3Nodes[s3PhaseIdx];
+      let angle = Float.fromInt(s3PhaseIdx) * HeartbeatEngine.τ / 256.0;
+      shell3PhaseReal += activation * Float.cos(angle);
+      shell3PhaseImag += activation * Float.sin(angle);
+      s3PhaseIdx += 1;
+    };
+    let shell3Phase = Float.atan2(shell3PhaseImag, shell3PhaseReal);
+    
+    // Compute phase of Shell 12
+    var shell12PhaseReal : Float = 0.0;
+    var shell12PhaseImag : Float = 0.0;
+    var s12PhaseIdx = 0;
+    while (s12PhaseIdx < 512) {
+      let activation = shell12Nodes[s12PhaseIdx];
+      let angle = Float.fromInt(s12PhaseIdx) * HeartbeatEngine.τ / 512.0;
+      shell12PhaseReal += activation * Float.cos(angle);
+      shell12PhaseImag += activation * Float.sin(angle);
+      s12PhaseIdx += 1;
+    };
+    let shell12Phase = Float.atan2(shell12PhaseImag, shell12PhaseReal);
+    
+    // Phase coupling strength
+    let phaseDifference = shell12Phase - shell3Phase;
+    let phaseCoupling = Float.cos(phaseDifference);  // -1 to 1
+    
+    // High phase coupling = bound percept (consciousness)
+    // Low phase coupling = fragmented percept (confusion)
+    let consciousnessLevel = (phaseCoupling + 1.0) / 2.0;  // Map to [0,1]
+    
+    // Apply phase coupling to modulate integration strength
+    let couplingModulation = 1.0 + consciousnessLevel * 0.2;
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 9: GAMMA SYNCHRONIZATION (40 Hz Binding)
+    // Gamma oscillations (40 Hz) bind distributed features
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // Find 40 Hz node in Hz spectrum
+    let gammaNodeIdx = 40;  // ~40 Hz node (approximate)
+    var gammaAmplitude : Float = 1.0;
+    if (gammaNodeIdx < hzSpectrumModulations.size()) {
+      gammaAmplitude := hzSpectrumModulations[gammaNodeIdx];
+    };
+    
+    // Gamma binding: nodes that oscillate together bind together
+    var gammaBindIdx = 0;
+    while (gammaBindIdx < 512) {
+      let gammaPhase = Float.fromInt(currentBeat) * 2.0 * HeartbeatEngine.π * 40.0 / 12.0;  // 40 Hz at 12 Hz sampling
+      let nodePhase = Float.fromInt(gammaBindIdx) * HeartbeatEngine.τ / 512.0;
+      let gammaModulation = Float.sin(gammaPhase + nodePhase) * gammaAmplitude * 0.05;
+      
+      shell12Nodes[gammaBindIdx] := fclamp(
+        shell12Nodes[gammaBindIdx] * (1.0 + gammaModulation),
+        0.5, 2.0
+      );
+      
+      gammaBindIdx += 1;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 10: ATTENTION-GATED FEATURE BINDING
+    // ACh gates which features are bound into global workspace
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let attentionGate = acetylcholineConcent;
+    
+    // High ACh = selective binding (only salient features)
+    // Low ACh = diffuse binding (all features equally)
+    var attentionBindIdx = 0;
+    while (attentionBindIdx < 256) {
+      let shell3Salience = shell3Input[attentionBindIdx];
+      
+      if (shell3Salience > 1.2) {  // Salient feature
+        // Bind to Shell 12 with attention gating
+        let bindingStrength = (shell3Salience - 1.0) * attentionGate * 0.2;
+        
+        if (attentionBindIdx < 512) {
+          shell12Nodes[attentionBindIdx] := fclamp(
+            shell12Nodes[attentionBindIdx] + bindingStrength,
+            0.5, 2.0
+          );
+        };
+      };
+      
+      attentionBindIdx += 1;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 11: REWARD-GATED FEATURE BINDING
+    // DA gates binding of reward-relevant features
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let rewardGate = dopamineConcent;
+    let tdError = rewardPredictionError;
+    
+    if (Float.abs(tdError) > 0.1) {
+      // Reward prediction error = salient event = strong binding
+      var rewardBindIdx = 0;
+      while (rewardBindIdx < 256) {
+        let shell3Feature = shell3Input[rewardBindIdx];
+        
+        if (shell3Feature > 1.0) {
+          // Bind reward-relevant features
+          let rewardBindingStrength = Float.abs(tdError) * rewardGate * shell3Feature * 0.15;
+          
+          if (rewardBindIdx < 512) {
+            shell12Nodes[rewardBindIdx] := fclamp(
+              shell12Nodes[rewardBindIdx] + rewardBindingStrength,
+              0.5, 2.0
+            );
+          };
+        };
+        
+        rewardBindIdx += 1;
+      };
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 12: EMOTIONAL BINDING
+    // Emotionally charged features bind more strongly (flashbulb memories)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let emotionalCharge = Float.abs(oxytocinConcent - 1.0) + Float.abs(dopamineConcent - 1.0) + 
+                          Float.abs(cortisolConcent - 1.0);
+    
+    if (emotionalCharge > 0.5) {
+      var emotionalBindIdx = 0;
+      while (emotionalBindIdx < 256) {
+        let shell3Feature = shell3Input[emotionalBindIdx];
+        
+        if (shell3Feature > 1.1) {
+          // Emotional binding (flashbulb memory)
+          let emotionalBindingStrength = emotionalCharge * shell3Feature * 0.2;
+          
+          if (emotionalBindIdx < 512) {
+            shell12Nodes[emotionalBindIdx] := fclamp(
+              shell12Nodes[emotionalBindIdx] + emotionalBindingStrength,
+              0.5, 2.0
+            );
+          };
+        };
+        
+        emotionalBindIdx += 1;
+      };
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 13: CROSS-MODAL BINDING (Different sensory modalities)
+    // Bind features from different modalities that co-occur
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // Shell 3 regions as different modalities:
+    // 0-63: Visual
+    // 64-127: Auditory
+    // 128-191: Tactile
+    // 192-255: Cognitive
+    
+    var modalityBindIdx = 0;
+    while (modalityBindIdx < 64) {
+      let visualFeature = shell3Input[modalityBindIdx];
+      let auditoryFeature = shell3Input[64 + modalityBindIdx];
+      let tactileFeature = shell3Input[128 + modalityBindIdx];
+      let cognitiveFeature = shell3Input[192 + modalityBindIdx];
+      
+      // Bind co-occurring features
+      if (visualFeature > 1.1 and auditoryFeature > 1.1) {
+        // Visual + auditory binding (e.g., seeing and hearing same object)
+        let multimodalBinding = visualFeature * auditoryFeature * 0.05;
+        
+        if (modalityBindIdx < 512) {
+          shell12Nodes[modalityBindIdx] := fclamp(
+            shell12Nodes[modalityBindIdx] + multimodalBinding,
+            0.5, 2.0
+          );
+        };
+      };
+      
+      modalityBindIdx += 1;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 14: TEMPORAL BINDING (Features across time)
+    // Bind features that occur in sequence (episodic memory)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // Use prediction field to bind temporal sequences
+    var temporalBindIdx = 0;
+    while (temporalBindIdx < 256) {
+      let currentFeature = shell3Input[temporalBindIdx];
+      let futureFeature = if (temporalBindIdx < 15360) {
+        predField[256 + temporalBindIdx]  // Next time step prediction
+      } else { 1.0 };
+      
+      // Temporal binding: current + future
+      if (currentFeature > 1.1 and futureFeature > 1.1) {
+        let temporalAssociation = currentFeature * futureFeature * 0.03;
+        
+        if (temporalBindIdx < 512) {
+          shell12Nodes[temporalBindIdx] := fclamp(
+            shell12Nodes[temporalBindIdx] + temporalAssociation,
+            0.5, 2.0
+          );
+        };
+      };
+      
+      temporalBindIdx += 1;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 15: DISTRIBUTED DRONE MEMORY BINDING
+    // Each drone's distributed memory contributes to Shell 12 global state
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    var droneMemBindIdx = 0;
+    while (droneMemBindIdx < stableDroneCount and droneMemBindIdx < 512) {
+      if (not stableSacrificed[droneMemBindIdx]) {
+        let droneSignal = stableSignals[droneMemBindIdx];
+        
+        // Each drone contributes to its assigned Shell 12 node
+        let shell12NodeIdx = droneMemBindIdx % 512;
+        shell12Nodes[shell12NodeIdx] := fclamp(
+          shell12Nodes[shell12NodeIdx] * 0.99 + droneSignal * 0.01,
+          0.5, 2.0
+        );
+      };
+      
+      droneMemBindIdx += 1;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 16: LAW-WEIGHTED INTEGRATION
+    // 60 laws provide verification weights for integration
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    var lawBindIdx = 0;
+    while (lawBindIdx < 60 and lawBindIdx < 512) {
+      let lawCompliance = lawComplianceScores[lawBindIdx];
+      let lawWeight = lawQuantumCompliance[lawBindIdx];
+      
+      // Laws with high compliance get stronger binding weight
+      let shell12NodeIdx = lawBindIdx * 512 / 60;  // Map 60 laws to 512 nodes
+      if (shell12NodeIdx < 512) {
+        shell12Nodes[shell12NodeIdx] := shell12Nodes[shell12NodeIdx] * (0.99 + lawWeight * 0.01);
+      };
+      
+      lawBindIdx += 1;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 17: QUANTUM COHERENCE BINDING
+    // Quantum operators create coherent binding field across Shell 12
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // ENTANGLA creates long-range binding
+    let entanglaBinding = quantumHeartbeatState.entanglaTotalEntanglement;
+    
+    var coherenceBindIdx = 0;
+    while (coherenceBindIdx < 512) {
+      let nodeA = coherenceBindIdx;
+      let nodeB = (coherenceBindIdx + 256) % 512;  // Bind opposite hemispheres
+      
+      let activationA = shell12Nodes[nodeA];
+      let activationB = shell12Nodes[nodeB];
+      
+      // Entanglement-mediated binding
+      let coherentBinding = (activationA + activationB) / 2.0 * entanglaBinding * 0.05;
+      
+      shell12Nodes[nodeA] := fclamp(
+        shell12Nodes[nodeA] * 0.99 + coherentBinding,
+        0.5, 2.0
+      );
+      shell12Nodes[nodeB] := fclamp(
+        shell12Nodes[nodeB] * 0.99 + coherentBinding,
+        0.5, 2.0
+      );
+      
+      coherenceBindIdx += 1;
     };
   };
 
@@ -7433,6 +8431,1435 @@ actor SwarmBrain {
       social = driveSocial;
       reproduction = driveReproduction;
       currentDrive = currentDrive;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //
+  // COMPREHENSIVE DIAGNOSTIC & QUERY INTERFACE
+  //
+  // These query functions expose the COMPLETE organism state including:
+  // - Quantum heartbeat state (all 8 operators, phases, coherences)
+  // - Neurochemical state (all 21 concentrations + aggregate metrics)
+  // - Spherical quantum state (all 9 subsystems)
+  // - Animal brain states (12 animals + quantum weights)
+  // - Economic state (3 tokens + modulation factors)
+  // - Council state (7 councils + quantum voting)
+  // - Law compliance (60 laws + VERITAS verification)
+  // - Memory system state (consolidation, fidelity, replay)
+  // - Learning system state (plasticity, STDP, metaplasticity)
+  //
+  // Owner: Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // ─── QUERY: Get Complete Quantum Heartbeat State ─────────────────────────────
+  public query func getQuantumHeartbeatState() : async {
+    // Master clock state
+    quantumBeatNumber : Nat;
+    quantumPhase : Float;
+    quantumCoherence : Float;
+    cardiacCoherence : Float;
+    circadianPhase : Float;
+    fibonacciBeatNumber : Nat;
+    
+    // PARALLAX 5-path interference
+    parallaxWinnerPath : Nat;
+    parallaxScore : Float;
+    parallaxPathAmplitudes : [Float];
+    
+    // CHRONO Fisher information
+    chronoFisherInfo : Float;
+    chronoCramerRao : Float;
+    chronoScore : Float;
+    
+    // ENTANGLA Bell correlations
+    entanglaSValue : Float;
+    entanglaEMA : Float;
+    entanglaViolationBonus : Float;
+    entanglaScore : Float;
+    
+    // QMEM quantum memory
+    qmemFidelity : Float;
+    qmemT2Time : Float;
+    qmemTimeSinceReset : Nat;
+    qmemScore : Float;
+    
+    // VERITAS stabilizers
+    veritasStabilizers : [Float];
+    veritasParityScore : Float;
+    veritasScore : Float;
+    
+    // BYPASS Boltzmann routing
+    bypassSelectedRhythm : Nat;
+    bypassTemperature : Float;
+    bypassScore : Float;
+    
+    // RESONEX superradiance
+    resonexParticipants : Nat;
+    resonexAmplitude : Float;
+    resonexCascadeActive : Bool;
+    resonexScore : Float;
+    
+    // QSOV sovereignty
+    qsovScore : Float;
+    qsovGeometricMean : Float;
+    
+    // Vitality metrics
+    totalHeartbeats : Nat;
+    averageCoherence : Float;
+    heartbeatVariability : Float;
+    circadianAlignment : Float;
+  } {
+    {
+      quantumBeatNumber = quantumHeartbeatState.quantumBeatNumber;
+      quantumPhase = quantumHeartbeatState.quantumPhase;
+      quantumCoherence = quantumHeartbeatState.quantumCoherence;
+      cardiacCoherence = heartbeatCoherence;
+      circadianPhase = circadianPhase;
+      fibonacciBeatNumber = fibonacciBeatNumber;
+      
+      parallaxWinnerPath = quantumHeartbeatState.parallaxWinnerPath;
+      parallaxScore = quantumHeartbeatState.parallaxScore;
+      parallaxPathAmplitudes = quantumHeartbeatState.parallaxPaths;
+      
+      chronoFisherInfo = quantumHeartbeatState.chronoFisherInfo;
+      chronoCramerRao = quantumHeartbeatState.chronoCramerRao;
+      chronoScore = quantumHeartbeatState.chronoScore;
+      
+      entanglaSValue = quantumHeartbeatState.entanglaSValue;
+      entanglaEMA = quantumHeartbeatState.entanglaEMA;
+      entanglaViolationBonus = quantumHeartbeatState.entanglaViolationBonus;
+      entanglaScore = quantumHeartbeatState.entanglaScore;
+      
+      qmemFidelity = quantumHeartbeatState.qmemFidelity;
+      qmemT2Time = quantumHeartbeatState.qmemT2Time;
+      qmemTimeSinceReset = quantumHeartbeatState.qmemTimeSinceReset;
+      qmemScore = quantumHeartbeatState.qmemScore;
+      
+      veritasStabilizers = quantumHeartbeatState.veritasStabilizers;
+      veritasParityScore = quantumHeartbeatState.veritasParityScore;
+      veritasScore = quantumHeartbeatState.veritasScore;
+      
+      bypassSelectedRhythm = quantumHeartbeatState.bypassSelectedRhythm;
+      bypassTemperature = quantumHeartbeatState.bypassTemperature;
+      bypassScore = quantumHeartbeatState.bypassScore;
+      
+      resonexParticipants = quantumHeartbeatState.resonexParticipants;
+      resonexAmplitude = quantumHeartbeatState.resonexAmplitude;
+      resonexCascadeActive = quantumHeartbeatState.resonexCascadeActive;
+      resonexScore = quantumHeartbeatState.resonexScore;
+      
+      qsovScore = qsovScore;
+      qsovGeometricMean = quantumHeartbeatState.qsovGeometricMean;
+      
+      totalHeartbeats = totalHeartbeats;
+      averageCoherence = averageHeartbeatCoherence;
+      heartbeatVariability = heartbeatVariability;
+      circadianAlignment = circadianAlignment;
+    }
+  };
+
+  // ─── QUERY: Get Complete Neurochemical State ─────────────────────────────────
+  public query func getNeurochemicalState() : async {
+    // 21 individual concentrations
+    dopamine : Float;
+    serotonin : Float;
+    norepinephrine : Float;
+    acetylcholine : Float;
+    gaba : Float;
+    glutamate : Float;
+    endorphin : Float;
+    oxytocin : Float;
+    cortisol : Float;
+    adrenaline : Float;
+    melatonin : Float;
+    histamine : Float;
+    substanceP : Float;
+    adenosine : Float;
+    anandamide : Float;
+    dynorphin : Float;
+    vasopressin : Float;
+    npy : Float;
+    orexin : Float;
+    bdnf : Float;
+    ngf : Float;
+    
+    // Aggregate metrics
+    stressLevel : Float;
+    rewardLevel : Float;
+    eiRatio : Float;
+    arousalLevel : Float;
+    memoryPotentiation : Float;
+    balanceIndex : Float;
+    plasticityRate : Float;
+    
+    // Statistics
+    totalUpdates : Nat;
+  } {
+    {
+      dopamine = dopamineConcent;
+      serotonin = serotoninConcent;
+      norepinephrine = norepinephrineConcent;
+      acetylcholine = acetylcholineConcent;
+      gaba = gabaConcent;
+      glutamate = glutamateConcent;
+      endorphin = endorphinConcent;
+      oxytocin = oxytocinConcent;
+      cortisol = cortisolConcent;
+      adrenaline = adrenalineConcent;
+      melatonin = melatoninConcent;
+      histamine = histamineConcent;
+      substanceP = substancePConcent;
+      adenosine = adenosineConcent;
+      anandamide = anandamideConcent;
+      dynorphin = dynorphinConcent;
+      vasopressin = vasopressinConcent;
+      npy = npyConcent;
+      orexin = orexinConcent;
+      bdnf = bdnfConcent;
+      ngf = ngfConcent;
+      
+      stressLevel = neurochemicalStressLevel;
+      rewardLevel = neurochemicalRewardLevel;
+      eiRatio = neurochemicalEIRatio;
+      arousalLevel = neurochemicalArousalLevel;
+      memoryPotentiation = neurochemicalMemoryPotentiation;
+      balanceIndex = neurochemicalBalanceIndex;
+      plasticityRate = neurochemicalPlasticityRate;
+      
+      totalUpdates = totalNeurochemicalUpdates;
+    }
+  };
+
+  // ─── QUERY: Get Spherical Quantum State Summary ──────────────────────────────
+  public query func getSphericalQuantumState() : async {
+    sphericalIntegrity : Float;
+    organismVitality : Float;
+    
+    // Hz spectrum
+    hzKore : Float;
+    hzThalamic : Float;
+    hzRASLocus : Float;
+    hzVael : Float;
+    
+    // Shell quantum states
+    shellPhases : [Float];
+    shellCoherences : [Float];
+    shellEnergies : [Float];
+    
+    // Animal quantum weights
+    animalWeights : [Float];
+    beeSwarmBoost : Float;
+    elephantMemoryFidelity : Float;
+    sharkPredatorPath : Float;
+    crowCognitionDecision : Float;
+    
+    // Law quantum compliance
+    lawComplianceScores : [Float];
+    lawViolationRisks : [Float];
+    overallCompliance : Float;
+    
+    // Council quantum states
+    councilKuramotoR : [Float];
+    councilBellViolations : [Float];
+    councilQSOVContributions : [Float];
+    
+    // VETUS quantum defense
+    vetusDefenseBoosts : [Float];
+    vetusEvasionPaths : [Nat];
+    vetusResponseTimes : [Float];
+    
+    // AEGIS quantum strands
+    aegisIntegrities : [Float];
+    aegisSovereignty : Float;
+    aegisCoherence : Float;
+    aegisMemory : Float;
+    
+    // FORMA quantum economics
+    formaMintModulation : Float;
+    formaBurnModulation : Float;
+    formaCompoundModulation : Float;
+    formaStabilityIndex : Float;
+    formaTreasuryHealth : Float;
+    formaCreatorReserveIntegrity : Float;
+  } {
+    {
+      sphericalIntegrity = sphericalIntegrity;
+      organismVitality = organismVitality;
+      
+      hzKore = hzKoreFrequency;
+      hzThalamic = hzThalamicFrequency;
+      hzRASLocus = hzRASLocusFrequency;
+      hzVael = hzVaelFrequency;
+      
+      shellPhases = Array.tabulate<Float>(12, func(i) { shellQuantumPhases[i] });
+      shellCoherences = Array.tabulate<Float>(12, func(i) { shellQuantumCoherences[i] });
+      shellEnergies = Array.tabulate<Float>(12, func(i) { shellQuantumEnergies[i] });
+      
+      animalWeights = Array.tabulate<Float>(12, func(i) { animalQuantumWeights[i] });
+      beeSwarmBoost = beeSwarmQuantumBoost;
+      elephantMemoryFidelity = elephantMemoryQuantumFidelity;
+      sharkPredatorPath = sharkPredatorQuantumPath;
+      crowCognitionDecision = crowCognitionQuantumDecision;
+      
+      lawComplianceScores = Array.tabulate<Float>(60, func(i) { lawComplianceScores[i] });
+      lawViolationRisks = Array.tabulate<Float>(60, func(i) { lawQuantumViolationRisks[i] });
+      overallCompliance = overallCompliance;
+      
+      councilKuramotoR = Array.tabulate<Float>(7, func(i) { councilQuantumKuramotoR[i] });
+      councilBellViolations = Array.tabulate<Float>(7, func(i) { councilQuantumBellViolations[i] });
+      councilQSOVContributions = Array.tabulate<Float>(7, func(i) { councilQuantumQSOVContributions[i] });
+      
+      vetusDefenseBoosts = Array.tabulate<Float>(10, func(i) { vetusQuantumDefenseBoosts[i] });
+      vetusEvasionPaths = Array.tabulate<Nat>(10, func(i) { vetusQuantumEvasionPaths[i] });
+      vetusResponseTimes = Array.tabulate<Float>(10, func(i) { vetusQuantumResponseTimes[i] });
+      
+      aegisIntegrities = Array.tabulate<Float>(7, func(i) { aegisQuantumIntegrities[i] });
+      aegisSovereignty = aegisSovereigntyStrand;
+      aegisCoherence = aegisCoherenceStrand;
+      aegisMemory = aegisMemoryStrand;
+      
+      formaMintModulation = formaMintRateModulation;
+      formaBurnModulation = formaBurnRateModulation;
+      formaCompoundModulation = formaCompoundRateModulation;
+      formaStabilityIndex = formaQuantumStabilityIndex;
+      formaTreasuryHealth = formaTreasuryHealth;
+      formaCreatorReserveIntegrity = formaCreatorReserveIntegrity;
+    }
+  };
+
+  // ─── QUERY: Get Neurochemical System Diagnostics ─────────────────────────────
+  public query func getNeurochemicalDiagnostics() : async {
+    systemBalance : Text;
+    stressStatus : Text;
+    rewardStatus : Text;
+    eiStatus : Text;
+    arousalStatus : Text;
+    plasticityStatus : Text;
+    warnings : [Text];
+    topChemical : Text;
+    bottomChemical : Text;
+  } {
+    // Run diagnostics from NeurochemicalCrosstalkMatrix module
+    NeurochemicalCrosstalkMatrix.diagnoseNeurochemicalBalance(neurochemicalState)
+  };
+
+  // ─── QUERY: Get Memory System State ──────────────────────────────────────────
+  public query func getMemorySystemState() : async {
+    // QMEM quantum memory
+    qmemFidelity : Float;
+    qmemT2Time : Float;
+    timeSinceReset : Nat;
+    dreamCycleActive : Bool;
+    
+    // Consolidation state
+    consolidationThreshold : Float;
+    replayFrequency : Nat;
+    isRestState : Bool;
+    
+    // Plasticity factors
+    bdnfLevel : Float;
+    ngfLevel : Float;
+    memoryPotentiation : Float;
+    plasticityRate : Float;
+    
+    // Shell 3 (working memory) stats
+    shell3ActiveNodes : Nat;
+    shell3AverageActivation : Float;
+    shell3MaxActivation : Float;
+    
+    // Shell 12 (long-term memory) stats
+    shell12ActiveNodes : Nat;
+    shell12AverageActivation : Float;
+    shell12MaxActivation : Float;
+    
+    // Transfer metrics
+    shell3ToShell12TransferRate : Float;
+    shell12ToShell3RetrievalRate : Float;
+    emotionalMemoryBoost : Float;
+  } {
+    // Compute stats
+    var shell3Active = 0;
+    var shell3Sum : Float = 0.0;
+    var shell3Max : Float = 0.0;
+    var s3Idx = 0;
+    while (s3Idx < 256) {
+      let activation = shell3Nodes[s3Idx];
+      if (activation > 1.1) { shell3Active += 1 };
+      shell3Sum += activation;
+      if (activation > shell3Max) { shell3Max := activation };
+      s3Idx += 1;
+    };
+    
+    var shell12Active = 0;
+    var shell12Sum : Float = 0.0;
+    var shell12Max : Float = 0.0;
+    var s12Idx = 0;
+    while (s12Idx < 512) {
+      let activation = shell12Nodes[s12Idx];
+      if (activation > 1.1) { shell12Active += 1 };
+      shell12Sum += activation;
+      if (activation > shell12Max) { shell12Max := activation };
+      s12Idx += 1;
+    };
+    
+    let melatoninLevel = melatoninConcent;
+    let replayFreq = if (melatoninLevel > 1.2) { 10 }
+                     else if (melatoninLevel > 0.8) { 25 }
+                     else { 50 };
+    
+    let emotionalCharge = (oxytocinConcent - 1.0) + (dopamineConcent - 1.0) + (cortisolConcent - 1.0);
+    
+    {
+      qmemFidelity = quantumHeartbeatState.qmemFidelity;
+      qmemT2Time = quantumHeartbeatState.qmemT2Time;
+      timeSinceReset = quantumHeartbeatState.qmemTimeSinceReset;
+      dreamCycleActive = quantumHeartbeatState.qmemDreamResetFlag;
+      
+      consolidationThreshold = 1.2 - quantumHeartbeatState.qmemFidelity * 0.5;
+      replayFrequency = replayFreq;
+      isRestState = melatoninLevel > 1.0 or adenosineConcent > 1.2;
+      
+      bdnfLevel = bdnfConcent;
+      ngfLevel = ngfConcent;
+      memoryPotentiation = neurochemicalMemoryPotentiation;
+      plasticityRate = neurochemicalPlasticityRate;
+      
+      shell3ActiveNodes = shell3Active;
+      shell3AverageActivation = shell3Sum / 256.0;
+      shell3MaxActivation = shell3Max;
+      
+      shell12ActiveNodes = shell12Active;
+      shell12AverageActivation = shell12Sum / 512.0;
+      shell12MaxActivation = shell12Max;
+      
+      shell3ToShell12TransferRate = bdnfConcent * quantumHeartbeatState.qmemFidelity * 0.1;
+      shell12ToShell3RetrievalRate = if (cortisolConcent > 1.0) { (cortisolConcent - 1.0) * 0.2 } else { 0.0 };
+      emotionalMemoryBoost = Float.abs(emotionalCharge) * 0.1;
+    }
+  };
+
+  // ─── QUERY: Get Learning System State ────────────────────────────────────────
+  public query func getLearningSystemState() : async {
+    // TD learning
+    tdError : Float;
+    valueFunctionV : Float;
+    learningRate : Float;
+    
+    // Hebbian plasticity
+    hebbianRate : Float;
+    stdpEnabled : Bool;
+    bdnfScaling : Float;
+    ngfScaling : Float;
+    
+    // E/I balance
+    eiRatio : Float;
+    eiLearningModulation : Float;
+    glutamateLevel : Float;
+    gabaLevel : Float;
+    
+    // Metaplasticity
+    metaplasticityFactor : Float;
+    predictionErrorVariance : Float;
+    
+    // Salience gating
+    salienceLevel : Float;
+    achGating : Float;
+    neArousalGating : Float;
+    
+    // Consolidation
+    consolidationModulation : Float;
+    cortisolLevel : Float;
+    
+    // Social learning
+    oxytocinLevel : Float;
+    vasopressinLevel : Float;
+    socialLearningBoost : Float;
+  } {
+    {
+      tdError = rewardPredictionError;
+      valueFunctionV = valueFunctionV;
+      learningRate = acetylcholineConcent * 0.01;
+      
+      hebbianRate = neurochemicalPlasticityRate;
+      stdpEnabled = true;
+      bdnfScaling = bdnfConcent;
+      ngfScaling = ngfConcent;
+      
+      eiRatio = neurochemicalEIRatio;
+      eiLearningModulation = if (neurochemicalEIRatio > 1.2) { 1.3 }
+                             else if (neurochemicalEIRatio > 0.8) { 1.0 }
+                             else { 0.7 };
+      glutamateLevel = glutamateConcent;
+      gabaLevel = gabaConcent;
+      
+      metaplasticityFactor = Float.pow(bdnfConcent, 2.0);
+      predictionErrorVariance = predictionError * predictionError;  // Simplified
+      
+      salienceLevel = Float.abs(rewardPredictionError) + predictionError;
+      achGating = acetylcholineConcent;
+      neArousalGating = norepinephrineConcent + adrenalineConcent / 2.0;
+      
+      consolidationModulation = if (cortisolConcent > 0.5 and cortisolConcent < 1.3) {
+        1.0 + (cortisolConcent - 0.5) * 0.5
+      } else if (cortisolConcent >= 1.3) {
+        1.0 - (cortisolConcent - 1.3) * 0.3
+      } else { 0.9 };
+      cortisolLevel = cortisolConcent;
+      
+      oxytocinLevel = oxytocinConcent;
+      vasopressinLevel = vasopressinConcent;
+      socialLearningBoost = (oxytocinConcent + vasopressinConcent) / 2.0;
+    }
+  };
+
+  // ─── QUERY: Get Animal Brain Detailed State ──────────────────────────────────
+  public query func getAnimalBrainState() : async {
+    // 12 core animals with quantum weights
+    beeState : { activation : Float; quantumWeight : Float; resonexBoost : Float; neurochem : Text };
+    crowState : { activation : Float; quantumWeight : Float; parallaxPaths : Nat; neurochem : Text };
+    elephantState : { activation : Float; quantumWeight : Float; qmemFidelity : Float; neurochem : Text };
+    octopusState : { activation : Float; quantumWeight : Float; bypassRouting : Float; neurochem : Text };
+    sharkState : { activation : Float; quantumWeight : Float; parallaxRapid : Float; neurochem : Text };
+    tardigradeState : { activation : Float; quantumWeight : Float; qsov : Float; neurochem : Text };
+    dolphinState : { activation : Float; quantumWeight : Float; entangla : Float; neurochem : Text };
+    ravenState : { activation : Float; quantumWeight : Float; qmemFuture : Float; neurochem : Text };
+    antState : { activation : Float; quantumWeight : Float; resonexColony : Float; neurochem : Text };
+    cnidarianState : { activation : Float; quantumWeight : Float; bypassReflex : Float; neurochem : Text };
+    mantisState : { activation : Float; quantumWeight : Float; chronoPrecision : Float; neurochem : Text };
+    cephalopodState : { activation : Float; quantumWeight : Float; parallaxAdaptive : Float; neurochem : Text };
+    
+    // Gen3 animal activations (16 total)
+    gen3Activations : [Float];
+    
+    // Animal causal coupling matrix (16×16)
+    animalCouplingSum : Float;
+    strongestCoupling : { from : Nat; to : Nat; weight : Float };
+  } {
+    // Find strongest animal coupling
+    var maxCoupling : Float = 0.0;
+    var maxFrom : Nat = 0;
+    var maxTo : Nat = 0;
+    var couplingSum : Float = 0.0;
+    
+    var animalI = 0;
+    while (animalI < 16) {
+      var animalJ = 0;
+      while (animalJ < 16) {
+        if (animalI != animalJ) {
+          let idx = animalI * 16 + animalJ;
+          if (idx < 256) {
+            let coupling = animalCausalWeights[idx];
+            couplingSum += coupling;
+            if (coupling > maxCoupling) {
+              maxCoupling := coupling;
+              maxFrom := animalI;
+              maxTo := animalJ;
+            };
+          };
+        };
+        animalJ += 1;
+      };
+      animalI += 1;
+    };
+    
+    {
+      beeState = {
+        activation = animalEngines[HeartbeatEngine.ANIMAL_BEE];
+        quantumWeight = animalQuantumWeights[HeartbeatEngine.ANIMAL_BEE];
+        resonexBoost = beeSwarmQuantumBoost;
+        neurochem = "High OT (cooperation), DA (reward), ACh (attention)";
+      };
+      
+      crowState = {
+        activation = animalEngines[HeartbeatEngine.ANIMAL_CROW];
+        quantumWeight = animalQuantumWeights[HeartbeatEngine.ANIMAL_CROW];
+        parallaxPaths = quantumHeartbeatState.parallaxWinnerPath;
+        neurochem = "High DA (curiosity), ACh (problem-solving), 5-HT (flexibility)";
+      };
+      
+      elephantState = {
+        activation = animalEngines[HeartbeatEngine.ANIMAL_ELEPHANT];
+        quantumWeight = animalQuantumWeights[HeartbeatEngine.ANIMAL_ELEPHANT];
+        qmemFidelity = elephantMemoryQuantumFidelity;
+        neurochem = "High BDNF (memory), NGF (retention), OT (social bonds)";
+      };
+      
+      octopusState = {
+        activation = if (HeartbeatEngine.ANIMAL_OCTOPUS < 16) { animalEngines[HeartbeatEngine.ANIMAL_OCTOPUS] } else { 1.0 };
+        quantumWeight = if (HeartbeatEngine.ANIMAL_OCTOPUS < animalQuantumWeights.size()) { animalQuantumWeights[HeartbeatEngine.ANIMAL_OCTOPUS] } else { 1.0 };
+        bypassRouting = quantumHeartbeatState.bypassProbabilities[quantumHeartbeatState.bypassSelectedRhythm % 7];
+        neurochem = "High DA (curiosity), 5-HT (distributed calm), ACh (processing)";
+      };
+      
+      sharkState = {
+        activation = animalEngines[HeartbeatEngine.ANIMAL_SHARK];
+        quantumWeight = animalQuantumWeights[HeartbeatEngine.ANIMAL_SHARK];
+        parallaxRapid = sharkPredatorQuantumPath;
+        neurochem = "High NE (arousal), EPI (fight), ENDO (pain tolerance), Low 5-HT (aggression)";
+      };
+      
+      tardigradeState = {
+        activation = if (HeartbeatEngine.ANIMAL_TARDIGRADE < 16) { animalEngines[HeartbeatEngine.ANIMAL_TARDIGRADE] } else { 1.0 };
+        quantumWeight = if (HeartbeatEngine.ANIMAL_TARDIGRADE < animalQuantumWeights.size()) { animalQuantumWeights[HeartbeatEngine.ANIMAL_TARDIGRADE] } else { 1.0 };
+        qsov = qsovScore;
+        neurochem = "High NPY (resilience), AVP (retention), Low metabolic (survival)";
+      };
+      
+      dolphinState = {
+        activation = if (HeartbeatEngine.ANIMAL_DOLPHIN < 16) { animalEngines[HeartbeatEngine.ANIMAL_DOLPHIN] } else { 1.0 };
+        quantumWeight = if (HeartbeatEngine.ANIMAL_DOLPHIN < animalQuantumWeights.size()) { animalQuantumWeights[HeartbeatEngine.ANIMAL_DOLPHIN] } else { 1.0 };
+        entangla = quantumHeartbeatState.entanglaTotalEntanglement;
+        neurochem = "High OT (bonding), ACh (communication), DA (play)";
+      };
+      
+      ravenState = {
+        activation = if (HeartbeatEngine.ANIMAL_RAVEN < 16) { animalEngines[HeartbeatEngine.ANIMAL_RAVEN] } else { 1.0 };
+        quantumWeight = if (HeartbeatEngine.ANIMAL_RAVEN < animalQuantumWeights.size()) { animalQuantumWeights[HeartbeatEngine.ANIMAL_RAVEN] } else { 1.0 };
+        qmemFuture = quantumHeartbeatState.qmemFidelity;
+        neurochem = "High DA (planning), ACh (future attention), BDNF (flexibility)";
+      };
+      
+      antState = {
+        activation = if (HeartbeatEngine.ANIMAL_ANT < 16) { animalEngines[HeartbeatEngine.ANIMAL_ANT] } else { 1.0 };
+        quantumWeight = if (HeartbeatEngine.ANIMAL_ANT < animalQuantumWeights.size()) { animalQuantumWeights[HeartbeatEngine.ANIMAL_ANT] } else { 1.0 };
+        resonexColony = if (quantumHeartbeatState.resonexCascadeActive) { quantumHeartbeatState.resonexAmplitude } else { 0.0 };
+        neurochem = "High OT (colony), DA (trail following), ACh (communication)";
+      };
+      
+      cnidarianState = {
+        activation = if (HeartbeatEngine.ANIMAL_CNIDARIAN < 16) { animalEngines[HeartbeatEngine.ANIMAL_CNIDARIAN] } else { 1.0 };
+        quantumWeight = if (HeartbeatEngine.ANIMAL_CNIDARIAN < animalQuantumWeights.size()) { animalQuantumWeights[HeartbeatEngine.ANIMAL_CNIDARIAN] } else { 1.0 };
+        bypassReflex = quantumHeartbeatState.bypassProbabilities[quantumHeartbeatState.bypassSelectedRhythm % 7];
+        neurochem = "High Glu (excitation), SP (pain), Low complexity";
+      };
+      
+      mantisState = {
+        activation = if (HeartbeatEngine.ANIMAL_MANTIS < 16) { animalEngines[HeartbeatEngine.ANIMAL_MANTIS] } else { 1.0 };
+        quantumWeight = if (HeartbeatEngine.ANIMAL_MANTIS < animalQuantumWeights.size()) { animalQuantumWeights[HeartbeatEngine.ANIMAL_MANTIS] } else { 1.0 };
+        chronoPrecision = 1.0 / (quantumHeartbeatState.chronoCramerRao + 1.0);
+        neurochem = "High NE (precision), Glu (strike), ACh (visual attention)";
+      };
+      
+      cephalopodState = {
+        activation = if (HeartbeatEngine.ANIMAL_CEPHALOPOD < 16) { animalEngines[HeartbeatEngine.ANIMAL_CEPHALOPOD] } else { 1.0 };
+        quantumWeight = if (HeartbeatEngine.ANIMAL_CEPHALOPOD < animalQuantumWeights.size()) { animalQuantumWeights[HeartbeatEngine.ANIMAL_CEPHALOPOD] } else { 1.0 };
+        parallaxAdaptive = Float.fromInt(quantumHeartbeatState.parallaxWinnerPath + 1) * 0.1;
+        neurochem = "High ACh (rapid processing), DA (adaptive), 5-HT (color)";
+      };
+      
+      gen3Activations = Array.tabulate<Float>(16, func(i) { animalEngines[i] });
+      
+      animalCouplingSum = couplingSum;
+      strongestCoupling = { from = maxFrom; to = maxTo; weight = maxCoupling };
+    }
+  };
+
+  // ─── QUERY: Get Economic System State ────────────────────────────────────────
+  public query func getEconomicSystemState() : async {
+    // Token balances
+    formaBalance : Float;
+    mrcBalance : Float;
+    kntBalance : Float;
+    masterAccumulator : Float;
+    
+    // Jacob's Ladder
+    jacobsLevel : Nat;
+    jacobsMultiplier : Float;
+    
+    // Quantum modulation
+    formaMintMod : Float;
+    formaBurnMod : Float;
+    formaCompoundMod : Float;
+    formaStabilityIdx : Float;
+    treasuryHealth : Float;
+    creatorReserveIntegrity : Float;
+    
+    // Economic sentiment
+    greedIndex : Float;
+    fearIndex : Float;
+    greedFearRatio : Float;
+    
+    // Market dynamics
+    marketCorrelation : Float;
+    cascadeRisk : Float;
+    liquidityRouting : Nat;
+    
+    // Council economic consensus
+    mintConsensus : Float;
+    burnConsensus : Float;
+    holdConsensus : Float;
+    
+    // Compliance
+    economicLawCompliance : Float;
+  } {
+    let greed = dopamineConcent;
+    let fear = cortisolConcent;
+    let gfRatio = greed / (fear + 0.1);
+    
+    let marketCorr = quantumHeartbeatState.entanglaTotalEntanglement;
+    let cascadeRiskVal = if (quantumHeartbeatState.resonexCascadeActive) {
+      quantumHeartbeatState.resonexAmplitude
+    } else { 0.0 };
+    
+    {
+      formaBalance = formaBalance;
+      mrcBalance = mrcBalance;
+      kntBalance = kntBalance;
+      masterAccumulator = masterAccumulator;
+      
+      jacobsLevel = jacobsLadderLevel;
+      jacobsMultiplier = jacobsMultiplier;
+      
+      formaMintMod = formaMintRateModulation;
+      formaBurnMod = formaBurnRateModulation;
+      formaCompoundMod = formaCompoundRateModulation;
+      formaStabilityIdx = formaQuantumStabilityIndex;
+      treasuryHealth = formaTreasuryHealth;
+      creatorReserveIntegrity = formaCreatorReserveIntegrity;
+      
+      greedIndex = greed;
+      fearIndex = fear;
+      greedFearRatio = gfRatio;
+      
+      marketCorrelation = marketCorr;
+      cascadeRisk = cascadeRiskVal;
+      liquidityRouting = quantumHeartbeatState.bypassSelectedRhythm % 7;
+      
+      mintConsensus = 0.5;  // Would compute from council votes
+      burnConsensus = 0.3;
+      holdConsensus = 0.2;
+      
+      economicLawCompliance = overallCompliance;
+    }
+  };
+
+  // ─── QUERY: Get Hz Spectrum Quantum Modulation ───────────────────────────────
+  public query func getHzSpectrumState() : async {
+    hzModulations : [Float];
+    koreFrequency : Float;
+    thalamicFrequency : Float;
+    rasLocusFrequency : Float;
+    vaelFrequency : Float;
+    
+    // Spectrum analysis
+    spectrumPeakFrequency : Float;
+    spectrumAverageModulation : Float;
+    spectrumVariance : Float;
+  } {
+    let modulations = Array.tabulate<Float>(64, func(i) { hzSpectrumModulations[i] });
+    
+    // Compute spectrum stats
+    var sum : Float = 0.0;
+    var sumSq : Float = 0.0;
+    var peak : Float = 0.0;
+    var peakIdx : Nat = 0;
+    
+    var hzIdx = 0;
+    while (hzIdx < 64) {
+      let mod = hzSpectrumModulations[hzIdx];
+      sum += mod;
+      sumSq += mod * mod;
+      if (mod > peak) {
+        peak := mod;
+        peakIdx := hzIdx;
+      };
+      hzIdx += 1;
+    };
+    
+    let avg = sum / 64.0;
+    let variance = sumSq / 64.0 - avg * avg;
+    
+    // Peak frequency (Hz)
+    let peakFreq = if (peakIdx == HeartbeatEngine.HZ_NODE_KORE) { hzKoreFrequency }
+                   else if (peakIdx == HeartbeatEngine.HZ_NODE_THALAMIC_RELAY) { hzThalamicFrequency }
+                   else if (peakIdx == HeartbeatEngine.HZ_NODE_RAS_LOCUS) { hzRASLocusFrequency }
+                   else if (peakIdx == HeartbeatEngine.HZ_NODE_VAEL) { hzVaelFrequency }
+                   else { 1000000.0 };
+    
+    {
+      hzModulations = modulations;
+      koreFrequency = hzKoreFrequency;
+      thalamicFrequency = hzThalamicFrequency;
+      rasLocusFrequency = hzRASLocusFrequency;
+      vaelFrequency = hzVaelFrequency;
+      
+      spectrumPeakFrequency = peakFreq;
+      spectrumAverageModulation = avg;
+      spectrumVariance = variance;
+    }
+  };
+
+  // ─── QUERY: Get Law Compliance Detailed State ────────────────────────────────
+  public query func getLawComplianceState() : async {
+    // 60 laws grouped into 5 VERITAS stabilizer groups
+    lawGroup0Compliance : Float;  // Laws 0-11
+    lawGroup1Compliance : Float;  // Laws 12-23
+    lawGroup2Compliance : Float;  // Laws 24-35
+    lawGroup3Compliance : Float;  // Laws 36-47
+    lawGroup4Compliance : Float;  // Laws 48-59
+    
+    overallCompliance : Float;
+    veritasStabilizers : [Float];
+    veritasSyndromes : [Float];
+    
+    // Violation tracking
+    highRiskLaws : [Nat];
+    violationCount : Nat;
+    totalReEntrainments : Nat;
+    
+    // Quantum verification
+    quantumLawCompliance : [Float];
+    quantumViolationRisks : [Float];
+  } {
+    // Compute law group averages
+    var sum0 : Float = 0.0;
+    var sum1 : Float = 0.0;
+    var sum2 : Float = 0.0;
+    var sum3 : Float = 0.0;
+    var sum4 : Float = 0.0;
+    
+    var lawIdx = 0;
+    while (lawIdx < 60) {
+      if (lawIdx < 12) { sum0 += lawComplianceScores[lawIdx] }
+      else if (lawIdx < 24) { sum1 += lawComplianceScores[lawIdx] }
+      else if (lawIdx < 36) { sum2 += lawComplianceScores[lawIdx] }
+      else if (lawIdx < 48) { sum3 += lawComplianceScores[lawIdx] }
+      else { sum4 += lawComplianceScores[lawIdx] };
+      lawIdx += 1;
+    };
+    
+    // Find high-risk laws
+    var highRiskBuffer = Buffer.Buffer<Nat>(10);
+    var violationCnt = 0;
+    lawIdx := 0;
+    while (lawIdx < 60) {
+      if (lawQuantumViolationRisks[lawIdx] > 0.5) {
+        highRiskBuffer.add(lawIdx);
+      };
+      if (lawComplianceScores[lawIdx] < 0.8) {
+        violationCnt += 1;
+      };
+      lawIdx += 1;
+    };
+    
+    {
+      lawGroup0Compliance = sum0 / 12.0;
+      lawGroup1Compliance = sum1 / 12.0;
+      lawGroup2Compliance = sum2 / 12.0;
+      lawGroup3Compliance = sum3 / 12.0;
+      lawGroup4Compliance = sum4 / 12.0;
+      
+      overallCompliance = overallCompliance;
+      veritasStabilizers = Array.tabulate<Float>(5, func(i) { veritasStabilizerParities[i] });
+      veritasSyndromes = Array.tabulate<Float>(5, func(i) { veritasSyndromeCorrections[i] });
+      
+      highRiskLaws = Buffer.toArray(highRiskBuffer);
+      violationCount = violationCnt;
+      totalReEntrainments = totalReEntrainments;
+      
+      quantumLawCompliance = Array.tabulate<Float>(60, func(i) { lawQuantumCompliance[i] });
+      quantumViolationRisks = Array.tabulate<Float>(60, func(i) { lawQuantumViolationRisks[i] });
+    }
+  };
+
+  // ─── QUERY: Get VETUS Threat State ───────────────────────────────────────────
+  public query func getVETUSThreatState() : async {
+    threatVectors : [Float];  // 10 threat vectors
+    quantumDefenseBoosts : [Float];
+    quantumEvasionPaths : [Nat];
+    quantumResponseTimes : [Float];
+    
+    overallThreatLevel : Float;
+    highestThreat : Nat;
+    highestThreatLevel : Float;
+    
+    autoRollbackArmed : Bool;
+    protectionBeats : Nat;
+  } {
+    var vectorSum : Float = 0.0;
+    var maxThreat : Float = 0.0;
+    var maxThreatIdx : Nat = 0;
+    
+    var vIdx = 0;
+    while (vIdx < 10 and vIdx < vetusThreatVectors.size()) {
+      let threat = vetusThreatVectors[vIdx];
+      vectorSum += threat;
+      if (threat > maxThreat) {
+        maxThreat := threat;
+        maxThreatIdx := vIdx;
+      };
+      vIdx += 1;
+    };
+    
+    {
+      threatVectors = Array.tabulate<Float>(10, func(i) {
+        if (i < vetusThreatVectors.size()) { vetusThreatVectors[i] } else { 0.0 }
+      });
+      quantumDefenseBoosts = Array.tabulate<Float>(10, func(i) { vetusQuantumDefenseBoosts[i] });
+      quantumEvasionPaths = Array.tabulate<Nat>(10, func(i) { vetusQuantumEvasionPaths[i] });
+      quantumResponseTimes = Array.tabulate<Float>(10, func(i) { vetusQuantumResponseTimes[i] });
+      
+      overallThreatLevel = vectorSum / 10.0;
+      highestThreat = maxThreatIdx;
+      highestThreatLevel = maxThreat;
+      
+      autoRollbackArmed = vetusAutoRollbackArmed;
+      protectionBeats = vetusProtectionBeats;
+    }
+  };
+
+  // ─── QUERY: Get AEGIS Membrane State ─────────────────────────────────────────
+  public query func getAEGISMembraneState() : async {
+    strandIntegrities : [Float];  // 7 strands
+    sovereigntyStrand : Float;
+    coherenceStrand : Float;
+    emergenceStrand : Float;
+    memoryStrand : Float;
+    attributionStrand : Float;
+    temporalStrand : Float;
+    quantumStrand : Float;
+    
+    overallMembraneIntegrity : Float;
+    weakestStrand : Nat;
+    weakestIntegrity : Float;
+  } {
+    var minIntegrity : Float = 2.0;
+    var minIdx : Nat = 0;
+    var integSum : Float = 0.0;
+    
+    var aegisIdx = 0;
+    while (aegisIdx < 7) {
+      let integrity = aegisQuantumIntegrities[aegisIdx];
+      integSum += integrity;
+      if (integrity < minIntegrity) {
+        minIntegrity := integrity;
+        minIdx := aegisIdx;
+      };
+      aegisIdx += 1;
+    };
+    
+    {
+      strandIntegrities = Array.tabulate<Float>(7, func(i) { aegisQuantumIntegrities[i] });
+      sovereigntyStrand = aegisSovereigntyStrand;
+      coherenceStrand = aegisCoherenceStrand;
+      emergenceStrand = aegisEmergenceStrand;
+      memoryStrand = aegisMemoryStrand;
+      attributionStrand = aegisAttributionStrand;
+      temporalStrand = aegisTemporalStrand;
+      quantumStrand = aegisQuantumStrand;
+      
+      overallMembraneIntegrity = integSum / 7.0;
+      weakestStrand = minIdx;
+      weakestIntegrity = minIntegrity;
+    }
+  };
+
+  // ─── QUERY: Get Complete Organism Health Report ──────────────────────────────
+  public query func getOrganismHealthReport() : async {
+    // Overall vitality
+    organismVitality : Float;
+    sphericalIntegrity : Float;
+    
+    // Subsystem health scores (0-1 scale)
+    neuralHealth : Float;           // Shell 3/12 activation + coherence
+    neurochemicalHealth : Float;    // Balance + stability
+    quantumHealth : Float;          // QSOV + operator scores
+    memoryHealth : Float;           // QMEM fidelity + consolidation
+    learningHealth : Float;         // BDNF + plasticity
+    economicHealth : Float;         // Treasury + stability
+    socialHealth : Float;           // OT + council coherence
+    defenseHealth : Float;          // AEGIS + VETUS integrity
+    
+    // Critical warnings
+    criticalWarnings : [Text];
+    
+    // Performance metrics
+    coherenceScore : Float;         // rSwarm
+    sovereigntyScore : Float;       // QSOV
+    jasmineScore : Float;           // J-drift
+    entropyLevel : Float;           // Information entropy
+    
+    // Operational status
+    beat : Nat;
+    uptime : Nat;
+    droneCount : Nat;
+    sacrificeCount : Nat;
+  } {
+    // Compute subsystem health
+    let neuralH = (rSwarm + (shell3Nodes[0] + shell12Nodes[0]) / 2.0) / 2.0;
+    let neurochemH = neurochemicalBalanceIndex;
+    let quantumH = qsovScore / HeartbeatEngine.PHI_MEDINA;
+    let memoryH = quantumHeartbeatState.qmemFidelity;
+    let learningH = (bdnfConcent + ngfConcent) / 2.0;
+    let economicH = formaTreasuryHealth * formaQuantumStabilityIndex;
+    let socialH = (oxytocinConcent + councilCoherence[0] + councilCoherence[1]) / 3.0;
+    
+    var aegisSum : Float = 0.0;
+    var aegisIdx2 = 0;
+    while (aegisIdx2 < 7) {
+      aegisSum += aegisQuantumIntegrities[aegisIdx2];
+      aegisIdx2 += 1;
+    };
+    var vetusSum : Float = 0.0;
+    var vetusIdx2 = 0;
+    while (vetusIdx2 < 10) {
+      if (vetusIdx2 < vetusThreatVectors.size()) {
+        vetusSum += 1.0 - vetusThreatVectors[vetusIdx2];  // Inverted: low threat = high health
+      };
+      vetusIdx2 += 1;
+    };
+    let defenseH = (aegisSum / 7.0 + vetusSum / 10.0) / 2.0;
+    
+    // Collect warnings
+    var warnings = Buffer.Buffer<Text>(10);
+    
+    if (rSwarm < 0.7) { warnings.add("LOW COHERENCE - swarm desynchronized") };
+    if (jDrift > 0.3) { warnings.add("HIGH J-DRIFT - Jasmine's Law violated") };
+    if (qsovScore < 1.0) { warnings.add("LOW QSOV - sovereignty compromised") };
+    if (neurochemicalStressLevel > 0.7) { warnings.add("HIGH STRESS - cortisol elevated") };
+    if (neurochemicalRewardLevel < 0.3) { warnings.add("LOW REWARD - anhedonia risk") };
+    if (neurochemicalEIRatio > 1.5) { warnings.add("E/I IMBALANCE - excitotoxicity risk") };
+    if (bdnfConcent < 0.5) { warnings.add("LOW BDNF - impaired neuroplasticity") };
+    if (quantumHeartbeatState.qmemFidelity < 0.5) { warnings.add("LOW QMEM FIDELITY - memory decay") };
+    if (formaTreasuryHealth < 0.5) { warnings.add("LOW TREASURY HEALTH - economic stress") };
+    if (overallCompliance < 0.9) { warnings.add("LAW VIOLATIONS DETECTED") };
+    
+    var sacrificed = 0;
+    var sacIdx = 0;
+    while (sacIdx < stableDroneCount and sacIdx < stableSacrificed.size()) {
+      if (stableSacrificed[sacIdx]) { sacrificed += 1 };
+      sacIdx += 1;
+    };
+    
+    {
+      organismVitality = organismVitality;
+      sphericalIntegrity = sphericalIntegrity;
+      
+      neuralHealth = neuralH;
+      neurochemicalHealth = neurochemH;
+      quantumHealth = quantumH;
+      memoryHealth = memoryH;
+      learningHealth = learningH;
+      economicHealth = economicH;
+      socialHealth = socialH;
+      defenseHealth = defenseH;
+      
+      criticalWarnings = Buffer.toArray(warnings);
+      
+      coherenceScore = rSwarm;
+      sovereigntyScore = qsovScore;
+      jasmineScore = jDrift;
+      entropyLevel = infoEntropy;
+      
+      beat = currentBeat;
+      uptime = totalHeartbeats;
+      droneCount = stableDroneCount;
+      sacrificeCount = sacrificed;
+    }
+  };
+
+  // ─── QUERY: Get Shell Integration State ──────────────────────────────────────
+  public query func getShellIntegrationState() : async {
+    // Shell 3 (256 nodes, 65,536 weights)
+    shell3ActiveNodes : Nat;
+    shell3AverageActivation : Float;
+    shell3MaxActivation : Float;
+    shell3TotalWeightSum : Float;
+    shell3QuantumPhase : Float;
+    shell3QuantumCoherence : Float;
+    
+    // Shell 12 (512 nodes, 262,144 weights)
+    shell12ActiveNodes : Nat;
+    shell12AverageActivation : Float;
+    shell12MaxActivation : Float;
+    shell12QuantumPhase : Float;
+    shell12QuantumCoherence : Float;
+    
+    // All 12 shells quantum states
+    allShellPhases : [Float];
+    allShellCoherences : [Float];
+    allShellEnergies : [Float];
+  } {
+    var s3Active = 0;
+    var s3Sum : Float = 0.0;
+    var s3Max : Float = 0.0;
+    var s3Idx = 0;
+    while (s3Idx < 256) {
+      let act = shell3Nodes[s3Idx];
+      if (act > 1.1) { s3Active += 1 };
+      s3Sum += act;
+      if (act > s3Max) { s3Max := act };
+      s3Idx += 1;
+    };
+    
+    var s12Active = 0;
+    var s12Sum : Float = 0.0;
+    var s12Max : Float = 0.0;
+    var s12Idx = 0;
+    while (s12Idx < 512) {
+      let act = shell12Nodes[s12Idx];
+      if (act > 1.1) { s12Active += 1 };
+      s12Sum += act;
+      if (act > s12Max) { s12Max := act };
+      s12Idx += 1;
+    };
+    
+    var weightSum : Float = 0.0;
+    var wIdx = 0;
+    while (wIdx < 1000) {  // Sample of weights
+      weightSum += shell3Weights[wIdx];
+      wIdx += 1;
+    };
+    
+    {
+      shell3ActiveNodes = s3Active;
+      shell3AverageActivation = s3Sum / 256.0;
+      shell3MaxActivation = s3Max;
+      shell3TotalWeightSum = weightSum;
+      shell3QuantumPhase = shellQuantumPhases[2];  // Shell 3 is index 2
+      shell3QuantumCoherence = shellQuantumCoherences[2];
+      
+      shell12ActiveNodes = s12Active;
+      shell12AverageActivation = s12Sum / 512.0;
+      shell12MaxActivation = s12Max;
+      shell12QuantumPhase = shellQuantumPhases[11];  // Shell 12 is index 11
+      shell12QuantumCoherence = shellQuantumCoherences[11];
+      
+      allShellPhases = Array.tabulate<Float>(12, func(i) { shellQuantumPhases[i] });
+      allShellCoherences = Array.tabulate<Float>(12, func(i) { shellQuantumCoherences[i] });
+      allShellEnergies = Array.tabulate<Float>(12, func(i) { shellQuantumEnergies[i] });
+    }
+  };
+
+  // ─── QUERY: Get Drone Fleet Neurochemical Profile ────────────────────────────
+  public query func getDroneFleetNeurochemProfile() : async {
+    // Aggregate neurochemical levels across fleet
+    fleetAverageDopamine : Float;
+    fleetAverageNorepinephrine : Float;
+    fleetAverageOxytocin : Float;
+    fleetAverageCortisol : Float;
+    
+    // Quantum modulation
+    fleetQuantumPhaseSync : Float;
+    fleetQuantumCoherenceBoost : Float;
+    
+    // Neurochemical distribution
+    highDopamineDrones : Nat;
+    lowDopamineDrones : Nat;
+    highCortis olDrones : Nat;
+    stressedDrones : Nat;
+    rewardedDrones : Nat;
+  } {
+    var daSum : Float = 0.0;
+    var neSum : Float = 0.0;
+    var otSum : Float = 0.0;
+    var cortSum : Float = 0.0;
+    var phaseSum : Float = 0.0;
+    
+    var highDA = 0;
+    var lowDA = 0;
+    var highCORT = 0;
+    var stressed = 0;
+    var rewarded = 0;
+    
+    var dIdx = 0;
+    while (dIdx < stableDroneCount) {
+      if (not stableSacrificed[dIdx]) {
+        let ncBase = dIdx * 4;
+        if (ncBase + 3 < stableNeuroChem.size()) {
+          let da = stableNeuroChem[ncBase + DOPAMINE];
+          let ne = stableNeuroChem[ncBase + NOREPINEPHRINE];
+          let ot = stableNeuroChem[ncBase + OXYTOCIN];
+          let cort = stableNeuroChem[ncBase + CORTISOL];
+          
+          daSum += da;
+          neSum += ne;
+          otSum += ot;
+          cortSum += cort;
+          
+          if (da > 1.3) { highDA += 1 };
+          if (da < 0.8) { lowDA += 1 };
+          if (cort > 1.5) { highCORT += 1 };
+          if (cort > 1.2 and da < 0.9) { stressed += 1 };
+          if (da > 1.2 and ot > 1.1) { rewarded += 1 };
+        };
+        
+        if (dIdx < stablePhases.size()) {
+          phaseSum += stablePhases[dIdx];
+        };
+      };
+      dIdx += 1;
+    };
+    
+    let fleetSize = Float.fromInt(stableDroneCount);
+    
+    {
+      fleetAverageDopamine = daSum / fleetSize;
+      fleetAverageNorepinephrine = neSum / fleetSize;
+      fleetAverageOxytocin = otSum / fleetSize;
+      fleetAverageCortisol = cortSum / fleetSize;
+      
+      fleetQuantumPhaseSync = Float.cos(phaseSum / fleetSize - masterBeatPhase);
+      fleetQuantumCoherenceBoost = qsovScore * 0.1;
+      
+      highDopamineDrones = highDA;
+      lowDopamineDrones = lowDA;
+      highCortisolDrones = highCORT;
+      stressedDrones = stressed;
+      rewardedDrones = rewarded;
+    }
+  };
+
+  // ─── QUERY: Get Circadian Rhythm State ───────────────────────────────────────
+  public query func getCircadianState() : async {
+    circadianPhase : Float;
+    timeOfDay : Float;  // 0 = midnight, 0.5 = noon, 1.0 = midnight
+    isNight : Bool;
+    isDay : Bool;
+    
+    // Circadian neurochemicals
+    melatoninLevel : Float;
+    cortisolLevel : Float;
+    orexinLevel : Float;
+    adenosineLevel : Float;
+    
+    // Sleep pressure
+    sleepPressure : Float;
+    sleepMode : Bool;
+    
+    // Circadian alignment
+    alignment : Float;
+    melatoninDeviation : Float;
+    cortisolDeviation : Float;
+    
+    // Sleep cycle tracking
+    beatsUntilDreamCycle : Nat;
+  } {
+    let tod = (Float.sin(circadianPhase) + 1.0) / 2.0;
+    let isNight = tod < 0.3 or tod > 0.7;
+    let isDay = tod > 0.3 and tod < 0.7;
+    
+    let targetMel = 1.0 - tod;
+    let melDev = Float.abs(melatoninConcent - targetMel);
+    
+    let targetCort = tod * 0.5 + 0.5;
+    let cortDev = Float.abs(cortisolConcent - targetCort);
+    
+    let beatsPerSleepCycle = 8 * 3600 * 12;  // 8 hours
+    let beatsUntilDream = beatsPerSleepCycle - (currentBeat % beatsPerSleepCycle);
+    
+    {
+      circadianPhase = circadianPhase;
+      timeOfDay = tod;
+      isNight = isNight;
+      isDay = isDay;
+      
+      melatoninLevel = melatoninConcent;
+      cortisolLevel = cortisolConcent;
+      orexinLevel = orexinConcent;
+      adenosineLevel = adenosineConcent;
+      
+      sleepPressure = adenosineConcent;
+      sleepMode = melatoninConcent > 1.1 and adenosineConcent > 1.2;
+      
+      alignment = circadianAlignment;
+      melatoninDeviation = melDev;
+      cortisolDeviation = cortDev;
+      
+      beatsUntilDreamCycle = beatsUntilDream;
+    }
+  };
+
+  // ─── QUERY: Get Prediction System State ──────────────────────────────────────
+  public query func getPredictionSystemState() : async {
+    predictionError : Float;
+    predictionAccuracy : Float;
+    
+    // Kalman filtering
+    kalmanGain : Float;
+    achModulation : Float;
+    
+    // Free energy
+    freeEnergy : Float;
+    complexityCost : Float;
+    accuracyCost : Float;
+    
+    // Sparse coding
+    sparsityLevel : Float;
+    beeSparsification : Float;
+    
+    // Multi-scale prediction
+    shortTermError : Float;   // 0-10 beats
+    mediumTermError : Float;  // 11-30 beats
+    longTermError : Float;    // 31-60 beats
+    
+    // Temporal precision
+    chronoPrecisionFactor : Float;
+    predictionHorizon : Nat;
+  } {
+    // Compute multi-scale errors
+    var shortErr : Float = 0.0;
+    var medErr : Float = 0.0;
+    var longErr : Float = 0.0;
+    
+    var timeStep = 0;
+    while (timeStep < 60) {
+      var nodeIdx = 0;
+      var stepErr : Float = 0.0;
+      while (nodeIdx < 256) {
+        let predFieldIdx = timeStep * 256 + nodeIdx;
+        if (predFieldIdx < 15360) {
+          let predicted = predField[predFieldIdx];
+          let observed = shell3Nodes[nodeIdx];
+          stepErr += Float.abs(predicted - observed);
+        };
+        nodeIdx += 1;
+      };
+      stepErr := stepErr / 256.0;
+      
+      if (timeStep < 10) { shortErr += stepErr };
+      if (timeStep >= 10 and timeStep < 30) { medErr += stepErr };
+      if (timeStep >= 30) { longErr += stepErr };
+      
+      timeStep += 1;
+    };
+    
+    shortErr := shortErr / 10.0;
+    medErr := medErr / 20.0;
+    longErr := longErr / 30.0;
+    
+    // Sparsity calculation
+    var activeCount = 0;
+    var predIdx = 0;
+    while (predIdx < 15360) {
+      if (Float.abs(predField[predIdx] - 1.0) > 0.1) {
+        activeCount += 1;
+      };
+      predIdx += 1;
+    };
+    let sparsity = Float.fromInt(activeCount) / 15360.0;
+    
+    let chronoPrec = 1.0 / (quantumHeartbeatState.chronoCramerRao + 1.0);
+    
+    {
+      predictionError = predictionError;
+      predictionAccuracy = 1.0 - predictionError;
+      
+      kalmanGain = 0.3 * acetylcholineConcent;
+      achModulation = acetylcholineConcent;
+      
+      freeEnergy = predictionError;  // Simplified
+      complexityCost = predictionError * 0.5;
+      accuracyCost = predictionError * 0.5;
+      
+      sparsityLevel = sparsity;
+      beeSparsification = animalEngines[HeartbeatEngine.ANIMAL_BEE];
+      
+      shortTermError = shortErr;
+      mediumTermError = medErr;
+      longTermError = longErr;
+      
+      chronoPrecisionFactor = chronoPrec;
+      predictionHorizon = Float.toInt(60.0 * chronoPrec);
+    }
+  };
+
+  // ─── QUERY: Get Council Quantum Voting State ─────────────────────────────────
+  public query func getCouncilQuantumVotingState() : async {
+    // 7 councils
+    councils : [{
+      name : Text;
+      coherence : Float;
+      vote : Float;
+      neurochem : Text;
+      kuramotoR : Float;
+      bellViolation : Float;
+      qsovContribution : Float;
+    }];
+    
+    // Quantum quorum
+    classicalQuorum : Float;
+    quantumQuorum : Float;
+    councilEntanglement : Float;
+    
+    // Voting dynamics
+    voteSpread : Float;
+    consensus : Bool;
+    tieBreakPath : Nat;
+  } {
+    let councilNames = ["LOGOS", "PATHOS", "ETHOS", "KAIROS", "SOPHIA", "PHRONESIS", "TECHNE"];
+    let councilNeurochem = [
+      "ACh (attention to facts)",
+      "OT (empathy) + DA (positive emotion)",
+      "5-HT (moral stability) + GABA (restraint)",
+      "NE (urgency) + HA (wakefulness)",
+      "BDNF (learning) + NGF (growth)",
+      "DA (motivation) + NE (action)",
+      "ACh (attention) + Glu (practice)"
+    ];
+    
+    var totalVote : Float = 0.0;
+    var maxVote : Float = 0.0;
+    var minVote : Float = 1.0;
+    var councilIdx = 0;
+    while (councilIdx < 7) {
+      let vote = councilVotes[councilIdx];
+      totalVote += vote * councilQuantumQSOVContributions[councilIdx];
+      if (vote > maxVote) { maxVote := vote };
+      if (vote < minVote) { minVote := vote };
+      councilIdx += 1;
+    };
+    
+    let classicalQ = totalVote / 7.0;
+    
+    // Compute entanglement
+    var entangle : Float = 0.0;
+    var pairCount = 0;
+    var ci = 0;
+    while (ci < 7) {
+      var cj = ci + 1;
+      while (cj < 7) {
+        let phaseI = Float.fromInt(ci) * HeartbeatEngine.τ / 7.0;
+        let phaseJ = Float.fromInt(cj) * HeartbeatEngine.τ / 7.0;
+        let coupling = Float.cos(phaseI - phaseJ);
+        let bellIJ = (councilQuantumBellViolations[ci] + councilQuantumBellViolations[cj]) / 2.0;
+        entangle += (coupling + 1.0) / 2.0 * (1.0 + bellIJ);
+        pairCount += 1;
+        cj += 1;
+      };
+      ci += 1;
+    };
+    let avgEntangle = entangle / Float.fromInt(pairCount);
+    
+    let quantumQ = classicalQ * (0.5 + avgEntangle * 0.5);
+    
+    {
+      councils = Array.tabulate<{name:Text; coherence:Float; vote:Float; neurochem:Text; kuramotoR:Float; bellViolation:Float; qsovContribution:Float}>(
+        7,
+        func(i) {
+          {
+            name = councilNames[i];
+            coherence = councilCoherence[i];
+            vote = councilVotes[i];
+            neurochem = councilNeurochem[i];
+            kuramotoR = councilQuantumKuramotoR[i];
+            bellViolation = councilQuantumBellViolations[i];
+            qsovContribution = councilQuantumQSOVContributions[i];
+          }
+        }
+      );
+      
+      classicalQuorum = classicalQ;
+      quantumQuorum = quantumQ;
+      councilEntanglement = avgEntangle;
+      
+      voteSpread = maxVote - minVote;
+      consensus = voteSpread < 0.2;
+      tieBreakPath = quantumHeartbeatState.parallaxWinnerPath;
     }
   };
 
