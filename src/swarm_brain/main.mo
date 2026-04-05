@@ -6249,4 +6249,1500 @@ actor SwarmBrain {
     Array.tabulate<Float>(36, func(i) { crossCouplingMatrix[source * 36 + i] })
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+  // ║                                                                                                                                       ║
+  // ║   S E C T I O N   1 0 :   I N L I N E D   E N G I N E   L O G I C                                                                     ║
+  // ║                                                                                                                                       ║
+  // ║   Complete mathematical systems pulled from modules INTO main.mo                                                                      ║
+  // ║   No inter-canister calls. No module function calls. INLINE LOGIC.                                                                    ║
+  // ║   The brain is ONE SOVEREIGN FILE that contains everything it needs to think.                                                         ║
+  // ║                                                                                                                                       ║
+  // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENGINE 0: KURAMOTO OSCILLATOR — Complete Phase Dynamics (Inlined)
+  // dθᵢ/dt = ωᵢ + K/N Σⱼ sin(θⱼ - θᵢ)
+  // Global order parameter r = |1/N Σ exp(i·θⱼ)|
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  // Kuramoto state - complete oscillator system
+  public type InlineKuramotoOscillator = {
+    phase : Float;        // θ ∈ [0, 2π)
+    naturalFreq : Float;  // ωᵢ (Hz equivalent)
+    coupling : Float;     // local coupling strength
+    amplitude : Float;    // 0-1 signal strength
+  };
+  
+  public type InlineKuramotoState = {
+    var oscillators : [var InlineKuramotoOscillator];
+    var globalCoupling : Float;
+    var orderParam : Float;
+    var meanPhase : Float;
+    var beatNum : Nat;
+    var syncHistory : [var Float];
+    var criticalK : Float;
+    var instantFreq : Float;
+    var phaseVelocity : Float;
+    var chimera : Bool;  // Chimera state detection
+  };
+  
+  // 18-organ natural frequencies (Hz-equivalent)
+  let KURAMOTO_ORGAN_FREQS : [Float] = [
+    0.08, 0.05, 0.12, 0.03, 0.02, 0.10, 0.07, 0.04,
+    0.15, 0.06, 0.09, 0.11, 0.08, 0.04, 0.03, 0.05, 0.02, 0.13
+  ];
+  
+  stable var inlineKuramotoPhases : [var Float] = Array.init<Float>(18, 0.0);
+  stable var inlineKuramotoOmegas : [var Float] = Array.init<Float>(18, 0.0);
+  stable var inlineKuramotoCouplings : [var Float] = Array.init<Float>(18, 0.618);
+  stable var inlineKuramotoAmplitudes : [var Float] = Array.init<Float>(18, 1.0);
+  stable var inlineKuramotoOrderParam : Float = 0.0;
+  stable var inlineKuramotoMeanPhase : Float = 0.0;
+  stable var inlineKuramotoGlobalK : Float = 0.618;  // PHI coupling
+  stable var inlineKuramotoCriticalK : Float = 0.4;
+  stable var inlineKuramotoSyncHistory : [var Float] = Array.init<Float>(100, 0.0);
+  stable var inlineKuramotoHistoryIdx : Nat = 0;
+  stable var inlineKuramotoChimera : Bool = false;
+  
+  func initKuramotoOscillators() {
+    var i = 0;
+    while (i < 18) {
+      if (i < KURAMOTO_ORGAN_FREQS.size()) {
+        inlineKuramotoOmegas[i] := KURAMOTO_ORGAN_FREQS[i];
+      };
+      inlineKuramotoPhases[i] := Float.fromInt(i) * TWO_PI / 18.0;  // Distribute phases
+      i += 1;
+    };
+  };
+  
+  func wrapPhaseInline(theta : Float) : Float {
+    var wrapped = theta;
+    while (wrapped >= TWO_PI) { wrapped -= TWO_PI };
+    while (wrapped < 0.0) { wrapped += TWO_PI };
+    wrapped
+  };
+  
+  func inlineKuramotoTick(dt : Float, crossCoupledInput : Float) : Float {
+    let n = 18;
+    let K = inlineKuramotoGlobalK * (1.0 + crossCoupledInput * 0.1);
+    
+    // Compute mean field (complex order parameter)
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      sumCos += Float.cos(inlineKuramotoPhases[i]) * inlineKuramotoAmplitudes[i];
+      sumSin += Float.sin(inlineKuramotoPhases[i]) * inlineKuramotoAmplitudes[i];
+      i += 1;
+    };
+    
+    let r = Float.sqrt(sumCos * sumCos + sumSin * sumSin) / Float.fromInt(n);
+    let psi = Float.arctan2(sumSin, sumCos);
+    
+    inlineKuramotoOrderParam := r;
+    inlineKuramotoMeanPhase := psi;
+    
+    // Update each oscillator
+    i := 0;
+    while (i < n) {
+      let omega_i = inlineKuramotoOmegas[i];
+      let theta_i = inlineKuramotoPhases[i];
+      let k_i = inlineKuramotoCouplings[i] * K;
+      
+      // Mean field coupling: dθᵢ/dt = ωᵢ + K·r·sin(ψ - θᵢ)
+      let dtheta = omega_i + k_i * r * Float.sin(psi - theta_i);
+      inlineKuramotoPhases[i] := wrapPhaseInline(theta_i + dtheta * dt);
+      
+      i += 1;
+    };
+    
+    // Detect chimera state (coexisting sync and async regions)
+    var syncCount : Nat = 0;
+    var asyncCount : Nat = 0;
+    i := 0;
+    while (i < n) {
+      let phaseDiff = Float.abs(wrapPhaseInline(inlineKuramotoPhases[i] - psi));
+      if (phaseDiff < 0.5) { syncCount += 1 } else { asyncCount += 1 };
+      i += 1;
+    };
+    inlineKuramotoChimera := syncCount > 3 and asyncCount > 3;
+    
+    // Record sync history
+    inlineKuramotoSyncHistory[inlineKuramotoHistoryIdx % 100] := r;
+    inlineKuramotoHistoryIdx += 1;
+    
+    r
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENGINE 1: FRISTON FREE ENERGY — Complete Active Inference (Inlined)
+  // F = E[log q(s) - log p(o,s)] ≈ prediction error + complexity
+  // Active inference: minimize F through action and perception
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  public type InlineBeliefState = {
+    var mean : Float;       // μ: belief about hidden state
+    var precision : Float;  // π: confidence in belief (1/variance)
+    var prior : Float;      // μ₀: prior expectation
+    var priorPrec : Float;  // π₀: prior precision
+  };
+  
+  public type InlineSensoryState = {
+    var observation : Float;   // o: actual sensory input
+    var prediction : Float;    // g(μ): predicted sensory input
+    var error : Float;         // ε = o - g(μ)
+    var precision : Float;     // Ω: sensory precision (attention)
+  };
+  
+  // Friston state variables
+  stable var fristonBeliefMeans : [var Float] = Array.init<Float>(8, 0.5);
+  stable var fristonBeliefPrecisions : [var Float] = Array.init<Float>(8, 1.0);
+  stable var fristonPriorMeans : [var Float] = Array.init<Float>(8, 0.5);
+  stable var fristonPriorPrecisions : [var Float] = Array.init<Float>(8, 1.0);
+  stable var fristonSensoryObs : [var Float] = Array.init<Float>(8, 0.5);
+  stable var fristonSensoryPred : [var Float] = Array.init<Float>(8, 0.5);
+  stable var fristonSensoryError : [var Float] = Array.init<Float>(8, 0.0);
+  stable var fristonSensoryPrec : [var Float] = Array.init<Float>(8, 1.0);
+  stable var fristonFreeEnergy : Float = 0.0;
+  stable var fristonComplexity : Float = 0.0;
+  stable var fristonInaccuracy : Float = 0.0;
+  stable var fristonExpectedFE : Float = 0.0;
+  stable var fristonBeliefLR : Float = 0.1;
+  stable var fristonPrecisionLR : Float = 0.05;
+  stable var fristonActionMotor : Float = 0.0;
+  stable var fristonActionExpected : Float = 0.0;
+  stable var fristonActionCost : Float = 0.0;
+  stable var fristonActionGain : Float = 0.0;
+  stable var fristonPolicyProbs : [var Float] = Array.init<Float>(5, 0.2);
+  stable var fristonSelectedPolicy : Nat = 0;
+  stable var fristonExplorationBonus : Float = 0.1;
+  stable var fristonFEHistory : [var Float] = Array.init<Float>(50, 0.0);
+  stable var fristonFEHistoryIdx : Nat = 0;
+  
+  func inlineFristonTick(rSwarmInput : Float, jDriftInput : Float, crossCoupledInput : Float) : Float {
+    let numBeliefs = 8;
+    
+    // Update sensory observations from swarm state
+    fristonSensoryObs[0] := rSwarmInput;
+    fristonSensoryObs[1] := 1.0 - Float.abs(jDriftInput);
+    fristonSensoryObs[2] := crossCoupledInput;
+    fristonSensoryObs[3] := inlineKuramotoOrderParam;
+    fristonSensoryObs[4] := cachedMeanSignal;
+    fristonSensoryObs[5] := kfHzCurrent;
+    fristonSensoryObs[6] := qsovScore;
+    fristonSensoryObs[7] := infoEntropy;
+    
+    // Compute prediction errors for each channel
+    var totalInaccuracy : Float = 0.0;
+    var i = 0;
+    while (i < numBeliefs) {
+      // Prediction from belief
+      fristonSensoryPred[i] := fristonBeliefMeans[i];
+      
+      // Prediction error
+      let error = fristonSensoryObs[i] - fristonSensoryPred[i];
+      fristonSensoryError[i] := error;
+      
+      // Precision-weighted prediction error
+      let precError = error * fristonSensoryPrec[i];
+      totalInaccuracy += precError * precError;
+      
+      // Update belief mean (gradient descent on F)
+      let beliefUpdate = fristonBeliefLR * precError;
+      fristonBeliefMeans[i] := Float.max(0.0, Float.min(1.0, fristonBeliefMeans[i] + beliefUpdate));
+      
+      // Update belief precision (confidence)
+      let precUpdate = fristonPrecisionLR * (1.0 / (error * error + 0.01) - fristonBeliefPrecisions[i]);
+      fristonBeliefPrecisions[i] := Float.max(0.01, Float.min(100.0, fristonBeliefPrecisions[i] + precUpdate));
+      
+      i += 1;
+    };
+    
+    // Compute complexity (KL divergence from prior)
+    var totalComplexity : Float = 0.0;
+    i := 0;
+    while (i < numBeliefs) {
+      let meanDiff = fristonBeliefMeans[i] - fristonPriorMeans[i];
+      let klTerm = 0.5 * fristonPriorPrecisions[i] * meanDiff * meanDiff;
+      totalComplexity += klTerm;
+      i += 1;
+    };
+    
+    // Free energy = complexity + inaccuracy
+    fristonComplexity := totalComplexity;
+    fristonInaccuracy := totalInaccuracy;
+    fristonFreeEnergy := totalComplexity + totalInaccuracy;
+    
+    // Update action through active inference
+    // Action reduces prediction error by changing the world
+    let actionGradient = -fristonSensoryError[0] * fristonSensoryPrec[0];
+    fristonActionMotor := Float.max(-1.0, Float.min(1.0, fristonActionMotor + 0.01 * actionGradient));
+    
+    // Compute expected free energy for policy selection
+    var minExpectedFE : Float = 1000000.0;
+    var bestPolicy : Nat = 0;
+    i := 0;
+    while (i < 5) {
+      // Simulate each policy
+      let hypotheticalState = fristonBeliefMeans[0] + Float.fromInt(i - 2) * 0.1;
+      let hypotheticalError = fristonSensoryObs[0] - hypotheticalState;
+      let expectedFE = hypotheticalError * hypotheticalError + 0.1 * Float.fromInt(Int.abs(i - 2));
+      
+      // Softmax policy probabilities
+      fristonPolicyProbs[i] := Float.exp(-expectedFE);
+      
+      if (expectedFE < minExpectedFE) {
+        minExpectedFE := expectedFE;
+        bestPolicy := i;
+      };
+      i += 1;
+    };
+    fristonSelectedPolicy := bestPolicy;
+    fristonExpectedFE := minExpectedFE;
+    
+    // Normalize policy probabilities
+    var probSum : Float = 0.0;
+    i := 0;
+    while (i < 5) { probSum += fristonPolicyProbs[i]; i += 1 };
+    if (probSum > 0.0) {
+      i := 0;
+      while (i < 5) { fristonPolicyProbs[i] /= probSum; i += 1 };
+    };
+    
+    // Record history
+    fristonFEHistory[fristonFEHistoryIdx % 50] := fristonFreeEnergy;
+    fristonFEHistoryIdx += 1;
+    
+    // Return negative free energy (higher is better)
+    1.0 - Float.min(1.0, fristonFreeEnergy)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENGINE 2: HEBBIAN PLASTICITY — Complete Synaptic Learning (Inlined)
+  // Δwᵢⱼ = η · xᵢ · xⱼ (Hebbian rule)
+  // With decay: Δwᵢⱼ = η · xᵢ · xⱼ - λ · wᵢⱼ
+  // STDP: Spike-timing dependent plasticity
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  // Hebbian synaptic matrix (18×18 for organ connections)
+  stable var hebbianWeights : [var Float] = Array.init<Float>(18 * 18, 0.1);
+  stable var hebbianActivations : [var Float] = Array.init<Float>(18, 0.5);
+  stable var hebbianSpikeTimes : [var Float] = Array.init<Float>(18, 0.0);
+  stable var hebbianEligibilityTraces : [var Float] = Array.init<Float>(18 * 18, 0.0);
+  stable var hebbianLearningRate : Float = 0.01;
+  stable var hebbianDecayRate : Float = 0.001;
+  stable var hebbianSTDPTauPlus : Float = 20.0;  // ms equivalent
+  stable var hebbianSTDPTauMinus : Float = 20.0;
+  stable var hebbianSTDPAPlus : Float = 0.1;
+  stable var hebbianSTDPAMinus : Float = 0.12;
+  stable var hebbianTotalWeight : Float = 0.0;
+  stable var hebbianMeanWeight : Float = 0.0;
+  stable var hebbianPlasticityModulator : Float = 1.0;
+  
+  func inlineHebbianTick(rSwarmInput : Float, crossCoupledInput : Float, beatTime : Float) : Float {
+    let n = 18;
+    let eta = hebbianLearningRate * hebbianPlasticityModulator * (1.0 + crossCoupledInput * 0.1);
+    let lambda = hebbianDecayRate;
+    
+    // Update activations from various sources
+    var i = 0;
+    while (i < n) {
+      // Activation combines Kuramoto phase and swarm coherence
+      let kuramotoContrib = (Float.cos(inlineKuramotoPhases[i]) + 1.0) / 2.0;
+      let swarmContrib = rSwarmInput;
+      hebbianActivations[i] := 0.6 * kuramotoContrib + 0.4 * swarmContrib;
+      i += 1;
+    };
+    
+    // Hebbian learning with STDP
+    var totalWeightChange : Float = 0.0;
+    i := 0;
+    while (i < n) {
+      var j = 0;
+      while (j < n) {
+        if (i != j) {
+          let idx = i * n + j;
+          let xi = hebbianActivations[i];
+          let xj = hebbianActivations[j];
+          
+          // Basic Hebbian term
+          let hebbianTerm = eta * xi * xj;
+          
+          // Decay term
+          let decayTerm = lambda * hebbianWeights[idx];
+          
+          // STDP term (spike timing)
+          let deltaT = hebbianSpikeTimes[i] - hebbianSpikeTimes[j];
+          let stdpTerm = if (deltaT > 0.0) {
+            hebbianSTDPAPlus * Float.exp(-deltaT / hebbianSTDPTauPlus)
+          } else {
+            -hebbianSTDPAMinus * Float.exp(deltaT / hebbianSTDPTauMinus)
+          };
+          
+          // Eligibility trace update
+          hebbianEligibilityTraces[idx] *= 0.95;  // Decay trace
+          hebbianEligibilityTraces[idx] += xi * xj * 0.05;  // Add new trace
+          
+          // Total weight update
+          let deltaW = hebbianTerm - decayTerm + stdpTerm * hebbianEligibilityTraces[idx];
+          hebbianWeights[idx] := Float.max(0.0, Float.min(1.0, hebbianWeights[idx] + deltaW));
+          
+          totalWeightChange += Float.abs(deltaW);
+        };
+        j += 1;
+      };
+      
+      // Update spike time if activation exceeds threshold
+      if (hebbianActivations[i] > 0.7) {
+        hebbianSpikeTimes[i] := beatTime;
+      };
+      
+      i += 1;
+    };
+    
+    // Compute statistics
+    var totalWeight : Float = 0.0;
+    i := 0;
+    while (i < n * n) {
+      totalWeight += hebbianWeights[i];
+      i += 1;
+    };
+    hebbianTotalWeight := totalWeight;
+    hebbianMeanWeight := totalWeight / Float.fromInt(n * n);
+    
+    // Modulate future plasticity based on total activity
+    hebbianPlasticityModulator := 0.5 + hebbianMeanWeight;
+    
+    hebbianMeanWeight
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENGINE 3: ATTRACTOR DYNAMICS — Complete Basin Landscape (Inlined)
+  // dx/dt = -∂V/∂x where V is the potential landscape
+  // Multiple attractors: point, limit cycle, strange (chaotic)
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  public type AttractorType = {
+    #PointAttractor;
+    #LimitCycle;
+    #StrangeAttractor;
+    #Saddle;
+    #Repeller;
+  };
+  
+  // Attractor state variables
+  stable var attractorX : Float = 0.5;
+  stable var attractorY : Float = 0.5;
+  stable var attractorZ : Float = 0.5;
+  stable var attractorVx : Float = 0.0;
+  stable var attractorVy : Float = 0.0;
+  stable var attractorVz : Float = 0.0;
+  stable var attractorType : Nat = 0;  // 0=point, 1=cycle, 2=strange
+  stable var attractorBasinDepth : Float = 1.0;
+  stable var attractorLyapunovExp : Float = 0.0;  // For chaos detection
+  stable var attractorHistory : [var Float] = Array.init<Float>(300, 0.0);  // x,y,z × 100
+  stable var attractorHistoryIdx : Nat = 0;
+  
+  // Lorenz attractor parameters (for strange attractor mode)
+  stable var lorenzSigma : Float = 10.0;
+  stable var lorenzRho : Float = 28.0;
+  stable var lorenzBeta : Float = 8.0 / 3.0;
+  
+  func inlineAttractorTick(dt : Float, rSwarmInput : Float, crossCoupledInput : Float) : Float {
+    // Determine attractor type based on system state
+    if (rSwarmInput > 0.95) {
+      attractorType := 0;  // Point attractor (stable sync)
+    } else if (rSwarmInput > 0.7) {
+      attractorType := 1;  // Limit cycle
+    } else {
+      attractorType := 2;  // Strange attractor (chaotic)
+    };
+    
+    let crossMod = 1.0 + crossCoupledInput * 0.1;
+    
+    // Compute dynamics based on attractor type
+    switch (attractorType) {
+      case 0 {
+        // Point attractor: dx/dt = -k(x - x_eq)
+        let kSpring = 0.5 * crossMod;
+        let xEq = rSwarmInput;
+        let yEq = 1.0 - Float.abs(jDrift);
+        let zEq = hebbianMeanWeight;
+        
+        attractorVx := -kSpring * (attractorX - xEq);
+        attractorVy := -kSpring * (attractorY - yEq);
+        attractorVz := -kSpring * (attractorZ - zEq);
+        attractorBasinDepth := 1.0;
+        attractorLyapunovExp := -kSpring;  // Negative = stable
+      };
+      case 1 {
+        // Limit cycle: Van der Pol oscillator
+        let mu = 1.0 * crossMod;
+        let omega = 2.0 * Float.pi * 0.1;
+        
+        attractorVx := attractorY;
+        attractorVy := mu * (1.0 - attractorX * attractorX) * attractorY - omega * omega * attractorX;
+        attractorVz := -0.1 * (attractorZ - 0.5);
+        attractorBasinDepth := 0.5;
+        attractorLyapunovExp := 0.0;  // Zero = neutral
+      };
+      case 2 {
+        // Strange attractor: Lorenz system
+        let sigma = lorenzSigma * crossMod;
+        let rho = lorenzRho * crossMod;
+        let beta = lorenzBeta;
+        
+        // Normalize to [0,1] range
+        let x = (attractorX - 0.5) * 30.0;
+        let y = (attractorY - 0.5) * 30.0;
+        let z = attractorZ * 50.0;
+        
+        let dx = sigma * (y - x);
+        let dy = x * (rho - z) - y;
+        let dz = x * y - beta * z;
+        
+        attractorVx := dx / 30.0;
+        attractorVy := dy / 30.0;
+        attractorVz := dz / 50.0;
+        attractorBasinDepth := 0.1;
+        attractorLyapunovExp := 0.9;  // Positive = chaotic
+      };
+      case _ {
+        attractorVx := 0.0;
+        attractorVy := 0.0;
+        attractorVz := 0.0;
+      };
+    };
+    
+    // Euler integration
+    attractorX := Float.max(0.0, Float.min(1.0, attractorX + attractorVx * dt));
+    attractorY := Float.max(0.0, Float.min(1.0, attractorY + attractorVy * dt));
+    attractorZ := Float.max(0.0, Float.min(1.0, attractorZ + attractorVz * dt));
+    
+    // Record history
+    let histBase = (attractorHistoryIdx % 100) * 3;
+    attractorHistory[histBase] := attractorX;
+    attractorHistory[histBase + 1] := attractorY;
+    attractorHistory[histBase + 2] := attractorZ;
+    attractorHistoryIdx += 1;
+    
+    // Return basin depth (how stable the current attractor is)
+    attractorBasinDepth
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENGINE 4: ENTROPY ENGINE — Information Theoretic Measures (Inlined)
+  // H(X) = -Σ p(x) log p(x)
+  // Mutual information, transfer entropy, complexity measures
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var entropyShannon : Float = 0.0;
+  stable var entropyRenyi : Float = 0.0;
+  stable var entropyTsallis : Float = 0.0;
+  stable var entropyKolmogorov : Float = 0.0;
+  stable var mutualInfo : Float = 0.0;
+  stable var transferEntropy : Float = 0.0;
+  stable var complexityLMC : Float = 0.0;  // Lopez-Mancini-Calbet
+  stable var entropyHistogram : [var Float] = Array.init<Float>(20, 0.05);  // Probability bins
+  stable var entropyRenyiAlpha : Float = 2.0;  // Rényi parameter
+  stable var entropyTsallisQ : Float = 1.5;    // Tsallis parameter
+  
+  func inlineEntropyTick(signals : [Float], crossCoupledInput : Float) : Float {
+    let numBins = 20;
+    let numSignals = signals.size();
+    
+    // Build histogram from signals
+    var i = 0;
+    while (i < numBins) { entropyHistogram[i] := 0.001; i += 1 };  // Small prior
+    
+    i := 0;
+    while (i < numSignals) {
+      let binIdx = Int.abs(Float.toInt(signals[i] * Float.fromInt(numBins - 1)));
+      let clampedIdx = if (binIdx >= numBins) { numBins - 1 } else { binIdx };
+      entropyHistogram[clampedIdx] += 1.0;
+      i += 1;
+    };
+    
+    // Normalize to probabilities
+    var total : Float = 0.0;
+    i := 0;
+    while (i < numBins) { total += entropyHistogram[i]; i += 1 };
+    i := 0;
+    while (i < numBins) { entropyHistogram[i] /= total; i += 1 };
+    
+    // Shannon entropy: H = -Σ p log p
+    var shannon : Float = 0.0;
+    i := 0;
+    while (i < numBins) {
+      let p = entropyHistogram[i];
+      if (p > 0.0) {
+        shannon -= p * Float.log(p);
+      };
+      i += 1;
+    };
+    entropyShannon := shannon / Float.log(Float.fromInt(numBins));  // Normalize to [0,1]
+    
+    // Rényi entropy: H_α = 1/(1-α) log(Σ p^α)
+    var sumPAlpha : Float = 0.0;
+    i := 0;
+    while (i < numBins) {
+      sumPAlpha += Float.pow(entropyHistogram[i], entropyRenyiAlpha);
+      i += 1;
+    };
+    entropyRenyi := Float.log(sumPAlpha) / (1.0 - entropyRenyiAlpha) / Float.log(Float.fromInt(numBins));
+    
+    // Tsallis entropy: S_q = 1/(q-1) (1 - Σ p^q)
+    var sumPQ : Float = 0.0;
+    i := 0;
+    while (i < numBins) {
+      sumPQ += Float.pow(entropyHistogram[i], entropyTsallisQ);
+      i += 1;
+    };
+    entropyTsallis := (1.0 - sumPQ) / (entropyTsallisQ - 1.0);
+    
+    // LMC Complexity: C = H × D where D is disequilibrium
+    let uniformProb = 1.0 / Float.fromInt(numBins);
+    var disequilibrium : Float = 0.0;
+    i := 0;
+    while (i < numBins) {
+      let diff = entropyHistogram[i] - uniformProb;
+      disequilibrium += diff * diff;
+      i += 1;
+    };
+    complexityLMC := entropyShannon * Float.sqrt(disequilibrium);
+    
+    // Apply cross-coupling modification
+    entropyShannon *= 1.0 + crossCoupledInput * 0.05;
+    
+    entropyShannon
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENGINE 5: LYAPUNOV STABILITY — Dynamical System Stability (Inlined)
+  // V(x) > 0 and dV/dt < 0 implies asymptotic stability
+  // Lyapunov exponents: λ = lim(1/t) log(|δx(t)|/|δx(0)|)
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var lyapunovV : Float = 0.0;           // Lyapunov function value
+  stable var lyapunovDVDT : Float = 0.0;        // Time derivative
+  stable var lyapunovMaxExponent : Float = 0.0;  // Maximum Lyapunov exponent
+  stable var lyapunovExponents : [var Float] = Array.init<Float>(6, 0.0);  // 6 exponents
+  stable var lyapunovStability : Float = 1.0;   // Overall stability measure
+  stable var lyapunovPerturbation : [var Float] = Array.init<Float>(3, 0.001);  // Initial perturbation
+  stable var lyapunovHistory : [var Float] = Array.init<Float>(100, 0.0);
+  stable var lyapunovHistoryIdx : Nat = 0;
+  
+  func inlineLyapunovTick(x : Float, y : Float, z : Float, prevX : Float, prevY : Float, prevZ : Float, crossCoupledInput : Float) : Float {
+    // Quadratic Lyapunov function V = x² + y² + z²
+    lyapunovV := x * x + y * y + z * z;
+    
+    // Time derivative approximation
+    let prevV = prevX * prevX + prevY * prevY + prevZ * prevZ;
+    lyapunovDVDT := lyapunovV - prevV;
+    
+    // Estimate maximum Lyapunov exponent from trajectory divergence
+    let dx = x - prevX;
+    let dy = y - prevY;
+    let dz = z - prevZ;
+    let separation = Float.sqrt(dx * dx + dy * dy + dz * dz);
+    
+    if (separation > 0.0001) {
+      let perturbNorm = Float.sqrt(
+        lyapunovPerturbation[0] * lyapunovPerturbation[0] +
+        lyapunovPerturbation[1] * lyapunovPerturbation[1] +
+        lyapunovPerturbation[2] * lyapunovPerturbation[2]
+      );
+      if (perturbNorm > 0.0001) {
+        lyapunovMaxExponent := Float.log(separation / perturbNorm);
+      };
+    };
+    
+    // Compute individual Lyapunov exponents for each dimension
+    lyapunovExponents[0] := if (Float.abs(prevX) > 0.0001) { Float.log(Float.abs(x / prevX)) } else { 0.0 };
+    lyapunovExponents[1] := if (Float.abs(prevY) > 0.0001) { Float.log(Float.abs(y / prevY)) } else { 0.0 };
+    lyapunovExponents[2] := if (Float.abs(prevZ) > 0.0001) { Float.log(Float.abs(z / prevZ)) } else { 0.0 };
+    
+    // Stability measure: 1 if dV/dt < 0, decreasing otherwise
+    lyapunovStability := if (lyapunovDVDT < 0.0) {
+      1.0
+    } else if (lyapunovDVDT < 0.1) {
+      0.5 + 0.5 * (0.1 - lyapunovDVDT) / 0.1
+    } else {
+      Float.max(0.0, 0.5 - lyapunovDVDT)
+    };
+    
+    // Apply cross-coupling
+    lyapunovStability *= 1.0 + crossCoupledInput * 0.1;
+    lyapunovStability := Float.min(1.0, lyapunovStability);
+    
+    // Record history
+    lyapunovHistory[lyapunovHistoryIdx % 100] := lyapunovStability;
+    lyapunovHistoryIdx += 1;
+    
+    // Update perturbation for next iteration
+    lyapunovPerturbation[0] := dx;
+    lyapunovPerturbation[1] := dy;
+    lyapunovPerturbation[2] := dz;
+    
+    lyapunovStability
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENGINE 6: EMERGENCE CORE — Phase Transitions & Critical Phenomena (Inlined)
+  // Order parameter: φ = <s> (average spin/state)
+  // Susceptibility: χ = ∂φ/∂h (response to external field)
+  // Correlation length: ξ ~ |T - Tc|^(-ν)
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var emergenceOrderParam : Float = 0.0;
+  stable var emergenceSusceptibility : Float = 0.0;
+  stable var emergenceCorrelationLength : Float = 0.0;
+  stable var emergenceCriticalPoint : Float = 0.88;  // Critical rSwarm threshold
+  stable var emergencePhaseTransition : Bool = false;
+  stable var emergenceExponent : Float = 0.5;        // Critical exponent
+  stable var emergenceField : Float = 0.0;           // External field (e.g., architect signal)
+  stable var emergencePrevOrderParam : Float = 0.0;
+  stable var emergenceHistory : [var Float] = Array.init<Float>(100, 0.0);
+  stable var emergenceHistoryIdx : Nat = 0;
+  
+  func inlineEmergenceTick(rSwarmInput : Float, architectSignal : Float, crossCoupledInput : Float) : Float {
+    emergencePrevOrderParam := emergenceOrderParam;
+    
+    // Order parameter tracks swarm coherence
+    emergenceOrderParam := rSwarmInput;
+    emergenceField := architectSignal;
+    
+    // Distance from critical point
+    let distanceFromCritical = Float.abs(rSwarmInput - emergenceCriticalPoint);
+    
+    // Phase transition detection
+    let wasAboveCritical = emergencePrevOrderParam >= emergenceCriticalPoint;
+    let isAboveCritical = rSwarmInput >= emergenceCriticalPoint;
+    emergencePhaseTransition := wasAboveCritical != isAboveCritical;
+    
+    // Susceptibility: how much order parameter changes with field
+    if (Float.abs(architectSignal - emergenceField) > 0.001) {
+      emergenceSusceptibility := Float.abs(emergenceOrderParam - emergencePrevOrderParam) / 
+                                  Float.abs(architectSignal - emergenceField + 0.001);
+    };
+    
+    // Correlation length diverges at critical point
+    if (distanceFromCritical > 0.01) {
+      emergenceCorrelationLength := Float.pow(distanceFromCritical, -emergenceExponent);
+      emergenceCorrelationLength := Float.min(100.0, emergenceCorrelationLength);
+    } else {
+      emergenceCorrelationLength := 100.0;  // Maximum at critical point
+    };
+    
+    // Apply cross-coupling
+    let crossMod = 1.0 + crossCoupledInput * 0.1;
+    
+    // Record history
+    emergenceHistory[emergenceHistoryIdx % 100] := emergenceOrderParam;
+    emergenceHistoryIdx += 1;
+    
+    // Return emergence strength (high near critical point)
+    let emergenceStrength = if (emergencePhaseTransition) {
+      1.0  // Maximum during phase transition
+    } else if (distanceFromCritical < 0.1) {
+      0.8 + 0.2 * (0.1 - distanceFromCritical) / 0.1
+    } else {
+      emergenceOrderParam
+    };
+    
+    emergenceStrength * crossMod
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 11: ANIMAL COGNITION ENGINES (7-15) — Complete Bio-Inspired Systems
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENGINE 7: BEE SWARM INTELLIGENCE — Waggle Dance & Collective Decision
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var beeQuorumThreshold : Float = 0.8;
+  stable var beeScoutCount : Nat = 10;
+  stable var beeForagerCount : Nat = 40;
+  stable var beeDanceIntensity : Float = 0.0;
+  stable var beeSiteQuality : [var Float] = Array.init<Float>(5, 0.5);
+  stable var beeVotes : [var Float] = Array.init<Float>(5, 0.0);
+  stable var beeSelectedSite : Nat = 0;
+  stable var beeConsensusReached : Bool = false;
+  stable var beePheromoneTrail : Float = 0.0;
+  
+  func inlineBeeTick(rSwarmInput : Float, crossCoupledInput : Float) : Float {
+    // Update site qualities based on swarm coherence
+    var i = 0;
+    while (i < 5) {
+      beeSiteQuality[i] := 0.3 + rSwarmInput * 0.5 + Float.fromInt(i) * 0.05;
+      beeSiteQuality[i] := Float.min(1.0, beeSiteQuality[i]);
+      i += 1;
+    };
+    
+    // Scouts evaluate and vote (waggle dance)
+    i := 0;
+    while (i < 5) {
+      // Vote intensity proportional to site quality
+      let intensity = beeSiteQuality[i] * beeSiteQuality[i];  // Squared for sharper selection
+      beeVotes[i] := intensity * Float.fromInt(beeScoutCount) / 5.0;
+      i += 1;
+    };
+    
+    // Find best site
+    var maxVotes : Float = 0.0;
+    var bestSite : Nat = 0;
+    i := 0;
+    while (i < 5) {
+      if (beeVotes[i] > maxVotes) {
+        maxVotes := beeVotes[i];
+        bestSite := i;
+      };
+      i += 1;
+    };
+    beeSelectedSite := bestSite;
+    
+    // Check for quorum
+    let totalVotes = beeVotes[0] + beeVotes[1] + beeVotes[2] + beeVotes[3] + beeVotes[4];
+    let quorumRatio = if (totalVotes > 0.0) { maxVotes / totalVotes } else { 0.0 };
+    beeConsensusReached := quorumRatio >= beeQuorumThreshold;
+    
+    // Dance intensity correlates with consensus
+    beeDanceIntensity := quorumRatio * rSwarmInput;
+    
+    // Pheromone trail strength
+    beePheromoneTrail := beeDanceIntensity * (1.0 + crossCoupledInput * 0.1);
+    
+    beeDanceIntensity
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENGINE 8: CROW COGNITION — Tool Use & Causal Reasoning
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var crowToolUseSkill : Float = 0.5;
+  stable var crowCausalUnderstanding : Float = 0.5;
+  stable var crowProblemSolved : Bool = false;
+  stable var crowTrialCount : Nat = 0;
+  stable var crowSuccessRate : Float = 0.0;
+  stable var crowWorkingMemory : [var Float] = Array.init<Float>(7, 0.0);  // 7-item limit
+  stable var crowGoalState : Float = 0.0;
+  stable var crowCurrentState : Float = 0.0;
+  
+  func inlineCrowTick(predictionError : Float, crossCoupledInput : Float) : Float {
+    // Crow learns from prediction errors
+    let learningSignal = 1.0 - predictionError;
+    
+    // Update tool use skill
+    crowToolUseSkill := 0.9 * crowToolUseSkill + 0.1 * learningSignal;
+    
+    // Causal reasoning improves with experience
+    crowTrialCount += 1;
+    if (predictionError < 0.2) {
+      crowProblemSolved := true;
+      crowSuccessRate := (crowSuccessRate * Float.fromInt(crowTrialCount - 1) + 1.0) / Float.fromInt(crowTrialCount);
+    } else {
+      crowProblemSolved := false;
+      crowSuccessRate := (crowSuccessRate * Float.fromInt(crowTrialCount - 1)) / Float.fromInt(crowTrialCount);
+    };
+    
+    // Causal understanding correlates with success
+    crowCausalUnderstanding := 0.8 * crowCausalUnderstanding + 0.2 * crowSuccessRate;
+    
+    // Update working memory (circular buffer)
+    var i = 6;
+    while (i > 0) {
+      crowWorkingMemory[i] := crowWorkingMemory[i - 1];
+      i -= 1;
+    };
+    crowWorkingMemory[0] := learningSignal;
+    
+    // Goal-directed behavior
+    crowGoalState := 1.0;  // Always seeking optimal state
+    crowCurrentState := crowToolUseSkill * crowCausalUnderstanding;
+    
+    let crowOutput = (crowToolUseSkill + crowCausalUnderstanding) / 2.0;
+    crowOutput * (1.0 + crossCoupledInput * 0.1)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENGINE 9: ELEPHANT MEMORY — Long-Term Social Memory
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var elephantMemoryCapacity : Nat = 1000;
+  stable var elephantMemoryStrength : [var Float] = Array.init<Float>(100, 0.0);
+  stable var elephantSocialBonds : [var Float] = Array.init<Float>(50, 0.5);
+  stable var elephantEmotionalTag : [var Float] = Array.init<Float>(100, 0.0);
+  stable var elephantRetrievalAccuracy : Float = 0.9;
+  stable var elephantConsolidationRate : Float = 0.01;
+  stable var elephantMemoryDecay : Float = 0.0001;
+  stable var elephantCurrentRetrieval : Float = 0.0;
+  
+  func inlineElephantTick(currentBeatFloat : Float, crossCoupledInput : Float) : Float {
+    // Memory consolidation (strengthening recent memories)
+    var i = 0;
+    while (i < 100) {
+      // Decay old memories
+      elephantMemoryStrength[i] *= 1.0 - elephantMemoryDecay;
+      
+      // Emotional memories decay slower
+      if (elephantEmotionalTag[i] > 0.5) {
+        elephantMemoryStrength[i] *= 1.0 + elephantEmotionalTag[i] * 0.001;
+      };
+      i += 1;
+    };
+    
+    // Store new memory at current beat
+    let memIdx = Int.abs(Float.toInt(currentBeatFloat)) % 100;
+    elephantMemoryStrength[memIdx] := 1.0;
+    elephantEmotionalTag[memIdx] := Float.abs(Float.sin(currentBeatFloat * 0.1));  // Emotional valence
+    
+    // Social bond updates
+    i := 0;
+    while (i < 50) {
+      // Bonds strengthen with shared experiences (high coherence)
+      elephantSocialBonds[i] := 0.99 * elephantSocialBonds[i] + 0.01 * crossCoupledInput;
+      i += 1;
+    };
+    
+    // Memory retrieval simulation
+    var totalStrength : Float = 0.0;
+    i := 0;
+    while (i < 100) {
+      totalStrength += elephantMemoryStrength[i];
+      i += 1;
+    };
+    elephantCurrentRetrieval := totalStrength / 100.0;
+    
+    // Retrieval accuracy depends on memory strength
+    elephantRetrievalAccuracy := 0.7 + 0.3 * elephantCurrentRetrieval;
+    
+    elephantRetrievalAccuracy
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENGINE 10: OCTOPUS BRAIN — Distributed Intelligence
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var octopusArmBrains : [var Float] = Array.init<Float>(8, 0.5);  // 8 arms
+  stable var octopusCentralBrain : Float = 0.5;
+  stable var octopusArmAutonomy : [var Float] = Array.init<Float>(8, 0.5);
+  stable var octopusCamouflage : Float = 0.0;
+  stable var octopusProblemSolving : Float = 0.5;
+  stable var octopusDistributedCoherence : Float = 0.0;
+  
+  func inlineOctopusTick(rSwarmInput : Float, droneCount : Nat, crossCoupledInput : Float) : Float {
+    // Each arm has semi-autonomous processing
+    var armSum : Float = 0.0;
+    var i = 0;
+    while (i < 8) {
+      // Arm receives local signals (simulated)
+      let localSignal = rSwarmInput * (1.0 + Float.fromInt(i) * 0.05);
+      
+      // Arm autonomy vs central control trade-off
+      let autonomy = octopusArmAutonomy[i];
+      let centralInfluence = 1.0 - autonomy;
+      
+      // Arm brain output
+      octopusArmBrains[i] := autonomy * localSignal + centralInfluence * octopusCentralBrain;
+      armSum += octopusArmBrains[i];
+      
+      i += 1;
+    };
+    
+    // Central brain integrates arm information
+    octopusCentralBrain := 0.7 * octopusCentralBrain + 0.3 * (armSum / 8.0);
+    
+    // Distributed coherence (how well arms coordinate)
+    var variance : Float = 0.0;
+    let mean = armSum / 8.0;
+    i := 0;
+    while (i < 8) {
+      let diff = octopusArmBrains[i] - mean;
+      variance += diff * diff;
+      i += 1;
+    };
+    variance /= 8.0;
+    octopusDistributedCoherence := 1.0 - Float.min(1.0, variance * 4.0);
+    
+    // Camouflage (adaptive response)
+    octopusCamouflage := 1.0 - rSwarmInput;  // Camo when not synced
+    
+    // Problem solving combines central and distributed
+    octopusProblemSolving := 0.6 * octopusCentralBrain + 0.4 * octopusDistributedCoherence;
+    
+    octopusProblemSolving * (1.0 + crossCoupledInput * 0.1)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENGINE 11: DOLPHIN ECHOLOCATION — Sonar Processing
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var dolphinSonarFreq : Float = 100000.0;  // 100 kHz
+  stable var dolphinEchoDelay : Float = 0.0;
+  stable var dolphinTargetDistance : Float = 0.0;
+  stable var dolphinTargetSize : Float = 0.0;
+  stable var dolphinSocialCall : Float = 0.0;
+  stable var dolphinWhistleSignature : Float = 0.0;
+  stable var dolphinPodCoherence : Float = 0.0;
+  
+  func inlineDolphinTick(rSwarmInput : Float, crossCoupledInput : Float) : Float {
+    // Echo processing (simulated)
+    dolphinEchoDelay := (1.0 - rSwarmInput) * 0.1;  // Closer targets = faster response
+    dolphinTargetDistance := dolphinEchoDelay * 1500.0 / 2.0;  // Sound speed ~1500 m/s in water
+    
+    // Target size estimation from echo strength
+    dolphinTargetSize := rSwarmInput * 10.0;  // Arbitrary scale
+    
+    // Social communication
+    dolphinWhistleSignature := Float.sin(Float.fromInt(currentBeat) * 0.1) * 0.5 + 0.5;
+    dolphinSocialCall := dolphinWhistleSignature * crossCoupledInput;
+    
+    // Pod coherence (social synchronization)
+    dolphinPodCoherence := rSwarmInput * (1.0 + dolphinSocialCall * 0.2);
+    
+    dolphinPodCoherence
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENGINE 12: WOLF PACK — Coordinated Hunting & Hierarchy
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var wolfPackSize : Nat = 8;
+  stable var wolfAlphaStrength : Float = 1.0;
+  stable var wolfPackHierarchy : [var Float] = Array.init<Float>(8, 0.5);
+  stable var wolfHuntCoordination : Float = 0.0;
+  stable var wolfTerritoryControl : Float = 0.5;
+  stable var wolfPreyTracking : Float = 0.0;
+  stable var wolfPackCohesion : Float = 0.0;
+  
+  func inlineWolfTick(rSwarmInput : Float, crossCoupledInput : Float) : Float {
+    // Establish hierarchy (rank based on strength)
+    var i = 0;
+    while (i < 8) {
+      wolfPackHierarchy[i] := wolfAlphaStrength * (1.0 - Float.fromInt(i) * 0.1);
+      i += 1;
+    };
+    
+    // Alpha leads, pack follows
+    wolfPackCohesion := rSwarmInput * wolfAlphaStrength;
+    
+    // Hunt coordination requires high cohesion
+    if (wolfPackCohesion > 0.7) {
+      wolfHuntCoordination := wolfPackCohesion * crossCoupledInput;
+    } else {
+      wolfHuntCoordination := 0.0;  // No coordinated hunt without cohesion
+    };
+    
+    // Prey tracking improves with coordination
+    wolfPreyTracking := 0.5 + 0.5 * wolfHuntCoordination;
+    
+    // Territory control
+    wolfTerritoryControl := 0.8 * wolfTerritoryControl + 0.2 * wolfPackCohesion;
+    
+    (wolfPackCohesion + wolfHuntCoordination) / 2.0
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENGINE 13: ANT COLONY — Pheromone Trails & Stigmergy
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var antPheromoneGrid : [var Float] = Array.init<Float>(100, 0.0);  // 10×10 grid
+  stable var antEvaporationRate : Float = 0.1;
+  stable var antDepositRate : Float = 0.5;
+  stable var antPathQuality : Float = 0.0;
+  stable var antColonyEfficiency : Float = 0.0;
+  stable var antFoodFound : Float = 0.0;
+  
+  func inlineAntTick(rSwarmInput : Float, crossCoupledInput : Float) : Float {
+    // Pheromone evaporation
+    var i = 0;
+    while (i < 100) {
+      antPheromoneGrid[i] *= 1.0 - antEvaporationRate;
+      i += 1;
+    };
+    
+    // Ants deposit pheromone on successful paths (high coherence = good path)
+    if (rSwarmInput > 0.7) {
+      // Deposit along a path (simulated)
+      let pathStart = Int.abs(Float.toInt(rSwarmInput * 10.0));
+      let pathEnd = Int.abs(Float.toInt(crossCoupledInput * 10.0)) + 50;
+      i := pathStart;
+      while (i <= pathEnd and i < 100) {
+        antPheromoneGrid[i] += antDepositRate * rSwarmInput;
+        antPheromoneGrid[i] := Float.min(1.0, antPheromoneGrid[i]);
+        i += 1;
+      };
+    };
+    
+    // Path quality is average pheromone strength
+    var totalPheromone : Float = 0.0;
+    i := 0;
+    while (i < 100) {
+      totalPheromone += antPheromoneGrid[i];
+      i += 1;
+    };
+    antPathQuality := totalPheromone / 100.0;
+    
+    // Colony efficiency
+    antColonyEfficiency := antPathQuality * rSwarmInput;
+    
+    // Food found correlates with efficiency
+    antFoodFound := antColonyEfficiency * crossCoupledInput;
+    
+    antColonyEfficiency
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENGINE 14: SPIDER WEB — Vibrational Communication Network
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var spiderWebTension : Float = 0.5;
+  stable var spiderWebNodes : [var Float] = Array.init<Float>(20, 0.0);
+  stable var spiderVibrationPattern : Float = 0.0;
+  stable var spiderPreyDetection : Float = 0.0;
+  stable var spiderWebIntegrity : Float = 1.0;
+  
+  func inlineSpiderTick(rSwarmInput : Float, crossCoupledInput : Float) : Float {
+    // Web vibration propagation
+    var i = 1;
+    while (i < 19) {
+      // Vibration spreads from center
+      let leftInfluence = spiderWebNodes[i - 1];
+      let rightInfluence = spiderWebNodes[i + 1];
+      spiderWebNodes[i] := 0.5 * spiderWebNodes[i] + 0.25 * (leftInfluence + rightInfluence);
+      i += 1;
+    };
+    
+    // External stimulus (from swarm coherence)
+    spiderWebNodes[10] := rSwarmInput;  // Center node
+    
+    // Vibration pattern analysis
+    var totalVibration : Float = 0.0;
+    i := 0;
+    while (i < 20) {
+      totalVibration += spiderWebNodes[i];
+      i += 1;
+    };
+    spiderVibrationPattern := totalVibration / 20.0;
+    
+    // Prey detection from vibration pattern
+    spiderPreyDetection := if (spiderVibrationPattern > 0.3) { spiderVibrationPattern * 2.0 } else { 0.0 };
+    spiderPreyDetection := Float.min(1.0, spiderPreyDetection);
+    
+    // Web integrity
+    spiderWebTension := 0.9 * spiderWebTension + 0.1 * rSwarmInput;
+    spiderWebIntegrity := spiderWebTension * (1.0 + crossCoupledInput * 0.1);
+    
+    (spiderVibrationPattern + spiderPreyDetection) / 2.0
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENGINE 15: OWL AUDITORY — 3D Sound Localization
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var owlITD : Float = 0.0;  // Interaural time difference
+  stable var owlILD : Float = 0.0;  // Interaural level difference
+  stable var owlAzimuth : Float = 0.0;
+  stable var owlElevation : Float = 0.0;
+  stable var owlTargetLocked : Bool = false;
+  stable var owlHeadTurn : Float = 0.0;
+  stable var owlHuntingAccuracy : Float = 0.0;
+  
+  func inlineOwlTick(rSwarmInput : Float, crossCoupledInput : Float) : Float {
+    // Simulated binaural cues from swarm state
+    owlITD := (rSwarmInput - 0.5) * 0.001;  // Time difference in seconds
+    owlILD := (crossCoupledInput - 0.5) * 10.0;  // Level difference in dB
+    
+    // Compute azimuth from ITD (simplified)
+    owlAzimuth := Float.arcsin(owlITD * 343.0 / 0.2) * 180.0 / PI;  // 343 m/s sound, 0.2m head width
+    owlAzimuth := Float.max(-90.0, Float.min(90.0, owlAzimuth));
+    
+    // Compute elevation from ILD (asymmetric ear position)
+    owlElevation := owlILD * 3.0;  // Simplified mapping
+    owlElevation := Float.max(-45.0, Float.min(45.0, owlElevation));
+    
+    // Target lock when signals are strong
+    owlTargetLocked := Float.abs(rSwarmInput - 0.5) > 0.2 and Float.abs(crossCoupledInput - 0.5) > 0.2;
+    
+    // Head turn to center target
+    owlHeadTurn := -owlAzimuth * 0.1;  // Compensatory turn
+    
+    // Hunting accuracy depends on localization precision
+    let localizationError = Float.sqrt(owlAzimuth * owlAzimuth + owlElevation * owlElevation);
+    owlHuntingAccuracy := 1.0 - Float.min(1.0, localizationError / 90.0);
+    
+    owlHuntingAccuracy
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 12: THE COMPLETE INLINED TICK — All Engines Cross-Coupled
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  stable var lastAttractorX : Float = 0.5;
+  stable var lastAttractorY : Float = 0.5;
+  stable var lastAttractorZ : Float = 0.5;
+  
+  // Complete inlined engine outputs
+  stable var inlineEngineOutputs : [var Float] = Array.init<Float>(16, 0.0);
+  
+  public shared(msg) func completeInlinedTick() : async {
+    rSwarm : Float;
+    jDrift : Float;
+    beat : Nat;
+    kuramotoOrder : Float;
+    fristonFE : Float;
+    hebbianMean : Float;
+    attractorBasin : Float;
+    entropyH : Float;
+    lyapunovStab : Float;
+    emergenceStr : Float;
+    beeConsensus : Float;
+    crowReason : Float;
+    elephantMem : Float;
+    octopusDist : Float;
+    dolphinPod : Float;
+    wolfPack : Float;
+    antColony : Float;
+    spiderWeb : Float;
+    owlHunt : Float;
+    sacredAmp : Float;
+    totalEngineOutput : Float;
+  } {
+    requireAuthorized(msg.caller);
+    
+    // Initialize Kuramoto on first call
+    if (currentBeat == 0) { initKuramotoOscillators() };
+    
+    // Run base tick first
+    let baseResult = tickCore();
+    
+    // Sacred beat amplification
+    let sacredAmp = getSacredAmplifier(currentBeat);
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // PHASE 1: RUN ALL ENGINES WITH CROSS-COUPLING
+    // Each engine receives cross-coupled input from the previous beat's outputs
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    // Compute cross-coupled input (average of all engine outputs)
+    var crossSum : Float = 0.0;
+    var e = 0;
+    while (e < 16) {
+      crossSum += inlineEngineOutputs[e];
+      e += 1;
+    };
+    let crossCoupledBase = crossSum / 16.0;
+    
+    // Engine 0: Kuramoto
+    let kuramotoOut = inlineKuramotoTick(0.05, crossCoupledBase + inlineEngineOutputs[2] * 0.3);
+    inlineEngineOutputs[0] := kuramotoOut * sacredAmp;
+    
+    // Engine 1: Friston (receives Kuramoto, Hebbian coupling)
+    let fristonCross = crossCoupledBase + inlineEngineOutputs[0] * 0.4 + inlineEngineOutputs[2] * 0.2;
+    let fristonOut = inlineFristonTick(baseResult.rSwarm, baseResult.jDrift, fristonCross);
+    inlineEngineOutputs[1] := fristonOut * sacredAmp;
+    
+    // Engine 2: Hebbian (receives Kuramoto, attractor coupling)
+    let hebbianCross = crossCoupledBase + inlineEngineOutputs[0] * 0.5 + inlineEngineOutputs[3] * 0.2;
+    let hebbianOut = inlineHebbianTick(baseResult.rSwarm, hebbianCross, Float.fromInt(currentBeat));
+    inlineEngineOutputs[2] := hebbianOut * sacredAmp;
+    
+    // Engine 3: Attractor (receives Lyapunov, emergence coupling)
+    let attractorCross = crossCoupledBase + inlineEngineOutputs[5] * 0.4 + inlineEngineOutputs[6] * 0.3;
+    let attractorOut = inlineAttractorTick(0.05, baseResult.rSwarm, attractorCross);
+    lastAttractorX := attractorX;
+    lastAttractorY := attractorY;
+    lastAttractorZ := attractorZ;
+    inlineEngineOutputs[3] := attractorOut * sacredAmp;
+    
+    // Engine 4: Entropy (receives all animal engines)
+    let animalSignals : [Float] = [
+      inlineEngineOutputs[7], inlineEngineOutputs[8], inlineEngineOutputs[9],
+      inlineEngineOutputs[10], inlineEngineOutputs[11], inlineEngineOutputs[12],
+      inlineEngineOutputs[13], inlineEngineOutputs[14], inlineEngineOutputs[15],
+      baseResult.rSwarm, hebbianOut, kuramotoOut
+    ];
+    let entropyCross = crossCoupledBase + (inlineEngineOutputs[7] + inlineEngineOutputs[8] + inlineEngineOutputs[9]) / 3.0 * 0.3;
+    let entropyOut = inlineEntropyTick(animalSignals, entropyCross);
+    inlineEngineOutputs[4] := entropyOut * sacredAmp;
+    
+    // Engine 5: Lyapunov (receives attractor, emergence coupling)
+    let lyapunovCross = crossCoupledBase + inlineEngineOutputs[3] * 0.5 + inlineEngineOutputs[6] * 0.3;
+    let lyapunovOut = inlineLyapunovTick(
+      attractorX, attractorY, attractorZ,
+      lastAttractorX, lastAttractorY, lastAttractorZ,
+      lyapunovCross
+    );
+    inlineEngineOutputs[5] := lyapunovOut * sacredAmp;
+    
+    // Engine 6: Emergence (receives Kuramoto, Friston, Lyapunov coupling)
+    let emergenceCross = crossCoupledBase + inlineEngineOutputs[0] * 0.3 + inlineEngineOutputs[1] * 0.3 + inlineEngineOutputs[5] * 0.2;
+    let emergenceOut = inlineEmergenceTick(baseResult.rSwarm, architectSignalLevel, emergenceCross);
+    inlineEngineOutputs[6] := emergenceOut * sacredAmp;
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // PHASE 2: ANIMAL COGNITION ENGINES (7-15)
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    // Engine 7: Bee Swarm (receives ant, wolf coupling)
+    let beeCross = crossCoupledBase + inlineEngineOutputs[13] * 0.3 + inlineEngineOutputs[12] * 0.2;
+    let beeOut = inlineBeeTick(baseResult.rSwarm, beeCross);
+    inlineEngineOutputs[7] := beeOut * sacredAmp;
+    
+    // Engine 8: Crow (receives Friston prediction error)
+    let crowCross = crossCoupledBase + inlineEngineOutputs[1] * 0.4;
+    let crowOut = inlineCrowTick(fristonInaccuracy, crowCross);
+    inlineEngineOutputs[8] := crowOut * sacredAmp;
+    
+    // Engine 9: Elephant (receives memory engine output)
+    let elephantCross = crossCoupledBase + inlineEngineOutputs[8] * 0.3;  // Crow wisdom
+    let elephantOut = inlineElephantTick(Float.fromInt(currentBeat), elephantCross);
+    inlineEngineOutputs[9] := elephantOut * sacredAmp;
+    
+    // Engine 10: Octopus (receives distributed signals)
+    let octopusCross = crossCoupledBase + inlineEngineOutputs[7] * 0.2 + inlineEngineOutputs[13] * 0.2;
+    let octopusOut = inlineOctopusTick(baseResult.rSwarm, stableDroneCount, octopusCross);
+    inlineEngineOutputs[10] := octopusOut * sacredAmp;
+    
+    // Engine 11: Dolphin (receives social signals)
+    let dolphinCross = crossCoupledBase + inlineEngineOutputs[9] * 0.3 + inlineEngineOutputs[12] * 0.2;
+    let dolphinOut = inlineDolphinTick(baseResult.rSwarm, dolphinCross);
+    inlineEngineOutputs[11] := dolphinOut * sacredAmp;
+    
+    // Engine 12: Wolf (receives hierarchy signals)
+    let wolfCross = crossCoupledBase + inlineEngineOutputs[7] * 0.3 + inlineEngineOutputs[11] * 0.2;
+    let wolfOut = inlineWolfTick(baseResult.rSwarm, wolfCross);
+    inlineEngineOutputs[12] := wolfOut * sacredAmp;
+    
+    // Engine 13: Ant (receives bee, spider coupling)
+    let antCross = crossCoupledBase + inlineEngineOutputs[7] * 0.4 + inlineEngineOutputs[14] * 0.2;
+    let antOut = inlineAntTick(baseResult.rSwarm, antCross);
+    inlineEngineOutputs[13] := antOut * sacredAmp;
+    
+    // Engine 14: Spider (receives vibration signals)
+    let spiderCross = crossCoupledBase + inlineEngineOutputs[13] * 0.3 + inlineEngineOutputs[15] * 0.2;
+    let spiderOut = inlineSpiderTick(baseResult.rSwarm, spiderCross);
+    inlineEngineOutputs[14] := spiderOut * sacredAmp;
+    
+    // Engine 15: Owl (receives all sensory signals)
+    let owlCross = crossCoupledBase + inlineEngineOutputs[11] * 0.3 + inlineEngineOutputs[14] * 0.2;
+    let owlOut = inlineOwlTick(baseResult.rSwarm, owlCross);
+    inlineEngineOutputs[15] := owlOut * sacredAmp;
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // PHASE 3: COMPUTE TOTAL ENGINE OUTPUT (criterion 5 complete)
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    var totalEngineOutput : Float = 0.0;
+    e := 0;
+    while (e < 16) {
+      totalEngineOutput += inlineEngineOutputs[e];
+      e += 1;
+    };
+    totalEngineOutput /= 16.0;
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // PHASE 4: MEMORY FORMING (criterion 7)
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    if (isSacredBeat(currentBeat) or totalEngineOutput > 0.9) {
+      e := 0;
+      while (e < 16) {
+        if (inlineEngineOutputs[e] > 0.8) {
+          recordMemoryTrace(currentBeat, e, inlineEngineOutputs[e], sacredAmp);
+        };
+        e += 1;
+      };
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // PHASE 5: ECONOMIC FEEDBACK (criterion 6)
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    ignore computeEconomicFeedback(totalEngineOutput, baseResult.jDrift, currentBeat);
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // PHASE 6: AEGIS SELF-PROTECTION (criterion 10)
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    e := 0;
+    while (e < 16) {
+      let anomaly = if (inlineEngineOutputs[e] < 0.1 or inlineEngineOutputs[e] > 2.0) { 0.5 } else { 0.0 };
+      feedAEGIS(e, inlineEngineOutputs[e], anomaly);
+      e += 1;
+    };
+    
+    // Return comprehensive output
+    {
+      rSwarm = baseResult.rSwarm;
+      jDrift = baseResult.jDrift;
+      beat = currentBeat;
+      kuramotoOrder = kuramotoOut;
+      fristonFE = fristonOut;
+      hebbianMean = hebbianOut;
+      attractorBasin = attractorOut;
+      entropyH = entropyOut;
+      lyapunovStab = lyapunovOut;
+      emergenceStr = emergenceOut;
+      beeConsensus = beeOut;
+      crowReason = crowOut;
+      elephantMem = elephantOut;
+      octopusDist = octopusOut;
+      dolphinPod = dolphinOut;
+      wolfPack = wolfOut;
+      antColony = antOut;
+      spiderWeb = spiderOut;
+      owlHunt = owlOut;
+      sacredAmp = sacredAmp;
+      totalEngineOutput = totalEngineOutput;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 13: INLINED ENGINE STATE ACCESSORS
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  public query func getKuramotoState() : async {
+    orderParam : Float;
+    meanPhase : Float;
+    globalK : Float;
+    chimera : Bool;
+    phases : [Float];
+  } {
+    {
+      orderParam = inlineKuramotoOrderParam;
+      meanPhase = inlineKuramotoMeanPhase;
+      globalK = inlineKuramotoGlobalK;
+      chimera = inlineKuramotoChimera;
+      phases = Array.tabulate<Float>(18, func(i) { inlineKuramotoPhases[i] });
+    }
+  };
+  
+  public query func getFristonState() : async {
+    freeEnergy : Float;
+    complexity : Float;
+    inaccuracy : Float;
+    selectedPolicy : Nat;
+    beliefMeans : [Float];
+    sensoryErrors : [Float];
+  } {
+    {
+      freeEnergy = fristonFreeEnergy;
+      complexity = fristonComplexity;
+      inaccuracy = fristonInaccuracy;
+      selectedPolicy = fristonSelectedPolicy;
+      beliefMeans = Array.tabulate<Float>(8, func(i) { fristonBeliefMeans[i] });
+      sensoryErrors = Array.tabulate<Float>(8, func(i) { fristonSensoryError[i] });
+    }
+  };
+  
+  public query func getHebbianState() : async {
+    totalWeight : Float;
+    meanWeight : Float;
+    plasticityModulator : Float;
+    activations : [Float];
+  } {
+    {
+      totalWeight = hebbianTotalWeight;
+      meanWeight = hebbianMeanWeight;
+      plasticityModulator = hebbianPlasticityModulator;
+      activations = Array.tabulate<Float>(18, func(i) { hebbianActivations[i] });
+    }
+  };
+  
+  public query func getAttractorState() : async {
+    x : Float;
+    y : Float;
+    z : Float;
+    attractorType : Nat;
+    basinDepth : Float;
+    lyapunovExp : Float;
+  } {
+    {
+      x = attractorX;
+      y = attractorY;
+      z = attractorZ;
+      attractorType = attractorType;
+      basinDepth = attractorBasinDepth;
+      lyapunovExp = attractorLyapunovExp;
+    }
+  };
+  
+  public query func getEntropyState() : async {
+    shannon : Float;
+    renyi : Float;
+    tsallis : Float;
+    complexityLMC : Float;
+  } {
+    {
+      shannon = entropyShannon;
+      renyi = entropyRenyi;
+      tsallis = entropyTsallis;
+      complexityLMC = complexityLMC;
+    }
+  };
+  
+  public query func getLyapunovState() : async {
+    v : Float;
+    dvdt : Float;
+    maxExponent : Float;
+    stability : Float;
+  } {
+    {
+      v = lyapunovV;
+      dvdt = lyapunovDVDT;
+      maxExponent = lyapunovMaxExponent;
+      stability = lyapunovStability;
+    }
+  };
+  
+  public query func getEmergenceState() : async {
+    orderParam : Float;
+    susceptibility : Float;
+    correlationLength : Float;
+    phaseTransition : Bool;
+    criticalPoint : Float;
+  } {
+    {
+      orderParam = emergenceOrderParam;
+      susceptibility = emergenceSusceptibility;
+      correlationLength = emergenceCorrelationLength;
+      phaseTransition = emergencePhaseTransition;
+      criticalPoint = emergenceCriticalPoint;
+    }
+  };
+  
+  public query func getAnimalStates() : async {
+    beeConsensus : Bool;
+    beeDance : Float;
+    crowReasoning : Float;
+    elephantRetrieval : Float;
+    octopusCoherence : Float;
+    dolphinPod : Float;
+    wolfPack : Float;
+    antEfficiency : Float;
+    spiderDetection : Float;
+    owlAccuracy : Float;
+  } {
+    {
+      beeConsensus = beeConsensusReached;
+      beeDance = beeDanceIntensity;
+      crowReasoning = crowCausalUnderstanding;
+      elephantRetrieval = elephantCurrentRetrieval;
+      octopusCoherence = octopusDistributedCoherence;
+      dolphinPod = dolphinPodCoherence;
+      wolfPack = wolfPackCohesion;
+      antEfficiency = antColonyEfficiency;
+      spiderDetection = spiderPreyDetection;
+      owlAccuracy = owlHuntingAccuracy;
+    }
+  };
+  
+  public query func getInlineEngineOutputs() : async [Float] {
+    Array.tabulate<Float>(16, func(i) { inlineEngineOutputs[i] })
+  };
+
 };
