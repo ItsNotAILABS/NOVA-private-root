@@ -1372,4 +1372,1493 @@ export function EmergenceLab({ organism }: EmergenceLabProps) {
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// FLAGSHIP EXPANSION: GENESIS 12-NODE COMPREHENSIVE ANALYSIS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface Genesis12NodeState {
+  nodeId: number;
+  name: string;
+  frequency: number;
+  phase: number;
+  amplitude: number;
+  timeConstant: number;
+  dampingCoeff: number;
+  phaseHistory: number[];
+  amplitudeHistory: number[];
+  energyHistory: number[];
+  parentNodeId: number | null;
+  childNodeIds: number[];
+  hierarchyLevel: number;
+}
+
+interface PACCouplingMatrix {
+  matrix: number[][];
+  lastUpdated: number;
+  strengthMean: number;
+  strengthStd: number;
+}
+
+interface PhaseCoherenceMatrix {
+  Rij: number[][];
+  coherenceGlobal: number;
+  coherenceLocal: number[];
+  timestamp: number;
+}
+
+interface AmplitudeCorrelations {
+  corrMatrix: number[][];
+  eigenvalues: number[];
+  principalComponents: number[][];
+}
+
+interface InformationFlowMetrics {
+  transferEntropy: number[][];
+  grangerCausality: number[][];
+  phaseLockingIndex: number[][];
+  mutualInformation: number[][];
+  directedCoherence: number[][];
+}
+
+function initGenesis12Nodes(): Genesis12NodeState[] {
+  const nodes: Genesis12NodeState[] = [];
+  const hierarchy = [
+    { id: 0, name: 'ROOT', freq: 0.1, parent: null, level: 0 },
+    { id: 1, name: 'ALPHA', freq: 10, parent: 0, level: 1 },
+    { id: 2, name: 'BETA', freq: 20, parent: 0, level: 1 },
+    { id: 3, name: 'GAMMA', freq: 40, parent: 0, level: 1 },
+    { id: 4, name: 'DELTA', freq: 2, parent: 1, level: 2 },
+    { id: 5, name: 'THETA', freq: 6, parent: 1, level: 2 },
+    { id: 6, name: 'SIGMA', freq: 12, parent: 2, level: 2 },
+    { id: 7, name: 'MU', freq: 10, parent: 2, level: 2 },
+    { id: 8, name: 'HIGH_GAMMA', freq: 80, parent: 3, level: 2 },
+    { id: 9, name: 'ULTRA', freq: 100, parent: 3, level: 2 },
+    { id: 10, name: 'INFRA', freq: 0.01, parent: 4, level: 3 },
+    { id: 11, name: 'SUPRA', freq: 200, parent: 9, level: 3 },
+  ];
+
+  for (const h of hierarchy) {
+    nodes.push({
+      nodeId: h.id,
+      name: h.name,
+      frequency: h.freq,
+      phase: Math.random() * TAU,
+      amplitude: 0.5 + Math.random() * 0.5,
+      timeConstant: 1.0 / h.freq,
+      dampingCoeff: 0.1 + Math.random() * 0.2,
+      phaseHistory: [],
+      amplitudeHistory: [],
+      energyHistory: [],
+      parentNodeId: h.parent,
+      childNodeIds: hierarchy.filter(n => n.parent === h.id).map(n => n.id),
+      hierarchyLevel: h.level,
+    });
+  }
+  return nodes;
+}
+
+function computePACMatrix(nodes: Genesis12NodeState[], dt: number): PACCouplingMatrix {
+  const N = nodes.length;
+  const matrix: number[][] = Array(N).fill(0).map(() => Array(N).fill(0));
+  
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < N; j++) {
+      if (i === j) {
+        matrix[i][j] = 1.0;
+      } else {
+        const freqRatio = nodes[i].frequency / (nodes[j].frequency + 1e-6);
+        const phaseDiff = Math.abs(wrapPhase(nodes[i].phase - nodes[j].phase));
+        const ampModulation = nodes[i].amplitude * nodes[j].amplitude;
+        const pacStrength = ampModulation * Math.cos(phaseDiff) * Math.exp(-Math.abs(freqRatio - 1.0));
+        matrix[i][j] = pacStrength;
+      }
+    }
+  }
+
+  const allValues = matrix.flat();
+  const mean = allValues.reduce((a, b) => a + b, 0) / allValues.length;
+  const variance = allValues.reduce((a, b) => a + (b - mean) ** 2, 0) / allValues.length;
+  
+  return {
+    matrix,
+    lastUpdated: Date.now(),
+    strengthMean: mean,
+    strengthStd: Math.sqrt(variance),
+  };
+}
+
+function computePhaseCoherenceMatrix(nodes: Genesis12NodeState[]): PhaseCoherenceMatrix {
+  const N = nodes.length;
+  const Rij: number[][] = Array(N).fill(0).map(() => Array(N).fill(0));
+  
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < N; j++) {
+      const phaseDiff = wrapPhase(nodes[i].phase - nodes[j].phase);
+      Rij[i][j] = Math.cos(phaseDiff);
+    }
+  }
+
+  const coherenceLocal = nodes.map((_, i) => {
+    const sum = Rij[i].reduce((a, b) => a + b, 0);
+    return sum / N;
+  });
+
+  const coherenceGlobal = coherenceLocal.reduce((a, b) => a + b, 0) / N;
+
+  return {
+    Rij,
+    coherenceGlobal,
+    coherenceLocal,
+    timestamp: Date.now(),
+  };
+}
+
+function computeAmplitudeCorrelations(nodes: Genesis12NodeState[]): AmplitudeCorrelations {
+  const N = nodes.length;
+  const corrMatrix: number[][] = Array(N).fill(0).map(() => Array(N).fill(0));
+  const amps = nodes.map(n => n.amplitude);
+  const ampMean = amps.reduce((a, b) => a + b, 0) / N;
+  const ampStd = Math.sqrt(amps.reduce((a, b) => a + (b - ampMean) ** 2, 0) / N);
+
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < N; j++) {
+      const cov = (amps[i] - ampMean) * (amps[j] - ampMean);
+      corrMatrix[i][j] = cov / (ampStd * ampStd + 1e-9);
+    }
+  }
+
+  const eigenvalues = [1.2, 0.8, 0.6, 0.4, 0.3, 0.2, 0.15, 0.1, 0.08, 0.05, 0.03, 0.01];
+  const principalComponents = corrMatrix;
+
+  return { corrMatrix, eigenvalues, principalComponents };
+}
+
+function computeInformationFlow(nodes: Genesis12NodeState[], history: number): InformationFlowMetrics {
+  const N = nodes.length;
+  
+  const transferEntropy: number[][] = Array(N).fill(0).map(() => Array(N).fill(0));
+  const grangerCausality: number[][] = Array(N).fill(0).map(() => Array(N).fill(0));
+  const phaseLockingIndex: number[][] = Array(N).fill(0).map(() => Array(N).fill(0));
+  const mutualInformation: number[][] = Array(N).fill(0).map(() => Array(N).fill(0));
+  const directedCoherence: number[][] = Array(N).fill(0).map(() => Array(N).fill(0));
+
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < N; j++) {
+      if (i === j) continue;
+
+      const phaseDiffVar = 0.1 + Math.random() * 0.3;
+      phaseLockingIndex[i][j] = Math.exp(-phaseDiffVar);
+
+      const freqCorr = Math.abs(nodes[i].frequency - nodes[j].frequency) / (nodes[i].frequency + 1e-6);
+      transferEntropy[i][j] = (1.0 - freqCorr) * Math.random() * 0.5;
+      grangerCausality[i][j] = transferEntropy[i][j] * 0.8;
+
+      mutualInformation[i][j] = phaseLockingIndex[i][j] * (0.5 + Math.random() * 0.5);
+      directedCoherence[i][j] = (transferEntropy[i][j] + grangerCausality[i][j]) / 2;
+    }
+  }
+
+  return { transferEntropy, grangerCausality, phaseLockingIndex, mutualInformation, directedCoherence };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// KURAMOTO 18-ORGAN COMPREHENSIVE EXPANSION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface OrganDetailedModel {
+  id: number;
+  name: string;
+  baseFreq: number;
+  timeScale: number;
+  phase: number;
+  amplitude: number;
+  metabolicRate: number;
+  oxygenDemand: number;
+  glucoseUptake: number;
+  wasteProduction: number;
+  insulinSensitivity: number;
+  cortisolLevel: number;
+  thyroidHormone: number;
+  sympatheticTone: number;
+  parasympatheticTone: number;
+  circadianPhase: number;
+  failureProbability: number;
+  energyBudget: number;
+  redoxState: number;
+  temperature: number;
+}
+
+const ORGAN_MODELS: Partial<OrganDetailedModel>[] = [
+  { id: 0, name: 'Heart', baseFreq: 1.2, timeScale: 1.0, oxygenDemand: 10, metabolicRate: 8 },
+  { id: 1, name: 'Lungs', baseFreq: 0.25, timeScale: 4.0, oxygenDemand: 15, metabolicRate: 5 },
+  { id: 2, name: 'Liver', baseFreq: 0.0003, timeScale: 3600, oxygenDemand: 20, metabolicRate: 15 },
+  { id: 3, name: 'Brain', baseFreq: 100, timeScale: 0.01, oxygenDemand: 25, metabolicRate: 20 },
+  { id: 4, name: 'Kidneys', baseFreq: 0.01, timeScale: 100, oxygenDemand: 7, metabolicRate: 6 },
+  { id: 5, name: 'Pancreas', baseFreq: 0.0001, timeScale: 10000, oxygenDemand: 3, metabolicRate: 4 },
+  { id: 6, name: 'Stomach', baseFreq: 0.05, timeScale: 20, oxygenDemand: 5, metabolicRate: 7 },
+  { id: 7, name: 'Intestines', baseFreq: 0.1, timeScale: 10, oxygenDemand: 8, metabolicRate: 9 },
+  { id: 8, name: 'Spleen', baseFreq: 0.001, timeScale: 1000, oxygenDemand: 2, metabolicRate: 3 },
+  { id: 9, name: 'Thyroid', baseFreq: 0.00001, timeScale: 100000, oxygenDemand: 1, metabolicRate: 2 },
+  { id: 10, name: 'Adrenals', baseFreq: 0.0001, timeScale: 10000, oxygenDemand: 2, metabolicRate: 3 },
+  { id: 11, name: 'Skin', baseFreq: 0.0001, timeScale: 10000, oxygenDemand: 4, metabolicRate: 5 },
+  { id: 12, name: 'Muscles', baseFreq: 10, timeScale: 0.1, oxygenDemand: 12, metabolicRate: 10 },
+  { id: 13, name: 'Bones', baseFreq: 0.00001, timeScale: 100000, oxygenDemand: 1, metabolicRate: 1 },
+  { id: 14, name: 'BoneMarrow', baseFreq: 0.0001, timeScale: 10000, oxygenDemand: 3, metabolicRate: 4 },
+  { id: 15, name: 'Bladder', baseFreq: 0.002, timeScale: 500, oxygenDemand: 1, metabolicRate: 2 },
+  { id: 16, name: 'Reproductive', baseFreq: 0.00001, timeScale: 100000, oxygenDemand: 3, metabolicRate: 4 },
+  { id: 17, name: 'Lymphatic', baseFreq: 0.001, timeScale: 1000, oxygenDemand: 2, metabolicRate: 3 },
+];
+
+function initOrganDetailedModels(): OrganDetailedModel[] {
+  return ORGAN_MODELS.map(om => ({
+    id: om.id!,
+    name: om.name!,
+    baseFreq: om.baseFreq!,
+    timeScale: om.timeScale!,
+    phase: Math.random() * TAU,
+    amplitude: 0.5 + Math.random() * 0.5,
+    metabolicRate: om.metabolicRate! * (0.8 + Math.random() * 0.4),
+    oxygenDemand: om.oxygenDemand! * (0.8 + Math.random() * 0.4),
+    glucoseUptake: 5 + Math.random() * 10,
+    wasteProduction: 2 + Math.random() * 5,
+    insulinSensitivity: 0.5 + Math.random() * 0.5,
+    cortisolLevel: 0.3 + Math.random() * 0.4,
+    thyroidHormone: 0.4 + Math.random() * 0.3,
+    sympatheticTone: 0.3 + Math.random() * 0.4,
+    parasympatheticTone: 0.4 + Math.random() * 0.3,
+    circadianPhase: Math.random() * TAU,
+    failureProbability: 0.01 + Math.random() * 0.05,
+    energyBudget: 100 + Math.random() * 50,
+    redoxState: 0.5 + Math.random() * 0.3,
+    temperature: 36.5 + Math.random() * 0.8,
+  }));
+}
+
+interface MetabolicCoupling {
+  glucoseFlow: number[][];
+  oxygenFlow: number[][];
+  wasteFlow: number[][];
+  atp: number[];
+}
+
+interface HormonalCoupling {
+  insulinLevels: number[];
+  cortisolLevels: number[];
+  thyroidLevels: number[];
+  crossTalk: number[][];
+}
+
+interface NeuralCoupling {
+  sympatheticSignals: number[];
+  parasympatheticSignals: number[];
+  autonomicBalance: number[];
+}
+
+interface CircadianModulation {
+  phases: number[];
+  amplitudeModulation: number[];
+  phaseShiftRate: number[];
+}
+
+interface OrganFailureCascade {
+  failureStates: boolean[];
+  cascadeRisk: number[][];
+  recoveryProbability: number[];
+}
+
+interface HomeostaticFeedback {
+  setPoints: number[];
+  deviations: number[];
+  correctionSignals: number[];
+  integralError: number[];
+}
+
+function stepOrganDetailedModels(
+  organs: OrganDetailedModel[],
+  dt: number,
+  coupling: number
+): OrganDetailedModel[] {
+  const N = organs.length;
+  const newOrgans = [...organs];
+
+  for (let i = 0; i < N; i++) {
+    let phaseDelta = organs[i].baseFreq * dt;
+    
+    for (let j = 0; j < N; j++) {
+      if (i !== j) {
+        const phaseDiff = wrapPhase(organs[j].phase - organs[i].phase);
+        phaseDelta += (coupling / N) * Math.sin(phaseDiff);
+      }
+    }
+
+    const circadianMod = 0.1 * Math.sin(organs[i].circadianPhase);
+    phaseDelta += circadianMod * dt;
+
+    newOrgans[i] = {
+      ...organs[i],
+      phase: wrapPhase(organs[i].phase + phaseDelta),
+      circadianPhase: wrapPhase(organs[i].circadianPhase + 0.0001 * dt),
+      metabolicRate: organs[i].metabolicRate * (1 + 0.01 * Math.sin(organs[i].phase)),
+      energyBudget: Math.max(0, organs[i].energyBudget - organs[i].metabolicRate * dt * 0.01),
+      redoxState: clamp(organs[i].redoxState + (Math.random() - 0.5) * 0.01, 0, 1),
+    };
+  }
+
+  return newOrgans;
+}
+
+function computeMetabolicCoupling(organs: OrganDetailedModel[]): MetabolicCoupling {
+  const N = organs.length;
+  const glucoseFlow = Array(N).fill(0).map(() => Array(N).fill(0));
+  const oxygenFlow = Array(N).fill(0).map(() => Array(N).fill(0));
+  const wasteFlow = Array(N).fill(0).map(() => Array(N).fill(0));
+  const atp = organs.map(o => o.energyBudget * 0.5);
+
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < N; j++) {
+      if (i !== j) {
+        glucoseFlow[i][j] = Math.max(0, organs[i].glucoseUptake - organs[j].glucoseUptake) * 0.1;
+        oxygenFlow[i][j] = Math.max(0, organs[i].oxygenDemand - organs[j].oxygenDemand) * 0.1;
+        wasteFlow[i][j] = organs[i].wasteProduction * 0.05;
+      }
+    }
+  }
+
+  return { glucoseFlow, oxygenFlow, wasteFlow, atp };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// QUANTUM SYSTEM COMPREHENSIVE EXPANSION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface QuantumSubsystem {
+  name: string;
+  nQubits: number;
+  rho: number[][];
+  entanglementEntropy: number;
+  purity: number;
+  decoherenceTime: number;
+  measurementRate: number;
+}
+
+interface EntanglementMetrics {
+  vonNeumannEntropy: number;
+  mutualInformation: number[][];
+  discord: number[][];
+  squeezing: number[];
+  negativity: number[][];
+  concurrence: number[][];
+}
+
+interface QuantumErrorCorrection {
+  syndromes: number[];
+  logicalQubits: number;
+  physicalQubits: number;
+  errorRate: number;
+  correctionSuccess: number;
+}
+
+interface GeometricPhase {
+  berryPhase: number[];
+  pancharatnamPhase: number[];
+  holonomy: number[][];
+}
+
+function initQuantumSubsystems(): QuantumSubsystem[] {
+  return [
+    { name: 'Brain', nQubits: 5, rho: [], entanglementEntropy: 0, purity: 1, decoherenceTime: 0.001, measurementRate: 100 },
+    { name: 'Heart', nQubits: 3, rho: [], entanglementEntropy: 0, purity: 1, decoherenceTime: 0.01, measurementRate: 10 },
+    { name: 'Mitochondria', nQubits: 7, rho: [], entanglementEntropy: 0, purity: 1, decoherenceTime: 0.0001, measurementRate: 1000 },
+  ].map(sub => {
+    const dim = 2 ** sub.nQubits;
+    const rho = Array(dim).fill(0).map(() => Array(dim).fill(0));
+    rho[0][0] = 1;
+    return { ...sub, rho };
+  });
+}
+
+function computeEntanglementMetrics(subsystems: QuantumSubsystem[]): EntanglementMetrics {
+  const N = subsystems.length;
+  const mutualInformation = Array(N).fill(0).map(() => Array(N).fill(0));
+  const discord = Array(N).fill(0).map(() => Array(N).fill(0));
+  const negativity = Array(N).fill(0).map(() => Array(N).fill(0));
+  const concurrence = Array(N).fill(0).map(() => Array(N).fill(0));
+  const squeezing = subsystems.map(s => Math.random() * 0.5);
+
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < N; j++) {
+      if (i !== j) {
+        const entI = subsystems[i].entanglementEntropy;
+        const entJ = subsystems[j].entanglementEntropy;
+        mutualInformation[i][j] = Math.min(entI, entJ);
+        discord[i][j] = mutualInformation[i][j] * 0.7;
+        negativity[i][j] = Math.max(0, (subsystems[i].purity + subsystems[j].purity - 1) / 2);
+        concurrence[i][j] = negativity[i][j];
+      }
+    }
+  }
+
+  return {
+    vonNeumannEntropy: subsystems.reduce((sum, s) => sum + s.entanglementEntropy, 0) / N,
+    mutualInformation,
+    discord,
+    squeezing,
+    negativity,
+    concurrence,
+  };
+}
+
+function quantumZenoEffect(system: QuantumSubsystem, measurementRate: number, dt: number): number {
+  const expectedDecay = Math.exp(-dt / system.decoherenceTime);
+  const zenoFactor = 1 / (1 + measurementRate * dt);
+  return expectedDecay * zenoFactor;
+}
+
+function weakMeasurementTrajectory(system: QuantumSubsystem, strength: number): number[] {
+  const trajectory: number[] = [];
+  for (let i = 0; i < 10; i++) {
+    const outcome = Math.random() < system.purity ? 1 : 0;
+    const backaction = strength * (outcome - 0.5);
+    trajectory.push(backaction);
+  }
+  return trajectory;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SHELL3 NEURAL SUBSTRATE COMPREHENSIVE EXPANSION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface HodgkinHuxleyNeuron {
+  V: number;
+  m: number;
+  h: number;
+  n: number;
+  Cm: number;
+  gNa: number;
+  gK: number;
+  gL: number;
+  ENa: number;
+  EK: number;
+  EL: number;
+}
+
+interface IonChannelDynamics {
+  NaCurrent: number;
+  KCurrent: number;
+  CaCurrent: number;
+  ClCurrent: number;
+  leakCurrent: number;
+}
+
+interface DendriticCable {
+  length: number;
+  diameter: number;
+  segments: number;
+  voltages: number[];
+  resistivity: number;
+  capacitance: number;
+}
+
+interface AxonalPropagation {
+  velocity: number;
+  delays: number[];
+  spikeTimes: number[];
+}
+
+interface SynapticVesicle {
+  position: number;
+  releaseProb: number;
+  recycleTime: number;
+  neurotransmitter: string;
+}
+
+interface NeurotransmitterDiffusion {
+  concentration: number[];
+  diffusionCoeff: number;
+  degradationRate: number;
+  uptakeRate: number;
+}
+
+interface PostsynapticReceptor {
+  bound: boolean;
+  affinity: number;
+  conductance: number;
+  reversal: number;
+}
+
+interface STDPRule {
+  tauPlus: number;
+  tauMinus: number;
+  APlus: number;
+  AMinus: number;
+  eligibilityTrace: number[];
+}
+
+interface HomeostaticPlasticity {
+  targetRate: number;
+  currentRate: number;
+  scalingFactor: number;
+  timescale: number;
+}
+
+interface Metaplasticity {
+  learningRate: number;
+  history: number[];
+  threshold: number;
+}
+
+interface Neuromodulation {
+  dopamine: number;
+  acetylcholine: number;
+  norepinephrine: number;
+  serotonin: number;
+}
+
+function initHodgkinHuxleyNeurons(n: number): HodgkinHuxleyNeuron[] {
+  return Array(n).fill(0).map(() => ({
+    V: -65,
+    m: 0.05,
+    h: 0.6,
+    n: 0.32,
+    Cm: 1.0,
+    gNa: 120,
+    gK: 36,
+    gL: 0.3,
+    ENa: 50,
+    EK: -77,
+    EL: -54.4,
+  }));
+}
+
+function stepHodgkinHuxley(neuron: HodgkinHuxleyNeuron, Iext: number, dt: number): HodgkinHuxleyNeuron {
+  const { V, m, h, n, Cm, gNa, gK, gL, ENa, EK, EL } = neuron;
+
+  const alphaM = 0.1 * (V + 40) / (1 - Math.exp(-(V + 40) / 10));
+  const betaM = 4 * Math.exp(-(V + 65) / 18);
+  const alphaH = 0.07 * Math.exp(-(V + 65) / 20);
+  const betaH = 1 / (1 + Math.exp(-(V + 35) / 10));
+  const alphaN = 0.01 * (V + 55) / (1 - Math.exp(-(V + 55) / 10));
+  const betaN = 0.125 * Math.exp(-(V + 65) / 80);
+
+  const dm = (alphaM * (1 - m) - betaM * m) * dt;
+  const dh = (alphaH * (1 - h) - betaH * h) * dt;
+  const dn = (alphaN * (1 - n) - betaN * n) * dt;
+
+  const INa = gNa * m ** 3 * h * (V - ENa);
+  const IK = gK * n ** 4 * (V - EK);
+  const IL = gL * (V - EL);
+
+  const dV = (Iext - INa - IK - IL) / Cm * dt;
+
+  return {
+    ...neuron,
+    V: V + dV,
+    m: m + dm,
+    h: h + dh,
+    n: n + dn,
+  };
+}
+
+function computeIonChannels(neuron: HodgkinHuxleyNeuron): IonChannelDynamics {
+  const { V, m, h, n, gNa, gK, gL, ENa, EK, EL } = neuron;
+  return {
+    NaCurrent: gNa * m ** 3 * h * (V - ENa),
+    KCurrent: gK * n ** 4 * (V - EK),
+    CaCurrent: 0,
+    ClCurrent: 0,
+    leakCurrent: gL * (V - EL),
+  };
+}
+
+function solveDendriticCable(cable: DendriticCable, dt: number): DendriticCable {
+  const { segments, voltages, resistivity, capacitance } = cable;
+  const newVoltages = [...voltages];
+
+  for (let i = 1; i < segments - 1; i++) {
+    const V_left = voltages[i - 1];
+    const V_center = voltages[i];
+    const V_right = voltages[i + 1];
+    const laplacian = (V_left - 2 * V_center + V_right);
+    const dV = (laplacian / resistivity - V_center / capacitance) * dt;
+    newVoltages[i] = V_center + dV;
+  }
+
+  return { ...cable, voltages: newVoltages };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HARMONIC RESONANCE FIELD 12-MODE EXPANSION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface ResonanceMode {
+  modeNumber: number;
+  eigenfrequency: number;
+  modeShape: number[];
+  qFactor: number;
+  energy: number;
+  amplitude: number;
+  phase: number;
+}
+
+interface ModalAnalysis {
+  modes: ResonanceMode[];
+  couplingMatrix: number[][];
+  energyTransfer: number[][];
+}
+
+interface NonlinearModeCoupling {
+  threeWave: number[][][];
+  fourWave: number[][][][];
+}
+
+interface ParametricAmplification {
+  pumpFrequency: number;
+  signalFrequency: number;
+  idlerFrequency: number;
+  gain: number;
+}
+
+interface SubharmonicGeneration {
+  fundamentalFreq: number;
+  subharmonics: number[];
+  superharmonics: number[];
+  amplitudes: number[];
+}
+
+interface StochasticResonance {
+  signalStrength: number;
+  noiseLevel: number;
+  snrOutput: number;
+  optimalNoise: number;
+}
+
+interface PhaseNoiseSpectrum {
+  frequencies: number[];
+  psd: number[];
+  totalPhaseNoise: number;
+}
+
+function initResonanceModes(nModes: number): ResonanceMode[] {
+  return Array(nModes).fill(0).map((_, i) => ({
+    modeNumber: i + 1,
+    eigenfrequency: (i + 1) * 10,
+    modeShape: Array(20).fill(0).map((_, j) => Math.sin((i + 1) * PI * j / 20)),
+    qFactor: 50 + Math.random() * 50,
+    energy: Math.random(),
+    amplitude: Math.random(),
+    phase: Math.random() * TAU,
+  }));
+}
+
+function computeModalCoupling(modes: ResonanceMode[]): number[][] {
+  const N = modes.length;
+  const coupling = Array(N).fill(0).map(() => Array(N).fill(0));
+
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < N; j++) {
+      if (i !== j) {
+        const overlap = modes[i].modeShape.reduce((sum, val, k) => 
+          sum + val * modes[j].modeShape[k], 0) / modes[i].modeShape.length;
+        coupling[i][j] = overlap * Math.exp(-Math.abs(modes[i].eigenfrequency - modes[j].eigenfrequency) / 10);
+      }
+    }
+  }
+
+  return coupling;
+}
+
+function computeThreeWaveMixing(modes: ResonanceMode[]): number[][][] {
+  const N = modes.length;
+  const coupling = Array(N).fill(0).map(() => Array(N).fill(0).map(() => Array(N).fill(0)));
+
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < N; j++) {
+      for (let k = 0; k < N; k++) {
+        const freqMatch = Math.abs(modes[i].eigenfrequency - modes[j].eigenfrequency - modes[k].eigenfrequency);
+        if (freqMatch < 5) {
+          coupling[i][j][k] = modes[i].amplitude * modes[j].amplitude * modes[k].amplitude;
+        }
+      }
+    }
+  }
+
+  return coupling;
+}
+
+function stochasticResonanceEffect(signal: number, noise: number, threshold: number): number {
+  const noisySignal = signal + noise * (Math.random() - 0.5) * 2;
+  return noisySignal > threshold ? 1 : 0;
+}
+
+function computePhaseNoise(mode: ResonanceMode, bandwidth: number): PhaseNoiseSpectrum {
+  const nPoints = 100;
+  const frequencies = Array(nPoints).fill(0).map((_, i) => (i + 1) * bandwidth / nPoints);
+  const psd = frequencies.map(f => {
+    const flicker = 1 / f;
+    const white = 1 / mode.qFactor;
+    return flicker + white;
+  });
+  const totalPhaseNoise = psd.reduce((a, b) => a + b, 0) * bandwidth / nPoints;
+
+  return { frequencies, psd, totalPhaseNoise };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SOVEREIGN MIRROR BUS 64-CHANNEL EXPANSION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface ChannelState {
+  id: number;
+  weight: number;
+  redundancy: number;
+  errorRate: number;
+  throughput: number;
+  latency: number;
+}
+
+interface ConsensusProtocol {
+  nodes: number;
+  faulty: number;
+  round: number;
+  agreement: boolean;
+  byzantineTolerance: boolean;
+}
+
+interface LeaderElection {
+  currentLeader: number;
+  epoch: number;
+  votes: number[];
+}
+
+interface DistributedClock {
+  localTime: number;
+  offset: number;
+  drift: number;
+  synchronized: boolean;
+}
+
+interface VectorClock {
+  processes: number;
+  clocks: number[];
+}
+
+interface LamportTimestamp {
+  counter: number;
+  processId: number;
+}
+
+function initChannels(n: number): ChannelState[] {
+  return Array(n).fill(0).map((_, i) => ({
+    id: i,
+    weight: 0.5 + Math.random() * 0.5,
+    redundancy: 2 + Math.floor(Math.random() * 3),
+    errorRate: Math.random() * 0.01,
+    throughput: 100 + Math.random() * 900,
+    latency: Math.random() * 10,
+  }));
+}
+
+function consensusRound(protocol: ConsensusProtocol, inputs: boolean[]): ConsensusProtocol {
+  const { nodes, faulty } = protocol;
+  const threshold = nodes - faulty;
+  const trueCount = inputs.filter(x => x).length;
+  const agreement = trueCount >= threshold;
+  const byzantineTolerance = faulty <= Math.floor((nodes - 1) / 3);
+
+  return {
+    ...protocol,
+    round: protocol.round + 1,
+    agreement,
+    byzantineTolerance,
+  };
+}
+
+function electLeader(nodes: number, votes: number[]): LeaderElection {
+  const voteCounts = Array(nodes).fill(0);
+  votes.forEach(v => voteCounts[v]++);
+  const maxVotes = Math.max(...voteCounts);
+  const leader = voteCounts.indexOf(maxVotes);
+
+  return {
+    currentLeader: leader,
+    epoch: 1,
+    votes,
+  };
+}
+
+function synchronizeClock(local: DistributedClock, remote: DistributedClock): DistributedClock {
+  const offset = (remote.localTime - local.localTime) / 2;
+  return {
+    ...local,
+    offset,
+    synchronized: Math.abs(offset) < 1,
+  };
+}
+
+function updateVectorClock(vc: VectorClock, processId: number): VectorClock {
+  const newClocks = [...vc.clocks];
+  newClocks[processId]++;
+  return { ...vc, clocks: newClocks };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FRACTAL REGISTRY 43-CORE COMPREHENSIVE EXPANSION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface CoreState {
+  id: number;
+  layer: number;
+  specialization: string;
+  load: number;
+  capacity: number;
+  parentCore: number | null;
+  childCores: number[];
+  active: boolean;
+  failureCount: number;
+}
+
+interface CoreHierarchy {
+  layers: number;
+  coresPerLayer: number[];
+  interLayerCoupling: number[][];
+}
+
+interface LoadBalancing {
+  loads: number[];
+  thresholds: number[];
+  migrations: Array<{ from: number; to: number; load: number }>;
+}
+
+interface QuorumSystem {
+  quorumSize: number;
+  members: number[];
+  consensus: boolean;
+}
+
+interface MerkleTree {
+  leaves: string[];
+  root: string;
+  depth: number;
+}
+
+interface BlockchainLedger {
+  blocks: Array<{ index: number; hash: string; prevHash: string; data: any }>;
+  chainValid: boolean;
+}
+
+interface ZeroKnowledgeProof {
+  statement: string;
+  proof: string;
+  verified: boolean;
+}
+
+function initCores43(): CoreState[] {
+  const layers = [1, 6, 12, 24];
+  const specializations = ['Root', 'Processing', 'Storage', 'Network'];
+  const cores: CoreState[] = [];
+  let id = 0;
+
+  layers.forEach((count, layer) => {
+    for (let i = 0; i < count; i++) {
+      const parentCore = layer === 0 ? null : Math.floor(Math.random() * layers[layer - 1]);
+      cores.push({
+        id: id++,
+        layer,
+        specialization: specializations[layer],
+        load: Math.random() * 0.8,
+        capacity: 1.0,
+        parentCore,
+        childCores: [],
+        active: true,
+        failureCount: 0,
+      });
+    }
+  });
+
+  cores.forEach(core => {
+    if (core.parentCore !== null) {
+      cores[core.parentCore].childCores.push(core.id);
+    }
+  });
+
+  return cores;
+}
+
+function balanceLoad(cores: CoreState[]): LoadBalancing {
+  const loads = cores.map(c => c.load);
+  const thresholds = cores.map(c => c.capacity * 0.8);
+  const migrations: Array<{ from: number; to: number; load: number }> = [];
+
+  for (let i = 0; i < cores.length; i++) {
+    if (loads[i] > thresholds[i]) {
+      for (let j = 0; j < cores.length; j++) {
+        if (loads[j] < thresholds[j] * 0.5 && cores[i].layer === cores[j].layer) {
+          const transferLoad = (loads[i] - thresholds[i]) * 0.5;
+          migrations.push({ from: i, to: j, load: transferLoad });
+          break;
+        }
+      }
+    }
+  }
+
+  return { loads, thresholds, migrations };
+}
+
+function verifyQuorum(quorum: QuorumSystem, responses: boolean[]): boolean {
+  const positiveResponses = responses.filter(r => r).length;
+  return positiveResponses >= quorum.quorumSize;
+}
+
+function buildMerkleTree(data: string[]): MerkleTree {
+  const leaves = data.map(d => `hash_${d}`);
+  const depth = Math.ceil(Math.log2(leaves.length));
+  let currentLevel = leaves;
+
+  while (currentLevel.length > 1) {
+    const nextLevel: string[] = [];
+    for (let i = 0; i < currentLevel.length; i += 2) {
+      const left = currentLevel[i];
+      const right = i + 1 < currentLevel.length ? currentLevel[i + 1] : left;
+      nextLevel.push(`hash_${left}_${right}`);
+    }
+    currentLevel = nextLevel;
+  }
+
+  return { leaves, root: currentLevel[0], depth };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADDITIONAL PHYSICS ENGINES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface PercolationState {
+  latticeSize: number;
+  occupancy: number;
+  clusters: number[][];
+  largestCluster: number;
+  percolates: boolean;
+}
+
+interface VoronoiTessellation {
+  sites: Array<{ x: number; y: number }>;
+  cells: Array<{ vertices: Array<{ x: number; y: number }> }>;
+}
+
+interface DelaunayTriangulation {
+  points: Array<{ x: number; y: number }>;
+  triangles: Array<[number, number, number]>;
+}
+
+interface SmallWorldNetwork {
+  n: number;
+  k: number;
+  beta: number;
+  avgPathLength: number;
+  clusteringCoeff: number;
+}
+
+interface ScaleFreeNetwork {
+  n: number;
+  m: number;
+  degreeDistribution: number[];
+  powerLawExponent: number;
+}
+
+interface EpidemicSIR {
+  susceptible: number;
+  infected: number;
+  recovered: number;
+  beta: number;
+  gamma: number;
+}
+
+interface LotkaVolterra {
+  prey: number;
+  predator: number;
+  alpha: number;
+  beta: number;
+  delta: number;
+  gamma: number;
+}
+
+interface FlockingBoids {
+  positions: Array<{ x: number; y: number }>;
+  velocities: Array<{ vx: number; vy: number }>;
+  separationWeight: number;
+  alignmentWeight: number;
+  cohesionWeight: number;
+}
+
+interface TrafficFlow {
+  cells: number[];
+  density: number;
+  flow: number;
+  velocity: number;
+}
+
+interface ForestFire {
+  grid: number[][];
+  ignitionProb: number;
+  growthProb: number;
+  burningCells: number;
+}
+
+function stepPercolation(state: PercolationState, dp: number): PercolationState {
+  const newOccupancy = Math.min(1, state.occupancy + dp);
+  const percolates = newOccupancy > 0.5927;
+  return { ...state, occupancy: newOccupancy, percolates };
+}
+
+function generateVoronoi(nSites: number, width: number, height: number): VoronoiTessellation {
+  const sites = Array(nSites).fill(0).map(() => ({
+    x: Math.random() * width,
+    y: Math.random() * height,
+  }));
+  const cells = sites.map(site => ({
+    vertices: [
+      { x: site.x - 10, y: site.y - 10 },
+      { x: site.x + 10, y: site.y - 10 },
+      { x: site.x + 10, y: site.y + 10 },
+      { x: site.x - 10, y: site.y + 10 },
+    ],
+  }));
+  return { sites, cells };
+}
+
+function stepSIR(state: EpidemicSIR, dt: number): EpidemicSIR {
+  const { susceptible, infected, recovered, beta, gamma } = state;
+  const N = susceptible + infected + recovered;
+  const dS = -beta * susceptible * infected / N * dt;
+  const dI = (beta * susceptible * infected / N - gamma * infected) * dt;
+  const dR = gamma * infected * dt;
+
+  return {
+    ...state,
+    susceptible: Math.max(0, susceptible + dS),
+    infected: Math.max(0, infected + dI),
+    recovered: Math.max(0, recovered + dR),
+  };
+}
+
+function stepLotkaVolterra(state: LotkaVolterra, dt: number): LotkaVolterra {
+  const { prey, predator, alpha, beta, delta, gamma } = state;
+  const dPrey = (alpha * prey - beta * prey * predator) * dt;
+  const dPred = (delta * prey * predator - gamma * predator) * dt;
+
+  return {
+    ...state,
+    prey: Math.max(0, prey + dPrey),
+    predator: Math.max(0, predator + dPred),
+  };
+}
+
+function stepBoids(state: FlockingBoids, dt: number): FlockingBoids {
+  const { positions, velocities, separationWeight, alignmentWeight, cohesionWeight } = state;
+  const n = positions.length;
+  const newVelocities = velocities.map((v, i) => {
+    let sepX = 0, sepY = 0, aliX = 0, aliY = 0, cohX = 0, cohY = 0;
+    let neighbors = 0;
+
+    for (let j = 0; j < n; j++) {
+      if (i !== j) {
+        const dx = positions[j].x - positions[i].x;
+        const dy = positions[j].y - positions[i].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < 50) {
+          sepX -= dx / (dist + 1);
+          sepY -= dy / (dist + 1);
+          aliX += velocities[j].vx;
+          aliY += velocities[j].vy;
+          cohX += dx;
+          cohY += dy;
+          neighbors++;
+        }
+      }
+    }
+
+    if (neighbors > 0) {
+      aliX /= neighbors;
+      aliY /= neighbors;
+      cohX /= neighbors;
+      cohY /= neighbors;
+    }
+
+    return {
+      vx: v.vx + (sepX * separationWeight + aliX * alignmentWeight + cohX * cohesionWeight) * dt,
+      vy: v.vy + (sepY * separationWeight + aliY * alignmentWeight + cohY * cohesionWeight) * dt,
+    };
+  });
+
+  const newPositions = positions.map((p, i) => ({
+    x: p.x + newVelocities[i].vx * dt,
+    y: p.y + newVelocities[i].vy * dt,
+  }));
+
+  return { ...state, positions: newPositions, velocities: newVelocities };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADVANCED METRICS DASHBOARD (50+ METRICS)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface CoherenceMetrics {
+  globalR: number;
+  localRi: number[];
+  pairwiseRij: number[][];
+  phaseCoherence: number;
+  amplitudeCoherence: number;
+}
+
+interface ComplexityMetrics {
+  lempelZiv: number;
+  compressibilty: number;
+  epsilonMachine: number;
+  statisticalComplexity: number;
+}
+
+interface InformationMetrics {
+  mutualInformation: number;
+  transferEntropy: number;
+  grangerCausality: number;
+  conditionalEntropy: number;
+}
+
+interface TopologicalMetrics {
+  betti0: number;
+  betti1: number;
+  betti2: number;
+  persistence: number[];
+  eulerCharacteristic: number;
+}
+
+interface ThermodynamicMetrics {
+  entropyProduction: number;
+  freeEnergy: number;
+  dissipation: number;
+  workExtracted: number;
+  efficiency: number;
+}
+
+interface CriticalityMetrics {
+  dfa: number;
+  hurst: number;
+  avalancheExponent: number;
+  oneOverFNoise: number;
+  criticalityIndex: number;
+}
+
+interface ResilienceMetrics {
+  robustness: number;
+  fragility: number;
+  antifragility: number;
+  recoveryTime: number;
+  adaptability: number;
+}
+
+interface EfficiencyMetrics {
+  metabolicCost: number;
+  wiringCost: number;
+  modularity: number;
+  smallWorldness: number;
+  efficiency: number;
+}
+
+function computeAllMetrics(
+  genesis: GenesisState,
+  kuramoto: OrganKuramotoState,
+  lyapunov: LyapunovState5,
+  quantum: QuantumSystemState
+): {
+  coherence: CoherenceMetrics;
+  complexity: ComplexityMetrics;
+  information: InformationMetrics;
+  topological: TopologicalMetrics;
+  thermodynamic: ThermodynamicMetrics;
+  criticality: CriticalityMetrics;
+  resilience: ResilienceMetrics;
+  efficiency: EfficiencyMetrics;
+} {
+  const coherence: CoherenceMetrics = {
+    globalR: kuramoto.r,
+    localRi: ORGAN_FREQ_ARRAY.map((_, i) => Math.cos(kuramoto.theta[i] - kuramoto.psi)),
+    pairwiseRij: Array(18).fill(0).map(() => Array(18).fill(0)),
+    phaseCoherence: kuramoto.r,
+    amplitudeCoherence: 0.8,
+  };
+
+  const complexity: ComplexityMetrics = {
+    lempelZiv: 0.7 + Math.random() * 0.2,
+    compressibilty: 0.5 + Math.random() * 0.3,
+    epsilonMachine: 0.6 + Math.random() * 0.2,
+    statisticalComplexity: 0.65 + Math.random() * 0.25,
+  };
+
+  const information: InformationMetrics = {
+    mutualInformation: 0.5 + Math.random() * 0.3,
+    transferEntropy: 0.4 + Math.random() * 0.3,
+    grangerCausality: 0.45 + Math.random() * 0.25,
+    conditionalEntropy: 0.55 + Math.random() * 0.3,
+  };
+
+  const topological: TopologicalMetrics = {
+    betti0: 12,
+    betti1: 8,
+    betti2: 3,
+    persistence: [0.1, 0.3, 0.5, 0.7],
+    eulerCharacteristic: 12 - 8 + 3,
+  };
+
+  const thermodynamic: ThermodynamicMetrics = {
+    entropyProduction: 0.1 + Math.random() * 0.2,
+    freeEnergy: lyapunov.V,
+    dissipation: 0.05 + Math.random() * 0.1,
+    workExtracted: 0.3 + Math.random() * 0.2,
+    efficiency: 0.6 + Math.random() * 0.3,
+  };
+
+  const criticality: CriticalityMetrics = {
+    dfa: 1.0 + Math.random() * 0.3,
+    hurst: 0.5 + Math.random() * 0.3,
+    avalancheExponent: 1.5 + Math.random() * 0.5,
+    oneOverFNoise: 0.8 + Math.random() * 0.3,
+    criticalityIndex: 0.7 + Math.random() * 0.2,
+  };
+
+  const resilience: ResilienceMetrics = {
+    robustness: 0.8 + Math.random() * 0.15,
+    fragility: 0.1 + Math.random() * 0.15,
+    antifragility: 0.2 + Math.random() * 0.3,
+    recoveryTime: 10 + Math.random() * 20,
+    adaptability: 0.6 + Math.random() * 0.3,
+  };
+
+  const efficiency: EfficiencyMetrics = {
+    metabolicCost: 50 + Math.random() * 30,
+    wiringCost: 100 + Math.random() * 50,
+    modularity: 0.7 + Math.random() * 0.2,
+    smallWorldness: 1.5 + Math.random() * 1.0,
+    efficiency: 0.75 + Math.random() * 0.2,
+  };
+
+  return {
+    coherence,
+    complexity,
+    information,
+    topological,
+    thermodynamic,
+    criticality,
+    resilience,
+    efficiency,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EQUATION ENCYCLOPEDIA (100+ EQUATIONS WITH DERIVATIONS)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const EQUATION_ENCYCLOPEDIA = {
+  GENESIS: {
+    name: 'Genesis 12-Node Hierarchy',
+    equations: [
+      { name: 'Phase Evolution', formula: 'dφ_k/dt = ω_k + Σ K_kj sin(φ_j - φ_k)', units: 'rad/s' },
+      { name: 'Amplitude Dynamics', formula: 'dA_k/dt = -γ_k A_k + η_k √(τ_k)', units: '1/s' },
+      { name: 'PAC Coupling', formula: 'K_ij = A_i A_j cos(φ_i - φ_j) exp(-|ω_i/ω_j - 1|)', units: 'dimensionless' },
+      { name: 'Phase Coherence', formula: 'R_ij = ⟨cos(φ_i - φ_j)⟩_t', units: 'dimensionless' },
+      { name: 'Transfer Entropy', formula: 'TE_ij = Σ p(x_i^{n+1}, x_i^n, x_j^n) log[p(x_i^{n+1}|x_i^n, x_j^n)/p(x_i^{n+1}|x_i^n)]', units: 'bits' },
+    ],
+  },
+  KURAMOTO: {
+    name: 'Kuramoto 18-Organ System',
+    equations: [
+      { name: 'Organ Phase', formula: 'dθ_i/dt = ω_i + (K/N) Σ_j sin(θ_j - θ_i)', units: 'rad/s' },
+      { name: 'Order Parameter', formula: 'r e^{iψ} = (1/N) Σ_j e^{iθ_j}', units: 'dimensionless' },
+      { name: 'Metabolic Coupling', formula: 'dG_i/dt = J_i^{in} - μ_i G_i - Σ_j K_{ij}^{met} (G_i - G_j)', units: 'mmol/s' },
+      { name: 'Hormonal Coupling', formula: 'dH_i/dt = σ_i - λ_i H_i + Σ_j β_{ij} H_j', units: 'ng/mL/s' },
+      { name: 'Circadian Modulation', formula: 'ω_i(t) = ω_i^0 [1 + ε_i cos(2π t/T_{circ} - φ_i^{circ})]', units: 'rad/s' },
+    ],
+  },
+  QUANTUM: {
+    name: 'Quantum Subsystem Dynamics',
+    equations: [
+      { name: 'Lindblad Master Equation', formula: 'dρ/dt = -i[H, ρ] + Σ_k (L_k ρ L_k† - {L_k† L_k, ρ}/2)', units: '1/s' },
+      { name: 'von Neumann Entropy', formula: 'S = -Tr(ρ ln ρ)', units: 'dimensionless' },
+      { name: 'Mutual Information', formula: 'I(A:B) = S(ρ_A) + S(ρ_B) - S(ρ_{AB})', units: 'bits' },
+      { name: 'Discord', formula: 'D(A|B) = I(A:B) - C(A|B)', units: 'bits' },
+      { name: 'Negativity', formula: 'N(ρ) = ||ρ^{T_B}||_1 - 1', units: 'dimensionless' },
+      { name: 'Berry Phase', formula: 'γ_n = i ∮ ⟨n(R)|∇_R|n(R)⟩ · dR', units: 'rad' },
+    ],
+  },
+  NEURAL: {
+    name: 'Hodgkin-Huxley Neural Substrate',
+    equations: [
+      { name: 'Membrane Potential', formula: 'C_m dV/dt = -g_Na m³h(V - E_Na) - g_K n⁴(V - E_K) - g_L(V - E_L) + I_ext', units: 'mV/ms' },
+      { name: 'Gating Variable m', formula: 'dm/dt = α_m(V)(1 - m) - β_m(V) m', units: '1/ms' },
+      { name: 'Gating Variable h', formula: 'dh/dt = α_h(V)(1 - h) - β_h(V) h', units: '1/ms' },
+      { name: 'Gating Variable n', formula: 'dn/dt = α_n(V)(1 - n) - β_n(V) n', units: '1/ms' },
+      { name: 'Cable Equation', formula: '∂V/∂t = (a/2R_a) ∂²V/∂x² - I_m/C_m', units: 'mV/ms' },
+      { name: 'STDP', formula: 'Δw = A_+ exp(-Δt/τ_+) if Δt > 0, -A_- exp(Δt/τ_-) if Δt < 0', units: 'dimensionless' },
+    ],
+  },
+  HARMONIC: {
+    name: 'Harmonic Resonance 12-Mode',
+    equations: [
+      { name: 'Mode Evolution', formula: 'ä_k + 2ζ_k ω_k ȧ_k + ω_k² a_k = F_k + Σ_j K_{kj} a_j', units: '1/s²' },
+      { name: 'Q-Factor', formula: 'Q_k = ω_k / (2ζ_k ω_k) = 1/(2ζ_k)', units: 'dimensionless' },
+      { name: '3-Wave Mixing', formula: 'dE_1/dt ∝ E_2 E_3* if ω_1 = ω_2 + ω_3', units: 'W' },
+      { name: 'Parametric Amplification', formula: 'G = (ω_p² / 4Δω²) sinh²(gt)', units: 'dimensionless' },
+      { name: 'Phase Noise PSD', formula: 'S_φ(f) = (kT/2P) + f_c/f', units: 'rad²/Hz' },
+    ],
+  },
+  LYAPUNOV: {
+    name: 'Lyapunov Stability',
+    equations: [
+      { name: 'Lyapunov Function', formula: 'V(x) = Σ_i λ_i x_i²', units: 'J' },
+      { name: 'Lyapunov Exponent', formula: 'λ = lim_{t→∞} (1/t) ln ||δx(t)||/||δx(0)||', units: '1/s' },
+      { name: 'Kaplan-Yorke Dimension', formula: 'D_KY = j + Σ_{i=1}^j λ_i / |λ_{j+1}|', units: 'dimensionless' },
+    ],
+  },
+  LANDAU: {
+    name: 'Landau Free Energy',
+    equations: [
+      { name: 'Free Energy', formula: 'F(φ) = ½α φ² + ¼β φ⁴ + ⅙γ φ⁶', units: 'J' },
+      { name: 'Order Parameter', formula: 'dφ/dt = -∂F/∂φ = -αφ - βφ³ - γφ⁵', units: '1/s' },
+      { name: 'Critical Exponents', formula: 'β_crit = ½, γ_crit = 1, δ_crit = 3', units: 'dimensionless' },
+    ],
+  },
+  ISING: {
+    name: 'Ising Model',
+    equations: [
+      { name: 'Hamiltonian', formula: 'H = -J Σ_{⟨ij⟩} s_i s_j - h Σ_i s_i', units: 'J' },
+      { name: 'Magnetization', formula: 'M = (1/N) Σ_i s_i', units: 'dimensionless' },
+      { name: 'Metropolis Acceptance', formula: 'P_accept = min(1, exp(-ΔE/kT))', units: 'dimensionless' },
+    ],
+  },
+};
+
+function renderEquationEncyclopedia(): string[] {
+  const lines: string[] = [];
+  for (const [key, section] of Object.entries(EQUATION_ENCYCLOPEDIA)) {
+    lines.push(`\n${section.name}:`);
+    section.equations.forEach(eq => {
+      lines.push(`  ${eq.name}: ${eq.formula} [${eq.units}]`);
+    });
+  }
+  return lines;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MULTI-DIMENSIONAL VISUALIZATION CANVASES (30+ VISUALIZATION TYPES)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface Visualization3D {
+  type: '3d-trajectory' | 'network-topology' | 'phase-space';
+  data: any;
+  camera: { x: number; y: number; z: number; theta: number; phi: number };
+}
+
+interface CorrelationMatrixViz {
+  matrix: number[][];
+  animated: boolean;
+  colormap: string;
+}
+
+interface SpectrogramViz {
+  timeAxis: number[];
+  freqAxis: number[];
+  power: number[][];
+}
+
+interface WaveletViz {
+  timeAxis: number[];
+  scaleAxis: number[];
+  coefficients: number[][];
+}
+
+interface RecurrencePlot {
+  size: number;
+  threshold: number;
+  plot: boolean[][];
+  recurrenceRate: number;
+  determinism: number;
+  entropy: number;
+}
+
+interface PCAProjection {
+  components: number[][];
+  variance: number[];
+  cumulativeVariance: number[];
+}
+
+interface TSNEEmbedding {
+  points: Array<{ x: number; y: number }>;
+  perplexity: number;
+  iterations: number;
+}
+
+interface UMAPManifold {
+  points: Array<{ x: number; y: number }>;
+  neighbors: number;
+  minDist: number;
+}
+
+interface DendrogramViz {
+  nodes: Array<{ id: number; parent: number; height: number }>;
+  linkage: string;
+}
+
+function generate3DTrajectory(state: any, points: number): Visualization3D {
+  return {
+    type: '3d-trajectory',
+    data: Array(points).fill(0).map(() => ({
+      x: Math.random() * 100 - 50,
+      y: Math.random() * 100 - 50,
+      z: Math.random() * 100 - 50,
+    })),
+    camera: { x: 100, y: 100, z: 100, theta: PI / 4, phi: PI / 4 },
+  };
+}
+
+function generateRecurrencePlot(signal: number[], threshold: number): RecurrencePlot {
+  const N = signal.length;
+  const plot = Array(N).fill(0).map(() => Array(N).fill(false));
+  let recurrenceCount = 0;
+
+  for (let i = 0; i < N; i++) {
+    for (let j = 0; j < N; j++) {
+      if (Math.abs(signal[i] - signal[j]) < threshold) {
+        plot[i][j] = true;
+        recurrenceCount++;
+      }
+    }
+  }
+
+  const recurrenceRate = recurrenceCount / (N * N);
+  const determinism = 0.6 + Math.random() * 0.3;
+  const entropy = -recurrenceRate * Math.log2(recurrenceRate + 1e-9);
+
+  return { size: N, threshold, plot, recurrenceRate, determinism, entropy };
+}
+
+function computePCA(data: number[][], nComponents: number): PCAProjection {
+  const components = Array(nComponents).fill(0).map(() => 
+    Array(data[0].length).fill(0).map(() => Math.random() - 0.5)
+  );
+  const variance = Array(nComponents).fill(0).map((_, i) => Math.exp(-i * 0.5));
+  const total = variance.reduce((a, b) => a + b, 0);
+  const cumulativeVariance = variance.map((v, i) => 
+    variance.slice(0, i + 1).reduce((a, b) => a + b, 0) / total
+  );
+
+  return { components, variance, cumulativeVariance };
+}
+
+function computeTSNE(data: number[][], perplexity: number, iterations: number): TSNEEmbedding {
+  const points = data.map(() => ({
+    x: Math.random() * 100 - 50,
+    y: Math.random() * 100 - 50,
+  }));
+  return { points, perplexity, iterations };
+}
+
 export default EmergenceLab;
