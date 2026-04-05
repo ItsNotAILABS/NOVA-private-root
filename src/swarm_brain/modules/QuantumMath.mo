@@ -1255,4 +1255,475 @@ module {
     (psi1 * psi2 * momentum) / mass
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ║                                                                             ║
+  // ║  QUANTUM MATH — EXTENDED ORGANISM ARCHITECTURE                              ║
+  // ║  Full Quantum Integration with All Organism Subsystems                      ║
+  // ║                                                                             ║
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─── ORGANISM QUANTUM STATE ───────────────────────────────────────────────────
+  
+  /// Extended quantum state for full organism integration
+  public type OrganismQuantumState = {
+    // Core quantum state
+    amplitudes : [Float];
+    phases : [Float];
+    coherenceMatrix : [[Float]];
+    
+    // Decoherence dynamics
+    decoherenceRate : Float;
+    environmentCoupling : Float;
+    thermalNoise : Float;
+    coherenceTime : Float;
+    
+    // Entanglement structure
+    entanglementEntropy : Float;
+    concurrence : Float;
+    negativity : Float;
+    pairwiseEntanglement : [[Float]];
+    
+    // Quantum information
+    vonNeumannEntropy : Float;
+    quantumFisher : Float;
+    quantumCapacity : Float;
+    
+    // Quantum-classical interface
+    measurementBasis : [Float];
+    collapseStrength : Float;
+    zeno_effect : Float;
+    
+    // Neural quantum effects
+    microtubuleCoherence : Float;
+    orchestrated_reduction : Float;
+    binding_signature : Float;
+    
+    // Quantum cognition
+    contextuality : Float;
+    interference_strength : Float;
+    superposition_width : Float;
+  };
+
+  /// Initialize organism quantum state
+  public func initOrganismQuantum(numQubits : Nat) : OrganismQuantumState {
+    let amps = Array.tabulate<Float>(numQubits, func(_) { 1.0 / Float.sqrt(Float.fromInt(numQubits)) });
+    let phs = Array.tabulate<Float>(numQubits, func(_) { 0.0 });
+    let coherence = Array.tabulate<[Float]>(numQubits, func(i) {
+      Array.tabulate<Float>(numQubits, func(j) {
+        if (i == j) { 1.0 } else { 0.5 }
+      })
+    });
+    
+    {
+      amplitudes = amps;
+      phases = phs;
+      coherenceMatrix = coherence;
+      decoherenceRate = 0.01;
+      environmentCoupling = 0.1;
+      thermalNoise = 0.001;
+      coherenceTime = 100.0;
+      entanglementEntropy = 0.5;
+      concurrence = 0.5;
+      negativity = 0.3;
+      pairwiseEntanglement = [];
+      vonNeumannEntropy = 0.5;
+      quantumFisher = 1.0;
+      quantumCapacity = 0.5;
+      measurementBasis = [1.0, 0.0, 0.0, 1.0];
+      collapseStrength = 0.0;
+      zeno_effect = 0.0;
+      microtubuleCoherence = 0.5;
+      orchestrated_reduction = 0.0;
+      binding_signature = 0.5;
+      contextuality = 0.3;
+      interference_strength = 0.5;
+      superposition_width = 0.5;
+    }
+  };
+
+  // ─── DENSITY MATRIX FORMALISM ─────────────────────────────────────────────────
+  
+  /// Density matrix operations
+  public type DensityMatrix = {
+    elements : [[Float]];
+    purity : Float;
+    vonNeumannEntropy : Float;
+    isEntangled : Bool;
+  };
+
+  /// Compute purity of density matrix: Tr(ρ²)
+  public func computePurity(rho : [[Float]]) : Float {
+    let n = rho.size();
+    if (n == 0) { return 1.0 };
+    
+    // Tr(ρ²) = Σᵢⱼ ρᵢⱼ ρⱼᵢ
+    var purity : Float = 0.0;
+    var i : Nat = 0;
+    while (i < n) {
+      var j : Nat = 0;
+      while (j < n) {
+        if (i < rho.size() and j < rho[i].size() and j < rho.size() and i < rho[j].size()) {
+          purity += rho[i][j] * rho[j][i];
+        };
+        j += 1;
+      };
+      i += 1;
+    };
+    
+    _clamp(purity, 0.0, 1.0)
+  };
+
+  /// Compute von Neumann entropy: S = -Tr(ρ log ρ)
+  public func computeVonNeumannEntropy(eigenvalues : [Float]) : Float {
+    var entropy : Float = 0.0;
+    for (ev in eigenvalues.vals()) {
+      if (ev > 0.001) {
+        entropy -= ev * Float.log(ev);
+      };
+    };
+    _clamp(entropy, 0.0, 10.0)
+  };
+
+  // ─── QUANTUM CHANNEL DYNAMICS ─────────────────────────────────────────────────
+  
+  /// Amplitude damping channel
+  public func amplitudeDampingChannel(
+    amplitude : Float,
+    phase : Float,
+    gamma : Float,
+    dt : Float
+  ) : (Float, Float) {
+    // Amplitude decay: |α|² → |α|² e^{-γt}
+    let newAmp = amplitude * Float.exp(-gamma * dt / 2.0);
+    let newPhase = phase;
+    (newAmp, newPhase)
+  };
+
+  /// Phase damping channel (dephasing)
+  public func phaseDampingChannel(
+    amplitude : Float,
+    phase : Float,
+    lambda : Float,
+    dt : Float
+  ) : (Float, Float) {
+    // Phase randomization
+    let noise = lambda * dt;
+    let newPhase = phase + noise * (0.5 - amplitude);  // Simplified noise
+    (amplitude, newPhase)
+  };
+
+  /// Depolarizing channel
+  public func depolarizingChannel(
+    purity : Float,
+    p : Float,
+    dt : Float
+  ) : Float {
+    // ρ → (1-p)ρ + p·I/d
+    let depol = p * dt;
+    _clamp(purity * (1.0 - depol) + depol * 0.5, 0.0, 1.0)
+  };
+
+  // ─── CROSS-MODULE INTEGRATION ─────────────────────────────────────────────────
+  
+  /// Integrate with Kuramoto oscillators
+  public func integrateWithKuramoto(
+    coherence : Float,
+    kuramotoOrder : Float,
+    meanPhase : Float
+  ) : Float {
+    // Kuramoto coherence supports quantum coherence
+    let boost = kuramotoOrder * 0.3;
+    _clamp(coherence + boost, 0.0, 1.0)
+  };
+
+  /// Integrate with Friston free energy
+  public func integrateWithFriston(
+    quantumState : OrganismQuantumState,
+    freeEnergy : Float,
+    precision : Float
+  ) : OrganismQuantumState {
+    // Free energy affects measurement basis
+    // Precision affects collapse strength
+    let energyEffect = freeEnergy * 0.1;
+    let precisionEffect = precision * 0.2;
+    
+    {
+      amplitudes = quantumState.amplitudes;
+      phases = quantumState.phases;
+      coherenceMatrix = quantumState.coherenceMatrix;
+      decoherenceRate = _clamp(quantumState.decoherenceRate + energyEffect * 0.01, 0.0, 1.0);
+      environmentCoupling = quantumState.environmentCoupling;
+      thermalNoise = quantumState.thermalNoise;
+      coherenceTime = quantumState.coherenceTime;
+      entanglementEntropy = quantumState.entanglementEntropy;
+      concurrence = quantumState.concurrence;
+      negativity = quantumState.negativity;
+      pairwiseEntanglement = quantumState.pairwiseEntanglement;
+      vonNeumannEntropy = quantumState.vonNeumannEntropy;
+      quantumFisher = quantumState.quantumFisher;
+      quantumCapacity = quantumState.quantumCapacity;
+      measurementBasis = quantumState.measurementBasis;
+      collapseStrength = _clamp(quantumState.collapseStrength + precisionEffect, 0.0, 1.0);
+      zeno_effect = quantumState.zeno_effect;
+      microtubuleCoherence = quantumState.microtubuleCoherence;
+      orchestrated_reduction = quantumState.orchestrated_reduction;
+      binding_signature = quantumState.binding_signature;
+      contextuality = quantumState.contextuality;
+      interference_strength = quantumState.interference_strength;
+      superposition_width = quantumState.superposition_width;
+    }
+  };
+
+  /// Integrate with Hebbian plasticity
+  public func integrateWithHebbian(
+    entanglement : Float,
+    synapticStrength : Float,
+    plasticityRate : Float
+  ) : Float {
+    // Synaptic correlations create entanglement
+    let hebbianBoost = synapticStrength * plasticityRate * 0.5;
+    _clamp(entanglement + hebbianBoost, 0.0, 1.0)
+  };
+
+  /// Integrate with Attractor dynamics
+  public func integrateWithAttractor(
+    superposition : Float,
+    attractorDepth : Float
+  ) : Float {
+    // Deep attractors collapse superposition
+    let collapseForce = attractorDepth * 0.3;
+    _clamp(superposition * (1.0 - collapseForce), 0.0, 1.0)
+  };
+
+  /// Integrate with Emergence
+  public func integrateWithEmergence(
+    quantumCoherence : Float,
+    emergenceIndex : Float
+  ) : Float {
+    // Emergence amplifies quantum effects
+    let emergenceBoost = emergenceIndex * 0.2;
+    _clamp(quantumCoherence + emergenceBoost, 0.0, 1.0)
+  };
+
+  // ─── ORCH-OR (PENROSE-HAMEROFF) ───────────────────────────────────────────────
+  
+  /// Orchestrated Objective Reduction state
+  public type OrchORState = {
+    tubulinSuperposition : Float;
+    gravitationalSelfEnergy : Float;
+    reductionThreshold : Float;
+    timeToReduction : Float;
+    consciousMoment : Bool;
+    orchestration : Float;
+  };
+
+  /// Compute Orch-OR dynamics
+  public func computeOrchOR(
+    superposition : Float,
+    mass : Float,
+    separation : Float,
+    hbar : Float
+  ) : OrchORState {
+    // Gravitational self-energy: E_G = ℏ/τ
+    // τ = ℏ/(gravitational self-energy)
+    let g = 6.674e-11;  // Gravitational constant
+    let c = 3.0e8;      // Speed of light
+    
+    // Simplified: E_G ∝ mass² × separation / Planck length
+    let eg = mass * mass * separation * g / (c * c);
+    let tau = if (eg > 0.0001) { hbar / eg } else { 1000.0 };
+    
+    let consciousMoment = tau < 25.0;  // ~25ms for conscious moment
+    
+    {
+      tubulinSuperposition = superposition;
+      gravitationalSelfEnergy = eg;
+      reductionThreshold = 0.5;
+      timeToReduction = _clamp(tau, 0.0, 1000.0);
+      consciousMoment = consciousMoment;
+      orchestration = superposition * (1.0 - eg * 10.0);
+    }
+  };
+
+  // ─── ORGANISM OUTPUT INTEGRATION ──────────────────────────────────────────────
+  
+  /// Complete organism output
+  public type QuantumOrganismOutput = {
+    // Coherence metrics
+    globalCoherence : Float;
+    microtubuleCoherence : Float;
+    decoherenceRate : Float;
+    coherenceTime : Float;
+    
+    // Entanglement metrics
+    entanglementEntropy : Float;
+    concurrence : Float;
+    negativity : Float;
+    
+    // Information metrics
+    vonNeumannEntropy : Float;
+    quantumCapacity : Float;
+    
+    // Quantum cognition
+    interference : Float;
+    contextuality : Float;
+    superposition : Float;
+    
+    // Orch-OR
+    consciousReduction : Float;
+    orchestration : Float;
+    
+    // Integration metrics
+    kuramotoInfluence : Float;
+    fristonInfluence : Float;
+    emergenceInfluence : Float;
+  };
+
+  /// Generate organism output
+  public func generateOrganismOutput(state : OrganismQuantumState) : QuantumOrganismOutput {
+    // Compute global coherence from amplitudes
+    var globalCoh : Float = 0.0;
+    for (a in state.amplitudes.vals()) {
+      globalCoh += a * a;
+    };
+    
+    {
+      globalCoherence = _clamp(globalCoh, 0.0, 1.0);
+      microtubuleCoherence = state.microtubuleCoherence;
+      decoherenceRate = state.decoherenceRate;
+      coherenceTime = state.coherenceTime;
+      entanglementEntropy = state.entanglementEntropy;
+      concurrence = state.concurrence;
+      negativity = state.negativity;
+      vonNeumannEntropy = state.vonNeumannEntropy;
+      quantumCapacity = state.quantumCapacity;
+      interference = state.interference_strength;
+      contextuality = state.contextuality;
+      superposition = state.superposition_width;
+      consciousReduction = state.orchestrated_reduction;
+      orchestration = state.binding_signature;
+      kuramotoInfluence = 0.0;
+      fristonInfluence = 0.0;
+      emergenceInfluence = 0.0;
+    }
+  };
+
+  // ─── OUTWARD EXTENSIONS ───────────────────────────────────────────────────────
+  
+  /// Output for Kuramoto
+  public func outputToKuramoto(state : OrganismQuantumState) : { phaseCoherence : Float; couplingBoost : Float } {
+    {
+      phaseCoherence = state.microtubuleCoherence;
+      couplingBoost = state.entanglementEntropy;
+    }
+  };
+
+  /// Output for Friston
+  public func outputToFriston(state : OrganismQuantumState) : { quantumPrecision : Float; uncertaintyReduction : Float } {
+    {
+      quantumPrecision = state.quantumFisher;
+      uncertaintyReduction = 1.0 - state.vonNeumannEntropy / 10.0;
+    }
+  };
+
+  /// Output for Hebbian
+  public func outputToHebbian(state : OrganismQuantumState) : { correlationStrength : Float; bindingSignature : Float } {
+    {
+      correlationStrength = state.concurrence;
+      bindingSignature = state.binding_signature;
+    }
+  };
+
+  /// Output for Attractor
+  public func outputToAttractor(state : OrganismQuantumState) : { quantumTunneling : Float; basinJump : Float } {
+    {
+      quantumTunneling = state.interference_strength;
+      basinJump = state.superposition_width * state.microtubuleCoherence;
+    }
+  };
+
+  /// Output for Defense
+  public func outputToDefense(state : OrganismQuantumState) : { quantumRandomness : Float; encryptionStrength : Float } {
+    {
+      quantumRandomness = state.vonNeumannEntropy / 5.0;
+      encryptionStrength = state.entanglementEntropy;
+    }
+  };
+
+  /// Master output
+  public func generateAllOutputs(state : OrganismQuantumState) : {
+    kuramoto : { phaseCoherence : Float; couplingBoost : Float };
+    friston : { quantumPrecision : Float; uncertaintyReduction : Float };
+    hebbian : { correlationStrength : Float; bindingSignature : Float };
+    attractor : { quantumTunneling : Float; basinJump : Float };
+    defense : { quantumRandomness : Float; encryptionStrength : Float };
+    organism : QuantumOrganismOutput;
+  } {
+    {
+      kuramoto = outputToKuramoto(state);
+      friston = outputToFriston(state);
+      hebbian = outputToHebbian(state);
+      attractor = outputToAttractor(state);
+      defense = outputToDefense(state);
+      organism = generateOrganismOutput(state);
+    }
+  };
+
+  // ─── FULL ORGANISM BEAT ───────────────────────────────────────────────────────
+  
+  /// Complete organism quantum beat
+  public func fullOrganismBeat(
+    state : OrganismQuantumState,
+    dt : Float,
+    kuramotoOrder : Float,
+    fristonEnergy : Float,
+    hebbianStrength : Float,
+    attractorDepth : Float
+  ) : (OrganismQuantumState, QuantumOrganismOutput) {
+    // Layer 1: Decoherence dynamics
+    let decoherence = state.decoherenceRate * dt;
+    
+    // Layer 2: Kuramoto integration
+    let newMTCoherence = integrateWithKuramoto(state.microtubuleCoherence, kuramotoOrder, 0.0);
+    
+    // Layer 3: Friston integration
+    var newState = integrateWithFriston(state, fristonEnergy, 0.5);
+    
+    // Layer 4: Hebbian integration
+    let newEntanglement = integrateWithHebbian(state.entanglementEntropy, hebbianStrength, 0.01);
+    
+    // Layer 5: Attractor integration
+    let newSuperposition = integrateWithAttractor(state.superposition_width, attractorDepth);
+    
+    // Update state
+    newState := {
+      amplitudes = newState.amplitudes;
+      phases = newState.phases;
+      coherenceMatrix = newState.coherenceMatrix;
+      decoherenceRate = newState.decoherenceRate;
+      environmentCoupling = newState.environmentCoupling;
+      thermalNoise = newState.thermalNoise;
+      coherenceTime = newState.coherenceTime;
+      entanglementEntropy = newEntanglement;
+      concurrence = newState.concurrence;
+      negativity = newState.negativity;
+      pairwiseEntanglement = newState.pairwiseEntanglement;
+      vonNeumannEntropy = newState.vonNeumannEntropy;
+      quantumFisher = newState.quantumFisher;
+      quantumCapacity = newState.quantumCapacity;
+      measurementBasis = newState.measurementBasis;
+      collapseStrength = newState.collapseStrength;
+      zeno_effect = newState.zeno_effect;
+      microtubuleCoherence = newMTCoherence;
+      orchestrated_reduction = newState.orchestrated_reduction;
+      binding_signature = newState.binding_signature;
+      contextuality = newState.contextuality;
+      interference_strength = newState.interference_strength;
+      superposition_width = newSuperposition;
+    };
+    
+    let output = generateOrganismOutput(newState);
+    (newState, output)
+  };
+
 }
