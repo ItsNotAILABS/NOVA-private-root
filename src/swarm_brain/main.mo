@@ -228,6 +228,16 @@ import SelfRepairEngine              "./modules/SelfRepairEngine";
 import HeartbeatEngine               "./modules/HeartbeatEngine";
 import NeurochemicalCrosstalkMatrix  "./modules/NeurochemicalCrosstalkMatrix";
 
+// ═══════════════════════════════════════════════════════════════════════════
+// PARALLAX DECISION ENGINE & ENTANGLA SOCIAL BINDING
+// These provide DEEP quantum-neurochemical decision making and social binding
+// PARALLAX: 5-path complex amplitude interference for multi-perspective decisions
+// ENTANGLA: CHSH Bell inequality violations for inter-agent social binding
+// ═══════════════════════════════════════════════════════════════════════════
+
+import PARALLAXDecisionEngine        "./modules/PARALLAXDecisionEngine";
+import ENTANGLASocialBinding         "./modules/ENTANGLASocialBinding";
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // NEW COMPREHENSIVE MODULES — LAW-AS-VERIFIER ARCHITECTURE
 // Every law is a verification function. The law IS the immune system.
@@ -714,6 +724,41 @@ actor SwarmBrain {
   // ─── SILVER SOVEREIGNTY (L-121) ──────────────────────────────────────────────
   // Silver conductance permanently 1.0, all world model EMAs at zero lag
   stable var silverConductance : Float = 1.0;
+  
+  // ─── PARALLAX DECISION ENGINE STATE ─────────────────────────────────────────
+  // 5-path quantum amplitude interference for multi-perspective decisions
+  stable var parallaxTotalDecisions : Nat = 0;
+  stable var parallaxPathSelectionCounts : [var Nat] = Array.init<Nat>(5, 0);
+  stable var parallaxPathRewardHistory : [var Float] = Array.init<Float>(5, 0.5);
+  stable var parallaxPathConfidenceEMA : [var Float] = Array.init<Float>(5, 0.5);
+  stable var parallaxGlobalPhase : Float = 0.0;
+  stable var parallaxDecoherenceRate : Float = 0.05;
+  stable var parallaxInterferenceStrength : Float = 0.3;
+  stable var parallaxAverageConfidence : Float = 0.5;
+  stable var parallaxDecisionQuality : Float = 0.5;
+  stable var parallaxRegretAccumulator : Float = 0.0;
+  stable var parallaxLastWinnerIndex : Nat = 0;
+  stable var parallaxLastWinnerProbability : Float = 0.2;
+  stable var parallaxLastEntropyScore : Float = 0.5;
+  stable var parallaxLastCoherenceLevel : Float = 0.5;
+  
+  // ─── ENTANGLA SOCIAL BINDING STATE ──────────────────────────────────────────
+  // CHSH Bell inequality violations for inter-agent social binding
+  stable var entanglaCurrentSValue : Float = 0.0;
+  stable var entanglaBellViolation : Bool = false;
+  stable var entanglaQuantumness : Float = 0.0;
+  stable var entanglaAverageSValue : Float = 0.0;
+  stable var entanglaBellViolationRate : Float = 0.0;
+  stable var entanglaSocialCoherence : Float = 0.0;
+  stable var entanglaGlobalEntanglement : Float = 0.0;
+  stable var entanglaTotalBellTests : Nat = 0;
+  stable var entanglaMaxSValue : Float = 0.0;
+  stable var entanglaMinSValue : Float = 0.0;
+  stable var entanglaChshEMA : Float = 0.0;
+  // Council binding matrix (5×5 = 25 entries)
+  stable var entanglaCouncilMatrix : [var Float] = Array.init<Float>(25, 0.0);
+  // Shell binding matrix (12×12 = 144 entries)
+  stable var entanglaShellMatrix : [var Float] = Array.init<Float>(144, 0.0);
   
   // ─── ACCESS CONTROL HELPERS ─────────────────────────────────────────────────
   func isAuthorized(caller : Principal) : Bool {
@@ -3178,6 +3223,250 @@ actor SwarmBrain {
   };
 
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+  // SECTION 2.5: UPDATE PARALLAX DECISION ENGINE
+  // 5-path quantum amplitude interference for multi-perspective decision making
+  // This is called every beat to evolve decision amplitudes based on neurochemical state
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+  func updatePARALLAXDecisionEngine() {
+    let dt = 1.0 / 12.0;  // 12 Hz heartbeat
+    
+    // Build neurochemical array for PARALLAX
+    let neurochemicals = [
+      dopamineConcent,      // 0: Dopamine → Path 0 (reward)
+      serotoninConcent,     // 1: Serotonin → Path 1 (stability)
+      norepinephrineConcent, // 2: Norepinephrine → Path 2 (urgency)
+      acetylcholineConcent, // 3: Acetylcholine → Path 3 (learning)
+      gabaConcent,          // 4: GABA → Path 4 (inhibition)
+      glutamateConcent,     // 5
+      endorphinConcent,     // 6
+      oxytocinConcent,      // 7
+      cortisolConcent,      // 8
+      adrenalineConcent,    // 9: Adrenaline → Path 2 (urgency)
+      melatoninConcent,     // 10
+      histamineConcent,     // 11
+      substancePConcent,    // 12
+      adenosineConcent,     // 13: Adenosine → Path 4 (inhibition)
+      anandamideConcent,    // 14
+      dynorphinConcent,     // 15
+      vasopressinConcent,   // 16
+      npyConcent,           // 17
+      orexinConcent,        // 18
+      bdnfConcent,          // 19: BDNF → Path 3 (learning)
+      ngfConcent            // 20
+    ];
+    
+    // Initialize decision paths
+    var paths = PARALLAXDecisionEngine.initializeDecisionPaths("behavior");
+    
+    // Apply prior knowledge from path history
+    paths := Array.tabulate<PARALLAXDecisionEngine.DecisionPath>(5, func(i: Nat) : PARALLAXDecisionEngine.DecisionPath {
+      let path = paths[i];
+      let historyBias = parallaxPathRewardHistory[i];
+      {
+        id = path.id;
+        name = path.name;
+        iComponent = path.iComponent + historyBias * 0.2;
+        qComponent = path.qComponent;
+        amplitudeSquared = path.amplitudeSquared;
+        probability = path.probability;
+        neurochemicalAffinity = path.neurochemicalAffinity;
+        decayRate = path.decayRate;
+        rewardHistory = historyBias;
+        confidenceScore = parallaxPathConfidenceEMA[i];
+      }
+    });
+    
+    // Evolve amplitudes based on neurochemical state
+    paths := PARALLAXDecisionEngine.evolvePathAmplitudes(paths, neurochemicals, parallaxGlobalPhase, dt);
+    
+    // Compute path interference
+    let interferenceResult = PARALLAXDecisionEngine.computePathInterference(paths, parallaxInterferenceStrength);
+    paths := interferenceResult.paths;
+    
+    // Normalize probabilities
+    paths := PARALLAXDecisionEngine.normalizeProbabilities(paths);
+    
+    // Generate noise from quantum state for path selection
+    let noise = Float.sin(Float.fromInt(currentBeat) * 0.1234567 + masterBeatPhase) * 0.5 + 0.5;
+    
+    // Select winning path (quantum measurement)
+    let selection = PARALLAXDecisionEngine.selectWinningPath(paths, noise);
+    
+    // Compute decision metrics
+    let entropy = PARALLAXDecisionEngine.computeDecisionEntropy(paths);
+    let coherence = PARALLAXDecisionEngine.computeDecisionCoherence(paths);
+    
+    // Update engine state
+    parallaxLastWinnerIndex := selection.winnerIndex;
+    parallaxLastWinnerProbability := selection.winnerProbability;
+    parallaxLastEntropyScore := entropy;
+    parallaxLastCoherenceLevel := coherence;
+    parallaxGlobalPhase := parallaxGlobalPhase + PARALLAXDecisionEngine.π / 100.0;
+    parallaxTotalDecisions += 1;
+    
+    // Update path statistics with EMA
+    let alpha = 0.1;
+    parallaxPathSelectionCounts[selection.winnerIndex] += 1;
+    // Reward is based on swarm coherence improvement
+    let reward = rSwarm;
+    parallaxPathRewardHistory[selection.winnerIndex] := parallaxPathRewardHistory[selection.winnerIndex] * (1.0 - alpha) + reward * alpha;
+    parallaxPathConfidenceEMA[selection.winnerIndex] := parallaxPathConfidenceEMA[selection.winnerIndex] * 0.95 + coherence * 0.05;
+    
+    // Update global metrics
+    parallaxDecisionQuality := parallaxDecisionQuality * 0.99 + reward * 0.01;
+    parallaxAverageConfidence := parallaxAverageConfidence * 0.99 + coherence * 0.01;
+    
+    // PARALLAX influences shark predator path selection
+    sharkPredatorQuantumPath := Float.fromInt(selection.winnerIndex) / 4.0;
+    
+    // PARALLAX decision affects crow cognition
+    crowCognitionQuantumDecision := coherence;
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+  // SECTION 2.6: UPDATE ENTANGLA SOCIAL BINDING ENGINE
+  // CHSH Bell inequality violations for inter-agent social binding
+  // This is called every beat to update drone-drone, council-council, and shell-shell binding
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+  func updateENTANGLASocialBinding() {
+    let dt = 1.0 / 12.0;  // 12 Hz heartbeat
+    
+    // Extract drone phases for CHSH computation
+    let dronePhases = Array.freeze(stablePhases);
+    
+    // Extract council phases (from coherence values)
+    let councilPhases : [Float] = [
+      councilCoherence[0] * 2.0 * ENTANGLASocialBinding.π,  // LEXIS
+      councilCoherence[1] * 2.0 * ENTANGLASocialBinding.π,  // PARALLAX-SWARM
+      councilCoherence[2] * 2.0 * ENTANGLASocialBinding.π,  // VETUS
+      councilCoherence[3] * 2.0 * ENTANGLASocialBinding.π,  // AEGIS
+      councilCoherence[4] * 2.0 * ENTANGLASocialBinding.π   // FORMA
+    ];
+    
+    // Extract shell phases
+    let shellPhases = Array.freeze(shellQuantumPhases);
+    let shellCoherences = Array.freeze(shellQuantumCoherences);
+    
+    // Extract council votes
+    let councilVotesArray = Array.freeze(councilVotes);
+    
+    // Compute average drone phase
+    var sumPhase : Float = 0.0;
+    var droneCountFloat : Float = 0.0;
+    for (phase in dronePhases.vals()) {
+      sumPhase += phase;
+      droneCountFloat += 1.0;
+    };
+    let avgDronePhase = if (droneCountFloat > 0.0) { sumPhase / droneCountFloat } else { 0.0 };
+    
+    // Compute CHSH measurement
+    let chsh = ENTANGLASocialBinding.computeCHSH(avgDronePhase, masterBeatPhase, rSwarm);
+    
+    // Update engine state
+    entanglaCurrentSValue := chsh.sValue;
+    entanglaBellViolation := chsh.bellViolation;
+    entanglaQuantumness := chsh.quantumness;
+    
+    // Update EMA of S-value
+    entanglaChshEMA := entanglaChshEMA * 0.98 + chsh.sValue * 0.02;
+    entanglaAverageSValue := entanglaChshEMA;
+    
+    // Update Bell test statistics
+    entanglaTotalBellTests += 1;
+    if (chsh.bellViolation) {
+      let violationRate = entanglaBellViolationRate * Float.fromInt(entanglaTotalBellTests - 1);
+      entanglaBellViolationRate := (violationRate + 1.0) / Float.fromInt(entanglaTotalBellTests);
+    } else {
+      let violationRate = entanglaBellViolationRate * Float.fromInt(entanglaTotalBellTests - 1);
+      entanglaBellViolationRate := violationRate / Float.fromInt(entanglaTotalBellTests);
+    };
+    
+    // Track max/min S-values
+    if (chsh.sValue > entanglaMaxSValue) { entanglaMaxSValue := chsh.sValue };
+    if (chsh.sValue < entanglaMinSValue or entanglaMinSValue == 0.0) { entanglaMinSValue := chsh.sValue };
+    
+    // Update council binding matrix
+    var i = 0;
+    while (i < 5) {
+      var j = 0;
+      while (j < 5) {
+        if (i != j) {
+          let idx = i * 5 + j;
+          let phase_i = councilPhases[i];
+          let phase_j = councilPhases[j];
+          let vote_i = councilVotesArray[i];
+          let vote_j = councilVotesArray[j];
+          
+          // Phase coupling + vote alignment
+          let phaseBind = Float.cos(phase_i - phase_j);
+          let voteBind = 1.0 - Float.abs(vote_i - vote_j);
+          let binding = (phaseBind + voteBind) / 2.0;
+          
+          entanglaCouncilMatrix[idx] := entanglaCouncilMatrix[idx] * 0.9 + binding * 0.1;
+        };
+        j += 1;
+      };
+      i += 1;
+    };
+    
+    // Update shell binding matrix
+    i := 0;
+    while (i < 12) {
+      var j2 = 0;
+      while (j2 < 12) {
+        if (i != j2) {
+          let idx = i * 12 + j2;
+          let phase_i = if (i < shellPhases.size()) { shellPhases[i] } else { 0.0 };
+          let phase_j = if (j2 < shellPhases.size()) { shellPhases[j2] } else { 0.0 };
+          let coh_i = if (i < shellCoherences.size()) { shellCoherences[i] } else { 0.5 };
+          let coh_j = if (j2 < shellCoherences.size()) { shellCoherences[j2] } else { 0.5 };
+          
+          // Binding depends on phase alignment and mutual coherence
+          let phaseBind = Float.cos(phase_i - phase_j);
+          let cohBind = (coh_i + coh_j) / 2.0;
+          let binding = phaseBind * cohBind;
+          
+          entanglaShellMatrix[idx] := entanglaShellMatrix[idx] * 0.95 + binding * 0.05;
+        };
+        j2 += 1;
+      };
+      i += 1;
+    };
+    
+    // Compute social coherence (Kuramoto-style)
+    var sumX : Float = 0.0;
+    var sumY : Float = 0.0;
+    var countEntries : Float = 0.0;
+    for (binding in entanglaCouncilMatrix.vals()) {
+      sumX += Float.cos(binding * ENTANGLASocialBinding.π);
+      sumY += Float.sin(binding * ENTANGLASocialBinding.π);
+      countEntries += 1.0;
+    };
+    if (countEntries > 0.0) {
+      let avgX = sumX / countEntries;
+      let avgY = sumY / countEntries;
+      entanglaSocialCoherence := Float.sqrt(avgX * avgX + avgY * avgY);
+    };
+    
+    // Global entanglement increases with oxytocin and Bell violations
+    let oxytocinBoost = (oxytocinConcent - 0.5) * 0.1;
+    let violationBoost = if (chsh.bellViolation) { 0.05 } else { 0.0 };
+    entanglaGlobalEntanglement := Float.min(1.0, Float.max(0.0, entanglaGlobalEntanglement + oxytocinBoost + violationBoost - 0.01));
+    
+    // ENTANGLA Bell violation bonus boosts bee swarm quantum
+    beeSwarmQuantumBoost := 1.0 + (if (chsh.bellViolation) { chsh.quantumness * 0.2 } else { 0.0 });
+    
+    // ENTANGLA social coherence affects council quantum Bell violations
+    var councilIdx = 0;
+    while (councilIdx < 5) {
+      councilQuantumBellViolations[councilIdx] := entanglaCouncilMatrix[councilIdx * 5] * entanglaSocialCoherence;
+      councilIdx += 1;
+    };
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   // SECTION 3: COMPUTE SPHERICAL QUANTUM STATE (ALL Layers Integrated)
   // This is the MASTER function that computes quantum state propagation through all 9 subsystems
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -3591,29 +3880,47 @@ actor SwarmBrain {
     // Step 2: Update neurochemical system (441 coupled equations)
     updateNeurochemicalSystem();
     
-    // Step 3: Compute full spherical quantum state (all 9 subsystems)
+    // Step 3: Update PARALLAX Decision Engine (5-path quantum amplitude interference)
+    updatePARALLAXDecisionEngine();
+    
+    // Step 4: Update ENTANGLA Social Binding (CHSH Bell inequality correlations)
+    updateENTANGLASocialBinding();
+    
+    // Step 5: Compute full spherical quantum state (all 9 subsystems)
     computeSphericalQuantumIntegration();
     
-    // Step 4: Apply quantum modulation to drone fleet
+    // Step 6: Apply quantum modulation to drone fleet
     applyQuantumModulationToDrones();
     
-    // Step 5: Update dopamine and serotonin global levels from neurochemical state
+    // Step 7: Update dopamine and serotonin global levels from neurochemical state
     dopamineLevel := dopamineConcent;
     serotoninLevel := serotoninConcent;
     
-    // Step 6: Update circadian alignment based on melatonin and time of day
+    // Step 8: Update circadian alignment based on melatonin and time of day
     // Perfect alignment = melatonin high at night, low during day
     let timeOfDayNormalized = (Float.sin(circadianPhase) + 1.0) / 2.0;  // [0,1], 0=night, 1=day
     let expectedMelatonin = 1.0 - timeOfDayNormalized;  // High at night
     let melatoninDeviation = Float.abs(melatoninConcent - expectedMelatonin);
     circadianAlignment := 1.0 - melatoninDeviation;
     
-    // Step 7: Update heartbeat variability (HRV) from quantum state
+    // Step 9: Update heartbeat variability (HRV) from quantum state
     // High variability = healthy (driven by RESONEX participants)
     if (quantumHeartbeatState.resonexParticipants > 0) {
       let participantRatio = Float.fromInt(quantumHeartbeatState.resonexParticipants) / 8.0;  // 8 oscillators
       heartbeatVariability := participantRatio * quantumHeartbeatState.resonexAmplitude;
     };
+    
+    // Step 10: Cross-wire PARALLAX and ENTANGLA into quantum operator feedback
+    // PARALLAX decision entropy affects decoherence rate
+    parallaxDecoherenceRate := 0.05 + parallaxLastEntropyScore * 0.05;
+    
+    // ENTANGLA Bell violation rate affects interference strength
+    parallaxInterferenceStrength := 0.3 + entanglaBellViolationRate * 0.2;
+    
+    // Spherical integrity includes both new engines
+    let parallaxHealth = parallaxLastCoherenceLevel;
+    let entanglaHealth = entanglaSocialCoherence;
+    sphericalIntegrity := sphericalIntegrity * 0.95 + (parallaxHealth + entanglaHealth) / 2.0 * 0.05;
   };
 
   public query func getSovereignSeal()       : async Text      { sovereignSeal };
@@ -9860,6 +10167,178 @@ actor SwarmBrain {
       voteSpread = maxVote - minVote;
       consensus = voteSpread < 0.2;
       tieBreakPath = quantumHeartbeatState.parallaxWinnerPath;
+    }
+  };
+
+  // ─── QUERY: Get PARALLAX Decision Engine State ─────────────────────────────────
+  public query func getPARALLAXDecisionEngineState() : async {
+    // Engine statistics
+    totalDecisions : Nat;
+    pathSelectionCounts : [Nat];
+    pathRewardHistory : [Float];
+    pathConfidenceEMA : [Float];
+    
+    // Decision quality metrics
+    averageConfidence : Float;
+    decisionQuality : Float;
+    regretAccumulator : Float;
+    
+    // Current decision state
+    lastWinnerIndex : Nat;
+    lastWinnerProbability : Float;
+    lastEntropyScore : Float;
+    lastCoherenceLevel : Float;
+    
+    // Quantum state
+    globalPhase : Float;
+    decoherenceRate : Float;
+    interferenceStrength : Float;
+    
+    // Cross-system effects
+    sharkPredatorPath : Float;
+    crowCognitionDecision : Float;
+  } {
+    {
+      totalDecisions = parallaxTotalDecisions;
+      pathSelectionCounts = Array.freeze(parallaxPathSelectionCounts);
+      pathRewardHistory = Array.freeze(parallaxPathRewardHistory);
+      pathConfidenceEMA = Array.freeze(parallaxPathConfidenceEMA);
+      
+      averageConfidence = parallaxAverageConfidence;
+      decisionQuality = parallaxDecisionQuality;
+      regretAccumulator = parallaxRegretAccumulator;
+      
+      lastWinnerIndex = parallaxLastWinnerIndex;
+      lastWinnerProbability = parallaxLastWinnerProbability;
+      lastEntropyScore = parallaxLastEntropyScore;
+      lastCoherenceLevel = parallaxLastCoherenceLevel;
+      
+      globalPhase = parallaxGlobalPhase;
+      decoherenceRate = parallaxDecoherenceRate;
+      interferenceStrength = parallaxInterferenceStrength;
+      
+      sharkPredatorPath = sharkPredatorQuantumPath;
+      crowCognitionDecision = crowCognitionQuantumDecision;
+    }
+  };
+
+  // ─── QUERY: Get ENTANGLA Social Binding State ──────────────────────────────────
+  public query func getENTANGLASocialBindingState() : async {
+    // CHSH Bell test state
+    currentSValue : Float;
+    bellViolation : Bool;
+    quantumness : Float;
+    averageSValue : Float;
+    chshEMA : Float;
+    
+    // Bell violation statistics
+    totalBellTests : Nat;
+    bellViolationRate : Float;
+    maxSValue : Float;
+    minSValue : Float;
+    
+    // Social binding metrics
+    socialCoherence : Float;
+    globalEntanglement : Float;
+    
+    // Council binding matrix (5×5)
+    councilBindingMatrix : [Float];
+    
+    // Shell binding matrix (12×12 reduced to key pairs)
+    shellBindingDiagonal : [Float];
+    
+    // Cross-system effects
+    beeSwarmBoost : Float;
+    councilBellViolations : [Float];
+  } {
+    // Extract diagonal of shell binding matrix
+    let shellDiag = Array.tabulate<Float>(12, func(i: Nat) : Float {
+      let idx = i * 12 + i;
+      if (idx < entanglaShellMatrix.size()) { entanglaShellMatrix[idx] } else { 0.0 }
+    });
+    
+    {
+      currentSValue = entanglaCurrentSValue;
+      bellViolation = entanglaBellViolation;
+      quantumness = entanglaQuantumness;
+      averageSValue = entanglaAverageSValue;
+      chshEMA = entanglaChshEMA;
+      
+      totalBellTests = entanglaTotalBellTests;
+      bellViolationRate = entanglaBellViolationRate;
+      maxSValue = entanglaMaxSValue;
+      minSValue = entanglaMinSValue;
+      
+      socialCoherence = entanglaSocialCoherence;
+      globalEntanglement = entanglaGlobalEntanglement;
+      
+      councilBindingMatrix = Array.freeze(entanglaCouncilMatrix);
+      
+      shellBindingDiagonal = shellDiag;
+      
+      beeSwarmBoost = beeSwarmQuantumBoost;
+      councilBellViolations = Array.freeze(councilQuantumBellViolations);
+    }
+  };
+
+  // ─── QUERY: Get PARALLAX + ENTANGLA Combined Summary ───────────────────────────
+  public query func getQuantumDecisionSocialSummary() : async {
+    // PARALLAX summary
+    parallaxStatus : Text;
+    parallaxWinnerPath : Text;
+    parallaxConfidence : Float;
+    parallaxEntropy : Float;
+    
+    // ENTANGLA summary
+    entanglaStatus : Text;
+    bellViolationStatus : Text;
+    socialHealth : Float;
+    
+    // Cross-system integration
+    integrationQuality : Float;
+    sharkPath : Float;
+    crowDecision : Float;
+    beeBoost : Float;
+    
+    // Overall health
+    quantumDecisionSocialHealth : Float;
+  } {
+    let pathNames = ["FORAGE", "DEFEND", "ENGAGE", "RETREAT", "RELAY"];
+    let winnerName = if (parallaxLastWinnerIndex < 5) { pathNames[parallaxLastWinnerIndex] } else { "UNKNOWN" };
+    
+    let parallaxStat = if (parallaxLastCoherenceLevel > 0.7) { "HIGH COHERENCE" }
+                       else if (parallaxLastCoherenceLevel > 0.4) { "MODERATE" }
+                       else { "EXPLORING" };
+    
+    let entanglaStat = if (entanglaSocialCoherence > 0.7) { "HIGHLY BOUND" }
+                       else if (entanglaSocialCoherence > 0.4) { "MODERATE BINDING" }
+                       else { "LOOSELY COUPLED" };
+    
+    let bellStat = if (entanglaBellViolation) { "ACTIVE VIOLATION (quantum correlation)" }
+                   else { "CLASSICAL (no violation)" };
+    
+    let socialHealthMetric = (entanglaSocialCoherence + entanglaGlobalEntanglement + entanglaBellViolationRate) / 3.0;
+    
+    let integrationQual = (parallaxLastCoherenceLevel + entanglaSocialCoherence) / 2.0;
+    
+    let overallHealth = (parallaxDecisionQuality + socialHealthMetric + integrationQual) / 3.0;
+    
+    {
+      parallaxStatus = parallaxStat;
+      parallaxWinnerPath = winnerName;
+      parallaxConfidence = parallaxLastCoherenceLevel;
+      parallaxEntropy = parallaxLastEntropyScore;
+      
+      entanglaStatus = entanglaStat;
+      bellViolationStatus = bellStat;
+      socialHealth = socialHealthMetric;
+      
+      integrationQuality = integrationQual;
+      sharkPath = sharkPredatorQuantumPath;
+      crowDecision = crowCognitionQuantumDecision;
+      beeBoost = beeSwarmQuantumBoost;
+      
+      quantumDecisionSocialHealth = overallHealth;
     }
   };
 
