@@ -2785,6 +2785,190 @@ actor SwarmBrain {
       modulesCalledThisBeat += 1;
     };
     
+    // ═══════════════════════════════════════════════════════════════════════════
+    // PHASE 3: LAYERS 24-35 — REMAINING CRITICAL MODULES
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // ─── LAYER 24: BACKWARD ESTIMATION & FILTERING (every beat) ─────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Backward Kalman smoother - state estimation
+      ignore BackwardKalmanSmoother.smooth(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Backward estimation engine
+      ignore BackwardEstimationEngine.estimate(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Prediction calibration
+      ignore PredictionCalibration.calibrate(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 25: MIRROR NEURON & SOCIAL (every beat) ──────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Mirror neuron system - empathy & imitation
+      ignore MirrorNeuronSystem.mirror(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Social cognition engine
+      ignore SocialCognitionEngine.socialize(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 26: ADVANCED MATH FOUNDATIONS (every 5 beats) ────────────────────
+    if (orchestrationActive and currentBeat % 5 == 0) {
+      // Advanced mathematical foundations
+      ignore AdvancedMathematicalFoundations.compute(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Medina math foundation
+      ignore MedinaMathFoundation.foundation(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Category theory engine
+      ignore CategoryTheoryEngine.functors(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Information geometry
+      ignore InformationGeometryEngine.geometry(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 27: SWARM COORDINATION (every beat) ──────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Swarm coherence matrix
+      ignore SwarmCoherenceMatrix.cohere(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Pheromone trail system
+      ignore PheromoneTrailSystem.trail(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Quorum sensing
+      ignore QuorumSensingEngine.sense(rSwarm, n);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 28: GENESIS & REPRODUCTION (every 10 beats) ──────────────────────
+    if (orchestrationActive and currentBeat % 10 == 0) {
+      // Code genesis engine
+      ignore CodeGenesisEngine.genesis(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Reproduction system
+      ignore ReproductionSystem.reproduce(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Sacrifice doctrine
+      ignore SacrificeDoctrine.sacrifice(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 29: AUTONOMIC SYSTEM (every beat) ────────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Autonomic nervous system
+      ignore AutonomicNervousSystem.regulate(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Homeostatic balance engine
+      ignore HomeostaticBalanceEngine.balance(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Circadian rhythm engine
+      ignore CircadianRhythmEngine.rhythm(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 30: ENGINE WIRING & ORCHESTRATION (every beat) ───────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Engine wiring - cross-module integration
+      ignore EngineWiring.wire(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Module orchestrator
+      ignore ModuleOrchestrator.orchestrate(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Integration validator
+      ignore IntegrationValidator.validate(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 31: COHERENCE & COUPLING (every beat) ────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Coherence amplifier
+      ignore CoherenceAmplifier.amplify(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Coupling strength manager
+      ignore CouplingStrengthManager.manage(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Phase locking loop
+      ignore PhaseLockingLoop.lock(rSwarm, n);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 32: AUDIT & LOGGING (every beat) ─────────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Audit log - comprehensive logging
+      ignore AuditLog.log(
+        auditState,
+        #TICK, currentBeat, null,
+        "Full orchestration complete",
+        rSwarm, jDrift, Float.fromInt(modulesCalledThisBeat), "SYSTEM", "{}"
+      );
+      modulesCalledThisBeat += 1;
+      
+      // Performance monitor
+      ignore PerformanceMonitor.monitor(rSwarm, modulesCalledThisBeat);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 33: REMAINING GEN3 ANIMALS (every 3 beats) ───────────────────────
+    if (orchestrationActive and currentBeat % 3 == 0) {
+      // Gen3 animals catalog - full animal kingdom
+      ignore Gen3AnimalsCatalog.evolve(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Arctic tern navigation
+      ignore ArcticTernNavigation.navigate(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Cuttlefish camouflage
+      ignore CuttlefishCamouflage.adapt(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Bat echolocation
+      ignore BatEcholocation.echolocate(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Ant colony optimization
+      ignore AntColonyOptimization.optimize(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 34: FINAL INTEGRATION CHECKS (every beat) ────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Final sovereignty verification
+      ignore SovereigntyVerifier.verify(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Organism health check
+      ignore OrganismHealthChecker.check(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Coherence validator
+      ignore CoherenceValidator.validate(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 35: FINAL OUTPUT COMPUTATION ─────────────────────────────────────
+    // Compute final output metrics after all layers have executed
+    let finalCoherence = Float.max(0.0, Float.min(1.0, rSwarm));
+    let finalDrift = Float.max(-1.0, Float.min(1.0, jDrift));
+    let modulesExecuted = modulesCalledThisBeat;
+    
     // Track total module calls
     totalModuleCallsAllTime += modulesCalledThisBeat;
 
