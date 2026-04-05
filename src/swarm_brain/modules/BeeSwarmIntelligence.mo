@@ -2487,4 +2487,1312 @@ module {
     Float.sqrt(sumCos * sumCos + sumSin * sumSin) / nf
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 15: REAL-WORLD DRONE INTEGRATION — BEE-TO-DRONE MAPPING
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Translating bee neuroscience into autonomous drone swarm behavior
+  // Each bee cognitive function maps to a drone capability
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Drone physical state
+  public type DronePhysicalState = {
+    // Position (GPS coordinates or local NED frame)
+    latitude   : Float;
+    longitude  : Float;
+    altitude   : Float;
+    // Velocity (m/s)
+    vx         : Float;
+    vy         : Float;
+    vz         : Float;
+    // Attitude (radians)
+    roll       : Float;
+    pitch      : Float;
+    yaw        : Float;
+    // Angular rates (rad/s)
+    rollRate   : Float;
+    pitchRate  : Float;
+    yawRate    : Float;
+    // Battery
+    batteryVoltage  : Float;
+    batteryPercent  : Float;
+    // Sensors
+    gpsFixType      : Nat;   // 0=no fix, 1=2D, 2=3D, 3=DGPS
+    satelliteCount  : Nat;
+    hdop            : Float;
+    // Timestamp
+    lastUpdate      : Nat;
+  };
+
+  /// Drone mission state (maps to bee foraging state)
+  public type DroneMissionState = {
+    // Current mission phase (maps to bee behavioral state)
+    phase          : Text;   // "idle", "scouting", "foraging", "returning", "dancing"
+    // Target coordinates
+    targetLat      : Float;
+    targetLon      : Float;
+    targetAlt      : Float;
+    // Resource quality assessment (like nectar quality)
+    resourceQuality : Float;
+    // Distance to target
+    distanceToTarget : Float;
+    // Time on mission
+    missionStartTime : Nat;
+    missionDuration  : Nat;
+    // Waggle dance equivalent (telemetry report)
+    reportReady      : Bool;
+    reportQuality    : Float;
+    reportDirection  : Float;
+    reportDistance   : Float;
+  };
+
+  /// Complete drone state with bee brain mapping
+  public type BeeDroneState = {
+    // Identity
+    droneId        : Nat;
+    squadronId     : Nat;
+    role           : Text;   // "scout", "forager", "guard", "nurse"
+    age            : Nat;    // Beats since birth
+    
+    // Physical
+    physical       : DronePhysicalState;
+    
+    // Mission
+    mission        : DroneMissionState;
+    
+    // Bee brain state
+    kenyonActivation : [Float];        // Sparse code in mushroom body
+    antennalInput    : [Float];        // Sensory processing
+    centralComplex   : CentralComplexState;  // Navigation
+    vum              : Float;          // Reward signal (octopamine equivalent)
+    
+    // Kuramoto phase (for swarm sync)
+    phase           : Float;
+    naturalFreq     : Float;
+    
+    // Communication
+    receivedWaggles : [WaggleSignal];
+    pendingWaggles  : [WaggleSignal];
+    
+    // Health/Status
+    isActive        : Bool;
+    faultCodes      : [Nat];
+  };
+
+  /// Central complex state for navigation (maps to drone autopilot)
+  public type CentralComplexState = {
+    // Heading representation (protocerebral bridge)
+    headingNeurons   : [Float];    // 16 heading cells
+    currentHeading   : Float;      // Derived heading
+    desiredHeading   : Float;      // Target heading
+    // Path integration (noduli)
+    homeVector       : { distance : Float; direction : Float };
+    // Fan-shaped body (visual memory)
+    visualMemory     : [Float];
+    // Ellipsoid body (orientation)
+    orientationCells : [Float];
+  };
+
+  /// Waggle signal for drone communication
+  public type WaggleSignal = {
+    senderId       : Nat;
+    direction      : Float;       // Radians from reference
+    distance       : Float;       // Meters
+    quality        : Float;       // 0-1 resource quality
+    timestamp      : Nat;
+    strength       : Float;       // Signal strength (recruitment power)
+    encoded        : [Float];     // Neural encoding
+  };
+
+  /// Initialize drone with bee brain
+  public func initBeeDrone(droneId: Nat, squadronId: Nat, lat: Float, lon: Float, alt: Float) : BeeDroneState {
+    let physical : DronePhysicalState = {
+      latitude = lat;
+      longitude = lon;
+      altitude = alt;
+      vx = 0.0; vy = 0.0; vz = 0.0;
+      roll = 0.0; pitch = 0.0; yaw = 0.0;
+      rollRate = 0.0; pitchRate = 0.0; yawRate = 0.0;
+      batteryVoltage = 16.8;  // 4S LiPo full
+      batteryPercent = 100.0;
+      gpsFixType = 3;
+      satelliteCount = 12;
+      hdop = 0.8;
+      lastUpdate = 0;
+    };
+    
+    let mission : DroneMissionState = {
+      phase = "idle";
+      targetLat = lat;
+      targetLon = lon;
+      targetAlt = alt;
+      resourceQuality = 0.0;
+      distanceToTarget = 0.0;
+      missionStartTime = 0;
+      missionDuration = 0;
+      reportReady = false;
+      reportQuality = 0.0;
+      reportDirection = 0.0;
+      reportDistance = 0.0;
+    };
+    
+    let centralComplex : CentralComplexState = {
+      headingNeurons = Array.tabulate<Float>(16, func(_) { 0.0 });
+      currentHeading = 0.0;
+      desiredHeading = 0.0;
+      homeVector = { distance = 0.0; direction = 0.0 };
+      visualMemory = Array.tabulate<Float>(64, func(_) { 0.0 });
+      orientationCells = Array.tabulate<Float>(8, func(_) { 0.0 });
+    };
+    
+    {
+      droneId = droneId;
+      squadronId = squadronId;
+      role = if (droneId % 10 == 0) { "scout" } 
+             else if (droneId % 5 == 0) { "guard" }
+             else { "forager" };
+      age = 0;
+      physical = physical;
+      mission = mission;
+      kenyonActivation = Array.tabulate<Float>(170, func(_) { 0.0 });  // 170K scaled down
+      antennalInput = Array.tabulate<Float>(160, func(_) { 0.0 });     // 160 glomeruli
+      centralComplex = centralComplex;
+      vum = 0.0;
+      phase = Float.fromInt(droneId) * PHI;
+      naturalFreq = 0.1 + Float.fromInt(droneId % 100) * 0.001;
+      receivedWaggles = [];
+      pendingWaggles = [];
+      isActive = true;
+      faultCodes = [];
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 16: WAGGLE DANCE ENCODING/DECODING FOR DRONE COMMUNICATION
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Real bees encode direction (angle to sun) and distance (duration) in waggle
+  // Drones encode GPS target, quality, and threat information
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Encode target location into waggle signal
+  public func encodeWaggleDance(
+    senderId: Nat,
+    senderLat: Float,
+    senderLon: Float,
+    targetLat: Float,
+    targetLon: Float,
+    quality: Float,
+    timestamp: Nat
+  ) : WaggleSignal {
+    // Calculate direction using haversine-like approach
+    let dLat = targetLat - senderLat;
+    let dLon = targetLon - senderLon;
+    let direction = Float.arctan2(dLon, dLat);
+    
+    // Calculate distance (simplified, assumes flat Earth for short distances)
+    let latRad = senderLat * PI / 180.0;
+    let mPerDegLat = 111132.92 - 559.82 * Float.cos(2.0 * latRad) + 1.175 * Float.cos(4.0 * latRad);
+    let mPerDegLon = 111412.84 * Float.cos(latRad) - 93.5 * Float.cos(3.0 * latRad);
+    let distance = Float.sqrt((dLat * mPerDegLat) ** 2.0 + (dLon * mPerDegLon) ** 2.0);
+    
+    // Encode into neural representation (like bee brain encoding)
+    // Direction encoded as population of 16 heading neurons
+    // Distance encoded as duration (rate code)
+    let encoded = Array.tabulate<Float>(32, func(i) {
+      if (i < 16) {
+        // Heading neurons: von Mises distribution centered on direction
+        let preferred = Float.fromInt(i) * TAU / 16.0;
+        let kappa = 2.0;  // Concentration parameter
+        Float.exp(kappa * Float.cos(direction - preferred)) / Float.exp(kappa)
+      } else {
+        // Distance neurons: log-scaled distance encoding
+        let preferred = Float.exp(Float.fromInt(i - 16) * 0.5);  // Log scale
+        let sigma = preferred * 0.2;
+        Float.exp(-(distance - preferred) ** 2.0 / (2.0 * sigma ** 2.0))
+      }
+    });
+    
+    // Signal strength based on quality (better quality = more vigorous dance)
+    let strength = quality * (1.0 + 0.3 * Float.sin(Float.fromInt(timestamp) * 0.1));
+    
+    {
+      senderId = senderId;
+      direction = direction;
+      distance = distance;
+      quality = quality;
+      timestamp = timestamp;
+      strength = strength;
+      encoded = encoded;
+    }
+  };
+
+  /// Decode waggle signal back to target coordinates
+  public func decodeWaggleDance(
+    signal: WaggleSignal,
+    receiverLat: Float,
+    receiverLon: Float
+  ) : { targetLat: Float; targetLon: Float; confidence: Float } {
+    let direction = signal.direction;
+    let distance = signal.distance;
+    
+    // Convert back to lat/lon
+    let latRad = receiverLat * PI / 180.0;
+    let mPerDegLat = 111132.92 - 559.82 * Float.cos(2.0 * latRad) + 1.175 * Float.cos(4.0 * latRad);
+    let mPerDegLon = 111412.84 * Float.cos(latRad) - 93.5 * Float.cos(3.0 * latRad);
+    
+    let dLat = distance * Float.cos(direction) / mPerDegLat;
+    let dLon = distance * Float.sin(direction) / mPerDegLon;
+    
+    let targetLat = receiverLat + dLat;
+    let targetLon = receiverLon + dLon;
+    
+    // Confidence based on signal strength and encoding clarity
+    var encodingClarity : Float = 0.0;
+    var maxActivation : Float = 0.0;
+    for (v in signal.encoded.vals()) {
+      if (v > maxActivation) { maxActivation := v };
+      encodingClarity += v * v;
+    };
+    let confidence = Float.sqrt(encodingClarity / 32.0) * signal.strength;
+    
+    { targetLat = targetLat; targetLon = targetLon; confidence = confidence }
+  };
+
+  /// Aggregate multiple waggle signals (like bee follower integration)
+  public func aggregateWaggleSignals(signals: [WaggleSignal]) : ?WaggleSignal {
+    if (signals.size() == 0) { return null };
+    
+    var sumX : Float = 0.0;
+    var sumY : Float = 0.0;
+    var sumDist : Float = 0.0;
+    var sumQuality : Float = 0.0;
+    var sumStrength : Float = 0.0;
+    var totalWeight : Float = 0.0;
+    
+    for (signal in signals.vals()) {
+      let weight = signal.strength * signal.quality;
+      sumX += Float.cos(signal.direction) * signal.distance * weight;
+      sumY += Float.sin(signal.direction) * signal.distance * weight;
+      sumDist += signal.distance * weight;
+      sumQuality += signal.quality * weight;
+      sumStrength += signal.strength;
+      totalWeight += weight;
+    };
+    
+    if (totalWeight < 0.001) { return null };
+    
+    let avgDirection = Float.arctan2(sumY, sumX);
+    let avgDistance = sumDist / totalWeight;
+    let avgQuality = sumQuality / totalWeight;
+    
+    // Combine encoded representations
+    let combinedEncoded = Array.tabulate<Float>(32, func(i) {
+      var sum : Float = 0.0;
+      for (signal in signals.vals()) {
+        sum += signal.encoded[i] * signal.strength;
+      };
+      sum / sumStrength
+    });
+    
+    ?{
+      senderId = 0;  // Aggregated signal has no single sender
+      direction = avgDirection;
+      distance = avgDistance;
+      quality = avgQuality;
+      timestamp = signals[0].timestamp;
+      strength = sumStrength / Float.fromInt(signals.size());
+      encoded = combinedEncoded;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 17: FORAGER RECRUITMENT MODEL
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Bees recruit foragers based on resource quality - drones do the same
+  // Better targets get more drones assigned
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Recruitment probability based on waggle dance observation
+  public func computeRecruitmentProbability(
+    observerState: BeeDroneState,
+    signal: WaggleSignal,
+    currentPhase: Text,
+    energyLevel: Float
+  ) : Float {
+    // Base probability from signal quality and strength
+    var prob = signal.quality * signal.strength;
+    
+    // Modify based on observer state
+    // Idle drones more likely to be recruited
+    if (currentPhase == "idle") {
+      prob := prob * 1.5;
+    } else if (currentPhase == "returning") {
+      // Just returned, might go back
+      prob := prob * 1.2;
+    } else if (currentPhase == "foraging") {
+      // Already busy, less likely
+      prob := prob * 0.3;
+    };
+    
+    // Energy (battery) affects willingness
+    if (energyLevel < 30.0) {
+      prob := prob * 0.2;  // Low battery, unlikely to go
+    } else if (energyLevel > 80.0) {
+      prob := prob * 1.3;  // Full battery, eager
+    };
+    
+    // Distance penalty (far targets need better quality)
+    let distanceFactor = 1.0 / (1.0 + signal.distance / 1000.0);  // 1km reference
+    prob := prob * (0.5 + 0.5 * distanceFactor);
+    
+    // Clamp
+    if (prob > 1.0) { prob := 1.0 };
+    if (prob < 0.0) { prob := 0.0 };
+    
+    prob
+  };
+
+  /// Assign drones to targets based on quality (resource allocation)
+  public type TargetAssignment = {
+    targetId       : Nat;
+    targetLat      : Float;
+    targetLon      : Float;
+    quality        : Float;
+    assignedDrones : [Nat];
+    priority       : Float;
+  };
+
+  public func allocateDronesToTargets(
+    availableDrones: [Nat],
+    targets: [{ lat: Float; lon: Float; quality: Float; priority: Float }],
+    maxPerTarget: Nat
+  ) : [TargetAssignment] {
+    // Sort targets by quality × priority (best first)
+    var sortedIndices : [Nat] = Array.tabulate<Nat>(targets.size(), func(i) { i });
+    // Simple bubble sort by quality × priority
+    let mutableIndices = Array.thaw<Nat>(sortedIndices);
+    for (i in Iter.range(0, Int.abs(targets.size() - 2))) {
+      for (j in Iter.range(0, Int.abs(targets.size() - 2 - i))) {
+        let score_j = targets[mutableIndices[j]].quality * targets[mutableIndices[j]].priority;
+        let score_j1 = targets[mutableIndices[j + 1]].quality * targets[mutableIndices[j + 1]].priority;
+        if (score_j < score_j1) {
+          let temp = mutableIndices[j];
+          mutableIndices[j] := mutableIndices[j + 1];
+          mutableIndices[j + 1] := temp;
+        };
+      };
+    };
+    sortedIndices := Array.freeze(mutableIndices);
+    
+    // Allocate drones proportionally to quality
+    var totalQuality : Float = 0.0;
+    for (t in targets.vals()) {
+      totalQuality += t.quality * t.priority;
+    };
+    
+    var remaining = availableDrones;
+    var assignments : [TargetAssignment] = [];
+    
+    for (idx in sortedIndices.vals()) {
+      let target = targets[idx];
+      let proportionalShare = (target.quality * target.priority) / totalQuality;
+      var numToAssign = Int.abs(Float.toInt(Float.fromInt(availableDrones.size()) * proportionalShare));
+      if (numToAssign > maxPerTarget) { numToAssign := maxPerTarget };
+      if (numToAssign > remaining.size()) { numToAssign := remaining.size() };
+      
+      var assigned : [Nat] = [];
+      for (i in Iter.range(0, numToAssign - 1)) {
+        if (i < remaining.size()) {
+          assigned := Array.append(assigned, [remaining[i]]);
+        };
+      };
+      
+      // Remove assigned from remaining
+      remaining := Array.tabulate<Nat>(
+        if (numToAssign < remaining.size()) { remaining.size() - numToAssign } else { 0 },
+        func(i) { remaining[i + numToAssign] }
+      );
+      
+      assignments := Array.append(assignments, [{
+        targetId = idx;
+        targetLat = target.lat;
+        targetLon = target.lon;
+        quality = target.quality;
+        assignedDrones = assigned;
+        priority = target.priority;
+      }]);
+    };
+    
+    assignments
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 18: QUORUM SENSING FOR SWARM DECISION MAKING
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Bee swarms use quorum sensing to make collective decisions
+  // When enough scouts report on a site, the swarm commits
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Quorum state for collective decision
+  public type QuorumState = {
+    candidateSites : [{ lat: Float; lon: Float; votes: Nat; quality: Float; committed: Bool }];
+    quorumThreshold : Nat;
+    totalScouts     : Nat;
+    decisionMade    : Bool;
+    winnerIndex     : ?Nat;
+    consensusLevel  : Float;
+    votingRound     : Nat;
+  };
+
+  /// Initialize quorum sensing
+  public func initQuorumSensing(numScouts: Nat, threshold: Nat) : QuorumState {
+    {
+      candidateSites = [];
+      quorumThreshold = threshold;
+      totalScouts = numScouts;
+      decisionMade = false;
+      winnerIndex = null;
+      consensusLevel = 0.0;
+      votingRound = 0;
+    }
+  };
+
+  /// Scout reports a candidate site
+  public func reportCandidateSite(
+    state: QuorumState,
+    scoutId: Nat,
+    lat: Float,
+    lon: Float,
+    quality: Float,
+    mergeRadius: Float
+  ) : QuorumState {
+    // Check if this site is close to an existing candidate
+    var merged = false;
+    var newSites = state.candidateSites;
+    
+    for (i in Iter.range(0, Int.abs(state.candidateSites.size() - 1))) {
+      let site = state.candidateSites[i];
+      let dLat = lat - site.lat;
+      let dLon = lon - site.lon;
+      let dist = Float.sqrt(dLat * dLat + dLon * dLon) * 111000.0;  // Approx meters
+      
+      if (dist < mergeRadius) {
+        // Merge with existing site
+        let mutableSites = Array.thaw<{ lat: Float; lon: Float; votes: Nat; quality: Float; committed: Bool }>(newSites);
+        mutableSites[i] := {
+          lat = (site.lat * Float.fromInt(site.votes) + lat) / Float.fromInt(site.votes + 1);
+          lon = (site.lon * Float.fromInt(site.votes) + lon) / Float.fromInt(site.votes + 1);
+          votes = site.votes + 1;
+          quality = (site.quality * Float.fromInt(site.votes) + quality) / Float.fromInt(site.votes + 1);
+          committed = site.committed;
+        };
+        newSites := Array.freeze(mutableSites);
+        merged := true;
+      };
+    };
+    
+    if (not merged) {
+      // New candidate site
+      newSites := Array.append(newSites, [{
+        lat = lat;
+        lon = lon;
+        votes = 1;
+        quality = quality;
+        committed = false;
+      }]);
+    };
+    
+    // Check for quorum
+    var winner : ?Nat = null;
+    var maxVotes : Nat = 0;
+    var totalVotes : Nat = 0;
+    
+    for (i in Iter.range(0, Int.abs(newSites.size() - 1))) {
+      let site = newSites[i];
+      totalVotes += site.votes;
+      if (site.votes >= state.quorumThreshold and site.votes > maxVotes) {
+        maxVotes := site.votes;
+        winner := ?i;
+      };
+    };
+    
+    let consensus = if (totalVotes > 0 and maxVotes > 0) {
+      Float.fromInt(maxVotes) / Float.fromInt(totalVotes)
+    } else { 0.0 };
+    
+    {
+      candidateSites = newSites;
+      quorumThreshold = state.quorumThreshold;
+      totalScouts = state.totalScouts;
+      decisionMade = winner != null;
+      winnerIndex = winner;
+      consensusLevel = consensus;
+      votingRound = state.votingRound + 1;
+    }
+  };
+
+  /// Get the winning site coordinates
+  public func getQuorumWinner(state: QuorumState) : ?{ lat: Float; lon: Float; quality: Float } {
+    switch (state.winnerIndex) {
+      case (?idx) {
+        if (idx < state.candidateSites.size()) {
+          let site = state.candidateSites[idx];
+          ?{ lat = site.lat; lon = site.lon; quality = site.quality }
+        } else { null }
+      };
+      case null { null };
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 19: DRONE CENTRAL COMPLEX — NAVIGATION ENGINE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Maps bee central complex to drone navigation system
+  // Path integration, heading control, landmark memory
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Update heading neurons (protocerebral bridge analog)
+  public func updateHeadingNeurons(
+    currentNeurons: [Float],
+    measuredHeading: Float,
+    desiredHeading: Float,
+    angularVelocity: Float,
+    dt: Float
+  ) : [Float] {
+    let n = currentNeurons.size();
+    if (n == 0) { return currentNeurons };
+    
+    Array.tabulate<Float>(n, func(i) {
+      let preferredHeading = Float.fromInt(i) * TAU / Float.fromInt(n);
+      
+      // Sensory input: peaked at measured heading
+      let sensorInput = Float.exp(2.0 * Float.cos(measuredHeading - preferredHeading)) / Float.exp(2.0);
+      
+      // Motor command: peaked at desired heading
+      let motorInput = Float.exp(1.5 * Float.cos(desiredHeading - preferredHeading)) / Float.exp(1.5);
+      
+      // Angular velocity shifts activity
+      let velocityShift = angularVelocity * dt * Float.fromInt(n) / TAU;
+      let shiftedIdx = i + Int.abs(Float.toInt(velocityShift));
+      let shiftedActivity = if (shiftedIdx < n) { currentNeurons[shiftedIdx] } else { currentNeurons[shiftedIdx % n] };
+      
+      // Leaky integrator
+      let tau = 0.1;
+      let decay = Float.exp(-dt / tau);
+      
+      decay * shiftedActivity + (1.0 - decay) * (0.3 * sensorInput + 0.3 * motorInput + 0.4 * currentNeurons[i])
+    })
+  };
+
+  /// Path integration update (noduli analog)
+  public func updatePathIntegration(
+    currentHome: { distance: Float; direction: Float },
+    velocity: { vx: Float; vy: Float },
+    heading: Float,
+    dt: Float
+  ) : { distance: Float; direction: Float } {
+    // Convert velocity to displacement in world frame
+    let dx = velocity.vx * dt;
+    let dy = velocity.vy * dt;
+    
+    // Current home position in Cartesian
+    let homeX = currentHome.distance * Float.cos(currentHome.direction);
+    let homeY = currentHome.distance * Float.sin(currentHome.direction);
+    
+    // Subtract displacement (we moved away from home)
+    let newHomeX = homeX - dx;
+    let newHomeY = homeY - dy;
+    
+    // Convert back to polar
+    let newDistance = Float.sqrt(newHomeX * newHomeX + newHomeY * newHomeY);
+    let newDirection = Float.arctan2(newHomeY, newHomeX);
+    
+    { distance = newDistance; direction = newDirection }
+  };
+
+  /// Compute steering command from central complex
+  public func computeSteeringCommand(
+    headingNeurons: [Float],
+    homeVector: { distance: Float; direction: Float },
+    targetVector: { distance: Float; direction: Float },
+    currentHeading: Float,
+    mode: Text  // "homing", "foraging", "exploring"
+  ) : { turnRate: Float; speed: Float } {
+    let n = headingNeurons.size();
+    if (n == 0) { return { turnRate = 0.0; speed = 0.0 } };
+    
+    // Compute desired heading based on mode
+    let desiredHeading = switch (mode) {
+      case "homing" { homeVector.direction + PI };  // Opposite of home vector
+      case "foraging" { targetVector.direction };
+      case _ { currentHeading };  // Maintain heading
+    };
+    
+    // Heading error
+    var headingError = desiredHeading - currentHeading;
+    while (headingError > PI) { headingError -= TAU };
+    while (headingError < -PI) { headingError += TAU };
+    
+    // Turn rate proportional to error, with saturation
+    let maxTurnRate = 1.0;  // rad/s
+    var turnRate = headingError * 2.0;  // Gain
+    if (turnRate > maxTurnRate) { turnRate := maxTurnRate };
+    if (turnRate < -maxTurnRate) { turnRate := -maxTurnRate };
+    
+    // Speed based on mode and distance
+    let speed = switch (mode) {
+      case "homing" { 
+        let urgency = Float.min(1.0, homeVector.distance / 100.0);  // Speed up when far
+        5.0 + 10.0 * urgency  // 5-15 m/s
+      };
+      case "foraging" {
+        let approach = if (targetVector.distance < 50.0) { 
+          targetVector.distance / 50.0  // Slow down near target
+        } else { 1.0 };
+        5.0 + 8.0 * approach  // 5-13 m/s
+      };
+      case _ { 3.0 };  // Slow exploration
+    };
+    
+    { turnRate = turnRate; speed = speed }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 20: SWARM FORMATION CONTROL
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Bee swarm formations mapped to drone tactical formations
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Formation types
+  public type FormationType = {
+    #Sphere;           // Defensive sphere (like bee cluster)
+    #Wedge;            // Attack wedge
+    #Line;             // Search line
+    #Grid;             // Survey grid
+    #Helix;            // Golden helix (Medina signature)
+    #Fibonacci;        // Fibonacci sphere packing
+    #Custom : [{ x: Float; y: Float; z: Float }];
+  };
+
+  /// Compute position in formation
+  public func computeFormationPosition(
+    formation: FormationType,
+    droneIndex: Nat,
+    totalDrones: Nat,
+    centerX: Float,
+    centerY: Float,
+    centerZ: Float,
+    scale: Float,
+    heading: Float
+  ) : { x: Float; y: Float; z: Float } {
+    let i = droneIndex;
+    let n = totalDrones;
+    let nf = Float.fromInt(n);
+    let ifloat = Float.fromInt(i);
+    
+    let (localX, localY, localZ) = switch (formation) {
+      case (#Sphere) {
+        // Fibonacci sphere
+        let goldenAngle = PI * (3.0 - Float.sqrt(5.0));
+        let theta = goldenAngle * ifloat;
+        let z = 1.0 - (2.0 * ifloat + 1.0) / nf;
+        let radius = Float.sqrt(1.0 - z * z);
+        (radius * Float.cos(theta) * scale, radius * Float.sin(theta) * scale, z * scale)
+      };
+      
+      case (#Wedge) {
+        // V-formation (like geese/bees in flight)
+        let row = Int.abs(Float.toInt(Float.sqrt(ifloat)));
+        let col = i - row * row;
+        let xOff = Float.fromInt(col) - Float.fromInt(row) / 2.0;
+        let yOff = Float.fromInt(row);
+        (xOff * scale * 2.0, yOff * scale * 3.0, 0.0)
+      };
+      
+      case (#Line) {
+        // Linear search pattern
+        let spacing = scale * 2.0;
+        ((ifloat - nf / 2.0) * spacing, 0.0, 0.0)
+      };
+      
+      case (#Grid) {
+        // Square grid
+        let side = Int.abs(Float.toInt(Float.ceil(Float.sqrt(nf))));
+        let row = i / side;
+        let col = i % side;
+        let spacing = scale;
+        ((Float.fromInt(col) - Float.fromInt(side) / 2.0) * spacing,
+         (Float.fromInt(row) - Float.fromInt(side) / 2.0) * spacing,
+         0.0)
+      };
+      
+      case (#Helix) {
+        // Golden helix (Medina signature formation)
+        let t = ifloat / nf * 4.0 * PI;  // 2 full turns
+        let radius = scale * (0.5 + 0.5 * ifloat / nf);  // Expanding radius
+        let z = ifloat / nf * scale * 2.0 - scale;  // Vertical spread
+        (radius * Float.cos(t), radius * Float.sin(t), z)
+      };
+      
+      case (#Fibonacci) {
+        // Fibonacci spiral on plane
+        let theta = ifloat * PHI * TAU;
+        let radius = scale * Float.sqrt(ifloat / nf);
+        (radius * Float.cos(theta), radius * Float.sin(theta), 0.0)
+      };
+      
+      case (#Custom(positions)) {
+        if (i < positions.size()) {
+          let p = positions[i];
+          (p.x * scale, p.y * scale, p.z * scale)
+        } else { (0.0, 0.0, 0.0) }
+      };
+    };
+    
+    // Rotate by heading
+    let cosH = Float.cos(heading);
+    let sinH = Float.sin(heading);
+    let rotatedX = localX * cosH - localY * sinH;
+    let rotatedY = localX * sinH + localY * cosH;
+    
+    {
+      x = centerX + rotatedX;
+      y = centerY + rotatedY;
+      z = centerZ + localZ;
+    }
+  };
+
+  /// Compute formation quality (how well drones maintain formation)
+  public func computeFormationQuality(
+    actualPositions: [{ x: Float; y: Float; z: Float }],
+    targetPositions: [{ x: Float; y: Float; z: Float }]
+  ) : Float {
+    let n = if (actualPositions.size() < targetPositions.size()) 
+            actualPositions.size() else targetPositions.size();
+    if (n == 0) { return 0.0 };
+    
+    var totalError : Float = 0.0;
+    for (i in Iter.range(0, n - 1)) {
+      let dx = actualPositions[i].x - targetPositions[i].x;
+      let dy = actualPositions[i].y - targetPositions[i].y;
+      let dz = actualPositions[i].z - targetPositions[i].z;
+      totalError += Float.sqrt(dx*dx + dy*dy + dz*dz);
+    };
+    
+    let avgError = totalError / Float.fromInt(n);
+    // Convert error to quality (0-1), with 10m as reference
+    1.0 / (1.0 + avgError / 10.0)
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 21: SWARM THREAT RESPONSE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Bee defensive behaviors mapped to drone swarm defense
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Threat types
+  public type ThreatType = {
+    #Predator : { lat: Float; lon: Float; alt: Float; threatLevel: Float };
+    #NoFlyZone : { lat: Float; lon: Float; radius: Float };
+    #LowBattery : { droneId: Nat; batteryPercent: Float };
+    #Communication : { affectedDrones: [Nat] };
+    #Weather : { windSpeed: Float; precipitation: Float };
+    #Collision : { droneA: Nat; droneB: Nat; minSeparation: Float };
+  };
+
+  /// Compute threat response (like bee alarm pheromone cascade)
+  public func computeThreatResponse(
+    threat: ThreatType,
+    dronePositions: [{ id: Nat; lat: Float; lon: Float; alt: Float }],
+    currentFormation: FormationType
+  ) : { 
+    newFormation: FormationType; 
+    evasionVector: { lat: Float; lon: Float; alt: Float };
+    alertLevel: Float;
+    affectedDrones: [Nat];
+  } {
+    switch (threat) {
+      case (#Predator(p)) {
+        // Compute direction away from predator
+        var sumLat : Float = 0.0;
+        var sumLon : Float = 0.0;
+        for (drone in dronePositions.vals()) {
+          sumLat += drone.lat;
+          sumLon += drone.lon;
+        };
+        let centroidLat = sumLat / Float.fromInt(dronePositions.size());
+        let centroidLon = sumLon / Float.fromInt(dronePositions.size());
+        
+        let evadeDir = Float.arctan2(centroidLat - p.lat, centroidLon - p.lon);
+        let evadeDist = 100.0 / 111000.0;  // 100m in degrees
+        
+        {
+          newFormation = #Sphere;  // Defensive formation
+          evasionVector = {
+            lat = Float.cos(evadeDir) * evadeDist;
+            lon = Float.sin(evadeDir) * evadeDist;
+            alt = 10.0;  // Gain altitude
+          };
+          alertLevel = p.threatLevel;
+          affectedDrones = Array.tabulate<Nat>(dronePositions.size(), func(i) { dronePositions[i].id });
+        }
+      };
+      
+      case (#NoFlyZone(nfz)) {
+        // Find drones inside/near NFZ
+        var affected : [Nat] = [];
+        for (drone in dronePositions.vals()) {
+          let dist = Float.sqrt((drone.lat - nfz.lat)**2.0 + (drone.lon - nfz.lon)**2.0) * 111000.0;
+          if (dist < nfz.radius * 1.5) {
+            affected := Array.append(affected, [drone.id]);
+          };
+        };
+        
+        {
+          newFormation = currentFormation;
+          evasionVector = { lat = 0.0; lon = 0.0; alt = 0.0 };
+          alertLevel = 0.8;
+          affectedDrones = affected;
+        }
+      };
+      
+      case (#LowBattery(lb)) {
+        {
+          newFormation = currentFormation;
+          evasionVector = { lat = 0.0; lon = 0.0; alt = 0.0 };
+          alertLevel = if (lb.batteryPercent < 15.0) { 0.9 } else { 0.5 };
+          affectedDrones = [lb.droneId];
+        }
+      };
+      
+      case (#Communication(c)) {
+        {
+          newFormation = #Grid;  // Spread out to re-establish comms
+          evasionVector = { lat = 0.0; lon = 0.0; alt = 20.0 };  // Gain altitude for better reception
+          alertLevel = 0.7;
+          affectedDrones = c.affectedDrones;
+        }
+      };
+      
+      case (#Weather(w)) {
+        let alertLevel = (w.windSpeed / 20.0 + w.precipitation) / 2.0;
+        {
+          newFormation = if (alertLevel > 0.7) { #Sphere } else { currentFormation };
+          evasionVector = { lat = 0.0; lon = 0.0; alt = -10.0 };  // Descend in bad weather
+          alertLevel = alertLevel;
+          affectedDrones = Array.tabulate<Nat>(dronePositions.size(), func(i) { dronePositions[i].id });
+        }
+      };
+      
+      case (#Collision(c)) {
+        {
+          newFormation = currentFormation;
+          evasionVector = { lat = 0.0; lon = 0.0; alt = 5.0 };
+          alertLevel = 1.0;  // Maximum alert
+          affectedDrones = [c.droneA, c.droneB];
+        }
+      };
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 22: COMPLETE SWARM BRAIN TICK
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // One beat of the swarm intelligence
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Complete swarm state
+  public type SwarmBrainState = {
+    // Drones
+    drones          : [BeeDroneState];
+    
+    // Collective state
+    swarmPhase      : Float;           // Mean Kuramoto phase
+    swarmCoherence  : Float;           // Order parameter r
+    swarmCentroid   : { lat: Float; lon: Float; alt: Float };
+    
+    // Mission
+    currentFormation : FormationType;
+    missionPhase     : Text;           // "idle", "scouting", "foraging", "returning", "defending"
+    activeTargets    : [TargetAssignment];
+    
+    // Decision making
+    quorumState      : QuorumState;
+    
+    // Threats
+    activeThreats    : [ThreatType];
+    alertLevel       : Float;
+    
+    // Communication
+    wagglePool       : [WaggleSignal];
+    
+    // Timing
+    beatNum          : Nat;
+  };
+
+  /// Initialize complete swarm
+  public func initSwarmBrain(numDrones: Nat, baseLat: Float, baseLon: Float, baseAlt: Float) : SwarmBrainState {
+    // Initialize drones in Fibonacci sphere around base
+    let drones = Array.tabulate<BeeDroneState>(numDrones, func(i) {
+      let goldenAngle = PI * (3.0 - Float.sqrt(5.0));
+      let theta = goldenAngle * Float.fromInt(i);
+      let z = 1.0 - (2.0 * Float.fromInt(i) + 1.0) / Float.fromInt(numDrones);
+      let radius = Float.sqrt(1.0 - z * z) * 0.0001;  // Small spread in degrees
+      
+      let lat = baseLat + radius * Float.cos(theta);
+      let lon = baseLon + radius * Float.sin(theta);
+      let alt = baseAlt + z * 20.0;  // ±20m altitude spread
+      
+      initBeeDrone(i, i / 10, lat, lon, alt)  // Groups of 10 per squadron
+    });
+    
+    {
+      drones = drones;
+      swarmPhase = 0.0;
+      swarmCoherence = 0.5;
+      swarmCentroid = { lat = baseLat; lon = baseLon; alt = baseAlt };
+      currentFormation = #Fibonacci;
+      missionPhase = "idle";
+      activeTargets = [];
+      quorumState = initQuorumSensing(numDrones / 10, 3);  // 10% scouts, need 3 votes
+      activeThreats = [];
+      alertLevel = 0.0;
+      wagglePool = [];
+      beatNum = 0;
+    }
+  };
+
+  /// Execute one beat of swarm brain
+  public func tickSwarmBrain(state: SwarmBrainState, dt: Float) : SwarmBrainState {
+    let n = state.drones.size();
+    if (n == 0) { return state };
+    
+    // 1. Compute Kuramoto synchronization
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    for (drone in state.drones.vals()) {
+      sumCos += Float.cos(drone.phase);
+      sumSin += Float.sin(drone.phase);
+    };
+    let meanPhase = Float.arctan2(sumSin, sumCos);
+    let coherence = Float.sqrt(sumCos*sumCos + sumSin*sumSin) / Float.fromInt(n);
+    
+    // 2. Update each drone
+    var newDrones : [BeeDroneState] = [];
+    var sumLat : Float = 0.0;
+    var sumLon : Float = 0.0;
+    var sumAlt : Float = 0.0;
+    
+    for (drone in state.drones.vals()) {
+      // Kuramoto phase update
+      let phaseSync = KURAMOTO_K * coherence * Float.sin(meanPhase - drone.phase);
+      let newPhase = drone.phase + (drone.naturalFreq + phaseSync) * dt;
+      
+      // Update mission based on role and state
+      let newMission = updateDroneMission(drone.mission, state.activeTargets, drone.role);
+      
+      // Update central complex for navigation
+      let steering = computeSteeringCommand(
+        drone.centralComplex.headingNeurons,
+        drone.centralComplex.homeVector,
+        { distance = drone.mission.distanceToTarget; direction = drone.mission.reportDirection },
+        drone.physical.yaw,
+        drone.mission.phase
+      );
+      
+      // Simplified physics update
+      let newYaw = drone.physical.yaw + steering.turnRate * dt;
+      let newVx = steering.speed * Float.cos(newYaw);
+      let newVy = steering.speed * Float.sin(newYaw);
+      
+      // Update position (very simplified)
+      let newLat = drone.physical.latitude + newVy * dt / 111000.0;
+      let newLon = drone.physical.longitude + newVx * dt / (111000.0 * Float.cos(drone.physical.latitude * PI / 180.0));
+      
+      sumLat += newLat;
+      sumLon += newLon;
+      sumAlt += drone.physical.altitude;
+      
+      // Update drone state
+      let updatedPhysical : DronePhysicalState = {
+        latitude = newLat;
+        longitude = newLon;
+        altitude = drone.physical.altitude;
+        vx = newVx;
+        vy = newVy;
+        vz = drone.physical.vz;
+        roll = drone.physical.roll;
+        pitch = drone.physical.pitch;
+        yaw = newYaw;
+        rollRate = drone.physical.rollRate;
+        pitchRate = drone.physical.pitchRate;
+        yawRate = steering.turnRate;
+        batteryVoltage = drone.physical.batteryVoltage - 0.0001 * dt;  // Slow discharge
+        batteryPercent = drone.physical.batteryPercent - 0.001 * dt;
+        gpsFixType = drone.physical.gpsFixType;
+        satelliteCount = drone.physical.satelliteCount;
+        hdop = drone.physical.hdop;
+        lastUpdate = state.beatNum;
+      };
+      
+      newDrones := Array.append(newDrones, [{
+        droneId = drone.droneId;
+        squadronId = drone.squadronId;
+        role = drone.role;
+        age = drone.age + 1;
+        physical = updatedPhysical;
+        mission = newMission;
+        kenyonActivation = drone.kenyonActivation;
+        antennalInput = drone.antennalInput;
+        centralComplex = drone.centralComplex;
+        vum = drone.vum;
+        phase = newPhase;
+        naturalFreq = drone.naturalFreq;
+        receivedWaggles = drone.receivedWaggles;
+        pendingWaggles = drone.pendingWaggles;
+        isActive = drone.isActive;
+        faultCodes = drone.faultCodes;
+      }]);
+    };
+    
+    // 3. Update swarm centroid
+    let newCentroid = {
+      lat = sumLat / Float.fromInt(n);
+      lon = sumLon / Float.fromInt(n);
+      alt = sumAlt / Float.fromInt(n);
+    };
+    
+    // 4. Process waggle pool (collective decision making)
+    let aggregatedSignal = aggregateWaggleSignals(state.wagglePool);
+    
+    {
+      drones = newDrones;
+      swarmPhase = meanPhase;
+      swarmCoherence = coherence;
+      swarmCentroid = newCentroid;
+      currentFormation = state.currentFormation;
+      missionPhase = state.missionPhase;
+      activeTargets = state.activeTargets;
+      quorumState = state.quorumState;
+      activeThreats = state.activeThreats;
+      alertLevel = state.alertLevel;
+      wagglePool = state.wagglePool;
+      beatNum = state.beatNum + 1;
+    }
+  };
+
+  /// Update drone mission state
+  func updateDroneMission(
+    mission: DroneMissionState,
+    targets: [TargetAssignment],
+    role: Text
+  ) : DroneMissionState {
+    // Simple state machine
+    var newPhase = mission.phase;
+    var newDuration = mission.missionDuration + 1;
+    
+    if (mission.phase == "idle" and targets.size() > 0) {
+      newPhase := if (role == "scout") { "scouting" } else { "foraging" };
+      newDuration := 0;
+    } else if (mission.phase == "foraging" and mission.distanceToTarget < 10.0) {
+      newPhase := "returning";
+    } else if (mission.phase == "returning" and mission.distanceToTarget < 10.0) {
+      newPhase := "dancing";
+    } else if (mission.phase == "dancing" and newDuration > 50) {
+      newPhase := "idle";
+    };
+    
+    {
+      phase = newPhase;
+      targetLat = mission.targetLat;
+      targetLon = mission.targetLon;
+      targetAlt = mission.targetAlt;
+      resourceQuality = mission.resourceQuality;
+      distanceToTarget = mission.distanceToTarget;
+      missionStartTime = mission.missionStartTime;
+      missionDuration = newDuration;
+      reportReady = newPhase == "dancing";
+      reportQuality = mission.resourceQuality;
+      reportDirection = mission.reportDirection;
+      reportDistance = mission.reportDistance;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 23: SWARM-TO-SWARM ENGAGEMENT
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // When two swarms meet - competitive/adversarial behavior
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Swarm engagement state
+  public type SwarmEngagementState = {
+    friendlySwarm   : SwarmBrainState;
+    enemySwarm      : SwarmBrainState;
+    engagementPhase : Text;            // "detecting", "engaging", "disengaging", "victory", "retreat"
+    relativeAdvantage : Float;         // Positive = friendly winning
+    casualtiesFriendly : Nat;
+    casualtiesEnemy : Nat;
+    contestedArea   : { lat: Float; lon: Float; radius: Float };
+    beatNum         : Nat;
+  };
+
+  /// Initialize swarm engagement
+  public func initSwarmEngagement(
+    friendlySwarm: SwarmBrainState,
+    enemySwarm: SwarmBrainState,
+    engagementArea: { lat: Float; lon: Float; radius: Float }
+  ) : SwarmEngagementState {
+    {
+      friendlySwarm = friendlySwarm;
+      enemySwarm = enemySwarm;
+      engagementPhase = "detecting";
+      relativeAdvantage = 0.0;
+      casualtiesFriendly = 0;
+      casualtiesEnemy = 0;
+      contestedArea = engagementArea;
+      beatNum = 0;
+    }
+  };
+
+  /// Compute engagement advantage
+  public func computeEngagementAdvantage(state: SwarmEngagementState) : Float {
+    // Numerical advantage
+    let numAdvantage = Float.fromInt(state.friendlySwarm.drones.size()) / 
+                       Float.fromInt(state.enemySwarm.drones.size() + 1);
+    
+    // Coherence advantage (better coordinated swarm)
+    let coherenceAdvantage = state.friendlySwarm.swarmCoherence - state.enemySwarm.swarmCoherence;
+    
+    // Position advantage (higher altitude)
+    let altAdvantage = (state.friendlySwarm.swarmCentroid.alt - state.enemySwarm.swarmCentroid.alt) / 50.0;
+    
+    // Combined advantage
+    (numAdvantage - 1.0) * 0.4 + coherenceAdvantage * 0.4 + altAdvantage * 0.2
+  };
+
+  /// Execute one tick of swarm engagement
+  public func tickSwarmEngagement(state: SwarmEngagementState, dt: Float) : SwarmEngagementState {
+    let advantage = computeEngagementAdvantage(state);
+    
+    // Update phase based on advantage
+    let newPhase = if (advantage > 0.5) { "victory" }
+                   else if (advantage < -0.5) { "retreat" }
+                   else if (state.engagementPhase == "detecting") { "engaging" }
+                   else { state.engagementPhase };
+    
+    // Simulate casualties based on advantage
+    var newCasFriendly = state.casualtiesFriendly;
+    var newCasEnemy = state.casualtiesEnemy;
+    
+    if (state.engagementPhase == "engaging") {
+      // Probability of casualty inversely related to advantage
+      if (advantage < 0.0) {
+        newCasFriendly += 1;  // Losing, take more casualties
+      } else {
+        newCasEnemy += 1;     // Winning, inflict more
+      };
+    };
+    
+    // Update swarm positions (simplified)
+    let friendlyState = tickSwarmBrain(state.friendlySwarm, dt);
+    let enemyState = tickSwarmBrain(state.enemySwarm, dt);
+    
+    {
+      friendlySwarm = friendlyState;
+      enemySwarm = enemyState;
+      engagementPhase = newPhase;
+      relativeAdvantage = advantage;
+      casualtiesFriendly = newCasFriendly;
+      casualtiesEnemy = newCasEnemy;
+      contestedArea = state.contestedArea;
+      beatNum = state.beatNum + 1;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 24: MASTER OUTPUT INTERFACE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  
+  /// Complete swarm intelligence output for organism integration
+  public type SwarmIntelligenceOutput = {
+    // Collective metrics
+    swarmCoherence    : Float;
+    swarmPhase        : Float;
+    swarmSize         : Nat;
+    activeDrones      : Nat;
+    
+    // Position
+    centroidLat       : Float;
+    centroidLon       : Float;
+    centroidAlt       : Float;
+    spreadRadius      : Float;
+    
+    // Mission
+    missionPhase      : Text;
+    missionProgress   : Float;
+    targetsAssigned   : Nat;
+    
+    // Formation
+    formationQuality  : Float;
+    formationType     : Text;
+    
+    // Threat
+    alertLevel        : Float;
+    activeThreats     : Nat;
+    
+    // Communication
+    wagglePoolSize    : Nat;
+    consensusLevel    : Float;
+    
+    // Beat
+    beatNum           : Nat;
+  };
+
+  /// Generate comprehensive output
+  public func generateSwarmOutput(state: SwarmBrainState) : SwarmIntelligenceOutput {
+    var activeDrones = 0;
+    for (drone in state.drones.vals()) {
+      if (drone.isActive) { activeDrones += 1 };
+    };
+    
+    // Compute spread radius
+    var maxDist : Float = 0.0;
+    for (drone in state.drones.vals()) {
+      let dLat = drone.physical.latitude - state.swarmCentroid.lat;
+      let dLon = drone.physical.longitude - state.swarmCentroid.lon;
+      let dist = Float.sqrt(dLat*dLat + dLon*dLon) * 111000.0;
+      if (dist > maxDist) { maxDist := dist };
+    };
+    
+    let formationName = switch (state.currentFormation) {
+      case (#Sphere) { "sphere" };
+      case (#Wedge) { "wedge" };
+      case (#Line) { "line" };
+      case (#Grid) { "grid" };
+      case (#Helix) { "helix" };
+      case (#Fibonacci) { "fibonacci" };
+      case (#Custom(_)) { "custom" };
+    };
+    
+    {
+      swarmCoherence = state.swarmCoherence;
+      swarmPhase = state.swarmPhase;
+      swarmSize = state.drones.size();
+      activeDrones = activeDrones;
+      centroidLat = state.swarmCentroid.lat;
+      centroidLon = state.swarmCentroid.lon;
+      centroidAlt = state.swarmCentroid.alt;
+      spreadRadius = maxDist;
+      missionPhase = state.missionPhase;
+      missionProgress = 0.5;  // Would compute from mission state
+      targetsAssigned = state.activeTargets.size();
+      formationQuality = state.swarmCoherence;  // Simplified
+      formationType = formationName;
+      alertLevel = state.alertLevel;
+      activeThreats = state.activeThreats.size();
+      wagglePoolSize = state.wagglePool.size();
+      consensusLevel = state.quorumState.consensusLevel;
+      beatNum = state.beatNum;
+    }
+  };
+
 }

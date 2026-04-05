@@ -1711,4 +1711,931 @@ module DroneFleetManager {
     affinitySum * exposureFactor
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 15: REAL-WORLD DRONE INTEGRATION — PHYSICAL DRONE SYSTEMS
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Integration with actual drone hardware through MAVLink protocol
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Physical drone hardware state (from MAVLink telemetry)
+  public type HardwareTelemetry = {
+    // System identification
+    systemId      : Nat;
+    componentId   : Nat;
+    autopilotType : Nat;        // 3=ArduPilot, 12=PX4
+    vehicleType   : Nat;        // 2=Quadcopter, 13=Hexarotor
+    
+    // GPS position (WGS84)
+    latitude      : Float;      // degrees × 10^7 (MAVLink format)
+    longitude     : Float;
+    altitude      : Float;      // mm above MSL
+    relativeAlt   : Float;      // mm above home
+    
+    // Velocity NED (m/s × 100)
+    vx            : Float;
+    vy            : Float;
+    vz            : Float;
+    groundSpeed   : Float;
+    
+    // Attitude (radians)
+    roll          : Float;
+    pitch         : Float;
+    yaw           : Float;
+    
+    // Angular rates (rad/s)
+    rollspeed     : Float;
+    pitchspeed    : Float;
+    yawspeed      : Float;
+    
+    // Battery
+    voltage       : Float;      // mV
+    current       : Float;      // cA (10*mA)
+    remaining     : Nat;        // %
+    
+    // Status
+    mode          : Nat;        // Flight mode
+    armed         : Bool;
+    ekfOk         : Bool;
+    gpsFixType    : Nat;
+    satCount      : Nat;
+    
+    // Timestamp
+    bootTime      : Nat;        // ms since boot
+    timestamp     : Nat;        // Unix timestamp
+  };
+
+  /// Command to send to drone
+  public type DroneCommand = {
+    #Arm;
+    #Disarm;
+    #Takeoff : { altitude : Float };
+    #Land;
+    #ReturnToLaunch;
+    #GoTo : { lat : Float; lon : Float; alt : Float };
+    #SetMode : { mode : Nat };
+    #SetYaw : { yawAngle : Float; yawRate : Float; direction : Int };
+    #SetVelocity : { vx : Float; vy : Float; vz : Float; yawRate : Float };
+    #Loiter : { lat : Float; lon : Float; alt : Float; radius : Float };
+    #Mission : { waypoints : [{ lat : Float; lon : Float; alt : Float; holdTime : Float }] };
+    #EmergencyStop;
+  };
+
+  /// Command result
+  public type CommandResult = {
+    #Success;
+    #Pending : { timeout : Nat };
+    #Failed : { errorCode : Nat; message : Text };
+    #Rejected : { reason : Text };
+  };
+
+  /// Serialize command for MAVLink transmission
+  public func serializeCommand(cmd: DroneCommand, targetSystem: Nat) : [Nat8] {
+    // Simplified MAVLink command encoding
+    var bytes : [Nat8] = [];
+    
+    switch (cmd) {
+      case (#Arm) {
+        // MAV_CMD_COMPONENT_ARM_DISARM (400), param1 = 1 (arm)
+        bytes := [0xFD, 21, 0, 0, Nat8.fromNat(targetSystem), 0, 76, 0,
+                  0, 0, 0, 0, 0x80, 0x3F,  // param1 = 1.0 (arm)
+                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                  0x90, 0x01];  // command 400
+      };
+      case (#Disarm) {
+        bytes := [0xFD, 21, 0, 0, Nat8.fromNat(targetSystem), 0, 76, 0,
+                  0, 0, 0, 0, 0, 0, 0, 0,  // param1 = 0.0 (disarm)
+                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                  0x90, 0x01];
+      };
+      case (#Takeoff(params)) {
+        // MAV_CMD_NAV_TAKEOFF (22)
+        let altBytes = floatToBytes(params.altitude);
+        bytes := [0xFD, 21, 0, 0, Nat8.fromNat(targetSystem), 0, 76, 0,
+                  0, 0, 0, 0, 0, 0, 0, 0,
+                  0, 0, 0, 0, 0, 0, 0, 0,
+                  altBytes[0], altBytes[1], altBytes[2], altBytes[3],
+                  0, 0, 0, 0, 0x16, 0x00];
+      };
+      case (#Land) {
+        bytes := [0xFD, 21, 0, 0, Nat8.fromNat(targetSystem), 0, 76, 0,
+                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                  0, 0, 0, 0, 0, 0, 0, 0, 0x15, 0x00];  // command 21
+      };
+      case (#ReturnToLaunch) {
+        bytes := [0xFD, 21, 0, 0, Nat8.fromNat(targetSystem), 0, 76, 0,
+                  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                  0, 0, 0, 0, 0, 0, 0, 0, 0x14, 0x00];  // command 20
+      };
+      case (#GoTo(pos)) {
+        let latBytes = floatToBytes(Float.fromInt(Float.toInt(pos.lat * 1e7)));
+        let lonBytes = floatToBytes(Float.fromInt(Float.toInt(pos.lon * 1e7)));
+        let altBytes = floatToBytes(pos.alt);
+        bytes := Array.append(bytes, [0xFD, 37, 0, 0, Nat8.fromNat(targetSystem), 0, 84, 0]);
+        bytes := Array.append(bytes, latBytes);
+        bytes := Array.append(bytes, lonBytes);
+        bytes := Array.append(bytes, altBytes);
+      };
+      case _ {
+        bytes := [];
+      };
+    };
+    
+    bytes
+  };
+
+  /// Convert float to 4 bytes (little endian IEEE 754)
+  func floatToBytes(f: Float) : [Nat8] {
+    // Simplified - in production use proper IEEE 754 conversion
+    let asInt = Float.toInt(f * 1000.0);
+    [
+      Nat8.fromNat(Int.abs(asInt) % 256),
+      Nat8.fromNat((Int.abs(asInt) / 256) % 256),
+      Nat8.fromNat((Int.abs(asInt) / 65536) % 256),
+      Nat8.fromNat((Int.abs(asInt) / 16777216) % 256)
+    ]
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 16: SWARM FORMATION ALGORITHMS
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Advanced formation control with collision avoidance
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Reynolds flocking parameters
+  public type FlockingParams = {
+    separationWeight : Float;    // Avoid crowding neighbors
+    alignmentWeight  : Float;    // Steer toward average heading
+    cohesionWeight   : Float;    // Steer toward center of mass
+    separationRadius : Float;    // Distance for separation
+    neighborRadius   : Float;    // Distance for alignment/cohesion
+    maxSpeed         : Float;    // Maximum velocity
+    maxForce         : Float;    // Maximum steering force
+  };
+
+  /// Default flocking parameters
+  public let defaultFlockingParams : FlockingParams = {
+    separationWeight = 1.5;
+    alignmentWeight = 1.0;
+    cohesionWeight = 1.0;
+    separationRadius = 10.0;
+    neighborRadius = 50.0;
+    maxSpeed = 15.0;
+    maxForce = 5.0;
+  };
+
+  /// Compute Reynolds flocking steering
+  public func computeFlockingSteering(
+    dronePos: { x: Float; y: Float; z: Float },
+    droneVel: { x: Float; y: Float; z: Float },
+    neighbors: [{ pos: { x: Float; y: Float; z: Float }; vel: { x: Float; y: Float; z: Float } }],
+    params: FlockingParams
+  ) : { ax: Float; ay: Float; az: Float } {
+    var separationX : Float = 0.0;
+    var separationY : Float = 0.0;
+    var separationZ : Float = 0.0;
+    var separationCount : Nat = 0;
+    
+    var alignmentX : Float = 0.0;
+    var alignmentY : Float = 0.0;
+    var alignmentZ : Float = 0.0;
+    var alignmentCount : Nat = 0;
+    
+    var cohesionX : Float = 0.0;
+    var cohesionY : Float = 0.0;
+    var cohesionZ : Float = 0.0;
+    var cohesionCount : Nat = 0;
+    
+    for (neighbor in neighbors.vals()) {
+      let dx = dronePos.x - neighbor.pos.x;
+      let dy = dronePos.y - neighbor.pos.y;
+      let dz = dronePos.z - neighbor.pos.z;
+      let dist = Float.sqrt(dx*dx + dy*dy + dz*dz);
+      
+      // Separation: repel if too close
+      if (dist > 0.1 and dist < params.separationRadius) {
+        let repelStrength = 1.0 / dist;
+        separationX += dx * repelStrength;
+        separationY += dy * repelStrength;
+        separationZ += dz * repelStrength;
+        separationCount += 1;
+      };
+      
+      // Alignment and cohesion: if within neighbor radius
+      if (dist < params.neighborRadius) {
+        alignmentX += neighbor.vel.x;
+        alignmentY += neighbor.vel.y;
+        alignmentZ += neighbor.vel.z;
+        alignmentCount += 1;
+        
+        cohesionX += neighbor.pos.x;
+        cohesionY += neighbor.pos.y;
+        cohesionZ += neighbor.pos.z;
+        cohesionCount += 1;
+      };
+    };
+    
+    var steerX : Float = 0.0;
+    var steerY : Float = 0.0;
+    var steerZ : Float = 0.0;
+    
+    // Separation steering
+    if (separationCount > 0) {
+      let n = Float.fromInt(separationCount);
+      steerX += (separationX / n) * params.separationWeight;
+      steerY += (separationY / n) * params.separationWeight;
+      steerZ += (separationZ / n) * params.separationWeight;
+    };
+    
+    // Alignment steering
+    if (alignmentCount > 0) {
+      let n = Float.fromInt(alignmentCount);
+      let avgVx = alignmentX / n;
+      let avgVy = alignmentY / n;
+      let avgVz = alignmentZ / n;
+      steerX += (avgVx - droneVel.x) * params.alignmentWeight;
+      steerY += (avgVy - droneVel.y) * params.alignmentWeight;
+      steerZ += (avgVz - droneVel.z) * params.alignmentWeight;
+    };
+    
+    // Cohesion steering
+    if (cohesionCount > 0) {
+      let n = Float.fromInt(cohesionCount);
+      let centerX = cohesionX / n;
+      let centerY = cohesionY / n;
+      let centerZ = cohesionZ / n;
+      steerX += (centerX - dronePos.x) * params.cohesionWeight * 0.01;
+      steerY += (centerY - dronePos.y) * params.cohesionWeight * 0.01;
+      steerZ += (centerZ - dronePos.z) * params.cohesionWeight * 0.01;
+    };
+    
+    // Limit steering force
+    let steerMag = Float.sqrt(steerX*steerX + steerY*steerY + steerZ*steerZ);
+    if (steerMag > params.maxForce) {
+      let scale = params.maxForce / steerMag;
+      steerX := steerX * scale;
+      steerY := steerY * scale;
+      steerZ := steerZ * scale;
+    };
+    
+    { ax = steerX; ay = steerY; az = steerZ }
+  };
+
+  /// Obstacle avoidance (potential field method)
+  public func computeObstacleAvoidance(
+    dronePos: { x: Float; y: Float; z: Float },
+    obstacles: [{ x: Float; y: Float; z: Float; radius: Float }],
+    avoidanceGain: Float,
+    avoidanceRange: Float
+  ) : { ax: Float; ay: Float; az: Float } {
+    var totalForceX : Float = 0.0;
+    var totalForceY : Float = 0.0;
+    var totalForceZ : Float = 0.0;
+    
+    for (obs in obstacles.vals()) {
+      let dx = dronePos.x - obs.x;
+      let dy = dronePos.y - obs.y;
+      let dz = dronePos.z - obs.z;
+      let dist = Float.sqrt(dx*dx + dy*dy + dz*dz);
+      
+      // Only repel if within avoidance range
+      if (dist < avoidanceRange + obs.radius and dist > 0.01) {
+        let penetration = avoidanceRange + obs.radius - dist;
+        let repelStrength = avoidanceGain * penetration / dist;
+        totalForceX += dx * repelStrength;
+        totalForceY += dy * repelStrength;
+        totalForceZ += dz * repelStrength;
+      };
+    };
+    
+    { ax = totalForceX; ay = totalForceY; az = totalForceZ }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 17: MISSION PLANNING ENGINE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Autonomous mission planning with task allocation
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Mission types
+  public type MissionType = {
+    #Patrol : { waypoints: [{ lat: Float; lon: Float; alt: Float }]; loopForever: Bool };
+    #Search : { area: { minLat: Float; maxLat: Float; minLon: Float; maxLon: Float }; pattern: Text };
+    #Strike : { targets: [{ lat: Float; lon: Float; priority: Float }] };
+    #Escort : { assetId: Nat; offset: { x: Float; y: Float; z: Float } };
+    #Reconnaissance : { points: [{ lat: Float; lon: Float }]; dwellTime: Float };
+    #Defend : { center: { lat: Float; lon: Float }; radius: Float };
+  };
+
+  /// Mission state
+  public type MissionState = {
+    missionId    : Nat;
+    missionType  : MissionType;
+    status       : Text;          // "planning", "executing", "paused", "complete", "aborted"
+    assignedDrones : [Nat];
+    currentWaypoint : Nat;
+    progress     : Float;
+    startTime    : Nat;
+    estimatedEnd : Nat;
+    priority     : Float;
+  };
+
+  /// Generate search pattern waypoints
+  public func generateSearchPattern(
+    area: { minLat: Float; maxLat: Float; minLon: Float; maxLon: Float },
+    pattern: Text,
+    altitude: Float,
+    spacing: Float
+  ) : [{ lat: Float; lon: Float; alt: Float }] {
+    var waypoints : [{ lat: Float; lon: Float; alt: Float }] = [];
+    
+    let latRange = area.maxLat - area.minLat;
+    let lonRange = area.maxLon - area.minLon;
+    
+    // Spacing in degrees (approximate)
+    let latSpacing = spacing / 111000.0;
+    let lonSpacing = spacing / (111000.0 * Float.cos((area.minLat + area.maxLat) / 2.0 * PI / 180.0));
+    
+    switch (pattern) {
+      case "lawnmower" {
+        // Back-and-forth pattern
+        var lat = area.minLat;
+        var direction = 1;
+        while (lat <= area.maxLat) {
+          if (direction == 1) {
+            var lon = area.minLon;
+            while (lon <= area.maxLon) {
+              waypoints := Array.append(waypoints, [{ lat = lat; lon = lon; alt = altitude }]);
+              lon += lonSpacing;
+            };
+          } else {
+            var lon = area.maxLon;
+            while (lon >= area.minLon) {
+              waypoints := Array.append(waypoints, [{ lat = lat; lon = lon; alt = altitude }]);
+              lon -= lonSpacing;
+            };
+          };
+          lat += latSpacing;
+          direction := -direction;
+        };
+      };
+      
+      case "spiral" {
+        // Expanding spiral from center
+        let centerLat = (area.minLat + area.maxLat) / 2.0;
+        let centerLon = (area.minLon + area.maxLon) / 2.0;
+        let maxRadius = Float.max(latRange, lonRange) / 2.0;
+        
+        var angle : Float = 0.0;
+        var radius : Float = 0.0;
+        while (radius < maxRadius) {
+          let lat = centerLat + radius * Float.cos(angle) / latSpacing * latSpacing;
+          let lon = centerLon + radius * Float.sin(angle) / lonSpacing * lonSpacing;
+          if (lat >= area.minLat and lat <= area.maxLat and lon >= area.minLon and lon <= area.maxLon) {
+            waypoints := Array.append(waypoints, [{ lat = lat; lon = lon; alt = altitude }]);
+          };
+          angle += 0.3;
+          radius += latSpacing * 0.05;
+        };
+      };
+      
+      case _ {
+        // Default: simple grid
+        var lat = area.minLat;
+        while (lat <= area.maxLat) {
+          var lon = area.minLon;
+          while (lon <= area.maxLon) {
+            waypoints := Array.append(waypoints, [{ lat = lat; lon = lon; alt = altitude }]);
+            lon += lonSpacing;
+          };
+          lat += latSpacing;
+        };
+      };
+    };
+    
+    waypoints
+  };
+
+  /// Assign drones to mission optimally (Hungarian algorithm simplified)
+  public func assignDronesToMission(
+    availableDrones: [{ id: Nat; lat: Float; lon: Float; battery: Float }],
+    missionWaypoints: [{ lat: Float; lon: Float; alt: Float }],
+    dronesNeeded: Nat
+  ) : [Nat] {
+    // Score each drone by distance to first waypoint and battery
+    var scores : [(Nat, Float)] = [];
+    
+    for (drone in availableDrones.vals()) {
+      if (missionWaypoints.size() > 0) {
+        let wp = missionWaypoints[0];
+        let dist = Float.sqrt((drone.lat - wp.lat)**2.0 + (drone.lon - wp.lon)**2.0) * 111000.0;
+        let distScore = 1.0 / (1.0 + dist / 1000.0);
+        let batteryScore = drone.battery / 100.0;
+        let totalScore = distScore * 0.6 + batteryScore * 0.4;
+        scores := Array.append(scores, [(drone.id, totalScore)]);
+      };
+    };
+    
+    // Sort by score (descending) - simple bubble sort
+    let mutableScores = Array.thaw<(Nat, Float)>(scores);
+    for (i in Iter.range(0, Int.abs(scores.size() - 2))) {
+      for (j in Iter.range(0, Int.abs(scores.size() - 2 - i))) {
+        if (mutableScores[j].1 < mutableScores[j + 1].1) {
+          let temp = mutableScores[j];
+          mutableScores[j] := mutableScores[j + 1];
+          mutableScores[j + 1] := temp;
+        };
+      };
+    };
+    scores := Array.freeze(mutableScores);
+    
+    // Take top N drones
+    var assigned : [Nat] = [];
+    var count = 0;
+    for ((id, _) in scores.vals()) {
+      if (count < dronesNeeded) {
+        assigned := Array.append(assigned, [id]);
+        count += 1;
+      };
+    };
+    
+    assigned
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 18: COLLISION AVOIDANCE SYSTEM
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Multi-level collision avoidance for swarm safety
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Collision risk assessment
+  public type CollisionRisk = {
+    droneA         : Nat;
+    droneB         : Nat;
+    timeToCollision : Float;       // seconds
+    minSeparation  : Float;        // meters
+    riskLevel      : Float;        // 0-1
+    resolutionVec  : { x: Float; y: Float; z: Float };
+  };
+
+  /// Detect potential collisions
+  public func detectCollisionRisks(
+    drones: [{ id: Nat; pos: { x: Float; y: Float; z: Float }; vel: { x: Float; y: Float; z: Float } }],
+    minSeparation: Float,
+    lookAheadTime: Float
+  ) : [CollisionRisk] {
+    var risks : [CollisionRisk] = [];
+    
+    for (i in Iter.range(0, Int.abs(drones.size() - 1))) {
+      for (j in Iter.range(i + 1, Int.abs(drones.size() - 1))) {
+        if (j < drones.size()) {
+          let droneA = drones[i];
+          let droneB = drones[j];
+          
+          // Relative position and velocity
+          let relPosX = droneB.pos.x - droneA.pos.x;
+          let relPosY = droneB.pos.y - droneA.pos.y;
+          let relPosZ = droneB.pos.z - droneA.pos.z;
+          
+          let relVelX = droneB.vel.x - droneA.vel.x;
+          let relVelY = droneB.vel.y - droneA.vel.y;
+          let relVelZ = droneB.vel.z - droneA.vel.z;
+          
+          // Current separation
+          let currentSep = Float.sqrt(relPosX*relPosX + relPosY*relPosY + relPosZ*relPosZ);
+          
+          // Time to closest approach
+          let relVelMag = Float.sqrt(relVelX*relVelX + relVelY*relVelY + relVelZ*relVelZ);
+          let closingRate = -(relPosX*relVelX + relPosY*relVelY + relPosZ*relVelZ) / (currentSep + 0.01);
+          
+          let timeToClosest = if (closingRate > 0.0 and relVelMag > 0.1) {
+            currentSep / closingRate
+          } else { lookAheadTime + 1.0 };  // Not closing
+          
+          // Predicted minimum separation
+          let predPosX = relPosX + relVelX * timeToClosest;
+          let predPosY = relPosY + relVelY * timeToClosest;
+          let predPosZ = relPosZ + relVelZ * timeToClosest;
+          let predSep = Float.sqrt(predPosX*predPosX + predPosY*predPosY + predPosZ*predPosZ);
+          
+          let minSep = Float.min(currentSep, predSep);
+          
+          // Risk assessment
+          if (minSep < minSeparation * 2.0 and timeToClosest < lookAheadTime) {
+            let riskLevel = (1.0 - minSep / (minSeparation * 2.0)) * (1.0 - timeToClosest / lookAheadTime);
+            
+            // Resolution vector (perpendicular to closing direction)
+            let resX = if (currentSep > 0.01) { relPosX / currentSep } else { 1.0 };
+            let resY = if (currentSep > 0.01) { relPosY / currentSep } else { 0.0 };
+            let resZ = if (currentSep > 0.01) { relPosZ / currentSep } else { 0.0 };
+            
+            risks := Array.append(risks, [{
+              droneA = droneA.id;
+              droneB = droneB.id;
+              timeToCollision = timeToClosest;
+              minSeparation = minSep;
+              riskLevel = riskLevel;
+              resolutionVec = { x = resX; y = resY; z = resZ };
+            }]);
+          };
+        };
+      };
+    };
+    
+    risks
+  };
+
+  /// Compute collision avoidance maneuver
+  public func computeAvoidanceManeuver(
+    risk: CollisionRisk,
+    droneId: Nat,
+    maxAccel: Float
+  ) : { ax: Float; ay: Float; az: Float } {
+    // Direction to avoid (away from other drone)
+    let isA = droneId == risk.droneA;
+    let direction = if (isA) { -1.0 } else { 1.0 };
+    
+    // Urgency based on risk level
+    let urgency = risk.riskLevel * 2.0;
+    
+    {
+      ax = direction * risk.resolutionVec.x * maxAccel * urgency;
+      ay = direction * risk.resolutionVec.y * maxAccel * urgency;
+      az = direction * risk.resolutionVec.z * maxAccel * urgency;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 19: SWARM COMMUNICATION NETWORK
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Mesh network for swarm coordination
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Communication link state
+  public type CommLink = {
+    nodeA          : Nat;
+    nodeB          : Nat;
+    signalStrength : Float;       // dBm
+    latency        : Float;       // ms
+    bandwidth      : Float;       // kbps
+    packetLoss     : Float;       // 0-1
+    isActive       : Bool;
+  };
+
+  /// Network topology
+  public type NetworkTopology = {
+    nodes          : [Nat];        // Drone IDs
+    links          : [CommLink];
+    meshDensity    : Float;        // Average connections per node
+    networkDiameter : Nat;         // Max hops between any two nodes
+    partitions     : Nat;          // Number of disconnected subgraphs
+  };
+
+  /// Compute network topology
+  public func computeNetworkTopology(
+    drones: [{ id: Nat; pos: { x: Float; y: Float; z: Float } }],
+    maxCommRange: Float,
+    minSignalStrength: Float
+  ) : NetworkTopology {
+    var links : [CommLink] = [];
+    var connectionCounts = Array.tabulate<Nat>(drones.size(), func(_) { 0 });
+    
+    for (i in Iter.range(0, Int.abs(drones.size() - 1))) {
+      for (j in Iter.range(i + 1, Int.abs(drones.size() - 1))) {
+        if (j < drones.size()) {
+          let droneA = drones[i];
+          let droneB = drones[j];
+          
+          let dx = droneB.pos.x - droneA.pos.x;
+          let dy = droneB.pos.y - droneA.pos.y;
+          let dz = droneB.pos.z - droneA.pos.z;
+          let dist = Float.sqrt(dx*dx + dy*dy + dz*dz);
+          
+          if (dist < maxCommRange) {
+            // Free space path loss model
+            let signalStrength = -20.0 * Float.log(dist + 1.0) / Float.log(10.0) - 20.0;
+            
+            if (signalStrength > minSignalStrength) {
+              let latency = dist / 300000000.0 * 1000.0;  // Light speed in ms
+              let bandwidth = 1000.0 * (1.0 - dist / maxCommRange);  // Simple model
+              let packetLoss = (dist / maxCommRange) ** 2.0 * 0.1;
+              
+              links := Array.append(links, [{
+                nodeA = droneA.id;
+                nodeB = droneB.id;
+                signalStrength = signalStrength;
+                latency = latency;
+                bandwidth = bandwidth;
+                packetLoss = packetLoss;
+                isActive = true;
+              }]);
+              
+              let countsMut = Array.thaw<Nat>(connectionCounts);
+              countsMut[i] := countsMut[i] + 1;
+              countsMut[j] := countsMut[j] + 1;
+              connectionCounts := Array.freeze(countsMut);
+            };
+          };
+        };
+      };
+    };
+    
+    // Compute mesh density
+    var totalConnections : Nat = 0;
+    for (c in connectionCounts.vals()) {
+      totalConnections += c;
+    };
+    let density = Float.fromInt(totalConnections) / Float.fromInt(drones.size() * 2);
+    
+    {
+      nodes = Array.tabulate<Nat>(drones.size(), func(i) { drones[i].id });
+      links = links;
+      meshDensity = density;
+      networkDiameter = 1;  // Simplified
+      partitions = 1;       // Simplified
+    }
+  };
+
+  /// Route message through mesh
+  public func routeMessage(
+    source: Nat,
+    destination: Nat,
+    topology: NetworkTopology,
+    maxHops: Nat
+  ) : ?[Nat] {
+    // Simple BFS routing
+    var visited = Array.tabulate<Bool>(topology.nodes.size(), func(_) { false });
+    var parent = Array.tabulate<?Nat>(topology.nodes.size(), func(_) { null });
+    var queue : [Nat] = [source];
+    
+    // Mark source as visited
+    for (i in Iter.range(0, Int.abs(topology.nodes.size() - 1))) {
+      if (topology.nodes[i] == source) {
+        let visitedMut = Array.thaw<Bool>(visited);
+        visitedMut[i] := true;
+        visited := Array.freeze(visitedMut);
+      };
+    };
+    
+    var found = false;
+    var hops = 0;
+    
+    while (queue.size() > 0 and not found and hops < maxHops) {
+      let current = queue[0];
+      queue := Array.tabulate<Nat>(queue.size() - 1, func(i) { queue[i + 1] });
+      
+      if (current == destination) {
+        found := true;
+      } else {
+        // Find neighbors
+        for (link in topology.links.vals()) {
+          let neighbor = if (link.nodeA == current) { ?link.nodeB }
+                        else if (link.nodeB == current) { ?link.nodeA }
+                        else { null };
+          
+          switch (neighbor) {
+            case (?n) {
+              // Find index of neighbor
+              for (i in Iter.range(0, Int.abs(topology.nodes.size() - 1))) {
+                if (topology.nodes[i] == n and not visited[i]) {
+                  let visitedMut = Array.thaw<Bool>(visited);
+                  visitedMut[i] := true;
+                  visited := Array.freeze(visitedMut);
+                  
+                  let parentMut = Array.thaw<?Nat>(parent);
+                  parentMut[i] := ?current;
+                  parent := Array.freeze(parentMut);
+                  
+                  queue := Array.append(queue, [n]);
+                };
+              };
+            };
+            case null { };
+          };
+        };
+      };
+      
+      hops += 1;
+    };
+    
+    if (found) {
+      // Reconstruct path
+      var path : [Nat] = [destination];
+      var current = destination;
+      
+      for (_ in Iter.range(0, maxHops)) {
+        for (i in Iter.range(0, Int.abs(topology.nodes.size() - 1))) {
+          if (topology.nodes[i] == current) {
+            switch (parent[i]) {
+              case (?p) {
+                path := Array.append([p], path);
+                current := p;
+              };
+              case null { };
+            };
+          };
+        };
+        if (current == source) { return ?path };
+      };
+      
+      ?path
+    } else { null }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 20: COMPLETE FLEET ORCHESTRATOR
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Master coordinator for the entire drone fleet
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Complete fleet state
+  public type FleetState = {
+    // Drones
+    drones          : [HardwareTelemetry];
+    droneCount      : Nat;
+    activeDrones    : Nat;
+    
+    // Formation
+    currentFormation : Text;
+    formationCenter : { lat: Float; lon: Float; alt: Float };
+    formationQuality : Float;
+    
+    // Missions
+    activeMissions  : [MissionState];
+    completedMissions : Nat;
+    
+    // Network
+    networkTopology : NetworkTopology;
+    commHealth      : Float;
+    
+    // Synchronization
+    kuramotoPhase   : Float;
+    kuramotoR       : Float;
+    
+    // Safety
+    collisionRisks  : [CollisionRisk];
+    alertLevel      : Float;
+    
+    // Timing
+    beatNum         : Nat;
+  };
+
+  /// Initialize fleet state
+  public func initFleetState(numDrones: Nat, baseLat: Float, baseLon: Float, baseAlt: Float) : FleetState {
+    // Initialize drones in formation
+    let drones = Array.tabulate<HardwareTelemetry>(numDrones, func(i) {
+      let goldenAngle = PI * (3.0 - Float.sqrt(5.0));
+      let theta = goldenAngle * Float.fromInt(i);
+      let z = 1.0 - (2.0 * Float.fromInt(i) + 1.0) / Float.fromInt(numDrones);
+      let radius = Float.sqrt(1.0 - z * z) * 0.0001;
+      
+      {
+        systemId = i + 1;
+        componentId = 1;
+        autopilotType = 3;
+        vehicleType = 2;
+        latitude = baseLat + radius * Float.cos(theta);
+        longitude = baseLon + radius * Float.sin(theta);
+        altitude = baseAlt + z * 20.0;
+        relativeAlt = z * 20.0;
+        vx = 0.0; vy = 0.0; vz = 0.0;
+        groundSpeed = 0.0;
+        roll = 0.0; pitch = 0.0; yaw = theta;
+        rollspeed = 0.0; pitchspeed = 0.0; yawspeed = 0.0;
+        voltage = 16800.0;
+        current = 0.0;
+        remaining = 100;
+        mode = 0;
+        armed = false;
+        ekfOk = true;
+        gpsFixType = 3;
+        satCount = 12;
+        bootTime = 0;
+        timestamp = 0;
+      }
+    });
+    
+    {
+      drones = drones;
+      droneCount = numDrones;
+      activeDrones = numDrones;
+      currentFormation = "fibonacci";
+      formationCenter = { lat = baseLat; lon = baseLon; alt = baseAlt };
+      formationQuality = 1.0;
+      activeMissions = [];
+      completedMissions = 0;
+      networkTopology = { nodes = []; links = []; meshDensity = 0.0; networkDiameter = 0; partitions = 1 };
+      commHealth = 1.0;
+      kuramotoPhase = 0.0;
+      kuramotoR = 0.5;
+      collisionRisks = [];
+      alertLevel = 0.0;
+      beatNum = 0;
+    }
+  };
+
+  /// Execute one tick of fleet management
+  public func tickFleet(state: FleetState, dt: Float) : FleetState {
+    // 1. Update Kuramoto synchronization
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    let n = state.drones.size();
+    
+    for (drone in state.drones.vals()) {
+      let phase = drone.yaw;  // Use yaw as phase
+      sumCos += Float.cos(phase);
+      sumSin += Float.sin(phase);
+    };
+    
+    let meanPhase = Float.arctan2(sumSin, sumCos);
+    let coherence = Float.sqrt(sumCos*sumCos + sumSin*sumSin) / Float.fromInt(n);
+    
+    // 2. Check collision risks
+    let dronePositions = Array.map<HardwareTelemetry, { id: Nat; pos: { x: Float; y: Float; z: Float }; vel: { x: Float; y: Float; z: Float } }>(
+      state.drones,
+      func(d) {
+        { 
+          id = d.systemId;
+          pos = { x = d.longitude * 111000.0; y = d.latitude * 111000.0; z = d.altitude / 1000.0 };
+          vel = { x = d.vx / 100.0; y = d.vy / 100.0; z = d.vz / 100.0 };
+        }
+      }
+    );
+    let risks = detectCollisionRisks(dronePositions, 10.0, 5.0);
+    
+    // 3. Compute formation quality
+    var formationError : Float = 0.0;
+    let centerLat = state.formationCenter.lat;
+    let centerLon = state.formationCenter.lon;
+    
+    for (drone in state.drones.vals()) {
+      let dLat = drone.latitude - centerLat;
+      let dLon = drone.longitude - centerLon;
+      formationError += Float.sqrt(dLat*dLat + dLon*dLon);
+    };
+    let formationQuality = 1.0 / (1.0 + formationError * 1000.0);
+    
+    // 4. Update alert level
+    var alertLevel : Float = 0.0;
+    for (risk in risks.vals()) {
+      if (risk.riskLevel > alertLevel) { alertLevel := risk.riskLevel };
+    };
+    
+    {
+      drones = state.drones;
+      droneCount = state.droneCount;
+      activeDrones = state.activeDrones;
+      currentFormation = state.currentFormation;
+      formationCenter = state.formationCenter;
+      formationQuality = formationQuality;
+      activeMissions = state.activeMissions;
+      completedMissions = state.completedMissions;
+      networkTopology = state.networkTopology;
+      commHealth = state.commHealth;
+      kuramotoPhase = meanPhase;
+      kuramotoR = coherence;
+      collisionRisks = risks;
+      alertLevel = alertLevel;
+      beatNum = state.beatNum + 1;
+    }
+  };
+
+  /// Generate fleet output for organism integration
+  public type FleetOutput = {
+    droneCount       : Nat;
+    activeDrones     : Nat;
+    swarmCoherence   : Float;
+    formationQuality : Float;
+    missionProgress  : Float;
+    commHealth       : Float;
+    alertLevel       : Float;
+    centerLat        : Float;
+    centerLon        : Float;
+    centerAlt        : Float;
+    beatNum          : Nat;
+  };
+
+  public func generateFleetOutput(state: FleetState) : FleetOutput {
+    var missionProgress : Float = 0.0;
+    if (state.activeMissions.size() > 0) {
+      for (mission in state.activeMissions.vals()) {
+        missionProgress += mission.progress;
+      };
+      missionProgress := missionProgress / Float.fromInt(state.activeMissions.size());
+    };
+    
+    {
+      droneCount = state.droneCount;
+      activeDrones = state.activeDrones;
+      swarmCoherence = state.kuramotoR;
+      formationQuality = state.formationQuality;
+      missionProgress = missionProgress;
+      commHealth = state.commHealth;
+      alertLevel = state.alertLevel;
+      centerLat = state.formationCenter.lat;
+      centerLon = state.formationCenter.lon;
+      centerAlt = state.formationCenter.alt;
+      beatNum = state.beatNum;
+    }
+  };
+
 }
