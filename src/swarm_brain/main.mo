@@ -614,8 +614,8 @@ actor SwarmBrain {
   stable var councilCoherence : [var Float] = Array.init<Float>(7, 1.0);
   stable var councilVotes : [var Float] = Array.init<Float>(7, 0.5);
 
-  // ─── ATLAS TERRITORY GRID — 4096 cells (64×64) ────────────────────────────────
-  stable var atlasCells : [var Float] = Array.init<Float>(4096, 1.0);
+  // ─── ATLAS TERRITORY GRID — 16384 cells (128×128) — expanded 4× ──────────────
+  stable var atlasCells : [var Float] = Array.init<Float>(16384, 1.0);
   stable var atlasTerritory : Float = 1.0;
 
   // ─── PREDICTIVE FIELD — 60 steps × 256 nodes = 15,360 floats ──────────────────
@@ -846,6 +846,12 @@ actor SwarmBrain {
   // ─── LAYER 9: HEARTBEAT & ORCHESTRATION ─────────────────────────────────────
   var heartbeatState : HeartbeatEngine.HeartbeatState = HeartbeatEngine.initHeartbeat();
   stable var orchestrationActive : Bool = false;
+
+  // ─── WORLD ORGANISM — Living 200km world with 6 inner AIs and 16 biomes ──────
+  var worldOrganismState : WorldOrganism.WorldOrganismState = WorldOrganism.initWorldOrganism();
+
+  // ─── INTEGRATED WORLD — Full world with drone swarms, entities, weather ───────
+  var integratedWorldState : OrganismWorldIntegration.IntegratedWorldState = OrganismWorldIntegration.initWorld();
   
   // ─── MODULE ACTIVATION TRACKING ─────────────────────────────────────────────
   stable var modulesCalledThisBeat : Nat = 0;
@@ -2531,6 +2537,29 @@ actor SwarmBrain {
       ignore CompleteOrganismWorkflows.execute(rSwarm, jDrift, currentBeat);
       modulesCalledThisBeat += 1;
       
+      // End-to-end organism heartbeat cycle — full pipeline: Shell 3 → Councils → Shell 12
+      // → Quantum → Neurochemicals → FORMA minting — previously disconnected, now active
+      let e2eCtx : EndToEndOrganismWorkflows.HeartbeatContext = {
+        beat = currentBeat;
+        dt = 1.0 / 12.0;
+        shell3Activations = Array.freeze<Float>(shell3Nodes);
+        councilStates = Array.tabulate<[Float]>(7, func(c : Nat) : [Float] {
+          [Array.freeze<Float>(councilCoherence)[c]]
+        });
+        shell12Activations = Array.freeze<Float>(shell12Nodes);
+        quantumScores = Array.freeze<Float>(quantumOps);
+        neurochemicals = [dopamineLevel, serotoninLevel, rSwarm, jDrift,
+                          rewardPredictionError, valueFunctionV,
+                          infoATP / 100.0, infoGlucose / 50.0, infoEntropy, infoHunger,
+                          1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
+        freeEnergy = jDrift;
+        coherence = rSwarm;
+        predictionError = predictionError;
+        kntBalance = 0;
+      };
+      ignore EndToEndOrganismWorkflows.executeHeartbeatCycle(e2eCtx);
+      modulesCalledThisBeat += 1;
+
       // Production super organism core
       ignore ProductionSuperOrganismCore.produce(rSwarm, n);
       modulesCalledThisBeat += 1;
@@ -2545,6 +2574,33 @@ actor SwarmBrain {
       
       // Unified hierarchical organism
       ignore UnifiedHierarchicalOrganism.hierarchy(rSwarm, n);
+      modulesCalledThisBeat += 1;
+
+      // Complete 32 Architecture Orchestrator — synthesise emergent coherence across all
+      // 7 tiers (Cnidarian → Primate → Superorganism) and feed back into rSwarm.
+      // Tier values are derived from existing per-layer module activations so no
+      // additional state construction is required.
+      let c32TierOutputs : [Float] = [
+        rSwarm,                                       // Tier 1: Diffuse (cnidarian/echinoderm/porifera)
+        (rSwarm + Float.abs(jDrift)) / 2.0,           // Tier 2: Ganglion (flatworm/annelid/mollusc)
+        animalEngines[1],                             // Tier 3: Arthropod (insect mushroom body)
+        animalEngines[6],                             // Tier 4: Cephalopod (octopus distributed)
+        (animalEngines[2] + animalEngines[0]) / 2.0, // Tier 5: Vertebrate (shark/bat/primate)
+        serotoninLevel * Float.abs(jDrift),                  // Tier 6: Specialist sensory (serotonin × drift modulation)
+        atlasTerritory                                // Tier 7: Superorganism (bee colony/murmuration)
+      ];
+      let c32Synergies = Complete32ArchitectureOrchestrator.computeCrossTierSynergies(c32TierOutputs);
+      // Tier weights: higher tiers (more complex architectures) carry more sovereignty weight.
+      // Base weight 1.0 + 0.1 per tier position (Tier 7 = 1.6, Tier 1 = 1.0).
+      let C32_TIER_BASE_WEIGHT : Float = 1.0;
+      let C32_TIER_WEIGHT_STEP : Float = 0.1;
+      let c32Coherence = Complete32ArchitectureOrchestrator.computeEmergentCoherence(
+        c32TierOutputs,
+        c32Synergies,
+        Array.tabulate<Float>(7, func(i : Nat) : Float { C32_TIER_BASE_WEIGHT + Float.fromInt(i) * C32_TIER_WEIGHT_STEP })
+      );
+      // Blend cross-tier emergent coherence into rSwarm (5% influence per beat)
+      rSwarm := fclamp(rSwarm * 0.95 + c32Coherence * 0.05, 0.0, 1.0);
       modulesCalledThisBeat += 1;
     };
     
@@ -2740,6 +2796,25 @@ actor SwarmBrain {
       
       // Weather system
       ignore WeatherSystem.simulate(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+
+      // World Organism — tick living world (6 inner AIs: TerrainAI, WeatherAI, EcologyAI,
+      // GeologyAI, AtmosphereAI, HydrologyAI) and all 16 biomes with mini-brains
+      worldOrganismState := WorldOrganism.tickWorldOrganism(worldOrganismState, 1.0 / 12.0);
+      modulesCalledThisBeat += 1;
+
+      // Bidirectional swarm ↔ world signal exchange
+      // Swarm coherence and activity are fed into the world organism
+      worldOrganismState := WorldOrganism.applySwarmToWorld(worldOrganismState, rSwarm, Float.abs(jDrift));
+      // World feeds back: habitability, global coherence, entropy signals
+      let (worldCoherence, worldEnergy, _worldThreat) = WorldOrganism.applyWorldToSwarm(worldOrganismState);
+      // Blend world coherence and energy into rSwarm (5% world influence per beat)
+      rSwarm := fclamp(rSwarm * 0.95 + (worldCoherence + worldEnergy) * 0.05, 0.0, 1.0);
+      modulesCalledThisBeat += 1;
+
+      // Integrated World — tick full world state (drone swarms, entities, weather)
+      // in the expanded 200km × 200km world at 60 Hz resolution
+      integratedWorldState := OrganismWorldIntegration.tick(integratedWorldState, 1.0 / 12.0);
       modulesCalledThisBeat += 1;
     };
     
@@ -4389,13 +4464,13 @@ actor SwarmBrain {
       };
 
       // L-121: SILVER SOVEREIGNTY — fires at every JUBILEE
-      // Silver conductance = 1.0, all 14 world-model EMAs at zero lag (α = 1.0).
+      // Silver conductance = 1.0, all 28 world-model EMAs at zero lag (α = 1.0).
       // The organism sees the world at full resolution every JUBILEE beat.
       let l121 = SovereigntyLaws60.law121_SilverSovereignty();
       silverConductance := l121.silverConductance;
-      // Apply α = 1.0 to the first 14 slots of worldModelInput
+      // Apply α = 1.0 to the first 28 slots of worldModelInput (28 world models)
       var wi = 0;
-      while (wi < 14 and wi < worldModelInput.size()) {
+      while (wi < 28 and wi < worldModelInput.size()) {
         worldModelInput[wi] := l121.worldModelAlphas[wi];
         wi += 1;
       };
@@ -4581,13 +4656,13 @@ actor SwarmBrain {
     // Pheromone-based territory marking
     var totalTerritory : Float = 0.0;
     var i = 0;
-    while (i < 4096) {
+    while (i < 16384) {
       // Decay
       atlasCells[i] := fclamp(atlasCells[i] * 0.999, 0.0, 5.0);
       
       // Deposit pheromone where activity is high
-      let row = i / 64;
-      let col = i % 64;
+      let row = i / 128;
+      let col = i % 128;
       if (row < stableDroneCount or col < stableDroneCount) {
         let activitySignal = if (row < stableDroneCount) { stableSignals[row] } else { 1.0 };
         atlasCells[i] := fclamp(atlasCells[i] + activitySignal * 0.001, 0.0, 5.0);
@@ -4596,7 +4671,7 @@ actor SwarmBrain {
       totalTerritory += atlasCells[i];
       i += 1;
     };
-    atlasTerritory := totalTerritory / 4096.0;
+    atlasTerritory := totalTerritory / 16384.0;
   };
 
   // ─── WORKFLOW 17: ANIMAL INTEGRATION — 16 Gen3 Animals ───────────────────────
@@ -5257,13 +5332,13 @@ actor SwarmBrain {
   // Wires SovereigntyLaws60.evaluateAllLaws() with live organism state.
   // Updates: lawComplianceScores, overallCompliance, doctrineFingerprint.
   // Also steps Jacob's Ladder (rung 0-4, FORMA multiplier) and applies
-  // law121_SilverSovereignty (all 14 world-model EMAs at zero lag every beat).
+  // law121_SilverSovereignty (all 28 world-model EMAs at zero lag every beat).
   func workflowSovereigntyLaws() {
 
-    // ── Build the 14 world-model alpha vector (all 1.0 per L-121) ──────────
-    // worldModelInput is a 64-slot [var Float].  The first 14 slots are the EMA
-    // alphas referenced by world-model laws.  L-121 mandates all 14 at 1.0.
-    let wmaSlice = Array.tabulate<Float>(14, func(i) {
+    // ── Build the 28 world-model alpha vector (all 1.0 per L-121) ──────────
+    // worldModelInput is a 64-slot [var Float].  The first 28 slots are the EMA
+    // alphas referenced by world-model laws.  L-121 mandates all 28 at 1.0.
+    let wmaSlice = Array.tabulate<Float>(28, func(i) {
       if (i < worldModelInput.size()) { worldModelInput[i] } else { 1.0 }
     });
 

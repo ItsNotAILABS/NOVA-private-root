@@ -140,8 +140,8 @@ module {
     
     // L-121 Silver Sovereignty
     silverConductance : Float;
-    worldModelAlphas : [Float];   // 14 EMAs at α=1.0
-    worldModelTaus : [Float];     // 14 τ values at 0.999
+    worldModelAlphas : [Float];   // 28 EMAs at α=1.0 (all intelligence domains)
+    worldModelTaus : [Float];     // 28 τ values at 0.999
     l121FireCount : Nat;
     
     // PROMETHEUS baseline
