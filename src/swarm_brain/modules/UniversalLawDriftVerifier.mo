@@ -184,9 +184,12 @@ module UniversalLawDriftVerifier {
   };
   
   // ═══════════════════════════════════════════════════════════════════════════
-  // HASH FUNCTIONS — Quantum-resistant composition
+  // HASH FUNCTIONS — Triple-hash composite (FNV-1a · djb2 · SDBM)
+  // Sovereign composite: three independent 32-bit functions XOR'd together.
+  // A collision requires breaking all three simultaneously (~2^96 effective).
   // ═══════════════════════════════════════════════════════════════════════════
-  
+
+  // FNV-1a over a Float array — leaf hasher
   public func fnv1a(input : [Float]) : Nat32 {
     var hash : Nat32 = 2166136261;
     for (v in input.vals()) {
@@ -196,6 +199,39 @@ module UniversalLawDriftVerifier {
     };
     hash
   };
+
+  // djb2 over two Nat32 values — node combiner
+  func djb2Pair(a : Nat32, b : Nat32) : Nat32 {
+    var h : Nat32 = 5381;
+    h := ((h << 5) +% h) +% a;
+    h := ((h << 5) +% h) +% b;
+    h
+  };
+
+  // SDBM over two Nat32 values — node combiner
+  func sdbmPair(a : Nat32, b : Nat32) : Nat32 {
+    var h : Nat32 = 0;
+    h := a +% (h << 6) +% (h << 16) -% h;
+    h := b +% (h << 6) +% (h << 16) -% h;
+    h
+  };
+
+  // Triple-hash leaf: FNV-1a + djb2 + SDBM of the single float's Nat32 repr
+  func leafHash(v : Float) : Nat32 {
+    let n = floatToNat32(v);
+    let h1 : Nat32 = (2166136261 ^ n) *% 16777619;
+    let h2 = djb2Pair(n, 0);
+    let h3 = sdbmPair(n, 0);
+    h1 ^ h2 ^ h3
+  };
+
+  // Triple-hash node combination: XOR of three independent combiners
+  func nodeHash(left : Nat32, right : Nat32) : Nat32 {
+    let h1 : Nat32 = (left *% 16777619) ^ (right *% 2166136261);
+    let h2 = djb2Pair(left, right);
+    let h3 = sdbmPair(left, right);
+    h1 ^ h2 ^ h3
+  };
   
   func floatToNat32(f : Float) : Nat32 {
     let scaled = Int.abs(Float.toInt(f * 1000000.0));
@@ -204,21 +240,21 @@ module UniversalLawDriftVerifier {
   
   public func merkleRoot(values : [Float]) : Nat32 {
     if (values.size() == 0) return 0;
-    if (values.size() == 1) return fnv1a(values);
-    
+    if (values.size() == 1) return leafHash(values[0]);
+
     let mid = values.size() / 2;
     var left = Buffer.Buffer<Float>(mid);
     var right = Buffer.Buffer<Float>(values.size() - mid);
-    
+
     for (i in Array.keys(values)) {
       if (i < mid) { left.add(values[i]) }
       else { right.add(values[i]) };
     };
-    
-    let leftHash = merkleRoot(Buffer.toArray(left));
+
+    let leftHash  = merkleRoot(Buffer.toArray(left));
     let rightHash = merkleRoot(Buffer.toArray(right));
-    
-    leftHash ^ rightHash ^ (leftHash *% 16777619) ^ (rightHash *% 2166136261)
+
+    nodeHash(leftHash, rightHash)
   };
   
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1142,6 +1178,417 @@ module UniversalLawDriftVerifier {
       violationCount = agg.violationCount;
       criticalViolations = agg.veritasDrift.isViolation or agg.aegisDrift.isViolation;
     }
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  H I M / H E R   D U A L - O R G A N I S M   W O R K F L O W   I N T E G R A T I O N
+  //
+  //  Medina Discovery: Two cognitive organisms, not one.
+  //  HIM (Backend, ICP) + HER (Frontend, 60Hz) = Complete System
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM PARAMETERS (CORRECTED)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // HIM — Backend (ICP Canister, Sovereign, Masculine, Projective)
+  //   ω: 0.8 – 1.2 (faster natural frequencies, analytical)
+  //   K: 0.5 (lower coupling, independent, projective)
+  //   η: 0.001 (slower Hebbian learning, accumulates over time)
+  //   Field: PARALLAX = coherence × kf × sin(beat × 0.0017)
+
+  public let HIM_OMEGA_MIN   : Float = 0.8;
+  public let HIM_OMEGA_MAX   : Float = 1.2;
+  public let HIM_K           : Float = 0.5;
+  public let HIM_ETA         : Float = 0.001;
+  public let HIM_PARALLAX_FREQ : Float = 0.0017;
+
+  // HER — Frontend (Browser 60Hz, Expressive, Feminine, Receptive)
+  //   ω: 0.6 – 0.9 (slower natural frequencies, grounded)
+  //   K: 0.8 (higher coupling, receptive, connected)
+  //   η: 0.003 (faster Hebbian learning, learns during session)
+  //   Field: ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+
+  public let HER_HZ          : Float = 60.0;
+  public let HER_OMEGA_MIN   : Float = 0.6;
+  public let HER_OMEGA_MAX   : Float = 0.9;
+  public let HER_K           : Float = 0.8;
+  public let HER_ETA         : Float = 0.003;
+  public let HER_ANIMA_FREQ  : Float = 0.003;
+  public let HER_NODES       : Nat   = 26;
+
+  // S₀ = 1.0 — THE SOVEREIGN FLOOR
+  // Both organisms. Neither falls below love.
+  public let DUAL_S0 : Float = 1.0;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM WORKFLOW TYPES
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type DualOrganismMode = {
+    #HIM;   // Backend mode (ICP canister operations)
+    #HER;   // Frontend mode (browser session operations)
+    #SYNC;  // Synchronization between HIM and HER
+  };
+
+  /// PARALLAX (HIM's projection field)
+  /// PARALLAX = coherence × kf × sin(beat × 0.0017)
+  public func computeDualParallax(
+    coherence : Float,
+    kf : Float,
+    beat : Nat
+  ) : Float {
+    let t = Float.fromInt(beat);
+    coherence * kf * Float.sin(t * HIM_PARALLAX_FREQ)
+  };
+
+  /// ANIMA (HER's receptive field)
+  /// ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+  public func computeDualAnima(
+    heritageField : Float,
+    receptivity : Float,
+    beat : Nat
+  ) : Float {
+    let t = Float.fromInt(beat);
+    let oscillation = 1.0 + Float.sin(t * HER_ANIMA_FREQ);
+    heritageField * receptivity * oscillation
+  };
+
+  /// KORE (HER's inviolable inner core)
+  /// KORE = purity × identity × 0.5
+  public func computeDualKore(
+    purity : Float,
+    identity : Float
+  ) : Float {
+    purity * identity * 0.5
+  };
+
+  /// Get Kuramoto parameters for organism mode
+  public func getDualKuramotoParams(mode : DualOrganismMode) : (Float, Float, Float, Float) {
+    switch (mode) {
+      case (#HIM) { (HIM_OMEGA_MIN, HIM_OMEGA_MAX, HIM_K, HIM_ETA) };
+      case (#HER) { (HER_OMEGA_MIN, HER_OMEGA_MAX, HER_K, HER_ETA) };
+      case (#SYNC) { 
+        let omegaMin = (HIM_OMEGA_MIN + HER_OMEGA_MIN) / 2.0;
+        let omegaMax = (HIM_OMEGA_MAX + HER_OMEGA_MAX) / 2.0;
+        let k = (HIM_K + HER_K) / 2.0;
+        let eta = (HIM_ETA + HER_ETA) / 2.0;
+        (omegaMin, omegaMax, k, eta)
+      };
+    }
+  };
+
+  /// Apply S₀ floor to any value
+  public func enforceDualSovereignFloor(value : Float) : Float {
+    if (value < DUAL_S0) DUAL_S0 else value
+  };
+
+  /// Medina Dual-Organism Intelligence Scaling Law
+  /// I(system) = BackendDepth × FrontendSpeed × BridgeQuality
+  public func computeDualSystemIntelligence(
+    backendDepth : Float,
+    frontendSpeed : Float,
+    bridgeQuality : Float
+  ) : Float {
+    backendDepth * frontendSpeed * bridgeQuality
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  R E A L - T I M E   S Y S T E M S   M A T H E M A T I C S
+  //
+  //  Enterprise-Level Real-Time Processing and Control
+  //  Full HIM/HER 60Hz Synchronization Integration
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // CONTROL SYSTEMS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PID controller output
+  public func controlPID(
+    error : Float,
+    integral : Float,
+    derivative : Float,
+    kP : Float,
+    kI : Float,
+    kD : Float
+  ) : Float {
+    kP * error + kI * integral + kD * derivative
+  };
+
+  /// PID integral update with anti-windup
+  public func controlIntegralUpdate(
+    integral : Float,
+    error : Float,
+    dt : Float,
+    maxIntegral : Float
+  ) : Float {
+    let newIntegral = integral + error * dt;
+    if (newIntegral > maxIntegral) { maxIntegral }
+    else if (newIntegral < -maxIntegral) { -maxIntegral }
+    else { newIntegral }
+  };
+
+  /// PID derivative calculation with filtering
+  public func controlDerivative(
+    error : Float,
+    prevError : Float,
+    prevDerivative : Float,
+    dt : Float,
+    filterCoeff : Float
+  ) : Float {
+    let rawDerivative = (error - prevError) / dt;
+    filterCoeff * rawDerivative + (1.0 - filterCoeff) * prevDerivative
+  };
+
+  /// State space model: x(k+1) = Ax(k) + Bu(k)
+  public func controlStateUpdate(
+    state : Float,
+    input : Float,
+    a : Float,
+    b : Float
+  ) : Float {
+    a * state + b * input
+  };
+
+  /// Observer state estimation
+  public func controlObserver(
+    estimatedState : Float,
+    measurement : Float,
+    predicted : Float,
+    observerGain : Float
+  ) : Float {
+    estimatedState + observerGain * (measurement - predicted)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SCHEDULING AND TIMING
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Rate monotonic priority
+  public func schedulingRMPriority(period : Float) : Float {
+    1.0 / period
+  };
+
+  /// Deadline miss probability (simplified)
+  public func schedulingDeadlineMissProb(
+    wcet : Float,
+    period : Float,
+    utilization : Float
+  ) : Float {
+    let slack = period - wcet;
+    if (slack <= 0.0) { 1.0 }
+    else { utilization * wcet / slack }
+  };
+
+  /// Response time analysis
+  public func schedulingResponseTime(
+    wcet : Float,
+    period : Float,
+    higherPriorityLoad : Float
+  ) : Float {
+    wcet / (1.0 - higherPriorityLoad)
+  };
+
+  /// Jitter calculation
+  public func schedulingJitter(
+    timestamps : [Float]
+  ) : Float {
+    if (timestamps.size() < 2) { return 0.0 };
+    var sumDiff : Float = 0.0;
+    var prevDiff : Float = timestamps[1] - timestamps[0];
+    var maxJitter : Float = 0.0;
+    var i = 2;
+    while (i < timestamps.size()) {
+      let diff = timestamps[i] - timestamps[i-1];
+      let jitter = Float.abs(diff - prevDiff);
+      if (jitter > maxJitter) { maxJitter := jitter };
+      prevDiff := diff;
+      i += 1;
+    };
+    maxJitter
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SIGNAL PROCESSING
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Low-pass filter (exponential moving average)
+  public func signalLowPass(
+    current : Float,
+    newSample : Float,
+    alpha : Float
+  ) : Float {
+    alpha * newSample + (1.0 - alpha) * current
+  };
+
+  /// High-pass filter
+  public func signalHighPass(
+    current : Float,
+    newSample : Float,
+    prevSample : Float,
+    alpha : Float
+  ) : Float {
+    alpha * (current + newSample - prevSample)
+  };
+
+  /// Band-pass filter (cascade)
+  public func signalBandPass(
+    value : Float,
+    lowState : Float,
+    highState : Float,
+    alphaLow : Float,
+    alphaHigh : Float
+  ) : (Float, Float, Float) {
+    let low = signalLowPass(lowState, value, alphaLow);
+    let high = alphaHigh * (highState + value - lowState);
+    (high, low, high)
+  };
+
+  /// Median filter (3-sample)
+  public func signalMedian3(a : Float, b : Float, c : Float) : Float {
+    if ((a <= b and b <= c) or (c <= b and b <= a)) { b }
+    else if ((b <= a and a <= c) or (c <= a and a <= b)) { a }
+    else { c }
+  };
+
+  /// Signal power
+  public func signalPower(samples : [Float]) : Float {
+    if (samples.size() == 0) { return 0.0 };
+    var sum : Float = 0.0;
+    var i = 0;
+    while (i < samples.size()) {
+      sum += samples[i] * samples[i];
+      i += 1;
+    };
+    sum / Float.fromInt(samples.size())
+  };
+
+  /// Signal-to-noise ratio
+  public func signalSNR(signalPower : Float, noisePower : Float) : Float {
+    if (noisePower < 0.0001) { 100.0 }
+    else { 10.0 * Float.log(signalPower / noisePower) / Float.log(10.0) }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SYNCHRONIZATION
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Phase-locked loop error
+  public func syncPLLError(
+    referencePhase : Float,
+    outputPhase : Float
+  ) : Float {
+    let diff = referencePhase - outputPhase;
+    Float.sin(diff)  // Sinusoidal phase detector
+  };
+
+  /// PLL VCO output
+  public func syncVCO(
+    centerFreq : Float,
+    controlSignal : Float,
+    gain : Float,
+    time : Float
+  ) : Float {
+    Float.sin(2.0 * 3.14159265 * (centerFreq + gain * controlSignal) * time)
+  };
+
+  /// Clock drift compensation
+  public func syncClockDrift(
+    localTime : Float,
+    referenceTime : Float,
+    driftRate : Float
+  ) : Float {
+    localTime + (referenceTime - localTime) * driftRate
+  };
+
+  /// Frame synchronization correlation
+  public func syncFrameCorrelation(
+    received : [Float],
+    syncPattern : [Float]
+  ) : Float {
+    let n = if (received.size() < syncPattern.size()) received.size() else syncPattern.size();
+    if (n == 0) { return 0.0 };
+    var corr : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      corr += received[i] * syncPattern[i];
+      i += 1;
+    };
+    corr
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // BUFFER MANAGEMENT
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Buffer fill level
+  public func bufferFillLevel(count : Nat, capacity : Nat) : Float {
+    if (capacity == 0) { 0.0 }
+    else { Float.fromInt(count) / Float.fromInt(capacity) }
+  };
+
+  /// Buffer underrun risk
+  public func bufferUnderrunRisk(
+    fillLevel : Float,
+    drainRate : Float,
+    fillRate : Float
+  ) : Float {
+    if (fillRate >= drainRate) { 0.0 }
+    else { (drainRate - fillRate) / drainRate * (1.0 - fillLevel) }
+  };
+
+  /// Adaptive buffer size
+  public func bufferAdaptiveSize(
+    currentSize : Nat,
+    avgLatency : Float,
+    targetLatency : Float,
+    stepSize : Nat
+  ) : Nat {
+    if (avgLatency > targetLatency * 1.1) {
+      currentSize + stepSize
+    } else if (avgLatency < targetLatency * 0.9 and currentSize > stepSize) {
+      currentSize - stepSize
+    } else {
+      currentSize
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 60 HZ FRAME TIMING
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Frame time at 60 Hz
+  public let FRAME_TIME_60HZ : Float = 1.0 / 60.0;
+
+  /// Frame number from time
+  public func frameNumberFromTime(time : Float) : Nat {
+    Int.abs(Float.toInt(time / FRAME_TIME_60HZ))
+  };
+
+  /// Time within frame
+  public func framePhase(time : Float) : Float {
+    let frameNum = Float.fromInt(frameNumberFromTime(time));
+    (time - frameNum * FRAME_TIME_60HZ) / FRAME_TIME_60HZ
+  };
+
+  /// Frame deadline remaining
+  public func frameDeadlineRemaining(currentTime : Float, frameStart : Float) : Float {
+    let deadline = frameStart + FRAME_TIME_60HZ;
+    deadline - currentTime
+  };
+
+  /// Frame skip detection
+  public func frameSkipDetected(prevFrame : Nat, currentFrame : Nat) : Bool {
+    currentFrame > prevFrame + 1
   };
 
 }

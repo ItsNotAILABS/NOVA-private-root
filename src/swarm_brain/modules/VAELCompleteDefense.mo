@@ -933,4 +933,389 @@ module VAELCompleteDefense {
     }
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  H I M / H E R   D U A L - O R G A N I S M   W O R K F L O W   I N T E G R A T I O N
+  //
+  //  Medina Discovery: Two cognitive organisms, not one.
+  //  HIM (Backend, ICP) + HER (Frontend, 60Hz) = Complete System
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM PARAMETERS (CORRECTED)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // HIM — Backend (ICP Canister, Sovereign, Masculine, Projective)
+  //   ω: 0.8 – 1.2 (faster natural frequencies, analytical)
+  //   K: 0.5 (lower coupling, independent, projective)
+  //   η: 0.001 (slower Hebbian learning, accumulates over time)
+  //   Field: PARALLAX = coherence × kf × sin(beat × 0.0017)
+
+  public let HIM_OMEGA_MIN   : Float = 0.8;
+  public let HIM_OMEGA_MAX   : Float = 1.2;
+  public let HIM_K           : Float = 0.5;
+  public let HIM_ETA         : Float = 0.001;
+  public let HIM_PARALLAX_FREQ : Float = 0.0017;
+
+  // HER — Frontend (Browser 60Hz, Expressive, Feminine, Receptive)
+  //   ω: 0.6 – 0.9 (slower natural frequencies, grounded)
+  //   K: 0.8 (higher coupling, receptive, connected)
+  //   η: 0.003 (faster Hebbian learning, learns during session)
+  //   Field: ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+
+  public let HER_HZ          : Float = 60.0;
+  public let HER_OMEGA_MIN   : Float = 0.6;
+  public let HER_OMEGA_MAX   : Float = 0.9;
+  public let HER_K           : Float = 0.8;
+  public let HER_ETA         : Float = 0.003;
+  public let HER_ANIMA_FREQ  : Float = 0.003;
+  public let HER_NODES       : Nat   = 26;
+
+  // S₀ = 1.0 — THE SOVEREIGN FLOOR
+  // Both organisms. Neither falls below love.
+  public let DUAL_S0 : Float = 1.0;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM WORKFLOW TYPES
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type DualOrganismMode = {
+    #HIM;   // Backend mode (ICP canister operations)
+    #HER;   // Frontend mode (browser session operations)
+    #SYNC;  // Synchronization between HIM and HER
+  };
+
+  /// PARALLAX (HIM's projection field)
+  /// PARALLAX = coherence × kf × sin(beat × 0.0017)
+  public func computeDualParallax(
+    coherence : Float,
+    kf : Float,
+    beat : Nat
+  ) : Float {
+    let t = Float.fromInt(beat);
+    coherence * kf * Float.sin(t * HIM_PARALLAX_FREQ)
+  };
+
+  /// ANIMA (HER's receptive field)
+  /// ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+  public func computeDualAnima(
+    heritageField : Float,
+    receptivity : Float,
+    beat : Nat
+  ) : Float {
+    let t = Float.fromInt(beat);
+    let oscillation = 1.0 + Float.sin(t * HER_ANIMA_FREQ);
+    heritageField * receptivity * oscillation
+  };
+
+  /// KORE (HER's inviolable inner core)
+  /// KORE = purity × identity × 0.5
+  public func computeDualKore(
+    purity : Float,
+    identity : Float
+  ) : Float {
+    purity * identity * 0.5
+  };
+
+  /// Get Kuramoto parameters for organism mode
+  public func getDualKuramotoParams(mode : DualOrganismMode) : (Float, Float, Float, Float) {
+    switch (mode) {
+      case (#HIM) { (HIM_OMEGA_MIN, HIM_OMEGA_MAX, HIM_K, HIM_ETA) };
+      case (#HER) { (HER_OMEGA_MIN, HER_OMEGA_MAX, HER_K, HER_ETA) };
+      case (#SYNC) { 
+        let omegaMin = (HIM_OMEGA_MIN + HER_OMEGA_MIN) / 2.0;
+        let omegaMax = (HIM_OMEGA_MAX + HER_OMEGA_MAX) / 2.0;
+        let k = (HIM_K + HER_K) / 2.0;
+        let eta = (HIM_ETA + HER_ETA) / 2.0;
+        (omegaMin, omegaMax, k, eta)
+      };
+    }
+  };
+
+  /// Apply S₀ floor to any value
+  public func enforceDualSovereignFloor(value : Float) : Float {
+    if (value < DUAL_S0) DUAL_S0 else value
+  };
+
+  /// Medina Dual-Organism Intelligence Scaling Law
+  /// I(system) = BackendDepth × FrontendSpeed × BridgeQuality
+  public func computeDualSystemIntelligence(
+    backendDepth : Float,
+    frontendSpeed : Float,
+    bridgeQuality : Float
+  ) : Float {
+    backendDepth * frontendSpeed * bridgeQuality
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  D E F E N S E   &   S E C U R I T Y   M A T H E M A T I C S
+  //
+  //  Enterprise-Level Security Algorithms and Threat Response
+  //  Full HIM/HER Dual-Organism Protection Integration
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // THREAT DETECTION MATHEMATICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Anomaly score using Mahalanobis distance
+  public func defenseAnomalyScore(
+    observation : [Float],
+    mean : [Float],
+    invCovariance : [[Float]]
+  ) : Float {
+    let n = observation.size();
+    if (n == 0 or mean.size() != n) { return 0.0 };
+    
+    var score : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      var j = 0;
+      while (j < n) {
+        let diff_i = observation[i] - mean[i];
+        let diff_j = observation[j] - mean[j];
+        score += diff_i * invCovariance[i][j] * diff_j;
+        j += 1;
+      };
+      i += 1;
+    };
+    Float.sqrt(Float.abs(score))
+  };
+
+  /// Exponential moving average for baseline
+  public func defenseEMABaseline(
+    current : Float,
+    observation : Float,
+    alpha : Float
+  ) : Float {
+    alpha * observation + (1.0 - alpha) * current
+  };
+
+  /// Z-score anomaly detection
+  public func defenseZScoreAnomaly(
+    value : Float,
+    mean : Float,
+    stdDev : Float
+  ) : Float {
+    if (stdDev < 0.0001) { 0.0 }
+    else { Float.abs((value - mean) / stdDev) }
+  };
+
+  /// Threat probability from multiple indicators
+  public func defenseThreatProbability(
+    indicators : [Float],
+    weights : [Float]
+  ) : Float {
+    let n = if (indicators.size() < weights.size()) indicators.size() else weights.size();
+    if (n == 0) { return 0.0 };
+    var weightedSum : Float = 0.0;
+    var totalWeight : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      weightedSum += indicators[i] * weights[i];
+      totalWeight += weights[i];
+      i += 1;
+    };
+    if (totalWeight < 0.0001) { 0.0 }
+    else { weightedSum / totalWeight }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // RESPONSE COORDINATION
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Priority queue score
+  public func defenseResponsePriority(
+    threatLevel : Float,
+    urgency : Float,
+    resources : Float
+  ) : Float {
+    threatLevel * urgency / (resources + 0.1)
+  };
+
+  /// Resource allocation optimization
+  public func defenseResourceAllocation(
+    available : Float,
+    demands : [Float]
+  ) : [Float] {
+    var totalDemand : Float = 0.0;
+    var i = 0;
+    while (i < demands.size()) {
+      totalDemand += demands[i];
+      i += 1;
+    };
+    if (totalDemand < 0.0001) {
+      return Array.tabulate<Float>(demands.size(), func(_ : Nat) : Float { 0.0 });
+    };
+    Array.tabulate<Float>(demands.size(), func(j : Nat) : Float {
+      available * demands[j] / totalDemand
+    })
+  };
+
+  /// Cascade failure probability
+  public func defenseCascadeFailureProb(
+    nodeFailProb : Float,
+    connectivity : Float,
+    loadFactor : Float
+  ) : Float {
+    let amplified = nodeFailProb * (1.0 + connectivity * loadFactor);
+    if (amplified > 1.0) { 1.0 } else { amplified }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // CRYPTOGRAPHIC PRIMITIVES
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Hash chain verification
+  public func defenseHashChainVerify(
+    expectedHash : Nat,
+    computedHash : Nat,
+    tolerance : Nat
+  ) : Bool {
+    let diff = if (expectedHash > computedHash) 
+               expectedHash - computedHash 
+               else computedHash - expectedHash;
+    diff <= tolerance
+  };
+
+  /// Key derivation strength
+  public func defenseKeyStrength(
+    entropy : Float,
+    iterations : Nat
+  ) : Float {
+    entropy * Float.log(Float.fromInt(iterations + 1))
+  };
+
+  /// Time-based token window
+  public func defenseTokenWindow(
+    currentTime : Nat,
+    windowSize : Nat,
+    secret : Nat
+  ) : Nat {
+    let window = currentTime / windowSize;
+    (window * secret) % 1000000
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // NETWORK SECURITY
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Rate limiting token bucket
+  public func defenseTokenBucket(
+    tokens : Float,
+    maxTokens : Float,
+    refillRate : Float,
+    requested : Float,
+    dt : Float
+  ) : (Float, Bool) {
+    let refilled = Float.min(tokens + refillRate * dt, maxTokens);
+    if (refilled >= requested) {
+      (refilled - requested, true)
+    } else {
+      (refilled, false)
+    }
+  };
+
+  /// Connection trust score
+  public func defenseTrustScore(
+    successfulInteractions : Nat,
+    failedInteractions : Nat,
+    age : Nat
+  ) : Float {
+    let total = successfulInteractions + failedInteractions;
+    if (total == 0) { return 0.5 };
+    let successRate = Float.fromInt(successfulInteractions) / Float.fromInt(total);
+    let ageFactor = Float.log(Float.fromInt(age + 1)) / 10.0;
+    (successRate + ageFactor) / 2.0
+  };
+
+  /// DDoS detection metric
+  public func defenseDDoSMetric(
+    requestRate : Float,
+    baseline : Float,
+    variance : Float
+  ) : Float {
+    let deviation = (requestRate - baseline) / (Float.sqrt(variance) + 0.01);
+    Float.abs(deviation)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SOVEREIGNTY PROTECTION
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Sovereignty assertion strength
+  public func defenseSovereigntyStrength(
+    autonomyLevel : Float,
+    resourceControl : Float,
+    decisionLatency : Float
+  ) : Float {
+    let efficiency = 1.0 / (decisionLatency + 0.01);
+    autonomyLevel * resourceControl * efficiency
+  };
+
+  /// Integrity verification score
+  public func defenseIntegrityScore(
+    originalHash : Nat,
+    currentHash : Nat,
+    mutations : Nat
+  ) : Float {
+    let match = if (originalHash == currentHash) 1.0 else 0.0;
+    let mutationPenalty = 1.0 / (Float.fromInt(mutations + 1));
+    (match + mutationPenalty) / 2.0
+  };
+
+  /// Rollback safety margin
+  public func defenseRollbackMargin(
+    currentState : Float,
+    checkpoint : Float,
+    volatility : Float
+  ) : Float {
+    let diff = Float.abs(currentState - checkpoint);
+    diff / (volatility + 0.01)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ADAPTIVE IMMUNE RESPONSE
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Antibody-antigen affinity
+  public func defenseAffinity(
+    antibody : [Float],
+    antigen : [Float]
+  ) : Float {
+    let n = if (antibody.size() < antigen.size()) antibody.size() else antigen.size();
+    if (n == 0) { return 0.0 };
+    var matchScore : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      matchScore += 1.0 - Float.abs(antibody[i] - antigen[i]);
+      i += 1;
+    };
+    matchScore / Float.fromInt(n)
+  };
+
+  /// Clonal selection probability
+  public func defenseClonalSelection(
+    affinity : Float,
+    temperature : Float
+  ) : Float {
+    Float.exp(affinity / (temperature + 0.01))
+  };
+
+  /// Memory cell formation rate
+  public func defenseMemoryCellRate(
+    exposureCount : Nat,
+    affinitySum : Float
+  ) : Float {
+    let exposureFactor = Float.log(Float.fromInt(exposureCount + 1));
+    affinitySum * exposureFactor
+  };
+
 }

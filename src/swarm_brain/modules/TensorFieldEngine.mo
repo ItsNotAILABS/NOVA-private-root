@@ -1173,4 +1173,787 @@ module {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════
+  // ║                                                                                                 ║
+  // ║  SECTION II: DEEP INTERWEAVING — TENSORS AS ORGANISM SUBSTRATE CONNECTOR                       ║
+  // ║  Tensors are the language that connects all engines mathematically.                            ║
+  // ║  Alfredo Medina Hernandez | MedinaSITech@outlook.com | Dallas, Texas | 2026                   ║
+  // ║                                                                                                 ║
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TENSOR ↔ KURAMOTO COUPLING — Coupling tensor and phase space
+  // Kuramoto coupling K_ij is a tensor; phase space has tensor structure
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type KuramotoTensorCoupling = {
+    // From Kuramoto
+    phases: [Float];                    // θ_i - Phase vector
+    couplingMatrix: [[Float]];          // K_ij - Coupling tensor
+    orderParameter: Float;              // r - Scalar invariant
+    
+    // Tensor structure
+    couplingTensor: Tensor;             // K as proper tensor
+    phaseVector: Tensor;                // θ as (1,0)-tensor
+    orderTensor: Tensor;                // r·e^(iψ) as complex tensor
+    
+    // Derived tensors
+    synchronizationTensor: [[Float]];   // S_ij = cos(θ_i - θ_j)
+    velocityTensor: [Float];            // dθ_i/dt as covector
+    
+    // Bidirectional coupling
+    tensorToKuramotoCoupling: [[Float]]; // How tensors affect coupling
+    kuramotoToTensorInvariant: Float;    // Scalar invariants from Kuramoto
+  };
+
+  /// Construct coupling tensor from matrix
+  public func constructCouplingTensor(couplingMatrix: [[Float]]) : Tensor {
+    let n = couplingMatrix.size();
+    var components = Buffer.Buffer<Float>(n * n);
+    for (row in couplingMatrix.vals()) {
+      for (val in row.vals()) {
+        components.add(val);
+      };
+    };
+    
+    {
+      dimension = n;
+      rank = { contravariant = 1; covariant = 1 };
+      components = Buffer.toArray(components);
+      symmetry = #None;
+    }
+  };
+
+  /// Compute synchronization tensor S_ij = cos(θ_i - θ_j)
+  public func computeSynchronizationTensor(phases: [Float]) : [[Float]] {
+    let n = phases.size();
+    var syncTensor = Array.init<[Float]>(n, Array.freeze(Array.init<Float>(n, 0.0)));
+    
+    var i = 0;
+    while (i < n) {
+      var row = Array.init<Float>(n, 0.0);
+      var j = 0;
+      while (j < n) {
+        row[j] := Float.cos(phases[i] - phases[j]);
+        j += 1;
+      };
+      syncTensor[i] := Array.freeze(row);
+      i += 1;
+    };
+    Array.freeze(syncTensor)
+  };
+
+  /// Contract coupling tensor with synchronization tensor
+  /// Result: effective coupling K_eff = K_ij · S^ij
+  public func contractCouplingWithSync(
+    coupling: [[Float]],
+    sync: [[Float]]
+  ) : Float {
+    var result : Float = 0.0;
+    var i = 0;
+    for (cRow in coupling.vals()) {
+      var j = 0;
+      for (cVal in cRow.vals()) {
+        let sVal = if (i < sync.size() and j < sync[i].size()) { sync[i][j] } else { 0.0 };
+        result += cVal * sVal;
+        j += 1;
+      };
+      i += 1;
+    };
+    result
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TENSOR ↔ FRISTON COUPLING — Precision tensor and covariance
+  // Free energy has tensor structure; precision is inverse covariance tensor
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type FristonTensorCoupling = {
+    // From Friston
+    beliefs: [Float];                   // q(x) - Belief state
+    precision: Float;                   // π - Scalar precision
+    predictionError: [Float];           // ε - Error vector
+    
+    // Tensor structure
+    covarianceTensor: [[Float]];        // Σ_ij - Covariance as (0,2)-tensor
+    precisionTensor: [[Float]];         // Π^ij = Σ^(-1) - Precision as (2,0)-tensor
+    fisherMetricTensor: [[Float]];      // I_ij - Fisher information metric
+    
+    // Derived quantities
+    mahalanobisDistance: Float;         // d² = ε^i Π_ij ε^j
+    informationGeometry: Text;          // Manifold type
+    
+    // Bidirectional coupling
+    tensorToPrecision: [[Float]];       // How tensors define precision
+    precisionToTensorInvariant: Float;  // Invariants from precision structure
+  };
+
+  /// Construct precision tensor from covariance
+  public func constructPrecisionTensor(covariance: [[Float]]) : [[Float]] {
+    // For 2x2, inverse is straightforward
+    // For larger, would need full matrix inversion
+    let n = covariance.size();
+    if (n == 0) { return [[]] };
+    
+    if (n == 1) {
+      let c00 = if (covariance[0].size() > 0) { covariance[0][0] } else { 1.0 };
+      if (Float.abs(c00) < 1e-10) { return [[1e10]] };
+      return [[1.0 / c00]]
+    };
+    
+    if (n == 2) {
+      let a = if (covariance[0].size() > 0) { covariance[0][0] } else { 1.0 };
+      let b = if (covariance[0].size() > 1) { covariance[0][1] } else { 0.0 };
+      let c = if (covariance[1].size() > 0) { covariance[1][0] } else { 0.0 };
+      let d = if (covariance[1].size() > 1) { covariance[1][1] } else { 1.0 };
+      let det = a * d - b * c;
+      if (Float.abs(det) < 1e-10) { return [[1e10, 0.0], [0.0, 1e10]] };
+      return [[d / det, -b / det], [-c / det, a / det]]
+    };
+    
+    // Identity for larger matrices (simplified)
+    Array.tabulate<[Float]>(n, func(i) {
+      Array.tabulate<Float>(n, func(j) { if (i == j) { 1.0 } else { 0.0 } })
+    })
+  };
+
+  /// Compute Mahalanobis distance d² = ε^T Π ε
+  public func computeMahalanobisDistance(error: [Float], precision: [[Float]]) : Float {
+    var distance : Float = 0.0;
+    var i = 0;
+    for (ei in error.vals()) {
+      var j = 0;
+      for (ej in error.vals()) {
+        let pij = if (i < precision.size() and j < precision[i].size()) { 
+          precision[i][j] 
+        } else { 
+          if (i == j) { 1.0 } else { 0.0 } 
+        };
+        distance += ei * pij * ej;
+        j += 1;
+      };
+      i += 1;
+    };
+    distance
+  };
+
+  /// Compute Fisher information metric
+  /// I_ij = E[(∂ln p/∂θ_i)(∂ln p/∂θ_j)]
+  public func computeFisherMetric(
+    logLikGradients: [[Float]],
+    probabilities: [Float]
+  ) : [[Float]] {
+    if (logLikGradients.size() == 0) { return [[]] };
+    let dim = if (logLikGradients[0].size() > 0) { logLikGradients[0].size() } else { 0 };
+    
+    var fisher = Array.init<[Float]>(dim, Array.freeze(Array.init<Float>(dim, 0.0)));
+    
+    var sample = 0;
+    for (grad in logLikGradients.vals()) {
+      let prob = if (sample < probabilities.size()) { probabilities[sample] } else { 1.0 };
+      var i = 0;
+      while (i < dim) {
+        var row = if (i < fisher.size()) { Array.thaw<Float>(fisher[i]) } else { Array.init<Float>(dim, 0.0) };
+        var j = 0;
+        while (j < dim) {
+          let gi = if (i < grad.size()) { grad[i] } else { 0.0 };
+          let gj = if (j < grad.size()) { grad[j] } else { 0.0 };
+          row[j] += prob * gi * gj;
+          j += 1;
+        };
+        fisher[i] := Array.freeze(row);
+        i += 1;
+      };
+      sample += 1;
+    };
+    Array.freeze(fisher)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TENSOR ↔ HEBBIAN COUPLING — Weight tensor and correlation tensor
+  // Synaptic weights form a tensor; Hebbian rule involves tensor products
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type HebbianTensorCoupling = {
+    // From Hebbian
+    weights: [[Float]];                 // W_ij - Weight matrix as tensor
+    preActivity: [Float];               // x_i - Presynaptic activity vector
+    postActivity: [Float];              // y_j - Postsynaptic activity vector
+    
+    // Tensor structure
+    weightTensor: Tensor;               // W as proper (1,1)-tensor
+    correlationTensor: [[Float]];       // C_ij = x_i · y_j - Outer product
+    hebbianUpdateTensor: [[Float]];     // ΔW_ij = η · x_i · y_j
+    
+    // Tensor decomposition
+    svdComponents: {                    // W = U·S·V^T
+      u: [[Float]];
+      s: [Float];
+      v: [[Float]];
+    };
+    rank: Nat;                          // Effective rank of weight tensor
+    
+    // Bidirectional coupling
+    tensorToWeightUpdate: [[Float]];    // Tensor structure constrains learning
+    weightToTensorSpectrum: [Float];    // Singular values as spectrum
+  };
+
+  /// Compute correlation tensor (outer product)
+  /// C_ij = x_i · y_j
+  public func computeCorrelationTensor(preActivity: [Float], postActivity: [Float]) : [[Float]] {
+    var correlation = Array.init<[Float]>(preActivity.size(), 
+      Array.freeze(Array.init<Float>(postActivity.size(), 0.0)));
+    
+    var i = 0;
+    for (xi in preActivity.vals()) {
+      var row = Array.init<Float>(postActivity.size(), 0.0);
+      var j = 0;
+      for (yj in postActivity.vals()) {
+        row[j] := xi * yj;
+        j += 1;
+      };
+      correlation[i] := Array.freeze(row);
+      i += 1;
+    };
+    Array.freeze(correlation)
+  };
+
+  /// Compute Hebbian update tensor
+  /// ΔW_ij = η · (x_i · y_j - λ · W_ij)
+  public func computeHebbianUpdateTensor(
+    preActivity: [Float],
+    postActivity: [Float],
+    currentWeights: [[Float]],
+    learningRate: Float,
+    decayRate: Float
+  ) : [[Float]] {
+    let correlation = computeCorrelationTensor(preActivity, postActivity);
+    
+    var update = Array.init<[Float]>(preActivity.size(),
+      Array.freeze(Array.init<Float>(postActivity.size(), 0.0)));
+    
+    var i = 0;
+    for (corrRow in correlation.vals()) {
+      let wRow = if (i < currentWeights.size()) { currentWeights[i] } else { [] };
+      var row = Array.init<Float>(postActivity.size(), 0.0);
+      var j = 0;
+      for (cij in corrRow.vals()) {
+        let wij = if (j < wRow.size()) { wRow[j] } else { 0.0 };
+        row[j] := learningRate * (cij - decayRate * wij);
+        j += 1;
+      };
+      update[i] := Array.freeze(row);
+      i += 1;
+    };
+    Array.freeze(update)
+  };
+
+  /// Compute effective rank of weight tensor
+  public func computeEffectiveRank(singularValues: [Float]) : Float {
+    var sumS : Float = 0.0;
+    var sumLogS : Float = 0.0;
+    for (s in singularValues.vals()) {
+      if (s > 1e-10) {
+        sumS += s;
+        sumLogS += s * Float.log(s);
+      };
+    };
+    if (sumS < 1e-10) { return 0.0 };
+    let normalizedSum = sumLogS / sumS;
+    Float.exp(-normalizedSum)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TENSOR ↔ PHYSICS COUPLING — Stress-energy tensor and metric
+  // Physics is built on tensors: metric, stress-energy, curvature
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type PhysicsTensorCoupling = {
+    // Metric tensor
+    metricTensor: [[Float]];            // g_ij - Spacetime metric
+    inverseMetric: [[Float]];           // g^ij - Inverse metric
+    
+    // Stress-energy tensor
+    stressEnergyTensor: [[Float]];      // T_μν - Energy-momentum
+    energyDensity: Float;               // T^0_0 - Energy density
+    momentumDensity: [Float];           // T^0_i - Momentum density
+    stressTensor: [[Float]];            // T^i_j - Spatial stress
+    
+    // Curvature tensors
+    christoffelSymbols: [[[Float]]];    // Γ^λ_μν - Connection
+    riemannTensor: [[[[Float]]]];       // R^ρ_σμν - Riemann curvature
+    ricciTensor: [[Float]];             // R_μν - Ricci tensor
+    ricciScalar: Float;                 // R - Scalar curvature
+    einsteinTensor: [[Float]];          // G_μν = R_μν - (1/2)g_μν R
+    
+    // Bidirectional coupling
+    tensorToGravity: Float;             // Tensors determine gravity
+    gravityToTensorCurvature: [[Float]]; // Gravity curves spacetime
+  };
+
+  /// Compute Christoffel symbols
+  /// Γ^λ_μν = (1/2)g^λρ(∂_μ g_νρ + ∂_ν g_μρ - ∂_ρ g_μν)
+  public func computeChristoffelSymbols(
+    metric: [[Float]],
+    metricDerivatives: [[[Float]]]  // ∂_ρ g_μν
+  ) : [[[Float]]] {
+    let n = metric.size();
+    if (n == 0) { return [[[]]] };
+    
+    let invMetric = constructPrecisionTensor(metric); // Reuse matrix inverse
+    
+    // Simplified: return identity-based Christoffel (flat space approx)
+    Array.tabulate<[[Float]]>(n, func(lambda) {
+      Array.tabulate<[Float]>(n, func(mu) {
+        Array.tabulate<Float>(n, func(nu) {
+          0.0 // Flat space: all Christoffel symbols vanish
+        })
+      })
+    })
+  };
+
+  /// Compute stress-energy trace T = g^μν T_μν
+  public func computeStressEnergyTrace(
+    stressEnergy: [[Float]],
+    inverseMetric: [[Float]]
+  ) : Float {
+    var trace : Float = 0.0;
+    var mu = 0;
+    for (row in stressEnergy.vals()) {
+      var nu = 0;
+      for (tMuNu in row.vals()) {
+        let gInvMuNu = if (mu < inverseMetric.size() and nu < inverseMetric[mu].size()) {
+          inverseMetric[mu][nu]
+        } else {
+          if (mu == nu) { 1.0 } else { 0.0 }
+        };
+        trace += gInvMuNu * tMuNu;
+        nu += 1;
+      };
+      mu += 1;
+    };
+    trace
+  };
+
+  /// Compute Einstein tensor G_μν = R_μν - (1/2)g_μν R
+  public func computeEinsteinTensor(
+    ricciTensor: [[Float]],
+    metric: [[Float]],
+    ricciScalar: Float
+  ) : [[Float]] {
+    let n = ricciTensor.size();
+    Array.tabulate<[Float]>(n, func(mu) {
+      let ricciRow = if (mu < ricciTensor.size()) { ricciTensor[mu] } else { [] };
+      let metricRow = if (mu < metric.size()) { metric[mu] } else { [] };
+      Array.tabulate<Float>(n, func(nu) {
+        let rMuNu = if (nu < ricciRow.size()) { ricciRow[nu] } else { 0.0 };
+        let gMuNu = if (nu < metricRow.size()) { metricRow[nu] } else {
+          if (mu == nu) { 1.0 } else { 0.0 }
+        };
+        rMuNu - 0.5 * gMuNu * ricciScalar
+      })
+    })
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TENSOR ↔ ENTROPY COUPLING — Entropy as tensor invariant
+  // Entropy can be computed from tensor traces and invariants
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type EntropyTensorCoupling = {
+    // From Entropy Engine
+    systemEntropy: Float;               // S - Entropy scalar
+    
+    // Density matrix as tensor
+    densityMatrix: [[Float]];           // ρ as (1,1)-tensor
+    densityMatrixPowers: [[[Float]]];   // ρ^n for Rényi entropy
+    
+    // Entropy from tensors
+    vonNeumannEntropy: Float;           // S = -Tr(ρ ln ρ)
+    renyiEntropies: [Float];            // S_α = (1-α)^(-1) ln Tr(ρ^α)
+    
+    // Tensor invariants as entropy measures
+    tensorTrace: Float;                 // Tr(T)
+    tensorTraceSquare: Float;           // Tr(T²)
+    purity: Float;                      // Tr(ρ²) - Purity measure
+    
+    // Bidirectional coupling
+    tensorToEntropyMeasure: Float;      // Tensor structure determines entropy
+    entropyToTensorConstraint: [[Float]]; // Entropy constrains tensor form
+  };
+
+  /// Compute von Neumann entropy from eigenvalues
+  /// S = -Tr(ρ ln ρ) = -Σ λ_i ln λ_i
+  public func computeVonNeumannFromEigenvalues(eigenvalues: [Float]) : Float {
+    var entropy : Float = 0.0;
+    for (lambda in eigenvalues.vals()) {
+      if (lambda > 1e-100) {
+        entropy -= lambda * Float.log(lambda);
+      };
+    };
+    entropy
+  };
+
+  /// Compute purity Tr(ρ²)
+  public func computePurity(densityMatrix: [[Float]]) : Float {
+    // Tr(ρ²) = Σ_i,k ρ_ik · ρ_ki
+    var purity : Float = 0.0;
+    var i = 0;
+    for (row in densityMatrix.vals()) {
+      var k = 0;
+      for (rhoIK in row.vals()) {
+        let rhoKI = if (k < densityMatrix.size() and i < densityMatrix[k].size()) {
+          densityMatrix[k][i]
+        } else { 0.0 };
+        purity += rhoIK * rhoKI;
+        k += 1;
+      };
+      i += 1;
+    };
+    purity
+  };
+
+  /// Compute Rényi entropy S_α = (1-α)^(-1) ln Tr(ρ^α)
+  public func computeRenyiEntropy(purityPower: Float, alpha: Float) : Float {
+    if (Float.abs(alpha - 1.0) < 1e-10) {
+      return 0.0; // Limit α→1 is von Neumann
+    };
+    if (purityPower < 1e-100) { return 0.0 };
+    Float.log(purityPower) / (1.0 - alpha)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TENSOR ↔ QUANTUM COUPLING — Quantum tensors and operators
+  // Quantum mechanics is tensor-based: operators, density matrices, etc.
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type QuantumTensorCoupling = {
+    // From Quantum Engine
+    stateVector: [Float];               // |ψ⟩ as vector
+    operators: [[[Float]]];             // Quantum operators as tensors
+    
+    // Tensor representations
+    densityTensor: [[Float]];           // ρ = |ψ⟩⟨ψ| as (1,1)-tensor
+    pauliTensors: [[[Float]]];          // σ_x, σ_y, σ_z for spin-1/2
+    
+    // Tensor products (composite systems)
+    tensorProductState: [Float];        // |ψ⟩ ⊗ |φ⟩
+    partialTrace: [[Float]];            // Tr_B(ρ_AB)
+    
+    // Expectation values
+    operatorExpectations: [Float];      // ⟨A⟩ = Tr(ρA)
+    uncertainties: [Float];             // ΔA = √(⟨A²⟩ - ⟨A⟩²)
+    
+    // Bidirectional coupling
+    tensorToQuantumOperator: [[[Float]]]; // Tensors become operators
+    quantumToTensorExpectation: Float;    // Quantum → classical via expectation
+  };
+
+  /// Construct density tensor from state vector
+  /// ρ_ij = ψ_i · ψ*_j
+  public func constructDensityTensor(stateVector: [Float]) : [[Float]] {
+    let n = stateVector.size();
+    Array.tabulate<[Float]>(n, func(i) {
+      Array.tabulate<Float>(n, func(j) {
+        stateVector[i] * stateVector[j] // Real approximation
+      })
+    })
+  };
+
+  /// Compute tensor product of two state vectors
+  /// (ψ ⊗ φ)_{ij} = ψ_i · φ_j (flattened)
+  public func tensorProductStates(psi: [Float], phi: [Float]) : [Float] {
+    var product = Buffer.Buffer<Float>(psi.size() * phi.size());
+    for (psi_i in psi.vals()) {
+      for (phi_j in phi.vals()) {
+        product.add(psi_i * phi_j);
+      };
+    };
+    Buffer.toArray(product)
+  };
+
+  /// Compute partial trace Tr_B(ρ_AB)
+  /// For bipartite system A⊗B, traces out B
+  public func computePartialTrace(
+    densityAB: [[Float]],
+    dimA: Nat,
+    dimB: Nat
+  ) : [[Float]] {
+    // ρ_A[i,j] = Σ_k ρ_AB[(i,k), (j,k)]
+    var rhoA = Array.init<[Float]>(dimA, Array.freeze(Array.init<Float>(dimA, 0.0)));
+    
+    var i = 0;
+    while (i < dimA) {
+      var row = Array.init<Float>(dimA, 0.0);
+      var j = 0;
+      while (j < dimA) {
+        var sum : Float = 0.0;
+        var k = 0;
+        while (k < dimB) {
+          let rowIdx = i * dimB + k;
+          let colIdx = j * dimB + k;
+          if (rowIdx < densityAB.size() and colIdx < densityAB[rowIdx].size()) {
+            sum += densityAB[rowIdx][colIdx];
+          };
+          k += 1;
+        };
+        row[j] := sum;
+        j += 1;
+      };
+      rhoA[i] := Array.freeze(row);
+      i += 1;
+    };
+    Array.freeze(rhoA)
+  };
+
+  /// Compute expectation value ⟨A⟩ = Tr(ρA)
+  public func computeExpectationValue(density: [[Float]], operator_: [[Float]]) : Float {
+    var expectation : Float = 0.0;
+    var i = 0;
+    for (rhoRow in density.vals()) {
+      var j = 0;
+      for (rhoIJ in rhoRow.vals()) {
+        let aJI = if (j < operator_.size() and i < operator_[j].size()) {
+          operator_[j][i]
+        } else { 0.0 };
+        expectation += rhoIJ * aJI;
+        j += 1;
+      };
+      i += 1;
+    };
+    expectation
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // UNIFIED TENSOR ORCHESTRATION — Master tensor state
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type UnifiedTensorState = {
+    // Core tensors
+    metricTensor: [[Float]];            // Fundamental metric
+    connectionTensor: [[[Float]]];      // Connection/Christoffel
+    curvatureTensor: [[Float]];         // Ricci curvature
+    
+    // Cross-engine tensors
+    kuramotoCoupling: KuramotoTensorCoupling;
+    fristonCoupling: FristonTensorCoupling;
+    hebbianCoupling: HebbianTensorCoupling;
+    physicsCoupling: PhysicsTensorCoupling;
+    entropyCoupling: EntropyTensorCoupling;
+    quantumCoupling: QuantumTensorCoupling;
+    
+    // Global tensor invariants
+    totalTrace: Float;                  // Sum of all traces
+    totalDeterminant: Float;            // Product of determinants
+    totalFrobenius: Float;              // Sum of Frobenius norms
+    
+    // Beat tracking
+    currentBeat: Nat;
+    lastTensorUpdate: Nat;
+  };
+
+  /// Compute all tensor invariants
+  public func computeAllInvariants(state: UnifiedTensorState) : {
+    totalTrace: Float;
+    totalFrobenius: Float;
+    curvatureScalar: Float;
+  } {
+    // Compute metric trace
+    var metricTrace : Float = 0.0;
+    var i = 0;
+    for (row in state.metricTensor.vals()) {
+      if (i < row.size()) { metricTrace += row[i] };
+      i += 1;
+    };
+    
+    // Compute metric Frobenius
+    var metricFrob : Float = 0.0;
+    for (row in state.metricTensor.vals()) {
+      for (val in row.vals()) {
+        metricFrob += val * val;
+      };
+    };
+    metricFrob := Float.sqrt(metricFrob);
+    
+    // Compute curvature trace
+    var curvTrace : Float = 0.0;
+    i := 0;
+    for (row in state.curvatureTensor.vals()) {
+      if (i < row.size()) { curvTrace += row[i] };
+      i += 1;
+    };
+    
+    { totalTrace = metricTrace; totalFrobenius = metricFrob; curvatureScalar = curvTrace }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // CROSS-ENGINE INTERFACES — Connection points
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Receive Kuramoto update and compute tensor coupling
+  public func receiveKuramotoUpdate(
+    phases: [Float],
+    couplingMatrix: [[Float]]
+  ) : {
+    synchronizationTensor: [[Float]];
+    couplingContraction: Float;
+  } {
+    let syncTensor = computeSynchronizationTensor(phases);
+    let contraction = contractCouplingWithSync(couplingMatrix, syncTensor);
+    { synchronizationTensor = syncTensor; couplingContraction = contraction }
+  };
+
+  /// Receive Friston update and compute tensor coupling
+  public func receiveFristonUpdate(
+    covariance: [[Float]],
+    error: [Float]
+  ) : {
+    precisionTensor: [[Float]];
+    mahalanobis: Float;
+  } {
+    let precision = constructPrecisionTensor(covariance);
+    let mahal = computeMahalanobisDistance(error, precision);
+    { precisionTensor = precision; mahalanobis = mahal }
+  };
+
+  /// Receive Hebbian update and compute tensor coupling
+  public func receiveHebbianUpdate(
+    preActivity: [Float],
+    postActivity: [Float],
+    weights: [[Float]],
+    learningRate: Float
+  ) : {
+    correlationTensor: [[Float]];
+    updateTensor: [[Float]];
+  } {
+    let corr = computeCorrelationTensor(preActivity, postActivity);
+    let update = computeHebbianUpdateTensor(preActivity, postActivity, weights, learningRate, 0.01);
+    { correlationTensor = corr; updateTensor = update }
+  };
+
+  /// Send tensor update to other engines
+  public func sendTensorUpdate(state: UnifiedTensorState) : {
+    metricTrace: Float;
+    frobeniusNorm: Float;
+    curvatureScalar: Float;
+  } {
+    let invariants = computeAllInvariants(state);
+    {
+      metricTrace = invariants.totalTrace;
+      frobeniusNorm = invariants.totalFrobenius;
+      curvatureScalar = invariants.curvatureScalar;
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // MEDINA TENSOR DOCTRINE — Sovereign tensor laws
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type MedinaTensorDoctrine = {
+    // Metric requirements
+    metricSignature: [Int];             // Required signature (e.g., [-1,1,1,1])
+    metricPositiveDefinite: Bool;       // Must be positive definite?
+    
+    // Tensor bounds
+    maxTensorRank: Nat;                 // Maximum allowed rank
+    maxFrobeniusNorm: Float;            // Maximum Frobenius norm
+    
+    // Symmetry requirements
+    requiredSymmetry: Text;             // "symmetric", "antisymmetric", "none"
+    
+    // Compliance
+    tensorComplianceScore: Float;
+    violationCount: Nat;
+  };
+
+  /// Enforce Medina tensor doctrine
+  public func enforceMedinaTensor(
+    tensor: Tensor,
+    doctrine: MedinaTensorDoctrine
+  ) : (Bool, Float) {
+    var compliance : Float = 1.0;
+    var compliant = true;
+    
+    // Check rank
+    let totalRank = tensor.rank.contravariant + tensor.rank.covariant;
+    if (totalRank > doctrine.maxTensorRank) {
+      compliance *= 0.8;
+      compliant := false;
+    };
+    
+    // Check Frobenius norm
+    let frob = frobeniusNorm(tensor);
+    if (frob > doctrine.maxFrobeniusNorm) {
+      compliance *= 0.9;
+    };
+    
+    (compliant, compliance)
+  };
+
+  /// Initialize Medina tensor doctrine
+  public func initMedinaTensorDoctrine() : MedinaTensorDoctrine {
+    {
+      metricSignature = [1, 1, 1]; // Euclidean 3D
+      metricPositiveDefinite = true;
+      maxTensorRank = 4;
+      maxFrobeniusNorm = 1e6;
+      requiredSymmetry = "none";
+      tensorComplianceScore = 1.0;
+      violationCount = 0;
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // BEAT EXECUTION — Full organism tensor update
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Execute complete tensor computation at organism beat
+  public func executeOrganismBeat(
+    state: UnifiedTensorState,
+    doctrine: MedinaTensorDoctrine,
+    beat: Nat
+  ) : (UnifiedTensorState, MedinaTensorDoctrine) {
+    // 1. Compute all invariants
+    let invariants = computeAllInvariants(state);
+    
+    // 2. Update state with new invariants
+    let newState : UnifiedTensorState = {
+      metricTensor = state.metricTensor;
+      connectionTensor = state.connectionTensor;
+      curvatureTensor = state.curvatureTensor;
+      kuramotoCoupling = state.kuramotoCoupling;
+      fristonCoupling = state.fristonCoupling;
+      hebbianCoupling = state.hebbianCoupling;
+      physicsCoupling = state.physicsCoupling;
+      entropyCoupling = state.entropyCoupling;
+      quantumCoupling = state.quantumCoupling;
+      totalTrace = invariants.totalTrace;
+      totalDeterminant = state.totalDeterminant;
+      totalFrobenius = invariants.totalFrobenius;
+      currentBeat = beat;
+      lastTensorUpdate = state.currentBeat;
+    };
+    
+    // 3. Check doctrine compliance
+    let metricTensor : Tensor = {
+      dimension = state.metricTensor.size();
+      rank = { contravariant = 0; covariant = 2 };
+      components = Array.flatten<Float>(state.metricTensor);
+      symmetry = #Symmetric;
+    };
+    let (compliant, complianceScore) = enforceMedinaTensor(metricTensor, doctrine);
+    
+    let newDoctrine : MedinaTensorDoctrine = {
+      metricSignature = doctrine.metricSignature;
+      metricPositiveDefinite = doctrine.metricPositiveDefinite;
+      maxTensorRank = doctrine.maxTensorRank;
+      maxFrobeniusNorm = doctrine.maxFrobeniusNorm;
+      requiredSymmetry = doctrine.requiredSymmetry;
+      tensorComplianceScore = complianceScore;
+      violationCount = if (compliant) { doctrine.violationCount } else { doctrine.violationCount + 1 };
+    };
+    
+    (newState, newDoctrine)
+  };
+
 }

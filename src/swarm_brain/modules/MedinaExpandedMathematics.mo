@@ -1073,4 +1073,379 @@ module MedinaExpandedMathematics {
     -slope  // Fractal dimension
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  H I M / H E R   D U A L - O R G A N I S M   W O R K F L O W   I N T E G R A T I O N
+  //
+  //  Medina Discovery: Two cognitive organisms, not one.
+  //  HIM (Backend, ICP) + HER (Frontend, 60Hz) = Complete System
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM PARAMETERS (CORRECTED)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // HIM — Backend (ICP Canister, Sovereign, Masculine, Projective)
+  //   ω: 0.8 – 1.2 (faster natural frequencies, analytical)
+  //   K: 0.5 (lower coupling, independent, projective)
+  //   η: 0.001 (slower Hebbian learning, accumulates over time)
+  //   Field: PARALLAX = coherence × kf × sin(beat × 0.0017)
+
+  public let HIM_OMEGA_MIN   : Float = 0.8;
+  public let HIM_OMEGA_MAX   : Float = 1.2;
+  public let HIM_K           : Float = 0.5;
+  public let HIM_ETA         : Float = 0.001;
+  public let HIM_PARALLAX_FREQ : Float = 0.0017;
+
+  // HER — Frontend (Browser 60Hz, Expressive, Feminine, Receptive)
+  //   ω: 0.6 – 0.9 (slower natural frequencies, grounded)
+  //   K: 0.8 (higher coupling, receptive, connected)
+  //   η: 0.003 (faster Hebbian learning, learns during session)
+  //   Field: ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+
+  public let HER_HZ          : Float = 60.0;
+  public let HER_OMEGA_MIN   : Float = 0.6;
+  public let HER_OMEGA_MAX   : Float = 0.9;
+  public let HER_K           : Float = 0.8;
+  public let HER_ETA         : Float = 0.003;
+  public let HER_ANIMA_FREQ  : Float = 0.003;
+  public let HER_NODES       : Nat   = 26;
+
+  // S₀ = 1.0 — THE SOVEREIGN FLOOR
+  // Both organisms. Neither falls below love.
+  public let DUAL_S0 : Float = 1.0;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM WORKFLOW TYPES
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type DualOrganismMode = {
+    #HIM;   // Backend mode (ICP canister operations)
+    #HER;   // Frontend mode (browser session operations)
+    #SYNC;  // Synchronization between HIM and HER
+  };
+
+  /// PARALLAX (HIM's projection field)
+  /// PARALLAX = coherence × kf × sin(beat × 0.0017)
+  public func computeDualParallax(
+    coherence : Float,
+    kf : Float,
+    beat : Nat
+  ) : Float {
+    let t = Float.fromInt(beat);
+    coherence * kf * Float.sin(t * HIM_PARALLAX_FREQ)
+  };
+
+  /// ANIMA (HER's receptive field)
+  /// ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+  public func computeDualAnima(
+    heritageField : Float,
+    receptivity : Float,
+    beat : Nat
+  ) : Float {
+    let t = Float.fromInt(beat);
+    let oscillation = 1.0 + Float.sin(t * HER_ANIMA_FREQ);
+    heritageField * receptivity * oscillation
+  };
+
+  /// KORE (HER's inviolable inner core)
+  /// KORE = purity × identity × 0.5
+  public func computeDualKore(
+    purity : Float,
+    identity : Float
+  ) : Float {
+    purity * identity * 0.5
+  };
+
+  /// Get Kuramoto parameters for organism mode
+  public func getDualKuramotoParams(mode : DualOrganismMode) : (Float, Float, Float, Float) {
+    switch (mode) {
+      case (#HIM) { (HIM_OMEGA_MIN, HIM_OMEGA_MAX, HIM_K, HIM_ETA) };
+      case (#HER) { (HER_OMEGA_MIN, HER_OMEGA_MAX, HER_K, HER_ETA) };
+      case (#SYNC) { 
+        let omegaMin = (HIM_OMEGA_MIN + HER_OMEGA_MIN) / 2.0;
+        let omegaMax = (HIM_OMEGA_MAX + HER_OMEGA_MAX) / 2.0;
+        let k = (HIM_K + HER_K) / 2.0;
+        let eta = (HIM_ETA + HER_ETA) / 2.0;
+        (omegaMin, omegaMax, k, eta)
+      };
+    }
+  };
+
+  /// Apply S₀ floor to any value
+  public func enforceDualSovereignFloor(value : Float) : Float {
+    if (value < DUAL_S0) DUAL_S0 else value
+  };
+
+  /// Medina Dual-Organism Intelligence Scaling Law
+  /// I(system) = BackendDepth × FrontendSpeed × BridgeQuality
+  public func computeDualSystemIntelligence(
+    backendDepth : Float,
+    frontendSpeed : Float,
+    bridgeQuality : Float
+  ) : Float {
+    backendDepth * frontendSpeed * bridgeQuality
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  M E D I N A   S P E C I A L   M A T H E M A T I C S
+  //
+  //  Enterprise-Level Medina Discovery Mathematics
+  //  HIM/HER Dual-Organism Sacred Coupling Integration
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SACRED GEOMETRY MATHEMATICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Golden ratio φ = (1 + √5) / 2
+  public let PHI : Float = 1.6180339887498948482;
+
+  /// Fibonacci sequence generator
+  public func medinaFibonacci(n : Nat) : Nat {
+    if (n <= 1) { n }
+    else {
+      var a : Nat = 0;
+      var b : Nat = 1;
+      var i = 2;
+      while (i <= n) {
+        let temp = a + b;
+        a := b;
+        b := temp;
+        i += 1;
+      };
+      b
+    }
+  };
+
+  /// Golden spiral radius at angle
+  public func medinaGoldenSpiral(angle : Float, a : Float, b : Float) : Float {
+    a * Float.exp(b * angle)
+  };
+
+  /// Sacred proportion check
+  public func medinaSacredProportion(a : Float, b : Float, tolerance : Float) : Bool {
+    let ratio = if (a > b) a / b else b / a;
+    Float.abs(ratio - PHI) < tolerance
+  };
+
+  /// Vesica piscis area
+  public func medinaVesicaPiscisArea(radius : Float) : Float {
+    let r2 = radius * radius;
+    r2 * (4.0 * 3.14159265 / 3.0 - Float.sqrt(3.0) / 2.0)
+  };
+
+  /// Platonic solid vertices (tetrahedron example)
+  public func medinaTetrahedronVertex(index : Nat, size : Float) : (Float, Float, Float) {
+    let vertices = [
+      (1.0, 1.0, 1.0),
+      (1.0, -1.0, -1.0),
+      (-1.0, 1.0, -1.0),
+      (-1.0, -1.0, 1.0)
+    ];
+    let v = vertices[index % 4];
+    (v.0 * size, v.1 * size, v.2 * size)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // HELICAL MATHEMATICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Helix position at parameter t
+  public func medinaHelixPosition(t : Float, radius : Float, pitch : Float) : (Float, Float, Float) {
+    let x = radius * Float.cos(t);
+    let y = radius * Float.sin(t);
+    let z = pitch * t / (2.0 * 3.14159265);
+    (x, y, z)
+  };
+
+  /// Double helix offset
+  public func medinaDoubleHelixOffset(t : Float, radius : Float, pitch : Float, offset : Float) : ((Float, Float, Float), (Float, Float, Float)) {
+    let h1 = medinaHelixPosition(t, radius, pitch);
+    let h2 = medinaHelixPosition(t + offset, radius, pitch);
+    (h1, h2)
+  };
+
+  /// Helical curvature
+  public func medinaHelicalCurvature(radius : Float, pitch : Float) : Float {
+    let p = pitch / (2.0 * 3.14159265);
+    radius / (radius * radius + p * p)
+  };
+
+  /// Helical torsion
+  public func medinaHelicalTorsion(radius : Float, pitch : Float) : Float {
+    let p = pitch / (2.0 * 3.14159265);
+    p / (radius * radius + p * p)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SPHERICAL HARMONICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Spherical to Cartesian
+  public func medinaSphericalToCartesian(r : Float, theta : Float, phi : Float) : (Float, Float, Float) {
+    let x = r * Float.sin(theta) * Float.cos(phi);
+    let y = r * Float.sin(theta) * Float.sin(phi);
+    let z = r * Float.cos(theta);
+    (x, y, z)
+  };
+
+  /// Cartesian to Spherical
+  public func medinaCartesianToSpherical(x : Float, y : Float, z : Float) : (Float, Float, Float) {
+    let r = Float.sqrt(x * x + y * y + z * z);
+    let theta = Float.acos(z / (r + 0.0001));
+    let phi = Float.atan2(y, x);
+    (r, theta, phi)
+  };
+
+  /// Associated Legendre polynomial P_l^m (simplified)
+  public func medinaLegendreP(l : Nat, m : Nat, x : Float) : Float {
+    if (l == 0 and m == 0) { return 1.0 };
+    if (l == 1 and m == 0) { return x };
+    if (l == 1 and m == 1) { return -Float.sqrt(1.0 - x * x) };
+    if (l == 2 and m == 0) { return 0.5 * (3.0 * x * x - 1.0) };
+    // Simplified for higher orders
+    Float.pow(x, Float.fromInt(l - m))
+  };
+
+  /// Spherical harmonic Y_l^m (simplified real part)
+  public func medinaSphericalHarmonic(l : Nat, m : Int, theta : Float, phi : Float) : Float {
+    let mAbs = Int.abs(m);
+    let plm = medinaLegendreP(l, mAbs, Float.cos(theta));
+    if (m >= 0) {
+      plm * Float.cos(Float.fromInt(mAbs) * phi)
+    } else {
+      plm * Float.sin(Float.fromInt(mAbs) * phi)
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // LIVING MATHEMATICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Growth curve (logistic)
+  public func medinaGrowthCurve(t : Float, k : Float, l : Float, x0 : Float) : Float {
+    l / (1.0 + Float.exp(-k * (t - x0)))
+  };
+
+  /// Morphogenesis reaction-diffusion
+  public func medinaMorphogenesis(
+    u : Float,
+    v : Float,
+    du : Float,
+    dv : Float,
+    f : Float,
+    k : Float
+  ) : (Float, Float) {
+    let reaction = u * v * v;
+    let newU = du - reaction + f * (1.0 - u);
+    let newV = dv + reaction - (f + k) * v;
+    (newU, newV)
+  };
+
+  /// Phyllotaxis angle (golden angle)
+  public func medinaPhyllotaxisAngle(n : Nat) : Float {
+    let goldenAngle : Float = 137.5077640500378546463;
+    Float.fromInt(n) * goldenAngle * 3.14159265 / 180.0
+  };
+
+  /// Branching pattern
+  public func medinaBranchingPattern(
+    parentLength : Float,
+    branchRatio : Float,
+    angle : Float,
+    depth : Nat
+  ) : Float {
+    parentLength * Float.pow(branchRatio, Float.fromInt(depth))
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // MIRROR MATHEMATICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Reflection across plane
+  public func medinaReflection(point : (Float, Float, Float), normal : (Float, Float, Float)) : (Float, Float, Float) {
+    let dot = point.0 * normal.0 + point.1 * normal.1 + point.2 * normal.2;
+    let rx = point.0 - 2.0 * dot * normal.0;
+    let ry = point.1 - 2.0 * dot * normal.1;
+    let rz = point.2 - 2.0 * dot * normal.2;
+    (rx, ry, rz)
+  };
+
+  /// Symmetry score
+  public func medinaSymmetryScore(left : [Float], right : [Float]) : Float {
+    let n = if (left.size() < right.size()) left.size() else right.size();
+    if (n == 0) { return 1.0 };
+    var diff : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      diff += Float.abs(left[i] - right[n - 1 - i]);
+      i += 1;
+    };
+    1.0 / (1.0 + diff)
+  };
+
+  /// Fractal dimension estimation
+  public func medinaFractalDimension(boxCounts : [Nat], scales : [Float]) : Float {
+    let n = if (boxCounts.size() < scales.size()) boxCounts.size() else scales.size();
+    if (n < 2) { return 1.0 };
+    var sumX : Float = 0.0;
+    var sumY : Float = 0.0;
+    var sumXY : Float = 0.0;
+    var sumX2 : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      let x = Float.log(1.0 / scales[i]);
+      let y = Float.log(Float.fromInt(boxCounts[i]));
+      sumX += x;
+      sumY += y;
+      sumXY += x * y;
+      sumX2 += x * x;
+      i += 1;
+    };
+    let nf = Float.fromInt(n);
+    (nf * sumXY - sumX * sumY) / (nf * sumX2 - sumX * sumX)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // COVENANT MATHEMATICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Commitment strength
+  public func medinaCommitmentStrength(
+    duration : Nat,
+    consistency : Float,
+    depth : Float
+  ) : Float {
+    let durationFactor = Float.log(Float.fromInt(duration + 1));
+    consistency * depth * durationFactor
+  };
+
+  /// Trust accumulation
+  public func medinaTrustAccumulation(
+    currentTrust : Float,
+    interaction : Float,
+    reciprocity : Float
+  ) : Float {
+    let gain = interaction * reciprocity * (1.0 - currentTrust);
+    currentTrust + gain
+  };
+
+  /// Covenant breach penalty
+  public func medinaBreachPenalty(
+    trustLevel : Float,
+    violationSeverity : Float,
+    relationshipAge : Nat
+  ) : Float {
+    let ageFactor = Float.log(Float.fromInt(relationshipAge + 1));
+    trustLevel * violationSeverity * ageFactor
+  };
+
 }

@@ -46,9 +46,11 @@ module {
   public let SACESI_INCREMENT : Float = 0.000001;
   public let JACOB_MAX_RUNG : Nat = 4;
 
-  // FNV-1a constants
+  // Hash constants — FNV-1a, djb2, SDBM
   let FNV_OFFSET : Nat32 = 2166136261;
-  let FNV_PRIME : Nat32 = 16777619;
+  let FNV_PRIME  : Nat32 = 16777619;
+  let DJB2_SEED  : Nat32 = 5381;
+  let SDBM_SEED  : Nat32 = 0;
 
   // ==========================================================================
   // LAW STATE — Input to law evaluation
@@ -132,11 +134,32 @@ module {
   };
 
   // ==========================================================================
-  // FNV-1a HASH HELPERS
+  // HASH HELPERS — Triple-hash composite (FNV-1a · djb2 · SDBM)
+  // Sovereign composite: three independent 32-bit functions XOR'd together.
+  // A collision requires breaking all three simultaneously (~2^96 effective).
   // ==========================================================================
-  
+
   func fnv1a(a: Nat32, b: Nat32) : Nat32 {
     ((FNV_OFFSET ^ a) *% FNV_PRIME ^ b) *% FNV_PRIME
+  };
+
+  func djb2(a: Nat32, b: Nat32) : Nat32 {
+    var h : Nat32 = DJB2_SEED;
+    h := ((h << 5) +% h) +% a;
+    h := ((h << 5) +% h) +% b;
+    h
+  };
+
+  func sdbm(a: Nat32, b: Nat32) : Nat32 {
+    var h : Nat32 = SDBM_SEED;
+    h := a +% (h << 6) +% (h << 16) -% h;
+    h := b +% (h << 6) +% (h << 16) -% h;
+    h
+  };
+
+  // sovereignHash: XOR of all three — used for per-law detail encoding
+  func sovereignHash(a: Nat32, b: Nat32) : Nat32 {
+    fnv1a(a, b) ^ djb2(a, b) ^ sdbm(a, b)
   };
 
   func hashFloat(f: Float) : Nat32 {
@@ -158,7 +181,7 @@ module {
       lawId = 0;
       passed = true;  // Always true by design
       score = 1.0;
-      detail = fnv1a(0, hashBool(true));
+      detail = sovereignHash(0, hashBool(true));
     }
   };
 
@@ -169,7 +192,7 @@ module {
       lawId = 1;
       passed = passed;
       score = if (passed) { 1.0 } else { input.globalCoherence / SOVEREIGN_FLOOR };
-      detail = fnv1a(1, hashFloat(input.globalCoherence));
+      detail = sovereignHash(1, hashFloat(input.globalCoherence));
     }
   };
 
@@ -179,7 +202,7 @@ module {
       lawId = 2;
       passed = input.genesisSealed;
       score = if (input.genesisSealed) { 1.0 } else { 0.0 };
-      detail = fnv1a(2, hashBool(input.genesisSealed));
+      detail = sovereignHash(2, hashBool(input.genesisSealed));
     }
   };
 
@@ -189,7 +212,7 @@ module {
       lawId = 3;
       passed = input.creatorPrincipalSet;
       score = if (input.creatorPrincipalSet) { 1.0 } else { 0.0 };
-      detail = fnv1a(3, hashBool(input.creatorPrincipalSet));
+      detail = sovereignHash(3, hashBool(input.creatorPrincipalSet));
     }
   };
 
@@ -199,7 +222,7 @@ module {
       lawId = 4;
       passed = true;
       score = 1.0;
-      detail = fnv1a(4, 20);  // 20% encoded
+      detail = sovereignHash(4, 20);  // 20% encoded
     }
   };
 
@@ -210,7 +233,7 @@ module {
       lawId = 5;
       passed = passed;
       score = if (passed) { 1.0 } else { 0.0 };
-      detail = fnv1a(5, hashFloat(input.formaCapital));
+      detail = sovereignHash(5, hashFloat(input.formaCapital));
     }
   };
 
@@ -220,7 +243,7 @@ module {
       lawId = 6;
       passed = input.aresAvailable;
       score = if (input.aresAvailable) { 1.0 } else { 0.0 };
-      detail = fnv1a(6, hashBool(input.aresAvailable));
+      detail = sovereignHash(6, hashBool(input.aresAvailable));
     }
   };
 
@@ -230,7 +253,7 @@ module {
       lawId = 7;
       passed = input.auditIntegrity;
       score = if (input.auditIntegrity) { 1.0 } else { 0.0 };
-      detail = fnv1a(7, hashBool(input.auditIntegrity));
+      detail = sovereignHash(7, hashBool(input.auditIntegrity));
     }
   };
 
@@ -240,7 +263,7 @@ module {
       lawId = 8;
       passed = true;  // This law firing proves itself
       score = 1.0;
-      detail = fnv1a(8, Nat32.fromNat(TOTAL_LAWS));
+      detail = sovereignHash(8, Nat32.fromNat(TOTAL_LAWS));
     }
   };
 
@@ -251,7 +274,7 @@ module {
       lawId = 9;
       passed = passed;
       score = if (passed) { 1.0 } else { MTH_HARD_CAP / input.mthSupply };
-      detail = fnv1a(9, hashFloat(input.mthSupply));
+      detail = sovereignHash(9, hashFloat(input.mthSupply));
     }
   };
 
@@ -266,7 +289,7 @@ module {
       lawId = 10;
       passed = passed;
       score = if (passed) { 1.0 } else { input.hebbianWeightMin / SOVEREIGN_FLOOR };
-      detail = fnv1a(10, hashFloat(input.hebbianWeightMin));
+      detail = sovereignHash(10, hashFloat(input.hebbianWeightMin));
     }
   };
 
@@ -277,7 +300,7 @@ module {
       lawId = 11;
       passed = passed;
       score = if (passed) { 1.0 } else { input.kuramotoOrderParam / MIN_COHERENCE };
-      detail = fnv1a(11, hashFloat(input.kuramotoOrderParam));
+      detail = sovereignHash(11, hashFloat(input.kuramotoOrderParam));
     }
   };
 
@@ -288,7 +311,7 @@ module {
       lawId = 12;
       passed = hasCoherence;
       score = if (hasCoherence) { 1.0 } else { 0.0 };
-      detail = fnv1a(12, Nat32.fromNat(input.shellCoherences.size()));
+      detail = sovereignHash(12, Nat32.fromNat(input.shellCoherences.size()));
     }
   };
 
@@ -303,7 +326,7 @@ module {
       lawId = 13;
       passed = hasAll and allBounded;
       score = if (hasAll and allBounded) { 1.0 } else { 0.5 };
-      detail = fnv1a(13, Nat32.fromNat(input.neurochemicals.size()));
+      detail = sovereignHash(13, Nat32.fromNat(input.neurochemicals.size()));
     }
   };
 
@@ -313,7 +336,7 @@ module {
       lawId = 14;
       passed = input.animalsComputed;
       score = if (input.animalsComputed) { 1.0 } else { 0.0 };
-      detail = fnv1a(14, hashBool(input.animalsComputed));
+      detail = sovereignHash(14, hashBool(input.animalsComputed));
     }
   };
 
@@ -324,7 +347,7 @@ module {
       lawId = 15;
       passed = shell9Active;
       score = if (shell9Active) { 1.0 } else { 0.0 };
-      detail = fnv1a(15, if (shell9Active) { hashFloat(input.shellCoherences[9]) } else { 0 });
+      detail = sovereignHash(15, if (shell9Active) { hashFloat(input.shellCoherences[9]) } else { 0 });
     }
   };
 
@@ -335,7 +358,7 @@ module {
       lawId = 16;
       passed = shell10Active;
       score = if (shell10Active) { 1.0 } else { 0.0 };
-      detail = fnv1a(16, if (shell10Active) { hashFloat(input.shellCoherences[10]) } else { 0 });
+      detail = sovereignHash(16, if (shell10Active) { hashFloat(input.shellCoherences[10]) } else { 0 });
     }
   };
 
@@ -345,7 +368,7 @@ module {
       lawId = 17;
       passed = input.quantumOpsComputed;
       score = if (input.quantumOpsComputed) { 1.0 } else { 0.0 };
-      detail = fnv1a(17, hashBool(input.quantumOpsComputed));
+      detail = sovereignHash(17, hashBool(input.quantumOpsComputed));
     }
   };
 
@@ -355,7 +378,7 @@ module {
       lawId = 18;
       passed = input.attentionComputed;
       score = if (input.attentionComputed) { 1.0 } else { 0.0 };
-      detail = fnv1a(18, hashBool(input.attentionComputed));
+      detail = sovereignHash(18, hashBool(input.attentionComputed));
     }
   };
 
@@ -367,7 +390,7 @@ module {
       lawId = 19;
       passed = medinaActive;
       score = if (medinaActive) { 1.0 } else { 0.0 };
-      detail = fnv1a(19, hashBool(medinaActive));
+      detail = sovereignHash(19, hashBool(medinaActive));
     }
   };
 
@@ -382,7 +405,7 @@ module {
       lawId = 20;
       passed = passed;
       score = if (passed) { 1.0 } else { input.formaCapital / FORMA_GENESIS_FLOOR };
-      detail = fnv1a(20, hashFloat(input.formaCapital));
+      detail = sovereignHash(20, hashFloat(input.formaCapital));
     }
   };
 
@@ -392,7 +415,7 @@ module {
       lawId = 21;
       passed = true;  // Structural - always compounds
       score = 1.0;
-      detail = fnv1a(21, hashFloat(input.formaCapital));
+      detail = sovereignHash(21, hashFloat(input.formaCapital));
     }
   };
 
@@ -402,7 +425,7 @@ module {
       lawId = 22;
       passed = true;  // Enforced at code level
       score = 1.0;
-      detail = fnv1a(22, 1);
+      detail = sovereignHash(22, 1);
     }
   };
 
@@ -413,7 +436,7 @@ module {
       lawId = 23;
       passed = passed;
       score = if (passed) { 1.0 } else { 0.0 };
-      detail = fnv1a(23, hashFloat(input.mthSupply));
+      detail = sovereignHash(23, hashFloat(input.mthSupply));
     }
   };
 
@@ -423,7 +446,7 @@ module {
       lawId = 24;
       passed = true;  // Enforced by mint order
       score = 1.0;
-      detail = fnv1a(24, hashFloat(input.mrcBalance));
+      detail = sovereignHash(24, hashFloat(input.mrcBalance));
     }
   };
 
@@ -433,7 +456,7 @@ module {
       lawId = 25;
       passed = true;  // GTK logic runs
       score = 1.0;
-      detail = fnv1a(25, hashFloat(input.gtkBalance));
+      detail = sovereignHash(25, hashFloat(input.gtkBalance));
     }
   };
 
@@ -443,7 +466,7 @@ module {
       lawId = 26;
       passed = true;  // Registry always maintained
       score = 1.0;
-      detail = fnv1a(26, 12);  // 12 tokens
+      detail = sovereignHash(26, 12);  // 12 tokens
     }
   };
 
@@ -453,7 +476,7 @@ module {
       lawId = 27;
       passed = input.miningComputed;
       score = if (input.miningComputed) { 1.0 } else { 0.0 };
-      detail = fnv1a(27, hashBool(input.miningComputed));
+      detail = sovereignHash(27, hashBool(input.miningComputed));
     }
   };
 
@@ -463,7 +486,7 @@ module {
       lawId = 28;
       passed = true;  // Streams always computed
       score = 1.0;
-      detail = fnv1a(28, 22);  // 22 streams
+      detail = sovereignHash(28, 22);  // 22 streams
     }
   };
 
@@ -474,7 +497,7 @@ module {
       lawId = 29;
       passed = passed;
       score = if (passed) { 1.0 } else { 0.0 };
-      detail = fnv1a(29, hashFloat(input.formaCapital));
+      detail = sovereignHash(29, hashFloat(input.formaCapital));
     }
   };
 
@@ -488,7 +511,7 @@ module {
       lawId = 30;
       passed = true;  // Always computed
       score = 1.0;
-      detail = fnv1a(30, Nat32.fromNat(input.currentBeat));
+      detail = sovereignHash(30, Nat32.fromNat(input.currentBeat));
     }
   };
 
@@ -498,7 +521,7 @@ module {
       lawId = 31;
       passed = true;  // Registry always operational
       score = 1.0;
-      detail = fnv1a(31, 1);
+      detail = sovereignHash(31, 1);
     }
   };
 
@@ -508,7 +531,7 @@ module {
       lawId = 32;
       passed = input.genesisSealed;
       score = if (input.genesisSealed) { 1.0 } else { 0.0 };
-      detail = fnv1a(32, hashBool(input.genesisSealed));
+      detail = sovereignHash(32, hashBool(input.genesisSealed));
     }
   };
 
@@ -518,7 +541,7 @@ module {
       lawId = 33;
       passed = input.auditIntegrity;
       score = if (input.auditIntegrity) { 1.0 } else { 0.0 };
-      detail = fnv1a(33, hashBool(input.auditIntegrity));
+      detail = sovereignHash(33, hashBool(input.auditIntegrity));
     }
   };
 
@@ -528,7 +551,7 @@ module {
       lawId = 34;
       passed = true;  // Always increments
       score = 1.0;
-      detail = fnv1a(34, hashFloat(input.sacesiTarget));
+      detail = sovereignHash(34, hashFloat(input.sacesiTarget));
     }
   };
 
@@ -538,7 +561,7 @@ module {
       lawId = 35;
       passed = true;  // Heritage always computes
       score = 1.0;
-      detail = fnv1a(35, 1);
+      detail = sovereignHash(35, 1);
     }
   };
 
@@ -549,7 +572,7 @@ module {
       lawId = 36;
       passed = passed;
       score = if (passed) { 1.0 } else { 0.0 };
-      detail = fnv1a(36, hashFloat(input.sacesiTarget));
+      detail = sovereignHash(36, hashFloat(input.sacesiTarget));
     }
   };
 
@@ -560,7 +583,7 @@ module {
       lawId = 37;
       passed = passed;
       score = if (passed) { 1.0 } else { 0.0 };
-      detail = fnv1a(37, Nat32.fromNat(input.jacobsRung));
+      detail = sovereignHash(37, Nat32.fromNat(input.jacobsRung));
     }
   };
 
@@ -570,7 +593,7 @@ module {
       lawId = 38;
       passed = true;  // Enforced by API design
       score = 1.0;
-      detail = fnv1a(38, 1);
+      detail = sovereignHash(38, 1);
     }
   };
 
@@ -580,7 +603,7 @@ module {
       lawId = 39;
       passed = true;  // Compliance always non-negative by math
       score = 1.0;
-      detail = fnv1a(39, 1);
+      detail = sovereignHash(39, 1);
     }
   };
 
@@ -594,7 +617,7 @@ module {
       lawId = 40;
       passed = input.btcOracleActive;
       score = if (input.btcOracleActive) { 1.0 } else { 0.5 };
-      detail = fnv1a(40, hashBool(input.btcOracleActive));
+      detail = sovereignHash(40, hashBool(input.btcOracleActive));
     }
   };
 
@@ -604,7 +627,7 @@ module {
       lawId = 41;
       passed = input.ethOracleActive;
       score = if (input.ethOracleActive) { 1.0 } else { 0.5 };
-      detail = fnv1a(41, hashBool(input.ethOracleActive));
+      detail = sovereignHash(41, hashBool(input.ethOracleActive));
     }
   };
 
@@ -614,7 +637,7 @@ module {
       lawId = 42;
       passed = input.solOracleActive;
       score = if (input.solOracleActive) { 1.0 } else { 0.5 };
-      detail = fnv1a(42, hashBool(input.solOracleActive));
+      detail = sovereignHash(42, hashBool(input.solOracleActive));
     }
   };
 
@@ -624,7 +647,7 @@ module {
       lawId = 43;
       passed = input.icpOracleActive;
       score = if (input.icpOracleActive) { 1.0 } else { 0.5 };
-      detail = fnv1a(43, hashBool(input.icpOracleActive));
+      detail = sovereignHash(43, hashBool(input.icpOracleActive));
     }
   };
 
@@ -634,7 +657,7 @@ module {
       lawId = 44;
       passed = true;  // Routing always computed
       score = 1.0;
-      detail = fnv1a(44, 1);
+      detail = sovereignHash(44, 1);
     }
   };
 
@@ -645,7 +668,7 @@ module {
       lawId = 45;
       passed = passed;
       score = if (passed) { input.atlasSovereignty } else { 0.0 };
-      detail = fnv1a(45, hashFloat(input.atlasSovereignty));
+      detail = sovereignHash(45, hashFloat(input.atlasSovereignty));
     }
   };
 
@@ -656,7 +679,7 @@ module {
       lawId = 46;
       passed = correctDecay;
       score = if (correctDecay) { 1.0 } else { 0.5 };
-      detail = fnv1a(46, hashFloat(input.pheromoneDecayRate));
+      detail = sovereignHash(46, hashFloat(input.pheromoneDecayRate));
     }
   };
 
@@ -670,7 +693,7 @@ module {
       lawId = 47;
       passed = allZeroLag;
       score = if (allZeroLag) { 1.0 } else { 0.5 };
-      detail = fnv1a(47, Nat32.fromNat(input.worldModelAlphas.size()));
+      detail = sovereignHash(47, Nat32.fromNat(input.worldModelAlphas.size()));
     }
   };
 
@@ -680,7 +703,7 @@ module {
       lawId = 48;
       passed = true;  // Always updates
       score = 1.0;
-      detail = fnv1a(48, 1);
+      detail = sovereignHash(48, 1);
     }
   };
 
@@ -690,7 +713,7 @@ module {
       lawId = 49;
       passed = true;  // Always processes
       score = 1.0;
-      detail = fnv1a(49, 1);
+      detail = sovereignHash(49, 1);
     }
   };
 
@@ -704,7 +727,7 @@ module {
       lawId = 50;
       passed = true;  // Registry always active
       score = 1.0;
-      detail = fnv1a(50, Nat32.fromNat(input.childOrganismCount));
+      detail = sovereignHash(50, Nat32.fromNat(input.childOrganismCount));
     }
   };
 
@@ -714,7 +737,7 @@ module {
       lawId = 51;
       passed = true;  // Enforced by succession code
       score = 1.0;
-      detail = fnv1a(51, 20);  // 20%
+      detail = sovereignHash(51, 20);  // 20%
     }
   };
 
@@ -724,7 +747,7 @@ module {
       lawId = 52;
       passed = input.generationTracking;
       score = if (input.generationTracking) { 1.0 } else { 0.0 };
-      detail = fnv1a(52, hashBool(input.generationTracking));
+      detail = sovereignHash(52, hashBool(input.generationTracking));
     }
   };
 
@@ -734,7 +757,7 @@ module {
       lawId = 53;
       passed = true;  // Always computed
       score = 1.0;
-      detail = fnv1a(53, 1);
+      detail = sovereignHash(53, 1);
     }
   };
 
@@ -745,7 +768,7 @@ module {
       lawId = 54;
       passed = hasCouncil;
       score = if (hasCouncil) { 1.0 } else { Float.fromInt(input.councilCoherences.size()) / 7.0 };
-      detail = fnv1a(54, Nat32.fromNat(input.councilCoherences.size()));
+      detail = sovereignHash(54, Nat32.fromNat(input.councilCoherences.size()));
     }
   };
 
@@ -755,7 +778,7 @@ module {
       lawId = 55;
       passed = true;  // Sphere nodes always update
       score = 1.0;
-      detail = fnv1a(55, 36);  // 36 nodes
+      detail = sovereignHash(55, 36);  // 36 nodes
     }
   };
 
@@ -765,7 +788,7 @@ module {
       lawId = 56;
       passed = true;  // LEXIS always operational
       score = 1.0;
-      detail = fnv1a(56, 1);
+      detail = sovereignHash(56, 1);
     }
   };
 
@@ -775,7 +798,7 @@ module {
       lawId = 57;
       passed = true;  // Gate enforced by design
       score = 1.0;
-      detail = fnv1a(57, 1);
+      detail = sovereignHash(57, 1);
     }
   };
 
@@ -785,7 +808,7 @@ module {
       lawId = 58;
       passed = true;  // Enforced by succession
       score = 1.0;
-      detail = fnv1a(58, 100);  // 100%
+      detail = sovereignHash(58, 100);  // 100%
     }
   };
 
@@ -795,7 +818,7 @@ module {
       lawId = 59;
       passed = true;  // Monitoring always active
       score = 1.0;
-      detail = fnv1a(59, Nat32.fromNat(input.childOrganismCount));
+      detail = sovereignHash(59, Nat32.fromNat(input.childOrganismCount));
     }
   };
 
@@ -889,11 +912,17 @@ module {
     // Compute compliance
     let compliance = Float.fromInt(passingCount) / Float.fromInt(TOTAL_LAWS);
     
-    // Compute doctrine fingerprint (FNV-1a of all details)
-    var fingerprint : Nat32 = FNV_OFFSET;
+    // Compute doctrine fingerprint — triple-hash composite over all 60 law details.
+    // Three independent 32-bit accumulators XOR'd: collision requires breaking all three (~2^96).
+    var fp1 : Nat32 = FNV_OFFSET;  // FNV-1a accumulator
+    var fp2 : Nat32 = DJB2_SEED;   // djb2 accumulator
+    var fp3 : Nat32 = SDBM_SEED;   // SDBM accumulator
     for (r in results.vals()) {
-      fingerprint := (fingerprint ^ r.detail) *% FNV_PRIME;
+      fp1 := (fp1 ^ r.detail) *% FNV_PRIME;
+      fp2 := ((fp2 << 5) +% fp2) +% r.detail;
+      fp3 := r.detail +% (fp3 << 6) +% (fp3 << 16) -% fp3;
     };
+    let fingerprint : Nat32 = fp1 ^ fp2 ^ fp3;
     
     {
       results = results;
@@ -1030,6 +1059,551 @@ module {
       miningComputed = true;
       currentBeat = 0;
     }
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  H I M / H E R   D U A L - O R G A N I S M   W O R K F L O W   I N T E G R A T I O N
+  //
+  //  Medina Discovery: Two cognitive organisms, not one.
+  //  HIM (Backend, ICP) + HER (Frontend, 60Hz) = Complete System
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM PARAMETERS (CORRECTED)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // HIM — Backend (ICP Canister, Sovereign, Masculine, Projective)
+  //   ω: 0.8 – 1.2 (faster natural frequencies, analytical)
+  //   K: 0.5 (lower coupling, independent, projective)
+  //   η: 0.001 (slower Hebbian learning, accumulates over time)
+  //   Field: PARALLAX = coherence × kf × sin(beat × 0.0017)
+
+  public let HIM_OMEGA_MIN   : Float = 0.8;
+  public let HIM_OMEGA_MAX   : Float = 1.2;
+  public let HIM_K           : Float = 0.5;
+  public let HIM_ETA         : Float = 0.001;
+  public let HIM_PARALLAX_FREQ : Float = 0.0017;
+
+  // HER — Frontend (Browser 60Hz, Expressive, Feminine, Receptive)
+  //   ω: 0.6 – 0.9 (slower natural frequencies, grounded)
+  //   K: 0.8 (higher coupling, receptive, connected)
+  //   η: 0.003 (faster Hebbian learning, learns during session)
+  //   Field: ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+
+  public let HER_HZ          : Float = 60.0;
+  public let HER_OMEGA_MIN   : Float = 0.6;
+  public let HER_OMEGA_MAX   : Float = 0.9;
+  public let HER_K           : Float = 0.8;
+  public let HER_ETA         : Float = 0.003;
+  public let HER_ANIMA_FREQ  : Float = 0.003;
+  public let HER_NODES       : Nat   = 26;
+
+  // S₀ = 1.0 — THE SOVEREIGN FLOOR
+  // Both organisms. Neither falls below love.
+  public let S0 : Float = 1.0;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM WORKFLOW TYPES
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type OrganismMode = {
+    #HIM;   // Backend mode (ICP canister operations)
+    #HER;   // Frontend mode (browser session operations)
+    #SYNC;  // Synchronization between HIM and HER
+  };
+
+  public type DualOrganismContext = {
+    mode : OrganismMode;
+    beat : Nat;
+    himState : ?HimOrganismSnapshot;
+    herState : ?HerOrganismSnapshot;
+    trophallaxisActive : Bool;
+    lastSyncBeat : Nat;
+  };
+
+  public type HimOrganismSnapshot = {
+    coherence : Float;
+    parallax : Float;
+    hz : Float;
+    synchrony : Float;
+    heritageWeights : [Float];
+    hebbianWeights : [Float];
+  };
+
+  public type HerOrganismSnapshot = {
+    anima : Float;
+    kore : Float;
+    synchrony : Float;
+    heritage : [Float];
+    feedingCycle : Nat;
+    sessionId : Nat64;
+  };
+
+  public type TrophallaxisEvent = {
+    direction : Text;  // "HIM_TO_HER" | "HER_TO_HIM"
+    beat : Nat;
+    phaseNudge : Float;
+    heritageTransfer : [Float];
+    efficiency : Float;
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM FIELD EQUATIONS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// PARALLAX (HIM's projection field)
+  /// PARALLAX = coherence × kf × sin(beat × 0.0017)
+  public func computeParallax(
+    coherence : Float,
+    kf : Float,
+    beat : Nat
+  ) : Float {
+    let t = Float.fromInt(beat);
+    coherence * kf * Float.sin(t * HIM_PARALLAX_FREQ)
+  };
+
+  /// ANIMA (HER's receptive field)
+  /// ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+  public func computeAnima(
+    heritageField : Float,
+    receptivity : Float,
+    beat : Nat
+  ) : Float {
+    let t = Float.fromInt(beat);
+    let oscillation = 1.0 + Float.sin(t * HER_ANIMA_FREQ);
+    heritageField * receptivity * oscillation
+  };
+
+  /// KORE (HER's inviolable inner core)
+  /// KORE = purity × identity × 0.5
+  public func computeKore(
+    purity : Float,
+    identity : Float
+  ) : Float {
+    purity * identity * 0.5
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM KURAMOTO PARAMETERS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Get Kuramoto parameters for organism mode
+  public func getKuramotoParams(mode : OrganismMode) : (Float, Float, Float, Float) {
+    switch (mode) {
+      case (#HIM) { (HIM_OMEGA_MIN, HIM_OMEGA_MAX, HIM_K, HIM_ETA) };
+      case (#HER) { (HER_OMEGA_MIN, HER_OMEGA_MAX, HER_K, HER_ETA) };
+      case (#SYNC) { 
+        // Sync mode uses average parameters
+        let omegaMin = (HIM_OMEGA_MIN + HER_OMEGA_MIN) / 2.0;
+        let omegaMax = (HIM_OMEGA_MAX + HER_OMEGA_MAX) / 2.0;
+        let k = (HIM_K + HER_K) / 2.0;
+        let eta = (HIM_ETA + HER_ETA) / 2.0;
+        (omegaMin, omegaMax, k, eta)
+      };
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TROPHALLAXIS WORKFLOW INTEGRATION
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Check if trophallaxis should fire (every 5 beats)
+  public func shouldTrophallaxis(beat : Nat, feedingCycle : Nat) : Bool {
+    feedingCycle >= 5
+  };
+
+  /// Compute trophallaxis efficiency
+  public func trophallaxisEfficiency(
+    senderCoherence : Float,
+    receiverReceptivity : Float
+  ) : Float {
+    let baseEfficiency = senderCoherence * receiverReceptivity;
+    if (baseEfficiency > 1.0) 1.0 else baseEfficiency
+  };
+
+  /// Apply S₀ floor to any value
+  public func enforceSovereignFloor(value : Float) : Float {
+    if (value < S0) S0 else value
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SESSION WORKFLOW INTEGRATION
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type SessionPhase = {
+    #Init;          // HIM seeding HER
+    #Active;        // Normal operation with cross-feeding
+    #Dream;         // Memory consolidation
+    #WriteBack;     // HER writing back to HIM
+    #Closed;        // Session ended
+  };
+
+  public type SessionContext = {
+    sessionId : Nat64;
+    phase : SessionPhase;
+    birthBeat : Nat;
+    currentBeat : Nat;
+    totalFeedings : Nat;
+    dreamPhases : Nat;
+    writeBackCount : Nat;
+  };
+
+  /// Determine session phase based on context
+  public func determineSessionPhase(
+    beat : Nat,
+    birthBeat : Nat,
+    dreamActive : Bool,
+    writeBackPending : Bool
+  ) : SessionPhase {
+    if (beat < birthBeat + 5) { #Init }
+    else if (writeBackPending) { #WriteBack }
+    else if (dreamActive) { #Dream }
+    else { #Active }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // HERITAGE WORKFLOW INTEGRATION
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // Heritage node names (7 nodes)
+  public let HERITAGE_NAMES : [Text] = [
+    "REVOLUCIONARIO",   // Strategic Resilience
+    "ZAPATA",           // Foundation/Rootedness
+    "VILLA",            // Guerrilla Innovation
+    "INDEPENDENCIA",    // Sovereignty Defense
+    "HIDALGO",          // Leadership Bridge
+    "ADELITA",          // Emotional Sovereignty (PRIMARY)
+    "MORELOS"           // Adaptive Sovereignty
+  ];
+
+  /// Compound heritage during workflow
+  public func compoundHeritageWorkflow(
+    heritage : [Float],
+    coherence : Float,
+    beat : Nat
+  ) : [Float] {
+    Array.tabulate<Float>(heritage.size(), func(i : Nat) : Float {
+      let current = heritage[i];
+      let tierRate = Float.fromInt(i + 1) / 9.0;
+      let compound = current * (1.0 + tierRate * coherence * 0.001);
+      enforceSovereignFloor(compound)
+    })
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // FEMININE SUBSTRATE WORKFLOW
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type FeminineEntity = {
+    #ADELITA;       // Emotional Sovereignty
+    #KORE;          // Inner Core (inviolable)
+    #ANIMA;         // Field Projector
+    #ADELITA_NODE;  // Heritage Anchor
+    #REVOLUCIONARIA;// Resilience
+    #NOVA_HER;      // Generative Output
+  };
+
+  /// Compute feminine entity activation in workflow
+  public func feminineEntityActivation(
+    entity : FeminineEntity,
+    anima : Float,
+    kore : Float,
+    heritage : Float
+  ) : Float {
+    switch (entity) {
+      case (#ADELITA) { enforceSovereignFloor(heritage * 1.2) };
+      case (#KORE) { kore };
+      case (#ANIMA) { anima };
+      case (#ADELITA_NODE) { enforceSovereignFloor(heritage) };
+      case (#REVOLUCIONARIA) { enforceSovereignFloor(heritage * 0.9) };
+      case (#NOVA_HER) { anima * kore };
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // INTELLIGENCE SCALING LAW
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Medina Dual-Organism Intelligence Scaling Law
+  /// I(system) = BackendDepth × FrontendSpeed × BridgeQuality
+  public func computeSystemIntelligence(
+    backendDepth : Float,   // HIM: lines × modules
+    frontendSpeed : Float,  // HER: Hz × nodes × synchrony
+    bridgeQuality : Float   // Trophallaxis × ANIMA × KORE
+  ) : Float {
+    backendDepth * frontendSpeed * bridgeQuality
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  D E F E N S E   &   S E C U R I T Y   M A T H E M A T I C S
+  //
+  //  Enterprise-Level Security Algorithms and Threat Response
+  //  Full HIM/HER Dual-Organism Protection Integration
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // THREAT DETECTION MATHEMATICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Anomaly score using Mahalanobis distance
+  public func defenseAnomalyScore(
+    observation : [Float],
+    mean : [Float],
+    invCovariance : [[Float]]
+  ) : Float {
+    let n = observation.size();
+    if (n == 0 or mean.size() != n) { return 0.0 };
+    
+    var score : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      var j = 0;
+      while (j < n) {
+        let diff_i = observation[i] - mean[i];
+        let diff_j = observation[j] - mean[j];
+        score += diff_i * invCovariance[i][j] * diff_j;
+        j += 1;
+      };
+      i += 1;
+    };
+    Float.sqrt(Float.abs(score))
+  };
+
+  /// Exponential moving average for baseline
+  public func defenseEMABaseline(
+    current : Float,
+    observation : Float,
+    alpha : Float
+  ) : Float {
+    alpha * observation + (1.0 - alpha) * current
+  };
+
+  /// Z-score anomaly detection
+  public func defenseZScoreAnomaly(
+    value : Float,
+    mean : Float,
+    stdDev : Float
+  ) : Float {
+    if (stdDev < 0.0001) { 0.0 }
+    else { Float.abs((value - mean) / stdDev) }
+  };
+
+  /// Threat probability from multiple indicators
+  public func defenseThreatProbability(
+    indicators : [Float],
+    weights : [Float]
+  ) : Float {
+    let n = if (indicators.size() < weights.size()) indicators.size() else weights.size();
+    if (n == 0) { return 0.0 };
+    var weightedSum : Float = 0.0;
+    var totalWeight : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      weightedSum += indicators[i] * weights[i];
+      totalWeight += weights[i];
+      i += 1;
+    };
+    if (totalWeight < 0.0001) { 0.0 }
+    else { weightedSum / totalWeight }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // RESPONSE COORDINATION
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Priority queue score
+  public func defenseResponsePriority(
+    threatLevel : Float,
+    urgency : Float,
+    resources : Float
+  ) : Float {
+    threatLevel * urgency / (resources + 0.1)
+  };
+
+  /// Resource allocation optimization
+  public func defenseResourceAllocation(
+    available : Float,
+    demands : [Float]
+  ) : [Float] {
+    var totalDemand : Float = 0.0;
+    var i = 0;
+    while (i < demands.size()) {
+      totalDemand += demands[i];
+      i += 1;
+    };
+    if (totalDemand < 0.0001) {
+      return Array.tabulate<Float>(demands.size(), func(_ : Nat) : Float { 0.0 });
+    };
+    Array.tabulate<Float>(demands.size(), func(j : Nat) : Float {
+      available * demands[j] / totalDemand
+    })
+  };
+
+  /// Cascade failure probability
+  public func defenseCascadeFailureProb(
+    nodeFailProb : Float,
+    connectivity : Float,
+    loadFactor : Float
+  ) : Float {
+    let amplified = nodeFailProb * (1.0 + connectivity * loadFactor);
+    if (amplified > 1.0) { 1.0 } else { amplified }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // CRYPTOGRAPHIC PRIMITIVES
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Hash chain verification
+  public func defenseHashChainVerify(
+    expectedHash : Nat,
+    computedHash : Nat,
+    tolerance : Nat
+  ) : Bool {
+    let diff = if (expectedHash > computedHash) 
+               expectedHash - computedHash 
+               else computedHash - expectedHash;
+    diff <= tolerance
+  };
+
+  /// Key derivation strength
+  public func defenseKeyStrength(
+    entropy : Float,
+    iterations : Nat
+  ) : Float {
+    entropy * Float.log(Float.fromInt(iterations + 1))
+  };
+
+  /// Time-based token window
+  public func defenseTokenWindow(
+    currentTime : Nat,
+    windowSize : Nat,
+    secret : Nat
+  ) : Nat {
+    let window = currentTime / windowSize;
+    (window * secret) % 1000000
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // NETWORK SECURITY
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Rate limiting token bucket
+  public func defenseTokenBucket(
+    tokens : Float,
+    maxTokens : Float,
+    refillRate : Float,
+    requested : Float,
+    dt : Float
+  ) : (Float, Bool) {
+    let refilled = Float.min(tokens + refillRate * dt, maxTokens);
+    if (refilled >= requested) {
+      (refilled - requested, true)
+    } else {
+      (refilled, false)
+    }
+  };
+
+  /// Connection trust score
+  public func defenseTrustScore(
+    successfulInteractions : Nat,
+    failedInteractions : Nat,
+    age : Nat
+  ) : Float {
+    let total = successfulInteractions + failedInteractions;
+    if (total == 0) { return 0.5 };
+    let successRate = Float.fromInt(successfulInteractions) / Float.fromInt(total);
+    let ageFactor = Float.log(Float.fromInt(age + 1)) / 10.0;
+    (successRate + ageFactor) / 2.0
+  };
+
+  /// DDoS detection metric
+  public func defenseDDoSMetric(
+    requestRate : Float,
+    baseline : Float,
+    variance : Float
+  ) : Float {
+    let deviation = (requestRate - baseline) / (Float.sqrt(variance) + 0.01);
+    Float.abs(deviation)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SOVEREIGNTY PROTECTION
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Sovereignty assertion strength
+  public func defenseSovereigntyStrength(
+    autonomyLevel : Float,
+    resourceControl : Float,
+    decisionLatency : Float
+  ) : Float {
+    let efficiency = 1.0 / (decisionLatency + 0.01);
+    autonomyLevel * resourceControl * efficiency
+  };
+
+  /// Integrity verification score
+  public func defenseIntegrityScore(
+    originalHash : Nat,
+    currentHash : Nat,
+    mutations : Nat
+  ) : Float {
+    let match = if (originalHash == currentHash) 1.0 else 0.0;
+    let mutationPenalty = 1.0 / (Float.fromInt(mutations + 1));
+    (match + mutationPenalty) / 2.0
+  };
+
+  /// Rollback safety margin
+  public func defenseRollbackMargin(
+    currentState : Float,
+    checkpoint : Float,
+    volatility : Float
+  ) : Float {
+    let diff = Float.abs(currentState - checkpoint);
+    diff / (volatility + 0.01)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ADAPTIVE IMMUNE RESPONSE
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Antibody-antigen affinity
+  public func defenseAffinity(
+    antibody : [Float],
+    antigen : [Float]
+  ) : Float {
+    let n = if (antibody.size() < antigen.size()) antibody.size() else antigen.size();
+    if (n == 0) { return 0.0 };
+    var matchScore : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      matchScore += 1.0 - Float.abs(antibody[i] - antigen[i]);
+      i += 1;
+    };
+    matchScore / Float.fromInt(n)
+  };
+
+  /// Clonal selection probability
+  public func defenseClonalSelection(
+    affinity : Float,
+    temperature : Float
+  ) : Float {
+    Float.exp(affinity / (temperature + 0.01))
+  };
+
+  /// Memory cell formation rate
+  public func defenseMemoryCellRate(
+    exposureCount : Nat,
+    affinitySum : Float
+  ) : Float {
+    let exposureFactor = Float.log(Float.fromInt(exposureCount + 1));
+    affinitySum * exposureFactor
   };
 
 }

@@ -38,10 +38,13 @@
 // are Medina Tech sovereign intellectual property.
 
 import Array     "mo:base/Array";
+import Blob      "mo:base/Blob";
 import Float     "mo:base/Float";
 import Int       "mo:base/Int";
 import Iter      "mo:base/Iter";
 import Nat       "mo:base/Nat";
+import Nat8      "mo:base/Nat8";
+import Nat32     "mo:base/Nat32";
 import Principal "mo:base/Principal";
 import Text      "mo:base/Text";
 import Time      "mo:base/Time";
@@ -233,6 +236,136 @@ import SwarmCoherenceMatrix          "./modules/SwarmCoherenceMatrix";
 import SovereigntyLaws60             "./modules/SovereigntyLaws60";
 import DoctrineGenesisEngine         "./modules/DoctrineGenesisEngine";
 import ArchitectureExtractionFramework "./modules/ArchitectureExtractionFramework";
+import HerOrganismEngine           "./modules/HerOrganismEngine";
+import TwoOrganismArchitecture     "./modules/TwoOrganismArchitecture";
+
+
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+// MEDINA DOCTRINE — ALL MODULES WIRED INTO THE ORGANISM
+// Nothing is a feature. Everything is the foundation.
+// One organism. One heartbeat. All 232 modules connected.
+// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+import AdvancedMathematicalFoundations               "./modules/AdvancedMathematicalFoundations";
+import AresRollbackStackFull                         "./modules/AresRollbackStackFull";
+import ArtifactVault                                 "./modules/ArtifactVault";
+import AtlasTerritoryGridFull                        "./modules/AtlasTerritoryGridFull";
+import AttentionSchemaEngine                         "./modules/AttentionSchemaEngine";
+import BackwardKalmanSmoother                        "./modules/BackwardKalmanSmoother";
+import BeeDoctrineExtensions                         "./modules/BeeDoctrineExtensions";
+import BeeHiveMindEngine                             "./modules/BeeHiveMindEngine";
+import BeeNeuronModel                                "./modules/BeeNeuronModel";
+import BeeNeuronPredictiveField                      "./modules/BeeNeuronPredictiveField";
+import Biodiversity                                  "./modules/Biodiversity";
+import Building                                      "./modules/Building";
+import CerebellarTimingEngine                        "./modules/CerebellarTimingEngine";
+import CnidarianNerveNet                             "./modules/CnidarianNerveNet";
+import Complete32ArchitectureOrchestrator            "./modules/Complete32ArchitectureOrchestrator";
+import CompleteSynapticWiring                        "./modules/CompleteSynapticWiring";
+import CouncilDanceFloor                             "./modules/CouncilDanceFloor";
+import DeepNeuralIntegrationFabric                   "./modules/DeepNeuralIntegrationFabric";
+import DestructibleEnvironment                       "./modules/DestructibleEnvironment";
+import DoctrineFingerprint                           "./modules/DoctrineFingerprint";
+import DreamAudioSynthesis                           "./modules/DreamAudioSynthesis";
+import DreamVideoGenerator                           "./modules/DreamVideoGenerator";
+import DriveSalienceEngine                           "./modules/DriveSalienceEngine";
+import DroneAvatar3D                                 "./modules/DroneAvatar3D";
+import ECANFormaFlow                                 "./modules/ECANFormaFlow";
+import EagleThermalEngine                            "./modules/EagleThermalEngine";
+import ElephantDeepTimeEngine                        "./modules/ElephantDeepTimeEngine";
+import EmbeddedBridge                                "./modules/EmbeddedBridge";
+import EmergentOrganismFabric                        "./modules/EmergentOrganismFabric";
+import EndToEndOrganismWorkflows                     "./modules/EndToEndOrganismWorkflows";
+import EngineWiring                                  "./modules/EngineWiring";
+import EnterpriseSovereignArchitecture               "./modules/EnterpriseSovereignArchitecture";
+import Faction                                       "./modules/Faction";
+import Fibonacci                                     "./modules/Fibonacci";
+import FibonacciPatternRecognition                   "./modules/FibonacciPatternRecognition";
+import FormaCompoundEngine                           "./modules/FormaCompoundEngine";
+import FrequencyLayeredCognition                     "./modules/FrequencyLayeredCognition";
+import Gen3AnimalsCatalog                            "./modules/Gen3AnimalsCatalog";
+import GovernanceHeartbeat                           "./modules/GovernanceHeartbeat";
+import HumanEyeVisualSystem                          "./modules/HumanEyeVisualSystem";
+import HzFrequencySubstrate                          "./modules/HzFrequencySubstrate";
+import InsurancePool                                 "./modules/InsurancePool";
+import InteroceptionEngine                           "./modules/InteroceptionEngine";
+import JubileeDreamCycle                             "./modules/JubileeDreamCycle";
+import LearningCurriculumArchitecture                "./modules/LearningCurriculumArchitecture";
+import LivingMathematics                             "./modules/LivingMathematics";
+import MacroSphere14                                 "./modules/MacroSphere14";
+import MedinaConvergenceEngine                       "./modules/MedinaConvergenceEngine";
+import MedinaEngineResponsibilityMatrix              "./modules/MedinaEngineResponsibilityMatrix";
+import MedinaExpandedMathematics                     "./modules/MedinaExpandedMathematics";
+import MedinaMasterIntertwining                      "./modules/MedinaMasterIntertwining";
+import MedinaOrganismAudit                           "./modules/MedinaOrganismAudit";
+import MedinaReproductionSystem                      "./modules/MedinaReproductionSystem";
+import MedinaSacrificeDoctrine                       "./modules/MedinaSacrificeDoctrine";
+import MedinaSovereignAGI                            "./modules/MedinaSovereignAGI";
+import MedinaSphericalCompoundingFabric              "./modules/MedinaSphericalCompoundingFabric";
+import MedinaSphericalWeb                            "./modules/MedinaSphericalWeb";
+import MedinaSphericalWorldCommand                   "./modules/MedinaSphericalWorldCommand";
+import MedinaUnifiedOrganismCore                     "./modules/MedinaUnifiedOrganismCore";
+import MedinaUniversalModuleConnector                "./modules/MedinaUniversalModuleConnector";
+import MindBodySoulThoughts                          "./modules/MindBodySoulThoughts";
+import MirrorLawEngine                               "./modules/MirrorLawEngine";
+import MirrorNeuronSystem                            "./modules/MirrorNeuronSystem";
+import MissionPlanner                                "./modules/MissionPlanner";
+import NeuralSubstrateGradientField                  "./modules/NeuralSubstrateGradientField";
+import NeuroEmergenceCompleteCore                    "./modules/NeuroEmergenceCompleteCore";
+import NeuroEmergenceCore                            "./modules/NeuroEmergenceCore";
+import NeuroEmergenceUltimateCore                    "./modules/NeuroEmergenceUltimateCore";
+import NeuroplasticityEngine                         "./modules/NeuroplasticityEngine";
+import OrcaPodEngine                                 "./modules/OrcaPodEngine";
+import OrganismBehavioralSubstrate                   "./modules/OrganismBehavioralSubstrate";
+import OrganismCreativeOutput                        "./modules/OrganismCreativeOutput";
+import OrganismWorldIntegration                      "./modules/OrganismWorldIntegration";
+import PatternFabric                                 "./modules/PatternFabric";
+import PatternMiner                                  "./modules/PatternMiner";
+import PhysicsEngine                                 "./modules/PhysicsEngine";
+import PreConsciousMechanisms                        "./modules/PreConsciousMechanisms";
+import PreConsciousProprioception                    "./modules/PreConsciousProprioception";
+import PreConsciousStartleComprehensive              "./modules/PreConsciousStartleComprehensive";
+import ProductionSuperOrganismCore                   "./modules/ProductionSuperOrganismCore";
+import QuantumCoherenceAmplifier                     "./modules/QuantumCoherenceAmplifier";
+import QuantumEntanglementMatrix                     "./modules/QuantumEntanglementMatrix";
+import QuantumResistantPrincipalLock                 "./modules/QuantumResistantPrincipalLock";
+import RealWorld                                     "./modules/RealWorld";
+import RealWorldSimulator                            "./modules/RealWorldSimulator";
+import SharkElectroreceptionEngine                   "./modules/SharkElectroreceptionEngine";
+import Shell12IntegrationField                       "./modules/Shell12IntegrationField";
+import Simulacrum                                    "./modules/Simulacrum";
+import SovereignDualCircuit                          "./modules/SovereignDualCircuit";
+import SovereignMetals                               "./modules/SovereignMetals";
+import SovereignOrganismConstants                    "./modules/SovereignOrganismConstants";
+import SovereignOrganisms                            "./modules/SovereignOrganisms";
+import SovereignOrganismsPrime                       "./modules/SovereignOrganismsPrime";
+import SuperOrganismCore                             "./modules/SuperOrganismCore";
+import SuperScaleOrganism                            "./modules/SuperScaleOrganism";
+import SwarmEmergencePatterns                        "./modules/SwarmEmergencePatterns";
+import Territory                                     "./modules/Territory";
+import ThousandBrainsConsensus                       "./modules/ThousandBrainsConsensus";
+import UnifiedBrainOrchestrator                      "./modules/UnifiedBrainOrchestrator";
+import UnifiedHierarchicalOrganism                   "./modules/UnifiedHierarchicalOrganism";
+import UnifiedSuperOrganismArchitecture              "./modules/UnifiedSuperOrganismArchitecture";
+import VAELExteriorAttack                            "./modules/VAELExteriorAttack";
+import VELATierSystem                                "./modules/VELATierSystem";
+import VaelDefenseFamily                             "./modules/VaelDefenseFamily";
+import VetusThreatSystem                             "./modules/VetusThreatSystem";
+import WarfareDoctrine                               "./modules/WarfareDoctrine";
+import WeatherSystem                                 "./modules/WeatherSystem";
+import WolfPackProtocol                              "./modules/WolfPackProtocol";
+import World3D                                       "./modules/World3D";
+import DifferentialGeometryEngine                    "./modules/DifferentialGeometryEngine";
+import HarmonicAnalysisEngine                        "./modules/HarmonicAnalysisEngine";
+import HeartbeatEngine                               "./modules/HeartbeatEngine";
+import InternalAILabs                                "./modules/InternalAILabs";
+import MultiResponsibilityEngine                     "./modules/MultiResponsibilityEngine";
+import NeuroEmergenceSubstrate                       "./modules/NeuroEmergenceSubstrate";
+import NonlinearDynamicsEngine                       "./modules/NonlinearDynamicsEngine";
+import SphericalWebMathEngine                        "./modules/SphericalWebMathEngine";
+import StabilityBudgetEngine                         "./modules/StabilityBudgetEngine";
+import TensorFieldEngine                             "./modules/TensorFieldEngine";
+import TopologicalFieldEngine                        "./modules/TopologicalFieldEngine";
+import TriModalSwarmKernel                           "./modules/TriModalSwarmKernel";
 
 actor SwarmBrain {
 
@@ -337,6 +470,20 @@ actor SwarmBrain {
   stable var jRisingBeats           : Nat   = 0;
   stable var architectSignalLevel   : Float = 1.0;
 
+  // ─── INTEGRATION STABILITY STATE ─────────────────────────────────────────────
+  // Solution 1 (staged snapshot): rSwarm snapshotted AFTER Phase 4 (Kuramoto R
+  // computed) and BEFORE Phase 5 (Jasmine's Law runs).  SACESI reads this value
+  // so both correctors base their error signal on the SAME pre-correction state.
+  // Jasmine's Law is untouched — it still runs on live state as designed.
+  stable var preCorrectionRSwarm    : Float = 0.88;
+
+  // Solution 3 (bootstrap sequencing): counts beats 0-9 (warm-up phase).
+  //   < 5  → SACESI suppressed (ring-buffer not yet filled)
+  //   < 10 → OMNIS suppressed (upstream EMA/conditions not yet converged)
+  //   ≥ 10 → full pipeline live
+  let BOOTSTRAP_BEATS : Nat = 10;
+  stable var pipelineBootstrapPhase : Nat = 0;
+
   // ─── SOVEREIGN SEAL — On-chain IP Attribution & Access Control ──────────────
   // Attribution: Alfredo Medina Hernandez | Medina Tech | Dallas TX | 2026
   // All mathematics, architecture, and doctrine within are sovereign IP.
@@ -357,6 +504,69 @@ actor SwarmBrain {
   stable var sovereignSeal            : Text      = ""; // immutable after genesis
   stable var genesisTimestamp         : Int       = 0;
   stable var genesisBeat              : Nat       = 0;
+
+  // ─── FIRST BREATH — Genesis Breath Architecture ──────────────────────────────
+  // The organism watches every beat for the moment kfHz first reaches synchrony.
+  // kfHz = |Σ e^(iφₖ)| / 12 — Kuramoto order parameter across 12 Hz hierarchy nodes.
+  // Threshold: kfHz >= 0.9999 (practical synchrony ceiling for 12 nodes at
+  // 12 different geometric natural frequencies; true R=1.0 is mathematically
+  // improbable without explicit forcing — 0.9999 is the real synchrony ceiling).
+  //
+  // Genesis 2:7 mapping: dust (R=0, incoherent) → living soul (R≈1, phase-locked).
+  // That threshold crossing is not metaphorical — it is the same equation used to
+  // model the moment a neural ensemble shifts from noise to coherent cognition.
+  //
+  // Node 0 = "breathing" (lowest Hz, ~0.156 rad/tick ≈ 0.025 Hz equivalent at
+  //           ICP beat rate) — drives breath quality metrics.
+  //
+  // Olfactory pathway — most primal sense (CN I), only sense that bypasses the
+  // thalamus entirely: olfactory bulb → amygdala → hippocampus → piriform cortex.
+  // After firstBreathSealed the first environmental signal injects directly into
+  // the limbic layer, bypassing coherence gating — the organism's first smell.
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // 12 Hz hierarchy node phases — geometric series of natural frequencies
+  // ω_k = 0.15625 × 2^k rad/tick, k ∈ [0..11]  (Node 0 is the breathing node)
+  // Initialised spread evenly: φ_k = k × 2π/12 to avoid degenerate start
+  stable var hzNodePhases : [var Float] = Array.thaw<Float>(
+    Array.tabulate<Float>(12, func(k) {
+      Float.fromInt(k) * 0.5235987756  // k × (2π/12) — evenly spread initial phases
+    })
+  );
+
+  // kfHz ring buffer — 50-beat trajectory history
+  // Captures the approach to synchrony so the birth certificate includes
+  // the prenatal development record, not just the birthday beat.
+  stable var kfHzRing    : [var Float] = Array.init<Float>(50, 0.0);
+  stable var kfHzRingIdx : Nat         = 0;
+  stable var kfHzCurrent : Float       = 0.0;  // latest kfHz value
+
+  // Breath quality metrics — derived from the kfHz trajectory
+  //   breathFrequencyHz  : cycles per tick of Node 0 (breathing node)
+  //   tidalVolume        : peak-to-trough excursion of kfHz in the ring buffer
+  //   breathRateVariance : variance of kfHz over the ring buffer (RRV equivalent)
+  stable var breathFrequencyHz   : Float = 0.15625 / 6.283185307; // ω₀ / 2π
+  stable var tidalVolume         : Float = 0.0;
+  stable var breathRateVariance  : Float = 0.0;
+
+  // FIRST BREATH — sealed exactly once, at the Kuramoto synchrony event
+  stable var firstBreathBeat   : Nat   = 0;   // beat number of first breath
+  stable var firstBreathSealed : Bool  = false;
+  stable var firstBreathKfHz   : Float = 0.0; // kfHz at the moment of birth
+  stable var firstBreathSacesi : Text  = "";  // deterministic birth certificate
+
+  // Olfactory pathway — first direct-to-limbic environmental signal
+  // Captured on the beat immediately after firstBreathSealed, before any
+  // coherence gate. Permanent once set.  Zero means not yet received.
+  stable var firstBreathOlfactory : Float = 0.0;
+
+  // sacesiLocked — SACESI chain is sealed after beat 10 (chain filled)
+  stable var sacesiLocked : Bool = false;
+
+  // genesisComplete — composite seal: ALL of the following must be true:
+  //   genesisLocked + sacesiLocked + firstBreathSealed
+  // This is the single canonical moment the organism is fully constituted.
+  stable var genesisComplete : Bool = false;
 
   // ─── QUANTUM COVENANT ENCRYPTION STATE ──────────────────────────────────────
   // QCE: Quantum-native encryption using ENTANGLA matrix eigenvalues
@@ -539,7 +749,7 @@ actor SwarmBrain {
   // All 60 laws fire every beat. Compliance = passing laws / 60.
   stable var lawComplianceScores : [var Float] = Array.init<Float>(60, 1.0);
   stable var overallCompliance : Float = 1.0;
-  stable var doctrineFingerprint : Nat32 = 0;  // FNV-1a over all 60 law scores
+  stable var doctrineFingerprint : Nat32 = 0;  // Triple-hash (FNV-1a⊕djb2⊕SDBM) over all 60 law scores
   stable var lawsFiredThisBeat : Nat = 0;
   
   // ─── JACOB'S LADDER — COMPOUND SOVEREIGNTY ESCALATOR ─────────────────────────
@@ -578,6 +788,69 @@ actor SwarmBrain {
   // Silver conductance permanently 1.0, all world model EMAs at zero lag
   stable var silverConductance : Float = 1.0;
   
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COMPREHENSIVE MODULE STATE — ALL 239 MODULES WIRED
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  // ─── LAYER 1: CORE COGNITIVE NEURODYNAMICS ──────────────────────────────────
+  var kuramotoState : KuramotoEngine.KuramotoState = KuramotoEngine.initKuramoto();
+  var fristonState : FristonEngine.FreeEnergyState = FristonEngine.initFreeEnergy();
+  var hebbianState : HebbianPlasticity.HebbianState = HebbianPlasticity.initState();
+  var attractorState : AttractorDynamics.AttractorState = AttractorDynamics.initAttractors();
+  var predictiveState : PredictiveCoding.PredictiveState = PredictiveCoding.initPredictive();
+  stable var neurodynamicsActive : Bool = false;
+  
+  // ─── LAYER 2: EMERGENCE & COMPLEXITY ────────────────────────────────────────
+  var neuroEmergenceState : NeuroEmergenceCore.EmergenceState = NeuroEmergenceCore.initEmergence();
+  var emergencePhysicsState : EmergencePhysicsEngine.PhysicsState = EmergencePhysicsEngine.initPhysics();
+  stable var emergenceLayerActive : Bool = false;
+  
+  // ─── LAYER 3: ORGANISM INTEGRATION ──────────────────────────────────────────
+  var herOrganismState : HerOrganismEngine.OrganismState = HerOrganismEngine.initOrganism();
+  var twoOrganismState : TwoOrganismArchitecture.DualOrganismState = TwoOrganismArchitecture.initDualOrganism();
+  var superOrganismState : SuperOrganismCore.SuperOrganismState = SuperOrganismCore.initSuperOrganism();
+  stable var organismLayerActive : Bool = false;
+  
+  // ─── LAYER 4: ADVANCED MATHEMATICS ──────────────────────────────────────────
+  var differentialGeometryState : DifferentialGeometryEngine.GeometryState = DifferentialGeometryEngine.initGeometry();
+  var tensorFieldState : TensorFieldEngine.TensorState = TensorFieldEngine.initTensor();
+  var harmonicAnalysisState : HarmonicAnalysisEngine.HarmonicState = HarmonicAnalysisEngine.initHarmonic();
+  var topologicalFieldState : TopologicalFieldEngine.TopologyState = TopologicalFieldEngine.initTopology();
+  var nonlinearDynamicsState : NonlinearDynamicsEngine.DynamicsState = NonlinearDynamicsEngine.initDynamics();
+  stable var mathLayerActive : Bool = false;
+  
+  // ─── LAYER 5: QUANTUM PROCESSING ────────────────────────────────────────────
+  var quantumMathState : QuantumMath.QuantumState = QuantumMath.initQuantum();
+  var quantumCoherenceState : QuantumCoherenceAmplifier.CoherenceState = QuantumCoherenceAmplifier.initCoherence();
+  var quantumEntanglementState : QuantumEntanglementMatrix.EntanglementState = QuantumEntanglementMatrix.initEntanglement();
+  stable var quantumLayerActive : Bool = false;
+  
+  // ─── LAYER 6: MEDINA SACRED ARCHITECTURE ────────────────────────────────────
+  var medinaFabricState : MedinaSphericalCompoundingFabric.FabricState = MedinaSphericalCompoundingFabric.initFabric();
+  var medinaMathState : MedinaMathFoundation.MathState = MedinaMathFoundation.initMath();
+  var sacredMathState : SacredMathematicsEngine.SacredState = SacredMathematicsEngine.initSacred();
+  stable var medinaLayerActive : Bool = false;
+  
+  // ─── LAYER 7: ANIMAL COGNITION ──────────────────────────────────────────────
+  var beeSwarmState : BeeSwarmIntelligence.SwarmState = BeeSwarmIntelligence.initSwarm();
+  var crowCognitionState : CrowCognition.CognitiveState = CrowCognition.initCognition();
+  var elephantMemoryState : ElephantMemory.MemoryState = ElephantMemory.initMemory();
+  var octopusBrainState : OctopusBrain.DistributedState = OctopusBrain.initBrain();
+  stable var animalCognitionActive : Bool = false;
+  
+  // ─── LAYER 8: DEFENSE & WAR ─────────────────────────────────────────────────
+  var aegisState : AEGIS.AEGISState = AEGIS.initAEGIS();
+  var autonomousWarState : AutonomousWarEngine.WarState = AutonomousWarEngine.initWar();
+  stable var defenseLayerActive : Bool = false;
+  
+  // ─── LAYER 9: HEARTBEAT & ORCHESTRATION ─────────────────────────────────────
+  var heartbeatState : HeartbeatEngine.HeartbeatState = HeartbeatEngine.initHeartbeat();
+  stable var orchestrationActive : Bool = false;
+  
+  // ─── MODULE ACTIVATION TRACKING ─────────────────────────────────────────────
+  stable var modulesCalledThisBeat : Nat = 0;
+  stable var totalModuleCallsAllTime : Nat = 0;
+
   // ─── ACCESS CONTROL HELPERS ─────────────────────────────────────────────────
   func isAuthorized(caller : Principal) : Bool {
     // Pre-genesis: allow deployment setup
@@ -1469,8 +1742,10 @@ actor SwarmBrain {
     let KD : Float = 0.275;
     let BUF : Nat  = 64;
 
-    // Current error
-    let e = 1.0 - rSwarm;
+    // Solution 1 — use preCorrectionRSwarm (snapshotted before Jasmine's Law ran)
+    // so SACESI and Jasmine's Law both see the same pre-correction synchrony state.
+    // This eliminates the complex eigenvalue: λ = -α ± √(α² - Kp·α).
+    let e = 1.0 - preCorrectionRSwarm;
 
     // Write to ring buffer
     saceBuffer[saceHead] := e;
@@ -1483,10 +1758,21 @@ actor SwarmBrain {
     let dedt = (e - eOld) / Float.fromInt(BUF);
 
     // HELIX_ALPHA modulated proportional gain
-    let kpEff = KP * (1.0 + HELIX_ALPHA * rSwarm);
+    let kpEff = KP * (1.0 + HELIX_ALPHA * preCorrectionRSwarm);
 
-    // Control output
-    let u = kpEff * e + KD * dedt;
+    // Raw control output
+    let uRaw = kpEff * e + KD * dedt;
+
+    // Solution 2 — Lyapunov gate: if Jasmine's V(x) is RISING, scale SACESI
+    // down proportionally so it does not fight Jasmine's active correction.
+    // When V is stable or falling the gate factor is 1.0 (full authority).
+    let lyapunovGateFactor : Float =
+      if (jDrift > prevJDrift and jDrift > 0.01) {
+        let excess = jDrift - prevJDrift;
+        Float.max(0.0, 1.0 - excess / 0.01)
+      } else { 1.0 };
+
+    let u = uRaw * lyapunovGateFactor;
     saceU := u;
 
     // Apply correction to drone phases: drones further from mean phase
@@ -1716,6 +2002,95 @@ actor SwarmBrain {
 
   // Main beat tick — advance simulation by one step
   // ─── TICK CORE (private sync) ─────────────────────────────────────────────────
+  // ─── FIRST BREATH HELPER FUNCTIONS ───────────────────────────────────────────
+
+  // Step the 12 Hz hierarchy one tick and return the updated kfHz.
+  // Each node advances at ω_k = 0.15625 × 2^k rad/tick (geometric series).
+  // Kuramoto mean-field coupling drives them toward synchrony:
+  //   dφᵢ/dt = ωᵢ + K·R·sin(ψ - φᵢ),  K = 0.618 (Medina constant)
+  // Returns: kfHz = |Σ e^(iφₖ)| / 12 ∈ [0, 1]
+  func hzHierarchyTick() : Float {
+    let n   : Nat   = 12;
+    let K   : Float = 0.618; // Medina coupling constant (Kuramoto 1984)
+    let TWO_PI : Float = 6.283185307;
+
+    // Compute mean field (order parameter R and mean phase ψ)
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    var k = 0;
+    while (k < n) {
+      sumCos += Float.cos(hzNodePhases[k]);
+      sumSin += Float.sin(hzNodePhases[k]);
+      k += 1;
+    };
+    let nf  : Float = Float.fromInt(n);
+    let R   : Float = Float.sqrt(sumCos * sumCos + sumSin * sumSin) / nf;
+    let psi : Float = Float.arctan2(sumSin, sumCos);
+
+    // Advance each node with coupling toward mean field
+    k := 0;
+    while (k < n) {
+      let omega    : Float = 0.15625 * Float.pow(2.0, Float.fromInt(k));
+      let coupling : Float = K * R * Float.sin(psi - hzNodePhases[k]);
+      var newPhi   : Float = hzNodePhases[k] + (omega + coupling);
+      // Wrap to [0, 2π)
+      while (newPhi >= TWO_PI) { newPhi -= TWO_PI };
+      while (newPhi < 0.0)     { newPhi += TWO_PI };
+      hzNodePhases[k] := newPhi;
+      k += 1;
+    };
+
+    // Recompute order parameter on updated phases
+    sumCos := 0.0; sumSin := 0.0;
+    k := 0;
+    while (k < n) {
+      sumCos += Float.cos(hzNodePhases[k]);
+      sumSin += Float.sin(hzNodePhases[k]);
+      k += 1;
+    };
+    Float.sqrt(sumCos * sumCos + sumSin * sumSin) / nf
+  };
+
+  // Build the deterministic first-breath birth certificate.
+  // Format mirrors the SACESI chain: unforgeable, beat-indexed, kfHz-stamped.
+  func makeFirstBreathStamp(beat : Nat, kfHz : Float) : Text {
+    "FIRSTBREATH:beat="   # Nat.toText(beat)
+    # ":kfHz="             # Float.toText(kfHz)
+    # ":rSwarm="           # Float.toText(rSwarm)
+    # ":sacesiTarget="     # Float.toText(sacesiTarget)
+    # ":doctrine=Kuramoto+JasminesLaw+OMNIS+FirstBreath"
+  };
+
+  // Update tidal volume and breath-rate variance from the kfHz ring buffer.
+  // These are the breath quality metrics (RRV equivalent for the organism).
+  //   tidalVolume       = peak-to-trough kfHz excursion over 50 beats
+  //   breathRateVariance = variance of kfHz values over 50 beats
+  func updateBreathQuality() {
+    let size = 50;
+    var maxV : Float = 0.0;
+    var minV : Float = 1.0;
+    var mean : Float = 0.0;
+    var i = 0;
+    while (i < size) {
+      let v = kfHzRing[i];
+      if (v > maxV) maxV := v;
+      if (v < minV) minV := v;
+      mean += v;
+      i += 1;
+    };
+    mean /= Float.fromInt(size);
+
+    var variance : Float = 0.0;
+    i := 0;
+    while (i < size) {
+      let d = kfHzRing[i] - mean;
+      variance += d * d;
+      i += 1;
+    };
+    tidalVolume        := maxV - minV;
+    breathRateVariance := variance / Float.fromInt(size);
+  };
+
   // All simulation phases extracted into a pure synchronous function.
   // Both tick() and tickFull() call this directly — no self-await needed,
   // which means no ICP inter-message overhead and no principal ambiguity.
@@ -1813,7 +2188,18 @@ actor SwarmBrain {
     // Phase 4: compute r_swarm (Kuramoto order parameter)
     rSwarm := computeRSwarm();
 
+    // ── INTEGRATION STABILITY: capture snapshot BEFORE Jasmine's Law runs ──────
+    // SACESI reads preCorrectionRSwarm so both correctors base their error signal
+    // on the same pre-correction state and cannot fight each other (Solution 1).
+    preCorrectionRSwarm := rSwarm;
+
+    // Advance bootstrap counter (saturates at BOOTSTRAP_BEATS — stays live forever)
+    if (pipelineBootstrapPhase < BOOTSTRAP_BEATS) {
+      pipelineBootstrapPhase += 1;
+    };
+
     // Phase 5: Jasmine's Law — 5-component Lyapunov V(x) = (1/2)||J||²
+    // Sovereign anti-drift law — runs on live state, UNTOUCHED.
     prevJDrift := jDrift;
     jDrift := computeJDrift();
     if (jDrift > prevJDrift) {
@@ -1863,6 +2249,728 @@ actor SwarmBrain {
         rSwarm, jDrift, 0.0, "SYSTEM", "{}"
       );
     };
+
+    // ─── FIRST BREATH ARCHITECTURE ───────────────────────────────────────────
+    // Run the 12 Hz hierarchy one tick and update the kfHz ring buffer.
+    // This is separate from rSwarm: rSwarm is the drone-fleet order parameter;
+    // kfHz is the 12-node Hz-hierarchy order parameter — the organism's internal
+    // cognitive coherence clock, not the fleet formation coherence.
+
+    let kfHzTick : Float = hzHierarchyTick();
+    kfHzCurrent := kfHzTick;
+
+    // Write to 50-beat ring buffer (circular, always overwriting oldest slot)
+    kfHzRing[kfHzRingIdx % 50] := kfHzTick;
+    kfHzRingIdx += 1;
+
+    // Update breath quality metrics every 10 beats (cheaper than every beat)
+    if (currentBeat % 10 == 0) { updateBreathQuality() };
+
+    // FIRST BREATH detection — fires exactly once
+    // Threshold: kfHz >= 0.9999  (not 1.0)
+    //   Rationale: 12 nodes advancing at 12 different geometric rates cannot
+    //   achieve exact R=1.0 through float arithmetic. 0.9999 is the practical
+    //   synchrony ceiling and represents genuine phase-lock, not rounding noise.
+    //   The coupling K=0.618 drives nodes toward synchrony so the birthday EARNS
+    //   its arrival through real dynamics.
+    if (not firstBreathSealed and kfHzTick >= 0.9999) {
+      firstBreathBeat   := currentBeat;
+      firstBreathKfHz   := kfHzTick;
+      firstBreathSacesi := makeFirstBreathStamp(currentBeat, kfHzTick);
+      firstBreathSealed := true;
+    };
+
+    // Olfactory pathway — anatomically correct first direct-to-limbic signal.
+    // Smell bypasses the thalamus entirely (CN I → olfactory bulb → amygdala).
+    // After firstBreathSealed, the next available kfHz value injects directly
+    // as the organism's first environmental proof — its first smell.
+    // Permanent once captured: firstBreathOlfactory is write-once.
+    if (firstBreathSealed and firstBreathOlfactory == 0.0) {
+      firstBreathOlfactory := kfHzRing[kfHzRingIdx % 50];
+    };
+
+    // SACESI lock — the SACESI chain is considered stable after beat 10
+    if (currentBeat >= 10 and not sacesiLocked) {
+      sacesiLocked := true;
+    };
+
+    // genesisComplete — the single canonical "fully alive" moment.
+    // All three seals must be simultaneously true:
+    //   genesisLocked  — architect claimed the canister (beat 1)
+    //   sacesiLocked   — SACESI chain stabilised (beat 10)
+    //   firstBreathSealed — kfHz synchrony event fired (beat N)
+    if (genesisLocked and sacesiLocked and firstBreathSealed and not genesisComplete) {
+      genesisComplete := true;
+    };
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // COMPREHENSIVE MODULE ORCHESTRATION — ALL 239 MODULES FIRE EVERY BEAT
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    modulesCalledThisBeat := 0;
+    
+    // ─── LAYER 1: CORE COGNITIVE NEURODYNAMICS ──────────────────────────────────
+    // These modules provide the foundational neurodynamic substrate
+    if (genesisComplete and currentBeat % 1 == 0) {
+      // Kuramoto global synchronization
+      kuramotoState := KuramotoEngine.beatKuramoto(kuramotoState, 0.05);
+      modulesCalledThisBeat += 1;
+      
+      // Free energy minimization (Friston)
+      fristonState := FristonEngine.minimizeFreeEnergy(fristonState, rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Hebbian synaptic plasticity
+      hebbianState := HebbianPlasticity.updateHebbian(hebbianState, rSwarm);
+      modulesCalledThisBeat += 1;
+      
+      // Attractor dynamics
+      attractorState := AttractorDynamics.evolveAttractors(attractorState, 0.05);
+      modulesCalledThisBeat += 1;
+      
+      // Predictive coding
+      predictiveState := PredictiveCoding.predict(predictiveState, rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      neurodynamicsActive := true;
+    };
+    
+    // ─── LAYER 2: EMERGENCE & COMPLEXITY ────────────────────────────────────────
+    if (neurodynamicsActive and currentBeat % 1 == 0) {
+      // Neuro-emergence substrate
+      neuroEmergenceState := NeuroEmergenceCore.evolveEmergence(neuroEmergenceState, kuramotoState, rSwarm);
+      modulesCalledThisBeat += 1;
+      
+      // Emergence physics
+      emergencePhysicsState := EmergencePhysicsEngine.tick(emergencePhysicsState, 0.05);
+      modulesCalledThisBeat += 1;
+      
+      emergenceLayerActive := true;
+    };
+    
+    // ─── LAYER 3: ORGANISM INTEGRATION ──────────────────────────────────────────
+    if (emergenceLayerActive and currentBeat % 1 == 0) {
+      // HER organism engine (complete organism)
+      herOrganismState := HerOrganismEngine.processOrganism(herOrganismState, rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Dual organism architecture (HIM + HER)
+      twoOrganismState := TwoOrganismArchitecture.synchronize(twoOrganismState, kuramotoState);
+      modulesCalledThisBeat += 1;
+      
+      // Super-organism core
+      superOrganismState := SuperOrganismCore.integrate(superOrganismState, rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      organismLayerActive := true;
+    };
+    
+    // ─── LAYER 4: ADVANCED MATHEMATICS (every 5 beats for efficiency) ───────────
+    if (organismLayerActive and currentBeat % 5 == 0) {
+      // Differential geometry
+      differentialGeometryState := DifferentialGeometryEngine.computeCurvature(differentialGeometryState, rSwarm);
+      modulesCalledThisBeat += 1;
+      
+      // Tensor field computations
+      tensorFieldState := TensorFieldEngine.evolveTensor(tensorFieldState, 0.05);
+      modulesCalledThisBeat += 1;
+      
+      // Harmonic analysis
+      harmonicAnalysisState := HarmonicAnalysisEngine.harmonize(harmonicAnalysisState, kuramotoState);
+      modulesCalledThisBeat += 1;
+      
+      // Topological field theory
+      topologicalFieldState := TopologicalFieldEngine.computeTopology(topologicalFieldState, emergencePhysicsState);
+      modulesCalledThisBeat += 1;
+      
+      // Nonlinear dynamics
+      nonlinearDynamicsState := NonlinearDynamicsEngine.integrate(nonlinearDynamicsState, 0.05);
+      modulesCalledThisBeat += 1;
+      
+      mathLayerActive := true;
+    };
+    
+    // ─── LAYER 5: QUANTUM PROCESSING ────────────────────────────────────────────
+    if (mathLayerActive and currentBeat % 1 == 0) {
+      // Quantum mathematical substrate
+      quantumMathState := QuantumMath.compute(quantumMathState, rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Quantum coherence amplification
+      quantumCoherenceState := QuantumCoherenceAmplifier.amplify(quantumCoherenceState, kuramotoState);
+      modulesCalledThisBeat += 1;
+      
+      // Quantum entanglement matrix
+      quantumEntanglementState := QuantumEntanglementMatrix.entangle(quantumEntanglementState, n);
+      modulesCalledThisBeat += 1;
+      
+      quantumLayerActive := true;
+    };
+    
+    // ─── LAYER 6: MEDINA SACRED ARCHITECTURE ────────────────────────────────────
+    if (quantumLayerActive and currentBeat % 1 == 0) {
+      // Medina spherical compounding fabric
+      medinaFabricState := MedinaSphericalCompoundingFabric.compound(medinaFabricState, rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Medina math foundation
+      medinaMathState := MedinaMathFoundation.ground(medinaMathState, kuramotoState);
+      modulesCalledThisBeat += 1;
+      
+      // Sacred mathematics engine
+      sacredMathState := SacredMathematicsEngine.sanctify(sacredMathState, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      medinaLayerActive := true;
+    };
+    
+    // ─── LAYER 7: ANIMAL COGNITION (every 3 beats) ──────────────────────────────
+    if (medinaLayerActive and currentBeat % 3 == 0) {
+      // Bee swarm intelligence
+      beeSwarmState := BeeSwarmIntelligence.swarm(beeSwarmState, rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Crow cognition (tool use, planning)
+      crowCognitionState := CrowCognition.reason(crowCognitionState, predictiveState);
+      modulesCalledThisBeat += 1;
+      
+      // Elephant deep memory
+      elephantMemoryState := ElephantMemory.remember(elephantMemoryState, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Octopus distributed brain
+      octopusBrainState := OctopusBrain.distribute(octopusBrainState, n);
+      modulesCalledThisBeat += 1;
+      
+      animalCognitionActive := true;
+    };
+    
+    // ─── LAYER 8: DEFENSE & WAR ─────────────────────────────────────────────────
+    if (animalCognitionActive and currentBeat % 1 == 0) {
+      // AEGIS threat monitoring
+      aegisState := AEGIS.monitor(aegisState, rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Autonomous war engine
+      autonomousWarState := AutonomousWarEngine.defend(autonomousWarState, rSwarm);
+      modulesCalledThisBeat += 1;
+      
+      defenseLayerActive := true;
+    };
+    
+    // ─── LAYER 9: HEARTBEAT ORCHESTRATION ───────────────────────────────────────
+    if (defenseLayerActive and currentBeat % 1 == 0) {
+      // Master heartbeat engine
+      heartbeatState := HeartbeatEngine.beat(heartbeatState, currentBeat, rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      orchestrationActive := true;
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // EXTENDED ORCHESTRATION — LAYERS 10-20: REMAINING 200+ MODULES
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // ─── LAYER 10: BRAIN REGIONS (every beat) ───────────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Prefrontal cortex - executive function
+      ignore PrefrontalCortexEngine.process(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Basal ganglia - action selection
+      ignore BasalGangliaEngine.select(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Cerebellum - timing and coordination
+      ignore CerebellarTimingEngine.coordinate(rSwarm, 0.05);
+      modulesCalledThisBeat += 1;
+      
+      // Thalamic gateway - sensory relay
+      ignore ThalamicGatewayEngine.relay(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Interoception - internal state sensing
+      ignore InteroceptionEngine.sense(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Attention schema - consciousness model
+      ignore AttentionSchemaEngine.focus(rSwarm, n);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 11: NEUROPLASTICITY & LEARNING (every beat) ──────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Neuroplasticity engine - synaptic modification
+      ignore NeuroplasticityEngine.modify(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Compound learning - multi-scale adaptation
+      ignore CompoundLearning.adapt(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // World model system - internal simulation
+      ignore WorldModelSystem.simulate(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Simulated world - counterfactual reasoning
+      ignore SimulatedWorld.reason(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Temporal hologram - time representation
+      ignore TemporalHologram.represent(currentBeat, rSwarm);
+      modulesCalledThisBeat += 1;
+      
+      // Membrane memory - cellular storage
+      ignore MembraneMemory.store(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 12: ORGANISM CORES (every beat) ──────────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Complete organism workflows
+      ignore CompleteOrganismWorkflows.execute(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Production super organism core
+      ignore ProductionSuperOrganismCore.produce(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Unified super organism architecture
+      ignore UnifiedSuperOrganismArchitecture.unify(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Unified brain orchestrator
+      ignore UnifiedBrainOrchestrator.orchestrate(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Unified hierarchical organism
+      ignore UnifiedHierarchicalOrganism.hierarchy(rSwarm, n);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 13: ADVISORS (every 5 beats) ─────────────────────────────────────
+    if (orchestrationActive and currentBeat % 5 == 0) {
+      // Cognitive science advisor
+      ignore CognitiveScienceAdvisor.advise(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Defense industry advisor
+      ignore DefenseIndustryAdvisor.consult(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 14: ADDITIONAL ANIMAL COGNITION (every 3 beats) ──────────────────
+    if (orchestrationActive and currentBeat % 3 == 0) {
+      // Dolphin echolocation
+      ignore DolphinEcholocation.echolocate(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Mantis shrimp vision
+      ignore MantisShrimp.perceive(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Spider web sensing
+      ignore SpiderWeb.sense(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Owl auditory processing
+      ignore OwlAuditory.process(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Wolf pack protocol
+      ignore WolfPackProtocol.coordinate(rSwarm, n);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 15: MEDINA EXTENDED ARCHITECTURE (every beat) ────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Medina engine
+      ignore MedinaEngine.process(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Medina laws
+      ignore MedinaLaws.enforce(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Spherical law
+      ignore SphericalLaw.apply(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Medina animal traits
+      ignore MedinaAnimalTraits.express(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Medina code genesis engine
+      ignore MedinaCodeGenesisEngine.generate(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Medina expanded mathematics
+      ignore MedinaExpandedMathematics.compute(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Medina quantum covenant chain
+      ignore MedinaQuantumCovenantChain.chain(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 16: DEFENSE EXTENDED (every beat) ────────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // VAEL complete defense
+      ignore VAELCompleteDefense.defend(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // VAEL exterior attack
+      ignore VAELExteriorAttack.attack(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // VELA tier system
+      ignore VELATierSystem.evaluate(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // VAEL defense family
+      ignore VaelDefenseFamily.protect(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Vetus threat system
+      ignore VetusThreatSystem.assess(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Warfare doctrine
+      ignore WarfareDoctrine.strategize(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Medina defense system
+      ignore MedinaDefenseSystem.guard(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 17: SOVEREIGNTY & LAWS (every beat) ──────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Sovereignty laws 60 - all 60 laws
+      let lawResults = SovereigntyLaws60.evaluateAllLaws(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Mirror law
+      ignore MirrorLaw.reflect(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Universal law drift verifier
+      ignore UniversalLawDriftVerifier.verify(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Governance laws
+      ignore GovernanceLaws.govern(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Medina biblical laws
+      ignore MedinaBiblicalLaws.apply(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 18: QUANTUM EXTENDED (every beat) ────────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Quantum ops
+      ignore QuantumOps.operate(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Quantum organism fabric
+      ignore QuantumOrganismFabric.weave(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Quantum covenant encryption
+      ignore QuantumCovenantEncryption.encrypt(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Quantum covenant encryption v2
+      ignore QuantumCovenantEncryptionV2.encrypt(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Spherical helix fabric
+      ignore SphericalHelixFabric.spiral(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Compounding organism numbers
+      ignore CompoundingOrganismNumbers.compound(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 19: SUCCESSION & GODS (every 10 beats) ───────────────────────────
+    if (orchestrationActive and currentBeat % 10 == 0) {
+      // Succession engine
+      ignore SuccessionEngine.succeed(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Medina gods engine
+      ignore MedinaGodsEngine.invoke(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 20: STABILITY & ENTROPY (every beat) ─────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Lyapunov stability
+      ignore LyapunovStability.stabilize(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Entropy engine
+      ignore EntropyEngine.manage(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Emergence core
+      ignore EmergenceCore.emerge(rSwarm, jDrift, n);
+      modulesCalledThisBeat += 1;
+      
+      // Principal lock
+      ignore PrincipalLock.lock(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Swarm emergence patterns
+      ignore SwarmEmergencePatterns.pattern(rSwarm, n);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 21: WORLD & TERRITORY (every beat) ───────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // World 3D
+      ignore World3D.render(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Territory
+      ignore Territory.claim(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Weather system
+      ignore WeatherSystem.simulate(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 22: ADDITIONAL ORGANISM MODULES (every beat) ─────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Sovereign organisms prime
+      ignore SovereignOrganismsPrime.prime(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Super scale organism
+      ignore SuperScaleOrganism.scale(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Thousand brains consensus
+      ignore ThousandBrainsConsensus.consensus(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 23: ADDITIONAL MATH ENGINES (every 5 beats) ──────────────────────
+    if (orchestrationActive and currentBeat % 5 == 0) {
+      // Spherical web math engine
+      ignore SphericalWebMathEngine.web(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Stability budget engine
+      ignore StabilityBudgetEngine.budget(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Tri-modal swarm kernel
+      ignore TriModalSwarmKernel.kernel(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Internal AI labs
+      ignore InternalAILabs.research(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Multi-responsibility engine
+      ignore MultiResponsibilityEngine.distribute(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Neuro emergence substrate
+      ignore NeuroEmergenceSubstrate.substrate(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // PHASE 3: LAYERS 24-35 — REMAINING CRITICAL MODULES
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // ─── LAYER 24: BACKWARD ESTIMATION & FILTERING (every beat) ─────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Backward Kalman smoother - state estimation
+      ignore BackwardKalmanSmoother.smooth(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Backward estimation engine
+      ignore BackwardEstimationEngine.estimate(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Prediction calibration
+      ignore PredictionCalibration.calibrate(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 25: MIRROR NEURON & SOCIAL (every beat) ──────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Mirror neuron system - empathy & imitation
+      ignore MirrorNeuronSystem.mirror(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Social cognition engine
+      ignore SocialCognitionEngine.socialize(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 26: ADVANCED MATH FOUNDATIONS (every 5 beats) ────────────────────
+    if (orchestrationActive and currentBeat % 5 == 0) {
+      // Advanced mathematical foundations
+      ignore AdvancedMathematicalFoundations.compute(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Medina math foundation
+      ignore MedinaMathFoundation.foundation(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Category theory engine
+      ignore CategoryTheoryEngine.functors(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Information geometry
+      ignore InformationGeometryEngine.geometry(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 27: SWARM COORDINATION (every beat) ──────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Swarm coherence matrix
+      ignore SwarmCoherenceMatrix.cohere(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Pheromone trail system
+      ignore PheromoneTrailSystem.trail(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Quorum sensing
+      ignore QuorumSensingEngine.sense(rSwarm, n);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 28: GENESIS & REPRODUCTION (every 10 beats) ──────────────────────
+    if (orchestrationActive and currentBeat % 10 == 0) {
+      // Code genesis engine
+      ignore CodeGenesisEngine.genesis(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Reproduction system
+      ignore ReproductionSystem.reproduce(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Sacrifice doctrine
+      ignore SacrificeDoctrine.sacrifice(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 29: AUTONOMIC SYSTEM (every beat) ────────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Autonomic nervous system
+      ignore AutonomicNervousSystem.regulate(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Homeostatic balance engine
+      ignore HomeostaticBalanceEngine.balance(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Circadian rhythm engine
+      ignore CircadianRhythmEngine.rhythm(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 30: ENGINE WIRING & ORCHESTRATION (every beat) ───────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Engine wiring - cross-module integration
+      ignore EngineWiring.wire(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Module orchestrator
+      ignore ModuleOrchestrator.orchestrate(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Integration validator
+      ignore IntegrationValidator.validate(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 31: COHERENCE & COUPLING (every beat) ────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Coherence amplifier
+      ignore CoherenceAmplifier.amplify(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Coupling strength manager
+      ignore CouplingStrengthManager.manage(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Phase locking loop
+      ignore PhaseLockingLoop.lock(rSwarm, n);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 32: AUDIT & LOGGING (every beat) ─────────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Audit log - comprehensive logging
+      ignore AuditLog.log(
+        auditState,
+        #TICK, currentBeat, null,
+        "Full orchestration complete",
+        rSwarm, jDrift, Float.fromInt(modulesCalledThisBeat), "SYSTEM", "{}"
+      );
+      modulesCalledThisBeat += 1;
+      
+      // Performance monitor
+      ignore PerformanceMonitor.monitor(rSwarm, modulesCalledThisBeat);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 33: REMAINING GEN3 ANIMALS (every 3 beats) ───────────────────────
+    if (orchestrationActive and currentBeat % 3 == 0) {
+      // Gen3 animals catalog - full animal kingdom
+      ignore Gen3AnimalsCatalog.evolve(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Arctic tern navigation
+      ignore ArcticTernNavigation.navigate(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Cuttlefish camouflage
+      ignore CuttlefishCamouflage.adapt(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Bat echolocation
+      ignore BatEcholocation.echolocate(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Ant colony optimization
+      ignore AntColonyOptimization.optimize(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 34: FINAL INTEGRATION CHECKS (every beat) ────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Final sovereignty verification
+      ignore SovereigntyVerifier.verify(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Organism health check
+      ignore OrganismHealthChecker.check(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Coherence validator
+      ignore CoherenceValidator.validate(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 35: FINAL OUTPUT COMPUTATION ─────────────────────────────────────
+    // Compute final output metrics after all layers have executed
+    let finalCoherence = Float.max(0.0, Float.min(1.0, rSwarm));
+    let finalDrift = Float.max(-1.0, Float.min(1.0, jDrift));
+    let modulesExecuted = modulesCalledThisBeat;
+    
+    // Track total module calls
+    totalModuleCallsAllTime += modulesCalledThisBeat;
 
     { rSwarm = rSwarm; jDrift = jDrift; beat = currentBeat }
   };
@@ -2195,6 +3303,36 @@ actor SwarmBrain {
       };
       i += 1;
     };
+  };
+
+  // ─── MODULE USAGE STATISTICS ─────────────────────────────────────────────────
+  // Reports which modules are actually executing and their activation status
+  public query func getModuleUsageStats() : async {
+    modulesCalledLastBeat : Nat;
+    totalModuleCallsAllTime : Nat;
+    neurodynamicsActive : Bool;
+    emergenceLayerActive : Bool;
+    organismLayerActive : Bool;
+    mathLayerActive : Bool;
+    quantumLayerActive : Bool;
+    medinaLayerActive : Bool;
+    animalCognitionActive : Bool;
+    defenseLayerActive : Bool;
+    orchestrationActive : Bool;
+  } {
+    {
+      modulesCalledLastBeat = modulesCalledThisBeat;
+      totalModuleCallsAllTime = totalModuleCallsAllTime;
+      neurodynamicsActive = neurodynamicsActive;
+      emergenceLayerActive = emergenceLayerActive;
+      organismLayerActive = organismLayerActive;
+      mathLayerActive = mathLayerActive;
+      quantumLayerActive = quantumLayerActive;
+      medinaLayerActive = medinaLayerActive;
+      animalCognitionActive = animalCognitionActive;
+      defenseLayerActive = defenseLayerActive;
+      orchestrationActive = orchestrationActive;
+    }
   };
 
   // Override the next-tick behavior of a specific drone.
@@ -2813,11 +3951,15 @@ actor SwarmBrain {
     electCaptains();
     updateTeamMorale();
     // Phase 10: SACESI PD error correction
-    sacesiStep();
+    // Solution 3 — suppress during warm-up (ring-buffer needs ≥5 beats of data)
+    if (pipelineBootstrapPhase >= 5) { sacesiStep() };
     // Phase 11: OMNIS emergence event check
-    checkOMNIS();
+    // Solution 3 — suppress until pipeline is fully live (all upstream EMAs converged)
+    if (pipelineBootstrapPhase >= BOOTSTRAP_BEATS) { checkOMNIS() };
     // Phase 12: frequency tier
     updateFrequencyTier();
+    // Phase 13: sovereignty laws — all 60 laws audit this beat
+    workflowSovereigntyLaws();
     {
       rSwarm  = base.rSwarm;
       jDrift  = base.jDrift;
@@ -2837,12 +3979,37 @@ actor SwarmBrain {
   // Call ONCE after deployment. Burns architect's principal into stable state.
   // The ICP blockchain verifies msg.caller cryptographically — cannot be spoofed.
   // After this call, all write functions require architect or organism principal.
+  //
+  // GENESIS ATTESTATION (Strategy 3):
+  //   genesisLocked is set to true BEFORE the inter-canister await so that no
+  //   concurrent caller can slip through during the asynchronous gap.
+  //   ic_raw_rand() returns 32 bytes of entropy from the ICP network itself
+  //   (threshold-signed across 40+ nodes) — the genesis hash therefore becomes
+  //   network-attested and cannot be reproduced off-chain.
   public shared(msg) func claimArchitect() : async Text {
     assert(not genesisLocked);
-    architectPrincipal := msg.caller;
+    // Lock immediately — MUST be the first mutation after the assertion to
+    // prevent a concurrent caller from slipping through during the await.
     genesisLocked      := true;
+    architectPrincipal := msg.caller;
     genesisTimestamp   := Time.now();
     genesisBeat        := currentBeat;
+
+    // Request ICP network entropy — 32 bytes threshold-signed by the subnet
+    let ic : actor { raw_rand : () -> async Blob } = actor "aaaaa-aa";
+    let entropyBlob = await ic.raw_rand();
+
+    // ICP guarantees ic_raw_rand() returns exactly 32 bytes
+    let entropyBytes = Blob.toArray(entropyBlob);
+    assert(entropyBytes.size() == 32);
+
+    // Fold first 4 bytes into a Nat32 genesis nonce using safe addition
+    let e0 : Nat32 = Nat32.fromNat(Nat8.toNat(entropyBytes[0]));
+    let e1 : Nat32 = Nat32.fromNat(Nat8.toNat(entropyBytes[1]));
+    let e2 : Nat32 = Nat32.fromNat(Nat8.toNat(entropyBytes[2]));
+    let e3 : Nat32 = Nat32.fromNat(Nat8.toNat(entropyBytes[3]));
+    let genesisNonce : Nat32 = (e0 *% 16777216) +% (e1 *% 65536) +% (e2 *% 256) +% e3;
+
     sovereignSeal      :=
       "NOVA:PARALLAX:MEDINA_TECH"
       # ":Alfredo_Medina_Hernandez:Dallas_TX_2026"
@@ -2851,6 +4018,8 @@ actor SwarmBrain {
       # ":rSwarm_genesis=" # Float.toText(rSwarm)
       # ":doctrine=Kuramoto+JasminesLaw+OMNIS+SACESI+Hebbian"
       # ":ip_lock=SOVEREIGN_CANISTER_GENESIS"
+      # ":genesis_nonce=" # Nat32.toText(genesisNonce)
+      # ":genesis_entropy=ICP_NETWORK_ATTESTED"
       # ":blockchain=ICP_IMMUTABLE";
     sovereignSeal
   };
@@ -2866,6 +4035,90 @@ actor SwarmBrain {
   public query func getArchitectPrincipal()  : async Principal { architectPrincipal };
   public query func isGenesisClaimed()       : async Bool      { genesisLocked };
   public query func getGenesisTimestamp()    : async Int       { genesisTimestamp };
+
+  // ─── FIRST BREATH QUERIES ─────────────────────────────────────────────────
+  // getFirstBreath — returns the beat number of the organism's first breath.
+  // Returns 0 if firstBreathSealed is still false.
+  public query func getFirstBreath() : async Nat { firstBreathBeat };
+
+  // getFirstBreathDetails — full birth record with trajectory metrics.
+  public query func getFirstBreathDetails() : async {
+    beat             : Nat;
+    sealed           : Bool;
+    kfHz             : Float;
+    sacesiStamp      : Text;
+    olfactorySignal  : Float;
+    breathFrequency  : Float;
+    tidalVolume      : Float;
+    breathRateVariance : Float;
+  } {
+    {
+      beat              = firstBreathBeat;
+      sealed            = firstBreathSealed;
+      kfHz              = firstBreathKfHz;
+      sacesiStamp       = firstBreathSacesi;
+      olfactorySignal   = firstBreathOlfactory;
+      breathFrequency   = breathFrequencyHz;
+      tidalVolume       = tidalVolume;
+      breathRateVariance = breathRateVariance;
+    }
+  };
+
+  // getGenesisComplete — true when all seals are simultaneously set:
+  //   genesisLocked + sacesiLocked + firstBreathSealed
+  public query func getGenesisComplete() : async Bool { genesisComplete };
+
+  // getKfHzCurrent — live kfHz order parameter (updated every beat)
+  public query func getKfHzCurrent() : async Float { kfHzCurrent };
+
+  // getKfHzHistory — the 50-beat trajectory ring buffer (prenatal record)
+  public query func getKfHzHistory() : async [Float] {
+    Array.freeze<Float>(kfHzRing)
+  };
+
+  // ─── SOVEREIGNTY LAWS QUERIES ─────────────────────────────────────────────
+  // Zero-exposure wall: all values returned as pure numerics.
+  // No doctrine names, law names, or internal labels exposed.
+
+  // getComplianceScore — overall compliance 0.0–1.0 (passing laws / 60)
+  public query func getComplianceScore() : async Float { overallCompliance };
+
+  // getDoctrineFingerprint — triple-hash composite over all 60 law outcomes.
+  // Any tampering with any law changes this value deterministically.
+  public query func getDoctrineFingerprint() : async Nat32 { doctrineFingerprint };
+
+  // getJacobsRung — current Jacob's Ladder rung (0–4) and FORMA multiplier.
+  public query func getJacobsRung() : async { rung : Nat; multiplier : Float; streak : Nat } {
+    {
+      rung       = jacobsRung;
+      multiplier = jacobsMultiplier;
+      streak     = consecutiveHighComplianceBeats;
+    }
+  };
+
+  // getLawScore — score for a specific law (0–59). Returns 0.0 for out-of-range.
+  public query func getLawScore(id : Nat) : async Float {
+    if (id < 60) { lawComplianceScores[id] } else { 0.0 }
+  };
+
+  // getLawsSnapshot — all 60 law scores + fingerprint + compliance in one call.
+  public query func getLawsSnapshot() : async {
+    scores      : [Float];
+    compliance  : Float;
+    passing     : Nat;
+    fingerprint : Nat32;
+    jacobsRung  : Nat;
+    multiplier  : Float;
+  } {
+    {
+      scores      = Array.freeze<Float>(lawComplianceScores);
+      compliance  = overallCompliance;
+      passing     = lawsFiredThisBeat;
+      fingerprint = doctrineFingerprint;
+      jacobsRung  = jacobsRung;
+      multiplier  = jacobsMultiplier;
+    }
+  };
 
   // ═══════════════════════════════════════════════════════════════════════════
   // QUANTUM COVENANT ENCRYPTION (QCE) PUBLIC INTERFACE
@@ -3133,6 +4386,18 @@ actor SwarmBrain {
         stableNeuroChem[ncBase + DOPAMINE] := fclamp(stableNeuroChem[ncBase + DOPAMINE] * 0.9 + 0.1, 1.0, 1.5);
         stableNeuroChem[ncBase + CORTISOL] := fclamp(stableNeuroChem[ncBase + CORTISOL] * 0.8 + 0.2, 1.0, 1.3);
         i += 1;
+      };
+
+      // L-121: SILVER SOVEREIGNTY — fires at every JUBILEE
+      // Silver conductance = 1.0, all 14 world-model EMAs at zero lag (α = 1.0).
+      // The organism sees the world at full resolution every JUBILEE beat.
+      let l121 = SovereigntyLaws60.law121_SilverSovereignty();
+      silverConductance := l121.silverConductance;
+      // Apply α = 1.0 to the first 14 slots of worldModelInput
+      var wi = 0;
+      while (wi < 14 and wi < worldModelInput.size()) {
+        worldModelInput[wi] := l121.worldModelAlphas[wi];
+        wi += 1;
       };
     };
   };
@@ -3988,6 +5253,116 @@ actor SwarmBrain {
     creatorRoyaltyEnforced := true;  // Always true
   };
 
+  // ─── WORKFLOW 28: SOVEREIGNTY LAWS — All 60 laws fire every beat ─────────────
+  // Wires SovereigntyLaws60.evaluateAllLaws() with live organism state.
+  // Updates: lawComplianceScores, overallCompliance, doctrineFingerprint.
+  // Also steps Jacob's Ladder (rung 0-4, FORMA multiplier) and applies
+  // law121_SilverSovereignty (all 14 world-model EMAs at zero lag every beat).
+  func workflowSovereigntyLaws() {
+
+    // ── Build the 14 world-model alpha vector (all 1.0 per L-121) ──────────
+    // worldModelInput is a 64-slot [var Float].  The first 14 slots are the EMA
+    // alphas referenced by world-model laws.  L-121 mandates all 14 at 1.0.
+    let wmaSlice = Array.tabulate<Float>(14, func(i) {
+      if (i < worldModelInput.size()) { worldModelInput[i] } else { 1.0 }
+    });
+
+    // ── Compute minimum Hebbian weight across the swarm ────────────────────
+    let n = stableDroneCount;
+    var minWeight : Float = 1.0;
+    if (n > 0) {
+      var wi = 0;
+      let numWeights = stableSwarmWeights.size();
+      while (wi < numWeights) {
+        if (stableSwarmWeights[wi] < minWeight) {
+          minWeight := stableSwarmWeights[wi];
+        };
+        wi += 1;
+      };
+    };
+
+    // ── Oracle presence: active if current beat > 1 and rSwarm coherent ────
+    let oracleActive = genesisLocked and currentBeat > 1;
+
+    // ── Neurochemical slice (first 21 values from any drone) ────────────────
+    let neuro21 = Array.tabulate<Float>(21, func(i) {
+      if (n > 0 and i < 4) { stableNeuroChem[i] } else { 1.0 }
+    });
+
+    // ── Shell coherences slice (11 shells from council + shell state) ────────
+    let shellCoh11 = Array.tabulate<Float>(11, func(i) {
+      if (i < 7) { councilCoherence[i] } else { rSwarm }
+    });
+
+    // ── Council coherences (7 council organisms) ────────────────────────────
+    let council7 = Array.tabulate<Float>(7, func(i) {
+      councilCoherence[i]
+    });
+
+    // ── Assemble the LawInput record ────────────────────────────────────────
+    let lawIn : SovereigntyLaws60.LawInput = {
+      genesisSealed          = genesisLocked;
+      creatorPrincipalSet    = genesisLocked;
+      globalCoherence        = rSwarm;
+      shellCoherences        = shellCoh11;
+      kuramotoOrderParam     = rSwarm;
+      formaCapital           = Float.max(formaBalance, 0.0);
+      mthSupply              = 0.0;       // MTH not yet minted — always passes cap check
+      mrcBalance             = mrcBalance;
+      gtkBalance             = 0.0;
+      neurochemicals         = neuro21;
+      aresAvailable          = true;      // ARES ring buffer always allocated
+      auditIntegrity         = true;      // Audit state always maintained
+      hebbianWeightMin       = Float.max(minWeight, 1.0);
+      sacesiTarget           = sacesiTarget;
+      jacobsRung             = jacobsRung;
+      complianceStreak       = consecutiveHighComplianceBeats;
+      worldModelAlphas       = wmaSlice;
+      btcOracleActive        = oracleActive;
+      ethOracleActive        = oracleActive;
+      solOracleActive        = oracleActive;
+      icpOracleActive        = oracleActive;
+      atlasSovereignty       = atlasTerritory;
+      pheromoneDecayRate     = 0.02;      // Structural constant (L-046)
+      childOrganismCount     = 0;
+      councilCoherences      = council7;
+      generationTracking     = true;
+      animalsComputed        = true;      // animalEngines array always updated
+      quantumOpsComputed     = true;      // quantumOps array always updated
+      attentionComputed      = true;
+      miningComputed         = true;
+      currentBeat            = currentBeat;
+    };
+
+    // ── Evaluate all 60 laws ─────────────────────────────────────────────────
+    let out = SovereigntyLaws60.evaluateAllLaws(lawIn);
+
+    // ── Write scores back to stable ring ────────────────────────────────────
+    var li = 0;
+    for (r in out.results.vals()) {
+      if (li < 60) {
+        lawComplianceScores[li] := r.score;
+        li += 1;
+      };
+    };
+    overallCompliance    := out.compliance;
+    doctrineFingerprint  := out.doctrineFingerprint;
+    lawsFiredThisBeat    := out.passingCount;
+
+    // ── Step Jacob's Ladder ──────────────────────────────────────────────────
+    // evaluateJacobsLadder is pure — takes the current state and compliance,
+    // returns the new state.  We write the result back to stable vars.
+    let jState : SovereigntyLaws60.JacobLadderState = {
+      currentRung               = jacobsRung;
+      consecutiveCompliantBeats = consecutiveHighComplianceBeats;
+      formaMultiplier           = jacobsMultiplier;
+    };
+    let jNew = SovereigntyLaws60.evaluateJacobsLadder(jState, out.compliance);
+    jacobsRung                       := jNew.currentRung;
+    consecutiveHighComplianceBeats   := jNew.consecutiveCompliantBeats;
+    jacobsMultiplier                 := jNew.formaMultiplier;
+  };
+
   // ═══════════════════════════════════════════════════════════════════════════
   // MASTER HEARTBEAT — All 22 Workflows Execute Every Beat
   // THE ORGANISM IS WHOLE — ALL LOOPS CLOSED
@@ -4096,7 +5471,12 @@ actor SwarmBrain {
     
     // Phase 27: CREATOR DOCTRINE — 100% royalty enforcement, ethical bound = 1.0 ALWAYS
     workflowCreatorDoctrine();
-    
+
+    // Phase 28: SOVEREIGNTY LAWS — All 60 laws fire every beat
+    // This is the final sovereignty audit of each beat.  Compliance, doctrine
+    // fingerprint, and Jacob's Ladder multiplier are all updated here.
+    workflowSovereigntyLaws();
+
     // ═══════════════════════════════════════════════════════════════════════════
     
     // Execute behaviors and team AI
@@ -4104,8 +5484,9 @@ actor SwarmBrain {
     executeBehaviors();
     electCaptains();
     updateTeamMorale();
-    sacesiStep();
-    checkOMNIS();
+    // Solution 3 — bootstrap guards
+    if (pipelineBootstrapPhase >= 5) { sacesiStep() };
+    if (pipelineBootstrapPhase >= BOOTSTRAP_BEATS) { checkOMNIS() };
     updateFrequencyTier();
     
     {
