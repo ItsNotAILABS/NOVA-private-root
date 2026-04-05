@@ -2638,4 +2638,1003 @@ module DroneFleetManager {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 21: REAL FLIGHT DYNAMICS — PHYSICS-BASED DRONE MODEL
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Full 6-DOF rigid body dynamics for realistic drone simulation
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Drone physical parameters
+  public type DronePhysicalParams = {
+    // Mass properties
+    mass            : Float;        // kg
+    inertiaMatrix   : [[Float]];    // 3x3 inertia tensor
+    
+    // Aerodynamics
+    dragCoefficient : Float;        // Cd
+    liftCoefficient : Float;        // Cl
+    crossSectionArea : Float;       // m²
+    
+    // Motor configuration
+    numMotors       : Nat;
+    motorPositions  : [{ x: Float; y: Float; z: Float }];
+    motorDirections : [Float];      // +1 CW, -1 CCW
+    maxThrust       : Float;        // N per motor
+    motorTimeConstant : Float;      // s
+    
+    // Battery
+    batteryCapacity : Float;        // Wh
+    batteryVoltage  : Float;        // V
+    
+    // Geometry
+    armLength       : Float;        // m
+    propDiameter    : Float;        // m
+  };
+
+  /// Full rigid body state
+  public type RigidBodyState = {
+    // Position (NED frame, meters from home)
+    position        : { x: Float; y: Float; z: Float };
+    
+    // Velocity (NED frame, m/s)
+    velocity        : { x: Float; y: Float; z: Float };
+    
+    // Orientation (quaternion)
+    quaternion      : { w: Float; x: Float; y: Float; z: Float };
+    
+    // Angular velocity (body frame, rad/s)
+    angularVelocity : { p: Float; q: Float; r: Float };
+    
+    // Accelerations (for integration)
+    linearAccel     : { x: Float; y: Float; z: Float };
+    angularAccel    : { p: Float; q: Float; r: Float };
+    
+    // Motor states
+    motorSpeeds     : [Float];      // RPM
+    motorThrusts    : [Float];      // N
+  };
+
+  /// Default quadcopter parameters
+  public func defaultQuadcopterParams() : DronePhysicalParams {
+    let armLength = 0.25;  // 250mm arm
+    {
+      mass = 1.5;
+      inertiaMatrix = [
+        [0.03, 0.0, 0.0],
+        [0.0, 0.03, 0.0],
+        [0.0, 0.0, 0.05]
+      ];
+      dragCoefficient = 0.1;
+      liftCoefficient = 0.0;  // Multirotors don't have wings
+      crossSectionArea = 0.05;
+      numMotors = 4;
+      motorPositions = [
+        { x = armLength; y = armLength; z = 0.0 },   // Front-right
+        { x = -armLength; y = armLength; z = 0.0 },  // Front-left
+        { x = -armLength; y = -armLength; z = 0.0 }, // Rear-left
+        { x = armLength; y = -armLength; z = 0.0 }   // Rear-right
+      ];
+      motorDirections = [1.0, -1.0, 1.0, -1.0];  // X configuration
+      maxThrust = 8.0;  // N per motor (can lift ~3kg total)
+      motorTimeConstant = 0.02;
+      batteryCapacity = 100.0;  // Wh
+      batteryVoltage = 16.8;    // 4S LiPo
+      armLength = armLength;
+      propDiameter = 0.254;     // 10 inch props
+    }
+  };
+
+  /// Quaternion multiplication
+  public func quaternionMultiply(
+    q1: { w: Float; x: Float; y: Float; z: Float },
+    q2: { w: Float; x: Float; y: Float; z: Float }
+  ) : { w: Float; x: Float; y: Float; z: Float } {
+    {
+      w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
+      x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
+      y = q1.w * q2.y - q1.x * q2.z + q1.y * q2.w + q1.z * q2.x;
+      z = q1.w * q2.z + q1.x * q2.y - q1.y * q2.x + q1.z * q2.w;
+    }
+  };
+
+  /// Quaternion to rotation matrix
+  public func quaternionToRotationMatrix(
+    q: { w: Float; x: Float; y: Float; z: Float }
+  ) : [[Float]] {
+    let w = q.w; let x = q.x; let y = q.y; let z = q.z;
+    [
+      [1.0 - 2.0*(y*y + z*z), 2.0*(x*y - w*z), 2.0*(x*z + w*y)],
+      [2.0*(x*y + w*z), 1.0 - 2.0*(x*x + z*z), 2.0*(y*z - w*x)],
+      [2.0*(x*z - w*y), 2.0*(y*z + w*x), 1.0 - 2.0*(x*x + y*y)]
+    ]
+  };
+
+  /// Rotate vector by quaternion
+  public func rotateVector(
+    q: { w: Float; x: Float; y: Float; z: Float },
+    v: { x: Float; y: Float; z: Float }
+  ) : { x: Float; y: Float; z: Float } {
+    let R = quaternionToRotationMatrix(q);
+    {
+      x = R[0][0] * v.x + R[0][1] * v.y + R[0][2] * v.z;
+      y = R[1][0] * v.x + R[1][1] * v.y + R[1][2] * v.z;
+      z = R[2][0] * v.x + R[2][1] * v.y + R[2][2] * v.z;
+    }
+  };
+
+  /// Compute forces and moments from motor thrusts
+  public func computeForcesAndMoments(
+    motorThrusts: [Float],
+    params: DronePhysicalParams
+  ) : { force: { x: Float; y: Float; z: Float }; moment: { x: Float; y: Float; z: Float } } {
+    var totalForce : { x: Float; y: Float; z: Float } = { x = 0.0; y = 0.0; z = 0.0 };
+    var totalMoment : { x: Float; y: Float; z: Float } = { x = 0.0; y = 0.0; z = 0.0 };
+    
+    for (i in Iter.range(0, params.numMotors - 1)) {
+      if (i < motorThrusts.size() and i < params.motorPositions.size()) {
+        let thrust = motorThrusts[i];
+        let pos = params.motorPositions[i];
+        let dir = if (i < params.motorDirections.size()) { params.motorDirections[i] } else { 1.0 };
+        
+        // Force is in -Z direction (up in NED is negative Z)
+        totalForce := {
+          x = totalForce.x;
+          y = totalForce.y;
+          z = totalForce.z - thrust;
+        };
+        
+        // Moment from thrust offset (roll and pitch)
+        totalMoment := {
+          x = totalMoment.x + thrust * pos.y;           // Roll moment
+          y = totalMoment.y - thrust * pos.x;           // Pitch moment
+          z = totalMoment.z + dir * thrust * 0.01;      // Yaw moment (reaction torque)
+        };
+      };
+    };
+    
+    { force = totalForce; moment = totalMoment }
+  };
+
+  /// Integrate rigid body dynamics
+  public func integrateRigidBody(
+    state: RigidBodyState,
+    params: DronePhysicalParams,
+    motorCommands: [Float],
+    windVelocity: { x: Float; y: Float; z: Float },
+    dt: Float
+  ) : RigidBodyState {
+    // 1. Update motor speeds (first-order dynamics)
+    let newMotorSpeeds = Array.tabulate<Float>(params.numMotors, func(i) {
+      let command = if (i < motorCommands.size()) { motorCommands[i] } else { 0.0 };
+      let current = if (i < state.motorSpeeds.size()) { state.motorSpeeds[i] } else { 0.0 };
+      current + (command - current) * dt / params.motorTimeConstant
+    });
+    
+    // 2. Convert motor speeds to thrusts (simplified: thrust ∝ speed²)
+    let newMotorThrusts = Array.map<Float, Float>(newMotorSpeeds, func(speed) {
+      params.maxThrust * speed * speed
+    });
+    
+    // 3. Compute forces and moments in body frame
+    let fm = computeForcesAndMoments(newMotorThrusts, params);
+    
+    // 4. Add gravity (NED frame: positive Z is down)
+    let gravity : { x: Float; y: Float; z: Float } = { x = 0.0; y = 0.0; z = 9.81 * params.mass };
+    
+    // 5. Rotate thrust force to NED frame
+    let thrustNED = rotateVector(state.quaternion, fm.force);
+    
+    // 6. Compute drag in NED frame
+    let airspeed : { x: Float; y: Float; z: Float } = {
+      x = state.velocity.x - windVelocity.x;
+      y = state.velocity.y - windVelocity.y;
+      z = state.velocity.z - windVelocity.z;
+    };
+    let speed = Float.sqrt(airspeed.x**2.0 + airspeed.y**2.0 + airspeed.z**2.0);
+    let drag = if (speed > 0.1) {
+      let dragMag = 0.5 * 1.225 * speed * speed * params.dragCoefficient * params.crossSectionArea;
+      {
+        x = -dragMag * airspeed.x / speed;
+        y = -dragMag * airspeed.y / speed;
+        z = -dragMag * airspeed.z / speed;
+      }
+    } else { { x = 0.0; y = 0.0; z = 0.0 } };
+    
+    // 7. Total force
+    let totalForce : { x: Float; y: Float; z: Float } = {
+      x = thrustNED.x + gravity.x + drag.x;
+      y = thrustNED.y + gravity.y + drag.y;
+      z = thrustNED.z + gravity.z + drag.z;
+    };
+    
+    // 8. Linear acceleration
+    let linearAccel : { x: Float; y: Float; z: Float } = {
+      x = totalForce.x / params.mass;
+      y = totalForce.y / params.mass;
+      z = totalForce.z / params.mass;
+    };
+    
+    // 9. Angular acceleration (simplified: I * α = M)
+    let angularAccel : { p: Float; q: Float; r: Float } = {
+      p = fm.moment.x / params.inertiaMatrix[0][0];
+      q = fm.moment.y / params.inertiaMatrix[1][1];
+      r = fm.moment.z / params.inertiaMatrix[2][2];
+    };
+    
+    // 10. Integrate velocity
+    let newVelocity : { x: Float; y: Float; z: Float } = {
+      x = state.velocity.x + linearAccel.x * dt;
+      y = state.velocity.y + linearAccel.y * dt;
+      z = state.velocity.z + linearAccel.z * dt;
+    };
+    
+    // 11. Integrate position
+    let newPosition : { x: Float; y: Float; z: Float } = {
+      x = state.position.x + newVelocity.x * dt;
+      y = state.position.y + newVelocity.y * dt;
+      z = state.position.z + newVelocity.z * dt;
+    };
+    
+    // 12. Integrate angular velocity
+    let newAngVel : { p: Float; q: Float; r: Float } = {
+      p = state.angularVelocity.p + angularAccel.p * dt;
+      q = state.angularVelocity.q + angularAccel.q * dt;
+      r = state.angularVelocity.r + angularAccel.r * dt;
+    };
+    
+    // 13. Integrate quaternion
+    let omegaQuat : { w: Float; x: Float; y: Float; z: Float } = {
+      w = 0.0;
+      x = newAngVel.p;
+      y = newAngVel.q;
+      z = newAngVel.r;
+    };
+    let qdot = quaternionMultiply(state.quaternion, omegaQuat);
+    var newQuat : { w: Float; x: Float; y: Float; z: Float } = {
+      w = state.quaternion.w + 0.5 * qdot.w * dt;
+      x = state.quaternion.x + 0.5 * qdot.x * dt;
+      y = state.quaternion.y + 0.5 * qdot.y * dt;
+      z = state.quaternion.z + 0.5 * qdot.z * dt;
+    };
+    
+    // 14. Normalize quaternion
+    let qnorm = Float.sqrt(newQuat.w**2.0 + newQuat.x**2.0 + newQuat.y**2.0 + newQuat.z**2.0);
+    if (qnorm > 0.001) {
+      newQuat := {
+        w = newQuat.w / qnorm;
+        x = newQuat.x / qnorm;
+        y = newQuat.y / qnorm;
+        z = newQuat.z / qnorm;
+      };
+    };
+    
+    {
+      position = newPosition;
+      velocity = newVelocity;
+      quaternion = newQuat;
+      angularVelocity = newAngVel;
+      linearAccel = linearAccel;
+      angularAccel = angularAccel;
+      motorSpeeds = newMotorSpeeds;
+      motorThrusts = newMotorThrusts;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 22: FLIGHT CONTROLLER — PID ATTITUDE CONTROL
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Cascaded PID control like real autopilots (ArduPilot, PX4)
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// PID controller state
+  public type PIDState = {
+    // Gains
+    kp              : Float;
+    ki              : Float;
+    kd              : Float;
+    
+    // State
+    integral        : Float;
+    prevError       : Float;
+    
+    // Limits
+    integralLimit   : Float;
+    outputLimit     : Float;
+    
+    // Filter
+    derivativeFilter : Float;
+  };
+
+  /// Attitude controller state
+  public type AttitudeControllerState = {
+    // Outer loop (angle) PIDs
+    rollAnglePID    : PIDState;
+    pitchAnglePID   : PIDState;
+    yawAnglePID     : PIDState;
+    
+    // Inner loop (rate) PIDs
+    rollRatePID     : PIDState;
+    pitchRatePID    : PIDState;
+    yawRatePID      : PIDState;
+    
+    // Altitude controller
+    altitudePID     : PIDState;
+    climbRatePID    : PIDState;
+    
+    // Position controller
+    posXPID         : PIDState;
+    posYPID         : PIDState;
+    velXPID         : PIDState;
+    velYPID         : PIDState;
+  };
+
+  /// Initialize PID
+  public func initPID(kp: Float, ki: Float, kd: Float, iLimit: Float, outLimit: Float) : PIDState {
+    {
+      kp = kp;
+      ki = ki;
+      kd = kd;
+      integral = 0.0;
+      prevError = 0.0;
+      integralLimit = iLimit;
+      outputLimit = outLimit;
+      derivativeFilter = 0.0;
+    }
+  };
+
+  /// Update PID controller
+  public func updatePID(pid: PIDState, error: Float, dt: Float) : (PIDState, Float) {
+    // Integral with anti-windup
+    var newIntegral = pid.integral + error * dt;
+    if (newIntegral > pid.integralLimit) { newIntegral := pid.integralLimit };
+    if (newIntegral < -pid.integralLimit) { newIntegral := -pid.integralLimit };
+    
+    // Derivative with filter
+    let derivative = (error - pid.prevError) / dt;
+    let filteredDerivative = pid.derivativeFilter * 0.8 + derivative * 0.2;
+    
+    // Output
+    var output = pid.kp * error + pid.ki * newIntegral + pid.kd * filteredDerivative;
+    if (output > pid.outputLimit) { output := pid.outputLimit };
+    if (output < -pid.outputLimit) { output := -pid.outputLimit };
+    
+    let newPID : PIDState = {
+      kp = pid.kp;
+      ki = pid.ki;
+      kd = pid.kd;
+      integral = newIntegral;
+      prevError = error;
+      integralLimit = pid.integralLimit;
+      outputLimit = pid.outputLimit;
+      derivativeFilter = filteredDerivative;
+    };
+    
+    (newPID, output)
+  };
+
+  /// Initialize attitude controller
+  public func initAttitudeController() : AttitudeControllerState {
+    {
+      // Angle PIDs (outer loop)
+      rollAnglePID = initPID(4.5, 0.0, 0.0, 0.5, 250.0);
+      pitchAnglePID = initPID(4.5, 0.0, 0.0, 0.5, 250.0);
+      yawAnglePID = initPID(4.5, 0.0, 0.0, 0.5, 250.0);
+      
+      // Rate PIDs (inner loop)
+      rollRatePID = initPID(0.15, 0.1, 0.003, 0.5, 1.0);
+      pitchRatePID = initPID(0.15, 0.1, 0.003, 0.5, 1.0);
+      yawRatePID = initPID(0.2, 0.02, 0.0, 0.5, 1.0);
+      
+      // Altitude
+      altitudePID = initPID(1.0, 0.0, 0.0, 5.0, 5.0);
+      climbRatePID = initPID(0.5, 0.1, 0.0, 0.5, 0.5);
+      
+      // Position
+      posXPID = initPID(1.0, 0.0, 0.0, 5.0, 5.0);
+      posYPID = initPID(1.0, 0.0, 0.0, 5.0, 5.0);
+      velXPID = initPID(0.5, 0.1, 0.0, 0.5, 0.3);
+      velYPID = initPID(0.5, 0.1, 0.0, 0.5, 0.3);
+    }
+  };
+
+  /// Run attitude controller
+  public func runAttitudeControl(
+    controller: AttitudeControllerState,
+    currentAttitude: { roll: Float; pitch: Float; yaw: Float },
+    currentRates: { p: Float; q: Float; r: Float },
+    targetAttitude: { roll: Float; pitch: Float; yaw: Float },
+    dt: Float
+  ) : (AttitudeControllerState, { roll: Float; pitch: Float; yaw: Float; thrust: Float }) {
+    // Outer loop: attitude to rate
+    let (newRollAnglePID, rollRateTarget) = updatePID(
+      controller.rollAnglePID,
+      targetAttitude.roll - currentAttitude.roll,
+      dt
+    );
+    let (newPitchAnglePID, pitchRateTarget) = updatePID(
+      controller.pitchAnglePID,
+      targetAttitude.pitch - currentAttitude.pitch,
+      dt
+    );
+    let (newYawAnglePID, yawRateTarget) = updatePID(
+      controller.yawAnglePID,
+      targetAttitude.yaw - currentAttitude.yaw,
+      dt
+    );
+    
+    // Inner loop: rate to actuator
+    let (newRollRatePID, rollOut) = updatePID(
+      controller.rollRatePID,
+      rollRateTarget * PI / 180.0 - currentRates.p,
+      dt
+    );
+    let (newPitchRatePID, pitchOut) = updatePID(
+      controller.pitchRatePID,
+      pitchRateTarget * PI / 180.0 - currentRates.q,
+      dt
+    );
+    let (newYawRatePID, yawOut) = updatePID(
+      controller.yawRatePID,
+      yawRateTarget * PI / 180.0 - currentRates.r,
+      dt
+    );
+    
+    let newController : AttitudeControllerState = {
+      rollAnglePID = newRollAnglePID;
+      pitchAnglePID = newPitchAnglePID;
+      yawAnglePID = newYawAnglePID;
+      rollRatePID = newRollRatePID;
+      pitchRatePID = newPitchRatePID;
+      yawRatePID = newYawRatePID;
+      altitudePID = controller.altitudePID;
+      climbRatePID = controller.climbRatePID;
+      posXPID = controller.posXPID;
+      posYPID = controller.posYPID;
+      velXPID = controller.velXPID;
+      velYPID = controller.velYPID;
+    };
+    
+    (newController, { roll = rollOut; pitch = pitchOut; yaw = yawOut; thrust = 0.5 })
+  };
+
+  /// Mix attitude outputs to motor commands
+  public func mixAttitudeToMotors(
+    attitude: { roll: Float; pitch: Float; yaw: Float; thrust: Float },
+    numMotors: Nat
+  ) : [Float] {
+    // Standard X configuration mixer
+    if (numMotors == 4) {
+      [
+        attitude.thrust - attitude.roll + attitude.pitch + attitude.yaw,  // Front-right
+        attitude.thrust + attitude.roll + attitude.pitch - attitude.yaw,  // Front-left
+        attitude.thrust + attitude.roll - attitude.pitch + attitude.yaw,  // Rear-left
+        attitude.thrust - attitude.roll - attitude.pitch - attitude.yaw   // Rear-right
+      ]
+    } else if (numMotors == 6) {
+      // Hexacopter
+      [
+        attitude.thrust - attitude.roll * 0.5 + attitude.pitch + attitude.yaw,
+        attitude.thrust + attitude.roll - attitude.yaw,
+        attitude.thrust + attitude.roll * 0.5 + attitude.pitch + attitude.yaw,
+        attitude.thrust + attitude.roll * 0.5 - attitude.pitch - attitude.yaw,
+        attitude.thrust - attitude.roll + attitude.yaw,
+        attitude.thrust - attitude.roll * 0.5 - attitude.pitch - attitude.yaw
+      ]
+    } else {
+      Array.tabulate<Float>(numMotors, func(_) { attitude.thrust })
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 23: SENSOR SIMULATION
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Realistic sensor models with noise and biases
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Simulated IMU state
+  public type SimulatedIMU = {
+    // Accelerometer (m/s²)
+    accel           : { x: Float; y: Float; z: Float };
+    accelBias       : { x: Float; y: Float; z: Float };
+    accelNoise      : Float;
+    
+    // Gyroscope (rad/s)
+    gyro            : { p: Float; q: Float; r: Float };
+    gyroBias        : { p: Float; q: Float; r: Float };
+    gyroNoise       : Float;
+    
+    // Magnetometer (Gauss)
+    mag             : { x: Float; y: Float; z: Float };
+    magBias         : { x: Float; y: Float; z: Float };
+    magNoise        : Float;
+    
+    lastUpdate      : Nat;
+    updateRate      : Float;        // Hz
+  };
+
+  /// Simulated GPS state
+  public type SimulatedGPS = {
+    // Position (lat/lon in degrees, alt in meters)
+    position        : { lat: Float; lon: Float; alt: Float };
+    positionNoise   : Float;        // meters
+    
+    // Velocity (NED, m/s)
+    velocity        : { vn: Float; ve: Float; vd: Float };
+    velocityNoise   : Float;
+    
+    // Quality
+    fixType         : Nat;          // 0=none, 1=2D, 2=3D, 3=DGPS
+    satellites      : Nat;
+    hdop            : Float;
+    
+    lastUpdate      : Nat;
+    updateRate      : Float;
+  };
+
+  /// Simulated barometer
+  public type SimulatedBarometer = {
+    pressure        : Float;        // Pa
+    temperature     : Float;        // °C
+    altitude        : Float;        // m (derived)
+    pressureNoise   : Float;
+    lastUpdate      : Nat;
+    updateRate      : Float;
+  };
+
+  /// Generate IMU reading from true state
+  public func simulateIMU(
+    trueAccel: { x: Float; y: Float; z: Float },
+    trueGyro: { p: Float; q: Float; r: Float },
+    imu: SimulatedIMU,
+    seed: Nat
+  ) : SimulatedIMU {
+    // Simple noise model
+    let noise = func(base: Float, noiseLvl: Float, s: Nat) : Float {
+      let hash = (s * 1103515245 + 12345) % 1000;
+      let rand = (Float.fromInt(hash) / 500.0) - 1.0;  // -1 to 1
+      base + rand * noiseLvl
+    };
+    
+    {
+      accel = {
+        x = noise(trueAccel.x + imu.accelBias.x, imu.accelNoise, seed);
+        y = noise(trueAccel.y + imu.accelBias.y, imu.accelNoise, seed + 1);
+        z = noise(trueAccel.z + imu.accelBias.z, imu.accelNoise, seed + 2);
+      };
+      accelBias = imu.accelBias;
+      accelNoise = imu.accelNoise;
+      gyro = {
+        p = noise(trueGyro.p + imu.gyroBias.p, imu.gyroNoise, seed + 3);
+        q = noise(trueGyro.q + imu.gyroBias.q, imu.gyroNoise, seed + 4);
+        r = noise(trueGyro.r + imu.gyroBias.r, imu.gyroNoise, seed + 5);
+      };
+      gyroBias = imu.gyroBias;
+      gyroNoise = imu.gyroNoise;
+      mag = imu.mag;  // Would need true heading
+      magBias = imu.magBias;
+      magNoise = imu.magNoise;
+      lastUpdate = imu.lastUpdate + 1;
+      updateRate = imu.updateRate;
+    }
+  };
+
+  /// Generate GPS reading from true state
+  public func simulateGPS(
+    truePosition: { lat: Float; lon: Float; alt: Float },
+    trueVelocity: { vn: Float; ve: Float; vd: Float },
+    gps: SimulatedGPS,
+    seed: Nat
+  ) : SimulatedGPS {
+    let noise = func(base: Float, noiseLvl: Float, s: Nat) : Float {
+      let hash = (s * 1103515245 + 12345) % 1000;
+      let rand = (Float.fromInt(hash) / 500.0) - 1.0;
+      base + rand * noiseLvl
+    };
+    
+    // Convert noise from meters to degrees
+    let metersToDegrees = 1.0 / 111000.0;
+    
+    {
+      position = {
+        lat = noise(truePosition.lat, gps.positionNoise * metersToDegrees, seed);
+        lon = noise(truePosition.lon, gps.positionNoise * metersToDegrees / Float.cos(truePosition.lat * PI / 180.0), seed + 1);
+        alt = noise(truePosition.alt, gps.positionNoise * 2.0, seed + 2);  // Altitude is worse
+      };
+      positionNoise = gps.positionNoise;
+      velocity = {
+        vn = noise(trueVelocity.vn, gps.velocityNoise, seed + 3);
+        ve = noise(trueVelocity.ve, gps.velocityNoise, seed + 4);
+        vd = noise(trueVelocity.vd, gps.velocityNoise * 2.0, seed + 5);
+      };
+      velocityNoise = gps.velocityNoise;
+      fixType = gps.fixType;
+      satellites = gps.satellites;
+      hdop = gps.hdop;
+      lastUpdate = gps.lastUpdate + 1;
+      updateRate = gps.updateRate;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 24: COMPLETE SIMULATION DRONE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Full drone simulation with physics, controller, and sensors
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Complete simulated drone
+  public type SimulatedDrone = {
+    // Identity
+    droneId         : Nat;
+    
+    // Physical parameters
+    params          : DronePhysicalParams;
+    
+    // True state (simulation ground truth)
+    trueState       : RigidBodyState;
+    
+    // Controller
+    controller      : AttitudeControllerState;
+    
+    // Sensors
+    imu             : SimulatedIMU;
+    gps             : SimulatedGPS;
+    barometer       : SimulatedBarometer;
+    
+    // Estimated state (from sensors/EKF)
+    estimatedState  : {
+      position: { lat: Float; lon: Float; alt: Float };
+      velocity: { vx: Float; vy: Float; vz: Float };
+      attitude: { roll: Float; pitch: Float; yaw: Float };
+    };
+    
+    // Commands
+    targetPosition  : ?{ lat: Float; lon: Float; alt: Float };
+    targetAttitude  : ?{ roll: Float; pitch: Float; yaw: Float };
+    flightMode      : FlightMode;
+    
+    // Status
+    armed           : Bool;
+    inAir           : Bool;
+    batteryRemaining : Float;
+    
+    // Timing
+    simTime         : Float;
+    beatNum         : Nat;
+  };
+
+  /// Flight modes
+  public type FlightMode = {
+    #Manual;
+    #Stabilize;
+    #AltHold;
+    #Loiter;
+    #Auto;
+    #RTL;
+    #Land;
+  };
+
+  /// Initialize simulated drone
+  public func initSimulatedDrone(
+    droneId: Nat,
+    startLat: Float,
+    startLon: Float,
+    startAlt: Float
+  ) : SimulatedDrone {
+    let params = defaultQuadcopterParams();
+    
+    {
+      droneId = droneId;
+      params = params;
+      trueState = {
+        position = { x = 0.0; y = 0.0; z = -startAlt };  // NED
+        velocity = { x = 0.0; y = 0.0; z = 0.0 };
+        quaternion = { w = 1.0; x = 0.0; y = 0.0; z = 0.0 };
+        angularVelocity = { p = 0.0; q = 0.0; r = 0.0 };
+        linearAccel = { x = 0.0; y = 0.0; z = 0.0 };
+        angularAccel = { p = 0.0; q = 0.0; r = 0.0 };
+        motorSpeeds = [0.0, 0.0, 0.0, 0.0];
+        motorThrusts = [0.0, 0.0, 0.0, 0.0];
+      };
+      controller = initAttitudeController();
+      imu = {
+        accel = { x = 0.0; y = 0.0; z = -9.81 };
+        accelBias = { x = 0.01; y = -0.02; z = 0.03 };
+        accelNoise = 0.05;
+        gyro = { p = 0.0; q = 0.0; r = 0.0 };
+        gyroBias = { p = 0.001; q = -0.001; r = 0.002 };
+        gyroNoise = 0.01;
+        mag = { x = 0.3; y = 0.0; z = 0.5 };
+        magBias = { x = 0.01; y = 0.02; z = -0.01 };
+        magNoise = 0.02;
+        lastUpdate = 0;
+        updateRate = 400.0;
+      };
+      gps = {
+        position = { lat = startLat; lon = startLon; alt = startAlt };
+        positionNoise = 2.0;
+        velocity = { vn = 0.0; ve = 0.0; vd = 0.0 };
+        velocityNoise = 0.1;
+        fixType = 3;
+        satellites = 12;
+        hdop = 0.8;
+        lastUpdate = 0;
+        updateRate = 10.0;
+      };
+      barometer = {
+        pressure = 101325.0;
+        temperature = 25.0;
+        altitude = startAlt;
+        pressureNoise = 10.0;
+        lastUpdate = 0;
+        updateRate = 50.0;
+      };
+      estimatedState = {
+        position = { lat = startLat; lon = startLon; alt = startAlt };
+        velocity = { vx = 0.0; vy = 0.0; vz = 0.0 };
+        attitude = { roll = 0.0; pitch = 0.0; yaw = 0.0 };
+      };
+      targetPosition = null;
+      targetAttitude = ?{ roll = 0.0; pitch = 0.0; yaw = 0.0 };
+      flightMode = #Stabilize;
+      armed = false;
+      inAir = false;
+      batteryRemaining = 100.0;
+      simTime = 0.0;
+      beatNum = 0;
+    }
+  };
+
+  /// Step simulated drone
+  public func stepSimulatedDrone(
+    drone: SimulatedDrone,
+    dt: Float
+  ) : SimulatedDrone {
+    if (not drone.armed) {
+      return {
+        droneId = drone.droneId;
+        params = drone.params;
+        trueState = drone.trueState;
+        controller = drone.controller;
+        imu = drone.imu;
+        gps = drone.gps;
+        barometer = drone.barometer;
+        estimatedState = drone.estimatedState;
+        targetPosition = drone.targetPosition;
+        targetAttitude = drone.targetAttitude;
+        flightMode = drone.flightMode;
+        armed = drone.armed;
+        inAir = drone.inAir;
+        batteryRemaining = drone.batteryRemaining;
+        simTime = drone.simTime + dt;
+        beatNum = drone.beatNum + 1;
+      };
+    };
+    
+    // Get current attitude from quaternion
+    let R = quaternionToRotationMatrix(drone.trueState.quaternion);
+    let currentAttitude : { roll: Float; pitch: Float; yaw: Float } = {
+      roll = Float.arctan2(R[2][1], R[2][2]) * 180.0 / PI;
+      pitch = -Float.arcsin(R[2][0]) * 180.0 / PI;
+      yaw = Float.arctan2(R[1][0], R[0][0]) * 180.0 / PI;
+    };
+    
+    // Run controller
+    let targetAtt = switch (drone.targetAttitude) {
+      case (?att) { att };
+      case null { { roll = 0.0; pitch = 0.0; yaw = currentAttitude.yaw } };
+    };
+    
+    let (newController, attOutput) = runAttitudeControl(
+      drone.controller,
+      currentAttitude,
+      drone.trueState.angularVelocity,
+      targetAtt,
+      dt
+    );
+    
+    // Add thrust from altitude hold (simplified)
+    let thrustOutput = if (drone.inAir) {
+      0.5 + 0.1 * (drone.estimatedState.position.alt + drone.trueState.position.z)
+    } else { 0.0 };
+    
+    let attWithThrust = {
+      roll = attOutput.roll;
+      pitch = attOutput.pitch;
+      yaw = attOutput.yaw;
+      thrust = thrustOutput;
+    };
+    
+    // Mix to motors
+    let motorCommands = mixAttitudeToMotors(attWithThrust, drone.params.numMotors);
+    
+    // Integrate physics
+    let newTrueState = integrateRigidBody(
+      drone.trueState,
+      drone.params,
+      motorCommands,
+      { x = 0.0; y = 0.0; z = 0.0 },  // No wind
+      dt
+    );
+    
+    // Update sensors
+    let newIMU = simulateIMU(
+      newTrueState.linearAccel,
+      newTrueState.angularVelocity,
+      drone.imu,
+      drone.beatNum
+    );
+    
+    // GPS position from NED offset
+    let newGPS = simulateGPS(
+      {
+        lat = drone.gps.position.lat + newTrueState.position.y / 111000.0;
+        lon = drone.gps.position.lon + newTrueState.position.x / (111000.0 * Float.cos(drone.gps.position.lat * PI / 180.0));
+        alt = -newTrueState.position.z;
+      },
+      { vn = newTrueState.velocity.y; ve = newTrueState.velocity.x; vd = newTrueState.velocity.z },
+      drone.gps,
+      drone.beatNum + 100
+    );
+    
+    // Update estimated state (simplified, real would use EKF)
+    let newEstimated = {
+      position = newGPS.position;
+      velocity = { vx = newGPS.velocity.ve; vy = newGPS.velocity.vn; vz = newGPS.velocity.vd };
+      attitude = currentAttitude;
+    };
+    
+    // Battery drain
+    var totalPower : Float = 0.0;
+    for (thrust in newTrueState.motorThrusts.vals()) {
+      totalPower += thrust * 10.0;  // Simplified W
+    };
+    let newBattery = drone.batteryRemaining - totalPower * dt / (drone.params.batteryCapacity * 36.0);
+    
+    // Check if in air
+    let newInAir = -newTrueState.position.z > 0.1;
+    
+    {
+      droneId = drone.droneId;
+      params = drone.params;
+      trueState = newTrueState;
+      controller = newController;
+      imu = newIMU;
+      gps = newGPS;
+      barometer = drone.barometer;
+      estimatedState = newEstimated;
+      targetPosition = drone.targetPosition;
+      targetAttitude = drone.targetAttitude;
+      flightMode = drone.flightMode;
+      armed = drone.armed;
+      inAir = newInAir;
+      batteryRemaining = Float.max(newBattery, 0.0);
+      simTime = drone.simTime + dt;
+      beatNum = drone.beatNum + 1;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 25: MASTER FLEET SIMULATION
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Complete swarm simulation with physics, autonomy, and coordination
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Complete fleet simulation state
+  public type FleetSimulationState = {
+    // Drones
+    drones          : [SimulatedDrone];
+    
+    // Environment
+    wind            : { x: Float; y: Float; z: Float };
+    temperature     : Float;
+    
+    // Fleet coordination
+    fleetState      : FleetState;
+    
+    // Simulation parameters
+    simDt           : Float;        // Physics timestep
+    simTime         : Float;        // Total simulated time
+    realTimeRatio   : Float;        // Sim speed vs real time
+    
+    beatNum         : Nat;
+  };
+
+  /// Initialize fleet simulation
+  public func initFleetSimulation(
+    numDrones: Nat,
+    baseLat: Float,
+    baseLon: Float,
+    baseAlt: Float
+  ) : FleetSimulationState {
+    // Initialize drones in formation
+    let drones = Array.tabulate<SimulatedDrone>(numDrones, func(i) {
+      let angle = Float.fromInt(i) * TWO_PI / Float.fromInt(numDrones);
+      let radius = 5.0 / 111000.0;  // 5m radius
+      initSimulatedDrone(
+        i,
+        baseLat + radius * Float.cos(angle),
+        baseLon + radius * Float.sin(angle) / Float.cos(baseLat * PI / 180.0),
+        baseAlt
+      )
+    });
+    
+    {
+      drones = drones;
+      wind = { x = 0.0; y = 0.0; z = 0.0 };
+      temperature = 20.0;
+      fleetState = initFleetState(numDrones, baseLat, baseLon, baseAlt);
+      simDt = 0.01;
+      simTime = 0.0;
+      realTimeRatio = 1.0;
+      beatNum = 0;
+    }
+  };
+
+  /// Step entire fleet simulation
+  public func stepFleetSimulation(
+    state: FleetSimulationState
+  ) : FleetSimulationState {
+    // Step each drone
+    let newDrones = Array.map<SimulatedDrone, SimulatedDrone>(state.drones, func(drone) {
+      stepSimulatedDrone(drone, state.simDt)
+    });
+    
+    // Update fleet state
+    let newFleetState = tickFleet(state.fleetState, state.simDt);
+    
+    {
+      drones = newDrones;
+      wind = state.wind;
+      temperature = state.temperature;
+      fleetState = newFleetState;
+      simDt = state.simDt;
+      simTime = state.simTime + state.simDt;
+      realTimeRatio = state.realTimeRatio;
+      beatNum = state.beatNum + 1;
+    }
+  };
+
+  /// Generate fleet simulation output
+  public type FleetSimulationOutput = {
+    droneStates     : [{
+      id: Nat;
+      position: { lat: Float; lon: Float; alt: Float };
+      velocity: { vx: Float; vy: Float; vz: Float };
+      attitude: { roll: Float; pitch: Float; yaw: Float };
+      battery: Float;
+      armed: Bool;
+      inAir: Bool;
+    }];
+    fleetCoherence  : Float;
+    simTime         : Float;
+    beatNum         : Nat;
+  };
+
+  public func generateFleetSimOutput(state: FleetSimulationState) : FleetSimulationOutput {
+    {
+      droneStates = Array.map<SimulatedDrone, {
+        id: Nat;
+        position: { lat: Float; lon: Float; alt: Float };
+        velocity: { vx: Float; vy: Float; vz: Float };
+        attitude: { roll: Float; pitch: Float; yaw: Float };
+        battery: Float;
+        armed: Bool;
+        inAir: Bool;
+      }>(state.drones, func(d) {
+        {
+          id = d.droneId;
+          position = d.estimatedState.position;
+          velocity = d.estimatedState.velocity;
+          attitude = d.estimatedState.attitude;
+          battery = d.batteryRemaining;
+          armed = d.armed;
+          inAir = d.inAir;
+        }
+      });
+      fleetCoherence = state.fleetState.kuramotoR;
+      simTime = state.simTime;
+      beatNum = state.beatNum;
+    }
+  };
+
 }
