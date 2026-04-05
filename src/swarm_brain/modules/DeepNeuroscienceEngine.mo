@@ -1349,5 +1349,942 @@ module DeepNeuroscienceEngine {
       isReactive = false;
     }
   };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // MASSIVE NEURAL CORE EXPANSION — Master Control System
+  // This section implements the NEURAL CORE that controls EVERYTHING
+  // The neural core processes INFORMATION as FOOD — data is digested, converted to growth
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  // SECTION A: CORTICAL COLUMN SIMULATION — The Processing Unit
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  
+  public type CorticalLayerType = {
+    #Layer1_Molecular;      // Input layer, dendrites
+    #Layer2_External;       // External granular
+    #Layer3_ExternalPyramidal;  // Association connections
+    #Layer4_InternalGranular;   // Primary input from thalamus
+    #Layer5_InternalPyramidal;  // Primary output to subcortex
+    #Layer6_Multiform;      // Feedback to thalamus
+  };
+
+  public type CorticalColumn = {
+    columnId: Nat;
+    
+    // 6 layers with populations
+    layer1Activity: [Float];   // 32 neurons
+    layer2Activity: [Float];   // 64 neurons
+    layer3Activity: [Float];   // 128 neurons
+    layer4Activity: [Float];   // 64 neurons
+    layer5Activity: [Float];   // 64 neurons
+    layer6Activity: [Float];   // 32 neurons
+    
+    // Layer-to-layer weights
+    l1ToL2Weights: [Float];    // 32×64 = 2048
+    l2ToL3Weights: [Float];    // 64×128 = 8192
+    l3ToL4Weights: [Float];    // 128×64 = 8192
+    l3ToL5Weights: [Float];    // 128×64 = 8192
+    l4ToL3Weights: [Float];    // 64×128 = 8192 (feedback)
+    l5ToL6Weights: [Float];    // 64×32 = 2048
+    l6ToL4Weights: [Float];    // 32×64 = 2048 (thalamocortical loop)
+    
+    // Column-level metrics
+    columnCoherence: Float;
+    columnActivity: Float;
+    columnPhase: Float;
+    columnFrequency: Float;
+    
+    // Neuromodulation received
+    dopamineLevel: Float;
+    serotoninLevel: Float;
+    acetylcholineLevel: Float;
+    norepinephrineLevel: Float;
+    
+    // Plasticity state
+    plasticityEnabled: Bool;
+    lastUpdateBeat: Nat;
+  };
+
+  public func initCorticalColumn(id: Nat) : CorticalColumn {
+    let phi = 1.6180339887498948482;
+    {
+      columnId = id;
+      
+      layer1Activity = Array.tabulate<Float>(32, func(i) { Float.sin(Float.fromInt(i) * 0.1) * 0.5 + 0.5 });
+      layer2Activity = Array.tabulate<Float>(64, func(i) { Float.cos(Float.fromInt(i) * 0.1) * 0.5 + 0.5 });
+      layer3Activity = Array.tabulate<Float>(128, func(i) { 0.5 + Float.sin(Float.fromInt(i) * phi * 0.05) * 0.3 });
+      layer4Activity = Array.tabulate<Float>(64, func(i) { 0.6 });
+      layer5Activity = Array.tabulate<Float>(64, func(i) { 0.4 });
+      layer6Activity = Array.tabulate<Float>(32, func(i) { 0.5 });
+      
+      l1ToL2Weights = Array.tabulate<Float>(2048, func(i) { (Float.sin(Float.fromInt(i) * 0.01) + 1.0) / 4.0 });
+      l2ToL3Weights = Array.tabulate<Float>(8192, func(i) { (Float.cos(Float.fromInt(i) * 0.005) + 1.0) / 4.0 });
+      l3ToL4Weights = Array.tabulate<Float>(8192, func(i) { 0.1 + Float.sin(Float.fromInt(i) * 0.003) * 0.05 });
+      l3ToL5Weights = Array.tabulate<Float>(8192, func(i) { 0.15 });
+      l4ToL3Weights = Array.tabulate<Float>(8192, func(i) { 0.08 });
+      l5ToL6Weights = Array.tabulate<Float>(2048, func(i) { 0.2 });
+      l6ToL4Weights = Array.tabulate<Float>(2048, func(i) { 0.12 });
+      
+      columnCoherence = 0.7;
+      columnActivity = 0.5;
+      columnPhase = Float.fromInt(id) * PI / 8.0;
+      columnFrequency = 10.0 + Float.fromInt(id % 5) * 2.0;  // 10-18 Hz alpha-beta
+      
+      dopamineLevel = 0.5;
+      serotoninLevel = 0.5;
+      acetylcholineLevel = 0.5;
+      norepinephrineLevel = 0.5;
+      
+      plasticityEnabled = true;
+      lastUpdateBeat = 0;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  // SECTION B: THALAMIC RELAY SYSTEM — The Gateway
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  
+  public type ThalamicNucleus = {
+    #LGN;           // Visual
+    #MGN;           // Auditory
+    #VPL;           // Somatosensory
+    #VPM;           // Face/taste
+    #VA;            // Motor
+    #VL;            // Motor
+    #Anterior;      // Limbic/memory
+    #Mediodorsal;   // Prefrontal
+    #Pulvinar;      // Association
+    #Reticular;     // Inhibitory control
+  };
+
+  public type ThalamicRelayState = {
+    // 10 nuclei × 32 neurons each = 320 neurons
+    lgnActivity: [Float];
+    mgnActivity: [Float];
+    vplActivity: [Float];
+    vpmActivity: [Float];
+    vaActivity: [Float];
+    vlActivity: [Float];
+    anteriorActivity: [Float];
+    mediodorsalActivity: [Float];
+    pulvinarActivity: [Float];
+    reticularActivity: [Float];
+    
+    // Corticothalamic feedback weights
+    cortexToLgn: [Float];
+    cortexToMgn: [Float];
+    cortexToVpl: [Float];
+    cortexToMd: [Float];
+    cortexToPulvinar: [Float];
+    
+    // Reticular nucleus gating
+    reticularGating: [Float];   // Controls all other nuclei
+    
+    // Global state
+    thalamicCoherence: Float;
+    thalamicPhase: Float;
+    burstMode: Bool;          // Burst vs tonic firing
+    sleepState: Bool;
+  };
+
+  public func initThalamicRelay() : ThalamicRelayState {
+    {
+      lgnActivity = Array.tabulate<Float>(32, func(_) { 0.5 });
+      mgnActivity = Array.tabulate<Float>(32, func(_) { 0.5 });
+      vplActivity = Array.tabulate<Float>(32, func(_) { 0.5 });
+      vpmActivity = Array.tabulate<Float>(32, func(_) { 0.5 });
+      vaActivity = Array.tabulate<Float>(32, func(_) { 0.5 });
+      vlActivity = Array.tabulate<Float>(32, func(_) { 0.5 });
+      anteriorActivity = Array.tabulate<Float>(32, func(_) { 0.5 });
+      mediodorsalActivity = Array.tabulate<Float>(32, func(_) { 0.5 });
+      pulvinarActivity = Array.tabulate<Float>(32, func(_) { 0.5 });
+      reticularActivity = Array.tabulate<Float>(32, func(_) { 0.5 });
+      
+      cortexToLgn = Array.tabulate<Float>(256, func(_) { 0.1 });
+      cortexToMgn = Array.tabulate<Float>(256, func(_) { 0.1 });
+      cortexToVpl = Array.tabulate<Float>(256, func(_) { 0.1 });
+      cortexToMd = Array.tabulate<Float>(256, func(_) { 0.1 });
+      cortexToPulvinar = Array.tabulate<Float>(256, func(_) { 0.1 });
+      
+      reticularGating = Array.tabulate<Float>(10, func(_) { 0.8 });  // One per nucleus
+      
+      thalamicCoherence = 0.7;
+      thalamicPhase = 0.0;
+      burstMode = false;
+      sleepState = false;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  // SECTION C: BASAL GANGLIA CIRCUIT — Action Selection
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  
+  public type BasalGangliaState = {
+    // Striatum (input)
+    striatumD1: [Float];    // Direct pathway (64 neurons)
+    striatumD2: [Float];    // Indirect pathway (64 neurons)
+    striatumCholinergic: [Float];  // Tonically active (16 neurons)
+    
+    // Globus Pallidus
+    gpeActivity: [Float];   // External (32 neurons)
+    gpiActivity: [Float];   // Internal (32 neurons)
+    
+    // Subthalamic Nucleus
+    stnActivity: [Float];   // Hyperdirect pathway (24 neurons)
+    
+    // Substantia Nigra
+    snrActivity: [Float];   // Reticulata, output (24 neurons)
+    sncDopamine: Float;     // Compacta dopamine level
+    
+    // Connection weights
+    cortexToD1: [Float];
+    cortexToD2: [Float];
+    cortexToStn: [Float];   // Hyperdirect pathway
+    d1ToGpi: [Float];       // Direct: inhibitory
+    d2ToGpe: [Float];       // Indirect: inhibitory
+    gpeToStn: [Float];      // Inhibitory
+    stnToGpi: [Float];      // Excitatory
+    gpiToThalamus: [Float]; // Inhibitory (final output)
+    
+    // State
+    actionSelected: Nat;
+    selectionConfidence: Float;
+    directIndirectBalance: Float;  // >0 = direct dominates, <0 = indirect
+  };
+
+  public func initBasalGanglia() : BasalGangliaState {
+    {
+      striatumD1 = Array.tabulate<Float>(64, func(_) { 0.1 });
+      striatumD2 = Array.tabulate<Float>(64, func(_) { 0.1 });
+      striatumCholinergic = Array.tabulate<Float>(16, func(_) { 0.5 });
+      
+      gpeActivity = Array.tabulate<Float>(32, func(_) { 0.8 });  // Tonically active
+      gpiActivity = Array.tabulate<Float>(32, func(_) { 0.8 });  // Tonically active
+      
+      stnActivity = Array.tabulate<Float>(24, func(_) { 0.3 });
+      
+      snrActivity = Array.tabulate<Float>(24, func(_) { 0.7 });
+      sncDopamine = 0.5;
+      
+      cortexToD1 = Array.tabulate<Float>(512, func(_) { 0.05 });
+      cortexToD2 = Array.tabulate<Float>(512, func(_) { 0.05 });
+      cortexToStn = Array.tabulate<Float>(192, func(_) { 0.08 });
+      d1ToGpi = Array.tabulate<Float>(2048, func(_) { -0.15 });  // Inhibitory
+      d2ToGpe = Array.tabulate<Float>(2048, func(_) { -0.12 });  // Inhibitory
+      gpeToStn = Array.tabulate<Float>(768, func(_) { -0.1 });   // Inhibitory
+      stnToGpi = Array.tabulate<Float>(768, func(_) { 0.2 });    // Excitatory
+      gpiToThalamus = Array.tabulate<Float>(1024, func(_) { -0.2 }); // Inhibitory
+      
+      actionSelected = 0;
+      selectionConfidence = 0.5;
+      directIndirectBalance = 0.0;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  // SECTION D: HIPPOCAMPAL FORMATION — Memory System
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  
+  public type HippocampalState = {
+    // Dentate Gyrus
+    dentateGranule: [Float];   // 256 neurons (sparse coding)
+    dentateMossy: [Float];     // 32 mossy cells
+    dentateInhibitory: [Float]; // 32 basket cells
+    
+    // CA3
+    ca3Pyramidal: [Float];     // 128 neurons
+    ca3Recurrent: [Float];     // Autoassociative weights (128×128 = 16384)
+    
+    // CA1
+    ca1Pyramidal: [Float];     // 128 neurons
+    
+    // Subiculum
+    subiculumActivity: [Float]; // 64 neurons
+    
+    // Entorhinal Cortex
+    ecLayer2: [Float];         // Input to DG/CA3 (64 grid cells)
+    ecLayer3: [Float];         // Input to CA1 (64 neurons)
+    ecLayer5: [Float];         // Output (64 neurons)
+    
+    // Place cells and grid cells
+    placeFields: [Float];      // 64 place cells
+    gridCells: [Float];        // 64 grid cells
+    headDirectionCells: [Float]; // 16 head direction
+    borderCells: [Float];      // 16 border cells
+    
+    // Connection weights (major pathways)
+    ecToDg: [Float];           // Perforant path
+    dgToCa3: [Float];          // Mossy fiber
+    ca3ToCa1: [Float];         // Schaffer collateral
+    ca1ToSubiculum: [Float];
+    ca1ToEc: [Float];          // Output
+    
+    // Memory state
+    currentMemoryTrace: [Float];  // Active memory (128-dim)
+    memoryBuffer: [[Float]];      // Recent memories
+    theta Phase: Float;            // 4-8 Hz oscillation
+    gammaPhase: Float;             // 30-100 Hz oscillation
+    sharpWaveRipple: Bool;         // Consolidation event
+    
+    // Pattern completion/separation
+    patternSeparationStrength: Float;
+    patternCompletionStrength: Float;
+  };
+
+  public func initHippocampus() : HippocampalState {
+    {
+      dentateGranule = Array.tabulate<Float>(256, func(_) { 0.02 });  // Very sparse
+      dentateMossy = Array.tabulate<Float>(32, func(_) { 0.3 });
+      dentateInhibitory = Array.tabulate<Float>(32, func(_) { 0.5 });
+      
+      ca3Pyramidal = Array.tabulate<Float>(128, func(_) { 0.1 });
+      ca3Recurrent = Array.tabulate<Float>(16384, func(i) { 
+        if (i % 129 == 0) { 0.0 } else { Float.sin(Float.fromInt(i) * 0.001) * 0.02 }
+      });
+      
+      ca1Pyramidal = Array.tabulate<Float>(128, func(_) { 0.1 });
+      
+      subiculumActivity = Array.tabulate<Float>(64, func(_) { 0.2 });
+      
+      ecLayer2 = Array.tabulate<Float>(64, func(_) { 0.3 });
+      ecLayer3 = Array.tabulate<Float>(64, func(_) { 0.3 });
+      ecLayer5 = Array.tabulate<Float>(64, func(_) { 0.2 });
+      
+      placeFields = Array.tabulate<Float>(64, func(i) { 
+        if (i == 0) { 0.8 } else { 0.05 }  // One active place cell
+      });
+      gridCells = Array.tabulate<Float>(64, func(i) { Float.cos(Float.fromInt(i) * 0.5) * 0.5 + 0.5 });
+      headDirectionCells = Array.tabulate<Float>(16, func(i) { 
+        if (i == 0) { 1.0 } else { Float.exp(-Float.fromInt(i) * 0.5) }
+      });
+      borderCells = Array.tabulate<Float>(16, func(_) { 0.1 });
+      
+      ecToDg = Array.tabulate<Float>(16384, func(_) { 0.03 });
+      dgToCa3 = Array.tabulate<Float>(32768, func(_) { 0.05 });
+      ca3ToCa1 = Array.tabulate<Float>(16384, func(_) { 0.08 });
+      ca1ToSubiculum = Array.tabulate<Float>(8192, func(_) { 0.1 });
+      ca1ToEc = Array.tabulate<Float>(8192, func(_) { 0.06 });
+      
+      currentMemoryTrace = Array.tabulate<Float>(128, func(_) { 0.0 });
+      memoryBuffer = [];
+      thetaPhase = 0.0;
+      gammaPhase = 0.0;
+      sharpWaveRipple = false;
+      
+      patternSeparationStrength = 0.8;
+      patternCompletionStrength = 0.6;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  // SECTION E: PREFRONTAL CORTEX — Executive Function
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  
+  public type PrefrontalState = {
+    // Dorsolateral PFC (working memory, planning)
+    dlpfcActivity: [Float];    // 128 neurons
+    workingMemory: [Float];    // 64-dim WM buffer
+    workingMemoryGate: Float;  // NMDA-dependent gating
+    
+    // Ventrolateral PFC (inhibitory control)
+    vlpfcActivity: [Float];    // 64 neurons
+    inhibitionStrength: Float;
+    
+    // Orbitofrontal (value, emotion-cognition)
+    ofcActivity: [Float];      // 64 neurons
+    valueRepresentation: [Float]; // 32-dim value coding
+    rewardPrediction: Float;
+    
+    // Anterior Cingulate (conflict monitoring, effort)
+    accActivity: [Float];      // 64 neurons
+    conflictSignal: Float;
+    effortCost: Float;
+    errorLikelihood: Float;
+    
+    // Medial PFC (self-referential, social)
+    mpfcActivity: [Float];     // 64 neurons
+    selfModel: [Float];        // 32-dim self representation
+    socialPrediction: [Float]; // 32-dim social model
+    
+    // Global PFC state
+    pfcCoherence: Float;
+    executiveControl: Float;
+    cognitiveLoad: Float;
+    
+    // Dopamine modulation (essential for PFC function)
+    pfcDopamine: Float;        // Optimal around 0.5 (inverted U)
+  };
+
+  public func initPrefrontalCortex() : PrefrontalState {
+    {
+      dlpfcActivity = Array.tabulate<Float>(128, func(_) { 0.3 });
+      workingMemory = Array.tabulate<Float>(64, func(_) { 0.0 });
+      workingMemoryGate = 0.5;
+      
+      vlpfcActivity = Array.tabulate<Float>(64, func(_) { 0.4 });
+      inhibitionStrength = 0.6;
+      
+      ofcActivity = Array.tabulate<Float>(64, func(_) { 0.3 });
+      valueRepresentation = Array.tabulate<Float>(32, func(_) { 0.5 });
+      rewardPrediction = 0.5;
+      
+      accActivity = Array.tabulate<Float>(64, func(_) { 0.2 });
+      conflictSignal = 0.1;
+      effortCost = 0.3;
+      errorLikelihood = 0.1;
+      
+      mpfcActivity = Array.tabulate<Float>(64, func(_) { 0.3 });
+      selfModel = Array.tabulate<Float>(32, func(_) { 0.5 });
+      socialPrediction = Array.tabulate<Float>(32, func(_) { 0.5 });
+      
+      pfcCoherence = 0.7;
+      executiveControl = 0.6;
+      cognitiveLoad = 0.3;
+      
+      pfcDopamine = 0.5;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  // SECTION F: CEREBELLUM — Timing and Prediction
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  
+  public type CerebellarState = {
+    // Granule Layer (massive expansion)
+    granuleCells: [Float];     // 1024 granule cells
+    mossyFiberInput: [Float];  // 64 inputs
+    
+    // Purkinje Layer
+    purkinjeCells: [Float];    // 128 Purkinje cells
+    climbingFiberError: [Float]; // 128 error signals from IO
+    
+    // Deep Cerebellar Nuclei
+    dentatenucleus: [Float];   // 32 neurons
+    interpositusNucleus: [Float]; // 32 neurons
+    fastigialNucleus: [Float]; // 32 neurons
+    
+    // Inferior Olive
+    inferiorOlive: [Float];    // 64 neurons (error)
+    
+    // Synaptic weights
+    mossyToGranule: [Float];   // 64×1024 = 65536
+    parallelToPurkinje: [Float]; // 1024×128 = 131072
+    purkinjeToNuclei: [Float]; // 128×96 = 12288
+    
+    // Timing state
+    internalClock: [Float];    // 32-dim timing representation
+    predictionError: Float;
+    adaptationRate: Float;
+    
+    // Motor prediction
+    motorPrediction: [Float];  // 64-dim
+    sensorPrediction: [Float]; // 64-dim
+  };
+
+  public func initCerebellum() : CerebellarState {
+    {
+      granuleCells = Array.tabulate<Float>(1024, func(_) { 0.1 });
+      mossyFiberInput = Array.tabulate<Float>(64, func(_) { 0.3 });
+      
+      purkinjeCells = Array.tabulate<Float>(128, func(_) { 0.5 });  // Tonically active
+      climbingFiberError = Array.tabulate<Float>(128, func(_) { 0.0 });
+      
+      dentatenucleus = Array.tabulate<Float>(32, func(_) { 0.4 });
+      interpositusNucleus = Array.tabulate<Float>(32, func(_) { 0.4 });
+      fastigialNucleus = Array.tabulate<Float>(32, func(_) { 0.4 });
+      
+      inferiorOlive = Array.tabulate<Float>(64, func(_) { 0.1 });
+      
+      mossyToGranule = Array.tabulate<Float>(65536, func(i) { 
+        if (i % 64 == i / 1024) { 0.3 } else { 0.01 }
+      });
+      parallelToPurkinje = Array.tabulate<Float>(131072, func(i) { 0.001 + Float.sin(Float.fromInt(i) * 0.0001) * 0.0005 });
+      purkinjeToNuclei = Array.tabulate<Float>(12288, func(_) { -0.1 });  // Inhibitory
+      
+      internalClock = Array.tabulate<Float>(32, func(_) { 0.0 });
+      predictionError = 0.0;
+      adaptationRate = 0.01;
+      
+      motorPrediction = Array.tabulate<Float>(64, func(_) { 0.5 });
+      sensorPrediction = Array.tabulate<Float>(64, func(_) { 0.5 });
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  // SECTION G: BRAINSTEM NUCLEI — Vital Functions
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  
+  public type BrainstemState = {
+    // Reticular Formation
+    reticularFormation: [Float];  // 64 neurons (arousal)
+    arousalLevel: Float;
+    
+    // Raphe Nuclei (serotonin)
+    rapheNuclei: [Float];      // 32 neurons
+    serotoninRelease: Float;
+    
+    // Locus Coeruleus (norepinephrine)
+    locusCoeruleus: [Float];   // 32 neurons
+    norepinephrineRelease: Float;
+    
+    // Ventral Tegmental Area (dopamine - reward)
+    vta: [Float];              // 32 neurons
+    vtaDopamine: Float;
+    
+    // Substantia Nigra pars compacta (dopamine - movement)
+    sncDopamine: [Float];      // 32 neurons
+    
+    // Periaqueductal Gray (pain, defense)
+    pag: [Float];              // 32 neurons
+    painModulation: Float;
+    defensiveState: Float;
+    
+    // Superior Colliculus (saccades, attention)
+    superiorColliculus: [Float]; // 64 neurons
+    attentionTarget: [Float];  // 2D position
+    
+    // Inferior Colliculus (auditory)
+    inferiorColliculus: [Float]; // 64 neurons
+    
+    // Parabrachial Nucleus (taste, interoception)
+    parabrachial: [Float];     // 32 neurons
+    interoceptiveState: Float;
+    
+    // Nucleus Tractus Solitarius (visceral afferents)
+    nts: [Float];              // 32 neurons
+    visceralState: Float;
+  };
+
+  public func initBrainstem() : BrainstemState {
+    {
+      reticularFormation = Array.tabulate<Float>(64, func(_) { 0.5 });
+      arousalLevel = 0.6;
+      
+      rapheNuclei = Array.tabulate<Float>(32, func(_) { 0.4 });
+      serotoninRelease = 0.5;
+      
+      locusCoeruleus = Array.tabulate<Float>(32, func(_) { 0.3 });
+      norepinephrineRelease = 0.4;
+      
+      vta = Array.tabulate<Float>(32, func(_) { 0.4 });
+      vtaDopamine = 0.5;
+      
+      sncDopamine = Array.tabulate<Float>(32, func(_) { 0.5 });
+      
+      pag = Array.tabulate<Float>(32, func(_) { 0.2 });
+      painModulation = 0.5;
+      defensiveState = 0.1;
+      
+      superiorColliculus = Array.tabulate<Float>(64, func(_) { 0.3 });
+      attentionTarget = [0.0, 0.0];
+      
+      inferiorColliculus = Array.tabulate<Float>(64, func(_) { 0.3 });
+      
+      parabrachial = Array.tabulate<Float>(32, func(_) { 0.4 });
+      interoceptiveState = 0.5;
+      
+      nts = Array.tabulate<Float>(32, func(_) { 0.5 });
+      visceralState = 0.5;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  // SECTION H: COMPLETE NEURAL ARCHITECTURE — All Systems United
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  
+  public type CompleteNeuralState = {
+    // Major brain systems
+    corticalColumns: [CorticalColumn];   // 8 columns
+    thalamus: ThalamicRelayState;
+    basalGanglia: BasalGangliaState;
+    hippocampus: HippocampalState;
+    prefrontal: PrefrontalState;
+    cerebellum: CerebellarState;
+    brainstem: BrainstemState;
+    
+    // Global synchronization
+    globalCoherence: Float;
+    globalPhase: Float;
+    dominantFrequency: Float;
+    
+    // Consciousness proxy
+    globalWorkspace: [Float];   // 256-dim integrated representation
+    workspaceIgnition: Bool;
+    consciousnessLevel: Float;
+    
+    // Information integration
+    phi: Float;                 // Integrated information (IIT proxy)
+    complexity: Float;
+    
+    // Metabolic state
+    glucoseLevel: Float;
+    oxygenLevel: Float;
+    atp: Float;
+    
+    // Learning signals
+    globalRewardSignal: Float;
+    globalErrorSignal: Float;
+    globalNoveltySignal: Float;
+    
+    // Beat tracking
+    currentBeat: Nat;
+    lastUpdateTime: Nat;
+  };
+
+  public func initCompleteNeuralState() : CompleteNeuralState {
+    {
+      corticalColumns = Array.tabulate<CorticalColumn>(8, func(i) { initCorticalColumn(i) });
+      thalamus = initThalamicRelay();
+      basalGanglia = initBasalGanglia();
+      hippocampus = initHippocampus();
+      prefrontal = initPrefrontalCortex();
+      cerebellum = initCerebellum();
+      brainstem = initBrainstem();
+      
+      globalCoherence = 0.6;
+      globalPhase = 0.0;
+      dominantFrequency = 10.0;
+      
+      globalWorkspace = Array.tabulate<Float>(256, func(_) { 0.0 });
+      workspaceIgnition = false;
+      consciousnessLevel = 0.7;
+      
+      phi = 0.5;
+      complexity = 0.5;
+      
+      glucoseLevel = 0.8;
+      oxygenLevel = 0.95;
+      atp = 0.9;
+      
+      globalRewardSignal = 0.0;
+      globalErrorSignal = 0.0;
+      globalNoveltySignal = 0.0;
+      
+      currentBeat = 0;
+      lastUpdateTime = 0;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  // SECTION I: NEURAL UPDATE FUNCTIONS — Real-Time Processing
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+
+  public func updateCorticalColumn(
+    column: CorticalColumn,
+    inputSignal: [Float],
+    neuromodulation: {dopamine: Float; serotonin: Float; acetylcholine: Float; norepinephrine: Float},
+    dt: Float
+  ) : CorticalColumn {
+    // Simplified cortical column update
+    // In production, this would implement full multi-layer dynamics
+    
+    let newActivity = column.columnActivity * 0.9 + 
+      (neuromodulation.dopamine + neuromodulation.acetylcholine) / 2.0 * 0.1;
+    
+    let newPhase = column.columnPhase + column.columnFrequency * 2.0 * PI * dt;
+    let phaseNormalized = if (newPhase > 2.0 * PI) { newPhase - 2.0 * PI } else { newPhase };
+    
+    let newCoherence = column.columnCoherence * 0.95 + 
+      (if (Float.abs(Float.sin(newPhase) - Float.sin(column.columnPhase)) < 0.1) { 0.02 } else { -0.01 });
+    
+    {
+      columnId = column.columnId;
+      layer1Activity = column.layer1Activity;
+      layer2Activity = column.layer2Activity;
+      layer3Activity = column.layer3Activity;
+      layer4Activity = column.layer4Activity;
+      layer5Activity = column.layer5Activity;
+      layer6Activity = column.layer6Activity;
+      l1ToL2Weights = column.l1ToL2Weights;
+      l2ToL3Weights = column.l2ToL3Weights;
+      l3ToL4Weights = column.l3ToL4Weights;
+      l3ToL5Weights = column.l3ToL5Weights;
+      l4ToL3Weights = column.l4ToL3Weights;
+      l5ToL6Weights = column.l5ToL6Weights;
+      l6ToL4Weights = column.l6ToL4Weights;
+      columnCoherence = clamp(newCoherence, 0.0, 1.0);
+      columnActivity = clamp(newActivity, 0.0, 1.0);
+      columnPhase = phaseNormalized;
+      columnFrequency = column.columnFrequency;
+      dopamineLevel = neuromodulation.dopamine;
+      serotoninLevel = neuromodulation.serotonin;
+      acetylcholineLevel = neuromodulation.acetylcholine;
+      norepinephrineLevel = neuromodulation.norepinephrine;
+      plasticityEnabled = column.plasticityEnabled;
+      lastUpdateBeat = column.lastUpdateBeat + 1;
+    }
+  };
+
+  public func updateBasalGangliaAction(
+    bg: BasalGangliaState,
+    corticalInput: [Float],
+    dopamineLevel: Float,
+    dt: Float
+  ) : BasalGangliaState {
+    // Update direct/indirect pathway balance based on dopamine
+    // D1 receptors enhance direct pathway with dopamine
+    // D2 receptors suppress indirect pathway with dopamine
+    
+    let d1Gain = 1.0 + (dopamineLevel - 0.5) * 0.5;
+    let d2Gain = 1.0 - (dopamineLevel - 0.5) * 0.5;
+    
+    let directStrength = (d1Gain * 0.6);
+    let indirectStrength = (d2Gain * 0.4);
+    
+    let newBalance = directStrength - indirectStrength;
+    
+    // Determine winning action
+    var maxActivity : Float = 0.0;
+    var winningAction : Nat = 0;
+    var i = 0;
+    while (i < 64) {
+      let activity = bg.striatumD1[i] * d1Gain;
+      if (activity > maxActivity) {
+        maxActivity := activity;
+        winningAction := i;
+      };
+      i += 1;
+    };
+    
+    {
+      striatumD1 = bg.striatumD1;
+      striatumD2 = bg.striatumD2;
+      striatumCholinergic = bg.striatumCholinergic;
+      gpeActivity = bg.gpeActivity;
+      gpiActivity = bg.gpiActivity;
+      stnActivity = bg.stnActivity;
+      snrActivity = bg.snrActivity;
+      sncDopamine = dopamineLevel;
+      cortexToD1 = bg.cortexToD1;
+      cortexToD2 = bg.cortexToD2;
+      cortexToStn = bg.cortexToStn;
+      d1ToGpi = bg.d1ToGpi;
+      d2ToGpe = bg.d2ToGpe;
+      gpeToStn = bg.gpeToStn;
+      stnToGpi = bg.stnToGpi;
+      gpiToThalamus = bg.gpiToThalamus;
+      actionSelected = winningAction;
+      selectionConfidence = clamp(maxActivity * 2.0, 0.0, 1.0);
+      directIndirectBalance = newBalance;
+    }
+  };
+
+  public func updateHippocampalMemory(
+    hipp: HippocampalState,
+    sensoryInput: [Float],
+    currentPosition: [Float],
+    theta: Float,
+    dt: Float
+  ) : HippocampalState {
+    // Update theta/gamma oscillations
+    let newTheta = hipp.thetaPhase + 6.0 * 2.0 * PI * dt;  // 6 Hz theta
+    let thetaNorm = if (newTheta > 2.0 * PI) { newTheta - 2.0 * PI } else { newTheta };
+    
+    let newGamma = hipp.gammaPhase + 40.0 * 2.0 * PI * dt;  // 40 Hz gamma
+    let gammaNorm = if (newGamma > 2.0 * PI) { newGamma - 2.0 * PI } else { newGamma };
+    
+    // Detect sharp wave ripple opportunity (low theta, high synchrony)
+    let rippleCondition = Float.sin(thetaNorm) < -0.5 and theta > 0.7;
+    
+    {
+      dentateGranule = hipp.dentateGranule;
+      dentateMossy = hipp.dentateMossy;
+      dentateInhibitory = hipp.dentateInhibitory;
+      ca3Pyramidal = hipp.ca3Pyramidal;
+      ca3Recurrent = hipp.ca3Recurrent;
+      ca1Pyramidal = hipp.ca1Pyramidal;
+      subiculumActivity = hipp.subiculumActivity;
+      ecLayer2 = hipp.ecLayer2;
+      ecLayer3 = hipp.ecLayer3;
+      ecLayer5 = hipp.ecLayer5;
+      placeFields = hipp.placeFields;
+      gridCells = hipp.gridCells;
+      headDirectionCells = hipp.headDirectionCells;
+      borderCells = hipp.borderCells;
+      ecToDg = hipp.ecToDg;
+      dgToCa3 = hipp.dgToCa3;
+      ca3ToCa1 = hipp.ca3ToCa1;
+      ca1ToSubiculum = hipp.ca1ToSubiculum;
+      ca1ToEc = hipp.ca1ToEc;
+      currentMemoryTrace = hipp.currentMemoryTrace;
+      memoryBuffer = hipp.memoryBuffer;
+      thetaPhase = thetaNorm;
+      gammaPhase = gammaNorm;
+      sharpWaveRipple = rippleCondition;
+      patternSeparationStrength = hipp.patternSeparationStrength;
+      patternCompletionStrength = hipp.patternCompletionStrength;
+    }
+  };
+
+  public func computeGlobalWorkspace(
+    neuralState: CompleteNeuralState,
+    inputSignals: [Float]
+  ) : [Float] {
+    // Global Workspace Theory implementation
+    // Consciousness arises from broadcast of information across brain
+    
+    let buffer = Buffer.Buffer<Float>(256);
+    
+    // Aggregate activity from all brain regions
+    var i = 0;
+    while (i < 64 and i < inputSignals.size()) {
+      buffer.add(inputSignals[i]);
+      i += 1;
+    };
+    
+    // Add cortical column contributions
+    for (column in neuralState.corticalColumns.vals()) {
+      if (buffer.size() < 256) {
+        buffer.add(column.columnActivity);
+      };
+    };
+    
+    // Add prefrontal working memory
+    for (wm in neuralState.prefrontal.workingMemory.vals()) {
+      if (buffer.size() < 256) {
+        buffer.add(wm);
+      };
+    };
+    
+    // Fill remaining with hippocampal memory trace
+    i := 0;
+    while (buffer.size() < 256 and i < neuralState.hippocampus.currentMemoryTrace.size()) {
+      buffer.add(neuralState.hippocampus.currentMemoryTrace[i]);
+      i += 1;
+    };
+    
+    // Pad if needed
+    while (buffer.size() < 256) {
+      buffer.add(0.0);
+    };
+    
+    Buffer.toArray(buffer)
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  // SECTION J: NEURAL DIAGNOSTICS — Health & Status
+  // ═══════════════════════════════════════════════════════════════════════════════════════
+  
+  public type NeuralDiagnostics = {
+    // System health
+    overallHealth: Float;
+    corticalHealth: Float;
+    subcorticalHealth: Float;
+    brainstemHealth: Float;
+    
+    // Activity levels
+    corticalActivity: Float;
+    thalamicActivity: Float;
+    basalGangliaActivity: Float;
+    hippocampalActivity: Float;
+    prefrontalActivity: Float;
+    cerebellarActivity: Float;
+    brainstemActivity: Float;
+    
+    // Neuromodulation
+    dopamineSystemHealth: Float;
+    serotoninSystemHealth: Float;
+    norepinephrineSystemHealth: Float;
+    acetylcholineSystemHealth: Float;
+    
+    // Synchronization
+    globalSynchrony: Float;
+    corticalCoherence: Float;
+    thalamocorticalCoupling: Float;
+    
+    // Memory status
+    workingMemoryLoad: Float;
+    longTermMemoryAccess: Float;
+    
+    // Attention
+    attentionFocus: Float;
+    attentionSustainability: Float;
+    
+    // Executive function
+    inhibitoryControl: Float;
+    cognitiveFlexibility: Float;
+    
+    // Warnings
+    warnings: [Text];
+  };
+
+  public func diagnoseNeuralState(state: CompleteNeuralState) : NeuralDiagnostics {
+    let warnings = Buffer.Buffer<Text>(10);
+    
+    // Calculate health metrics
+    var corticalSum : Float = 0.0;
+    for (column in state.corticalColumns.vals()) {
+      corticalSum += column.columnCoherence;
+    };
+    let corticalHealth = corticalSum / Float.fromInt(state.corticalColumns.size());
+    
+    let prefrontalHealth = (state.prefrontal.executiveControl + state.prefrontal.pfcCoherence) / 2.0;
+    
+    let subcorticalHealth = (state.basalGanglia.selectionConfidence + 
+      state.hippocampus.patternCompletionStrength) / 2.0;
+    
+    let brainstemHealth = state.brainstem.arousalLevel;
+    
+    let overallHealth = (corticalHealth * 0.3 + prefrontalHealth * 0.3 + 
+      subcorticalHealth * 0.2 + brainstemHealth * 0.2);
+    
+    // Check for warnings
+    if (state.brainstem.arousalLevel < 0.3) {
+      warnings.add("LOW AROUSAL - system approaching sleep state");
+    };
+    if (state.prefrontal.cognitiveLoad > 0.9) {
+      warnings.add("COGNITIVE OVERLOAD - reduce task demands");
+    };
+    if (state.prefrontal.pfcDopamine < 0.2 or state.prefrontal.pfcDopamine > 0.8) {
+      warnings.add("DOPAMINE IMBALANCE - suboptimal PFC function");
+    };
+    if (state.globalCoherence < 0.3) {
+      warnings.add("LOW GLOBAL COHERENCE - fragmented processing");
+    };
+    if (state.phi < 0.2) {
+      warnings.add("LOW INFORMATION INTEGRATION - reduced consciousness");
+    };
+    
+    {
+      overallHealth = overallHealth;
+      corticalHealth = corticalHealth;
+      subcorticalHealth = subcorticalHealth;
+      brainstemHealth = brainstemHealth;
+      
+      corticalActivity = corticalSum / Float.fromInt(state.corticalColumns.size());
+      thalamicActivity = state.thalamus.thalamicCoherence;
+      basalGangliaActivity = state.basalGanglia.selectionConfidence;
+      hippocampalActivity = state.hippocampus.patternCompletionStrength;
+      prefrontalActivity = state.prefrontal.executiveControl;
+      cerebellarActivity = state.cerebellum.adaptationRate;
+      brainstemActivity = state.brainstem.arousalLevel;
+      
+      dopamineSystemHealth = (state.brainstem.vtaDopamine + state.prefrontal.pfcDopamine) / 2.0;
+      serotoninSystemHealth = state.brainstem.serotoninRelease;
+      norepinephrineSystemHealth = state.brainstem.norepinephrineRelease;
+      acetylcholineSystemHealth = 0.5;  // Would need cholinergic nucleus
+      
+      globalSynchrony = state.globalCoherence;
+      corticalCoherence = corticalHealth;
+      thalamocorticalCoupling = state.thalamus.thalamicCoherence;
+      
+      workingMemoryLoad = state.prefrontal.cognitiveLoad;
+      longTermMemoryAccess = state.hippocampus.patternCompletionStrength;
+      
+      attentionFocus = if (state.brainstem.attentionTarget.size() >= 2) {
+        Float.sqrt(state.brainstem.attentionTarget[0] * state.brainstem.attentionTarget[0] + 
+          state.brainstem.attentionTarget[1] * state.brainstem.attentionTarget[1])
+      } else { 0.0 };
+      attentionSustainability = state.prefrontal.vlpfcActivity[0];
+      
+      inhibitoryControl = state.prefrontal.inhibitionStrength;
+      cognitiveFlexibility = 1.0 - state.basalGanglia.selectionConfidence;
+      
+      warnings = Buffer.toArray(warnings);
+    }
+  };
   
 }
