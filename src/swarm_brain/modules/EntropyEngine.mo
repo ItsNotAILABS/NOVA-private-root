@@ -1619,4 +1619,1247 @@ module {
     if (mag1 < 0.0001 or mag2 < 0.0001) { 0.0 } else { dot / (mag1 * mag2) }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════
+  // ║                                                                                                 ║
+  // ║  SECTION III: DEEP INTERWEAVING — ENTROPY AS ORGANISM SUBSTRATE CONNECTOR                      ║
+  // ║  Everything connects to everything. Nothing exists in isolation.                               ║
+  // ║  Alfredo Medina Hernandez | MedinaSITech@outlook.com | Dallas, Texas | 2026                   ║
+  // ║                                                                                                 ║
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENTROPY ↔ KURAMOTO COUPLING — Phase synchronization entropy
+  // When oscillators sync, entropy decreases. When they desync, entropy increases.
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type KuramotoEntropyCoupling = {
+    // From Kuramoto
+    phases: [Float];                 // θ_i - Oscillator phases
+    frequencies: [Float];            // ω_i - Natural frequencies
+    orderParameter: Float;           // r - Kuramoto order parameter
+    meanPhase: Float;                // ψ - Mean phase
+    
+    // Entropy of phase distribution
+    phaseEntropy: Float;             // H(θ) - Entropy of phase distribution
+    frequencyEntropy: Float;         // H(ω) - Entropy of frequency distribution
+    synchronizationEntropy: Float;   // S_sync = -r·ln(r) - (1-r)·ln(1-r)
+    
+    // Bidirectional coupling
+    entropyToKuramotoForce: Float;   // ∂K/∂S - How entropy affects coupling
+    kuramotoToEntropyRate: Float;    // dS/dt from phase dynamics
+    
+    // Mutual information
+    phaseFrequencyMI: Float;         // I(θ; ω) - Correlation between phase and frequency
+    interOscillatorMI: [[Float]];    // I(θ_i; θ_j) - Pairwise phase MI
+  };
+
+  /// Compute entropy of phase distribution on circle
+  /// Using binned histogram approach
+  public func computePhaseEntropy(phases: [Float], numBins: Nat) : Float {
+    if (phases.size() == 0 or numBins == 0) { return 0.0 };
+    
+    let binWidth = 2.0 * 3.14159265359 / Float.fromInt(numBins);
+    var counts = Array.init<Nat>(numBins, 0);
+    
+    for (phase in phases.vals()) {
+      // Normalize phase to [0, 2π]
+      var p = phase;
+      while (p < 0.0) { p += 2.0 * 3.14159265359 };
+      while (p >= 2.0 * 3.14159265359) { p -= 2.0 * 3.14159265359 };
+      let binIdx = Int.abs(Float.toInt(p / binWidth)) % numBins;
+      counts[binIdx] += 1;
+    };
+    
+    // Compute entropy
+    let n = Float.fromInt(phases.size());
+    var entropy : Float = 0.0;
+    for (count in counts.vals()) {
+      if (count > 0) {
+        let p = Float.fromInt(count) / n;
+        entropy -= p * Float.log(p);
+      };
+    };
+    entropy
+  };
+
+  /// Compute synchronization entropy
+  /// S_sync = -r·ln(r) - (1-r)·ln(1-r) where r is order parameter
+  public func computeSynchronizationEntropy(orderParameter: Float) : Float {
+    let r = if (orderParameter < 1e-10) { 1e-10 } else { 
+      if (orderParameter > 1.0 - 1e-10) { 1.0 - 1e-10 } else { orderParameter }
+    };
+    -r * Float.log(r) - (1.0 - r) * Float.log(1.0 - r)
+  };
+
+  /// Compute how entropy gradient affects Kuramoto coupling strength
+  /// Higher entropy → stronger coupling needed to synchronize
+  public func entropyToKuramotoCoupling(
+    currentEntropy: Float,
+    targetEntropy: Float,
+    baseCoupling: Float
+  ) : Float {
+    let entropyDeficit = currentEntropy - targetEntropy;
+    if (entropyDeficit > 0.0) {
+      // High entropy → increase coupling to reduce it
+      baseCoupling * (1.0 + 0.5 * entropyDeficit)
+    } else {
+      // Low entropy → coupling can be reduced
+      baseCoupling * Float.exp(0.1 * entropyDeficit)
+    }
+  };
+
+  /// Compute entropy production rate from Kuramoto dynamics
+  /// dS/dt = Σ_i (∂S/∂θ_i) · (dθ_i/dt)
+  public func kuramotoEntropyProductionRate(
+    phases: [Float],
+    phaseVelocities: [Float],
+    numBins: Nat
+  ) : Float {
+    // Approximate using finite differences
+    let dt : Float = 0.01;
+    var advancedPhases = Buffer.Buffer<Float>(phases.size());
+    var i = 0;
+    for (phase in phases.vals()) {
+      let vel = if (i < phaseVelocities.size()) { phaseVelocities[i] } else { 0.0 };
+      advancedPhases.add(phase + vel * dt);
+      i += 1;
+    };
+    
+    let entropyNow = computePhaseEntropy(phases, numBins);
+    let entropyNext = computePhaseEntropy(Buffer.toArray(advancedPhases), numBins);
+    (entropyNext - entropyNow) / dt
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENTROPY ↔ FRISTON COUPLING — Free energy and precision
+  // Entropy is the core of variational free energy: F = ⟨E⟩ - T·S
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type FristonEntropyCoupling = {
+    // From Friston
+    beliefs: [Float];                // q(x) - Approximate posterior
+    precision: Float;                // π - Precision (inverse variance)
+    predictionError: Float;          // ε - Prediction error
+    expectedEnergy: Float;           // ⟨E⟩ under q
+    
+    // Entropy contributions to free energy
+    beliefEntropy: Float;            // H[q] = -∫ q·ln(q) dx
+    priorEntropy: Float;             // H[p] = -∫ p·ln(p) dx
+    conditionalEntropy: Float;       // H[X|Y] = H[X,Y] - H[Y]
+    
+    // Free energy decomposition
+    accuracy: Float;                 // -⟨ln p(y|x)⟩_q
+    complexity: Float;               // D_KL[q||p] = ⟨ln q - ln p⟩_q
+    variationalFE: Float;            // F = Accuracy + Complexity
+    
+    // Bidirectional coupling
+    entropyToPrecision: Float;       // How entropy affects precision
+    precisionToEntropyRate: Float;   // dH/dt from precision updates
+    
+    // Mutual information with observations
+    stateObservationMI: Float;       // I(X; Y) - Information in observations
+  };
+
+  /// Compute belief entropy H[q] = -∫ q·ln(q) dx
+  public func computeBeliefEntropy(beliefs: [Float]) : Float {
+    var entropy : Float = 0.0;
+    for (q in beliefs.vals()) {
+      let q_safe = if (q < 1e-100) { 1e-100 } else { q };
+      entropy -= q_safe * Float.log(q_safe);
+    };
+    entropy
+  };
+
+  /// Compute complexity term D_KL[q||p]
+  public func computeComplexity(beliefs: [Float], priors: [Float]) : Float {
+    var kl : Float = 0.0;
+    var i = 0;
+    for (q in beliefs.vals()) {
+      let p = if (i < priors.size()) { priors[i] } else { 1e-10 };
+      let q_safe = if (q < 1e-100) { 1e-100 } else { q };
+      let p_safe = if (p < 1e-100) { 1e-100 } else { p };
+      kl += q_safe * Float.log(q_safe / p_safe);
+      i += 1;
+    };
+    kl
+  };
+
+  /// Compute variational free energy F = ⟨E⟩ - T·H[q]
+  public func computeVariationalFE(
+    expectedEnergy: Float,
+    temperature: Float,
+    beliefEntropy: Float
+  ) : Float {
+    expectedEnergy - temperature * beliefEntropy
+  };
+
+  /// Entropy affects precision: high entropy → low precision
+  public func entropyToPrecision(entropy: Float, basePrecision: Float) : Float {
+    // Precision inversely related to entropy
+    basePrecision * Float.exp(-0.5 * entropy)
+  };
+
+  /// Precision affects entropy rate: high precision → entropy decreases
+  public func precisionToEntropyRate(precision: Float, currentEntropy: Float) : Float {
+    // Higher precision drives system toward lower entropy
+    -precision * currentEntropy * 0.1
+  };
+
+  /// Compute state-observation mutual information
+  public func computeStateObservationMI(
+    stateEntropy: Float,
+    observationEntropy: Float,
+    jointEntropy: Float
+  ) : Float {
+    stateEntropy + observationEntropy - jointEntropy
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENTROPY ↔ HEBBIAN COUPLING — Learning and memory entropy
+  // Hebbian learning shapes the entropy of synaptic weight distributions
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type HebbianEntropyCoupling = {
+    // From Hebbian
+    synapticWeights: [[Float]];      // W_ij - Synaptic weight matrix
+    presynapticActivity: [Float];    // x_i - Presynaptic firing rates
+    postsynapticActivity: [Float];   // y_j - Postsynaptic firing rates
+    learningRate: Float;             // η - Learning rate
+    
+    // Weight distribution entropy
+    weightEntropy: Float;            // H(W) - Entropy of weight distribution
+    activityEntropy: Float;          // H(x,y) - Joint activity entropy
+    correlationEntropy: Float;       // H(x·y) - Entropy of correlations
+    
+    // Sparsity measures
+    hoyer Sparsity: Float;           // Hoyer sparsity measure
+    giniCoefficient: Float;          // Gini coefficient of weights
+    
+    // Bidirectional coupling
+    entropyToLearningRate: Float;    // How entropy affects plasticity
+    learningToEntropyRate: Float;    // dH(W)/dt from learning
+    
+    // Information capacity
+    channelCapacity: Float;          // C = max I(X;Y) - Information capacity
+    redundancy: Float;               // 1 - H(Y|X)/H(Y) - Coding redundancy
+  };
+
+  /// Compute entropy of weight distribution
+  public func computeWeightEntropy(weights: [[Float]], numBins: Nat) : Float {
+    // Flatten weights and compute histogram
+    var allWeights = Buffer.Buffer<Float>(0);
+    for (row in weights.vals()) {
+      for (w in row.vals()) {
+        allWeights.add(w);
+      };
+    };
+    
+    if (allWeights.size() == 0 or numBins == 0) { return 0.0 };
+    
+    // Find min and max
+    var minW : Float = 1e10;
+    var maxW : Float = -1e10;
+    for (w in allWeights.vals()) {
+      if (w < minW) { minW := w };
+      if (w > maxW) { maxW := w };
+    };
+    
+    if (maxW - minW < 1e-10) { return 0.0 };
+    
+    let binWidth = (maxW - minW) / Float.fromInt(numBins);
+    var counts = Array.init<Nat>(numBins, 0);
+    
+    for (w in allWeights.vals()) {
+      var binIdx = Int.abs(Float.toInt((w - minW) / binWidth));
+      if (binIdx >= numBins) { binIdx := numBins - 1 };
+      counts[binIdx] += 1;
+    };
+    
+    let n = Float.fromInt(allWeights.size());
+    var entropy : Float = 0.0;
+    for (count in counts.vals()) {
+      if (count > 0) {
+        let p = Float.fromInt(count) / n;
+        entropy -= p * Float.log(p);
+      };
+    };
+    entropy
+  };
+
+  /// Compute Hoyer sparsity measure
+  /// Sparsity = (√n - ||x||₁/||x||₂) / (√n - 1)
+  public func computeHoyerSparsity(values: [Float]) : Float {
+    let n = Float.fromInt(values.size());
+    if (n < 2.0) { return 0.0 };
+    
+    var l1 : Float = 0.0;
+    var l2sq : Float = 0.0;
+    for (v in values.vals()) {
+      l1 += Float.abs(v);
+      l2sq += v * v;
+    };
+    
+    let l2 = Float.sqrt(l2sq);
+    if (l2 < 1e-10) { return 1.0 }; // All zeros → maximally sparse
+    
+    let sqrtN = Float.sqrt(n);
+    (sqrtN - l1 / l2) / (sqrtN - 1.0)
+  };
+
+  /// Entropy affects learning rate: high entropy → more exploration
+  public func entropyToLearningRate(entropy: Float, baseLearningRate: Float) : Float {
+    // High entropy suggests uncertainty → learn more
+    baseLearningRate * (1.0 + 0.3 * entropy)
+  };
+
+  /// Learning affects entropy rate
+  public func hebbianEntropyRate(
+    preActivity: [Float],
+    postActivity: [Float],
+    learningRate: Float,
+    currentWeightEntropy: Float
+  ) : Float {
+    // Hebbian learning tends to increase weight variance initially
+    // then decreases as patterns crystallize
+    let correlation = advancedDotProduct(preActivity, postActivity);
+    let normalizedCorr = correlation / Float.fromInt(preActivity.size());
+    
+    // High correlation → decreasing entropy (structure forming)
+    // Low correlation → entropy may increase
+    -learningRate * normalizedCorr * currentWeightEntropy
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENTROPY ↔ ATTRACTOR COUPLING — Basin entropy and metastability
+  // Attractor dynamics determine the entropy landscape of the system
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type AttractorEntropyCoupling = {
+    // From Attractor dynamics
+    stateSpace: [Float];             // x - Current state
+    attractorPositions: [[Float]];   // x*_i - Attractor locations
+    basinBoundaries: [[Float]];      // Basin separatrices
+    lyapunovExponents: [Float];      // λ_i - Lyapunov spectrum
+    
+    // Basin entropy
+    basinEntropy: Float;             // H(basin) - Entropy over basins
+    attractorEntropy: Float;         // H(x*) - Entropy at attractor
+    transientEntropy: Float;         // H during approach to attractor
+    
+    // Metastability
+    escapeProbabilities: [Float];    // P(escape from basin i)
+    dwellTimes: [Float];             // τ_i - Mean dwell time in basin i
+    transitionRates: [[Float]];      // k_ij - Transition rates between basins
+    
+    // Bidirectional coupling
+    entropyToBasinDepth: Float;      // How entropy affects attractor stability
+    basinToEntropyRate: Float;       // dH/dt from attractor dynamics
+    
+    // Kolmogorov-Sinai entropy
+    ksEntropy: Float;                // h_KS = Σ λ⁺ - Sum of positive Lyapunov
+  };
+
+  /// Compute basin entropy
+  /// H(basin) = -Σ P(basin_i) · ln P(basin_i)
+  public func computeBasinEntropy(basinProbabilities: [Float]) : Float {
+    var entropy : Float = 0.0;
+    for (p in basinProbabilities.vals()) {
+      let p_safe = if (p < 1e-100) { 1e-100 } else { p };
+      entropy -= p_safe * Float.log(p_safe);
+    };
+    entropy
+  };
+
+  /// Compute KS entropy from Lyapunov spectrum (Pesin's formula)
+  /// h_KS = Σ_{λ_i > 0} λ_i
+  public func computeKSEntropy(lyapunovExponents: [Float]) : Float {
+    var ks : Float = 0.0;
+    for (lambda in lyapunovExponents.vals()) {
+      if (lambda > 0.0) {
+        ks += lambda;
+      };
+    };
+    ks
+  };
+
+  /// Compute metastability index from dwell times
+  public func computeMetastabilityIndex(dwellTimes: [Float]) : Float {
+    // Metastability = variance of dwell times / mean dwell time
+    var sum : Float = 0.0;
+    var sumSq : Float = 0.0;
+    var count : Float = 0.0;
+    for (tau in dwellTimes.vals()) {
+      sum += tau;
+      sumSq += tau * tau;
+      count += 1.0;
+    };
+    if (count < 1.0) { return 0.0 };
+    let mean = sum / count;
+    let variance = sumSq / count - mean * mean;
+    if (mean < 1e-10) { 0.0 } else { Float.sqrt(variance) / mean }
+  };
+
+  /// Entropy affects basin depth: high entropy → shallower basins
+  public func entropyToBasinDepth(entropy: Float, baseDepth: Float) : Float {
+    baseDepth * Float.exp(-0.2 * entropy)
+  };
+
+  /// Attractor dynamics affect entropy rate
+  public func attractorEntropyRate(
+    distanceToAttractor: Float,
+    basinDepth: Float,
+    currentEntropy: Float
+  ) : Float {
+    // Closer to attractor → entropy decreases
+    // Rate proportional to basin depth (deeper = faster)
+    -basinDepth * (1.0 / (1.0 + distanceToAttractor)) * currentEntropy * 0.1
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENTROPY ↔ PREDICTIVE CODING — Prediction uncertainty
+  // Prediction error and uncertainty are entropy measures
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type PredictiveCodingEntropyCoupling = {
+    // From Predictive Coding
+    predictions: [Float];            // ŷ - Predicted values
+    observations: [Float];           // y - Observed values
+    predictionErrors: [Float];       // ε = y - ŷ
+    hierarchyLevels: Nat;            // Number of hierarchical levels
+    
+    // Prediction entropy
+    predictionEntropy: Float;        // H(ŷ) - Uncertainty in predictions
+    errorEntropy: Float;             // H(ε) - Entropy of prediction errors
+    residualEntropy: Float;          // H(y|ŷ) - Unexplained entropy
+    
+    // Hierarchical entropy
+    levelEntropies: [Float];         // H_i for each hierarchy level
+    bottomUpInfo: [Float];           // I_BU - Bottom-up information
+    topDownInfo: [Float];            // I_TD - Top-down information
+    
+    // Bidirectional coupling
+    entropyToPredictionWeight: Float; // How entropy affects prediction confidence
+    predictionToEntropyRate: Float;   // dH/dt from prediction updates
+    
+    // Compression
+    compressionRatio: Float;         // H(y) / H(ŷ) - How much prediction compresses
+    redundancyReduction: Float;      // H(y) - H(ε) - Explained variance
+  };
+
+  /// Compute prediction entropy using Gaussian approximation
+  /// H(ŷ) = 0.5 * ln(2πe·σ²) for Gaussian with variance σ²
+  public func computePredictionEntropy(predictions: [Float]) : Float {
+    // Compute variance
+    var sum : Float = 0.0;
+    var sumSq : Float = 0.0;
+    var count : Float = 0.0;
+    for (p in predictions.vals()) {
+      sum += p;
+      sumSq += p * p;
+      count += 1.0;
+    };
+    if (count < 1.0) { return 0.0 };
+    let mean = sum / count;
+    let variance = sumSq / count - mean * mean;
+    let variance_safe = if (variance < 1e-20) { 1e-20 } else { variance };
+    
+    // Gaussian entropy
+    0.5 * Float.log(2.0 * 3.14159265359 * 2.71828 * variance_safe)
+  };
+
+  /// Compute error entropy
+  public func computeErrorEntropy(errors: [Float]) : Float {
+    computePredictionEntropy(errors) // Same formula, different input
+  };
+
+  /// Compute residual (conditional) entropy H(y|ŷ)
+  public func computeResidualEntropy(
+    observationEntropy: Float,
+    mutualInfo: Float
+  ) : Float {
+    // H(Y|Ŷ) = H(Y) - I(Y;Ŷ)
+    let residual = observationEntropy - mutualInfo;
+    if (residual < 0.0) { 0.0 } else { residual }
+  };
+
+  /// Compute compression ratio
+  public func computeCompressionRatio(
+    observationEntropy: Float,
+    predictionEntropy: Float
+  ) : Float {
+    if (predictionEntropy < 1e-10) { 1e10 } else { observationEntropy / predictionEntropy }
+  };
+
+  /// Entropy affects prediction confidence
+  public func entropyToPredictionWeight(entropy: Float, baseWeight: Float) : Float {
+    // High entropy → less confident predictions
+    baseWeight * Float.exp(-0.3 * entropy)
+  };
+
+  /// Prediction updates affect entropy rate
+  public func predictionEntropyRate(
+    predictionErrors: [Float],
+    learningRate: Float,
+    currentEntropy: Float
+  ) : Float {
+    // Better predictions → lower entropy
+    var meanAbsError : Float = 0.0;
+    for (e in predictionErrors.vals()) {
+      meanAbsError += Float.abs(e);
+    };
+    meanAbsError := meanAbsError / Float.fromInt(predictionErrors.size());
+    
+    // Low error → entropy decreases
+    -learningRate * (1.0 - meanAbsError) * currentEntropy
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENTROPY ↔ FREE ENERGY COUPLING — Thermodynamic foundation
+  // F = U - T·S: Entropy is half the free energy equation
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type FreeEnergyEntropyCoupling = {
+    // From Free Energy Engine
+    internalEnergy: Float;           // U - Internal energy
+    temperature: Float;              // T - Temperature
+    freeEnergy: Float;               // F = U - T·S
+    partitionFunction: Float;        // Z - Partition function
+    
+    // Entropy thermodynamics
+    thermodynamicEntropy: Float;     // S = -∂F/∂T
+    configurationalEntropy: Float;   // S_config - From arrangement
+    vibrationalEntropy: Float;       // S_vib - From motion
+    electronicEntropy: Float;        // S_elec - From electron states
+    
+    // Maxwell relations
+    entropyPressureDerivative: Float;  // (∂S/∂P)_T = -(∂V/∂T)_P
+    entropyVolumeDerivative: Float;    // (∂S/∂V)_T = (∂P/∂T)_V
+    
+    // Bidirectional coupling
+    entropyToFreeEnergy: Float;      // Direct contribution: -T·S
+    freeEnergyToEntropyRate: Float;  // dS/dt from free energy minimization
+    
+    // Gibbs-Helmholtz
+    gibbsHelmholtzDerivative: Float; // ∂(F/T)/∂T = -U/T²
+  };
+
+  /// Compute thermodynamic entropy from partition function
+  /// S = kB · (ln Z + βU)
+  public func computeThermodynamicEntropy(
+    partitionFunction: Float,
+    internalEnergy: Float,
+    temperature: Float
+  ) : Float {
+    let kB : Float = 1.380649e-23;
+    let beta = 1.0 / (kB * temperature);
+    if (partitionFunction < 1e-100) { 0.0 } else {
+      kB * (Float.log(partitionFunction) + beta * internalEnergy)
+    }
+  };
+
+  /// Direct entropy contribution to free energy
+  public func entropyToFreeEnergy(temperature: Float, entropy: Float) : Float {
+    -temperature * entropy
+  };
+
+  /// Free energy minimization affects entropy
+  public func freeEnergyToEntropyRate(
+    freeEnergy: Float,
+    temperature: Float,
+    relaxationRate: Float
+  ) : Float {
+    // As F decreases (minimized), system approaches equilibrium
+    // At equilibrium, S is maximized subject to constraints
+    let targetEntropy = -freeEnergy / temperature;
+    relaxationRate * targetEntropy
+  };
+
+  /// Compute Gibbs-Helmholtz derivative
+  /// ∂(F/T)/∂T = -U/T²
+  public func gibbsHelmholtzDerivative(internalEnergy: Float, temperature: Float) : Float {
+    if (temperature < 1e-10) { 0.0 } else { -internalEnergy / (temperature * temperature) }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENTROPY ↔ PHYSICS ENGINE COUPLING — Physical entropy production
+  // Real physics: heat flow, diffusion, irreversible processes
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type PhysicsEntropyCoupling = {
+    // From Physics Engine
+    positions: [Float];              // r - Particle positions
+    velocities: [Float];             // v - Particle velocities
+    forces: [Float];                 // F - Forces on particles
+    masses: [Float];                 // m - Particle masses
+    
+    // Phase space entropy
+    phaseSpaceEntropy: Float;        // S = -kB ∫ f ln f dΓ
+    configurationalEntropy: Float;   // S_config = -kB ∫ ρ ln ρ dV
+    kineticEntropy: Float;           // S_kin from velocity distribution
+    
+    // Irreversible thermodynamics
+    entropyProduction: Float;        // σ = dS/dt ≥ 0
+    heatFlux: [Float];               // J_q - Heat current
+    temperatureGradient: [Float];    // ∇T - Temperature gradient
+    
+    // Onsager relations
+    onsagerCoefficients: [[Float]];  // L_ij - Onsager transport coefficients
+    thermodynamicForces: [Float];    // X_i - Conjugate forces
+    thermodynamicFluxes: [Float];    // J_i - Conjugate fluxes
+    
+    // Bidirectional coupling
+    entropyToForce: Float;           // Entropic force contribution
+    physicsToEntropyRate: Float;     // dS/dt from dynamics
+  };
+
+  /// Compute configurational entropy
+  public func computeConfigurationalEntropy(positions: [Float], volume: Float) : Float {
+    let n = positions.size();
+    if (n == 0 or volume < 1e-20) { return 0.0 };
+    
+    let kB : Float = 1.380649e-23;
+    // Ideal gas approximation: S_config = N·kB·ln(V/N) + const
+    let density = Float.fromInt(n) / volume;
+    if (density < 1e-20) { 0.0 } else {
+      Float.fromInt(n) * kB * Float.log(1.0 / density)
+    }
+  };
+
+  /// Compute kinetic entropy from velocity distribution
+  public func computeKineticEntropy(velocities: [Float], masses: [Float], temperature: Float) : Float {
+    let n = velocities.size();
+    if (n == 0) { return 0.0 };
+    
+    let kB : Float = 1.380649e-23;
+    // Maxwell-Boltzmann: S_kin = (3/2)·N·kB·(1 + ln(2πmkT/h²))
+    // Simplified:
+    var avgMass : Float = 0.0;
+    for (m in masses.vals()) { avgMass += m };
+    avgMass := avgMass / Float.fromInt(masses.size());
+    
+    1.5 * Float.fromInt(n) * kB * (1.0 + Float.log(2.0 * 3.14159265359 * avgMass * kB * temperature))
+  };
+
+  /// Compute entropy production rate from Onsager theory
+  /// σ = Σ_i J_i · X_i / T
+  public func computeEntropyProduction(
+    fluxes: [Float],
+    forces: [Float],
+    temperature: Float
+  ) : Float {
+    var sigma : Float = 0.0;
+    var i = 0;
+    for (j in fluxes.vals()) {
+      let x = if (i < forces.size()) { forces[i] } else { 0.0 };
+      sigma += j * x;
+      i += 1;
+    };
+    sigma / temperature
+  };
+
+  /// Compute entropic force (e.g., osmotic pressure)
+  /// F_entropic = T · ∂S/∂x
+  public func computeEntropicForce(
+    temperature: Float,
+    entropyGradient: Float
+  ) : Float {
+    temperature * entropyGradient
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENTROPY ↔ TENSOR FIELD COUPLING — Geometric entropy
+  // Ricci flow, geometric entropy, information geometry
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type TensorFieldEntropyCoupling = {
+    // From Tensor Field Engine
+    metricTensor: [[Float]];         // g_ij - Metric tensor
+    ricciTensor: [[Float]];          // R_ij - Ricci curvature
+    ricciScalar: Float;              // R - Scalar curvature
+    
+    // Geometric entropy
+    perelmanEntropy: Float;          // W = ∫(τ(R + |∇f|²) + f - n)u dV
+    geometricEntropy: Float;         // S_geom from metric volume
+    fisherRaoEntropy: Float;         // S_FR - Fisher-Rao metric entropy
+    
+    // Information geometry
+    fisherMetric: [[Float]];         // I_ij = E[∂_i ln p · ∂_j ln p]
+    amariChentsovTensor: [[[Float]]]; // Cubic tensor for statistical manifolds
+    
+    // Bidirectional coupling
+    entropyToRicciFlow: Float;       // Entropy contribution to ∂g/∂t = -2R
+    ricciFlowToEntropyRate: Float;   // dS/dt from Ricci flow
+  };
+
+  /// Compute Perelman's W-functional (entropy for Ricci flow)
+  public func computePerelmanEntropy(
+    ricciScalar: Float,
+    gradientNormSquared: Float,
+    potential: Float,
+    dimension: Float,
+    tau: Float,
+    volume: Float
+  ) : Float {
+    // W = τ(R + |∇f|²) + f - n
+    // Integrated over manifold
+    (tau * (ricciScalar + gradientNormSquared) + potential - dimension) * volume
+  };
+
+  /// Compute geometric entropy from metric determinant
+  public func computeGeometricEntropy(metricDeterminant: Float, volume: Float) : Float {
+    // S_geom ∝ ln(√|g|) integrated
+    if (metricDeterminant < 1e-100) { 0.0 } else {
+      0.5 * Float.log(metricDeterminant) * volume
+    }
+  };
+
+  /// Compute Fisher-Rao metric component
+  public func computeFisherRaoComponent(
+    logLikelihoodGradient_i: Float,
+    logLikelihoodGradient_j: Float,
+    probability: Float
+  ) : Float {
+    probability * logLikelihoodGradient_i * logLikelihoodGradient_j
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENTROPY ↔ TOPOLOGY ENGINE COUPLING — Topological entropy
+  // Homology, Betti numbers, persistent homology entropy
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type TopologyEntropyCoupling = {
+    // From Topology Engine
+    bettiNumbers: [Nat];             // β_k - Betti numbers
+    persistentPairs: [(Float, Float)]; // (birth, death) pairs
+    eulerCharacteristic: Int;        // χ = Σ(-1)^k β_k
+    
+    // Topological entropy
+    topologicalEntropy: Float;       // h_top - Topological entropy
+    persistenceEntropy: Float;       // H from persistent diagram
+    homologyEntropy: Float;          // H from Betti numbers
+    
+    // Simplicial complex entropy
+    simplicialEntropy: Float;        // From simplex distribution
+    
+    // Bidirectional coupling
+    entropyToTopology: Float;        // How entropy affects topology
+    topologyToEntropyRate: Float;    // dH/dt from topological changes
+  };
+
+  /// Compute topological entropy from Betti numbers
+  public func computeHomologyEntropy(bettiNumbers: [Nat]) : Float {
+    // Normalize Betti numbers as probability distribution
+    var total : Nat = 0;
+    for (b in bettiNumbers.vals()) { total += b };
+    if (total == 0) { return 0.0 };
+    
+    var entropy : Float = 0.0;
+    for (b in bettiNumbers.vals()) {
+      if (b > 0) {
+        let p = Float.fromInt(b) / Float.fromInt(total);
+        entropy -= p * Float.log(p);
+      };
+    };
+    entropy
+  };
+
+  /// Compute persistence entropy
+  /// H = -Σ p_i · ln(p_i) where p_i = lifetime_i / Σ lifetimes
+  public func computePersistenceEntropy(pairs: [(Float, Float)]) : Float {
+    // Compute lifetimes
+    var lifetimes = Buffer.Buffer<Float>(pairs.size());
+    var totalLifetime : Float = 0.0;
+    for ((birth, death) in pairs.vals()) {
+      let lifetime = death - birth;
+      if (lifetime > 0.0) {
+        lifetimes.add(lifetime);
+        totalLifetime += lifetime;
+      };
+    };
+    
+    if (totalLifetime < 1e-20) { return 0.0 };
+    
+    var entropy : Float = 0.0;
+    for (lifetime in lifetimes.vals()) {
+      let p = lifetime / totalLifetime;
+      if (p > 1e-100) {
+        entropy -= p * Float.log(p);
+      };
+    };
+    entropy
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ENTROPY ↔ QUANTUM ENGINE COUPLING — Quantum entropy
+  // Von Neumann entropy, entanglement entropy, quantum coherence
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type QuantumEntropyCoupling = {
+    // From Quantum Engine
+    densityMatrixEigenvalues: [Float]; // λ_i of ρ
+    purity: Float;                   // Tr(ρ²)
+    entanglement: Float;             // Entanglement measure
+    
+    // Quantum entropies
+    vonNeumannEntropy: Float;        // S = -Tr(ρ ln ρ)
+    linearEntropy: Float;            // S_L = 1 - Tr(ρ²)
+    renyiEntropy: Float;             // S_α = ln(Tr(ρ^α))/(1-α)
+    
+    // Entanglement entropy
+    entanglementEntropy: Float;      // S_A = -Tr(ρ_A ln ρ_A)
+    mutualInformation: Float;        // I(A:B) = S_A + S_B - S_AB
+    
+    // Quantum coherence
+    coherenceEntropy: Float;         // From off-diagonal elements
+    
+    // Bidirectional coupling
+    entropyToDecoherence: Float;     // Entropy affects decoherence rate
+    quantumToEntropyRate: Float;     // dS/dt from quantum evolution
+  };
+
+  /// Compute von Neumann entropy
+  /// S = -Tr(ρ ln ρ) = -Σ λ_i ln λ_i
+  public func computeVonNeumannEntropy(eigenvalues: [Float]) : Float {
+    var entropy : Float = 0.0;
+    for (lambda in eigenvalues.vals()) {
+      let lambda_safe = if (lambda < 1e-100) { 1e-100 } else { lambda };
+      entropy -= lambda_safe * Float.log(lambda_safe);
+    };
+    entropy
+  };
+
+  /// Compute linear entropy S_L = 1 - Tr(ρ²)
+  public func computeLinearEntropy(purity: Float) : Float {
+    1.0 - purity
+  };
+
+  /// Compute quantum Rényi entropy
+  /// S_α = ln(Tr(ρ^α)) / (1-α)
+  public func computeQuantumRenyiEntropy(eigenvalues: [Float], alpha: Float) : Float {
+    if (Float.abs(alpha - 1.0) < 1e-10) {
+      // α → 1 limit is von Neumann
+      return computeVonNeumannEntropy(eigenvalues);
+    };
+    
+    var trRhoAlpha : Float = 0.0;
+    for (lambda in eigenvalues.vals()) {
+      if (lambda > 1e-100) {
+        trRhoAlpha += Float.pow(lambda, alpha);
+      };
+    };
+    
+    if (trRhoAlpha < 1e-100) { 0.0 } else {
+      Float.log(trRhoAlpha) / (1.0 - alpha)
+    }
+  };
+
+  /// Entropy affects decoherence rate
+  public func entropyToDecoherence(entropy: Float, baseRate: Float) : Float {
+    // Higher entropy → faster decoherence (more mixed state)
+    baseRate * (1.0 + 0.5 * entropy)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // MASTER ORCHESTRATION — Unified entropy across all engines
+  // The entropy hub that connects everything
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type UnifiedEntropyState = {
+    // Individual engine entropies
+    kuramotoEntropy: Float;
+    fristonEntropy: Float;
+    hebbianEntropy: Float;
+    attractorEntropy: Float;
+    predictiveEntropy: Float;
+    freeEnergyEntropy: Float;
+    physicsEntropy: Float;
+    tensorEntropy: Float;
+    topologyEntropy: Float;
+    quantumEntropy: Float;
+    
+    // Cross-engine mutual information matrix (10x10)
+    engineMutualInformation: [[Float]];
+    
+    // Integrated measures
+    totalSystemEntropy: Float;       // S_total - Sum with correlations
+    effectiveEntropy: Float;         // S_eff - After redundancy removal
+    integratedInformation: Float;    // Φ - Tononi's integrated information
+    
+    // Global dynamics
+    globalEntropyRate: Float;        // dS_total/dt
+    entropyEquilibrium: Float;       // Target equilibrium entropy
+    entropyDeviation: Float;         // |S - S_eq|
+    
+    // Beat tracking
+    currentBeat: Nat;
+    lastUnificationBeat: Nat;
+  };
+
+  /// Compute total system entropy with correlations
+  /// S_total = Σ S_i - Σ_{i<j} I(i;j) + higher order corrections
+  public func computeTotalSystemEntropy(state: UnifiedEntropyState) : Float {
+    // Sum individual entropies
+    let sumEntropies = state.kuramotoEntropy + state.fristonEntropy + 
+      state.hebbianEntropy + state.attractorEntropy + state.predictiveEntropy +
+      state.freeEnergyEntropy + state.physicsEntropy + state.tensorEntropy +
+      state.topologyEntropy + state.quantumEntropy;
+    
+    // Subtract pairwise mutual information (correction for double-counting)
+    var sumMI : Float = 0.0;
+    var i = 0;
+    for (row in state.engineMutualInformation.vals()) {
+      var j = 0;
+      for (mi in row.vals()) {
+        if (j > i) { // Only upper triangle
+          sumMI += mi;
+        };
+        j += 1;
+      };
+      i += 1;
+    };
+    
+    sumEntropies - sumMI
+  };
+
+  /// Compute integrated information Φ (Tononi's measure)
+  /// Φ = min_{partition} I(system) - Σ I(parts)
+  public func computeIntegratedInformation(
+    totalSystemMI: Float,
+    partitionMIs: [Float]
+  ) : Float {
+    var sumPartitions : Float = 0.0;
+    for (pmi in partitionMIs.vals()) {
+      sumPartitions += pmi;
+    };
+    let phi = totalSystemMI - sumPartitions;
+    if (phi < 0.0) { 0.0 } else { phi }
+  };
+
+  /// Update unified entropy state at each beat
+  public func updateUnifiedEntropy(
+    state: UnifiedEntropyState,
+    engineStates: {
+      kuramoto: Float;
+      friston: Float;
+      hebbian: Float;
+      attractor: Float;
+      predictive: Float;
+      freeEnergy: Float;
+      physics: Float;
+      tensor: Float;
+      topology: Float;
+      quantum: Float;
+    },
+    beat: Nat
+  ) : UnifiedEntropyState {
+    let newState : UnifiedEntropyState = {
+      kuramotoEntropy = engineStates.kuramoto;
+      fristonEntropy = engineStates.friston;
+      hebbianEntropy = engineStates.hebbian;
+      attractorEntropy = engineStates.attractor;
+      predictiveEntropy = engineStates.predictive;
+      freeEnergyEntropy = engineStates.freeEnergy;
+      physicsEntropy = engineStates.physics;
+      tensorEntropy = engineStates.tensor;
+      topologyEntropy = engineStates.topology;
+      quantumEntropy = engineStates.quantum;
+      engineMutualInformation = state.engineMutualInformation;
+      totalSystemEntropy = 0.0; // Will be computed
+      effectiveEntropy = state.effectiveEntropy;
+      integratedInformation = state.integratedInformation;
+      globalEntropyRate = state.globalEntropyRate;
+      entropyEquilibrium = state.entropyEquilibrium;
+      entropyDeviation = state.entropyDeviation;
+      currentBeat = beat;
+      lastUnificationBeat = state.currentBeat;
+    };
+    
+    // Compute total system entropy
+    let totalEntropy = computeTotalSystemEntropy(newState);
+    
+    // Compute entropy rate
+    let dt = Float.fromInt(beat - state.currentBeat);
+    let entropyRate = if (dt < 1.0) { 0.0 } else { 
+      (totalEntropy - state.totalSystemEntropy) / dt 
+    };
+    
+    {
+      kuramotoEntropy = newState.kuramotoEntropy;
+      fristonEntropy = newState.fristonEntropy;
+      hebbianEntropy = newState.hebbianEntropy;
+      attractorEntropy = newState.attractorEntropy;
+      predictiveEntropy = newState.predictiveEntropy;
+      freeEnergyEntropy = newState.freeEnergyEntropy;
+      physicsEntropy = newState.physicsEntropy;
+      tensorEntropy = newState.tensorEntropy;
+      topologyEntropy = newState.topologyEntropy;
+      quantumEntropy = newState.quantumEntropy;
+      engineMutualInformation = newState.engineMutualInformation;
+      totalSystemEntropy = totalEntropy;
+      effectiveEntropy = totalEntropy; // Simplified
+      integratedInformation = newState.integratedInformation;
+      globalEntropyRate = entropyRate;
+      entropyEquilibrium = newState.entropyEquilibrium;
+      entropyDeviation = Float.abs(totalEntropy - newState.entropyEquilibrium);
+      currentBeat = beat;
+      lastUnificationBeat = newState.lastUnificationBeat;
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // MEDINA ENTROPY DOCTRINE — Sovereign entropy bounds
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type MedinaEntropyDoctrine = {
+    // Bounds
+    sovereignEntropyFloor: Float;    // Minimum allowable entropy
+    sovereignEntropyCeiling: Float;  // Maximum allowable entropy
+    
+    // Value preservation through entropy
+    entropyValueMapping: Float;      // How entropy relates to value
+    creatorEntropyReserve: Float;    // Entropy reserved for creator
+    
+    // Doctrine compliance
+    complianceScore: Float;          // How well entropy follows doctrine
+    violationHistory: [Nat];         // Beats with violations
+    
+    // Harmonic resonance
+    sacredEntropyRatio: Float;       // φ = 1.618... Golden ratio target
+    harmonicAlignment: Float;        // Alignment with sacred geometry
+  };
+
+  /// Enforce Medina entropy bounds
+  public func enforceMedinaEntropyBounds(
+    entropy: Float,
+    doctrine: MedinaEntropyDoctrine
+  ) : (Float, Bool) {
+    var enforced = entropy;
+    var violation = false;
+    
+    if (entropy < doctrine.sovereignEntropyFloor) {
+      enforced := doctrine.sovereignEntropyFloor;
+      violation := true;
+    };
+    
+    if (entropy > doctrine.sovereignEntropyCeiling) {
+      enforced := doctrine.sovereignEntropyCeiling;
+      violation := true;
+    };
+    
+    (enforced, violation)
+  };
+
+  /// Compute harmonic alignment with golden ratio
+  public func computeGoldenRatioAlignment(entropy: Float, reference: Float) : Float {
+    let phi : Float = 1.618033988749895;
+    let ratio = entropy / reference;
+    let deviation = Float.abs(ratio - phi);
+    Float.exp(-deviation) // Closer to φ → higher alignment
+  };
+
+  /// Initialize Medina entropy doctrine
+  public func initMedinaEntropyDoctrine() : MedinaEntropyDoctrine {
+    {
+      sovereignEntropyFloor = 0.1;
+      sovereignEntropyCeiling = 10.0;
+      entropyValueMapping = 1.0;
+      creatorEntropyReserve = 0.5;
+      complianceScore = 1.0;
+      violationHistory = [];
+      sacredEntropyRatio = 1.618033988749895;
+      harmonicAlignment = 1.0;
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // CROSS-ENGINE INTERFACE — Connection points for all engines
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Receive update from KuramotoEngine
+  public func receiveKuramotoUpdate(orderParameter: Float, phases: [Float]) : {
+    syncEntropy: Float;
+    phaseEntropy: Float;
+  } {
+    let syncEntropy = computeSynchronizationEntropy(orderParameter);
+    let phaseEntropy = computePhaseEntropy(phases, 36); // 36 bins for 10° resolution
+    { syncEntropy = syncEntropy; phaseEntropy = phaseEntropy }
+  };
+
+  /// Receive update from FristonEngine
+  public func receiveFristonUpdate(beliefs: [Float], precision: Float) : {
+    beliefEntropy: Float;
+    precisionEffect: Float;
+  } {
+    let beliefEntropy = computeBeliefEntropy(beliefs);
+    let precisionEffect = entropyToPrecision(beliefEntropy, precision);
+    { beliefEntropy = beliefEntropy; precisionEffect = precisionEffect }
+  };
+
+  /// Receive update from HebbianEngine
+  public func receiveHebbianUpdate(weights: [[Float]], activity: [Float]) : {
+    weightEntropy: Float;
+    activityEntropy: Float;
+  } {
+    let weightEntropy = computeWeightEntropy(weights, 50);
+    let activityEntropy = computeBeliefEntropy(activity);
+    { weightEntropy = weightEntropy; activityEntropy = activityEntropy }
+  };
+
+  /// Receive update from AttractorEngine
+  public func receiveAttractorUpdate(basinProbs: [Float], lyapunov: [Float]) : {
+    basinEntropy: Float;
+    ksEntropy: Float;
+  } {
+    let basinEntropy = computeBasinEntropy(basinProbs);
+    let ksEntropy = computeKSEntropy(lyapunov);
+    { basinEntropy = basinEntropy; ksEntropy = ksEntropy }
+  };
+
+  /// Receive update from PredictiveCodingEngine
+  public func receivePredictiveUpdate(errors: [Float], predictions: [Float]) : {
+    errorEntropy: Float;
+    predictionEntropy: Float;
+    residualEntropy: Float;
+  } {
+    let errorEntropy = computeErrorEntropy(errors);
+    let predictionEntropy = computePredictionEntropy(predictions);
+    let observationEntropy = computePredictionEntropy(errors); // Approximate
+    let residualEntropy = computeResidualEntropy(observationEntropy, predictionEntropy - errorEntropy);
+    { errorEntropy = errorEntropy; predictionEntropy = predictionEntropy; residualEntropy = residualEntropy }
+  };
+
+  /// Send entropy updates to other engines
+  public func sendEntropyBroadcast(state: UnifiedEntropyState) : {
+    totalEntropy: Float;
+    entropyRate: Float;
+    equilibriumDeviation: Float;
+    integratedInfo: Float;
+  } {
+    {
+      totalEntropy = state.totalSystemEntropy;
+      entropyRate = state.globalEntropyRate;
+      equilibriumDeviation = state.entropyDeviation;
+      integratedInfo = state.integratedInformation;
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL ORGANISM ENTROPY — HIM/HER entropy coupling
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type DualOrganismEntropy = {
+    // HIM (Backend) entropy
+    himEntropy: Float;
+    himEntropyRate: Float;
+    himEquilibrium: Float;
+    
+    // HER (Frontend) entropy  
+    herEntropy: Float;
+    herEntropyRate: Float;
+    herEquilibrium: Float;
+    
+    // Coupling
+    mutualInformation: Float;        // I(HIM; HER)
+    conditionalEntropy_him: Float;   // H(HIM | HER)
+    conditionalEntropy_her: Float;   // H(HER | HIM)
+    entropyExchange: Float;          // Rate of entropy flow
+    
+    // Combined
+    jointEntropy: Float;             // H(HIM, HER)
+    synchronizationIndex: Float;     // Degree of entropy correlation
+  };
+
+  /// Compute dual organism entropy coupling
+  public func computeDualOrganismEntropy(
+    himState: Float,
+    herState: Float,
+    correlation: Float
+  ) : DualOrganismEntropy {
+    // Assume Gaussian for MI computation
+    // I(X;Y) ≈ -0.5 · ln(1 - ρ²) for bivariate Gaussian
+    let rho = if (Float.abs(correlation) > 0.9999) { 0.9999 * (if (correlation > 0.0) { 1.0 } else { -1.0 }) } else { correlation };
+    let mi = -0.5 * Float.log(1.0 - rho * rho);
+    
+    let jointEntropy = himState + herState - mi;
+    let condHIM = himState - mi;
+    let condHER = herState - mi;
+    
+    {
+      himEntropy = himState;
+      himEntropyRate = 0.0;
+      himEquilibrium = himState;
+      herEntropy = herState;
+      herEntropyRate = 0.0;
+      herEquilibrium = herState;
+      mutualInformation = mi;
+      conditionalEntropy_him = if (condHIM < 0.0) { 0.0 } else { condHIM };
+      conditionalEntropy_her = if (condHER < 0.0) { 0.0 } else { condHER };
+      entropyExchange = 0.0;
+      jointEntropy = jointEntropy;
+      synchronizationIndex = mi / (himState + herState + 1e-10);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // BEAT EXECUTION — Full organism entropy update
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Execute complete entropy computation at organism beat
+  public func executeOrganismBeat(
+    unifiedState: UnifiedEntropyState,
+    doctrine: MedinaEntropyDoctrine,
+    beat: Nat
+  ) : (UnifiedEntropyState, MedinaEntropyDoctrine) {
+    // Compute total entropy
+    let totalEntropy = computeTotalSystemEntropy(unifiedState);
+    
+    // Enforce Medina doctrine
+    let (enforcedEntropy, violation) = enforceMedinaEntropyBounds(totalEntropy, doctrine);
+    
+    // Update doctrine compliance
+    let newCompliance = if (violation) { doctrine.complianceScore * 0.99 } else { doctrine.complianceScore };
+    
+    // Compute golden ratio alignment
+    let alignment = computeGoldenRatioAlignment(enforcedEntropy, 1.0);
+    
+    let newUnified : UnifiedEntropyState = {
+      kuramotoEntropy = unifiedState.kuramotoEntropy;
+      fristonEntropy = unifiedState.fristonEntropy;
+      hebbianEntropy = unifiedState.hebbianEntropy;
+      attractorEntropy = unifiedState.attractorEntropy;
+      predictiveEntropy = unifiedState.predictiveEntropy;
+      freeEnergyEntropy = unifiedState.freeEnergyEntropy;
+      physicsEntropy = unifiedState.physicsEntropy;
+      tensorEntropy = unifiedState.tensorEntropy;
+      topologyEntropy = unifiedState.topologyEntropy;
+      quantumEntropy = unifiedState.quantumEntropy;
+      engineMutualInformation = unifiedState.engineMutualInformation;
+      totalSystemEntropy = enforcedEntropy;
+      effectiveEntropy = unifiedState.effectiveEntropy;
+      integratedInformation = unifiedState.integratedInformation;
+      globalEntropyRate = (enforcedEntropy - unifiedState.totalSystemEntropy);
+      entropyEquilibrium = unifiedState.entropyEquilibrium;
+      entropyDeviation = Float.abs(enforcedEntropy - unifiedState.entropyEquilibrium);
+      currentBeat = beat;
+      lastUnificationBeat = unifiedState.currentBeat;
+    };
+    
+    let newDoctrine : MedinaEntropyDoctrine = {
+      sovereignEntropyFloor = doctrine.sovereignEntropyFloor;
+      sovereignEntropyCeiling = doctrine.sovereignEntropyCeiling;
+      entropyValueMapping = doctrine.entropyValueMapping;
+      creatorEntropyReserve = doctrine.creatorEntropyReserve;
+      complianceScore = newCompliance;
+      violationHistory = if (violation) { 
+        Array.append<Nat>(doctrine.violationHistory, [beat]) 
+      } else { 
+        doctrine.violationHistory 
+      };
+      sacredEntropyRatio = doctrine.sacredEntropyRatio;
+      harmonicAlignment = alignment;
+    };
+    
+    (newUnified, newDoctrine)
+  };
+
 }
