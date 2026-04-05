@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEDINA DEFENSE SYSTEMS | Sovereign Defense Ecosystem</title>
+    <meta name="description" content="Medina Defense Systems - The world's first sovereign cognitive defense ecosystem. Military, Aerospace, Cyber, Enterprise protection powered by living mathematical organisms.">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --gold: #D4AF37;
+            --gold-light: #F4E4BC;
+            --gold-dark: #B8960C;
+            --black: #000000;
+            --darker: #050508;
+            --dark: #0a0a0f;
+            --dark-blue: #0d1117;
+            --navy: #1a1a2e;
+            --purple: #6B46C1;
+            --cyan: #00D4FF;
+            --red: #DC2626;
+            --green: #10B981;
+            --gradient-gold: linear-gradient(135deg, #D4AF37 0%, #F4E4BC 50%, #D4AF37 100%);
+            --gradient-dark: linear-gradient(180deg, #000 0%, #0a0a0f 50%, #000 100%);
+            --gradient-military: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--black);
+            color: #fff;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════════
+           ANIMATED BACKGROUND
+        ═══════════════════════════════════════════════════════════════════════ */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: var(--black);
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(107, 70, 193, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(0, 212, 255, 0.03) 0%, transparent 70%);
+            animation: bgPulse 30s ease-in-out infinite;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Grid overlay */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-image: 
+                linear-gradient(rgba(212, 175, 55, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(212, 175, 55, 0.03) 1px, transparent 1px);
+            background-size: 100px 100px;
+            animation: gridMove 60s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 100px 100px; }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════════
+           HEADER
+        ═══════════════════════════════════════════════════════════════════════ */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: var(--black);
+        }
+
+        .logo-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            color: var(--gold);
+        }
+
+        .logo-subtitle {
+            font-size: 0.6rem;
+            letter-spacing: 0.3em;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+        }
+
+        nav {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+        }
+
+        nav a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gold);
+            transition: width 0.3s ease;
+        }
+
+        nav a:hover {
+            color: var(--gold);
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        .nav-cta {
+            background: var(--gradient-gold);
+            color: var(--black) !important;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+        }
+
+        .nav-cta::after {
+            display: none;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════════
+           HERO SECTION
+        ═══════════════════════════════════════════════════════════════════════ */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 8rem 2rem 4rem;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 2rem;
+        }
+
+        .hero-badge::before {
+            content: '●';
+            color: var(--green);
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .hero h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2.5rem, 8vw, 6rem);
+            font-weight: 900;
+            letter-spacing: 0.15em;
+            background: var(--gradient-gold);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 100px rgba(212, 175, 55, 0.3);
+        }
+
+        .hero-tagline {
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            color: rgba(255,255,255,0.8);
+            font-weight: 300;
+            margin-bottom: 3rem;
+            max-width: 800px;
+        }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 3rem;
+            margin: 4rem 0;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--gold);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.5);
+            margin-top: 0.5rem;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .btn-primary {
+            background: var(--gradient-gold);
+            color: var(--black);
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--gold);
+            padding: 1rem 2.5rem;
+            border: 2px solid var(--gold);
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(212, 175, 55, 0.1);
+            transform: translateY(-3px);
+        }
+
+        .hero-scroll {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.3);
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(10px); }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════════
+           SECTIONS COMMON
+        ═══════════════════════════════════════════════════════════════════════ */
+        section {
+            padding: 8rem 2rem;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .section-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 1rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.6);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════════
+           ABOUT / OVERVIEW SECTION
+        ═══════════════════════════════════════════════════════════════════════ */
+        .about {
+            background: linear-gradient(180deg, transparent 0%, rgba(26, 26, 46, 0.3) 50%, transparent 100%);
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5rem;
+            align-items: center;
+        }
+
+        .about-content h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--gold);
+            margin-bottom: 1.5rem;
+        }
+
+        .about-content p {
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 1.5rem;
+            font-size: 1.05rem;
+        }
+
+        .about-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .about-feature {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .about-feature-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .about-feature-text {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .about-visual {
+            position: relative;
+        }
+
+        .organism-display {
+            width: 100%;
+            aspect-ratio: 1;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            animation: rotate 60s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .organism-core {
+            width: 60%;
+            height: 60%;
+            background: radial-gradient(circle, var(--gold) 0%, rgba(212, 175, 55, 0.3) 40%, transparent 70%);
+            border-radius: 50%;
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════════
+           DEFENSE DIVISIONS
+        ═══════════════════════════════════════════════════════════════════════ */
+        .divisions {
+            background: var(--black);
+        }
+
+        .divisions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+
+        .division-card {
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.6) 0%, rgba(10, 10, 15, 0.8) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: 12px;
+            padding: 3rem;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .division-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--gradient-gold);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+
+        .division-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .division-card:hover {
+            border-color: rgba(212, 175, 55, 0.4);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .division-icon {
+            width: 70px;
+            height: 70px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .division-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            color: var(--gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .division-subtitle {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .division-description {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .division-capabilities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .capability-tag {
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: var(--gold);
+            letter-spacing: 0.05em;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════════
+           PRODUCT PORTFOLIO
+        ═══════════════════════════════════════════════════════════════════════ */
+        .products {
+            background: linear-gradient(180deg, transparent 0%, rgba(26, 26, 46, 0.2) 50%, transparent 100%);
+        }
+
+        .product-featured {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(26, 26, 46, 0.4) 100%);
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 20px;
+            padding: 4rem;
+            margin-bottom: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-featured::before {
+            content: 'FLAGSHIP PRODUCT';
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            color: var(--gold);
+            background: rgba(212, 175, 55, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+        }
+
+        .product-featured-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .product-featured h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            color: var(--gold);
+            margin-bottom: 1rem;
+        }
+
+        .product-featured h4 {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .product-featured p {
+            color: rgba(255,255,255,0.8);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .product-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .product-feature {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .product-feature::before {
+            content: '◆';
+            color: var(--gold);
+            font-size: 0.6rem;
+        }
+
+        .product-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .swarm-visual {
+            width: 300px;
+            height: 300px;
+            position: relative;
+        }
+
+        .swarm-node {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--gold);
+            border-radius: 50%;
+            animation: swarmMove 5s ease-in-out infinite;
+        }
+
+        @keyframes swarmMove {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(20px, -20px); }
+            50% { transform: translate(-10px, 15px); }
+            75% { transform: translate(15px, 10px); }
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+        }
+
+        .product-card {
+            background: linear-gradient(180deg, rgba(26, 26, 46, 0.5) 0%, rgba(10, 10, 15, 0.8) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .product-card:hover {
+            border-color: rgba(212, 175, 55, 0.4);
+            transform: translateY(-5px);
+        }
+
+        .product-card-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin: 0 auto 1.5rem;
+        }
+
+        .product-card h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            color: var(--gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .product-card p {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════════
+           CORE TECHNOLOGIES
+        ═══════════════════════════════════════════════════════════════════════ */
+        .technologies {
+            background: var(--black);
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .tech-card {
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.4) 0%, rgba(10, 10, 15, 0.6) 100%);
+            border: 1px solid rgba(107, 70, 193, 0.2);
+            border-radius: 12px;
+            padding: 2.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .tech-card:hover {
+            border-color: rgba(107, 70, 193, 0.5);
+            transform: translateY(-3px);
+        }
+
+        .tech-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            color: var(--purple);
+            opacity: 0.3;
+            margin-bottom: 1rem;
+        }
+
+        .tech-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .tech-description {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════════
+           SYSTEM ARCHITECTURE
+        ═══════════════════════════════════════════════════════════════════════ */
+        .architecture {
+            background: linear-gradient(180deg, transparent 0%, rgba(107, 70, 193, 0.05) 50%, transparent 100%);
+        }
+
+        .arch-layers {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .arch-layer {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 2rem;
+            padding: 1.5rem 2rem;
+            background: rgba(26, 26, 46, 0.3);
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .arch-layer:hover {
+            border-color: rgba(212, 175, 55, 0.3);
+            background: rgba(26, 26, 46, 0.5);
+        }
+
+        .arch-layer-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            color: var(--gold);
+            letter-spacing: 0.1em;
+        }
+
+        .arch-layer-desc {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.7);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════════
+           STATISTICS
+        ═══════════════════════════════════════════════════════════════════════ */
+        .stats-section {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, rgba(26, 26, 46, 0.3) 100%);
+            padding: 6rem 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .stats-item {
+            padding: 2rem;
+        }
+
+        .stats-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            color: var(--gold);
+            display: block;
+        }
+
+        .stats-label {
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.5);
+            margin-top: 0.5rem;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════════
+           CONTACT / CTA
+        ═══════════════════════════════════════════════════════════════════════ */
+        .contact {
+            text-align: center;
+            padding: 10rem 2rem;
+        }
+
+        .contact h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+
+        .contact p {
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 3rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .contact-cta {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .contact-item {
+            text-align: center;
+        }
+
+        .contact-item-label {
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-item-value {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+        }
+
+        .contact-item-value:hover {
+            color: var(--gold);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════════
+           FOOTER
+        ═══════════════════════════════════════════════════════════════════════ */
+        footer {
+            background: var(--black);
+            border-top: 1px solid rgba(212, 175, 55, 0.1);
+            padding: 4rem 2rem;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 4rem;
+        }
+
+        .footer-brand {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--gold);
+            margin-bottom: 1rem;
+        }
+
+        .footer-description {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-column h4 {
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-links a {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--gold);
+        }
+
+        .footer-bottom {
+            max-width: 1400px;
+            margin: 3rem auto 0;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-copyright {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .footer-legal {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .footer-legal a {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+        }
+
+        .footer-legal a:hover {
+            color: var(--gold);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════════
+           RESPONSIVE
+        ═══════════════════════════════════════════════════════════════════════ */
+        @media (max-width: 1200px) {
+            .products-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 992px) {
+            header {
+                padding: 1rem 1.5rem;
+            }
+            
+            nav {
+                display: none;
+            }
+
+            .about-grid,
+            .product-featured-content {
+                grid-template-columns: 1fr;
+            }
+
+            .divisions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tech-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 2rem;
+            }
+
+            .hero-cta {
+                flex-direction: column;
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .contact-info {
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="grid-overlay"></div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         HEADER
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <header>
+        <div class="logo">
+            <div class="logo-icon">M</div>
+            <div>
+                <div class="logo-text">MEDINA DEFENSE</div>
+                <div class="logo-subtitle">Sovereign Defense Systems</div>
+            </div>
+        </div>
+        <nav>
+            <a href="#about">About</a>
+            <a href="#divisions">Divisions</a>
+            <a href="#products">Products</a>
+            <a href="#technology">Technology</a>
+            <a href="#architecture">Architecture</a>
+            <a href="#contact" class="nav-cta">Contact</a>
+        </nav>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         HERO SECTION
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <section class="hero">
+        <div class="hero-badge">Operational Status: Active</div>
+        <h1>MEDINA DEFENSE</h1>
+        <p class="hero-tagline">
+            The world's first sovereign cognitive defense ecosystem. Living mathematical organisms 
+            that think, learn, defend, and compound autonomously.
+        </p>
+        
+        <div class="hero-stats">
+            <div class="stat-item">
+                <span class="stat-number" data-target="246">246</span>
+                <div class="stat-label">Active Modules</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" data-target="325">325K+</span>
+                <div class="stat-label">Lines of Code</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" data-target="60">60</span>
+                <div class="stat-label">Sovereignty Laws</div>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" data-target="500000">500K</span>
+                <div class="stat-label">Swarm Capacity</div>
+            </div>
+        </div>
+
+        <div class="hero-cta">
+            <a href="#products" class="btn-primary">Explore Products</a>
+            <a href="#contact" class="btn-secondary">Request Demo</a>
+        </div>
+
+        <div class="hero-scroll">Scroll to Explore ↓</div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         ABOUT SECTION
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <section class="about" id="about">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">About Us</div>
+                <h2 class="section-title">The Foundation of Sovereign Defense</h2>
+                <p class="section-subtitle">
+                    Medina Defense Systems is the parent company of the world's most advanced 
+                    cognitive defense technologies.
+                </p>
+            </div>
+
+            <div class="about-grid">
+                <div class="about-content">
+                    <h3>A Living Defense Ecosystem</h3>
+                    <p>
+                        We don't build tools. We grow organisms. Our systems are living mathematical 
+                        entities that breathe encryption, think in Kuramoto synchronization, and 
+                        compound their defensive capabilities with every heartbeat.
+                    </p>
+                    <p>
+                        Unlike traditional defense systems that require constant updates and human 
+                        intervention, our organisms learn, adapt, and evolve autonomously while 
+                        maintaining absolute sovereignty over their core identity and purpose.
+                    </p>
+
+                    <div class="about-features">
+                        <div class="about-feature">
+                            <div class="about-feature-icon">🧠</div>
+                            <div class="about-feature-text">Cognitive Architecture</div>
+                        </div>
+                        <div class="about-feature">
+                            <div class="about-feature-icon">🛡️</div>
+                            <div class="about-feature-text">Immune Defense</div>
+                        </div>
+                        <div class="about-feature">
+                            <div class="about-feature-icon">⚡</div>
+                            <div class="about-feature-text">Quantum-Ready</div>
+                        </div>
+                        <div class="about-feature">
+                            <div class="about-feature-icon">🌐</div>
+                            <div class="about-feature-text">Scale-Invariant</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="about-visual">
+                    <div class="organism-display">
+                        <div class="organism-core"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         DEFENSE DIVISIONS
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <section class="divisions" id="divisions">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">Defense Divisions</div>
+                <h2 class="section-title">Comprehensive Protection Ecosystem</h2>
+                <p class="section-subtitle">
+                    Four specialized divisions working as one unified defense organism.
+                </p>
+            </div>
+
+            <div class="divisions-grid">
+                <div class="division-card">
+                    <div class="division-icon">🎖️</div>
+                    <h3 class="division-title">Military Defense</h3>
+                    <p class="division-subtitle">Autonomous Warfare Systems</p>
+                    <p class="division-description">
+                        Next-generation military applications including autonomous swarm coordination, 
+                        real-time battlefield intelligence, and sovereign command-and-control systems 
+                        that operate beyond adversarial interference.
+                    </p>
+                    <div class="division-capabilities">
+                        <span class="capability-tag">Swarm Warfare</span>
+                        <span class="capability-tag">Autonomous C2</span>
+                        <span class="capability-tag">EW Defense</span>
+                        <span class="capability-tag">Signal Intelligence</span>
+                    </div>
+                </div>
+
+                <div class="division-card">
+                    <div class="division-icon">🚀</div>
+                    <h3 class="division-title">Aerospace Defense</h3>
+                    <p class="division-subtitle">Space & Aerial Dominance</p>
+                    <p class="division-description">
+                        Space-based defense systems, satellite constellation coordination, 
+                        atmospheric monitoring, and multi-domain aerial defense with 
+                        quantum-resistant communication links.
+                    </p>
+                    <div class="division-capabilities">
+                        <span class="capability-tag">Satellite Swarms</span>
+                        <span class="capability-tag">Orbital Defense</span>
+                        <span class="capability-tag">UAV Networks</span>
+                        <span class="capability-tag">Early Warning</span>
+                    </div>
+                </div>
+
+                <div class="division-card">
+                    <div class="division-icon">🔐</div>
+                    <h3 class="division-title">Cyber Defense</h3>
+                    <p class="division-subtitle">Living Digital Immunity</p>
+                    <p class="division-description">
+                        Self-healing network defense with organism-based immune response. 
+                        Adversaries don't just fail — they are permanently classified and 
+                        their attack vectors compound against them forever.
+                    </p>
+                    <div class="division-capabilities">
+                        <span class="capability-tag">VAEL Immune</span>
+                        <span class="capability-tag">Zero-Trust</span>
+                        <span class="capability-tag">Threat Memory</span>
+                        <span class="capability-tag">Attack Counter</span>
+                    </div>
+                </div>
+
+                <div class="division-card">
+                    <div class="division-icon">🏢</div>
+                    <h3 class="division-title">Enterprise Defense</h3>
+                    <p class="division-subtitle">Corporate Sovereign Protection</p>
+                    <p class="division-description">
+                        Enterprise-grade protection for critical infrastructure, financial 
+                        systems, healthcare networks, and industrial control systems with 
+                        self-sovereign security that compounds over time.
+                    </p>
+                    <div class="division-capabilities">
+                        <span class="capability-tag">Infrastructure</span>
+                        <span class="capability-tag">Financial</span>
+                        <span class="capability-tag">Healthcare</span>
+                        <span class="capability-tag">Industrial</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         PRODUCT PORTFOLIO
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <section class="products" id="products">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">Product Portfolio</div>
+                <h2 class="section-title">Enterprise Defense Products</h2>
+                <p class="section-subtitle">
+                    Five production-ready defense systems, each powered by living mathematical organisms.
+                </p>
+            </div>
+
+            <!-- Featured Product: Chimera Swarm Intelligence -->
+            <div class="product-featured">
+                <div class="product-featured-content">
+                    <div>
+                        <h3>CHIMERA</h3>
+                        <h4>Swarm Intelligence Platform</h4>
+                        <p>
+                            The world's first production-ready cognitive swarm coordination system. 
+                            Scale-invariant Kuramoto synchronization enables seamless coordination 
+                            from 50 to 500,000 autonomous agents with identical mathematical foundations.
+                        </p>
+                        <p>
+                            Chimera states allow simultaneous coherent and incoherent regions — 
+                            enabling unpredictable, adaptive swarm behavior that adversaries 
+                            cannot model or counter.
+                        </p>
+                        <div class="product-features">
+                            <div class="product-feature">Scale-Invariant Coordination</div>
+                            <div class="product-feature">Chimera State Dynamics</div>
+                            <div class="product-feature">Multi-Squadron Formation</div>
+                            <div class="product-feature">Real-Time Adaptation</div>
+                            <div class="product-feature">Hebbian Learning</div>
+                            <div class="product-feature">Mission Autonomy</div>
+                        </div>
+                    </div>
+                    <div class="product-visual">
+                        <div class="swarm-visual" id="swarm-visual">
+                            <!-- Swarm nodes generated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div class="products-grid">
+                <div class="product-card">
+                    <div class="product-card-icon">🛡️</div>
+                    <h4>VAEL Defense Suite</h4>
+                    <p>Complete immune system with interior defense and exterior attack capabilities. Self-healing, compounding protection.</p>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-card-icon">⚡</div>
+                    <h4>Quantum Sentinel</h4>
+                    <p>Quantum-ready encryption and detection platform. 361-qubit simulation with Lindblad decoherence protection.</p>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-card-icon">🧠</div>
+                    <h4>NOVA Cognitive Shield</h4>
+                    <p>Living cognitive architecture for infrastructure protection. Hebbian learning with permanent memory.</p>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-card-icon">🌀</div>
+                    <h4>PARALLAX Field</h4>
+                    <p>Sovereign field projector that phase-locks adversary attempts. Cannot be replicated or countered.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         CORE TECHNOLOGIES
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <section class="technologies" id="technology">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">Core Technologies</div>
+                <h2 class="section-title">Mathematical Foundations</h2>
+                <p class="section-subtitle">
+                    Every system is built on rigorous mathematical and physics foundations.
+                </p>
+            </div>
+
+            <div class="tech-grid">
+                <div class="tech-card">
+                    <div class="tech-number">01</div>
+                    <h4 class="tech-title">Kuramoto Synchronization</h4>
+                    <p class="tech-description">
+                        Phase oscillator dynamics enabling perfect coordination across any scale. 
+                        dθᵢ/dt = ωᵢ + K·r·sin(ψ - θᵢ)
+                    </p>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-number">02</div>
+                    <h4 class="tech-title">Hebbian Plasticity</h4>
+                    <p class="tech-description">
+                        Neural learning with S₀=1.0 floor. The organism never forgets, 
+                        never falls below love constant.
+                    </p>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-number">03</div>
+                    <h4 class="tech-title">Friston Free Energy</h4>
+                    <p class="tech-description">
+                        Predictive coding and active inference. The organism minimizes 
+                        surprise by predicting and acting on its environment.
+                    </p>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-number">04</div>
+                    <h4 class="tech-title">Attractor Dynamics</h4>
+                    <p class="tech-description">
+                        Basin navigation through phase space. Strange attractors, limit 
+                        cycles, and fixed points define cognitive states.
+                    </p>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-number">05</div>
+                    <h4 class="tech-title">Quantum Operations</h4>
+                    <p class="tech-description">
+                        PARALLAX, ENTANGLA, CHRONO, VERITAS operators. Quantum-classical 
+                        hybrid computation with decoherence protection.
+                    </p>
+                </div>
+
+                <div class="tech-card">
+                    <div class="tech-number">06</div>
+                    <h4 class="tech-title">60 Sovereignty Laws</h4>
+                    <p class="tech-description">
+                        Mathematical laws that fire every heartbeat. Cannot be overridden. 
+                        The organism IS the constitution.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         SYSTEM ARCHITECTURE
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <section class="architecture" id="architecture">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">System Architecture</div>
+                <h2 class="section-title">12-Shell Cognitive Architecture</h2>
+                <p class="section-subtitle">
+                    Layered architecture from quantum substrate to global integration.
+                </p>
+            </div>
+
+            <div class="arch-layers">
+                <div class="arch-layer">
+                    <div class="arch-layer-name">SHELL 12</div>
+                    <div class="arch-layer-desc">Global Integration — Final coherence computation, unified organism state</div>
+                </div>
+                <div class="arch-layer">
+                    <div class="arch-layer-name">SHELL 11</div>
+                    <div class="arch-layer-desc">Heritage — 7 ancestral nodes: REVOLUCIONARIO, ZAPATA, VILLA, INDEPENDENCIA, HIDALGO, ADELITA, MORELOS</div>
+                </div>
+                <div class="arch-layer">
+                    <div class="arch-layer-name">SHELL 10</div>
+                    <div class="arch-layer-desc">Territory — ATLAS 64×64 grid, stigmergy, spatial awareness</div>
+                </div>
+                <div class="arch-layer">
+                    <div class="arch-layer-name">SHELL 9</div>
+                    <div class="arch-layer-desc">World Model — 14 EMAs at zero lag (L-121 Silver Sovereignty)</div>
+                </div>
+                <div class="arch-layer">
+                    <div class="arch-layer-name">SHELL 8</div>
+                    <div class="arch-layer-desc">Quantum Operators — PARALLAX, ENTANGLA, CHRONO, VERITAS, QMEM, RESONEX</div>
+                </div>
+                <div class="arch-layer">
+                    <div class="arch-layer-name">SHELL 7</div>
+                    <div class="arch-layer-desc">Executive — Goal management, CORTEX, decision making</div>
+                </div>
+                <div class="arch-layer">
+                    <div class="arch-layer-name">SHELL 6</div>
+                    <div class="arch-layer-desc">Emotional — Neurochemical regulation, affective states</div>
+                </div>
+                <div class="arch-layer">
+                    <div class="arch-layer-name">SHELL 5</div>
+                    <div class="arch-layer-desc">Memory — Hippocampal replay, ARES snapshots, K=7 rollback buffer</div>
+                </div>
+                <div class="arch-layer">
+                    <div class="arch-layer-name">SHELL 4</div>
+                    <div class="arch-layer-desc">Predictive — Forward model, prediction error, free energy minimization</div>
+                </div>
+                <div class="arch-layer">
+                    <div class="arch-layer-name">SHELL 3</div>
+                    <div class="arch-layer-desc">Kuramoto Brain — 26-node phase-coupled field with Hebbian weights</div>
+                </div>
+                <div class="arch-layer">
+                    <div class="arch-layer-name">SHELL 2</div>
+                    <div class="arch-layer-desc">Inner Substrate — 12-node leaky integrator (identity, coherence, kf...)</div>
+                </div>
+                <div class="arch-layer">
+                    <div class="arch-layer-name">SHELL 1</div>
+                    <div class="arch-layer-desc">Sensory — Raw input processing, perceptual encoding</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         STATISTICS
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stats-item">
+                    <span class="stats-number">246</span>
+                    <div class="stats-label">Motoko Modules</div>
+                </div>
+                <div class="stats-item">
+                    <span class="stats-number">325K+</span>
+                    <div class="stats-label">Lines of Code</div>
+                </div>
+                <div class="stats-item">
+                    <span class="stats-number">60</span>
+                    <div class="stats-label">Sovereignty Laws</div>
+                </div>
+                <div class="stats-item">
+                    <span class="stats-number">43</span>
+                    <div class="stats-label">Core Tiers</div>
+                </div>
+                <div class="stats-item">
+                    <span class="stats-number">7</span>
+                    <div class="stats-label">Heritage Nodes</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         CONTACT
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <section class="contact" id="contact">
+        <div class="container">
+            <h2>Ready to Deploy Sovereign Defense?</h2>
+            <p>
+                Contact us to discuss enterprise licensing, custom deployments, 
+                or partnership opportunities.
+            </p>
+            <div class="contact-cta">
+                <a href="mailto:MedinaSITech@outlook.com?subject=Medina Defense Inquiry" class="btn-primary">Contact Sales</a>
+                <a href="#products" class="btn-secondary">View Products</a>
+            </div>
+
+            <div class="contact-info">
+                <div class="contact-item">
+                    <div class="contact-item-label">Email</div>
+                    <a href="mailto:MedinaSITech@outlook.com" class="contact-item-value">MedinaSITech@outlook.com</a>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-item-label">Location</div>
+                    <span class="contact-item-value">Dallas, Texas, USA</span>
+                </div>
+                <div class="contact-item">
+                    <div class="contact-item-label">GitHub</div>
+                    <a href="https://github.com/ItsNotAILABS/NOVA" class="contact-item-value">ItsNotAILABS/NOVA</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         FOOTER
+    ═══════════════════════════════════════════════════════════════════════ -->
+    <footer>
+        <div class="footer-content">
+            <div>
+                <div class="footer-brand">MEDINA DEFENSE</div>
+                <p class="footer-description">
+                    Sovereign cognitive defense systems. Living mathematical organisms 
+                    that protect, defend, and compound autonomously.
+                </p>
+            </div>
+
+            <div class="footer-column">
+                <h4>Products</h4>
+                <ul class="footer-links">
+                    <li><a href="#products">Chimera Swarm</a></li>
+                    <li><a href="#products">VAEL Defense</a></li>
+                    <li><a href="#products">Quantum Sentinel</a></li>
+                    <li><a href="#products">NOVA Shield</a></li>
+                    <li><a href="#products">PARALLAX Field</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h4>Divisions</h4>
+                <ul class="footer-links">
+                    <li><a href="#divisions">Military</a></li>
+                    <li><a href="#divisions">Aerospace</a></li>
+                    <li><a href="#divisions">Cyber</a></li>
+                    <li><a href="#divisions">Enterprise</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h4>Company</h4>
+                <ul class="footer-links">
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#technology">Technology</a></li>
+                    <li><a href="#architecture">Architecture</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p class="footer-copyright">
+                © 2024-2026 Alfredo Medina Hernandez. All Rights Reserved. 
+                PROPRIETARY AND CONFIDENTIAL.
+            </p>
+            <div class="footer-legal">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Licensing</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Generate swarm visualization nodes
+        const swarmVisual = document.getElementById('swarm-visual');
+        if (swarmVisual) {
+            for (let i = 0; i < 30; i++) {
+                const node = document.createElement('div');
+                node.className = 'swarm-node';
+                node.style.left = (50 + 40 * Math.cos(i * 0.5)) + '%';
+                node.style.top = (50 + 40 * Math.sin(i * 0.7)) + '%';
+                node.style.animationDelay = (i * 0.2) + 's';
+                node.style.width = (5 + Math.random() * 8) + 'px';
+                node.style.height = node.style.width;
+                node.style.opacity = 0.3 + Math.random() * 0.7;
+                swarmVisual.appendChild(node);
+            }
+        }
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Counter animation
+        const observerOptions = {
+            threshold: 0.5
+        };
+
+        const counterObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const counters = entry.target.querySelectorAll('.stat-number, .stats-number');
+                    counters.forEach(counter => {
+                        animateValue(counter);
+                    });
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.hero-stats, .stats-section').forEach(section => {
+            counterObserver.observe(section);
+        });
+
+        function animateValue(element) {
+            const text = element.textContent;
+            const hasK = text.includes('K');
+            const hasPlus = text.includes('+');
+            const value = parseInt(text.replace(/[^0-9]/g, ''));
+            
+            if (isNaN(value)) return;
+            
+            let current = 0;
+            const increment = value / 60;
+            const duration = 2000;
+            const stepTime = duration / 60;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= value) {
+                    current = value;
+                    clearInterval(timer);
+                }
+                let display = Math.floor(current);
+                if (hasK) display = display + 'K';
+                if (hasPlus) display = display + '+';
+                element.textContent = display;
+            }, stepTime);
+        }
+
+        // Header background on scroll
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 100) {
+                header.style.background = 'rgba(0, 0, 0, 0.95)';
+            } else {
+                header.style.background = 'linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%)';
+            }
+        });
+    </script>
+</body>
+</html>
