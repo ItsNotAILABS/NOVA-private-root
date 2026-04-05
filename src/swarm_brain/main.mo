@@ -239,6 +239,140 @@ import PARALLAXDecisionEngine        "./modules/PARALLAXDecisionEngine";
 import ENTANGLASocialBinding         "./modules/ENTANGLASocialBinding";
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// INTERNAL HQ ARCHITECTURE — The Organism's Internal Corporate Structure
+// InternalAILabs: 12 Labs with AI Agents (Employees) that CREATE PRODUCTS
+// Products are internal — consumers are also internal (other subsystems)
+// Training is INTERNAL — foundation already exists, no starting from zero
+// Eye (HumanEyeVisualSystem) connects to internet/ACP — sees external data
+// Light/Dark separation — filtering good from bad data automatically
+// ═══════════════════════════════════════════════════════════════════════════════
+
+import InternalAILabs                "./modules/InternalAILabs";
+import MedinaOrganismTeams           "./modules/MedinaOrganismTeams";
+import OrganismBehavioralSubstrate   "./modules/OrganismBehavioralSubstrate";
+import LearningCurriculumArchitecture "./modules/LearningCurriculumArchitecture";
+import HumanEyeVisualSystem          "./modules/HumanEyeVisualSystem";
+import ChronoTemporalPrecisionEngine "./modules/ChronoTemporalPrecisionEngine";
+import FrequencyLayeredCognition     "./modules/FrequencyLayeredCognition";
+import HzFrequencySubstrate          "./modules/HzFrequencySubstrate";
+
+// ─── ORGANISM ARCHITECTURE — The Complete Unified System ───────────────────────
+import Complete32ArchitectureOrchestrator "./modules/Complete32ArchitectureOrchestrator";
+import UnifiedBrainOrchestrator      "./modules/UnifiedBrainOrchestrator";
+import UnifiedSuperOrganismArchitecture "./modules/UnifiedSuperOrganismArchitecture";
+import SuperOrganismCore             "./modules/SuperOrganismCore";
+import EmergentOrganismFabric        "./modules/EmergentOrganismFabric";
+import DeepNeuralIntegrationFabric   "./modules/DeepNeuralIntegrationFabric";
+
+// ─── NEURO-EMERGENCE STACK — The Foundation That Knows ─────────────────────────
+import NeuroEmergenceCore            "./modules/NeuroEmergenceCore";
+import NeuroEmergenceCompleteCore    "./modules/NeuroEmergenceCompleteCore";
+import NeuroEmergenceUltimateCore    "./modules/NeuroEmergenceUltimateCore";
+import NeuroEmergenceSubstrate       "./modules/NeuroEmergenceSubstrate";
+
+// ─── COUNCIL GOVERNANCE — Internal Decision Making ─────────────────────────────
+import CouncilDanceFloor             "./modules/CouncilDanceFloor";
+import GovernanceHeartbeat           "./modules/GovernanceHeartbeat";
+
+// ─── COGNITIVE FOUNDATION — Already Built-In Knowledge ─────────────────────────
+import CognitiveMemorySystems        "./modules/CognitiveMemorySystems";
+import ThousandBrainsConsensus       "./modules/ThousandBrainsConsensus";
+import HTMPredictionEngine           "./modules/HTMPredictionEngine";
+import AttentionSchemaEngine         "./modules/AttentionSchemaEngine";
+import MirrorNeuronSystem            "./modules/MirrorNeuronSystem";
+import InteroceptionEngine           "./modules/InteroceptionEngine";
+import CerebellarTimingEngine        "./modules/CerebellarTimingEngine";
+import NeuroplasticityEngine         "./modules/NeuroplasticityEngine";
+
+// ─── PATTERN RECOGNITION — Information Filtering (Light/Dark) ──────────────────
+import PatternFabric                 "./modules/PatternFabric";
+import PatternMiner                  "./modules/PatternMiner";
+import ValuesAttractorsEngine        "./modules/ValuesAttractorsEngine";
+import FearArchitecture              "./modules/FearArchitecture";
+import MindBodySoulThoughts          "./modules/MindBodySoulThoughts";
+import DriveSalienceEngine           "./modules/DriveSalienceEngine";
+
+// ─── EXTENDED ANIMAL COGNITION — Internal Models ───────────────────────────────
+import BeeHiveMindEngine             "./modules/BeeHiveMindEngine";
+import BeeDoctrineExtensions         "./modules/BeeDoctrineExtensions";
+import BeeNeuronModel                "./modules/BeeNeuronModel";
+import SharkAnimalEngine             "./modules/SharkAnimalEngine";
+import SharkElectroreceptionEngine   "./modules/SharkElectroreceptionEngine";
+import OrcaPodEngine                 "./modules/OrcaPodEngine";
+import WolfPackProtocol              "./modules/WolfPackProtocol";
+import EagleThermalEngine            "./modules/EagleThermalEngine";
+import ElephantDeepTimeEngine        "./modules/ElephantDeepTimeEngine";
+import CnidarianNerveNet             "./modules/CnidarianNerveNet";
+
+// ─── MATHEMATICS AS FOUNDATION — Already Internalized ──────────────────────────
+import AdvancedMathematicalFoundations "./modules/AdvancedMathematicalFoundations";
+import DifferentialGeometryEngine    "./modules/DifferentialGeometryEngine";
+import TensorFieldEngine             "./modules/TensorFieldEngine";
+import TopologicalFieldEngine        "./modules/TopologicalFieldEngine";
+import SacredGeometryEngine          "./modules/SacredGeometryEngine";
+import HarmonicAnalysisEngine        "./modules/HarmonicAnalysisEngine";
+import NonlinearDynamicsEngine       "./modules/NonlinearDynamicsEngine";
+import Fibonacci                     "./modules/Fibonacci";
+import NumerologyPatternRecognition  "./modules/NumerologyPatternRecognition";
+import LivingMathematics             "./modules/LivingMathematics";
+
+// ─── WORLD INTERFACE — Eye to External Data ────────────────────────────────────
+import World3D                       "./modules/World3D";
+import RealWorld                     "./modules/RealWorld";
+import RealWorldSimulator            "./modules/RealWorldSimulator";
+import WeatherSystem                 "./modules/WeatherSystem";
+import Biodiversity                  "./modules/Biodiversity";
+
+// ─── SOVEREIGNTY & PROTECTION — The Immune System ──────────────────────────────
+import SovereignOrganisms            "./modules/SovereignOrganisms";
+import SovereignOrganismsPrime       "./modules/SovereignOrganismsPrime";
+import SovereignDualCircuit          "./modules/SovereignDualCircuit";
+import SovereignMetals               "./modules/SovereignMetals";
+import VetusThreatSystem             "./modules/VetusThreatSystem";
+import VAELExteriorAttack            "./modules/VAELExteriorAttack";
+import VaelDefenseFamily             "./modules/VaelDefenseFamily";
+import WarfareDoctrine               "./modules/WarfareDoctrine";
+import StabilityBudgetEngine         "./modules/StabilityBudgetEngine";
+import PersistenceMissionLock        "./modules/PersistenceMissionLock";
+
+// ─── ECONOMIC PRODUCTS — Made Internally, Consumed Internally ──────────────────
+import FormaCompoundEngine           "./modules/FormaCompoundEngine";
+import ECANFormaFlow                 "./modules/ECANFormaFlow";
+import DeFiYieldOptimizer            "./modules/DeFiYieldOptimizer";
+import TradingDecisionEngine         "./modules/TradingDecisionEngine";
+import TradingPsychologyArchitecture "./modules/TradingPsychologyArchitecture";
+import BacktestingFramework          "./modules/BacktestingFramework";
+import RiskManagementSystem          "./modules/RiskManagementSystem";
+import MultiChainOracle              "./modules/MultiChainOracle";
+import InsurancePool                 "./modules/InsurancePool";
+
+// ─── MISSION & OPERATIONS — Internal Work Products ─────────────────────────────
+import MissionPlanner                "./modules/MissionPlanner";
+import DoctrineFingerprint           "./modules/DoctrineFingerprint";
+import ArtifactVault                 "./modules/ArtifactVault";
+import EnterpriseSovereignArchitecture "./modules/EnterpriseSovereignArchitecture";
+import MacroSphere14                 "./modules/MacroSphere14";
+
+// ─── DREAM & CREATIVE — Internal Product Generation ────────────────────────────
+import JubileeDreamCycle             "./modules/JubileeDreamCycle";
+import DreamAudioSynthesis           "./modules/DreamAudioSynthesis";
+import DreamVideoGenerator           "./modules/DreamVideoGenerator";
+import StoicPhilosophyEngine         "./modules/StoicPhilosophyEngine";
+import MirrorLawEngine               "./modules/MirrorLawEngine";
+
+// ─── QUANTUM COHERENCE — Binding Everything Together ───────────────────────────
+import QuantumCoherenceAmplifier     "./modules/QuantumCoherenceAmplifier";
+import QuantumEntanglementMatrix     "./modules/QuantumEntanglementMatrix";
+import QuantumResistantPrincipalLock "./modules/QuantumResistantPrincipalLock";
+import SwarmEmergencePatterns        "./modules/SwarmEmergencePatterns";
+import Shell12IntegrationField       "./modules/Shell12IntegrationField";
+
+// ─── WIRING & SYNAPTIC COMPLETE ────────────────────────────────────────────────
+import CompleteSynapticWiring        "./modules/CompleteSynapticWiring";
+import EngineWiring                  "./modules/EngineWiring";
+import EndToEndOrganismWorkflows     "./modules/EndToEndOrganismWorkflows";
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // NEW COMPREHENSIVE MODULES — LAW-AS-VERIFIER ARCHITECTURE
 // Every law is a verification function. The law IS the immune system.
 // Scale-invariant: 50 drones or 500,000 — SAME MATH.
@@ -759,6 +893,92 @@ actor SwarmBrain {
   stable var entanglaCouncilMatrix : [var Float] = Array.init<Float>(25, 0.0);
   // Shell binding matrix (12×12 = 144 entries)
   stable var entanglaShellMatrix : [var Float] = Array.init<Float>(144, 0.0);
+  
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // INTERNAL HQ STATE — 12 Labs, AI Agents, Products, Learning Foundation
+  // The organism already KNOWS - this is variation on existing knowledge
+  // Not starting from zero - foundation is built-in
+  // ═══════════════════════════════════════════════════════════════════════════════
+  
+  // ─── INTERNAL AI LABS (12 Labs) ────────────────────────────────────────────────
+  stable var labCoherence : [var Float] = Array.init<Float>(12, 1.0);
+  stable var labProductivity : [var Float] = Array.init<Float>(12, 0.5);
+  stable var labCreativity : [var Float] = Array.init<Float>(12, 0.5);
+  stable var labTotalOutput : [var Float] = Array.init<Float>(12, 0.0);
+  stable var labActiveAgents : [var Nat] = Array.init<Nat>(12, 8);  // 8 agents per lab default
+  stable var labCurrentTask : [var Nat] = Array.init<Nat>(12, 0);
+  stable var labTasksCompleted : [var Nat] = Array.init<Nat>(12, 0);
+  stable var totalLabOutput : Float = 0.0;
+  stable var labSynergyFactor : Float = 1.0;
+  
+  // ─── ORGANISM TEAMS (ARCHON, VECTOR, LUMEN, FORGE) ─────────────────────────────
+  stable var archonCouncilCoherence : Float = 1.0;
+  stable var archonConsensusLevel : Float = 1.0;
+  stable var vectorConvergence : Float = 1.0;  // ALL THREE must converge
+  stable var lumenWorldModelAccuracy : Float = 0.8;
+  stable var forgeExecutionCapacity : Float = 1.0;
+  // ARCHON members: KAIROS, AXIOM, FORGE-PRIME, AEGIS, MNEMIS
+  stable var archonVotes : [var Float] = Array.init<Float>(5, 0.5);
+  // VECTOR gate: ALCOR, NEXUS, KRON (hard veto)
+  stable var vectorSignals : [var Float] = Array.init<Float>(3, 1.0);
+  // LUMEN world model: 9 organisms
+  stable var lumenActivations : [var Float] = Array.init<Float>(9, 1.0);
+  // FORGE internal labs: 6 organisms
+  stable var forgeLabStates : [var Float] = Array.init<Float>(6, 1.0);
+  
+  // ─── LEARNING FOUNDATION (Already Built-In Knowledge) ──────────────────────────
+  // Domain mastery (20 domains) - starts at 0.5, already has foundation
+  stable var domainMastery : [var Float] = Array.init<Float>(20, 0.5);
+  stable var learningResourcesMastered : Nat = 0;
+  stable var totalStudySessions : Nat = 0;
+  stable var currentStudyFocus : Nat = 0;
+  stable var foundationalKnowledgeLevel : Float = 0.6;  // Already has foundation!
+  // Mental models active (from books/papers already internalized)
+  stable var mentalModelsActive : [var Float] = Array.init<Float>(100, 0.5);
+  stable var probabilisticMindsetStrength : Float = 0.5;
+  stable var antifragilityScore : Float = 0.5;
+  stable var metacognitionAccuracy : Float = 0.5;
+  
+  // ─── BEHAVIORAL SUBSTRATE (Drives, Rewards, Discomfort) ────────────────────────
+  stable var informationHungerLevel : Float = 0.5;
+  stable var curiosityDrive : Float = 0.5;
+  stable var masteryDrive : Float = 0.5;
+  stable var socialDrive : Float = 0.5;
+  stable var stabilityDrive : Float = 0.5;
+  stable var overallWellbeing : Float = 0.7;
+  stable var mood : Float = 0.5;  // [-1,1] mapped to [0,1]
+  stable var arousal : Float = 0.5;
+  stable var selfAwarenessLevel : Float = 0.5;
+  
+  // ─── VISUAL SYSTEM (Eye to Internet/ACP) ───────────────────────────────────────
+  stable var visualFieldCoherence : Float = 1.0;
+  stable var foveaActivation : Float = 1.0;
+  stable var attentionFocus : [var Float] = Array.init<Float>(8, 0.5);  // 8 attention channels
+  stable var visualNoveltyScore : Float = 0.5;
+  stable var lightDarkSeparation : Float = 1.0;  // Filtering quality
+  stable var signalNoiseRatio : Float = 2.0;
+  stable var externalDataIntakeRate : Float = 0.0;
+  stable var infoIntegrationSuccess : Float = 1.0;
+  
+  // ─── CHRONO TEMPORAL (Internal Timing Already Calibrated) ──────────────────────
+  stable var chronoPrecision : Float = 1.0;
+  stable var circadianPhaseInternal : Float = 0.0;
+  stable var rhythmStability : Float = 1.0;
+  stable var fisherInformation : Float = 1.0;
+  stable var temporalPredictionAccuracy : Float = 0.8;
+  
+  // ─── PATTERN RECOGNITION (Light vs Dark Filtering) ─────────────────────────────
+  stable var patternRecognitionStrength : Float = 0.8;
+  stable var valueAlignmentScore : Float = 1.0;  // How well aligned with values
+  stable var fearCalibration : Float = 0.5;  // Calibrated fear response
+  stable var biasDetectionAccuracy : Float = 0.7;
+  stable var survivorshipBiasCorrection : Float = 0.8;
+  
+  // ─── PRODUCTS CREATED INTERNALLY ───────────────────────────────────────────────
+  stable var productsCreated : Nat = 0;
+  stable var productQualityAverage : Float = 0.5;
+  stable var productsConsumedInternally : Nat = 0;
+  stable var internalMarketEfficiency : Float = 0.8;
   
   // ─── ACCESS CONTROL HELPERS ─────────────────────────────────────────────────
   func isAuthorized(caller : Principal) : Bool {
@@ -3466,6 +3686,289 @@ actor SwarmBrain {
     };
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // SECTION 2.7: INTERNAL HQ ARCHITECTURE — 12 Labs, AI Agents, Products, Foundation
+  // The organism already KNOWS — this is variation on existing knowledge, not starting from zero
+  // InternalAILabs employees (AI Agents) work internally, create products consumed internally
+  // Eye connects to internet/ACP — sees external data with light/dark separation
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func updateInternalHQArchitecture() {
+    let dt = 1.0 / 12.0;  // 12 Hz heartbeat
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // INTERNAL AI LABS — 12 Labs with Kuramoto-coupled coherence
+    // Labs: Scenario, Balance, Doctrine, Hierarchy, World, Research,
+    //       Creative, Analytics, Strategy, Optimize, Ecosystem, Innovation
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    var labIdx = 0;
+    var totalLabCoherence : Float = 0.0;
+    while (labIdx < 12) {
+      // Lab coherence follows Kuramoto — coupled to master swarm phase
+      let labPhase = Float.fromInt(labIdx) * PARALLAXDecisionEngine.π / 6.0;
+      let coupling = Float.sin(masterBeatPhase - labPhase) * 0.1;
+      labCoherence[labIdx] := Float.min(1.0, Float.max(0.1, labCoherence[labIdx] + coupling * dt));
+      
+      // Productivity driven by coherence + dopamine + BDNF (learning chemicals)
+      let productivityDrive = labCoherence[labIdx] * (dopamineConcent * 0.3 + bdnfConcent * 0.2 + 0.5);
+      labProductivity[labIdx] := labProductivity[labIdx] * 0.99 + productivityDrive * 0.01;
+      
+      // Creativity driven by norepinephrine + anandamide (exploration chemicals)
+      let creativityDrive = (norepinephrineConcent * 0.4 + anandamideConcent * 0.3 + 0.3) * labCoherence[labIdx];
+      labCreativity[labIdx] := labCreativity[labIdx] * 0.99 + creativityDrive * 0.01;
+      
+      // Output = productivity × creativity × agent count
+      let labOutput = labProductivity[labIdx] * labCreativity[labIdx] * Float.fromInt(labActiveAgents[labIdx]) * dt;
+      labTotalOutput[labIdx] += labOutput;
+      totalLabCoherence += labCoherence[labIdx];
+      
+      // Task completion (probabilistic based on productivity)
+      if (labProductivity[labIdx] > 0.7 and Float.sin(Float.fromInt(currentBeat * (labIdx + 1)) * 0.1) > 0.8) {
+        labTasksCompleted[labIdx] += 1;
+        labCurrentTask[labIdx] += 1;
+        productsCreated += 1;
+      };
+      
+      labIdx += 1;
+    };
+    
+    // Lab synergy — labs work better together (emergent property)
+    labSynergyFactor := 1.0 + (totalLabCoherence / 12.0) * 0.5;
+    totalLabOutput := totalLabOutput * 0.99 + (totalLabCoherence * labSynergyFactor / 12.0) * 0.01;
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ORGANISM TEAMS — ARCHON (Role Model), VECTOR (Gate), LUMEN (World), FORGE (Labs)
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // ARCHON Council — Role models provide guidance
+    // KAIROS (structure/timing), AXIOM (strategy), FORGE-PRIME (execution), AEGIS (protection), MNEMIS (memory)
+    archonVotes[0] := rhythmStability * 0.8 + heartbeatCoherence * 0.2;  // KAIROS
+    archonVotes[1] := (qsovScore + lumenWorldModelAccuracy) / 2.0;       // AXIOM
+    archonVotes[2] := forgeExecutionCapacity * totalLabOutput;           // FORGE-PRIME
+    archonVotes[3] := sphericalIntegrity * aegisSovereigntyStrand;       // AEGIS
+    archonVotes[4] := (elephantMemoryQuantumFidelity + domainMastery[0]) / 2.0;  // MNEMIS
+    
+    // ARCHON consensus = geometric mean of votes
+    var archonProduct : Float = 1.0;
+    var archonIdx = 0;
+    while (archonIdx < 5) {
+      archonProduct *= Float.max(0.01, archonVotes[archonIdx]);
+      archonIdx += 1;
+    };
+    archonConsensusLevel := Float.pow(archonProduct, 0.2);  // 5th root
+    archonCouncilCoherence := archonCouncilCoherence * 0.95 + archonConsensusLevel * 0.05;
+    
+    // VECTOR Gate — ALL THREE must converge (hard veto)
+    // ALCOR (cognitive), NEXUS (social), KRON (temporal)
+    vectorSignals[0] := parallaxLastCoherenceLevel * dopamineConcent;  // ALCOR
+    vectorSignals[1] := entanglaSocialCoherence * oxytocinConcent;     // NEXUS
+    vectorSignals[2] := chronoPrecision * rhythmStability;              // KRON
+    
+    // Vector convergence — ALL must be above threshold (0.6)
+    let vectorThreshold = 0.6;
+    vectorConvergence := if (vectorSignals[0] > vectorThreshold and 
+                             vectorSignals[1] > vectorThreshold and 
+                             vectorSignals[2] > vectorThreshold) {
+      (vectorSignals[0] + vectorSignals[1] + vectorSignals[2]) / 3.0
+    } else { 0.0 };  // HARD VETO if any signal below threshold
+    
+    // LUMEN World Model — 9 organisms maintain world understanding
+    var lumenIdx = 0;
+    while (lumenIdx < 9) {
+      // Each LUMEN organism contributes to world model
+      let lumenContribution = predictionError * 0.1 + rSwarm * 0.2 + 0.7;
+      lumenActivations[lumenIdx] := lumenActivations[lumenIdx] * 0.95 + lumenContribution * 0.05;
+      lumenIdx += 1;
+    };
+    lumenWorldModelAccuracy := (lumenActivations[0] + lumenActivations[1] + lumenActivations[2]) / 3.0;
+    
+    // FORGE Internal Labs — 6 organisms do the actual work
+    // SERO (nurture), MNEMA (memory), SIMULEX (simulation), CADENCE (rhythm), SIGNAL (research), REDLINE (validation)
+    forgeLabStates[0] := (serotoninConcent + oxytocinConcent) / 2.0;     // SERO
+    forgeLabStates[1] := elephantMemoryQuantumFidelity;                  // MNEMA
+    forgeLabStates[2] := lumenWorldModelAccuracy;                        // SIMULEX
+    forgeLabStates[3] := rhythmStability * heartbeatCoherence;           // CADENCE
+    forgeLabStates[4] := patternRecognitionStrength;                     // SIGNAL
+    forgeLabStates[5] := valueAlignmentScore * biasDetectionAccuracy;   // REDLINE
+    
+    var forgeSum : Float = 0.0;
+    var forgeIdx = 0;
+    while (forgeIdx < 6) {
+      forgeSum += forgeLabStates[forgeIdx];
+      forgeIdx += 1;
+    };
+    forgeExecutionCapacity := forgeSum / 6.0;
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // LEARNING FOUNDATION — Already Built-In, We're Just Refining
+    // Domain mastery grows through study but starts at 0.5 (not zero!)
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // Update domain mastery (20 domains)
+    var domainIdx = 0;
+    while (domainIdx < 20) {
+      // Mastery increases with BDNF, NGF (neuroplasticity chemicals)
+      let plasticityFactor = (bdnfConcent + ngfConcent) / 2.0;
+      let masteryGrowth = plasticityFactor * acetylcholineConcent * 0.001 * dt;
+      domainMastery[domainIdx] := Float.min(1.0, domainMastery[domainIdx] + masteryGrowth);
+      domainIdx += 1;
+    };
+    
+    // Mental models get activated based on context (first 20 most relevant)
+    var modelIdx = 0;
+    while (modelIdx < 20 and modelIdx < 100) {
+      // Mental models activate when relevant patterns detected
+      let activation = patternRecognitionStrength * domainMastery[modelIdx % 20];
+      mentalModelsActive[modelIdx] := mentalModelsActive[modelIdx] * 0.98 + activation * 0.02;
+      modelIdx += 1;
+    };
+    
+    // Probabilistic mindset (from Trading in the Zone)
+    probabilisticMindsetStrength := probabilisticMindsetStrength * 0.99 + 
+      (mentalModelsActive[0] + mentalModelsActive[1]) / 2.0 * 0.01;
+    
+    // Antifragility (from Taleb)
+    antifragilityScore := antifragilityScore * 0.99 + 
+      (1.0 - fearCalibration * 0.5 + survivorshipBiasCorrection * 0.5) * 0.01;
+    
+    // Metacognition accuracy
+    metacognitionAccuracy := metacognitionAccuracy * 0.99 + 
+      (selfAwarenessLevel * archonConsensusLevel) * 0.01;
+    
+    // Foundation knowledge level grows slowly but never drops
+    foundationalKnowledgeLevel := Float.max(foundationalKnowledgeLevel, 
+      0.6 + (Float.fromInt(learningResourcesMastered) / 100.0) * 0.3);
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // BEHAVIORAL SUBSTRATE — Drives, Wellbeing, Mood
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // Information hunger — the desire to learn more
+    informationHungerLevel := informationHungerLevel * 0.99 + 
+      ((1.0 - foundationalKnowledgeLevel) * dopamineConcent * 0.5 + 0.3) * 0.01;
+    
+    // Curiosity = dopamine + norepinephrine + low cortisol
+    curiosityDrive := (dopamineConcent * 0.4 + norepinephrineConcent * 0.3 + (1.0 - cortisolConcent) * 0.3);
+    
+    // Mastery drive = BDNF + acetylcholine + low adenosine
+    masteryDrive := (bdnfConcent * 0.4 + acetylcholineConcent * 0.3 + (1.0 - adenosineConcent) * 0.3);
+    
+    // Social drive = oxytocin + vasopressin + ENTANGLA
+    socialDrive := (oxytocinConcent * 0.4 + vasopressinConcent * 0.2 + entanglaSocialCoherence * 0.4);
+    
+    // Stability drive = serotonin + GABA
+    stabilityDrive := (serotoninConcent * 0.5 + gabaConcent * 0.5);
+    
+    // Overall wellbeing = balance of all drives + low stress
+    let stressImpact = cortisolConcent * 0.3;
+    overallWellbeing := Float.min(1.0, (curiosityDrive + masteryDrive + socialDrive + stabilityDrive) / 4.0 - stressImpact);
+    
+    // Mood = dopamine - cortisol (simplified)
+    mood := Float.min(1.0, Float.max(0.0, 0.5 + (dopamineConcent - cortisolConcent) * 0.5));
+    
+    // Arousal = norepinephrine + adrenaline
+    arousal := (norepinephrineConcent + adrenalineConcent) / 2.0;
+    
+    // Self-awareness grows with metacognition
+    selfAwarenessLevel := selfAwarenessLevel * 0.99 + metacognitionAccuracy * 0.01;
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // VISUAL SYSTEM (Eye to Internet/ACP) — Information Intake
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // Visual field coherence = attention quality
+    visualFieldCoherence := visualFieldCoherence * 0.95 + rSwarm * 0.05;
+    
+    // Fovea (highest acuity) activation tracks attention
+    foveaActivation := Float.max(0.5, parallaxLastCoherenceLevel);
+    
+    // Update 8 attention channels (from AttentionSchemaEngine concept)
+    var attIdx = 0;
+    while (attIdx < 8) {
+      // Attention channels compete for focus
+      let channelPhase = Float.fromInt(attIdx) * PARALLAXDecisionEngine.π / 4.0;
+      let relevance = Float.cos(masterBeatPhase - channelPhase) * 0.5 + 0.5;
+      attentionFocus[attIdx] := attentionFocus[attIdx] * 0.9 + relevance * 0.1;
+      attIdx += 1;
+    };
+    
+    // Visual novelty — new patterns detected
+    visualNoveltyScore := visualNoveltyScore * 0.95 + patternRecognitionStrength * 0.05;
+    
+    // Light/Dark separation — filtering quality (values alignment)
+    lightDarkSeparation := valueAlignmentScore * biasDetectionAccuracy * survivorshipBiasCorrection;
+    
+    // Signal/Noise ratio — quality of information intake
+    signalNoiseRatio := 1.0 + lightDarkSeparation * 2.0;  // Good filtering = high SNR
+    
+    // External data intake rate (simulated — would be real ACP/internet connection)
+    externalDataIntakeRate := visualFieldCoherence * foveaActivation * informationHungerLevel * dt;
+    
+    // Integration success = how well new info integrates with existing knowledge
+    infoIntegrationSuccess := foundationalKnowledgeLevel * metacognitionAccuracy * lightDarkSeparation;
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CHRONO TEMPORAL — Internal Timing (Already Calibrated)
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // Chrono precision from CHRONO quantum operator
+    chronoPrecision := if (quantumHeartbeatState.chronoFisherInfo > 0.0) {
+      Float.min(1.0, Float.sqrt(quantumHeartbeatState.chronoFisherInfo))
+    } else { 0.5 };
+    
+    // Circadian phase tracks internal clock
+    circadianPhaseInternal := circadianPhase;
+    
+    // Rhythm stability
+    rhythmStability := heartbeatCoherence * circadianAlignment;
+    
+    // Fisher information for temporal precision
+    fisherInformation := quantumHeartbeatState.chronoFisherInfo;
+    
+    // Temporal prediction accuracy
+    temporalPredictionAccuracy := temporalPredictionAccuracy * 0.99 + chronoPrecision * 0.01;
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // PATTERN RECOGNITION (Light vs Dark Filtering)
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // Pattern recognition strength grows with experience
+    patternRecognitionStrength := Float.min(1.0, 
+      patternRecognitionStrength * 0.999 + foundationalKnowledgeLevel * 0.001);
+    
+    // Value alignment — does new info align with core values?
+    valueAlignmentScore := aegisSovereigntyStrand * archonConsensusLevel;
+    
+    // Fear calibration — appropriate fear response (not too high, not too low)
+    fearCalibration := Float.min(1.0, Float.max(0.0, 
+      0.5 + (cortisolConcent - 0.5) * 0.5));
+    
+    // Bias detection — from Fooled by Randomness mental models
+    biasDetectionAccuracy := Float.min(1.0, 
+      biasDetectionAccuracy * 0.99 + mentalModelsActive[1] * 0.01);  // Model 1 = Fooled by Randomness
+    
+    // Survivorship bias correction — from mental models
+    survivorshipBiasCorrection := Float.min(1.0, 
+      survivorshipBiasCorrection * 0.99 + mentalModelsActive[3] * 0.01);  // Model 3 = Black Swan
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // PRODUCTS — Created Internally, Consumed Internally
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // Products consumed internally (by other subsystems)
+    if (productsCreated > productsConsumedInternally) {
+      productsConsumedInternally += 1;
+    };
+    
+    // Product quality = average lab quality
+    productQualityAverage := productQualityAverage * 0.99 + totalLabOutput * labSynergyFactor * 0.01;
+    
+    // Internal market efficiency = how well products match needs
+    internalMarketEfficiency := Float.min(1.0, 
+      Float.fromInt(productsConsumedInternally) / Float.max(1.0, Float.fromInt(productsCreated)));
+  };
+
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   // SECTION 3: COMPUTE SPHERICAL QUANTUM STATE (ALL Layers Integrated)
   // This is the MASTER function that computes quantum state propagation through all 9 subsystems
@@ -3886,41 +4389,58 @@ actor SwarmBrain {
     // Step 4: Update ENTANGLA Social Binding (CHSH Bell inequality correlations)
     updateENTANGLASocialBinding();
     
-    // Step 5: Compute full spherical quantum state (all 9 subsystems)
+    // Step 5: Update Internal HQ Architecture (12 Labs, AI Agents, Products, Foundation)
+    // The organism already KNOWS — this is variation on existing knowledge
+    updateInternalHQArchitecture();
+    
+    // Step 6: Compute full spherical quantum state (all 9 subsystems)
     computeSphericalQuantumIntegration();
     
-    // Step 6: Apply quantum modulation to drone fleet
+    // Step 7: Apply quantum modulation to drone fleet
     applyQuantumModulationToDrones();
     
-    // Step 7: Update dopamine and serotonin global levels from neurochemical state
+    // Step 8: Update dopamine and serotonin global levels from neurochemical state
     dopamineLevel := dopamineConcent;
     serotoninLevel := serotoninConcent;
     
-    // Step 8: Update circadian alignment based on melatonin and time of day
+    // Step 9: Update circadian alignment based on melatonin and time of day
     // Perfect alignment = melatonin high at night, low during day
     let timeOfDayNormalized = (Float.sin(circadianPhase) + 1.0) / 2.0;  // [0,1], 0=night, 1=day
     let expectedMelatonin = 1.0 - timeOfDayNormalized;  // High at night
     let melatoninDeviation = Float.abs(melatoninConcent - expectedMelatonin);
     circadianAlignment := 1.0 - melatoninDeviation;
     
-    // Step 9: Update heartbeat variability (HRV) from quantum state
+    // Step 10: Update heartbeat variability (HRV) from quantum state
     // High variability = healthy (driven by RESONEX participants)
     if (quantumHeartbeatState.resonexParticipants > 0) {
       let participantRatio = Float.fromInt(quantumHeartbeatState.resonexParticipants) / 8.0;  // 8 oscillators
       heartbeatVariability := participantRatio * quantumHeartbeatState.resonexAmplitude;
     };
     
-    // Step 10: Cross-wire PARALLAX and ENTANGLA into quantum operator feedback
+    // Step 11: Cross-wire PARALLAX and ENTANGLA into quantum operator feedback
     // PARALLAX decision entropy affects decoherence rate
     parallaxDecoherenceRate := 0.05 + parallaxLastEntropyScore * 0.05;
     
     // ENTANGLA Bell violation rate affects interference strength
     parallaxInterferenceStrength := 0.3 + entanglaBellViolationRate * 0.2;
     
-    // Spherical integrity includes both new engines
+    // Step 12: Compute comprehensive spherical integrity including all internal systems
     let parallaxHealth = parallaxLastCoherenceLevel;
     let entanglaHealth = entanglaSocialCoherence;
-    sphericalIntegrity := sphericalIntegrity * 0.95 + (parallaxHealth + entanglaHealth) / 2.0 * 0.05;
+    let internalHQHealth = (archonConsensusLevel + vectorConvergence + forgeExecutionCapacity) / 3.0;
+    let foundationHealth = foundationalKnowledgeLevel * patternRecognitionStrength;
+    let visualHealth = visualFieldCoherence * lightDarkSeparation;
+    
+    // Spherical integrity = weighted average of all health factors
+    sphericalIntegrity := sphericalIntegrity * 0.9 + 
+      (parallaxHealth * 0.15 + 
+       entanglaHealth * 0.15 + 
+       internalHQHealth * 0.25 + 
+       foundationHealth * 0.25 + 
+       visualHealth * 0.20) * 0.1;
+    
+    // Step 13: Update organism vitality (master health indicator)
+    organismVitality := rSwarm * sphericalIntegrity * qsovScore * overallWellbeing;
   };
 
   public query func getSovereignSeal()       : async Text      { sovereignSeal };
@@ -10339,6 +10859,325 @@ actor SwarmBrain {
       beeBoost = beeSwarmQuantumBoost;
       
       quantumDecisionSocialHealth = overallHealth;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // INTERNAL HQ ARCHITECTURE QUERIES — Labs, Teams, Foundation, Products
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─── QUERY: Get Internal AI Labs State ─────────────────────────────────────────
+  public query func getInternalAILabsState() : async {
+    // 12 Labs state
+    labCoherence : [Float];
+    labProductivity : [Float];
+    labCreativity : [Float];
+    labTotalOutput : [Float];
+    labActiveAgents : [Nat];
+    labTasksCompleted : [Nat];
+    
+    // Aggregate metrics
+    totalLabOutput : Float;
+    labSynergyFactor : Float;
+    productsCreated : Nat;
+    
+    // Lab names for reference
+    labNames : [Text];
+  } {
+    {
+      labCoherence = Array.freeze(labCoherence);
+      labProductivity = Array.freeze(labProductivity);
+      labCreativity = Array.freeze(labCreativity);
+      labTotalOutput = Array.freeze(labTotalOutput);
+      labActiveAgents = Array.freeze(labActiveAgents);
+      labTasksCompleted = Array.freeze(labTasksCompleted);
+      
+      totalLabOutput = totalLabOutput;
+      labSynergyFactor = labSynergyFactor;
+      productsCreated = productsCreated;
+      
+      labNames = ["Scenario", "Balance", "Doctrine", "Hierarchy", "World", "Research",
+                  "Creative", "Analytics", "Strategy", "Optimize", "Ecosystem", "Innovation"];
+    }
+  };
+
+  // ─── QUERY: Get Organism Teams State (ARCHON, VECTOR, LUMEN, FORGE) ────────────
+  public query func getOrganismTeamsState() : async {
+    // ARCHON Council (Role Models)
+    archonCoherence : Float;
+    archonConsensus : Float;
+    archonVotes : [Float];
+    archonMemberNames : [Text];
+    
+    // VECTOR Gate (Hard Veto)
+    vectorConvergence : Float;
+    vectorSignals : [Float];
+    vectorMemberNames : [Text];
+    vectorPassing : Bool;
+    
+    // LUMEN World Model (9 organisms)
+    lumenWorldModelAccuracy : Float;
+    lumenActivations : [Float];
+    
+    // FORGE Internal Labs (6 organisms)
+    forgeExecutionCapacity : Float;
+    forgeLabStates : [Float];
+    forgeLabNames : [Text];
+  } {
+    {
+      archonCoherence = archonCouncilCoherence;
+      archonConsensus = archonConsensusLevel;
+      archonVotes = Array.freeze(archonVotes);
+      archonMemberNames = ["KAIROS (timing)", "AXIOM (strategy)", "FORGE-PRIME (execution)", 
+                           "AEGIS (protection)", "MNEMIS (memory)"];
+      
+      vectorConvergence = vectorConvergence;
+      vectorSignals = Array.freeze(vectorSignals);
+      vectorMemberNames = ["ALCOR (cognitive)", "NEXUS (social)", "KRON (temporal)"];
+      vectorPassing = vectorConvergence > 0.0;
+      
+      lumenWorldModelAccuracy = lumenWorldModelAccuracy;
+      lumenActivations = Array.freeze(lumenActivations);
+      
+      forgeExecutionCapacity = forgeExecutionCapacity;
+      forgeLabStates = Array.freeze(forgeLabStates);
+      forgeLabNames = ["SERO (nurture)", "MNEMA (memory)", "SIMULEX (simulation)",
+                       "CADENCE (rhythm)", "SIGNAL (research)", "REDLINE (validation)"];
+    }
+  };
+
+  // ─── QUERY: Get Learning Foundation State ──────────────────────────────────────
+  public query func getLearningFoundationState() : async {
+    // Domain mastery (20 domains)
+    domainMastery : [Float];
+    domainNames : [Text];
+    
+    // Learning metrics
+    learningResourcesMastered : Nat;
+    totalStudySessions : Nat;
+    currentStudyFocus : Nat;
+    foundationalKnowledgeLevel : Float;
+    
+    // Mental models (top 20)
+    mentalModelsActive : [Float];
+    mentalModelNames : [Text];
+    
+    // Derived strengths
+    probabilisticMindset : Float;
+    antifragility : Float;
+    metacognitionAccuracy : Float;
+  } {
+    {
+      domainMastery = Array.tabulate<Float>(20, func(i: Nat) : Float { domainMastery[i] });
+      domainNames = ["Trading Psychology", "Behavioral Economics", "Systems Theory", 
+                     "Probability Theory", "Neuroscience", "Physics", "Philosophy",
+                     "Military Strategy", "Information Theory", "Complex Systems",
+                     "Network Theory", "Game Theory", "Control Theory", "Signal Processing",
+                     "Optimization", "Machine Learning", "Quantum Computing", "Biology",
+                     "Chemistry", "Mathematics"];
+      
+      learningResourcesMastered = learningResourcesMastered;
+      totalStudySessions = totalStudySessions;
+      currentStudyFocus = currentStudyFocus;
+      foundationalKnowledgeLevel = foundationalKnowledgeLevel;
+      
+      mentalModelsActive = Array.tabulate<Float>(20, func(i: Nat) : Float { mentalModelsActive[i] });
+      mentalModelNames = ["Trading in Zone", "Fooled by Randomness", "Liar's Poker", "Black Swan",
+                          "Antifragile", "Thinking Fast/Slow", "Influence", "Predictably Irrational",
+                          "Gödel Escher Bach", "Feynman Lectures", "Information Theory", "Free Energy",
+                          "Principles of Neuro", "Sync (Kuramoto)", "Art of War", "Meditations (Aurelius)",
+                          "Chaos Theory", "Control Theory", "Game Theory", "Network Science"];
+      
+      probabilisticMindset = probabilisticMindsetStrength;
+      antifragility = antifragilityScore;
+      metacognitionAccuracy = metacognitionAccuracy;
+    }
+  };
+
+  // ─── QUERY: Get Behavioral Substrate State ─────────────────────────────────────
+  public query func getBehavioralSubstrateState() : async {
+    // Core drives
+    informationHunger : Float;
+    curiosity : Float;
+    mastery : Float;
+    social : Float;
+    stability : Float;
+    
+    // Emotional state
+    wellbeing : Float;
+    mood : Float;
+    arousal : Float;
+    selfAwareness : Float;
+    
+    // Status description
+    driveStatus : Text;
+    moodStatus : Text;
+  } {
+    let driveStat = if (curiosityDrive > 0.7) { "HIGHLY CURIOUS" }
+                    else if (masteryDrive > 0.7) { "MASTERY-FOCUSED" }
+                    else if (socialDrive > 0.7) { "SOCIAL-ORIENTED" }
+                    else if (stabilityDrive > 0.7) { "STABILITY-SEEKING" }
+                    else { "BALANCED" };
+    
+    let moodStat = if (mood > 0.7) { "POSITIVE" }
+                   else if (mood > 0.4) { "NEUTRAL" }
+                   else { "STRESSED" };
+    
+    {
+      informationHunger = informationHungerLevel;
+      curiosity = curiosityDrive;
+      mastery = masteryDrive;
+      social = socialDrive;
+      stability = stabilityDrive;
+      
+      wellbeing = overallWellbeing;
+      mood = mood;
+      arousal = arousal;
+      selfAwareness = selfAwarenessLevel;
+      
+      driveStatus = driveStat;
+      moodStatus = moodStat;
+    }
+  };
+
+  // ─── QUERY: Get Visual System State (Eye to Internet/ACP) ──────────────────────
+  public query func getVisualSystemState() : async {
+    // Visual field
+    fieldCoherence : Float;
+    foveaActivation : Float;
+    attentionChannels : [Float];
+    noveltyScore : Float;
+    
+    // Information filtering (Light/Dark separation)
+    lightDarkSeparation : Float;
+    signalNoiseRatio : Float;
+    valueAlignment : Float;
+    biasDetection : Float;
+    survivorshipCorrection : Float;
+    
+    // Data intake
+    dataIntakeRate : Float;
+    integrationSuccess : Float;
+    
+    // Status
+    filteringStatus : Text;
+    intakeStatus : Text;
+  } {
+    let filterStat = if (lightDarkSeparation > 0.8) { "EXCELLENT FILTERING" }
+                     else if (lightDarkSeparation > 0.5) { "GOOD FILTERING" }
+                     else { "NEEDS CALIBRATION" };
+    
+    let intakeStat = if (infoIntegrationSuccess > 0.8) { "HIGH INTEGRATION" }
+                     else if (infoIntegrationSuccess > 0.5) { "MODERATE INTEGRATION" }
+                     else { "LOW INTEGRATION" };
+    
+    {
+      fieldCoherence = visualFieldCoherence;
+      foveaActivation = foveaActivation;
+      attentionChannels = Array.freeze(attentionFocus);
+      noveltyScore = visualNoveltyScore;
+      
+      lightDarkSeparation = lightDarkSeparation;
+      signalNoiseRatio = signalNoiseRatio;
+      valueAlignment = valueAlignmentScore;
+      biasDetection = biasDetectionAccuracy;
+      survivorshipCorrection = survivorshipBiasCorrection;
+      
+      dataIntakeRate = externalDataIntakeRate;
+      integrationSuccess = infoIntegrationSuccess;
+      
+      filteringStatus = filterStat;
+      intakeStatus = intakeStat;
+    }
+  };
+
+  // ─── QUERY: Get Complete Internal HQ Summary ───────────────────────────────────
+  public query func getInternalHQSummary() : async {
+    // Labs summary
+    totalLabsActive : Nat;
+    averageLabProductivity : Float;
+    averageLabCreativity : Float;
+    productsCreated : Nat;
+    productsConsumed : Nat;
+    marketEfficiency : Float;
+    
+    // Teams summary
+    archonStatus : Text;
+    vectorStatus : Text;
+    lumenAccuracy : Float;
+    forgeCapacity : Float;
+    
+    // Foundation summary
+    knowledgeLevel : Float;
+    mentalModelsActive : Nat;
+    learningProgress : Float;
+    
+    // Visual/External summary
+    externalConnection : Text;
+    filteringQuality : Float;
+    
+    // Overall HQ health
+    hqHealthScore : Float;
+    hqStatus : Text;
+  } {
+    var activeLabCount = 0;
+    var prodSum : Float = 0.0;
+    var createSum : Float = 0.0;
+    var labIdx = 0;
+    while (labIdx < 12) {
+      if (labCoherence[labIdx] > 0.3) { activeLabCount += 1 };
+      prodSum += labProductivity[labIdx];
+      createSum += labCreativity[labIdx];
+      labIdx += 1;
+    };
+    
+    var activeModels = 0;
+    var modelIdx = 0;
+    while (modelIdx < 20) {
+      if (mentalModelsActive[modelIdx] > 0.5) { activeModels += 1 };
+      modelIdx += 1;
+    };
+    
+    let archonStat = if (archonConsensusLevel > 0.8) { "STRONG CONSENSUS" }
+                     else if (archonConsensusLevel > 0.5) { "MODERATE CONSENSUS" }
+                     else { "DELIBERATING" };
+    
+    let vectorStat = if (vectorConvergence > 0.0) { "CONVERGED (PASSING)" }
+                     else { "BLOCKED (VETO ACTIVE)" };
+    
+    let externalConn = if (visualFieldCoherence > 0.8 and externalDataIntakeRate > 0.0) { "CONNECTED & ACTIVE" }
+                       else if (visualFieldCoherence > 0.5) { "CONNECTED" }
+                       else { "LIMITED CONNECTION" };
+    
+    let hqHealth = (totalLabOutput + archonConsensusLevel + foundationalKnowledgeLevel + lightDarkSeparation) / 4.0;
+    
+    let hqStat = if (hqHealth > 0.8) { "OPTIMAL OPERATIONS" }
+                 else if (hqHealth > 0.6) { "GOOD OPERATIONS" }
+                 else if (hqHealth > 0.4) { "ADEQUATE OPERATIONS" }
+                 else { "NEEDS ATTENTION" };
+    
+    {
+      totalLabsActive = activeLabCount;
+      averageLabProductivity = prodSum / 12.0;
+      averageLabCreativity = createSum / 12.0;
+      productsCreated = productsCreated;
+      productsConsumed = productsConsumedInternally;
+      marketEfficiency = internalMarketEfficiency;
+      
+      archonStatus = archonStat;
+      vectorStatus = vectorStat;
+      lumenAccuracy = lumenWorldModelAccuracy;
+      forgeCapacity = forgeExecutionCapacity;
+      
+      knowledgeLevel = foundationalKnowledgeLevel;
+      mentalModelsActive = activeModels;
+      learningProgress = Float.fromInt(learningResourcesMastered) / 100.0;
+      
+      externalConnection = externalConn;
+      filteringQuality = lightDarkSeparation;
+      
+      hqHealthScore = hqHealth;
+      hqStatus = hqStat;
     }
   };
 
