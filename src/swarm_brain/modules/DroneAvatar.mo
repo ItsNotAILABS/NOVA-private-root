@@ -9074,4 +9074,1116 @@ module {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 36: PREDICTIVE PROCESSING — INTERNAL WORLD MODEL
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  // The drone's internal world model for prediction and simulation:
+  //   • Forward models — Predict consequences of actions
+  //   • Inverse models — Infer actions from desired outcomes
+  //   • Generative models — Generate expectations
+  //   • Prediction error computation
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// World model state
+  public type WorldModelState = {
+    // Current state estimate
+    beliefState       : BeliefState;
+    
+    // Forward models
+    forwardModels     : [ForwardModelState];
+    
+    // Inverse models
+    inverseModels     : [InverseModelState];
+    
+    // Prediction
+    predictions       : PredictionState;
+    
+    // Prediction errors
+    predictionErrors  : PredictionErrorState;
+    
+    // Precision
+    precisionWeights  : PrecisionWeights;
+    
+    beatNum           : Nat;
+  };
+
+  /// Belief state
+  public type BeliefState = {
+    // State variables
+    stateEstimate     : [Float];
+    stateUncertainty  : [Float];
+    
+    // Parameters
+    parameterEstimates : [Float];
+    parameterUncertainty : [Float];
+    
+    // Hidden states
+    hiddenStates      : [[Float]];
+    
+    // Temporal
+    pastStates        : [[Float]];
+    currentState      : [Float];
+    futureStates      : [[Float]];
+  };
+
+  /// Forward model state
+  public type ForwardModelState = {
+    modelId           : Nat;
+    modelName         : Text;
+    
+    // Dynamics function (encoded)
+    dynamicsWeights   : [[Float]];
+    
+    // Input/output
+    inputDim          : Nat;
+    stateDim          : Nat;
+    
+    // Accuracy
+    predictionAccuracy : Float;
+    lastPrediction    : [Float];
+    lastError         : Float;
+    
+    // Learning
+    learningRate      : Float;
+    adaptationCount   : Nat;
+  };
+
+  /// Inverse model state
+  public type InverseModelState = {
+    modelId           : Nat;
+    modelName         : Text;
+    
+    // Inverse mapping
+    inverseMappingWeights : [[Float]];
+    
+    // Target to action
+    inputDim          : Nat;       // Target state
+    outputDim         : Nat;       // Action
+    
+    // Performance
+    inverseAccuracy   : Float;
+  };
+
+  /// Prediction state
+  public type PredictionState = {
+    // Active predictions
+    activePredictions : [ActivePrediction];
+    
+    // Temporal predictions
+    shortTermPred     : [[Float]];  // 1-10 beats
+    mediumTermPred    : [[Float]];  // 10-100 beats
+    longTermPred      : [[Float]];  // 100+ beats
+    
+    // Counterfactual predictions
+    counterfactuals   : [CounterfactualPrediction];
+  };
+
+  /// Active prediction
+  public type ActivePrediction = {
+    predictionId      : Nat;
+    predictedVariable : Text;
+    predictedValue    : [Float];
+    uncertainty       : Float;
+    timeHorizon       : Nat;
+    startBeat         : Nat;
+    isResolved        : Bool;
+    actualValue       : ?[Float];
+    error             : ?Float;
+  };
+
+  /// Counterfactual prediction
+  public type CounterfactualPrediction = {
+    condition         : Text;
+    predictedOutcome  : [Float];
+    alternativeAction : Text;
+    alternativeOutcome : [Float];
+  };
+
+  /// Prediction error state
+  public type PredictionErrorState = {
+    // Sensory prediction errors
+    visualPE          : [[Float]];
+    auditoryPE        : [Float];
+    proprioceptivePE  : [Float];
+    
+    // Motor prediction errors
+    motorPE           : [Float];
+    
+    // Social prediction errors
+    socialPE          : [Float];
+    
+    // Interoceptive prediction errors
+    interoceptivePE   : [Float];
+    
+    // Total prediction error
+    totalPE           : Float;
+    
+    // Precision-weighted PE
+    precisionWeightedPE : Float;
+  };
+
+  /// Precision weights
+  public type PrecisionWeights = {
+    // Sensory precision
+    visualPrecision   : Float;
+    auditoryPrecision : Float;
+    proprioceptivePrecision : Float;
+    
+    // Prior precision
+    priorPrecision    : Float;
+    
+    // Attention as precision
+    attentionalPrecision : Float;
+    
+    // Volatility
+    environmentVolatility : Float;
+  };
+
+  /// Initialize world model
+  public func initWorldModel() : WorldModelState {
+    {
+      beliefState = {
+        stateEstimate = Array.tabulate<Float>(10, func(_) { 0.0 });
+        stateUncertainty = Array.tabulate<Float>(10, func(_) { 1.0 });
+        parameterEstimates = [];
+        parameterUncertainty = [];
+        hiddenStates = [[]];
+        pastStates = [];
+        currentState = Array.tabulate<Float>(10, func(_) { 0.0 });
+        futureStates = [];
+      };
+      forwardModels = [
+        {
+          modelId = 0;
+          modelName = "motor_dynamics";
+          dynamicsWeights = Array.tabulate<[Float]>(10, func(_) {
+            Array.tabulate<Float>(10, func(_) { 0.0 })
+          });
+          inputDim = 4;
+          stateDim = 10;
+          predictionAccuracy = 0.5;
+          lastPrediction = [];
+          lastError = 0.0;
+          learningRate = 0.01;
+          adaptationCount = 0;
+        }
+      ];
+      inverseModels = [];
+      predictions = {
+        activePredictions = [];
+        shortTermPred = [[]];
+        mediumTermPred = [[]];
+        longTermPred = [[]];
+        counterfactuals = [];
+      };
+      predictionErrors = {
+        visualPE = [[]];
+        auditoryPE = [];
+        proprioceptivePE = [];
+        motorPE = [];
+        socialPE = [];
+        interoceptivePE = [];
+        totalPE = 0.0;
+        precisionWeightedPE = 0.0;
+      };
+      precisionWeights = {
+        visualPrecision = 1.0;
+        auditoryPrecision = 0.8;
+        proprioceptivePrecision = 0.9;
+        priorPrecision = 0.5;
+        attentionalPrecision = 1.0;
+        environmentVolatility = 0.2;
+      };
+      beatNum = 0;
+    }
+  };
+
+  /// Forward prediction
+  public func forwardPredict(
+    model: ForwardModelState,
+    currentState: [Float],
+    action: [Float]
+  ) : [Float] {
+    // Simple linear prediction: x' = Ax + Bu
+    let n = model.stateDim;
+    var nextState : [Float] = Array.tabulate<Float>(n, func(_) { 0.0 });
+    let stateMut = Array.thaw<Float>(nextState);
+    
+    for (i in Iter.range(0, n - 1)) {
+      for (j in Iter.range(0, n - 1)) {
+        if (j < currentState.size() and i < model.dynamicsWeights.size() and j < model.dynamicsWeights[i].size()) {
+          stateMut[i] := stateMut[i] + model.dynamicsWeights[i][j] * currentState[j];
+        };
+      };
+      
+      // Add action influence
+      for (k in Iter.range(0, action.size() - 1)) {
+        if (k < model.inputDim and i < n) {
+          stateMut[i] := stateMut[i] + action[k] * 0.1;
+        };
+      };
+    };
+    
+    nextState := Array.freeze(stateMut);
+    nextState
+  };
+
+  /// Compute prediction error
+  public func computePredictionError(
+    predicted: [Float],
+    actual: [Float]
+  ) : (Float, [Float]) {
+    var totalError : Float = 0.0;
+    let minLen = Int.min(predicted.size(), actual.size());
+    var errors : [Float] = [];
+    
+    for (i in Iter.range(0, minLen - 1)) {
+      let error = actual[i] - predicted[i];
+      errors := Array.append(errors, [error]);
+      totalError += error * error;
+    };
+    
+    (Float.sqrt(totalError / Float.fromInt(minLen + 1)), errors)
+  };
+
+  /// Update belief state
+  public func updateBeliefState(
+    belief: BeliefState,
+    observation: [Float],
+    prediction: [Float],
+    precisionWeights: PrecisionWeights,
+    learningRate: Float
+  ) : BeliefState {
+    // Kalman-like update
+    let (_, errors) = computePredictionError(prediction, observation);
+    
+    // Precision-weighted update
+    let precision = precisionWeights.visualPrecision;
+    
+    let newEstimate = Array.tabulate<Float>(belief.stateEstimate.size(), func(i) {
+      let pred = if (i < prediction.size()) { prediction[i] } else { 0.0 };
+      let obs = if (i < observation.size()) { observation[i] } else { 0.0 };
+      let err = if (i < errors.size()) { errors[i] } else { 0.0 };
+      
+      // Update toward observation weighted by precision
+      pred + learningRate * precision * err
+    });
+    
+    // Update uncertainty
+    let newUncertainty = Array.tabulate<Float>(belief.stateUncertainty.size(), func(i) {
+      let unc = if (i < belief.stateUncertainty.size()) { belief.stateUncertainty[i] } else { 1.0 };
+      unc * (1.0 - learningRate * precision) + precisionWeights.environmentVolatility
+    });
+    
+    // Update past states history
+    var newPastStates = Array.append(belief.pastStates, [belief.currentState]);
+    if (newPastStates.size() > 20) {
+      newPastStates := Array.tabulate<[Float]>(20, func(i) {
+        newPastStates[newPastStates.size() - 20 + i]
+      });
+    };
+    
+    {
+      stateEstimate = newEstimate;
+      stateUncertainty = newUncertainty;
+      parameterEstimates = belief.parameterEstimates;
+      parameterUncertainty = belief.parameterUncertainty;
+      hiddenStates = belief.hiddenStates;
+      pastStates = newPastStates;
+      currentState = newEstimate;
+      futureStates = belief.futureStates;
+    }
+  };
+
+  /// Update forward model (learning)
+  public func updateForwardModel(
+    model: ForwardModelState,
+    lastState: [Float],
+    action: [Float],
+    actualNextState: [Float]
+  ) : ForwardModelState {
+    // Predict
+    let predicted = forwardPredict(model, lastState, action);
+    let (error, _) = computePredictionError(predicted, actualNextState);
+    
+    // Update weights (simplified gradient descent)
+    let newWeights = Array.tabulate<[Float]>(model.dynamicsWeights.size(), func(i) {
+      Array.tabulate<Float>(model.dynamicsWeights[i].size(), func(j) {
+        let w = model.dynamicsWeights[i][j];
+        let targetContrib = if (j < actualNextState.size() and i < actualNextState.size()) {
+          actualNextState[i] - predicted[i]
+        } else { 0.0 };
+        let stateContrib = if (j < lastState.size()) { lastState[j] } else { 0.0 };
+        
+        w + model.learningRate * targetContrib * stateContrib * 0.01
+      })
+    });
+    
+    // Update accuracy tracking
+    let newAccuracy = model.predictionAccuracy * 0.95 + (1.0 - Float.min(error, 1.0)) * 0.05;
+    
+    {
+      modelId = model.modelId;
+      modelName = model.modelName;
+      dynamicsWeights = newWeights;
+      inputDim = model.inputDim;
+      stateDim = model.stateDim;
+      predictionAccuracy = newAccuracy;
+      lastPrediction = predicted;
+      lastError = error;
+      learningRate = model.learningRate;
+      adaptationCount = model.adaptationCount + 1;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 37: DECISION MAKING — ACTION SELECTION
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  // The drone's decision making systems:
+  //   • Expected utility computation
+  //   • Risk assessment
+  //   • Multi-objective optimization
+  //   • Temporal discounting
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Decision making state
+  public type DecisionMakingState = {
+    // Available options
+    options           : [DecisionOption];
+    
+    // Evaluation
+    optionEvaluations : [OptionEvaluation];
+    
+    // Selection
+    selectedOption    : ?Nat;
+    selectionConfidence : Float;
+    
+    // History
+    decisionHistory   : [DecisionRecord];
+    
+    // Parameters
+    riskPreference    : Float;        // -1 = risk-seeking, +1 = risk-averse
+    temporalDiscount  : Float;        // How much to discount future rewards
+    
+    // Multi-objective
+    objectiveWeights  : [(Text, Float)];
+    
+    beatNum           : Nat;
+  };
+
+  /// Option evaluation
+  public type OptionEvaluation = {
+    optionId          : Nat;
+    
+    // Expected outcomes
+    expectedValue     : Float;
+    outcomeVariance   : Float;
+    
+    // Risk
+    worstCase         : Float;
+    bestCase          : Float;
+    
+    // Timing
+    expectedDelay     : Nat;
+    discountedValue   : Float;
+    
+    // Multi-objective
+    objectiveScores   : [(Text, Float)];
+    
+    // Final score
+    aggregateScore    : Float;
+  };
+
+  /// Decision record
+  public type DecisionRecord = {
+    decisionId        : Nat;
+    beat              : Nat;
+    optionChosen      : Nat;
+    expectedValue     : Float;
+    actualOutcome     : ?Float;
+    wasGoodDecision   : ?Bool;
+  };
+
+  /// Initialize decision making
+  public func initDecisionMaking() : DecisionMakingState {
+    {
+      options = [];
+      optionEvaluations = [];
+      selectedOption = null;
+      selectionConfidence = 0.0;
+      decisionHistory = [];
+      riskPreference = 0.0;
+      temporalDiscount = 0.1;
+      objectiveWeights = [
+        ("survival", 1.0),
+        ("mission", 0.8),
+        ("efficiency", 0.6),
+        ("cooperation", 0.5)
+      ];
+      beatNum = 0;
+    }
+  };
+
+  /// Evaluate option
+  public func evaluateOption(
+    option: DecisionOption,
+    predictions: PredictionState,
+    objectiveWeights: [(Text, Float)],
+    riskPref: Float,
+    discount: Float,
+    currentBeat: Nat
+  ) : OptionEvaluation {
+    // Estimate expected value
+    let ev = option.expectedValue;
+    
+    // Estimate variance
+    let variance = option.riskLevel * option.riskLevel;
+    
+    // Risk adjustment
+    let riskAdjusted = ev - riskPref * Float.sqrt(variance);
+    
+    // Temporal discounting (hyperbolic)
+    let delay = 10.0;  // Placeholder
+    let discounted = riskAdjusted / (1.0 + discount * delay);
+    
+    // Multi-objective scoring
+    var objScores : [(Text, Float)] = [];
+    var totalWeight : Float = 0.0;
+    var weightedSum : Float = 0.0;
+    
+    for ((obj, weight) in objectiveWeights.vals()) {
+      // Simplified: use expected value as score for all objectives
+      let score = ev;
+      objScores := Array.append(objScores, [(obj, score)]);
+      weightedSum += score * weight;
+      totalWeight += weight;
+    };
+    
+    let aggregate = if (totalWeight > 0.0) {
+      weightedSum / totalWeight
+    } else { discounted };
+    
+    {
+      optionId = option.optionId;
+      expectedValue = ev;
+      outcomeVariance = variance;
+      worstCase = ev - 2.0 * Float.sqrt(variance);
+      bestCase = ev + 2.0 * Float.sqrt(variance);
+      expectedDelay = 10;
+      discountedValue = discounted;
+      objectiveScores = objScores;
+      aggregateScore = aggregate;
+    }
+  };
+
+  /// Select best option
+  public func selectOption(
+    evaluations: [OptionEvaluation],
+    explorationRate: Float,
+    randomSeed: Nat
+  ) : (?Nat, Float) {
+    if (evaluations.size() == 0) {
+      return (null, 0.0);
+    };
+    
+    // Softmax selection with temperature
+    var maxScore : Float = -1000.0;
+    var bestOption : Nat = 0;
+    var sumExp : Float = 0.0;
+    
+    // Find max for numerical stability
+    for (eval in evaluations.vals()) {
+      if (eval.aggregateScore > maxScore) {
+        maxScore := eval.aggregateScore;
+        bestOption := eval.optionId;
+      };
+    };
+    
+    // Compute softmax probabilities
+    let temperature = 0.1 + explorationRate;
+    var probs : [Float] = [];
+    
+    for (eval in evaluations.vals()) {
+      let expScore = Float.exp((eval.aggregateScore - maxScore) / temperature);
+      probs := Array.append(probs, [expScore]);
+      sumExp += expScore;
+    };
+    
+    // Normalize
+    probs := Array.map<Float, Float>(probs, func(p) { p / sumExp });
+    
+    // Select (using seed for deterministic selection)
+    let randomVal = Float.fromInt(randomSeed % 1000) / 1000.0;
+    var cumProb : Float = 0.0;
+    var selected : Nat = 0;
+    
+    for (i in Iter.range(0, probs.size() - 1)) {
+      cumProb += probs[i];
+      if (randomVal < cumProb) {
+        selected := i;
+        // Early exit would be nice but we'll just overwrite
+      };
+    };
+    
+    // Confidence = probability of best option
+    let confidence = if (bestOption < probs.size()) { probs[bestOption] } else { 0.0 };
+    
+    (?selected, confidence)
+  };
+
+  /// Update decision based on outcome
+  public func updateDecisionOutcome(
+    dm: DecisionMakingState,
+    decisionId: Nat,
+    actualOutcome: Float
+  ) : DecisionMakingState {
+    let newHistory = Array.map<DecisionRecord, DecisionRecord>(
+      dm.decisionHistory,
+      func(record) {
+        if (record.decisionId == decisionId) {
+          let wasGood = actualOutcome >= record.expectedValue * 0.8;
+          {
+            decisionId = record.decisionId;
+            beat = record.beat;
+            optionChosen = record.optionChosen;
+            expectedValue = record.expectedValue;
+            actualOutcome = ?actualOutcome;
+            wasGoodDecision = ?wasGood;
+          }
+        } else { record }
+      }
+    );
+    
+    // Adjust risk preference based on outcome history
+    var goodDecisions : Nat = 0;
+    var totalDecisions : Nat = 0;
+    for (record in newHistory.vals()) {
+      switch (record.wasGoodDecision) {
+        case (?good) {
+          totalDecisions += 1;
+          if (good) { goodDecisions += 1 };
+        };
+        case null { };
+      };
+    };
+    
+    let successRate = if (totalDecisions > 0) {
+      Float.fromInt(goodDecisions) / Float.fromInt(totalDecisions)
+    } else { 0.5 };
+    
+    // Become more risk-averse if doing poorly
+    let newRiskPref = if (successRate < 0.4) {
+      Float.min(1.0, dm.riskPreference + 0.1)
+    } else if (successRate > 0.7) {
+      Float.max(-1.0, dm.riskPreference - 0.05)
+    } else { dm.riskPreference };
+    
+    {
+      options = dm.options;
+      optionEvaluations = dm.optionEvaluations;
+      selectedOption = dm.selectedOption;
+      selectionConfidence = dm.selectionConfidence;
+      decisionHistory = newHistory;
+      riskPreference = newRiskPref;
+      temporalDiscount = dm.temporalDiscount;
+      objectiveWeights = dm.objectiveWeights;
+      beatNum = dm.beatNum;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 38: FINAL SUPREME INTEGRATION
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Absolutely complete drone with EVERY system
+  public type AbsoluteCompleteDrone = {
+    // Previous supreme
+    supreme           : SupremeDroneAvatar;
+    
+    // World model
+    worldModel        : WorldModelState;
+    
+    // Decision making
+    decisionMaking    : DecisionMakingState;
+    
+    // Total integration metric
+    totalIntegration  : Float;
+    
+    beatNum           : Nat;
+  };
+
+  /// Initialize absolute complete drone
+  public func initAbsoluteCompleteDrone(
+    droneId: Nat,
+    squadronId: Nat,
+    position: { lat: Float; lon: Float; alt: Float },
+    colonyNeeds: [(DroneRole, Float)],
+    beat: Nat
+  ) : AbsoluteCompleteDrone {
+    {
+      supreme = initSupremeDrone(droneId, squadronId, position, colonyNeeds, beat);
+      worldModel = initWorldModel();
+      decisionMaking = initDecisionMaking();
+      totalIntegration = 0.5;
+      beatNum = beat;
+    }
+  };
+
+  /// Tick absolute complete drone
+  public func tickAbsoluteCompleteDrone(
+    drone: AbsoluteCompleteDrone,
+    visualInput: [[Float]],
+    audioInput: { left: [Float]; right: [Float] },
+    observedDrones: [{ id: Nat; pos: { x: Float; y: Float; z: Float }; vel: ?{ vx: Float; vy: Float; vz: Float } }],
+    receivedMessages: [SwarmMessage],
+    externalThreats: [{ x: Float; y: Float; z: Float; level: Float }],
+    batteryLevel: Float,
+    ambientTemp: Float,
+    signalStrength: Float,
+    dt: Float
+  ) : AbsoluteCompleteDrone {
+    // 1. Tick supreme drone
+    let newSupreme = tickSupremeDrone(
+      drone.supreme,
+      visualInput,
+      audioInput,
+      observedDrones,
+      receivedMessages,
+      externalThreats,
+      batteryLevel,
+      ambientTemp,
+      signalStrength,
+      dt
+    );
+    
+    // 2. Update world model
+    let observation = [batteryLevel, ambientTemp, signalStrength];
+    let prediction = if (drone.worldModel.forwardModels.size() > 0) {
+      forwardPredict(drone.worldModel.forwardModels[0], drone.worldModel.beliefState.currentState, [])
+    } else { [] };
+    
+    let newBeliefState = updateBeliefState(
+      drone.worldModel.beliefState,
+      observation,
+      prediction,
+      drone.worldModel.precisionWeights,
+      0.1
+    );
+    
+    // 3. Compute prediction errors
+    let (totalPE, _) = computePredictionError(prediction, observation);
+    
+    let newPredictionErrors : PredictionErrorState = {
+      visualPE = drone.worldModel.predictionErrors.visualPE;
+      auditoryPE = drone.worldModel.predictionErrors.auditoryPE;
+      proprioceptivePE = drone.worldModel.predictionErrors.proprioceptivePE;
+      motorPE = drone.worldModel.predictionErrors.motorPE;
+      socialPE = drone.worldModel.predictionErrors.socialPE;
+      interoceptivePE = [totalPE];
+      totalPE = totalPE;
+      precisionWeightedPE = totalPE * drone.worldModel.precisionWeights.visualPrecision;
+    };
+    
+    let newWorldModel : WorldModelState = {
+      beliefState = newBeliefState;
+      forwardModels = drone.worldModel.forwardModels;
+      inverseModels = drone.worldModel.inverseModels;
+      predictions = drone.worldModel.predictions;
+      predictionErrors = newPredictionErrors;
+      precisionWeights = drone.worldModel.precisionWeights;
+      beatNum = drone.worldModel.beatNum + 1;
+    };
+    
+    // 4. Compute total integration
+    let brainIntegration = newSupreme.globalIntegration;
+    let worldModelAccuracy = 1.0 - Float.min(totalPE, 1.0);
+    let newTotalIntegration = (brainIntegration + worldModelAccuracy) / 2.0;
+    
+    {
+      supreme = newSupreme;
+      worldModel = newWorldModel;
+      decisionMaking = drone.decisionMaking;
+      totalIntegration = newTotalIntegration;
+      beatNum = drone.beatNum + 1;
+    }
+  };
+
+  /// Generate absolute complete output
+  public type AbsoluteCompleteOutput = {
+    droneId           : Nat;
+    isAlive           : Bool;
+    position          : { lat: Float; lon: Float; alt: Float };
+    
+    // Integration
+    totalIntegration  : Float;
+    consciousness     : Float;
+    
+    // World model
+    predictionError   : Float;
+    beliefCertainty   : Float;
+    
+    // Emotions
+    valence           : Float;
+    arousal           : Float;
+    
+    // Social
+    belongingness     : Float;
+    
+    // Decision
+    decisionConfidence : Float;
+    
+    beatNum           : Nat;
+  };
+
+  public func generateAbsoluteCompleteOutput(drone: AbsoluteCompleteDrone) : AbsoluteCompleteOutput {
+    let supremeOut = generateSupremeOutput(drone.supreme);
+    
+    // Compute belief certainty (inverse of uncertainty)
+    var totalUncertainty : Float = 0.0;
+    for (u in drone.worldModel.beliefState.stateUncertainty.vals()) {
+      totalUncertainty += u;
+    };
+    let avgUncertainty = totalUncertainty / Float.fromInt(drone.worldModel.beliefState.stateUncertainty.size() + 1);
+    let beliefCertainty = 1.0 / (1.0 + avgUncertainty);
+    
+    {
+      droneId = supremeOut.droneId;
+      isAlive = supremeOut.isAlive;
+      position = supremeOut.position;
+      totalIntegration = drone.totalIntegration;
+      consciousness = supremeOut.consciousness;
+      predictionError = drone.worldModel.predictionErrors.totalPE;
+      beliefCertainty = beliefCertainty;
+      valence = supremeOut.valence;
+      arousal = supremeOut.arousal;
+      belongingness = supremeOut.belongingness;
+      decisionConfidence = drone.decisionMaking.selectionConfidence;
+      beatNum = drone.beatNum;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 39: MORPHOLOGICAL COMPUTATION — BODY AS COMPUTER
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  // The drone's body itself performs computation through physical dynamics:
+  //   • Mechanical compliance — Springs and dampers that filter forces
+  //   • Passive dynamics — Natural movements without active control
+  //   • Reservoir computing — Body as dynamical system
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Morphological computation state
+  public type MorphologicalComputationState = {
+    // Body dynamics
+    mechanicalState   : MechanicalState;
+    
+    // Passive dynamics
+    passiveDynamics   : PassiveDynamicsState;
+    
+    // Reservoir
+    bodyReservoir     : BodyReservoirState;
+    
+    // Compliance
+    complianceMap     : [ComplianceElement];
+    
+    beatNum           : Nat;
+  };
+
+  /// Mechanical state
+  public type MechanicalState = {
+    // Joint states
+    jointPositions    : [Float];
+    jointVelocities   : [Float];
+    jointTorques      : [Float];
+    
+    // Stiffness/damping
+    jointStiffness    : [Float];
+    jointDamping      : [Float];
+    
+    // Forces
+    externalForces    : [{ x: Float; y: Float; z: Float }];
+    groundReaction    : [{ x: Float; y: Float; z: Float }];
+    
+    // Energy
+    kineticEnergy     : Float;
+    potentialEnergy   : Float;
+    elasticEnergy     : Float;
+  };
+
+  /// Passive dynamics state
+  public type PassiveDynamicsState = {
+    // Natural frequencies
+    naturalFrequencies : [Float];
+    
+    // Damping ratios
+    dampingRatios     : [Float];
+    
+    // Modes
+    vibrationModes    : [[Float]];
+    currentModeAmplitudes : [Float];
+    
+    // Limit cycles
+    limitCycleActive  : Bool;
+    limitCyclePhase   : Float;
+    limitCycleAmplitude : Float;
+  };
+
+  /// Body reservoir state (reservoir computing)
+  public type BodyReservoirState = {
+    // State
+    reservoirState    : [Float];
+    
+    // Readout weights (trained)
+    readoutWeights    : [[Float]];
+    
+    // Output
+    reservoirOutput   : [Float];
+    
+    // Dynamics
+    reservoirSpectralRadius : Float;
+    leakingRate       : Float;
+  };
+
+  /// Compliance element
+  public type ComplianceElement = {
+    elementId         : Nat;
+    location          : { x: Float; y: Float; z: Float };
+    stiffness         : Float;
+    damping           : Float;
+    restLength        : Float;
+    currentLength     : Float;
+    force             : Float;
+  };
+
+  /// Initialize morphological computation
+  public func initMorphologicalComputation(numJoints: Nat) : MorphologicalComputationState {
+    {
+      mechanicalState = {
+        jointPositions = Array.tabulate<Float>(numJoints, func(_) { 0.0 });
+        jointVelocities = Array.tabulate<Float>(numJoints, func(_) { 0.0 });
+        jointTorques = Array.tabulate<Float>(numJoints, func(_) { 0.0 });
+        jointStiffness = Array.tabulate<Float>(numJoints, func(_) { 100.0 });
+        jointDamping = Array.tabulate<Float>(numJoints, func(_) { 10.0 });
+        externalForces = [];
+        groundReaction = [];
+        kineticEnergy = 0.0;
+        potentialEnergy = 0.0;
+        elasticEnergy = 0.0;
+      };
+      passiveDynamics = {
+        naturalFrequencies = Array.tabulate<Float>(numJoints, func(i) { 5.0 + Float.fromInt(i) });
+        dampingRatios = Array.tabulate<Float>(numJoints, func(_) { 0.1 });
+        vibrationModes = [[]];
+        currentModeAmplitudes = [];
+        limitCycleActive = false;
+        limitCyclePhase = 0.0;
+        limitCycleAmplitude = 0.0;
+      };
+      bodyReservoir = {
+        reservoirState = Array.tabulate<Float>(50, func(_) { 0.0 });
+        readoutWeights = [[]];
+        reservoirOutput = [];
+        reservoirSpectralRadius = 0.9;
+        leakingRate = 0.3;
+      };
+      complianceMap = [];
+      beatNum = 0;
+    }
+  };
+
+  /// Update mechanical state
+  public func updateMechanicalState(
+    mech: MechanicalState,
+    motorTorques: [Float],
+    dt: Float
+  ) : MechanicalState {
+    let n = mech.jointPositions.size();
+    
+    // Simple spring-damper dynamics for each joint
+    let newPositions = Array.tabulate<Float>(n, func(i) {
+      let pos = mech.jointPositions[i];
+      let vel = mech.jointVelocities[i];
+      pos + vel * dt
+    });
+    
+    let newVelocities = Array.tabulate<Float>(n, func(i) {
+      let pos = mech.jointPositions[i];
+      let vel = mech.jointVelocities[i];
+      let k = mech.jointStiffness[i];
+      let c = mech.jointDamping[i];
+      let motorT = if (i < motorTorques.size()) { motorTorques[i] } else { 0.0 };
+      
+      // ma = -kx - cv + τ (mass = 1)
+      let acc = -k * pos - c * vel + motorT;
+      vel + acc * dt
+    });
+    
+    let newTorques = Array.tabulate<Float>(n, func(i) {
+      let pos = newPositions[i];
+      let vel = newVelocities[i];
+      let k = mech.jointStiffness[i];
+      let c = mech.jointDamping[i];
+      -k * pos - c * vel
+    });
+    
+    // Energy calculations
+    var ke : Float = 0.0;
+    var pe : Float = 0.0;
+    var ee : Float = 0.0;
+    for (i in Iter.range(0, n - 1)) {
+      let vel = newVelocities[i];
+      let pos = newPositions[i];
+      let k = mech.jointStiffness[i];
+      
+      ke += 0.5 * vel * vel;
+      ee += 0.5 * k * pos * pos;
+    };
+    
+    {
+      jointPositions = newPositions;
+      jointVelocities = newVelocities;
+      jointTorques = newTorques;
+      jointStiffness = mech.jointStiffness;
+      jointDamping = mech.jointDamping;
+      externalForces = mech.externalForces;
+      groundReaction = mech.groundReaction;
+      kineticEnergy = ke;
+      potentialEnergy = pe;
+      elasticEnergy = ee;
+    }
+  };
+
+  /// Update body reservoir
+  public func updateBodyReservoir(
+    reservoir: BodyReservoirState,
+    sensorInput: [Float]
+  ) : BodyReservoirState {
+    let n = reservoir.reservoirState.size();
+    
+    // Leaky integrator update: x(t+1) = (1-a)*x(t) + a*tanh(Win*u + W*x)
+    let alpha = reservoir.leakingRate;
+    
+    let newState = Array.tabulate<Float>(n, func(i) {
+      var activation : Float = 0.0;
+      
+      // Input contribution
+      for (j in Iter.range(0, sensorInput.size() - 1)) {
+        activation += sensorInput[j] * 0.1;  // Simplified input weights
+      };
+      
+      // Recurrent contribution
+      for (j in Iter.range(0, n - 1)) {
+        let w = if ((i + j) % 3 == 0) { 0.1 } else if ((i + j) % 3 == 1) { -0.1 } else { 0.0 };
+        activation += reservoir.reservoirState[j] * w * reservoir.reservoirSpectralRadius;
+      };
+      
+      let tanh_act = (Float.exp(activation) - Float.exp(-activation)) / (Float.exp(activation) + Float.exp(-activation) + 0.001);
+      (1.0 - alpha) * reservoir.reservoirState[i] + alpha * tanh_act
+    });
+    
+    // Readout
+    var output : [Float] = [];
+    for (row in reservoir.readoutWeights.vals()) {
+      var sum : Float = 0.0;
+      for (i in Iter.range(0, Int.min(row.size(), newState.size()) - 1)) {
+        sum += row[i] * newState[i];
+      };
+      output := Array.append(output, [sum]);
+    };
+    
+    {
+      reservoirState = newState;
+      readoutWeights = reservoir.readoutWeights;
+      reservoirOutput = output;
+      reservoirSpectralRadius = reservoir.reservoirSpectralRadius;
+      leakingRate = reservoir.leakingRate;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 40: COMPLETE DRONE SUMMARY STATISTICS
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Complete summary of a drone's state
+  public type CompleteDroneSummary = {
+    // Identity
+    droneId           : Nat;
+    squadronId        : Nat;
+    age               : Nat;
+    
+    // Physical
+    position          : { lat: Float; lon: Float; alt: Float };
+    speed             : Float;
+    heading           : Float;
+    
+    // Health
+    isAlive           : Bool;
+    overallHealth     : Float;
+    batteryLevel      : Float;
+    
+    // Brain metrics
+    consciousness     : Float;
+    integrationLevel  : Float;
+    arousal           : Float;
+    valence           : Float;
+    
+    // Social metrics
+    hierarchyPosition : Float;
+    belongingness     : Float;
+    synchronization   : Float;
+    trustLevel        : Float;
+    
+    // Cognitive metrics
+    workingMemoryLoad : Float;
+    predictionError   : Float;
+    learningRate      : Float;
+    decisionConfidence : Float;
+    
+    // Performance metrics
+    missionProgress   : Float;
+    errorRate         : Float;
+    
+    beatNum           : Nat;
+  };
+
+  /// Generate complete summary
+  public func generateCompleteSummary(drone: AbsoluteCompleteDrone) : CompleteDroneSummary {
+    let pos = drone.supreme.ultimateDrone.physicalState.position;
+    let vel = drone.supreme.ultimateDrone.physicalState.velocity;
+    let speed = Float.sqrt(vel.vx ** 2.0 + vel.vy ** 2.0 + vel.vz ** 2.0);
+    let heading = Float.arctan2(vel.vy, vel.vx);
+    
+    {
+      droneId = drone.supreme.ultimateDrone.droneId;
+      squadronId = drone.supreme.ultimateDrone.squadronId;
+      age = drone.beatNum - drone.supreme.ultimateDrone.birthBeat;
+      position = pos;
+      speed = speed;
+      heading = heading;
+      isAlive = drone.supreme.ultimateDrone.isAlive;
+      overallHealth = drone.supreme.ultimateDrone.overallHealth;
+      batteryLevel = drone.supreme.ultimateDrone.fullBrain.autonomicNS.homeostasis.batteryLevel;
+      consciousness = drone.supreme.ultimateDrone.fullBrain.integrationLevel;
+      integrationLevel = drone.totalIntegration;
+      arousal = drone.supreme.emotionalProcessing.valenceArousal.arousal;
+      valence = drone.supreme.emotionalProcessing.valenceArousal.valence;
+      hierarchyPosition = drone.supreme.ultimateDrone.socialBrain.hierarchyPosition;
+      belongingness = drone.supreme.ultimateDrone.socialBrain.socialEmotions.belongingness;
+      synchronization = drone.supreme.ultimateDrone.socialBrain.synchronizationState.orderParameter;
+      trustLevel = drone.supreme.ultimateDrone.socialBrain.socialEmotions.generalTrust;
+      workingMemoryLoad = drone.supreme.ultimateDrone.fullBrain.workingMemory.currentLoad;
+      predictionError = drone.worldModel.predictionErrors.totalPE;
+      learningRate = drone.supreme.ultimateDrone.learningSystems.globalLearningRate;
+      decisionConfidence = drone.decisionMaking.selectionConfidence;
+      missionProgress = 0.0;  // Would come from mission state
+      errorRate = drone.supreme.executiveFunctions.errorMonitoring.errorRate;
+      beatNum = drone.beatNum;
+    }
+  };
+
 }
