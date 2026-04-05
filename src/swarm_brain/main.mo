@@ -8785,4 +8785,1697 @@ actor SwarmBrain {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+  // ║                                                                                                                                       ║
+  // ║   S E C T I O N   1 7 :   T H E   1 1   S H E L L S   —   C O M P L E T E   D O C T R I N E                                           ║
+  // ║                                                                                                                                       ║
+  // ║   Shell 1: Kuramoto Oscillator Field (12 Hz phase nodes)                                                                              ║
+  // ║   Shell 2: Physiological Substrate (base layer)                                                                                       ║
+  // ║   Shell 3: Hebbian Manifold (26 nodes, 676 weights)                                                                                   ║
+  // ║   Shell 4: NEC - Neuroexecutive Control (7 nodes)                                                                                     ║
+  // ║   Shell 5: Governance Layer (OMNIS quorum)                                                                                            ║
+  // ║   Shell 6: 12 Organs (Michaelis-Menten Kinetics)                                                                                      ║
+  // ║   Shell 7: Metals (Temperature + Conductivity + Entropy)                                                                              ║
+  // ║   Shell 8: Quantum Operations (QMEM, PARALLAX, ENTANGLA, Berry)                                                                       ║
+  // ║   Shell 9: Episodic Ring (10,000 slots)                                                                                               ║
+  // ║   Shell 10: Lineage Substrate (immutable ancestry)                                                                                    ║
+  // ║   Shell 11: Neurotransmitters (DA, 5HT, NE, ACh, Endo, GABA)                                                                          ║
+  // ║                                                                                                                                       ║
+  // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SHELL 1: KURAMOTO OSCILLATOR FIELD — 12 Hz Phase Nodes
+  // Phase update: θ_i += Δt × (ω_i + K/N × Σ sin(θ_j - θ_i))
+  // Global coherence R = |Σ e^(iθ) / N|
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  // Shell 1 is already implemented as inlineKuramotoTick above
+  // But we need the complete 12 Hz field with all timing properties
+  
+  stable var shell1Phases : [var Float] = Array.init<Float>(12, 0.0);
+  stable var shell1Frequencies : [var Float] = Array.init<Float>(12, 12.0);  // All at 12 Hz base
+  stable var shell1Coherence : Float = 0.0;
+  stable var shell1MeanPhase : Float = 0.0;
+  stable var shell1Coupling : Float = 0.618;  // PHI coupling
+  stable var shell1TimingDrift : Float = 0.0;
+  
+  func shell1KuramotoTick(dt : Float) : Float {
+    let n = 12;
+    let K = shell1Coupling;
+    
+    // Compute mean field
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      sumCos += Float.cos(shell1Phases[i]);
+      sumSin += Float.sin(shell1Phases[i]);
+      i += 1;
+    };
+    
+    shell1Coherence := Float.sqrt(sumCos * sumCos + sumSin * sumSin) / Float.fromInt(n);
+    shell1MeanPhase := Float.arctan2(sumSin, sumCos);
+    
+    // Update each phase
+    i := 0;
+    while (i < n) {
+      let omega = shell1Frequencies[i] * TWO_PI;  // Convert Hz to rad/s
+      let coupling = K * shell1Coherence * Float.sin(shell1MeanPhase - shell1Phases[i]);
+      shell1Phases[i] += dt * (omega + coupling);
+      shell1Phases[i] := wrapPhaseInline(shell1Phases[i]);
+      i += 1;
+    };
+    
+    // Timing drift is deviation from perfect 12 Hz
+    var driftSum : Float = 0.0;
+    i := 0;
+    while (i < n) {
+      driftSum += Float.abs(shell1Frequencies[i] - 12.0);
+      i += 1;
+    };
+    shell1TimingDrift := driftSum / Float.fromInt(n);
+    
+    shell1Coherence
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SHELL 2: PHYSIOLOGICAL SUBSTRATE — Base Layer Activation
+  // Raw activation input to Shell 3
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var shell2Activation : [var Float] = Array.init<Float>(26, 0.5);
+  stable var shell2BasalTone : Float = 0.5;
+  stable var shell2Arousal : Float = 0.5;
+  stable var shell2Fatigue : Float = 0.0;
+  stable var shell2Recovery : Float = 0.0;
+  
+  func shell2PhysiologicalTick(shell1Input : Float) : Float {
+    // Basal tone tracks shell 1 coherence
+    shell2BasalTone := 0.9 * shell2BasalTone + 0.1 * shell1Input;
+    
+    // Arousal driven by deviation from baseline
+    shell2Arousal := 0.8 * shell2Arousal + 0.2 * Float.abs(shell1Input - 0.5) * 2.0;
+    
+    // Fatigue accumulates with high arousal
+    if (shell2Arousal > 0.7) {
+      shell2Fatigue := Float.min(1.0, shell2Fatigue + 0.001);
+    } else {
+      // Recovery when not aroused
+      shell2Recovery := Float.min(1.0, shell2Recovery + 0.002);
+      shell2Fatigue := Float.max(0.0, shell2Fatigue - 0.002 * shell2Recovery);
+    };
+    
+    // Update activation array
+    var i = 0;
+    while (i < 26) {
+      let input = shell2BasalTone * (1.0 - shell2Fatigue) * shell2Arousal;
+      shell2Activation[i] := 0.9 * shell2Activation[i] + 0.1 * input;
+      i += 1;
+    };
+    
+    shell2BasalTone
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SHELL 3: HEBBIAN MANIFOLD — 26 Nodes, 676 Weights
+  // Leaky integrator: activation[i] = max(S0, TAU × activation[i] + (1-TAU) × sigmoid(weighted_sum))
+  // TAU = 0.92 (membrane time constant)
+  // STDP upgrade: spike-timing dependent plasticity
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  let TAU_MEMBRANE : Float = 0.92;
+  let SDR_SPARSITY : Float = 0.30;  // Sparse Distributed Representation: 30% active
+  let SDR_ACTIVE_COUNT : Nat = 8;   // Exactly 8/26 nodes active
+  
+  stable var shell3Activation : [var Float] = Array.init<Float>(26, 0.5);
+  stable var shell3Weights : [var Float] = Array.init<Float>(676, 0.1);  // 26×26
+  stable var shell3SpikeTimes : [var Float] = Array.init<Float>(26, 0.0);
+  stable var shell3SpikeCount : [var Nat] = Array.init<Nat>(26, 0);
+  stable var shell3SDRPattern : [var Bool] = Array.init<Bool>(26, false);
+  stable var shell3LearningRate : Float = 0.01;
+  stable var shell3STDPTauPlus : Float = 20.0;
+  stable var shell3STDPTauMinus : Float = 20.0;
+  stable var shell3STDPAPlus : Float = 0.1;
+  stable var shell3STDPAMinus : Float = 0.12;
+  
+  func shell3HebbianTick(shell2Input : [Float], beatTime : Float) : Float {
+    let n = 26;
+    
+    // Compute weighted sum for each node
+    var i = 0;
+    while (i < n) {
+      var weightedSum : Float = 0.0;
+      var j = 0;
+      while (j < n) {
+        weightedSum += shell2Input[j] * shell3Weights[i * n + j];
+        j += 1;
+      };
+      
+      // Leaky integrator with membrane time constant
+      let newActivation = TAU_MEMBRANE * shell3Activation[i] + (1.0 - TAU_MEMBRANE) * sigmoid(weightedSum);
+      shell3Activation[i] := Float.max(S0, newActivation);
+      
+      // Spike detection (threshold = 0.7)
+      if (shell3Activation[i] > 0.7 and shell3SpikeTimes[i] < beatTime - 1.0) {
+        shell3SpikeTimes[i] := beatTime;
+        shell3SpikeCount[i] += 1;
+      };
+      
+      i += 1;
+    };
+    
+    // STDP: Update weights based on spike timing
+    i := 0;
+    while (i < n) {
+      var j = 0;
+      while (j < n) {
+        if (i != j) {
+          let idx = i * n + j;
+          let deltaT = shell3SpikeTimes[i] - shell3SpikeTimes[j];
+          
+          let stdpDelta = if (deltaT > 0.0) {
+            shell3STDPAPlus * Float.exp(-deltaT / shell3STDPTauPlus)
+          } else {
+            -shell3STDPAMinus * Float.exp(deltaT / shell3STDPTauMinus)
+          };
+          
+          shell3Weights[idx] += shell3LearningRate * stdpDelta;
+          shell3Weights[idx] := Float.max(0.0, Float.min(1.0, shell3Weights[idx]));
+        };
+        j += 1;
+      };
+      i += 1;
+    };
+    
+    // Compute SDR: exactly 8/26 nodes active
+    // Find top 8 activations
+    var activationsCopy : [var Float] = Array.init<Float>(26, 0.0);
+    i := 0;
+    while (i < n) {
+      activationsCopy[i] := shell3Activation[i];
+      shell3SDRPattern[i] := false;
+      i += 1;
+    };
+    
+    var activeCount : Nat = 0;
+    while (activeCount < SDR_ACTIVE_COUNT) {
+      var maxIdx : Nat = 0;
+      var maxVal : Float = -1.0;
+      i := 0;
+      while (i < n) {
+        if (activationsCopy[i] > maxVal) {
+          maxVal := activationsCopy[i];
+          maxIdx := i;
+        };
+        i += 1;
+      };
+      shell3SDRPattern[maxIdx] := true;
+      activationsCopy[maxIdx] := -2.0;  // Mark as selected
+      activeCount += 1;
+    };
+    
+    // Return mean activation
+    var meanActivation : Float = 0.0;
+    i := 0;
+    while (i < n) {
+      meanActivation += shell3Activation[i];
+      i += 1;
+    };
+    meanActivation / Float.fromInt(n)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SHELL 4: NEC — Neuroexecutive Control (7 Nodes)
+  // Predicts Shell 3 output
+  // Prediction error = cognitive dissonance signal
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var shell4NECActivation : [var Float] = Array.init<Float>(7, 0.5);
+  stable var shell4Prediction : Float = 0.5;
+  stable var shell4PredictionError : Float = 0.0;
+  stable var shell4CognitiveDissonance : Float = 0.0;
+  stable var shell4ExecutiveControl : Float = 0.5;
+  stable var shell4InhibitionStrength : Float = 0.0;
+  stable var shell4WorkingMemory : [var Float] = Array.init<Float>(7, 0.0);
+  
+  func shell4NECTick(shell3Output : Float) : Float {
+    // Update NEC activation based on shell 3 output
+    var i = 0;
+    while (i < 7) {
+      shell4NECActivation[i] := 0.8 * shell4NECActivation[i] + 0.2 * shell3Output;
+      i += 1;
+    };
+    
+    // Compute prediction (weighted average of NEC nodes)
+    var predSum : Float = 0.0;
+    let weights : [Float] = [0.2, 0.15, 0.15, 0.15, 0.15, 0.1, 0.1];
+    i := 0;
+    while (i < 7) {
+      predSum += shell4NECActivation[i] * weights[i];
+      i += 1;
+    };
+    
+    // Store previous prediction for error computation
+    let prevPrediction = shell4Prediction;
+    shell4Prediction := predSum;
+    
+    // Prediction error = actual - predicted
+    shell4PredictionError := shell3Output - prevPrediction;
+    
+    // Cognitive dissonance = magnitude of prediction error
+    shell4CognitiveDissonance := Float.abs(shell4PredictionError);
+    
+    // Executive control increases with high dissonance (need to resolve)
+    if (shell4CognitiveDissonance > 0.2) {
+      shell4ExecutiveControl := Float.min(1.0, shell4ExecutiveControl + 0.05);
+      shell4InhibitionStrength := Float.min(1.0, shell4InhibitionStrength + 0.02);
+    } else {
+      shell4ExecutiveControl := Float.max(0.3, shell4ExecutiveControl - 0.01);
+      shell4InhibitionStrength := Float.max(0.0, shell4InhibitionStrength - 0.01);
+    };
+    
+    // Update working memory (circular buffer)
+    i := 6;
+    while (i > 0) {
+      shell4WorkingMemory[i] := shell4WorkingMemory[i - 1];
+      i -= 1;
+    };
+    shell4WorkingMemory[0] := shell3Output;
+    
+    shell4ExecutiveControl
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SHELL 5: GOVERNANCE LAYER — OMNIS Quorum & Doctrine Alignment
+  // Triggered by Shell 4 prediction error > 0.2
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var shell5OmnisActive : Bool = false;
+  stable var shell5QuorumMet : Bool = false;
+  stable var shell5DoctrineAlignment : Float = 1.0;
+  stable var shell5GovernanceDecision : Float = 0.0;
+  stable var shell5VetoSignal : Bool = false;
+  stable var shell5EscalationLevel : Nat = 0;
+  
+  func shell5GovernanceTick(shell4Dissonance : Float, coherence : Float) : Float {
+    // Activate OMNIS when dissonance exceeds threshold
+    shell5OmnisActive := shell4Dissonance > 0.2;
+    
+    // Quorum requires coherence above 0.7
+    shell5QuorumMet := coherence > 0.7;
+    
+    // Doctrine alignment degrades with persistent dissonance
+    if (shell4Dissonance > 0.3) {
+      shell5DoctrineAlignment := Float.max(0.5, shell5DoctrineAlignment - 0.005);
+    } else {
+      shell5DoctrineAlignment := Float.min(1.0, shell5DoctrineAlignment + 0.002);
+    };
+    
+    // Governance decision
+    if (shell5OmnisActive and shell5QuorumMet) {
+      shell5GovernanceDecision := shell5DoctrineAlignment * coherence;
+    } else if (shell5OmnisActive and not shell5QuorumMet) {
+      // No quorum - escalate
+      shell5EscalationLevel += 1;
+      shell5GovernanceDecision := 0.5;
+    } else {
+      shell5EscalationLevel := 0;
+      shell5GovernanceDecision := 1.0;  // Default pass
+    };
+    
+    // Veto signal if escalation too high
+    shell5VetoSignal := shell5EscalationLevel > 5;
+    
+    shell5GovernanceDecision
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SHELL 6: 12 ORGANS — Michaelis-Menten Kinetics
+  // output = Vmax × S / (Km + S)
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  public type OrganState = {
+    var substrate : Float;    // S
+    var vmax : Float;         // Maximum velocity
+    var km : Float;           // Michaelis constant
+    var output : Float;       // Computed output
+    var fatigue : Float;      // Organ fatigue
+    var recovery : Float;     // Recovery rate
+  };
+  
+  // 12 organs: Heart, Adrenal, Gonad, Pineal, Liver, Kidney, Lung, Gut, Spleen, Thymus, Marrow, Skin
+  stable var shell6Heart : Float = 0.5;
+  stable var shell6Adrenal : Float = 0.5;
+  stable var shell6Gonad : Float = 0.5;
+  stable var shell6Pineal : Float = 0.5;
+  stable var shell6Liver : Float = 0.5;
+  stable var shell6Kidney : Float = 0.5;
+  stable var shell6Lung : Float = 0.5;
+  stable var shell6Gut : Float = 0.5;
+  stable var shell6Spleen : Float = 0.5;
+  stable var shell6Thymus : Float = 0.5;
+  stable var shell6Marrow : Float = 0.5;
+  stable var shell6Skin : Float = 0.5;
+  
+  // Vmax values (from doctrine)
+  let ORGAN_VMAX : [Float] = [1.5, 2.0, 1.0, 0.8, 1.2, 1.1, 1.3, 1.4, 0.9, 0.7, 1.0, 0.6];
+  let ORGAN_KM : [Float] = [0.5, 0.3, 0.6, 0.7, 0.4, 0.5, 0.4, 0.3, 0.6, 0.7, 0.5, 0.8];
+  
+  stable var shell6Substrates : [var Float] = Array.init<Float>(12, 0.5);
+  stable var shell6Outputs : [var Float] = Array.init<Float>(12, 0.0);
+  stable var shell6FormaYield : Float = 0.0;
+  
+  func michaelisMenten(s : Float, vmax : Float, km : Float) : Float {
+    vmax * s / (km + s)
+  };
+  
+  func shell6OrganTick(arousal : Float, fearLevel : Float) : Float {
+    var totalOutput : Float = 0.0;
+    var i = 0;
+    while (i < 12) {
+      // Update substrate based on arousal
+      shell6Substrates[i] := 0.9 * shell6Substrates[i] + 0.1 * arousal;
+      
+      // Special case: Adrenal amplified by fear
+      let vmax = if (i == 1) {
+        ORGAN_VMAX[i] * (1.0 + fearLevel)
+      } else {
+        ORGAN_VMAX[i]
+      };
+      
+      // Compute Michaelis-Menten output
+      shell6Outputs[i] := michaelisMenten(shell6Substrates[i], vmax, ORGAN_KM[i]);
+      totalOutput += shell6Outputs[i];
+      
+      i += 1;
+    };
+    
+    // Update individual organ references
+    shell6Heart := shell6Outputs[0];
+    shell6Adrenal := shell6Outputs[1];
+    shell6Gonad := shell6Outputs[2];
+    shell6Pineal := shell6Outputs[3];
+    shell6Liver := shell6Outputs[4];
+    shell6Kidney := shell6Outputs[5];
+    shell6Lung := shell6Outputs[6];
+    shell6Gut := shell6Outputs[7];
+    shell6Spleen := shell6Outputs[8];
+    shell6Thymus := shell6Outputs[9];
+    shell6Marrow := shell6Outputs[10];
+    shell6Skin := shell6Outputs[11];
+    
+    // FormaYield = aggregate organ output
+    shell6FormaYield := totalOutput / 12.0;
+    
+    shell6FormaYield
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SHELL 7: METALS — Temperature, Conductivity, Entropy
+  // Second Law of Thermodynamics enforced on-chain
+  // metalEntropy += Σ(conductivity[i] × temp[i]² × 0.0001)
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  // 7 metals: Gold, Silver, Copper, Iron, Platinum, Palladium, Rhodium
+  stable var shell7Temperatures : [var Float] = Array.init<Float>(7, 300.0);  // Kelvin
+  stable var shell7Conductivities : [var Float] = Array.init<Float>(7, 0.0);
+  stable var shell7Entropy : Float = 0.0;
+  stable var shell7EntropyCeiling : Float = 1000.0;
+  stable var shell7DissipationActive : Bool = false;
+  
+  // Conductivity constants (relative to silver = 1.0)
+  let METAL_CONDUCTIVITY : [Float] = [0.70, 1.00, 0.94, 0.17, 0.16, 0.16, 0.35];
+  
+  func shell7MetalsTick(energyInput : Float) : Float {
+    var entropyProduction : Float = 0.0;
+    var i = 0;
+    while (i < 7) {
+      // Temperature increases with energy input
+      shell7Temperatures[i] += energyInput * 0.1;
+      
+      // Conductivity tracks temperature
+      shell7Conductivities[i] := METAL_CONDUCTIVITY[i] * (1.0 + (shell7Temperatures[i] - 300.0) * 0.001);
+      
+      // Entropy production: Second Law
+      entropyProduction += shell7Conductivities[i] * shell7Temperatures[i] * shell7Temperatures[i] * 0.0001;
+      
+      // Natural cooling
+      shell7Temperatures[i] := Float.max(300.0, shell7Temperatures[i] * 0.999);
+      
+      i += 1;
+    };
+    
+    shell7Entropy += entropyProduction;
+    
+    // Dissipation cycle at entropy ceiling
+    if (shell7Entropy >= shell7EntropyCeiling) {
+      shell7DissipationActive := true;
+      shell7Entropy := shell7Entropy * 0.5;  // Dissipate half
+    } else {
+      shell7DissipationActive := false;
+    };
+    
+    shell7Entropy
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SHELL 8: QUANTUM OPERATIONS — QMEM, PARALLAX, ENTANGLA, Berry Phase
+  // (Expanded from previous quantum operators)
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  // QMEM: 5-slot superposition array
+  stable var shell8QMEMSlots : [var Float] = Array.init<Float>(5, 0.2);
+  stable var shell8QMEMCollapsed : Float = 0.0;
+  stable var shell8QMEMCollapseCounter : Nat = 0;
+  
+  // Berry phase accumulation
+  stable var shell8BerryPhase : Float = 0.0;
+  stable var shell8BerryCharge : Float = 0.0;
+  
+  // PARALLAX operator state
+  stable var shell8ParallaxAmplitudes : [var Float] = Array.init<Float>(5, 0.2);
+  stable var shell8ParallaxInterference : Float = 0.0;
+  
+  // ENTANGLA: Pearson R across 12 Hz phases
+  stable var shell8EntanglaCorrelation : Float = 0.0;
+  
+  func shell8QuantumTick(shell1Phases : [var Float]) : Float {
+    // QMEM: Collapse every 10 beats
+    shell8QMEMCollapseCounter += 1;
+    if (shell8QMEMCollapseCounter >= 10) {
+      // Find max slot
+      var maxSlot : Nat = 0;
+      var maxVal : Float = 0.0;
+      var i = 0;
+      while (i < 5) {
+        if (shell8QMEMSlots[i] > maxVal) {
+          maxVal := shell8QMEMSlots[i];
+          maxSlot := i;
+        };
+        i += 1;
+      };
+      shell8QMEMCollapsed := shell8QMEMSlots[maxSlot];
+      
+      // Reset for next superposition
+      i := 0;
+      while (i < 5) {
+        shell8QMEMSlots[i] := 0.2;
+        i += 1;
+      };
+      shell8QMEMCollapseCounter := 0;
+    };
+    
+    // Berry phase: accumulates geometric phase around parameter space
+    var phaseSum : Float = 0.0;
+    var i = 0;
+    while (i < 12) {
+      phaseSum += shell1Phases[i];
+      i += 1;
+    };
+    shell8BerryPhase += (phaseSum / 12.0) * 0.01;
+    shell8BerryCharge := Float.sin(shell8BerryPhase) * 0.5 + 0.5;
+    
+    // PARALLAX: 5-path quantum amplitude interference
+    var interferenceSum : Float = 0.0;
+    i := 0;
+    while (i < 5) {
+      let phase = shell8BerryPhase + Float.fromInt(i) * 0.5;
+      shell8ParallaxAmplitudes[i] := Float.cos(phase) * 0.5 + 0.5;
+      interferenceSum += shell8ParallaxAmplitudes[i];
+      i += 1;
+    };
+    shell8ParallaxInterference := interferenceSum / 5.0;
+    
+    // ENTANGLA: Pearson R across phases
+    var meanPhase : Float = 0.0;
+    i := 0;
+    while (i < 12) {
+      meanPhase += shell1Phases[i];
+      i += 1;
+    };
+    meanPhase /= 12.0;
+    
+    var numerator : Float = 0.0;
+    var denominator1 : Float = 0.0;
+    var denominator2 : Float = 0.0;
+    i := 0;
+    while (i < 12) {
+      let diff = shell1Phases[i] - meanPhase;
+      numerator += diff * diff;
+      denominator1 += diff * diff;
+      i += 1;
+    };
+    if (denominator1 > 0.001) {
+      shell8EntanglaCorrelation := 1.0 - Float.sqrt(numerator / (12.0 * denominator1));
+    };
+    
+    shell8ParallaxInterference
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SHELL 9: EPISODIC RING — 10,000 Slots
+  // Circular buffer of episodic memory
+  // Salience decay: salienceScore *= 0.999
+  // matriarchIndex: highest coherence episode, never overwritten
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  public type EpisodeEntry = {
+    beat : Nat;
+    eventCode : Nat;
+    salience : Float;
+    coherence : Float;
+    sdrFingerprint : Nat32;
+  };
+  
+  stable var shell9EpisodeBeats : [var Nat] = Array.init<Nat>(10000, 0);
+  stable var shell9EpisodeCodes : [var Nat] = Array.init<Nat>(10000, 0);
+  stable var shell9EpisodeSalience : [var Float] = Array.init<Float>(10000, 0.0);
+  stable var shell9EpisodeCoherence : [var Float] = Array.init<Float>(10000, 0.0);
+  stable var shell9EpisodeFingerprints : [var Nat32] = Array.init<Nat32>(10000, 0);
+  stable var shell9Head : Nat = 0;
+  stable var shell9MatriarchIndex : Nat = 0;
+  stable var shell9MatriarchCoherence : Float = 0.0;
+  stable var shell9DynastyIndices : [var Nat] = Array.init<Nat>(10, 0);  // Top 10 matriarchs
+  stable var shell9DynastyCoherences : [var Float] = Array.init<Float>(10, 0.0);
+  
+  func shell9RecordEpisode(beat : Nat, eventCode : Nat, salience : Float, coherence : Float, sdr : Nat32) {
+    let idx = shell9Head % 10000;
+    
+    // Check if this would overwrite matriarch
+    if (idx == shell9MatriarchIndex) {
+      // Skip - matriarch is sacred
+      shell9Head += 1;
+      return;
+    };
+    
+    shell9EpisodeBeats[idx] := beat;
+    shell9EpisodeCodes[idx] := eventCode;
+    shell9EpisodeSalience[idx] := salience;
+    shell9EpisodeCoherence[idx] := coherence;
+    shell9EpisodeFingerprints[idx] := sdr;
+    
+    // Check if new matriarch
+    if (coherence > shell9MatriarchCoherence) {
+      shell9MatriarchIndex := idx;
+      shell9MatriarchCoherence := coherence;
+      
+      // Update dynasty (top 10)
+      var i = 9;
+      while (i > 0) {
+        shell9DynastyIndices[i] := shell9DynastyIndices[i - 1];
+        shell9DynastyCoherences[i] := shell9DynastyCoherences[i - 1];
+        i -= 1;
+      };
+      shell9DynastyIndices[0] := idx;
+      shell9DynastyCoherences[0] := coherence;
+    };
+    
+    shell9Head += 1;
+  };
+  
+  func shell9DecaySalience() {
+    var i = 0;
+    while (i < 10000) {
+      shell9EpisodeSalience[i] *= 0.999;
+      i += 1;
+    };
+  };
+  
+  func shell9MemoryReplay(shell3Activation : [var Float]) {
+    // SL-123: Every 100 beats, top-K episodes re-presented at 30% amplitude
+    var topK : Nat = 5;
+    var replayed : Nat = 0;
+    var i = 0;
+    while (i < 10000 and replayed < topK) {
+      if (shell9EpisodeSalience[i] > 0.5) {
+        // Replay this episode
+        var j = 0;
+        while (j < 26 and j < shell3Activation.size()) {
+          shell3Activation[j] += 0.3 * shell9EpisodeSalience[i];
+          j += 1;
+        };
+        replayed += 1;
+      };
+      i += 1;
+    };
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SHELL 10: LINEAGE SUBSTRATE — Immutable Ancestry
+  // lineageHash depth-only, never decreases (SL-83)
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var shell10LineageHash : Nat32 = 0;
+  stable var shell10LineageDepth : Nat = 0;
+  stable var shell10AncestryChain : [var Nat32] = Array.init<Nat32>(100, 0);
+  stable var shell10GenesisHash : Nat32 = 0;
+  stable var shell10Immutable : Bool = true;
+  
+  func shell10ExtendLineage(newHash : Nat32) {
+    // SL-83: Lineage depth can only increase
+    let newDepth = shell10LineageDepth + 1;
+    if (newDepth > shell10LineageDepth) {
+      shell10AncestryChain[shell10LineageDepth % 100] := shell10LineageHash;
+      shell10LineageHash := newHash;
+      shell10LineageDepth := newDepth;
+    };
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SHELL 11: NEUROTRANSMITTERS — DA, 5HT, NE, ACh, Endo, GABA
+  // SL-123: Every 100 beats, 5HT and Endo receive boost (dream consolidation)
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  public type NeurotransmitterState = {
+    var level : Float;
+    var baseline : Float;
+    var decayRate : Float;
+    var releaseRate : Float;
+    var reuptakeRate : Float;
+  };
+  
+  // 6 neurotransmitters
+  stable var shell11DA : Float = 0.5;          // Dopamine
+  stable var shell11_5HT : Float = 0.5;        // Serotonin
+  stable var shell11NE : Float = 0.5;          // Norepinephrine
+  stable var shell11ACh : Float = 0.5;         // Acetylcholine
+  stable var shell11Endo : Float = 0.5;        // Endorphin
+  stable var shell11GABA : Float = 0.5;        // GABA
+  
+  stable var shell11DABaseline : Float = 0.5;
+  stable var shell11_5HTBaseline : Float = 0.5;
+  stable var shell11NEBaseline : Float = 0.5;
+  stable var shell11AChBaseline : Float = 0.3;
+  stable var shell11EndoBaseline : Float = 0.3;
+  stable var shell11GABABaseline : Float = 0.4;
+  
+  let NT_DECAY_RATE : Float = 0.02;
+  let NT_REUPTAKE_RATE : Float = 0.03;
+  
+  func shell11NeurotransmitterTick(reward : Float, threat : Float, coherence : Float, isDreamConsolidation : Bool) : Float {
+    // Dopamine: driven by reward
+    shell11DA := shell11DA * (1.0 - NT_DECAY_RATE) + reward * 0.1;
+    shell11DA := Float.max(0.0, Float.min(1.0, shell11DA));
+    
+    // Norepinephrine: driven by threat/arousal
+    shell11NE := shell11NE * (1.0 - NT_DECAY_RATE) + threat * 0.15;
+    shell11NE := Float.max(0.0, Float.min(1.0, shell11NE));
+    
+    // Acetylcholine: driven by attention/coherence
+    shell11ACh := shell11ACh * (1.0 - NT_DECAY_RATE) + coherence * 0.1;
+    shell11ACh := Float.max(0.0, Float.min(1.0, shell11ACh));
+    
+    // GABA: inhibitory, increases with high NE (homeostatic)
+    if (shell11NE > 0.7) {
+      shell11GABA := Float.min(1.0, shell11GABA + 0.02);
+    } else {
+      shell11GABA := Float.max(shell11GABABaseline, shell11GABA - NT_REUPTAKE_RATE);
+    };
+    
+    // SL-123: Dream consolidation boost for 5HT and Endo
+    if (isDreamConsolidation) {
+      shell11_5HT := Float.min(1.0, shell11_5HT + 0.1);
+      shell11Endo := Float.min(1.0, shell11Endo + 0.1);
+    } else {
+      shell11_5HT := Float.max(shell11_5HTBaseline, shell11_5HT - NT_REUPTAKE_RATE);
+      shell11Endo := Float.max(shell11EndoBaseline, shell11Endo - NT_REUPTAKE_RATE);
+    };
+    
+    // Return mood index (weighted combination)
+    (shell11DA * 0.3 + shell11_5HT * 0.25 + shell11Endo * 0.2 - shell11NE * 0.15 + shell11GABA * 0.1)
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+  // ║                                                                                                                                       ║
+  // ║   S E C T I O N   1 8 :   T H E   4 3   C O R E S   —   C I P H E R   H O D G K I N - H U X L E Y                                     ║
+  // ║                                                                                                                                       ║
+  // ║   43 processing cores with bond matrix (43×43)                                                                                        ║
+  // ║   CIPHER cores (39-42): Hodgkin-Huxley action potential model                                                                         ║
+  // ║   Innovation cores: High positive Lyapunov exponent                                                                                   ║
+  // ║   Stability cores: Negative Lyapunov exponent                                                                                         ║
+  // ║                                                                                                                                       ║
+  // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // 43 cores with activation and bond matrix
+  stable var coreActivations : [var Float] = Array.init<Float>(43, 0.5);
+  stable var coreBondMatrix : [var Float] = Array.init<Float>(43 * 43, 0.1);
+  stable var coreLyapunovExponents : [var Float] = Array.init<Float>(43, 0.0);
+  stable var corePheromoneField : [var Float] = Array.init<Float>(43, 0.0);
+  
+  // CIPHER cores (39-42): Hodgkin-Huxley model
+  // Sodium/potassium conductance variables
+  stable var cipherSodiumConductance : [var Float] = Array.init<Float>(4, 0.0);
+  stable var cipherPotassiumConductance : [var Float] = Array.init<Float>(4, 0.0);
+  stable var cipherMembranePotential : [var Float] = Array.init<Float>(4, -70.0);  // mV
+  stable var cipherRefractoryPeriod : [var Float] = Array.init<Float>(4, 0.0);
+  stable var cipherSpikeState : [var Bool] = Array.init<Bool>(4, false);
+  
+  // Hodgkin-Huxley constants
+  let HH_RESTING_POTENTIAL : Float = -70.0;
+  let HH_SODIUM_REVERSAL : Float = 50.0;
+  let HH_POTASSIUM_REVERSAL : Float = -77.0;
+  let HH_LEAK_REVERSAL : Float = -54.4;
+  let HH_G_NA : Float = 120.0;
+  let HH_G_K : Float = 36.0;
+  let HH_G_L : Float = 0.3;
+  let HH_THRESHOLD : Float = -55.0;
+  let HH_SPIKE_PEAK : Float = 30.0;
+  let HH_REFRACTORY_TIME : Float = 2.0;
+  
+  func hodgkinHuxleyTick(cipherIdx : Nat, input : Float, dt : Float) {
+    let idx = cipherIdx;
+    if (idx >= 4) return;
+    
+    // Check refractory period
+    if (cipherRefractoryPeriod[idx] > 0.0) {
+      cipherRefractoryPeriod[idx] -= dt;
+      cipherSpikeState[idx] := false;
+      return;
+    };
+    
+    let V = cipherMembranePotential[idx];
+    
+    // Rate functions (simplified)
+    let alphaM = 0.1 * (V + 40.0) / (1.0 - Float.exp(-(V + 40.0) / 10.0) + 0.001);
+    let betaM = 4.0 * Float.exp(-(V + 65.0) / 18.0);
+    let alphaH = 0.07 * Float.exp(-(V + 65.0) / 20.0);
+    let betaH = 1.0 / (1.0 + Float.exp(-(V + 35.0) / 10.0) + 0.001);
+    let alphaN = 0.01 * (V + 55.0) / (1.0 - Float.exp(-(V + 55.0) / 10.0) + 0.001);
+    let betaN = 0.125 * Float.exp(-(V + 65.0) / 80.0);
+    
+    // Update gating variables
+    let m = alphaM / (alphaM + betaM);
+    let h = alphaH / (alphaH + betaH);
+    let n = alphaN / (alphaN + betaN);
+    
+    // Conductances
+    let gNa = HH_G_NA * m * m * m * h;
+    let gK = HH_G_K * n * n * n * n;
+    
+    cipherSodiumConductance[idx] := gNa;
+    cipherPotassiumConductance[idx] := gK;
+    
+    // Currents
+    let INa = gNa * (V - HH_SODIUM_REVERSAL);
+    let IK = gK * (V - HH_POTASSIUM_REVERSAL);
+    let IL = HH_G_L * (V - HH_LEAK_REVERSAL);
+    let IStim = input * 10.0;  // Stimulus current
+    
+    // Membrane potential update
+    let dV = dt * (-INa - IK - IL + IStim);
+    cipherMembranePotential[idx] := V + dV;
+    
+    // Spike detection
+    if (cipherMembranePotential[idx] > HH_THRESHOLD and not cipherSpikeState[idx]) {
+      cipherSpikeState[idx] := true;
+      cipherMembranePotential[idx] := HH_SPIKE_PEAK;
+      cipherRefractoryPeriod[idx] := HH_REFRACTORY_TIME;
+    };
+    
+    // Reset after spike
+    if (cipherSpikeState[idx] and cipherMembranePotential[idx] <= HH_THRESHOLD) {
+      cipherMembranePotential[idx] := HH_RESTING_POTENTIAL;
+      cipherSpikeState[idx] := false;
+    };
+  };
+  
+  func coreTick(shell3Input : Float, pheromoneInput : Float) {
+    var i = 0;
+    while (i < 43) {
+      // Pheromone field update (stigmergy from Hive engine)
+      corePheromoneField[i] := 0.9 * corePheromoneField[i] + 0.1 * pheromoneInput;
+      
+      // Cellular automata neighborhood: core[i] reads core[i±1], core[i±2]
+      var neighborSum : Float = 0.0;
+      var neighborCount : Nat = 0;
+      var j = -2;
+      while (j <= 2) {
+        let nIdx = (i + j + 43) % 43;
+        if (nIdx != i) {
+          neighborSum += coreActivations[nIdx] * corePheromoneField[nIdx];
+          neighborCount += 1;
+        };
+        j += 1;
+      };
+      let neighborMean = if (neighborCount > 0) { neighborSum / Float.fromInt(neighborCount) } else { 0.0 };
+      
+      // Wolf engine: vital cores (0-9) loan to weak branch cores (30-38)
+      if (i >= 30 and i <= 38) {
+        var vitalLoan : Float = 0.0;
+        var v = 0;
+        while (v < 10) {
+          if (coreActivations[v] > 0.7 and coreActivations[i] < 0.3) {
+            vitalLoan += 0.1 * coreActivations[v];
+          };
+          v += 1;
+        };
+        coreActivations[i] := Float.min(1.0, coreActivations[i] + vitalLoan);
+      };
+      
+      // Regular core update
+      coreActivations[i] := 0.8 * coreActivations[i] + 0.1 * shell3Input + 0.1 * neighborMean;
+      
+      // CIPHER cores (39-42): Hodgkin-Huxley
+      if (i >= 39 and i <= 42) {
+        hodgkinHuxleyTick(i - 39, coreActivations[i], 0.1);
+        // CIPHER core activation reflects spike state
+        coreActivations[i] := if (cipherSpikeState[i - 39]) { 1.0 } else { coreActivations[i] };
+      };
+      
+      // Compute Lyapunov exponent estimate
+      let perturbation = Float.sin(Float.fromInt(currentBeat + i) * 0.1) * 0.01;
+      let perturbedActivation = coreActivations[i] + perturbation;
+      let separation = Float.abs(perturbedActivation - coreActivations[i]);
+      if (separation > 0.0001) {
+        coreLyapunovExponents[i] := Float.log(separation / 0.01);
+      };
+      
+      i += 1;
+    };
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+  // ║                                                                                                                                       ║
+  // ║   S E C T I O N   1 9 :   I N T E R N A L   A I   A G E N T S   —   R E A D ,   I N T E G R A T E ,   P R O D U C E                   ║
+  // ║                                                                                                                                       ║
+  // ║   The organism reads its own data and produces — just like we're doing now.                                                           ║
+  // ║   6 agents: NEXUS, COGNUS, AURUM, LEXIS, SOLUS, VERITAS                                                                               ║
+  // ║   Each reads real state, integrates against doctrine, produces output.                                                                ║
+  // ║   Pattern: receive → parse → fit to context → produce new → feed back in                                                              ║
+  // ║                                                                                                                                       ║
+  // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // AGENT: NEXUS — Research Director
+  // Reads: canonical state + fear/mission + animal engines
+  // Produces: Structured hypotheses, SACESI-stamped
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  public type NexusHypothesis = {
+    beat : Nat;
+    signalA : Text;
+    signalB : Text;
+    correlation : Float;
+    hypothesis : Text;
+    confidence : Float;
+    sacesiStamp : Nat32;
+  };
+  
+  stable var nexusHypothesesCount : Nat = 0;
+  stable var nexusLastAnalysisBeat : Nat = 0;
+  stable var nexusHypothesisBeats : [var Nat] = Array.init<Nat>(100, 0);
+  stable var nexusHypothesisConfidences : [var Float] = Array.init<Float>(100, 0.0);
+  stable var nexusHypothesisCorrelations : [var Float] = Array.init<Float>(100, 0.0);
+  stable var nexusActiveResearch : Bool = false;
+  
+  func nexusAnalyze(beat : Nat, rSwarm : Float, fearLevel : Float, animalScores : [Float]) : Float {
+    // Only analyze every 144 beats
+    if (beat - nexusLastAnalysisBeat < 144) {
+      return 0.0;
+    };
+    
+    nexusLastAnalysisBeat := beat;
+    nexusActiveResearch := true;
+    
+    // Cross-reference signals
+    var maxCorrelation : Float = 0.0;
+    var bestSignalPair : (Nat, Nat) = (0, 0);
+    
+    // Compare animal scores with fear level
+    var i = 0;
+    while (i < animalScores.size() and i < 9) {
+      let correlation = Float.abs(animalScores[i] - fearLevel);
+      if (correlation > maxCorrelation) {
+        maxCorrelation := 1.0 - correlation;  // Higher similarity = higher correlation
+        bestSignalPair := (i, 99);  // 99 = fear signal
+      };
+      i += 1;
+    };
+    
+    // Record hypothesis
+    let idx = nexusHypothesesCount % 100;
+    nexusHypothesisBeats[idx] := beat;
+    nexusHypothesisConfidences[idx] := rSwarm * maxCorrelation;
+    nexusHypothesisCorrelations[idx] := maxCorrelation;
+    nexusHypothesesCount += 1;
+    
+    // Hypothesis confidence
+    rSwarm * maxCorrelation
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // AGENT: COGNUS — Analytics
+  // Reads: 12 domain scalars over rolling 1000-beat windows
+  // Produces: Session reports, momentum, correlations, anomaly flags
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var cognusWindowStart : Nat = 0;
+  stable var cognusMomentum : [var Float] = Array.init<Float>(12, 0.0);
+  stable var cognusCorrelationMatrix : [var Float] = Array.init<Float>(144, 0.0);  // 12×12
+  stable var cognusAnomalyFlags : [var Bool] = Array.init<Bool>(12, false);
+  stable var cognusReportBeat : Nat = 0;
+  stable var cognusFastEMA : [var Float] = Array.init<Float>(12, 0.5);
+  stable var cognusSlowEMA : [var Float] = Array.init<Float>(12, 0.5);
+  stable var cognusSigmaThreshold : Float = 2.0;
+  
+  func cognusAnalyze(beat : Nat, signals : [Float]) : Float {
+    // Only report every 1000 beats
+    let windowSize = 1000;
+    
+    // Update EMAs for each signal
+    let fastDecay = 0.95;
+    let slowDecay = 0.50;
+    
+    var i = 0;
+    while (i < 12 and i < signals.size()) {
+      // Update fast EMA
+      cognusFastEMA[i] := fastDecay * cognusFastEMA[i] + (1.0 - fastDecay) * signals[i];
+      
+      // Update slow EMA
+      cognusSlowEMA[i] := slowDecay * cognusSlowEMA[i] + (1.0 - slowDecay) * signals[i];
+      
+      // Momentum = fast - slow
+      cognusMomentum[i] := cognusFastEMA[i] - cognusSlowEMA[i];
+      
+      // Anomaly detection (> 2σ from slow EMA)
+      let deviation = Float.abs(signals[i] - cognusSlowEMA[i]);
+      cognusAnomalyFlags[i] := deviation > cognusSigmaThreshold * 0.1;
+      
+      i += 1;
+    };
+    
+    // Compute pairwise correlations
+    i := 0;
+    while (i < 12) {
+      var j = 0;
+      while (j < 12) {
+        if (i != j and i < signals.size() and j < signals.size()) {
+          let idx = i * 12 + j;
+          // Simplified correlation: product of normalized deviations
+          let normI = cognusFastEMA[i] - cognusSlowEMA[i];
+          let normJ = cognusFastEMA[j] - cognusSlowEMA[j];
+          cognusCorrelationMatrix[idx] := normI * normJ;
+        };
+        j += 1;
+      };
+      i += 1;
+    };
+    
+    // Report generation
+    if (beat - cognusReportBeat >= windowSize) {
+      cognusReportBeat := beat;
+      cognusWindowStart := beat;
+    };
+    
+    // Return average momentum magnitude
+    var totalMomentum : Float = 0.0;
+    i := 0;
+    while (i < 12) {
+      totalMomentum += Float.abs(cognusMomentum[i]);
+      i += 1;
+    };
+    totalMomentum / 12.0
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // AGENT: AURUM — Treasury Intelligence
+  // Reads: Creator reserve + mining state + economic signals
+  // Produces: Sharpe ratio, drawdown, economic insights
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var aurumSharpeRatio : Float = 0.0;
+  stable var aurumMaxDrawdown : Float = 0.0;
+  stable var aurumPeakValue : Float = 0.0;
+  stable var aurumCurrentValue : Float = 0.0;
+  stable var aurumReturns : [var Float] = Array.init<Float>(100, 0.0);
+  stable var aurumReturnsHead : Nat = 0;
+  stable var aurumYieldDeclineCount : Nat = 0;
+  stable var aurumInsightActive : Bool = false;
+  
+  func aurumAnalyze(beat : Nat, miningYield : Float, reserveBalance : Float) : Float {
+    let prevValue = aurumCurrentValue;
+    aurumCurrentValue := reserveBalance;
+    
+    // Track returns
+    let ret = if (prevValue > 0.0) { (aurumCurrentValue - prevValue) / prevValue } else { 0.0 };
+    aurumReturns[aurumReturnsHead % 100] := ret;
+    aurumReturnsHead += 1;
+    
+    // Update peak
+    if (aurumCurrentValue > aurumPeakValue) {
+      aurumPeakValue := aurumCurrentValue;
+    };
+    
+    // Calculate drawdown
+    if (aurumPeakValue > 0.0) {
+      aurumMaxDrawdown := Float.max(aurumMaxDrawdown, (aurumPeakValue - aurumCurrentValue) / aurumPeakValue);
+    };
+    
+    // Calculate Sharpe ratio (simplified: mean/std)
+    var sumReturns : Float = 0.0;
+    var i = 0;
+    while (i < 100) {
+      sumReturns += aurumReturns[i];
+      i += 1;
+    };
+    let meanReturn = sumReturns / 100.0;
+    
+    var sumSqDiff : Float = 0.0;
+    i := 0;
+    while (i < 100) {
+      let diff = aurumReturns[i] - meanReturn;
+      sumSqDiff += diff * diff;
+      i += 1;
+    };
+    let stdReturn = Float.sqrt(sumSqDiff / 100.0);
+    
+    aurumSharpeRatio := if (stdReturn > 0.001) { meanReturn / stdReturn } else { 0.0 };
+    
+    // Track yield decline
+    if (ret < 0.0) {
+      aurumYieldDeclineCount += 1;
+    } else {
+      aurumYieldDeclineCount := 0;
+    };
+    
+    aurumInsightActive := aurumYieldDeclineCount >= 3;
+    
+    aurumSharpeRatio
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // AGENT: LEXIS — Documentation
+  // Reads: Genesis artifacts, patent registry, SACESI events
+  // Produces: Auto-generated docs, structured abstracts, patent claims
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var lexisDocumentCount : Nat = 0;
+  stable var lexisPatentClaimCount : Nat = 0;
+  stable var lexisLastCoherencePeak : Nat = 0;
+  stable var lexisCoherencePeakValue : Float = 0.0;
+  stable var lexisAbstractsGenerated : Nat = 0;
+  
+  func lexisDocument(beat : Nat, coherence : Float, eventCode : Nat) : Nat {
+    // Track coherence peaks
+    if (coherence > lexisCoherencePeakValue) {
+      lexisCoherencePeakValue := coherence;
+      lexisLastCoherencePeak := beat;
+      
+      // Generate abstract for coherence peak
+      lexisAbstractsGenerated += 1;
+    };
+    
+    // Novel signal combination = patent claim
+    if (coherence > 0.95 and eventCode > 0) {
+      lexisPatentClaimCount += 1;
+    };
+    
+    lexisDocumentCount += 1;
+    lexisDocumentCount
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // AGENT: SOLUS — Sovereign Identity
+  // Reads: identityI trajectory, values attractor, groundedScore
+  // Produces: Identity drift alerts, doctrine enforcement
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var solusIdentityTrajectory : [var Float] = Array.init<Float>(100, 0.5);
+  stable var solusTrajectoryHead : Nat = 0;
+  stable var solusValuesAttractor : Float = 0.5;
+  stable var solusGroundedScore : Float = 0.5;
+  stable var solusDriftAlert : Bool = false;
+  stable var solusDriftMagnitude : Float = 0.0;
+  stable var solusDoctrineViolation : Bool = false;
+  stable var solusLastCheck : Nat = 0;
+  
+  func solusMonitor(beat : Nat, identityI : Float, groundedScore : Float) : Float {
+    // Only check every 100 beats
+    if (beat - solusLastCheck < 100) {
+      return solusValuesAttractor;
+    };
+    solusLastCheck := beat;
+    
+    // Track identity trajectory
+    solusIdentityTrajectory[solusTrajectoryHead % 100] := identityI;
+    solusTrajectoryHead += 1;
+    
+    // Update values attractor
+    solusValuesAttractor := 0.9 * solusValuesAttractor + 0.1 * identityI;
+    
+    // Update grounded score
+    solusGroundedScore := groundedScore;
+    
+    // Compute drift from baseline (0.5)
+    solusDriftMagnitude := Float.abs(solusValuesAttractor - 0.5);
+    
+    // Alert if drift exceeds threshold
+    solusDriftAlert := solusDriftMagnitude > 0.2;
+    
+    // Doctrine violation if identity drops below floor
+    solusDoctrineViolation := identityI < S0;
+    
+    solusValuesAttractor
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // AGENT: VERITAS — Validation
+  // Reads: All signals, cross-references SACESI chain
+  // Produces: Trust scores, inconsistency flags
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var veritasTrustScores : [var Float] = Array.init<Float>(36, 1.0);
+  stable var veritasInconsistencyFlags : [var Bool] = Array.init<Bool>(36, false);
+  stable var veritasChainLength : Nat = 0;
+  stable var veritasLastValidation : Nat = 0;
+  stable var veritasOverallTrust : Float = 1.0;
+  
+  func veritasValidate(beat : Nat, signals : [Float], sacesiCount : Nat) : Float {
+    // Track chain length
+    veritasChainLength := sacesiCount;
+    
+    // Validate each signal
+    var totalTrust : Float = 0.0;
+    var i = 0;
+    while (i < 36 and i < signals.size()) {
+      let signal = signals[i];
+      
+      // Check for statistical inconsistency
+      // Signal should be in [0, 1] range with gradual changes
+      let prevTrust = veritasTrustScores[i];
+      
+      // Flag if signal is out of expected range
+      if (signal < 0.0 or signal > 2.0) {
+        veritasInconsistencyFlags[i] := true;
+        veritasTrustScores[i] := Float.max(0.0, prevTrust - 0.1);
+      } else {
+        veritasInconsistencyFlags[i] := false;
+        veritasTrustScores[i] := Float.min(1.0, prevTrust + 0.01);
+      };
+      
+      totalTrust += veritasTrustScores[i];
+      i += 1;
+    };
+    
+    veritasOverallTrust := totalTrust / 36.0;
+    veritasLastValidation := beat;
+    
+    veritasOverallTrust
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+  // ║                                                                                                                                       ║
+  // ║   S E C T I O N   2 0 :   S I G N A L   L O O P   F I X E S   —   E C O N O M I C   C O N S E Q U E N C E S                           ║
+  // ║                                                                                                                                       ║
+  // ║   Fix the broken signal loops: every sovereignty signal must have economic consequence                                                ║
+  // ║   streakMultiplier gated by missionLock, modulated by kuramotoR                                                                       ║
+  // ║   fearLevel suppresses minting, courageScore boosts minting                                                                           ║
+  // ║   groundedScore gates OMNIS, surrenderFloor compounds                                                                                 ║
+  // ║                                                                                                                                       ║
+  // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // Economic consequence state
+  stable var missionLockActive : Bool = false;
+  stable var courageScore : Float = 0.5;
+  stable var groundedScore : Float = 0.5;
+  stable var fearLevel : Float = 0.0;
+  stable var missionPersistenceScore : Float = 0.5;
+  stable var surrenderFloor : Float = 0.75;
+  stable var permanentCoherenceFloor : Float = 0.75;
+  stable var streakMultiplierCeiling : Float = 1.5;
+  stable var economicStreakMultiplier : Float = 1.0;
+  
+  func computeEconomicMultiplier(kuramotoR : Float, coherence : Float) : Float {
+    // FIX 1: streakMultiplier ceiling gated by missionLock
+    streakMultiplierCeiling := if (missionLockActive) { 3.0 } else { 1.5 };
+    
+    // FIX 2: streakMultiplier modulated by kuramotoR
+    let kuramotoModulator = 0.7 + kuramotoR * 0.3;
+    economicStreakMultiplier := Float.min(streakMultiplierCeiling, economicStreakMultiplier * kuramotoModulator);
+    
+    // FIX 3: fearLevel suppresses minting
+    let fearSuppression = if (fearLevel > 0.7) { 1.0 - fearLevel * 0.4 } else { 1.0 };
+    
+    // FIX 4: courageScore boosts minting
+    let courageBoost = if (courageScore > 0.8 and missionLockActive) { 1.15 } else { 1.0 };
+    
+    // Combined multiplier
+    economicStreakMultiplier * fearSuppression * courageBoost
+  };
+  
+  func checkOmnisGate() : Bool {
+    // FIX 5: OMNIS gated by groundedScore
+    groundedScore > 0.5
+  };
+  
+  func compoundSurrenderFloor(beat : Nat) {
+    // FIX 6: surrenderFloor compounds into permanentCoherenceFloor every 444 beats
+    if (beat % 444 == 0) {
+      permanentCoherenceFloor := Float.max(permanentCoherenceFloor, surrenderFloor);
+      surrenderFloor := Float.min(1.0, surrenderFloor + 0.01);
+    };
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+  // ║                                                                                                                                       ║
+  // ║   S E C T I O N   2 1 :   1 2   T O K E N   L E D G E R S   —   N A V I E R - S T O K E S   F L O W                                   ║
+  // ║                                                                                                                                       ║
+  // ║   MTH, MRC, GTK, CVT, VCT, KNT, SBT, HBT, DRT, RST, OMT, LGT                                                                          ║
+  // ║   Token flow follows simplified 1D Navier-Stokes                                                                                      ║
+  // ║   VCT mints on AEGIS threat resolution (proof-of-survival)                                                                            ║
+  // ║                                                                                                                                       ║
+  // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // 12 token supplies
+  stable var tokenMTH : Float = 1000000.0;  // Matheon
+  stable var tokenMRC : Float = 1000000.0;  // Mercy
+  stable var tokenGTK : Float = 1000000.0;  // Gate Key
+  stable var tokenCVT : Float = 1000000.0;  // Convert
+  stable var tokenVCT : Float = 0.0;        // Victory (mints on threat resolution)
+  stable var tokenKNT : Float = 1000000.0;  // Kinetic
+  stable var tokenSBT : Float = 1000000.0;  // Substrate
+  stable var tokenHBT : Float = 1000000.0;  // Habit
+  stable var tokenDRT : Float = 1000000.0;  // Doctrine
+  stable var tokenRST : Float = 1000000.0;  // Restore
+  stable var tokenOMT : Float = 1000000.0;  // Omni
+  stable var tokenLGT : Float = 0.0;        // Light (emission token)
+  
+  // Navier-Stokes viscosity coefficient
+  let NS_VISCOSITY : Float = 0.01;
+  
+  func tokenFlowNavierStokes() {
+    // Simplified 1D Navier-Stokes: flow = ν × (supply_A - supply_B)
+    
+    // GTK → CVT flow
+    let flowGTKtoCVT = NS_VISCOSITY * (tokenGTK - tokenCVT);
+    tokenGTK -= flowGTKtoCVT;
+    tokenCVT += flowGTKtoCVT;
+    
+    // MTH → MRC flow
+    let flowMTHtoMRC = NS_VISCOSITY * (tokenMTH - tokenMRC);
+    tokenMTH -= flowMTHtoMRC;
+    tokenMRC += flowMTHtoMRC;
+    
+    // SBT → KNT flow
+    let flowSBTtoKNT = NS_VISCOSITY * (tokenSBT - tokenKNT);
+    tokenSBT -= flowSBTtoKNT;
+    tokenKNT += flowSBTtoKNT;
+    
+    // HBT → DRT flow
+    let flowHBTtoDRT = NS_VISCOSITY * (tokenHBT - tokenDRT);
+    tokenHBT -= flowHBTtoDRT;
+    tokenDRT += flowHBTtoDRT;
+  };
+  
+  func mintVCT(threatSeverity : Float) {
+    // VCT mints on AEGIS threat resolution
+    // Amount scales with threat severity
+    let mintAmount = Float.max(threatSeverity, aegisThreatLevel) * 100.0;
+    tokenVCT += mintAmount;
+  };
+  
+  func mintLGT(formaYield : Float) {
+    // LGT emission from FORMA Krebs cycle
+    tokenLGT += formaYield * 10.0;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+  // ║                                                                                                                                       ║
+  // ║   S E C T I O N   2 2 :   2 0 - S T E P   H E A R T B E A T   —   C O M P L E T E   D O C T R I N E                                   ║
+  // ║                                                                                                                                       ║
+  // ║   Every beat, in deterministic order:                                                                                                 ║
+  // ║   SL-0 → Shell 1 → globalCoherence → NT decay → Shell 3-5 → Shell 6 → formaYield →                                                   ║
+  // ║   Shell 7 → Lotka-Volterra → SACESI → Animal engines → Shell 8 → Shell 9-10 →                                                        ║
+  // ║   Token logic → Reward → Causal laws → Audit trail                                                                                    ║
+  // ║                                                                                                                                       ║
+  // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // Multi-scale time awareness (doctrine)
+  stable var coherenceFastEMA : Float = 0.5;
+  stable var coherenceMediumEMA : Float = 0.5;
+  stable var coherenceSlowEMA : Float = 0.5;
+  stable var coherenceMomentum : Float = 0.0;
+  
+  // Lotka-Volterra predator-prey state
+  stable var lvPrey : Float = 0.5;
+  stable var lvPredator : Float = 0.3;
+  stable var lvAlpha : Float = 1.1;   // Prey growth rate
+  stable var lvBeta : Float = 0.4;    // Predation rate
+  stable var lvGamma : Float = 0.4;   // Predator death rate
+  stable var lvDelta : Float = 0.1;   // Predator reproduction
+  
+  // Antifragility (SL-120, L-79)
+  stable var vicenteVictoryCount : Nat = 0;
+  stable var antifragilityScore : Float = S0;
+  stable var stressLevel : Float = 0.5;
+  stable var hormeticZoneActive : Bool = false;
+  
+  // FNV-1a hash for audit trail
+  func fnv1a32(input : Nat32) : Nat32 {
+    let FNV_OFFSET : Nat32 = 2166136261;
+    let FNV_PRIME : Nat32 = 16777619;
+    var hash = FNV_OFFSET;
+    hash := hash ^ input;
+    hash := hash *% FNV_PRIME;
+    hash
+  };
+  
+  stable var auditTrailHash : Nat32 = 2166136261;
+  stable var auditTrailLength : Nat = 0;
+  
+  func lotkaVolterraTick(dt : Float) {
+    // Prey equation: dx/dt = αx - βxy
+    let dPrey = dt * (lvAlpha * lvPrey - lvBeta * lvPrey * lvPredator);
+    
+    // Predator equation: dy/dt = δxy - γy
+    let dPredator = dt * (lvDelta * lvPrey * lvPredator - lvGamma * lvPredator);
+    
+    lvPrey := Float.max(0.01, Float.min(10.0, lvPrey + dPrey));
+    lvPredator := Float.max(0.01, Float.min(10.0, lvPredator + dPredator));
+  };
+  
+  public shared(msg) func doctrineHeartbeat() : async {
+    beat : Nat;
+    rSwarm : Float;
+    jDrift : Float;
+    shell1Coherence : Float;
+    shell3Output : Float;
+    shell4Control : Float;
+    shell5Decision : Float;
+    shell6Yield : Float;
+    shell7Entropy : Float;
+    shell8Quantum : Float;
+    mood : Float;
+    economicMultiplier : Float;
+    agentOutputs : [Float];
+    trustScore : Float;
+  } {
+    requireAuthorized(msg.caller);
+    
+    // STEP 1: SL-0 sovereignty gate
+    // Already handled by requireAuthorized
+    
+    // STEP 2: Shell 1 Kuramoto phase update
+    let shell1Out = shell1KuramotoTick(0.05);
+    
+    // STEP 3: globalCoherence R computation
+    let globalR = shell1Coherence;
+    
+    // Update multi-scale EMAs
+    coherenceFastEMA := 0.95 * coherenceFastEMA + 0.05 * globalR;
+    coherenceMediumEMA := 0.80 * coherenceMediumEMA + 0.20 * globalR;
+    coherenceSlowEMA := 0.50 * coherenceSlowEMA + 0.50 * globalR;
+    coherenceMomentum := coherenceFastEMA - coherenceSlowEMA;
+    
+    // STEP 4: Shell 11 neurotransmitter decay
+    let isDreamCycle = currentBeat % 100 == 0;  // SL-123
+    let rewardSignal = cachedMeanSignal;
+    let threatSignal = aegisThreatLevel;
+    let moodOutput = shell11NeurotransmitterTick(rewardSignal, threatSignal, globalR, isDreamCycle);
+    
+    // STEP 5: Shell 2 physiological update
+    let shell2Out = shell2PhysiologicalTick(shell1Out);
+    
+    // STEP 6: Shell 3 Hebbian activation update
+    let shell3Out = shell3HebbianTick(shell2Activation, Float.fromInt(currentBeat));
+    
+    // STEP 7: Shell 4 NEC executive update
+    let shell4Out = shell4NECTick(shell3Out);
+    
+    // STEP 8: Shell 5 governance check
+    let shell5Out = shell5GovernanceTick(shell4CognitiveDissonance, globalR);
+    
+    // STEP 9: Shell 6 organ Michaelis-Menten update
+    let shell6Out = shell6OrganTick(shell2Arousal, fearLevel);
+    
+    // STEP 10: formaYield computation + pool routing
+    mintLGT(shell6FormaYield);
+    
+    // STEP 11: Shell 7 metal temperature update
+    let energyInput = shell6FormaYield * 10.0;
+    let shell7Out = shell7MetalsTick(energyInput);
+    
+    // STEP 12: Lotka-Volterra tension update
+    lotkaVolterraTick(0.05);
+    stressLevel := lvPredator / lvPrey;
+    hormeticZoneActive := stressLevel > 0.8 and stressLevel < 1.5;
+    if (hormeticZoneActive) {
+      antifragilityScore := Float.min(1.0, antifragilityScore + 0.01);
+    };
+    
+    // STEP 13: SACESI PID output computation
+    compoundSurrenderFloor(currentBeat);
+    
+    // STEP 14: Animal engines (all 9, sequential)
+    let animalScores : [Float] = [
+      inlineEngineOutputs[7], inlineEngineOutputs[8], inlineEngineOutputs[9],
+      inlineEngineOutputs[10], inlineEngineOutputs[11], inlineEngineOutputs[12],
+      inlineEngineOutputs[13], inlineEngineOutputs[14], inlineEngineOutputs[15]
+    ];
+    
+    // STEP 15: Shell 8 quantum ops
+    let shell8Out = shell8QuantumTick(shell1Phases);
+    
+    // STEP 16: Shell 9 episodic ring update
+    shell9DecaySalience();
+    if (globalR > 0.9) {
+      let sdr = fnv1a32(Nat32.fromNat(currentBeat));
+      shell9RecordEpisode(currentBeat, 1, globalR, globalR, sdr);
+    };
+    if (isDreamCycle) {
+      shell9MemoryReplay(shell3Activation);
+    };
+    
+    // STEP 17: Shell 10 lineage hash update
+    let newHash = fnv1a32(Nat32.fromNat(currentBeat));
+    shell10ExtendLineage(newHash);
+    
+    // STEP 18: Token ledger mint/burn/flow logic
+    tokenFlowNavierStokes();
+    if (aegisThreatLevel > 0.5 and aegisThreatLevel < 0.6) {
+      // Threat just resolved
+      mintVCT(aegisThreatLevel);
+      vicenteVictoryCount += 1;
+    };
+    
+    // STEP 19: 43 core tick
+    coreTick(shell3Out, corePheromoneField[0]);
+    
+    // STEP 20: Internal AI agents
+    let nexusOut = nexusAnalyze(currentBeat, globalR, fearLevel, animalScores);
+    
+    let cognusSignals : [Float] = [
+      globalR, fearLevel, courageScore, groundedScore,
+      shell6FormaYield, shell7Entropy, shell8Out,
+      moodOutput, lvPrey, lvPredator, antifragilityScore, economicStreakMultiplier
+    ];
+    let cognusOut = cognusAnalyze(currentBeat, cognusSignals);
+    
+    let aurumOut = aurumAnalyze(currentBeat, shell6FormaYield, coherenceMintAccumulator);
+    
+    let lexisOut = Float.fromInt(lexisDocument(currentBeat, globalR, shell9Head));
+    
+    let solusOut = solusMonitor(currentBeat, identityI, groundedScore);
+    
+    let allSignals : [Float] = Array.tabulate<Float>(36, func(i) { engineOutputs[i] });
+    let veritasOut = veritasValidate(currentBeat, allSignals, sacesiStampCount);
+    
+    // Compute economic multiplier with all fixes
+    let econMult = computeEconomicMultiplier(globalR, coherenceC);
+    
+    // STEP: Audit trail entry
+    auditTrailHash := fnv1a32(auditTrailHash ^ Nat32.fromNat(currentBeat));
+    auditTrailLength += 1;
+    
+    // Return comprehensive state
+    {
+      beat = currentBeat;
+      rSwarm = rSwarm;
+      jDrift = jDrift;
+      shell1Coherence = shell1Out;
+      shell3Output = shell3Out;
+      shell4Control = shell4Out;
+      shell5Decision = shell5Out;
+      shell6Yield = shell6Out;
+      shell7Entropy = shell7Out;
+      shell8Quantum = shell8Out;
+      mood = moodOutput;
+      economicMultiplier = econMult;
+      agentOutputs = [nexusOut, cognusOut, aurumOut, lexisOut, solusOut, veritasOut];
+      trustScore = veritasOut;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // SECTION 23: COMPLETE DOCTRINE STATE ACCESSORS
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  public query func getShellStates() : async {
+    shell1Coherence : Float;
+    shell2BasalTone : Float;
+    shell3MeanActivation : Float;
+    shell4Control : Float;
+    shell5Decision : Float;
+    shell6Yield : Float;
+    shell7Entropy : Float;
+    shell8Quantum : Float;
+    shell9MatriarchCoherence : Float;
+    shell10LineageDepth : Nat;
+    shell11Mood : Float;
+  } {
+    var shell3Sum : Float = 0.0;
+    var i = 0;
+    while (i < 26) { shell3Sum += shell3Activation[i]; i += 1 };
+    
+    {
+      shell1Coherence = shell1Coherence;
+      shell2BasalTone = shell2BasalTone;
+      shell3MeanActivation = shell3Sum / 26.0;
+      shell4Control = shell4ExecutiveControl;
+      shell5Decision = shell5GovernanceDecision;
+      shell6Yield = shell6FormaYield;
+      shell7Entropy = shell7Entropy;
+      shell8Quantum = shell8ParallaxInterference;
+      shell9MatriarchCoherence = shell9MatriarchCoherence;
+      shell10LineageDepth = shell10LineageDepth;
+      shell11Mood = (shell11DA + shell11_5HT + shell11Endo - shell11NE) / 3.0;
+    }
+  };
+
+  public query func getNeurotransmitterState() : async {
+    dopamine : Float;
+    serotonin : Float;
+    norepinephrine : Float;
+    acetylcholine : Float;
+    endorphin : Float;
+    gaba : Float;
+  } {
+    {
+      dopamine = shell11DA;
+      serotonin = shell11_5HT;
+      norepinephrine = shell11NE;
+      acetylcholine = shell11ACh;
+      endorphin = shell11Endo;
+      gaba = shell11GABA;
+    }
+  };
+
+  public query func getCoreStates() : async {
+    totalCores : Nat;
+    cipherSpikes : [Bool];
+    meanActivation : Float;
+    pheromoneLevel : Float;
+  } {
+    var sum : Float = 0.0;
+    var i = 0;
+    while (i < 43) { sum += coreActivations[i]; i += 1 };
+    
+    {
+      totalCores = 43;
+      cipherSpikes = [cipherSpikeState[0], cipherSpikeState[1], cipherSpikeState[2], cipherSpikeState[3]];
+      meanActivation = sum / 43.0;
+      pheromoneLevel = corePheromoneField[0];
+    }
+  };
+
+  public query func getAgentStates() : async {
+    nexusHypotheses : Nat;
+    cognusMomentum : Float;
+    aurumSharpe : Float;
+    lexisDocuments : Nat;
+    solusDriftAlert : Bool;
+    veritasTrust : Float;
+  } {
+    {
+      nexusHypotheses = nexusHypothesesCount;
+      cognusMomentum = cognusMomentum[0];
+      aurumSharpe = aurumSharpeRatio;
+      lexisDocuments = lexisDocumentCount;
+      solusDriftAlert = solusDriftAlert;
+      veritasTrust = veritasOverallTrust;
+    }
+  };
+
+  public query func getTokenBalances() : async {
+    mth : Float;
+    mrc : Float;
+    gtk : Float;
+    cvt : Float;
+    vct : Float;
+    knt : Float;
+    sbt : Float;
+    hbt : Float;
+    drt : Float;
+    rst : Float;
+    omt : Float;
+    lgt : Float;
+  } {
+    {
+      mth = tokenMTH;
+      mrc = tokenMRC;
+      gtk = tokenGTK;
+      cvt = tokenCVT;
+      vct = tokenVCT;
+      knt = tokenKNT;
+      sbt = tokenSBT;
+      hbt = tokenHBT;
+      drt = tokenDRT;
+      rst = tokenRST;
+      omt = tokenOMT;
+      lgt = tokenLGT;
+    }
+  };
+
+  public query func getEcologicalState() : async {
+    lvPrey : Float;
+    lvPredator : Float;
+    stressLevel : Float;
+    hormeticZone : Bool;
+    antifragility : Float;
+    victories : Nat;
+  } {
+    {
+      lvPrey = lvPrey;
+      lvPredator = lvPredator;
+      stressLevel = stressLevel;
+      hormeticZone = hormeticZoneActive;
+      antifragility = antifragilityScore;
+      victories = vicenteVictoryCount;
+    }
+  };
+
+  public query func getSovereigntyState() : async {
+    missionLock : Bool;
+    courage : Float;
+    grounded : Float;
+    fear : Float;
+    missionPersistence : Float;
+    surrenderFloor : Float;
+    permanentFloor : Float;
+    streakMultiplier : Float;
+  } {
+    {
+      missionLock = missionLockActive;
+      courage = courageScore;
+      grounded = groundedScore;
+      fear = fearLevel;
+      missionPersistence = missionPersistenceScore;
+      surrenderFloor = surrenderFloor;
+      permanentFloor = permanentCoherenceFloor;
+      streakMultiplier = economicStreakMultiplier;
+    }
+  };
+
 };
