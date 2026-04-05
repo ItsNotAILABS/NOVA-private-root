@@ -7745,4 +7745,1044 @@ actor SwarmBrain {
     Array.tabulate<Float>(16, func(i) { inlineEngineOutputs[i] })
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+  // ║                                                                                                                                       ║
+  // ║   S E C T I O N   1 4 :   Q U A N T U M   O P E R A T O R S   ( E N G I N E S   1 6 - 2 3 )                                           ║
+  // ║                                                                                                                                       ║
+  // ║   8 Shell quantum operators that form the quantum-cognitive substrate                                                                 ║
+  // ║   Each operator is a unitary transformation on the organism's state vector                                                            ║
+  // ║                                                                                                                                       ║
+  // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // QUANTUM OPERATOR 0: SUPERPOSITION — Multiple states coexist
+  // |ψ⟩ = α|0⟩ + β|1⟩ where |α|² + |β|² = 1
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var qopSuperpositionAlpha : [var Float] = Array.init<Float>(8, 0.707);  // √(1/2)
+  stable var qopSuperpositionBeta : [var Float] = Array.init<Float>(8, 0.707);
+  stable var qopSuperpositionPhase : [var Float] = Array.init<Float>(8, 0.0);
+  stable var qopSuperpositionCoherence : Float = 1.0;
+  stable var qopSuperpositionMeasured : Bool = false;
+  stable var qopSuperpositionCollapsed : Nat = 0;
+  
+  func inlineQuantumSuperpositionTick(crossCoupledInput : Float) : Float {
+    var totalCoherence : Float = 0.0;
+    var i = 0;
+    while (i < 8) {
+      // Evolve phase
+      qopSuperpositionPhase[i] += 0.1 * (1.0 + crossCoupledInput * 0.1);
+      
+      // Maintain normalization |α|² + |β|² = 1
+      let alpha = qopSuperpositionAlpha[i];
+      let beta = qopSuperpositionBeta[i];
+      let norm = Float.sqrt(alpha * alpha + beta * beta);
+      if (norm > 0.001) {
+        qopSuperpositionAlpha[i] /= norm;
+        qopSuperpositionBeta[i] /= norm;
+      };
+      
+      // Coherence is preserved unless measurement
+      totalCoherence += Float.abs(qopSuperpositionAlpha[i] * qopSuperpositionBeta[i]) * 2.0;
+      
+      i += 1;
+    };
+    
+    qopSuperpositionCoherence := totalCoherence / 8.0;
+    qopSuperpositionCoherence
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // QUANTUM OPERATOR 1: ENTANGLEMENT — Non-local correlations
+  // |ψ⟩ = (|00⟩ + |11⟩)/√2 — Bell state
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var qopEntanglementPairs : [var Float] = Array.init<Float>(8 * 8, 0.0);  // Entanglement matrix
+  stable var qopEntanglementStrength : Float = 0.0;
+  stable var qopBellViolation : Float = 0.0;  // > 2 violates Bell inequality
+  stable var qopConcurrence : Float = 0.0;
+  
+  func inlineQuantumEntanglementTick(rSwarmInput : Float, crossCoupledInput : Float) : Float {
+    // Create/maintain entanglement between qubits
+    var totalEntanglement : Float = 0.0;
+    var i = 0;
+    while (i < 8) {
+      var j = i + 1;
+      while (j < 8) {
+        let idx = i * 8 + j;
+        
+        // Entanglement grows with swarm coherence
+        let entanglementGrowth = rSwarmInput * crossCoupledInput * 0.1;
+        qopEntanglementPairs[idx] += entanglementGrowth;
+        
+        // Decoherence from environment
+        qopEntanglementPairs[idx] *= 0.99;
+        
+        // Clamp to [0, 1]
+        qopEntanglementPairs[idx] := Float.max(0.0, Float.min(1.0, qopEntanglementPairs[idx]));
+        
+        totalEntanglement += qopEntanglementPairs[idx];
+        j += 1;
+      };
+      i += 1;
+    };
+    
+    qopEntanglementStrength := totalEntanglement / 28.0;  // 8 choose 2 = 28 pairs
+    
+    // Simplified Bell violation (CHSH inequality)
+    // S = 2√2 ≈ 2.83 for maximally entangled state
+    qopBellViolation := 2.0 + qopEntanglementStrength * 0.83;
+    
+    // Concurrence (entanglement measure)
+    qopConcurrence := Float.max(0.0, 2.0 * qopEntanglementStrength - 1.0);
+    
+    qopEntanglementStrength
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // QUANTUM OPERATOR 2: INTERFERENCE — Quantum paths interfere
+  // Probability = |A₁ + A₂|² ≠ |A₁|² + |A₂|²
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var qopInterferenceAmplitudes : [var Float] = Array.init<Float>(16, 0.5);  // 8 paths × 2 (real, imag)
+  stable var qopInterferencePattern : [var Float] = Array.init<Float>(20, 0.0);  // Detection pattern
+  stable var qopInterferenceVisibility : Float = 1.0;
+  stable var qopWhichPathInfo : Float = 0.0;
+  
+  func inlineQuantumInterferenceTick(crossCoupledInput : Float) : Float {
+    // Evolve path amplitudes
+    var i = 0;
+    while (i < 8) {
+      let realIdx = i * 2;
+      let imagIdx = i * 2 + 1;
+      let phase = Float.fromInt(i) * 0.5 + crossCoupledInput * 0.1;
+      
+      // Rotate in complex plane
+      let realPart = qopInterferenceAmplitudes[realIdx];
+      let imagPart = qopInterferenceAmplitudes[imagIdx];
+      qopInterferenceAmplitudes[realIdx] := realPart * Float.cos(phase) - imagPart * Float.sin(phase);
+      qopInterferenceAmplitudes[imagIdx] := realPart * Float.sin(phase) + imagPart * Float.cos(phase);
+      
+      i += 1;
+    };
+    
+    // Compute interference pattern (sum amplitudes, then square)
+    i := 0;
+    while (i < 20) {
+      var sumReal : Float = 0.0;
+      var sumImag : Float = 0.0;
+      var j = 0;
+      while (j < 8) {
+        let pathPhase = Float.fromInt(i) * Float.fromInt(j) * 0.1;
+        sumReal += qopInterferenceAmplitudes[j * 2] * Float.cos(pathPhase);
+        sumImag += qopInterferenceAmplitudes[j * 2 + 1] * Float.sin(pathPhase);
+        j += 1;
+      };
+      qopInterferencePattern[i] := sumReal * sumReal + sumImag * sumImag;
+      i += 1;
+    };
+    
+    // Visibility = (max - min) / (max + min)
+    var maxVal : Float = 0.0;
+    var minVal : Float = 1.0;
+    i := 0;
+    while (i < 20) {
+      if (qopInterferencePattern[i] > maxVal) maxVal := qopInterferencePattern[i];
+      if (qopInterferencePattern[i] < minVal) minVal := qopInterferencePattern[i];
+      i += 1;
+    };
+    if (maxVal + minVal > 0.001) {
+      qopInterferenceVisibility := (maxVal - minVal) / (maxVal + minVal);
+    };
+    
+    // Which-path destroys interference (complementarity)
+    qopInterferenceVisibility *= 1.0 - qopWhichPathInfo;
+    
+    qopInterferenceVisibility
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // QUANTUM OPERATOR 3: TUNNELING — Barrier penetration
+  // T ∝ exp(-2κL) where κ = √(2m(V-E))/ℏ
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var qopTunnelingBarrierHeight : Float = 0.5;
+  stable var qopTunnelingBarrierWidth : Float = 0.1;
+  stable var qopTunnelingEnergy : Float = 0.3;
+  stable var qopTunnelingProbability : Float = 0.0;
+  stable var qopTunnelingEvents : Nat = 0;
+  stable var qopTunnelingRate : Float = 0.0;
+  
+  func inlineQuantumTunnelingTick(crossCoupledInput : Float) : Float {
+    // Update energy based on cross-coupling
+    qopTunnelingEnergy := 0.2 + crossCoupledInput * 0.3;
+    
+    // Tunneling coefficient
+    if (qopTunnelingEnergy < qopTunnelingBarrierHeight) {
+      let kappa = Float.sqrt(2.0 * (qopTunnelingBarrierHeight - qopTunnelingEnergy));
+      qopTunnelingProbability := Float.exp(-2.0 * kappa * qopTunnelingBarrierWidth);
+    } else {
+      // Over the barrier (classical)
+      qopTunnelingProbability := 1.0;
+    };
+    
+    // Simulate tunneling events
+    let random = Float.sin(Float.fromInt(currentBeat) * 12.345) * 0.5 + 0.5;
+    if (random < qopTunnelingProbability) {
+      qopTunnelingEvents += 1;
+    };
+    
+    // Rate is events per time
+    qopTunnelingRate := Float.fromInt(qopTunnelingEvents) / Float.fromInt(currentBeat + 1);
+    
+    qopTunnelingProbability
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // QUANTUM OPERATOR 4: DECOHERENCE — Environment destroys quantum effects
+  // ρ → Σᵢ KᵢρKᵢ† (Kraus operators)
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var qopDecoherenceRate : Float = 0.01;
+  stable var qopDecoherenceTime : Float = 100.0;  // T₂ coherence time
+  stable var qopPurityState : Float = 1.0;        // Tr(ρ²)
+  stable var qopVonNeumannEntropy : Float = 0.0;
+  stable var qopEnvironmentCoupling : Float = 0.1;
+  
+  func inlineQuantumDecoherenceTick(crossCoupledInput : Float) : Float {
+    // Decoherence rate depends on environment coupling
+    qopEnvironmentCoupling := 0.05 + (1.0 - crossCoupledInput) * 0.15;
+    qopDecoherenceRate := qopEnvironmentCoupling * 0.1;
+    
+    // Purity decay: ρ → (1-γ)ρ + γ·I/d
+    let decay = 1.0 - qopDecoherenceRate;
+    qopPurityState := qopPurityState * decay + (1.0 - decay) * 0.5;  // Mix with maximally mixed state
+    
+    // Von Neumann entropy increases with decoherence
+    // S = -Tr(ρ log ρ) ≈ 1 - purity for nearly pure states
+    qopVonNeumannEntropy := 1.0 - qopPurityState;
+    
+    // Effective coherence time
+    if (qopDecoherenceRate > 0.001) {
+      qopDecoherenceTime := 1.0 / qopDecoherenceRate;
+    };
+    
+    qopPurityState
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // QUANTUM OPERATOR 5: MEASUREMENT — Wave function collapse
+  // P(outcome) = |⟨outcome|ψ⟩|²
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var qopMeasurementBasis : Nat = 0;  // 0=Z, 1=X, 2=Y
+  stable var qopMeasurementOutcome : Float = 0.0;
+  stable var qopMeasurementBackaction : Float = 0.0;
+  stable var qopMeasurementCount : Nat = 0;
+  stable var qopMeasurementStatistics : [var Float] = Array.init<Float>(10, 0.0);  // Outcome histogram
+  
+  func inlineQuantumMeasurementTick(crossCoupledInput : Float) : Float {
+    // Decide whether to measure (based on cross-coupling)
+    let measureThreshold = 0.9;
+    if (crossCoupledInput > measureThreshold) {
+      qopMeasurementCount += 1;
+      
+      // Measurement in current basis
+      let superpositionStrength = qopSuperpositionCoherence;
+      
+      // Born rule: probability of outcome
+      let probability0 = qopSuperpositionAlpha[0] * qopSuperpositionAlpha[0];
+      let random = Float.sin(Float.fromInt(currentBeat) * 7.891) * 0.5 + 0.5;
+      
+      if (random < probability0) {
+        qopMeasurementOutcome := 0.0;
+        // Collapse to |0⟩
+        qopSuperpositionAlpha[0] := 1.0;
+        qopSuperpositionBeta[0] := 0.0;
+      } else {
+        qopMeasurementOutcome := 1.0;
+        // Collapse to |1⟩
+        qopSuperpositionAlpha[0] := 0.0;
+        qopSuperpositionBeta[0] := 1.0;
+      };
+      
+      // Measurement backaction (disturbance)
+      qopMeasurementBackaction := 1.0 - superpositionStrength;
+      
+      // Update statistics
+      let outcomeIdx = Int.abs(Float.toInt(qopMeasurementOutcome * 9.0));
+      let clampedIdx = if (outcomeIdx >= 10) { 9 } else { outcomeIdx };
+      qopMeasurementStatistics[clampedIdx] += 1.0;
+    };
+    
+    // Return measurement confidence
+    1.0 - qopMeasurementBackaction
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // QUANTUM OPERATOR 6: ZENO EFFECT — Frequent measurement freezes evolution
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var qopZenoMeasurementFreq : Float = 0.0;
+  stable var qopZenoFreezeStrength : Float = 0.0;
+  stable var qopZenoAntiZeno : Bool = false;  // Anti-Zeno at intermediate frequencies
+  stable var qopZenoSurvivalProb : Float = 1.0;
+  
+  func inlineQuantumZenoTick(crossCoupledInput : Float) : Float {
+    // Measurement frequency controls Zeno effect
+    qopZenoMeasurementFreq := crossCoupledInput * 10.0;  // 0-10 measurements per unit time
+    
+    // Zeno limit: P_survival → 1 as frequency → ∞
+    // Anti-Zeno: P_survival → 0 at intermediate frequencies
+    let tau = 1.0 / (qopZenoMeasurementFreq + 0.1);  // Time between measurements
+    
+    // Simplified Zeno dynamics
+    if (qopZenoMeasurementFreq > 5.0) {
+      // Zeno regime: evolution frozen
+      qopZenoFreezeStrength := (qopZenoMeasurementFreq - 5.0) / 5.0;
+      qopZenoAntiZeno := false;
+    } else if (qopZenoMeasurementFreq > 1.0) {
+      // Anti-Zeno regime: accelerated decay
+      qopZenoFreezeStrength := 0.0;
+      qopZenoAntiZeno := true;
+    } else {
+      // Normal regime
+      qopZenoFreezeStrength := 0.0;
+      qopZenoAntiZeno := false;
+    };
+    
+    // Survival probability
+    qopZenoSurvivalProb := Float.exp(-tau * (1.0 - qopZenoFreezeStrength));
+    
+    qopZenoSurvivalProb
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // QUANTUM OPERATOR 7: QUANTUM WALK — Coherent spreading
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var qopQuantumWalkPosition : [var Float] = Array.init<Float>(21, 0.0);  // -10 to +10
+  stable var qopQuantumWalkCoin : Float = 0.5;  // Coin state
+  stable var qopQuantumWalkSpread : Float = 0.0;
+  stable var qopQuantumWalkSteps : Nat = 0;
+  
+  func inlineQuantumWalkTick(crossCoupledInput : Float) : Float {
+    // Initialize walk at center
+    if (qopQuantumWalkSteps == 0) {
+      qopQuantumWalkPosition[10] := 1.0;  // Start at position 0 (index 10)
+    };
+    
+    qopQuantumWalkSteps += 1;
+    
+    // Coin flip (Hadamard)
+    let coinAngle = Float.pi / 4.0 * crossCoupledInput;
+    qopQuantumWalkCoin := Float.cos(coinAngle) * qopQuantumWalkCoin + Float.sin(coinAngle) * (1.0 - qopQuantumWalkCoin);
+    
+    // Shift based on coin
+    var newPositions : [var Float] = Array.init<Float>(21, 0.0);
+    var i = 1;
+    while (i < 20) {
+      // Quantum walk: superposition of left and right shifts
+      let leftAmp = qopQuantumWalkPosition[i] * qopQuantumWalkCoin;
+      let rightAmp = qopQuantumWalkPosition[i] * (1.0 - qopQuantumWalkCoin);
+      newPositions[i - 1] += leftAmp;
+      newPositions[i + 1] += rightAmp;
+      i += 1;
+    };
+    
+    // Copy new positions and normalize
+    var total : Float = 0.0;
+    i := 0;
+    while (i < 21) {
+      qopQuantumWalkPosition[i] := newPositions[i];
+      total += qopQuantumWalkPosition[i];
+      i += 1;
+    };
+    if (total > 0.001) {
+      i := 0;
+      while (i < 21) {
+        qopQuantumWalkPosition[i] /= total;
+        i += 1;
+      };
+    };
+    
+    // Measure spread (standard deviation)
+    var mean : Float = 0.0;
+    i := 0;
+    while (i < 21) {
+      mean += Float.fromInt(i - 10) * qopQuantumWalkPosition[i];
+      i += 1;
+    };
+    var variance : Float = 0.0;
+    i := 0;
+    while (i < 21) {
+      let diff = Float.fromInt(i - 10) - mean;
+      variance += diff * diff * qopQuantumWalkPosition[i];
+      i += 1;
+    };
+    qopQuantumWalkSpread := Float.sqrt(variance);
+    
+    // Quantum walk spreads as √t (faster than classical random walk)
+    qopQuantumWalkSpread
+  };
+
+  // Quantum operator outputs
+  stable var quantumOperatorOutputs : [var Float] = Array.init<Float>(8, 0.0);
+  
+  func runAllQuantumOperators(rSwarmInput : Float, crossCoupledInput : Float) {
+    quantumOperatorOutputs[0] := inlineQuantumSuperpositionTick(crossCoupledInput);
+    quantumOperatorOutputs[1] := inlineQuantumEntanglementTick(rSwarmInput, crossCoupledInput);
+    quantumOperatorOutputs[2] := inlineQuantumInterferenceTick(crossCoupledInput);
+    quantumOperatorOutputs[3] := inlineQuantumTunnelingTick(crossCoupledInput);
+    quantumOperatorOutputs[4] := inlineQuantumDecoherenceTick(crossCoupledInput);
+    quantumOperatorOutputs[5] := inlineQuantumMeasurementTick(crossCoupledInput);
+    quantumOperatorOutputs[6] := inlineQuantumZenoTick(crossCoupledInput);
+    quantumOperatorOutputs[7] := inlineQuantumWalkTick(crossCoupledInput);
+  };
+
+  public query func getQuantumOperatorStates() : async {
+    superposition : Float;
+    entanglement : Float;
+    interference : Float;
+    tunneling : Float;
+    decoherence : Float;
+    measurement : Float;
+    zeno : Float;
+    quantumWalk : Float;
+    bellViolation : Float;
+    purity : Float;
+  } {
+    {
+      superposition = qopSuperpositionCoherence;
+      entanglement = qopEntanglementStrength;
+      interference = qopInterferenceVisibility;
+      tunneling = qopTunnelingProbability;
+      decoherence = qopPurityState;
+      measurement = 1.0 - qopMeasurementBackaction;
+      zeno = qopZenoSurvivalProb;
+      quantumWalk = qopQuantumWalkSpread;
+      bellViolation = qopBellViolation;
+      purity = qopPurityState;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+  // ║                                                                                                                                       ║
+  // ║   S E C T I O N   1 5 :   B R A I N   R E G I O N   E N G I N E S   ( 2 4 - 3 5 )                                                     ║
+  // ║                                                                                                                                       ║
+  // ║   12 brain regions that form the cognitive architecture                                                                               ║
+  // ║   Based on neuroscience: prefrontal, basal ganglia, thalamus, etc.                                                                    ║
+  // ║                                                                                                                                       ║
+  // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // BRAIN REGION 0: PREFRONTAL CORTEX — Executive Function
+  // Working memory, planning, decision-making, inhibition
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var pfcWorkingMemory : [var Float] = Array.init<Float>(7, 0.0);  // 7±2 items
+  stable var pfcWorkingMemoryLoad : Nat = 0;
+  stable var pfcGoalState : Float = 0.0;
+  stable var pfcPlanningHorizon : Nat = 5;
+  stable var pfcInhibitionStrength : Float = 0.5;
+  stable var pfcDecisionConfidence : Float = 0.0;
+  stable var pfcCognitiveControl : Float = 0.5;
+  
+  func inlinePrefrontalTick(rSwarmInput : Float, crossCoupledInput : Float) : Float {
+    // Working memory update (FIFO buffer)
+    var i = 6;
+    while (i > 0) {
+      pfcWorkingMemory[i] := pfcWorkingMemory[i - 1];
+      i -= 1;
+    };
+    pfcWorkingMemory[0] := rSwarmInput;
+    
+    // Count non-zero items
+    pfcWorkingMemoryLoad := 0;
+    i := 0;
+    while (i < 7) {
+      if (Float.abs(pfcWorkingMemory[i]) > 0.01) {
+        pfcWorkingMemoryLoad += 1;
+      };
+      i += 1;
+    };
+    
+    // Goal maintenance
+    pfcGoalState := 0.9 * pfcGoalState + 0.1 * crossCoupledInput;
+    
+    // Inhibition based on goal-state conflict
+    let conflict = Float.abs(rSwarmInput - pfcGoalState);
+    pfcInhibitionStrength := Float.min(1.0, conflict * 2.0);
+    
+    // Decision confidence from working memory coherence
+    var wmMean : Float = 0.0;
+    i := 0;
+    while (i < 7) { wmMean += pfcWorkingMemory[i]; i += 1 };
+    wmMean /= 7.0;
+    var wmVar : Float = 0.0;
+    i := 0;
+    while (i < 7) {
+      let diff = pfcWorkingMemory[i] - wmMean;
+      wmVar += diff * diff;
+      i += 1;
+    };
+    wmVar /= 7.0;
+    pfcDecisionConfidence := 1.0 - Float.min(1.0, wmVar * 4.0);
+    
+    // Cognitive control = goal strength × inhibition capacity
+    pfcCognitiveControl := pfcGoalState * (1.0 - pfcInhibitionStrength * 0.5);
+    
+    pfcCognitiveControl
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // BRAIN REGION 1: BASAL GANGLIA — Action Selection
+  // Direct pathway (GO), indirect pathway (NO-GO), dopamine modulation
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var bgDirectPathway : [var Float] = Array.init<Float>(5, 0.5);
+  stable var bgIndirectPathway : [var Float] = Array.init<Float>(5, 0.5);
+  stable var bgSelectedAction : Nat = 0;
+  stable var bgSelectionStrength : Float = 0.0;
+  stable var bgDopamineLevel : Float = 0.5;
+  stable var bgGoSignal : Float = 0.0;
+  stable var bgNoGoSignal : Float = 0.0;
+  
+  func inlineBasalGangliaTick(rewardSignal : Float, crossCoupledInput : Float) : Float {
+    // Dopamine modulates direct/indirect pathway balance
+    bgDopamineLevel := 0.8 * bgDopamineLevel + 0.2 * rewardSignal;
+    
+    // Update pathways
+    var i = 0;
+    while (i < 5) {
+      // Direct pathway facilitated by dopamine
+      bgDirectPathway[i] := bgDirectPathway[i] * (0.9 + bgDopamineLevel * 0.1);
+      // Indirect pathway inhibited by dopamine
+      bgIndirectPathway[i] := bgIndirectPathway[i] * (1.1 - bgDopamineLevel * 0.1);
+      
+      // Input from cross-coupled engines
+      bgDirectPathway[i] += crossCoupledInput * 0.1;
+      bgIndirectPathway[i] += (1.0 - crossCoupledInput) * 0.1;
+      
+      // Clamp
+      bgDirectPathway[i] := Float.max(0.0, Float.min(1.0, bgDirectPathway[i]));
+      bgIndirectPathway[i] := Float.max(0.0, Float.min(1.0, bgIndirectPathway[i]));
+      
+      i += 1;
+    };
+    
+    // Action selection: winner-take-all
+    var maxDirect : Float = 0.0;
+    var selected : Nat = 0;
+    i := 0;
+    while (i < 5) {
+      let netActivation = bgDirectPathway[i] - bgIndirectPathway[i];
+      if (netActivation > maxDirect) {
+        maxDirect := netActivation;
+        selected := i;
+      };
+      i += 1;
+    };
+    bgSelectedAction := selected;
+    bgSelectionStrength := Float.max(0.0, maxDirect);
+    
+    // GO/NO-GO signals
+    bgGoSignal := bgDirectPathway[selected];
+    bgNoGoSignal := bgIndirectPathway[selected];
+    
+    bgSelectionStrength
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // BRAIN REGION 2: THALAMUS — Sensory Relay & Gating
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var thalamusGateState : [var Float] = Array.init<Float>(6, 0.5);  // 6 modality gates
+  stable var thalamusRelay : [var Float] = Array.init<Float>(6, 0.0);
+  stable var thalamusReticular : Float = 0.5;  // Inhibitory control
+  stable var thalamusArousal : Float = 0.5;
+  
+  func inlineThalamusTick(sensoryInput : [Float], corticalFeedback : Float, crossCoupledInput : Float) : Float {
+    // Reticular nucleus modulates gating
+    thalamusReticular := 0.9 * thalamusReticular + 0.1 * (1.0 - corticalFeedback);
+    
+    // Gate each modality
+    var totalRelay : Float = 0.0;
+    var i = 0;
+    while (i < 6 and i < sensoryInput.size()) {
+      // Gate state controlled by arousal and reticular
+      thalamusGateState[i] := thalamusArousal * (1.0 - thalamusReticular);
+      
+      // Relay = input × gate
+      thalamusRelay[i] := sensoryInput[i] * thalamusGateState[i];
+      totalRelay += thalamusRelay[i];
+      
+      i += 1;
+    };
+    
+    // Arousal from cross-coupling
+    thalamusArousal := 0.8 * thalamusArousal + 0.2 * crossCoupledInput;
+    
+    totalRelay / 6.0
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // BRAIN REGION 3: HIPPOCAMPUS — Memory Formation & Spatial Navigation
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var hippocampusPlaceCells : [var Float] = Array.init<Float>(100, 0.0);  // 10×10 spatial map
+  stable var hippocampusGridCells : [var Float] = Array.init<Float>(36, 0.0);    // 6×6 grid
+  stable var hippocampusTimeCells : [var Float] = Array.init<Float>(20, 0.0);    // Temporal sequence
+  stable var hippocampusReplayActive : Bool = false;
+  stable var hippocampusThetaPhase : Float = 0.0;
+  stable var hippocampusSWR : Bool = false;  // Sharp-wave ripple
+  stable var hippocampusMemoryStrength : Float = 0.0;
+  
+  func inlineHippocampusTick(spatialInput : Float, temporalInput : Float, crossCoupledInput : Float) : Float {
+    // Theta rhythm (4-8 Hz oscillation)
+    hippocampusThetaPhase += 0.6;  // ~6 Hz
+    if (hippocampusThetaPhase > TWO_PI) hippocampusThetaPhase -= TWO_PI;
+    
+    // Place cell activation
+    let placeIdx = Int.abs(Float.toInt(spatialInput * 99.0));
+    let clampedPlace = if (placeIdx >= 100) { 99 } else { placeIdx };
+    hippocampusPlaceCells[clampedPlace] := Float.min(1.0, hippocampusPlaceCells[clampedPlace] + 0.5);
+    
+    // Grid cell activation (hexagonal pattern)
+    var i = 0;
+    while (i < 36) {
+      let gridPhase = Float.fromInt(i) * Float.pi / 3.0 + hippocampusThetaPhase;
+      hippocampusGridCells[i] := (Float.cos(gridPhase * spatialInput * 10.0) + 1.0) / 2.0;
+      i += 1;
+    };
+    
+    // Time cells sequence
+    let timeIdx = Int.abs(Float.toInt(temporalInput * 19.0));
+    let clampedTime = if (timeIdx >= 20) { 19 } else { timeIdx };
+    hippocampusTimeCells[clampedTime] := 1.0;
+    
+    // Sharp-wave ripple during low activity (memory consolidation)
+    hippocampusSWR := crossCoupledInput < 0.3;
+    if (hippocampusSWR) {
+      hippocampusReplayActive := true;
+      // Strengthen memories during replay
+      hippocampusMemoryStrength := Float.min(1.0, hippocampusMemoryStrength + 0.01);
+    } else {
+      hippocampusReplayActive := false;
+    };
+    
+    // Decay
+    i := 0;
+    while (i < 100) {
+      hippocampusPlaceCells[i] *= 0.99;
+      i += 1;
+    };
+    i := 0;
+    while (i < 20) {
+      hippocampusTimeCells[i] *= 0.95;
+      i += 1;
+    };
+    
+    hippocampusMemoryStrength
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // BRAIN REGION 4: AMYGDALA — Emotional Processing
+  // Fear, reward, salience detection
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var amygdalaFearResponse : Float = 0.0;
+  stable var amygdalaRewardResponse : Float = 0.0;
+  stable var amygdalaSalience : Float = 0.0;
+  stable var amygdalaValence : Float = 0.0;  // -1 to +1
+  stable var amygdalaArousalDrive : Float = 0.0;
+  stable var amygdalaConditionedStimuli : [var Float] = Array.init<Float>(10, 0.0);
+  
+  func inlineAmygdalaTick(threatSignal : Float, rewardSignal : Float, crossCoupledInput : Float) : Float {
+    // Fear response
+    amygdalaFearResponse := 0.7 * amygdalaFearResponse + 0.3 * threatSignal;
+    
+    // Reward response
+    amygdalaRewardResponse := 0.7 * amygdalaRewardResponse + 0.3 * rewardSignal;
+    
+    // Salience = max of fear and reward
+    amygdalaSalience := Float.max(amygdalaFearResponse, amygdalaRewardResponse);
+    
+    // Valence: positive for reward, negative for fear
+    amygdalaValence := amygdalaRewardResponse - amygdalaFearResponse;
+    
+    // Arousal drive
+    amygdalaArousalDrive := amygdalaSalience * (1.0 + crossCoupledInput * 0.2);
+    
+    // Update conditioned stimuli
+    var i = 0;
+    while (i < 10) {
+      // Decay conditioned associations
+      amygdalaConditionedStimuli[i] *= 0.99;
+      i += 1;
+    };
+    
+    // New conditioning
+    if (amygdalaSalience > 0.7) {
+      let csIdx = Int.abs(Float.toInt(crossCoupledInput * 9.0));
+      let clampedCS = if (csIdx >= 10) { 9 } else { csIdx };
+      amygdalaConditionedStimuli[clampedCS] := amygdalaSalience;
+    };
+    
+    amygdalaSalience
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // BRAIN REGION 5: CEREBELLUM — Timing & Motor Coordination
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var cerebellumPurkinjeCells : [var Float] = Array.init<Float>(20, 0.5);
+  stable var cerebellumGranuleCells : [var Float] = Array.init<Float>(100, 0.0);
+  stable var cerebellumTimingError : Float = 0.0;
+  stable var cerebellumMotorCommand : Float = 0.0;
+  stable var cerebellumLearningRate : Float = 0.01;
+  stable var cerebellumOliveSignal : Float = 0.0;  // Error signal from inferior olive
+  
+  func inlineCerebellumTick(targetTiming : Float, actualTiming : Float, crossCoupledInput : Float) : Float {
+    // Timing error
+    cerebellumTimingError := targetTiming - actualTiming;
+    cerebellumOliveSignal := Float.abs(cerebellumTimingError);
+    
+    // Granule cell expansion (sparse coding)
+    var i = 0;
+    while (i < 100) {
+      let input = crossCoupledInput + Float.fromInt(i) * 0.01;
+      cerebellumGranuleCells[i] := if (Float.sin(input * 10.0) > 0.5) { 1.0 } else { 0.0 };
+      i += 1;
+    };
+    
+    // Purkinje cell learning (LTD with climbing fiber)
+    i := 0;
+    while (i < 20) {
+      // Sum granule cell input
+      var granuleSum : Float = 0.0;
+      var j = i * 5;
+      while (j < (i + 1) * 5 and j < 100) {
+        granuleSum += cerebellumGranuleCells[j];
+        j += 1;
+      };
+      
+      // Purkinje output
+      cerebellumPurkinjeCells[i] += granuleSum * 0.1;
+      
+      // LTD when olive signal present
+      if (cerebellumOliveSignal > 0.1) {
+        cerebellumPurkinjeCells[i] -= cerebellumLearningRate * cerebellumOliveSignal;
+      };
+      
+      cerebellumPurkinjeCells[i] := Float.max(0.0, Float.min(1.0, cerebellumPurkinjeCells[i]));
+      i += 1;
+    };
+    
+    // Motor command is weighted sum of Purkinje output
+    var motorSum : Float = 0.0;
+    i := 0;
+    while (i < 20) {
+      motorSum += cerebellumPurkinjeCells[i];
+      i += 1;
+    };
+    cerebellumMotorCommand := motorSum / 20.0;
+    
+    cerebellumMotorCommand
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // BRAIN REGION 6: INSULA — Interoception & Body State
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  stable var insulaInteroceptiveState : [var Float] = Array.init<Float>(8, 0.5);  // 8 body signals
+  stable var insulaBodyPrediction : [var Float] = Array.init<Float>(8, 0.5);
+  stable var insulaPredictionError : Float = 0.0;
+  stable var insulaBodyAwareness : Float = 0.5;
+  stable var insulaEmotionalFeeling : Float = 0.0;
+  
+  func inlineInsulaTick(bodySignals : [Float], crossCoupledInput : Float) : Float {
+    var totalError : Float = 0.0;
+    var i = 0;
+    while (i < 8 and i < bodySignals.size()) {
+      // Update interoceptive state
+      insulaInteroceptiveState[i] := 0.8 * insulaInteroceptiveState[i] + 0.2 * bodySignals[i];
+      
+      // Prediction error
+      let error = insulaInteroceptiveState[i] - insulaBodyPrediction[i];
+      totalError += Float.abs(error);
+      
+      // Update prediction
+      insulaBodyPrediction[i] := 0.9 * insulaBodyPrediction[i] + 0.1 * insulaInteroceptiveState[i];
+      
+      i += 1;
+    };
+    
+    insulaPredictionError := totalError / 8.0;
+    
+    // Body awareness inversely related to prediction error (precise predictions = awareness)
+    insulaBodyAwareness := 1.0 - insulaPredictionError;
+    
+    // Emotional feeling from interoceptive integration
+    var stateSum : Float = 0.0;
+    i := 0;
+    while (i < 8) {
+      stateSum += insulaInteroceptiveState[i];
+      i += 1;
+    };
+    insulaEmotionalFeeling := (stateSum / 8.0 - 0.5) * 2.0;  // -1 to +1
+    
+    insulaBodyAwareness
+  };
+
+  // Brain region outputs
+  stable var brainRegionOutputs : [var Float] = Array.init<Float>(6, 0.0);
+  
+  func runAllBrainRegions(rSwarmInput : Float, crossCoupledInput : Float) {
+    brainRegionOutputs[0] := inlinePrefrontalTick(rSwarmInput, crossCoupledInput);
+    brainRegionOutputs[1] := inlineBasalGangliaTick(dopamineLevel, crossCoupledInput);
+    
+    let sensoryInputs : [Float] = [rSwarmInput, crossCoupledInput, inlineKuramotoOrderParam, 
+                                    hebbianMeanWeight, fristonFreeEnergy, entropyShannon];
+    brainRegionOutputs[2] := inlineThalamusTick(sensoryInputs, pfcCognitiveControl, crossCoupledInput);
+    
+    brainRegionOutputs[3] := inlineHippocampusTick(attractorX, Float.fromInt(currentBeat) / 100.0, crossCoupledInput);
+    brainRegionOutputs[4] := inlineAmygdalaTick(aegisThreatLevel, dopamineLevel, crossCoupledInput);
+    brainRegionOutputs[5] := inlineCerebellumTick(1.0, rSwarmInput, crossCoupledInput);
+  };
+
+  public query func getBrainRegionStates() : async {
+    prefrontalControl : Float;
+    basalGangliaSelection : Float;
+    thalamusRelay : Float;
+    hippocampusMemory : Float;
+    amygdalaSalience : Float;
+    cerebellumTiming : Float;
+    workingMemoryLoad : Nat;
+    selectedAction : Nat;
+    fearResponse : Float;
+    rewardResponse : Float;
+  } {
+    {
+      prefrontalControl = pfcCognitiveControl;
+      basalGangliaSelection = bgSelectionStrength;
+      thalamusRelay = brainRegionOutputs[2];
+      hippocampusMemory = hippocampusMemoryStrength;
+      amygdalaSalience = amygdalaSalience;
+      cerebellumTiming = cerebellumMotorCommand;
+      workingMemoryLoad = pfcWorkingMemoryLoad;
+      selectedAction = bgSelectedAction;
+      fearResponse = amygdalaFearResponse;
+      rewardResponse = amygdalaRewardResponse;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 16: THE ULTIMATE SOVEREIGN TICK — ALL 36 ENGINES UNIFIED
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  public shared(msg) func ultimateSovereignTick() : async {
+    beat : Nat;
+    rSwarm : Float;
+    jDrift : Float;
+    sacredAmplifier : Float;
+    totalCoherence : Float;
+    quantumCoherence : Float;
+    brainCoherence : Float;
+    animalCoherence : Float;
+    economicOutput : Float;
+    aegisDefense : Float;
+  } {
+    requireAuthorized(msg.caller);
+    
+    // Initialize on first call
+    if (currentBeat == 0) {
+      initKuramotoOscillators();
+      initializeCrossCoupling();
+    };
+    
+    // Run base tick
+    let baseResult = tickCore();
+    
+    // Sacred beat amplification
+    let sacredAmp = getSacredAmplifier(currentBeat);
+    let isSacred = isSacredBeat(currentBeat);
+    
+    // Compute cross-coupled base
+    var crossSum : Float = 0.0;
+    var e = 0;
+    while (e < 36) {
+      crossSum += engineOutputs[e];
+      e += 1;
+    };
+    let crossCoupledBase = crossSum / 36.0;
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // PHASE 1: CORE NEURODYNAMICS (Engines 0-6)
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    engineOutputs[0] := inlineKuramotoTick(0.05, crossCoupledBase) * sacredAmp;
+    engineOutputs[1] := inlineFristonTick(baseResult.rSwarm, baseResult.jDrift, crossCoupledBase) * sacredAmp;
+    engineOutputs[2] := inlineHebbianTick(baseResult.rSwarm, crossCoupledBase, Float.fromInt(currentBeat)) * sacredAmp;
+    engineOutputs[3] := inlineAttractorTick(0.05, baseResult.rSwarm, crossCoupledBase) * sacredAmp;
+    
+    let signalsForEntropy : [Float] = [baseResult.rSwarm, engineOutputs[0], engineOutputs[1], engineOutputs[2], 
+                                        engineOutputs[3], crossCoupledBase, inlineKuramotoOrderParam, hebbianMeanWeight];
+    engineOutputs[4] := inlineEntropyTick(signalsForEntropy, crossCoupledBase) * sacredAmp;
+    engineOutputs[5] := inlineLyapunovTick(attractorX, attractorY, attractorZ, lastAttractorX, lastAttractorY, lastAttractorZ, crossCoupledBase) * sacredAmp;
+    engineOutputs[6] := inlineEmergenceTick(baseResult.rSwarm, architectSignalLevel, crossCoupledBase) * sacredAmp;
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // PHASE 2: ANIMAL COGNITION (Engines 7-15)
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    engineOutputs[7] := inlineBeeTick(baseResult.rSwarm, crossCoupledBase) * sacredAmp;
+    engineOutputs[8] := inlineCrowTick(fristonInaccuracy, crossCoupledBase) * sacredAmp;
+    engineOutputs[9] := inlineElephantTick(Float.fromInt(currentBeat), crossCoupledBase) * sacredAmp;
+    engineOutputs[10] := inlineOctopusTick(baseResult.rSwarm, stableDroneCount, crossCoupledBase) * sacredAmp;
+    engineOutputs[11] := inlineDolphinTick(baseResult.rSwarm, crossCoupledBase) * sacredAmp;
+    engineOutputs[12] := inlineWolfTick(baseResult.rSwarm, crossCoupledBase) * sacredAmp;
+    engineOutputs[13] := inlineAntTick(baseResult.rSwarm, crossCoupledBase) * sacredAmp;
+    engineOutputs[14] := inlineSpiderTick(baseResult.rSwarm, crossCoupledBase) * sacredAmp;
+    engineOutputs[15] := inlineOwlTick(baseResult.rSwarm, crossCoupledBase) * sacredAmp;
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // PHASE 3: QUANTUM OPERATORS (Engines 16-23)
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    runAllQuantumOperators(baseResult.rSwarm, crossCoupledBase);
+    engineOutputs[16] := quantumOperatorOutputs[0] * sacredAmp;
+    engineOutputs[17] := quantumOperatorOutputs[1] * sacredAmp;
+    engineOutputs[18] := quantumOperatorOutputs[2] * sacredAmp;
+    engineOutputs[19] := quantumOperatorOutputs[3] * sacredAmp;
+    engineOutputs[20] := quantumOperatorOutputs[4] * sacredAmp;
+    engineOutputs[21] := quantumOperatorOutputs[5] * sacredAmp;
+    engineOutputs[22] := quantumOperatorOutputs[6] * sacredAmp;
+    engineOutputs[23] := quantumOperatorOutputs[7] * sacredAmp;
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // PHASE 4: BRAIN REGIONS (Engines 24-29)
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    runAllBrainRegions(baseResult.rSwarm, crossCoupledBase);
+    engineOutputs[24] := brainRegionOutputs[0] * sacredAmp;
+    engineOutputs[25] := brainRegionOutputs[1] * sacredAmp;
+    engineOutputs[26] := brainRegionOutputs[2] * sacredAmp;
+    engineOutputs[27] := brainRegionOutputs[3] * sacredAmp;
+    engineOutputs[28] := brainRegionOutputs[4] * sacredAmp;
+    engineOutputs[29] := brainRegionOutputs[5] * sacredAmp;
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // PHASE 5: METABOLISM, SOVEREIGNTY, AEGIS (Engines 30-35)
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    // Engine 30: Sacred
+    engineOutputs[30] := sacredAmp;
+    
+    // Engine 31: Sovereignty
+    let sovereignScore = Float.fromInt(sacesiStampCount % 1000) / 1000.0;
+    engineOutputs[31] := sovereignScore * sacredAmp;
+    
+    // Engine 32: Heartbeat
+    engineOutputs[32] := kfHzCurrent * sacredAmp;
+    
+    // Engine 33: Metabolism
+    engineOutputs[33] := infoATP * sacredAmp;
+    
+    // Engine 34: Economic
+    let economicOut = computeEconomicFeedback(baseResult.rSwarm, baseResult.jDrift, currentBeat);
+    engineOutputs[34] := economicOut;
+    
+    // Engine 35: Organism (total integration)
+    var totalOutput : Float = 0.0;
+    e := 0;
+    while (e < 35) {
+      totalOutput += engineOutputs[e];
+      e += 1;
+    };
+    engineOutputs[35] := (totalOutput / 35.0) * sacredAmp;
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // PHASE 6: CROSS-COUPLING FEEDBACK LOOPS
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    e := 0;
+    while (e < 36) {
+      var feedbackSum : Float = 0.0;
+      var e2 = 0;
+      while (e2 < 36) {
+        if (e != e2) {
+          feedbackSum += engineOutputs[e2] * crossCouplingMatrix[e2 * 36 + e];
+        };
+        e2 += 1;
+      };
+      feedbackLoops[e] := feedbackSum / 35.0;
+      e += 1;
+    };
+    
+    // Apply feedback to engines
+    e := 0;
+    while (e < 36) {
+      engineOutputs[e] *= 1.0 + feedbackLoops[e] * 0.1;
+      e += 1;
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // PHASE 7: MEMORY FORMING
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    decayMemoryTraces();
+    if (isSacred or engineOutputs[35] > 0.9) {
+      recordMemoryTrace(currentBeat, ENGINE_ORGANISM, engineOutputs[35], sacredAmp);
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // PHASE 8: AEGIS SELF-PROTECTION
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    e := 0;
+    while (e < 36) {
+      let anomaly = if (engineOutputs[e] < 0.1 or engineOutputs[e] > 3.0) { 0.5 } else { 0.0 };
+      feedAEGIS(e, engineOutputs[e], anomaly);
+      e += 1;
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // COMPUTE FINAL COHERENCE METRICS
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    var coreSum : Float = 0.0;
+    e := 0;
+    while (e < 7) { coreSum += engineOutputs[e]; e += 1 };
+    
+    var animalSum : Float = 0.0;
+    e := 7;
+    while (e < 16) { animalSum += engineOutputs[e]; e += 1 };
+    
+    var quantumSum : Float = 0.0;
+    e := 16;
+    while (e < 24) { quantumSum += engineOutputs[e]; e += 1 };
+    
+    var brainSum : Float = 0.0;
+    e := 24;
+    while (e < 30) { brainSum += engineOutputs[e]; e += 1 };
+    
+    {
+      beat = currentBeat;
+      rSwarm = baseResult.rSwarm;
+      jDrift = baseResult.jDrift;
+      sacredAmplifier = sacredAmp;
+      totalCoherence = engineOutputs[35];
+      quantumCoherence = quantumSum / 8.0;
+      brainCoherence = brainSum / 6.0;
+      animalCoherence = animalSum / 9.0;
+      economicOutput = economicOut;
+      aegisDefense = 1.0 - aegisThreatLevel;
+    }
+  };
+
 };
