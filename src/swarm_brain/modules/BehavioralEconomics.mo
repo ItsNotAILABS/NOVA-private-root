@@ -642,4 +642,527 @@ module {
     }
   };
 
+  // ══════════════════════════════════════════════════════════════════════════════════════
+  // ████████████████████████████████████████████████████████████████████████████████████
+  // ██                                                                                ██
+  // ██  TRADING PSYCHOLOGY — 6 BOOKS AS DECISION ARCHITECTURE                         ██
+  // ██                                                                                ██
+  // ██  1. Trading in the Zone (Mark Douglas) — Probabilistic thinking                ██
+  // ██  2. Market Wizards (Jack Schwager) — Risk management principles                ██
+  // ██  3. Market Mind Games (Denise Shull) — Emotional intelligence in trading       ██
+  // ██  4. Trading to Win (Ari Kiev) — Performance psychology                         ██
+  // ██  5. Principles (Ray Dalio) — Pain + Reflection = Progress                      ██
+  // ██  6. Stoicism — Dichotomy of control, acceptance of outcomes                    ██
+  // ██                                                                                ██
+  // ████████████████████████████████████████████████████████████████████████████████████
+  // ══════════════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────────────
+  // BOOK 1: TRADING IN THE ZONE (Mark Douglas)
+  // Core insight: Markets are probabilistic. Every edge has a random distribution.
+  // The key is consistency, not prediction.
+  // ─────────────────────────────────────────────────────────────────────────────────────
+
+  public type ZoneState = {
+    // Core belief states
+    acceptsRandomDistribution : Bool;    // Accepts that any trade can lose
+    definesOwnRisk           : Bool;     // Pre-defines risk before entry
+    acceptsRiskCompletely    : Bool;     // No hoping, wishing, praying
+    actsWithoutHesitation    : Bool;     // When edge appears, executes
+    paysYourselfProfits      : Bool;     // Takes profits without greed
+    
+    // Probabilistic thinking score [0, 1]
+    probabilisticThinking    : Float;
+    
+    // Trader's mindset
+    fearOfBeingWrong         : Float;    // [0, 1] — should be LOW
+    fearOfMissingOut         : Float;    // [0, 1] — should be LOW  
+    fearOfLettingProfitTurn  : Float;    // [0, 1] — should be LOW
+    fearOfNotBeingRight      : Float;    // [0, 1] — should be LOW
+    
+    // Flow state
+    inTheZone                : Bool;
+  };
+
+  // Douglas's 5 fundamental truths
+  public func evaluateZoneState(
+    recentTradeOutcomes: [Bool],   // Recent wins/losses
+    preDefinedRisk: Bool,
+    executionHesitation: Float,    // [0, 1]
+    profitTakingGreed: Float       // [0, 1]
+  ) : ZoneState {
+    // Count wins to assess acceptance of random distribution
+    var wins : Nat = 0;
+    var losses : Nat = 0;
+    for (outcome in recentTradeOutcomes.vals()) {
+      if (outcome) { wins += 1 } else { losses += 1 };
+    };
+    let totalTrades = wins + losses;
+    let winRate = if (totalTrades > 0) { Float.fromInt(wins) / Float.fromInt(totalTrades) } else { 0.5 };
+    
+    // Probabilistic thinking: high if win rate is moderate (not extreme)
+    let probabilistic = 1.0 - Float.abs(winRate - 0.5) * 2.0;
+    
+    // Fears are INVERSE of good trading psychology
+    let fearWrong = executionHesitation * 0.7;
+    let fearMissing = profitTakingGreed * 0.5;
+    let fearProfitTurn = profitTakingGreed * 0.8;
+    let fearNotRight = executionHesitation * 0.5;
+    
+    // In the zone when all fears are low and probabilistic thinking is high
+    let totalFear = fearWrong + fearMissing + fearProfitTurn + fearNotRight;
+    let zoneState = probabilistic > 0.7 and totalFear < 1.0;
+    
+    {
+      acceptsRandomDistribution = probabilistic > 0.6;
+      definesOwnRisk = preDefinedRisk;
+      acceptsRiskCompletely = fearWrong < 0.3;
+      actsWithoutHesitation = executionHesitation < 0.3;
+      paysYourselfProfits = profitTakingGreed < 0.3;
+      probabilisticThinking = probabilistic;
+      fearOfBeingWrong = fearWrong;
+      fearOfMissingOut = fearMissing;
+      fearOfLettingProfitTurn = fearProfitTurn;
+      fearOfNotBeingRight = fearNotRight;
+      inTheZone = zoneState;
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────────────
+  // BOOK 2: MARKET WIZARDS (Jack Schwager)
+  // Core insights from top traders: Risk management, cutting losses, letting profits run
+  // ─────────────────────────────────────────────────────────────────────────────────────
+
+  public type WizardPrinciples = {
+    // Risk rules
+    maxRiskPerTrade          : Float;    // Never risk more than X% per trade (typically 1-2%)
+    maxDailyDrawdown         : Float;    // Stop trading after X% daily loss
+    positionSizeRule         : Float;    // Position size = risk / (entry - stop)
+    
+    // Trade management
+    cutLossesQuickly         : Bool;     // Exit losing trades fast
+    letProfitsRun            : Bool;     // Don't cut winners short
+    addToWinners             : Bool;     // Scale into winning positions
+    neverAddToLosers         : Bool;     // Never average down
+    
+    // Market selection
+    tradeLiquidMarkets       : Bool;     // Only trade liquid instruments
+    followTrend              : Bool;     // Trade with the trend
+    waitForConfirmation      : Bool;     // Don't anticipate, react
+    
+    // Wizard score [0, 1]
+    wizardAlignment          : Float;
+  };
+
+  public func evaluateWizardPrinciples(
+    currentRiskPerTrade: Float,
+    dailyDrawdown: Float,
+    recentCutLosses: Bool,
+    recentLetProfitsRun: Bool,
+    addedToLoser: Bool,
+    marketLiquidity: Float,       // [0, 1]
+    trendAlignment: Float         // [-1, 1], positive = with trend
+  ) : WizardPrinciples {
+    let maxRisk = 0.02;  // 2% max risk per trade (Wizard standard)
+    let maxDrawdown = 0.05;  // 5% max daily drawdown
+    
+    let riskCompliant = currentRiskPerTrade <= maxRisk;
+    let drawdownCompliant = dailyDrawdown <= maxDrawdown;
+    let liquidityOk = marketLiquidity > 0.6;
+    let trendOk = trendAlignment > 0.0;
+    
+    // Wizard alignment score
+    var score : Float = 0.0;
+    if (riskCompliant) { score += 0.2 };
+    if (drawdownCompliant) { score += 0.15 };
+    if (recentCutLosses) { score += 0.2 };
+    if (recentLetProfitsRun) { score += 0.2 };
+    if (not addedToLoser) { score += 0.1 };
+    if (liquidityOk) { score += 0.1 };
+    if (trendOk) { score += 0.05 };
+    
+    {
+      maxRiskPerTrade = maxRisk;
+      maxDailyDrawdown = maxDrawdown;
+      positionSizeRule = currentRiskPerTrade;
+      cutLossesQuickly = recentCutLosses;
+      letProfitsRun = recentLetProfitsRun;
+      addToWinners = trendAlignment > 0.3 and recentLetProfitsRun;
+      neverAddToLosers = not addedToLoser;
+      tradeLiquidMarkets = liquidityOk;
+      followTrend = trendOk;
+      waitForConfirmation = true;  // Always true for the organism
+      wizardAlignment = score;
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────────────
+  // BOOK 3: MARKET MIND GAMES (Denise Shull)
+  // Core insight: Emotions are DATA, not noise. Use them.
+  // ─────────────────────────────────────────────────────────────────────────────────────
+
+  public type EmotionalIntelligence = {
+    // Emotional awareness
+    fearLevel                : Float;    // [0, 1]
+    greedLevel               : Float;    // [0, 1]
+    hopeLevel                : Float;    // [0, 1] — hope is dangerous in trading
+    angerLevel               : Float;    // [0, 1] — revenge trading
+    
+    // Emotional intelligence metrics
+    emotionalAwareness       : Float;    // [0, 1] — knowing what you feel
+    emotionalRegulation      : Float;    // [0, 1] — controlling emotions
+    emotionalUtilization     : Float;    // [0, 1] — using emotions as data
+    
+    // Shull's key insight: Intuition = unconscious pattern recognition
+    intuitionStrength        : Float;    // [0, 1]
+    intuitionClarity         : Float;    // [0, 1] — is the signal clear?
+    
+    // Overall EQ score
+    tradingEQ                : Float;
+  };
+
+  public func evaluateEmotionalIntelligence(
+    fear: Float,
+    greed: Float,
+    hope: Float,
+    anger: Float,
+    coherence: Float,           // Organism coherence
+    recentAccuracy: Float       // How accurate recent intuitions were
+  ) : EmotionalIntelligence {
+    // Emotional awareness = inversely related to extreme emotions
+    let extremity = (Float.abs(fear - 0.3) + Float.abs(greed - 0.3) + hope + anger) / 4.0;
+    let awareness = 1.0 - extremity;
+    
+    // Emotional regulation = coherence (swarm coherence = emotional stability)
+    let regulation = coherence;
+    
+    // Emotional utilization = moderate emotions channeled productively
+    let optimalFear = 0.3;  // Some fear is healthy
+    let optimalGreed = 0.3; // Some greed drives action
+    let fearUtilization = 1.0 - Float.abs(fear - optimalFear);
+    let greedUtilization = 1.0 - Float.abs(greed - optimalGreed);
+    let utilization = (fearUtilization + greedUtilization) / 2.0;
+    
+    // Intuition = pattern recognition accuracy
+    let intuitionStrength = recentAccuracy;
+    let intuitionClarity = coherence * recentAccuracy;
+    
+    // Trading EQ = weighted average
+    let eq = awareness * 0.2 + regulation * 0.3 + utilization * 0.2 + 
+             intuitionStrength * 0.2 + intuitionClarity * 0.1;
+    
+    {
+      fearLevel = fear;
+      greedLevel = greed;
+      hopeLevel = hope;
+      angerLevel = anger;
+      emotionalAwareness = _clamp(awareness, 0.0, 1.0);
+      emotionalRegulation = _clamp(regulation, 0.0, 1.0);
+      emotionalUtilization = _clamp(utilization, 0.0, 1.0);
+      intuitionStrength = _clamp(intuitionStrength, 0.0, 1.0);
+      intuitionClarity = _clamp(intuitionClarity, 0.0, 1.0);
+      tradingEQ = _clamp(eq, 0.0, 1.0);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────────────
+  // BOOK 4: TRADING TO WIN (Ari Kiev)
+  // Core insight: Performance psychology. Goal setting. Mental rehearsal.
+  // ─────────────────────────────────────────────────────────────────────────────────────
+
+  public type PerformanceState = {
+    // Goal structure
+    hasSpecificGoal          : Bool;
+    goalClarity              : Float;    // [0, 1]
+    goalCommitment           : Float;    // [0, 1]
+    
+    // Mental preparation
+    mentalRehearsalDone      : Bool;
+    scenarioPlanning         : Float;    // [0, 1] — prepared for multiple outcomes
+    
+    // Execution state
+    focusLevel               : Float;    // [0, 1]
+    confidenceLevel          : Float;    // [0, 1]
+    disciplineLevel          : Float;    // [0, 1]
+    
+    // Performance zone
+    inPerformanceZone        : Bool;
+    performanceScore         : Float;
+  };
+
+  public func evaluatePerformanceState(
+    currentGoal: ?Float,          // Target profit/loss
+    coherence: Float,
+    recentDiscipline: Float,      // How well did organism follow its rules?
+    focusMetric: Float            // Attention metric from organism
+  ) : PerformanceState {
+    let hasGoal = switch (currentGoal) { case (?_) { true }; case (null) { false } };
+    let goalClear = if (hasGoal) { 0.8 } else { 0.2 };
+    let commitment = if (hasGoal) { coherence } else { 0.3 };
+    
+    // Mental rehearsal assumed if organism has predictive models running
+    let rehearsed = true;  // Organism always runs simulations
+    let scenarios = coherence * 0.8;  // Higher coherence = better scenario planning
+    
+    // Performance metrics
+    let focus = focusMetric;
+    let confidence = (coherence + recentDiscipline) / 2.0;
+    let discipline = recentDiscipline;
+    
+    // Performance zone = high focus + high discipline + moderate confidence
+    let zoneScore = focus * 0.35 + discipline * 0.35 + confidence * 0.3;
+    let inZone = zoneScore > 0.7;
+    
+    {
+      hasSpecificGoal = hasGoal;
+      goalClarity = goalClear;
+      goalCommitment = commitment;
+      mentalRehearsalDone = rehearsed;
+      scenarioPlanning = _clamp(scenarios, 0.0, 1.0);
+      focusLevel = _clamp(focus, 0.0, 1.0);
+      confidenceLevel = _clamp(confidence, 0.0, 1.0);
+      disciplineLevel = _clamp(discipline, 0.0, 1.0);
+      inPerformanceZone = inZone;
+      performanceScore = _clamp(zoneScore, 0.0, 1.0);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────────────
+  // BOOK 5: PRINCIPLES (Ray Dalio)
+  // Core insight: Pain + Reflection = Progress. Radical transparency. Idea meritocracy.
+  // ─────────────────────────────────────────────────────────────────────────────────────
+
+  public type DalioPrinciples = {
+    // The formula
+    painLevel                : Float;    // [0, 1] — from losses
+    reflectionLevel          : Float;    // [0, 1] — learning from pain
+    progressLevel            : Float;    // [0, 1] — Pain × Reflection
+    
+    // Radical transparency
+    transparencyScore        : Float;    // [0, 1] — how honest with self
+    
+    // Idea meritocracy (best ideas win)
+    beliefConfidence         : Float;    // [0, 1] — confidence in beliefs
+    beliefUpdateRate         : Float;    // How quickly beliefs update with evidence
+    
+    // Dalio's key principle: Embrace reality and deal with it
+    realityAcceptance        : Float;    // [0, 1]
+    
+    // Overall Dalio alignment
+    principlesScore          : Float;
+  };
+
+  public func evaluateDalioPrinciples(
+    recentLoss: Float,            // Magnitude of recent loss
+    lessonLearned: Bool,          // Did organism update from loss?
+    beliefUpdateOccurred: Bool,   // Did beliefs change with evidence?
+    coherence: Float
+  ) : DalioPrinciples {
+    // Pain level from recent loss (normalized)
+    let pain = _clamp(recentLoss * 10.0, 0.0, 1.0);
+    
+    // Reflection = did we learn? Plus coherence (self-awareness)
+    let reflection = if (lessonLearned) { 0.7 + coherence * 0.3 } else { coherence * 0.3 };
+    
+    // Progress = Pain × Reflection (Dalio's formula)
+    let progress = pain * reflection;
+    
+    // Transparency = coherence (transparent with self = coherent)
+    let transparency = coherence;
+    
+    // Belief update rate
+    let beliefUpdate = if (beliefUpdateOccurred) { 0.8 } else { 0.2 };
+    let beliefConfidence = coherence;
+    
+    // Reality acceptance = accepting losses + updating beliefs
+    let realityAccept = (if (recentLoss > 0.0 and lessonLearned) { 0.8 } else { 0.4 }) + 
+                        (if (beliefUpdateOccurred) { 0.2 } else { 0.0 });
+    
+    // Principles score
+    let score = (progress * 0.3 + transparency * 0.2 + beliefUpdate * 0.2 + 
+                 realityAccept * 0.3);
+    
+    {
+      painLevel = pain;
+      reflectionLevel = reflection;
+      progressLevel = progress;
+      transparencyScore = transparency;
+      beliefConfidence = beliefConfidence;
+      beliefUpdateRate = beliefUpdate;
+      realityAcceptance = _clamp(realityAccept, 0.0, 1.0);
+      principlesScore = _clamp(score, 0.0, 1.0);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────────────
+  // BOOK 6: STOICISM (Marcus Aurelius, Seneca, Epictetus)
+  // Core insight: Control what you can control. Accept what you cannot.
+  // ─────────────────────────────────────────────────────────────────────────────────────
+
+  public type StoicMindset = {
+    // Dichotomy of control
+    focusOnControllables     : Float;    // [0, 1] — focus on what you control
+    acceptUncontrollables    : Float;    // [0, 1] — accept what you cannot control
+    
+    // Key Stoic virtues
+    wisdomScore              : Float;    // [0, 1] — making good judgments
+    courageScore             : Float;    // [0, 1] — acting despite fear
+    justiceScore             : Float;    // [0, 1] — fair dealing
+    temperanceScore          : Float;    // [0, 1] — moderation
+    
+    // Stoic practices
+    premeditationOfEvils     : Bool;     // Have you considered what could go wrong?
+    amorFati                 : Float;    // [0, 1] — love of fate, acceptance
+    momentoMori              : Float;    // [0, 1] — remembrance of death (urgency)
+    
+    // Overall Stoic score
+    stoicAlignment           : Float;
+  };
+
+  public func evaluateStoicMindset(
+    attentionOnProcess: Float,    // Focus on process vs outcome
+    recentLossAcceptance: Float,  // How well did organism accept loss?
+    riskAssessmentDone: Bool,     // Did organism consider downsides?
+    moderationLevel: Float,       // Position sizing moderation
+    fairnessMetric: Float,        // Fair dealing with counterparties
+    urgencyLevel: Float           // Acting with appropriate urgency
+  ) : StoicMindset {
+    // Dichotomy of control
+    let controllables = attentionOnProcess;
+    let uncontrollables = recentLossAcceptance;
+    
+    // Virtues
+    let wisdom = (attentionOnProcess + if (riskAssessmentDone) { 0.5 } else { 0.0 }) / 1.5;
+    let courage = 1.0 - LOSS_AVERSION_LAMBDA / 3.0;  // Lower loss aversion = more courage
+    let justice = fairnessMetric;
+    let temperance = moderationLevel;
+    
+    // Practices
+    let premeditatio = riskAssessmentDone;
+    let amorFati = recentLossAcceptance;
+    let momentoMori = urgencyLevel;
+    
+    // Stoic alignment = average of all scores
+    let score = (controllables + uncontrollables + wisdom + courage + 
+                 justice + temperance + amorFati + momentoMori) / 8.0;
+    
+    {
+      focusOnControllables = _clamp(controllables, 0.0, 1.0);
+      acceptUncontrollables = _clamp(uncontrollables, 0.0, 1.0);
+      wisdomScore = _clamp(wisdom, 0.0, 1.0);
+      courageScore = _clamp(courage, 0.0, 1.0);
+      justiceScore = _clamp(justice, 0.0, 1.0);
+      temperanceScore = _clamp(temperance, 0.0, 1.0);
+      premeditationOfEvils = premeditatio;
+      amorFati = _clamp(amorFati, 0.0, 1.0);
+      momentoMori = _clamp(momentoMori, 0.0, 1.0);
+      stoicAlignment = _clamp(score, 0.0, 1.0);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────────────
+  // INTEGRATED TRADING PSYCHOLOGY — Combining all 6 books
+  // ─────────────────────────────────────────────────────────────────────────────────────
+
+  public type IntegratedTradingPsychology = {
+    // Individual book scores
+    zoneScore                : Float;    // Trading in the Zone
+    wizardScore              : Float;    // Market Wizards
+    eqScore                  : Float;    // Market Mind Games
+    performanceScore         : Float;    // Trading to Win
+    dalioScore               : Float;    // Principles
+    stoicScore               : Float;    // Stoicism
+    
+    // Composite scores
+    executionReadiness       : Float;    // Ready to execute trades
+    riskManagementQuality    : Float;    // Risk management discipline
+    emotionalBalance         : Float;    // Emotional regulation
+    learningCapacity         : Float;    // Ability to learn from mistakes
+    
+    // Overall trading psychology score
+    overallPsychologyScore   : Float;
+    
+    // Trading permission
+    psychologicallyFitToTrade : Bool;
+  };
+
+  public func integratedTradingPsychology(
+    zone: ZoneState,
+    wizard: WizardPrinciples,
+    eq: EmotionalIntelligence,
+    performance: PerformanceState,
+    dalio: DalioPrinciples,
+    stoic: StoicMindset
+  ) : IntegratedTradingPsychology {
+    // Book scores
+    let zScore = if (zone.inTheZone) { 1.0 } else { zone.probabilisticThinking };
+    let wScore = wizard.wizardAlignment;
+    let eScore = eq.tradingEQ;
+    let pScore = performance.performanceScore;
+    let dScore = dalio.principlesScore;
+    let sScore = stoic.stoicAlignment;
+    
+    // Composite scores
+    let execution = (zScore + pScore + eScore) / 3.0;
+    let risk = wScore;
+    let emotional = (eScore + sScore) / 2.0;
+    let learning = dScore;
+    
+    // Overall score (weighted)
+    let overall = zScore * 0.15 + wScore * 0.20 + eScore * 0.15 + 
+                  pScore * 0.15 + dScore * 0.15 + sScore * 0.20;
+    
+    // Fit to trade if overall > 0.6 and no major red flags
+    let fit = overall > 0.6 and 
+              wScore > 0.5 and  // Must have risk management
+              sScore > 0.4;     // Must have some Stoic acceptance
+    
+    {
+      zoneScore = zScore;
+      wizardScore = wScore;
+      eqScore = eScore;
+      performanceScore = pScore;
+      dalioScore = dScore;
+      stoicScore = sScore;
+      executionReadiness = _clamp(execution, 0.0, 1.0);
+      riskManagementQuality = _clamp(risk, 0.0, 1.0);
+      emotionalBalance = _clamp(emotional, 0.0, 1.0);
+      learningCapacity = _clamp(learning, 0.0, 1.0);
+      overallPsychologyScore = _clamp(overall, 0.0, 1.0);
+      psychologicallyFitToTrade = fit;
+    }
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════════════════
+  // FEAR = LOSS AVERSION (WIRING)
+  // The FearArchitecture module's fear IS the loss aversion λ = 2.25
+  // This function converts organism fear level to loss aversion coefficient
+  // ══════════════════════════════════════════════════════════════════════════════════════
+
+  public func fearToLossAversion(fearLevel: Float) : Float {
+    // Baseline loss aversion λ = 2.25 (Kahneman & Tversky)
+    // Higher fear = higher loss aversion (losses hurt more)
+    // Lower fear = lower loss aversion (can take more risk)
+    // Range: 1.5 (low fear) to 3.5 (high fear)
+    let minLambda = 1.5;
+    let maxLambda = 3.5;
+    let baseline = LOSS_AVERSION_LAMBDA;  // 2.25
+    
+    // Fear maps to loss aversion
+    minLambda + (maxLambda - minLambda) * fearLevel
+  };
+
+  // Position size adjustment based on loss aversion
+  public func positionSizeFromLossAversion(
+    basePositionSize: Float,
+    lossAversion: Float,
+    currentDrawdown: Float
+  ) : Float {
+    // Higher loss aversion = smaller positions
+    // Higher drawdown = even smaller positions (risk scaling)
+    let lambdaAdjustment = LOSS_AVERSION_LAMBDA / lossAversion;
+    let drawdownFactor = 1.0 - currentDrawdown * 2.0;
+    _clamp(basePositionSize * lambdaAdjustment * drawdownFactor, 0.0, basePositionSize)
+  };
+
 }
