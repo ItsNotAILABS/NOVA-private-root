@@ -7619,4 +7619,1147 @@ module {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 28: ENVIRONMENTAL AWARENESS — WORLD PERCEPTION
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  // How the swarm perceives and models its environment:
+  //   • Weather sensing and prediction
+  //   • Terrain understanding
+  //   • Object detection and classification
+  //   • Environmental hazards
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Environmental awareness state
+  public type EnvironmentalAwarenessState = {
+    // Weather
+    weatherState      : WeatherState;
+    
+    // Terrain
+    terrainAwareness  : TerrainAwarenessState;
+    
+    // Objects
+    objectDetection   : ObjectDetectionState;
+    
+    // Hazards
+    hazardDetection   : HazardDetectionState;
+    
+    // Time of day
+    timeOfDay         : TimeOfDayState;
+    
+    // Visibility
+    visibilityState   : VisibilityState;
+    
+    beatNum           : Nat;
+  };
+
+  /// Weather state
+  public type WeatherState = {
+    // Current conditions
+    temperature       : Float;       // Celsius
+    humidity          : Float;       // 0-1
+    pressure          : Float;       // hPa
+    
+    // Wind
+    windSpeed         : Float;       // m/s
+    windDirection     : Float;       // radians
+    windGusts         : Float;
+    
+    // Precipitation
+    precipitationType : PrecipitationType;
+    precipitationRate : Float;
+    
+    // Cloud cover
+    cloudCover        : Float;       // 0-1
+    cloudBase         : Float;       // meters AGL
+    
+    // Visibility
+    visibilityRange   : Float;       // meters
+    
+    // Turbulence
+    turbulenceLevel   : Float;       // 0-1
+    
+    // Forecast
+    forecast          : [WeatherForecast];
+    
+    lastUpdate        : Nat;
+  };
+
+  /// Precipitation types
+  public type PrecipitationType = {
+    #None;
+    #Rain;
+    #Snow;
+    #Sleet;
+    #Hail;
+    #Fog;
+  };
+
+  /// Weather forecast
+  public type WeatherForecast = {
+    timeOffset        : Nat;         // beats in future
+    temperature       : Float;
+    windSpeed         : Float;
+    windDirection     : Float;
+    precipitation     : PrecipitationType;
+    confidence        : Float;
+  };
+
+  /// Terrain awareness state
+  public type TerrainAwarenessState = {
+    // Local terrain
+    localElevationMap : [[Float]];
+    mapResolution     : Float;       // meters per cell
+    mapOrigin         : { lat: Float; lon: Float };
+    
+    // Terrain features
+    features          : [TerrainFeature];
+    
+    // Slope analysis
+    maxSlope          : Float;
+    avgSlope          : Float;
+    
+    // Cover
+    coverMap          : [[TerrainCover]];
+    
+    // Landing zones
+    landingZones      : [LandingZone];
+  };
+
+  /// Terrain feature
+  public type TerrainFeature = {
+    featureId         : Nat;
+    featureType       : TerrainFeatureType;
+    position          : { lat: Float; lon: Float };
+    size              : Float;
+    relevance         : Float;
+  };
+
+  /// Terrain feature types
+  public type TerrainFeatureType = {
+    #Peak;
+    #Valley;
+    #Ridge;
+    #River;
+    #Lake;
+    #Forest;
+    #Building;
+    #Road;
+    #PowerLine;
+    #Tower;
+  };
+
+  /// Terrain cover
+  public type TerrainCover = {
+    #Open;
+    #Vegetation;
+    #Urban;
+    #Water;
+    #Rock;
+    #Snow;
+  };
+
+  /// Landing zone
+  public type LandingZone = {
+    zoneId            : Nat;
+    position          : { lat: Float; lon: Float; alt: Float };
+    size              : Float;
+    quality           : Float;       // 0-1
+    obstacles         : Nat;
+    slope             : Float;
+    isAvailable       : Bool;
+  };
+
+  /// Object detection state
+  public type ObjectDetectionState = {
+    // Detected objects
+    detectedObjects   : [DetectedObject];
+    
+    // Tracking
+    trackedObjects    : [TrackedObject];
+    
+    // Classification
+    classificationConfidences : [(Nat, Text, Float)];  // (objId, class, confidence)
+    
+    // Object density
+    objectDensity     : Float;
+    
+    // Recent detections
+    recentDetections  : Nat;
+  };
+
+  /// Detected object
+  public type DetectedObject = {
+    objectId          : Nat;
+    objectClass       : Text;
+    confidence        : Float;
+    
+    // Position
+    position          : { lat: Float; lon: Float; alt: Float };
+    positionUncertainty : Float;
+    
+    // Size
+    estimatedSize     : { width: Float; height: Float; depth: Float };
+    
+    // Motion
+    isMoving          : Bool;
+    velocity          : ?{ vx: Float; vy: Float; vz: Float };
+    
+    // Attributes
+    color             : ?Text;
+    shape             : ?Text;
+    
+    detectionTime     : Nat;
+  };
+
+  /// Tracked object
+  public type TrackedObject = {
+    trackId           : Nat;
+    objectId          : Nat;
+    
+    // State estimation (Kalman)
+    stateEstimate     : [Float];
+    covariance        : [[Float]];
+    
+    // Track quality
+    trackAge          : Nat;
+    updateCount       : Nat;
+    missCount         : Nat;
+    trackQuality      : Float;
+    
+    // Prediction
+    predictedPosition : { lat: Float; lon: Float; alt: Float };
+    predictionHorizon : Nat;
+  };
+
+  /// Hazard detection state
+  public type HazardDetectionState = {
+    // Detected hazards
+    hazards           : [DetectedHazard];
+    
+    // Hazard map
+    hazardMap         : [[Float]];   // Risk level per cell
+    
+    // Active warnings
+    activeWarnings    : [HazardWarning];
+    
+    // Overall risk
+    overallRiskLevel  : Float;
+  };
+
+  /// Detected hazard
+  public type DetectedHazard = {
+    hazardId          : Nat;
+    hazardType        : HazardType;
+    
+    // Location
+    position          : { lat: Float; lon: Float; alt: Float };
+    affectedRadius    : Float;
+    
+    // Severity
+    severity          : Float;       // 0-1
+    
+    // Timing
+    isActive          : Bool;
+    expectedDuration  : ?Nat;
+    
+    detectionTime     : Nat;
+    lastUpdate        : Nat;
+  };
+
+  /// Hazard types
+  public type HazardType = {
+    #Obstacle;        // Physical obstacle
+    #NoFlyZone;       // Restricted airspace
+    #Turbulence;      // Atmospheric
+    #Icing;           // Ice formation
+    #Lightning;       // Electrical
+    #Bird;            // Bird strike risk
+    #HostileFire;     // Enemy action
+    #Jamming;         // Electronic
+    #LowVisibility;   // Weather
+    #HighWind;        // Wind
+    #Terrain;         // Terrain collision risk
+    #Other;
+  };
+
+  /// Hazard warning
+  public type HazardWarning = {
+    warningId         : Nat;
+    hazardId          : Nat;
+    warningLevel      : WarningLevel;
+    message           : Text;
+    recommendedAction : Text;
+    issuedTime        : Nat;
+    expirationTime    : ?Nat;
+  };
+
+  /// Warning levels
+  public type WarningLevel = {
+    #Advisory;        // Be aware
+    #Watch;           // Prepare
+    #Warning;         // Take action
+    #Critical;        // Immediate action
+  };
+
+  /// Time of day state
+  public type TimeOfDayState = {
+    // Current time
+    localTime         : Nat;         // Seconds since midnight
+    utcOffset         : Int;         // Hours from UTC
+    
+    // Sun position
+    sunAzimuth        : Float;       // radians
+    sunElevation      : Float;       // radians
+    
+    // Light conditions
+    lightLevel        : Float;       // 0-1 (0=night, 1=bright)
+    isDaytime         : Bool;
+    isGoldenHour      : Bool;
+    
+    // Times
+    sunrise           : Nat;
+    sunset            : Nat;
+  };
+
+  /// Visibility state
+  public type VisibilityState = {
+    // Range
+    visibilityRange   : Float;       // meters
+    
+    // Factors
+    visibilityFactors : [VisibilityFactor];
+    
+    // Sensor-specific
+    visualRange       : Float;
+    irRange           : Float;
+    radarRange        : Float;
+    
+    // Overall
+    overallVisibility : Float;       // 0-1
+  };
+
+  /// Visibility factors
+  public type VisibilityFactor = {
+    factorType        : Text;
+    impact            : Float;       // 0-1, how much it reduces visibility
+  };
+
+  /// Initialize environmental awareness
+  public func initEnvironmentalAwareness() : EnvironmentalAwarenessState {
+    {
+      weatherState = {
+        temperature = 20.0;
+        humidity = 0.5;
+        pressure = 1013.25;
+        windSpeed = 5.0;
+        windDirection = 0.0;
+        windGusts = 7.0;
+        precipitationType = #None;
+        precipitationRate = 0.0;
+        cloudCover = 0.3;
+        cloudBase = 2000.0;
+        visibilityRange = 10000.0;
+        turbulenceLevel = 0.1;
+        forecast = [];
+        lastUpdate = 0;
+      };
+      terrainAwareness = {
+        localElevationMap = [[]];
+        mapResolution = 10.0;
+        mapOrigin = { lat = 0.0; lon = 0.0 };
+        features = [];
+        maxSlope = 0.0;
+        avgSlope = 0.0;
+        coverMap = [[]];
+        landingZones = [];
+      };
+      objectDetection = {
+        detectedObjects = [];
+        trackedObjects = [];
+        classificationConfidences = [];
+        objectDensity = 0.0;
+        recentDetections = 0;
+      };
+      hazardDetection = {
+        hazards = [];
+        hazardMap = [[]];
+        activeWarnings = [];
+        overallRiskLevel = 0.0;
+      };
+      timeOfDay = {
+        localTime = 43200;  // Noon
+        utcOffset = 0;
+        sunAzimuth = 0.0;
+        sunElevation = PI / 4.0;
+        lightLevel = 1.0;
+        isDaytime = true;
+        isGoldenHour = false;
+        sunrise = 21600;
+        sunset = 64800;
+      };
+      visibilityState = {
+        visibilityRange = 10000.0;
+        visibilityFactors = [];
+        visualRange = 10000.0;
+        irRange = 5000.0;
+        radarRange = 20000.0;
+        overallVisibility = 1.0;
+      };
+      beatNum = 0;
+    }
+  };
+
+  /// Update weather
+  public func updateWeather(
+    weather: WeatherState,
+    sensorReadings: { temp: Float; humidity: Float; pressure: Float; wind: { speed: Float; direction: Float } },
+    beat: Nat
+  ) : WeatherState {
+    // Simple filter
+    let alpha = 0.1;
+    
+    let newTemp = weather.temperature * (1.0 - alpha) + sensorReadings.temp * alpha;
+    let newHumidity = weather.humidity * (1.0 - alpha) + sensorReadings.humidity * alpha;
+    let newPressure = weather.pressure * (1.0 - alpha) + sensorReadings.pressure * alpha;
+    let newWindSpeed = weather.windSpeed * (1.0 - alpha) + sensorReadings.wind.speed * alpha;
+    let newWindDir = weather.windDirection * (1.0 - alpha) + sensorReadings.wind.direction * alpha;
+    
+    // Detect precipitation from humidity and temperature
+    let precip : PrecipitationType = if (newHumidity > 0.9) {
+      if (newTemp > 0.0) { #Rain } else { #Snow }
+    } else if (newHumidity > 0.95 and weather.visibilityRange < 1000.0) {
+      #Fog
+    } else { #None };
+    
+    // Turbulence from wind variability
+    let turbulence = Float.abs(newWindSpeed - weather.windSpeed) / 10.0;
+    
+    {
+      temperature = newTemp;
+      humidity = newHumidity;
+      pressure = newPressure;
+      windSpeed = newWindSpeed;
+      windDirection = newWindDir;
+      windGusts = Float.max(newWindSpeed, weather.windGusts * 0.95);
+      precipitationType = precip;
+      precipitationRate = if (precip == #None) { 0.0 } else { newHumidity - 0.9 };
+      cloudCover = weather.cloudCover;
+      cloudBase = weather.cloudBase;
+      visibilityRange = weather.visibilityRange;
+      turbulenceLevel = Float.min(1.0, weather.turbulenceLevel * 0.9 + turbulence);
+      forecast = weather.forecast;
+      lastUpdate = beat;
+    }
+  };
+
+  /// Detect objects
+  public func detectObjects(
+    detection: ObjectDetectionState,
+    sensorData: [{ class_: Text; position: { lat: Float; lon: Float; alt: Float }; confidence: Float; size: { w: Float; h: Float; d: Float } }],
+    beat: Nat
+  ) : ObjectDetectionState {
+    var newObjects : [DetectedObject] = [];
+    
+    for (data in sensorData.vals()) {
+      let obj : DetectedObject = {
+        objectId = newObjects.size();
+        objectClass = data.class_;
+        confidence = data.confidence;
+        position = data.position;
+        positionUncertainty = (1.0 - data.confidence) * 10.0;
+        estimatedSize = { width = data.size.w; height = data.size.h; depth = data.size.d };
+        isMoving = false;
+        velocity = null;
+        color = null;
+        shape = null;
+        detectionTime = beat;
+      };
+      newObjects := Array.append(newObjects, [obj]);
+    };
+    
+    // Update tracking
+    var newTracked : [TrackedObject] = detection.trackedObjects;
+    
+    // Match detections to tracks (simplified)
+    for (obj in newObjects.vals()) {
+      var matched = false;
+      newTracked := Array.map<TrackedObject, TrackedObject>(newTracked, func(track) {
+        // Check if close to existing track
+        let dist = Float.sqrt(
+          (track.predictedPosition.lat - obj.position.lat) ** 2.0 * 111000.0 ** 2.0 +
+          (track.predictedPosition.lon - obj.position.lon) ** 2.0 * 111000.0 ** 2.0
+        );
+        
+        if (dist < 10.0 and not matched) {
+          matched := true;
+          {
+            trackId = track.trackId;
+            objectId = obj.objectId;
+            stateEstimate = [obj.position.lat, obj.position.lon, obj.position.alt];
+            covariance = track.covariance;
+            trackAge = track.trackAge + 1;
+            updateCount = track.updateCount + 1;
+            missCount = 0;
+            trackQuality = Float.min(1.0, track.trackQuality + 0.1);
+            predictedPosition = obj.position;
+            predictionHorizon = track.predictionHorizon;
+          }
+        } else { track }
+      });
+      
+      if (not matched) {
+        // Create new track
+        let newTrack : TrackedObject = {
+          trackId = newTracked.size();
+          objectId = obj.objectId;
+          stateEstimate = [obj.position.lat, obj.position.lon, obj.position.alt];
+          covariance = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
+          trackAge = 1;
+          updateCount = 1;
+          missCount = 0;
+          trackQuality = 0.5;
+          predictedPosition = obj.position;
+          predictionHorizon = 10;
+        };
+        newTracked := Array.append(newTracked, [newTrack]);
+      };
+    };
+    
+    // Age tracks without matches
+    newTracked := Array.map<TrackedObject, TrackedObject>(newTracked, func(track) {
+      if (track.trackAge > 0) {
+        {
+          trackId = track.trackId;
+          objectId = track.objectId;
+          stateEstimate = track.stateEstimate;
+          covariance = track.covariance;
+          trackAge = track.trackAge + 1;
+          updateCount = track.updateCount;
+          missCount = track.missCount + 1;
+          trackQuality = Float.max(0.0, track.trackQuality - 0.05);
+          predictedPosition = track.predictedPosition;
+          predictionHorizon = track.predictionHorizon;
+        }
+      } else { track }
+    });
+    
+    // Remove dead tracks
+    newTracked := Array.filter<TrackedObject>(newTracked, func(track) {
+      track.trackQuality > 0.1
+    });
+    
+    {
+      detectedObjects = newObjects;
+      trackedObjects = newTracked;
+      classificationConfidences = Array.map<DetectedObject, (Nat, Text, Float)>(
+        newObjects,
+        func(obj) { (obj.objectId, obj.objectClass, obj.confidence) }
+      );
+      objectDensity = Float.fromInt(newObjects.size()) / 1000.0;  // per km²
+      recentDetections = newObjects.size();
+    }
+  };
+
+  /// Detect hazards
+  public func detectHazards(
+    hazard: HazardDetectionState,
+    weather: WeatherState,
+    terrain: TerrainAwarenessState,
+    objects: ObjectDetectionState,
+    ownPosition: { lat: Float; lon: Float; alt: Float },
+    beat: Nat
+  ) : HazardDetectionState {
+    var hazards : [DetectedHazard] = [];
+    var warnings : [HazardWarning] = [];
+    var maxRisk : Float = 0.0;
+    
+    // Weather hazards
+    if (weather.windSpeed > 15.0) {
+      let h : DetectedHazard = {
+        hazardId = hazards.size();
+        hazardType = #HighWind;
+        position = ownPosition;
+        affectedRadius = 5000.0;
+        severity = weather.windSpeed / 30.0;
+        isActive = true;
+        expectedDuration = null;
+        detectionTime = beat;
+        lastUpdate = beat;
+      };
+      hazards := Array.append(hazards, [h]);
+      
+      if (h.severity > 0.5) {
+        let w : HazardWarning = {
+          warningId = warnings.size();
+          hazardId = h.hazardId;
+          warningLevel = if (h.severity > 0.8) { #Warning } else { #Watch };
+          message = "High wind conditions";
+          recommendedAction = "Reduce altitude, seek shelter";
+          issuedTime = beat;
+          expirationTime = null;
+        };
+        warnings := Array.append(warnings, [w]);
+      };
+      
+      maxRisk := Float.max(maxRisk, h.severity);
+    };
+    
+    if (weather.turbulenceLevel > 0.5) {
+      let h : DetectedHazard = {
+        hazardId = hazards.size();
+        hazardType = #Turbulence;
+        position = ownPosition;
+        affectedRadius = 1000.0;
+        severity = weather.turbulenceLevel;
+        isActive = true;
+        expectedDuration = null;
+        detectionTime = beat;
+        lastUpdate = beat;
+      };
+      hazards := Array.append(hazards, [h]);
+      maxRisk := Float.max(maxRisk, h.severity);
+    };
+    
+    if (weather.visibilityRange < 1000.0) {
+      let h : DetectedHazard = {
+        hazardId = hazards.size();
+        hazardType = #LowVisibility;
+        position = ownPosition;
+        affectedRadius = weather.visibilityRange;
+        severity = 1.0 - weather.visibilityRange / 1000.0;
+        isActive = true;
+        expectedDuration = null;
+        detectionTime = beat;
+        lastUpdate = beat;
+      };
+      hazards := Array.append(hazards, [h]);
+      maxRisk := Float.max(maxRisk, h.severity);
+    };
+    
+    // Object-based hazards
+    for (obj in objects.detectedObjects.vals()) {
+      if (obj.objectClass == "bird" or obj.objectClass == "aircraft") {
+        let dist = Float.sqrt(
+          (obj.position.lat - ownPosition.lat) ** 2.0 * 111000.0 ** 2.0 +
+          (obj.position.lon - ownPosition.lon) ** 2.0 * 111000.0 ** 2.0
+        );
+        
+        if (dist < 500.0) {
+          let h : DetectedHazard = {
+            hazardId = hazards.size();
+            hazardType = #Bird;
+            position = obj.position;
+            affectedRadius = 100.0;
+            severity = (500.0 - dist) / 500.0;
+            isActive = true;
+            expectedDuration = ?100;
+            detectionTime = beat;
+            lastUpdate = beat;
+          };
+          hazards := Array.append(hazards, [h]);
+          maxRisk := Float.max(maxRisk, h.severity);
+        };
+      };
+    };
+    
+    {
+      hazards = hazards;
+      hazardMap = hazard.hazardMap;
+      activeWarnings = warnings;
+      overallRiskLevel = maxRisk;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 29: MISSION PLANNING AND EXECUTION
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Mission state
+  public type MissionState = {
+    // Mission definition
+    missionId         : Nat;
+    missionType       : MissionType;
+    
+    // Objectives
+    objectives        : [MissionObjective];
+    primaryObjective  : ?Nat;
+    
+    // Phases
+    missionPhases     : [MissionPhase];
+    currentPhaseIdx   : Nat;
+    
+    // Status
+    missionStatus     : MissionStatus;
+    progress          : Float;
+    
+    // Timeline
+    startTime         : Nat;
+    estimatedEndTime  : Nat;
+    actualEndTime     : ?Nat;
+    
+    // Resources
+    requiredDrones    : Nat;
+    assignedDrones    : [Nat];
+    
+    // Constraints
+    constraints       : [MissionConstraint];
+    
+    beatNum           : Nat;
+  };
+
+  /// Mission types
+  public type MissionType = {
+    #Reconnaissance;
+    #Surveillance;
+    #Search;
+    #Rescue;
+    #Delivery;
+    #Attack;
+    #Defense;
+    #Escort;
+    #Patrol;
+    #Survey;
+    #Inspection;
+    #Custom;
+  };
+
+  /// Mission objective
+  public type MissionObjective = {
+    objectiveId       : Nat;
+    description       : Text;
+    priority          : Float;
+    
+    // Target
+    targetType        : Text;
+    targetLocation    : ?{ lat: Float; lon: Float; alt: Float };
+    targetEntity      : ?Nat;
+    
+    // Criteria
+    successCriteria   : [Text];
+    
+    // Status
+    isComplete        : Bool;
+    completionTime    : ?Nat;
+    completionScore   : Float;
+  };
+
+  /// Mission phase
+  public type MissionPhase = {
+    phaseId           : Nat;
+    phaseName         : Text;
+    phaseType         : PhaseType;
+    
+    // Duration
+    estimatedDuration : Nat;
+    actualDuration    : ?Nat;
+    
+    // Requirements
+    requiredConditions : [Text];
+    
+    // Actions
+    actions           : [PhaseAction];
+    
+    // Status
+    isComplete        : Bool;
+    progress          : Float;
+  };
+
+  /// Phase types
+  public type PhaseType = {
+    #Preparation;
+    #Transit;
+    #OnStation;
+    #Execution;
+    #Recovery;
+    #Abort;
+  };
+
+  /// Phase action
+  public type PhaseAction = {
+    actionId          : Nat;
+    actionType        : Text;
+    parameters        : [(Text, Float)];
+    isComplete        : Bool;
+  };
+
+  /// Mission status
+  public type MissionStatus = {
+    #Planning;
+    #Briefing;
+    #Launching;
+    #InProgress;
+    #OnStation;
+    #Returning;
+    #Complete;
+    #Aborted;
+    #Failed;
+  };
+
+  /// Mission constraint
+  public type MissionConstraint = {
+    constraintType    : ConstraintType;
+    parameter         : Float;
+    isHard            : Bool;        // Hard = must satisfy, Soft = prefer
+  };
+
+  /// Constraint types
+  public type ConstraintType = {
+    #TimeLimit;
+    #FuelLimit;
+    #AltitudeMax;
+    #AltitudeMin;
+    #RangeMax;
+    #NoFlyZone;
+    #MinDrones;
+  };
+
+  /// Initialize mission
+  public func initMission(
+    missionId: Nat,
+    missionType: MissionType,
+    objectives: [MissionObjective],
+    requiredDrones: Nat,
+    startTime: Nat
+  ) : MissionState {
+    {
+      missionId = missionId;
+      missionType = missionType;
+      objectives = objectives;
+      primaryObjective = if (objectives.size() > 0) { ?0 } else { null };
+      missionPhases = [
+        {
+          phaseId = 0;
+          phaseName = "Preparation";
+          phaseType = #Preparation;
+          estimatedDuration = 60;
+          actualDuration = null;
+          requiredConditions = [];
+          actions = [];
+          isComplete = false;
+          progress = 0.0;
+        },
+        {
+          phaseId = 1;
+          phaseName = "Transit";
+          phaseType = #Transit;
+          estimatedDuration = 300;
+          actualDuration = null;
+          requiredConditions = [];
+          actions = [];
+          isComplete = false;
+          progress = 0.0;
+        },
+        {
+          phaseId = 2;
+          phaseName = "Execution";
+          phaseType = #Execution;
+          estimatedDuration = 600;
+          actualDuration = null;
+          requiredConditions = [];
+          actions = [];
+          isComplete = false;
+          progress = 0.0;
+        },
+        {
+          phaseId = 3;
+          phaseName = "Recovery";
+          phaseType = #Recovery;
+          estimatedDuration = 300;
+          actualDuration = null;
+          requiredConditions = [];
+          actions = [];
+          isComplete = false;
+          progress = 0.0;
+        }
+      ];
+      currentPhaseIdx = 0;
+      missionStatus = #Planning;
+      progress = 0.0;
+      startTime = startTime;
+      estimatedEndTime = startTime + 1260;  // Sum of phase durations
+      actualEndTime = null;
+      requiredDrones = requiredDrones;
+      assignedDrones = [];
+      constraints = [];
+      beatNum = 0;
+    }
+  };
+
+  /// Update mission
+  public func updateMission(
+    mission: MissionState,
+    droneStatuses: [{ droneId: Nat; position: { lat: Float; lon: Float; alt: Float }; isReady: Bool }],
+    objectiveUpdates: [(Nat, Bool, Float)],  // (objId, isComplete, score)
+    beat: Nat
+  ) : MissionState {
+    // Update objectives
+    let newObjectives = Array.map<MissionObjective, MissionObjective>(
+      mission.objectives,
+      func(obj) {
+        var updated = obj;
+        for ((objId, complete, score) in objectiveUpdates.vals()) {
+          if (objId == obj.objectiveId) {
+            updated := {
+              objectiveId = obj.objectiveId;
+              description = obj.description;
+              priority = obj.priority;
+              targetType = obj.targetType;
+              targetLocation = obj.targetLocation;
+              targetEntity = obj.targetEntity;
+              successCriteria = obj.successCriteria;
+              isComplete = complete;
+              completionTime = if (complete and obj.completionTime == null) { ?beat } else { obj.completionTime };
+              completionScore = score;
+            };
+          };
+        };
+        updated
+      }
+    );
+    
+    // Count completed objectives
+    var completedObjectives : Nat = 0;
+    var totalScore : Float = 0.0;
+    for (obj in newObjectives.vals()) {
+      if (obj.isComplete) {
+        completedObjectives += 1;
+        totalScore += obj.completionScore;
+      };
+    };
+    
+    let objProgress = if (newObjectives.size() > 0) {
+      Float.fromInt(completedObjectives) / Float.fromInt(newObjectives.size())
+    } else { 0.0 };
+    
+    // Update phase progress
+    let phaseProgress = Float.fromInt(mission.currentPhaseIdx) / Float.fromInt(mission.missionPhases.size());
+    let totalProgress = (objProgress + phaseProgress) / 2.0;
+    
+    // Determine status
+    let newStatus : MissionStatus = if (totalProgress >= 1.0) {
+      #Complete
+    } else if (mission.currentPhaseIdx >= 3) {
+      #Returning
+    } else if (mission.currentPhaseIdx >= 2) {
+      #OnStation
+    } else if (mission.currentPhaseIdx >= 1) {
+      #InProgress
+    } else {
+      mission.missionStatus
+    };
+    
+    {
+      missionId = mission.missionId;
+      missionType = mission.missionType;
+      objectives = newObjectives;
+      primaryObjective = mission.primaryObjective;
+      missionPhases = mission.missionPhases;
+      currentPhaseIdx = mission.currentPhaseIdx;
+      missionStatus = newStatus;
+      progress = totalProgress;
+      startTime = mission.startTime;
+      estimatedEndTime = mission.estimatedEndTime;
+      actualEndTime = if (newStatus == #Complete or newStatus == #Aborted or newStatus == #Failed) {
+        ?beat
+      } else { null };
+      requiredDrones = mission.requiredDrones;
+      assignedDrones = Array.map<{ droneId: Nat; position: { lat: Float; lon: Float; alt: Float }; isReady: Bool }, Nat>(
+        Array.filter<{ droneId: Nat; position: { lat: Float; lon: Float; alt: Float }; isReady: Bool }>(
+          droneStatuses,
+          func(s) { s.isReady }
+        ),
+        func(s) { s.droneId }
+      );
+      constraints = mission.constraints;
+      beatNum = beat;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 30: ABSOLUTE FINAL SWARM INTEGRATION
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Absolute complete swarm state
+  public type AbsoluteCompleteSwarmState = {
+    // Previous supreme state
+    supreme           : SupremeSwarmState;
+    
+    // Environmental awareness
+    environment       : EnvironmentalAwarenessState;
+    
+    // Mission
+    mission           : ?MissionState;
+    
+    // Absolute metrics
+    absoluteReadiness : Float;
+    absoluteCapability : Float;
+    absoluteSurvivability : Float;
+    absoluteIntelligence : Float;
+    
+    beatNum           : Nat;
+  };
+
+  /// Initialize absolute complete swarm
+  public func initAbsoluteCompleteSwarm(
+    centroid: { lat: Float; lon: Float; alt: Float },
+    numDrones: Nat,
+    myNodeId: Nat
+  ) : AbsoluteCompleteSwarmState {
+    {
+      supreme = initSupremeSwarm(centroid, numDrones, myNodeId);
+      environment = initEnvironmentalAwareness();
+      mission = null;
+      absoluteReadiness = 1.0;
+      absoluteCapability = 1.0;
+      absoluteSurvivability = 1.0;
+      absoluteIntelligence = 0.5;
+      beatNum = 0;
+    }
+  };
+
+  /// Tick absolute complete swarm
+  public func tickAbsoluteCompleteSwarm(
+    state: AbsoluteCompleteSwarmState,
+    detectedEntities: [{ position: { lat: Float; lon: Float; alt: Float }; type_: Text; velocity: { vx: Float; vy: Float; vz: Float } }],
+    currentPosition: { lat: Float; lon: Float; alt: Float },
+    currentVelocity: { vx: Float; vy: Float; vz: Float },
+    heardNodes: [{ nodeId: Nat; position: { lat: Float; lon: Float; alt: Float }; signalStrength: Float }],
+    receivedOpinions: [(Nat, [Float], Float)],
+    droneStatuses: [{ droneId: Nat; isActive: Bool; battery: Float; isConnected: Bool }],
+    sensorReadings: { temp: Float; humidity: Float; pressure: Float; wind: { speed: Float; direction: Float } },
+    objectSensorData: [{ class_: Text; position: { lat: Float; lon: Float; alt: Float }; confidence: Float; size: { w: Float; h: Float; d: Float } }],
+    powerDraw: Float,
+    dt: Float
+  ) : AbsoluteCompleteSwarmState {
+    // 1. Update supreme state
+    let newSupreme = tickSupremeSwarm(
+      state.supreme,
+      detectedEntities,
+      currentPosition,
+      currentVelocity,
+      heardNodes,
+      receivedOpinions,
+      droneStatuses,
+      powerDraw,
+      dt
+    );
+    
+    // 2. Update environment
+    let newWeather = updateWeather(state.environment.weatherState, sensorReadings, state.beatNum);
+    let newObjects = detectObjects(state.environment.objectDetection, objectSensorData, state.beatNum);
+    let newHazards = detectHazards(
+      state.environment.hazardDetection,
+      newWeather,
+      state.environment.terrainAwareness,
+      newObjects,
+      currentPosition,
+      state.beatNum
+    );
+    
+    let newEnvironment : EnvironmentalAwarenessState = {
+      weatherState = newWeather;
+      terrainAwareness = state.environment.terrainAwareness;
+      objectDetection = newObjects;
+      hazardDetection = newHazards;
+      timeOfDay = state.environment.timeOfDay;
+      visibilityState = state.environment.visibilityState;
+      beatNum = state.environment.beatNum + 1;
+    };
+    
+    // 3. Update mission if active
+    let newMission : ?MissionState = switch (state.mission) {
+      case (?m) {
+        let droneStatusesForMission = Array.map<{ droneId: Nat; isActive: Bool; battery: Float; isConnected: Bool }, { droneId: Nat; position: { lat: Float; lon: Float; alt: Float }; isReady: Bool }>(
+          droneStatuses,
+          func(s) { { droneId = s.droneId; position = currentPosition; isReady = s.isActive and s.battery > 0.2 } }
+        );
+        ?updateMission(m, droneStatusesForMission, [], state.beatNum)
+      };
+      case null { null };
+    };
+    
+    // 4. Compute absolute metrics
+    let readiness = newSupreme.swarmHealth.missionCapability * (1.0 - newHazards.overallRiskLevel);
+    let capability = newSupreme.supremeEfficiency * newSupreme.swarmHealth.missionCapability;
+    let survivability = newSupreme.supremeResilience * (1.0 - newHazards.overallRiskLevel * 0.5);
+    let intelligence = newSupreme.supremeIntelligence * (1.0 + newSupreme.collectiveIntel.consensusState.convergenceRate) / 2.0;
+    
+    {
+      supreme = newSupreme;
+      environment = newEnvironment;
+      mission = newMission;
+      absoluteReadiness = readiness;
+      absoluteCapability = capability;
+      absoluteSurvivability = survivability;
+      absoluteIntelligence = intelligence;
+      beatNum = state.beatNum + 1;
+    }
+  };
+
+  /// Absolute complete swarm output
+  public type AbsoluteCompleteSwarmOutput = {
+    // From supreme
+    tacticalMode      : TacticalMode;
+    missionSuccess    : Float;
+    networkConnectivity : Float;
+    
+    // Environment
+    weatherConditions : Text;
+    hazardLevel       : Float;
+    objectCount       : Nat;
+    
+    // Mission
+    missionStatus     : ?MissionStatus;
+    missionProgress   : Float;
+    
+    // Absolute
+    absoluteReadiness : Float;
+    absoluteCapability : Float;
+    absoluteSurvivability : Float;
+    absoluteIntelligence : Float;
+    
+    beatNum           : Nat;
+  };
+
+  public func generateAbsoluteCompleteSwarmOutput(state: AbsoluteCompleteSwarmState) : AbsoluteCompleteSwarmOutput {
+    let supremeOut = generateSupremeSwarmOutput(state.supreme);
+    
+    let weatherConditions = switch (state.environment.weatherState.precipitationType) {
+      case (#None) { "Clear" };
+      case (#Rain) { "Rain" };
+      case (#Snow) { "Snow" };
+      case (#Fog) { "Fog" };
+      case (#Hail) { "Hail" };
+      case (#Sleet) { "Sleet" };
+    };
+    
+    let missionStatus : ?MissionStatus = switch (state.mission) {
+      case (?m) { ?m.missionStatus };
+      case null { null };
+    };
+    
+    let missionProgress = switch (state.mission) {
+      case (?m) { m.progress };
+      case null { 0.0 };
+    };
+    
+    {
+      tacticalMode = supremeOut.tacticalMode;
+      missionSuccess = supremeOut.missionSuccess;
+      networkConnectivity = supremeOut.networkConnectivity;
+      weatherConditions = weatherConditions;
+      hazardLevel = state.environment.hazardDetection.overallRiskLevel;
+      objectCount = state.environment.objectDetection.detectedObjects.size();
+      missionStatus = missionStatus;
+      missionProgress = missionProgress;
+      absoluteReadiness = state.absoluteReadiness;
+      absoluteCapability = state.absoluteCapability;
+      absoluteSurvivability = state.absoluteSurvivability;
+      absoluteIntelligence = state.absoluteIntelligence;
+      beatNum = state.beatNum;
+    }
+  };
+
 }
