@@ -158,11 +158,13 @@ module {
 
   // ── FNV-1a hash ───────────────────────────────────────────────
   func fnv1aChain(a: Nat, b: Nat) : Nat {
+    let prime : Nat = 16777619;
+    let modulo : Nat = 4294967296;
     var h = a;
-    h := ((h ^ (b % 256)) * 16777619) % 4294967296;
-    h := ((h ^ ((b / 256) % 256)) * 16777619) % 4294967296;
-    h := ((h ^ ((b / 65536) % 256)) * 16777619) % 4294967296;
-    h := ((h ^ ((b / 16777216) % 256)) * 16777619) % 4294967296;
+    h := Nat.rem(Nat.mul(Nat.bitxor(h, Nat.rem(b, 256)), prime), modulo);
+    h := Nat.rem(Nat.mul(Nat.bitxor(h, Nat.rem(Nat.div(b, 256), 256)), prime), modulo);
+    h := Nat.rem(Nat.mul(Nat.bitxor(h, Nat.rem(Nat.div(b, 65536), 256)), prime), modulo);
+    h := Nat.rem(Nat.mul(Nat.bitxor(h, Nat.rem(Nat.div(b, 16777216), 256)), prime), modulo);
     h
   };
 
