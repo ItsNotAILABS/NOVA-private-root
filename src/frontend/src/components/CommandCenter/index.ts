@@ -12,6 +12,11 @@ export { TaskManager } from './TaskManager';
 export { ComputeTerminal } from './ComputeTerminal';
 export { MissionBriefing } from './MissionBriefing';
 
+// Labs — Internal AIs that help the organism function
+export { EmergenceLab } from './EmergenceLab';
+export { MathPhysicsLab } from './MathPhysicsLab';
+export { NeuroCogLab } from './NeuroCogLab';
+
 // The Actual Experiment
 export { DroneSimulationWorld } from './DroneSimulationWorld';
 
