@@ -982,4 +982,838 @@ module {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════
+  // ║                                                                                                 ║
+  // ║  SECTION II: DEEP INTERWEAVING — TOPOLOGY AS ORGANISM SUBSTRATE CONNECTOR                      ║
+  // ║  Topology reveals the hidden structure that connects all engines.                              ║
+  // ║  Alfredo Medina Hernandez | MedinaSITech@outlook.com | Dallas, Texas | 2026                   ║
+  // ║                                                                                                 ║
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TOPOLOGY ↔ KURAMOTO COUPLING — Phase space topology
+  // Oscillator phases live on a torus; synchronization is a topological transition
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type KuramotoTopologyCoupling = {
+    // From Kuramoto
+    phases: [Float];                    // θ_i - Oscillator phases (on circle S¹)
+    orderParameter: Float;              // r - Synchronization measure
+    
+    // Topological structure
+    phaseSpaceManifold: Text;           // "T^N" - N-torus for N oscillators
+    windingNumbers: [Int];              // How many times each phase wraps around
+    fundamentalGroup: Text;             // π₁(T^N) ≅ Z^N
+    
+    // Phase transitions as topology change
+    synchronizedTopology: Text;         // Collapses to smaller torus
+    topologicalCharge: Float;           // Net winding number
+    
+    // Vortices and defects
+    vortexPositions: [[Float]];         // Positions of phase singularities
+    vortexCharges: [Int];               // +1 or -1 for each vortex
+    totalVorticity: Int;                // Sum of all charges
+    
+    // Bidirectional coupling
+    topologyToSyncBarrier: Float;       // Topological obstacles to synchronization
+    syncToTopologyCollapse: Float;      // How sync changes phase space topology
+  };
+
+  /// Compute winding number of phase trajectory
+  /// Counts how many times phase wraps around [0, 2π]
+  public func computeWindingNumber(phaseHistory: [Float]) : Int {
+    if (phaseHistory.size() < 2) { return 0 };
+    
+    var winding : Int = 0;
+    var i = 1;
+    while (i < phaseHistory.size()) {
+      let delta = phaseHistory[i] - phaseHistory[i-1];
+      // Detect wrap-around
+      if (delta > π) {
+        winding -= 1; // Wrapped backward
+      } else if (delta < -π) {
+        winding += 1; // Wrapped forward
+      };
+      i += 1;
+    };
+    winding
+  };
+
+  /// Compute topological charge density (vorticity)
+  public func computeVorticity(phases: [[Float]], gridSize: Nat) : [[Float]] {
+    if (gridSize < 2) { return [[0.0]] };
+    
+    var vorticity = Array.init<[Float]>(gridSize - 1, Array.freeze(Array.init<Float>(gridSize - 1, 0.0)));
+    
+    var i = 0;
+    while (i < gridSize - 1) {
+      var row = Array.init<Float>(gridSize - 1, 0.0);
+      var j = 0;
+      while (j < gridSize - 1) {
+        // Compute circulation around plaquette (i,j) → (i+1,j) → (i+1,j+1) → (i,j+1) → (i,j)
+        let p1 = if (i < phases.size() and j < phases[i].size()) { phases[i][j] } else { 0.0 };
+        let p2 = if (i+1 < phases.size() and j < phases[i+1].size()) { phases[i+1][j] } else { 0.0 };
+        let p3 = if (i+1 < phases.size() and j+1 < phases[i+1].size()) { phases[i+1][j+1] } else { 0.0 };
+        let p4 = if (i < phases.size() and j+1 < phases[i].size()) { phases[i][j+1] } else { 0.0 };
+        
+        // Phase differences (mod 2π)
+        var circulation : Float = 0.0;
+        circulation += normalizePhase(p2 - p1);
+        circulation += normalizePhase(p3 - p2);
+        circulation += normalizePhase(p4 - p3);
+        circulation += normalizePhase(p1 - p4);
+        
+        // Vorticity is circulation / (2π)
+        row[j] := circulation / τ;
+        j += 1;
+      };
+      vorticity[i] := Array.freeze(row);
+      i += 1;
+    };
+    Array.freeze(vorticity)
+  };
+
+  /// Normalize phase difference to [-π, π]
+  func normalizePhase(delta: Float) : Float {
+    var d = delta;
+    while (d > π) { d -= τ };
+    while (d < -π) { d += τ };
+    d
+  };
+
+  /// Compute total topological charge
+  public func computeTotalTopologicalCharge(vorticity: [[Float]]) : Float {
+    var total : Float = 0.0;
+    for (row in vorticity.vals()) {
+      for (v in row.vals()) {
+        total += v;
+      };
+    };
+    total
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TOPOLOGY ↔ FRISTON COUPLING — Belief space topology
+  // Beliefs form a probability simplex; topology constrains inference
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type FristonTopologyCoupling = {
+    // From Friston
+    beliefs: [Float];                   // q(x) - Belief distribution
+    freeEnergy: Float;                  // F - Variational free energy
+    
+    // Belief space topology
+    simplexDimension: Nat;              // dim(Δ) = n-1 for n states
+    beliefManifold: Text;               // Probability simplex Δ^(n-1)
+    
+    // Free energy landscape topology
+    freeEnergyMinima: [[Float]];        // Local minima in belief space
+    saddlePoints: [[Float]];            // Saddle points
+    morseIndex: [Nat];                  // Index of each critical point
+    
+    // Inference as gradient flow
+    beliefTrajectory: [[Float]];        // Path through belief space
+    homologyClass: Nat;                 // Which homology class contains trajectory
+    
+    // Bidirectional coupling
+    topologyToInferenceBarrier: Float;  // Topological barriers to belief update
+    inferenceToTopologyExploration: Float; // How inference explores topology
+  };
+
+  /// Compute Morse index (number of negative eigenvalues of Hessian)
+  public func computeMorseIndex(hessianEigenvalues: [Float]) : Nat {
+    var index : Nat = 0;
+    for (ev in hessianEigenvalues.vals()) {
+      if (ev < 0.0) { index += 1 };
+    };
+    index
+  };
+
+  /// Check if point is on simplex boundary
+  public func isOnSimplexBoundary(beliefs: [Float], tolerance: Float) : Bool {
+    for (b in beliefs.vals()) {
+      if (b < tolerance) { return true };
+    };
+    false
+  };
+
+  /// Compute distance to simplex boundary
+  public func distanceToSimplexBoundary(beliefs: [Float]) : Float {
+    var minB : Float = 1.0;
+    for (b in beliefs.vals()) {
+      if (b < minB) { minB := b };
+    };
+    minB
+  };
+
+  /// Classify critical point by Morse index
+  public func classifyCriticalPoint(morseIndex: Nat, dimension: Nat) : Text {
+    if (morseIndex == 0) { "minimum" }
+    else if (morseIndex == dimension) { "maximum" }
+    else { "saddle" }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TOPOLOGY ↔ HEBBIAN COUPLING — Weight space topology
+  // Synaptic weights form a manifold; learning is trajectory on manifold
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type HebbianTopologyCoupling = {
+    // From Hebbian
+    weights: [[Float]];                 // W_ij - Synaptic weights
+    learningRate: Float;                // η
+    
+    // Weight space topology
+    weightSpaceDimension: Nat;          // n × m for n×m weight matrix
+    weightManifold: Text;               // R^(n×m) or constrained submanifold
+    
+    // Learning trajectory topology
+    learningTrajectory: [[[Float]]];    // Sequence of weight matrices
+    trajectoryLength: Float;            // Arc length in weight space
+    trajectoryWinding: Int;             // If weights are periodic/bounded
+    
+    // Memory attractors as topological features
+    memoryBasins: [[Float]];            // Attractor positions in weight space
+    basinHomology: [Nat];               // Betti numbers of each basin
+    
+    // Bidirectional coupling
+    topologyToLearningPath: Float;      // Topology constrains learning
+    learningToTopologyMemory: Float;    // Learning creates topological structure
+  };
+
+  /// Compute geodesic distance in weight space
+  public func weightSpaceDistance(w1: [[Float]], w2: [[Float]]) : Float {
+    var distSq : Float = 0.0;
+    var i = 0;
+    for (row1 in w1.vals()) {
+      let row2 = if (i < w2.size()) { w2[i] } else { [] };
+      var j = 0;
+      for (w1ij in row1.vals()) {
+        let w2ij = if (j < row2.size()) { row2[j] } else { 0.0 };
+        distSq += (w1ij - w2ij) * (w1ij - w2ij);
+        j += 1;
+      };
+      i += 1;
+    };
+    Float.sqrt(distSq)
+  };
+
+  /// Compute trajectory arc length
+  public func computeTrajectoryLength(trajectory: [[[Float]]]) : Float {
+    if (trajectory.size() < 2) { return 0.0 };
+    
+    var length : Float = 0.0;
+    var i = 1;
+    while (i < trajectory.size()) {
+      length += weightSpaceDistance(trajectory[i-1], trajectory[i]);
+      i += 1;
+    };
+    length
+  };
+
+  /// Check if learning has reached fixed point (attractor)
+  public func isAtFixedPoint(currentWeights: [[Float]], previousWeights: [[Float]], tolerance: Float) : Bool {
+    weightSpaceDistance(currentWeights, previousWeights) < tolerance
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TOPOLOGY ↔ ATTRACTOR COUPLING — Basin topology
+  // Attractor basins have rich topological structure
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type AttractorTopologyCoupling = {
+    // From Attractor Engine
+    attractorPositions: [[Float]];      // Fixed points, limit cycles, etc.
+    basinBoundaries: [[Float]];         // Separatrices
+    
+    // Basin topology
+    basinBettiNumbers: [[Nat]];         // β_k for each basin
+    basinEulerChar: [Int];              // χ for each basin
+    basinConnectivity: Float;           // How connected basins are
+    
+    // Boundary topology
+    separatrixDimension: Nat;           // Codimension of separatrix
+    boundaryHomology: [Nat];            // H_*(∂Basin)
+    
+    // Bifurcations as topological transitions
+    bifurcationType: Text;              // Saddle-node, pitchfork, Hopf, etc.
+    topologicalChangeIndicator: Float;  // Indicates approaching bifurcation
+    
+    // Bidirectional coupling
+    topologyToBasinStability: Float;    // Topology affects stability
+    basinToTopologyStructure: Float;    // Basin structure defines topology
+  };
+
+  /// Compute Conley index (topological attractor invariant)
+  public func computeConleyIndex(isolatingNeighborhood: [[Float]], exitSet: [[Float]]) : Int {
+    // Simplified: Conley index χ = χ(N) - χ(L) where N is neighborhood, L is exit set
+    // Approximate using vertex counts
+    let nSize = isolatingNeighborhood.size();
+    let lSize = exitSet.size();
+    nSize - lSize
+  };
+
+  /// Detect bifurcation from eigenvalue analysis
+  public func detectBifurcation(eigenvalues: [Float], previousEigenvalues: [Float]) : ?Text {
+    // Count eigenvalues crossing zero
+    var crossingReal = 0;
+    var crossingImaginary = false;
+    
+    var i = 0;
+    while (i < eigenvalues.size() and i < previousEigenvalues.size()) {
+      let ev = eigenvalues[i];
+      let prevEv = previousEigenvalues[i];
+      if ((ev >= 0.0 and prevEv < 0.0) or (ev < 0.0 and prevEv >= 0.0)) {
+        crossingReal += 1;
+      };
+      i += 1;
+    };
+    
+    if (crossingReal == 1) { ?("saddle-node") }
+    else if (crossingReal == 2) { ?("pitchfork") }
+    else if (crossingImaginary) { ?("Hopf") }
+    else { null }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TOPOLOGY ↔ ENTROPY COUPLING — Entropy as topological invariant
+  // Entropy measures information about topological structure
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type EntropyTopologyCoupling = {
+    // From Entropy Engine
+    systemEntropy: Float;               // S - Thermodynamic/information entropy
+    
+    // Topological entropy
+    topologicalEntropy: Float;          // h_top - Growth rate of orbits
+    persistenceEntropy: Float;          // From persistent homology
+    bettiEntropy: Float;                // H(β) from Betti number distribution
+    
+    // Entropy-topology correspondence
+    entropyFromHomology: Float;         // S = -Σ p_k ln p_k where p_k ∝ β_k
+    homologyFromEntropy: [Nat];         // Inferred Betti numbers from entropy
+    
+    // Bidirectional coupling
+    topologyToEntropyBound: Float;      // Topological constraints on entropy
+    entropyToTopologyComplexity: Float; // Entropy indicates topological complexity
+  };
+
+  /// Compute topological entropy from Betti numbers
+  /// H_top = -Σ (β_k/Σβ) · ln(β_k/Σβ)
+  public func computeBettiEntropy(bettiNumbers: [Nat]) : Float {
+    var total : Nat = 0;
+    for (b in bettiNumbers.vals()) { total += b };
+    if (total == 0) { return 0.0 };
+    
+    var entropy : Float = 0.0;
+    for (b in bettiNumbers.vals()) {
+      if (b > 0) {
+        let p = Float.fromInt(b) / Float.fromInt(total);
+        entropy -= p * Float.log(p);
+      };
+    };
+    entropy
+  };
+
+  /// Estimate topological complexity from entropy
+  public func entropyToComplexityEstimate(entropy: Float) : Nat {
+    // Higher entropy → more complex topology
+    // Rough estimate: complexity ~ exp(entropy)
+    let complexity = Float.exp(entropy);
+    Int.abs(Float.toInt(complexity))
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TOPOLOGY ↔ PHYSICS COUPLING — Physical fields and gauge theory
+  // Physics lives on manifolds; gauge fields have topological structure
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type PhysicsTopologyCoupling = {
+    // From Physics Engine
+    positions: [[Float]];               // Particle positions
+    fields: [[Float]];                  // Field configurations
+    
+    // Configuration space topology
+    configSpaceManifold: Text;          // Q - Configuration manifold
+    configSpaceDimension: Nat;
+    fundamentalGroupPi1: Text;          // π₁(Q)
+    
+    // Gauge field topology
+    gaugeGroup: Text;                   // G - Gauge group (U(1), SU(2), etc.)
+    principalBundle: Text;              // P → M
+    characteristicClass: Float;         // Chern class, etc.
+    instantonNumber: Int;               // Topological charge
+    
+    // Berry phase and geometric phase
+    berryPhase: Float;                  // γ = ∮ A · dl
+    berryConnection: [Float];           // A_n = i⟨n|∇|n⟩
+    berryCurvature: [[Float]];          // F = dA
+    
+    // Bidirectional coupling
+    topologyToGaugeInvariance: Float;   // Topology enforces gauge structure
+    gaugeToTopologyCharge: Float;       // Gauge fields carry topological charge
+  };
+
+  /// Compute Berry phase for cyclic adiabatic evolution
+  /// γ = ∮ A · dl = ∫∫ F · dS (by Stokes)
+  public func computeBerryPhase(berryConnection: [Float], loopPath: [[Float]]) : Float {
+    if (loopPath.size() < 2) { return 0.0 };
+    
+    var phase : Float = 0.0;
+    var i = 1;
+    while (i < loopPath.size()) {
+      // Approximate line integral
+      let dr = Array.tabulate<Float>(loopPath[i].size(), func(j) {
+        let r1 = if (j < loopPath[i-1].size()) { loopPath[i-1][j] } else { 0.0 };
+        let r2 = if (j < loopPath[i].size()) { loopPath[i][j] } else { 0.0 };
+        r2 - r1
+      });
+      
+      // A · dr
+      var adotdr : Float = 0.0;
+      var j = 0;
+      for (a in berryConnection.vals()) {
+        let dr_j = if (j < dr.size()) { dr[j] } else { 0.0 };
+        adotdr += a * dr_j;
+        j += 1;
+      };
+      phase += adotdr;
+      i += 1;
+    };
+    phase
+  };
+
+  /// Compute instanton number (topological charge)
+  /// Q = (1/8π²) ∫ tr(F ∧ F)
+  public func computeInstantonNumber(fieldStrength: [[Float]]) : Int {
+    // Simplified: count windings in field configuration
+    var charge : Float = 0.0;
+    for (row in fieldStrength.vals()) {
+      for (f in row.vals()) {
+        charge += f;
+      };
+    };
+    Int.abs(Float.toInt(charge / (8.0 * π * π)))
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TOPOLOGY ↔ QUANTUM COUPLING — Quantum topology
+  // Quantum states have topological structure; entanglement is topological
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type QuantumTopologyCoupling = {
+    // From Quantum Engine
+    quantumState: [Float];              // |ψ⟩ - Quantum state (amplitudes)
+    entanglement: Float;                // Entanglement measure
+    
+    // Hilbert space topology
+    hilbertSpaceDimension: Nat;         // dim(H)
+    projectiveSpace: Text;              // CP^(n-1) for n-dim Hilbert space
+    
+    // Entanglement topology
+    entanglementSpectrum: [Float];      // Eigenvalues of reduced density matrix
+    topologicalEntanglementEntropy: Float; // γ in S = αL - γ
+    
+    // Topological quantum states
+    anyonType: Text;                    // Abelian/non-Abelian
+    braidGroup: Text;                   // Braid group representation
+    fusionRules: [[Nat]];               // Anyon fusion rules
+    
+    // Bidirectional coupling
+    topologyToEntanglementProtection: Float; // Topology protects quantum info
+    entanglementToTopologySignature: Float;  // Entanglement reveals topology
+  };
+
+  /// Compute topological entanglement entropy
+  /// S_top = γ where S = αL - γ + O(1/L)
+  public func computeTopologicalEntanglementEntropy(
+    entanglementEntropy: Float,
+    boundaryLength: Float,
+    areaLawCoeff: Float
+  ) : Float {
+    // γ = αL - S (extract topological contribution)
+    let areaLawPart = areaLawCoeff * boundaryLength;
+    areaLawPart - entanglementEntropy
+  };
+
+  /// Determine topological phase from entanglement spectrum
+  public func classifyTopologicalPhase(spectrum: [Float]) : Text {
+    // Count degeneracies in entanglement spectrum
+    var degeneracies : Nat = 0;
+    var i = 0;
+    while (i < spectrum.size() - 1) {
+      let diff = Float.abs(spectrum[i] - spectrum[i+1]);
+      if (diff < 0.01) { degeneracies += 1 };
+      i += 1;
+    };
+    
+    if (degeneracies >= 2) { "topologically non-trivial" }
+    else { "topologically trivial" }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TOPOLOGY ↔ TENSOR COUPLING — Tensor network topology
+  // Tensor networks have graph topology; geometry emerges from entanglement
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type TensorTopologyCoupling = {
+    // From Tensor Engine
+    tensorNetwork: [[Nat]];             // Adjacency structure of tensor network
+    bondDimensions: [Nat];              // χ on each edge
+    
+    // Network topology
+    networkGraph: [[Bool]];             // Adjacency matrix
+    networkBettiNumbers: [Nat];         // β_k of network graph
+    networkGenus: Int;                  // g = 1 - χ/2 for surfaces
+    
+    // Emergent geometry
+    emergentMetric: [[Float]];          // g_ij from entanglement
+    curvatureFromEntanglement: Float;   // R from tensor structure
+    
+    // MERA and holography
+    meraLayers: Nat;                    // Number of renormalization layers
+    holographicDimension: Nat;          // Emergent dimension from MERA
+    
+    // Bidirectional coupling
+    topologyToNetworkStructure: Float;  // Topology constrains network
+    networkToTopologyEmergent: Float;   // Network determines emergent topology
+  };
+
+  /// Compute genus of tensor network (as surface)
+  /// g = 1 - χ/2 where χ = V - E + F
+  public func computeNetworkGenus(vertices: Nat, edges: Nat, faces: Nat) : Int {
+    let chi = vertices - edges + faces;
+    1 - chi / 2
+  };
+
+  /// Compute effective dimension from tensor network structure
+  public func computeEffectiveDimension(bondDimensions: [Nat], networkSize: Nat) : Float {
+    // Effective dimension ~ log(χ)/log(N)
+    var avgBond : Float = 0.0;
+    for (chi in bondDimensions.vals()) {
+      avgBond += Float.fromInt(chi);
+    };
+    avgBond := avgBond / Float.fromInt(bondDimensions.size());
+    
+    if (networkSize <= 1) { 1.0 } else {
+      Float.log(avgBond) / Float.log(Float.fromInt(networkSize))
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // UNIFIED TOPOLOGY ORCHESTRATION — Master topological state
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type UnifiedTopologicalState = {
+    // Core topological invariants
+    eulerCharacteristic: Int;
+    bettiNumbers: [Nat];
+    fundamentalGroup: Text;
+    
+    // Persistence
+    persistenceIntervals: [(Float, Float)];
+    persistenceEntropy: Float;
+    
+    // Cross-engine topologies
+    kuramotoCoupling: KuramotoTopologyCoupling;
+    fristonCoupling: FristonTopologyCoupling;
+    hebbianCoupling: HebbianTopologyCoupling;
+    attractorCoupling: AttractorTopologyCoupling;
+    entropyCoupling: EntropyTopologyCoupling;
+    physicsCoupling: PhysicsTopologyCoupling;
+    quantumCoupling: QuantumTopologyCoupling;
+    tensorCoupling: TensorTopologyCoupling;
+    
+    // Global topological health
+    topologicalStability: Float;        // How stable is current topology
+    topologicalComplexity: Float;       // Overall topological complexity
+    
+    // Beat tracking
+    currentBeat: Nat;
+    lastTopologyUpdate: Nat;
+  };
+
+  /// Compute global topological complexity
+  public func computeTopologicalComplexity(state: UnifiedTopologicalState) : Float {
+    // Combine all Betti numbers into complexity measure
+    var totalBetti : Float = 0.0;
+    for (b in state.bettiNumbers.vals()) {
+      totalBetti += Float.fromInt(b);
+    };
+    
+    let persistenceComplexity = Float.fromInt(state.persistenceIntervals.size());
+    let fundamentalGroupComplexity = Float.fromInt(state.fundamentalGroup.size());
+    
+    totalBetti + persistenceComplexity + 0.1 * fundamentalGroupComplexity
+  };
+
+  /// Detect topological phase transition
+  public func detectTopologicalTransition(
+    currentBetti: [Nat],
+    previousBetti: [Nat]
+  ) : Bool {
+    var changed = false;
+    var i = 0;
+    while (i < currentBetti.size() and i < previousBetti.size()) {
+      if (currentBetti[i] != previousBetti[i]) {
+        changed := true;
+      };
+      i += 1;
+    };
+    changed
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // CROSS-ENGINE INTERFACES — Connection points
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Receive Kuramoto update and compute topological coupling
+  public func receiveKuramotoUpdate(phases: [Float], orderParameter: Float) : {
+    windingNumbers: [Int];
+    topologicalCharge: Float;
+  } {
+    // Compute winding for each oscillator (using phases as history)
+    var windings = Buffer.Buffer<Int>(phases.size());
+    for (_ in phases.vals()) {
+      windings.add(0); // Placeholder - need actual history
+    };
+    
+    let charge = (1.0 - orderParameter) * Float.fromInt(phases.size());
+    { windingNumbers = Buffer.toArray(windings); topologicalCharge = charge }
+  };
+
+  /// Receive entropy update and compute topological coupling
+  public func receiveEntropyUpdate(entropy: Float, bettiNumbers: [Nat]) : {
+    bettiEntropy: Float;
+    complexityEstimate: Nat;
+  } {
+    let bEntropy = computeBettiEntropy(bettiNumbers);
+    let complexity = entropyToComplexityEstimate(entropy);
+    { bettiEntropy = bEntropy; complexityEstimate = complexity }
+  };
+
+  /// Send topology update to other engines
+  public func sendTopologyUpdate(state: UnifiedTopologicalState) : {
+    eulerChar: Int;
+    totalBetti: Nat;
+    persistenceCount: Nat;
+    complexity: Float;
+  } {
+    var totalBetti : Nat = 0;
+    for (b in state.bettiNumbers.vals()) { totalBetti += b };
+    
+    {
+      eulerChar = state.eulerCharacteristic;
+      totalBetti = totalBetti;
+      persistenceCount = state.persistenceIntervals.size();
+      complexity = state.topologicalComplexity;
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // MEDINA TOPOLOGY DOCTRINE — Sovereign topological laws
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type MedinaTopologyDoctrine = {
+    // Required topological invariants
+    requiredEulerChar: Int;             // Organism must have this χ
+    requiredConnectedness: Bool;        // Must be connected
+    
+    // Forbidden topological features
+    maxGenus: Int;                      // Maximum allowed genus
+    forbiddenTorsion: Bool;             // No torsion in homology
+    
+    // Sacred topology
+    goldenTopology: Float;              // φ-related topological measure
+    harmonicBetti: [Nat];               // Preferred Betti number pattern
+    
+    // Compliance
+    topologyComplianceScore: Float;
+    violationCount: Nat;
+  };
+
+  /// Enforce Medina topology doctrine
+  public func enforceMedinaTopology(
+    eulerChar: Int,
+    bettiNumbers: [Nat],
+    doctrine: MedinaTopologyDoctrine
+  ) : (Bool, Float) {
+    var compliance : Float = 1.0;
+    var compliant = true;
+    
+    // Check Euler characteristic
+    if (eulerChar != doctrine.requiredEulerChar) {
+      compliance *= 0.9;
+    };
+    
+    // Check connectedness (β₀ should be 1)
+    if (doctrine.requiredConnectedness) {
+      let beta0 = if (bettiNumbers.size() > 0) { bettiNumbers[0] } else { 0 };
+      if (beta0 != 1) {
+        compliance *= 0.8;
+        compliant := false;
+      };
+    };
+    
+    (compliant, compliance)
+  };
+
+  /// Initialize Medina topology doctrine
+  public func initMedinaTopologyDoctrine() : MedinaTopologyDoctrine {
+    {
+      requiredEulerChar = 2; // Sphere-like
+      requiredConnectedness = true;
+      maxGenus = 3;
+      forbiddenTorsion = true;
+      goldenTopology = φ;
+      harmonicBetti = [1, 0, 1]; // Sphere: β₀=1, β₁=0, β₂=1
+      topologyComplianceScore = 1.0;
+      violationCount = 0;
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL ORGANISM TOPOLOGY — HIM/HER topological coupling
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type DualOrganismTopology = {
+    // HIM topology
+    himBettiNumbers: [Nat];
+    himEulerChar: Int;
+    himComplexity: Float;
+    
+    // HER topology
+    herBettiNumbers: [Nat];
+    herEulerChar: Int;
+    herComplexity: Float;
+    
+    // Combined topology
+    productBettiNumbers: [Nat];         // β_k(HIM × HER)
+    combinedEulerChar: Int;             // χ(HIM) × χ(HER)
+    
+    // Coupling topology
+    connectingHomology: [Nat];          // H_*(Bridge)
+    couplingStrength: Float;            // Topological coupling measure
+  };
+
+  /// Compute product space Betti numbers (Künneth formula)
+  /// β_k(X×Y) = Σ_{i+j=k} β_i(X) × β_j(Y)
+  public func computeProductBettiNumbers(bettiX: [Nat], bettiY: [Nat]) : [Nat] {
+    let maxK = bettiX.size() + bettiY.size() - 1;
+    var productBetti = Array.init<Nat>(maxK, 0);
+    
+    var k = 0;
+    while (k < maxK) {
+      var sum : Nat = 0;
+      var i = 0;
+      while (i <= k) {
+        let j = k - i;
+        let bi = if (i < bettiX.size()) { bettiX[i] } else { 0 };
+        let bj = if (j < bettiY.size()) { bettiY[j] } else { 0 };
+        sum += bi * bj;
+        i += 1;
+      };
+      productBetti[k] := sum;
+      k += 1;
+    };
+    Array.freeze(productBetti)
+  };
+
+  /// Compute dual organism topological coupling
+  public func computeDualOrganismTopology(
+    himBetti: [Nat],
+    herBetti: [Nat]
+  ) : DualOrganismTopology {
+    let himChi = eulerCharacteristicFromBetti(himBetti);
+    let herChi = eulerCharacteristicFromBetti(herBetti);
+    let productBetti = computeProductBettiNumbers(himBetti, herBetti);
+    
+    var himComp : Float = 0.0;
+    for (b in himBetti.vals()) { himComp += Float.fromInt(b) };
+    var herComp : Float = 0.0;
+    for (b in herBetti.vals()) { herComp += Float.fromInt(b) };
+    
+    {
+      himBettiNumbers = himBetti;
+      himEulerChar = himChi;
+      himComplexity = himComp;
+      herBettiNumbers = herBetti;
+      herEulerChar = herChi;
+      herComplexity = herComp;
+      productBettiNumbers = productBetti;
+      combinedEulerChar = himChi * herChi;
+      connectingHomology = [1]; // Simplified
+      couplingStrength = Float.sqrt(himComp * herComp);
+    }
+  };
+
+  /// Compute Euler characteristic from Betti numbers
+  func eulerCharacteristicFromBetti(betti: [Nat]) : Int {
+    var chi : Int = 0;
+    var sign : Int = 1;
+    for (b in betti.vals()) {
+      chi += sign * b;
+      sign *= -1;
+    };
+    chi
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // BEAT EXECUTION — Full organism topology update
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Execute complete topology computation at organism beat
+  public func executeOrganismBeat(
+    state: UnifiedTopologicalState,
+    doctrine: MedinaTopologyDoctrine,
+    beat: Nat
+  ) : (UnifiedTopologicalState, MedinaTopologyDoctrine) {
+    // 1. Compute topological complexity
+    let complexity = computeTopologicalComplexity(state);
+    
+    // 2. Check for topological transition
+    // (would compare with previous state)
+    
+    // 3. Enforce doctrine
+    let (compliant, complianceScore) = enforceMedinaTopology(
+      state.eulerCharacteristic,
+      state.bettiNumbers,
+      doctrine
+    );
+    
+    // 4. Update states
+    let newState : UnifiedTopologicalState = {
+      eulerCharacteristic = state.eulerCharacteristic;
+      bettiNumbers = state.bettiNumbers;
+      fundamentalGroup = state.fundamentalGroup;
+      persistenceIntervals = state.persistenceIntervals;
+      persistenceEntropy = computeBettiEntropy(state.bettiNumbers);
+      kuramotoCoupling = state.kuramotoCoupling;
+      fristonCoupling = state.fristonCoupling;
+      hebbianCoupling = state.hebbianCoupling;
+      attractorCoupling = state.attractorCoupling;
+      entropyCoupling = state.entropyCoupling;
+      physicsCoupling = state.physicsCoupling;
+      quantumCoupling = state.quantumCoupling;
+      tensorCoupling = state.tensorCoupling;
+      topologicalStability = if (compliant) { state.topologicalStability } else { state.topologicalStability * 0.95 };
+      topologicalComplexity = complexity;
+      currentBeat = beat;
+      lastTopologyUpdate = state.currentBeat;
+    };
+    
+    let newDoctrine : MedinaTopologyDoctrine = {
+      requiredEulerChar = doctrine.requiredEulerChar;
+      requiredConnectedness = doctrine.requiredConnectedness;
+      maxGenus = doctrine.maxGenus;
+      forbiddenTorsion = doctrine.forbiddenTorsion;
+      goldenTopology = doctrine.goldenTopology;
+      harmonicBetti = doctrine.harmonicBetti;
+      topologyComplianceScore = complianceScore;
+      violationCount = if (compliant) { doctrine.violationCount } else { doctrine.violationCount + 1 };
+    };
+    
+    (newState, newDoctrine)
+  };
+
 }
