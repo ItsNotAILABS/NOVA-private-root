@@ -6295,4 +6295,1328 @@ module {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 24: SWARM COMMUNICATION PROTOCOLS
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  // Real communication protocols for drone swarms:
+  //   • Message types and encoding
+  //   • Network topology management
+  //   • Routing algorithms
+  //   • Encryption and authentication
+  //   • Bandwidth management
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Communication protocol state
+  public type CommProtocolState = {
+    // Network topology
+    networkTopology   : NetworkTopology;
+    
+    // Message queues
+    outboundQueue     : [ProtocolMessage];
+    inboundQueue      : [ProtocolMessage];
+    
+    // Routing
+    routingTable      : RoutingTable;
+    
+    // Security
+    securityState     : SecurityState;
+    
+    // Bandwidth
+    bandwidthState    : BandwidthState;
+    
+    // Statistics
+    commStats         : CommStatistics;
+    
+    beatNum           : Nat;
+  };
+
+  /// Network topology
+  public type NetworkTopology = {
+    // My ID
+    myNodeId          : Nat;
+    
+    // Known nodes
+    knownNodes        : [NetworkNode];
+    
+    // Links
+    links             : [NetworkLink];
+    
+    // Cluster info
+    clusterId         : Nat;
+    clusterHead       : ?Nat;
+    amClusterHead     : Bool;
+    
+    // Topology type
+    topologyType      : TopologyType;
+    
+    // Last update
+    lastTopologyUpdate : Nat;
+  };
+
+  /// Network node
+  public type NetworkNode = {
+    nodeId            : Nat;
+    position          : { lat: Float; lon: Float; alt: Float };
+    signalStrength    : Float;
+    lastHeard         : Nat;
+    capabilities      : [Text];
+    isAlive           : Bool;
+    hopCount          : Nat;
+  };
+
+  /// Network link
+  public type NetworkLink = {
+    sourceNode        : Nat;
+    destNode          : Nat;
+    linkQuality       : Float;
+    latency           : Float;
+    bandwidth         : Float;
+    isDirectional     : Bool;
+  };
+
+  /// Topology types
+  public type TopologyType = {
+    #Mesh;            // Full mesh (everyone talks to everyone)
+    #Star;            // Central hub
+    #Hierarchical;    // Multi-level clusters
+    #Ring;            // Circular
+    #Tree;            // Parent-child
+    #Hybrid;          // Combination
+  };
+
+  /// Protocol message
+  public type ProtocolMessage = {
+    messageId         : Nat;
+    sourceId          : Nat;
+    destId            : Nat;        // 0xFFFFFFFF = broadcast
+    messageType       : MessageType;
+    payload           : MessagePayload;
+    ttl               : Nat;
+    priority          : MessagePriority;
+    timestamp         : Nat;
+    requiresAck       : Bool;
+    encrypted         : Bool;
+  };
+
+  /// Message types
+  public type MessageType = {
+    #Heartbeat;       // Keep-alive
+    #Position;        // Position update
+    #Command;         // Control command
+    #Data;            // Sensor data
+    #Alert;           // Warning/alarm
+    #Ack;             // Acknowledgment
+    #RouteRequest;    // Routing
+    #RouteReply;
+    #Sync;            // Time sync
+    #Formation;       // Formation update
+    #Mission;         // Mission data
+    #Status;          // Status report
+  };
+
+  /// Message payload
+  public type MessagePayload = {
+    #Position : { lat: Float; lon: Float; alt: Float; vel: { vx: Float; vy: Float; vz: Float } };
+    #Command : { commandId: Nat; parameters: [Float] };
+    #SensorData : { sensorType: Text; data: [Float] };
+    #Alert : { alertType: Text; severity: Nat; details: Text };
+    #Route : { waypoints: [{ lat: Float; lon: Float }] };
+    #Status : { batteryLevel: Float; health: Float; mode: Text };
+    #Formation : { formationType: Text; myPosition: Nat };
+    #Raw : [Nat8];
+  };
+
+  /// Message priority
+  public type MessagePriority = {
+    #Critical;        // Highest, always send
+    #High;            // Important
+    #Normal;          // Regular
+    #Low;             // Can be delayed
+    #Background;      // Send when idle
+  };
+
+  /// Routing table
+  public type RoutingTable = {
+    entries           : [RoutingEntry];
+    defaultGateway    : ?Nat;
+    lastUpdate        : Nat;
+  };
+
+  /// Routing entry
+  public type RoutingEntry = {
+    destId            : Nat;
+    nextHop           : Nat;
+    hopCount          : Nat;
+    metric            : Float;
+    timestamp         : Nat;
+    isValid           : Bool;
+  };
+
+  /// Security state
+  public type SecurityState = {
+    // Keys
+    publicKey         : [Nat8];
+    privateKeyHash    : [Nat8];     // Don't store actual private key
+    sessionKeys       : [(Nat, [Nat8])];  // Per-node session keys
+    
+    // Authentication
+    isAuthenticated   : Bool;
+    authLevel         : Nat;
+    
+    // Trust
+    trustedNodes      : [Nat];
+    blacklistedNodes  : [Nat];
+    
+    // Encryption
+    encryptionEnabled : Bool;
+    encryptionType    : Text;
+  };
+
+  /// Bandwidth state
+  public type BandwidthState = {
+    // Capacity
+    maxBandwidth      : Float;      // bits/sec
+    currentUtilization : Float;
+    
+    // Quality of Service
+    qosEnabled        : Bool;
+    qosLevels         : [(MessagePriority, Float)];
+    
+    // Congestion
+    congestionLevel   : Float;
+    droppedPackets    : Nat;
+    
+    // Rate limiting
+    rateLimiters      : [(Nat, Float)];  // Per-node rate limits
+  };
+
+  /// Communication statistics
+  public type CommStatistics = {
+    messagesSent      : Nat;
+    messagesReceived  : Nat;
+    bytesTransmitted  : Nat;
+    bytesReceived     : Nat;
+    acksSent          : Nat;
+    acksReceived      : Nat;
+    retransmissions   : Nat;
+    droppedMessages   : Nat;
+    averageLatency    : Float;
+    packetLossRate    : Float;
+  };
+
+  /// Initialize communication protocol
+  public func initCommProtocol(myNodeId: Nat) : CommProtocolState {
+    {
+      networkTopology = {
+        myNodeId = myNodeId;
+        knownNodes = [];
+        links = [];
+        clusterId = 0;
+        clusterHead = null;
+        amClusterHead = false;
+        topologyType = #Mesh;
+        lastTopologyUpdate = 0;
+      };
+      outboundQueue = [];
+      inboundQueue = [];
+      routingTable = {
+        entries = [];
+        defaultGateway = null;
+        lastUpdate = 0;
+      };
+      securityState = {
+        publicKey = [];
+        privateKeyHash = [];
+        sessionKeys = [];
+        isAuthenticated = true;
+        authLevel = 1;
+        trustedNodes = [];
+        blacklistedNodes = [];
+        encryptionEnabled = false;
+        encryptionType = "none";
+      };
+      bandwidthState = {
+        maxBandwidth = 1000000.0;   // 1 Mbps
+        currentUtilization = 0.0;
+        qosEnabled = true;
+        qosLevels = [
+          (#Critical, 1.0),
+          (#High, 0.8),
+          (#Normal, 0.6),
+          (#Low, 0.4),
+          (#Background, 0.2)
+        ];
+        congestionLevel = 0.0;
+        droppedPackets = 0;
+        rateLimiters = [];
+      };
+      commStats = {
+        messagesSent = 0;
+        messagesReceived = 0;
+        bytesTransmitted = 0;
+        bytesReceived = 0;
+        acksSent = 0;
+        acksReceived = 0;
+        retransmissions = 0;
+        droppedMessages = 0;
+        averageLatency = 0.0;
+        packetLossRate = 0.0;
+      };
+      beatNum = 0;
+    }
+  };
+
+  /// Find route to destination
+  public func findRoute(
+    routing: RoutingTable,
+    destId: Nat,
+    topology: NetworkTopology
+  ) : ?Nat {
+    // Check routing table first
+    for (entry in routing.entries.vals()) {
+      if (entry.destId == destId and entry.isValid) {
+        return ?entry.nextHop;
+      };
+    };
+    
+    // Check for direct link
+    for (link in topology.links.vals()) {
+      if (link.sourceNode == topology.myNodeId and link.destNode == destId) {
+        return ?destId;  // Direct link
+      };
+    };
+    
+    // Use default gateway
+    routing.defaultGateway
+  };
+
+  /// Create message
+  public func createMessage(
+    protocol: CommProtocolState,
+    destId: Nat,
+    msgType: MessageType,
+    payload: MessagePayload,
+    priority: MessagePriority
+  ) : ProtocolMessage {
+    {
+      messageId = protocol.commStats.messagesSent;
+      sourceId = protocol.networkTopology.myNodeId;
+      destId = destId;
+      messageType = msgType;
+      payload = payload;
+      ttl = 10;
+      priority = priority;
+      timestamp = protocol.beatNum;
+      requiresAck = switch (priority) {
+        case (#Critical) { true };
+        case (#High) { true };
+        case _ { false };
+      };
+      encrypted = protocol.securityState.encryptionEnabled;
+    }
+  };
+
+  /// Queue message for sending
+  public func queueMessage(
+    protocol: CommProtocolState,
+    message: ProtocolMessage
+  ) : CommProtocolState {
+    // Priority insertion
+    var newQueue : [ProtocolMessage] = [];
+    var inserted = false;
+    
+    for (existing in protocol.outboundQueue.vals()) {
+      if (not inserted and comparePriority(message.priority, existing.priority)) {
+        newQueue := Array.append(newQueue, [message]);
+        inserted := true;
+      };
+      newQueue := Array.append(newQueue, [existing]);
+    };
+    
+    if (not inserted) {
+      newQueue := Array.append(newQueue, [message]);
+    };
+    
+    // Update stats
+    let newStats : CommStatistics = {
+      messagesSent = protocol.commStats.messagesSent + 1;
+      messagesReceived = protocol.commStats.messagesReceived;
+      bytesTransmitted = protocol.commStats.bytesTransmitted;
+      bytesReceived = protocol.commStats.bytesReceived;
+      acksSent = protocol.commStats.acksSent;
+      acksReceived = protocol.commStats.acksReceived;
+      retransmissions = protocol.commStats.retransmissions;
+      droppedMessages = protocol.commStats.droppedMessages;
+      averageLatency = protocol.commStats.averageLatency;
+      packetLossRate = protocol.commStats.packetLossRate;
+    };
+    
+    {
+      networkTopology = protocol.networkTopology;
+      outboundQueue = newQueue;
+      inboundQueue = protocol.inboundQueue;
+      routingTable = protocol.routingTable;
+      securityState = protocol.securityState;
+      bandwidthState = protocol.bandwidthState;
+      commStats = newStats;
+      beatNum = protocol.beatNum;
+    }
+  };
+
+  /// Compare message priorities
+  func comparePriority(a: MessagePriority, b: MessagePriority) : Bool {
+    let aVal = switch (a) {
+      case (#Critical) { 5 };
+      case (#High) { 4 };
+      case (#Normal) { 3 };
+      case (#Low) { 2 };
+      case (#Background) { 1 };
+    };
+    let bVal = switch (b) {
+      case (#Critical) { 5 };
+      case (#High) { 4 };
+      case (#Normal) { 3 };
+      case (#Low) { 2 };
+      case (#Background) { 1 };
+    };
+    aVal > bVal
+  };
+
+  /// Update network topology
+  public func updateTopology(
+    topology: NetworkTopology,
+    heardFrom: [{ nodeId: Nat; position: { lat: Float; lon: Float; alt: Float }; signalStrength: Float }],
+    beat: Nat
+  ) : NetworkTopology {
+    // Update known nodes
+    var newNodes = topology.knownNodes;
+    
+    for (heard in heardFrom.vals()) {
+      var found = false;
+      newNodes := Array.map<NetworkNode, NetworkNode>(newNodes, func(node) {
+        if (node.nodeId == heard.nodeId) {
+          found := true;
+          {
+            nodeId = node.nodeId;
+            position = heard.position;
+            signalStrength = heard.signalStrength;
+            lastHeard = beat;
+            capabilities = node.capabilities;
+            isAlive = true;
+            hopCount = 1;
+          }
+        } else { node }
+      });
+      
+      if (not found) {
+        let newNode : NetworkNode = {
+          nodeId = heard.nodeId;
+          position = heard.position;
+          signalStrength = heard.signalStrength;
+          lastHeard = beat;
+          capabilities = [];
+          isAlive = true;
+          hopCount = 1;
+        };
+        newNodes := Array.append(newNodes, [newNode]);
+      };
+    };
+    
+    // Mark stale nodes as dead
+    newNodes := Array.map<NetworkNode, NetworkNode>(newNodes, func(node) {
+      if (beat - node.lastHeard > 100) {
+        {
+          nodeId = node.nodeId;
+          position = node.position;
+          signalStrength = 0.0;
+          lastHeard = node.lastHeard;
+          capabilities = node.capabilities;
+          isAlive = false;
+          hopCount = node.hopCount;
+        }
+      } else { node }
+    });
+    
+    // Update links based on signal strength
+    var newLinks : [NetworkLink] = [];
+    for (node in newNodes.vals()) {
+      if (node.isAlive and node.signalStrength > 0.1) {
+        let link : NetworkLink = {
+          sourceNode = topology.myNodeId;
+          destNode = node.nodeId;
+          linkQuality = node.signalStrength;
+          latency = 0.01 / node.signalStrength;
+          bandwidth = node.signalStrength * 1000000.0;
+          isDirectional = false;
+        };
+        newLinks := Array.append(newLinks, [link]);
+      };
+    };
+    
+    {
+      myNodeId = topology.myNodeId;
+      knownNodes = newNodes;
+      links = newLinks;
+      clusterId = topology.clusterId;
+      clusterHead = topology.clusterHead;
+      amClusterHead = topology.amClusterHead;
+      topologyType = topology.topologyType;
+      lastTopologyUpdate = beat;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 25: COLLECTIVE INTELLIGENCE — EMERGENT COMPUTATION
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  // How the swarm performs collective computation:
+  //   • Distributed consensus
+  //   • Collective estimation
+  //   • Swarm optimization
+  //   • Emergent behavior patterns
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Collective intelligence state
+  public type CollectiveIntelligenceState = {
+    // Consensus
+    consensusState    : ConsensusState;
+    
+    // Collective estimation
+    estimationState   : CollectiveEstimationState;
+    
+    // Optimization
+    optimizationState : SwarmOptimizationState;
+    
+    // Emergent patterns
+    patternState      : EmergentPatternState;
+    
+    // Swarm wisdom
+    swarmWisdom       : SwarmWisdomState;
+    
+    beatNum           : Nat;
+  };
+
+  /// Consensus state
+  public type ConsensusState = {
+    // Current consensus topic
+    currentTopic      : ?ConsensusTopic;
+    
+    // My opinion
+    myOpinion         : [Float];
+    myConfidence      : Float;
+    
+    // Received opinions
+    opinions          : [(Nat, [Float], Float)];  // (nodeId, opinion, confidence)
+    
+    // Consensus value
+    consensusValue    : ?[Float];
+    consensusReached  : Bool;
+    convergenceRate   : Float;
+    
+    // History
+    consensusHistory  : [([Float], Nat)];
+  };
+
+  /// Consensus topic
+  public type ConsensusTopic = {
+    topicId           : Nat;
+    topicType         : Text;
+    dimensions        : Nat;
+    deadline          : ?Nat;
+    requiredAgreement : Float;
+  };
+
+  /// Collective estimation state
+  public type CollectiveEstimationState = {
+    // Target being estimated
+    estimationTarget  : Text;
+    
+    // My estimate
+    myEstimate        : [Float];
+    myUncertainty     : [Float];
+    
+    // Others' estimates
+    otherEstimates    : [(Nat, [Float], [Float])];  // (nodeId, estimate, uncertainty)
+    
+    // Fused estimate
+    fusedEstimate     : [Float];
+    fusedUncertainty  : [Float];
+    
+    // Weighting scheme
+    weightingScheme   : WeightingScheme;
+  };
+
+  /// Weighting schemes
+  public type WeightingScheme = {
+    #Equal;           // All equal weight
+    #InverseVariance; // Weight by 1/variance
+    #ReputationBased; // Weight by trust/reputation
+    #DistanceBased;   // Weight by proximity
+  };
+
+  /// Swarm optimization state
+  public type SwarmOptimizationState = {
+    // PSO state
+    psoState          : ?PSOState;
+    
+    // ACO state
+    acoState          : ?ACOState;
+    
+    // Genetic algorithm state
+    gaState           : ?GAState;
+    
+    // Current best
+    globalBest        : ?([Float], Float);  // (solution, fitness)
+    
+    // Convergence
+    iterationCount    : Nat;
+    improvementRate   : Float;
+  };
+
+  /// Particle Swarm Optimization state
+  public type PSOState = {
+    // My particle
+    position          : [Float];
+    velocity          : [Float];
+    personalBest      : [Float];
+    personalBestFitness : Float;
+    
+    // Parameters
+    inertia           : Float;
+    cognitive         : Float;
+    social            : Float;
+    
+    // Neighborhood
+    neighborhoodBest  : ?([Float], Float);
+  };
+
+  /// Ant Colony Optimization state
+  public type ACOState = {
+    // Pheromone map
+    pheromoneMap      : [[Float]];
+    
+    // My path
+    currentPath       : [Nat];
+    pathQuality       : Float;
+    
+    // Parameters
+    alpha             : Float;       // Pheromone importance
+    beta              : Float;       // Heuristic importance
+    evaporationRate   : Float;
+    
+    // Best path
+    bestPath          : [Nat];
+    bestPathQuality   : Float;
+  };
+
+  /// Genetic Algorithm state
+  public type GAState = {
+    // My chromosome
+    chromosome        : [Float];
+    fitness           : Float;
+    
+    // Population info
+    populationSize    : Nat;
+    generation        : Nat;
+    
+    // Parameters
+    mutationRate      : Float;
+    crossoverRate     : Float;
+    
+    // Best
+    bestChromosome    : [Float];
+    bestFitness       : Float;
+  };
+
+  /// Emergent pattern state
+  public type EmergentPatternState = {
+    // Detected patterns
+    detectedPatterns  : [DetectedPattern];
+    
+    // Pattern formation
+    formingPatterns   : [FormingPattern];
+    
+    // My contribution
+    myContribution    : PatternContribution;
+    
+    // Pattern stability
+    patternStability  : Float;
+  };
+
+  /// Detected pattern
+  public type DetectedPattern = {
+    patternId         : Nat;
+    patternType       : Text;
+    confidence        : Float;
+    participatingNodes : [Nat];
+    spatialExtent     : Float;
+    temporalDuration  : Nat;
+  };
+
+  /// Forming pattern
+  public type FormingPattern = {
+    patternId         : Nat;
+    targetPattern     : Text;
+    formationProgress : Float;
+    requiredNodes     : Nat;
+    currentNodes      : Nat;
+    coordinator       : ?Nat;
+  };
+
+  /// Pattern contribution
+  public type PatternContribution = {
+    currentPattern    : ?Nat;
+    myRole            : Text;
+    targetPosition    : ?{ x: Float; y: Float; z: Float };
+    alignmentError    : Float;
+  };
+
+  /// Swarm wisdom state
+  public type SwarmWisdomState = {
+    // Collective knowledge
+    sharedKnowledge   : [KnowledgeItem];
+    
+    // Information flow
+    informationEntropy : Float;
+    informationFlow   : Float;
+    
+    // Decision quality
+    collectiveAccuracy : Float;
+    diversityIndex    : Float;
+    
+    // Learning
+    collectiveLearning : Float;
+  };
+
+  /// Knowledge item
+  public type KnowledgeItem = {
+    itemId            : Nat;
+    content           : Text;
+    source            : Nat;
+    confidence        : Float;
+    corroborations    : Nat;
+    contradictions    : Nat;
+    timestamp         : Nat;
+  };
+
+  /// Initialize collective intelligence
+  public func initCollectiveIntelligence() : CollectiveIntelligenceState {
+    {
+      consensusState = {
+        currentTopic = null;
+        myOpinion = [];
+        myConfidence = 0.5;
+        opinions = [];
+        consensusValue = null;
+        consensusReached = false;
+        convergenceRate = 0.0;
+        consensusHistory = [];
+      };
+      estimationState = {
+        estimationTarget = "";
+        myEstimate = [];
+        myUncertainty = [];
+        otherEstimates = [];
+        fusedEstimate = [];
+        fusedUncertainty = [];
+        weightingScheme = #InverseVariance;
+      };
+      optimizationState = {
+        psoState = null;
+        acoState = null;
+        gaState = null;
+        globalBest = null;
+        iterationCount = 0;
+        improvementRate = 0.0;
+      };
+      patternState = {
+        detectedPatterns = [];
+        formingPatterns = [];
+        myContribution = {
+          currentPattern = null;
+          myRole = "none";
+          targetPosition = null;
+          alignmentError = 0.0;
+        };
+        patternStability = 0.0;
+      };
+      swarmWisdom = {
+        sharedKnowledge = [];
+        informationEntropy = 0.0;
+        informationFlow = 0.0;
+        collectiveAccuracy = 0.0;
+        diversityIndex = 0.0;
+        collectiveLearning = 0.0;
+      };
+      beatNum = 0;
+    }
+  };
+
+  /// Update consensus (average consensus algorithm)
+  public func updateConsensus(
+    consensus: ConsensusState,
+    receivedOpinions: [(Nat, [Float], Float)],
+    alpha: Float
+  ) : ConsensusState {
+    if (consensus.myOpinion.size() == 0) {
+      return consensus;
+    };
+    
+    // Combine all opinions
+    var allOpinions = Array.append(consensus.opinions, receivedOpinions);
+    
+    // Remove duplicates (keep most recent)
+    var seenNodes : [Nat] = [];
+    var uniqueOpinions : [(Nat, [Float], Float)] = [];
+    for ((nodeId, opinion, conf) in allOpinions.vals()) {
+      var seen = false;
+      for (s in seenNodes.vals()) { if (s == nodeId) { seen := true } };
+      if (not seen) {
+        seenNodes := Array.append(seenNodes, [nodeId]);
+        uniqueOpinions := Array.append(uniqueOpinions, [(nodeId, opinion, conf)]);
+      };
+    };
+    
+    // Weighted average
+    let dim = consensus.myOpinion.size();
+    var newOpinion : [Float] = Array.tabulate<Float>(dim, func(_) { 0.0 });
+    var totalWeight : Float = consensus.myConfidence;
+    
+    let newOpinionMut = Array.thaw<Float>(newOpinion);
+    
+    // Add my opinion
+    for (i in Iter.range(0, dim - 1)) {
+      newOpinionMut[i] := consensus.myOpinion[i] * consensus.myConfidence;
+    };
+    
+    // Add others
+    for ((_, opinion, conf) in uniqueOpinions.vals()) {
+      totalWeight += conf;
+      for (i in Iter.range(0, Int.min(dim, opinion.size()) - 1)) {
+        newOpinionMut[i] := newOpinionMut[i] + opinion[i] * conf;
+      };
+    };
+    
+    // Normalize
+    if (totalWeight > 0.0) {
+      for (i in Iter.range(0, dim - 1)) {
+        newOpinionMut[i] := newOpinionMut[i] / totalWeight;
+      };
+    };
+    
+    newOpinion := Array.freeze(newOpinionMut);
+    
+    // Mix with previous (smoothing)
+    let mixedOpinion = Array.tabulate<Float>(dim, func(i) {
+      consensus.myOpinion[i] * (1.0 - alpha) + newOpinion[i] * alpha
+    });
+    
+    // Check convergence
+    var maxDiff : Float = 0.0;
+    for ((_, opinion, _) in uniqueOpinions.vals()) {
+      for (i in Iter.range(0, Int.min(dim, opinion.size()) - 1)) {
+        let diff = Float.abs(mixedOpinion[i] - opinion[i]);
+        if (diff > maxDiff) { maxDiff := diff };
+      };
+    };
+    
+    let converged = maxDiff < 0.01;
+    
+    {
+      currentTopic = consensus.currentTopic;
+      myOpinion = mixedOpinion;
+      myConfidence = consensus.myConfidence;
+      opinions = uniqueOpinions;
+      consensusValue = if (converged) { ?mixedOpinion } else { null };
+      consensusReached = converged;
+      convergenceRate = 1.0 - maxDiff;
+      consensusHistory = if (converged) {
+        Array.append(consensus.consensusHistory, [(mixedOpinion, consensus.beatNum)])
+      } else { consensus.consensusHistory };
+    }
+  };
+
+  /// Fuse estimates (inverse variance weighting)
+  public func fuseEstimates(
+    estimation: CollectiveEstimationState
+  ) : CollectiveEstimationState {
+    if (estimation.myEstimate.size() == 0) {
+      return estimation;
+    };
+    
+    let dim = estimation.myEstimate.size();
+    var fusedEst : [Float] = Array.tabulate<Float>(dim, func(_) { 0.0 });
+    var totalPrecision : [Float] = Array.tabulate<Float>(dim, func(_) { 0.0 });
+    
+    let fusedMut = Array.thaw<Float>(fusedEst);
+    let precisionMut = Array.thaw<Float>(totalPrecision);
+    
+    // Add my estimate
+    for (i in Iter.range(0, dim - 1)) {
+      let myPrec = if (i < estimation.myUncertainty.size() and estimation.myUncertainty[i] > 0.001) {
+        1.0 / (estimation.myUncertainty[i] * estimation.myUncertainty[i])
+      } else { 1.0 };
+      
+      fusedMut[i] := estimation.myEstimate[i] * myPrec;
+      precisionMut[i] := myPrec;
+    };
+    
+    // Add others
+    for ((_, estimate, uncertainty) in estimation.otherEstimates.vals()) {
+      for (i in Iter.range(0, Int.min(dim, estimate.size()) - 1)) {
+        let prec = if (i < uncertainty.size() and uncertainty[i] > 0.001) {
+          1.0 / (uncertainty[i] * uncertainty[i])
+        } else { 1.0 };
+        
+        fusedMut[i] := fusedMut[i] + estimate[i] * prec;
+        precisionMut[i] := precisionMut[i] + prec;
+      };
+    };
+    
+    // Normalize
+    for (i in Iter.range(0, dim - 1)) {
+      if (precisionMut[i] > 0.0) {
+        fusedMut[i] := fusedMut[i] / precisionMut[i];
+      };
+    };
+    
+    fusedEst := Array.freeze(fusedMut);
+    totalPrecision := Array.freeze(precisionMut);
+    
+    // Compute fused uncertainty
+    let fusedUnc = Array.tabulate<Float>(dim, func(i) {
+      if (totalPrecision[i] > 0.0) {
+        Float.sqrt(1.0 / totalPrecision[i])
+      } else { 1.0 }
+    });
+    
+    {
+      estimationTarget = estimation.estimationTarget;
+      myEstimate = estimation.myEstimate;
+      myUncertainty = estimation.myUncertainty;
+      otherEstimates = estimation.otherEstimates;
+      fusedEstimate = fusedEst;
+      fusedUncertainty = fusedUnc;
+      weightingScheme = estimation.weightingScheme;
+    }
+  };
+
+  /// Update PSO
+  public func updatePSO(
+    pso: PSOState,
+    fitness: Float,
+    globalBest: ?([Float], Float),
+    randomSeed: Nat
+  ) : PSOState {
+    let dim = pso.position.size();
+    
+    // Update personal best
+    let (newPersonalBest, newPersonalFitness) = if (fitness > pso.personalBestFitness) {
+      (pso.position, fitness)
+    } else {
+      (pso.personalBest, pso.personalBestFitness)
+    };
+    
+    // Get neighborhood best
+    let neighborBest = switch (globalBest) {
+      case (?gb) { gb.0 };
+      case null { newPersonalBest };
+    };
+    
+    // Random factors (simplified)
+    let r1 = Float.fromInt(randomSeed % 1000) / 1000.0;
+    let r2 = Float.fromInt((randomSeed * 7) % 1000) / 1000.0;
+    
+    // Update velocity and position
+    let newVelocity = Array.tabulate<Float>(dim, func(i) {
+      let inertial = pso.inertia * pso.velocity[i];
+      let cognitive = pso.cognitive * r1 * (newPersonalBest[i] - pso.position[i]);
+      let social = pso.social * r2 * (neighborBest[i] - pso.position[i]);
+      inertial + cognitive + social
+    });
+    
+    let newPosition = Array.tabulate<Float>(dim, func(i) {
+      pso.position[i] + newVelocity[i]
+    });
+    
+    {
+      position = newPosition;
+      velocity = newVelocity;
+      personalBest = newPersonalBest;
+      personalBestFitness = newPersonalFitness;
+      inertia = pso.inertia;
+      cognitive = pso.cognitive;
+      social = pso.social;
+      neighborhoodBest = globalBest;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 26: SWARM HEALTH AND RESILIENCE
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Swarm health state
+  public type SwarmHealthState = {
+    // Population
+    totalDrones       : Nat;
+    activeDrones      : Nat;
+    damagedDrones     : Nat;
+    lostDrones        : Nat;
+    
+    // Connectivity
+    networkConnectivity : Float;
+    isolatedDrones    : Nat;
+    
+    // Resource levels
+    avgBattery        : Float;
+    minBattery        : Float;
+    
+    // Performance
+    missionCapability : Float;
+    redundancyLevel   : Float;
+    
+    // Fault tolerance
+    faultTolerance    : FaultToleranceState;
+    
+    // Resilience
+    resilienceMetrics : ResilienceMetrics;
+    
+    beatNum           : Nat;
+  };
+
+  /// Fault tolerance state
+  public type FaultToleranceState = {
+    // Failures
+    recentFailures    : [DroneFailure];
+    failureRate       : Float;
+    
+    // Recovery
+    recoveryActions   : [RecoveryAction];
+    recoverySuccessRate : Float;
+    
+    // Redundancy
+    roleCoverage      : [(Text, Nat)];  // (role, count)
+    criticalRolesOK   : Bool;
+    
+    // Adaptation
+    adaptationLevel   : Float;
+  };
+
+  /// Drone failure
+  public type DroneFailure = {
+    droneId           : Nat;
+    failureType       : Text;
+    timestamp         : Nat;
+    wasCritical       : Bool;
+    wasRecovered      : Bool;
+  };
+
+  /// Recovery action
+  public type RecoveryAction = {
+    actionId          : Nat;
+    actionType        : Text;
+    targetDrone       : Nat;
+    status            : Text;
+    startBeat         : Nat;
+    completionBeat    : ?Nat;
+  };
+
+  /// Resilience metrics
+  public type ResilienceMetrics = {
+    // Robustness
+    robustness        : Float;
+    
+    // Adaptability
+    adaptability      : Float;
+    
+    // Recovery time
+    meanTimeToRecover : Float;
+    
+    // Graceful degradation
+    degradationCurve  : [Float];
+    
+    // Overall resilience score
+    resilienceScore   : Float;
+  };
+
+  /// Initialize swarm health
+  public func initSwarmHealth(numDrones: Nat) : SwarmHealthState {
+    {
+      totalDrones = numDrones;
+      activeDrones = numDrones;
+      damagedDrones = 0;
+      lostDrones = 0;
+      networkConnectivity = 1.0;
+      isolatedDrones = 0;
+      avgBattery = 1.0;
+      minBattery = 1.0;
+      missionCapability = 1.0;
+      redundancyLevel = 1.0;
+      faultTolerance = {
+        recentFailures = [];
+        failureRate = 0.0;
+        recoveryActions = [];
+        recoverySuccessRate = 1.0;
+        roleCoverage = [];
+        criticalRolesOK = true;
+        adaptationLevel = 0.5;
+      };
+      resilienceMetrics = {
+        robustness = 1.0;
+        adaptability = 0.5;
+        meanTimeToRecover = 0.0;
+        degradationCurve = [];
+        resilienceScore = 0.8;
+      };
+      beatNum = 0;
+    }
+  };
+
+  /// Update swarm health
+  public func updateSwarmHealth(
+    health: SwarmHealthState,
+    droneStatuses: [{ droneId: Nat; isActive: Bool; battery: Float; isConnected: Bool }],
+    beat: Nat
+  ) : SwarmHealthState {
+    var active : Nat = 0;
+    var damaged : Nat = 0;
+    var isolated : Nat = 0;
+    var totalBattery : Float = 0.0;
+    var minBat : Float = 1.0;
+    
+    for (status in droneStatuses.vals()) {
+      if (status.isActive) {
+        active += 1;
+        totalBattery += status.battery;
+        if (status.battery < minBat) { minBat := status.battery };
+        if (not status.isConnected) { isolated += 1 };
+      } else {
+        damaged += 1;
+      };
+    };
+    
+    let total = droneStatuses.size();
+    let lost = health.totalDrones - total;
+    let avgBat = if (active > 0) { totalBattery / Float.fromInt(active) } else { 0.0 };
+    let connectivity = if (active > 0) { Float.fromInt(active - isolated) / Float.fromInt(active) } else { 0.0 };
+    
+    // Mission capability
+    let capability = Float.fromInt(active) / Float.fromInt(health.totalDrones) * avgBat;
+    
+    // Redundancy
+    let redundancy = Float.fromInt(active) / Float.max(Float.fromInt(health.totalDrones) * 0.5, 1.0);
+    
+    // Failure rate
+    let failureRate = Float.fromInt(damaged + lost) / Float.fromInt(health.totalDrones);
+    
+    // Resilience score
+    let resilience = (capability + connectivity + redundancy) / 3.0;
+    
+    {
+      totalDrones = health.totalDrones;
+      activeDrones = active;
+      damagedDrones = damaged;
+      lostDrones = lost;
+      networkConnectivity = connectivity;
+      isolatedDrones = isolated;
+      avgBattery = avgBat;
+      minBattery = minBat;
+      missionCapability = capability;
+      redundancyLevel = redundancy;
+      faultTolerance = {
+        recentFailures = health.faultTolerance.recentFailures;
+        failureRate = failureRate;
+        recoveryActions = health.faultTolerance.recoveryActions;
+        recoverySuccessRate = health.faultTolerance.recoverySuccessRate;
+        roleCoverage = health.faultTolerance.roleCoverage;
+        criticalRolesOK = active >= health.totalDrones / 2;
+        adaptationLevel = health.faultTolerance.adaptationLevel;
+      };
+      resilienceMetrics = {
+        robustness = 1.0 - failureRate;
+        adaptability = health.resilienceMetrics.adaptability;
+        meanTimeToRecover = health.resilienceMetrics.meanTimeToRecover;
+        degradationCurve = health.resilienceMetrics.degradationCurve;
+        resilienceScore = resilience;
+      };
+      beatNum = beat;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 27: FINAL SUPREME SWARM INTEGRATION
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Supreme swarm state
+  public type SupremeSwarmState = {
+    // Previous ultimate state
+    ultimate          : UltimateSwarmState;
+    
+    // Communication
+    commProtocol      : CommProtocolState;
+    
+    // Collective intelligence
+    collectiveIntel   : CollectiveIntelligenceState;
+    
+    // Health
+    swarmHealth       : SwarmHealthState;
+    
+    // Supreme metrics
+    supremeEfficiency : Float;
+    supremeResilience : Float;
+    supremeIntelligence : Float;
+    
+    beatNum           : Nat;
+  };
+
+  /// Initialize supreme swarm
+  public func initSupremeSwarm(
+    centroid: { lat: Float; lon: Float; alt: Float },
+    numDrones: Nat,
+    myNodeId: Nat
+  ) : SupremeSwarmState {
+    {
+      ultimate = initUltimateSwarm(centroid);
+      commProtocol = initCommProtocol(myNodeId);
+      collectiveIntel = initCollectiveIntelligence();
+      swarmHealth = initSwarmHealth(numDrones);
+      supremeEfficiency = 0.5;
+      supremeResilience = 1.0;
+      supremeIntelligence = 0.5;
+      beatNum = 0;
+    }
+  };
+
+  /// Tick supreme swarm
+  public func tickSupremeSwarm(
+    state: SupremeSwarmState,
+    detectedEntities: [{ position: { lat: Float; lon: Float; alt: Float }; type_: Text; velocity: { vx: Float; vy: Float; vz: Float } }],
+    currentPosition: { lat: Float; lon: Float; alt: Float },
+    currentVelocity: { vx: Float; vy: Float; vz: Float },
+    heardNodes: [{ nodeId: Nat; position: { lat: Float; lon: Float; alt: Float }; signalStrength: Float }],
+    receivedOpinions: [(Nat, [Float], Float)],
+    droneStatuses: [{ droneId: Nat; isActive: Bool; battery: Float; isConnected: Bool }],
+    powerDraw: Float,
+    dt: Float
+  ) : SupremeSwarmState {
+    // 1. Update ultimate state
+    let newUltimate = tickUltimateSwarm(
+      state.ultimate,
+      detectedEntities,
+      currentPosition,
+      currentVelocity,
+      powerDraw,
+      dt
+    );
+    
+    // 2. Update communication topology
+    let newTopology = updateTopology(
+      state.commProtocol.networkTopology,
+      heardNodes,
+      state.beatNum
+    );
+    
+    let newCommProtocol : CommProtocolState = {
+      networkTopology = newTopology;
+      outboundQueue = state.commProtocol.outboundQueue;
+      inboundQueue = state.commProtocol.inboundQueue;
+      routingTable = state.commProtocol.routingTable;
+      securityState = state.commProtocol.securityState;
+      bandwidthState = state.commProtocol.bandwidthState;
+      commStats = state.commProtocol.commStats;
+      beatNum = state.commProtocol.beatNum + 1;
+    };
+    
+    // 3. Update consensus
+    let newConsensus = updateConsensus(
+      state.collectiveIntel.consensusState,
+      receivedOpinions,
+      0.2
+    );
+    
+    // 4. Fuse estimates
+    let newEstimation = fuseEstimates(state.collectiveIntel.estimationState);
+    
+    let newCollectiveIntel : CollectiveIntelligenceState = {
+      consensusState = newConsensus;
+      estimationState = newEstimation;
+      optimizationState = state.collectiveIntel.optimizationState;
+      patternState = state.collectiveIntel.patternState;
+      swarmWisdom = state.collectiveIntel.swarmWisdom;
+      beatNum = state.collectiveIntel.beatNum + 1;
+    };
+    
+    // 5. Update health
+    let newHealth = updateSwarmHealth(state.swarmHealth, droneStatuses, state.beatNum);
+    
+    // 6. Compute supreme metrics
+    let efficiency = newUltimate.missionSuccess * newHealth.missionCapability;
+    let resilience = newHealth.resilienceMetrics.resilienceScore;
+    let intelligence = newConsensus.convergenceRate * 0.5 + 
+                       (if (newCollectiveIntel.estimationState.fusedUncertainty.size() > 0) {
+                         1.0 - newCollectiveIntel.estimationState.fusedUncertainty[0]
+                       } else { 0.0 }) * 0.5;
+    
+    {
+      ultimate = newUltimate;
+      commProtocol = newCommProtocol;
+      collectiveIntel = newCollectiveIntel;
+      swarmHealth = newHealth;
+      supremeEfficiency = efficiency;
+      supremeResilience = resilience;
+      supremeIntelligence = intelligence;
+      beatNum = state.beatNum + 1;
+    }
+  };
+
+  /// Supreme swarm output
+  public type SupremeSwarmOutput = {
+    // From ultimate
+    tacticalMode      : TacticalMode;
+    threatLevel       : Float;
+    missionSuccess    : Float;
+    
+    // Communication
+    networkSize       : Nat;
+    networkConnectivity : Float;
+    
+    // Intelligence
+    consensusReached  : Bool;
+    collectiveAccuracy : Float;
+    
+    // Health
+    activeDrones      : Nat;
+    resilienceScore   : Float;
+    
+    // Supreme
+    supremeEfficiency : Float;
+    supremeResilience : Float;
+    supremeIntelligence : Float;
+    
+    beatNum           : Nat;
+  };
+
+  public func generateSupremeSwarmOutput(state: SupremeSwarmState) : SupremeSwarmOutput {
+    let ultimateOut = generateUltimateSwarmOutput(state.ultimate);
+    
+    {
+      tacticalMode = ultimateOut.tacticalMode;
+      threatLevel = ultimateOut.threatLevel;
+      missionSuccess = ultimateOut.missionSuccess;
+      networkSize = state.commProtocol.networkTopology.knownNodes.size();
+      networkConnectivity = state.swarmHealth.networkConnectivity;
+      consensusReached = state.collectiveIntel.consensusState.consensusReached;
+      collectiveAccuracy = state.collectiveIntel.swarmWisdom.collectiveAccuracy;
+      activeDrones = state.swarmHealth.activeDrones;
+      resilienceScore = state.swarmHealth.resilienceMetrics.resilienceScore;
+      supremeEfficiency = state.supremeEfficiency;
+      supremeResilience = state.supremeResilience;
+      supremeIntelligence = state.supremeIntelligence;
+      beatNum = state.beatNum;
+    }
+  };
+
 }
