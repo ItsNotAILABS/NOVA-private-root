@@ -354,6 +354,18 @@ import WarfareDoctrine                               "./modules/WarfareDoctrine"
 import WeatherSystem                                 "./modules/WeatherSystem";
 import WolfPackProtocol                              "./modules/WolfPackProtocol";
 import World3D                                       "./modules/World3D";
+import DifferentialGeometryEngine                    "./modules/DifferentialGeometryEngine";
+import HarmonicAnalysisEngine                        "./modules/HarmonicAnalysisEngine";
+import HeartbeatEngine                               "./modules/HeartbeatEngine";
+import InternalAILabs                                "./modules/InternalAILabs";
+import MultiResponsibilityEngine                     "./modules/MultiResponsibilityEngine";
+import NeuroEmergenceSubstrate                       "./modules/NeuroEmergenceSubstrate";
+import NonlinearDynamicsEngine                       "./modules/NonlinearDynamicsEngine";
+import SphericalWebMathEngine                        "./modules/SphericalWebMathEngine";
+import StabilityBudgetEngine                         "./modules/StabilityBudgetEngine";
+import TensorFieldEngine                             "./modules/TensorFieldEngine";
+import TopologicalFieldEngine                        "./modules/TopologicalFieldEngine";
+import TriModalSwarmKernel                           "./modules/TriModalSwarmKernel";
 
 actor SwarmBrain {
 
@@ -776,6 +788,69 @@ actor SwarmBrain {
   // Silver conductance permanently 1.0, all world model EMAs at zero lag
   stable var silverConductance : Float = 1.0;
   
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COMPREHENSIVE MODULE STATE — ALL 239 MODULES WIRED
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  // ─── LAYER 1: CORE COGNITIVE NEURODYNAMICS ──────────────────────────────────
+  var kuramotoState : KuramotoEngine.KuramotoState = KuramotoEngine.initKuramoto();
+  var fristonState : FristonEngine.FreeEnergyState = FristonEngine.initFreeEnergy();
+  var hebbianState : HebbianPlasticity.HebbianState = HebbianPlasticity.initState();
+  var attractorState : AttractorDynamics.AttractorState = AttractorDynamics.initAttractors();
+  var predictiveState : PredictiveCoding.PredictiveState = PredictiveCoding.initPredictive();
+  stable var neurodynamicsActive : Bool = false;
+  
+  // ─── LAYER 2: EMERGENCE & COMPLEXITY ────────────────────────────────────────
+  var neuroEmergenceState : NeuroEmergenceCore.EmergenceState = NeuroEmergenceCore.initEmergence();
+  var emergencePhysicsState : EmergencePhysicsEngine.PhysicsState = EmergencePhysicsEngine.initPhysics();
+  stable var emergenceLayerActive : Bool = false;
+  
+  // ─── LAYER 3: ORGANISM INTEGRATION ──────────────────────────────────────────
+  var herOrganismState : HerOrganismEngine.OrganismState = HerOrganismEngine.initOrganism();
+  var twoOrganismState : TwoOrganismArchitecture.DualOrganismState = TwoOrganismArchitecture.initDualOrganism();
+  var superOrganismState : SuperOrganismCore.SuperOrganismState = SuperOrganismCore.initSuperOrganism();
+  stable var organismLayerActive : Bool = false;
+  
+  // ─── LAYER 4: ADVANCED MATHEMATICS ──────────────────────────────────────────
+  var differentialGeometryState : DifferentialGeometryEngine.GeometryState = DifferentialGeometryEngine.initGeometry();
+  var tensorFieldState : TensorFieldEngine.TensorState = TensorFieldEngine.initTensor();
+  var harmonicAnalysisState : HarmonicAnalysisEngine.HarmonicState = HarmonicAnalysisEngine.initHarmonic();
+  var topologicalFieldState : TopologicalFieldEngine.TopologyState = TopologicalFieldEngine.initTopology();
+  var nonlinearDynamicsState : NonlinearDynamicsEngine.DynamicsState = NonlinearDynamicsEngine.initDynamics();
+  stable var mathLayerActive : Bool = false;
+  
+  // ─── LAYER 5: QUANTUM PROCESSING ────────────────────────────────────────────
+  var quantumMathState : QuantumMath.QuantumState = QuantumMath.initQuantum();
+  var quantumCoherenceState : QuantumCoherenceAmplifier.CoherenceState = QuantumCoherenceAmplifier.initCoherence();
+  var quantumEntanglementState : QuantumEntanglementMatrix.EntanglementState = QuantumEntanglementMatrix.initEntanglement();
+  stable var quantumLayerActive : Bool = false;
+  
+  // ─── LAYER 6: MEDINA SACRED ARCHITECTURE ────────────────────────────────────
+  var medinaFabricState : MedinaSphericalCompoundingFabric.FabricState = MedinaSphericalCompoundingFabric.initFabric();
+  var medinaMathState : MedinaMathFoundation.MathState = MedinaMathFoundation.initMath();
+  var sacredMathState : SacredMathematicsEngine.SacredState = SacredMathematicsEngine.initSacred();
+  stable var medinaLayerActive : Bool = false;
+  
+  // ─── LAYER 7: ANIMAL COGNITION ──────────────────────────────────────────────
+  var beeSwarmState : BeeSwarmIntelligence.SwarmState = BeeSwarmIntelligence.initSwarm();
+  var crowCognitionState : CrowCognition.CognitiveState = CrowCognition.initCognition();
+  var elephantMemoryState : ElephantMemory.MemoryState = ElephantMemory.initMemory();
+  var octopusBrainState : OctopusBrain.DistributedState = OctopusBrain.initBrain();
+  stable var animalCognitionActive : Bool = false;
+  
+  // ─── LAYER 8: DEFENSE & WAR ─────────────────────────────────────────────────
+  var aegisState : AEGIS.AEGISState = AEGIS.initAEGIS();
+  var autonomousWarState : AutonomousWarEngine.WarState = AutonomousWarEngine.initWar();
+  stable var defenseLayerActive : Bool = false;
+  
+  // ─── LAYER 9: HEARTBEAT & ORCHESTRATION ─────────────────────────────────────
+  var heartbeatState : HeartbeatEngine.HeartbeatState = HeartbeatEngine.initHeartbeat();
+  stable var orchestrationActive : Bool = false;
+  
+  // ─── MODULE ACTIVATION TRACKING ─────────────────────────────────────────────
+  stable var modulesCalledThisBeat : Nat = 0;
+  stable var totalModuleCallsAllTime : Nat = 0;
+
   // ─── ACCESS CONTROL HELPERS ─────────────────────────────────────────────────
   func isAuthorized(caller : Principal) : Bool {
     // Pre-genesis: allow deployment setup
