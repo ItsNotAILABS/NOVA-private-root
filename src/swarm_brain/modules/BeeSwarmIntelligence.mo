@@ -3795,4 +3795,1161 @@ module {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ██████╗ ███████╗███████╗    ███████╗██╗    ██╗ █████╗ ██████╗ ███╗   ███╗
+  // ██╔══██╗██╔════╝██╔════╝    ██╔════╝██║    ██║██╔══██╗██╔══██╗████╗ ████║
+  // ██████╔╝█████╗  █████╗      ███████╗██║ █╗ ██║███████║██████╔╝██╔████╔██║
+  // ██╔══██╗██╔══╝  ██╔══╝      ╚════██║██║███╗██║██╔══██║██╔══██╗██║╚██╔╝██║
+  // ██████╔╝███████╗███████╗    ███████║╚███╔███╔╝██║  ██║██║  ██║██║ ╚═╝ ██║
+  // ╚═════╝ ╚══════╝╚══════╝    ╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 25: REAL BEE SWARM BEHAVIOR — QUEEN FOLLOWING & COLONY MIGRATION
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  // When a colony swarms, it's one of the most beautiful behaviors in nature:
+  //   1. Scout bees find potential new nest sites
+  //   2. Scouts perform waggle dances to recruit followers
+  //   3. More scouts visit and "vote" via dance intensity
+  //   4. When enough scouts agree (quorum), the swarm commits
+  //   5. The entire swarm lifts off and follows the scouts
+  //   6. They form a "bee tornado" spiraling upward
+  //   7. The swarm moves as ONE ORGANISM toward the new site
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Swarm migration state
+  public type SwarmMigrationState = {
+    // Migration phase
+    phase           : MigrationPhase;
+    phaseStartBeat  : Nat;
+    
+    // Scout activity
+    scoutIds        : [Nat];        // IDs of scout drones
+    scoutReports    : [ScoutReport];
+    
+    // Nest site candidates
+    candidateSites  : [NestSiteCandidate];
+    
+    // Quorum voting
+    votingState     : QuorumVotingState;
+    
+    // Queen (or high-value asset)
+    queenId         : ?Nat;
+    queenPosition   : ?{ lat: Float; lon: Float; alt: Float };
+    queenEscorts    : [Nat];
+    
+    // Swarm cluster
+    clusterCenter   : { lat: Float; lon: Float; alt: Float };
+    clusterRadius   : Float;
+    clusterDensity  : Float;
+    
+    // Movement
+    targetSite      : ?NestSiteCandidate;
+    movementSpeed   : Float;
+    movementHeading : Float;
+    
+    // Temperature regulation
+    clusterTemperature : Float;     // Core temperature
+    ambientTemperature : Float;
+    
+    beatNum         : Nat;
+  };
+
+  /// Migration phases
+  public type MigrationPhase = {
+    #Clustering;      // Forming cluster at departure point
+    #Scouting;        // Scouts exploring for sites
+    #Deliberating;    // Waggle dance competition
+    #Preparing;       // Pre-flight warm-up
+    #Launching;       // Liftoff phase
+    #Flying;          // In transit
+    #Approaching;     // Near destination
+    #Landing;         // Settling at new site
+    #Establishing;    // Setting up new nest
+  };
+
+  /// Scout report
+  public type ScoutReport = {
+    scoutId         : Nat;
+    timestamp       : Nat;
+    
+    // Site information
+    siteLocation    : { lat: Float; lon: Float; alt: Float };
+    siteQuality     : Float;        // 0-1
+    
+    // Quality factors
+    volumeFactor    : Float;        // Space adequacy
+    entranceFactor  : Float;        // Entrance quality
+    shelterFactor   : Float;        // Protection from elements
+    resourceFactor  : Float;        // Nearby resources
+    
+    // Scout assessment
+    confidence      : Float;
+    visitCount      : Nat;
+    
+    // Dance parameters
+    danceIntensity  : Float;
+    danceDuration   : Float;
+  };
+
+  /// Nest site candidate
+  public type NestSiteCandidate = {
+    siteId          : Nat;
+    location        : { lat: Float; lon: Float; alt: Float };
+    
+    // Aggregated quality
+    overallQuality  : Float;
+    qualityHistory  : [Float];
+    
+    // Votes
+    supportingScouts : [Nat];
+    voteStrength    : Float;
+    
+    // Status
+    isViable        : Bool;
+    isSelected      : Bool;
+    
+    // Discovery
+    discoveredAt    : Nat;
+    discoveredBy    : Nat;
+  };
+
+  /// Quorum voting state
+  public type QuorumVotingState = {
+    // Voting parameters
+    quorumThreshold : Float;        // Fraction of scouts needed
+    currentQuorum   : Float;
+    
+    // Vote counts per site
+    siteVotes       : [(Nat, Float)];  // (siteId, voteStrength)
+    
+    // Leading candidate
+    leadingSite     : ?Nat;
+    leadStrength    : Float;
+    
+    // Consensus metrics
+    consensusLevel  : Float;
+    votingEntropy   : Float;        // Low entropy = high consensus
+    
+    // Deliberation state
+    roundNumber     : Nat;
+    deadlockCount   : Nat;
+    
+    // Decision
+    decisionMade    : Bool;
+    decisionBeat    : ?Nat;
+  };
+
+  /// Initialize migration state
+  public func initMigrationState(
+    swarmSize: Nat,
+    startPosition: { lat: Float; lon: Float; alt: Float },
+    ambientTemp: Float
+  ) : SwarmMigrationState {
+    // Designate ~10% as scouts
+    let numScouts = (swarmSize + 9) / 10;
+    let scouts = Array.tabulate<Nat>(numScouts, func(i) { i * 10 });  // Every 10th drone
+    
+    {
+      phase = #Clustering;
+      phaseStartBeat = 0;
+      scoutIds = scouts;
+      scoutReports = [];
+      candidateSites = [];
+      votingState = {
+        quorumThreshold = 0.3;  // 30% of scouts must agree
+        currentQuorum = 0.0;
+        siteVotes = [];
+        leadingSite = null;
+        leadStrength = 0.0;
+        consensusLevel = 0.0;
+        votingEntropy = 1.0;
+        roundNumber = 0;
+        deadlockCount = 0;
+        decisionMade = false;
+        decisionBeat = null;
+      };
+      queenId = null;  // Will be assigned
+      queenPosition = ?startPosition;
+      queenEscorts = [];
+      clusterCenter = startPosition;
+      clusterRadius = 5.0;  // 5 meters initially
+      clusterDensity = 0.8;
+      targetSite = null;
+      movementSpeed = 0.0;
+      movementHeading = 0.0;
+      clusterTemperature = 35.0;  // Bee cluster maintains ~35°C
+      ambientTemperature = ambientTemp;
+      beatNum = 0;
+    }
+  };
+
+  /// Process scout report and update candidates
+  public func processScoutReport(
+    state: SwarmMigrationState,
+    report: ScoutReport
+  ) : SwarmMigrationState {
+    // Check if this is a new site or update to existing
+    var candidateSites = state.candidateSites;
+    var foundExisting = false;
+    
+    let newCandidates = Array.map<NestSiteCandidate, NestSiteCandidate>(candidateSites, func(site) {
+      let dist = haversineDistance(
+        site.location.lat, site.location.lon,
+        report.siteLocation.lat, report.siteLocation.lon
+      );
+      
+      if (dist < 50.0) {  // Within 50 meters = same site
+        foundExisting := true;
+        // Update site with new report
+        var newSupporting = site.supportingScouts;
+        var alreadySupporting = false;
+        for (sid in newSupporting.vals()) {
+          if (sid == report.scoutId) { alreadySupporting := true };
+        };
+        if (not alreadySupporting) {
+          newSupporting := Array.append(newSupporting, [report.scoutId]);
+        };
+        
+        let newQuality = (site.overallQuality * Float.fromInt(site.supportingScouts.size()) + report.siteQuality) /
+                         Float.fromInt(newSupporting.size());
+        
+        {
+          siteId = site.siteId;
+          location = {
+            lat = (site.location.lat + report.siteLocation.lat) / 2.0;
+            lon = (site.location.lon + report.siteLocation.lon) / 2.0;
+            alt = (site.location.alt + report.siteLocation.alt) / 2.0;
+          };
+          overallQuality = newQuality;
+          qualityHistory = Array.append(site.qualityHistory, [report.siteQuality]);
+          supportingScouts = newSupporting;
+          voteStrength = Float.fromInt(newSupporting.size()) * newQuality;
+          isViable = newQuality > 0.3;
+          isSelected = site.isSelected;
+          discoveredAt = site.discoveredAt;
+          discoveredBy = site.discoveredBy;
+        }
+      } else { site }
+    });
+    
+    let finalCandidates = if (foundExisting) {
+      newCandidates
+    } else {
+      // New site
+      Array.append(newCandidates, [{
+        siteId = newCandidates.size();
+        location = report.siteLocation;
+        overallQuality = report.siteQuality;
+        qualityHistory = [report.siteQuality];
+        supportingScouts = [report.scoutId];
+        voteStrength = report.siteQuality;
+        isViable = report.siteQuality > 0.3;
+        isSelected = false;
+        discoveredAt = state.beatNum;
+        discoveredBy = report.scoutId;
+      }])
+    };
+    
+    // Update voting
+    var siteVotes : [(Nat, Float)] = [];
+    for (site in finalCandidates.vals()) {
+      siteVotes := Array.append(siteVotes, [(site.siteId, site.voteStrength)]);
+    };
+    
+    // Find leading site
+    var maxVote : Float = 0.0;
+    var leadId : ?Nat = null;
+    for ((id, vote) in siteVotes.vals()) {
+      if (vote > maxVote) {
+        maxVote := vote;
+        leadId := ?id;
+      };
+    };
+    
+    // Compute quorum
+    let totalScouts = Float.fromInt(state.scoutIds.size());
+    var votingScouts : Nat = 0;
+    for (site in finalCandidates.vals()) {
+      votingScouts += site.supportingScouts.size();
+    };
+    // Deduplicate (scouts may visit multiple sites)
+    let currentQuorum = Float.fromInt(votingScouts) / totalScouts;
+    
+    // Compute consensus (entropy)
+    var totalVotes : Float = 0.0;
+    for ((_, v) in siteVotes.vals()) { totalVotes += v };
+    var entropy : Float = 0.0;
+    if (totalVotes > 0.0) {
+      for ((_, v) in siteVotes.vals()) {
+        let p = v / totalVotes;
+        if (p > 0.01) {
+          entropy -= p * Float.log(p);
+        };
+      };
+    };
+    let maxEntropy = Float.log(Float.fromInt(siteVotes.size() + 1));
+    let consensusLevel = if (maxEntropy > 0.0) { 1.0 - entropy / maxEntropy } else { 1.0 };
+    
+    // Check if decision reached
+    let decisionMade = maxVote / totalScouts > state.votingState.quorumThreshold and consensusLevel > 0.7;
+    
+    {
+      phase = state.phase;
+      phaseStartBeat = state.phaseStartBeat;
+      scoutIds = state.scoutIds;
+      scoutReports = Array.append(state.scoutReports, [report]);
+      candidateSites = finalCandidates;
+      votingState = {
+        quorumThreshold = state.votingState.quorumThreshold;
+        currentQuorum = currentQuorum;
+        siteVotes = siteVotes;
+        leadingSite = leadId;
+        leadStrength = maxVote;
+        consensusLevel = consensusLevel;
+        votingEntropy = entropy;
+        roundNumber = state.votingState.roundNumber;
+        deadlockCount = state.votingState.deadlockCount;
+        decisionMade = decisionMade;
+        decisionBeat = if (decisionMade and state.votingState.decisionBeat == null) { ?state.beatNum } else { state.votingState.decisionBeat };
+      };
+      queenId = state.queenId;
+      queenPosition = state.queenPosition;
+      queenEscorts = state.queenEscorts;
+      clusterCenter = state.clusterCenter;
+      clusterRadius = state.clusterRadius;
+      clusterDensity = state.clusterDensity;
+      targetSite = if (decisionMade) {
+        switch (leadId) {
+          case (?id) {
+            var found : ?NestSiteCandidate = null;
+            for (site in finalCandidates.vals()) {
+              if (site.siteId == id) { found := ?site };
+            };
+            found
+          };
+          case null { null };
+        }
+      } else { state.targetSite };
+      movementSpeed = state.movementSpeed;
+      movementHeading = state.movementHeading;
+      clusterTemperature = state.clusterTemperature;
+      ambientTemperature = state.ambientTemperature;
+      beatNum = state.beatNum;
+    }
+  };
+
+  /// Update migration phase
+  public func updateMigrationPhase(
+    state: SwarmMigrationState,
+    swarmCoherence: Float,
+    dt: Float
+  ) : SwarmMigrationState {
+    let timeSincePhaseStart = state.beatNum - state.phaseStartBeat;
+    
+    let newPhase : MigrationPhase = switch (state.phase) {
+      case (#Clustering) {
+        // Ready to scout when cluster is formed
+        if (state.clusterDensity > 0.7 and timeSincePhaseStart > 100) {
+          #Scouting
+        } else { #Clustering }
+      };
+      case (#Scouting) {
+        // Move to deliberating when we have candidates
+        if (state.candidateSites.size() > 0 and timeSincePhaseStart > 200) {
+          #Deliberating
+        } else { #Scouting }
+      };
+      case (#Deliberating) {
+        // Decision made
+        if (state.votingState.decisionMade) {
+          #Preparing
+        } else if (timeSincePhaseStart > 1000) {
+          // Deadlock - restart scouting
+          #Scouting
+        } else { #Deliberating }
+      };
+      case (#Preparing) {
+        // Warm up complete
+        if (state.clusterTemperature > 38.0 and timeSincePhaseStart > 50) {
+          #Launching
+        } else { #Preparing }
+      };
+      case (#Launching) {
+        // All drones airborne
+        if (swarmCoherence > 0.8 and timeSincePhaseStart > 30) {
+          #Flying
+        } else { #Launching }
+      };
+      case (#Flying) {
+        // Near target
+        switch (state.targetSite) {
+          case (?site) {
+            let dist = haversineDistance(
+              state.clusterCenter.lat, state.clusterCenter.lon,
+              site.location.lat, site.location.lon
+            );
+            if (dist < 100.0) { #Approaching } else { #Flying }
+          };
+          case null { #Flying };
+        }
+      };
+      case (#Approaching) {
+        switch (state.targetSite) {
+          case (?site) {
+            let dist = haversineDistance(
+              state.clusterCenter.lat, state.clusterCenter.lon,
+              site.location.lat, site.location.lon
+            );
+            if (dist < 20.0) { #Landing } else { #Approaching }
+          };
+          case null { #Approaching };
+        }
+      };
+      case (#Landing) {
+        if (state.movementSpeed < 0.5 and state.clusterDensity > 0.8) {
+          #Establishing
+        } else { #Landing }
+      };
+      case (#Establishing) { #Establishing };  // Terminal state
+    };
+    
+    let phaseChanged = switch (state.phase, newPhase) {
+      case (#Clustering, #Clustering) { false };
+      case (#Scouting, #Scouting) { false };
+      case (#Deliberating, #Deliberating) { false };
+      case (#Preparing, #Preparing) { false };
+      case (#Launching, #Launching) { false };
+      case (#Flying, #Flying) { false };
+      case (#Approaching, #Approaching) { false };
+      case (#Landing, #Landing) { false };
+      case (#Establishing, #Establishing) { false };
+      case _ { true };
+    };
+    
+    // Update temperature (bees shiver to warm up before flight)
+    var newTemp = state.clusterTemperature;
+    switch (newPhase) {
+      case (#Preparing) {
+        // Shivering warms up
+        newTemp := state.clusterTemperature + 0.5 * dt;
+      };
+      case (#Flying) {
+        // Cooling during flight
+        newTemp := state.clusterTemperature * 0.99 + state.ambientTemperature * 0.01;
+      };
+      case _ {
+        // Maintain temperature
+        if (state.clusterTemperature < 35.0) {
+          newTemp := state.clusterTemperature + 0.1;
+        } else if (state.clusterTemperature > 36.0) {
+          newTemp := state.clusterTemperature - 0.05;
+        };
+      };
+    };
+    
+    // Update movement
+    var newSpeed = state.movementSpeed;
+    var newHeading = state.movementHeading;
+    
+    switch (newPhase) {
+      case (#Flying) {
+        switch (state.targetSite) {
+          case (?site) {
+            newHeading := Float.arctan2(
+              site.location.lon - state.clusterCenter.lon,
+              site.location.lat - state.clusterCenter.lat
+            );
+            newSpeed := Float.min(state.movementSpeed + 2.0 * dt, 15.0);  // Max 15 m/s
+          };
+          case null { };
+        };
+      };
+      case (#Approaching) {
+        newSpeed := Float.max(state.movementSpeed - 1.0 * dt, 3.0);  // Slow down
+      };
+      case (#Landing) {
+        newSpeed := Float.max(state.movementSpeed - 2.0 * dt, 0.0);  // Stop
+      };
+      case _ {
+        newSpeed := 0.0;
+      };
+    };
+    
+    {
+      phase = newPhase;
+      phaseStartBeat = if (phaseChanged) { state.beatNum } else { state.phaseStartBeat };
+      scoutIds = state.scoutIds;
+      scoutReports = state.scoutReports;
+      candidateSites = state.candidateSites;
+      votingState = state.votingState;
+      queenId = state.queenId;
+      queenPosition = state.queenPosition;
+      queenEscorts = state.queenEscorts;
+      clusterCenter = state.clusterCenter;
+      clusterRadius = state.clusterRadius;
+      clusterDensity = state.clusterDensity;
+      targetSite = state.targetSite;
+      movementSpeed = newSpeed;
+      movementHeading = newHeading;
+      clusterTemperature = newTemp;
+      ambientTemperature = state.ambientTemperature;
+      beatNum = state.beatNum + 1;
+    }
+  };
+
+  /// Haversine distance in meters
+  func haversineDistance(lat1: Float, lon1: Float, lat2: Float, lon2: Float) : Float {
+    let R = 6371000.0;  // Earth radius in meters
+    let dLat = (lat2 - lat1) * PI / 180.0;
+    let dLon = (lon2 - lon1) * PI / 180.0;
+    let a = Float.sin(dLat/2.0) ** 2.0 + 
+            Float.cos(lat1 * PI / 180.0) * Float.cos(lat2 * PI / 180.0) * 
+            Float.sin(dLon/2.0) ** 2.0;
+    let c = 2.0 * Float.arctan2(Float.sqrt(a), Float.sqrt(1.0 - a));
+    R * c
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 26: EMERGENT SWARM BEHAVIORS — COLLECTIVE COMPUTATION
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  // Emergent behaviors that arise from simple local rules:
+  //   • Thermoregulation - Cluster tightens/loosens to regulate temperature
+  //   • Predator response - Coordinated defensive behaviors
+  //   • Resource allocation - Dynamic task switching
+  //   • Information cascade - Rapid signal propagation
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Emergent behavior state
+  public type EmergentBehaviorState = {
+    // Thermoregulation
+    thermoregulation : ThermoregulationState;
+    
+    // Predator response
+    predatorResponse : PredatorResponseState;
+    
+    // Information cascade
+    infoCascade     : InformationCascadeState;
+    
+    // Task allocation
+    taskAllocation  : TaskAllocationState;
+    
+    // Stigmergy (indirect communication through environment)
+    stigmergy       : StigmergyState;
+  };
+
+  /// Thermoregulation state
+  public type ThermoregulationState = {
+    // Current temperature map
+    temperatureField : [[Float]];
+    
+    // Core temperature
+    coreTemp        : Float;
+    
+    // Target temperature
+    targetTemp      : Float;
+    
+    // Behavior modes
+    fanningCount    : Nat;         // Drones cooling with wings
+    shiveringCount  : Nat;         // Drones warming
+    insulatingCount : Nat;         // Drones on outer layer
+    
+    // Heat transfer
+    heatGeneration  : Float;       // From activity
+    heatLoss        : Float;       // To environment
+    
+    // Metabolic cost
+    thermalCost     : Float;
+  };
+
+  /// Predator response state
+  public type PredatorResponseState = {
+    // Threat status
+    threatDetected  : Bool;
+    threatType      : Text;
+    threatPosition  : ?{ x: Float; y: Float; z: Float };
+    threatLevel     : Float;
+    
+    // Response type
+    currentResponse : PredatorResponseType;
+    
+    // Wave formation
+    waveActive      : Bool;
+    waveCenter      : ?{ x: Float; y: Float };
+    wavePhase       : Float;
+    
+    // Defensive formation
+    defenseFormation : DefenseFormationType;
+    
+    // Alarm propagation
+    alarmLevel      : [Float];     // Per drone
+    alarmDecay      : Float;
+  };
+
+  /// Predator response types
+  public type PredatorResponseType = {
+    #None;
+    #Alert;           // Increased vigilance
+    #Shimmer;         // Coordinated wing flashing (bees do this!)
+    #Ball;            // Form defensive ball around threat
+    #Disperse;        // Scatter to confuse
+    #Attack;          // Coordinated attack
+    #Flee;            // Retreat as unit
+  };
+
+  /// Defense formation types
+  public type DefenseFormationType = {
+    #Normal;
+    #Compact;         // Tight ball
+    #Hollow;          // Sphere with empty center
+    #Layered;         // Concentric shells
+    #Spiky;           // Drones pointing outward
+  };
+
+  /// Information cascade state
+  public type InformationCascadeState = {
+    // Active cascades
+    activeCascades  : [Cascade];
+    
+    // Cascade metrics
+    averageSpeed    : Float;       // How fast info spreads
+    reachFraction   : Float;       // What fraction received
+    distortion      : Float;       // Signal degradation
+    
+    // Network topology effect
+    networkDensity  : Float;
+    averagePathLength : Float;
+  };
+
+  /// Information cascade
+  public type Cascade = {
+    cascadeId       : Nat;
+    infoType        : Text;
+    originDrone     : Nat;
+    startBeat       : Nat;
+    
+    // Propagation
+    infectedDrones  : [Nat];       // Who has received
+    frontier        : [Nat];       // Currently spreading from
+    
+    // Content
+    payload         : [Float];
+    priority        : Float;
+    
+    // Decay
+    strength        : Float;
+    decayRate       : Float;
+  };
+
+  /// Task allocation state
+  public type TaskAllocationState = {
+    // Available tasks
+    tasks           : [SwarmTask];
+    
+    // Current allocation
+    allocation      : [(Nat, Nat)];  // (droneId, taskId)
+    
+    // Thresholds (response threshold model)
+    thresholds      : [[Float]];    // [droneId][taskId]
+    
+    // Stimuli (task demand)
+    stimuli         : [Float];      // Per task type
+    
+    // Efficiency metrics
+    taskCompletion  : [Float];
+    idleFraction    : Float;
+    overlapFraction : Float;
+  };
+
+  /// Swarm task
+  public type SwarmTask = {
+    taskId          : Nat;
+    taskType        : Text;
+    location        : ?{ lat: Float; lon: Float; alt: Float };
+    priority        : Float;
+    requiredDrones  : Nat;
+    assignedDrones  : [Nat];
+    progress        : Float;
+    deadline        : ?Nat;
+  };
+
+  /// Stigmergy state (indirect communication)
+  public type StigmergyState = {
+    // Pheromone fields
+    trailField      : [[Float]];   // Path pheromones
+    alarmField      : [[Float]];   // Danger pheromones
+    recruitField    : [[Float]];   // Help-wanted pheromones
+    foodField       : [[Float]];   // Resource markers
+    
+    // Field parameters
+    evaporationRate : Float;
+    diffusionRate   : Float;
+    depositionRate  : Float;
+    
+    // Grid info
+    gridResolution  : Float;       // Meters per cell
+    gridOrigin      : { lat: Float; lon: Float };
+  };
+
+  /// Initialize emergent behavior state
+  public func initEmergentBehaviors(gridSize: Nat, gridRes: Float, origin: { lat: Float; lon: Float }) : EmergentBehaviorState {
+    let emptyGrid = Array.tabulate<[Float]>(gridSize, func(_) {
+      Array.tabulate<Float>(gridSize, func(_) { 0.0 })
+    });
+    
+    {
+      thermoregulation = {
+        temperatureField = emptyGrid;
+        coreTemp = 35.0;
+        targetTemp = 35.0;
+        fanningCount = 0;
+        shiveringCount = 0;
+        insulatingCount = 0;
+        heatGeneration = 0.0;
+        heatLoss = 0.0;
+        thermalCost = 0.0;
+      };
+      predatorResponse = {
+        threatDetected = false;
+        threatType = "none";
+        threatPosition = null;
+        threatLevel = 0.0;
+        currentResponse = #None;
+        waveActive = false;
+        waveCenter = null;
+        wavePhase = 0.0;
+        defenseFormation = #Normal;
+        alarmLevel = [];
+        alarmDecay = 0.1;
+      };
+      infoCascade = {
+        activeCascades = [];
+        averageSpeed = 0.0;
+        reachFraction = 0.0;
+        distortion = 0.0;
+        networkDensity = 0.5;
+        averagePathLength = 3.0;
+      };
+      taskAllocation = {
+        tasks = [];
+        allocation = [];
+        thresholds = [[]];
+        stimuli = [];
+        taskCompletion = [];
+        idleFraction = 0.0;
+        overlapFraction = 0.0;
+      };
+      stigmergy = {
+        trailField = emptyGrid;
+        alarmField = emptyGrid;
+        recruitField = emptyGrid;
+        foodField = emptyGrid;
+        evaporationRate = 0.01;
+        diffusionRate = 0.05;
+        depositionRate = 1.0;
+        gridResolution = gridRes;
+        gridOrigin = origin;
+      };
+    }
+  };
+
+  /// Bee shimmer defense (beautiful coordinated wave)
+  public func computeShimmerWave(
+    dronePositions: [{ x: Float; y: Float }],
+    threatPosition: { x: Float; y: Float },
+    wavePhase: Float,
+    waveSpeed: Float
+  ) : [Float] {
+    // Each drone raises wings when wave passes through
+    Array.tabulate<Float>(dronePositions.size(), func(i) {
+      let pos = dronePositions[i];
+      let dist = Float.sqrt((pos.x - threatPosition.x) ** 2.0 + (pos.y - threatPosition.y) ** 2.0);
+      let wavePosition = wavePhase * waveSpeed;
+      let waveWidth = 2.0;  // meters
+      
+      // Gaussian wave profile
+      let phase = (dist - wavePosition) / waveWidth;
+      let intensity = Float.exp(-phase * phase);
+      
+      // 0 = wings down, 1 = wings up
+      intensity
+    })
+  };
+
+  /// Update thermoregulation (bees maintain 35°C!)
+  public func updateThermoregulation(
+    state: ThermoregulationState,
+    droneStates: [{ position: { x: Float; y: Float; z: Float }; activity: Float }],
+    ambientTemp: Float,
+    clusterRadius: Float,
+    dt: Float
+  ) : ThermoregulationState {
+    // Surface area to volume ratio
+    let surfaceArea = 4.0 * PI * clusterRadius * clusterRadius;
+    let volume = (4.0 / 3.0) * PI * clusterRadius * clusterRadius * clusterRadius;
+    let saRatio = surfaceArea / volume;
+    
+    // Heat generation from activity
+    var totalHeat : Float = 0.0;
+    for (drone in droneStates.vals()) {
+      totalHeat += drone.activity * 0.1;  // Heat per unit activity
+    };
+    
+    // Heat loss to environment
+    let heatLoss = saRatio * (state.coreTemp - ambientTemp) * 0.01;
+    
+    // Temperature change
+    let heatCapacity = volume * 1.0;  // Simplified
+    let dTemp = (totalHeat - heatLoss) / heatCapacity * dt;
+    let newCoreTemp = state.coreTemp + dTemp;
+    
+    // Behavioral response
+    var fanningCount = 0;
+    var shiveringCount = 0;
+    var insulatingCount = 0;
+    
+    if (newCoreTemp > state.targetTemp + 1.0) {
+      // Too hot - need fanning
+      fanningCount := droneStates.size() / 5;
+    } else if (newCoreTemp < state.targetTemp - 1.0) {
+      // Too cold - need shivering
+      shiveringCount := droneStates.size() / 3;
+      insulatingCount := droneStates.size() / 4;
+    };
+    
+    {
+      temperatureField = state.temperatureField;
+      coreTemp = newCoreTemp;
+      targetTemp = state.targetTemp;
+      fanningCount = fanningCount;
+      shiveringCount = shiveringCount;
+      insulatingCount = insulatingCount;
+      heatGeneration = totalHeat;
+      heatLoss = heatLoss;
+      thermalCost = Float.fromInt(fanningCount + shiveringCount) * 0.1;
+    }
+  };
+
+  /// Response threshold task allocation
+  public func allocateTasks(
+    state: TaskAllocationState,
+    droneIds: [Nat],
+    dt: Float
+  ) : TaskAllocationState {
+    var newAllocation : [(Nat, Nat)] = [];
+    var newStimuli = state.stimuli;
+    
+    for (droneId in droneIds.vals()) {
+      // Find best task for this drone
+      var bestTask : ?Nat = null;
+      var bestProb : Float = 0.0;
+      
+      for (task in state.tasks.vals()) {
+        // Get threshold (or default)
+        let threshold = if (droneId < state.thresholds.size() and task.taskId < state.thresholds[droneId].size()) {
+          state.thresholds[droneId][task.taskId]
+        } else { 0.5 };
+        
+        // Get stimulus
+        let stimulus = if (task.taskId < newStimuli.size()) { newStimuli[task.taskId] } else { 0.0 };
+        
+        // Response probability (sigmoidal threshold model)
+        let prob = stimulus * stimulus / (stimulus * stimulus + threshold * threshold);
+        
+        if (prob > bestProb and prob > 0.3) {  // Minimum probability to engage
+          bestProb := prob;
+          bestTask := ?task.taskId;
+        };
+      };
+      
+      switch (bestTask) {
+        case (?taskId) {
+          newAllocation := Array.append(newAllocation, [(droneId, taskId)]);
+          // Reduce stimulus for allocated task
+          let stimMut = Array.thaw<Float>(newStimuli);
+          if (taskId < stimMut.size()) {
+            stimMut[taskId] := Float.max(stimMut[taskId] - 0.1, 0.0);
+          };
+          newStimuli := Array.freeze(stimMut);
+        };
+        case null { };
+      };
+    };
+    
+    {
+      tasks = state.tasks;
+      allocation = newAllocation;
+      thresholds = state.thresholds;
+      stimuli = newStimuli;
+      taskCompletion = state.taskCompletion;
+      idleFraction = Float.fromInt(droneIds.size() - newAllocation.size()) / Float.fromInt(droneIds.size());
+      overlapFraction = state.overlapFraction;
+    }
+  };
+
+  /// Update stigmergy fields (pheromone-like)
+  public func updateStigmergy(
+    state: StigmergyState,
+    deposits: [{ x: Nat; y: Nat; fieldType: Text; amount: Float }],
+    dt: Float
+  ) : StigmergyState {
+    let size = state.trailField.size();
+    
+    // Process deposits
+    let trailMut = Array.thaw<[Float]>(state.trailField);
+    let alarmMut = Array.thaw<[Float]>(state.alarmField);
+    let recruitMut = Array.thaw<[Float]>(state.recruitField);
+    let foodMut = Array.thaw<[Float]>(state.foodField);
+    
+    for (deposit in deposits.vals()) {
+      if (deposit.x < size and deposit.y < size) {
+        switch (deposit.fieldType) {
+          case "trail" {
+            let row = Array.thaw<Float>(trailMut[deposit.y]);
+            row[deposit.x] := row[deposit.x] + deposit.amount * state.depositionRate;
+            trailMut[deposit.y] := Array.freeze(row);
+          };
+          case "alarm" {
+            let row = Array.thaw<Float>(alarmMut[deposit.y]);
+            row[deposit.x] := row[deposit.x] + deposit.amount * state.depositionRate;
+            alarmMut[deposit.y] := Array.freeze(row);
+          };
+          case "recruit" {
+            let row = Array.thaw<Float>(recruitMut[deposit.y]);
+            row[deposit.x] := row[deposit.x] + deposit.amount * state.depositionRate;
+            recruitMut[deposit.y] := Array.freeze(row);
+          };
+          case "food" {
+            let row = Array.thaw<Float>(foodMut[deposit.y]);
+            row[deposit.x] := row[deposit.x] + deposit.amount * state.depositionRate;
+            foodMut[deposit.y] := Array.freeze(row);
+          };
+          case _ { };
+        };
+      };
+    };
+    
+    // Evaporation and diffusion
+    for (y in Iter.range(0, size - 1)) {
+      let trailRow = Array.thaw<Float>(trailMut[y]);
+      let alarmRow = Array.thaw<Float>(alarmMut[y]);
+      let recruitRow = Array.thaw<Float>(recruitMut[y]);
+      let foodRow = Array.thaw<Float>(foodMut[y]);
+      
+      for (x in Iter.range(0, size - 1)) {
+        // Evaporation
+        trailRow[x] := trailRow[x] * (1.0 - state.evaporationRate * dt);
+        alarmRow[x] := alarmRow[x] * (1.0 - state.evaporationRate * 2.0 * dt);  // Alarm evaporates faster
+        recruitRow[x] := recruitRow[x] * (1.0 - state.evaporationRate * dt);
+        foodRow[x] := foodRow[x] * (1.0 - state.evaporationRate * 0.5 * dt);  // Food markers last longer
+      };
+      
+      trailMut[y] := Array.freeze(trailRow);
+      alarmMut[y] := Array.freeze(alarmRow);
+      recruitMut[y] := Array.freeze(recruitRow);
+      foodMut[y] := Array.freeze(foodRow);
+    };
+    
+    {
+      trailField = Array.freeze(trailMut);
+      alarmField = Array.freeze(alarmMut);
+      recruitField = Array.freeze(recruitMut);
+      foodField = Array.freeze(foodMut);
+      evaporationRate = state.evaporationRate;
+      diffusionRate = state.diffusionRate;
+      depositionRate = state.depositionRate;
+      gridResolution = state.gridResolution;
+      gridOrigin = state.gridOrigin;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 27: COMPLETE SWARM ORGANISM — INTEGRATION
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Complete swarm organism state
+  public type CompleteSwarmOrganism = {
+    // Core swarm brain
+    swarmBrain      : SwarmBrainState;
+    
+    // Migration state
+    migration       : SwarmMigrationState;
+    
+    // Emergent behaviors
+    emergent        : EmergentBehaviorState;
+    
+    // Colony metrics
+    colonyHealth    : Float;
+    colonyEfficiency : Float;
+    colonyResilience : Float;
+    
+    // Population dynamics
+    populationSize  : Nat;
+    birthRate       : Float;
+    deathRate       : Float;
+    
+    beatNum         : Nat;
+  };
+
+  /// Initialize complete swarm organism
+  public func initCompleteSwarmOrganism(
+    numDrones: Nat,
+    baseLat: Float,
+    baseLon: Float,
+    baseAlt: Float
+  ) : CompleteSwarmOrganism {
+    let swarmBrain = initSwarmBrain(numDrones, baseLat, baseLon, baseAlt);
+    let migration = initMigrationState(numDrones, { lat = baseLat; lon = baseLon; alt = baseAlt }, 20.0);
+    let emergent = initEmergentBehaviors(50, 10.0, { lat = baseLat; lon = baseLon });
+    
+    {
+      swarmBrain = swarmBrain;
+      migration = migration;
+      emergent = emergent;
+      colonyHealth = 1.0;
+      colonyEfficiency = 0.5;
+      colonyResilience = 0.8;
+      populationSize = numDrones;
+      birthRate = 0.0;
+      deathRate = 0.0;
+      beatNum = 0;
+    }
+  };
+
+  /// Tick complete swarm organism
+  public func tickCompleteSwarmOrganism(
+    state: CompleteSwarmOrganism,
+    externalInputs: {
+      threats: [{ x: Float; y: Float; z: Float; level: Float }];
+      resources: [{ lat: Float; lon: Float; quality: Float }];
+      ambientTemp: Float;
+    },
+    dt: Float
+  ) : CompleteSwarmOrganism {
+    // 1. Update swarm brain
+    let newSwarmBrain = tickSwarmBrain(state.swarmBrain, dt);
+    
+    // 2. Update migration
+    let newMigration = updateMigrationPhase(state.migration, newSwarmBrain.swarmCoherence, dt);
+    
+    // 3. Update thermoregulation
+    let droneStates = Array.map<BeeDroneState, { position: { x: Float; y: Float; z: Float }; activity: Float }>(
+      newSwarmBrain.drones,
+      func(d) { { position = { x = d.physical.longitude * 111000.0; y = d.physical.latitude * 111000.0; z = d.physical.altitude }; activity = 0.5 } }
+    );
+    let newThermo = updateThermoregulation(
+      state.emergent.thermoregulation,
+      droneStates,
+      externalInputs.ambientTemp,
+      state.swarmBrain.swarmCoherence * 10.0,  // Cluster radius
+      dt
+    );
+    
+    // 4. Update predator response
+    var newPredatorResponse = state.emergent.predatorResponse;
+    if (externalInputs.threats.size() > 0) {
+      let threat = externalInputs.threats[0];
+      newPredatorResponse := {
+        threatDetected = true;
+        threatType = "predator";
+        threatPosition = ?threat;
+        threatLevel = threat.level;
+        currentResponse = if (threat.level > 0.7) { #Ball } else if (threat.level > 0.4) { #Shimmer } else { #Alert };
+        waveActive = threat.level > 0.4;
+        waveCenter = ?{ x = threat.x; y = threat.y };
+        wavePhase = newPredatorResponse.wavePhase + dt * 2.0;
+        defenseFormation = if (threat.level > 0.7) { #Compact } else { #Normal };
+        alarmLevel = newPredatorResponse.alarmLevel;
+        alarmDecay = newPredatorResponse.alarmDecay;
+      };
+    };
+    
+    let newEmergent : EmergentBehaviorState = {
+      thermoregulation = newThermo;
+      predatorResponse = newPredatorResponse;
+      infoCascade = state.emergent.infoCascade;
+      taskAllocation = state.emergent.taskAllocation;
+      stigmergy = state.emergent.stigmergy;
+    };
+    
+    // 5. Compute colony metrics
+    let colonyHealth = newSwarmBrain.swarmCoherence * 0.4 + newThermo.coreTemp / 40.0 * 0.3 + 
+                       (1.0 - newPredatorResponse.threatLevel) * 0.3;
+    
+    {
+      swarmBrain = newSwarmBrain;
+      migration = newMigration;
+      emergent = newEmergent;
+      colonyHealth = colonyHealth;
+      colonyEfficiency = state.colonyEfficiency * 0.99 + 0.01 * (1.0 - state.emergent.taskAllocation.idleFraction);
+      colonyResilience = state.colonyResilience * 0.99 + 0.01 * (1.0 - newPredatorResponse.threatLevel);
+      populationSize = newSwarmBrain.drones.size();
+      birthRate = state.birthRate;
+      deathRate = state.deathRate;
+      beatNum = state.beatNum + 1;
+    }
+  };
+
+  /// Generate complete swarm output
+  public type CompleteSwarmOutput = {
+    // Swarm metrics
+    swarmCoherence  : Float;
+    swarmSize       : Nat;
+    centroid        : { lat: Float; lon: Float; alt: Float };
+    
+    // Migration
+    migrationPhase  : MigrationPhase;
+    targetSite      : ?{ lat: Float; lon: Float; alt: Float };
+    migrationProgress : Float;
+    
+    // Temperature
+    coreTemperature : Float;
+    fanningDrones   : Nat;
+    shiveringDrones : Nat;
+    
+    // Defense
+    threatLevel     : Float;
+    defenseResponse : PredatorResponseType;
+    
+    // Colony
+    colonyHealth    : Float;
+    colonyEfficiency : Float;
+    
+    beatNum         : Nat;
+  };
+
+  public func generateCompleteSwarmOutput(state: CompleteSwarmOrganism) : CompleteSwarmOutput {
+    {
+      swarmCoherence = state.swarmBrain.swarmCoherence;
+      swarmSize = state.populationSize;
+      centroid = state.swarmBrain.swarmCentroid;
+      migrationPhase = state.migration.phase;
+      targetSite = switch (state.migration.targetSite) {
+        case (?site) { ?site.location };
+        case null { null };
+      };
+      migrationProgress = switch (state.migration.phase) {
+        case (#Establishing) { 1.0 };
+        case (#Landing) { 0.95 };
+        case (#Approaching) { 0.85 };
+        case (#Flying) { 0.5 };
+        case (#Launching) { 0.3 };
+        case (#Preparing) { 0.2 };
+        case (#Deliberating) { 0.15 };
+        case (#Scouting) { 0.1 };
+        case (#Clustering) { 0.05 };
+      };
+      coreTemperature = state.emergent.thermoregulation.coreTemp;
+      fanningDrones = state.emergent.thermoregulation.fanningCount;
+      shiveringDrones = state.emergent.thermoregulation.shiveringCount;
+      threatLevel = state.emergent.predatorResponse.threatLevel;
+      defenseResponse = state.emergent.predatorResponse.currentResponse;
+      colonyHealth = state.colonyHealth;
+      colonyEfficiency = state.colonyEfficiency;
+      beatNum = state.beatNum;
+    }
+  };
+
 }
