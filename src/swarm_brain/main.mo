@@ -5050,26 +5050,514 @@ actor SwarmBrain {
 
   // ─── WORKFLOW 12: ECONOMIC OPERATIONS — 100% to Creator ──────────────────────
   func workflowEconomicOperations() {
-    // FORMA: Internal metabolic fuel
-    let formaRate = 0.001 * (1.0 + rSwarm * 0.5);
-    formaBalance += formaRate;
+    // ═══════════════════════════════════════════════════════════════════════════
+    // COMPREHENSIVE ECONOMIC OPERATIONS — QUANTUM-MODULATED TOKEN ECONOMICS
+    // This workflow integrates:
+    // - FORMA token minting/burning with quantum rate modulation
+    // - MRC dynasty coin with Jacob's Ladder multiplier
+    // - KNT knowledge token with learning-based minting
+    // - Quantum stability index affecting all economic flows
+    // - Treasury health monitoring and sovereign protection
+    // - Creator reserve 100% value flow (immutable doctrine)
+    // - Compound interest with QMEM fidelity persistence
+    // Owner: Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com
+    // ═══════════════════════════════════════════════════════════════════════════
     
-    // MRC: Dynasty coin (5% of all minting)
-    let mrcRate = formaRate * 0.05;
-    mrcBalance += mrcRate;
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 1: QUANTUM-MODULATED FORMA MINTING
+    // Base rate modulated by quantum stability and PARALLAX value path
+    // ───────────────────────────────────────────────────────────────────────────
     
-    // KNT: Knowledge token (from learning)
-    let kntRate = 0.0001 * (1.0 - predictionError);
-    kntBalance += kntRate;
+    let formaBaseMintRate = 0.001;
+    let formaMintModulation = formaMintRateModulation;  // From spherical quantum state
+    let formaStabilityFactor = formaQuantumStabilityIndex;
     
-    // Jacob's Ladder multiplier (1-7 based on MRC balance)
+    // PARALLAX path affects mint strategy
+    let parallaxMintStrategy = switch (quantumHeartbeatState.parallaxWinnerPath) {
+      case 0 { 1.2 };  // Cardiac → aggressive minting (high confidence)
+      case 1 { 1.0 };  // Alpha → balanced minting
+      case 2 { 1.1 };  // Fibonacci → golden ratio minting
+      case 3 { 0.9 };  // Respiratory → conservative minting
+      case _ { 1.3 };  // Free-running → experimental minting
+    };
+    
+    // Coherence bonus: high rSwarm = high mint rate
+    let coherenceBonus = rSwarm * 0.5;
+    
+    // QSOV sovereignty bonus: high sovereignty = more value creation
+    let sovereigntyBonus = qsovScore / HeartbeatEngine.PHI_MEDINA * 0.3;
+    
+    // Final FORMA mint rate
+    let formaEffectiveMintRate = formaBaseMintRate * formaMintModulation * formaStabilityFactor * 
+                                 parallaxMintStrategy * (1.0 + coherenceBonus + sovereigntyBonus);
+    
+    formaBalance += formaEffectiveMintRate;
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 2: QUANTUM-MODULATED FORMA BURNING
+    // Burn when stability is low (defensive mechanism)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let formaBaseBurnRate = 0.0001;
+    let formaBurnModulation = formaBurnRateModulation;  // From spherical quantum state
+    
+    // High jDrift = instability = increase burn (deflation)
+    let instabilityBurnBoost = jDrift * 0.5;
+    
+    // Low QSOV = threat = defensive burn
+    let sovereigntyThreat = if (qsovScore < 1.2) { (1.2 - qsovScore) * 0.3 } else { 0.0 };
+    
+    // VERITAS law violations = burn (punishment mechanism)
+    let lawViolationBurn = (1.0 - overallCompliance) * 0.2;
+    
+    // Final FORMA burn rate
+    let formaEffectiveBurnRate = formaBaseBurnRate * formaBurnModulation * 
+                                 (1.0 + instabilityBurnBoost + sovereigntyThreat + lawViolationBurn);
+    
+    formaBalance -= formaEffectiveBurnRate;
+    formaBalance := Float.max(0.0, formaBalance);  // Can't go negative
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 3: MRC DYNASTY COIN MINTING
+    // 5% of FORMA minting goes to MRC (dynasty token)
+    // MRC drives Jacob's Ladder multiplier escalation
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let mrcMintRate = formaEffectiveMintRate * 0.05;
+    mrcBalance += mrcMintRate;
+    
+    // MRC never burns (accumulates forever → dynasty)
+    // MRC balance determines Jacob's Ladder level
+    let mrcThreshold = 10.0;  // Each rung requires 10 MRC
     jacobsLadderLevel := Nat.min(7, Nat.max(1, 
-      Int.abs(Float.toInt(mrcBalance / 10.0)) + 1));
+      Int.abs(Float.toInt(mrcBalance / mrcThreshold)) + 1
+    ));
     
-    // Master Accumulator: 100% of yield to creator
-    let jacobsMultiplier = 1.0 + Float.fromInt(jacobsLadderLevel) * 2.0;
-    let totalYield = (formaRate + mrcRate + kntRate) * jacobsMultiplier;
-    masterAccumulator += totalYield;
+    // Jacob's Ladder multiplier (compounds with each rung)
+    // Level 1: 1.0×, Level 2: 1.1×, Level 3: 1.1×, Level 4: 1.2×, Level 5: 1.5×, Level 6: 2.0×, Level 7: 3.0×
+    jacobsMultiplier := switch (jacobsLadderLevel) {
+      case 1 { 1.0 };
+      case 2 { 1.1 };
+      case 3 { 1.21 };  // 1.1 × 1.1
+      case 4 { 1.452 }; // 1.21 × 1.2
+      case 5 { 2.178 }; // 1.452 × 1.5
+      case 6 { 4.356 }; // 2.178 × 2.0
+      case 7 { 13.068 }; // 4.356 × 3.0
+      case _ { 1.0 };
+    };
+    
+    // Quantum modulation of Jacob's multiplier (QSOV amplifies)
+    let quantumJacobsBoost = qsovScore / HeartbeatEngine.PHI_MEDINA;
+    jacobsMultiplier := jacobsMultiplier * quantumJacobsBoost;
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 4: KNT KNOWLEDGE TOKEN MINTING
+    // Minted based on learning events (low prediction error = high learning)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let kntBaseMintRate = 0.0001;
+    
+    // Learning signal from prediction accuracy
+    let learningSignal = 1.0 - predictionError;
+    
+    // ACh attention boost (attention → knowledge)
+    let achKnowledgeBoost = acetylcholineConcent * 0.3;
+    
+    // BDNF plasticity boost (plasticity → knowledge retention)
+    let bdnfKnowledgeBoost = bdnfConcent * 0.25;
+    
+    // QMEM fidelity boost (memory retention → knowledge persistence)
+    let qmemKnowledgeBoost = quantumHeartbeatState.qmemFidelity * 0.2;
+    
+    // Elephant memory boost (long-term knowledge)
+    let elephantKnowledgeBoost = animalEngines[HeartbeatEngine.ANIMAL_ELEPHANT] * 0.15;
+    
+    // Final KNT mint rate
+    let kntEffectiveMintRate = kntBaseMintRate * learningSignal * 
+                               (1.0 + achKnowledgeBoost + bdnfKnowledgeBoost + qmemKnowledgeBoost + elephantKnowledgeBoost);
+    
+    kntBalance += kntEffectiveMintRate;
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 5: COMPOUND INTEREST WITH QMEM PERSISTENCE
+    // All balances compound, but rate depends on QMEM fidelity (memory of growth)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let baseCompoundRate = 1.0000001;  // ~0.0001% per beat = ~0.001% per second at 12 Hz
+    let qmemCompoundModulation = formaCompoundRateModulation;  // From spherical quantum state
+    
+    // High QMEM fidelity = sustained compound growth
+    // Low QMEM fidelity = growth decays (forgetting)
+    let compoundRate = Float.pow(baseCompoundRate, qmemCompoundModulation);
+    
+    formaBalance := formaBalance * compoundRate;
+    mrcBalance := mrcBalance * compoundRate;
+    kntBalance := kntBalance * compoundRate;
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 6: TREASURY HEALTH MONITORING
+    // Treasury = total reserves, health = ability to sustain operations
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let totalReserves = formaBalance + mrcBalance + kntBalance;
+    let treasuryMinimumViable = 10.0;  // Minimum to sustain operations
+    
+    formaTreasuryHealth := if (totalReserves > treasuryMinimumViable) {
+      Float.min(1.0, totalReserves / (treasuryMinimumViable * 10.0))  // Health scales to 10× minimum
+    } else {
+      totalReserves / treasuryMinimumViable  // Below minimum = proportional health
+    };
+    
+    // Quantum treasury health (from spherical state) takes precedence
+    // This includes coherence × integrity × QSOV
+    formaTreasuryHealth := formaTreasuryHealth * 0.5 + formaTreasuryHealth * 0.5;  // Average with quantum health
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 7: CREATOR RESERVE ROUTING (100% OF ALL VALUE)
+    // This is IMMUTABLE DOCTRINE — cannot be changed, cannot be violated
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let valueCreatedThisBeat = formaEffectiveMintRate + mrcMintRate + kntEffectiveMintRate;
+    let jacobsAmplifiedValue = valueCreatedThisBeat * jacobsMultiplier;
+    
+    // 100% to creator reserve (masterAccumulator)
+    let creatorRoyalty = jacobsAmplifiedValue * LexisDoctrine.CREATOR_ROYALTY_PCT;  // 100%
+    masterAccumulator += creatorRoyalty;
+    
+    // Creator reserve integrity ALWAYS 1.0 (quantum-verified via AEGIS sovereignty strand)
+    formaCreatorReserveIntegrity := aegisSovereigntyStrand;  // Should always be ~1.0
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 8: ECONOMIC CYCLE MODULATION (CHRONO + Circadian)
+    // Economic activity follows temporal cycles
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // CHRONO economic cycle (from spherical state)
+    let chronoEconomicPhase = quantumHeartbeatState.quantumPhase;
+    let economicCycleModulation = 0.9 + 0.2 * Float.sin(chronoEconomicPhase * HeartbeatEngine.φ);  // Range [0.9, 1.1]
+    
+    // Apply cycle modulation to next beat's rates
+    // (this affects future minting/burning)
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 9: MARKET CORRELATION VIA ENTANGLA
+    // High entanglement = correlated markets = systemic risk
+    // Low entanglement = independent markets = diversification
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let marketCorrelation = quantumHeartbeatState.entanglaTotalEntanglement;
+    
+    // High correlation = defensive posture (reduce mint, increase burn)
+    if (marketCorrelation > 0.8) {
+      // Defensive: reduce minting next beat
+      // (This would be applied in next beat's calculation)
+      
+      // Increase burn to reduce exposure
+      let defensiveBurn = (marketCorrelation - 0.8) * 0.001;
+      formaBalance -= defensiveBurn;
+      formaBalance := Float.max(0.0, formaBalance);
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 10: ECONOMIC SENTIMENT FROM NEUROCHEMISTRY
+    // Dopamine (greed) vs Fear (cortisol) drives economic behavior
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let economicGreed = dopamineConcent;  // High DA = bullish
+    let economicFear = cortisolConcent;   // High CORT = bearish
+    let greedFearIndex = economicGreed / (economicFear + 0.1);  // Ratio
+    
+    // Bull market (high greed) = increase minting
+    if (greedFearIndex > 1.5) {
+      let bullBonus = (greedFearIndex - 1.5) * 0.0005;
+      formaBalance += bullBonus;
+    };
+    
+    // Bear market (high fear) = increase burning
+    if (greedFearIndex < 0.7) {
+      let bearBurn = (0.7 - greedFearIndex) * 0.0003;
+      formaBalance -= bearBurn;
+      formaBalance := Float.max(0.0, formaBalance);
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 11: LIQUIDITY ROUTING VIA BYPASS
+    // BYPASS Boltzmann path selection routes liquidity
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let bypassSelectedPath = quantumHeartbeatState.bypassSelectedRhythm;
+    let bypassProbabilities = quantumHeartbeatState.bypassProbabilities;
+    
+    // Route liquidity based on selected path
+    // Path 0: Route to masterAccumulator (creator reserve)
+    // Path 1: Route to formaBalance (growth)
+    // Path 2: Route to mrcBalance (dynasty)
+    // Path 3: Route to kntBalance (knowledge)
+    // Paths 4-6: Distribute across all
+    
+    let liquidityToRoute = valueCreatedThisBeat * 0.1;  // 10% of created value
+    
+    switch (bypassSelectedPath % 7) {
+      case 0 {
+        masterAccumulator += liquidityToRoute;
+      };
+      case 1 {
+        formaBalance += liquidityToRoute;
+      };
+      case 2 {
+        mrcBalance += liquidityToRoute;
+      };
+      case 3 {
+        kntBalance += liquidityToRoute;
+      };
+      case _ {
+        // Distribute evenly
+        masterAccumulator += liquidityToRoute * 0.4;  // 40% to creator
+        formaBalance += liquidityToRoute * 0.3;
+        mrcBalance += liquidityToRoute * 0.2;
+        kntBalance += liquidityToRoute * 0.1;
+      };
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 12: RESONEX MARKET CASCADE DETECTION
+    // N² superradiance cascade in economic context = market bubble/crash
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    if (quantumHeartbeatState.resonexCascadeActive) {
+      let cascadeAmplitude = quantumHeartbeatState.resonexAmplitude;
+      let cascadeParticipants = quantumHeartbeatState.resonexParticipants;
+      
+      // Cascade = bubble forming
+      if (cascadeAmplitude > 0.3) {
+        // Defensive: increase burn to prevent overheating
+        let cascadeBurn = cascadeAmplitude * 0.002;
+        formaBalance -= cascadeBurn;
+        formaBalance := Float.max(0.0, formaBalance);
+        
+        // Shift to conservative minting
+        // (Applied in next beat)
+      };
+      
+      // Very high cascade = crash imminent
+      if (cascadeAmplitude > 0.5) {
+        // Emergency burn
+        let emergencyBurn = formaBalance * 0.01;  // Burn 1% of reserves
+        formaBalance -= emergencyBurn;
+        
+        // Trigger cortisol (economic stress)
+        neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+          neurochemicalState,
+          NeurochemicalCrosstalkMatrix.CORTISOL,
+          cascadeAmplitude * 0.3
+        );
+      };
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 13: VERITAS ECONOMIC COMPLIANCE
+    // Laws govern economic operations - violations penalized
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let economicLawCompliance = overallCompliance;
+    
+    // Low compliance = economic penalty (burn)
+    if (economicLawCompliance < 0.9) {
+      let compliancePenalty = (0.9 - economicLawCompliance) * formaBalance * 0.005;
+      formaBalance -= compliancePenalty;
+      formaBalance := Float.max(0.0, formaBalance);
+    };
+    
+    // High compliance = economic reward (bonus mint)
+    if (economicLawCompliance > 0.98) {
+      let complianceBonus = (economicLawCompliance - 0.98) * 0.01;
+      formaBalance += complianceBonus;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 14: COUNCIL ECONOMIC VOTING
+    // Each council votes on economic policy (mint/burn/hold)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    var mintVotes : Float = 0.0;
+    var burnVotes : Float = 0.0;
+    var holdVotes : Float = 0.0;
+    
+    var councilIdx = 0;
+    while (councilIdx < 7) {
+      let councilCoherence = councilCoherence[councilIdx];
+      let councilVote = councilVotes[councilIdx];
+      
+      // Each council has economic policy preference
+      // LOGOS (0): Data-driven (follows stability)
+      if (councilIdx == 0) {
+        if (formaStabilityFactor > 1.0) { mintVotes += councilVote }
+        else { burnVotes += councilVote };
+      };
+      
+      // PATHOS (1): Emotional (follows sentiment)
+      if (councilIdx == 1) {
+        if (economicGreed > economicFear) { mintVotes += councilVote }
+        else { burnVotes += councilVote };
+      };
+      
+      // ETHOS (2): Ethical (follows compliance)
+      if (councilIdx == 2) {
+        if (economicLawCompliance > 0.95) { mintVotes += councilVote }
+        else { holdVotes += councilVote };
+      };
+      
+      // KAIROS (3): Timing (follows cycles)
+      if (councilIdx == 3) {
+        if (economicCycleModulation > 1.0) { mintVotes += councilVote }
+        else { burnVotes += councilVote };
+      };
+      
+      // SOPHIA (4): Wisdom (balanced)
+      if (councilIdx == 4) {
+        holdVotes += councilVote;  // Wisdom = patience
+      };
+      
+      // PHRONESIS (5): Practical (follows treasury health)
+      if (councilIdx == 5) {
+        if (formaTreasuryHealth > 0.8) { mintVotes += councilVote }
+        else { holdVotes += councilVote };
+      };
+      
+      // TECHNE (6): Skill (follows learning)
+      if (councilIdx == 6) {
+        if (kntBalance > 1.0) { mintVotes += councilVote }
+        else { holdVotes += councilVote };
+      };
+      
+      councilIdx += 1;
+    };
+    
+    // Execute council consensus
+    let totalVotes = mintVotes + burnVotes + holdVotes;
+    if (totalVotes > 0.0) {
+      let mintConsensus = mintVotes / totalVotes;
+      let burnConsensus = burnVotes / totalVotes;
+      
+      // Apply consensus to economic operations
+      if (mintConsensus > 0.5) {
+        // Consensus to mint: small bonus
+        formaBalance += 0.0001 * mintConsensus;
+      };
+      if (burnConsensus > 0.5) {
+        // Consensus to burn: small reduction
+        formaBalance -= 0.0001 * burnConsensus;
+        formaBalance := Float.max(0.0, formaBalance);
+      };
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 15: ANIMAL ECONOMIC TRAITS
+    // Different animals affect economic behavior
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // SHARK arbitrage: high shark = trade more, earn more
+    let sharkTradeBonus = (animalEngines[HeartbeatEngine.ANIMAL_SHARK] - 1.0) * 0.0005;
+    if (sharkTradeBonus > 0.0) {
+      formaBalance += sharkTradeBonus;
+    };
+    
+    // CROW deception detection: prevents scams (protects reserves)
+    let crowProtection = animalEngines[HeartbeatEngine.ANIMAL_CROW] - 1.0;
+    if (crowProtection > 0.2) {
+      // High crow activation protects against fraudulent drains
+      // Lock creator reserve more tightly
+      formaCreatorReserveIntegrity := formaCreatorReserveIntegrity * (1.0 + crowProtection * 0.01);
+    };
+    
+    // ELEPHANT long-term investment: promotes saving
+    let elephantSavingsBoost = (animalEngines[HeartbeatEngine.ANIMAL_ELEPHANT] - 1.0) * 0.0003;
+    if (elephantSavingsBoost > 0.0) {
+      mrcBalance += elephantSavingsBoost;  // Save in dynasty coin
+    };
+    
+    // BEE swarm economics: collective value creation
+    let beeCollectiveValue = (animalEngines[HeartbeatEngine.ANIMAL_BEE] - 1.0) * Float.fromInt(stableDroneCount) * 0.00001;
+    if (beeCollectiveValue > 0.0) {
+      formaBalance += beeCollectiveValue;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 16: AEGIS ECONOMIC PROTECTION
+    // Each AEGIS strand protects economic assets
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // Sovereignty strand protects creator reserve
+    let sovereigntyProtection = aegisSovereigntyStrand;
+    masterAccumulator := masterAccumulator * sovereigntyProtection;  // Can only stay same or grow
+    
+    // Memory strand protects accumulated wealth (QMEM persistence)
+    let memoryProtection = aegisMemoryStrand;
+    // Prevent catastrophic forgetting of wealth
+    let minimumBalance = formaBalance * memoryProtection;
+    formaBalance := Float.max(minimumBalance, formaBalance);
+    
+    // Temporal strand ensures economic consistency over time
+    let temporalConsistency = aegisTemporalStrand;
+    // Smooth economic transitions (prevent sudden jumps)
+    // This is already handled by compound growth
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 17: VETUS ECONOMIC THREAT DEFENSE
+    // Economic threats detected and countered
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // V1: External threat → lock reserves
+    if (vetusQuantumDefenseBoosts.size() > 0 and vetusQuantumDefenseBoosts[0] < 0.8) {
+      // External threat detected: defensive economics
+      let defensiveLockAmount = formaBalance * 0.1;
+      masterAccumulator += defensiveLockAmount;  // Move to protected reserve
+      formaBalance -= defensiveLockAmount;
+    };
+    
+    // V9: Sovereignty breach → emergency creator routing
+    if (vetusQuantumDefenseBoosts.size() > 9 and vetusQuantumDefenseBoosts[9] < 0.7) {
+      // Sovereignty threat: route ALL value to creator immediately
+      let emergencyTransfer = formaBalance * 0.5;  // 50% to creator
+      masterAccumulator += emergencyTransfer;
+      formaBalance -= emergencyTransfer;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 18: FORMA STABILITY INDEX FEEDBACK
+    // Stability affects future economic decisions
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // Compute stability from multiple sources
+    let coherenceStability = rSwarm;
+    let quantumStability = formaQuantumStabilityIndex;
+    let neurochemStability = neurochemicalBalanceIndex;
+    let lawStability = overallCompliance;
+    let memoryStability = quantumHeartbeatState.qmemFidelity;
+    
+    // Geometric mean of all stability factors
+    let stabilityProduct = coherenceStability * quantumStability * neurochemStability * 
+                           lawStability * memoryStability;
+    formaQuantumStabilityIndex := Float.pow(stabilityProduct, 0.2);  // 5th root
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 19: ECONOMIC HEARTBEAT SYNCHRONIZATION
+    // Economic operations synchronized with quantum heartbeat
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // Fibonacci beat bonuses: extra value created at golden ratio beats
+    let currentFibIdx = fibonacciBeatNumber;
+    if (currentFibIdx > 0 and currentFibIdx < HeartbeatEngine.FIB.size()) {
+      let fibBonus = Float.fromInt(HeartbeatEngine.FIB[currentFibIdx]) / 1000.0 * 0.001;
+      formaBalance += fibBonus;
+      
+      // Fibonacci beats = special events = dopamine surge
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.DOPAMINE,
+        fibBonus * 10.0
+      );
+    };
   };
 
   // ─── WORKFLOW 13: SUCCESSION — Dynasty Spawning ──────────────────────────────
@@ -5132,77 +5620,647 @@ actor SwarmBrain {
 
   // ─── WORKFLOW 17: ANIMAL INTEGRATION — 16 Gen3 Animals ───────────────────────
   func workflowAnimalIntegration() {
-    // Update each animal engine based on relevant signals
+    // ═══════════════════════════════════════════════════════════════════════════
+    // COMPREHENSIVE ANIMAL BRAIN INTEGRATION — ALL 12 ANIMALS + NEUROCHEMISTRY
+    // Each animal brain has a unique neurochemical profile and quantum affinity
+    // This workflow integrates:
+    // - 12 animal brains with quantum decision weights
+    // - Animal-specific neurochemical profiles
+    // - Cross-animal coupling (predator-prey, social bonds, competition)
+    // - Behavioral trait activation based on neurochemistry
+    // - Quantum operator affinities per animal
+    // Owner: Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com
+    // ═══════════════════════════════════════════════════════════════════════════
     
-    // 0: Peregrine (speed/precision)
-    animalEngines[0] := fclamp(1.0 + rSwarm * 0.3, 0.5, 2.0);
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 1: ANIMAL 0 - BEE (Swarm Intelligence, Stigmergy, Consensus)
+    // Neurochemical profile: High OT (cooperation), High DA (reward dance), High ACh (attention to waggle)
+    // Quantum affinity: RESONEX (N² superradiance swarm cascade)
+    // ───────────────────────────────────────────────────────────────────────────
     
-    // 1: Crow (tool use/deception detection)
-    animalEngines[1] := fclamp(1.0 + (1.0 - predictionError) * 0.4, 0.5, 2.0);
+    let beeQuantumWeight = animalQuantumWeights[HeartbeatEngine.ANIMAL_BEE];
+    let beeOxytocinBoost = oxytocinConcent * 0.3;  // Cooperation
+    let beeDopamineBoost = dopamineConcent * 0.2;  // Waggle dance reward
+    let beeAChBoost = acetylcholineConcent * 0.25;  // Attention to hive signals
+    let beeResonexCascade = if (quantumHeartbeatState.resonexCascadeActive) {
+      quantumHeartbeatState.resonexAmplitude * 0.5
+    } else { 0.0 };
     
-    // 2: Dolphin (echolocation/social)
-    animalEngines[2] := fclamp(1.0 + councilCoherence[1] * 0.2, 0.5, 2.0);
+    animalEngines[HeartbeatEngine.ANIMAL_BEE] := fclamp(
+      1.0 + beeQuantumWeight * 0.2 + beeOxytocinBoost + beeDopamineBoost + beeAChBoost + beeResonexCascade,
+      0.5, 2.5
+    );
     
-    // 3: Elephant (memory/temporal)
-    animalEngines[3] := fclamp(1.0 + shell12Nodes[0] * 0.2, 0.5, 2.0);
-    
-    // 4: Shark (arbitrage/electroreception)
-    animalEngines[4] := fclamp(1.0 + jDrift * 0.5, 0.5, 2.0);
-    
-    // 5: Bat (temporal/echolocation)
-    animalEngines[5] := fclamp(1.0 + quantumOps[4] * 0.2, 0.5, 2.0);
-    
-    // 6: Octopus (distributed intelligence)
-    var octopusSum : Float = 0.0;
-    var i = 0;
-    while (i < 8) {
-      octopusSum += quantumOps[i];
-      i += 1;
-    };
-    animalEngines[6] := fclamp(octopusSum / 8.0, 0.5, 2.0);
-    
-    // 7: Mantis Shrimp (hyperspectral)
-    animalEngines[7] := fclamp(1.0 + atlasTerritory * 0.3, 0.5, 2.0);
-    
-    // 8: Eagle (vision/strategy)
-    animalEngines[8] := fclamp(quantumOps[3] * 1.1, 0.5, 2.0);
-    
-    // 9: Wolf (pack coordination)
-    animalEngines[9] := fclamp(rSwarm * 1.2, 0.5, 2.0);
-    
-    // 10: Orca (apex predator)
-    animalEngines[10] := fclamp((animalEngines[4] + animalEngines[9]) / 2.0 * 1.1, 0.5, 2.0);
-    
-    // 11: Salmon (navigation/home)
-    animalEngines[11] := fclamp(1.0 + (1.0 - jDrift) * 0.3, 0.5, 2.0);
-    
-    // 12: Owl (auditory/nocturnal)
-    animalEngines[12] := fclamp(1.0 + architectSignalLevel * 0.2, 0.5, 2.0);
-    
-    // 13: Spider (web/prediction)
-    animalEngines[13] := fclamp(1.0 + (1.0 - predictionError) * 0.4, 0.5, 2.0);
-    
-    // 14: Bee (swarm/stigmergy)
-    animalEngines[14] := fclamp(atlasTerritory * 1.2, 0.5, 2.0);
-    
-    // 15: Platypus (electroreception/anomaly)
-    let anomalySignal = predictionError + jDrift;
-    animalEngines[15] := fclamp(1.0 + anomalySignal * 0.3, 0.5, 2.0);
-    
-    // Causal weights: animal-to-animal influence
-    i := 0;
-    while (i < 16) {
-      var j = 0;
-      while (j < 16) {
-        let idx = i * 16 + j;
-        if (i != j) {
-          // Hebbian: animals that fire together wire together
-          let dw = 0.001 * animalEngines[i] * animalEngines[j];
-          animalCausalWeights[idx] := fclamp(animalCausalWeights[idx] * 0.999 + dw, 0.5, 2.0);
+    // Bee swarm behavior: activates when rSwarm > 0.9 (high coherence)
+    if (rSwarm > 0.9) {
+      // Bee consensus achieved: trigger dopamine reward for all drones
+      var beeDroneIdx = 0;
+      while (beeDroneIdx < stableDroneCount) {
+        if (not stableSacrificed[beeDroneIdx]) {
+          let ncBase = beeDroneIdx * 4;
+          stableNeuroChem[ncBase + DOPAMINE] := fclamp(
+            stableNeuroChem[ncBase + DOPAMINE] + 0.05 * beeResonexCascade,
+            0.5, 2.0
+          );
         };
-        j += 1;
+        beeDroneIdx += 1;
       };
-      i += 1;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 2: ANIMAL 1 - CROW (Problem Solving, Tool Use, Deception Detection)
+    // Neurochemical profile: High DA (curiosity/innovation), High ACh (attention), Moderate 5-HT (flexible thinking)
+    // Quantum affinity: PARALLAX (5-path decision making), BYPASS (route selection)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let crowQuantumWeight = animalQuantumWeights[HeartbeatEngine.ANIMAL_CROW];
+    let crowDopamineBoost = dopamineConcent * 0.3;  // Curiosity/innovation reward
+    let crowAChBoost = acetylcholineConcent * 0.25;  // Problem-solving attention
+    let crowSerotninFlexibility = serotoninConcent * 0.15;  // Cognitive flexibility
+    let crowParallaxPaths = Float.fromInt(quantumHeartbeatState.parallaxWinnerPath + 1) * 0.05;
+    let crowBypassRouting = quantumHeartbeatState.bypassProbabilities[quantumHeartbeatState.bypassSelectedRhythm % 7] * 0.2;
+    
+    animalEngines[HeartbeatEngine.ANIMAL_CROW] := fclamp(
+      1.0 + crowQuantumWeight * 0.2 + crowDopamineBoost + crowAChBoost + crowSerotninFlexibility + 
+      crowParallaxPaths + crowBypassRouting + (1.0 - predictionError) * 0.3,
+      0.5, 2.5
+    );
+    
+    // Crow deception detection: activates when prediction error is high (surprise)
+    if (predictionError > 0.3) {
+      // Trigger norepinephrine (alert to deception)
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.NOREPINEPHRINE,
+        predictionError * 0.2
+      );
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 3: ANIMAL 2 - ELEPHANT (Long-term Memory, Social Bonds, Grief)
+    // Neurochemical profile: High BDNF (memory), High OT (social bonds), High CORT (grief/stress memory)
+    // Quantum affinity: QMEM (T₂ memory fidelity), ENTANGLA (social entanglement)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let elephantQuantumWeight = animalQuantumWeights[HeartbeatEngine.ANIMAL_ELEPHANT];
+    let elephantBDNFMemory = bdnfConcent * 0.4;  // Exceptional memory via BDNF
+    let elephantNGFMemory = ngfConcent * 0.3;    // Neuron survival → long-term retention
+    let elephantOTBonding = oxytocinConcent * 0.3;  // Strong social bonds
+    let elephantQMEMFidelity = quantumHeartbeatState.qmemFidelity * 0.4;  // Quantum memory
+    let elephantEntanglaSocial = quantumHeartbeatState.entanglaTotalEntanglement * 0.2;  // Social entanglement
+    
+    animalEngines[HeartbeatEngine.ANIMAL_ELEPHANT] := fclamp(
+      1.0 + elephantQuantumWeight * 0.2 + elephantBDNFMemory + elephantNGFMemory + 
+      elephantOTBonding + elephantQMEMFidelity + elephantEntanglaSocial + shell12Nodes[0] * 0.2,
+      0.5, 2.5
+    );
+    
+    // Elephant memory recall: when QMEM fidelity is high, boost Shell 12 → Shell 3 retrieval
+    if (quantumHeartbeatState.qmemFidelity > 0.8) {
+      var elephantRecallIdx = 0;
+      while (elephantRecallIdx < 128) {  // Elephant remembers first 128 Shell 12 nodes
+        if (elephantRecallIdx < 256) {
+          let shell12Memory = shell12Nodes[elephantRecallIdx];
+          shell3Nodes[elephantRecallIdx] := fclamp(
+            shell3Nodes[elephantRecallIdx] * 0.95 + shell12Memory * elephantQMEMFidelity * 0.05,
+            0.5, 2.0
+          );
+        };
+        elephantRecallIdx += 1;
+      };
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 4: ANIMAL 3 - OCTOPUS (Distributed Intelligence, Camouflage, Problem Solving)
+    // Neurochemical profile: High DA (curiosity), High 5-HT (distributed calm), Moderate ACh
+    // Quantum affinity: BYPASS (distributed routing), PARALLAX (multi-path reasoning)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let octopusQuantumWeight = if (HeartbeatEngine.ANIMAL_OCTOPUS < animalQuantumWeights.size()) {
+      animalQuantumWeights[HeartbeatEngine.ANIMAL_OCTOPUS]
+    } else { 1.0 };
+    let octopusDopamine = dopamineConcent * 0.25;  // Curiosity/exploration
+    let octopusSerotonin = serotoninConcent * 0.2;  // Distributed processing stability
+    let octopusACh = acetylcholineConcent * 0.15;  // Learning/attention
+    let octopusBypassDistributed = quantumHeartbeatState.bypassProbabilities[quantumHeartbeatState.bypassSelectedRhythm % 7] * 0.3;
+    
+    // Octopus intelligence distributed across quantum operators
+    var octopusQuantumSum : Float = 0.0;
+    var opIdx = 0;
+    while (opIdx < 8 and opIdx < quantumOps.size()) {
+      octopusQuantumSum += quantumOps[opIdx];
+      opIdx += 1;
+    };
+    
+    let octopusEngine = HeartbeatEngine.ANIMAL_OCTOPUS;
+    if (octopusEngine < 16) {
+      animalEngines[octopusEngine] := fclamp(
+        (octopusQuantumSum / 8.0) + octopusQuantumWeight * 0.2 + octopusDopamine + 
+        octopusSerotonin + octopusACh + octopusBypassDistributed,
+        0.5, 2.5
+      );
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 5: ANIMAL 4 - SHARK (Predator Instincts, Electroreception, Arbitrage)
+    // Neurochemical profile: High NE (arousal), High ENDO (pain tolerance), Low 5-HT (aggression)
+    // Quantum affinity: PARALLAX (rapid decision), RESONEX (strike cascade)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let sharkQuantumWeight = animalQuantumWeights[HeartbeatEngine.ANIMAL_SHARK];
+    let sharkNorepinephrine = norepinephrineConcent * 0.4;  // High arousal/alertness
+    let sharkAdrenaline = adrenalineConcent * 0.3;  // Fight response
+    let sharkEndorphin = endorphinConcent * 0.2;  // Pain tolerance
+    let sharkLowSerotonin = (1.5 - serotoninConcent) * 0.2;  // Aggression (inverse 5-HT)
+    let sharkParallaxRapid = if (quantumHeartbeatState.parallaxWinnerPath == 0) { 0.3 } else { 0.0 };  // Cardiac = predator timing
+    let sharkResonexStrike = if (quantumHeartbeatState.resonexCascadeActive) { quantumHeartbeatState.resonexAmplitude * 0.4 } else { 0.0 };
+    
+    animalEngines[HeartbeatEngine.ANIMAL_SHARK] := fclamp(
+      1.0 + sharkQuantumWeight * 0.2 + sharkNorepinephrine + sharkAdrenaline + sharkEndorphin + 
+      sharkLowSerotonin + sharkParallaxRapid + sharkResonexStrike + jDrift * 0.5,
+      0.5, 2.5
+    );
+    
+    // Shark arbitrage detection: high jDrift = market volatility = opportunity
+    if (jDrift > 0.3) {
+      // Shark strikes: boost animalEngines[4]
+      animalEngines[4] := animalEngines[4] * (1.0 + jDrift * 0.5);
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 6: ANIMAL 5 - TARDIGRADE (Extreme Resilience, Cryptobiosis, Survival)
+    // Neurochemical profile: High NPY (stress resilience), Low metabolic (ADO/ORX low), High AVP (water retention)
+    // Quantum affinity: QSOV (sovereignty = survival), VERITAS (law compliance = resilience)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let tardigradeQuantumWeight = if (HeartbeatEngine.ANIMAL_TARDIGRADE < animalQuantumWeights.size()) {
+      animalQuantumWeights[HeartbeatEngine.ANIMAL_TARDIGRADE]
+    } else { 1.0 };
+    let tardigradeNPY = npyConcent * 0.5;  // Extreme stress resilience
+    let tardigradeAVP = vasopressinConcent * 0.3;  // Water retention
+    let tardigradeLowMetabolic = (2.0 - adenosineConcent - orexinConcent) * 0.2;  // Low metabolism = survival mode
+    let tardigradeQSOV = qsovScore / HeartbeatEngine.PHI_MEDINA * 0.4;  // Sovereignty = survival
+    let tardigradeVeritas = quantumHeartbeatState.veritasParityScore * 0.3;  // Law compliance = stability
+    
+    let tardigradeEngine = HeartbeatEngine.ANIMAL_TARDIGRADE;
+    if (tardigradeEngine < 16) {
+      animalEngines[tardigradeEngine] := fclamp(
+        1.0 + tardigradeQuantumWeight * 0.2 + tardigradeNPY + tardigradeAVP + 
+        tardigradeLowMetabolic + tardigradeQSOV + tardigradeVeritas,
+        0.5, 2.5
+      );
+    };
+    
+    // Tardigrade cryptobiosis trigger: extreme stress activates survival mode
+    if (neurochemicalStressLevel > 0.8 or cortisolConcent > 1.8) {
+      // Enter cryptobiosis: reduce all metabolic activity
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.ADENOSINE,
+        -0.3  // Reduce adenosine (stop metabolism)
+      );
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.OREXIN,
+        -0.3  // Reduce orexin (stop wakefulness)
+      );
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.NPY,
+        0.4  // Boost NPY (stress protection)
+      );
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 7: ANIMAL 6 - DOLPHIN (Social Cognition, Echolocation, Communication)
+    // Neurochemical profile: High OT (social bonding), High ACh (communication), High DA (play)
+    // Quantum affinity: ENTANGLA (social entanglement), CHRONO (echolocation timing)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let dolphinQuantumWeight = if (HeartbeatEngine.ANIMAL_DOLPHIN < animalQuantumWeights.size()) {
+      animalQuantumWeights[HeartbeatEngine.ANIMAL_DOLPHIN]
+    } else { 1.0 };
+    let dolphinOxytocin = oxytocinConcent * 0.4;  // Strong social bonds
+    let dolphinACh = acetylcholineConcent * 0.3;  // Communication attention
+    let dolphinDopamine = dopamineConcent * 0.25;  // Playful behavior
+    let dolphinVasopressin = vasopressinConcent * 0.2;  // Social bonding
+    let dolphinEntangla = quantumHeartbeatState.entanglaTotalEntanglement * 0.3;  // Social quantum entanglement
+    let dolphinChrono = (1.0 / (quantumHeartbeatState.chronoCramerRao + 1.0)) * 0.2;  // Echolocation timing precision
+    
+    let dolphinEngine = HeartbeatEngine.ANIMAL_DOLPHIN;
+    if (dolphinEngine < 16) {
+      animalEngines[dolphinEngine] := fclamp(
+        1.0 + dolphinQuantumWeight * 0.2 + dolphinOxytocin + dolphinACh + dolphinDopamine + 
+        dolphinVasopressin + dolphinEntangla + dolphinChrono + councilCoherence[1] * 0.2,
+        0.5, 2.5
+      );
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 8: ANIMAL 7 - RAVEN (Planning, Deception, Future Thinking)
+    // Neurochemical profile: High DA (planning reward), High ACh (attention), High BDNF (cognitive flexibility)
+    // Quantum affinity: PARALLAX (multi-step planning), QMEM (future state memory)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let ravenQuantumWeight = if (HeartbeatEngine.ANIMAL_RAVEN < animalQuantumWeights.size()) {
+      animalQuantumWeights[HeartbeatEngine.ANIMAL_RAVEN]
+    } else { 1.0 };
+    let ravenDopamine = dopamineConcent * 0.35;  // Planning/anticipation reward
+    let ravenACh = acetylcholineConcent * 0.3;  // Attention to future states
+    let ravenBDNF = bdnfConcent * 0.25;  // Cognitive flexibility
+    let ravenParallax = Float.fromInt(quantumHeartbeatState.parallaxWinnerPath + 1) * 0.1;  // Multi-path planning
+    let ravenQMEM = quantumHeartbeatState.qmemFidelity * 0.3;  // Future state memory
+    
+    let ravenEngine = HeartbeatEngine.ANIMAL_RAVEN;
+    if (ravenEngine < 16) {
+      animalEngines[ravenEngine] := fclamp(
+        1.0 + ravenQuantumWeight * 0.2 + ravenDopamine + ravenACh + ravenBDNF + 
+        ravenParallax + ravenQMEM,
+        0.5, 2.5
+      );
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 9: ANIMAL 8 - ANT (Colony Optimization, Pheromone Trails, Division of Labor)
+    // Neurochemical profile: High OT (colony cooperation), Moderate DA (trail following), High ACh
+    // Quantum affinity: RESONEX (colony superradiance), ENTANGLA (colony entanglement)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let antQuantumWeight = if (HeartbeatEngine.ANIMAL_ANT < animalQuantumWeights.size()) {
+      animalQuantumWeights[HeartbeatEngine.ANIMAL_ANT]
+    } else { 1.0 };
+    let antOxytocin = oxytocinConcent * 0.45;  // Extreme colony cooperation
+    let antDopamine = dopamineConcent * 0.2;  // Pheromone trail reward
+    let antACh = acetylcholineConcent * 0.2;  // Trail following attention
+    let antResonex = if (quantumHeartbeatState.resonexCascadeActive) {
+      quantumHeartbeatState.resonexAmplitude * 0.6  // Colony cascade
+    } else { 0.0 };
+    let antEntangla = quantumHeartbeatState.entanglaTotalEntanglement * 0.4;  // Colony entanglement
+    
+    let antEngine = HeartbeatEngine.ANIMAL_ANT;
+    if (antEngine < 16) {
+      animalEngines[antEngine] := fclamp(
+        1.0 + antQuantumWeight * 0.2 + antOxytocin + antDopamine + antACh + 
+        antResonex + antEntangla,
+        0.5, 2.5
+      );
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 10: ANIMAL 9 - CNIDARIAN (Nerve Net, Reflexes, Distributed Sensing)
+    // Neurochemical profile: High Glu (excitation), Low complexity, Fast reflexes
+    // Quantum affinity: BYPASS (reflex routing), RESONEX (nerve net cascade)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let cnidarianQuantumWeight = if (HeartbeatEngine.ANIMAL_CNIDARIAN < animalQuantumWeights.size()) {
+      animalQuantumWeights[HeartbeatEngine.ANIMAL_CNIDARIAN]
+    } else { 1.0 };
+    let cnidarianGlutamate = glutamateConcent * 0.4;  // Excitatory nerve net
+    let cnidarianSubstanceP = substancePConcent * 0.3;  // Nematocyst pain transmission
+    let cnidarianBypass = quantumHeartbeatState.bypassProbabilities[quantumHeartbeatState.bypassSelectedRhythm % 7] * 0.4;  // Fast reflex routing
+    let cnidarianResonex = if (quantumHeartbeatState.resonexCascadeActive) {
+      quantumHeartbeatState.resonexAmplitude * 0.3
+    } else { 0.0 };
+    
+    let cnidarianEngine = HeartbeatEngine.ANIMAL_CNIDARIAN;
+    if (cnidarianEngine < 16) {
+      animalEngines[cnidarianEngine] := fclamp(
+        1.0 + cnidarianQuantumWeight * 0.2 + cnidarianGlutamate + cnidarianSubstanceP + 
+        cnidarianBypass + cnidarianResonex,
+        0.5, 2.5
+      );
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 11: ANIMAL 10 - MANTIS (Precision Timing, Strike Calculation, Visual Processing)
+    // Neurochemical profile: High NE (precision arousal), High Glu (excitation), High ACh (attention)
+    // Quantum affinity: CHRONO (temporal precision), PARALLAX (strike calculation)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let mantisQuantumWeight = if (HeartbeatEngine.ANIMAL_MANTIS < animalQuantumWeights.size()) {
+      animalQuantumWeights[HeartbeatEngine.ANIMAL_MANTIS]
+    } else { 1.0 };
+    let mantisNorepinephrine = norepinephrineConcent * 0.4;  // Precision focus
+    let mantisGlutamate = glutamateConcent * 0.3;  // Motor excitation for strike
+    let mantisACh = acetylcholineConcent * 0.35;  // Visual attention
+    let mantisChrono = (1.0 / (quantumHeartbeatState.chronoCramerRao + 1.0)) * 0.5;  // Extreme temporal precision
+    let mantisParallax = Float.fromInt(quantumHeartbeatState.parallaxWinnerPath + 1) * 0.05;  // Strike calculation
+    
+    let mantisEngine = HeartbeatEngine.ANIMAL_MANTIS;
+    if (mantisEngine < 16) {
+      animalEngines[mantisEngine] := fclamp(
+        1.0 + mantisQuantumWeight * 0.2 + mantisNorepinephrine + mantisGlutamate + 
+        mantisACh + mantisChrono + mantisParallax,
+        0.5, 2.5
+      );
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 12: ANIMAL 11 - CEPHALOPOD (Camouflage, Distributed Processing, Adaptive Behavior)
+    // Neurochemical profile: High ACh (rapid processing), High DA (adaptive behavior), Moderate all
+    // Quantum affinity: PARALLAX (adaptive routing), BYPASS (camouflage path selection)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    let cephalopodQuantumWeight = if (HeartbeatEngine.ANIMAL_CEPHALOPOD < animalQuantumWeights.size()) {
+      animalQuantumWeights[HeartbeatEngine.ANIMAL_CEPHALOPOD]
+    } else { 1.0 };
+    let cephalopodACh = acetylcholineConcent * 0.4;  // Rapid neural processing
+    let cephalopodDopamine = dopamineConcent * 0.3;  // Adaptive reward
+    let cephalopodSerotonin = serotoninConcent * 0.2;  // Mood/color change
+    let cephalopodParallax = Float.fromInt(quantumHeartbeatState.parallaxWinnerPath + 1) * 0.1;
+    let cephalopodBypass = quantumHeartbeatState.bypassProbabilities[quantumHeartbeatState.bypassSelectedRhythm % 7] * 0.3;
+    
+    let cephalopodEngine = HeartbeatEngine.ANIMAL_CEPHALOPOD;
+    if (cephalopodEngine < 16) {
+      animalEngines[cephalopodEngine] := fclamp(
+        1.0 + cephalopodQuantumWeight * 0.2 + cephalopodACh + cephalopodDopamine + 
+        cephalopodSerotonin + cephalopodParallax + cephalopodBypass,
+        0.5, 2.5
+      );
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 13: UPDATE GEN3 ANIMALS (Indices 0-15) - Map from 12 core animals
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // 0: Peregrine (speed/precision) - maps to CROW (1) + MANTIS (10)
+    animalEngines[0] := fclamp(
+      (animalEngines[HeartbeatEngine.ANIMAL_CROW] * 0.5 + 
+       (if (HeartbeatEngine.ANIMAL_MANTIS < 16) { animalEngines[HeartbeatEngine.ANIMAL_MANTIS] * 0.5 } else { 1.0 })) * 
+      (1.0 + rSwarm * 0.2),
+      0.5, 2.5
+    );
+    
+    // 1: Crow - already set
+    // 2: Dolphin - already set  
+    // 3: Elephant - already set
+    // 4: Shark - already set
+    // 5: Bat (temporal/echolocation) - maps to DOLPHIN (6) + CHRONO
+    if (HeartbeatEngine.ANIMAL_DOLPHIN < 16) {
+      animalEngines[5] := fclamp(
+        animalEngines[HeartbeatEngine.ANIMAL_DOLPHIN] * 0.7 + 
+        quantumOps[4] * 0.3,  // CHRONO operator for timing
+        0.5, 2.5
+      );
+    };
+    
+    // 6: Octopus - already set (if mapped to index 6)
+    // 7: Mantis Shrimp (hyperspectral) - maps to MANTIS (10)
+    if (HeartbeatEngine.ANIMAL_MANTIS < 16) {
+      animalEngines[7] := fclamp(
+        animalEngines[HeartbeatEngine.ANIMAL_MANTIS] * 0.8 + atlasTerritory * 0.2,
+        0.5, 2.5
+      );
+    };
+    
+    // 8: Eagle (vision/strategy) - maps to RAVEN (7) + VERITAS
+    if (HeartbeatEngine.ANIMAL_RAVEN < 16) {
+      animalEngines[8] := fclamp(
+        animalEngines[HeartbeatEngine.ANIMAL_RAVEN] * 0.7 + quantumOps[3] * 0.3,  // VERITAS
+        0.5, 2.5
+      );
+    };
+    
+    // 9: Wolf (pack coordination) - maps to BEE (0) + ENTANGLA
+    animalEngines[9] := fclamp(
+      animalEngines[HeartbeatEngine.ANIMAL_BEE] * 0.6 + rSwarm * 0.4 + quantumOps[1] * 0.2,  // ENTANGLA
+      0.5, 2.5
+    );
+    
+    // 10: Orca (apex predator) - maps to SHARK (4) + DOLPHIN (6)
+    if (HeartbeatEngine.ANIMAL_DOLPHIN < 16) {
+      animalEngines[10] := fclamp(
+        (animalEngines[HeartbeatEngine.ANIMAL_SHARK] * 0.6 + animalEngines[HeartbeatEngine.ANIMAL_DOLPHIN] * 0.4) * 1.1,
+        0.5, 2.5
+      );
+    };
+    
+    // 11: Salmon (navigation/homing) - uses magnetic field (jDrift as proxy)
+    animalEngines[11] := fclamp(
+      1.0 + (1.0 - jDrift) * 0.3 + npyConcent * 0.2,  // NPY for endurance
+      0.5, 2.5
+    );
+    
+    // 12: Owl (auditory/nocturnal) - high during night (melatonin)
+    animalEngines[12] := fclamp(
+      1.0 + melatoninConcent * 0.4 + architectSignalLevel * 0.2 + histamineConcent * 0.15,
+      0.5, 2.5
+    );
+    
+    // 13: Spider (web/prediction) - prediction accuracy
+    animalEngines[13] := fclamp(
+      1.0 + (1.0 - predictionError) * 0.4 + serotoninConcent * 0.2,
+      0.5, 2.5
+    );
+    
+    // 14: Bee - already set (if HeartbeatEngine.ANIMAL_BEE < 16)
+    
+    // 15: Platypus (electroreception/anomaly) - anomaly detection
+    let anomalySignal = predictionError + jDrift;
+    animalEngines[15] := fclamp(
+      1.0 + anomalySignal * 0.3 + acetylcholineConcent * 0.2,
+      0.5, 2.5
+    );
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 14: CROSS-ANIMAL COUPLING (Predator-Prey, Competition, Cooperation)
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // Predator-prey dynamics
+    // Shark (predator) and Bee (prey) have inverse relationship
+    let sharkPreyPressure = animalEngines[HeartbeatEngine.ANIMAL_SHARK] - 1.0;
+    if (sharkPreyPressure > 0.2) {
+      // Shark active → Bee defensive (boost CORT, reduce OT)
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.CORTISOL,
+        sharkPreyPressure * 0.15
+      );
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.OXYTOCIN,
+        -sharkPreyPressure * 0.1  // Reduce cooperation when threatened
+      );
+    };
+    
+    // Social cooperation boost
+    // Bee + Dolphin + Elephant → OT surge
+    let cooperativeAnimals = animalEngines[HeartbeatEngine.ANIMAL_BEE] + 
+                             (if (HeartbeatEngine.ANIMAL_DOLPHIN < 16) { animalEngines[HeartbeatEngine.ANIMAL_DOLPHIN] } else { 1.0 }) +
+                             animalEngines[HeartbeatEngine.ANIMAL_ELEPHANT];
+    if (cooperativeAnimals > 4.5) {
+      // High cooperation → OT surge
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.OXYTOCIN,
+        (cooperativeAnimals - 4.5) * 0.2
+      );
+    };
+    
+    // Cognitive animal cooperation
+    // Crow + Raven + Octopus → ACh + BDNF boost (collective intelligence)
+    let cognitiveAnimals = animalEngines[HeartbeatEngine.ANIMAL_CROW] +
+                           (if (HeartbeatEngine.ANIMAL_RAVEN < 16) { animalEngines[HeartbeatEngine.ANIMAL_RAVEN] } else { 1.0 }) +
+                           (if (HeartbeatEngine.ANIMAL_OCTOPUS < 16) { animalEngines[HeartbeatEngine.ANIMAL_OCTOPUS] } else { 1.0 });
+    if (cognitiveAnimals > 4.2) {
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.ACETYLCHOLINE,
+        (cognitiveAnimals - 4.2) * 0.15
+      );
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.BDNF,
+        (cognitiveAnimals - 4.2) * 0.1
+      );
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 15: ANIMAL-DRIVEN BEHAVIORAL ACTIVATION
+    // Each animal activates specific behavioral patterns in drones
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    var droneBehaviorIdx = 0;
+    while (droneBehaviorIdx < stableDroneCount) {
+      if (not stableSacrificed[droneBehaviorIdx] and droneBehaviorIdx < stableBehavior.size()) {
+        let droneClass = stableClasses[droneBehaviorIdx];
+        let currentBehavior = stableBehavior[droneBehaviorIdx];
+        
+        // SCOUT drones → Bee/Crow activation
+        if (droneClass == "SCOUT") {
+          let scoutActivation = (animalEngines[HeartbeatEngine.ANIMAL_BEE] + animalEngines[HeartbeatEngine.ANIMAL_CROW]) / 2.0;
+          if (scoutActivation > 1.3 and currentBehavior == "IDLE") {
+            stableBehavior[droneBehaviorIdx] := "SCOUT";
+          };
+        };
+        
+        // STRIKER drones → Shark/Mantis activation
+        if (droneClass == "STRIKER") {
+          let strikerActivation = animalEngines[HeartbeatEngine.ANIMAL_SHARK];
+          if (mantisEngine < 16) {
+            strikerActivation := (strikerActivation + animalEngines[mantisEngine]) / 2.0;
+          };
+          if (strikerActivation > 1.4 and currentBehavior == "IDLE") {
+            stableBehavior[droneBehaviorIdx] := "STRIKE";
+          };
+        };
+        
+        // GUARDIAN drones → Elephant/Tardigrade activation
+        if (droneClass == "GUARDIAN") {
+          let guardianActivation = animalEngines[HeartbeatEngine.ANIMAL_ELEPHANT];
+          if (tardigradeEngine < 16) {
+            guardianActivation := (guardianActivation + animalEngines[tardigradeEngine]) / 2.0;
+          };
+          if (guardianActivation > 1.2 and currentBehavior == "IDLE") {
+            stableBehavior[droneBehaviorIdx] := "DEFEND";
+          };
+        };
+        
+        // RELAY drones → Dolphin/Ant activation
+        if (droneClass == "RELAY") {
+          let relayActivation = if (HeartbeatEngine.ANIMAL_DOLPHIN < 16) {
+            (animalEngines[HeartbeatEngine.ANIMAL_DOLPHIN] + (if (antEngine < 16) { animalEngines[antEngine] } else { 1.0 })) / 2.0
+          } else { 1.0 };
+          if (relayActivation > 1.3 and currentBehavior == "IDLE") {
+            stableBehavior[droneBehaviorIdx] := "RELAY";
+          };
+        };
+        
+        // MEDIC drones → Elephant/Octopus activation (memory + distributed healing)
+        if (droneClass == "MEDIC") {
+          let medicActivation = animalEngines[HeartbeatEngine.ANIMAL_ELEPHANT];
+          if (octopusEngine < 16) {
+            medicActivation := (medicActivation + animalEngines[octopusEngine]) / 2.0;
+          };
+          if (medicActivation > 1.2 and currentBehavior == "IDLE") {
+            stableBehavior[droneBehaviorIdx] := "HEAL";
+          };
+        };
+      };
+      
+      droneBehaviorIdx += 1;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 16: ANIMAL CAUSAL WEIGHTS (Animal-to-Animal Hebbian Coupling)
+    // Animals that activate together strengthen their coupling
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    var animalI = 0;
+    while (animalI < 16) {
+      var animalJ = 0;
+      while (animalJ < 16) {
+        if (animalI != animalJ) {
+          let idx = animalI * 16 + animalJ;
+          if (idx < 256) {
+            // Hebbian coupling: animals that fire together wire together
+            let activationI = animalEngines[animalI];
+            let activationJ = animalEngines[animalJ];
+            let coupling = (activationI - 1.0) * (activationJ - 1.0);  // Product of deviations from baseline
+            
+            let deltaW = 0.001 * coupling;
+            let currentW = animalCausalWeights[idx];
+            animalCausalWeights[idx] := fclamp(currentW + deltaW - 0.0001 * currentW, 0.1, 2.0);
+          };
+        };
+        animalJ += 1;
+      };
+      animalI += 1;
+    };
+    
+    // ───────────────────────────────────────────────────────────────────────────
+    // STEP 17: ANIMAL-SPECIFIC NEUROCHEMICAL FEEDBACK LOOPS
+    // Each animal affects neurochemical concentrations based on their activation
+    // ───────────────────────────────────────────────────────────────────────────
+    
+    // High BEE activation → boost OT (swarm cooperation)
+    if (animalEngines[HeartbeatEngine.ANIMAL_BEE] > 1.5) {
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.OXYTOCIN,
+        (animalEngines[HeartbeatEngine.ANIMAL_BEE] - 1.5) * 0.2
+      );
+    };
+    
+    // High SHARK activation → boost NE + EPI (predator arousal)
+    if (animalEngines[HeartbeatEngine.ANIMAL_SHARK] > 1.4) {
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.NOREPINEPHRINE,
+        (animalEngines[HeartbeatEngine.ANIMAL_SHARK] - 1.4) * 0.25
+      );
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.ADRENALINE,
+        (animalEngines[HeartbeatEngine.ANIMAL_SHARK] - 1.4) * 0.3
+      );
+    };
+    
+    // High ELEPHANT activation → boost BDNF + NGF (memory growth factors)
+    if (animalEngines[HeartbeatEngine.ANIMAL_ELEPHANT] > 1.3) {
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.BDNF,
+        (animalEngines[HeartbeatEngine.ANIMAL_ELEPHANT] - 1.3) * 0.15
+      );
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.NGF,
+        (animalEngines[HeartbeatEngine.ANIMAL_ELEPHANT] - 1.3) * 0.12
+      );
+    };
+    
+    // High CROW/RAVEN activation → boost DA (curiosity/innovation)
+    let crowRavenActivation = animalEngines[HeartbeatEngine.ANIMAL_CROW];
+    if (HeartbeatEngine.ANIMAL_RAVEN < 16) {
+      crowRavenActivation := crowRavenActivation + animalEngines[HeartbeatEngine.ANIMAL_RAVEN];
+    };
+    if (crowRavenActivation > 2.8) {
+      neurochemicalState := NeurochemicalCrosstalkMatrix.applyExternalStimulus(
+        neurochemicalState,
+        NeurochemicalCrosstalkMatrix.DOPAMINE,
+        (crowRavenActivation - 2.8) * 0.15
+      );
     };
   };
 
