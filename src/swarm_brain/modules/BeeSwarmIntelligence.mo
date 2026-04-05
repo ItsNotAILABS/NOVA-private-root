@@ -8762,4 +8762,1283 @@ module {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 31: SWARM FORMATION CONTROL — GEOMETRIC INTELLIGENCE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  // Advanced formation control for the swarm:
+  //   • Formation geometries
+  //   • Formation transitions
+  //   • Obstacle-aware formation
+  //   • Dynamic formation scaling
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Formation control state
+  public type FormationControlState = {
+    // Current formation
+    currentFormation  : FormationGeometry;
+    
+    // Formation members
+    members           : [FormationMember];
+    
+    // Formation center
+    formationCenter   : { lat: Float; lon: Float; alt: Float };
+    formationHeading  : Float;
+    
+    // Scaling
+    formationScale    : Float;
+    targetScale       : Float;
+    
+    // Transition
+    transitionState   : ?FormationTransition;
+    
+    // Control
+    formationController : FormationController;
+    
+    // Quality
+    formationQuality  : FormationQuality;
+    
+    beatNum           : Nat;
+  };
+
+  /// Formation geometry
+  public type FormationGeometry = {
+    geometryType      : FormationGeometryType;
+    
+    // Parameters
+    parameters        : FormationParameters;
+    
+    // Template positions (relative to center)
+    templatePositions : [{ x: Float; y: Float; z: Float }];
+    
+    // Properties
+    width             : Float;
+    depth             : Float;
+    height            : Float;
+  };
+
+  /// Formation geometry types
+  public type FormationGeometryType = {
+    #Line;            // Linear formation
+    #Column;          // Vertical column
+    #Wedge;           // V-shape
+    #Diamond;         // Diamond shape
+    #Box;             // Rectangular
+    #Circle;          // Circular
+    #Sphere;          // 3D sphere
+    #Helix;           // Helical
+    #Fibonacci;       // Fibonacci spiral
+    #Custom;          // User-defined
+  };
+
+  /// Formation parameters
+  public type FormationParameters = {
+    spacing           : Float;       // Distance between members
+    layers            : Nat;         // Number of layers
+    membersPerLayer   : Nat;
+    rotationOffset    : Float;       // Rotation between layers
+    compressionFactor : Float;       // 3D compression
+  };
+
+  /// Formation member
+  public type FormationMember = {
+    droneId           : Nat;
+    slotIndex         : Nat;
+    
+    // Position
+    currentPosition   : { lat: Float; lon: Float; alt: Float };
+    targetPosition    : { lat: Float; lon: Float; alt: Float };
+    
+    // Velocity
+    currentVelocity   : { vx: Float; vy: Float; vz: Float };
+    targetVelocity    : { vx: Float; vy: Float; vz: Float };
+    
+    // Error
+    positionError     : Float;
+    velocityError     : Float;
+    
+    // Status
+    isInPosition      : Bool;
+    isConverging      : Bool;
+    
+    // Priority
+    slotPriority      : Float;
+  };
+
+  /// Formation transition
+  public type FormationTransition = {
+    sourceGeometry    : FormationGeometryType;
+    targetGeometry    : FormationGeometryType;
+    
+    // Progress
+    progress          : Float;
+    
+    // Interpolated positions
+    interpolatedPositions : [{ x: Float; y: Float; z: Float }];
+    
+    // Timing
+    startBeat         : Nat;
+    targetDuration    : Nat;
+  };
+
+  /// Formation controller
+  public type FormationController = {
+    // Control gains
+    positionGain      : Float;
+    velocityGain      : Float;
+    feedforwardGain   : Float;
+    
+    // Limits
+    maxVelocity       : Float;
+    maxAcceleration   : Float;
+    
+    // Collision avoidance
+    collisionRadius   : Float;
+    avoidanceGain     : Float;
+    
+    // Mode
+    controlMode       : FormationControlMode;
+  };
+
+  /// Formation control modes
+  public type FormationControlMode = {
+    #Position;        // Position control
+    #Velocity;        // Velocity matching
+    #Hybrid;          // Combined
+  };
+
+  /// Formation quality metrics
+  public type FormationQuality = {
+    // Errors
+    meanPositionError : Float;
+    maxPositionError  : Float;
+    
+    // Cohesion
+    cohesionIndex     : Float;
+    
+    // Alignment
+    alignmentIndex    : Float;
+    
+    // Stability
+    stabilityIndex    : Float;
+    
+    // Overall
+    overallQuality    : Float;
+  };
+
+  /// Generate formation template
+  public func generateFormationTemplate(
+    geometryType: FormationGeometryType,
+    numMembers: Nat,
+    params: FormationParameters
+  ) : [{ x: Float; y: Float; z: Float }] {
+    var positions : [{ x: Float; y: Float; z: Float }] = [];
+    
+    switch (geometryType) {
+      case (#Line) {
+        // Linear formation along Y axis
+        let startOffset = -Float.fromInt(numMembers - 1) * params.spacing / 2.0;
+        for (i in Iter.range(0, numMembers - 1)) {
+          positions := Array.append(positions, [{
+            x = 0.0;
+            y = startOffset + Float.fromInt(i) * params.spacing;
+            z = 0.0;
+          }]);
+        };
+      };
+      
+      case (#Column) {
+        // Vertical column along Z axis
+        let startOffset = -Float.fromInt(numMembers - 1) * params.spacing / 2.0;
+        for (i in Iter.range(0, numMembers - 1)) {
+          positions := Array.append(positions, [{
+            x = 0.0;
+            y = 0.0;
+            z = startOffset + Float.fromInt(i) * params.spacing;
+          }]);
+        };
+      };
+      
+      case (#Wedge) {
+        // V-formation
+        var left = true;
+        var row = 0;
+        for (i in Iter.range(0, numMembers - 1)) {
+          if (i == 0) {
+            positions := Array.append(positions, [{ x = 0.0; y = 0.0; z = 0.0 }]);
+          } else {
+            let offset = Float.fromInt((row + 1) / 2) * params.spacing;
+            let back = Float.fromInt((row + 1) / 2) * params.spacing * 0.7;
+            let x = if (left) { -offset } else { offset };
+            positions := Array.append(positions, [{
+              x = x;
+              y = -back;
+              z = 0.0;
+            }]);
+            if (not left) { row += 1 };
+            left := not left;
+          };
+        };
+      };
+      
+      case (#Diamond) {
+        // Diamond formation
+        if (numMembers >= 1) {
+          positions := Array.append(positions, [{ x = 0.0; y = params.spacing; z = 0.0 }]);  // Front
+        };
+        if (numMembers >= 2) {
+          positions := Array.append(positions, [{ x = -params.spacing; y = 0.0; z = 0.0 }]); // Left
+        };
+        if (numMembers >= 3) {
+          positions := Array.append(positions, [{ x = params.spacing; y = 0.0; z = 0.0 }]);  // Right
+        };
+        if (numMembers >= 4) {
+          positions := Array.append(positions, [{ x = 0.0; y = -params.spacing; z = 0.0 }]); // Back
+        };
+        // Fill rest around
+        for (i in Iter.range(4, numMembers - 1)) {
+          let angle = Float.fromInt(i - 4) * TWO_PI / Float.fromInt(numMembers - 4);
+          positions := Array.append(positions, [{
+            x = Float.cos(angle) * params.spacing * 1.5;
+            y = Float.sin(angle) * params.spacing * 1.5;
+            z = 0.0;
+          }]);
+        };
+      };
+      
+      case (#Circle) {
+        // Circular formation
+        for (i in Iter.range(0, numMembers - 1)) {
+          let angle = Float.fromInt(i) * TWO_PI / Float.fromInt(numMembers);
+          let radius = params.spacing * Float.fromInt(numMembers) / TWO_PI;
+          positions := Array.append(positions, [{
+            x = Float.cos(angle) * radius;
+            y = Float.sin(angle) * radius;
+            z = 0.0;
+          }]);
+        };
+      };
+      
+      case (#Sphere) {
+        // 3D sphere using Fibonacci spiral
+        let phi = (1.0 + Float.sqrt(5.0)) / 2.0;  // Golden ratio
+        let radius = params.spacing * Float.sqrt(Float.fromInt(numMembers)) / 2.0;
+        
+        for (i in Iter.range(0, numMembers - 1)) {
+          let y = 1.0 - (Float.fromInt(i) / Float.fromInt(numMembers - 1)) * 2.0;
+          let radiusAtY = Float.sqrt(1.0 - y * y);
+          let theta = Float.fromInt(i) * TWO_PI / phi;
+          
+          positions := Array.append(positions, [{
+            x = Float.cos(theta) * radiusAtY * radius;
+            y = y * radius;
+            z = Float.sin(theta) * radiusAtY * radius;
+          }]);
+        };
+      };
+      
+      case (#Helix) {
+        // Helical formation
+        let turnsPerMember = 0.25;
+        let helixRadius = params.spacing;
+        let verticalSpacing = params.spacing * 0.5;
+        
+        for (i in Iter.range(0, numMembers - 1)) {
+          let angle = Float.fromInt(i) * TWO_PI * turnsPerMember;
+          positions := Array.append(positions, [{
+            x = Float.cos(angle) * helixRadius;
+            y = Float.sin(angle) * helixRadius;
+            z = Float.fromInt(i) * verticalSpacing;
+          }]);
+        };
+      };
+      
+      case (#Fibonacci) {
+        // Fibonacci spiral
+        let phi = (1.0 + Float.sqrt(5.0)) / 2.0;
+        let angleIncrement = TWO_PI / (phi * phi);
+        
+        for (i in Iter.range(0, numMembers - 1)) {
+          let angle = Float.fromInt(i) * angleIncrement;
+          let radius = params.spacing * Float.sqrt(Float.fromInt(i + 1));
+          positions := Array.append(positions, [{
+            x = Float.cos(angle) * radius;
+            y = Float.sin(angle) * radius;
+            z = 0.0;
+          }]);
+        };
+      };
+      
+      case (#Box) {
+        // Rectangular box
+        let sideLength = Float.ceil(Float.pow(Float.fromInt(numMembers), 1.0/3.0));
+        var idx = 0;
+        let offset = (sideLength - 1.0) * params.spacing / 2.0;
+        
+        label boxLoop for (xi in Iter.range(0, Int.abs(Float.toInt(sideLength)) - 1)) {
+          for (yi in Iter.range(0, Int.abs(Float.toInt(sideLength)) - 1)) {
+            for (zi in Iter.range(0, Int.abs(Float.toInt(sideLength)) - 1)) {
+              if (idx >= numMembers) { break boxLoop };
+              positions := Array.append(positions, [{
+                x = Float.fromInt(xi) * params.spacing - offset;
+                y = Float.fromInt(yi) * params.spacing - offset;
+                z = Float.fromInt(zi) * params.spacing - offset;
+              }]);
+              idx += 1;
+            };
+          };
+        };
+      };
+      
+      case (#Custom) {
+        // Default to circle
+        for (i in Iter.range(0, numMembers - 1)) {
+          let angle = Float.fromInt(i) * TWO_PI / Float.fromInt(numMembers);
+          positions := Array.append(positions, [{
+            x = Float.cos(angle) * params.spacing;
+            y = Float.sin(angle) * params.spacing;
+            z = 0.0;
+          }]);
+        };
+      };
+    };
+    
+    positions
+  };
+
+  /// Initialize formation control
+  public func initFormationControl(
+    geometryType: FormationGeometryType,
+    numMembers: Nat,
+    spacing: Float,
+    center: { lat: Float; lon: Float; alt: Float }
+  ) : FormationControlState {
+    let params : FormationParameters = {
+      spacing = spacing;
+      layers = 1;
+      membersPerLayer = numMembers;
+      rotationOffset = 0.0;
+      compressionFactor = 1.0;
+    };
+    
+    let template = generateFormationTemplate(geometryType, numMembers, params);
+    
+    let geometry : FormationGeometry = {
+      geometryType = geometryType;
+      parameters = params;
+      templatePositions = template;
+      width = spacing * Float.fromInt(numMembers);
+      depth = spacing * Float.fromInt(numMembers);
+      height = spacing;
+    };
+    
+    let members = Array.tabulate<FormationMember>(numMembers, func(i) {
+      let slot = if (i < template.size()) { template[i] } else { { x = 0.0; y = 0.0; z = 0.0 } };
+      {
+        droneId = i;
+        slotIndex = i;
+        currentPosition = center;
+        targetPosition = {
+          lat = center.lat + slot.y / 111000.0;
+          lon = center.lon + slot.x / 111000.0;
+          alt = center.alt + slot.z;
+        };
+        currentVelocity = { vx = 0.0; vy = 0.0; vz = 0.0 };
+        targetVelocity = { vx = 0.0; vy = 0.0; vz = 0.0 };
+        positionError = 0.0;
+        velocityError = 0.0;
+        isInPosition = false;
+        isConverging = true;
+        slotPriority = Float.fromInt(numMembers - i) / Float.fromInt(numMembers);
+      }
+    });
+    
+    {
+      currentFormation = geometry;
+      members = members;
+      formationCenter = center;
+      formationHeading = 0.0;
+      formationScale = 1.0;
+      targetScale = 1.0;
+      transitionState = null;
+      formationController = {
+        positionGain = 0.5;
+        velocityGain = 0.3;
+        feedforwardGain = 0.2;
+        maxVelocity = 20.0;
+        maxAcceleration = 5.0;
+        collisionRadius = 5.0;
+        avoidanceGain = 2.0;
+        controlMode = #Hybrid;
+      };
+      formationQuality = {
+        meanPositionError = 0.0;
+        maxPositionError = 0.0;
+        cohesionIndex = 1.0;
+        alignmentIndex = 1.0;
+        stabilityIndex = 1.0;
+        overallQuality = 1.0;
+      };
+      beatNum = 0;
+    }
+  };
+
+  /// Update formation control
+  public func updateFormationControl(
+    formation: FormationControlState,
+    dronePositions: [{ droneId: Nat; position: { lat: Float; lon: Float; alt: Float }; velocity: { vx: Float; vy: Float; vz: Float } }],
+    newCenter: { lat: Float; lon: Float; alt: Float },
+    newHeading: Float,
+    dt: Float
+  ) : FormationControlState {
+    // Update formation center
+    let centerAlpha = 0.1;
+    let newFormationCenter = {
+      lat = formation.formationCenter.lat * (1.0 - centerAlpha) + newCenter.lat * centerAlpha;
+      lon = formation.formationCenter.lon * (1.0 - centerAlpha) + newCenter.lon * centerAlpha;
+      alt = formation.formationCenter.alt * (1.0 - centerAlpha) + newCenter.alt * centerAlpha;
+    };
+    
+    // Update heading
+    let newFormationHeading = formation.formationHeading * (1.0 - centerAlpha) + newHeading * centerAlpha;
+    
+    // Rotate template positions by heading
+    let cosH = Float.cos(newFormationHeading);
+    let sinH = Float.sin(newFormationHeading);
+    
+    // Update each member
+    let newMembers = Array.map<FormationMember, FormationMember>(formation.members, func(member) {
+      // Find this drone's position
+      var currentPos = member.currentPosition;
+      var currentVel = member.currentVelocity;
+      
+      for (dp in dronePositions.vals()) {
+        if (dp.droneId == member.droneId) {
+          currentPos := dp.position;
+          currentVel := dp.velocity;
+        };
+      };
+      
+      // Get template position
+      let slot = if (member.slotIndex < formation.currentFormation.templatePositions.size()) {
+        formation.currentFormation.templatePositions[member.slotIndex]
+      } else { { x = 0.0; y = 0.0; z = 0.0 } };
+      
+      // Rotate and scale
+      let rotatedX = (slot.x * cosH - slot.y * sinH) * formation.formationScale;
+      let rotatedY = (slot.x * sinH + slot.y * cosH) * formation.formationScale;
+      let rotatedZ = slot.z * formation.formationScale;
+      
+      // Target position in world coordinates
+      let targetPos = {
+        lat = newFormationCenter.lat + rotatedY / 111000.0;
+        lon = newFormationCenter.lon + rotatedX / 111000.0;
+        alt = newFormationCenter.alt + rotatedZ;
+      };
+      
+      // Position error
+      let dx = (targetPos.lon - currentPos.lon) * 111000.0;
+      let dy = (targetPos.lat - currentPos.lat) * 111000.0;
+      let dz = targetPos.alt - currentPos.alt;
+      let posError = Float.sqrt(dx * dx + dy * dy + dz * dz);
+      
+      // Velocity error
+      let velError = Float.sqrt(
+        (member.targetVelocity.vx - currentVel.vx) ** 2.0 +
+        (member.targetVelocity.vy - currentVel.vy) ** 2.0 +
+        (member.targetVelocity.vz - currentVel.vz) ** 2.0
+      );
+      
+      // Control output (target velocity)
+      let targetVelX = dx * formation.formationController.positionGain;
+      let targetVelY = dy * formation.formationController.positionGain;
+      let targetVelZ = dz * formation.formationController.positionGain;
+      
+      // Clamp velocity
+      let speed = Float.sqrt(targetVelX ** 2.0 + targetVelY ** 2.0 + targetVelZ ** 2.0);
+      let clampedVel = if (speed > formation.formationController.maxVelocity) {
+        let scale = formation.formationController.maxVelocity / speed;
+        { vx = targetVelX * scale; vy = targetVelY * scale; vz = targetVelZ * scale }
+      } else {
+        { vx = targetVelX; vy = targetVelY; vz = targetVelZ }
+      };
+      
+      {
+        droneId = member.droneId;
+        slotIndex = member.slotIndex;
+        currentPosition = currentPos;
+        targetPosition = targetPos;
+        currentVelocity = currentVel;
+        targetVelocity = clampedVel;
+        positionError = posError;
+        velocityError = velError;
+        isInPosition = posError < 2.0;
+        isConverging = posError < member.positionError;
+        slotPriority = member.slotPriority;
+      }
+    });
+    
+    // Compute quality metrics
+    var sumError : Float = 0.0;
+    var maxError : Float = 0.0;
+    var inPositionCount : Nat = 0;
+    
+    for (m in newMembers.vals()) {
+      sumError += m.positionError;
+      if (m.positionError > maxError) { maxError := m.positionError };
+      if (m.isInPosition) { inPositionCount += 1 };
+    };
+    
+    let meanError = sumError / Float.fromInt(newMembers.size());
+    let cohesion = Float.fromInt(inPositionCount) / Float.fromInt(newMembers.size());
+    let quality = (1.0 - meanError / 50.0) * cohesion;
+    
+    let newQuality : FormationQuality = {
+      meanPositionError = meanError;
+      maxPositionError = maxError;
+      cohesionIndex = cohesion;
+      alignmentIndex = formation.formationQuality.alignmentIndex;
+      stabilityIndex = formation.formationQuality.stabilityIndex;
+      overallQuality = Float.max(0.0, Float.min(1.0, quality));
+    };
+    
+    {
+      currentFormation = formation.currentFormation;
+      members = newMembers;
+      formationCenter = newFormationCenter;
+      formationHeading = newFormationHeading;
+      formationScale = formation.formationScale;
+      targetScale = formation.targetScale;
+      transitionState = formation.transitionState;
+      formationController = formation.formationController;
+      formationQuality = newQuality;
+      beatNum = formation.beatNum + 1;
+    }
+  };
+
+  /// Transition formation
+  public func transitionFormation(
+    formation: FormationControlState,
+    targetGeometry: FormationGeometryType,
+    transitionDuration: Nat
+  ) : FormationControlState {
+    let targetTemplate = generateFormationTemplate(
+      targetGeometry,
+      formation.members.size(),
+      formation.currentFormation.parameters
+    );
+    
+    let transition : FormationTransition = {
+      sourceGeometry = formation.currentFormation.geometryType;
+      targetGeometry = targetGeometry;
+      progress = 0.0;
+      interpolatedPositions = formation.currentFormation.templatePositions;
+      startBeat = formation.beatNum;
+      targetDuration = transitionDuration;
+    };
+    
+    {
+      currentFormation = formation.currentFormation;
+      members = formation.members;
+      formationCenter = formation.formationCenter;
+      formationHeading = formation.formationHeading;
+      formationScale = formation.formationScale;
+      targetScale = formation.targetScale;
+      transitionState = ?transition;
+      formationController = formation.formationController;
+      formationQuality = formation.formationQuality;
+      beatNum = formation.beatNum;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 32: FINAL SUMMARY OUTPUT
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Complete swarm summary
+  public type CompleteSwarmSummary = {
+    // Identity
+    swarmId           : Nat;
+    
+    // Size
+    totalDrones       : Nat;
+    activeDrones      : Nat;
+    
+    // Position
+    centroid          : { lat: Float; lon: Float; alt: Float };
+    spread            : Float;
+    
+    // Formation
+    formationType     : FormationGeometryType;
+    formationQuality  : Float;
+    
+    // Tactical
+    tacticalMode      : TacticalMode;
+    threatLevel       : Float;
+    
+    // Mission
+    missionProgress   : Float;
+    
+    // Environment
+    weatherConditions : Text;
+    hazardLevel       : Float;
+    
+    // Intelligence
+    consensusLevel    : Float;
+    collectiveAccuracy : Float;
+    
+    // Health
+    avgBattery        : Float;
+    networkConnectivity : Float;
+    resilienceScore   : Float;
+    
+    // Absolute metrics
+    absoluteReadiness : Float;
+    absoluteCapability : Float;
+    absoluteIntelligence : Float;
+    
+    beatNum           : Nat;
+  };
+
+  /// Generate complete summary
+  public func generateCompleteSwarmSummary(
+    state: AbsoluteCompleteSwarmState,
+    formation: FormationControlState,
+    swarmId: Nat
+  ) : CompleteSwarmSummary {
+    let out = generateAbsoluteCompleteSwarmOutput(state);
+    
+    // Calculate spread
+    var sumDist : Float = 0.0;
+    for (member in formation.members.vals()) {
+      let dx = (member.currentPosition.lon - formation.formationCenter.lon) * 111000.0;
+      let dy = (member.currentPosition.lat - formation.formationCenter.lat) * 111000.0;
+      sumDist += Float.sqrt(dx * dx + dy * dy);
+    };
+    let spread = sumDist / Float.fromInt(formation.members.size() + 1);
+    
+    {
+      swarmId = swarmId;
+      totalDrones = state.supreme.swarmHealth.totalDrones;
+      activeDrones = state.supreme.swarmHealth.activeDrones;
+      centroid = formation.formationCenter;
+      spread = spread;
+      formationType = formation.currentFormation.geometryType;
+      formationQuality = formation.formationQuality.overallQuality;
+      tacticalMode = out.tacticalMode;
+      threatLevel = state.supreme.ultimate.tactical.threatAssessment.overallThreat;
+      missionProgress = out.missionProgress;
+      weatherConditions = out.weatherConditions;
+      hazardLevel = out.hazardLevel;
+      consensusLevel = state.supreme.collectiveIntel.consensusState.convergenceRate;
+      collectiveAccuracy = state.supreme.collectiveIntel.swarmWisdom.collectiveAccuracy;
+      avgBattery = state.supreme.swarmHealth.avgBattery;
+      networkConnectivity = out.networkConnectivity;
+      resilienceScore = state.supreme.swarmHealth.resilienceMetrics.resilienceScore;
+      absoluteReadiness = out.absoluteReadiness;
+      absoluteCapability = out.absoluteCapability;
+      absoluteIntelligence = out.absoluteIntelligence;
+      beatNum = state.beatNum;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 33: INTER-SWARM COORDINATION — MULTI-SWARM OPERATIONS
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  // Coordination between multiple swarms:
+  //   • Swarm identification and tracking
+  //   • Resource sharing
+  //   • Coordinated attacks
+  //   • Territorial management
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Multi-swarm state
+  public type MultiSwarmState = {
+    // My swarm ID
+    mySwarmId         : Nat;
+    
+    // Known swarms
+    knownSwarms       : [KnownSwarm];
+    
+    // Relationships
+    swarmRelationships : [SwarmRelationship];
+    
+    // Coordination
+    coordinationState : SwarmCoordinationState;
+    
+    // Territories
+    territoryState    : TerritoryState;
+    
+    // Communication
+    interSwarmComm    : InterSwarmCommState;
+    
+    beatNum           : Nat;
+  };
+
+  /// Known swarm
+  public type KnownSwarm = {
+    swarmId           : Nat;
+    
+    // Location
+    estimatedCentroid : { lat: Float; lon: Float; alt: Float };
+    estimatedSize     : Nat;
+    estimatedSpread   : Float;
+    
+    // Identity
+    affiliation       : SwarmAffiliation;
+    swarmType         : Text;
+    
+    // Status
+    lastContact       : Nat;
+    confidence        : Float;
+    
+    // Capabilities
+    estimatedCapabilities : [Text];
+    threatLevel       : Float;
+  };
+
+  /// Swarm affiliation
+  public type SwarmAffiliation = {
+    #Friendly;
+    #Neutral;
+    #Unknown;
+    #Hostile;
+  };
+
+  /// Swarm relationship
+  public type SwarmRelationship = {
+    swarmId           : Nat;
+    relationshipType  : RelationshipType;
+    trustLevel        : Float;
+    cooperationHistory : [(Nat, Bool)];  // (beat, wasSuccessful)
+    conflictHistory   : [(Nat, Text)];   // (beat, conflictType)
+  };
+
+  /// Relationship types
+  public type RelationshipType = {
+    #Alliance;
+    #Cooperation;
+    #Neutral;
+    #Competition;
+    #Conflict;
+  };
+
+  /// Swarm coordination state
+  public type SwarmCoordinationState = {
+    // Active coordination
+    activeCoordinations : [ActiveCoordination];
+    
+    // Pending requests
+    pendingRequests   : [CoordinationRequest];
+    
+    // Joint operations
+    jointOperations   : [JointOperation];
+    
+    // Resource sharing
+    resourceSharing   : [ResourceShare];
+  };
+
+  /// Active coordination
+  public type ActiveCoordination = {
+    coordinationId    : Nat;
+    partnerSwarmId    : Nat;
+    coordinationType  : Text;
+    startBeat         : Nat;
+    status            : Text;
+    myRole            : Text;
+    partnerRole       : Text;
+  };
+
+  /// Coordination request
+  public type CoordinationRequest = {
+    requestId         : Nat;
+    requestorSwarmId  : Nat;
+    requestType       : Text;
+    priority          : Float;
+    deadline          : Nat;
+    parameters        : [(Text, Float)];
+    status            : Text;
+  };
+
+  /// Joint operation
+  public type JointOperation = {
+    operationId       : Nat;
+    participatingSwarms : [Nat];
+    operationType     : Text;
+    targetArea        : { lat: Float; lon: Float; radius: Float };
+    startTime         : Nat;
+    endTime           : ?Nat;
+    status            : Text;
+    myContribution    : Text;
+  };
+
+  /// Resource share
+  public type ResourceShare = {
+    shareId           : Nat;
+    partnerSwarmId    : Nat;
+    resourceType      : Text;
+    amount            : Float;
+    direction         : ShareDirection;
+    timestamp         : Nat;
+  };
+
+  /// Share direction
+  public type ShareDirection = {
+    #Giving;
+    #Receiving;
+  };
+
+  /// Territory state
+  public type TerritoryState = {
+    // My territory
+    myTerritory       : [TerritoryCell];
+    
+    // Claimed territories
+    claimedTerritories : [(Nat, [TerritoryCell])];  // (swarmId, cells)
+    
+    // Contested areas
+    contestedAreas    : [ContestedArea];
+    
+    // Boundaries
+    boundaries        : [Boundary];
+  };
+
+  /// Territory cell
+  public type TerritoryCell = {
+    cellId            : Nat;
+    center            : { lat: Float; lon: Float };
+    radius            : Float;
+    controlLevel      : Float;       // 0-1
+    lastPatrol        : Nat;
+    value             : Float;       // Strategic value
+  };
+
+  /// Contested area
+  public type ContestedArea = {
+    areaId            : Nat;
+    center            : { lat: Float; lon: Float };
+    radius            : Float;
+    contestingSwarms  : [Nat];
+    controlScores     : [(Nat, Float)];
+    conflictLevel     : Float;
+  };
+
+  /// Boundary
+  public type Boundary = {
+    boundaryId        : Nat;
+    swarm1            : Nat;
+    swarm2            : Nat;
+    boundaryPoints    : [{ lat: Float; lon: Float }];
+    isAgreed          : Bool;
+    lastViolation     : ?Nat;
+  };
+
+  /// Inter-swarm communication state
+  public type InterSwarmCommState = {
+    // Messages
+    outboundMessages  : [InterSwarmMessage];
+    inboundMessages   : [InterSwarmMessage];
+    
+    // Channels
+    openChannels      : [(Nat, Nat)];  // (swarmId, channelId)
+    
+    // Protocol
+    protocolVersion   : Nat;
+    encryptionEnabled : Bool;
+  };
+
+  /// Inter-swarm message
+  public type InterSwarmMessage = {
+    messageId         : Nat;
+    sourceSwarmId     : Nat;
+    destSwarmId       : Nat;
+    messageType       : InterSwarmMessageType;
+    payload           : Text;
+    timestamp         : Nat;
+    requiresAck       : Bool;
+    isAcked           : Bool;
+  };
+
+  /// Inter-swarm message types
+  public type InterSwarmMessageType = {
+    #Identify;        // Who are you
+    #Greet;           // Hello
+    #CoordinationRequest;
+    #CoordinationResponse;
+    #StatusUpdate;
+    #TerritoryProposal;
+    #TerritoryAgreement;
+    #ResourceRequest;
+    #ResourceOffer;
+    #ThreatAlert;
+    #StandDown;
+    #Engage;
+  };
+
+  /// Initialize multi-swarm state
+  public func initMultiSwarmState(mySwarmId: Nat) : MultiSwarmState {
+    {
+      mySwarmId = mySwarmId;
+      knownSwarms = [];
+      swarmRelationships = [];
+      coordinationState = {
+        activeCoordinations = [];
+        pendingRequests = [];
+        jointOperations = [];
+        resourceSharing = [];
+      };
+      territoryState = {
+        myTerritory = [];
+        claimedTerritories = [];
+        contestedAreas = [];
+        boundaries = [];
+      };
+      interSwarmComm = {
+        outboundMessages = [];
+        inboundMessages = [];
+        openChannels = [];
+        protocolVersion = 1;
+        encryptionEnabled = false;
+      };
+      beatNum = 0;
+    }
+  };
+
+  /// Update known swarms
+  public func updateKnownSwarms(
+    multi: MultiSwarmState,
+    detectedSwarms: [{ swarmId: Nat; centroid: { lat: Float; lon: Float; alt: Float }; size: Nat; spread: Float; affiliation: SwarmAffiliation }],
+    beat: Nat
+  ) : MultiSwarmState {
+    var newKnownSwarms = multi.knownSwarms;
+    
+    for (detected in detectedSwarms.vals()) {
+      var found = false;
+      newKnownSwarms := Array.map<KnownSwarm, KnownSwarm>(newKnownSwarms, func(known) {
+        if (known.swarmId == detected.swarmId) {
+          found := true;
+          {
+            swarmId = known.swarmId;
+            estimatedCentroid = detected.centroid;
+            estimatedSize = detected.size;
+            estimatedSpread = detected.spread;
+            affiliation = detected.affiliation;
+            swarmType = known.swarmType;
+            lastContact = beat;
+            confidence = Float.min(1.0, known.confidence + 0.1);
+            estimatedCapabilities = known.estimatedCapabilities;
+            threatLevel = switch (detected.affiliation) {
+              case (#Hostile) { 0.8 };
+              case (#Unknown) { 0.3 };
+              case _ { 0.0 };
+            };
+          }
+        } else { known }
+      });
+      
+      if (not found) {
+        let newSwarm : KnownSwarm = {
+          swarmId = detected.swarmId;
+          estimatedCentroid = detected.centroid;
+          estimatedSize = detected.size;
+          estimatedSpread = detected.spread;
+          affiliation = detected.affiliation;
+          swarmType = "unknown";
+          lastContact = beat;
+          confidence = 0.5;
+          estimatedCapabilities = [];
+          threatLevel = switch (detected.affiliation) {
+            case (#Hostile) { 0.8 };
+            case (#Unknown) { 0.3 };
+            case _ { 0.0 };
+          };
+        };
+        newKnownSwarms := Array.append(newKnownSwarms, [newSwarm]);
+      };
+    };
+    
+    // Age out stale swarms
+    newKnownSwarms := Array.map<KnownSwarm, KnownSwarm>(newKnownSwarms, func(known) {
+      if (beat - known.lastContact > 1000) {
+        {
+          swarmId = known.swarmId;
+          estimatedCentroid = known.estimatedCentroid;
+          estimatedSize = known.estimatedSize;
+          estimatedSpread = known.estimatedSpread;
+          affiliation = known.affiliation;
+          swarmType = known.swarmType;
+          lastContact = known.lastContact;
+          confidence = Float.max(0.0, known.confidence - 0.01);
+          estimatedCapabilities = known.estimatedCapabilities;
+          threatLevel = known.threatLevel;
+        }
+      } else { known }
+    });
+    
+    {
+      mySwarmId = multi.mySwarmId;
+      knownSwarms = newKnownSwarms;
+      swarmRelationships = multi.swarmRelationships;
+      coordinationState = multi.coordinationState;
+      territoryState = multi.territoryState;
+      interSwarmComm = multi.interSwarmComm;
+      beatNum = beat;
+    }
+  };
+
+  /// Create coordination request
+  public func createCoordinationRequest(
+    multi: MultiSwarmState,
+    targetSwarmId: Nat,
+    requestType: Text,
+    priority: Float,
+    deadline: Nat,
+    parameters: [(Text, Float)]
+  ) : MultiSwarmState {
+    let request : CoordinationRequest = {
+      requestId = multi.coordinationState.pendingRequests.size();
+      requestorSwarmId = multi.mySwarmId;
+      requestType = requestType;
+      priority = priority;
+      deadline = deadline;
+      parameters = parameters;
+      status = "pending";
+    };
+    
+    let newCoordination : SwarmCoordinationState = {
+      activeCoordinations = multi.coordinationState.activeCoordinations;
+      pendingRequests = Array.append(multi.coordinationState.pendingRequests, [request]);
+      jointOperations = multi.coordinationState.jointOperations;
+      resourceSharing = multi.coordinationState.resourceSharing;
+    };
+    
+    // Create message
+    let message : InterSwarmMessage = {
+      messageId = multi.interSwarmComm.outboundMessages.size();
+      sourceSwarmId = multi.mySwarmId;
+      destSwarmId = targetSwarmId;
+      messageType = #CoordinationRequest;
+      payload = requestType;
+      timestamp = multi.beatNum;
+      requiresAck = true;
+      isAcked = false;
+    };
+    
+    let newComm : InterSwarmCommState = {
+      outboundMessages = Array.append(multi.interSwarmComm.outboundMessages, [message]);
+      inboundMessages = multi.interSwarmComm.inboundMessages;
+      openChannels = multi.interSwarmComm.openChannels;
+      protocolVersion = multi.interSwarmComm.protocolVersion;
+      encryptionEnabled = multi.interSwarmComm.encryptionEnabled;
+    };
+    
+    {
+      mySwarmId = multi.mySwarmId;
+      knownSwarms = multi.knownSwarms;
+      swarmRelationships = multi.swarmRelationships;
+      coordinationState = newCoordination;
+      territoryState = multi.territoryState;
+      interSwarmComm = newComm;
+      beatNum = multi.beatNum;
+    }
+  };
+
+  /// Ultimate complete swarm with multi-swarm
+  public type UltimateCompleteSwarm = {
+    absolute          : AbsoluteCompleteSwarmState;
+    formation         : FormationControlState;
+    multiSwarm        : MultiSwarmState;
+    beatNum           : Nat;
+  };
+
+  /// Initialize ultimate complete swarm
+  public func initUltimateCompleteSwarm(
+    centroid: { lat: Float; lon: Float; alt: Float },
+    numDrones: Nat,
+    myNodeId: Nat,
+    swarmId: Nat
+  ) : UltimateCompleteSwarm {
+    {
+      absolute = initAbsoluteCompleteSwarm(centroid, numDrones, myNodeId);
+      formation = initFormationControl(#Sphere, numDrones, 20.0, centroid);
+      multiSwarm = initMultiSwarmState(swarmId);
+      beatNum = 0;
+    }
+  };
+
+  /// Ultimate complete output
+  public type UltimateCompleteOutput = {
+    // Summary
+    summary           : CompleteSwarmSummary;
+    
+    // Multi-swarm
+    knownSwarmCount   : Nat;
+    hostileSwarmCount : Nat;
+    activeCoordinations : Nat;
+    
+    // Final metrics
+    overallSwarmPower : Float;
+    
+    beatNum           : Nat;
+  };
+
+  public func generateUltimateCompleteOutput(state: UltimateCompleteSwarm) : UltimateCompleteOutput {
+    let summary = generateCompleteSwarmSummary(state.absolute, state.formation, state.multiSwarm.mySwarmId);
+    
+    var hostileCount : Nat = 0;
+    for (swarm in state.multiSwarm.knownSwarms.vals()) {
+      switch (swarm.affiliation) {
+        case (#Hostile) { hostileCount += 1 };
+        case _ { };
+      };
+    };
+    
+    let power = summary.absoluteCapability * 
+                summary.absoluteReadiness * 
+                summary.formationQuality *
+                (1.0 - summary.threatLevel * 0.5);
+    
+    {
+      summary = summary;
+      knownSwarmCount = state.multiSwarm.knownSwarms.size();
+      hostileSwarmCount = hostileCount;
+      activeCoordinations = state.multiSwarm.coordinationState.activeCoordinations.size();
+      overallSwarmPower = power;
+      beatNum = state.beatNum;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 34: FINAL CONSTANTS AND UTILITIES
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Mathematical constants
+  public let PI : Float = 3.14159265358979323846;
+  public let TWO_PI : Float = 6.28318530717958647692;
+  public let HALF_PI : Float = 1.57079632679489661923;
+  public let E : Float = 2.71828182845904523536;
+  public let SQRT2 : Float = 1.41421356237309504880;
+  public let GOLDEN_RATIO : Float = 1.61803398874989484820;
+
+  /// Physical constants
+  public let SPEED_OF_SOUND : Float = 343.0;           // m/s at 20°C
+  public let GRAVITY : Float = 9.80665;                // m/s²
+  public let AIR_DENSITY : Float = 1.225;              // kg/m³ at sea level
+  public let EARTH_RADIUS : Float = 6371000.0;         // meters
+  public let METERS_PER_DEGREE : Float = 111000.0;     // Approximate
+
+  /// Drone physical limits
+  public let MAX_DRONE_SPEED : Float = 30.0;           // m/s
+  public let MAX_DRONE_ACCELERATION : Float = 10.0;    // m/s²
+  public let MAX_DRONE_TURN_RATE : Float = 2.0;        // rad/s
+  public let MAX_ALTITUDE : Float = 5000.0;            // meters
+  public let MIN_ALTITUDE : Float = 5.0;               // meters
+  public let COLLISION_RADIUS : Float = 3.0;           // meters
+
+  /// Swarm parameters
+  public let DEFAULT_SWARM_SIZE : Nat = 100;
+  public let MIN_SWARM_SIZE : Nat = 3;
+  public let MAX_SWARM_SIZE : Nat = 10000;
+  public let DEFAULT_SPACING : Float = 20.0;           // meters
+  public let MIN_SPACING : Float = 5.0;                // meters
+  public let MAX_SPACING : Float = 100.0;              // meters
+
+  /// Communication parameters
+  public let COMM_RANGE : Float = 5000.0;              // meters
+  public let COMM_BANDWIDTH : Float = 1000000.0;       // bits/sec
+  public let MESSAGE_TIMEOUT : Nat = 100;              // beats
+  public let HEARTBEAT_INTERVAL : Nat = 10;            // beats
+
+  /// Intelligence parameters
+  public let CONSENSUS_THRESHOLD : Float = 0.95;
+  public let QUORUM_THRESHOLD : Float = 0.6;
+  public let LEARNING_RATE : Float = 0.1;
+  public let FORGETTING_RATE : Float = 0.01;
+  public let EXPLORATION_RATE : Float = 0.2;
+
+  /// Utility: Distance between two GPS coordinates (Haversine)
+  public func haversineDistance(
+    lat1: Float, lon1: Float,
+    lat2: Float, lon2: Float
+  ) : Float {
+    let dLat = (lat2 - lat1) * PI / 180.0;
+    let dLon = (lon2 - lon1) * PI / 180.0;
+    
+    let a = Float.sin(dLat / 2.0) * Float.sin(dLat / 2.0) +
+            Float.cos(lat1 * PI / 180.0) * Float.cos(lat2 * PI / 180.0) *
+            Float.sin(dLon / 2.0) * Float.sin(dLon / 2.0);
+    
+    let c = 2.0 * Float.arctan2(Float.sqrt(a), Float.sqrt(1.0 - a));
+    
+    EARTH_RADIUS * c
+  };
+
+  /// Utility: Bearing between two GPS coordinates
+  public func bearing(
+    lat1: Float, lon1: Float,
+    lat2: Float, lon2: Float
+  ) : Float {
+    let dLon = (lon2 - lon1) * PI / 180.0;
+    let lat1Rad = lat1 * PI / 180.0;
+    let lat2Rad = lat2 * PI / 180.0;
+    
+    let y = Float.sin(dLon) * Float.cos(lat2Rad);
+    let x = Float.cos(lat1Rad) * Float.sin(lat2Rad) -
+            Float.sin(lat1Rad) * Float.cos(lat2Rad) * Float.cos(dLon);
+    
+    Float.arctan2(y, x)
+  };
+
+  /// Utility: Clamp value to range
+  public func clamp(value: Float, min: Float, max: Float) : Float {
+    Float.max(min, Float.min(max, value))
+  };
+
+  /// Utility: Linear interpolation
+  public func lerp(a: Float, b: Float, t: Float) : Float {
+    a + (b - a) * t
+  };
+
+  /// Utility: Smooth step
+  public func smoothStep(edge0: Float, edge1: Float, x: Float) : Float {
+    let t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+    t * t * (3.0 - 2.0 * t)
+  };
+
+  /// Utility: Sigmoid function
+  public func sigmoid(x: Float) : Float {
+    1.0 / (1.0 + Float.exp(-x))
+  };
+
+  /// Utility: ReLU function
+  public func relu(x: Float) : Float {
+    Float.max(0.0, x)
+  };
+
+  /// Utility: Normalize angle to [-PI, PI]
+  public func normalizeAngle(angle: Float) : Float {
+    var a = angle;
+    while (a > PI) { a := a - TWO_PI };
+    while (a < -PI) { a := a + TWO_PI };
+    a
+  };
+
+  /// Utility: Vector magnitude
+  public func magnitude(x: Float, y: Float, z: Float) : Float {
+    Float.sqrt(x * x + y * y + z * z)
+  };
+
+  /// Utility: Vector dot product
+  public func dot(x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float) : Float {
+    x1 * x2 + y1 * y2 + z1 * z2
+  };
+
+  /// Utility: Vector cross product (returns z component for 2D)
+  public func cross2D(x1: Float, y1: Float, x2: Float, y2: Float) : Float {
+    x1 * y2 - y1 * x2
+  };
+
 }
