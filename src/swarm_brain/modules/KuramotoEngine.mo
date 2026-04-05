@@ -5484,7 +5484,7 @@ module {
       macroSync         = if (state.hierarchical.levels.size() > 2) { state.hierarchical.levels[2].levelR } else { 0.5 };
       crossScaleCoherence = if (state.hierarchical.crossLevelSync.size() > 0) { state.hierarchical.crossLevelSync[0] } else { 0.5 };
       
-      chimericity       = state.nonlocal.domainWallCount > 2;
+      chimericity       = if (state.nonlocal.domainWallCount > 2) { 1.0 } else { 0.0 };
       pacStrength       = state.pac.modulationIndex;
       quantumCoherence  = state.quantum.totalPurity;
       freeEnergy        = state.thermodynamic.freeEnergy;
