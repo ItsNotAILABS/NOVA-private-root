@@ -4952,4 +4952,1347 @@ module {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ███████╗██╗    ██╗ █████╗ ██████╗ ███╗   ███╗    ████████╗ █████╗  ██████╗████████╗██╗ ██████╗███████╗
+  // ██╔════╝██║    ██║██╔══██╗██╔══██╗████╗ ████║    ╚══██╔══╝██╔══██╗██╔════╝╚══██╔══╝██║██╔════╝██╔════╝
+  // ███████╗██║ █╗ ██║███████║██████╔╝██╔████╔██║       ██║   ███████║██║        ██║   ██║██║     ███████╗
+  // ╚════██║██║███╗██║██╔══██║██╔══██╗██║╚██╔╝██║       ██║   ██╔══██║██║        ██║   ██║██║     ╚════██║
+  // ███████║╚███╔███╔╝██║  ██║██║  ██║██║ ╚═╝ ██║       ██║   ██║  ██║╚██████╗   ██║   ██║╚██████╗███████║
+  // ╚══════╝ ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝       ╚═╝   ╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝╚══════╝
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 20: ADVANCED SWARM TACTICS — REAL DRONE WARFARE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  // Advanced tactical behaviors for drone swarms:
+  //   • Attack formations
+  //   • Evasion patterns
+  //   • Target acquisition and tracking
+  //   • Swarm combat maneuvers
+  //   • Electronic warfare support
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Tactical state
+  public type TacticalState = {
+    // Current tactical mode
+    tacticalMode      : TacticalMode;
+    
+    // Targets
+    targets           : [TacticalTarget];
+    primaryTarget     : ?Nat;
+    
+    // Threat assessment
+    threatAssessment  : ThreatAssessmentState;
+    
+    // Attack
+    attackState       : AttackState;
+    
+    // Defense
+    defenseState      : DefenseState;
+    
+    // Electronic warfare
+    ewState           : ElectronicWarfareState;
+    
+    // Coordination
+    tacticalCoordination : TacticalCoordinationState;
+    
+    beatNum           : Nat;
+  };
+
+  /// Tactical modes
+  public type TacticalMode = {
+    #Patrol;          // Searching for targets
+    #Approach;        // Moving toward target area
+    #Attack;          // Active engagement
+    #Retreat;         // Tactical withdrawal
+    #Evade;           // Evasive maneuvers
+    #Support;         // Supporting other drones
+    #Recon;           // Reconnaissance
+    #Standby;         // Waiting for orders
+  };
+
+  /// Tactical target
+  public type TacticalTarget = {
+    targetId          : Nat;
+    targetType        : TargetType;
+    
+    // Position
+    position          : { lat: Float; lon: Float; alt: Float };
+    velocity          : { vx: Float; vy: Float; vz: Float };
+    heading           : Float;
+    
+    // State estimation
+    positionUncertainty : Float;
+    lastUpdateBeat    : Nat;
+    trackingConfidence : Float;
+    
+    // Threat level
+    threatLevel       : Float;
+    
+    // Engagement
+    engagementStatus  : EngagementStatus;
+    assignedDrones    : [Nat];
+    
+    // Classification
+    classification    : Text;
+    classificationConfidence : Float;
+  };
+
+  /// Target types
+  public type TargetType = {
+    #HostileDrone;
+    #GroundVehicle;
+    #Aircraft;
+    #Ship;
+    #Structure;
+    #Person;
+    #Unknown;
+  };
+
+  /// Engagement status
+  public type EngagementStatus = {
+    #Unassigned;
+    #Tracking;
+    #Approaching;
+    #Engaging;
+    #Neutralized;
+    #Lost;
+  };
+
+  /// Threat assessment state
+  public type ThreatAssessmentState = {
+    // Overall threat level
+    overallThreat     : Float;
+    
+    // Threat sources
+    threatSources     : [ThreatSource];
+    
+    // Area threat map
+    threatMap         : [[Float]];
+    threatMapResolution : Float;
+    
+    // Predicted threats
+    predictedThreats  : [{ position: { lat: Float; lon: Float }; time: Nat; probability: Float }];
+    
+    // Safe corridors
+    safeCorridors     : [SafeCorridor];
+  };
+
+  /// Threat source
+  public type ThreatSource = {
+    sourceId          : Nat;
+    sourceType        : Text;
+    position          : { lat: Float; lon: Float; alt: Float };
+    effectiveRange    : Float;
+    lethality         : Float;
+    isActive          : Bool;
+    lastDetection     : Nat;
+  };
+
+  /// Safe corridor
+  public type SafeCorridor = {
+    corridorId        : Nat;
+    waypoints         : [{ lat: Float; lon: Float; alt: Float }];
+    width             : Float;
+    safetyRating      : Float;
+    expirationBeat    : Nat;
+  };
+
+  /// Attack state
+  public type AttackState = {
+    // Attack formation
+    attackFormation   : AttackFormation;
+    
+    // Weapons status
+    weaponsArmed      : Bool;
+    payloadRemaining  : Nat;
+    
+    // Attack vectors
+    attackVectors     : [AttackVector];
+    selectedVector    : ?Nat;
+    
+    // Timing
+    attackPhase       : AttackPhase;
+    timeToTarget      : Float;
+    
+    // Rules of engagement
+    roeLevel          : Nat;           // 0 = weapons free, 5 = weapons hold
+    requiresConfirmation : Bool;
+    
+    // Battle damage assessment
+    bdaScore          : Float;
+  };
+
+  /// Attack formations
+  public type AttackFormation = {
+    #Line;            // Line abreast
+    #Echelon;         // Stepped formation
+    #Wedge;           // V-formation attack
+    #Column;          // Single file
+    #Swarm;           // Distributed attack
+    #Pincer;          // Flanking attack
+  };
+
+  /// Attack vector
+  public type AttackVector = {
+    vectorId          : Nat;
+    approachHeading   : Float;
+    approachAltitude  : Float;
+    attackAngle       : Float;
+    riskLevel         : Float;
+    successProbability : Float;
+    collateralRisk    : Float;
+  };
+
+  /// Attack phases
+  public type AttackPhase = {
+    #Planning;
+    #Ingress;
+    #Acquisition;
+    #Engagement;
+    #Egress;
+    #Assessment;
+  };
+
+  /// Defense state
+  public type DefenseState = {
+    // Defense posture
+    defensivePosture  : DefensivePosture;
+    
+    // Evasion
+    evasionState      : EvasionState;
+    
+    // Countermeasures
+    countermeasures   : CountermeasureState;
+    
+    // Shield formation
+    shieldFormation   : ?ShieldFormation;
+    
+    // Damage control
+    damageControlActive : Bool;
+    criticalSystemsProtected : Bool;
+  };
+
+  /// Defensive postures
+  public type DefensivePosture = {
+    #Normal;          // Standard awareness
+    #Heightened;      // Increased vigilance
+    #Defensive;       // Active defense
+    #Evasive;         // Primary focus on survival
+  };
+
+  /// Evasion state
+  public type EvasionState = {
+    // Current maneuver
+    currentManeuver   : ?EvasiveManeuver;
+    
+    // Predicted incoming
+    incomingThreats   : [{ direction: Float; timeToImpact: Float }];
+    
+    // Evasion success rate
+    evasionSuccessRate : Float;
+    
+    // Energy budget for evasion
+    evasionEnergy     : Float;
+  };
+
+  /// Evasive maneuvers
+  public type EvasiveManeuver = {
+    #Break;           // Hard turn
+    #Dive;            // Rapid descent
+    #Climb;           // Rapid ascent
+    #Jink;            // Random movements
+    #Spiral;          // Corkscrew
+    #SplitS;          // Dive and reverse
+    #BarrelRoll;
+  };
+
+  /// Countermeasure state
+  public type CountermeasureState = {
+    // Chaff/flares
+    chaffRemaining    : Nat;
+    flaresRemaining   : Nat;
+    
+    // Jamming
+    jammingActive     : Bool;
+    jammingFrequency  : Float;
+    
+    // Decoys
+    decoysDeployed    : Nat;
+    decoysRemaining   : Nat;
+    
+    // Last deployment
+    lastDeploymentBeat : Nat;
+    cooldownRemaining : Nat;
+  };
+
+  /// Shield formation
+  public type ShieldFormation = {
+    formationType     : Text;
+    protectedDrones   : [Nat];
+    shieldDrones      : [Nat];
+    formationRadius   : Float;
+  };
+
+  /// Electronic warfare state
+  public type ElectronicWarfareState = {
+    // Jamming
+    jammingState      : JammingState;
+    
+    // Detection
+    radarDetection    : RadarDetectionState;
+    
+    // Spoofing
+    spoofingState     : SpoofingState;
+    
+    // SIGINT
+    sigintState       : SigintState;
+    
+    // Cyber
+    cyberState        : CyberState;
+  };
+
+  /// Jamming state
+  public type JammingState = {
+    isJamming         : Bool;
+    targetFrequencies : [Float];
+    jammingPower      : Float;
+    jammingPattern    : Text;
+    effectivenessEstimate : Float;
+    powerConsumption  : Float;
+  };
+
+  /// Radar detection state
+  public type RadarDetectionState = {
+    // Detected emitters
+    detectedEmitters  : [RadarEmitter];
+    
+    // Warning
+    radarWarningActive : Bool;
+    lockOnDetected    : Bool;
+    
+    // Signature management
+    currentRCS        : Float;         // Radar cross-section
+    rcsReductionMode  : Bool;
+  };
+
+  /// Radar emitter
+  public type RadarEmitter = {
+    emitterId         : Nat;
+    frequency         : Float;
+    pulseRepetition   : Float;
+    estimatedPosition : { lat: Float; lon: Float };
+    signalStrength    : Float;
+    emitterType       : Text;
+    threatLevel       : Float;
+  };
+
+  /// Spoofing state
+  public type SpoofingState = {
+    gpsSpoofingActive : Bool;
+    spoofedPosition   : ?{ lat: Float; lon: Float };
+    commsSpoofingActive : Bool;
+    spoofedIdentity   : ?Nat;
+  };
+
+  /// SIGINT state
+  public type SigintState = {
+    // Intercepted signals
+    interceptedSignals : [InterceptedSignal];
+    
+    // Analysis
+    analysisInProgress : Bool;
+    decodedMessages   : [Text];
+  };
+
+  /// Intercepted signal
+  public type InterceptedSignal = {
+    signalId          : Nat;
+    frequency         : Float;
+    timestamp         : Nat;
+    signalType        : Text;
+    direction         : Float;
+    content           : ?[Nat8];
+  };
+
+  /// Cyber state
+  public type CyberState = {
+    // Attacks
+    activeAttacks     : [CyberAttack];
+    
+    // Defense
+    firewallActive    : Bool;
+    intrusionDetected : Bool;
+    
+    // System integrity
+    systemIntegrity   : Float;
+  };
+
+  /// Cyber attack
+  public type CyberAttack = {
+    attackId          : Nat;
+    targetSystem      : Text;
+    attackType        : Text;
+    progress          : Float;
+    successProbability : Float;
+  };
+
+  /// Tactical coordination state
+  public type TacticalCoordinationState = {
+    // Mission coordination
+    missionId         : ?Nat;
+    missionPhase      : Text;
+    
+    // Unit coordination
+    coordinatingWith  : [Nat];
+    myRole            : Text;
+    
+    // Communication
+    commsChannel      : Nat;
+    lastCommsUpdate   : Nat;
+    commsStatus       : Text;
+    
+    // Fire coordination
+    fireControlMode   : Text;
+    deconflictionActive : Bool;
+    
+    // Synchronization
+    syncTime          : Nat;
+    syncAccuracy      : Float;
+  };
+
+  /// Initialize tactical state
+  public func initTacticalState() : TacticalState {
+    {
+      tacticalMode = #Patrol;
+      targets = [];
+      primaryTarget = null;
+      threatAssessment = {
+        overallThreat = 0.0;
+        threatSources = [];
+        threatMap = [[]];
+        threatMapResolution = 100.0;
+        predictedThreats = [];
+        safeCorridors = [];
+      };
+      attackState = {
+        attackFormation = #Wedge;
+        weaponsArmed = false;
+        payloadRemaining = 0;
+        attackVectors = [];
+        selectedVector = null;
+        attackPhase = #Planning;
+        timeToTarget = 0.0;
+        roeLevel = 3;
+        requiresConfirmation = true;
+        bdaScore = 0.0;
+      };
+      defenseState = {
+        defensivePosture = #Normal;
+        evasionState = {
+          currentManeuver = null;
+          incomingThreats = [];
+          evasionSuccessRate = 0.8;
+          evasionEnergy = 1.0;
+        };
+        countermeasures = {
+          chaffRemaining = 0;
+          flaresRemaining = 0;
+          jammingActive = false;
+          jammingFrequency = 0.0;
+          decoysDeployed = 0;
+          decoysRemaining = 0;
+          lastDeploymentBeat = 0;
+          cooldownRemaining = 0;
+        };
+        shieldFormation = null;
+        damageControlActive = false;
+        criticalSystemsProtected = false;
+      };
+      ewState = {
+        jammingState = {
+          isJamming = false;
+          targetFrequencies = [];
+          jammingPower = 0.0;
+          jammingPattern = "barrage";
+          effectivenessEstimate = 0.0;
+          powerConsumption = 0.0;
+        };
+        radarDetection = {
+          detectedEmitters = [];
+          radarWarningActive = false;
+          lockOnDetected = false;
+          currentRCS = 0.1;
+          rcsReductionMode = false;
+        };
+        spoofingState = {
+          gpsSpoofingActive = false;
+          spoofedPosition = null;
+          commsSpoofingActive = false;
+          spoofedIdentity = null;
+        };
+        sigintState = {
+          interceptedSignals = [];
+          analysisInProgress = false;
+          decodedMessages = [];
+        };
+        cyberState = {
+          activeAttacks = [];
+          firewallActive = true;
+          intrusionDetected = false;
+          systemIntegrity = 1.0;
+        };
+      };
+      tacticalCoordination = {
+        missionId = null;
+        missionPhase = "planning";
+        coordinatingWith = [];
+        myRole = "element";
+        commsChannel = 1;
+        lastCommsUpdate = 0;
+        commsStatus = "nominal";
+        fireControlMode = "safe";
+        deconflictionActive = true;
+        syncTime = 0;
+        syncAccuracy = 0.0;
+      };
+      beatNum = 0;
+    }
+  };
+
+  /// Assess threats
+  public func assessThreats(
+    current: ThreatAssessmentState,
+    detectedEntities: [{ position: { lat: Float; lon: Float; alt: Float }; type_: Text; velocity: { vx: Float; vy: Float; vz: Float } }],
+    ownPosition: { lat: Float; lon: Float; alt: Float },
+    beat: Nat
+  ) : ThreatAssessmentState {
+    // Build threat sources
+    var newSources : [ThreatSource] = [];
+    var maxThreat : Float = 0.0;
+    
+    for (entity in detectedEntities.vals()) {
+      // Calculate distance
+      let dx = (entity.position.lon - ownPosition.lon) * 111000.0;
+      let dy = (entity.position.lat - ownPosition.lat) * 111000.0;
+      let dz = entity.position.alt - ownPosition.alt;
+      let distance = Float.sqrt(dx * dx + dy * dy + dz * dz);
+      
+      // Determine threat level based on type and distance
+      let baseThreat = switch (entity.type_) {
+        case "hostile_drone" { 0.8 };
+        case "missile" { 1.0 };
+        case "aircraft" { 0.6 };
+        case "radar" { 0.4 };
+        case _ { 0.2 };
+      };
+      
+      // Distance attenuation
+      let distanceFactor = 1.0 / (1.0 + distance / 1000.0);
+      let threatLevel = baseThreat * distanceFactor;
+      
+      if (threatLevel > maxThreat) {
+        maxThreat := threatLevel;
+      };
+      
+      let source : ThreatSource = {
+        sourceId = newSources.size();
+        sourceType = entity.type_;
+        position = entity.position;
+        effectiveRange = 1000.0;
+        lethality = baseThreat;
+        isActive = true;
+        lastDetection = beat;
+      };
+      newSources := Array.append(newSources, [source]);
+    };
+    
+    {
+      overallThreat = maxThreat;
+      threatSources = newSources;
+      threatMap = current.threatMap;
+      threatMapResolution = current.threatMapResolution;
+      predictedThreats = current.predictedThreats;
+      safeCorridors = current.safeCorridors;
+    }
+  };
+
+  /// Select attack vector
+  public func selectAttackVector(
+    attack: AttackState,
+    target: TacticalTarget,
+    ownPosition: { lat: Float; lon: Float; alt: Float },
+    threats: ThreatAssessmentState
+  ) : AttackState {
+    // Generate potential attack vectors
+    var vectors : [AttackVector] = [];
+    
+    // 8 approach directions
+    for (i in Iter.range(0, 7)) {
+      let heading = Float.fromInt(i) * PI / 4.0;
+      
+      // Compute risk from that direction
+      var risk : Float = 0.1;
+      for (source in threats.threatSources.vals()) {
+        let dx = (source.position.lon - target.position.lon) * 111000.0;
+        let dy = (source.position.lat - target.position.lat) * 111000.0;
+        let threatDir = Float.arctan2(dy, dx);
+        let angleDiff = Float.abs(heading - threatDir);
+        if (angleDiff < PI / 4.0) {
+          risk := risk + source.lethality * 0.3;
+        };
+      };
+      
+      // Altitude options
+      let altitudes = [target.position.alt + 50.0, target.position.alt, target.position.alt - 50.0];
+      
+      for (alt in altitudes.vals()) {
+        let vector : AttackVector = {
+          vectorId = vectors.size();
+          approachHeading = heading;
+          approachAltitude = alt;
+          attackAngle = Float.arctan2(alt - target.position.alt, 100.0);
+          riskLevel = risk;
+          successProbability = 1.0 - risk;
+          collateralRisk = 0.1;
+        };
+        vectors := Array.append(vectors, [vector]);
+      };
+    };
+    
+    // Select best vector
+    var bestVector : ?Nat = null;
+    var bestScore : Float = 0.0;
+    
+    for (v in vectors.vals()) {
+      let score = v.successProbability - v.riskLevel * 0.5 - v.collateralRisk * 0.3;
+      if (score > bestScore) {
+        bestScore := score;
+        bestVector := ?v.vectorId;
+      };
+    };
+    
+    {
+      attackFormation = attack.attackFormation;
+      weaponsArmed = attack.weaponsArmed;
+      payloadRemaining = attack.payloadRemaining;
+      attackVectors = vectors;
+      selectedVector = bestVector;
+      attackPhase = attack.attackPhase;
+      timeToTarget = attack.timeToTarget;
+      roeLevel = attack.roeLevel;
+      requiresConfirmation = attack.requiresConfirmation;
+      bdaScore = attack.bdaScore;
+    }
+  };
+
+  /// Select evasive maneuver
+  public func selectEvasiveManeuver(
+    evasion: EvasionState,
+    incomingDirection: Float,
+    timeToImpact: Float,
+    currentHeading: Float,
+    currentAltitude: Float,
+    maxAltitude: Float
+  ) : EvasionState {
+    // Select best maneuver based on incoming threat
+    let relativeAngle = incomingDirection - currentHeading;
+    let normalizedAngle = Float.sin(relativeAngle);  // -1 to 1
+    
+    var selectedManeuver : ?EvasiveManeuver = null;
+    
+    if (timeToImpact < 2.0) {
+      // Emergency - jink
+      selectedManeuver := ?#Jink;
+    } else if (timeToImpact < 5.0) {
+      // Need quick response
+      if (Float.abs(normalizedAngle) > 0.7) {
+        // Threat from side - break into it
+        selectedManeuver := ?#Break;
+      } else if (currentAltitude > maxAltitude * 0.5) {
+        // High altitude - dive
+        selectedManeuver := ?#Dive;
+      } else {
+        // Low altitude - climb
+        selectedManeuver := ?#Climb;
+      };
+    } else {
+      // More time - use spiral or barrel roll
+      if (evasion.evasionEnergy > 0.5) {
+        selectedManeuver := ?#BarrelRoll;
+      } else {
+        selectedManeuver := ?#Spiral;
+      };
+    };
+    
+    // Update energy
+    let energyCost = switch (selectedManeuver) {
+      case (?#Jink) { 0.3 };
+      case (?#Break) { 0.25 };
+      case (?#BarrelRoll) { 0.4 };
+      case (?#Spiral) { 0.2 };
+      case _ { 0.15 };
+    };
+    
+    {
+      currentManeuver = selectedManeuver;
+      incomingThreats = Array.append(evasion.incomingThreats, [{ direction = incomingDirection; timeToImpact = timeToImpact }]);
+      evasionSuccessRate = evasion.evasionSuccessRate;
+      evasionEnergy = Float.max(0.0, evasion.evasionEnergy - energyCost);
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 21: SWARM NAVIGATION — AUTONOMOUS MOVEMENT
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Navigation state
+  public type SwarmNavigationState = {
+    // Waypoints
+    waypoints         : [NavigationWaypoint];
+    currentWaypointIdx : Nat;
+    
+    // Path planning
+    plannedPath       : [{ lat: Float; lon: Float; alt: Float }];
+    pathProgress      : Float;
+    
+    // Terrain
+    terrainMap        : TerrainMap;
+    
+    // Obstacles
+    obstacles         : [Obstacle];
+    
+    // Wind
+    windVector        : { speed: Float; direction: Float };
+    
+    // Navigation modes
+    navMode           : NavigationMode;
+    
+    // Performance
+    navigationError   : Float;
+    estimatedTimeEnroute : Float;
+    
+    beatNum           : Nat;
+  };
+
+  /// Navigation waypoint
+  public type NavigationWaypoint = {
+    waypointId        : Nat;
+    position          : { lat: Float; lon: Float; alt: Float };
+    waypointType      : WaypointType;
+    loiterTime        : Nat;
+    speedLimit        : ?Float;
+    altitudeConstraint : ?{ min: Float; max: Float };
+    passRadius        : Float;
+    isCompleted       : Bool;
+  };
+
+  /// Waypoint types
+  public type WaypointType = {
+    #Flythrough;
+    #Loiter;
+    #Landing;
+    #Takeoff;
+    #Rally;
+    #Target;
+  };
+
+  /// Terrain map
+  public type TerrainMap = {
+    elevationGrid     : [[Float]];
+    gridResolution    : Float;
+    originLat         : Float;
+    originLon         : Float;
+    noFlyZones        : [NoFlyZone];
+  };
+
+  /// No-fly zone
+  public type NoFlyZone = {
+    zoneId            : Nat;
+    center            : { lat: Float; lon: Float };
+    radius            : Float;
+    altitudeFloor     : Float;
+    altitudeCeiling   : Float;
+    active            : Bool;
+  };
+
+  /// Obstacle
+  public type Obstacle = {
+    obstacleId        : Nat;
+    position          : { lat: Float; lon: Float; alt: Float };
+    size              : { width: Float; height: Float; depth: Float };
+    velocity          : ?{ vx: Float; vy: Float; vz: Float };
+    isDynamic         : Bool;
+    lastUpdate        : Nat;
+  };
+
+  /// Navigation modes
+  public type NavigationMode = {
+    #Direct;          // Straight to waypoint
+    #TerrainFollow;   // Follow terrain contour
+    #ObstacleAvoid;   // Active obstacle avoidance
+    #FormationHold;   // Maintain formation position
+    #ContourFly;      // Fly along contour lines
+    #NOE;             // Nap-of-the-earth
+  };
+
+  /// Initialize navigation state
+  public func initNavigationState() : SwarmNavigationState {
+    {
+      waypoints = [];
+      currentWaypointIdx = 0;
+      plannedPath = [];
+      pathProgress = 0.0;
+      terrainMap = {
+        elevationGrid = [[]];
+        gridResolution = 100.0;
+        originLat = 0.0;
+        originLon = 0.0;
+        noFlyZones = [];
+      };
+      obstacles = [];
+      windVector = { speed = 0.0; direction = 0.0 };
+      navMode = #Direct;
+      navigationError = 0.0;
+      estimatedTimeEnroute = 0.0;
+      beatNum = 0;
+    }
+  };
+
+  /// Plan path (A* algorithm simplified)
+  public func planPath(
+    start: { lat: Float; lon: Float; alt: Float },
+    goal: { lat: Float; lon: Float; alt: Float },
+    terrain: TerrainMap,
+    obstacles: [Obstacle]
+  ) : [{ lat: Float; lon: Float; alt: Float }] {
+    // Simplified path planning - straight line with intermediate waypoints
+    let numSegments = 10;
+    var path : [{ lat: Float; lon: Float; alt: Float }] = [];
+    
+    for (i in Iter.range(0, numSegments)) {
+      let t = Float.fromInt(i) / Float.fromInt(numSegments);
+      let lat = start.lat + t * (goal.lat - start.lat);
+      let lon = start.lon + t * (goal.lon - start.lon);
+      let alt = start.alt + t * (goal.alt - start.alt);
+      
+      // Check for obstacles
+      var adjustedAlt = alt;
+      for (obs in obstacles.vals()) {
+        let dx = (lon - obs.position.lon) * 111000.0;
+        let dy = (lat - obs.position.lat) * 111000.0;
+        let dist = Float.sqrt(dx * dx + dy * dy);
+        if (dist < obs.size.width) {
+          adjustedAlt := Float.max(adjustedAlt, obs.position.alt + obs.size.height + 10.0);
+        };
+      };
+      
+      // Check terrain
+      let gridX = Int.abs(Float.toInt((lon - terrain.originLon) * 111000.0 / terrain.gridResolution));
+      let gridY = Int.abs(Float.toInt((lat - terrain.originLat) * 111000.0 / terrain.gridResolution));
+      
+      if (gridY < terrain.elevationGrid.size() and gridX < terrain.elevationGrid[0].size()) {
+        let terrainAlt = terrain.elevationGrid[gridY][gridX];
+        adjustedAlt := Float.max(adjustedAlt, terrainAlt + 50.0);  // 50m clearance
+      };
+      
+      path := Array.append(path, [{ lat = lat; lon = lon; alt = adjustedAlt }]);
+    };
+    
+    path
+  };
+
+  /// Navigate to waypoint
+  public func navigateToWaypoint(
+    nav: SwarmNavigationState,
+    currentPosition: { lat: Float; lon: Float; alt: Float },
+    currentVelocity: { vx: Float; vy: Float; vz: Float },
+    dt: Float
+  ) : (SwarmNavigationState, { vx: Float; vy: Float; vz: Float }) {
+    if (nav.waypoints.size() == 0 or nav.currentWaypointIdx >= nav.waypoints.size()) {
+      return (nav, { vx = 0.0; vy = 0.0; vz = 0.0 });
+    };
+    
+    let waypoint = nav.waypoints[nav.currentWaypointIdx];
+    
+    // Vector to waypoint
+    let dx = (waypoint.position.lon - currentPosition.lon) * 111000.0;
+    let dy = (waypoint.position.lat - currentPosition.lat) * 111000.0;
+    let dz = waypoint.position.alt - currentPosition.alt;
+    
+    let distance = Float.sqrt(dx * dx + dy * dy + dz * dz);
+    
+    // Check if reached
+    if (distance < waypoint.passRadius) {
+      // Move to next waypoint
+      let newWpIdx = nav.currentWaypointIdx + 1;
+      let newNav : SwarmNavigationState = {
+        waypoints = nav.waypoints;
+        currentWaypointIdx = newWpIdx;
+        plannedPath = nav.plannedPath;
+        pathProgress = Float.fromInt(newWpIdx) / Float.fromInt(nav.waypoints.size());
+        terrainMap = nav.terrainMap;
+        obstacles = nav.obstacles;
+        windVector = nav.windVector;
+        navMode = nav.navMode;
+        navigationError = nav.navigationError;
+        estimatedTimeEnroute = nav.estimatedTimeEnroute;
+        beatNum = nav.beatNum + 1;
+      };
+      return (newNav, { vx = 0.0; vy = 0.0; vz = 0.0 });
+    };
+    
+    // Compute desired velocity
+    let maxSpeed = switch (waypoint.speedLimit) {
+      case (?limit) { limit };
+      case null { 20.0 };
+    };
+    
+    let desiredSpeed = Float.min(maxSpeed, distance * 0.5);  // Slow down near waypoint
+    let speedScale = desiredSpeed / (distance + 0.001);
+    
+    var targetVx = dx * speedScale;
+    var targetVy = dy * speedScale;
+    var targetVz = dz * speedScale;
+    
+    // Wind compensation
+    targetVx := targetVx - nav.windVector.speed * Float.cos(nav.windVector.direction);
+    targetVy := targetVy - nav.windVector.speed * Float.sin(nav.windVector.direction);
+    
+    // Smoothing
+    let alpha = 0.3;
+    let vx = currentVelocity.vx * (1.0 - alpha) + targetVx * alpha;
+    let vy = currentVelocity.vy * (1.0 - alpha) + targetVy * alpha;
+    let vz = currentVelocity.vz * (1.0 - alpha) + targetVz * alpha;
+    
+    // Update nav error
+    let crossTrackError = 0.0;  // Would compute properly
+    
+    let newNav : SwarmNavigationState = {
+      waypoints = nav.waypoints;
+      currentWaypointIdx = nav.currentWaypointIdx;
+      plannedPath = nav.plannedPath;
+      pathProgress = nav.pathProgress;
+      terrainMap = nav.terrainMap;
+      obstacles = nav.obstacles;
+      windVector = nav.windVector;
+      navMode = nav.navMode;
+      navigationError = crossTrackError;
+      estimatedTimeEnroute = distance / (desiredSpeed + 0.001);
+      beatNum = nav.beatNum + 1;
+    };
+    
+    (newNav, { vx = vx; vy = vy; vz = vz })
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 22: RESOURCE MANAGEMENT — ENERGY AND PAYLOAD
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Resource management state
+  public type ResourceManagementState = {
+    // Battery
+    batteryState      : BatteryState;
+    
+    // Payload
+    payloadState      : PayloadState;
+    
+    // Fuel (for hybrid drones)
+    fuelState         : ?FuelState;
+    
+    // Resource allocation
+    resourceAllocation : ResourceAllocation;
+    
+    // Efficiency
+    efficiencyMetrics : EfficiencyMetrics;
+    
+    beatNum           : Nat;
+  };
+
+  /// Battery state
+  public type BatteryState = {
+    // Charge
+    currentCharge     : Float;       // Wh remaining
+    maxCharge         : Float;       // Wh capacity
+    chargePercent     : Float;
+    
+    // Health
+    cycleCount        : Nat;
+    healthPercent     : Float;
+    
+    // Thermal
+    temperature       : Float;
+    isOverheating     : Bool;
+    
+    // Power draw
+    currentDraw       : Float;       // W
+    averageDraw       : Float;       // W
+    peakDraw          : Float;       // W
+    
+    // Estimates
+    timeRemaining     : Float;       // seconds
+    rangeRemaining    : Float;       // meters
+    
+    // Charging
+    isCharging        : Bool;
+    chargeRate        : Float;
+  };
+
+  /// Payload state
+  public type PayloadState = {
+    // Weight
+    totalWeight       : Float;       // kg
+    
+    // Items
+    payloadItems      : [PayloadItem];
+    
+    // Dispensers
+    dispensers        : [Dispenser];
+    
+    // Sensors
+    sensorPayloads    : [SensorPayload];
+  };
+
+  /// Payload item
+  public type PayloadItem = {
+    itemId            : Nat;
+    itemType          : Text;
+    weight            : Float;
+    isDeployed        : Bool;
+    deploymentMethod  : Text;
+  };
+
+  /// Dispenser
+  public type Dispenser = {
+    dispenserId       : Nat;
+    dispenserType     : Text;
+    capacity          : Nat;
+    remaining         : Nat;
+    isReady           : Bool;
+  };
+
+  /// Sensor payload
+  public type SensorPayload = {
+    sensorId          : Nat;
+    sensorType        : Text;       // "camera", "lidar", "radar", etc.
+    isActive          : Bool;
+    powerDraw         : Float;
+    dataRate          : Float;      // bytes/sec
+    fieldOfView       : Float;
+    range             : Float;
+  };
+
+  /// Fuel state (for hybrid)
+  public type FuelState = {
+    fuelRemaining     : Float;       // liters
+    fuelCapacity      : Float;
+    fuelConsumption   : Float;       // L/hour
+    generatorOutput   : Float;       // W
+    generatorEfficiency : Float;
+  };
+
+  /// Resource allocation
+  public type ResourceAllocation = {
+    // Priority allocation
+    propulsionAlloc   : Float;       // 0-1
+    sensorsAlloc      : Float;
+    communicationAlloc : Float;
+    computeAlloc      : Float;
+    reserveAlloc      : Float;
+    
+    // Mode
+    allocationMode    : AllocationMode;
+    
+    // Constraints
+    minimumReserve    : Float;
+  };
+
+  /// Allocation modes
+  public type AllocationMode = {
+    #Normal;
+    #HighPerformance;
+    #Endurance;
+    #Emergency;
+    #Stealth;
+  };
+
+  /// Efficiency metrics
+  public type EfficiencyMetrics = {
+    propulsiveEfficiency : Float;
+    energyPerMeter    : Float;       // Wh/m
+    overallEfficiency : Float;
+    comparedToBaseline : Float;
+  };
+
+  /// Initialize resource management
+  public func initResourceManagement(batteryWh: Float) : ResourceManagementState {
+    {
+      batteryState = {
+        currentCharge = batteryWh;
+        maxCharge = batteryWh;
+        chargePercent = 1.0;
+        cycleCount = 0;
+        healthPercent = 1.0;
+        temperature = 25.0;
+        isOverheating = false;
+        currentDraw = 0.0;
+        averageDraw = 0.0;
+        peakDraw = 0.0;
+        timeRemaining = 3600.0;
+        rangeRemaining = 10000.0;
+        isCharging = false;
+        chargeRate = 0.0;
+      };
+      payloadState = {
+        totalWeight = 0.0;
+        payloadItems = [];
+        dispensers = [];
+        sensorPayloads = [];
+      };
+      fuelState = null;
+      resourceAllocation = {
+        propulsionAlloc = 0.7;
+        sensorsAlloc = 0.1;
+        communicationAlloc = 0.1;
+        computeAlloc = 0.05;
+        reserveAlloc = 0.05;
+        allocationMode = #Normal;
+        minimumReserve = 0.1;
+      };
+      efficiencyMetrics = {
+        propulsiveEfficiency = 0.8;
+        energyPerMeter = 0.01;
+        overallEfficiency = 0.75;
+        comparedToBaseline = 1.0;
+      };
+      beatNum = 0;
+    }
+  };
+
+  /// Update battery state
+  public func updateBatteryState(
+    battery: BatteryState,
+    powerDraw: Float,
+    dt: Float
+  ) : BatteryState {
+    // Energy consumed
+    let energyUsed = powerDraw * dt / 3600.0;  // Wh
+    let newCharge = Float.max(0.0, battery.currentCharge - energyUsed);
+    let newChargePercent = newCharge / battery.maxCharge;
+    
+    // Update averages
+    let newAvgDraw = battery.averageDraw * 0.99 + powerDraw * 0.01;
+    let newPeakDraw = Float.max(battery.peakDraw, powerDraw);
+    
+    // Temperature (simplified)
+    let heatGenerated = powerDraw * (1.0 - 0.9) * 0.001;  // Inefficiency heat
+    let cooling = (battery.temperature - 25.0) * 0.01;
+    let newTemp = battery.temperature + heatGenerated - cooling;
+    let overheating = newTemp > 60.0;
+    
+    // Time remaining estimate
+    let timeRemaining = if (newAvgDraw > 0.0) {
+      newCharge / newAvgDraw * 3600.0
+    } else { 9999.0 };
+    
+    // Range estimate (assuming 10 W/m/s average speed)
+    let rangeRemaining = newCharge / 0.01;
+    
+    {
+      currentCharge = newCharge;
+      maxCharge = battery.maxCharge;
+      chargePercent = newChargePercent;
+      cycleCount = battery.cycleCount;
+      healthPercent = battery.healthPercent;
+      temperature = newTemp;
+      isOverheating = overheating;
+      currentDraw = powerDraw;
+      averageDraw = newAvgDraw;
+      peakDraw = newPeakDraw;
+      timeRemaining = timeRemaining;
+      rangeRemaining = rangeRemaining;
+      isCharging = battery.isCharging;
+      chargeRate = battery.chargeRate;
+    }
+  };
+
+  /// Allocate resources based on mode
+  public func allocateResources(
+    allocation: ResourceAllocation,
+    mode: AllocationMode,
+    batteryPercent: Float
+  ) : ResourceAllocation {
+    let (prop, sens, comm, comp, res) = switch (mode) {
+      case (#Normal) { (0.7, 0.1, 0.1, 0.05, 0.05) };
+      case (#HighPerformance) { (0.85, 0.05, 0.05, 0.03, 0.02) };
+      case (#Endurance) { (0.5, 0.15, 0.15, 0.1, 0.1) };
+      case (#Emergency) { (0.9, 0.02, 0.02, 0.01, 0.05) };
+      case (#Stealth) { (0.4, 0.3, 0.05, 0.15, 0.1) };
+    };
+    
+    // Adjust for low battery
+    let batteryFactor = if (batteryPercent < 0.2) { 0.7 } else { 1.0 };
+    
+    {
+      propulsionAlloc = prop * batteryFactor;
+      sensorsAlloc = sens;
+      communicationAlloc = comm;
+      computeAlloc = comp;
+      reserveAlloc = res + (1.0 - batteryFactor) * prop;
+      allocationMode = mode;
+      minimumReserve = allocation.minimumReserve;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 23: COMPLETE SWARM ORGANISM STATE
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Ultimate complete swarm state
+  public type UltimateSwarmState = {
+    // Previous state
+    organism          : CompleteSwarmOrganism;
+    
+    // Tactical
+    tactical          : TacticalState;
+    
+    // Navigation
+    navigation        : SwarmNavigationState;
+    
+    // Resources
+    resources         : ResourceManagementState;
+    
+    // Global metrics
+    swarmCohesion     : Float;
+    swarmSurvival     : Float;
+    missionSuccess    : Float;
+    
+    beatNum           : Nat;
+  };
+
+  /// Initialize ultimate swarm
+  public func initUltimateSwarm(centroid: { lat: Float; lon: Float; alt: Float }) : UltimateSwarmState {
+    {
+      organism = initCompleteSwarmOrganism(centroid);
+      tactical = initTacticalState();
+      navigation = initNavigationState();
+      resources = initResourceManagement(100.0);
+      swarmCohesion = 1.0;
+      swarmSurvival = 1.0;
+      missionSuccess = 0.0;
+      beatNum = 0;
+    }
+  };
+
+  /// Tick ultimate swarm
+  public func tickUltimateSwarm(
+    state: UltimateSwarmState,
+    detectedEntities: [{ position: { lat: Float; lon: Float; alt: Float }; type_: Text; velocity: { vx: Float; vy: Float; vz: Float } }],
+    currentPosition: { lat: Float; lon: Float; alt: Float },
+    currentVelocity: { vx: Float; vy: Float; vz: Float },
+    powerDraw: Float,
+    dt: Float
+  ) : UltimateSwarmState {
+    // 1. Assess threats
+    let newThreatAssessment = assessThreats(
+      state.tactical.threatAssessment,
+      detectedEntities,
+      currentPosition,
+      state.beatNum
+    );
+    
+    // 2. Navigate
+    let (newNav, desiredVel) = navigateToWaypoint(
+      state.navigation,
+      currentPosition,
+      currentVelocity,
+      dt
+    );
+    
+    // 3. Update resources
+    let newBattery = updateBatteryState(state.resources.batteryState, powerDraw, dt);
+    let newAllocation = allocateResources(
+      state.resources.resourceAllocation,
+      state.resources.resourceAllocation.allocationMode,
+      newBattery.chargePercent
+    );
+    
+    // 4. Update tactical mode based on threats
+    let newTacticalMode : TacticalMode = if (newThreatAssessment.overallThreat > 0.8) {
+      #Evade
+    } else if (newThreatAssessment.overallThreat > 0.5) {
+      #Attack
+    } else if (newThreatAssessment.overallThreat > 0.2) {
+      #Approach
+    } else {
+      #Patrol
+    };
+    
+    // Compute metrics
+    let survivalProb = 1.0 - newThreatAssessment.overallThreat * 0.5;
+    
+    {
+      organism = state.organism;
+      tactical = {
+        tacticalMode = newTacticalMode;
+        targets = state.tactical.targets;
+        primaryTarget = state.tactical.primaryTarget;
+        threatAssessment = newThreatAssessment;
+        attackState = state.tactical.attackState;
+        defenseState = state.tactical.defenseState;
+        ewState = state.tactical.ewState;
+        tacticalCoordination = state.tactical.tacticalCoordination;
+        beatNum = state.tactical.beatNum + 1;
+      };
+      navigation = newNav;
+      resources = {
+        batteryState = newBattery;
+        payloadState = state.resources.payloadState;
+        fuelState = state.resources.fuelState;
+        resourceAllocation = newAllocation;
+        efficiencyMetrics = state.resources.efficiencyMetrics;
+        beatNum = state.resources.beatNum + 1;
+      };
+      swarmCohesion = state.swarmCohesion;
+      swarmSurvival = survivalProb;
+      missionSuccess = state.navigation.pathProgress;
+      beatNum = state.beatNum + 1;
+    }
+  };
+
+  /// Generate ultimate swarm output
+  public type UltimateSwarmOutput = {
+    // Tactical
+    tacticalMode      : TacticalMode;
+    threatLevel       : Float;
+    
+    // Navigation
+    pathProgress      : Float;
+    navigationError   : Float;
+    
+    // Resources
+    batteryPercent    : Float;
+    timeRemaining     : Float;
+    
+    // Metrics
+    swarmSurvival     : Float;
+    missionSuccess    : Float;
+    
+    beatNum           : Nat;
+  };
+
+  public func generateUltimateSwarmOutput(state: UltimateSwarmState) : UltimateSwarmOutput {
+    {
+      tacticalMode = state.tactical.tacticalMode;
+      threatLevel = state.tactical.threatAssessment.overallThreat;
+      pathProgress = state.navigation.pathProgress;
+      navigationError = state.navigation.navigationError;
+      batteryPercent = state.resources.batteryState.chargePercent;
+      timeRemaining = state.resources.batteryState.timeRemaining;
+      swarmSurvival = state.swarmSurvival;
+      missionSuccess = state.missionSuccess;
+      beatNum = state.beatNum;
+    }
+  };
+
 }
