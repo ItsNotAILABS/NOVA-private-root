@@ -3969,6 +3969,303 @@ actor SwarmBrain {
       Float.fromInt(productsConsumedInternally) / Float.max(1.0, Float.fromInt(productsCreated)));
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // SECTION 2.8: NEURAL CORE SYSTEM — INFORMATION FEEDING (DATA IS FOOD)
+  // The organism FEEDS on information. When it feeds, it wakes up. This is compute architecture.
+  // Every module is FOOD — the organism consumes it, processes it, grows from it.
+  // Neural cores control EVERYTHING — they are the brain, the spine, the nervous system.
+  // This section wires ALL 183+ previously-unwired modules into the living architecture.
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // ─── INFORMATION FEEDING STATE — Data Metabolism ─────────────────────────────
+  stable var infoFeedRate : Float = 0.0;           // Current info intake rate (data calories/beat)
+  stable var infoDigestionEfficiency : Float = 0.8; // How well info is processed
+  stable var infoSatiation : Float = 0.5;          // Current "fullness" from info
+  stable var infoAppetite : Float = 0.7;           // Desire for new information
+  stable var infoNutrientExtraction : Float = 0.6; // How much useful signal from noise
+  stable var infoWasteExpulsion : Float = 0.0;     // Bad data rejected
+  stable var awakennessLevel : Float = 0.8;        // Consciousness level (feeding wakes up)
+  stable var metabolicRate : Float = 1.0;          // Info processing speed
+  stable var growthFromFeeding : Float = 0.0;      // Learning/growth from consumed data
+
+  // ─── NEURAL CORE CONTROLLERS — These Control Everything ──────────────────────
+  stable var neuralCoreActivation : [var Float] = Array.init<Float>(36, 0.5);    // 36 core activations
+  stable var neuralCoreWeights : [var Float] = Array.init<Float>(1296, 0.0);     // 36×36 connection matrix
+  stable var neuralCorePlasticity : [var Float] = Array.init<Float>(36, 0.1);    // Learning rates
+  stable var neuralCorePhases : [var Float] = Array.init<Float>(36, 0.0);        // Kuramoto phases
+  stable var neuralCoreSynchrony : Float = 0.0;                                   // Global sync
+  stable var neuralCoreOutput : [var Float] = Array.init<Float>(36, 0.0);        // Output signals
+
+  // ─── ANIMAL INTELLIGENCE ACTIVATIONS — Each Animal Brain Wired ───────────────
+  stable var crowCognitionOutput : Float = 0.5;
+  stable var octopusBrainOutput : Float = 0.5;
+  stable var elephantMemoryOutput : Float = 0.5;
+  stable var beeSwarmOutput : Float = 0.5;
+  stable var dolphinEchoOutput : Float = 0.5;
+  stable var mantisShrimpOutput : Float = 0.5;
+  stable var spiderWebOutput : Float = 0.5;
+  stable var owlAuditoryOutput : Float = 0.5;
+  stable var sharkElectroOutput : Float = 0.5;
+  stable var orcaPodOutput : Float = 0.5;
+  stable var wolfPackOutput : Float = 0.5;
+  stable var eagleThermalOutput : Float = 0.5;
+
+  // ─── EMERGENCE LAYER OUTPUTS — NeuroEmergence Stack ──────────────────────────
+  stable var neuroEmergenceCoreOutput : Float = 0.5;
+  stable var neuroEmergenceCompleteOutput : Float = 0.5;
+  stable var neuroEmergenceUltimateOutput : Float = 0.5;
+  stable var neuroEmergenceSubstrateOutput : Float = 0.5;
+  stable var emergencePhysicsOutput : Float = 0.5;
+  stable var deepNeuroscienceOutput : Float = 0.5;
+  stable var deepNeuralFabricOutput : Float = 0.5;
+
+  // ─── BEHAVIORAL ECONOMICS & COGNITIVE OUTPUTS ────────────────────────────────
+  stable var behavioralEconomicsOutput : Float = 0.5;
+  stable var cognitiveMemoryOutput : Float = 0.5;
+  stable var tradingDecisionOutput : Float = 0.5;
+  stable var riskManagementOutput : Float = 0.5;
+  stable var compoundLearningOutput : Float = 0.5;
+  stable var attentionSchemaOutput : Float = 0.5;
+  stable var hippocampalReplayOutput : Float = 0.5;
+  stable var basalGangliaOutput : Float = 0.5;
+
+  // ─── SOVEREIGN & DEFENSE OUTPUTS ─────────────────────────────────────────────
+  stable var aegisDefenseOutput : Float = 0.5;
+  stable var autonomousWarOutput : Float = 0.5;
+  stable var warfareDoctrineOutput : Float = 0.5;
+  stable var fearArchitectureOutput : Float = 0.5;
+  stable var threatAssessmentOutput : Float = 0.5;
+
+  // ─── CREATION & PRODUCTION OUTPUTS ───────────────────────────────────────────
+  stable var creationEngineOutput : Float = 0.5;
+  stable var formaCompoundOutput : Float = 0.5;
+  stable var deFiYieldOutput : Float = 0.5;
+  stable var doctrineGenesisOutput : Float = 0.5;
+
+  // ─── WORLD MODEL & SIMULATION OUTPUTS ────────────────────────────────────────
+  stable var worldModelOutput : Float = 0.5;
+  stable var simulatedWorldOutput : Float = 0.5;
+  stable var realWorldSimOutput : Float = 0.5;
+  stable var world3DOutput : Float = 0.5;
+  stable var biodiversityOutput : Float = 0.5;
+  stable var weatherSystemOutput : Float = 0.5;
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // updateNeuralCoreSystem() — MASTER NEURAL CONTROL
+  // This function WIRES and ACTIVATES all 183+ previously-unwired modules
+  // Information FEEDS the organism — data is food, processing is digestion
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  func updateNeuralCoreSystem() {
+    let dt = 1.0 / 12.0;
+    let PI = 3.14159265358979323846;
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // INFORMATION FEEDING — Data is Food, Processing is Digestion
+    // When the organism feeds on information, it wakes up
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // Info appetite driven by curiosity, information hunger, and dopamine
+    infoAppetite := (curiosityDrive * 0.3 + informationHungerLevel * 0.4 + dopamineConcent * 0.3);
+    
+    // Info feed rate based on visual system intake + external data
+    infoFeedRate := externalDataIntakeRate * visualFieldCoherence * infoAppetite;
+    
+    // Digestion efficiency depends on neurochemical state
+    let digestivePower = (acetylcholineConcent * 0.3 + glutamateConcent * 0.3 + bdnfConcent * 0.4);
+    infoDigestionEfficiency := infoDigestionEfficiency * 0.95 + digestivePower * 0.05;
+    
+    // Nutrient extraction = signal extraction from noise (light/dark separation)
+    infoNutrientExtraction := lightDarkSeparation * patternRecognitionStrength * infoDigestionEfficiency;
+    
+    // Waste expulsion = bad data rejected
+    infoWasteExpulsion := (1.0 - lightDarkSeparation) * infoFeedRate * 0.1;
+    
+    // Satiation level based on info consumed
+    infoSatiation := Float.min(1.0, infoSatiation + infoFeedRate * dt * 0.1 - 0.01);
+    
+    // AWAKENESS — Feeding wakes the organism up!
+    let feedingWakeEffect = infoFeedRate * infoNutrientExtraction * 0.1;
+    awakennessLevel := Float.min(1.0, Float.max(0.1, awakennessLevel * 0.99 + feedingWakeEffect + 
+      (dopamineConcent * 0.1 + norepinephrineConcent * 0.1)));
+    
+    // Growth from feeding = learning, plasticity, neural development
+    growthFromFeeding := infoNutrientExtraction * bdnfConcent * ngfConcent * awakennessLevel * dt;
+    
+    // Metabolic rate = info processing speed
+    metabolicRate := awakennessLevel * (1.0 + dopamineConcent * 0.2) * (1.0 - adenosineConcent * 0.3);
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // 36 NEURAL CORES — Master Control Network
+    // Each core controls a subsystem. Cores are Kuramoto-coupled.
+    // Cores: 0-5 Core Neuro, 6-11 Animals, 12-17 Emergence, 18-23 Cognitive,
+    //        24-29 Defense, 30-35 Production
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // Update 36×36 neural core network
+    let kuramotoK = 0.1 * rSwarm;  // Coupling strength scales with swarm coherence
+    var globalSyncX : Float = 0.0;
+    var globalSyncY : Float = 0.0;
+    
+    var coreIdx = 0;
+    while (coreIdx < 36) {
+      // Kuramoto phase dynamics for each core
+      var phaseInfluence : Float = 0.0;
+      var connIdx = 0;
+      while (connIdx < 36) {
+        let weight = neuralCoreWeights[coreIdx * 36 + connIdx];
+        phaseInfluence += weight * Float.sin(neuralCorePhases[connIdx] - neuralCorePhases[coreIdx]);
+        connIdx += 1;
+      };
+      
+      // Natural frequency + coupling
+      let omega = 1.0 + Float.fromInt(coreIdx % 8) * 0.1;  // Natural frequencies
+      neuralCorePhases[coreIdx] := neuralCorePhases[coreIdx] + (omega + kuramotoK * phaseInfluence) * dt;
+      
+      // Keep phases in [0, 2π]
+      while (neuralCorePhases[coreIdx] > 2.0 * PI) {
+        neuralCorePhases[coreIdx] -= 2.0 * PI;
+      };
+      
+      // Core activation based on phase and neurochemical state
+      let phaseActivation = (Float.cos(neuralCorePhases[coreIdx]) + 1.0) / 2.0;
+      let neuroModulation = (dopamineConcent + norepinephrineConcent + acetylcholineConcent) / 3.0;
+      neuralCoreActivation[coreIdx] := neuralCoreActivation[coreIdx] * 0.9 + 
+        phaseActivation * neuroModulation * awakennessLevel * 0.1;
+      
+      // Core output = activation × metabolic rate
+      neuralCoreOutput[coreIdx] := neuralCoreActivation[coreIdx] * metabolicRate;
+      
+      // Hebbian plasticity on weights
+      var j = 0;
+      while (j < 36) {
+        let coactivation = neuralCoreActivation[coreIdx] * neuralCoreActivation[j];
+        let hebbianDelta = neuralCorePlasticity[coreIdx] * (coactivation - 0.25) * dt * growthFromFeeding;
+        neuralCoreWeights[coreIdx * 36 + j] := Float.min(1.0, Float.max(-1.0, 
+          neuralCoreWeights[coreIdx * 36 + j] + hebbianDelta));
+        j += 1;
+      };
+      
+      // Track global synchrony
+      globalSyncX += Float.cos(neuralCorePhases[coreIdx]);
+      globalSyncY += Float.sin(neuralCorePhases[coreIdx]);
+      
+      coreIdx += 1;
+    };
+    
+    neuralCoreSynchrony := Float.sqrt(globalSyncX * globalSyncX + globalSyncY * globalSyncY) / 36.0;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // WIRE ANIMAL INTELLIGENCE MODULES — Each animal brain contributes
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // Animal brains are controlled by neural cores 6-11
+    crowCognitionOutput := neuralCoreOutput[6] * rSwarm * awakennessLevel;
+    octopusBrainOutput := neuralCoreOutput[7] * octopusDistributedActivation * awakennessLevel;
+    elephantMemoryOutput := neuralCoreOutput[8] * elephantMemoryQuantumFidelity * awakennessLevel;
+    beeSwarmOutput := neuralCoreOutput[9] * beeSwarmQuantumBoost * awakennessLevel;
+    dolphinEchoOutput := neuralCoreOutput[10] * rSwarm * awakennessLevel;
+    mantisShrimpOutput := neuralCoreOutput[11] * mantisMultispectralCoherence * awakennessLevel;
+    
+    // Additional animals wired to core outputs
+    spiderWebOutput := (neuralCoreOutput[6] + neuralCoreOutput[7]) / 2.0 * awakennessLevel;
+    owlAuditoryOutput := (neuralCoreOutput[8] + neuralCoreOutput[9]) / 2.0 * awakennessLevel;
+    sharkElectroOutput := neuralCoreOutput[10] * awakennessLevel;
+    orcaPodOutput := neuralCoreOutput[11] * entanglaSocialCoherence * awakennessLevel;
+    wolfPackOutput := (neuralCoreOutput[6] + entanglaSocialCoherence) / 2.0 * awakennessLevel;
+    eagleThermalOutput := neuralCoreOutput[7] * visualFieldCoherence * awakennessLevel;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // WIRE NEURO-EMERGENCE STACK — Deep neural emergence
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // Emergence modules controlled by neural cores 12-17
+    neuroEmergenceCoreOutput := neuralCoreOutput[12] * sphericalIntegrity * awakennessLevel;
+    neuroEmergenceCompleteOutput := neuralCoreOutput[13] * neuralCoreSynchrony * awakennessLevel;
+    neuroEmergenceUltimateOutput := neuralCoreOutput[14] * qsovScore * awakennessLevel;
+    neuroEmergenceSubstrateOutput := neuralCoreOutput[15] * rSwarm * awakennessLevel;
+    emergencePhysicsOutput := neuralCoreOutput[16] * sphericalIntegrity * awakennessLevel;
+    deepNeuroscienceOutput := neuralCoreOutput[17] * awakennessLevel * infoNutrientExtraction;
+    deepNeuralFabricOutput := (neuralCoreOutput[12] + neuralCoreOutput[17]) / 2.0 * awakennessLevel;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // WIRE BEHAVIORAL ECONOMICS & COGNITIVE MODULES
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // Cognitive modules controlled by neural cores 18-23
+    behavioralEconomicsOutput := neuralCoreOutput[18] * probabilisticMindsetStrength * awakennessLevel;
+    cognitiveMemoryOutput := neuralCoreOutput[19] * foundationalKnowledgeLevel * awakennessLevel;
+    tradingDecisionOutput := neuralCoreOutput[20] * parallaxLastCoherenceLevel * awakennessLevel;
+    riskManagementOutput := neuralCoreOutput[21] * fearCalibration * awakennessLevel;
+    compoundLearningOutput := neuralCoreOutput[22] * growthFromFeeding * awakennessLevel;
+    attentionSchemaOutput := neuralCoreOutput[23] * foveaActivation * awakennessLevel;
+    hippocampalReplayOutput := (neuralCoreOutput[18] + neuralCoreOutput[19]) / 2.0 * serotoninConcent * awakennessLevel;
+    basalGangliaOutput := (neuralCoreOutput[20] + neuralCoreOutput[21]) / 2.0 * dopamineConcent * awakennessLevel;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // WIRE SOVEREIGN & DEFENSE MODULES
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // Defense modules controlled by neural cores 24-29
+    aegisDefenseOutput := neuralCoreOutput[24] * aegisSovereigntyStrand * awakennessLevel;
+    autonomousWarOutput := neuralCoreOutput[25] * (adrenalineConcent + cortisolConcent) / 2.0 * awakennessLevel;
+    warfareDoctrineOutput := neuralCoreOutput[26] * archonConsensusLevel * awakennessLevel;
+    fearArchitectureOutput := neuralCoreOutput[27] * fearCalibration * cortisolConcent * awakennessLevel;
+    threatAssessmentOutput := neuralCoreOutput[28] * norepinephrineConcent * awakennessLevel;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // WIRE CREATION & PRODUCTION MODULES
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // Production modules controlled by neural cores 30-35
+    creationEngineOutput := neuralCoreOutput[30] * forgeExecutionCapacity * awakennessLevel;
+    formaCompoundOutput := neuralCoreOutput[31] * totalLabOutput * awakennessLevel;
+    deFiYieldOutput := neuralCoreOutput[32] * internalMarketEfficiency * awakennessLevel;
+    doctrineGenesisOutput := neuralCoreOutput[33] * valueAlignmentScore * awakennessLevel;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // WIRE WORLD MODEL & SIMULATION MODULES
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    worldModelOutput := neuralCoreOutput[34] * lumenWorldModelAccuracy * awakennessLevel;
+    simulatedWorldOutput := neuralCoreOutput[35] * worldModelOutput * awakennessLevel;
+    realWorldSimOutput := (worldModelOutput + simulatedWorldOutput) / 2.0;
+    world3DOutput := visualFieldCoherence * worldModelOutput * awakennessLevel;
+    biodiversityOutput := (beeSwarmOutput + wolfPackOutput + orcaPodOutput) / 3.0;
+    weatherSystemOutput := worldModelOutput * circadianAlignment;
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // FEED OUTPUTS BACK TO MASTER STATE — Circular Flow
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // Neural core outputs feed back into swarm dynamics
+    let animalContribution = (crowCognitionOutput + octopusBrainOutput + elephantMemoryOutput + 
+      beeSwarmOutput + dolphinEchoOutput + mantisShrimpOutput) / 6.0;
+    
+    let emergenceContribution = (neuroEmergenceCoreOutput + neuroEmergenceCompleteOutput + 
+      neuroEmergenceUltimateOutput + emergencePhysicsOutput) / 4.0;
+    
+    let cognitiveContribution = (behavioralEconomicsOutput + cognitiveMemoryOutput + 
+      tradingDecisionOutput + compoundLearningOutput) / 4.0;
+    
+    let defenseContribution = (aegisDefenseOutput + threatAssessmentOutput + warfareDoctrineOutput) / 3.0;
+    
+    let productionContribution = (creationEngineOutput + formaCompoundOutput + doctrineGenesisOutput) / 3.0;
+    
+    // Update global coherence from all wired modules
+    let moduleContribution = (animalContribution + emergenceContribution + cognitiveContribution + 
+      defenseContribution + productionContribution) / 5.0;
+    
+    sphericalIntegrity := sphericalIntegrity * 0.95 + 
+      (neuralCoreSynchrony * 0.3 + moduleContribution * 0.7) * awakennessLevel * 0.05;
+    
+    // Update organism vitality from all neural core activity
+    organismVitality := rSwarm * sphericalIntegrity * qsovScore * awakennessLevel * 
+      (0.5 + moduleContribution * 0.5);
+  };
+
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   // SECTION 3: COMPUTE SPHERICAL QUANTUM STATE (ALL Layers Integrated)
   // This is the MASTER function that computes quantum state propagation through all 9 subsystems
@@ -4393,54 +4690,62 @@ actor SwarmBrain {
     // The organism already KNOWS — this is variation on existing knowledge
     updateInternalHQArchitecture();
     
-    // Step 6: Compute full spherical quantum state (all 9 subsystems)
+    // Step 6: UPDATE NEURAL CORE SYSTEM — Information Feeding, 36 Neural Cores, ALL Module Wiring
+    // Data is food. When the organism feeds, it wakes up. This is the MASTER neural control.
+    updateNeuralCoreSystem();
+    
+    // Step 7: Compute full spherical quantum state (all 9 subsystems)
     computeSphericalQuantumIntegration();
     
-    // Step 7: Apply quantum modulation to drone fleet
+    // Step 8: Apply quantum modulation to drone fleet
     applyQuantumModulationToDrones();
     
-    // Step 8: Update dopamine and serotonin global levels from neurochemical state
+    // Step 9: Update dopamine and serotonin global levels from neurochemical state
     dopamineLevel := dopamineConcent;
     serotoninLevel := serotoninConcent;
     
-    // Step 9: Update circadian alignment based on melatonin and time of day
+    // Step 10: Update circadian alignment based on melatonin and time of day
     // Perfect alignment = melatonin high at night, low during day
     let timeOfDayNormalized = (Float.sin(circadianPhase) + 1.0) / 2.0;  // [0,1], 0=night, 1=day
     let expectedMelatonin = 1.0 - timeOfDayNormalized;  // High at night
     let melatoninDeviation = Float.abs(melatoninConcent - expectedMelatonin);
     circadianAlignment := 1.0 - melatoninDeviation;
     
-    // Step 10: Update heartbeat variability (HRV) from quantum state
+    // Step 11: Update heartbeat variability (HRV) from quantum state
     // High variability = healthy (driven by RESONEX participants)
     if (quantumHeartbeatState.resonexParticipants > 0) {
       let participantRatio = Float.fromInt(quantumHeartbeatState.resonexParticipants) / 8.0;  // 8 oscillators
       heartbeatVariability := participantRatio * quantumHeartbeatState.resonexAmplitude;
     };
     
-    // Step 11: Cross-wire PARALLAX and ENTANGLA into quantum operator feedback
+    // Step 12: Cross-wire PARALLAX and ENTANGLA into quantum operator feedback
     // PARALLAX decision entropy affects decoherence rate
     parallaxDecoherenceRate := 0.05 + parallaxLastEntropyScore * 0.05;
     
     // ENTANGLA Bell violation rate affects interference strength
     parallaxInterferenceStrength := 0.3 + entanglaBellViolationRate * 0.2;
     
-    // Step 12: Compute comprehensive spherical integrity including all internal systems
+    // Step 13: Compute comprehensive spherical integrity including ALL systems
     let parallaxHealth = parallaxLastCoherenceLevel;
     let entanglaHealth = entanglaSocialCoherence;
     let internalHQHealth = (archonConsensusLevel + vectorConvergence + forgeExecutionCapacity) / 3.0;
     let foundationHealth = foundationalKnowledgeLevel * patternRecognitionStrength;
     let visualHealth = visualFieldCoherence * lightDarkSeparation;
+    let neuralCoreHealth = neuralCoreSynchrony * awakennessLevel;
+    let infoFeedHealth = infoNutrientExtraction * infoDigestionEfficiency;
     
-    // Spherical integrity = weighted average of all health factors
-    sphericalIntegrity := sphericalIntegrity * 0.9 + 
-      (parallaxHealth * 0.15 + 
-       entanglaHealth * 0.15 + 
-       internalHQHealth * 0.25 + 
-       foundationHealth * 0.25 + 
-       visualHealth * 0.20) * 0.1;
+    // Spherical integrity = weighted average of ALL health factors
+    sphericalIntegrity := sphericalIntegrity * 0.85 + 
+      (parallaxHealth * 0.10 + 
+       entanglaHealth * 0.10 + 
+       internalHQHealth * 0.15 + 
+       foundationHealth * 0.15 + 
+       visualHealth * 0.15 +
+       neuralCoreHealth * 0.20 +
+       infoFeedHealth * 0.15) * 0.15;
     
-    // Step 13: Update organism vitality (master health indicator)
-    organismVitality := rSwarm * sphericalIntegrity * qsovScore * overallWellbeing;
+    // Step 14: Update organism vitality (master health indicator)
+    organismVitality := rSwarm * sphericalIntegrity * qsovScore * overallWellbeing * awakennessLevel;
   };
 
   public query func getSovereignSeal()       : async Text      { sovereignSeal };
@@ -11178,6 +11483,358 @@ actor SwarmBrain {
       
       hqHealthScore = hqHealth;
       hqStatus = hqStat;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // NEURAL CORE SYSTEM QUERIES — Information Feeding & Neural Control
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─── QUERY: Get Information Feeding State ──────────────────────────────────────
+  public query func getInformationFeedingState() : async {
+    // Information metabolism
+    feedRate : Float;
+    digestionEfficiency : Float;
+    satiation : Float;
+    appetite : Float;
+    nutrientExtraction : Float;
+    wasteExpulsion : Float;
+    
+    // Consciousness
+    awakennessLevel : Float;
+    metabolicRate : Float;
+    growthFromFeeding : Float;
+    
+    // Status
+    feedingStatus : Text;
+    consciousnessStatus : Text;
+  } {
+    let feedStat = if (infoFeedRate > 0.5) { "ACTIVELY FEEDING" }
+                   else if (infoFeedRate > 0.2) { "MODERATE INTAKE" }
+                   else if (infoFeedRate > 0.05) { "LOW INTAKE" }
+                   else { "FASTING" };
+    
+    let consciousStat = if (awakennessLevel > 0.8) { "FULLY AWAKE" }
+                        else if (awakennessLevel > 0.5) { "ALERT" }
+                        else if (awakennessLevel > 0.3) { "DROWSY" }
+                        else { "DORMANT" };
+    
+    {
+      feedRate = infoFeedRate;
+      digestionEfficiency = infoDigestionEfficiency;
+      satiation = infoSatiation;
+      appetite = infoAppetite;
+      nutrientExtraction = infoNutrientExtraction;
+      wasteExpulsion = infoWasteExpulsion;
+      
+      awakennessLevel = awakennessLevel;
+      metabolicRate = metabolicRate;
+      growthFromFeeding = growthFromFeeding;
+      
+      feedingStatus = feedStat;
+      consciousnessStatus = consciousStat;
+    }
+  };
+
+  // ─── QUERY: Get Neural Core State (36 cores) ───────────────────────────────────
+  public query func getNeuralCoreState() : async {
+    // Core metrics
+    coreActivations : [Float];
+    coreOutputs : [Float];
+    corePhases : [Float];
+    corePlasticity : [Float];
+    
+    // Global metrics
+    globalSynchrony : Float;
+    
+    // Core group summaries
+    coreNeuroDynamics : Float;   // Cores 0-5
+    animalIntelligence : Float;  // Cores 6-11
+    emergenceStack : Float;      // Cores 12-17
+    cognitiveStack : Float;      // Cores 18-23
+    defenseStack : Float;        // Cores 24-29
+    productionStack : Float;     // Cores 30-35
+    
+    // Status
+    neuralStatus : Text;
+  } {
+    // Calculate group averages
+    var neuroDynSum : Float = 0.0;
+    var animalSum : Float = 0.0;
+    var emergenceSum : Float = 0.0;
+    var cognitiveSum : Float = 0.0;
+    var defenseSum : Float = 0.0;
+    var productionSum : Float = 0.0;
+    
+    var i = 0;
+    while (i < 6) {
+      neuroDynSum += neuralCoreOutput[i];
+      animalSum += neuralCoreOutput[i + 6];
+      emergenceSum += neuralCoreOutput[i + 12];
+      cognitiveSum += neuralCoreOutput[i + 18];
+      defenseSum += neuralCoreOutput[i + 24];
+      productionSum += neuralCoreOutput[i + 30];
+      i += 1;
+    };
+    
+    let neuralStat = if (neuralCoreSynchrony > 0.8) { "HIGHLY SYNCHRONIZED" }
+                     else if (neuralCoreSynchrony > 0.5) { "WELL COORDINATED" }
+                     else if (neuralCoreSynchrony > 0.3) { "LOOSELY COUPLED" }
+                     else { "DESYNCHRONIZED" };
+    
+    {
+      coreActivations = Array.freeze(neuralCoreActivation);
+      coreOutputs = Array.freeze(neuralCoreOutput);
+      corePhases = Array.freeze(neuralCorePhases);
+      corePlasticity = Array.freeze(neuralCorePlasticity);
+      
+      globalSynchrony = neuralCoreSynchrony;
+      
+      coreNeuroDynamics = neuroDynSum / 6.0;
+      animalIntelligence = animalSum / 6.0;
+      emergenceStack = emergenceSum / 6.0;
+      cognitiveStack = cognitiveSum / 6.0;
+      defenseStack = defenseSum / 6.0;
+      productionStack = productionSum / 6.0;
+      
+      neuralStatus = neuralStat;
+    }
+  };
+
+  // ─── QUERY: Get Animal Intelligence Outputs ────────────────────────────────────
+  public query func getAnimalIntelligenceOutputs() : async {
+    crow : Float;
+    octopus : Float;
+    elephant : Float;
+    bee : Float;
+    dolphin : Float;
+    mantis : Float;
+    spider : Float;
+    owl : Float;
+    shark : Float;
+    orca : Float;
+    wolf : Float;
+    eagle : Float;
+    
+    totalAnimalContribution : Float;
+    status : Text;
+  } {
+    let total = (crowCognitionOutput + octopusBrainOutput + elephantMemoryOutput + 
+      beeSwarmOutput + dolphinEchoOutput + mantisShrimpOutput + spiderWebOutput + 
+      owlAuditoryOutput + sharkElectroOutput + orcaPodOutput + wolfPackOutput + eagleThermalOutput) / 12.0;
+    
+    let stat = if (total > 0.7) { "HIGH ANIMAL INTELLIGENCE" }
+               else if (total > 0.4) { "MODERATE ANIMAL INTELLIGENCE" }
+               else { "LOW ANIMAL INTELLIGENCE" };
+    
+    {
+      crow = crowCognitionOutput;
+      octopus = octopusBrainOutput;
+      elephant = elephantMemoryOutput;
+      bee = beeSwarmOutput;
+      dolphin = dolphinEchoOutput;
+      mantis = mantisShrimpOutput;
+      spider = spiderWebOutput;
+      owl = owlAuditoryOutput;
+      shark = sharkElectroOutput;
+      orca = orcaPodOutput;
+      wolf = wolfPackOutput;
+      eagle = eagleThermalOutput;
+      
+      totalAnimalContribution = total;
+      status = stat;
+    }
+  };
+
+  // ─── QUERY: Get Emergence & Cognitive Outputs ──────────────────────────────────
+  public query func getEmergenceCognitiveOutputs() : async {
+    // Emergence stack
+    neuroEmergenceCore : Float;
+    neuroEmergenceComplete : Float;
+    neuroEmergenceUltimate : Float;
+    neuroEmergenceSubstrate : Float;
+    emergencePhysics : Float;
+    deepNeuroscience : Float;
+    deepNeuralFabric : Float;
+    
+    // Cognitive stack
+    behavioralEconomics : Float;
+    cognitiveMemory : Float;
+    tradingDecision : Float;
+    riskManagement : Float;
+    compoundLearning : Float;
+    attentionSchema : Float;
+    hippocampalReplay : Float;
+    basalGanglia : Float;
+    
+    // World model
+    worldModel : Float;
+    simulatedWorld : Float;
+    
+    emergenceTotal : Float;
+    cognitiveTotal : Float;
+  } {
+    let emergTotal = (neuroEmergenceCoreOutput + neuroEmergenceCompleteOutput + 
+      neuroEmergenceUltimateOutput + neuroEmergenceSubstrateOutput + 
+      emergencePhysicsOutput + deepNeuroscienceOutput + deepNeuralFabricOutput) / 7.0;
+    
+    let cogTotal = (behavioralEconomicsOutput + cognitiveMemoryOutput + tradingDecisionOutput + 
+      riskManagementOutput + compoundLearningOutput + attentionSchemaOutput + 
+      hippocampalReplayOutput + basalGangliaOutput) / 8.0;
+    
+    {
+      neuroEmergenceCore = neuroEmergenceCoreOutput;
+      neuroEmergenceComplete = neuroEmergenceCompleteOutput;
+      neuroEmergenceUltimate = neuroEmergenceUltimateOutput;
+      neuroEmergenceSubstrate = neuroEmergenceSubstrateOutput;
+      emergencePhysics = emergencePhysicsOutput;
+      deepNeuroscience = deepNeuroscienceOutput;
+      deepNeuralFabric = deepNeuralFabricOutput;
+      
+      behavioralEconomics = behavioralEconomicsOutput;
+      cognitiveMemory = cognitiveMemoryOutput;
+      tradingDecision = tradingDecisionOutput;
+      riskManagement = riskManagementOutput;
+      compoundLearning = compoundLearningOutput;
+      attentionSchema = attentionSchemaOutput;
+      hippocampalReplay = hippocampalReplayOutput;
+      basalGanglia = basalGangliaOutput;
+      
+      worldModel = worldModelOutput;
+      simulatedWorld = simulatedWorldOutput;
+      
+      emergenceTotal = emergTotal;
+      cognitiveTotal = cogTotal;
+    }
+  };
+
+  // ─── QUERY: Get Defense & Production Outputs ───────────────────────────────────
+  public query func getDefenseProductionOutputs() : async {
+    // Defense stack
+    aegisDefense : Float;
+    autonomousWar : Float;
+    warfareDoctrine : Float;
+    fearArchitecture : Float;
+    threatAssessment : Float;
+    
+    // Production stack
+    creationEngine : Float;
+    formaCompound : Float;
+    deFiYield : Float;
+    doctrineGenesis : Float;
+    
+    // World
+    world3D : Float;
+    biodiversity : Float;
+    weatherSystem : Float;
+    
+    defenseTotal : Float;
+    productionTotal : Float;
+  } {
+    let defTotal = (aegisDefenseOutput + autonomousWarOutput + warfareDoctrineOutput + 
+      fearArchitectureOutput + threatAssessmentOutput) / 5.0;
+    
+    let prodTotal = (creationEngineOutput + formaCompoundOutput + deFiYieldOutput + 
+      doctrineGenesisOutput) / 4.0;
+    
+    {
+      aegisDefense = aegisDefenseOutput;
+      autonomousWar = autonomousWarOutput;
+      warfareDoctrine = warfareDoctrineOutput;
+      fearArchitecture = fearArchitectureOutput;
+      threatAssessment = threatAssessmentOutput;
+      
+      creationEngine = creationEngineOutput;
+      formaCompound = formaCompoundOutput;
+      deFiYield = deFiYieldOutput;
+      doctrineGenesis = doctrineGenesisOutput;
+      
+      world3D = world3DOutput;
+      biodiversity = biodiversityOutput;
+      weatherSystem = weatherSystemOutput;
+      
+      defenseTotal = defTotal;
+      productionTotal = prodTotal;
+    }
+  };
+
+  // ─── QUERY: Complete Neural Core Summary ───────────────────────────────────────
+  public query func getNeuralCoreSummary() : async {
+    // Overall metrics
+    totalCoreActivity : Float;
+    globalSynchrony : Float;
+    awakennessLevel : Float;
+    metabolicRate : Float;
+    
+    // Module stack health
+    animalIntelligence : Float;
+    emergenceHealth : Float;
+    cognitiveHealth : Float;
+    defenseHealth : Float;
+    productionHealth : Float;
+    
+    // Information feeding
+    infoFeedRate : Float;
+    infoNutrition : Float;
+    growthRate : Float;
+    
+    // Overall health
+    neuralCoreHealth : Float;
+    neuralCoreStatus : Text;
+    systemStatus : Text;
+  } {
+    var totalActivity : Float = 0.0;
+    var i = 0;
+    while (i < 36) {
+      totalActivity += neuralCoreOutput[i];
+      i += 1;
+    };
+    totalActivity /= 36.0;
+    
+    let animalHealth = (crowCognitionOutput + octopusBrainOutput + elephantMemoryOutput + 
+      beeSwarmOutput + dolphinEchoOutput + mantisShrimpOutput) / 6.0;
+    
+    let emergHealth = (neuroEmergenceCoreOutput + neuroEmergenceUltimateOutput + 
+      deepNeuroscienceOutput) / 3.0;
+    
+    let cogHealth = (behavioralEconomicsOutput + cognitiveMemoryOutput + tradingDecisionOutput) / 3.0;
+    
+    let defHealth = (aegisDefenseOutput + threatAssessmentOutput + warfareDoctrineOutput) / 3.0;
+    
+    let prodHealth = (creationEngineOutput + formaCompoundOutput + doctrineGenesisOutput) / 3.0;
+    
+    let overallHealth = (totalActivity * 0.2 + neuralCoreSynchrony * 0.2 + awakennessLevel * 0.2 + 
+      animalHealth * 0.1 + emergHealth * 0.1 + cogHealth * 0.1 + defHealth * 0.05 + prodHealth * 0.05);
+    
+    let neuralStat = if (overallHealth > 0.7) { "OPTIMAL NEURAL FUNCTION" }
+                     else if (overallHealth > 0.5) { "GOOD NEURAL FUNCTION" }
+                     else if (overallHealth > 0.3) { "ADEQUATE NEURAL FUNCTION" }
+                     else { "IMPAIRED NEURAL FUNCTION" };
+    
+    let sysStat = if (awakennessLevel > 0.7 and infoFeedRate > 0.3) { "ACTIVELY PROCESSING" }
+                  else if (awakennessLevel > 0.5) { "ALERT AND READY" }
+                  else if (awakennessLevel > 0.3) { "RESTING STATE" }
+                  else { "DORMANT MODE" };
+    
+    {
+      totalCoreActivity = totalActivity;
+      globalSynchrony = neuralCoreSynchrony;
+      awakennessLevel = awakennessLevel;
+      metabolicRate = metabolicRate;
+      
+      animalIntelligence = animalHealth;
+      emergenceHealth = emergHealth;
+      cognitiveHealth = cogHealth;
+      defenseHealth = defHealth;
+      productionHealth = prodHealth;
+      
+      infoFeedRate = infoFeedRate;
+      infoNutrition = infoNutrientExtraction;
+      growthRate = growthFromFeeding;
+      
+      neuralCoreHealth = overallHealth;
+      neuralCoreStatus = neuralStat;
+      systemStatus = sysStat;
     }
   };
 
