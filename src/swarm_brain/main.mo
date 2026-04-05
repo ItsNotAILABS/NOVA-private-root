@@ -2467,6 +2467,324 @@ actor SwarmBrain {
       orchestrationActive := true;
     };
     
+    // ═══════════════════════════════════════════════════════════════════════════
+    // EXTENDED ORCHESTRATION — LAYERS 10-20: REMAINING 200+ MODULES
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // ─── LAYER 10: BRAIN REGIONS (every beat) ───────────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Prefrontal cortex - executive function
+      ignore PrefrontalCortexEngine.process(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Basal ganglia - action selection
+      ignore BasalGangliaEngine.select(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Cerebellum - timing and coordination
+      ignore CerebellarTimingEngine.coordinate(rSwarm, 0.05);
+      modulesCalledThisBeat += 1;
+      
+      // Thalamic gateway - sensory relay
+      ignore ThalamicGatewayEngine.relay(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Interoception - internal state sensing
+      ignore InteroceptionEngine.sense(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Attention schema - consciousness model
+      ignore AttentionSchemaEngine.focus(rSwarm, n);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 11: NEUROPLASTICITY & LEARNING (every beat) ──────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Neuroplasticity engine - synaptic modification
+      ignore NeuroplasticityEngine.modify(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Compound learning - multi-scale adaptation
+      ignore CompoundLearning.adapt(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // World model system - internal simulation
+      ignore WorldModelSystem.simulate(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Simulated world - counterfactual reasoning
+      ignore SimulatedWorld.reason(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Temporal hologram - time representation
+      ignore TemporalHologram.represent(currentBeat, rSwarm);
+      modulesCalledThisBeat += 1;
+      
+      // Membrane memory - cellular storage
+      ignore MembraneMemory.store(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 12: ORGANISM CORES (every beat) ──────────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Complete organism workflows
+      ignore CompleteOrganismWorkflows.execute(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Production super organism core
+      ignore ProductionSuperOrganismCore.produce(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Unified super organism architecture
+      ignore UnifiedSuperOrganismArchitecture.unify(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Unified brain orchestrator
+      ignore UnifiedBrainOrchestrator.orchestrate(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Unified hierarchical organism
+      ignore UnifiedHierarchicalOrganism.hierarchy(rSwarm, n);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 13: ADVISORS (every 5 beats) ─────────────────────────────────────
+    if (orchestrationActive and currentBeat % 5 == 0) {
+      // Cognitive science advisor
+      ignore CognitiveScienceAdvisor.advise(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Defense industry advisor
+      ignore DefenseIndustryAdvisor.consult(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 14: ADDITIONAL ANIMAL COGNITION (every 3 beats) ──────────────────
+    if (orchestrationActive and currentBeat % 3 == 0) {
+      // Dolphin echolocation
+      ignore DolphinEcholocation.echolocate(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Mantis shrimp vision
+      ignore MantisShrimp.perceive(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Spider web sensing
+      ignore SpiderWeb.sense(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Owl auditory processing
+      ignore OwlAuditory.process(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Wolf pack protocol
+      ignore WolfPackProtocol.coordinate(rSwarm, n);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 15: MEDINA EXTENDED ARCHITECTURE (every beat) ────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Medina engine
+      ignore MedinaEngine.process(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Medina laws
+      ignore MedinaLaws.enforce(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Spherical law
+      ignore SphericalLaw.apply(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Medina animal traits
+      ignore MedinaAnimalTraits.express(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Medina code genesis engine
+      ignore MedinaCodeGenesisEngine.generate(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Medina expanded mathematics
+      ignore MedinaExpandedMathematics.compute(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Medina quantum covenant chain
+      ignore MedinaQuantumCovenantChain.chain(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 16: DEFENSE EXTENDED (every beat) ────────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // VAEL complete defense
+      ignore VAELCompleteDefense.defend(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // VAEL exterior attack
+      ignore VAELExteriorAttack.attack(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // VELA tier system
+      ignore VELATierSystem.evaluate(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // VAEL defense family
+      ignore VaelDefenseFamily.protect(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Vetus threat system
+      ignore VetusThreatSystem.assess(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Warfare doctrine
+      ignore WarfareDoctrine.strategize(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Medina defense system
+      ignore MedinaDefenseSystem.guard(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 17: SOVEREIGNTY & LAWS (every beat) ──────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Sovereignty laws 60 - all 60 laws
+      let lawResults = SovereigntyLaws60.evaluateAllLaws(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Mirror law
+      ignore MirrorLaw.reflect(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Universal law drift verifier
+      ignore UniversalLawDriftVerifier.verify(rSwarm, jDrift, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Governance laws
+      ignore GovernanceLaws.govern(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Medina biblical laws
+      ignore MedinaBiblicalLaws.apply(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 18: QUANTUM EXTENDED (every beat) ────────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Quantum ops
+      ignore QuantumOps.operate(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Quantum organism fabric
+      ignore QuantumOrganismFabric.weave(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Quantum covenant encryption
+      ignore QuantumCovenantEncryption.encrypt(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Quantum covenant encryption v2
+      ignore QuantumCovenantEncryptionV2.encrypt(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Spherical helix fabric
+      ignore SphericalHelixFabric.spiral(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Compounding organism numbers
+      ignore CompoundingOrganismNumbers.compound(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 19: SUCCESSION & GODS (every 10 beats) ───────────────────────────
+    if (orchestrationActive and currentBeat % 10 == 0) {
+      // Succession engine
+      ignore SuccessionEngine.succeed(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Medina gods engine
+      ignore MedinaGodsEngine.invoke(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 20: STABILITY & ENTROPY (every beat) ─────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Lyapunov stability
+      ignore LyapunovStability.stabilize(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Entropy engine
+      ignore EntropyEngine.manage(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Emergence core
+      ignore EmergenceCore.emerge(rSwarm, jDrift, n);
+      modulesCalledThisBeat += 1;
+      
+      // Principal lock
+      ignore PrincipalLock.lock(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Swarm emergence patterns
+      ignore SwarmEmergencePatterns.pattern(rSwarm, n);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 21: WORLD & TERRITORY (every beat) ───────────────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // World 3D
+      ignore World3D.render(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Territory
+      ignore Territory.claim(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Weather system
+      ignore WeatherSystem.simulate(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 22: ADDITIONAL ORGANISM MODULES (every beat) ─────────────────────
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      // Sovereign organisms prime
+      ignore SovereignOrganismsPrime.prime(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Super scale organism
+      ignore SuperScaleOrganism.scale(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Thousand brains consensus
+      ignore ThousandBrainsConsensus.consensus(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
+    // ─── LAYER 23: ADDITIONAL MATH ENGINES (every 5 beats) ──────────────────────
+    if (orchestrationActive and currentBeat % 5 == 0) {
+      // Spherical web math engine
+      ignore SphericalWebMathEngine.web(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Stability budget engine
+      ignore StabilityBudgetEngine.budget(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Tri-modal swarm kernel
+      ignore TriModalSwarmKernel.kernel(rSwarm, n);
+      modulesCalledThisBeat += 1;
+      
+      // Internal AI labs
+      ignore InternalAILabs.research(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+      
+      // Multi-responsibility engine
+      ignore MultiResponsibilityEngine.distribute(rSwarm, currentBeat);
+      modulesCalledThisBeat += 1;
+      
+      // Neuro emergence substrate
+      ignore NeuroEmergenceSubstrate.substrate(rSwarm, jDrift);
+      modulesCalledThisBeat += 1;
+    };
+    
     // Track total module calls
     totalModuleCallsAllTime += modulesCalledThisBeat;
 
