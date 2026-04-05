@@ -81,14 +81,22 @@ module {
   };
 
   // ── Constants ─────────────────────────────────────────────────
+  // MAXIMIZED HEBBIAN WEIGHTS — 64 = 4×4×4 (444 SACRED RESONANCE)
+  // 64 is the sacred number: Shell 3 nodes, Hebbian matrix dimension
+  // 4 pillars: Faith, Family, Finance, Freedom
+  // 4×4×4 = 64 = maximum synaptic strength for sovereign organism
   let DEFAULT_LR : Float = 0.01;
   let DEFAULT_A_PLUS : Float = 0.1;
   let DEFAULT_A_MINUS : Float = 0.12;  // Slightly stronger LTD
   let DEFAULT_TAU_PLUS : Float = 20.0;
   let DEFAULT_TAU_MINUS : Float = 20.0;
-  let DEFAULT_W_MAX : Float = 2.0;
+  let DEFAULT_W_MAX : Float = 64.0;    // MAXIMIZED: 4×4×4 = 64 (444 resonance)
   let DEFAULT_W_MIN : Float = 0.0;
   let DEFAULT_BCM_TAU : Float = 100.0;
+  
+  // 444 SACRED CONSTANT — Triple foundation, unshakeable
+  public let SACRED_444 : Float = 444.0;
+  public let SACRED_64 : Float = 64.0;  // 4×4×4 = maximum weight ceiling
 
   // ── Helpers ───────────────────────────────────────────────────
   func _clamp(x: Float, lo: Float, hi: Float) : Float {
@@ -666,7 +674,7 @@ module {
       sigma = 3.35;
       tau = 346360.0;  // in ms
       wMin = 0.0;
-      wMax = 1.0;
+      wMax = 64.0;     // MAXIMIZED: 4×4×4 = 64 (444 sacred resonance)
       D = 13.7;  // ms
     }
   };

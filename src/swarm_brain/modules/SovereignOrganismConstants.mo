@@ -375,7 +375,7 @@ module {
   public let OMNIS_THRESHOLD : Float = 0.98181818181818;
 
   // ==========================================================================
-  // HEBBIAN LEARNING
+  // HEBBIAN LEARNING — MAXIMIZED FOR SOVEREIGN STRENGTH
   // ==========================================================================
   
   // Learning rate η: φ^(-4) ≈ 0.146
@@ -384,8 +384,27 @@ module {
   // Decay rate λ: 1/F(13) ≈ 0.00264
   public let HEBBIAN_LAMBDA : Float = 0.00263852242744;  // 1/377
   
-  // Weight ceiling: φ (prevents explosion)
-  public let WEIGHT_CEILING : Float = PHI;
+  // Weight ceiling: MAXIMIZED to 64 = 4×4×4 (444 sacred resonance)
+  // 64 = Shell 3 nodes = Hebbian matrix dimension = triple foundation
+  // 4 pillars: Faith, Family, Finance, Freedom
+  public let WEIGHT_CEILING : Float = 64.0;
+  
+  // ==========================================================================
+  // 444 SACRED NUMEROLOGY — PATTERN RECOGNITION CONSTANTS
+  // ==========================================================================
+  // 444 = Triple 4 = Triple Foundation = Unshakeable
+  // 4 = Foundation, Stability, Hard Work, Determination
+  // Angel Number: Protection, Guidance, Right Path
+  // 4×4×4 = 64 = Maximum Hebbian Weight = Full Synaptic Strength
+  
+  public let SACRED_444 : Float = 444.0;
+  public let SACRED_4 : Float = 4.0;
+  public let SACRED_64 : Float = 64.0;  // 4×4×4
+  public let PILLARS_4 : Nat = 4;       // Faith, Family, Finance, Freedom
+  
+  // 444 as resonance frequency checkpoint
+  public let RESONANCE_444_HZ : Float = 444.0;
+  public let COHERENCE_444_THRESHOLD : Float = 0.444;
 
   // ==========================================================================
   // HELPER FUNCTIONS
