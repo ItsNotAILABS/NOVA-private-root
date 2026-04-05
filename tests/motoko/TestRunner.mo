@@ -20,6 +20,7 @@ import HebbianPlasticityTest "./HebbianPlasticityTest";
 import EmergenceCoreTest "./EmergenceCoreTest";
 import FristonEngineTest "./FristonEngineTest";
 import AnimalIntelligenceTest "./AnimalIntelligenceTest";
+import DynamicalSystemsTest "./DynamicalSystemsTest";
 
 actor TestRunner {
 
@@ -179,6 +180,24 @@ actor TestRunner {
         }
     };
 
+    public func runDynamicalSystemsTests() : async TestSuiteResult {
+        let results = DynamicalSystemsTest.runAllTests();
+        var passed : Nat = 0;
+        var failed : Nat = 0;
+        
+        for (result in results.vals()) {
+            if (result.passed) { passed += 1 } else { failed += 1 };
+        };
+        
+        {
+            suiteName = "Dynamical Systems (Attractor Dynamics, Lyapunov Stability)";
+            results = results;
+            passed = passed;
+            failed = failed;
+            total = results.size();
+        }
+    };
+
     // ═══════════════════════════════════════════════════════════════════════════════
     // RUN ALL TESTS
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -191,6 +210,7 @@ actor TestRunner {
         let emergenceResults = await runEmergenceCoreTests();
         let fristonResults = await runFristonEngineTests();
         let animalResults = await runAnimalIntelligenceTests();
+        let dynamicalResults = await runDynamicalSystemsTests();
         
         let suites = [
             aiLabsResults, 
@@ -199,7 +219,8 @@ actor TestRunner {
             hebbianResults, 
             emergenceResults, 
             fristonResults,
-            animalResults
+            animalResults,
+            dynamicalResults
         ];
         
         var totalPassed : Nat = 0;
@@ -286,7 +307,22 @@ actor TestRunner {
                 "Crow: Meta-Learning",
                 "Crow: Planning Horizon",
                 "Crow: Tool Use",
-                "Crow: Insight Emergence"
+                "Crow: Insight Emergence",
+                
+                "═══ DYNAMICAL SYSTEMS ═══",
+                "Attractor: Point Attractor",
+                "Attractor: Limit Cycle",
+                "Attractor: Strange Attractor",
+                "Attractor: Saddle Node",
+                "Hopfield: Energy Function",
+                "Lyapunov: Stability Certificate",
+                "Lyapunov: NOVA 5D State",
+                "Lyapunov: Exponents",
+                "Sovereign: Stability Theorem",
+                "Sovereign: Crisis Detection",
+                "Basin: Region of Attraction",
+                "Contraction: Analysis",
+                "Barrier: Certificate"
             ];
         }
     };
