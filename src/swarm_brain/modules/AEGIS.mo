@@ -44,6 +44,7 @@
 
 import Float "mo:base/Float";
 import Nat   "mo:base/Nat";
+import Nat32 "mo:base/Nat32";
 import Array "mo:base/Array";
 
 module {
@@ -157,14 +158,21 @@ module {
   };
 
   // ── FNV-1a hash ───────────────────────────────────────────────
+  // Helper to do XOR using Nat32 bitwise ops
+  func nat32Xor(a: Nat, b: Nat) : Nat {
+    let a32 = Nat32.fromNat(a % 4294967296);
+    let b32 = Nat32.fromNat(b % 4294967296);
+    Nat32.toNat(Nat32.bitxor(a32, b32))
+  };
+
   func fnv1aChain(a: Nat, b: Nat) : Nat {
     let prime : Nat = 16777619;
     let modulo : Nat = 4294967296;
     var h = a;
-    h := Nat.rem(Nat.mul(Nat.bitxor(h, Nat.rem(b, 256)), prime), modulo);
-    h := Nat.rem(Nat.mul(Nat.bitxor(h, Nat.rem(Nat.div(b, 256), 256)), prime), modulo);
-    h := Nat.rem(Nat.mul(Nat.bitxor(h, Nat.rem(Nat.div(b, 65536), 256)), prime), modulo);
-    h := Nat.rem(Nat.mul(Nat.bitxor(h, Nat.rem(Nat.div(b, 16777216), 256)), prime), modulo);
+    h := Nat.rem(Nat.mul(nat32Xor(h, Nat.rem(b, 256)), prime), modulo);
+    h := Nat.rem(Nat.mul(nat32Xor(h, Nat.rem(Nat.div(b, 256), 256)), prime), modulo);
+    h := Nat.rem(Nat.mul(nat32Xor(h, Nat.rem(Nat.div(b, 65536), 256)), prime), modulo);
+    h := Nat.rem(Nat.mul(nat32Xor(h, Nat.rem(Nat.div(b, 16777216), 256)), prime), modulo);
     h
   };
 
