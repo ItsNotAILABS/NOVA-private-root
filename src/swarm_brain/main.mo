@@ -3219,7 +3219,7 @@ actor SwarmBrain {
       // Field 6: domain bitmask (threat tier encodes domain)
       let epDomain = aegisState.threat.currentTier;
       episodicRing[epBase + 6] := Float.fromInt(epDomain);
-      // Field 7: event hash (fnv1a of beat + coherence quantized)
+      // Field 7: event hash — FNV-1a prime (16777619) × beat + coherence quant, mod 2^32 (4294967296)
       let epHashRaw = currentBeat * 16777619 + Nat32.toNat(Nat32.fromIntWrap(Float.toInt(rSwarm * 1000.0)));
       episodicRing[epBase + 7] := Float.fromInt(epHashRaw % 4294967296);
       // Field 8: salience score (kf×0.30 + arousal×0.25 + fear×0.25 + DA×0.20)
@@ -3283,6 +3283,10 @@ actor SwarmBrain {
       if (velaRingCount >= 10) {
         let nSamples = velaRingCount;
         let nF = Float.fromInt(nSamples);
+        // Ring start index: chronological read order
+        let ringStart = if (velaRingCount >= VELA_RING_SIZE) {
+          velaRingIdx % VELA_RING_SIZE
+        } else { 0 };
         var sumX : Float = 0.0;
         var sumY : Float = 0.0;
         var sumXX : Float = 0.0;
@@ -3290,10 +3294,6 @@ actor SwarmBrain {
         var vi = 0;
         while (vi < nSamples) {
           let xVal = Float.fromInt(vi);
-          // Read from ring in chronological order
-          let ringStart = if (velaRingCount >= VELA_RING_SIZE) {
-            velaRingIdx % VELA_RING_SIZE
-          } else { 0 };
           let yVal = velaRing[(ringStart + vi) % VELA_RING_SIZE];
           sumX += xVal;
           sumY += yVal;
@@ -3319,10 +3319,7 @@ actor SwarmBrain {
           var ssRes : Float = 0.0;
           vi := 0;
           while (vi < nSamples) {
-            let ringStart2 = if (velaRingCount >= VELA_RING_SIZE) {
-              velaRingIdx % VELA_RING_SIZE
-            } else { 0 };
-            let yActual = velaRing[(ringStart2 + vi) % VELA_RING_SIZE];
+            let yActual = velaRing[(ringStart + vi) % VELA_RING_SIZE];
             let yPred = intercept + slope * Float.fromInt(vi);
             ssTot += (yActual - meanY) * (yActual - meanY);
             ssRes += (yActual - yPred) * (yActual - yPred);
@@ -5745,8 +5742,9 @@ actor SwarmBrain {
     if (currentBeat > 0 and (currentBeat - shemaLastVerifyBeat) >= 144) {
       shemaLastVerifyBeat := currentBeat;
       let liveHash = Nat32.toNat(out.doctrineFingerprint);
+      let beatsSinceVerify = 144;  // Always 144 since we check exactly on cycle
       let (verified, severity) = AEGIS.shemaVerify(
-        liveHash, shemaGenesisHash, currentBeat - shemaLastVerifyBeat + 144
+        liveHash, shemaGenesisHash, beatsSinceVerify
       );
       shemaVerified := verified;
       shemaMismatchSeverity := severity;
