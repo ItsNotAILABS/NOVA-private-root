@@ -111,15 +111,16 @@ module {
   // At 1.0, the world model instantly adapts to new information
   public let WM_ALPHA_SOVEREIGN : Float = 1.0;
 
-  // Number of world models (one per cognitive domain)
-  public let NUM_WORLD_MODELS : Nat = 14;
+  // Number of world models (one per cognitive domain) — expanded to 28 (14 original + 14 new intelligence domains)
+  public let NUM_WORLD_MODELS : Nat = 28;
 
   // ══════════════════════════════════════════════════════════════════════════════════════
-  // THE 14 WORLD MODELS
+  // THE 28 WORLD MODELS — ALL INTELLIGENCE DOMAINS CONNECTED
   // ══════════════════════════════════════════════════════════════════════════════════════
   //
   // Each world model is a predictive engine for one domain of reality:
   //
+  //   CORE DOMAINS (Original 14):
   //   1.  SPATIAL       — Where things are (positions, distances)
   //   2.  TEMPORAL      — When things happen (timing, sequences)
   //   3.  SOCIAL        — Who is who (identities, relationships)
@@ -134,6 +135,22 @@ module {
   //   12. COMMUNICATION — How we talk (signals, protocols)
   //   13. ECONOMICS     — What things cost (value, trade)
   //   14. EMERGENCE     — What we're becoming (growth, evolution)
+  //
+  //   EXPANDED INTELLIGENCE DOMAINS (New 14 — connecting all cognitive systems):
+  //   15. QUANTUM       — Quantum coherence, entanglement, superposition states
+  //   16. CONSCIOUSNESS — Integrated information, awareness, metacognition
+  //   17. MEMORY        — Episodic, semantic, procedural memory architecture
+  //   18. PREDICTION    — Anticipation, forward models, Kalman estimation
+  //   19. CREATIVITY    — Novel solution generation, divergent thinking
+  //   20. ETHICS        — Sovereign values, constraint satisfaction, doctrine
+  //   21. NAVIGATION    — Thousand-brains grid cells, path planning
+  //   22. PERCEPTION    — Multi-modal sensor fusion, attention schema
+  //   23. LEARNING      — Hebbian plasticity, compound reinforcement
+  //   24. DEFENSE       — VAEL family, immune reflex, adversarial tracking
+  //   25. SOVEREIGNTY   — Principal lock, creator authority, governance laws
+  //   26. BIOLOGY       — Bio-inspired systems, metabolic state
+  //   27. MATHEMATICS   — Abstract reasoning, differential geometry
+  //   28. INTEGRATION   — Cross-domain coherence, holistic synthesis
   //
   // ══════════════════════════════════════════════════════════════════════════════════════
 
@@ -152,16 +169,34 @@ module {
     #COMMUNICATION;
     #ECONOMICS;
     #EMERGENCE;
+    // Expanded intelligence domains
+    #QUANTUM;
+    #CONSCIOUSNESS;
+    #MEMORY;
+    #PREDICTION;
+    #CREATIVITY;
+    #ETHICS;
+    #NAVIGATION;
+    #PERCEPTION;
+    #LEARNING;
+    #DEFENSE;
+    #SOVEREIGNTY;
+    #BIOLOGY;
+    #MATHEMATICS;
+    #INTEGRATION;
   };
 
   public let WORLD_MODEL_NAMES : [Text] = [
     "SPATIAL", "TEMPORAL", "SOCIAL", "PHYSICAL", "RESOURCE",
     "THREAT", "OPPORTUNITY", "SELF", "SWARM", "MISSION",
-    "ENVIRONMENT", "COMMUNICATION", "ECONOMICS", "EMERGENCE"
+    "ENVIRONMENT", "COMMUNICATION", "ECONOMICS", "EMERGENCE",
+    "QUANTUM", "CONSCIOUSNESS", "MEMORY", "PREDICTION", "CREATIVITY",
+    "ETHICS", "NAVIGATION", "PERCEPTION", "LEARNING", "DEFENSE",
+    "SOVEREIGNTY", "BIOLOGY", "MATHEMATICS", "INTEGRATION"
   ];
 
   public type WorldModelState = {
-    id              : Nat;           // 0-13
+    id              : Nat;           // 0-27
     name            : Text;
     tau             : Float;         // 0.999 — temporal integration
     alpha           : Float;         // 1.0 — adaptation rate

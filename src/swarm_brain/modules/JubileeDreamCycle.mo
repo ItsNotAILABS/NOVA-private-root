@@ -55,8 +55,8 @@ module {
   // L-121 Silver Conductance: 1.0 (unity, full pass-through)
   public let SILVER_CONDUCTANCE : Float = SOC.SILVER_CONDUCTANCE;  // 1.0
   
-  // World model count: 14 (2 × 7, prime structure)
-  public let WORLD_MODEL_COUNT : Nat = SOC.WORLD_MODEL_COUNT;  // 14
+  // World model count: 28 (4 × 7, all intelligence domains connected)
+  public let WORLD_MODEL_COUNT : Nat = SOC.WORLD_MODEL_COUNT;  // 28
   
   // ==========================================================================
   // JACOB'S LADDER — Fibonacci-based thresholds, φ-power multipliers

@@ -533,9 +533,9 @@ module AtlasTerritoryGridFull {
         };
         
         {
-            cells = Array.tabulate<AtlasCell>(4096, func(_: Nat) : AtlasCell { emptyCell });
-            gridWidth = 64;
-            gridHeight = 64;
+            cells = Array.tabulate<AtlasCell>(16384, func(_: Nat) : AtlasCell { emptyCell });
+            gridWidth = 128;
+            gridHeight = 128;
             evaporationRate = 0.98;
             depositRate = 0.1;
             diffusionRate = 0.05;
@@ -543,7 +543,7 @@ module AtlasTerritoryGridFull {
             totalPheromone = 0.0;
             totalSovereignty = 0.0;
             dominantFaction = 0;
-            factionCounts = [4096, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            factionCounts = [16384, 0, 0, 0, 0, 0, 0, 0, 0, 0];
             shell9SovereigntyIndex = 0.0;
             beatCount = 0;
             lastUpdateBeat = 0;

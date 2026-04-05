@@ -62,8 +62,8 @@ module AtlasTerritoryGrid {
   public let PHI           : Float = 1.6180339887498948482;
   public let PI            : Float = 3.1415926535897932385;
   
-  public let GRID_SIZE     : Nat = 64;
-  public let GRID_CELLS    : Nat = 4096;  // 64 × 64
+  public let GRID_SIZE     : Nat = 128;
+  public let GRID_CELLS    : Nat = 16384;  // 128 × 128 (expanded 4× area: 64×64 → 128×128)
   
   // Pheromone parameters
   public let EVAPORATION_RATE : Float = 0.02;   // 2% decay per beat

@@ -52,7 +52,7 @@ module {
   // ─── CONSTANTS ───────────────────────────────────────────────────────────────
 
   let SOVEREIGN_FLOOR : Float = 1.0;
-  let MAX_DRONES      : Nat   = 50;
+  let MAX_DRONES      : Nat   = 1000;  // Expanded 20×: 50 → 1000
   let QUAD_CHANNELS   : Nat   = 4;
   let Q_STATES        : Nat   = 4;
   let REC_CAP         : Nat   = 500;

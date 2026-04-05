@@ -398,7 +398,7 @@ export class LivingWorld {
   private beat: number = 0;
   private physicsSubsteps: number = 4;
   
-  constructor(size: Vector3 = { x: 1000, y: 200, z: 1000 }) {
+  constructor(size: Vector3 = { x: 20000, y: 4000, z: 20000 }) {
     this.worldSize = size;
     
     // Initialize terrain
@@ -411,7 +411,7 @@ export class LivingWorld {
     this.time = this.createInitialTime();
     
     // Initialize spatial index
-    this.objectSpatialIndex = new SpatialIndex(size, 50);  // 50m cells
+    this.objectSpatialIndex = new SpatialIndex(size, 1000);  // 1000m cells (20× expansion)
   }
   
   // ═══════════════════════════════════════════════════════════════════════════
@@ -419,7 +419,7 @@ export class LivingWorld {
   // ═══════════════════════════════════════════════════════════════════════════
   
   private generateTerrain(size: Vector3): TerrainMap {
-    const cellSize = 10;  // 10 meters per cell
+    const cellSize = 100;  // 100 meters per cell (20× expansion: 10m → 100m)
     const width = Math.ceil(size.x / cellSize);
     const height = Math.ceil(size.z / cellSize);
     
