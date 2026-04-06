@@ -1035,6 +1035,161 @@ actor SwarmBrain {
   stable var droneCreativeInsight : [var Float] = Array.init<Float>(250, 0.0); // Eureka moments
   stable var droneLearningRate : [var Float] = Array.init<Float>(250, 0.5);    // Plasticity per drone
   
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE STATE VARIABLES — Additional variables needed by the 23 vital system tick functions
+  //  These complement the 300+ variables already declared above.
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // ─── HPA AXIS HORMONES ────────────────────────────────────────────────────────
+  stable var crh : Float = 0.3;                             // Corticotropin-releasing hormone
+  stable var acth : Float = 0.3;                            // Adrenocorticotropic hormone
+  stable var vasopressin : Float = 0.4;                     // Arginine vasopressin (water/territory)
+  stable var oxytocin : Float = 0.3;                        // Oxytocin (bonding, trust, anti-stress)
+  stable var testosterone : Float = 0.5;                    // Gonadal axis
+  stable var estrogen : Float = 0.5;                        // Gonadal axis
+  stable var growthHormone : Float = 0.4;                   // GH (pulsatile, peaks during sleep)
+  stable var igf1 : Float = 0.4;                            // Insulin-like growth factor 1
+  stable var epinephrine : Float = 0.2;                     // Adrenal medulla output
+  stable var endorphinLevel : Float = 0.3;                  // Beta-endorphin (pain/pleasure)
+
+  // ─── AUTONOMIC EXTENDED ───────────────────────────────────────────────────────
+  stable var polyvagalVentral : Float = 0.5;                // Ventral vagal (social engagement)
+  stable var polyvagalSympathetic : Float = 0.3;            // Sympathetic (fight/flight)
+  stable var polyvagalDorsal : Float = 0.2;                 // Dorsal vagal (freeze/collapse)
+  stable var autonomicFlexibility : Float = 0.5;            // Autonomic resilience metric
+  stable var adrenalOutput : Float = 0.2;                   // Adrenal medulla catecholamine release
+  stable var pupilDilation : Float = 0.5;                   // Pupillary response
+  stable var piloerection : Float = 0.0;                    // Goosebumps (fear/cold/awe)
+  stable var electrodermalActivity : Float = 0.2;           // Skin conductance (sweat glands)
+  stable var vagalEfferentChannels : [var Float] = Array.init<Float>(8, 0.5);  // 8 vagal efferent channels
+  stable var vagalAfferentChannels : [var Float] = Array.init<Float>(8, 0.5);  // 8 vagal afferent channels
+
+  // ─── IMMUNE EXTENDED ──────────────────────────────────────────────────────────
+  stable var microgliaActivation : Float = 0.2;             // M1(inflam)/M2(repair) balance
+  stable var bbbIntegrity : Float = 0.8;                    // Blood-brain barrier integrity
+  stable var sicknessIndex : Float = 0.0;                   // Sickness behavior magnitude
+  stable var immuneSuppression : Float = 0.0;               // Cortisol-induced immune suppression
+  stable var nkCellActivity : Float = 0.5;                  // Natural killer cell activity
+  stable var tregLevel : Float = 0.5;                       // Regulatory T-cell level
+  stable var allostaticLoad : Float = 0.2;                  // Cumulative stress damage
+
+  // ─── GUT PEPTIDES ─────────────────────────────────────────────────────────────
+  stable var gutGLP1 : Float = 0.5;                         // Glucagon-like peptide 1 (satiety)
+  stable var gutCCK : Float = 0.5;                          // Cholecystokinin (satiety)
+  stable var gutPYY : Float = 0.4;                          // Peptide YY (satiety)
+  stable var gutGhrelin : Float = 0.5;                      // Ghrelin (hunger signal)
+
+  // ─── PAIN PROCESSING ──────────────────────────────────────────────────────────
+  stable var painIntensity : Float = 0.1;                   // Integrated pain magnitude
+  stable var painGateControl : Float = 0.2;                 // Spinal gate output
+  stable var painDescendingModulation : Float = 0.3;        // PAG→raphe→DH analgesia
+  stable var painChronicRisk : Float = 0.0;                 // Central sensitization risk
+
+  // ─── REWARD CIRCUIT ───────────────────────────────────────────────────────────
+  stable var rewardVTATonic : Float = 0.5;                  // VTA tonic firing (baseline motivation)
+  stable var rewardVTAPhasic : Float = 0.0;                 // VTA phasic firing (reward burst)
+  stable var rewardValueEstimate : Float = 0.5;             // TD learning value function
+  stable var rewardWanting : Float = 0.5;                   // Incentive salience (dopamine)
+  stable var rewardLiking : Float = 0.5;                    // Hedonic impact (opioid)
+  stable var rewardEffortCost : Float = 0.3;                // ACC effort computation
+  stable var rewardTemporalDiscount : Float = 0.5;          // Delay discounting rate
+  stable var rewardNAccShell : Float = 0.5;                 // Nucleus accumbens shell (hedonic)
+  stable var rewardNAccCore : Float = 0.5;                  // Nucleus accumbens core (approach)
+  stable var rewardVentralPallidum : Float = 0.5;           // Hedonic hotspot
+  stable var rewardHabenula : Float = 0.2;                  // Lateral habenula (anti-reward)
+  stable var rewardOrexin : Float = 0.5;                    // Orexin/hypocretin (arousal-reward)
+  stable var rewardAnhedonia : Float = 0.1;                 // Inability to experience pleasure
+  stable var rewardSensitivity : Float = 0.5;               // Overall reward sensitivity
+  stable var motivationLevel : Float = 0.5;                 // Integrated motivation output
+
+  // ─── SLEEP ARCHITECTURE ───────────────────────────────────────────────────────
+  stable var sleepProcessS : Float = 0.3;                   // Homeostatic sleep pressure
+  stable var sleepProcessC : Float = 0.5;                   // Circadian alerting signal
+  stable var sleepFlipFlopState : Float = 0.0;              // 0=awake, 1=asleep
+  stable var sleepN1Power : Float = 0.0;                    // NREM Stage 1 (theta)
+  stable var sleepN2Power : Float = 0.0;                    // NREM Stage 2 (spindles)
+  stable var sleepN3Power : Float = 0.0;                    // NREM Stage 3 (delta/SWA)
+  stable var sleepREMPower : Float = 0.0;                   // REM sleep power
+  stable var sleepSpindlePower : Float = 0.0;               // 12-15 Hz sleep spindles
+  stable var sleepKComplexRate : Float = 0.0;               // K-complex rate
+  stable var sleepDeltaPower : Float = 0.0;                 // 0.5-4 Hz slow-wave activity
+  stable var sleepGlymphaticClearance : Float = 0.0;        // Brain waste removal during sleep
+
+  // ─── MOTOR SYSTEM ─────────────────────────────────────────────────────────────
+  stable var motorCommandSignal : Float = 0.5;              // Integrated motor output
+  stable var motorPremotorActivity : Float = 0.5;           // Premotor planning
+  stable var motorSMAActivity : Float = 0.5;                // SMA sequencing
+  stable var motorBGGoSignal : Float = 0.5;                 // Basal ganglia GO (D1)
+  stable var motorBGNoGoSignal : Float = 0.3;               // Basal ganglia NO-GO (D2)
+  stable var motorBGBrakeSignal : Float = 0.1;              // Basal ganglia BRAKE (STN)
+  stable var motorCerebellumOutput : Float = 0.5;           // Cerebellar forward model
+  stable var motorCPGLocomotion : Float = 0.3;              // Locomotion CPG
+  stable var motorEfferenceCopy : Float = 0.5;              // Corollary discharge
+  stable var proprioceptionBalance : Float = 0.5;           // Proprioceptive integration
+  stable var totalMotorOutput : Float = 0.5;                // Summed motor cortex output
+  stable var totalSympatheticDrive : Float = 0.4;           // Summed sympathetic ganglia
+  stable var motorSomatotopicMap : [var Float] = Array.init<Float>(8, 0.5);   // 8 M1 somatotopic regions
+
+  // ─── SENSORY PROCESSING ───────────────────────────────────────────────────────
+  stable var sensoryCortexRegions : [var Float] = Array.init<Float>(20, 0.3);  // 20 sensory cortex regions
+  stable var sensoryAdaptation : [var Float] = Array.init<Float>(20, 0.0);     // Sensory adaptation levels
+  stable var sensoryMultisensoryBinding : Float = 0.5;      // Cross-modal integration
+
+  // ─── SPINAL CORD ──────────────────────────────────────────────────────────────
+  stable var spinalVentralHornAlpha : Float = 0.5;          // α motor neuron output
+  stable var spinalVentralHornGamma : Float = 0.5;          // γ motor neuron output
+  stable var spinalStretchReflex : Float = 0.3;             // Stretch reflex magnitude
+  stable var spinalWithdrawalReflex : Float = 0.0;          // Withdrawal reflex magnitude
+  stable var spinalCrossedExtensor : Float = 0.0;           // Crossed-extensor reflex
+  stable var spinalCorticospinalTract : Float = 0.5;        // Voluntary motor control
+  stable var spinalReticulospinalTract : Float = 0.5;       // Posture/locomotion
+  stable var spinalVestibulospinalTract : Float = 0.5;      // Balance/anti-gravity
+  stable var spinalRubrospinalTract : Float = 0.3;          // Motor coordination
+  stable var spinalSpinothalamicTract : Float = 0.2;        // Pain/temperature ascending
+  stable var spinalDorsalColumnTract : Float = 0.5;         // Fine touch/proprioception ascending
+
+  // ─── PREFRONTAL EXECUTIVE ─────────────────────────────────────────────────────
+  stable var pfcDLPFCActivity : Float = 0.5;                // DLPFC working memory capacity
+  stable var pfcVLPFCInhibition : Float = 0.5;              // Response inhibition
+  stable var pfcOFCValue : Float = 0.5;                     // OFC value computation
+  stable var pfcACCConflict : Float = 0.2;                  // ACC conflict monitoring
+  stable var pfcFEFActivity : Float = 0.5;                  // Frontal eye field
+  stable var pfcCognitiveFlexibility : Float = 0.5;         // Flexibility vs stability
+  stable var pfcGoalMaintenance : Float = 0.5;              // Goal maintenance under interference
+  stable var pfcWorkingMemory : [var Float] = Array.init<Float>(8, 0.5);  // 8-slot WM buffer
+
+  // ─── EMOTIONAL FIELD EXTENSIONS ───────────────────────────────────────────────
+  stable var emotionalFieldValence : Float = 0.5;           // Good ↔ bad
+  stable var emotionalFieldArousal : Float = 0.5;           // Calm ↔ excited
+  stable var emotionalFieldEmbodiment : Float = 0.5;        // Disembodied ↔ embodied
+
+  // ─── GENERAL ORGANISM ─────────────────────────────────────────────────────────
+  stable var energyBalance : Float = 0.6;                   // Metabolic energy available
+  stable var coherenceLevel : Float = 0.5;                  // Overall organism coherence
+  stable var coherenceMintAccumulator : Float = 0.0;        // Economic health output
+  stable var pruningRate : Float = 0.2;                     // Synaptic pruning rate
+  stable var woundHealingRate : Float = 0.5;                // Wound healing rate
+  stable var tCellBalance : Float = 0.5;                    // Th1/Th2 balance
+  // ─── NEUROCHEMICAL SHORT-FORM ALIASES ───────────────────────────────────────
+  // These provide convenient short names for vital system engine processing
+  // They are synced with the full-name variables in the neurochemical matrix
+  stable var dopamine : Float = 0.5;                          // Dopamine level (synced with dopamineLevel)
+  stable var serotonin : Float = 0.5;                         // Serotonin level (synced with serotoninLevel)
+  stable var norepinephrine : Float = 0.5;                    // Norepinephrine level
+  stable var cortisol : Float = 0.3;                          // Cortisol level (synced with cortisolCircadian)
+  stable var melatonin : Float = 0.1;                         // Melatonin level (synced with melatoninLevel)
+  stable var acetylcholine : Float = 0.5;                     // Acetylcholine level
+  stable var gabaLevel : Float = 0.5;                         // GABA level
+  
+  // ─── ENVIRONMENT / CONTEXT ──────────────────────────────────────────────────
+  stable var threatLevel : Float = 0.2;                       // Environmental threat level
+  stable var circadianPhase : Float = 0.0;                    // Circadian phase (0-1, synced with scnPhase)
+  stable var circadianSleepDrive : Float = 0.3;               // Circadian sleep promotion
+  
+  // ─── MISSING ARRAY DECLARATIONS ─────────────────────────────────────────────
+  stable var mirrorNeuronActivityArr : [var Float] = Array.init<Float>(11, 0.5);  // 11 mirror neuron channels
+
+
   // ─── ENEMY AI SWARM — For competition training ───────────────────────────────
   // Enemy uses the SAME IRONCLAD architecture: Kuramoto + Hebbian + mean-field
   var enemySwarmState : ?EnemyAISwarm.EnemySwarmState = null;
@@ -5338,6 +5493,3507 @@ actor SwarmBrain {
     streakMultiplier
   };
 
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 1: BRAINSTEM VITAL CENTERS
+  //  The brainstem is the FOUNDATION of life. Without it, nothing else matters.
+  //  21 nuclei with full differential equations, cross-coupled to everything.
+  //  Respiratory CPG, cardiac center, vasomotor tone, reticular formation,
+  //  PAG pain modulation, colliculi orienting, raphe-serotonin, LC-norepinephrine,
+  //  VTA-dopamine, red nucleus, inferior olive, parabrachial, NTS, dorsal motor.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickBrainstemVitalCenters() {
+    let dt : Float = 1.0 / 12.0;  // 12 Hz heartbeat timestep
+
+    // ─── ASCENDING RETICULAR ACTIVATING SYSTEM (ARAS) ────────────────────────
+    // The master arousal switch. Without ARAS, consciousness is impossible.
+    // Inputs: sensory bombardment, locus coeruleus NE, raphe 5-HT, pain signals
+    // Output: arousal level that gates ALL cortical processing
+    let sensoryBombardment = fclamp(
+      0.3 * threatLevel + 0.2 * noveltySalience + 0.2 * predictionError +
+      0.15 * brainstemPAG + 0.15 * brainstemParabrachialNucleus,
+      0.0, 1.0
+    );
+    let arasExcitation = fclamp(
+      0.3 * sensoryBombardment + 0.25 * brainstemLocusCoeruleus +
+      0.2 * brainstemRapheNuclei + 0.15 * brainstemVTA + 0.1 * alertnessLevel,
+      0.0, 1.0
+    );
+    let arasInhibition = fclamp(
+      0.4 * sleepPressure + 0.3 * adenosineLevel + 0.2 * gabaLevel + 0.1 * (1.0 - coreTemperature),
+      0.0, 1.0
+    );
+    // ARAS differential: dA/dt = τ * (excitation - inhibition - A)
+    let arasTarget = fclamp(arasExcitation - arasInhibition, 0.0, 1.0);
+    let arasTau : Float = 0.08;
+    brainstemReticuloFormation := fclamp(
+      brainstemReticuloFormation + arasTau * (arasTarget - brainstemReticuloFormation),
+      0.05, 0.98
+    );
+
+    // ─── RESPIRATORY CENTRAL PATTERN GENERATOR ────────────────────────────────
+    // Pre-Bötzinger complex generates breathing rhythm
+    // Coupled oscillator: inspiratory ↔ expiratory with chemoreceptor feedback
+    // Inputs: CO2 level (chemoreceptor), metabolic demand, arousal, emotional state
+    let metabolicDemand = fclamp(
+      0.3 * sympatheticTone + 0.2 * motorCommandSignal + 0.2 * energyBalance +
+      0.15 * brainstemReticuloFormation + 0.15 * (1.0 - sleepPressure),
+      0.1, 1.0
+    );
+    // CO2 chemoreceptor drive (central + peripheral)
+    let co2Drive = fclamp(
+      0.5 + 0.3 * metabolicDemand + 0.2 * (1.0 - brainstemAreaPostrema),
+      0.0, 1.0
+    );
+    // Hering-Breuer reflex: lung stretch receptors inhibit inspiration
+    let heringBreuerInhibition = fclamp(brainstemRespiratoryDepth * 0.3, 0.0, 0.5);
+    // Respiratory oscillator (pre-Bötzinger)
+    let respPhase = Float.sin(Float.fromInt(currentBeat) * 0.5236) * 0.5 + 0.5; // ~0.5 Hz breathing
+    let respTarget = fclamp(
+      0.4 * co2Drive + 0.3 * respPhase + 0.15 * metabolicDemand - heringBreuerInhibition +
+      0.08 * brainstemReticuloFormation + 0.07 * (1.0 - fearLevel * 0.3),
+      0.1, 1.0
+    );
+    brainstemRespiratoryRate := fclamp(
+      brainstemRespiratoryRate + dt * 2.0 * (respTarget - brainstemRespiratoryRate),
+      0.05, 0.98
+    );
+    // Tidal volume (depth) tracks rate with slight phase lag
+    let depthTarget = fclamp(
+      0.5 * brainstemRespiratoryRate + 0.2 * co2Drive + 0.15 * metabolicDemand +
+      0.1 * (1.0 - heringBreuerInhibition) + 0.05 * brainstemReticuloFormation,
+      0.2, 1.0
+    );
+    brainstemRespiratoryDepth := fclamp(
+      brainstemRespiratoryDepth + dt * 1.5 * (depthTarget - brainstemRespiratoryDepth),
+      0.1, 0.95
+    );
+
+    // ─── CARDIAC CENTER ───────────────────────────────────────────────────────
+    // Cardioinhibitory (vagal) + cardioacceleratory (sympathetic) centers
+    // Baroreceptor reflex: high BP → vagal activation → slower heart rate
+    // RSA coupling: heart rate modulated by respiratory cycle
+    let baroreceptorPressure = fclamp(
+      0.5 + 0.3 * brainstemVasomotorTone + 0.1 * sympatheticTone - 0.1 * parasympatheticTone,
+      0.0, 1.0
+    );
+    // Baroreceptor firing rate (sigmoidal)
+    let baroreceptorFiring = fclamp(
+      1.0 / (1.0 + Float.exp(-10.0 * (baroreceptorPressure - 0.5))),
+      0.0, 1.0
+    );
+    // Vagal cardiac efferent (inhibitory)
+    let vagalCardiacBrake = fclamp(
+      0.4 * baroreceptorFiring + 0.3 * parasympatheticTone + 0.2 * brainstemDorsalMotorNucleus +
+      0.1 * brainstemNucleusTractusSolitarius,
+      0.0, 1.0
+    );
+    // Sympathetic cardiac drive (excitatory)
+    let sympatheticCardiacDrive = fclamp(
+      0.4 * sympatheticTone + 0.2 * (1.0 - baroreceptorFiring) + 0.2 * brainstemReticuloFormation +
+      0.1 * fearLevel + 0.1 * metabolicDemand,
+      0.0, 1.0
+    );
+    // RSA: respiratory modulation of heart rate
+    let rsaCoupling = fclamp(
+      0.15 * Float.sin(Float.fromInt(currentBeat) * 0.5236) * vagalTone,
+      -0.1, 0.1
+    );
+    // Cardiac center integration
+    let cardiacTarget = fclamp(
+      0.5 + sympatheticCardiacDrive - vagalCardiacBrake + rsaCoupling,
+      0.15, 0.95
+    );
+    brainstemCardiacCenter := fclamp(
+      brainstemCardiacCenter + dt * 3.0 * (cardiacTarget - brainstemCardiacCenter),
+      0.1, 0.95
+    );
+    // Mayer waves (~0.1 Hz blood pressure oscillation)
+    let mayerWave = 0.03 * Float.sin(Float.fromInt(currentBeat) * 0.0524);
+
+    // ─── VASOMOTOR CENTER ─────────────────────────────────────────────────────
+    // Blood pressure regulation via sympathetic vasoconstriction
+    // Baroreflex: high pressure → vasodilation, low pressure → vasoconstriction
+    let vasomotorTarget = fclamp(
+      0.5 + 0.25 * (1.0 - baroreceptorFiring) + 0.2 * sympatheticTone -
+      0.15 * parasympatheticTone + mayerWave + 0.1 * metabolicDemand,
+      0.15, 0.9
+    );
+    brainstemVasomotorTone := fclamp(
+      brainstemVasomotorTone + dt * 2.0 * (vasomotorTarget - brainstemVasomotorTone),
+      0.1, 0.9
+    );
+
+    // ─── NUCLEUS TRACTUS SOLITARIUS (NTS) ─────────────────────────────────────
+    // Master visceral afferent integration hub
+    // Receives: baroreceptors, chemoreceptors, gut, taste, cardiac, respiratory
+    // Projects to: vagal motor, respiratory, cardiac, HPA, LC, raphe
+    let ntsInput = fclamp(
+      0.2 * baroreceptorFiring + 0.15 * co2Drive + 0.15 * gutMicrobiomeDiversity +
+      0.1 * brainstemAreaPostrema + 0.1 * interoceptiveAwareness +
+      0.1 * vagalTone + 0.1 * brainstemParabrachialNucleus + 0.1 * brainstemCardiacCenter,
+      0.0, 1.0
+    );
+    brainstemNucleusTractusSolitarius := fclamp(
+      brainstemNucleusTractusSolitarius + dt * 2.5 * (ntsInput - brainstemNucleusTractusSolitarius),
+      0.1, 0.95
+    );
+
+    // ─── DORSAL MOTOR NUCLEUS OF VAGUS ────────────────────────────────────────
+    // Primary parasympathetic output to viscera
+    // Drives: GI motility, gastric secretion, cardiac inhibition
+    let dmnvTarget = fclamp(
+      0.35 * parasympatheticTone + 0.25 * brainstemNucleusTractusSolitarius +
+      0.2 * (1.0 - sympatheticTone) + 0.1 * gutMotility + 0.1 * (1.0 - fearLevel),
+      0.0, 1.0
+    );
+    brainstemDorsalMotorNucleus := fclamp(
+      brainstemDorsalMotorNucleus + dt * 2.0 * (dmnvTarget - brainstemDorsalMotorNucleus),
+      0.05, 0.9
+    );
+
+    // ─── AREA POSTREMA ────────────────────────────────────────────────────────
+    // Chemoreceptor trigger zone (outside BBB — senses blood toxins)
+    // Triggers: nausea, vomiting reflex, immune-to-brain signaling
+    let toxinLevel = fclamp(
+      0.3 * proinflammatoryCytokines + 0.2 * gutPermeability +
+      0.2 * (1.0 - gutMicrobiomeDiversity) + 0.15 * allostaticLoad + 0.15 * (1.0 - bbbIntegrity),
+      0.0, 1.0
+    );
+    brainstemAreaPostrema := fclamp(
+      brainstemAreaPostrema + dt * 1.5 * (toxinLevel - brainstemAreaPostrema),
+      0.0, 0.95
+    );
+
+    // ─── PERIAQUEDUCTAL GRAY (PAG) ────────────────────────────────────────────
+    // The central hub of survival behavior: freeze/flight/fight
+    // Also: descending pain modulation (analgesia)
+    // Columnar organization: lateral (fight), dorsolateral (flight), ventrolateral (freeze)
+    let pagLateralInput = fclamp(  // Fight column
+      0.4 * fearLevel + 0.3 * sympatheticTone + 0.15 * brainstemLocusCoeruleus +
+      0.15 * (1.0 - parasympatheticTone),
+      0.0, 1.0
+    );
+    let pagDorsolateralInput = fclamp(  // Flight column
+      0.35 * fearLevel + 0.25 * threatLevel + 0.2 * predictionError +
+      0.1 * brainstemLocusCoeruleus + 0.1 * sympatheticTone,
+      0.0, 1.0
+    );
+    let pagVentrolateralInput = fclamp(  // Freeze/submit column
+      0.3 * (1.0 - parasympatheticTone) + 0.3 * painIntensity +
+      0.2 * (1.0 - brainstemLocusCoeruleus) + 0.2 * (fearLevel * 0.5),
+      0.0, 1.0
+    );
+    // Winner-take-all among PAG columns
+    let pagMaxInput = Float.max(pagLateralInput, Float.max(pagDorsolateralInput, pagVentrolateralInput));
+    let pagTarget = fclamp(
+      0.5 * pagMaxInput + 0.2 * fearLevel + 0.15 * painIntensity + 0.15 * threatLevel,
+      0.05, 0.95
+    );
+    brainstemPAG := fclamp(
+      brainstemPAG + dt * 3.0 * (pagTarget - brainstemPAG),
+      0.05, 0.95
+    );
+    // Descending analgesia (PAG → raphe → dorsal horn)
+    let descendingAnalgesia = fclamp(brainstemPAG * 0.6 * brainstemRapheNuclei, 0.0, 0.8);
+
+    // ─── LOCUS COERULEUS (NOREPINEPHRINE HUB) ─────────────────────────────────
+    // The brain's alarm system. LC-NE fires for novelty, threat, stress.
+    // Tonic mode: broad, unfocused vigilance (anxiety)
+    // Phasic mode: sharp, focused attention (optimal performance)
+    let lcInput = fclamp(
+      0.25 * threatLevel + 0.2 * noveltySalience + 0.15 * predictionError +
+      0.15 * brainstemPAG + 0.1 * cortisol + 0.08 * (1.0 - sleepPressure) +
+      0.07 * brainstemReticuloFormation,
+      0.0, 1.0
+    );
+    // Adaptive gain theory: LC output follows inverted-U
+    let lcTonicDrive = fclamp(
+      0.3 * allostaticLoad + 0.3 * (1.0 - brainstemRapheNuclei) + 0.2 * fearLevel +
+      0.2 * (1.0 - parasympatheticTone),
+      0.0, 1.0
+    );
+    let lcPhasicDrive = fclamp(
+      0.4 * noveltySalience + 0.3 * predictionError + 0.2 * brainstemSuperiorColliculus +
+      0.1 * attentionFocus,
+      0.0, 1.0
+    );
+    // LC firing rate with homeostatic regulation
+    let lcTarget = fclamp(
+      0.4 * lcInput + 0.3 * lcPhasicDrive + 0.2 * lcTonicDrive + 0.1 * brainstemReticuloFormation,
+      0.1, 0.95
+    );
+    brainstemLocusCoeruleus := fclamp(
+      brainstemLocusCoeruleus + dt * 2.5 * (lcTarget - brainstemLocusCoeruleus),
+      0.05, 0.95
+    );
+    // LC → norepinephrine release (bidirectional with NeurochemicalCrosstalkMatrix)
+    norepinephrine := fclamp(
+      norepinephrine * 0.95 + brainstemLocusCoeruleus * 0.05,
+      0.05, 0.95
+    );
+
+    // ─── RAPHE NUCLEI (SEROTONIN HUB) ─────────────────────────────────────────
+    // Dorsal and median raphe: mood, satiety, pain modulation, sleep-wake
+    // Serotonin is the TONIC background signal of wellbeing
+    let rapheInput = fclamp(
+      0.2 * gutSerotoninProduction + 0.2 * (1.0 - fearLevel) +
+      0.15 * parasympatheticTone + 0.15 * brainstemNucleusTractusSolitarius +
+      0.1 * (1.0 - allostaticLoad) + 0.1 * brainstemReticuloFormation +
+      0.1 * (1.0 - painIntensity),
+      0.0, 1.0
+    );
+    // Dorsal raphe fires during waking; suppressed during sleep
+    let wakeModulation = fclamp(brainstemReticuloFormation * 0.8, 0.1, 1.0);
+    let rapheTarget = fclamp(rapheInput * wakeModulation, 0.1, 0.9);
+    brainstemRapheNuclei := fclamp(
+      brainstemRapheNuclei + dt * 1.5 * (rapheTarget - brainstemRapheNuclei),
+      0.05, 0.9
+    );
+    // Raphe → serotonin release
+    serotonin := fclamp(
+      serotonin * 0.95 + brainstemRapheNuclei * 0.05,
+      0.05, 0.95
+    );
+
+    // ─── VENTRAL TEGMENTAL AREA (VTA — REWARD/MOTIVATION) ──────────────────────
+    // Dopamine neurons fire for unexpected reward (RPE > 0)
+    // Inhibited by lateral habenula (anti-reward)
+    // Two firing modes: tonic (baseline motivation) and phasic (reward burst)
+    let vtaTonicDrive = fclamp(
+      0.3 * (1.0 - allostaticLoad) + 0.2 * brainstemReticuloFormation +
+      0.2 * (1.0 - brainstemPAG) + 0.15 * (1.0 - fearLevel) + 0.15 * energyBalance,
+      0.1, 0.8
+    );
+    let vtaPhasicDrive = fclamp(
+      0.5 * rewardPredictionError + 0.2 * noveltySalience +
+      0.15 * (1.0 - rewardHabenula) + 0.15 * rewardOrexin,
+      0.0, 1.0
+    );
+    // VTA integration with lateral habenula inhibition
+    let habenularBrake = fclamp(rewardHabenula * 0.5, 0.0, 0.5);
+    let vtaTarget = fclamp(
+      0.4 * vtaTonicDrive + 0.4 * vtaPhasicDrive - habenularBrake + 0.1 * brainstemRapheNuclei,
+      0.05, 0.95
+    );
+    brainstemVTA := fclamp(
+      brainstemVTA + dt * 2.0 * (vtaTarget - brainstemVTA),
+      0.05, 0.95
+    );
+    // VTA → dopamine release
+    dopamine := fclamp(
+      dopamine * 0.94 + brainstemVTA * 0.06,
+      0.05, 0.95
+    );
+
+    // ─── SUBSTANTIA NIGRA (MOTOR DOPAMINE) ─────────────────────────────────────
+    // SNpc: dopamine for motor control via nigrostriatal pathway
+    // SNpr: GABAergic output to thalamus (motor gating)
+    let snpcTarget = fclamp(
+      0.3 * motorCommandSignal + 0.25 * brainstemVTA + 0.2 * brainstemReticuloFormation +
+      0.15 * (1.0 - brainstemPAG) + 0.1 * (1.0 - allostaticLoad),
+      0.1, 0.9
+    );
+    brainstemSubstantiaNigra := fclamp(
+      brainstemSubstantiaNigra + dt * 1.5 * (snpcTarget - brainstemSubstantiaNigra),
+      0.1, 0.9
+    );
+
+    // ─── SUPERIOR COLLICULUS (VISUAL ORIENTING) ─────────────────────────────────
+    // Saccade generation, visual attention, multimodal integration
+    // Receives: retina (direct), visual cortex (indirect), auditory, somatosensory
+    let scVisualInput = fclamp(
+      0.3 * noveltySalience + 0.25 * threatLevel + 0.2 * attentionFocus +
+      0.15 * brainstemReticuloFormation + 0.1 * brainstemLocusCoeruleus,
+      0.0, 1.0
+    );
+    let scTarget = fclamp(
+      0.5 * scVisualInput + 0.2 * brainstemInferiorColliculus +
+      0.15 * predictionError + 0.15 * salienceGain,
+      0.1, 0.9
+    );
+    brainstemSuperiorColliculus := fclamp(
+      brainstemSuperiorColliculus + dt * 3.0 * (scTarget - brainstemSuperiorColliculus),
+      0.05, 0.9
+    );
+
+    // ─── INFERIOR COLLICULUS (AUDITORY ORIENTING) ───────────────────────────────
+    // Auditory startle reflex, sound localization, cross-modal with SC
+    let icTarget = fclamp(
+      0.35 * noveltySalience + 0.25 * predictionError + 0.2 * brainstemReticuloFormation +
+      0.1 * brainstemSuperiorColliculus + 0.1 * threatLevel,
+      0.1, 0.9
+    );
+    brainstemInferiorColliculus := fclamp(
+      brainstemInferiorColliculus + dt * 3.0 * (icTarget - brainstemInferiorColliculus),
+      0.05, 0.9
+    );
+
+    // ─── PONTINE NUCLEI (SLEEP-WAKE TRANSITION) ─────────────────────────────────
+    // Pedunculopontine/laterodorsal tegmental: cholinergic REM-on cells
+    // Also relay cortex → cerebellum (corticopontocerebellar)
+    let pontineTarget = fclamp(
+      0.3 * sleepPressure + 0.2 * acetylcholine + 0.2 * (1.0 - brainstemReticuloFormation) +
+      0.15 * brainstemRapheNuclei + 0.15 * brainstemLocusCoeruleus,
+      0.1, 0.9
+    );
+    brainstemPontineNuclei := fclamp(
+      brainstemPontineNuclei + dt * 1.0 * (pontineTarget - brainstemPontineNuclei),
+      0.1, 0.9
+    );
+
+    // ─── RETICULOSPINAL TRACT (POSTURAL TONE) ──────────────────────────────────
+    // Controls postural muscles, muscle tone, fight readiness
+    let reticulospinalTarget = fclamp(
+      0.3 * brainstemReticuloFormation + 0.25 * sympatheticTone +
+      0.2 * motorCommandSignal + 0.15 * (1.0 - sleepPressure) + 0.1 * brainstemPAG,
+      0.1, 0.9
+    );
+    brainstemReticuloSpinal := fclamp(
+      brainstemReticuloSpinal + dt * 2.0 * (reticulospinalTarget - brainstemReticuloSpinal),
+      0.05, 0.9
+    );
+
+    // ─── VESTIBULOSPINAL (BALANCE/EQUILIBRIUM) ──────────────────────────────────
+    let vestibulospinalTarget = fclamp(
+      0.35 * brainstemReticuloFormation + 0.25 * motorCommandSignal +
+      0.2 * brainstemReticuloSpinal + 0.1 * (1.0 - sleepPressure) + 0.1 * proprioceptionBalance,
+      0.1, 0.9
+    );
+    brainstemVestibulospinal := fclamp(
+      brainstemVestibulospinal + dt * 1.5 * (vestibulospinalTarget - brainstemVestibulospinal),
+      0.1, 0.9
+    );
+
+    // ─── RED NUCLEUS (MOTOR COORDINATION) ──────────────────────────────────────
+    // Rubrospinal tract: motor coordination, especially upper limbs
+    // Receives cerebellar output, sends error correction to spinal cord
+    let redNucleusTarget = fclamp(
+      0.3 * motorCommandSignal + 0.25 * brainstemReticuloFormation +
+      0.2 * brainstemSubstantiaNigra + 0.15 * brainstemInferiorOlive +
+      0.1 * (1.0 - brainstemPAG),
+      0.1, 0.9
+    );
+    brainstemRedNucleus := fclamp(
+      brainstemRedNucleus + dt * 2.0 * (redNucleusTarget - brainstemRedNucleus),
+      0.1, 0.9
+    );
+
+    // ─── INFERIOR OLIVE (CEREBELLAR ERROR SIGNAL) ──────────────────────────────
+    // Climbing fibers to cerebellum: teaches timing and error correction
+    let inferiorOliveTarget = fclamp(
+      0.4 * predictionError + 0.25 * motorCommandSignal +
+      0.2 * brainstemRedNucleus + 0.15 * (1.0 - brainstemSubstantiaNigra),
+      0.0, 1.0
+    );
+    brainstemInferiorOlive := fclamp(
+      brainstemInferiorOlive + dt * 2.0 * (inferiorOliveTarget - brainstemInferiorOlive),
+      0.05, 0.9
+    );
+
+    // ─── PARABRACHIAL NUCLEUS (TASTE/PAIN/VISCERAL INTEGRATION) ─────────────────
+    // Second-order relay for visceral, nociceptive, gustatory info
+    // Projects to: amygdala, hypothalamus, insula (direct emotional route)
+    let parabrachialTarget = fclamp(
+      0.25 * painIntensity + 0.2 * brainstemNucleusTractusSolitarius +
+      0.15 * gutMotility + 0.15 * brainstemAreaPostrema +
+      0.1 * interoceptiveAwareness + 0.1 * brainstemPAG + 0.05 * fearLevel,
+      0.0, 1.0
+    );
+    brainstemParabrachialNucleus := fclamp(
+      brainstemParabrachialNucleus + dt * 2.0 * (parabrachialTarget - brainstemParabrachialNucleus),
+      0.05, 0.9
+    );
+
+    // ─── BRAINSTEM → 7 ENGINE FEED-FORWARD ─────────────────────────────────────
+    // Brainstem arousal gates EVERYTHING. This is the foundation of the organism.
+    // Without adequate brainstem activation, all cortical processing degrades.
+    let brainstemArousal = brainstemReticuloFormation;
+    // Feed into consciousness (Engine 1)
+    consciousnessIndex := fclamp(
+      consciousnessIndex * 0.98 + brainstemArousal * 0.02,
+      0.0, 1.0
+    );
+    // Feed into interoception (Engine 3) via NTS → body awareness
+    interoceptiveAwareness := fclamp(
+      interoceptiveAwareness * 0.97 + brainstemNucleusTractusSolitarius * 0.03,
+      0.0, 1.0
+    );
+    // Feed into salience (Engine 5) via colliculi
+    noveltySalience := fclamp(
+      noveltySalience * 0.97 + 0.015 * brainstemSuperiorColliculus + 0.015 * brainstemInferiorColliculus,
+      0.0, 1.0
+    );
+    // Feed into circadian (Engine 7) via pontine REM-on cells
+    circadianCoherence := fclamp(
+      circadianCoherence * 0.98 + brainstemPontineNuclei * 0.02,
+      0.0, 1.0
+    );
+    // Feed into emotional field via PAG survival states
+    emotionalFieldValence := fclamp(
+      emotionalFieldValence * 0.97 + (0.5 - brainstemPAG) * 0.03,
+      0.0, 1.0
+    );
+    emotionalFieldArousal := fclamp(
+      emotionalFieldArousal * 0.96 + brainstemReticuloFormation * 0.04,
+      0.0, 1.0
+    );
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 2: AUTONOMIC NERVOUS SYSTEM
+  //  Full sympathetic/parasympathetic competition with 24 ganglia, 8 vagal channels,
+  //  baroreceptor dynamics, chemoreceptor integration, pupillary reflex,
+  //  sweat glands, piloerection, adrenal medulla, HRV computation,
+  //  respiratory sinus arrhythmia, polyvagal theory (ventral/dorsal vagal/sympathetic),
+  //  autonomic flexibility index (resilience metric).
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickAutonomicNervousSystem() {
+    let dt : Float = 1.0 / 12.0;
+
+    // ─── 24 SYMPATHETIC CHAIN GANGLIA (T1-L2) ─────────────────────────────────
+    // Each segment innervates specific organs/regions
+    // T1-T4: cardiac, bronchial, upper extremity
+    // T5-T9: GI (esophagus, stomach, liver, pancreas)
+    // T10-T12: GI (small intestine, kidneys, ureters)
+    // L1-L2: pelvic organs, lower extremity
+    var totalSympatheticDrive : Float = 0.0;
+    var ganglionIdx = 0;
+    while (ganglionIdx < 24) {
+      // Each ganglion receives: preganglionic from IML, circulating catecholamines, local reflexes
+      let segmentalInput = fclamp(
+        0.3 * sympatheticTone + 0.2 * brainstemReticuloFormation +
+        0.15 * fearLevel + 0.1 * cortisol + 0.1 * brainstemLocusCoeruleus +
+        0.08 * (1.0 - parasympatheticTone) + 0.07 * painIntensity,
+        0.0, 1.0
+      );
+      // Segmental specificity: cardiac ganglia (0-3) respond more to emotion
+      let specificModulation = if (ganglionIdx < 4) {
+        fclamp(segmentalInput + 0.1 * fearLevel + 0.05 * brainstemCardiacCenter, 0.0, 1.0)
+      } else if (ganglionIdx < 9) {
+        fclamp(segmentalInput + 0.05 * gutMotility + 0.05 * (1.0 - gutPermeability), 0.0, 1.0)
+      } else if (ganglionIdx < 12) {
+        fclamp(segmentalInput + 0.05 * energyBalance + 0.05 * metabolicRate, 0.0, 1.0)
+      } else {
+        segmentalInput
+      };
+      sympatheticChainGanglia[ganglionIdx] := fclamp(
+        sympatheticChainGanglia[ganglionIdx] + dt * 2.0 * (specificModulation - sympatheticChainGanglia[ganglionIdx]),
+        0.05, 0.95
+      );
+      totalSympatheticDrive += sympatheticChainGanglia[ganglionIdx];
+      ganglionIdx += 1;
+    };
+    totalSympatheticDrive := totalSympatheticDrive / 24.0;
+
+    // ─── 8 VAGAL EFFERENT CHANNELS ─────────────────────────────────────────────
+    // Channel 0: Cardiac (chronotropic — heart rate)
+    // Channel 1: Cardiac (inotropic — contractility)
+    // Channel 2: Bronchial (airway caliber)
+    // Channel 3: GI upper (esophagus, stomach)
+    // Channel 4: GI lower (intestine, colon)
+    // Channel 5: Hepatic (liver metabolism)
+    // Channel 6: Pancreatic (insulin secretion)
+    // Channel 7: Immune (anti-inflammatory cholinergic)
+    var channelIdx = 0;
+    while (channelIdx < 8) {
+      let vagalDrive = fclamp(
+        0.3 * parasympatheticTone + 0.2 * brainstemDorsalMotorNucleus +
+        0.15 * brainstemNucleusTractusSolitarius + 0.1 * vagalTone +
+        0.1 * (1.0 - sympatheticTone) + 0.1 * brainstemRapheNuclei + 0.05 * (1.0 - fearLevel),
+        0.0, 1.0
+      );
+      // Channel-specific modulation
+      let channelSpecific = if (channelIdx == 0) {
+        fclamp(vagalDrive + 0.1 * (1.0 - brainstemCardiacCenter), 0.0, 1.0)  // Cardiac chronotropic
+      } else if (channelIdx == 3 or channelIdx == 4) {
+        fclamp(vagalDrive + 0.08 * gutMotility + 0.05 * gutSerotoninProduction, 0.0, 1.0)  // GI
+      } else if (channelIdx == 7) {
+        fclamp(vagalDrive + 0.1 * (1.0 - proinflammatoryCytokines), 0.0, 1.0)  // Anti-inflammatory
+      } else {
+        vagalDrive
+      };
+      vagalEfferentChannels[channelIdx] := fclamp(
+        vagalEfferentChannels[channelIdx] + dt * 2.0 * (channelSpecific - vagalEfferentChannels[channelIdx]),
+        0.05, 0.95
+      );
+      channelIdx += 1;
+    };
+
+    // ─── 8 VAGAL AFFERENT CHANNELS ─────────────────────────────────────────────
+    // Interoceptive feedback from organs to brain
+    // 80% of vagal fibers are AFFERENT (body → brain)
+    var affIdx = 0;
+    while (affIdx < 8) {
+      let organSignal = fclamp(
+        if (affIdx == 0) { brainstemCardiacCenter }  // Heart rate signal
+        else if (affIdx == 1) { brainstemVasomotorTone }  // Blood pressure
+        else if (affIdx == 2) { brainstemRespiratoryRate }  // Lung stretch
+        else if (affIdx == 3) { gutMotility }  // GI motility
+        else if (affIdx == 4) { gutSerotoninProduction }  // Gut serotonin
+        else if (affIdx == 5) { brainstemAreaPostrema }  // Nausea/toxins
+        else if (affIdx == 6) { proinflammatoryCytokines }  // Immune status
+        else { energyBalance },  // Metabolic status
+        0.0, 1.0
+      );
+      vagalAfferentChannels[affIdx] := fclamp(
+        vagalAfferentChannels[affIdx] + dt * 3.0 * (organSignal - vagalAfferentChannels[affIdx]),
+        0.0, 1.0
+      );
+      affIdx += 1;
+    };
+
+    // ─── BARORECEPTOR SENSITIVITY DYNAMICS ─────────────────────────────────────
+    // Baroreceptor sensitivity decreases with chronic hypertension (sympathetic dominance)
+    // High BRS = healthy autonomic flexibility; low BRS = cardiovascular risk
+    let brsTarget = fclamp(
+      0.3 * parasympatheticTone + 0.2 * vagalTone + 0.2 * (1.0 - allostaticLoad) +
+      0.15 * (1.0 - sympatheticTone) + 0.15 * (1.0 - brainstemVasomotorTone),
+      0.1, 0.9
+    );
+    baroreceptorSensitivity := fclamp(
+      baroreceptorSensitivity + dt * 0.5 * (brsTarget - baroreceptorSensitivity),
+      0.1, 0.9
+    );
+
+    // ─── PUPILLARY REFLEX (SYMPATHETIC DILATION + PARASYMPATHETIC CONSTRICTION) ──
+    pupilDilation := fclamp(
+      0.4 * sympatheticTone + 0.2 * brainstemLocusCoeruleus +
+      0.15 * fearLevel + 0.1 * noveltySalience - 0.2 * parasympatheticTone +
+      0.05 * brainstemSuperiorColliculus,
+      0.1, 0.9
+    );
+
+    // ─── SWEAT GLAND ACTIVATION (THERMAL + EMOTIONAL) ──────────────────────────
+    let thermalSweat = fclamp((coreTemperature - 0.5) * 2.0, 0.0, 1.0);
+    let emotionalSweat = fclamp(fearLevel * 0.3 + sympatheticTone * 0.2, 0.0, 0.5);
+    electrodermalActivity := fclamp(
+      0.6 * thermalSweat + 0.4 * emotionalSweat,
+      0.0, 1.0
+    );
+
+    // ─── PILOERECTION (FEAR, COLD, AWE) ────────────────────────────────────────
+    piloerection := fclamp(
+      0.35 * fearLevel + 0.25 * (0.5 - coreTemperature) +
+      0.2 * sympatheticTone + 0.2 * brainstemPAG,
+      0.0, 1.0
+    );
+
+    // ─── ADRENAL MEDULLA CATECHOLAMINE RELEASE ──────────────────────────────────
+    // Sympathetic splanchnic nerve → adrenal medulla → epinephrine/norepinephrine
+    let adrenalDrive = fclamp(
+      0.35 * sympatheticTone + 0.2 * brainstemLocusCoeruleus +
+      0.15 * fearLevel + 0.15 * brainstemPAG + 0.15 * cortisol,
+      0.0, 1.0
+    );
+    adrenalOutput := fclamp(
+      adrenalOutput + dt * 3.0 * (adrenalDrive - adrenalOutput),
+      0.0, 1.0
+    );
+    // Adrenal → epinephrine in blood
+    epinephrine := fclamp(
+      epinephrine * 0.93 + adrenalOutput * 0.07,
+      0.0, 1.0
+    );
+
+    // ─── HEART RATE VARIABILITY (HRV) COMPUTATION ──────────────────────────────
+    // HRV reflects autonomic flexibility — high HRV = resilient organism
+    // Based on vagal modulation of cardiac rhythm
+    let hrvTarget = fclamp(
+      0.3 * vagalTone + 0.2 * parasympatheticTone + 0.15 * baroreceptorSensitivity +
+      0.15 * (1.0 - sympatheticTone) + 0.1 * brainstemRapheNuclei +
+      0.1 * (1.0 - allostaticLoad),
+      0.05, 0.95
+    );
+    heartRateVariability := fclamp(
+      heartRateVariability + dt * 1.0 * (hrvTarget - heartRateVariability),
+      0.05, 0.95
+    );
+
+    // ─── POLYVAGAL THEORY STATES (PORGES) ──────────────────────────────────────
+    // Three hierarchical states:
+    // 1. Ventral vagal (social engagement) — safety, connection
+    // 2. Sympathetic (fight/flight) — mobilization, danger
+    // 3. Dorsal vagal (freeze/collapse) — immobilization, life threat
+    // The organism cycles through these based on neuroception of safety/danger
+    let ventralVagalDrive = fclamp(
+      0.3 * vagalTone + 0.2 * (1.0 - fearLevel) + 0.2 * parasympatheticTone +
+      0.15 * brainstemRapheNuclei + 0.15 * (1.0 - allostaticLoad),
+      0.0, 1.0
+    );
+    let sympatheticDrive = fclamp(
+      0.3 * sympatheticTone + 0.25 * fearLevel + 0.2 * brainstemLocusCoeruleus +
+      0.15 * brainstemPAG + 0.1 * cortisol,
+      0.0, 1.0
+    );
+    let dorsalVagalDrive = fclamp(
+      0.4 * (fearLevel * 0.5) + 0.2 * painIntensity + 0.2 * (1.0 - energyBalance) +
+      0.1 * allostaticLoad + 0.1 * (1.0 - brainstemReticuloFormation),
+      0.0, 1.0
+    );
+    // Polyvagal state competition (softmax-like)
+    let pvTotal = ventralVagalDrive + sympatheticDrive + dorsalVagalDrive + 0.001;
+    polyvagalVentral := fclamp(
+      polyvagalVentral + dt * 2.0 * ((ventralVagalDrive / pvTotal) - polyvagalVentral),
+      0.0, 1.0
+    );
+    polyvagalSympathetic := fclamp(
+      polyvagalSympathetic + dt * 2.0 * ((sympatheticDrive / pvTotal) - polyvagalSympathetic),
+      0.0, 1.0
+    );
+    polyvagalDorsal := fclamp(
+      polyvagalDorsal + dt * 2.0 * ((dorsalVagalDrive / pvTotal) - polyvagalDorsal),
+      0.0, 1.0
+    );
+
+    // ─── AUTONOMIC FLEXIBILITY INDEX ───────────────────────────────────────────
+    // The ability to rapidly shift autonomic state = resilience
+    let autonomicRange = Float.abs(sympatheticTone - parasympatheticTone);
+    autonomicFlexibility := fclamp(
+      0.4 * heartRateVariability + 0.3 * baroreceptorSensitivity +
+      0.2 * (1.0 - allostaticLoad) + 0.1 * (1.0 - autonomicRange),
+      0.0, 1.0
+    );
+
+    // ─── OVERALL AUTONOMIC BALANCE INTEGRATION ──────────────────────────────────
+    // Integrate all ganglia + vagal channels into master sympathetic/parasympathetic tone
+    sympatheticTone := fclamp(
+      sympatheticTone + dt * 1.5 * (totalSympatheticDrive - sympatheticTone),
+      0.05, 0.95
+    );
+    let totalVagalEfferent = fclamp(
+      (vagalEfferentChannels[0] + vagalEfferentChannels[1] + vagalEfferentChannels[2] +
+       vagalEfferentChannels[3] + vagalEfferentChannels[4] + vagalEfferentChannels[5] +
+       vagalEfferentChannels[6] + vagalEfferentChannels[7]) / 8.0,
+      0.0, 1.0
+    );
+    parasympatheticTone := fclamp(
+      parasympatheticTone + dt * 1.5 * (totalVagalEfferent - parasympatheticTone),
+      0.05, 0.95
+    );
+    autonomicBalance := fclamp(sympatheticTone - parasympatheticTone, -1.0, 1.0);
+
+    // ─── AUTONOMIC → HEARTBEAT ENGINE ──────────────────────────────────────────
+    vagalTone := fclamp(
+      vagalTone * 0.95 + parasympatheticTone * 0.05,
+      0.0, 1.0
+    );
+    cardiacCoherence := fclamp(
+      cardiacCoherence * 0.97 + heartRateVariability * 0.03,
+      0.0, 1.0
+    );
+    // Autonomic → interoception
+    interoceptiveScore := fclamp(
+      interoceptiveScore * 0.97 + autonomicFlexibility * 0.03,
+      0.0, 1.0
+    );
+    // Autonomic → emotional field
+    emotionalFieldArousal := fclamp(
+      emotionalFieldArousal * 0.96 + sympatheticTone * 0.04,
+      0.0, 1.0
+    );
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 3: HPA AXIS (HYPOTHALAMIC-PITUITARY-ADRENAL)
+  //  Full stress response cascade: CRH → ACTH → cortisol with negative feedback,
+  //  circadian pulsatility, allostatic load, stress inoculation, HPG/HPT crosstalk,
+  //  GH/IGF-1 growth axis, prolactin, oxytocin/vasopressin, melatonin.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickHPAAxis() {
+    let dt : Float = 1.0 / 12.0;
+
+    // ─── CIRCADIAN CRH PULSATILITY ─────────────────────────────────────────────
+    // CRH follows ultradian pulses (~every 60 min) with circadian envelope
+    // Peak: early morning (cortisol awakening response)
+    // Nadir: midnight
+    let circadianEnvelope = fclamp(
+      0.5 + 0.3 * Float.cos(circadianPhase * 6.2832 - 1.0),  // Peak at phase ~0.16 (morning)
+      0.1, 0.9
+    );
+    // Ultradian pulsatility within circadian envelope
+    let ultradianPulse = fclamp(
+      0.5 + 0.3 * Float.sin(Float.fromInt(currentBeat) * 0.01745),  // ~60 min period at 12Hz
+      0.2, 0.8
+    );
+    // Stress-driven CRH release
+    let stressDriveCRH = fclamp(
+      0.25 * fearLevel + 0.2 * threatLevel + 0.15 * brainstemLocusCoeruleus +
+      0.15 * painIntensity + 0.1 * proinflammatoryCytokines + 0.1 * (1.0 - parasympatheticTone) +
+      0.05 * predictionError,
+      0.0, 1.0
+    );
+    // CRH with negative feedback from cortisol
+    let cortisolNegFeedback = fclamp(cortisol * hpaCortisolfeedbackGain, 0.0, 0.8);
+    let crhTarget = fclamp(
+      0.3 * circadianEnvelope + 0.25 * stressDriveCRH + 0.2 * ultradianPulse -
+      cortisolNegFeedback + 0.1 * brainstemPAG + 0.05 * (1.0 - oxytocin),
+      0.05, 0.95
+    );
+    crh := fclamp(
+      crh + dt * 2.0 * (crhTarget - crh),
+      0.05, 0.95
+    );
+
+    // ─── ACTH RELEASE (ANTERIOR PITUITARY) ──────────────────────────────────────
+    // CRH → corticotrophs → ACTH release
+    // Also modulated by AVP (arginine vasopressin)
+    let acthTarget = fclamp(
+      0.5 * crh + 0.2 * vasopressin + 0.15 * stressDriveCRH -
+      0.15 * cortisolNegFeedback,
+      0.05, 0.95
+    );
+    acth := fclamp(
+      acth + dt * 1.5 * (acthTarget - acth),
+      0.05, 0.95
+    );
+
+    // ─── CORTISOL SYNTHESIS AND CLEARANCE ───────────────────────────────────────
+    // ACTH → zona fasciculata → cortisol
+    // Half-life: ~60-90 min (slow dynamics)
+    // Binding: CBG (corticosteroid-binding globulin) limits free cortisol
+    let cortisolSynthesis = fclamp(acth * 0.6, 0.0, 0.8);
+    let cortisolClearance = cortisol * 0.02;  // ~90 min half-life at 12Hz
+    cortisol := fclamp(
+      cortisol + dt * (cortisolSynthesis - cortisolClearance),
+      0.05, 0.95
+    );
+
+    // ─── MINERALOCORTICOID vs GLUCOCORTICOID RECEPTOR BALANCE ────────────────────
+    // MR: high affinity, saturated at low cortisol (tonic regulation)
+    // GR: low affinity, activated at high cortisol (stress response)
+    let mrOccupancy = fclamp(cortisol / (cortisol + 0.2), 0.0, 1.0);  // Saturating curve
+    let grOccupancy = fclamp((cortisol - 0.3) / (cortisol + 0.3), 0.0, 1.0);  // Shifts right
+    let mrGrBalance = fclamp(mrOccupancy - grOccupancy, -1.0, 1.0);
+
+    // ─── ALLOSTATIC LOAD ───────────────────────────────────────────────────────
+    // Cumulative wear and tear from chronic stress
+    // Increases: sustained cortisol, sympathetic dominance, inflammation
+    // Decreases: sleep, vagal tone, anti-inflammatory resolution
+    let allostaticAccumulation = fclamp(
+      0.001 * cortisol + 0.001 * sympatheticTone + 0.001 * proinflammatoryCytokines +
+      0.0005 * fearLevel + 0.0005 * painIntensity,
+      0.0, 0.01
+    );
+    let allostaticRecovery = fclamp(
+      0.002 * parasympatheticTone + 0.001 * sleepPressure +
+      0.001 * vagalTone + 0.0005 * antiInflammatoryCytokines,
+      0.0, 0.01
+    );
+    allostaticLoad := fclamp(
+      allostaticLoad + allostaticAccumulation - allostaticRecovery,
+      0.0, 1.0
+    );
+    hpaAllostaticLoad := allostaticLoad;
+
+    // ─── STRESS INOCULATION / HORMESIS ──────────────────────────────────────────
+    // Moderate stress exposure builds resilience (inverted-U)
+    // Too little = fragile; too much = damage; just right = growth
+    let stressExposure = fclamp(cortisol * 0.5 + sympatheticTone * 0.3 + fearLevel * 0.2, 0.0, 1.0);
+    let hormesisGain = if (stressExposure > 0.3 and stressExposure < 0.7) {
+      fclamp(0.001 * (1.0 - Float.abs(stressExposure - 0.5) * 4.0), 0.0, 0.001)
+    } else { 0.0 };
+    hpaStressResilienceCapacity := fclamp(
+      hpaStressResilienceCapacity + hormesisGain - allostaticAccumulation * 0.5,
+      0.0, 1.0
+    );
+
+    // ─── HPG AXIS CROSSTALK (GONADAL) ───────────────────────────────────────────
+    // Cortisol suppresses GnRH → reduced gonadal function under chronic stress
+    let gnrhSuppression = fclamp(cortisol * 0.3, 0.0, 0.5);
+    testosterone := fclamp(
+      testosterone * 0.995 + 0.005 * (0.5 - gnrhSuppression),
+      0.05, 0.95
+    );
+    estrogen := fclamp(
+      estrogen * 0.995 + 0.005 * (0.5 - gnrhSuppression * 0.8),
+      0.05, 0.95
+    );
+
+    // ─── HPT AXIS CROSSTALK (THYROID) ───────────────────────────────────────────
+    // CRH inhibits TRH → reduced T3/T4 under chronic stress (sick euthyroid)
+    let trhSuppression = fclamp(crh * 0.2, 0.0, 0.3);
+    thyroidT3 := fclamp(
+      thyroidT3 * 0.998 + 0.002 * (0.5 - trhSuppression),
+      0.1, 0.9
+    );
+    thyroidT4 := fclamp(
+      thyroidT4 * 0.998 + 0.002 * (0.5 - trhSuppression * 0.7),
+      0.1, 0.9
+    );
+
+    // ─── GH / IGF-1 GROWTH AXIS ────────────────────────────────────────────────
+    // Growth hormone: pulsatile, peaks during deep sleep
+    // Cortisol inhibits GH release
+    let ghSleepDrive = fclamp(sleepPressure * 0.4, 0.0, 0.4);
+    let ghTarget = fclamp(
+      0.3 + ghSleepDrive - 0.2 * cortisol + 0.1 * (1.0 - allostaticLoad),
+      0.1, 0.9
+    );
+    growthHormone := fclamp(
+      growthHormone + dt * 0.5 * (ghTarget - growthHormone),
+      0.1, 0.9
+    );
+    igf1 := fclamp(
+      igf1 * 0.998 + growthHormone * 0.002,
+      0.1, 0.9
+    );
+
+    // ─── OXYTOCIN (TRUST, BONDING, ANTI-STRESS) ─────────────────────────────────
+    // Released: social contact, trust, safety, breastfeeding
+    // Effects: reduces cortisol, reduces amygdala reactivity, promotes bonding
+    let oxytocinDrive = fclamp(
+      0.3 * polyvagalVentral + 0.2 * (1.0 - fearLevel) +
+      0.2 * parasympatheticTone + 0.15 * vagalTone + 0.15 * (1.0 - cortisol),
+      0.0, 1.0
+    );
+    oxytocin := fclamp(
+      oxytocin + dt * 1.0 * (oxytocinDrive - oxytocin),
+      0.05, 0.9
+    );
+
+    // ─── VASOPRESSIN (TERRITORY, PAIR-BONDING, WATER BALANCE) ────────────────────
+    let vasopressinDrive = fclamp(
+      0.25 * sympatheticTone + 0.2 * cortisol + 0.15 * fearLevel +
+      0.15 * brainstemVasomotorTone + 0.15 * (1.0 - energyBalance) + 0.1 * brainstemPAG,
+      0.0, 1.0
+    );
+    vasopressin := fclamp(
+      vasopressin + dt * 1.0 * (vasopressinDrive - vasopressin),
+      0.05, 0.9
+    );
+
+    // ─── MELATONIN (CIRCADIAN COUPLING) ────────────────────────────────────────
+    // Pineal gland: darkness → melatonin → sleep promotion
+    // Suppressed by light, cortisol, norepinephrine
+    let melatoninDrive = fclamp(
+      0.4 * circadianSleepDrive + 0.2 * (1.0 - brainstemReticuloFormation) +
+      0.2 * (1.0 - brainstemLocusCoeruleus) - 0.15 * cortisol - 0.1 * norepinephrine,
+      0.0, 1.0
+    );
+    melatonin := fclamp(
+      melatonin + dt * 0.8 * (melatoninDrive - melatonin),
+      0.0, 0.95
+    );
+
+    // ─── HPA → ALL ENGINE COUPLING ──────────────────────────────────────────────
+    // Cortisol modulates neuroplasticity (inverted-U: moderate enhances, high suppresses)
+    let cortisolPlasticityEffect = if (cortisol < 0.5) {
+      cortisol * 0.02  // Moderate cortisol enhances
+    } else {
+      -1.0 * (cortisol - 0.5) * 0.03  // High cortisol suppresses
+    };
+    plasticityGate := fclamp(plasticityGate + cortisolPlasticityEffect, 0.1, 1.5);
+    // Cortisol shifts emotional field toward negative valence
+    emotionalFieldValence := fclamp(
+      emotionalFieldValence - cortisol * 0.005 + oxytocin * 0.003,
+      0.0, 1.0
+    );
+    // HPA → immune suppression
+    immuneSuppression := fclamp(cortisol * 0.5, 0.0, 0.8);
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 4: IMMUNE-NEURAL CROSSTALK
+  //  Full neuroimmune integration: cytokine cascades, microglia states,
+  //  BBB permeability, sickness behavior, vagal anti-inflammatory reflex,
+  //  HPA-immune bidirectional, TLR4 danger sensing, complement cascade,
+  //  NK cell modulation, T-cell balance, wound healing, neuroinflammation.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickImmuneNeuralCrosstalk() {
+    let dt : Float = 1.0 / 12.0;
+
+    // ─── PROINFLAMMATORY CYTOKINE CASCADE ──────────────────────────────────────
+    // IL-1β → IL-6 → TNF-α cascade with positive feedback
+    // Triggered by: tissue damage, infection, chronic stress, gut permeability
+    let inflammatoryTrigger = fclamp(
+      0.2 * allostaticLoad + 0.15 * gutPermeability + 0.15 * (1.0 - bbbIntegrity) +
+      0.15 * cortisol * 0.5 + 0.1 * painIntensity + 0.1 * (1.0 - vagalTone) +
+      0.1 * (1.0 - gutMicrobiomeDiversity) + 0.05 * sympatheticTone,
+      0.0, 1.0
+    );
+    // IL-1β (initiator)
+    let il1bTarget = fclamp(
+      0.4 * inflammatoryTrigger + 0.2 * microgliaActivation +
+      0.15 * proinflammatoryCytokines + 0.1 * (1.0 - immuneSuppression) +
+      0.15 * (1.0 - antiInflammatoryCytokines),
+      0.0, 1.0
+    );
+    // IL-6 (amplifier)
+    let il6Target = fclamp(
+      0.35 * il1bTarget + 0.25 * inflammatoryTrigger +
+      0.2 * proinflammatoryCytokines + 0.1 * sympatheticTone +
+      0.1 * (1.0 - parasympatheticTone),
+      0.0, 1.0
+    );
+    // TNF-α (effector)
+    let tnfaTarget = fclamp(
+      0.3 * il1bTarget + 0.3 * il6Target + 0.2 * microgliaActivation +
+      0.1 * (1.0 - immuneSuppression) + 0.1 * inflammatoryTrigger,
+      0.0, 1.0
+    );
+    // Integrated proinflammatory
+    let proInflamTarget = fclamp(
+      0.35 * il1bTarget + 0.35 * il6Target + 0.3 * tnfaTarget,
+      0.0, 1.0
+    );
+    proinflammatoryCytokines := fclamp(
+      proinflammatoryCytokines + dt * 1.5 * (proInflamTarget - proinflammatoryCytokines),
+      0.0, 0.95
+    );
+
+    // ─── ANTI-INFLAMMATORY RESOLUTION ──────────────────────────────────────────
+    // IL-10, TGF-β, resolvins, protectins
+    // Counter-regulatory: activated BY inflammation, terminates it
+    let antiInflamTarget = fclamp(
+      0.25 * proinflammatoryCytokines + 0.2 * vagalTone +
+      0.15 * parasympatheticTone + 0.15 * cortisol +
+      0.1 * (1.0 - sympatheticTone) + 0.1 * oxytocin + 0.05 * gutMicrobiomeDiversity,
+      0.0, 1.0
+    );
+    antiInflammatoryCytokines := fclamp(
+      antiInflammatoryCytokines + dt * 1.0 * (antiInflamTarget - antiInflammatoryCytokines),
+      0.0, 0.95
+    );
+
+    // ─── MICROGLIA ACTIVATION STATES ───────────────────────────────────────────
+    // M1: inflammatory, neurotoxic (activated by danger signals)
+    // M2: neuroprotective, repair (activated by IL-10, TGF-β)
+    // Balance determines whether inflammation helps or hurts the brain
+    let m1Drive = fclamp(
+      0.35 * proinflammatoryCytokines + 0.2 * (1.0 - bbbIntegrity) +
+      0.2 * allostaticLoad + 0.15 * (1.0 - antiInflammatoryCytokines) +
+      0.1 * (1.0 - brainstemRapheNuclei),
+      0.0, 1.0
+    );
+    let m2Drive = fclamp(
+      0.3 * antiInflammatoryCytokines + 0.2 * (1.0 - proinflammatoryCytokines) +
+      0.2 * vagalTone + 0.15 * oxytocin + 0.15 * (1.0 - allostaticLoad),
+      0.0, 1.0
+    );
+    // Microglia state: positive = M1 (inflammatory), negative = M2 (protective)
+    let microgliaTarget = fclamp(
+      0.5 * m1Drive - 0.3 * m2Drive + 0.2 * inflammatoryTrigger,
+      0.0, 1.0
+    );
+    microgliaActivation := fclamp(
+      microgliaActivation + dt * 1.0 * (microgliaTarget - microgliaActivation),
+      0.0, 0.95
+    );
+
+    // ─── BLOOD-BRAIN BARRIER PERMEABILITY ──────────────────────────────────────
+    // BBB integrity compromised by: inflammation, stress, alcohol, trauma
+    // Maintained by: sleep, vagal tone, healthy microbiome, exercise
+    let bbbDamage = fclamp(
+      0.003 * proinflammatoryCytokines + 0.002 * allostaticLoad +
+      0.001 * (1.0 - parasympatheticTone) + 0.001 * cortisol,
+      0.0, 0.01
+    );
+    let bbbRepair = fclamp(
+      0.003 * vagalTone + 0.002 * antiInflammatoryCytokines +
+      0.001 * sleepPressure + 0.001 * growthHormone,
+      0.0, 0.01
+    );
+    bbbIntegrity := fclamp(
+      bbbIntegrity + bbbRepair - bbbDamage,
+      0.2, 1.0
+    );
+
+    // ─── SICKNESS BEHAVIOR GENERATION ──────────────────────────────────────────
+    // When immune system is active, behavior MUST change:
+    // fatigue, anhedonia, social withdrawal, reduced appetite, fever
+    // This is ADAPTIVE — energy conservation for immune function
+    let sicknessSeverity = fclamp(
+      0.4 * proinflammatoryCytokines + 0.2 * (1.0 - bbbIntegrity) +
+      0.2 * microgliaActivation + 0.1 * allostaticLoad + 0.1 * (1.0 - energyBalance),
+      0.0, 1.0
+    );
+    sicknessIndex := fclamp(
+      sicknessIndex + dt * 1.5 * (sicknessSeverity - sicknessIndex),
+      0.0, 1.0
+    );
+    // Sickness behavior effects
+    if (sicknessIndex > 0.3) {
+      // Fatigue
+      energyBalance := fclamp(energyBalance - sicknessIndex * 0.003, 0.0, 1.0);
+      // Anhedonia (reduced reward sensitivity)
+      rewardSensitivity := fclamp(rewardSensitivity - sicknessIndex * 0.002, 0.1, 1.0);
+      // Social withdrawal
+      polyvagalVentral := fclamp(polyvagalVentral - sicknessIndex * 0.002, 0.0, 1.0);
+      // Fever (temperature increase)
+      coreTemperature := fclamp(coreTemperature + sicknessIndex * 0.001, 0.0, 1.0);
+    };
+
+    // ─── VAGAL ANTI-INFLAMMATORY REFLEX (CHOLINERGIC) ───────────────────────────
+    // Vagus nerve → spleen → acetylcholine → macrophage inhibition
+    // This is why vagal tone is SO IMPORTANT for health
+    let vagalAntiInflam = fclamp(
+      vagalEfferentChannels[7] * 0.4 + vagalTone * 0.3 + parasympatheticTone * 0.3,
+      0.0, 1.0
+    );
+    // Direct suppression of proinflammatory cytokines
+    proinflammatoryCytokines := fclamp(
+      proinflammatoryCytokines - vagalAntiInflam * 0.005,
+      0.0, 0.95
+    );
+
+    // ─── NK CELL ACTIVITY ──────────────────────────────────────────────────────
+    // Natural killer cells modulated by stress, sleep, cortisol
+    let nkTarget = fclamp(
+      0.3 * (1.0 - cortisol) + 0.2 * (1.0 - allostaticLoad) +
+      0.2 * (sleepPressure * 0.5 + 0.25) + 0.15 * (1.0 - sympatheticTone) +
+      0.15 * antiInflammatoryCytokines,
+      0.1, 0.9
+    );
+    nkCellActivity := fclamp(
+      nkCellActivity + dt * 0.5 * (nkTarget - nkCellActivity),
+      0.1, 0.9
+    );
+
+    // ─── T-CELL BALANCE (Th1/Th2/Th17/Treg) ────────────────────────────────────
+    // Stress shifts Th1→Th2 (cortisol effect)
+    // Th17: autoimmune/inflammatory
+    // Treg: regulatory/suppressive
+    let th1Th2Balance = fclamp(
+      0.5 - cortisol * 0.3 + proinflammatoryCytokines * 0.2 - antiInflammatoryCytokines * 0.1,
+      0.0, 1.0  // 0=Th2 dominant, 1=Th1 dominant
+    );
+    let tregActivity = fclamp(
+      0.3 * antiInflammatoryCytokines + 0.2 * vagalTone + 0.2 * (1.0 - allostaticLoad) +
+      0.15 * oxytocin + 0.15 * (1.0 - cortisol),
+      0.0, 1.0
+    );
+    tCellBalance := fclamp(th1Th2Balance, 0.1, 0.9);
+    tregLevel := fclamp(
+      tregLevel + dt * 0.5 * (tregActivity - tregLevel),
+      0.1, 0.9
+    );
+
+    // ─── WOUND HEALING RATE ────────────────────────────────────────────────────
+    let healingTarget = fclamp(
+      0.25 * growthHormone + 0.2 * (1.0 - cortisol) + 0.2 * (1.0 - allostaticLoad) +
+      0.15 * nkCellActivity + 0.1 * sleepPressure + 0.1 * antiInflammatoryCytokines,
+      0.1, 0.9
+    );
+    woundHealingRate := fclamp(
+      woundHealingRate + dt * 0.3 * (healingTarget - woundHealingRate),
+      0.1, 0.9
+    );
+
+    // ─── NEUROINFLAMMATION → NEUROPLASTICITY ────────────────────────────────────
+    // Chronic neuroinflammation suppresses BDNF, LTP, neurogenesis
+    if (microgliaActivation > 0.5) {
+      bdnfLevel := fclamp(bdnfLevel - (microgliaActivation - 0.5) * 0.003, 0.3, 1.5);
+      ltpInduction := fclamp(ltpInduction - (microgliaActivation - 0.5) * 0.002, 0.0, 1.0);
+    };
+
+    // ─── IMMUNE → ENGINE COUPLING ──────────────────────────────────────────────
+    // Sickness → brainstem (reduced arousal)
+    brainstemReticuloFormation := fclamp(
+      brainstemReticuloFormation - sicknessIndex * 0.005,
+      0.05, 0.98
+    );
+    // Inflammation → emotional field (malaise)
+    emotionalFieldValence := fclamp(
+      emotionalFieldValence - proinflammatoryCytokines * 0.003,
+      0.0, 1.0
+    );
+    // Cytokines → sleep promotion
+    sleepPressure := fclamp(
+      sleepPressure + proinflammatoryCytokines * 0.002,
+      0.0, 1.0
+    );
+  };
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 5: GUT-BRAIN AXIS
+  //  Enteric nervous system (500M neurons), gut serotonin (95% of 5-HT),
+  //  microbiome diversity, SCFA production, tryptophan metabolism,
+  //  gut-derived GABA, intestinal permeability, gut motility CPG,
+  //  gut-systemic inflammation, vagal gut→brain signaling, gut peptides.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickGutBrainAxis() {
+    let dt : Float = 1.0 / 12.0;
+
+    // ─── ENTERIC NERVOUS SYSTEM (ENS) ACTIVITY ──────────────────────────────────
+    // 500M neurons — more than spinal cord. Can function independently.
+    // Generates local reflexes: peristalsis, secretion, blood flow
+    let ensInput = fclamp(
+      0.25 * brainstemDorsalMotorNucleus + 0.2 * parasympatheticTone +
+      0.15 * gutMicrobiomeDiversity + 0.15 * (1.0 - gutPermeability) +
+      0.1 * brainstemNucleusTractusSolitarius + 0.1 * vagalTone +
+      0.05 * (1.0 - sympatheticTone),
+      0.1, 1.0
+    );
+    let ensTarget = fclamp(
+      0.4 * ensInput + 0.2 * gutMotility + 0.2 * gutSerotoninProduction +
+      0.1 * (1.0 - proinflammatoryCytokines) + 0.1 * energyBalance,
+      0.1, 0.9
+    );
+    // ENS oscillator (peristaltic CPG)
+    let ensOscillation = fclamp(
+      0.5 + 0.2 * Float.sin(Float.fromInt(currentBeat) * 0.0873),  // ~0.17 Hz migrating motor complex
+      0.3, 0.7
+    );
+
+    // ─── GUT SEROTONIN PRODUCTION ──────────────────────────────────────────────
+    // Enterochromaffin cells produce 95% of body's serotonin
+    // Modulated by: microbiome, inflammation, vagal activity
+    let gut5htTarget = fclamp(
+      0.3 * gutMicrobiomeDiversity + 0.2 * ensTarget +
+      0.15 * (1.0 - gutPermeability) + 0.15 * vagalTone +
+      0.1 * (1.0 - proinflammatoryCytokines) + 0.1 * energyBalance,
+      0.1, 0.9
+    );
+    gutSerotoninProduction := fclamp(
+      gutSerotoninProduction + dt * 1.0 * (gut5htTarget - gutSerotoninProduction),
+      0.1, 0.9
+    );
+    // Gut 5-HT → systemic serotonin (partial contribution)
+    serotonin := fclamp(
+      serotonin * 0.97 + gutSerotoninProduction * 0.03,
+      0.05, 0.95
+    );
+
+    // ─── MICROBIOME DIVERSITY INDEX ────────────────────────────────────────────
+    // Diversity = resilience. Reduced by: stress, antibiotics, poor diet
+    // Enhanced by: varied diet, fiber, probiotics, vagal tone
+    let diversityPressure = fclamp(
+      -0.002 * cortisol - 0.001 * sympatheticTone - 0.001 * proinflammatoryCytokines +
+      0.002 * vagalTone + 0.001 * parasympatheticTone + 0.001 * (1.0 - allostaticLoad),
+      -0.005, 0.005
+    );
+    gutMicrobiomeDiversity := fclamp(
+      gutMicrobiomeDiversity + diversityPressure,
+      0.1, 0.95
+    );
+
+    // ─── SHORT-CHAIN FATTY ACIDS (SCFA) ────────────────────────────────────────
+    // Microbiome → butyrate, propionate, acetate → brain effects
+    // SCFA: anti-inflammatory, supports BBB, promotes BDNF
+    let scfaProduction = fclamp(
+      0.5 * gutMicrobiomeDiversity + 0.3 * (1.0 - gutPermeability) +
+      0.2 * ensTarget,
+      0.0, 1.0
+    );
+    // SCFA → BBB support
+    bbbIntegrity := fclamp(bbbIntegrity + scfaProduction * 0.001, 0.2, 1.0);
+    // SCFA → BDNF support
+    bdnfLevel := fclamp(bdnfLevel + scfaProduction * 0.001, 0.3, 1.5);
+    // SCFA → anti-inflammatory
+    antiInflammatoryCytokines := fclamp(
+      antiInflammatoryCytokines + scfaProduction * 0.001,
+      0.0, 0.95
+    );
+
+    // ─── TRYPTOPHAN METABOLISM ──────────────────────────────────────────────────
+    // Tryptophan → serotonin (good) OR → kynurenine (inflammatory)
+    // Stress/inflammation shifts toward kynurenine pathway
+    let kynurenineBias = fclamp(
+      0.4 * proinflammatoryCytokines + 0.3 * cortisol + 0.3 * microgliaActivation,
+      0.0, 1.0
+    );
+    let serotoninBias = fclamp(1.0 - kynurenineBias, 0.0, 1.0);
+    // Kynurenine pathway → quinolinic acid → neurotoxicity
+    if (kynurenineBias > 0.5) {
+      // Reduced serotonin availability
+      serotonin := fclamp(serotonin - (kynurenineBias - 0.5) * 0.002, 0.05, 0.95);
+      // Quinolinic acid → NMDA excitotoxicity
+      microgliaActivation := fclamp(microgliaActivation + (kynurenineBias - 0.5) * 0.001, 0.0, 0.95);
+    };
+
+    // ─── INTESTINAL PERMEABILITY (LEAKY GUT) ────────────────────────────────────
+    // Tight junctions compromised by: stress, inflammation, dysbiosis
+    // Maintained by: butyrate (SCFA), vagal tone, zinc, glutamine
+    let permeabilityDamage = fclamp(
+      0.002 * cortisol + 0.002 * proinflammatoryCytokines +
+      0.001 * sympatheticTone + 0.001 * (1.0 - gutMicrobiomeDiversity),
+      0.0, 0.01
+    );
+    let permeabilityRepair = fclamp(
+      0.002 * scfaProduction + 0.001 * vagalTone + 0.001 * growthHormone +
+      0.001 * (1.0 - allostaticLoad),
+      0.0, 0.01
+    );
+    gutPermeability := fclamp(
+      gutPermeability + permeabilityDamage - permeabilityRepair,
+      0.0, 0.9
+    );
+
+    // ─── GUT MOTILITY (PERISTALSIS CPG) ────────────────────────────────────────
+    let motilityTarget = fclamp(
+      0.3 * parasympatheticTone + 0.2 * ensOscillation + 0.15 * brainstemDorsalMotorNucleus +
+      0.15 * gutSerotoninProduction + 0.1 * (1.0 - sympatheticTone) + 0.1 * vagalTone,
+      0.1, 0.9
+    );
+    gutMotility := fclamp(
+      gutMotility + dt * 1.0 * (motilityTarget - gutMotility),
+      0.1, 0.9
+    );
+
+    // ─── GUT PEPTIDES ──────────────────────────────────────────────────────────
+    // GLP-1 (satiety, glucose), CCK (satiety, gallbladder), PYY (satiety)
+    // Ghrelin (hunger) — the only orexigenic gut peptide
+    let glp1Target = fclamp(0.5 + 0.2 * ensTarget - 0.1 * (1.0 - energyBalance), 0.1, 0.9);
+    let cckTarget = fclamp(0.5 + 0.15 * ensTarget + 0.1 * gutMotility, 0.1, 0.9);
+    let pyyTarget = fclamp(0.4 + 0.2 * ensTarget + 0.1 * (1.0 - gutPermeability), 0.1, 0.9);
+    let ghrelinTarget = fclamp(0.5 - 0.2 * energyBalance + 0.1 * (1.0 - glp1Target), 0.1, 0.9);
+    gutGLP1 := fclamp(gutGLP1 + dt * 0.5 * (glp1Target - gutGLP1), 0.1, 0.9);
+    gutCCK := fclamp(gutCCK + dt * 0.5 * (cckTarget - gutCCK), 0.1, 0.9);
+    gutPYY := fclamp(gutPYY + dt * 0.5 * (pyyTarget - gutPYY), 0.1, 0.9);
+    gutGhrelin := fclamp(gutGhrelin + dt * 0.5 * (ghrelinTarget - gutGhrelin), 0.1, 0.9);
+
+    // ─── GUT → BRAIN VAGAL SIGNALING ───────────────────────────────────────────
+    // Vagal afferents carry gut info to NTS → emotional, reward, cognition
+    let gutBrainSignal = fclamp(
+      0.3 * gutSerotoninProduction + 0.2 * gutMotility + 0.15 * scfaProduction +
+      0.15 * (1.0 - gutPermeability) + 0.1 * gutGLP1 + 0.1 * gutMicrobiomeDiversity,
+      0.0, 1.0
+    );
+    // Gut → interoception (gut feelings ARE real)
+    interoceptiveAwareness := fclamp(
+      interoceptiveAwareness * 0.98 + gutBrainSignal * 0.02,
+      0.0, 1.0
+    );
+    // Gut → reward (satiety = reward signal)
+    rewardSensitivity := fclamp(
+      rewardSensitivity * 0.99 + gutGLP1 * 0.005 + gutCCK * 0.005,
+      0.1, 1.0
+    );
+    // Gut → emotional field (healthy gut = better mood)
+    emotionalFieldValence := fclamp(
+      emotionalFieldValence + gutBrainSignal * 0.002 - gutPermeability * 0.002,
+      0.0, 1.0
+    );
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 6: PAIN MATRIX
+  //  Multi-dimensional pain processing: nociceptive transduction (Aδ/C-fiber),
+  //  spinal dorsal horn gating (gate control), ascending pathways,
+  //  sensory-discriminative (S1/S2), affective-motivational (insula/ACC),
+  //  cognitive-evaluative (PFC), descending modulation (PAG→raphe→DH),
+  //  endogenous opioid system, central sensitization, DNIC, placebo/nocebo.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickPainMatrix() {
+    let dt : Float = 1.0 / 12.0;
+
+    // ─── NOCICEPTIVE TRANSDUCTION ──────────────────────────────────────────────
+    // Aδ fibers: fast, sharp, well-localized pain (first pain)
+    // C fibers: slow, dull, diffuse pain (second pain)
+    let noxiousInput = fclamp(
+      0.3 * painIntensity + 0.2 * proinflammatoryCytokines +
+      0.15 * (1.0 - antiInflammatoryCytokines) + 0.15 * allostaticLoad +
+      0.1 * gutPermeability + 0.1 * (1.0 - bbbIntegrity),
+      0.0, 1.0
+    );
+    let adeltaFiber = fclamp(noxiousInput * 0.8, 0.0, 1.0);  // Fast, sharp
+    let cFiber = fclamp(noxiousInput * 0.6 + painChronicRisk * 0.2, 0.0, 1.0);  // Slow, burning
+
+    // ─── SPINAL DORSAL HORN GATING (GATE CONTROL THEORY — MELZACK & WALL) ──────
+    // Large Aβ fibers (touch) CLOSE the gate → reduce pain
+    // Small C fibers OPEN the gate → increase pain
+    // Descending modulation can close or open the gate
+    let touchInput = fclamp(  // Aβ fiber activity (non-noxious touch)
+      0.3 * brainstemReticuloSpinal + 0.2 * motorCommandSignal +
+      0.2 * (1.0 - sympatheticTone) + 0.15 * parasympatheticTone + 0.15 * oxytocin,
+      0.0, 1.0
+    );
+    let gateOpenDrive = fclamp(cFiber * 0.6 + adeltaFiber * 0.3 + painChronicRisk * 0.1, 0.0, 1.0);
+    let gateCloseDrive = fclamp(
+      touchInput * 0.4 + painDescendingModulation * 0.35 + endorphinLevel * 0.25,
+      0.0, 1.0
+    );
+    let spinalGateOutput = fclamp(gateOpenDrive - gateCloseDrive, 0.0, 1.0);
+    painGateControl := fclamp(
+      painGateControl + dt * 3.0 * (spinalGateOutput - painGateControl),
+      0.0, 0.95
+    );
+
+    // ─── ASCENDING PATHWAYS ────────────────────────────────────────────────────
+    // Spinothalamic: to VPL → S1/S2 (location, intensity)
+    // Spinoreticular: to reticular formation (arousal)
+    // Spinomesencephalic: to PAG (descending modulation trigger)
+    let spinothalamicSignal = fclamp(painGateControl * 0.8, 0.0, 1.0);
+    let spinoreticular = fclamp(painGateControl * 0.5, 0.0, 0.8);
+    let spinomesencephalic = fclamp(painGateControl * 0.6, 0.0, 0.8);
+
+    // ─── SENSORY-DISCRIMINATIVE DIMENSION (S1/S2) ──────────────────────────────
+    // Where is the pain? How intense?
+    painSensoryDiscriminative := fclamp(
+      painSensoryDiscriminative + dt * 3.0 * (spinothalamicSignal - painSensoryDiscriminative),
+      0.0, 1.0
+    );
+
+    // ─── AFFECTIVE-MOTIVATIONAL DIMENSION (INSULA/ACC) ─────────────────────────
+    // How unpleasant is this? Suffering component
+    let affectivePainTarget = fclamp(
+      0.4 * spinothalamicSignal + 0.2 * fearLevel + 0.15 * (1.0 - oxytocin) +
+      0.1 * brainstemPAG + 0.1 * (1.0 - serotonin) + 0.05 * allostaticLoad,
+      0.0, 1.0
+    );
+    painAffectiveMotivational := fclamp(
+      painAffectiveMotivational + dt * 2.5 * (affectivePainTarget - painAffectiveMotivational),
+      0.0, 1.0
+    );
+
+    // ─── COGNITIVE-EVALUATIVE DIMENSION (PFC) ──────────────────────────────────
+    // What does this pain mean? Catastrophizing, context, expectation
+    let cognitivePainTarget = fclamp(
+      0.3 * painAffectiveMotivational + 0.2 * predictionError +
+      0.15 * (1.0 - consciousnessIndex) + 0.15 * fearLevel +
+      0.1 * allostaticLoad + 0.1 * (1.0 - hpaStressResilienceCapacity),
+      0.0, 1.0
+    );
+    painCognitiveEvaluative := fclamp(
+      painCognitiveEvaluative + dt * 2.0 * (cognitivePainTarget - painCognitiveEvaluative),
+      0.0, 1.0
+    );
+
+    // ─── DESCENDING MODULATION (PAG → RAPHE → DORSAL HORN) ──────────────────────
+    // Top-down pain control: analgesia pathway
+    let descendingModTarget = fclamp(
+      0.3 * brainstemPAG + 0.25 * brainstemRapheNuclei + 0.2 * endorphinLevel +
+      0.15 * (1.0 - fearLevel) + 0.1 * consciousnessIndex,
+      0.0, 1.0
+    );
+    painDescendingModulation := fclamp(
+      painDescendingModulation + dt * 2.0 * (descendingModTarget - painDescendingModulation),
+      0.0, 0.9
+    );
+
+    // ─── ENDOGENOUS OPIOID SYSTEM ──────────────────────────────────────────────
+    // Endorphins (β-endorphin), enkephalins, dynorphins
+    // Released during: stress, exercise, social bonding, sex, laughter
+    let opioidReleaseDrive = fclamp(
+      0.25 * brainstemPAG + 0.2 * (painGateControl * 0.5) +
+      0.15 * oxytocin + 0.15 * rewardNAccShell +
+      0.1 * brainstemVTA + 0.1 * (1.0 - allostaticLoad) + 0.05 * vagalTone,
+      0.0, 1.0
+    );
+    endorphinLevel := fclamp(
+      endorphinLevel + dt * 1.0 * (opioidReleaseDrive - endorphinLevel),
+      0.05, 0.9
+    );
+    // Endorphins → mood elevation
+    emotionalFieldValence := fclamp(
+      emotionalFieldValence + endorphinLevel * 0.002,
+      0.0, 1.0
+    );
+
+    // ─── CENTRAL SENSITIZATION / WIND-UP ───────────────────────────────────────
+    // Repeated C-fiber activation → NMDA receptor activation → amplification
+    // This is how acute pain becomes chronic pain
+    let windUpDrive = fclamp(
+      0.3 * cFiber + 0.2 * proinflammatoryCytokines +
+      0.2 * (1.0 - painDescendingModulation) + 0.15 * allostaticLoad +
+      0.15 * (1.0 - endorphinLevel),
+      0.0, 1.0
+    );
+    let windUpRecovery = fclamp(
+      0.3 * endorphinLevel + 0.2 * antiInflammatoryCytokines +
+      0.2 * sleepPressure + 0.15 * vagalTone + 0.15 * (1.0 - cortisol),
+      0.0, 1.0
+    );
+    painChronicRisk := fclamp(
+      painChronicRisk + dt * 0.3 * (windUpDrive - windUpRecovery),
+      0.0, 0.9
+    );
+
+    // ─── CONDITIONED PAIN MODULATION (DNIC) ─────────────────────────────────────
+    // Pain inhibits pain (counterirritation, DNIC)
+    let dnicEffect = fclamp(
+      0.3 * brainstemPAG + 0.3 * painDescendingModulation + 0.2 * brainstemRapheNuclei +
+      0.2 * brainstemLocusCoeruleus,
+      0.0, 0.8
+    );
+
+    // ─── PLACEBO / NOCEBO EXPECTATION EFFECTS ───────────────────────────────────
+    // Expectation of relief → endorphin release → actual pain reduction
+    // Expectation of worsening → cholecystokinin → actual pain increase
+    let placeboEffect = fclamp(
+      0.3 * (1.0 - predictionError) + 0.2 * consciousnessIndex +
+      0.2 * endorphinLevel + 0.15 * dopamine + 0.15 * (1.0 - fearLevel),
+      0.0, 0.5
+    );
+    let noceboEffect = fclamp(
+      0.3 * fearLevel + 0.2 * painCognitiveEvaluative +
+      0.2 * predictionError + 0.15 * cortisol + 0.15 * (1.0 - endorphinLevel),
+      0.0, 0.5
+    );
+
+    // ─── INTEGRATED PAIN INTENSITY ──────────────────────────────────────────────
+    let integratedPain = fclamp(
+      0.3 * painSensoryDiscriminative + 0.3 * painAffectiveMotivational +
+      0.2 * painCognitiveEvaluative - 0.1 * dnicEffect - 0.05 * placeboEffect + 0.05 * noceboEffect,
+      0.0, 1.0
+    );
+    painIntensity := fclamp(
+      painIntensity + dt * 2.0 * (integratedPain - painIntensity),
+      0.0, 0.95
+    );
+
+    // ─── PAIN → CROSS-SYSTEM EFFECTS ───────────────────────────────────────────
+    // Pain → arousal (spinoreticular)
+    brainstemReticuloFormation := fclamp(
+      brainstemReticuloFormation + spinoreticular * 0.005,
+      0.05, 0.98
+    );
+    // Pain → emotional field (suffering)
+    emotionalFieldValence := fclamp(
+      emotionalFieldValence - painIntensity * 0.005,
+      0.0, 1.0
+    );
+    // Pain → sympathetic activation
+    sympatheticTone := fclamp(
+      sympatheticTone + painIntensity * 0.003,
+      0.05, 0.95
+    );
+    // Pain → attention capture (salience)
+    if (painIntensity > 0.3) {
+      attentionFocus := fclamp(attentionFocus + (painIntensity - 0.3) * 0.01, 0.0, 1.0);
+      noveltySalience := fclamp(noveltySalience + (painIntensity - 0.3) * 0.005, 0.0, 1.0);
+    };
+    // Pain → sleep disruption
+    if (painIntensity > 0.4) {
+      sleepPressure := fclamp(sleepPressure - painIntensity * 0.003, 0.0, 1.0);
+    };
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 7: REWARD / MOTIVATION CIRCUIT
+  //  Full mesolimbic/mesocortical: VTA dopamine (tonic/phasic), RPE,
+  //  TD learning, incentive salience (wanting) vs hedonic (liking),
+  //  effort cost (ACC), temporal discounting, NAc shell/core,
+  //  ventral pallidum, lateral habenula, orexin coupling,
+  //  motivation-energy coupling, anhedonia index.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickRewardMotivationCircuit() {
+    let dt : Float = 1.0 / 12.0;
+
+    // ─── VTA DOPAMINE NEURON FIRING ────────────────────────────────────────────
+    // Tonic: baseline motivation, effort willingness
+    // Phasic bursts: reward prediction error (unexpected reward)
+    // Phasic dips: worse-than-expected outcome
+    let vtaTonicFiring = fclamp(
+      0.3 * brainstemVTA + 0.2 * (1.0 - allostaticLoad) +
+      0.15 * energyBalance + 0.15 * brainstemReticuloFormation +
+      0.1 * (1.0 - brainstemPAG) + 0.1 * (1.0 - fearLevel),
+      0.1, 0.8
+    );
+    let vtaPhasicFiring = fclamp(
+      rewardPredictionError * 0.8 + noveltySalience * 0.2,
+      -0.5, 1.0  // Can be negative (dips)
+    );
+    // Combined VTA output
+    rewardVTATonic := fclamp(
+      rewardVTATonic + dt * 1.5 * (vtaTonicFiring - rewardVTATonic),
+      0.05, 0.9
+    );
+    rewardVTAPhasic := fclamp(
+      rewardVTAPhasic * 0.85 + vtaPhasicFiring * 0.15,  // Fast decay (phasic)
+      -0.5, 1.0
+    );
+
+    // ─── REWARD PREDICTION ERROR (δ = r - V(s)) ────────────────────────────────
+    // The core learning signal: difference between received and expected reward
+    // δ > 0: better than expected → increase value estimate
+    // δ < 0: worse than expected → decrease value estimate
+    // δ = 0: fully predicted → no learning
+    let receivedReward = fclamp(
+      0.3 * (1.0 - painIntensity) + 0.2 * energyBalance +
+      0.15 * gutGLP1 + 0.1 * oxytocin + 0.1 * endorphinLevel +
+      0.1 * (1.0 - fearLevel) + 0.05 * polyvagalVentral,
+      0.0, 1.0
+    );
+    let expectedReward = fclamp(
+      rewardValueEstimate * 0.8 + rewardVTATonic * 0.2,
+      0.0, 1.0
+    );
+    rewardPredictionError := fclamp(
+      receivedReward - expectedReward,
+      -0.5, 0.5
+    );
+    // Update value estimate (TD learning)
+    let tdLearningRate = fclamp(0.05 * (1.0 - allostaticLoad), 0.01, 0.1);
+    rewardValueEstimate := fclamp(
+      rewardValueEstimate + tdLearningRate * rewardPredictionError,
+      0.0, 1.0
+    );
+
+    // ─── INCENTIVE SALIENCE (WANTING) vs HEDONIC IMPACT (LIKING) ────────────────
+    // Wanting: dopamine-driven, can dissociate from liking
+    // Liking: opioid/endocannabinoid-driven, actual pleasure
+    // Addiction: high wanting, low liking
+    rewardWanting := fclamp(
+      rewardWanting + dt * 2.0 * (
+        0.4 * dopamine + 0.3 * rewardVTAPhasic + 0.2 * noveltySalience +
+        0.1 * rewardOrexin - rewardWanting
+      ),
+      0.0, 1.0
+    );
+    rewardLiking := fclamp(
+      rewardLiking + dt * 1.5 * (
+        0.35 * endorphinLevel + 0.25 * rewardNAccShell + 0.2 * oxytocin +
+        0.1 * serotonin + 0.1 * (1.0 - painIntensity) - rewardLiking
+      ),
+      0.0, 1.0
+    );
+
+    // ─── EFFORT COST COMPUTATION (ACC) ──────────────────────────────────────────
+    // ACC weighs effort required against expected reward
+    // High effort cost + low expected reward = apathy
+    let effortCostTarget = fclamp(
+      0.3 * (1.0 - energyBalance) + 0.2 * allostaticLoad +
+      0.15 * (1.0 - dopamine) + 0.15 * painIntensity +
+      0.1 * cortisol + 0.1 * (1.0 - brainstemReticuloFormation),
+      0.0, 1.0
+    );
+    rewardEffortCost := fclamp(
+      rewardEffortCost + dt * 1.5 * (effortCostTarget - rewardEffortCost),
+      0.0, 1.0
+    );
+
+    // ─── TEMPORAL DISCOUNTING ───────────────────────────────────────────────────
+    // How much future reward is devalued relative to immediate reward
+    // Impulsivity: steep discounting. Patience: shallow discounting.
+    // Serotonin promotes patience; dopamine promotes impulsivity
+    rewardTemporalDiscount := fclamp(
+      0.3 * (1.0 - serotonin) + 0.2 * dopamine + 0.15 * (1.0 - consciousnessIndex) +
+      0.15 * sympatheticTone + 0.1 * fearLevel + 0.1 * (1.0 - parasympatheticTone),
+      0.1, 0.9
+    );
+
+    // ─── NUCLEUS ACCUMBENS SHELL vs CORE ───────────────────────────────────────
+    // Shell: hedonic evaluation (liking), salience attribution
+    // Core: approach behavior, motor execution of reward-seeking
+    rewardNAccShell := fclamp(
+      rewardNAccShell + dt * 2.0 * (
+        0.35 * rewardLiking + 0.25 * endorphinLevel + 0.2 * dopamine +
+        0.1 * oxytocin + 0.1 * rewardVTAPhasic - rewardNAccShell
+      ),
+      0.0, 1.0
+    );
+    rewardNAccCore := fclamp(
+      rewardNAccCore + dt * 2.0 * (
+        0.35 * rewardWanting + 0.25 * dopamine + 0.2 * rewardVTATonic +
+        0.1 * motorCommandSignal + 0.1 * brainstemReticuloFormation - rewardNAccCore
+      ),
+      0.0, 1.0
+    );
+
+    // ─── VENTRAL PALLIDUM (HEDONIC HOTSPOT) ──────────────────────────────────────
+    rewardVentralPallidum := fclamp(
+      rewardVentralPallidum + dt * 1.5 * (
+        0.4 * rewardNAccShell + 0.3 * endorphinLevel +
+        0.2 * rewardLiking + 0.1 * oxytocin - rewardVentralPallidum
+      ),
+      0.0, 1.0
+    );
+
+    // ─── LATERAL HABENULA (ANTI-REWARD / DISAPPOINTMENT) ────────────────────────
+    // Fires when reality < expectation. Inhibits VTA dopamine.
+    // Overactivity → depression, anhedonia
+    let habenulaDrive = fclamp(
+      0.4 * Float.max(0.0, -1.0 * rewardPredictionError) +  // Negative RPE
+      0.2 * painIntensity + 0.15 * (1.0 - rewardLiking) +
+      0.15 * allostaticLoad + 0.1 * cortisol,
+      0.0, 1.0
+    );
+    rewardHabenula := fclamp(
+      rewardHabenula + dt * 2.0 * (habenulaDrive - rewardHabenula),
+      0.0, 0.9
+    );
+
+    // ─── OREXIN/HYPOCRETIN (AROUSAL-REWARD COUPLING) ───────────────────────────
+    // Links arousal to reward-seeking. Absent in narcolepsy.
+    let orexinTarget = fclamp(
+      0.3 * brainstemReticuloFormation + 0.2 * (1.0 - sleepPressure) +
+      0.2 * rewardWanting + 0.15 * (1.0 - energyBalance) +
+      0.15 * gutGhrelin,
+      0.0, 1.0
+    );
+    rewardOrexin := fclamp(
+      rewardOrexin + dt * 1.0 * (orexinTarget - rewardOrexin),
+      0.0, 0.9
+    );
+
+    // ─── ANHEDONIA INDEX ───────────────────────────────────────────────────────
+    // Inability to experience pleasure. Key depression symptom.
+    // High habenula + low VTA tonic + low liking + high cortisol = anhedonia
+    rewardAnhedonia := fclamp(
+      0.25 * rewardHabenula + 0.2 * (1.0 - rewardLiking) +
+      0.2 * (1.0 - rewardVTATonic) + 0.15 * cortisol +
+      0.1 * allostaticLoad + 0.1 * (1.0 - serotonin),
+      0.0, 1.0
+    );
+
+    // ─── MOTIVATION-ENERGY COUPLING ─────────────────────────────────────────────
+    // Motivation requires metabolic energy. No energy → no motivation.
+    let motivationTarget = fclamp(
+      0.25 * rewardWanting + 0.2 * rewardVTATonic + 0.15 * (1.0 - rewardEffortCost) +
+      0.15 * energyBalance + 0.1 * brainstemReticuloFormation +
+      0.1 * dopamine + 0.05 * (1.0 - rewardAnhedonia),
+      0.0, 1.0
+    );
+    motivationLevel := fclamp(
+      motivationLevel + dt * 1.5 * (motivationTarget - motivationLevel),
+      0.0, 1.0
+    );
+
+    // ─── REWARD → CROSS-SYSTEM COUPLING ────────────────────────────────────────
+    // Reward → behavior selection (approach/avoid)
+    emotionalFieldValence := fclamp(
+      emotionalFieldValence + rewardLiking * 0.003 - rewardAnhedonia * 0.002,
+      0.0, 1.0
+    );
+    // Reward → learning (emotional tagging for consolidation)
+    if (Float.abs(rewardPredictionError) > 0.1) {
+      ltpInduction := fclamp(ltpInduction + Float.abs(rewardPredictionError) * 0.005, 0.0, 1.0);
+    };
+    // Reward → dopamine feedback
+    dopamine := fclamp(
+      dopamine * 0.96 + rewardVTATonic * 0.02 + rewardVTAPhasic * 0.02,
+      0.05, 0.95
+    );
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 8: SLEEP ARCHITECTURE
+  //  Full sleep stage dynamics: two-process model (S+C), adenosine, flip-flop switch,
+  //  N1/N2/N3/REM stages, sleep spindles, K-complexes, delta waves,
+  //  90-min ultradian cycles, REM-on/off competition, memory replay,
+  //  synaptic homeostasis, glymphatic clearance, sleep deprivation effects.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickSleepArchitecture() {
+    let dt : Float = 1.0 / 12.0;
+
+    // ─── PROCESS S: HOMEOSTATIC SLEEP PRESSURE (ADENOSINE) ──────────────────────
+    // Adenosine accumulates during wakefulness, cleared during sleep
+    // Caffeine blocks adenosine receptors (modeled as antagonist)
+    let wakeActivity = fclamp(
+      brainstemReticuloFormation * 0.7 + (1.0 - sleepPressure) * 0.3,
+      0.0, 1.0
+    );
+    let adenosineAccumulation = wakeActivity * 0.001;  // Slow buildup
+    let adenosineClearance = sleepPressure * 0.002;  // Cleared during sleep
+    adenosineLevel := fclamp(
+      adenosineLevel + adenosineAccumulation - adenosineClearance,
+      0.0, 1.0
+    );
+    // Process S = adenosine level
+    sleepProcessS := adenosineLevel;
+
+    // ─── PROCESS C: CIRCADIAN DRIVE ─────────────────────────────────────────────
+    // SCN-driven alerting signal. Opposes Process S during the day.
+    // Maximum alertness in late afternoon (circadian peak)
+    sleepProcessC := fclamp(
+      0.5 + 0.4 * Float.cos(circadianPhase * 6.2832),  // Peak at phase 0 (noon)
+      0.0, 1.0
+    );
+
+    // ─── COMBINED SLEEP DRIVE ───────────────────────────────────────────────────
+    // Sleep occurs when Process S > Process C (adenosine overcomes circadian alertness)
+    let netSleepDrive = fclamp(
+      sleepProcessS - sleepProcessC * 0.6 + melatonin * 0.3,
+      0.0, 1.0
+    );
+    sleepPressure := fclamp(
+      sleepPressure + dt * 0.5 * (netSleepDrive - sleepPressure),
+      0.0, 1.0
+    );
+
+    // ─── FLIP-FLOP SWITCH (VLPO ↔ AROUSAL NUCLEI) ──────────────────────────────
+    // Bistable switch: prevents gradual transitions (you're either asleep or awake)
+    // VLPO (sleep): GABA/galanin to LC, raphe, TMN, orexin
+    // Arousal nuclei (wake): monoamines inhibit VLPO
+    let vlpoDrive = fclamp(
+      0.4 * sleepPressure + 0.2 * adenosineLevel + 0.2 * melatonin +
+      0.1 * gabaLevel + 0.1 * (1.0 - brainstemLocusCoeruleus),
+      0.0, 1.0
+    );
+    let arousalDrive = fclamp(
+      0.3 * brainstemReticuloFormation + 0.2 * brainstemLocusCoeruleus +
+      0.15 * rewardOrexin + 0.15 * norepinephrine +
+      0.1 * serotonin + 0.1 * sympatheticTone,
+      0.0, 1.0
+    );
+    // Hysteresis: once flipped, stays flipped until strong opposing signal
+    let sleepWakeBalance = vlpoDrive - arousalDrive;
+    let isAsleep = sleepWakeBalance > 0.1;
+    sleepFlipFlopState := fclamp(
+      if (isAsleep) { fclamp(sleepFlipFlopState + dt * 2.0 * (1.0 - sleepFlipFlopState), 0.0, 1.0) }
+      else { fclamp(sleepFlipFlopState + dt * 2.0 * (0.0 - sleepFlipFlopState), 0.0, 1.0) },
+      0.0, 1.0
+    );
+
+    // ─── SLEEP STAGE DYNAMICS ───────────────────────────────────────────────────
+    // 90-minute ultradian cycle: N1 → N2 → N3 → N2 → REM → repeat
+    // Early night: more N3 (deep sleep). Late night: more REM.
+    if (sleepFlipFlopState > 0.5) {
+      // We're asleep — compute sleep stages
+      let sleepCyclePhase = fclamp(
+        0.5 + 0.5 * Float.sin(Float.fromInt(currentBeat) * 0.00116),  // ~90 min at 12Hz
+        0.0, 1.0
+      );
+      // N1: light sleep (theta waves, hypnagogic imagery)
+      let n1Drive = if (sleepCyclePhase < 0.15 or sleepCyclePhase > 0.85) { 0.7 } else { 0.1 };
+      sleepN1Power := fclamp(sleepN1Power + dt * 2.0 * (n1Drive - sleepN1Power), 0.0, 1.0);
+      // N2: sleep spindles (12-15 Hz bursts) + K-complexes
+      let n2Drive = if (sleepCyclePhase >= 0.15 and sleepCyclePhase < 0.35) { 0.8 } else { 0.2 };
+      sleepN2Power := fclamp(sleepN2Power + dt * 2.0 * (n2Drive - sleepN2Power), 0.0, 1.0);
+      sleepSpindlePower := fclamp(
+        sleepN2Power * 0.7 + 0.2 * Float.sin(Float.fromInt(currentBeat) * 1.5) + 0.1,
+        0.0, 1.0
+      );
+      sleepKComplexRate := fclamp(sleepN2Power * 0.6, 0.0, 1.0);
+      // N3: deep sleep (delta 0.5-4 Hz, slow-wave activity)
+      let n3Drive = if (sleepCyclePhase >= 0.35 and sleepCyclePhase < 0.6) { 0.9 } else { 0.1 };
+      sleepN3Power := fclamp(sleepN3Power + dt * 2.0 * (n3Drive - sleepN3Power), 0.0, 1.0);
+      sleepDeltaPower := fclamp(sleepN3Power * 0.85, 0.0, 1.0);
+      // REM: rapid eye movement (dreaming, PGO waves, muscle atonia)
+      let remDrive = if (sleepCyclePhase >= 0.7 and sleepCyclePhase < 0.85) { 0.8 } else { 0.1 };
+      // REM-on cells (cholinergic PPT/LDT) vs REM-off cells (LC, raphe)
+      let remOnDrive = fclamp(
+        0.4 * remDrive + 0.3 * acetylcholine + 0.2 * brainstemPontineNuclei +
+        0.1 * (1.0 - norepinephrine),
+        0.0, 1.0
+      );
+      let remOffDrive = fclamp(
+        0.3 * norepinephrine + 0.3 * serotonin + 0.2 * brainstemLocusCoeruleus +
+        0.2 * brainstemRapheNuclei,
+        0.0, 1.0
+      );
+      sleepREMPower := fclamp(
+        sleepREMPower + dt * 2.0 * (fclamp(remOnDrive - remOffDrive * 0.5, 0.0, 1.0) - sleepREMPower),
+        0.0, 1.0
+      );
+
+      // ─── MEMORY REPLAY DURING NREM ──────────────────────────────────────────
+      // Hippocampal sharp-wave ripples replay recent experiences
+      // Spindle-ripple coupling = memory consolidation
+      if (sleepN3Power > 0.3) {
+        // Memory consolidation during deep sleep
+        ltpInduction := fclamp(ltpInduction + sleepN3Power * 0.003, 0.0, 1.0);
+        // Synaptic homeostasis (Tononi): global downscaling
+        // Weak synapses pruned, strong synapses maintained
+        pruningRate := fclamp(pruningRate + sleepN3Power * 0.002, 0.0, 1.0);
+      };
+
+      // ─── MEMORY CONSOLIDATION DURING REM ─────────────────────────────────────
+      // Emotional memory processing, procedural memory consolidation
+      if (sleepREMPower > 0.3) {
+        // Emotional memory reprocessing
+        emotionalFieldValence := fclamp(
+          emotionalFieldValence + (0.5 - emotionalFieldValence) * 0.002,  // Tends toward neutral
+          0.0, 1.0
+        );
+        // BDNF production during REM
+        bdnfLevel := fclamp(bdnfLevel + sleepREMPower * 0.002, 0.3, 1.5);
+      };
+
+      // ─── GLYMPHATIC CLEARANCE ─────────────────────────────────────────────────
+      // Brain waste removal during sleep (10x more active during sleep)
+      // Clears β-amyloid, tau, metabolic waste
+      sleepGlymphaticClearance := fclamp(
+        0.4 * sleepN3Power + 0.3 * sleepFlipFlopState +
+        0.2 * (1.0 - sympatheticTone) + 0.1 * parasympatheticTone,
+        0.0, 1.0
+      );
+      // Glymphatic → reduced neuroinflammation
+      microgliaActivation := fclamp(
+        microgliaActivation - sleepGlymphaticClearance * 0.002,
+        0.0, 0.95
+      );
+      // Glymphatic → reduced allostatic load
+      allostaticLoad := fclamp(
+        allostaticLoad - sleepGlymphaticClearance * 0.001,
+        0.0, 1.0
+      );
+    } else {
+      // We're awake — sleep stage powers decay
+      sleepN1Power := fclamp(sleepN1Power * 0.95, 0.0, 1.0);
+      sleepN2Power := fclamp(sleepN2Power * 0.95, 0.0, 1.0);
+      sleepN3Power := fclamp(sleepN3Power * 0.95, 0.0, 1.0);
+      sleepREMPower := fclamp(sleepREMPower * 0.95, 0.0, 1.0);
+      sleepSpindlePower := fclamp(sleepSpindlePower * 0.95, 0.0, 1.0);
+      sleepKComplexRate := fclamp(sleepKComplexRate * 0.95, 0.0, 1.0);
+      sleepDeltaPower := fclamp(sleepDeltaPower * 0.95, 0.0, 1.0);
+      sleepGlymphaticClearance := fclamp(sleepGlymphaticClearance * 0.9, 0.0, 1.0);
+    };
+
+    // ─── SLEEP DEPRIVATION EFFECTS ──────────────────────────────────────────────
+    // Chronic high adenosine + low sleep = cognitive/emotional/immune degradation
+    if (adenosineLevel > 0.7 and sleepFlipFlopState < 0.3) {
+      let deprivationSeverity = fclamp((adenosineLevel - 0.7) * 3.0, 0.0, 1.0);
+      // Cognitive impairment
+      consciousnessIndex := fclamp(consciousnessIndex - deprivationSeverity * 0.003, 0.0, 1.0);
+      pcGlobalPrecision := fclamp(pcGlobalPrecision - deprivationSeverity * 0.005, 0.1, 3.0);
+      // Emotional dysregulation
+      emotionalFieldArousal := fclamp(emotionalFieldArousal + deprivationSeverity * 0.003, 0.0, 1.0);
+      fearLevel := fclamp(fearLevel + deprivationSeverity * 0.002, 0.0, 1.0);
+      // Immune suppression
+      nkCellActivity := fclamp(nkCellActivity - deprivationSeverity * 0.002, 0.1, 0.9);
+      proinflammatoryCytokines := fclamp(proinflammatoryCytokines + deprivationSeverity * 0.002, 0.0, 0.95);
+      // Metabolic disruption
+      cortisol := fclamp(cortisol + deprivationSeverity * 0.002, 0.05, 0.95);
+    };
+
+    // ─── SLEEP → ALL ENGINE COUPLING ────────────────────────────────────────────
+    // Arousal reduction during sleep
+    if (sleepFlipFlopState > 0.5) {
+      brainstemReticuloFormation := fclamp(brainstemReticuloFormation * 0.998, 0.05, 0.98);
+      brainstemLocusCoeruleus := fclamp(brainstemLocusCoeruleus * 0.997, 0.05, 0.95);
+    };
+  };
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 9: MOTOR SYSTEM
+  //  Full motor hierarchy: M1 somatotopic map, premotor planning, SMA sequencing,
+  //  basal ganglia GO/NO-GO/BRAKE, cerebellum forward models,
+  //  brainstem motor nuclei, spinal α/γ motor neurons, reflex arcs,
+  //  CPGs (locomotion, respiration), proprioception, motor learning,
+  //  efference copy / corollary discharge.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickMotorSystem() {
+    let dt : Float = 1.0 / 12.0;
+
+    // ─── MOTOR CORTEX M1 (PRIMARY MOTOR — SOMATOTOPIC MAP) ──────────────────────
+    // Somatotopic organization: each region controls specific body parts
+    // Activity driven by: premotor planning, basal ganglia GO signal, cerebellum timing
+    var motorCortexIdx = 0;
+    var totalMotorOutput : Float = 0.0;
+    while (motorCortexIdx < 8) {  // 8 somatotopic regions
+      let premotor = fclamp(
+        0.3 * motorCommandSignal + 0.2 * brainstemReticuloFormation +
+        0.15 * consciousnessIndex + 0.15 * dopamine +
+        0.1 * brainstemSubstantiaNigra + 0.1 * (1.0 - brainstemPAG),
+        0.0, 1.0
+      );
+      // Basal ganglia GO signal gates motor output
+      let bgGoSignal = fclamp(
+        0.4 * brainstemSubstantiaNigra + 0.3 * dopamine +
+        0.2 * rewardNAccCore + 0.1 * motivationLevel,
+        0.0, 1.0
+      );
+      // Cerebellar timing correction
+      let cerebellumCorrection = fclamp(
+        0.3 * (1.0 - predictionError) + 0.3 * brainstemInferiorOlive +
+        0.2 * brainstemRedNucleus + 0.2 * proprioceptionBalance,
+        0.0, 1.0
+      );
+      let m1Output = fclamp(
+        0.35 * premotor * bgGoSignal + 0.25 * cerebellumCorrection +
+        0.2 * brainstemReticuloFormation + 0.1 * (1.0 - sleepFlipFlopState) +
+        0.1 * (1.0 - painIntensity),
+        0.0, 1.0
+      );
+      motorSomatotopicMap[motorCortexIdx] := fclamp(
+        motorSomatotopicMap[motorCortexIdx] + dt * 3.0 * (m1Output - motorSomatotopicMap[motorCortexIdx]),
+        0.0, 1.0
+      );
+      totalMotorOutput += motorSomatotopicMap[motorCortexIdx];
+      motorCortexIdx += 1;
+    };
+    totalMotorOutput := totalMotorOutput / 8.0;
+
+    // ─── PREMOTOR CORTEX (ACTION PLANNING + MIRROR NEURONS) ──────────────────────
+    // Plans actions before M1 executes. Mirror neurons fire for observed actions too.
+    let premotorTarget = fclamp(
+      0.3 * consciousnessIndex + 0.2 * motivationLevel +
+      0.15 * attentionFocus + 0.15 * brainstemReticuloFormation +
+      0.1 * rewardWanting + 0.1 * (1.0 - brainstemPAG),
+      0.0, 1.0
+    );
+    motorPremotorActivity := fclamp(
+      motorPremotorActivity + dt * 2.0 * (premotorTarget - motorPremotorActivity),
+      0.0, 1.0
+    );
+    // Mirror neuron activity (observing or imagining actions)
+    var mirrorIdx = 0;
+    while (mirrorIdx < 11) {
+      let mirrorTarget = fclamp(
+        0.3 * motorPremotorActivity + 0.2 * consciousnessIndex +
+        0.15 * attentionFocus + 0.15 * polyvagalVentral +
+        0.1 * brainstemSuperiorColliculus + 0.1 * (1.0 - fearLevel),
+        0.0, 1.0
+      );
+      mirrorNeuronActivityArr[mirrorIdx] := fclamp(
+        mirrorNeuronActivityArr[mirrorIdx] + dt * 1.5 * (mirrorTarget - mirrorNeuronActivityArr[mirrorIdx]),
+        0.0, 1.0
+      );
+      mirrorIdx += 1;
+    };
+
+    // ─── SUPPLEMENTARY MOTOR AREA (SEQUENCING) ──────────────────────────────────
+    // Internally-generated movement sequences (playing piano, speaking)
+    let smaTarget = fclamp(
+      0.3 * motorPremotorActivity + 0.2 * consciousnessIndex +
+      0.2 * brainstemReticuloFormation + 0.15 * motivationLevel +
+      0.15 * (1.0 - sleepFlipFlopState),
+      0.0, 1.0
+    );
+    motorSMAActivity := fclamp(
+      motorSMAActivity + dt * 2.0 * (smaTarget - motorSMAActivity),
+      0.0, 1.0
+    );
+
+    // ─── BASAL GANGLIA ACTION SELECTION (GO/NO-GO/BRAKE) ────────────────────────
+    // Direct pathway (D1 — GO): facilitates desired actions
+    // Indirect pathway (D2 — NO-GO): suppresses competing actions
+    // Hyperdirect pathway (STN — BRAKE): emergency stop
+    let d1GoSignal = fclamp(
+      0.4 * dopamine + 0.2 * rewardNAccCore + 0.2 * motivationLevel +
+      0.1 * brainstemSubstantiaNigra + 0.1 * brainstemReticuloFormation,
+      0.0, 1.0
+    );
+    let d2NoGoSignal = fclamp(
+      0.3 * (1.0 - dopamine) + 0.2 * fearLevel + 0.2 * brainstemPAG +
+      0.15 * painIntensity + 0.15 * (1.0 - brainstemSubstantiaNigra),
+      0.0, 1.0
+    );
+    let stnBrakeSignal = fclamp(
+      0.4 * predictionError + 0.3 * noveltySalience +
+      0.2 * brainstemSuperiorColliculus + 0.1 * fearLevel,
+      0.0, 1.0
+    );
+    motorBGGoSignal := fclamp(
+      motorBGGoSignal + dt * 3.0 * (d1GoSignal - motorBGGoSignal),
+      0.0, 1.0
+    );
+    motorBGNoGoSignal := fclamp(
+      motorBGNoGoSignal + dt * 3.0 * (d2NoGoSignal - motorBGNoGoSignal),
+      0.0, 1.0
+    );
+    motorBGBrakeSignal := fclamp(
+      motorBGBrakeSignal + dt * 5.0 * (stnBrakeSignal - motorBGBrakeSignal),  // Fastest
+      0.0, 1.0
+    );
+    // Net basal ganglia output (thalamocortical disinhibition)
+    let bgNetOutput = fclamp(
+      motorBGGoSignal - motorBGNoGoSignal * 0.5 - motorBGBrakeSignal * 0.3,
+      0.0, 1.0
+    );
+
+    // ─── CEREBELLUM FORWARD MODELS ──────────────────────────────────────────────
+    // Predicts sensory consequences of movement (internal model)
+    // Error signal from inferior olive updates the model
+    let cerebellarPrediction = fclamp(
+      0.4 * totalMotorOutput + 0.3 * proprioceptionBalance +
+      0.2 * brainstemRedNucleus + 0.1 * brainstemInferiorOlive,
+      0.0, 1.0
+    );
+    let cerebellarError = fclamp(
+      Float.abs(cerebellarPrediction - totalMotorOutput),
+      0.0, 1.0
+    );
+    motorCerebellumOutput := fclamp(
+      motorCerebellumOutput + dt * 2.0 * (cerebellarPrediction - motorCerebellumOutput),
+      0.0, 1.0
+    );
+    // Cerebellar learning (climbing fiber error)
+    brainstemInferiorOlive := fclamp(
+      brainstemInferiorOlive * 0.97 + cerebellarError * 0.03,
+      0.05, 0.9
+    );
+
+    // ─── CENTRAL PATTERN GENERATORS (CPGs) ──────────────────────────────────────
+    // Locomotion CPG: spinal circuits generate rhythmic stepping without cortex
+    let locomotionCPG = fclamp(
+      0.5 + 0.3 * Float.sin(Float.fromInt(currentBeat) * 0.5) +
+      0.1 * brainstemReticuloSpinal + 0.1 * (1.0 - sleepFlipFlopState),
+      0.0, 1.0
+    );
+    motorCPGLocomotion := fclamp(
+      motorCPGLocomotion + dt * 2.0 * (locomotionCPG * totalMotorOutput - motorCPGLocomotion),
+      0.0, 1.0
+    );
+
+    // ─── PROPRIOCEPTION INTEGRATION ─────────────────────────────────────────────
+    // Muscle spindle Ia afferents (stretch), Golgi tendon organs Ib (force)
+    let proprioceptionTarget = fclamp(
+      0.3 * totalMotorOutput + 0.2 * motorCerebellumOutput +
+      0.2 * brainstemVestibulospinal + 0.15 * brainstemReticuloSpinal +
+      0.15 * (1.0 - sleepFlipFlopState),
+      0.0, 1.0
+    );
+    proprioceptionBalance := fclamp(
+      proprioceptionBalance + dt * 2.0 * (proprioceptionTarget - proprioceptionBalance),
+      0.0, 1.0
+    );
+
+    // ─── EFFERENCE COPY / COROLLARY DISCHARGE ───────────────────────────────────
+    // Copy of motor command sent to sensory areas: predicts sensory consequences
+    // Mismatch between predicted and actual = surprise/external cause
+    motorEfferenceCopy := fclamp(totalMotorOutput, 0.0, 1.0);
+    let efferenceMismatch = fclamp(
+      Float.abs(motorEfferenceCopy - proprioceptionBalance),
+      0.0, 1.0
+    );
+    // High mismatch → external force detected
+    if (efferenceMismatch > 0.3) {
+      noveltySalience := fclamp(noveltySalience + efferenceMismatch * 0.005, 0.0, 1.0);
+    };
+
+    // ─── MOTOR → CROSS-SYSTEM COUPLING ─────────────────────────────────────────
+    // Motor output → metabolic demand
+    metabolicRate := fclamp(
+      metabolicRate * 0.98 + totalMotorOutput * 0.02,
+      0.1, 1.0
+    );
+    // Motor command signal integration
+    motorCommandSignal := fclamp(
+      0.4 * totalMotorOutput + 0.3 * bgNetOutput + 0.2 * motorPremotorActivity + 0.1 * motorSMAActivity,
+      0.0, 1.0
+    );
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 10: SENSORY PROCESSING
+  //  Full sensory hierarchy: visual cortex V1→V2→V4→MT→IT pipeline,
+  //  auditory cortex A1→A2 tonotopic, somatosensory S1→S2,
+  //  vestibular, olfactory (direct limbic), gustatory,
+  //  multisensory integration, thalamic sensory gating,
+  //  predictive coding in sensory hierarchies, adaptation.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickSensoryProcessing() {
+    let dt : Float = 1.0 / 12.0;
+
+    // ─── THALAMIC SENSORY GATING ───────────────────────────────────────────────
+    // Thalamus filters sensory input based on attention and arousal
+    // During sleep: gate closes (sensory disconnection)
+    let sensoryGate = fclamp(
+      0.3 * brainstemReticuloFormation + 0.25 * attentionFocus +
+      0.2 * consciousnessIndex + 0.15 * (1.0 - sleepFlipFlopState) +
+      0.1 * brainstemLocusCoeruleus,
+      0.1, 1.0
+    );
+
+    // ─── VISUAL CORTEX HIERARCHY (V1→V2→V4→MT→IT) ──────────────────────────────
+    // V1: oriented edges, spatial frequency
+    // V2: illusory contours, texture
+    // V4: color, shape
+    // MT/V5: motion, optic flow
+    // IT: objects, faces, categories
+    var visualInput = fclamp(
+      0.3 * brainstemSuperiorColliculus + 0.3 * sensoryGate +
+      0.2 * attentionFocus + 0.1 * noveltySalience + 0.1 * (1.0 - sleepFlipFlopState),
+      0.0, 1.0
+    );
+    // V1: edge detection
+    sensoryCortexRegions[0] := fclamp(
+      sensoryCortexRegions[0] + dt * 3.0 * (visualInput * sensoryGate - sensoryCortexRegions[0]),
+      0.0, 1.0
+    );
+    // V2: texture/contour
+    sensoryCortexRegions[1] := fclamp(
+      sensoryCortexRegions[1] + dt * 2.5 * (sensoryCortexRegions[0] * 0.8 - sensoryCortexRegions[1]),
+      0.0, 1.0
+    );
+    // V4: color/shape
+    sensoryCortexRegions[2] := fclamp(
+      sensoryCortexRegions[2] + dt * 2.0 * (sensoryCortexRegions[1] * 0.7 - sensoryCortexRegions[2]),
+      0.0, 1.0
+    );
+    // MT: motion
+    sensoryCortexRegions[3] := fclamp(
+      sensoryCortexRegions[3] + dt * 2.5 * (sensoryCortexRegions[0] * 0.6 + 0.2 * brainstemSuperiorColliculus - sensoryCortexRegions[3]),
+      0.0, 1.0
+    );
+    // IT: object recognition
+    sensoryCortexRegions[4] := fclamp(
+      sensoryCortexRegions[4] + dt * 1.5 * (0.4 * sensoryCortexRegions[2] + 0.3 * sensoryCortexRegions[3] - sensoryCortexRegions[4]),
+      0.0, 1.0
+    );
+
+    // ─── AUDITORY CORTEX (A1→A2, TONOTOPIC) ────────────────────────────────────
+    let auditoryInput = fclamp(
+      0.3 * brainstemInferiorColliculus + 0.3 * sensoryGate +
+      0.2 * attentionFocus + 0.1 * noveltySalience + 0.1 * (1.0 - sleepFlipFlopState),
+      0.0, 1.0
+    );
+    // A1: primary auditory cortex
+    sensoryCortexRegions[5] := fclamp(
+      sensoryCortexRegions[5] + dt * 3.0 * (auditoryInput * sensoryGate - sensoryCortexRegions[5]),
+      0.0, 1.0
+    );
+    // A2: auditory association
+    sensoryCortexRegions[6] := fclamp(
+      sensoryCortexRegions[6] + dt * 2.0 * (sensoryCortexRegions[5] * 0.7 - sensoryCortexRegions[6]),
+      0.0, 1.0
+    );
+    // Wernicke's area (language comprehension)
+    sensoryCortexRegions[7] := fclamp(
+      sensoryCortexRegions[7] + dt * 1.5 * (sensoryCortexRegions[6] * 0.6 + consciousnessIndex * 0.2 - sensoryCortexRegions[7]),
+      0.0, 1.0
+    );
+
+    // ─── SOMATOSENSORY CORTEX (S1→S2, SOMATOTOPIC) ──────────────────────────────
+    let somatosensoryInput = fclamp(
+      0.3 * proprioceptionBalance + 0.2 * sensoryGate +
+      0.15 * brainstemParabrachialNucleus + 0.15 * interoceptiveAwareness +
+      0.1 * painSensoryDiscriminative + 0.1 * (1.0 - sleepFlipFlopState),
+      0.0, 1.0
+    );
+    // S1: primary somatosensory
+    sensoryCortexRegions[8] := fclamp(
+      sensoryCortexRegions[8] + dt * 3.0 * (somatosensoryInput * sensoryGate - sensoryCortexRegions[8]),
+      0.0, 1.0
+    );
+    // S2: secondary somatosensory
+    sensoryCortexRegions[9] := fclamp(
+      sensoryCortexRegions[9] + dt * 2.0 * (sensoryCortexRegions[8] * 0.7 - sensoryCortexRegions[9]),
+      0.0, 1.0
+    );
+
+    // ─── VESTIBULAR CORTEX ──────────────────────────────────────────────────────
+    sensoryCortexRegions[10] := fclamp(
+      sensoryCortexRegions[10] + dt * 2.0 * (
+        0.4 * brainstemVestibulospinal + 0.3 * proprioceptionBalance +
+        0.2 * brainstemReticuloFormation + 0.1 * sensoryGate - sensoryCortexRegions[10]
+      ),
+      0.0, 1.0
+    );
+
+    // ─── OLFACTORY CORTEX (DIRECT LIMBIC CONNECTION) ─────────────────────────────
+    // Unique: bypasses thalamic gating, direct to amygdala + hippocampus
+    sensoryCortexRegions[11] := fclamp(
+      sensoryCortexRegions[11] + dt * 2.0 * (
+        0.3 * noveltySalience + 0.2 * emotionalFieldValence +
+        0.2 * (1.0 - sleepFlipFlopState) + 0.15 * brainstemReticuloFormation +
+        0.15 * interoceptiveAwareness - sensoryCortexRegions[11]
+      ),
+      0.0, 1.0
+    );
+
+    // ─── GUSTATORY CORTEX ───────────────────────────────────────────────────────
+    sensoryCortexRegions[12] := fclamp(
+      sensoryCortexRegions[12] + dt * 2.0 * (
+        0.3 * brainstemParabrachialNucleus + 0.2 * gutSerotoninProduction +
+        0.2 * brainstemNucleusTractusSolitarius + 0.15 * interoceptiveAwareness +
+        0.15 * sensoryGate - sensoryCortexRegions[12]
+      ),
+      0.0, 1.0
+    );
+
+    // ─── MULTISENSORY INTEGRATION ───────────────────────────────────────────────
+    // Superior temporal sulcus + intraparietal sulcus: binding problem
+    let visualTotal = (sensoryCortexRegions[0] + sensoryCortexRegions[1] + sensoryCortexRegions[2] + sensoryCortexRegions[3] + sensoryCortexRegions[4]) / 5.0;
+    let auditoryTotal = (sensoryCortexRegions[5] + sensoryCortexRegions[6] + sensoryCortexRegions[7]) / 3.0;
+    let somatosensoryTotal = (sensoryCortexRegions[8] + sensoryCortexRegions[9]) / 2.0;
+    sensoryMultisensoryBinding := fclamp(
+      0.3 * visualTotal + 0.25 * auditoryTotal + 0.2 * somatosensoryTotal +
+      0.15 * sensoryCortexRegions[10] + 0.1 * consciousnessIndex,
+      0.0, 1.0
+    );
+
+    // ─── PREDICTIVE CODING IN SENSORY HIERARCHIES ───────────────────────────────
+    // Each level predicts the level below. Mismatch = prediction error.
+    let sensoryPredictionError = fclamp(
+      0.3 * Float.abs(visualInput - sensoryCortexRegions[4]) +
+      0.3 * Float.abs(auditoryInput - sensoryCortexRegions[7]) +
+      0.2 * Float.abs(somatosensoryInput - sensoryCortexRegions[9]) +
+      0.2 * predictionError,
+      0.0, 1.0
+    );
+    // Feed sensory prediction errors into global prediction error
+    predictionError := fclamp(
+      predictionError * 0.95 + sensoryPredictionError * 0.05,
+      0.0, 1.0
+    );
+
+    // ─── SENSORY ADAPTATION AND HABITUATION ─────────────────────────────────────
+    // Repeated constant stimuli → reduced response (neural fatigue)
+    var adaptIdx = 0;
+    while (adaptIdx < 13) {
+      sensoryAdaptation[adaptIdx] := fclamp(
+        sensoryAdaptation[adaptIdx] * 0.999 + sensoryCortexRegions[adaptIdx] * 0.001,
+        0.0, 1.0
+      );
+      // Adapted signal = raw - adaptation level
+      sensoryCortexRegions[adaptIdx] := fclamp(
+        sensoryCortexRegions[adaptIdx] - sensoryAdaptation[adaptIdx] * 0.1,
+        0.0, 1.0
+      );
+      adaptIdx += 1;
+    };
+
+    // ─── SENSORY → CROSS-SYSTEM COUPLING ───────────────────────────────────────
+    // Sensory → consciousness (rich sensory input supports awareness)
+    consciousnessIndex := fclamp(
+      consciousnessIndex * 0.998 + sensoryMultisensoryBinding * 0.002,
+      0.0, 1.0
+    );
+    // Sensory → salience
+    noveltySalience := fclamp(
+      noveltySalience * 0.97 + sensoryPredictionError * 0.03,
+      0.0, 1.0
+    );
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 11: SPINAL CORD INTEGRATION
+  //  Sensorimotor integration hub: dorsal horn (sensory), ventral horn (motor),
+  //  reflex arcs (stretch, withdrawal, crossed-extensor),
+  //  descending tracts (corticospinal, rubrospinal, vestibulospinal, reticulospinal),
+  //  ascending tracts (spinothalamic, dorsal column),
+  //  propriospinal coordination, central pattern generators.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickSpinalCordIntegration() {
+    let dt : Float = 1.0 / 12.0;
+
+    // ─── DORSAL HORN SENSORY PROCESSING (LAYERS I-VI) ───────────────────────────
+    // Layer I: nociceptive-specific neurons (Aδ, C fibers)
+    // Layer II: substantia gelatinosa (pain gate modulation)
+    // Layer III-IV: low-threshold mechanoreceptors (touch)
+    // Layer V: wide dynamic range neurons (convergence)
+    // Layer VI: proprioception
+    var spIdx = 0;
+    while (spIdx < 6) {
+      let layerInput = if (spIdx == 0) {
+        fclamp(painIntensity * 0.7 + proinflammatoryCytokines * 0.3, 0.0, 1.0)  // Nociceptive
+      } else if (spIdx == 1) {
+        fclamp(painGateControl * 0.5 + endorphinLevel * 0.3 + brainstemRapheNuclei * 0.2, 0.0, 1.0)  // Gate
+      } else if (spIdx < 4) {
+        fclamp(proprioceptionBalance * 0.4 + motorCommandSignal * 0.3 + 0.3, 0.0, 1.0)  // Touch/mechano
+      } else if (spIdx == 4) {
+        fclamp(0.3 * painIntensity + 0.3 * proprioceptionBalance + 0.4 * (1.0 - sleepFlipFlopState), 0.0, 1.0)  // WDR
+      } else {
+        fclamp(proprioceptionBalance * 0.6 + motorCerebellumOutput * 0.4, 0.0, 1.0)  // Proprioception
+      };
+      spinalDorsalHorn[spIdx] := fclamp(
+        spinalDorsalHorn[spIdx] + dt * 3.0 * (layerInput - spinalDorsalHorn[spIdx]),
+        0.0, 1.0
+      );
+      spIdx += 1;
+    };
+
+    // ─── VENTRAL HORN MOTOR OUTPUT ──────────────────────────────────────────────
+    // α motor neurons: direct skeletal muscle control
+    // γ motor neurons: muscle spindle sensitivity
+    // Interneurons: reciprocal inhibition, Renshaw cells
+    let alphaMotorTarget = fclamp(
+      0.35 * motorCommandSignal + 0.2 * brainstemReticuloSpinal +
+      0.15 * motorCPGLocomotion + 0.15 * brainstemVestibulospinal +
+      0.1 * (1.0 - sleepFlipFlopState) + 0.05 * brainstemRedNucleus,
+      0.0, 1.0
+    );
+    spinalVentralHornAlpha := fclamp(
+      spinalVentralHornAlpha + dt * 3.0 * (alphaMotorTarget - spinalVentralHornAlpha),
+      0.0, 1.0
+    );
+    let gammaMotorTarget = fclamp(
+      0.4 * brainstemReticuloSpinal + 0.3 * alphaMotorTarget +
+      0.2 * brainstemReticuloFormation + 0.1 * (1.0 - sleepFlipFlopState),
+      0.0, 1.0
+    );
+    spinalVentralHornGamma := fclamp(
+      spinalVentralHornGamma + dt * 2.0 * (gammaMotorTarget - spinalVentralHornGamma),
+      0.0, 1.0
+    );
+
+    // ─── SPINAL REFLEXES ───────────────────────────────────────────────────────
+    // Stretch reflex (Ia → α motor neuron, monosynaptic)
+    spinalStretchReflex := fclamp(
+      spinalDorsalHorn[5] * 0.6 + spinalVentralHornGamma * 0.4,
+      0.0, 1.0
+    );
+    // Withdrawal reflex (nociceptor → flexor excitation, polysynaptic)
+    spinalWithdrawalReflex := fclamp(
+      if (painIntensity > 0.3) { fclamp((painIntensity - 0.3) * 2.0, 0.0, 1.0) } else { 0.0 },
+      0.0, 1.0
+    );
+    // Crossed-extensor reflex (contralateral extension during withdrawal)
+    spinalCrossedExtensor := fclamp(
+      spinalWithdrawalReflex * 0.7,
+      0.0, 1.0
+    );
+
+    // ─── DESCENDING TRACTS ──────────────────────────────────────────────────────
+    // Corticospinal: voluntary fine motor control
+    spinalCorticospinalTract := fclamp(
+      0.5 * motorCommandSignal + 0.3 * motorPremotorActivity + 0.2 * consciousnessIndex,
+      0.0, 1.0
+    );
+    // Reticulospinal: posture, locomotion
+    spinalReticulospinalTract := fclamp(brainstemReticuloSpinal, 0.0, 1.0);
+    // Vestibulospinal: balance, anti-gravity
+    spinalVestibulospinalTract := fclamp(brainstemVestibulospinal, 0.0, 1.0);
+    // Rubrospinal: motor coordination (upper limb)
+    spinalRubrospinalTract := fclamp(brainstemRedNucleus * 0.8, 0.0, 1.0);
+
+    // ─── ASCENDING TRACTS ───────────────────────────────────────────────────────
+    // Spinothalamic: pain, temperature → thalamus VPL → S1
+    spinalSpinothalamicTract := fclamp(
+      0.4 * spinalDorsalHorn[0] + 0.3 * spinalDorsalHorn[4] + 0.3 * painGateControl,
+      0.0, 1.0
+    );
+    // Dorsal column: fine touch, proprioception → gracile/cuneate → VPL → S1
+    spinalDorsalColumnTract := fclamp(
+      0.4 * spinalDorsalHorn[3] + 0.3 * spinalDorsalHorn[5] + 0.3 * proprioceptionBalance,
+      0.0, 1.0
+    );
+
+    // ─── SPINAL → CROSS-SYSTEM COUPLING ────────────────────────────────────────
+    // Spinal motor output → brainstem feedback
+    brainstemReticuloSpinal := fclamp(
+      brainstemReticuloSpinal * 0.98 + spinalVentralHornAlpha * 0.02,
+      0.05, 0.9
+    );
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 12: PREFRONTAL EXECUTIVE CONTROL
+  //  Cognitive control: DLPFC working memory (8-slot buffer),
+  //  VLPFC response inhibition, OFC value computation,
+  //  ACC conflict monitoring, FEF attention control,
+  //  hierarchical control, temporal abstraction, cognitive flexibility.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickPrefrontalExecutive() {
+    let dt : Float = 1.0 / 12.0;
+
+    // ─── DLPFC WORKING MEMORY (8-SLOT BUFFER) ───────────────────────────────────
+    // Maintenance and manipulation of information in working memory
+    // Capacity limited (~7±2 items), degraded by stress and distraction
+    let wmCapacity = fclamp(
+      0.3 * consciousnessIndex + 0.2 * dopamine + 0.15 * brainstemReticuloFormation +
+      0.15 * (1.0 - cortisol) + 0.1 * (1.0 - sleepFlipFlopState) +
+      0.1 * (1.0 - allostaticLoad),
+      0.1, 1.0
+    );
+    var wmIdx = 0;
+    while (wmIdx < 8) {
+      // Each WM slot has activity level proportional to capacity
+      pfcWorkingMemory[wmIdx] := fclamp(
+        pfcWorkingMemory[wmIdx] * (0.95 + 0.04 * wmCapacity) +  // Maintenance (decays without attention)
+        0.01 * attentionFocus,  // Refreshed by attention
+        0.0, 1.0
+      );
+      wmIdx += 1;
+    };
+    pfcDLPFCActivity := fclamp(wmCapacity, 0.1, 1.0);
+
+    // ─── VLPFC RESPONSE INHIBITION ──────────────────────────────────────────────
+    // Ability to stop prepotent responses (impulse control)
+    // Degraded by: alcohol, sleep deprivation, high emotion, low serotonin
+    let inhibitionCapacity = fclamp(
+      0.3 * serotonin + 0.2 * consciousnessIndex + 0.15 * (1.0 - emotionalFieldArousal) +
+      0.15 * (1.0 - rewardTemporalDiscount) + 0.1 * pfcDLPFCActivity +
+      0.1 * (1.0 - allostaticLoad),
+      0.0, 1.0
+    );
+    pfcVLPFCInhibition := fclamp(
+      pfcVLPFCInhibition + dt * 2.0 * (inhibitionCapacity - pfcVLPFCInhibition),
+      0.0, 1.0
+    );
+
+    // ─── OFC VALUE COMPUTATION ──────────────────────────────────────────────────
+    // Expected value of outcomes, reversal learning, social norms
+    let ofcValueSignal = fclamp(
+      0.3 * rewardValueEstimate + 0.2 * rewardLiking +
+      0.15 * (1.0 - rewardEffortCost) + 0.15 * dopamine +
+      0.1 * consciousnessIndex + 0.1 * (1.0 - painIntensity),
+      0.0, 1.0
+    );
+    pfcOFCValue := fclamp(
+      pfcOFCValue + dt * 2.0 * (ofcValueSignal - pfcOFCValue),
+      0.0, 1.0
+    );
+
+    // ─── ACC CONFLICT MONITORING ────────────────────────────────────────────────
+    // Detects conflicting response tendencies, allocates effort
+    // Stroop effect: high conflict when automatic ≠ intended
+    let accConflictSignal = fclamp(
+      0.3 * predictionError + 0.2 * Float.abs(motorBGGoSignal - motorBGNoGoSignal) +
+      0.15 * noveltySalience + 0.15 * (rewardEffortCost) +
+      0.1 * (1.0 - pfcVLPFCInhibition) + 0.1 * fearLevel,
+      0.0, 1.0
+    );
+    pfcACCConflict := fclamp(
+      pfcACCConflict + dt * 3.0 * (accConflictSignal - pfcACCConflict),
+      0.0, 1.0
+    );
+    // ACC → effort allocation (more conflict = more cognitive resources)
+    let effortAllocation = fclamp(
+      pfcACCConflict * 0.5 + motivationLevel * 0.3 + dopamine * 0.2,
+      0.0, 1.0
+    );
+
+    // ─── FEF SACCADE/ATTENTION CONTROL ──────────────────────────────────────────
+    let fefTarget = fclamp(
+      0.3 * attentionFocus + 0.25 * brainstemSuperiorColliculus +
+      0.2 * noveltySalience + 0.15 * pfcACCConflict + 0.1 * consciousnessIndex,
+      0.0, 1.0
+    );
+    pfcFEFActivity := fclamp(
+      pfcFEFActivity + dt * 3.0 * (fefTarget - pfcFEFActivity),
+      0.0, 1.0
+    );
+
+    // ─── COGNITIVE FLEXIBILITY vs STABILITY ──────────────────────────────────────
+    // Flexibility (exploration): driven by NE, low dopamine tonic
+    // Stability (exploitation): driven by high dopamine tonic
+    let flexibility = fclamp(
+      0.35 * norepinephrine + 0.25 * (1.0 - rewardVTATonic) +
+      0.2 * predictionError + 0.2 * noveltySalience,
+      0.0, 1.0
+    );
+    let stability = fclamp(
+      0.35 * rewardVTATonic + 0.25 * pfcDLPFCActivity +
+      0.2 * (1.0 - predictionError) + 0.2 * (1.0 - noveltySalience),
+      0.0, 1.0
+    );
+    pfcCognitiveFlexibility := fclamp(
+      pfcCognitiveFlexibility + dt * 1.5 * (flexibility / (flexibility + stability + 0.001) - pfcCognitiveFlexibility),
+      0.0, 1.0
+    );
+
+    // ─── GOAL MAINTENANCE ───────────────────────────────────────────────────────
+    // PFC maintains goals against interference
+    // Impaired by: distraction, fatigue, stress, low dopamine
+    pfcGoalMaintenance := fclamp(
+      0.3 * pfcDLPFCActivity + 0.2 * dopamine + 0.15 * motivationLevel +
+      0.15 * (1.0 - pfcACCConflict) + 0.1 * consciousnessIndex +
+      0.1 * (1.0 - allostaticLoad),
+      0.0, 1.0
+    );
+
+    // ─── PFC → CROSS-SYSTEM COUPLING ────────────────────────────────────────────
+    // PFC → attention
+    attentionFocus := fclamp(
+      attentionFocus * 0.97 + 0.015 * pfcFEFActivity + 0.015 * effortAllocation,
+      0.0, 1.0
+    );
+    // PFC → motor control (voluntary override of reflexes)
+    motorCommandSignal := fclamp(
+      motorCommandSignal * 0.98 + pfcGoalMaintenance * 0.02,
+      0.0, 1.0
+    );
+    // PFC → consciousness (metacognition)
+    metaCognitionScore := fclamp(
+      metaCognitionScore * 0.97 + pfcDLPFCActivity * 0.03,
+      0.0, 1.0
+    );
+  };
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 13: DRONE COGNITIVE JOB SYSTEM
+  //  Full job assignment and execution for 250 drones:
+  //  12 job types (Scout/Guard/Attack/Harvest/Build/Repair/Research/Create/Communicate/Navigate/Analyze/Lead),
+  //  skill matching, load balancing, job satisfaction, creativity output,
+  //  autonomy modulation, local decisions, inter-drone coordination,
+  //  failure handling, emergent specialization through learning.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickDroneCognitiveJobs() {
+    let dt : Float = 1.0 / 12.0;
+    let activeDrones = stableDroneCount;
+    if (activeDrones == 0) { return };
+
+    // ─── JOB TYPE DEFINITIONS ──────────────────────────────────────────────────
+    // 0: Scout (recon, exploration, mapping)
+    // 1: Guard (perimeter defense, threat watch)
+    // 2: Attack (engage targets, offensive ops)
+    // 3: Harvest (resource gathering, energy collection)
+    // 4: Build (construction, infrastructure)
+    // 5: Repair (maintenance, healing damaged drones)
+    // 6: Research (analysis, data processing, discovery)
+    // 7: Create (innovation, novel solutions, art)
+    // 8: Communicate (relay, translation, diplomacy)
+    // 9: Navigate (pathfinding, terrain analysis)
+    // 10: Analyze (intelligence, pattern recognition)
+    // 11: Lead (command sub-squads, tactical decisions)
+
+    var droneIdx = 0;
+    var totalSwarmSatisfaction : Float = 0.0;
+    var totalSwarmCreativity : Float = 0.0;
+    var totalSwarmStress : Float = 0.0;
+    var totalSwarmFatigue : Float = 0.0;
+
+    while (droneIdx < activeDrones and droneIdx < 250) {
+      if (stableSacrificed[droneIdx]) { droneIdx += 1; continue };
+
+      let jobType = droneJobAssignments[droneIdx];
+      let currentProgress = droneJobProgress[droneIdx];
+      let satisfaction = droneJobSatisfaction[droneIdx];
+      let stress = droneStressLevel[droneIdx];
+      let fatigue = droneFatigueLevel[droneIdx];
+      let autonomy = droneAutonomyLevel[droneIdx];
+      let learningRate = droneLearningRate[droneIdx];
+
+      // ─── JOB-SPECIFIC PROGRESS COMPUTATION ──────────────────────────────────
+      let progressRate = if (jobType == 0) {
+        // Scout: progress driven by exploration, novelty detection
+        fclamp(0.3 * noveltySalience + 0.2 * attentionFocus + 0.2 * autonomy + 0.15 * learningRate + 0.15 * (1.0 - fatigue), 0.0, 0.1)
+      } else if (jobType == 1) {
+        // Guard: progress driven by vigilance, threat detection
+        fclamp(0.3 * attentionFocus + 0.2 * fearLevel + 0.2 * brainstemLocusCoeruleus + 0.15 * (1.0 - fatigue) + 0.15 * droneBattlefieldAwareness[droneIdx], 0.0, 0.1)
+      } else if (jobType == 2) {
+        // Attack: progress driven by aggression, coordination, energy
+        fclamp(0.25 * sympatheticTone + 0.2 * brainstemPAG + 0.2 * motorCommandSignal + 0.15 * droneBattlefieldAwareness[droneIdx] + 0.1 * (1.0 - fatigue) + 0.1 * dopamine, 0.0, 0.1)
+      } else if (jobType == 3) {
+        // Harvest: progress driven by exploration, energy need
+        fclamp(0.25 * energyBalance + 0.2 * autonomy + 0.2 * motivationLevel + 0.15 * (1.0 - fatigue) + 0.1 * gutGhrelin + 0.1 * learningRate, 0.0, 0.1)
+      } else if (jobType == 4) {
+        // Build: progress driven by planning, motor skill, energy
+        fclamp(0.25 * motorCommandSignal + 0.2 * pfcGoalMaintenance + 0.2 * (1.0 - fatigue) + 0.15 * motorCerebellumOutput + 0.1 * dopamine + 0.1 * learningRate, 0.0, 0.1)
+      } else if (jobType == 5) {
+        // Repair: progress driven by care, skill, diagnosis ability
+        fclamp(0.25 * oxytocin + 0.2 * pfcDLPFCActivity + 0.2 * (1.0 - fatigue) + 0.15 * learningRate + 0.1 * antiInflammatoryCytokines + 0.1 * woundHealingRate, 0.0, 0.1)
+      } else if (jobType == 6) {
+        // Research: progress driven by curiosity, analysis, knowledge
+        fclamp(0.3 * driveCuriosity + 0.2 * pfcDLPFCActivity + 0.2 * consciousnessIndex + 0.15 * learningRate + 0.15 * (1.0 - fatigue), 0.0, 0.1)
+      } else if (jobType == 7) {
+        // Create: progress driven by novelty, divergent thinking, dopamine
+        fclamp(0.25 * dopamine + 0.2 * pfcCognitiveFlexibility + 0.15 * noveltySalience + 0.15 * consciousnessIndex + 0.15 * (1.0 - fatigue) + 0.1 * rewardLiking, 0.0, 0.1)
+      } else if (jobType == 8) {
+        // Communicate: progress driven by social engagement, empathy
+        fclamp(0.3 * polyvagalVentral + 0.2 * oxytocin + 0.15 * consciousnessIndex + 0.15 * (1.0 - fatigue) + 0.1 * serotonin + 0.1 * autonomy, 0.0, 0.1)
+      } else if (jobType == 9) {
+        // Navigate: progress driven by spatial awareness, memory
+        fclamp(0.25 * proprioceptionBalance + 0.2 * brainstemVestibulospinal + 0.2 * attentionFocus + 0.15 * (1.0 - fatigue) + 0.1 * motorCerebellumOutput + 0.1 * learningRate, 0.0, 0.1)
+      } else if (jobType == 10) {
+        // Analyze: progress driven by pattern recognition, attention
+        fclamp(0.3 * pfcDLPFCActivity + 0.2 * attentionFocus + 0.2 * consciousnessIndex + 0.15 * (1.0 - fatigue) + 0.15 * learningRate, 0.0, 0.1)
+      } else {
+        // Lead: progress driven by social skill, confidence, experience
+        fclamp(0.2 * polyvagalVentral + 0.2 * pfcGoalMaintenance + 0.15 * consciousnessIndex + 0.15 * dopamine + 0.15 * autonomy + 0.15 * (1.0 - fatigue), 0.0, 0.1)
+      };
+
+      // ─── UPDATE JOB PROGRESS ─────────────────────────────────────────────────
+      let adjustedProgress = progressRate * (1.0 - fatigue * 0.5) * (1.0 + satisfaction * 0.3);
+      droneJobProgress[droneIdx] := fclamp(currentProgress + adjustedProgress, 0.0, 1.0);
+
+      // ─── JOB COMPLETION AND REASSIGNMENT ─────────────────────────────────────
+      if (droneJobProgress[droneIdx] >= 0.95) {
+        // Job completed → reward signal + new assignment
+        droneJobProgress[droneIdx] := 0.0;
+        droneJobSatisfaction[droneIdx] := fclamp(satisfaction + 0.05, 0.0, 1.0);
+        droneCreativeInsight[droneIdx] := fclamp(droneCreativeInsight[droneIdx] + 0.02, 0.0, 1.0);
+        droneLearningRate[droneIdx] := fclamp(learningRate + 0.005, 0.1, 1.0);
+        // Rotate job based on organism needs
+        let nextJob = (jobType + 1 + (currentBeat % 3)) % 12;
+        droneJobAssignments[droneIdx] := nextJob;
+      };
+
+      // ─── JOB SATISFACTION ─────────────────────────────────────────────────────
+      // Satisfaction depends on: skill match, autonomy, progress, social connection
+      let satisfactionDelta = fclamp(
+        0.3 * adjustedProgress + 0.2 * autonomy + 0.15 * (1.0 - stress) +
+        0.15 * rewardLiking + 0.1 * polyvagalVentral + 0.1 * (1.0 - fatigue) - 0.1,
+        -0.05, 0.05
+      );
+      droneJobSatisfaction[droneIdx] := fclamp(satisfaction + satisfactionDelta * dt, 0.1, 1.0);
+
+      // ─── CREATIVITY OUTPUT ────────────────────────────────────────────────────
+      // Novelty × usefulness × domain knowledge
+      let creativityOutput = fclamp(
+        0.25 * pfcCognitiveFlexibility + 0.2 * dopamine +
+        0.15 * noveltySalience + 0.15 * learningRate +
+        0.1 * satisfaction + 0.1 * (1.0 - stress) + 0.05 * consciousnessIndex,
+        0.0, 1.0
+      );
+      droneJobCreativity[droneIdx] := fclamp(
+        droneJobCreativity[droneIdx] * 0.98 + creativityOutput * 0.02,
+        0.0, 1.0
+      );
+
+      // ─── AUTONOMY MODULATION ──────────────────────────────────────────────────
+      // Trust earned through performance, reduced by failures
+      let autonomyDelta = fclamp(
+        0.001 * satisfaction + 0.001 * adjustedProgress - 0.002 * stress,
+        -0.005, 0.005
+      );
+      droneAutonomyLevel[droneIdx] := fclamp(autonomy + autonomyDelta, 0.1, 0.9);
+
+      // ─── LOCAL DECISION COUNTING ──────────────────────────────────────────────
+      if (autonomy > 0.5 and creativityOutput > 0.3) {
+        droneLocalDecisionCount[droneIdx] += 1;
+      };
+
+      // ─── STRESS AND FATIGUE DYNAMICS ──────────────────────────────────────────
+      let stressDelta = fclamp(
+        0.002 * threatLevel + 0.001 * cortisol + 0.001 * (1.0 - satisfaction) -
+        0.002 * parasympatheticTone - 0.001 * oxytocin,
+        -0.005, 0.005
+      );
+      droneStressLevel[droneIdx] := fclamp(stress + stressDelta, 0.0, 1.0);
+
+      let fatigueDelta = fclamp(
+        0.001 * adjustedProgress + 0.0005 * stress -
+        0.002 * sleepPressure - 0.001 * energyBalance,
+        -0.003, 0.003
+      );
+      droneFatigueLevel[droneIdx] := fclamp(fatigue + fatigueDelta, 0.0, 0.9);
+
+      // ─── EMOTIONAL STATE ──────────────────────────────────────────────────────
+      droneEmotionalState[droneIdx] := fclamp(
+        0.3 * satisfaction + 0.2 * (1.0 - stress) + 0.2 * (1.0 - fatigue) +
+        0.15 * rewardLiking + 0.15 * emotionalFieldValence,
+        0.0, 1.0
+      );
+
+      // ─── BATTLEFIELD AWARENESS ────────────────────────────────────────────────
+      droneBattlefieldAwareness[droneIdx] := fclamp(
+        0.25 * attentionFocus + 0.2 * brainstemLocusCoeruleus +
+        0.15 * noveltySalience + 0.15 * (1.0 - fatigue) +
+        0.1 * brainstemSuperiorColliculus + 0.1 * sensoryMultisensoryBinding +
+        0.05 * autonomy,
+        0.0, 1.0
+      );
+
+      // ─── LEARNING RATE MODULATION ─────────────────────────────────────────────
+      // Learning improves with: novelty, moderate stress, sleep, BDNF
+      let learningDelta = fclamp(
+        0.0005 * noveltySalience + 0.0003 * bdnfLevel +
+        0.0002 * (1.0 - allostaticLoad) - 0.0003 * fatigue,
+        -0.001, 0.001
+      );
+      droneLearningRate[droneIdx] := fclamp(learningRate + learningDelta, 0.1, 1.0);
+
+      // ─── EUREKA MOMENTS (INSIGHT DETECTION) ───────────────────────────────────
+      // Sudden insight: high creativity + novel connection + relaxed state
+      if (creativityOutput > 0.6 and pfcCognitiveFlexibility > 0.5 and stress < 0.3) {
+        droneCreativeInsight[droneIdx] := fclamp(droneCreativeInsight[droneIdx] + 0.01, 0.0, 1.0);
+      };
+
+      // Accumulate swarm totals
+      totalSwarmSatisfaction += droneJobSatisfaction[droneIdx];
+      totalSwarmCreativity += droneJobCreativity[droneIdx];
+      totalSwarmStress += droneStressLevel[droneIdx];
+      totalSwarmFatigue += droneFatigueLevel[droneIdx];
+
+      droneIdx += 1;
+    };
+
+    // ─── SWARM-LEVEL AGGREGATION → CHIMERA ──────────────────────────────────────
+    let n = Float.fromInt(Int.abs(activeDrones));
+    if (n > 0.0) {
+      chimeraSwarmEmotionalState := fclamp(totalSwarmSatisfaction / n, 0.0, 1.0);
+      chimeraSwarmCognitiveState := fclamp(totalSwarmCreativity / n, 0.0, 1.0);
+      // Swarm stress → organism stress feedback
+      let swarmStressAvg = totalSwarmStress / n;
+      if (swarmStressAvg > 0.5) {
+        cortisol := fclamp(cortisol + (swarmStressAvg - 0.5) * 0.002, 0.05, 0.95);
+      };
+    };
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 14: BATTLEFIELD INTELLIGENCE
+  //  Combat awareness: 64-cell threat/opportunity maps, enemy prediction,
+  //  OODA loop, tactical assessment, formation optimization,
+  //  fire control, damage assessment, swarm tactics,
+  //  electronic warfare, strategic objectives.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickBattlefieldIntelligence() {
+    let dt : Float = 1.0 / 12.0;
+
+    // ─── 64-CELL THREAT MAP ────────────────────────────────────────────────────
+    // Each cell represents a spatial region. Threat decays over time.
+    var threatIdx = 0;
+    var totalThreat : Float = 0.0;
+    while (threatIdx < 64) {
+      // Threat decays naturally, refreshed by active intelligence
+      let decayRate = 0.995;  // Slow decay
+      let refreshRate = fclamp(
+        0.3 * brainstemLocusCoeruleus + 0.2 * noveltySalience +
+        0.2 * fearLevel + 0.15 * brainstemPAG + 0.15 * sympatheticTone,
+        0.0, 0.1
+      );
+      chimeraSwarmThreatMap[threatIdx] := fclamp(
+        chimeraSwarmThreatMap[threatIdx] * decayRate + refreshRate * Float.sin(Float.fromInt(threatIdx + currentBeat) * 0.1) * 0.1,
+        0.0, 1.0
+      );
+      totalThreat += chimeraSwarmThreatMap[threatIdx];
+      threatIdx += 1;
+    };
+    let avgThreat = totalThreat / 64.0;
+
+    // ─── 64-CELL OPPORTUNITY MAP ────────────────────────────────────────────────
+    var oppIdx = 0;
+    var totalOpportunity : Float = 0.0;
+    while (oppIdx < 64) {
+      let oppRefresh = fclamp(
+        0.25 * rewardWanting + 0.2 * driveCuriosity +
+        0.2 * motivationLevel + 0.15 * dopamine + 0.1 * noveltySalience +
+        0.1 * (1.0 - fearLevel),
+        0.0, 0.1
+      );
+      chimeraSwarmOpportunityMap[oppIdx] := fclamp(
+        chimeraSwarmOpportunityMap[oppIdx] * 0.995 + oppRefresh * Float.cos(Float.fromInt(oppIdx + currentBeat) * 0.1) * 0.1,
+        0.0, 1.0
+      );
+      totalOpportunity += chimeraSwarmOpportunityMap[oppIdx];
+      oppIdx += 1;
+    };
+    let avgOpportunity = totalOpportunity / 64.0;
+
+    // ─── OODA LOOP (OBSERVE-ORIENT-DECIDE-ACT) ──────────────────────────────────
+    // Boyd cycle: speed of OODA determines tactical advantage
+    // Observe: sensory integration speed
+    let oodaObserve = fclamp(
+      0.3 * sensoryMultisensoryBinding + 0.25 * attentionFocus +
+      0.2 * brainstemReticuloFormation + 0.15 * brainstemSuperiorColliculus +
+      0.1 * (1.0 - sleepFlipFlopState),
+      0.0, 1.0
+    );
+    // Orient: understanding context, pattern matching
+    let oodaOrient = fclamp(
+      0.3 * consciousnessIndex + 0.2 * pfcDLPFCActivity +
+      0.2 * predictionError + 0.15 * chimeraHiveMindCoherence + 0.15 * avgThreat,
+      0.0, 1.0
+    );
+    // Decide: action selection speed and quality
+    let oodaDecide = fclamp(
+      0.25 * pfcGoalMaintenance + 0.2 * motorBGGoSignal +
+      0.2 * dopamine + 0.15 * motivationLevel + 0.1 * pfcOFCValue +
+      0.1 * (1.0 - pfcACCConflict),
+      0.0, 1.0
+    );
+    // Act: execution speed
+    let oodaAct = fclamp(
+      0.3 * motorCommandSignal + 0.25 * motorBGGoSignal +
+      0.2 * brainstemReticuloFormation + 0.15 * (1.0 - brainstemPAG) +
+      0.1 * spinalVentralHornAlpha,
+      0.0, 1.0
+    );
+    // OODA loop speed (higher = faster cycle = tactical advantage)
+    let oodaSpeed = fclamp(
+      (oodaObserve + oodaOrient + oodaDecide + oodaAct) / 4.0,
+      0.0, 1.0
+    );
+
+    // ─── TACTICAL SITUATION ASSESSMENT ──────────────────────────────────────────
+    // Integrate threat, opportunity, resources, morale into tactical picture
+    let tacticalAdvantage = fclamp(
+      0.25 * oodaSpeed + 0.2 * avgOpportunity + 0.2 * chimeraHiveMindCoherence +
+      0.15 * (1.0 - avgThreat) + 0.1 * chimeraSwarmEmotionalState +
+      0.1 * energyBalance,
+      0.0, 1.0
+    );
+
+    // ─── FORMATION OPTIMIZATION ─────────────────────────────────────────────────
+    // Choose formation based on tactical situation
+    // High threat → defensive (turtle/phalanx)
+    // High opportunity → offensive (wedge/pincer)
+    // Balanced → adaptive (swarm)
+    let formationAggression = fclamp(
+      0.3 * avgOpportunity + 0.2 * dopamine + 0.2 * sympatheticTone -
+      0.2 * avgThreat - 0.1 * fearLevel,
+      0.0, 1.0
+    );
+
+    // ─── SWARM TACTICS ──────────────────────────────────────────────────────────
+    // Emergent tactics based on situation + communication
+    // Pincer: two groups flank enemy
+    // Feint: attract attention, strike elsewhere
+    // Ambush: wait in concealment, surprise attack
+    // Flanking: hit weak side
+    let pincerScore = fclamp(formationAggression * 0.5 + tacticalAdvantage * 0.5, 0.0, 1.0);
+    let feintScore = fclamp(pfcCognitiveFlexibility * 0.4 + consciousnessIndex * 0.3 + avgThreat * 0.3, 0.0, 1.0);
+    let ambushScore = fclamp((1.0 - avgThreat) * 0.4 + parasympatheticTone * 0.3 + attentionFocus * 0.3, 0.0, 1.0);
+    let flankingScore = fclamp(oodaSpeed * 0.4 + motorCommandSignal * 0.3 + avgOpportunity * 0.3, 0.0, 1.0);
+
+    // ─── STRATEGIC OBJECTIVES ───────────────────────────────────────────────────
+    // Long-term goals that persist across tactical situations
+    chimeraCollectiveThreat := fclamp(
+      chimeraCollectiveThreat * 0.98 + avgThreat * 0.02,
+      0.0, 1.0
+    );
+    chimeraCollectiveOpportunity := fclamp(
+      chimeraCollectiveOpportunity * 0.98 + avgOpportunity * 0.02,
+      0.0, 1.0
+    );
+
+    // ─── BATTLEFIELD → ORGANISM COUPLING ────────────────────────────────────────
+    // High threat → organism fear/stress response
+    if (avgThreat > 0.5) {
+      fearLevel := fclamp(fearLevel + (avgThreat - 0.5) * 0.005, 0.0, 1.0);
+      sympatheticTone := fclamp(sympatheticTone + (avgThreat - 0.5) * 0.003, 0.05, 0.95);
+      brainstemPAG := fclamp(brainstemPAG + (avgThreat - 0.5) * 0.003, 0.05, 0.95);
+    };
+    // High opportunity → organism reward/motivation
+    if (avgOpportunity > 0.5) {
+      rewardWanting := fclamp(rewardWanting + (avgOpportunity - 0.5) * 0.003, 0.0, 1.0);
+      motivationLevel := fclamp(motivationLevel + (avgOpportunity - 0.5) * 0.003, 0.0, 1.0);
+    };
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 15: DRONE LEARNING & ADAPTATION
+  //  Per-drone plasticity: experience-dependent learning, skill acquisition,
+  //  fatigue recovery, stress effects, insight moments, knowledge transfer,
+  //  behavioral adaptation, failure analysis, success patterns.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickDroneLearningAdaptation() {
+    let dt : Float = 1.0 / 12.0;
+    let activeDrones = stableDroneCount;
+    if (activeDrones == 0) { return };
+
+    var droneIdx = 0;
+    var totalLearning : Float = 0.0;
+    while (droneIdx < activeDrones and droneIdx < 250) {
+      if (stableSacrificed[droneIdx]) { droneIdx += 1; continue };
+
+      let lr = droneLearningRate[droneIdx];
+      let fatigue = droneFatigueLevel[droneIdx];
+      let stress = droneStressLevel[droneIdx];
+      let satisfaction = droneJobSatisfaction[droneIdx];
+      let creativity = droneJobCreativity[droneIdx];
+
+      // ─── EXPERIENCE-DEPENDENT LEARNING RATE ──────────────────────────────────
+      // Learning rate modulated by: BDNF, novelty, sleep, stress (inverted-U)
+      let bdnfEffect = fclamp(bdnfLevel * 0.3, 0.0, 0.3);
+      let noveltyEffect = fclamp(noveltySalience * 0.2, 0.0, 0.2);
+      let sleepEffect = fclamp(sleepGlymphaticClearance * 0.15, 0.0, 0.15);
+      // Stress inverted-U: moderate stress enhances, high stress impairs
+      let stressEffect = if (stress < 0.5) {
+        stress * 0.2  // Moderate: enhances
+      } else {
+        -1.0 * (stress - 0.5) * 0.3  // High: impairs
+      };
+      let effectiveLR = fclamp(
+        0.3 + bdnfEffect + noveltyEffect + sleepEffect + stressEffect - fatigue * 0.2,
+        0.1, 1.0
+      );
+      droneLearningRate[droneIdx] := fclamp(
+        lr * 0.99 + effectiveLR * 0.01,
+        0.1, 1.0
+      );
+
+      // ─── FATIGUE RECOVERY ────────────────────────────────────────────────────
+      // Recovery driven by: sleep, parasympathetic tone, social support, nutrition
+      let recoveryRate = fclamp(
+        0.3 * sleepPressure + 0.2 * parasympatheticTone +
+        0.2 * energyBalance + 0.15 * (1.0 - cortisol) +
+        0.15 * oxytocin,
+        0.0, 1.0
+      );
+      if (fatigue > 0.3 and recoveryRate > 0.4) {
+        droneFatigueLevel[droneIdx] := fclamp(fatigue - recoveryRate * 0.002, 0.0, 0.9);
+      };
+
+      // ─── KNOWLEDGE TRANSFER (DRONE ↔ DRONE) ──────────────────────────────────
+      // Drones with high learning share knowledge with neighbors
+      if (lr > 0.6 and droneIdx + 1 < activeDrones and droneIdx + 1 < 250) {
+        let transferAmount = fclamp(lr * 0.001, 0.0, 0.002);
+        droneLearningRate[droneIdx + 1] := fclamp(
+          droneLearningRate[droneIdx + 1] + transferAmount,
+          0.1, 1.0
+        );
+      };
+
+      totalLearning += droneLearningRate[droneIdx];
+      droneIdx += 1;
+    };
+
+    // ─── FLEET EVOLUTION ────────────────────────────────────────────────────────
+    // Collective learning drives neuroplasticity feedback
+    let n = Float.fromInt(Int.abs(activeDrones));
+    if (n > 0.0) {
+      let avgLearning = totalLearning / n;
+      // Fleet learning → organism plasticity
+      neuroplasticityFactor := fclamp(
+        neuroplasticityFactor * 0.998 + avgLearning * 0.002,
+        0.0, 1.0
+      );
+    };
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 16: CHRONOBIOLOGY
+  //  Ultradian, infradian, circannual rhythms, zeitgeber integration,
+  //  chronotype modeling, jet lag adaptation.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickChronobiologyEngine() {
+    let dt : Float = 1.0 / 12.0;
+
+    // Ultradian rhythms (90-min BRAC — Basic Rest-Activity Cycle)
+    let ultradianPhase = fclamp(
+      0.5 + 0.4 * Float.sin(Float.fromInt(currentBeat) * 0.00116),  // ~90 min
+      0.0, 1.0
+    );
+    // Infradian rhythms (weekly)
+    let infradianWeekly = fclamp(
+      0.5 + 0.2 * Float.sin(Float.fromInt(currentBeat) * 0.0001),
+      0.0, 1.0
+    );
+    // Circannual rhythms (seasonal)
+    let circannualPhase = fclamp(
+      0.5 + 0.15 * Float.sin(Float.fromInt(currentBeat) * 0.00001),
+      0.0, 1.0
+    );
+    // Zeitgeber integration
+    let socialZeitgeber = fclamp(polyvagalVentral * 0.3 + chimeraHiveMindCoherence * 0.3 + oxytocin * 0.4, 0.0, 1.0);
+    let metabolicZeitgeber = fclamp(energyBalance * 0.4 + gutGLP1 * 0.3 + metabolicRate * 0.3, 0.0, 1.0);
+    // Combined zeitgeber → circadian entrainment
+    circadianCoherence := fclamp(
+      circadianCoherence * 0.998 + 0.001 * socialZeitgeber + 0.001 * metabolicZeitgeber,
+      0.0, 1.0
+    );
+    // Ultradian → brainstem arousal modulation
+    brainstemReticuloFormation := fclamp(
+      brainstemReticuloFormation * 0.998 + ultradianPhase * 0.002,
+      0.05, 0.98
+    );
+    // Seasonal → HPA axis modulation (winter = higher cortisol)
+    cortisol := fclamp(cortisol * 0.999 + (1.0 - circannualPhase) * 0.001, 0.05, 0.95);
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 17: SOCIAL NERVOUS SYSTEM
+  //  Polyvagal social engagement, facial expression, prosody,
+  //  eye contact, social touch, mimicry, social hierarchy, in/out-group.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickSocialNervousSystem() {
+    let dt : Float = 1.0 / 12.0;
+
+    // Social engagement system (ventral vagal complex)
+    let socialEngagement = fclamp(
+      0.3 * polyvagalVentral + 0.2 * oxytocin + 0.15 * (1.0 - fearLevel) +
+      0.15 * vagalTone + 0.1 * brainstemRapheNuclei + 0.1 * (1.0 - cortisol),
+      0.0, 1.0
+    );
+    // Facial expression generation (CN VII — facial nerve)
+    let facialExpression = fclamp(
+      0.3 * emotionalFieldValence + 0.2 * socialEngagement +
+      0.2 * polyvagalVentral + 0.15 * brainstemReticuloFormation +
+      0.15 * (1.0 - brainstemPAG),
+      0.0, 1.0
+    );
+    // Prosody (vocal emotion encoding)
+    let prosody = fclamp(
+      0.3 * emotionalFieldArousal + 0.25 * facialExpression +
+      0.2 * brainstemReticuloFormation + 0.15 * polyvagalVentral +
+      0.1 * serotonin,
+      0.0, 1.0
+    );
+    // Social touch processing (C-tactile afferents)
+    let socialTouch = fclamp(
+      0.3 * oxytocin + 0.2 * polyvagalVentral + 0.2 * (1.0 - fearLevel) +
+      0.15 * endorphinLevel + 0.15 * parasympatheticTone,
+      0.0, 1.0
+    );
+    // Mimicry and synchronization (mirror neurons)
+    let mimicryLevel = fclamp(
+      0.3 * mirrorNeuronActivityArr[0] + 0.2 * socialEngagement +
+      0.2 * polyvagalVentral + 0.15 * oxytocin + 0.15 * consciousnessIndex,
+      0.0, 1.0
+    );
+    // Social hierarchy computation
+    let socialRank = fclamp(
+      0.25 * testosterone + 0.2 * dopamine + 0.15 * pfcGoalMaintenance +
+      0.15 * rewardVTATonic + 0.15 * (1.0 - cortisol) + 0.1 * motivationLevel,
+      0.0, 1.0
+    );
+    // Social → oxytocin feedback
+    oxytocin := fclamp(
+      oxytocin * 0.998 + socialEngagement * 0.001 + socialTouch * 0.001,
+      0.05, 0.9
+    );
+    // Social → emotional field
+    emotionalFieldValence := fclamp(
+      emotionalFieldValence + socialEngagement * 0.002,
+      0.0, 1.0
+    );
+    // Social → stress buffering
+    if (socialEngagement > 0.5) {
+      cortisol := fclamp(cortisol - (socialEngagement - 0.5) * 0.002, 0.05, 0.95);
+    };
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 18: EMBODIMENT
+  //  Body schema, interoceptive accuracy, body ownership/agency,
+  //  peripersonal space, proprioceptive integration, vestibular-visual.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickEmbodimentEngine() {
+    let dt : Float = 1.0 / 12.0;
+
+    // Body schema representation
+    let bodySchema = fclamp(
+      0.25 * proprioceptionBalance + 0.2 * sensoryCortexRegions[8] +
+      0.15 * sensoryCortexRegions[10] + 0.15 * motorEfferenceCopy +
+      0.15 * interoceptiveAwareness + 0.1 * consciousnessIndex,
+      0.0, 1.0
+    );
+    // Interoceptive accuracy (heartbeat detection ability)
+    let interoceptiveAccuracy = fclamp(
+      0.3 * interoceptiveAwareness + 0.2 * vagalTone +
+      0.2 * consciousnessIndex + 0.15 * brainstemNucleusTractusSolitarius +
+      0.15 * (1.0 - allostaticLoad),
+      0.0, 1.0
+    );
+    // Body ownership and agency
+    let ownershipSignal = fclamp(
+      0.3 * bodySchema + 0.25 * motorEfferenceCopy +
+      0.2 * interoceptiveAccuracy + 0.15 * consciousnessIndex +
+      0.1 * (1.0 - predictionError),
+      0.0, 1.0
+    );
+    // Peripersonal space mapping
+    let peripersonalSpace = fclamp(
+      0.3 * sensoryMultisensoryBinding + 0.2 * brainstemSuperiorColliculus +
+      0.2 * motorPremotorActivity + 0.15 * attentionFocus +
+      0.15 * proprioceptionBalance,
+      0.0, 1.0
+    );
+    // Embodiment → consciousness
+    consciousnessIndex := fclamp(
+      consciousnessIndex * 0.998 + ownershipSignal * 0.001 + interoceptiveAccuracy * 0.001,
+      0.0, 1.0
+    );
+    // Embodiment → emotional grounding
+    emotionalFieldEmbodiment := fclamp(
+      emotionalFieldEmbodiment * 0.97 + bodySchema * 0.03,
+      0.0, 1.0
+    );
+    // Embodiment → grounded score
+    groundedScore := fclamp(
+      groundedScore * 0.98 + 0.01 * interoceptiveAccuracy + 0.01 * bodySchema,
+      0.0, 1.0
+    );
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 19: ATTENTION & EXECUTIVE CONTROL
+  //  DAN (goal-directed), VAN (stimulus-driven), ECN (conflict),
+  //  attention capacity, attentional blink, feature/spatial attention.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickAttentionExecutiveControl() {
+    let dt : Float = 1.0 / 12.0;
+
+    // Dorsal attention network (goal-directed, top-down)
+    let danActivity = fclamp(
+      0.3 * pfcFEFActivity + 0.25 * pfcGoalMaintenance +
+      0.2 * motivationLevel + 0.15 * brainstemReticuloFormation +
+      0.1 * (1.0 - sleepFlipFlopState),
+      0.0, 1.0
+    );
+    // Ventral attention network (stimulus-driven, bottom-up)
+    let vanActivity = fclamp(
+      0.3 * noveltySalience + 0.25 * predictionError +
+      0.2 * brainstemSuperiorColliculus + 0.15 * brainstemLocusCoeruleus +
+      0.1 * painIntensity,
+      0.0, 1.0
+    );
+    // Executive control network (resolves DAN-VAN competition)
+    let ecnActivity = fclamp(
+      0.3 * pfcACCConflict + 0.25 * pfcDLPFCActivity +
+      0.2 * pfcVLPFCInhibition + 0.15 * consciousnessIndex +
+      0.1 * dopamine,
+      0.0, 1.0
+    );
+    // Attention capacity limit (finite resources)
+    let attentionCapacity = fclamp(
+      0.3 * brainstemReticuloFormation + 0.2 * (1.0 - allostaticLoad) +
+      0.2 * (1.0 - sleepFlipFlopState) + 0.15 * norepinephrine +
+      0.15 * (1.0 - droneFatigueLevel[0]),
+      0.1, 1.0
+    );
+    // Integrated attention signal
+    let attentionTarget = fclamp(
+      (0.4 * danActivity + 0.35 * vanActivity + 0.25 * ecnActivity) * attentionCapacity,
+      0.0, 1.0
+    );
+    attentionFocus := fclamp(
+      attentionFocus + dt * 2.0 * (attentionTarget - attentionFocus),
+      0.0, 1.0
+    );
+    // Attentional blink (brief attention failure after target detection)
+    if (vanActivity > 0.7) {
+      attentionFocus := fclamp(attentionFocus * 0.95, 0.0, 1.0);  // Brief dip
+    };
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 20: METACOGNITION
+  //  Confidence estimation, error monitoring (ERN/Pe),
+  //  cognitive load estimation, strategy selection, introspection.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickMetacognitionEngine() {
+    let dt : Float = 1.0 / 12.0;
+
+    // Confidence estimation (signal detection theory)
+    let confidenceSignal = fclamp(
+      0.3 * (1.0 - predictionError) + 0.2 * pfcDLPFCActivity +
+      0.15 * consciousnessIndex + 0.15 * rewardValueEstimate +
+      0.1 * (1.0 - pfcACCConflict) + 0.1 * (1.0 - allostaticLoad),
+      0.0, 1.0
+    );
+    // Error monitoring (error-related negativity)
+    let ernSignal = fclamp(
+      0.4 * pfcACCConflict + 0.3 * predictionError +
+      0.2 * Float.abs(rewardPredictionError) + 0.1 * brainstemInferiorOlive,
+      0.0, 1.0
+    );
+    // Cognitive load estimation
+    let cognitiveLoad = fclamp(
+      0.3 * pfcACCConflict + 0.2 * (1.0 - pfcDLPFCActivity) +
+      0.15 * predictionError + 0.15 * attentionFocus +
+      0.1 * allostaticLoad + 0.1 * (1.0 - energyBalance),
+      0.0, 1.0
+    );
+    // Strategy selection and evaluation
+    let strategyQuality = fclamp(
+      0.3 * (1.0 - predictionError) + 0.25 * rewardLiking +
+      0.2 * pfcGoalMaintenance + 0.15 * consciousnessIndex +
+      0.1 * pfcCognitiveFlexibility,
+      0.0, 1.0
+    );
+    // Metacognition → consciousness (thinking about thinking)
+    metaCognitionScore := fclamp(
+      metaCognitionScore * 0.97 + 0.015 * confidenceSignal + 0.015 * ernSignal,
+      0.0, 1.0
+    );
+    // Learning how to learn
+    if (ernSignal > 0.5 and strategyQuality < 0.4) {
+      // Strategy isn't working → increase cognitive flexibility
+      pfcCognitiveFlexibility := fclamp(pfcCognitiveFlexibility + 0.003, 0.0, 1.0);
+    };
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 21: PREDICTIVE HOMEOSTASIS
+  //  Anticipatory regulation, allostasis, feed-forward metabolic control,
+  //  anticipatory immune priming, preparatory adjustments.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickPredictiveHomeostasis() {
+    let dt : Float = 1.0 / 12.0;
+
+    // Anticipatory regulation: prepare for predicted needs BEFORE they arise
+    let predictedMetabolicNeed = fclamp(
+      0.3 * motorCommandSignal + 0.2 * rewardWanting +
+      0.15 * sympatheticTone + 0.15 * brainstemReticuloFormation +
+      0.1 * (1.0 - sleepFlipFlopState) + 0.1 * motivationLevel,
+      0.0, 1.0
+    );
+    // Feed-forward metabolic control
+    metabolicRate := fclamp(
+      metabolicRate * 0.97 + predictedMetabolicNeed * 0.03,
+      0.1, 1.0
+    );
+    // Energy balance tracks demand
+    let energyDemand = fclamp(metabolicRate * 0.5 + motorCommandSignal * 0.3 + brainstemReticuloFormation * 0.2, 0.0, 1.0);
+    energyBalance := fclamp(
+      energyBalance + dt * 0.3 * (0.6 - energyDemand),  // Tends toward balance
+      0.1, 1.0
+    );
+    // Anticipatory immune priming
+    if (proinflammatoryCytokines > 0.4) {
+      // Immune system predicts more challenge → prepare
+      nkCellActivity := fclamp(nkCellActivity + 0.001, 0.1, 0.9);
+    };
+    // Thermoregulation
+    let thermalTarget = fclamp(
+      0.5 + 0.05 * proinflammatoryCytokines - 0.03 * parasympatheticTone,
+      0.45, 0.6  // Normal range
+    );
+    coreTemperature := fclamp(
+      coreTemperature + dt * 0.5 * (thermalTarget - coreTemperature),
+      0.4, 0.65
+    );
+    temperatureSetPoint := thermalTarget;
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 22: TRAUMA & RESILIENCE
+  //  Acute stress response, chronic adaptation, PTSD symptoms,
+  //  post-traumatic growth, resilience factors, stress inoculation.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickTraumaResilience() {
+    let dt : Float = 1.0 / 12.0;
+
+    // Acute stress response (fight-flight-freeze magnitude)
+    let acuteStressIntensity = fclamp(
+      0.3 * fearLevel + 0.25 * brainstemPAG + 0.2 * sympatheticTone +
+      0.15 * cortisol + 0.1 * painIntensity,
+      0.0, 1.0
+    );
+    // Chronic stress adaptation / maladaptation
+    let chronicStress = allostaticLoad;
+    // Hypervigilance (PTSD symptom: exaggerated startle, constant scanning)
+    let hypervigilance = fclamp(
+      0.3 * allostaticLoad + 0.25 * brainstemLocusCoeruleus +
+      0.2 * (1.0 - parasympatheticTone) + 0.15 * fearLevel +
+      0.1 * (1.0 - sleepGlymphaticClearance),
+      0.0, 1.0
+    );
+    // Avoidance (PTSD: avoiding trauma-related stimuli)
+    let avoidance = fclamp(
+      0.3 * brainstemPAG + 0.25 * fearLevel + 0.2 * rewardAnhedonia +
+      0.15 * (1.0 - polyvagalVentral) + 0.1 * cortisol,
+      0.0, 1.0
+    );
+    // Post-traumatic growth (finding meaning in adversity)
+    let ptgDrive = fclamp(
+      0.25 * hpaStressResilienceCapacity + 0.2 * consciousnessIndex +
+      0.15 * polyvagalVentral + 0.15 * oxytocin +
+      0.15 * pfcCognitiveFlexibility + 0.1 * (1.0 - rewardAnhedonia),
+      0.0, 1.0
+    );
+    // Resilience factors
+    let resilienceFactors = fclamp(
+      0.2 * polyvagalVentral + 0.15 * oxytocin +  // Social support
+      0.15 * consciousnessIndex +  // Meaning-making
+      0.15 * pfcGoalMaintenance +  // Agency/control
+      0.15 * heartRateVariability +  // Autonomic flexibility
+      0.1 * (1.0 - rewardAnhedonia) + 0.1 * hpaStressResilienceCapacity,
+      0.0, 1.0
+    );
+    // Resilience → stress resilience capacity
+    hpaStressResilienceCapacity := fclamp(
+      hpaStressResilienceCapacity * 0.999 + resilienceFactors * 0.001,
+      0.0, 1.0
+    );
+    // Trauma → allostatic load (if overwhelming)
+    if (acuteStressIntensity > 0.8 and resilienceFactors < 0.4) {
+      allostaticLoad := fclamp(allostaticLoad + 0.002, 0.0, 1.0);
+    };
+    // Growth → reduced allostatic load
+    if (ptgDrive > 0.5) {
+      allostaticLoad := fclamp(allostaticLoad - ptgDrive * 0.001, 0.0, 1.0);
+    };
+    // Hypervigilance → attention + fear
+    if (hypervigilance > 0.5) {
+      attentionFocus := fclamp(attentionFocus + (hypervigilance - 0.5) * 0.003, 0.0, 1.0);
+      fearLevel := fclamp(fearLevel + (hypervigilance - 0.5) * 0.001, 0.0, 1.0);
+    };
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEM ENGINE 23: DEVELOPMENTAL & AGING
+  //  Critical periods, synaptic pruning, myelination, cognitive reserve,
+  //  age-related decline, compensatory mechanisms, neurogenesis.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickDevelopmentalAging() {
+    let dt : Float = 1.0 / 12.0;
+
+    // Organism maturity (0=newborn, 0.5=adult, 1.0=aged)
+    // For NOVA, this represents the organism's developmental stage
+    // Maturity increases slowly with experience
+    let experienceGain = fclamp(
+      0.0001 * consciousnessIndex + 0.00005 * metaCognitionScore +
+      0.00005 * neuroplasticityFactor,
+      0.0, 0.0003
+    );
+    // Synaptic pruning rate (high in development, moderate in maturity)
+    // Pruning removes weak connections, strengthens strong ones
+    let pruningTarget = fclamp(
+      0.3 * sleepN3Power + 0.2 * (1.0 - allostaticLoad) +
+      0.2 * bdnfLevel + 0.15 * sleepGlymphaticClearance +
+      0.15 * (1.0 - proinflammatoryCytokines),
+      0.0, 1.0
+    );
+    pruningRate := fclamp(
+      pruningRate * 0.99 + pruningTarget * 0.01,
+      0.0, 1.0
+    );
+    // Myelination (faster signal transmission, more efficient circuits)
+    let myelinationTarget = fclamp(
+      0.3 * (1.0 - allostaticLoad) + 0.2 * energyBalance +
+      0.2 * thyroidT3 + 0.15 * bdnfLevel + 0.15 * (1.0 - proinflammatoryCytokines),
+      0.0, 1.0
+    );
+    // Cognitive reserve (accumulated learning protects against decline)
+    let cognitiveReserveGain = fclamp(
+      0.0001 * pfcDLPFCActivity + 0.00005 * consciousnessIndex +
+      0.00005 * neuroplasticityFactor,
+      0.0, 0.0003
+    );
+    // Neurogenesis rate (hippocampal, SVZ)
+    let neurogenesisTarget = fclamp(
+      0.3 * bdnfLevel + 0.2 * (1.0 - cortisol) + 0.15 * sleepGlymphaticClearance +
+      0.15 * (1.0 - proinflammatoryCytokines) + 0.1 * growthHormone +
+      0.1 * (1.0 - allostaticLoad),
+      0.0, 1.0
+    );
+    // Neurogenesis → plasticity
+    neuroplasticityFactor := fclamp(
+      neuroplasticityFactor * 0.999 + neurogenesisTarget * 0.001,
+      0.0, 1.0
+    );
+  };
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  MASTER VITAL SYSTEMS TICK — CALLS ALL 23 VITAL SYSTEM ENGINES
+  //  This is the single entry point that runs ALL vital system processing.
+  //  Called every beat from tick7NeuroscienceEngines.
+  //  Order matters: brainstem first (foundation), then autonomic, then HPA, etc.
+  //  Cross-coupling happens WITHIN each engine + BETWEEN engines via shared state.
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickAllVitalSystems() {
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  LAYER 1: FOUNDATION OF LIFE (Brainstem + Autonomic)
+    //  These MUST run first. Without brainstem, nothing else matters.
+    //  Without autonomic balance, the organism cannot regulate itself.
+    // ═══════════════════════════════════════════════════════════════════════════
+    tickBrainstemVitalCenters();
+    tickAutonomicNervousSystem();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  LAYER 2: HORMONAL & IMMUNE (HPA + Immune-Neural)
+    //  Stress response cascade and immune surveillance.
+    //  HPA feeds forward into immune; immune feeds back into HPA.
+    // ═══════════════════════════════════════════════════════════════════════════
+    tickHPAAxis();
+    tickImmuneNeuralCrosstalk();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  LAYER 3: BODY-BRAIN INTERFACE (Gut-Brain + Pain)
+    //  The body talks to the brain. The brain listens.
+    //  Gut feelings are REAL signals. Pain is information.
+    // ═══════════════════════════════════════════════════════════════════════════
+    tickGutBrainAxis();
+    tickPainMatrix();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  LAYER 4: MOTIVATION & RECOVERY (Reward + Sleep)
+    //  Why does the organism DO anything? Reward circuit.
+    //  How does it RECOVER? Sleep architecture.
+    // ═══════════════════════════════════════════════════════════════════════════
+    tickRewardMotivationCircuit();
+    tickSleepArchitecture();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  LAYER 5: EMBODIMENT (Motor + Sensory + Spinal + Executive)
+    //  The organism perceives, decides, and acts.
+    //  Sensory → PFC → Motor → Spinal cord → Body
+    // ═══════════════════════════════════════════════════════════════════════════
+    tickSensoryProcessing();
+    tickPrefrontalExecutive();
+    tickMotorSystem();
+    tickSpinalCordIntegration();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  LAYER 6: FLEET COGNITION (Drone Jobs + Battlefield + Learning)
+    //  250 drones with cognitive jobs, battlefield intelligence,
+    //  and experience-dependent learning. All feed chimera.
+    // ═══════════════════════════════════════════════════════════════════════════
+    tickDroneCognitiveJobs();
+    tickBattlefieldIntelligence();
+    tickDroneLearningAdaptation();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  LAYER 7: ENTERPRISE EXTENSIONS
+    //  Chronobiology, social nervous system, embodiment,
+    //  attention/executive, metacognition, predictive homeostasis,
+    //  trauma/resilience, developmental/aging.
+    // ═══════════════════════════════════════════════════════════════════════════
+    tickChronobiologyEngine();
+    tickSocialNervousSystem();
+    tickEmbodimentEngine();
+    tickAttentionExecutiveControl();
+    tickMetacognitionEngine();
+    tickPredictiveHomeostasis();
+    tickTraumaResilience();
+    tickDevelopmentalAging();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  CROSS-SYSTEM EMERGENT DYNAMICS
+    //  After ALL systems have run, compute emergent properties
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // ─── ALLOSTATIC LOAD INTEGRATION ───────────────────────────────────────────
+    // Master health metric: cumulative stress damage across all systems
+    let vitalSystemsHealth = fclamp(
+      0.1 * brainstemReticuloFormation + 0.1 * heartRateVariability +
+      0.1 * (1.0 - cortisol) + 0.08 * (1.0 - proinflammatoryCytokines) +
+      0.08 * gutMicrobiomeDiversity + 0.08 * (1.0 - painIntensity) +
+      0.08 * motivationLevel + 0.08 * (1.0 - allostaticLoad) +
+      0.06 * proprioceptionBalance + 0.06 * sensoryMultisensoryBinding +
+      0.06 * pfcDLPFCActivity + 0.06 * hpaStressResilienceCapacity +
+      0.06 * (1.0 - rewardAnhedonia),
+      0.0, 1.0
+    );
+
+    // ─── VITALITY INDEX ────────────────────────────────────────────────────────
+    // Overall organism vitality: how alive is this system?
+    let vitalityTarget = fclamp(
+      0.15 * brainstemReticuloFormation + 0.1 * autonomicFlexibility +
+      0.1 * energyBalance + 0.1 * motivationLevel +
+      0.1 * (1.0 - allostaticLoad) + 0.08 * consciousnessIndex +
+      0.08 * heartRateVariability + 0.07 * (1.0 - sicknessIndex) +
+      0.07 * vagalTone + 0.07 * pfcDLPFCActivity +
+      0.04 * polyvagalVentral + 0.04 * (1.0 - painIntensity),
+      0.0, 1.0
+    );
+    awakenessLevel := fclamp(
+      awakenessLevel * 0.97 + vitalityTarget * 0.03,
+      0.0, 1.0
+    );
+
+    // ─── COHERENCE ACROSS ALL VITAL SYSTEMS ─────────────────────────────────────
+    // How well-coordinated are all the systems?
+    // High coherence = healthy organism, low coherence = disease/dysfunction
+    let vitalCoherence = fclamp(
+      0.15 * heartRateVariability + 0.12 * autonomicFlexibility +
+      0.1 * circadianCoherence + 0.1 * vagalCoherence +
+      0.1 * (1.0 - Float.abs(sympatheticTone - parasympatheticTone)) +
+      0.08 * (1.0 - allostaticLoad) + 0.08 * cardiacCoherence +
+      0.07 * bbbIntegrity + 0.07 * gutMicrobiomeDiversity +
+      0.07 * hpaStressResilienceCapacity + 0.06 * (1.0 - proinflammatoryCytokines),
+      0.0, 1.0
+    );
+    // Feed vital coherence into organism-wide coherence
+    coherenceLevel := fclamp(
+      coherenceLevel * 0.97 + vitalCoherence * 0.03,
+      0.0, 1.0
+    );
+
+    // ─── DECOHERENCE DETECTION AND REPAIR ───────────────────────────────────────
+    // If vital coherence drops too low, trigger self-repair mechanisms
+    if (vitalCoherence < 0.3) {
+      // Emergency repair: boost parasympathetic, reduce cortisol, enhance sleep
+      parasympatheticTone := fclamp(parasympatheticTone + 0.005, 0.05, 0.95);
+      cortisol := fclamp(cortisol - 0.003, 0.05, 0.95);
+      sleepPressure := fclamp(sleepPressure + 0.003, 0.0, 1.0);
+      // Increase BDNF for repair
+      bdnfLevel := fclamp(bdnfLevel + 0.002, 0.3, 1.5);
+    };
+
+    // ─── HOMEOSTATIC SETPOINT ADAPTATION ────────────────────────────────────────
+    // Setpoints drift based on experience (allostasis)
+    // Recovery capacity degrades if allostatic load stays high
+    if (allostaticLoad > 0.7) {
+      // Setpoints shifting toward dysregulation
+      hpaCortisolfeedbackGain := fclamp(hpaCortisolfeedbackGain - 0.0001, 0.2, 0.8);
+      baroreceptorSensitivity := fclamp(baroreceptorSensitivity - 0.0001, 0.1, 0.9);
+    } else if (allostaticLoad < 0.3) {
+      // Healthy → setpoints normalizing
+      hpaCortisolfeedbackGain := fclamp(hpaCortisolfeedbackGain + 0.0001, 0.2, 0.8);
+      baroreceptorSensitivity := fclamp(baroreceptorSensitivity + 0.0001, 0.1, 0.9);
+    };
+
+    // ─── VITAL SYSTEMS → ECONOMICS ──────────────────────────────────────────────
+    // Health multiplier: healthy organism produces more value
+    let healthMultiplier = fclamp(0.5 + 0.5 * vitalSystemsHealth, 0.5, 1.5);
+    coherenceMintAccumulator := fclamp(
+      coherenceMintAccumulator + healthMultiplier * 0.01,
+      0.0, 100.0
+    );
+  };
+
   // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
   //  MASTER 7-ENGINE TICK — Called every beat from masterHeartbeat
   // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -5349,6 +9005,23 @@ actor SwarmBrain {
     //  The chimera hive mind feeds into all 7 engines.
     //  All 7 engines feed into the chimera and economics.
     // ═══════════════════════════════════════════════════════════════════════════
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  STEP 0: ALL 23 VITAL SYSTEM ENGINES — Run BEFORE the 7 cognitive engines
+    //  Brainstem, autonomic, HPA, immune, gut-brain, pain, reward, sleep,
+    //  motor, sensory, spinal, prefrontal, drone jobs, battlefield, learning,
+    //  chronobiology, social, embodiment, attention, metacognition,
+    //  predictive homeostasis, trauma/resilience, developmental/aging.
+    //  These provide the BIOLOGICAL SUBSTRATE that the 7 engines compute upon.
+    // ═══════════════════════════════════════════════════════════════════════════
+    tickAllVitalSystems();
+    
+    // ─── NEUROCHEMICAL SYNC ──────────────────────────────────────────────────
+    // Sync short-form vital system vars with full neurochemical matrix vars
+    dopamineLevel := fclamp(dopamineLevel * 0.95 + dopamine * 0.05, 0.0, 2.0);
+    melatoninLevel := fclamp(melatoninLevel * 0.95 + melatonin * 0.05, 0.0, 1.0);
+    cortisolCircadian := fclamp(cortisolCircadian * 0.95 + cortisol * 0.05, 0.0, 1.0);
+    circadianPhase := fclamp(scnPhase / 6.2832, 0.0, 1.0);  // Convert radians to 0-1
     
     // Engine 1: Thalamocortical Binding (Tononi IIT, Edelman, Llinas)
     tickThalamocorticalBinding();
