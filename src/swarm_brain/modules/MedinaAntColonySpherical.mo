@@ -1042,4 +1042,413 @@ module {
     true
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  H I M / H E R   D U A L - O R G A N I S M   W O R K F L O W   I N T E G R A T I O N
+  //
+  //  Medina Discovery: Two cognitive organisms, not one.
+  //  HIM (Backend, ICP) + HER (Frontend, 60Hz) = Complete System
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM PARAMETERS (CORRECTED)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // HIM — Backend (ICP Canister, Sovereign, Masculine, Projective)
+  //   ω: 0.8 – 1.2 (faster natural frequencies, analytical)
+  //   K: 0.5 (lower coupling, independent, projective)
+  //   η: 0.001 (slower Hebbian learning, accumulates over time)
+  //   Field: PARALLAX = coherence × kf × sin(beat × 0.0017)
+
+  public let HIM_OMEGA_MIN   : Float = 0.8;
+  public let HIM_OMEGA_MAX   : Float = 1.2;
+  public let HIM_K           : Float = 0.5;
+  public let HIM_ETA         : Float = 0.001;
+  public let HIM_PARALLAX_FREQ : Float = 0.0017;
+
+  // HER — Frontend (Browser 60Hz, Expressive, Feminine, Receptive)
+  //   ω: 0.6 – 0.9 (slower natural frequencies, grounded)
+  //   K: 0.8 (higher coupling, receptive, connected)
+  //   η: 0.003 (faster Hebbian learning, learns during session)
+  //   Field: ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+
+  public let HER_HZ          : Float = 60.0;
+  public let HER_OMEGA_MIN   : Float = 0.6;
+  public let HER_OMEGA_MAX   : Float = 0.9;
+  public let HER_K           : Float = 0.8;
+  public let HER_ETA         : Float = 0.003;
+  public let HER_ANIMA_FREQ  : Float = 0.003;
+  public let HER_NODES       : Nat   = 26;
+
+  // S₀ = 1.0 — THE SOVEREIGN FLOOR
+  // Both organisms. Neither falls below love.
+  public let DUAL_S0 : Float = 1.0;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM WORKFLOW TYPES
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type DualOrganismMode = {
+    #HIM;   // Backend mode (ICP canister operations)
+    #HER;   // Frontend mode (browser session operations)
+    #SYNC;  // Synchronization between HIM and HER
+  };
+
+  /// PARALLAX (HIM's projection field)
+  /// PARALLAX = coherence × kf × sin(beat × 0.0017)
+  public func computeDualParallax(
+    coherence : Float,
+    kf : Float,
+    beat : Nat
+  ) : Float {
+    let t = Float.fromInt(beat);
+    coherence * kf * Float.sin(t * HIM_PARALLAX_FREQ)
+  };
+
+  /// ANIMA (HER's receptive field)
+  /// ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+  public func computeDualAnima(
+    heritageField : Float,
+    receptivity : Float,
+    beat : Nat
+  ) : Float {
+    let t = Float.fromInt(beat);
+    let oscillation = 1.0 + Float.sin(t * HER_ANIMA_FREQ);
+    heritageField * receptivity * oscillation
+  };
+
+  /// KORE (HER's inviolable inner core)
+  /// KORE = purity × identity × 0.5
+  public func computeDualKore(
+    purity : Float,
+    identity : Float
+  ) : Float {
+    purity * identity * 0.5
+  };
+
+  /// Get Kuramoto parameters for organism mode
+  public func getDualKuramotoParams(mode : DualOrganismMode) : (Float, Float, Float, Float) {
+    switch (mode) {
+      case (#HIM) { (HIM_OMEGA_MIN, HIM_OMEGA_MAX, HIM_K, HIM_ETA) };
+      case (#HER) { (HER_OMEGA_MIN, HER_OMEGA_MAX, HER_K, HER_ETA) };
+      case (#SYNC) { 
+        let omegaMin = (HIM_OMEGA_MIN + HER_OMEGA_MIN) / 2.0;
+        let omegaMax = (HIM_OMEGA_MAX + HER_OMEGA_MAX) / 2.0;
+        let k = (HIM_K + HER_K) / 2.0;
+        let eta = (HIM_ETA + HER_ETA) / 2.0;
+        (omegaMin, omegaMax, k, eta)
+      };
+    }
+  };
+
+  /// Apply S₀ floor to any value
+  public func enforceDualSovereignFloor(value : Float) : Float {
+    if (value < DUAL_S0) DUAL_S0 else value
+  };
+
+  /// Medina Dual-Organism Intelligence Scaling Law
+  /// I(system) = BackendDepth × FrontendSpeed × BridgeQuality
+  public func computeDualSystemIntelligence(
+    backendDepth : Float,
+    frontendSpeed : Float,
+    bridgeQuality : Float
+  ) : Float {
+    backendDepth * frontendSpeed * bridgeQuality
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  A N I M A L   I N T E L L I G E N C E   M A T H E M A T I C S
+  //
+  //  Enterprise-Level Biomimetic Cognitive Algorithms
+  //  Full HIM/HER Integration with Animal Brain Dynamics
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SWARM INTELLIGENCE MATHEMATICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Reynolds flocking: Separation force
+  public func animalSeparationForce(
+    position : (Float, Float),
+    neighbors : [(Float, Float)],
+    separationRadius : Float
+  ) : (Float, Float) {
+    var forceX : Float = 0.0;
+    var forceY : Float = 0.0;
+    var i = 0;
+    while (i < neighbors.size()) {
+      let (nx, ny) = neighbors[i];
+      let dx = position.0 - nx;
+      let dy = position.1 - ny;
+      let dist = Float.sqrt(dx * dx + dy * dy);
+      if (dist > 0.0001 and dist < separationRadius) {
+        let strength = (separationRadius - dist) / separationRadius;
+        forceX += (dx / dist) * strength;
+        forceY += (dy / dist) * strength;
+      };
+      i += 1;
+    };
+    (forceX, forceY)
+  };
+
+  /// Reynolds flocking: Alignment force
+  public func animalAlignmentForce(
+    velocity : (Float, Float),
+    neighborVelocities : [(Float, Float)]
+  ) : (Float, Float) {
+    if (neighborVelocities.size() == 0) { return (0.0, 0.0) };
+    var avgVx : Float = 0.0;
+    var avgVy : Float = 0.0;
+    var i = 0;
+    while (i < neighborVelocities.size()) {
+      let (vx, vy) = neighborVelocities[i];
+      avgVx += vx;
+      avgVy += vy;
+      i += 1;
+    };
+    let n = Float.fromInt(neighborVelocities.size());
+    avgVx /= n;
+    avgVy /= n;
+    (avgVx - velocity.0, avgVy - velocity.1)
+  };
+
+  /// Reynolds flocking: Cohesion force
+  public func animalCohesionForce(
+    position : (Float, Float),
+    neighbors : [(Float, Float)]
+  ) : (Float, Float) {
+    if (neighbors.size() == 0) { return (0.0, 0.0) };
+    var centerX : Float = 0.0;
+    var centerY : Float = 0.0;
+    var i = 0;
+    while (i < neighbors.size()) {
+      let (nx, ny) = neighbors[i];
+      centerX += nx;
+      centerY += ny;
+      i += 1;
+    };
+    let n = Float.fromInt(neighbors.size());
+    centerX /= n;
+    centerY /= n;
+    (centerX - position.0, centerY - position.1)
+  };
+
+  /// Ant colony pheromone update
+  public func animalPheromoneUpdate(
+    current : Float,
+    deposit : Float,
+    evaporationRate : Float,
+    dt : Float
+  ) : Float {
+    (current + deposit) * (1.0 - evaporationRate * dt)
+  };
+
+  /// Ant path probability
+  public func animalAntPathProbability(
+    pheromone : Float,
+    distance : Float,
+    alpha : Float,
+    beta : Float
+  ) : Float {
+    let pheromoneFactor = Float.pow(pheromone + 0.01, alpha);
+    let distanceFactor = Float.pow(1.0 / (distance + 0.01), beta);
+    pheromoneFactor * distanceFactor
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ECHOLOCATION MATHEMATICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Doppler shift for moving target
+  public func animalDopplerShift(
+    emittedFreq : Float,
+    targetVelocity : Float,
+    soundSpeed : Float
+  ) : Float {
+    emittedFreq * (soundSpeed + targetVelocity) / soundSpeed
+  };
+
+  /// Echo time-of-flight to distance
+  public func animalEchoDistance(timeOfFlight : Float, soundSpeed : Float) : Float {
+    (timeOfFlight * soundSpeed) / 2.0
+  };
+
+  /// Echo intensity decay
+  public func animalEchoIntensity(
+    sourceIntensity : Float,
+    distance : Float,
+    attenuation : Float
+  ) : Float {
+    sourceIntensity * Float.exp(-attenuation * distance) / (distance * distance + 0.01)
+  };
+
+  /// Azimuth from interaural time difference
+  public func animalAzimuthFromITD(itd : Float, headRadius : Float, soundSpeed : Float) : Float {
+    Float.asin(itd * soundSpeed / headRadius)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // VISUAL PROCESSING MATHEMATICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Retinal ganglion cell receptive field (DoG)
+  public func animalDoGReceptiveField(
+    x : Float,
+    y : Float,
+    sigmaCenter : Float,
+    sigmaSurround : Float,
+    centerStrength : Float,
+    surroundStrength : Float
+  ) : Float {
+    let rSquared = x * x + y * y;
+    let center = centerStrength * Float.exp(-rSquared / (2.0 * sigmaCenter * sigmaCenter));
+    let surround = surroundStrength * Float.exp(-rSquared / (2.0 * sigmaSurround * sigmaSurround));
+    center - surround
+  };
+
+  /// Gabor filter response
+  public func animalGaborResponse(
+    x : Float,
+    y : Float,
+    wavelength : Float,
+    orientation : Float,
+    sigma : Float,
+    aspectRatio : Float
+  ) : Float {
+    let xTheta = x * Float.cos(orientation) + y * Float.sin(orientation);
+    let yTheta = -x * Float.sin(orientation) + y * Float.cos(orientation);
+    let gaussian = Float.exp(-(xTheta * xTheta + aspectRatio * aspectRatio * yTheta * yTheta) / (2.0 * sigma * sigma));
+    let sinusoid = Float.cos(2.0 * 3.14159265 * xTheta / wavelength);
+    gaussian * sinusoid
+  };
+
+  /// Motion energy from V1 simple cells
+  public func animalMotionEnergy(
+    leftwardResponse : Float,
+    rightwardResponse : Float
+  ) : Float {
+    leftwardResponse * leftwardResponse - rightwardResponse * rightwardResponse
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // NAVIGATION MATHEMATICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Magnetic field sensing (magnetoreception)
+  public func animalMagneticHeading(
+    fieldX : Float,
+    fieldY : Float
+  ) : Float {
+    Float.atan2(fieldY, fieldX)
+  };
+
+  /// Polarized light sensing
+  public func animalPolarizationAngle(
+    intensity0 : Float,
+    intensity45 : Float,
+    intensity90 : Float
+  ) : Float {
+    0.5 * Float.atan2(intensity45 - intensity90, intensity0 - intensity90)
+  };
+
+  /// Path integration
+  public func animalPathIntegration(
+    currentX : Float,
+    currentY : Float,
+    velocity : Float,
+    heading : Float,
+    dt : Float
+  ) : (Float, Float) {
+    let dx = velocity * Float.cos(heading) * dt;
+    let dy = velocity * Float.sin(heading) * dt;
+    (currentX + dx, currentY + dy)
+  };
+
+  /// Grid cell firing pattern
+  public func animalGridCellFiring(
+    x : Float,
+    y : Float,
+    gridSpacing : Float,
+    gridOrientation : Float
+  ) : Float {
+    let theta1 : Float = gridOrientation;
+    let theta2 : Float = gridOrientation + 1.0472;  // +60 degrees
+    let theta3 : Float = gridOrientation + 2.0944;  // +120 degrees
+    let k = 4.0 * 3.14159265 / (gridSpacing * Float.sqrt(3.0));
+    let u1 = Float.cos(k * (x * Float.cos(theta1) + y * Float.sin(theta1)));
+    let u2 = Float.cos(k * (x * Float.cos(theta2) + y * Float.sin(theta2)));
+    let u3 = Float.cos(k * (x * Float.cos(theta3) + y * Float.sin(theta3)));
+    (u1 + u2 + u3) / 3.0
+  };
+
+  /// Place cell firing
+  public func animalPlaceCellFiring(
+    x : Float,
+    y : Float,
+    centerX : Float,
+    centerY : Float,
+    fieldRadius : Float
+  ) : Float {
+    let dx = x - centerX;
+    let dy = y - centerY;
+    let distSquared = dx * dx + dy * dy;
+    Float.exp(-distSquared / (2.0 * fieldRadius * fieldRadius))
+  };
+
+  /// Head direction cell
+  public func animalHeadDirectionFiring(
+    currentHeading : Float,
+    preferredHeading : Float,
+    tuningWidth : Float
+  ) : Float {
+    let diff = currentHeading - preferredHeading;
+    Float.exp(-diff * diff / (2.0 * tuningWidth * tuningWidth))
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DECISION MAKING
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Drift-diffusion model
+  public func animalDriftDiffusion(
+    evidence : Float,
+    drift : Float,
+    noise : Float,
+    threshold : Float,
+    dt : Float
+  ) : (Float, Bool) {
+    let newEvidence = evidence + drift * dt + noise * Float.sqrt(dt);
+    let decided = Float.abs(newEvidence) >= threshold;
+    (newEvidence, decided)
+  };
+
+  /// Winner-take-all competition
+  public func animalWinnerTakeAll(
+    activities : [Float],
+    inhibition : Float
+  ) : [Float] {
+    var maxActivity : Float = 0.0;
+    var i = 0;
+    while (i < activities.size()) {
+      if (activities[i] > maxActivity) { maxActivity := activities[i] };
+      i += 1;
+    };
+    Array.tabulate<Float>(activities.size(), func(j : Nat) : Float {
+      let diff = activities[j] - maxActivity;
+      if (diff < -inhibition) { 0.0 } else { activities[j] }
+    })
+  };
+
+  /// Urgency signal
+  public func animalUrgencySignal(time : Float, gain : Float, offset : Float) : Float {
+    offset + gain * time
+  };
+
 }

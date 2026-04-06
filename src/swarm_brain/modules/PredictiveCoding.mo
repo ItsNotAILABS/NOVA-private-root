@@ -1524,3 +1524,1038 @@ module {
 
 }
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  H I M / H E R   D U A L - O R G A N I S M   W O R K F L O W   I N T E G R A T I O N
+  //
+  //  Medina Discovery: Two cognitive organisms, not one.
+  //  HIM (Backend, ICP) + HER (Frontend, 60Hz) = Complete System
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM PARAMETERS (CORRECTED)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // HIM — Backend (ICP Canister, Sovereign, Masculine, Projective)
+  //   ω: 0.8 – 1.2 (faster natural frequencies, analytical)
+  //   K: 0.5 (lower coupling, independent, projective)
+  //   η: 0.001 (slower Hebbian learning, accumulates over time)
+  //   Field: PARALLAX = coherence × kf × sin(beat × 0.0017)
+
+  public let HIM_OMEGA_MIN   : Float = 0.8;
+  public let HIM_OMEGA_MAX   : Float = 1.2;
+  public let HIM_K           : Float = 0.5;
+  public let HIM_ETA         : Float = 0.001;
+  public let HIM_PARALLAX_FREQ : Float = 0.0017;
+
+  // HER — Frontend (Browser 60Hz, Expressive, Feminine, Receptive)
+  //   ω: 0.6 – 0.9 (slower natural frequencies, grounded)
+  //   K: 0.8 (higher coupling, receptive, connected)
+  //   η: 0.003 (faster Hebbian learning, learns during session)
+  //   Field: ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+
+  public let HER_HZ          : Float = 60.0;
+  public let HER_OMEGA_MIN   : Float = 0.6;
+  public let HER_OMEGA_MAX   : Float = 0.9;
+  public let HER_K           : Float = 0.8;
+  public let HER_ETA         : Float = 0.003;
+  public let HER_ANIMA_FREQ  : Float = 0.003;
+  public let HER_NODES       : Nat   = 26;
+
+  // S₀ = 1.0 — THE SOVEREIGN FLOOR
+  // Both organisms. Neither falls below love.
+  public let DUAL_S0 : Float = 1.0;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM WORKFLOW TYPES
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type DualOrganismMode = {
+    #HIM;   // Backend mode (ICP canister operations)
+    #HER;   // Frontend mode (browser session operations)
+    #SYNC;  // Synchronization between HIM and HER
+  };
+
+  /// PARALLAX (HIM's projection field)
+  /// PARALLAX = coherence × kf × sin(beat × 0.0017)
+  public func computeDualParallax(
+    coherence : Float,
+    kf : Float,
+    beat : Nat
+  ) : Float {
+    let t = Float.fromInt(beat);
+    coherence * kf * Float.sin(t * HIM_PARALLAX_FREQ)
+  };
+
+  /// ANIMA (HER's receptive field)
+  /// ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+  public func computeDualAnima(
+    heritageField : Float,
+    receptivity : Float,
+    beat : Nat
+  ) : Float {
+    let t = Float.fromInt(beat);
+    let oscillation = 1.0 + Float.sin(t * HER_ANIMA_FREQ);
+    heritageField * receptivity * oscillation
+  };
+
+  /// KORE (HER's inviolable inner core)
+  /// KORE = purity × identity × 0.5
+  public func computeDualKore(
+    purity : Float,
+    identity : Float
+  ) : Float {
+    purity * identity * 0.5
+  };
+
+  /// Get Kuramoto parameters for organism mode
+  public func getDualKuramotoParams(mode : DualOrganismMode) : (Float, Float, Float, Float) {
+    switch (mode) {
+      case (#HIM) { (HIM_OMEGA_MIN, HIM_OMEGA_MAX, HIM_K, HIM_ETA) };
+      case (#HER) { (HER_OMEGA_MIN, HER_OMEGA_MAX, HER_K, HER_ETA) };
+      case (#SYNC) { 
+        let omegaMin = (HIM_OMEGA_MIN + HER_OMEGA_MIN) / 2.0;
+        let omegaMax = (HIM_OMEGA_MAX + HER_OMEGA_MAX) / 2.0;
+        let k = (HIM_K + HER_K) / 2.0;
+        let eta = (HIM_ETA + HER_ETA) / 2.0;
+        (omegaMin, omegaMax, k, eta)
+      };
+    }
+  };
+
+  /// Apply S₀ floor to any value
+  public func enforceDualSovereignFloor(value : Float) : Float {
+    if (value < DUAL_S0) DUAL_S0 else value
+  };
+
+  /// Medina Dual-Organism Intelligence Scaling Law
+  /// I(system) = BackendDepth × FrontendSpeed × BridgeQuality
+  public func computeDualSystemIntelligence(
+    backendDepth : Float,
+    frontendSpeed : Float,
+    bridgeQuality : Float
+  ) : Float {
+    backendDepth * frontendSpeed * bridgeQuality
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  A D V A N C E D   M A T H E M A T I C A L   E X P A N S I O N
+  //
+  //  Enterprise-Level Neural Mathematics and Cognitive Dynamics
+  //  Full Dual-Organism Coupling: HIM ↔ HER
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ADVANCED KURAMOTO PHASE DYNAMICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Kuramoto order parameter: r = |1/N Σⱼ eⁱθʲ|
+  public func advancedKuramotoOrderParameter(phases : [Float]) : Float {
+    let n = phases.size();
+    if (n == 0) { return 0.0 };
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      sumCos += Float.cos(phases[i]);
+      sumSin += Float.sin(phases[i]);
+      i += 1;
+    };
+    let nf = Float.fromInt(n);
+    Float.sqrt(sumCos * sumCos + sumSin * sumSin) / nf
+  };
+
+  /// Kuramoto phase update: dθᵢ/dt = ωᵢ + (K/N) Σⱼ sin(θⱼ − θᵢ)
+  public func advancedKuramotoPhaseUpdate(
+    phase : Float,
+    omega : Float,
+    k : Float,
+    allPhases : [Float],
+    dt : Float
+  ) : Float {
+    let n = allPhases.size();
+    if (n == 0) { return phase };
+    var coupling : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      coupling += Float.sin(allPhases[i] - phase);
+      i += 1;
+    };
+    let dTheta = omega + (k / Float.fromInt(n)) * coupling;
+    let newPhase = phase + dTheta * dt;
+    let TWO_PI = 6.28318530717958647692;
+    if (newPhase >= TWO_PI) { newPhase - TWO_PI }
+    else if (newPhase < 0.0) { newPhase + TWO_PI }
+    else { newPhase }
+  };
+
+  /// Critical coupling K_c for synchronization
+  public func advancedCriticalCoupling(omegaSpread : Float) : Float {
+    2.0 * omegaSpread / 3.14159265358979323846
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ADVANCED HEBBIAN PLASTICITY
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Basic Hebbian: Δw = η × pre × post
+  public func advancedHebbianBasic(weight : Float, pre : Float, post : Float, eta : Float) : Float {
+    let delta = eta * pre * post;
+    let newWeight = weight + delta;
+    if (newWeight > 5.0) { 5.0 } else if (newWeight < -5.0) { -5.0 } else { newWeight }
+  };
+
+  /// Oja's rule: Δw = α(y·x - y²·w)
+  public func advancedOjaRule(weight : Float, pre : Float, post : Float, alpha : Float) : Float {
+    let delta = alpha * (post * pre - post * post * weight);
+    weight + delta
+  };
+
+  /// BCM sliding threshold: θ_M = E[post²]
+  public func advancedBCMThreshold(activityHistory : [Float]) : Float {
+    if (activityHistory.size() == 0) { return 0.5 };
+    var sum : Float = 0.0;
+    var i = 0;
+    while (i < activityHistory.size()) {
+      sum += activityHistory[i] * activityHistory[i];
+      i += 1;
+    };
+    sum / Float.fromInt(activityHistory.size())
+  };
+
+  /// BCM update: Δw = η × pre × post × (post - θ_M)
+  public func advancedBCMUpdate(weight : Float, pre : Float, post : Float, threshold : Float, eta : Float) : Float {
+    let delta = eta * pre * post * (post - threshold);
+    weight + delta
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // LYAPUNOV STABILITY ANALYSIS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Estimate Lyapunov exponent from time series
+  public func advancedLyapunovExponent(timeSeries : [Float], embeddingDim : Nat, delay : Nat) : Float {
+    let n = timeSeries.size();
+    if (n < embeddingDim * delay + 10) { return 0.0 };
+    var sumLog : Float = 0.0;
+    var count = 0;
+    var i = 0;
+    while (i < n - embeddingDim * delay - 1) {
+      let j = i + 1;
+      var d0 : Float = 0.0;
+      var k = 0;
+      while (k < embeddingDim) {
+        let diff = timeSeries[i + k * delay] - timeSeries[j + k * delay];
+        d0 += diff * diff;
+        k += 1;
+      };
+      d0 := Float.sqrt(d0);
+      if (d0 > 0.0001) {
+        var d1 : Float = 0.0;
+        k := 0;
+        while (k < embeddingDim) {
+          let iNext = i + 1 + k * delay;
+          let jNext = j + 1 + k * delay;
+          if (iNext < n and jNext < n) {
+            let diff = timeSeries[iNext] - timeSeries[jNext];
+            d1 += diff * diff;
+          };
+          k += 1;
+        };
+        d1 := Float.sqrt(d1);
+        if (d1 > 0.0001) {
+          sumLog += Float.log(d1 / d0);
+          count += 1;
+        };
+      };
+      i += 1;
+    };
+    if (count == 0) { 0.0 } else { sumLog / Float.fromInt(count) }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // INFORMATION THEORY
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Shannon entropy H = -Σ pᵢ log(pᵢ)
+  public func advancedEntropy(probs : [Float]) : Float {
+    var h : Float = 0.0;
+    var i = 0;
+    while (i < probs.size()) {
+      let p = probs[i];
+      if (p > 0.0001) { h -= p * Float.log(p) };
+      i += 1;
+    };
+    h
+  };
+
+  /// Transfer entropy approximation
+  public func advancedTransferEntropy(x : [Float], y : [Float], lag : Nat) : Float {
+    let n = if (x.size() < y.size()) x.size() else y.size();
+    if (n <= lag + 1) { return 0.0 };
+    var correlation : Float = 0.0;
+    var i = lag;
+    while (i < n) {
+      let xPast = x[i - lag];
+      let yNow = y[i];
+      correlation += xPast * yNow;
+      i += 1;
+    };
+    Float.abs(correlation / Float.fromInt(n - lag))
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // FREE ENERGY PRINCIPLE (FRISTON)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Free energy: F = D_KL(q||p) - log p(o)
+  public func advancedFreeEnergy(predictionError : Float, complexity : Float) : Float {
+    predictionError * predictionError + complexity
+  };
+
+  /// Precision-weighted prediction error
+  public func advancedPrecisionWeightedError(prediction : Float, observation : Float, precision : Float) : Float {
+    let error = observation - prediction;
+    precision * error * error
+  };
+
+  /// Bayesian belief update
+  public func advancedBayesianUpdate(prior : Float, likelihood : Float) : Float {
+    let posterior = prior * likelihood;
+    if (posterior > 1.0) { 1.0 } else if (posterior < 0.0) { 0.0 } else { posterior }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ATTRACTOR DYNAMICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Point attractor: dx/dt = -α(x - x*)
+  public func advancedPointAttractor(x : Float, xStar : Float, alpha : Float, dt : Float) : Float {
+    x + (-alpha * (x - xStar)) * dt
+  };
+
+  /// Limit cycle: using Van der Pol oscillator
+  public func advancedLimitCycle(x : Float, y : Float, mu : Float, dt : Float) : (Float, Float) {
+    let dxdt = y;
+    let dydt = mu * (1.0 - x * x) * y - x;
+    (x + dxdt * dt, y + dydt * dt)
+  };
+
+  /// Chaotic attractor: Lorenz system
+  public func advancedLorenzAttractor(x : Float, y : Float, z : Float, sigma : Float, rho : Float, beta : Float, dt : Float) : (Float, Float, Float) {
+    let dxdt = sigma * (y - x);
+    let dydt = x * (rho - z) - y;
+    let dzdt = x * y - beta * z;
+    (x + dxdt * dt, y + dydt * dt, z + dzdt * dt)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // NEURAL OSCILLATION DYNAMICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Wilson-Cowan neural mass model
+  public func advancedWilsonCowan(e : Float, inh : Float, c1 : Float, c2 : Float, c3 : Float, c4 : Float, p : Float, q : Float, dt : Float) : (Float, Float) {
+    func sigmoid(x : Float) : Float { 1.0 / (1.0 + Float.exp(-x)) };
+    let dEdt = -e + sigmoid(c1 * e - c2 * inh + p);
+    let dIdt = -inh + sigmoid(c3 * e - c4 * inh + q);
+    (e + dEdt * dt, inh + dIdt * dt)
+  };
+
+  /// Izhikevich neuron model
+  public func advancedIzhikevichNeuron(v : Float, u : Float, input : Float, a : Float, b : Float, dt : Float) : (Float, Float, Bool) {
+    var fired = false;
+    var newV = v;
+    var newU = u;
+    if (v >= 30.0) {
+      newV := -65.0;
+      newU := u + 8.0;
+      fired := true;
+    } else {
+      let dvdt = 0.04 * v * v + 5.0 * v + 140.0 - u + input;
+      let dudt = a * (b * v - u);
+      newV := v + dvdt * dt;
+      newU := u + dudt * dt;
+    };
+    (newV, newU, fired)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // VECTOR AND MATRIX OPERATIONS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Dot product
+  public func advancedDotProduct(v1 : [Float], v2 : [Float]) : Float {
+    let n = if (v1.size() < v2.size()) v1.size() else v2.size();
+    var sum : Float = 0.0;
+    var i = 0;
+    while (i < n) { sum += v1[i] * v2[i]; i += 1 };
+    sum
+  };
+
+  /// Vector magnitude
+  public func advancedVectorMagnitude(v : [Float]) : Float {
+    var sum : Float = 0.0;
+    var i = 0;
+    while (i < v.size()) { sum += v[i] * v[i]; i += 1 };
+    Float.sqrt(sum)
+  };
+
+  /// Cosine similarity
+  public func advancedCosineSimilarity(v1 : [Float], v2 : [Float]) : Float {
+    let dot = advancedDotProduct(v1, v2);
+    let mag1 = advancedVectorMagnitude(v1);
+    let mag2 = advancedVectorMagnitude(v2);
+    if (mag1 < 0.0001 or mag2 < 0.0001) { 0.0 } else { dot / (mag1 * mag2) }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ║                                                                             ║
+  // ║  PREDICTIVE CODING — EXTENDED ORGANISM ARCHITECTURE                         ║
+  // ║  Full Hierarchical Prediction Integration with All Organism Subsystems      ║
+  // ║                                                                             ║
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─── ORGANISM PREDICTIVE HIERARCHY ────────────────────────────────────────────
+  
+  /// Extended state for full organism integration
+  public type OrganismPredictiveState = {
+    // Core predictive state
+    coreState : PredictiveState;
+    
+    // Hierarchical levels
+    sensoryLevel : PredictiveLevel;
+    perceptualLevel : PredictiveLevel;
+    conceptualLevel : PredictiveLevel;
+    metacognitiveLevel : PredictiveLevel;
+    
+    // Precision matrices
+    sensoryPrecision : Float;
+    perceptualPrecision : Float;
+    conceptualPrecision : Float;
+    priorPrecision : Float;
+    
+    // Temporal predictions
+    immediatePredict : Float;
+    shortTermPredict : Float;
+    longTermPredict : Float;
+    temporalHorizon : Nat;
+    
+    // Context modulation
+    contextVector : [Float];
+    attentionalGate : Float;
+    noveltySignal : Float;
+    
+    // Model quality
+    modelEvidence : Float;
+    complexityPenalty : Float;
+    generalityCost : Float;
+    
+    // Learning dynamics
+    predictionLearningRate : Float;
+    precisionLearningRate : Float;
+    contextLearningRate : Float;
+  };
+
+  /// Predictive level state
+  public type PredictiveLevel = {
+    levelIndex : Nat;
+    predictions : [Float];
+    errors : [Float];
+    precision : Float;
+    representations : [Float];
+    topDownMessage : Float;
+    bottomUpMessage : Float;
+  };
+
+  /// Initialize organism predictive state
+  public func initOrganismPredictive() : OrganismPredictiveState {
+    let defaultLevel : PredictiveLevel = {
+      levelIndex = 0;
+      predictions = [];
+      errors = [];
+      precision = 1.0;
+      representations = [];
+      topDownMessage = 0.0;
+      bottomUpMessage = 0.0;
+    };
+    
+    {
+      coreState = defaultState();
+      sensoryLevel = { defaultLevel with levelIndex = 0 };
+      perceptualLevel = { defaultLevel with levelIndex = 1 };
+      conceptualLevel = { defaultLevel with levelIndex = 2 };
+      metacognitiveLevel = { defaultLevel with levelIndex = 3 };
+      sensoryPrecision = 1.0;
+      perceptualPrecision = 1.0;
+      conceptualPrecision = 1.0;
+      priorPrecision = 0.5;
+      immediatePredict = 0.5;
+      shortTermPredict = 0.5;
+      longTermPredict = 0.5;
+      temporalHorizon = 10;
+      contextVector = [0.5, 0.5, 0.5];
+      attentionalGate = 1.0;
+      noveltySignal = 0.0;
+      modelEvidence = 0.0;
+      complexityPenalty = 0.0;
+      generalityCost = 0.0;
+      predictionLearningRate = 0.1;
+      precisionLearningRate = 0.01;
+      contextLearningRate = 0.05;
+    }
+  };
+
+  // ─── HIERARCHICAL MESSAGE PASSING ─────────────────────────────────────────────
+  
+  /// Top-down prediction
+  public func computeTopDownPrediction(
+    higherLevel : [Float],
+    weights : [Float],
+    bias : Float
+  ) : Float {
+    var prediction : Float = bias;
+    let n = higherLevel.size();
+    let m = weights.size();
+    let size = if (n < m) { n } else { m };
+    
+    var i : Nat = 0;
+    while (i < size) {
+      prediction += higherLevel[i] * weights[i];
+      i += 1;
+    };
+    
+    _clamp(prediction, 0.0, 1.0)
+  };
+
+  /// Bottom-up prediction error
+  public func computeBottomUpError(
+    observation : Float,
+    prediction : Float,
+    precision : Float
+  ) : Float {
+    let error = observation - prediction;
+    precision * error
+  };
+
+  /// Update level via message passing
+  public func updateLevel(
+    level : PredictiveLevel,
+    observation : Float,
+    topDownPred : Float,
+    learningRate : Float
+  ) : PredictiveLevel {
+    // Compute prediction error
+    let error = observation - topDownPred;
+    let weightedError = level.precision * error;
+    
+    // Update representations
+    let newRep = if (level.representations.size() > 0) {
+      Array.map<Float, Float>(level.representations, func(r) {
+        _clamp(r + weightedError * learningRate, 0.0, 1.0)
+      })
+    } else { [observation] };
+    
+    let newErrors = Array.append(level.errors, [error]);
+    let newPredictions = Array.append(level.predictions, [topDownPred]);
+    
+    {
+      levelIndex = level.levelIndex;
+      predictions = newPredictions;
+      errors = newErrors;
+      precision = level.precision;
+      representations = newRep;
+      topDownMessage = topDownPred;
+      bottomUpMessage = weightedError;
+    }
+  };
+
+  // ─── PRECISION OPTIMIZATION ───────────────────────────────────────────────────
+  
+  /// Precision state
+  public type PrecisionState = {
+    sensory : Float;
+    prior : Float;
+    volatility : Float;
+    confidence : Float;
+  };
+
+  /// Optimize precision based on prediction errors
+  public func optimizePrecision(
+    currentPrecision : Float,
+    predictionErrors : [Float],
+    learningRate : Float
+  ) : Float {
+    // Precision inversely related to error variance
+    let n = predictionErrors.size();
+    if (n == 0) { return currentPrecision };
+    
+    // Compute error variance
+    var mean : Float = 0.0;
+    for (e in predictionErrors.vals()) { mean += e };
+    mean := mean / Float.fromInt(n);
+    
+    var variance : Float = 0.0;
+    for (e in predictionErrors.vals()) {
+      let diff = e - mean;
+      variance += diff * diff;
+    };
+    variance := variance / Float.fromInt(n);
+    
+    // Precision = 1 / variance (with regularization)
+    let targetPrecision = 1.0 / (variance + 0.01);
+    
+    // Smooth update
+    _clamp(currentPrecision + learningRate * (targetPrecision - currentPrecision), 0.1, 10.0)
+  };
+
+  // ─── CROSS-MODULE INTEGRATION ─────────────────────────────────────────────────
+  
+  /// Integrate with Kuramoto oscillators
+  public func integrateWithKuramoto(
+    state : PredictiveState,
+    orderParameter : Float,
+    meanPhase : Float
+  ) : PredictiveState {
+    // High Kuramoto coherence sharpens predictions
+    // Phase alignment times prediction updates
+    let coherenceFactor = 1.0 + (orderParameter - 0.5) * 0.4;
+    let phaseTiming = Float.cos(meanPhase) * 0.1;
+    
+    let newPrediction = _clamp(state.prediction + phaseTiming, 0.0, 1.0);
+    let newPrecision = _clamp(state.precision * coherenceFactor, 0.1, 10.0);
+    
+    {
+      prediction = newPrediction;
+      predictionError = state.predictionError;
+      observation = state.observation;
+      precision = newPrecision;
+      learningRate = state.learningRate;
+      errorHistory = state.errorHistory;
+      beatNum = state.beatNum;
+      confidence = state.confidence * coherenceFactor;
+      temporalSmoothing = state.temporalSmoothing;
+      adaptiveGain = state.adaptiveGain;
+    }
+  };
+
+  /// Integrate with Friston free energy
+  public func integrateWithFriston(
+    state : PredictiveState,
+    freeEnergy : Float,
+    surprisal : Float
+  ) : PredictiveState {
+    // Free energy bounds prediction accuracy
+    // Surprisal indicates prediction failure
+    let energyPenalty = freeEnergy * 0.1;
+    let surprisalSignal = surprisal * 0.15;
+    
+    let newError = _clamp(state.predictionError + surprisalSignal, 0.0, 1.0);
+    let newConfidence = _clamp(state.confidence - energyPenalty * 0.5, 0.0, 1.0);
+    
+    {
+      prediction = state.prediction;
+      predictionError = newError;
+      observation = state.observation;
+      precision = state.precision;
+      learningRate = state.learningRate;
+      errorHistory = state.errorHistory;
+      beatNum = state.beatNum;
+      confidence = newConfidence;
+      temporalSmoothing = state.temporalSmoothing;
+      adaptiveGain = state.adaptiveGain;
+    }
+  };
+
+  /// Integrate with Hebbian plasticity
+  public func integrateWithHebbian(
+    state : PredictiveState,
+    synapticStrength : Float,
+    plasticityRate : Float
+  ) : PredictiveState {
+    // Hebbian learning shapes prediction weights
+    // Strong synapses create confident predictions
+    let strengthInfluence = synapticStrength * 0.2;
+    let newGain = _clamp(state.adaptiveGain + plasticityRate * strengthInfluence, 0.1, 2.0);
+    
+    {
+      prediction = state.prediction;
+      predictionError = state.predictionError;
+      observation = state.observation;
+      precision = state.precision;
+      learningRate = _clamp(state.learningRate + plasticityRate * 0.01, 0.01, 0.5);
+      errorHistory = state.errorHistory;
+      beatNum = state.beatNum;
+      confidence = state.confidence;
+      temporalSmoothing = state.temporalSmoothing;
+      adaptiveGain = newGain;
+    }
+  };
+
+  /// Integrate with Attractor dynamics
+  public func integrateWithAttractor(
+    state : PredictiveState,
+    attractorPosition : Float,
+    stability : Float
+  ) : PredictiveState {
+    // Attractors create prediction targets
+    // Stability indicates prediction reliability
+    let attractorInfluence = (attractorPosition - state.prediction) * stability * 0.3;
+    let newPrediction = _clamp(state.prediction + attractorInfluence, 0.0, 1.0);
+    
+    {
+      prediction = newPrediction;
+      predictionError = state.predictionError;
+      observation = state.observation;
+      precision = state.precision;
+      learningRate = state.learningRate;
+      errorHistory = state.errorHistory;
+      beatNum = state.beatNum;
+      confidence = _clamp(state.confidence + stability * 0.1, 0.0, 1.0);
+      temporalSmoothing = state.temporalSmoothing;
+      adaptiveGain = state.adaptiveGain;
+    }
+  };
+
+  /// Integrate with Quantum effects
+  public func integrateWithQuantum(
+    state : PredictiveState,
+    quantumCoherence : Float,
+    superpositionWidth : Float
+  ) : PredictiveState {
+    // Quantum effects enable parallel prediction evaluation
+    // Superposition represents prediction uncertainty
+    let coherenceBenefit = quantumCoherence * 0.15;
+    let uncertaintyIncrease = superpositionWidth * 0.1;
+    
+    {
+      prediction = state.prediction;
+      predictionError = state.predictionError;
+      observation = state.observation;
+      precision = _clamp(state.precision + coherenceBenefit, 0.1, 10.0);
+      learningRate = state.learningRate;
+      errorHistory = state.errorHistory;
+      beatNum = state.beatNum;
+      confidence = state.confidence;
+      temporalSmoothing = _clamp(state.temporalSmoothing + uncertaintyIncrease, 0.0, 1.0);
+      adaptiveGain = state.adaptiveGain;
+    }
+  };
+
+  // ─── ATTENTION & GATING ───────────────────────────────────────────────────────
+  
+  /// Attentional state
+  public type AttentionalState = {
+    spatialFocus : [Float];
+    featureFocus : [Float];
+    temporalFocus : Float;
+    gatingStrength : Float;
+    noveltyBonus : Float;
+  };
+
+  /// Compute attention-gated prediction error
+  public func gatedPredictionError(
+    error : Float,
+    attention : Float,
+    novelty : Float
+  ) : Float {
+    // Attention amplifies relevant errors
+    // Novelty boosts unexpected signals
+    let attentionGain = 1.0 + (attention - 0.5) * 2.0;
+    let noveltyGain = 1.0 + novelty * 0.5;
+    
+    _clamp(error * attentionGain * noveltyGain, -5.0, 5.0)
+  };
+
+  /// Compute novelty signal
+  public func computeNovelty(
+    observation : Float,
+    contextPrediction : Float,
+    priorVariance : Float
+  ) : Float {
+    let deviation = Float.abs(observation - contextPrediction);
+    let normalizedDev = deviation / (Float.sqrt(priorVariance) + 0.01);
+    _clamp(normalizedDev, 0.0, 1.0)
+  };
+
+  // ─── TEMPORAL PREDICTION ──────────────────────────────────────────────────────
+  
+  /// Temporal prediction state
+  public type TemporalPredictionState = {
+    history : [Float];
+    predictions : [Float];
+    horizon : Nat;
+    decay : Float;
+    trend : Float;
+    seasonality : Float;
+  };
+
+  /// Initialize temporal prediction
+  public func initTemporalPrediction(horizon : Nat) : TemporalPredictionState {
+    {
+      history = [];
+      predictions = [];
+      horizon = horizon;
+      decay = 0.95;
+      trend = 0.0;
+      seasonality = 0.0;
+    }
+  };
+
+  /// Update temporal prediction
+  public func updateTemporalPrediction(
+    state : TemporalPredictionState,
+    observation : Float
+  ) : TemporalPredictionState {
+    // Add to history
+    let newHistory = Array.append(state.history, [observation]);
+    let histSize = newHistory.size();
+    
+    // Compute trend
+    var trend : Float = 0.0;
+    if (histSize >= 2) {
+      trend := newHistory[histSize - 1] - newHistory[histSize - 2];
+    };
+    
+    // Simple exponential smoothing prediction
+    var pred : Float = observation;
+    if (histSize >= 2) {
+      pred := state.decay * newHistory[histSize - 2] + (1.0 - state.decay) * observation;
+    };
+    
+    // Generate future predictions
+    var predictions : [Float] = [];
+    var i : Nat = 0;
+    while (i < state.horizon) {
+      let futurePred = pred + trend * Float.fromInt(i + 1);
+      predictions := Array.append(predictions, [_clamp(futurePred, 0.0, 1.0)]);
+      i += 1;
+    };
+    
+    {
+      history = newHistory;
+      predictions = predictions;
+      horizon = state.horizon;
+      decay = state.decay;
+      trend = trend;
+      seasonality = state.seasonality;
+    }
+  };
+
+  // ─── COUNTERFACTUAL PREDICTION ────────────────────────────────────────────────
+  
+  /// Counterfactual state
+  public type CounterfactualState = {
+    actualOutcome : Float;
+    predictedOutcome : Float;
+    alternativeActions : [Float];
+    alternativeOutcomes : [Float];
+    regret : Float;
+    opportunity : Float;
+  };
+
+  /// Compute counterfactual predictions
+  public func computeCounterfactuals(
+    actualAction : Float,
+    actualOutcome : Float,
+    alternativeActions : [Float],
+    model : [Float]
+  ) : CounterfactualState {
+    // Predict outcomes for alternative actions
+    var alternativeOutcomes : [Float] = [];
+    for (action in alternativeActions.vals()) {
+      // Simple linear model
+      var outcome : Float = 0.0;
+      for (w in model.vals()) {
+        outcome += action * w;
+      };
+      alternativeOutcomes := Array.append(alternativeOutcomes, [_clamp(outcome, 0.0, 1.0)]);
+    };
+    
+    // Compute regret (best alternative - actual)
+    var maxAlt : Float = 0.0;
+    for (alt in alternativeOutcomes.vals()) {
+      if (alt > maxAlt) { maxAlt := alt };
+    };
+    let regret = Float.max(0.0, maxAlt - actualOutcome);
+    
+    // Compute opportunity (actual - worst alternative)
+    var minAlt : Float = 1.0;
+    for (alt in alternativeOutcomes.vals()) {
+      if (alt < minAlt) { minAlt := alt };
+    };
+    let opportunity = Float.max(0.0, actualOutcome - minAlt);
+    
+    {
+      actualOutcome = actualOutcome;
+      predictedOutcome = actualOutcome;  // Would come from prediction
+      alternativeActions = alternativeActions;
+      alternativeOutcomes = alternativeOutcomes;
+      regret = regret;
+      opportunity = opportunity;
+    }
+  };
+
+  // ─── ORGANISM OUTPUT INTEGRATION ──────────────────────────────────────────────
+  
+  /// Complete organism output
+  public type PredictiveOrganismOutput = {
+    // Core metrics
+    currentPrediction : Float;
+    predictionError : Float;
+    precision : Float;
+    confidence : Float;
+    
+    // Hierarchical metrics
+    sensoryError : Float;
+    perceptualError : Float;
+    conceptualError : Float;
+    
+    // Temporal metrics
+    shortTermAccuracy : Float;
+    longTermAccuracy : Float;
+    temporalTrend : Float;
+    
+    // Attention metrics
+    attentionalFocus : Float;
+    noveltySignal : Float;
+    
+    // Model metrics
+    modelEvidence : Float;
+    complexityPenalty : Float;
+    
+    // Integration metrics
+    kuramotoInfluence : Float;
+    fristonInfluence : Float;
+    attractorInfluence : Float;
+  };
+
+  /// Generate organism output
+  public func generateOrganismOutput(state : PredictiveState) : PredictiveOrganismOutput {
+    // Compute accuracy from error history
+    let histSize = state.errorHistory.size();
+    var meanError : Float = 0.0;
+    if (histSize > 0) {
+      for (e in state.errorHistory.vals()) { meanError += Float.abs(e) };
+      meanError := meanError / Float.fromInt(histSize);
+    };
+    let accuracy = 1.0 - _clamp(meanError, 0.0, 1.0);
+    
+    {
+      currentPrediction = state.prediction;
+      predictionError = state.predictionError;
+      precision = state.precision;
+      confidence = state.confidence;
+      sensoryError = state.predictionError;
+      perceptualError = state.predictionError * 0.8;
+      conceptualError = state.predictionError * 0.6;
+      shortTermAccuracy = accuracy;
+      longTermAccuracy = accuracy * 0.9;
+      temporalTrend = 0.0;
+      attentionalFocus = state.adaptiveGain;
+      noveltySignal = Float.abs(state.predictionError);
+      modelEvidence = -state.predictionError * state.precision;
+      complexityPenalty = state.temporalSmoothing * 0.1;
+      kuramotoInfluence = 0.0;
+      fristonInfluence = 0.0;
+      attractorInfluence = 0.0;
+    }
+  };
+
+  // ─── OUTWARD EXTENSIONS ───────────────────────────────────────────────────────
+  
+  /// Output for Kuramoto
+  public func outputToKuramoto(state : PredictiveState) : { phaseExpectation : Float; couplingWeight : Float } {
+    {
+      phaseExpectation = state.prediction * 6.28318;
+      couplingWeight = state.confidence;
+    }
+  };
+
+  /// Output for Friston
+  public func outputToFriston(state : PredictiveState) : { predictionForFE : Float; errorForFE : Float } {
+    {
+      predictionForFE = state.prediction;
+      errorForFE = state.predictionError;
+    }
+  };
+
+  /// Output for Hebbian
+  public func outputToHebbian(state : PredictiveState) : { learningTarget : Float; errorSignal : Float } {
+    {
+      learningTarget = state.observation;
+      errorSignal = state.predictionError * state.precision;
+    }
+  };
+
+  /// Output for Attractor
+  public func outputToAttractor(state : PredictiveState) : { targetPosition : Float; attractionStrength : Float } {
+    {
+      targetPosition = state.prediction;
+      attractionStrength = state.confidence;
+    }
+  };
+
+  /// Output for Defense
+  public func outputToDefense(state : PredictiveState) : { threatPrediction : Float; certaintyLevel : Float } {
+    {
+      threatPrediction = state.predictionError;  // High error = potential threat
+      certaintyLevel = state.confidence;
+    }
+  };
+
+  /// Master output
+  public func generateAllOutputs(state : PredictiveState) : {
+    kuramoto : { phaseExpectation : Float; couplingWeight : Float };
+    friston : { predictionForFE : Float; errorForFE : Float };
+    hebbian : { learningTarget : Float; errorSignal : Float };
+    attractor : { targetPosition : Float; attractionStrength : Float };
+    defense : { threatPrediction : Float; certaintyLevel : Float };
+    organism : PredictiveOrganismOutput;
+  } {
+    {
+      kuramoto = outputToKuramoto(state);
+      friston = outputToFriston(state);
+      hebbian = outputToHebbian(state);
+      attractor = outputToAttractor(state);
+      defense = outputToDefense(state);
+      organism = generateOrganismOutput(state);
+    }
+  };
+
+  // ─── FULL ORGANISM BEAT ───────────────────────────────────────────────────────
+  
+  /// Complete organism beat
+  public func fullOrganismBeat(
+    state : PredictiveState,
+    observation : Float,
+    kuramotoOrder : Float,
+    fristonEnergy : Float,
+    attractorPosition : Float,
+    quantumCoherence : Float
+  ) : (PredictiveState, PredictiveOrganismOutput) {
+    // Layer 1: Core prediction update
+    var newState = predict(state, observation);
+    
+    // Layer 2: Kuramoto integration
+    newState := integrateWithKuramoto(newState, kuramotoOrder, 0.0);
+    
+    // Layer 3: Friston integration
+    newState := integrateWithFriston(newState, fristonEnergy, fristonEnergy * 0.5);
+    
+    // Layer 4: Attractor integration
+    newState := integrateWithAttractor(newState, attractorPosition, 0.5);
+    
+    // Layer 5: Quantum integration
+    newState := integrateWithQuantum(newState, quantumCoherence, 0.2);
+    
+    let output = generateOrganismOutput(newState);
+    (newState, output)
+  };
+
+}

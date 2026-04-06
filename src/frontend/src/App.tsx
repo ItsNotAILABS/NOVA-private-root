@@ -24,6 +24,10 @@ import { ArtifactStudio }     from './components/habitat/ArtifactStudio';
 import { PresenceBoard }      from './components/habitat/PresenceBoard';
 import { SimulationChamber }  from './components/simulation/SimulationChamber';
 
+// ── Science Labs ──────────────────────────────────────────────────────────────
+import { EmergenceLab }       from './components/labs/EmergenceLab';
+import { MathPhysicsLab }     from './components/labs/MathPhysicsLab';
+import { NeuroCogLab }        from './components/labs/NeuroCogLab';
 // ── ORO Command Center — The Real Multi-Agent Workspace ─────────────────────────
 import { OroCommandCenter }     from './components/CommandCenter/OroCommandCenter';
 import { DroneSimulationWorld } from './components/CommandCenter/DroneSimulationWorld';
@@ -43,9 +47,12 @@ type NavView =
   | 'ARTIFACTS'      // artifact studio
   | 'PRESENCE'       // presence board
   | 'SIMULATION'     // world simulation chamber
-  | 'EMERGENCE'      // Emergence Lab — Kuramoto coherence dynamics
-  | 'MATHPHYSICS'    // Math & Physics Lab — all governing equations live
-  | 'NEUROCOG';      // Neuroscience & Cognitive Architecture Lab
+
+
+  | 'LAB_EMERGENCE'  // emergence lab: Kuramoto, Ising, Lorenz, Turing, Sandpile
+  | 'LAB_MATH'       // math/physics lab: Lyapunov, quantum, 60 laws
+  | 'LAB_NEURO';     // neuro-cognitive lab: neurochemistry, Hz substrate
+
 
 const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
   { id: 'COMMAND',    label: 'Command',    icon: '◉' },
@@ -56,9 +63,12 @@ const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
   { id: 'ARTIFACTS',  label: 'Artifacts',  icon: '▣' },
   { id: 'PRESENCE',   label: 'Presence',   icon: '●' },
   { id: 'SIMULATION', label: 'World Sim',  icon: '✦' },
-  { id: 'EMERGENCE',  label: 'Emergence',  icon: '◎' },
-  { id: 'MATHPHYSICS',label: 'Math·Phys',  icon: '∿' },
-  { id: 'NEUROCOG',   label: 'NeuroCog',   icon: '⌬' },
+
+
+  { id: 'LAB_EMERGENCE',label: 'Emergence',   icon: '∿' },
+  { id: 'LAB_MATH',     label: 'Math/Physics',icon: '∂' },
+  { id: 'LAB_NEURO',   label: 'NeuroCog',    icon: '⊛' },
+
 ];
 
 // ── Styles ────────────────────────────────────────────────────────────────────
@@ -312,19 +322,30 @@ export default function App() {
           </div>
         )}
 
+
         {/* ── EMERGENCE LAB — Kuramoto Phase Sync Observatory ─────────── */}
-        {view === 'EMERGENCE' && (
-          <EmergenceLab organism={organism} />
-        )}
 
         {/* ── MATH & PHYSICS LAB — All Governing Equations Live ────────── */}
-        {view === 'MATHPHYSICS' && (
-          <MathPhysicsLab organism={organism} />
-        )}
 
         {/* ── NEUROSCIENCE & COGNITIVE LAB — Brain Architecture Observer ─ */}
-        {view === 'NEUROCOG' && (
-          <NeuroCogLab organism={organism} />
+        {/* ── SCIENCE LABS ─────────────────────────────────────────────── */}
+        {view === 'LAB_EMERGENCE' && (
+          <div style={{ width: '100%', height: '100%' }}>
+            <EmergenceLab />
+          </div>
+        )}
+
+        {view === 'LAB_MATH' && (
+          <div style={{ width: '100%', height: '100%' }}>
+            <MathPhysicsLab />
+          </div>
+        )}
+
+        {view === 'LAB_NEURO' && (
+          <div style={{ width: '100%', height: '100%' }}>
+            <NeuroCogLab />
+          </div>
+
         )}
       </div>
     </div>

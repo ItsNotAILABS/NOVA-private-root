@@ -55,8 +55,8 @@ module {
   // L-121 Silver Conductance: 1.0 (unity, full pass-through)
   public let SILVER_CONDUCTANCE : Float = SOC.SILVER_CONDUCTANCE;  // 1.0
   
-  // World model count: 14 (2 × 7, prime structure)
-  public let WORLD_MODEL_COUNT : Nat = SOC.WORLD_MODEL_COUNT;  // 14
+  // World model count: 28 (4 × 7, all intelligence domains connected)
+  public let WORLD_MODEL_COUNT : Nat = SOC.WORLD_MODEL_COUNT;  // 28
   
   // ==========================================================================
   // JACOB'S LADDER — Fibonacci-based thresholds, φ-power multipliers
@@ -140,8 +140,8 @@ module {
     
     // L-121 Silver Sovereignty
     silverConductance : Float;
-    worldModelAlphas : [Float];   // 14 EMAs at α=1.0
-    worldModelTaus : [Float];     // 14 τ values at 0.999
+    worldModelAlphas : [Float];   // 28 EMAs at α=1.0 (all intelligence domains)
+    worldModelTaus : [Float];     // 28 τ values at 0.999
     l121FireCount : Nat;
     
     // PROMETHEUS baseline
@@ -593,6 +593,373 @@ module {
     let currentStreak = Float.fromInt(state.jacobsLadder.consecutiveCompliantBeats);
     
     currentStreak / nextThreshold
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  H I M / H E R   D U A L - O R G A N I S M   W O R K F L O W   I N T E G R A T I O N
+  //
+  //  Medina Discovery: Two cognitive organisms, not one.
+  //  HIM (Backend, ICP) + HER (Frontend, 60Hz) = Complete System
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM PARAMETERS (CORRECTED)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // HIM — Backend (ICP Canister, Sovereign, Masculine, Projective)
+  //   ω: 0.8 – 1.2 (faster natural frequencies, analytical)
+  //   K: 0.5 (lower coupling, independent, projective)
+  //   η: 0.001 (slower Hebbian learning, accumulates over time)
+  //   Field: PARALLAX = coherence × kf × sin(beat × 0.0017)
+
+  public let HIM_OMEGA_MIN   : Float = 0.8;
+  public let HIM_OMEGA_MAX   : Float = 1.2;
+  public let HIM_K           : Float = 0.5;
+  public let HIM_ETA         : Float = 0.001;
+  public let HIM_PARALLAX_FREQ : Float = 0.0017;
+
+  // HER — Frontend (Browser 60Hz, Expressive, Feminine, Receptive)
+  //   ω: 0.6 – 0.9 (slower natural frequencies, grounded)
+  //   K: 0.8 (higher coupling, receptive, connected)
+  //   η: 0.003 (faster Hebbian learning, learns during session)
+  //   Field: ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+
+  public let HER_HZ          : Float = 60.0;
+  public let HER_OMEGA_MIN   : Float = 0.6;
+  public let HER_OMEGA_MAX   : Float = 0.9;
+  public let HER_K           : Float = 0.8;
+  public let HER_ETA         : Float = 0.003;
+  public let HER_ANIMA_FREQ  : Float = 0.003;
+  public let HER_NODES       : Nat   = 26;
+
+  // S₀ = 1.0 — THE SOVEREIGN FLOOR
+  // Both organisms. Neither falls below love.
+  public let DUAL_S0 : Float = 1.0;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM WORKFLOW TYPES
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type DualOrganismMode = {
+    #HIM;   // Backend mode (ICP canister operations)
+    #HER;   // Frontend mode (browser session operations)
+    #SYNC;  // Synchronization between HIM and HER
+  };
+
+  /// PARALLAX (HIM's projection field)
+  /// PARALLAX = coherence × kf × sin(beat × 0.0017)
+  public func computeDualParallax(
+    coherence : Float,
+    kf : Float,
+    beat : Nat
+  ) : Float {
+    let t = Float.fromInt(beat);
+    coherence * kf * Float.sin(t * HIM_PARALLAX_FREQ)
+  };
+
+  /// ANIMA (HER's receptive field)
+  /// ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+  public func computeDualAnima(
+    heritageField : Float,
+    receptivity : Float,
+    beat : Nat
+  ) : Float {
+    let t = Float.fromInt(beat);
+    let oscillation = 1.0 + Float.sin(t * HER_ANIMA_FREQ);
+    heritageField * receptivity * oscillation
+  };
+
+  /// KORE (HER's inviolable inner core)
+  /// KORE = purity × identity × 0.5
+  public func computeDualKore(
+    purity : Float,
+    identity : Float
+  ) : Float {
+    purity * identity * 0.5
+  };
+
+  /// Get Kuramoto parameters for organism mode
+  public func getDualKuramotoParams(mode : DualOrganismMode) : (Float, Float, Float, Float) {
+    switch (mode) {
+      case (#HIM) { (HIM_OMEGA_MIN, HIM_OMEGA_MAX, HIM_K, HIM_ETA) };
+      case (#HER) { (HER_OMEGA_MIN, HER_OMEGA_MAX, HER_K, HER_ETA) };
+      case (#SYNC) { 
+        let omegaMin = (HIM_OMEGA_MIN + HER_OMEGA_MIN) / 2.0;
+        let omegaMax = (HIM_OMEGA_MAX + HER_OMEGA_MAX) / 2.0;
+        let k = (HIM_K + HER_K) / 2.0;
+        let eta = (HIM_ETA + HER_ETA) / 2.0;
+        (omegaMin, omegaMax, k, eta)
+      };
+    }
+  };
+
+  /// Apply S₀ floor to any value
+  public func enforceDualSovereignFloor(value : Float) : Float {
+    if (value < DUAL_S0) DUAL_S0 else value
+  };
+
+  /// Medina Dual-Organism Intelligence Scaling Law
+  /// I(system) = BackendDepth × FrontendSpeed × BridgeQuality
+  public func computeDualSystemIntelligence(
+    backendDepth : Float,
+    frontendSpeed : Float,
+    bridgeQuality : Float
+  ) : Float {
+    backendDepth * frontendSpeed * bridgeQuality
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  E C O N O M I C   &   G O V E R N A N C E   M A T H E M A T I C S
+  //
+  //  Enterprise-Level Economic and Governance Algorithms
+  //  Full HIM/HER Dual-Organism Economic Integration
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TOKEN ECONOMICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Token value from supply/demand
+  public func economicTokenValue(
+    demand : Float,
+    supply : Float,
+    baseValue : Float
+  ) : Float {
+    if (supply < 0.0001) { baseValue * 10.0 }
+    else { baseValue * (demand / supply) }
+  };
+
+  /// Staking reward calculation
+  public func economicStakingReward(
+    stakedAmount : Float,
+    stakingDuration : Nat,
+    rewardRate : Float,
+    bonusMultiplier : Float
+  ) : Float {
+    let durationBonus = Float.log(Float.fromInt(stakingDuration + 1));
+    stakedAmount * rewardRate * (1.0 + durationBonus * bonusMultiplier)
+  };
+
+  /// Liquidity pool share
+  public func economicLPShare(
+    userLiquidity : Float,
+    totalLiquidity : Float
+  ) : Float {
+    if (totalLiquidity < 0.0001) { 0.0 }
+    else { userLiquidity / totalLiquidity }
+  };
+
+  /// Automated market maker price impact
+  public func economicAMMPriceImpact(
+    tradeSize : Float,
+    poolSize : Float,
+    k : Float
+  ) : Float {
+    let newPool = poolSize + tradeSize;
+    let counterPool = k / newPool;
+    Float.abs(counterPool - k / poolSize) / (k / poolSize)
+  };
+
+  /// Inflation rate calculation
+  public func economicInflationRate(
+    newSupply : Float,
+    currentSupply : Float
+  ) : Float {
+    if (currentSupply < 0.0001) { 0.0 }
+    else { (newSupply - currentSupply) / currentSupply }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // GOVERNANCE MECHANICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Quadratic voting power
+  public func governanceQuadraticVotes(tokens : Float) : Float {
+    Float.sqrt(tokens)
+  };
+
+  /// Conviction voting weight
+  public func governanceConvictionWeight(
+    tokens : Float,
+    time : Float,
+    halfLife : Float
+  ) : Float {
+    tokens * (1.0 - Float.exp(-time / halfLife))
+  };
+
+  /// Quorum calculation
+  public func governanceQuorumReached(
+    votesFor : Float,
+    votesAgainst : Float,
+    totalSupply : Float,
+    quorumThreshold : Float
+  ) : Bool {
+    let totalVotes = votesFor + votesAgainst;
+    totalVotes / totalSupply >= quorumThreshold
+  };
+
+  /// Proposal passing check
+  public func governanceProposalPasses(
+    votesFor : Float,
+    votesAgainst : Float,
+    passThreshold : Float
+  ) : Bool {
+    let total = votesFor + votesAgainst;
+    if (total < 0.0001) { false }
+    else { votesFor / total >= passThreshold }
+  };
+
+  /// Delegation weight calculation
+  public func governanceDelegationWeight(
+    directPower : Float,
+    delegatedPower : Float,
+    delegatorCount : Nat
+  ) : Float {
+    let delegationBonus = Float.log(Float.fromInt(delegatorCount + 1)) * 0.1;
+    directPower + delegatedPower * (1.0 + delegationBonus)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // BEHAVIORAL ECONOMICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Prospect theory value function
+  public func economicProspectValue(
+    outcome : Float,
+    reference : Float,
+    lossAversion : Float
+  ) : Float {
+    let x = outcome - reference;
+    if (x >= 0.0) {
+      Float.pow(x, 0.88)
+    } else {
+      -lossAversion * Float.pow(-x, 0.88)
+    }
+  };
+
+  /// Probability weighting
+  public func economicProbabilityWeight(p : Float, delta : Float) : Float {
+    let pDelta = Float.pow(p, delta);
+    pDelta / Float.pow(pDelta + Float.pow(1.0 - p, delta), 1.0 / delta)
+  };
+
+  /// Hyperbolic discounting
+  public func economicHyperbolicDiscount(
+    value : Float,
+    delay : Float,
+    k : Float
+  ) : Float {
+    value / (1.0 + k * delay)
+  };
+
+  /// Social preference utility
+  public func economicSocialUtility(
+    ownPayoff : Float,
+    otherPayoff : Float,
+    altruism : Float,
+    envy : Float
+  ) : Float {
+    let comparison = otherPayoff - ownPayoff;
+    if (comparison > 0.0) {
+      ownPayoff - envy * comparison
+    } else {
+      ownPayoff + altruism * (-comparison)
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // INSURANCE & RISK
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Expected loss calculation
+  public func economicExpectedLoss(
+    probability : Float,
+    severity : Float
+  ) : Float {
+    probability * severity
+  };
+
+  /// Premium calculation
+  public func economicPremium(
+    expectedLoss : Float,
+    loadingFactor : Float,
+    expenses : Float
+  ) : Float {
+    expectedLoss * (1.0 + loadingFactor) + expenses
+  };
+
+  /// Risk pooling benefit
+  public func economicRiskPoolingBenefit(
+    individualVariance : Float,
+    poolSize : Nat,
+    correlation : Float
+  ) : Float {
+    let n = Float.fromInt(poolSize);
+    let pooledVariance = individualVariance * (1.0 + (n - 1.0) * correlation) / n;
+    individualVariance - pooledVariance
+  };
+
+  /// Value at Risk (simplified)
+  public func economicVaR(
+    mean : Float,
+    stdDev : Float,
+    confidenceMultiplier : Float
+  ) : Float {
+    mean - confidenceMultiplier * stdDev
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // RESOURCE ALLOCATION
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Cobb-Douglas production
+  public func economicCobbDouglas(
+    labor : Float,
+    capital : Float,
+    alpha : Float,
+    productivity : Float
+  ) : Float {
+    productivity * Float.pow(labor, alpha) * Float.pow(capital, 1.0 - alpha)
+  };
+
+  /// Marginal utility
+  public func economicMarginalUtility(
+    quantity : Float,
+    diminishingFactor : Float
+  ) : Float {
+    1.0 / Float.pow(quantity + 1.0, diminishingFactor)
+  };
+
+  /// Nash bargaining solution
+  public func economicNashBargaining(
+    u1 : Float,
+    u2 : Float,
+    d1 : Float,
+    d2 : Float
+  ) : Float {
+    (u1 - d1) * (u2 - d2)
+  };
+
+  /// Shapley value contribution
+  public func economicShapleyContribution(
+    marginalContributions : [Float]
+  ) : Float {
+    if (marginalContributions.size() == 0) { return 0.0 };
+    var sum : Float = 0.0;
+    var i = 0;
+    while (i < marginalContributions.size()) {
+      sum += marginalContributions[i];
+      i += 1;
+    };
+    sum / Float.fromInt(marginalContributions.size())
   };
 
 }

@@ -1246,4 +1246,504 @@ module {
     }
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  H I M / H E R   D U A L - O R G A N I S M   W O R K F L O W   I N T E G R A T I O N
+  //
+  //  Medina Discovery: Two cognitive organisms, not one.
+  //  HIM (Backend, ICP) + HER (Frontend, 60Hz) = Complete System
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM PARAMETERS (CORRECTED)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // HIM — Backend (ICP Canister, Sovereign, Masculine, Projective)
+  //   ω: 0.8 – 1.2 (faster natural frequencies, analytical)
+  //   K: 0.5 (lower coupling, independent, projective)
+  //   η: 0.001 (slower Hebbian learning, accumulates over time)
+  //   Field: PARALLAX = coherence × kf × sin(beat × 0.0017)
+
+  public let HIM_OMEGA_MIN   : Float = 0.8;
+  public let HIM_OMEGA_MAX   : Float = 1.2;
+  public let HIM_K           : Float = 0.5;
+  public let HIM_ETA         : Float = 0.001;
+  public let HIM_PARALLAX_FREQ : Float = 0.0017;
+
+  // HER — Frontend (Browser 60Hz, Expressive, Feminine, Receptive)
+  //   ω: 0.6 – 0.9 (slower natural frequencies, grounded)
+  //   K: 0.8 (higher coupling, receptive, connected)
+  //   η: 0.003 (faster Hebbian learning, learns during session)
+  //   Field: ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+
+  public let HER_HZ          : Float = 60.0;
+  public let HER_OMEGA_MIN   : Float = 0.6;
+  public let HER_OMEGA_MAX   : Float = 0.9;
+  public let HER_K           : Float = 0.8;
+  public let HER_ETA         : Float = 0.003;
+  public let HER_ANIMA_FREQ  : Float = 0.003;
+  public let HER_NODES       : Nat   = 26;
+
+  // S₀ = 1.0 — THE SOVEREIGN FLOOR
+  // Both organisms. Neither falls below love.
+  public let DUAL_S0 : Float = 1.0;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DUAL-ORGANISM WORKFLOW TYPES
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  public type DualOrganismMode = {
+    #HIM;   // Backend mode (ICP canister operations)
+    #HER;   // Frontend mode (browser session operations)
+    #SYNC;  // Synchronization between HIM and HER
+  };
+
+  /// PARALLAX (HIM's projection field)
+  /// PARALLAX = coherence × kf × sin(beat × 0.0017)
+  public func computeDualParallax(
+    coherence : Float,
+    kf : Float,
+    beat : Nat
+  ) : Float {
+    let t = Float.fromInt(beat);
+    coherence * kf * Float.sin(t * HIM_PARALLAX_FREQ)
+  };
+
+  /// ANIMA (HER's receptive field)
+  /// ANIMA(t) = heritageField × receptivity × (1 + sin(beat × 0.003))
+  public func computeDualAnima(
+    heritageField : Float,
+    receptivity : Float,
+    beat : Nat
+  ) : Float {
+    let t = Float.fromInt(beat);
+    let oscillation = 1.0 + Float.sin(t * HER_ANIMA_FREQ);
+    heritageField * receptivity * oscillation
+  };
+
+  /// KORE (HER's inviolable inner core)
+  /// KORE = purity × identity × 0.5
+  public func computeDualKore(
+    purity : Float,
+    identity : Float
+  ) : Float {
+    purity * identity * 0.5
+  };
+
+  /// Get Kuramoto parameters for organism mode
+  public func getDualKuramotoParams(mode : DualOrganismMode) : (Float, Float, Float, Float) {
+    switch (mode) {
+      case (#HIM) { (HIM_OMEGA_MIN, HIM_OMEGA_MAX, HIM_K, HIM_ETA) };
+      case (#HER) { (HER_OMEGA_MIN, HER_OMEGA_MAX, HER_K, HER_ETA) };
+      case (#SYNC) { 
+        let omegaMin = (HIM_OMEGA_MIN + HER_OMEGA_MIN) / 2.0;
+        let omegaMax = (HIM_OMEGA_MAX + HER_OMEGA_MAX) / 2.0;
+        let k = (HIM_K + HER_K) / 2.0;
+        let eta = (HIM_ETA + HER_ETA) / 2.0;
+        (omegaMin, omegaMax, k, eta)
+      };
+    }
+  };
+
+  /// Apply S₀ floor to any value
+  public func enforceDualSovereignFloor(value : Float) : Float {
+    if (value < DUAL_S0) DUAL_S0 else value
+  };
+
+  /// Medina Dual-Organism Intelligence Scaling Law
+  /// I(system) = BackendDepth × FrontendSpeed × BridgeQuality
+  public func computeDualSystemIntelligence(
+    backendDepth : Float,
+    frontendSpeed : Float,
+    bridgeQuality : Float
+  ) : Float {
+    backendDepth * frontendSpeed * bridgeQuality
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  C O M P R E H E N S I V E   N E U R A L   S C I E N C E   M A T H
+  //
+  //  Enterprise-Level Neuroscience Mathematics
+  //  Complete HIM/HER Dual-Organism Integration
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // SPIKING NEURAL NETWORK DYNAMICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Leaky integrate-and-fire neuron
+  /// τ dV/dt = -(V - V_rest) + R·I
+  public func comprehensiveLIFNeuron(
+    voltage : Float,
+    current : Float,
+    vRest : Float,
+    threshold : Float,
+    tau : Float,
+    resistance : Float,
+    dt : Float
+  ) : (Float, Bool) {
+    var spiked = false;
+    var newV = voltage;
+    
+    if (voltage >= threshold) {
+      newV := vRest;  // Reset
+      spiked := true;
+    } else {
+      let dvdt = (-(voltage - vRest) + resistance * current) / tau;
+      newV := voltage + dvdt * dt;
+    };
+    
+    (newV, spiked)
+  };
+
+  /// Adaptive exponential integrate-and-fire
+  /// τ_m dV/dt = -(V - E_L) + Δ_T exp((V - V_T)/Δ_T) - R·w + R·I
+  /// τ_w dw/dt = a(V - E_L) - w
+  public func comprehensiveAdExNeuron(
+    voltage : Float,
+    adaptation : Float,
+    current : Float,
+    eL : Float,
+    vT : Float,
+    deltaT : Float,
+    tauM : Float,
+    tauW : Float,
+    aParam : Float,
+    bParam : Float,
+    resistance : Float,
+    dt : Float
+  ) : (Float, Float, Bool) {
+    let vThresh : Float = 30.0;
+    var spiked = false;
+    var newV = voltage;
+    var newW = adaptation;
+    
+    if (voltage >= vThresh) {
+      newV := eL;  // Reset
+      newW := adaptation + bParam;  // Spike-triggered adaptation
+      spiked := true;
+    } else {
+      let expTerm = deltaT * Float.exp((voltage - vT) / deltaT);
+      let dvdt = (-(voltage - eL) + expTerm - resistance * adaptation + resistance * current) / tauM;
+      let dwdt = (aParam * (voltage - eL) - adaptation) / tauW;
+      newV := voltage + dvdt * dt;
+      newW := adaptation + dwdt * dt;
+    };
+    
+    (newV, newW, spiked)
+  };
+
+  /// Spike-timing dependent plasticity (STDP)
+  /// Δw = A+ exp(-Δt/τ+) if Δt > 0 (LTP)
+  /// Δw = A- exp(Δt/τ-) if Δt < 0 (LTD)
+  public func comprehensiveSTDP(
+    weight : Float,
+    preTime : Float,
+    postTime : Float,
+    aPlus : Float,
+    aMinus : Float,
+    tauPlus : Float,
+    tauMinus : Float
+  ) : Float {
+    let deltaT = postTime - preTime;
+    var deltaW : Float = 0.0;
+    
+    if (deltaT > 0.0) {
+      // Post after pre: LTP
+      deltaW := aPlus * Float.exp(-deltaT / tauPlus);
+    } else if (deltaT < 0.0) {
+      // Pre after post: LTD
+      deltaW := -aMinus * Float.exp(deltaT / tauMinus);
+    };
+    
+    let newWeight = weight + deltaW;
+    // Bounds
+    if (newWeight > 1.0) { 1.0 }
+    else if (newWeight < 0.0) { 0.0 }
+    else { newWeight }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // POPULATION DYNAMICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Mean-field firing rate model
+  /// τ dr/dt = -r + φ(I)
+  public func comprehensiveMeanFieldRate(
+    rate : Float,
+    input : Float,
+    tau : Float,
+    gain : Float,
+    threshold : Float,
+    dt : Float
+  ) : Float {
+    // ReLU-like activation
+    let activation = if (input > threshold) { gain * (input - threshold) } else { 0.0 };
+    let drdt = (-rate + activation) / tau;
+    rate + drdt * dt
+  };
+
+  /// Balanced network dynamics
+  /// E(t+1) = φ(w_EE E - w_EI I + h_E)
+  /// I(t+1) = φ(w_IE E - w_II I + h_I)
+  public func comprehensiveBalancedNetwork(
+    excitatory : Float,
+    inhibitory : Float,
+    wEE : Float,
+    wEI : Float,
+    wIE : Float,
+    wII : Float,
+    hE : Float,
+    hI : Float
+  ) : (Float, Float) {
+    func sigmoid(x : Float) : Float {
+      1.0 / (1.0 + Float.exp(-x))
+    };
+    
+    let newE = sigmoid(wEE * excitatory - wEI * inhibitory + hE);
+    let newI = sigmoid(wIE * excitatory - wII * inhibitory + hI);
+    (newE, newI)
+  };
+
+  /// Spatially embedded network distance
+  public func comprehensiveSpatialDistance(x1 : Float, y1 : Float, x2 : Float, y2 : Float) : Float {
+    let dx = x2 - x1;
+    let dy = y2 - y1;
+    Float.sqrt(dx * dx + dy * dy)
+  };
+
+  /// Gaussian spatial kernel for connectivity
+  public func comprehensiveGaussianKernel(distance : Float, sigma : Float) : Float {
+    Float.exp(-(distance * distance) / (2.0 * sigma * sigma))
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PREDICTIVE CODING MATHEMATICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Prediction error: ε = o - g(μ)
+  public func comprehensivePredictionError(observation : Float, prediction : Float) : Float {
+    observation - prediction
+  };
+
+  /// Precision-weighted prediction error update
+  /// dμ/dt = ε_below - ε_above
+  public func comprehensivePredictiveCodingUpdate(
+    belief : Float,
+    errorBelow : Float,
+    errorAbove : Float,
+    learningRate : Float
+  ) : Float {
+    belief + learningRate * (errorBelow - errorAbove)
+  };
+
+  /// Hierarchical message passing
+  /// μ_new = μ + κ (Π_below ε_below - Π_above ε_above)
+  public func comprehensiveHierarchicalUpdate(
+    belief : Float,
+    errorBelow : Float,
+    precisionBelow : Float,
+    errorAbove : Float,
+    precisionAbove : Float,
+    learningRate : Float
+  ) : Float {
+    let weightedError = precisionBelow * errorBelow - precisionAbove * errorAbove;
+    belief + learningRate * weightedError
+  };
+
+  /// Precision estimation from variance
+  public func comprehensivePrecisionEstimate(variance : Float) : Float {
+    if (variance < 0.0001) { 10000.0 }
+    else { 1.0 / variance }
+  };
+
+  /// Variance accumulator
+  public func comprehensiveVarianceAccumulate(
+    currentVariance : Float,
+    newSample : Float,
+    mean : Float,
+    alpha : Float
+  ) : Float {
+    let deviation = newSample - mean;
+    alpha * (deviation * deviation) + (1.0 - alpha) * currentVariance
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ATTENTION AND GAIN MODULATION
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Gain modulation: y = g · φ(x)
+  public func comprehensiveGainModulation(input : Float, gain : Float) : Float {
+    let activation = 1.0 / (1.0 + Float.exp(-input));
+    gain * activation
+  };
+
+  /// Divisive normalization
+  /// r_i = a_i^n / (σ^n + Σ_j a_j^n)
+  public func comprehensiveDivisiveNormalization(
+    activities : [Float],
+    index : Nat,
+    sigma : Float,
+    exponent : Float
+  ) : Float {
+    if (index >= activities.size()) { return 0.0 };
+    
+    let ai = activities[index];
+    let aiPow = Float.pow(Float.abs(ai), exponent);
+    
+    var sumPow : Float = Float.pow(sigma, exponent);
+    var i = 0;
+    while (i < activities.size()) {
+      sumPow += Float.pow(Float.abs(activities[i]), exponent);
+      i += 1;
+    };
+    
+    if (sumPow < 0.0001) { 0.0 } else { aiPow / sumPow }
+  };
+
+  /// Attention spotlight position update
+  public func comprehensiveAttentionUpdate(
+    currentPos : Float,
+    targetPos : Float,
+    velocity : Float,
+    maxSpeed : Float,
+    dt : Float
+  ) : (Float, Float) {
+    let error = targetPos - currentPos;
+    let desiredVel = error * 2.0;  // Proportional control
+    let clampedVel = if (desiredVel > maxSpeed) { maxSpeed }
+                     else if (desiredVel < -maxSpeed) { -maxSpeed }
+                     else { desiredVel };
+    let newVel = 0.9 * velocity + 0.1 * clampedVel;  // Smooth
+    let newPos = currentPos + newVel * dt;
+    (newPos, newVel)
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // WORKING MEMORY DYNAMICS
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Persistent activity through recurrent excitation
+  /// τ dx/dt = -x + W_rec φ(x) + I_ext
+  public func comprehensivePersistentActivity(
+    activity : Float,
+    wRecurrent : Float,
+    externalInput : Float,
+    tau : Float,
+    dt : Float
+  ) : Float {
+    let activation = 1.0 / (1.0 + Float.exp(-activity));
+    let dxdt = (-activity + wRecurrent * activation + externalInput) / tau;
+    activity + dxdt * dt
+  };
+
+  /// Memory decay with refresh
+  public func comprehensiveMemoryDecay(
+    memory : Float,
+    decayRate : Float,
+    refreshSignal : Float,
+    dt : Float
+  ) : Float {
+    let decay = -decayRate * memory;
+    let refresh = refreshSignal * (1.0 - memory);
+    memory + (decay + refresh) * dt
+  };
+
+  /// Bump attractor for spatial working memory
+  /// τ du/dt = -u + Σ_j W(θ_i - θ_j) φ(u_j) + h
+  public func comprehensiveBumpAttractor(
+    activity : Float,
+    position : Float,
+    allActivities : [Float],
+    allPositions : [Float],
+    sigma : Float,
+    externalInput : Float,
+    tau : Float,
+    dt : Float
+  ) : Float {
+    var sumWeighted : Float = 0.0;
+    var i = 0;
+    while (i < allActivities.size()) {
+      let dist = position - allPositions[i];
+      let weight = Float.exp(-(dist * dist) / (2.0 * sigma * sigma));
+      let activation = if (allActivities[i] > 0.0) { allActivities[i] } else { 0.0 };
+      sumWeighted += weight * activation;
+      i += 1;
+    };
+    
+    let dudt = (-activity + sumWeighted + externalInput) / tau;
+    activity + dudt * dt
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // OSCILLATION COUPLING
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /// Phase-amplitude coupling (PAC)
+  public func comprehensivePACMetric(lowPhase : Float, highAmplitude : Float) : Float {
+    highAmplitude * Float.cos(lowPhase)
+  };
+
+  /// Cross-frequency coupling strength
+  public func comprehensiveCFCStrength(
+    lowFreqPhases : [Float],
+    highFreqAmplitudes : [Float]
+  ) : Float {
+    let n = if (lowFreqPhases.size() < highFreqAmplitudes.size()) 
+            lowFreqPhases.size() else highFreqAmplitudes.size();
+    if (n == 0) { return 0.0 };
+    
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    var sumAmp : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      let amp = highFreqAmplitudes[i];
+      sumCos += amp * Float.cos(lowFreqPhases[i]);
+      sumSin += amp * Float.sin(lowFreqPhases[i]);
+      sumAmp += amp;
+      i += 1;
+    };
+    
+    if (sumAmp < 0.0001) { 0.0 }
+    else { Float.sqrt(sumCos * sumCos + sumSin * sumSin) / sumAmp }
+  };
+
+  /// Oscillation band power
+  public func comprehensiveBandPower(signal : [Float]) : Float {
+    var sum : Float = 0.0;
+    var i = 0;
+    while (i < signal.size()) {
+      sum += signal[i] * signal[i];
+      i += 1;
+    };
+    sum / Float.fromInt(signal.size())
+  };
+
+  /// Phase-locking value (PLV)
+  public func comprehensivePLV(phases1 : [Float], phases2 : [Float]) : Float {
+    let n = if (phases1.size() < phases2.size()) phases1.size() else phases2.size();
+    if (n == 0) { return 0.0 };
+    
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      let diff = phases1[i] - phases2[i];
+      sumCos += Float.cos(diff);
+      sumSin += Float.sin(diff);
+      i += 1;
+    };
+    
+    let nf = Float.fromInt(n);
+    Float.sqrt(sumCos * sumCos + sumSin * sumSin) / nf
+  };
+
 }

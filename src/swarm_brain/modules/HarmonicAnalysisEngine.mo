@@ -1196,4 +1196,951 @@ module {
     max
   };
 
+  // ╔══════════════════════════════════════════════════════════════════════════╗
+  // ║     CROSS-ENGINE COUPLING ARCHITECTURE — EVERYTHING INTERWEAVES          ║
+  // ╠══════════════════════════════════════════════════════════════════════════╣
+  // ║  Harmonic ↔ Kuramoto ↔ Friston ↔ Hebbian ↔ Physics ↔ Entropy ↔ Quantum   ║
+  // ║  Spectral ↔ Attractor ↔ Predictive ↔ Tensor ↔ Topology ↔ FreeEnergy      ║
+  // ╚══════════════════════════════════════════════════════════════════════════╝
+
+  // ============================================================================
+  // KURAMOTO COUPLING — Phase oscillators meet harmonic analysis
+  // ============================================================================
+
+  public type KuramotoCoupling = {
+    phaseSpectrum : FourierSpectrum;
+    orderParameterSpectrum : [Float];
+    synchronizationFrequencies : [Float];
+    phaseLocking : Float;
+    harmonicOrderParameter : Float;
+    spectralCoherence : Float;
+    kuramotoHarmonics : [Float];
+    circularMoments : [Complex];
+  };
+
+  public func initKuramotoCoupling(numOscillators : Nat) : KuramotoCoupling {
+    {
+      phaseSpectrum = {
+        frequencies = Array.tabulate<Float>(numOscillators, func(i : Nat) : Float {
+          Float.fromInt(i) / Float.fromInt(numOscillators)
+        });
+        magnitudes = Array.tabulate<Float>(numOscillators, func(_ : Nat) : Float { 0.5 });
+        phases = Array.tabulate<Float>(numOscillators, func(i : Nat) : Float {
+          Float.fromInt(i) * τ / Float.fromInt(numOscillators)
+        });
+        complexCoeffs = Array.tabulate<Complex>(numOscillators, func(i : Nat) : Complex {
+          complexFromPolar(0.5, Float.fromInt(i) * τ / Float.fromInt(numOscillators))
+        });
+      };
+      orderParameterSpectrum = Array.tabulate<Float>(numOscillators, func(_ : Nat) : Float { 0.0 });
+      synchronizationFrequencies = Array.tabulate<Float>(5, func(i : Nat) : Float {
+        Float.fromInt(i + 1)
+      });
+      phaseLocking = 0.0;
+      harmonicOrderParameter = 0.0;
+      spectralCoherence = 0.0;
+      kuramotoHarmonics = Array.tabulate<Float>(10, func(_ : Nat) : Float { 0.0 });
+      circularMoments = Array.tabulate<Complex>(5, func(_ : Nat) : Complex { complexZero() });
+    }
+  };
+
+  // Compute Fourier transform of Kuramoto phases
+  public func kuramotoPhaseSpectrum(phases : [Float], sampleRate : Float) : FourierSpectrum {
+    let signal = Array.map<Float, Float>(phases, func(phase : Float) : Float {
+      Float.cos(phase)
+    });
+    dft(signal, sampleRate)
+  };
+
+  // Circular harmonics - Fourier on the circle
+  public func circularHarmonics(phases : [Float], maxHarmonic : Nat) : [Complex] {
+    Array.tabulate<Complex>(maxHarmonic, func(n : Nat) : Complex {
+      var sum = complexZero();
+      for (phase in phases.vals()) {
+        let term = complexFromPolar(1.0 / Float.fromInt(phases.size()), Float.fromInt(n + 1) * phase);
+        sum := complexAdd(sum, term);
+      };
+      sum
+    })
+  };
+
+  // Harmonic order parameters r_n = |Z_n|
+  public func harmonicOrderParameters(phases : [Float], maxHarmonic : Nat) : [Float] {
+    let harmonics = circularHarmonics(phases, maxHarmonic);
+    Array.map<Complex, Float>(harmonics, func(z : Complex) : Float {
+      complexMagnitude(z)
+    })
+  };
+
+  // Spectral coherence between oscillators
+  public func kuramotoSpectralCoherence(coupling : KuramotoCoupling) : Float {
+    var totalCoherence : Float = 0.0;
+    let n = coupling.phaseSpectrum.complexCoeffs.size();
+    
+    for (i in Iter.range(0, n - 2)) {
+      for (j in Iter.range(i + 1, n - 1)) {
+        let crossSpectrum = complexMul(coupling.phaseSpectrum.complexCoeffs[i],
+                                       complexConj(coupling.phaseSpectrum.complexCoeffs[j]));
+        let coherence = complexMagnitude(crossSpectrum);
+        totalCoherence += coherence;
+      };
+    };
+    
+    if (n > 1) { 2.0 * totalCoherence / Float.fromInt(n * (n - 1)) } else { 0.0 }
+  };
+
+  // ============================================================================
+  // FRISTON FREE ENERGY COUPLING — Spectral free energy minimization
+  // ============================================================================
+
+  public type FristonCoupling = {
+    beliefSpectrum : FourierSpectrum;
+    predictionSpectrum : FourierSpectrum;
+    errorSpectrum : FourierSpectrum;
+    spectralFreeEnergy : Float;
+    spectralPrecision : [Float];
+    frequencyBeliefs : [Float];
+    harmonicPriors : [Complex];
+    spectralSurprise : Float;
+  };
+
+  public func initFristonCoupling(dim : Nat) : FristonCoupling {
+    let zeroSpectrum = {
+      frequencies = Array.tabulate<Float>(dim, func(i : Nat) : Float { Float.fromInt(i) });
+      magnitudes = Array.tabulate<Float>(dim, func(_ : Nat) : Float { 0.0 });
+      phases = Array.tabulate<Float>(dim, func(_ : Nat) : Float { 0.0 });
+      complexCoeffs = Array.tabulate<Complex>(dim, func(_ : Nat) : Complex { complexZero() });
+    };
+    
+    {
+      beliefSpectrum = zeroSpectrum;
+      predictionSpectrum = zeroSpectrum;
+      errorSpectrum = zeroSpectrum;
+      spectralFreeEnergy = 0.0;
+      spectralPrecision = Array.tabulate<Float>(dim, func(_ : Nat) : Float { 1.0 });
+      frequencyBeliefs = Array.tabulate<Float>(dim, func(_ : Nat) : Float { 0.5 });
+      harmonicPriors = Array.tabulate<Complex>(dim, func(_ : Nat) : Complex { complexOne() });
+      spectralSurprise = 0.0;
+    }
+  };
+
+  // Compute spectral free energy F = Σ_ω π(ω) |ε(ω)|²
+  public func computeSpectralFreeEnergy(coupling : FristonCoupling) : Float {
+    var F : Float = 0.0;
+    for (i in Iter.range(0, coupling.errorSpectrum.magnitudes.size() - 1)) {
+      let precision = coupling.spectralPrecision[i];
+      let errorMag = coupling.errorSpectrum.magnitudes[i];
+      F += precision * errorMag * errorMag;
+    };
+    F / 2.0
+  };
+
+  // Spectral prediction error
+  public func spectralPredictionError(observation : FourierSpectrum, prediction : FourierSpectrum) : FourierSpectrum {
+    let n = observation.complexCoeffs.size();
+    {
+      frequencies = observation.frequencies;
+      magnitudes = Array.tabulate<Float>(n, func(i : Nat) : Float {
+        let obsCoeff = observation.complexCoeffs[i];
+        let predCoeff = prediction.complexCoeffs[i];
+        let error = complexSub(obsCoeff, predCoeff);
+        complexMagnitude(error)
+      });
+      phases = Array.tabulate<Float>(n, func(i : Nat) : Float {
+        let obsCoeff = observation.complexCoeffs[i];
+        let predCoeff = prediction.complexCoeffs[i];
+        let error = complexSub(obsCoeff, predCoeff);
+        complexPhase(error)
+      });
+      complexCoeffs = Array.tabulate<Complex>(n, func(i : Nat) : Complex {
+        complexSub(observation.complexCoeffs[i], prediction.complexCoeffs[i])
+      });
+    }
+  };
+
+  // Update beliefs in frequency domain
+  public func spectralBeliefUpdate(coupling : FristonCoupling, learningRate : Float) : FristonCoupling {
+    let n = coupling.beliefSpectrum.complexCoeffs.size();
+    
+    let newBeliefCoeffs = Array.tabulate<Complex>(n, func(i : Nat) : Complex {
+      let belief = coupling.beliefSpectrum.complexCoeffs[i];
+      let error = coupling.errorSpectrum.complexCoeffs[i];
+      let precision = coupling.spectralPrecision[i];
+      
+      // Gradient descent on spectral free energy
+      let gradientStep = complexScale(error, learningRate * precision);
+      complexAdd(belief, gradientStep)
+    });
+    
+    {
+      beliefSpectrum = {
+        frequencies = coupling.beliefSpectrum.frequencies;
+        magnitudes = Array.map<Complex, Float>(newBeliefCoeffs, complexMagnitude);
+        phases = Array.map<Complex, Float>(newBeliefCoeffs, complexPhase);
+        complexCoeffs = newBeliefCoeffs;
+      };
+      predictionSpectrum = coupling.predictionSpectrum;
+      errorSpectrum = coupling.errorSpectrum;
+      spectralFreeEnergy = computeSpectralFreeEnergy(coupling);
+      spectralPrecision = coupling.spectralPrecision;
+      frequencyBeliefs = coupling.frequencyBeliefs;
+      harmonicPriors = coupling.harmonicPriors;
+      spectralSurprise = coupling.spectralSurprise;
+    }
+  };
+
+  // ============================================================================
+  // HEBBIAN PLASTICITY COUPLING — Spectral learning rules
+  // ============================================================================
+
+  public type HebbianCoupling = {
+    spectralWeights : [[Complex]];
+    frequencyCorrelations : [[Float]];
+    spectralLearningRate : Float;
+    crossSpectrumMemory : [[Complex]];
+    coherencePlasticity : Float;
+    spectralSTDP : [Float];
+  };
+
+  public func initHebbianCoupling(inputDim : Nat, outputDim : Nat) : HebbianCoupling {
+    {
+      spectralWeights = Array.tabulate<[Complex]>(outputDim, func(_ : Nat) : [Complex] {
+        Array.tabulate<Complex>(inputDim, func(_ : Nat) : Complex {
+          complexFromReal(0.1)
+        })
+      });
+      frequencyCorrelations = Array.tabulate<[Float]>(inputDim, func(_ : Nat) : [Float] {
+        Array.tabulate<Float>(inputDim, func(_ : Nat) : Float { 0.0 })
+      });
+      spectralLearningRate = 0.01;
+      crossSpectrumMemory = Array.tabulate<[Complex]>(outputDim, func(_ : Nat) : [Complex] {
+        Array.tabulate<Complex>(inputDim, func(_ : Nat) : Complex { complexZero() })
+      });
+      coherencePlasticity = 0.5;
+      spectralSTDP = Array.tabulate<Float>(inputDim, func(_ : Nat) : Float { 0.0 });
+    }
+  };
+
+  // Cross-spectral Hebbian learning: ΔW_ij(ω) = η · S_xy(ω)
+  public func spectralHebbianUpdate(
+    coupling : HebbianCoupling,
+    inputSpectrum : FourierSpectrum,
+    outputSpectrum : FourierSpectrum
+  ) : HebbianCoupling {
+    let inDim = inputSpectrum.complexCoeffs.size();
+    let outDim = outputSpectrum.complexCoeffs.size();
+    let eta = coupling.spectralLearningRate;
+    
+    let newWeights = Array.tabulate<[Complex]>(outDim, func(i : Nat) : [Complex] {
+      Array.tabulate<Complex>(inDim, func(j : Nat) : Complex {
+        let oldW = coupling.spectralWeights[i][j];
+        let inCoeff = inputSpectrum.complexCoeffs[j];
+        let outCoeff = outputSpectrum.complexCoeffs[i];
+        
+        // Cross-spectrum: S_xy(ω) = X*(ω) · Y(ω)
+        let crossSpectrum = complexMul(complexConj(inCoeff), outCoeff);
+        let update = complexScale(crossSpectrum, eta);
+        
+        complexAdd(oldW, update)
+      })
+    });
+    
+    {
+      spectralWeights = newWeights;
+      frequencyCorrelations = coupling.frequencyCorrelations;
+      spectralLearningRate = eta;
+      crossSpectrumMemory = coupling.crossSpectrumMemory;
+      coherencePlasticity = coupling.coherencePlasticity;
+      spectralSTDP = coupling.spectralSTDP;
+    }
+  };
+
+  // Frequency-dependent STDP (Spike-Timing Dependent Plasticity)
+  public func spectralSTDP(preSpectrum : FourierSpectrum, postSpectrum : FourierSpectrum, tau : Float) : [Float] {
+    let n = preSpectrum.frequencies.size();
+    Array.tabulate<Float>(n, func(i : Nat) : Float {
+      let prePhase = preSpectrum.phases[i];
+      let postPhase = postSpectrum.phases[i];
+      let phaseDiff = postPhase - prePhase;
+      
+      // STDP window in frequency domain
+      Float.exp(-Float.abs(phaseDiff) / tau) * Float.cos(phaseDiff)
+    })
+  };
+
+  // ============================================================================
+  // ATTRACTOR DYNAMICS COUPLING — Spectral attractors
+  // ============================================================================
+
+  public type AttractorCoupling = {
+    attractorSpectra : [FourierSpectrum];
+    basinSpectralSignatures : [[Float]];
+    spectralBasinEnergy : Float;
+    dominantAttractorFrequency : Float;
+    spectralMetastability : Float;
+    attractorHarmonics : [[Float]];
+  };
+
+  public func initAttractorCoupling(numAttractors : Nat, spectrumSize : Nat) : AttractorCoupling {
+    {
+      attractorSpectra = Array.tabulate<FourierSpectrum>(numAttractors, func(i : Nat) : FourierSpectrum {
+        {
+          frequencies = Array.tabulate<Float>(spectrumSize, func(j : Nat) : Float { Float.fromInt(j) });
+          magnitudes = Array.tabulate<Float>(spectrumSize, func(j : Nat) : Float {
+            Float.exp(-Float.fromInt(j * j) / (2.0 * Float.fromInt((i + 1) * (i + 1))))
+          });
+          phases = Array.tabulate<Float>(spectrumSize, func(_ : Nat) : Float { 0.0 });
+          complexCoeffs = Array.tabulate<Complex>(spectrumSize, func(j : Nat) : Complex {
+            complexFromReal(Float.exp(-Float.fromInt(j * j) / (2.0 * Float.fromInt((i + 1) * (i + 1)))))
+          });
+        }
+      });
+      basinSpectralSignatures = Array.tabulate<[Float]>(numAttractors, func(_ : Nat) : [Float] {
+        Array.tabulate<Float>(spectrumSize, func(_ : Nat) : Float { 0.0 })
+      });
+      spectralBasinEnergy = 0.0;
+      dominantAttractorFrequency = 1.0;
+      spectralMetastability = 0.5;
+      attractorHarmonics = Array.tabulate<[Float]>(numAttractors, func(_ : Nat) : [Float] {
+        Array.tabulate<Float>(10, func(_ : Nat) : Float { 0.0 })
+      });
+    }
+  };
+
+  // Spectral distance between signal and attractor
+  public func spectralAttractorDistance(signal : FourierSpectrum, attractor : FourierSpectrum) : Float {
+    var dist : Float = 0.0;
+    let n = Float.min(Float.fromInt(signal.complexCoeffs.size()), 
+                      Float.fromInt(attractor.complexCoeffs.size()));
+    let nInt = Int.abs(Float.toInt(n));
+    
+    for (i in Iter.range(0, nInt - 1)) {
+      let diff = complexSub(signal.complexCoeffs[i], attractor.complexCoeffs[i]);
+      dist += complexMagnitude(diff) * complexMagnitude(diff);
+    };
+    
+    Float.sqrt(dist)
+  };
+
+  // Identify closest attractor in spectral space
+  public func findClosestSpectralAttractor(signal : FourierSpectrum, attractors : [FourierSpectrum]) : Nat {
+    var minDist : Float = Float.infinity;
+    var closest : Nat = 0;
+    
+    for (i in Iter.range(0, attractors.size() - 1)) {
+      let dist = spectralAttractorDistance(signal, attractors[i]);
+      if (dist < minDist) {
+        minDist := dist;
+        closest := i;
+      };
+    };
+    
+    closest
+  };
+
+  // ============================================================================
+  // PHYSICS ENGINE COUPLING — Spectral mechanics
+  // ============================================================================
+
+  public type PhysicsCoupling = {
+    modalSpectrum : FourierSpectrum;
+    normalModes : [FourierSpectrum];
+    spectralEnergy : Float;
+    dispersionRelation : [Float];
+    groupVelocity : [Float];
+    phaseVelocity : [Float];
+    wavePacketWidth : Float;
+  };
+
+  public func initPhysicsCoupling(numModes : Nat) : PhysicsCoupling {
+    {
+      modalSpectrum = {
+        frequencies = Array.tabulate<Float>(numModes, func(i : Nat) : Float {
+          Float.sqrt(Float.fromInt(i + 1))  // ω_n ∝ √n for harmonic oscillator
+        });
+        magnitudes = Array.tabulate<Float>(numModes, func(_ : Nat) : Float { 0.0 });
+        phases = Array.tabulate<Float>(numModes, func(_ : Nat) : Float { 0.0 });
+        complexCoeffs = Array.tabulate<Complex>(numModes, func(_ : Nat) : Complex { complexZero() });
+      };
+      normalModes = Array.tabulate<FourierSpectrum>(numModes, func(i : Nat) : FourierSpectrum {
+        {
+          frequencies = Array.tabulate<Float>(numModes, func(_ : Nat) : Float { Float.sqrt(Float.fromInt(i + 1)) });
+          magnitudes = Array.tabulate<Float>(numModes, func(j : Nat) : Float {
+            if (i == j) { 1.0 } else { 0.0 }
+          });
+          phases = Array.tabulate<Float>(numModes, func(_ : Nat) : Float { 0.0 });
+          complexCoeffs = Array.tabulate<Complex>(numModes, func(j : Nat) : Complex {
+            if (i == j) { complexOne() } else { complexZero() }
+          });
+        }
+      });
+      spectralEnergy = 0.0;
+      dispersionRelation = Array.tabulate<Float>(numModes, func(i : Nat) : Float {
+        Float.sqrt(Float.fromInt(i + 1))
+      });
+      groupVelocity = Array.tabulate<Float>(numModes, func(i : Nat) : Float {
+        0.5 / Float.sqrt(Float.fromInt(i + 1) + 0.1)
+      });
+      phaseVelocity = Array.tabulate<Float>(numModes, func(i : Nat) : Float {
+        Float.sqrt(Float.fromInt(i + 1))
+      });
+      wavePacketWidth = 1.0;
+    }
+  };
+
+  // Spectral energy E = Σ_ω ℏω |a_ω|²
+  public func computeSpectralEnergy(coupling : PhysicsCoupling) : Float {
+    var E : Float = 0.0;
+    for (i in Iter.range(0, coupling.modalSpectrum.frequencies.size() - 1)) {
+      let omega = coupling.modalSpectrum.frequencies[i];
+      let amplitude = coupling.modalSpectrum.magnitudes[i];
+      E += omega * amplitude * amplitude;  // ℏ = 1
+    };
+    E
+  };
+
+  // Wave packet from spectral components
+  public func synthesizeWavePacket(coupling : PhysicsCoupling, x : Float, t : Float) : Float {
+    var psi : Float = 0.0;
+    for (i in Iter.range(0, coupling.modalSpectrum.frequencies.size() - 1)) {
+      let k = Float.fromInt(i);
+      let omega = coupling.dispersionRelation[i];
+      let amplitude = coupling.modalSpectrum.magnitudes[i];
+      let phase = coupling.modalSpectrum.phases[i];
+      
+      psi += amplitude * Float.cos(k * x - omega * t + phase);
+    };
+    psi
+  };
+
+  // ============================================================================
+  // ENTROPY ENGINE COUPLING — Spectral entropy
+  // ============================================================================
+
+  public type EntropyCoupling = {
+    spectralEntropy : Float;
+    frequencyDistribution : [Float];
+    informationRate : Float;
+    spectralMutualInformation : [[Float]];
+    entropySpectrum : [Float];
+    renyiSpectralEntropy : Float;
+  };
+
+  public func initEntropyCoupling(spectrumSize : Nat) : EntropyCoupling {
+    {
+      spectralEntropy = 0.0;
+      frequencyDistribution = Array.tabulate<Float>(spectrumSize, func(_ : Nat) : Float {
+        1.0 / Float.fromInt(spectrumSize)
+      });
+      informationRate = 0.0;
+      spectralMutualInformation = Array.tabulate<[Float]>(spectrumSize, func(_ : Nat) : [Float] {
+        Array.tabulate<Float>(spectrumSize, func(_ : Nat) : Float { 0.0 })
+      });
+      entropySpectrum = Array.tabulate<Float>(spectrumSize, func(_ : Nat) : Float { 0.0 });
+      renyiSpectralEntropy = 0.0;
+    }
+  };
+
+  // Spectral entropy H = -Σ_ω p(ω) log p(ω)
+  public func computeSpectralEntropy(spectrum : FourierSpectrum) : Float {
+    // Convert magnitudes to probability distribution
+    var totalPower : Float = 0.0;
+    for (mag in spectrum.magnitudes.vals()) {
+      totalPower += mag * mag;
+    };
+    
+    if (totalPower < 1e-10) { return 0.0 };
+    
+    var H : Float = 0.0;
+    for (mag in spectrum.magnitudes.vals()) {
+      let p = (mag * mag) / totalPower;
+      if (p > 1e-10) {
+        H -= p * Float.log(p);
+      };
+    };
+    
+    H
+  };
+
+  // Rényi spectral entropy H_α = (1/(1-α)) log Σ_ω p(ω)^α
+  public func renyiSpectralEntropy(spectrum : FourierSpectrum, alpha : Float) : Float {
+    if (Float.abs(alpha - 1.0) < 1e-6) {
+      return computeSpectralEntropy(spectrum);
+    };
+    
+    var totalPower : Float = 0.0;
+    for (mag in spectrum.magnitudes.vals()) {
+      totalPower += mag * mag;
+    };
+    
+    if (totalPower < 1e-10) { return 0.0 };
+    
+    var sum : Float = 0.0;
+    for (mag in spectrum.magnitudes.vals()) {
+      let p = (mag * mag) / totalPower;
+      if (p > 1e-10) {
+        sum += Float.pow(p, alpha);
+      };
+    };
+    
+    Float.log(sum) / (1.0 - alpha)
+  };
+
+  // Spectral mutual information between two signals
+  public func spectralMutualInformation(spec1 : FourierSpectrum, spec2 : FourierSpectrum) : Float {
+    let H1 = computeSpectralEntropy(spec1);
+    let H2 = computeSpectralEntropy(spec2);
+    
+    // Joint spectrum (simplified as element-wise product)
+    let jointMags = Array.tabulate<Float>(spec1.magnitudes.size(), func(i : Nat) : Float {
+      spec1.magnitudes[i] * spec2.magnitudes[i]
+    });
+    
+    var totalJoint : Float = 0.0;
+    for (m in jointMags.vals()) {
+      totalJoint += m;
+    };
+    
+    var HJoint : Float = 0.0;
+    if (totalJoint > 1e-10) {
+      for (m in jointMags.vals()) {
+        let p = m / totalJoint;
+        if (p > 1e-10) {
+          HJoint -= p * Float.log(p);
+        };
+      };
+    };
+    
+    H1 + H2 - HJoint
+  };
+
+  // ============================================================================
+  // TENSOR FIELD COUPLING — Spectral tensors
+  // ============================================================================
+
+  public type TensorCoupling = {
+    spectralTensor : [[[Complex]]];
+    tensorSpectrum : FourierSpectrum;
+    spectralMetric : [[Float]];
+    tensorHarmonics : [[[Float]]];
+    spectralCurvature : Float;
+  };
+
+  public func initTensorCoupling(dim : Nat, spectrumSize : Nat) : TensorCoupling {
+    {
+      spectralTensor = Array.tabulate<[[Complex]]>(spectrumSize, func(_ : Nat) : [[Complex]] {
+        Array.tabulate<[Complex]>(dim, func(_ : Nat) : [Complex] {
+          Array.tabulate<Complex>(dim, func(_ : Nat) : Complex { complexZero() })
+        })
+      });
+      tensorSpectrum = {
+        frequencies = Array.tabulate<Float>(spectrumSize, func(i : Nat) : Float { Float.fromInt(i) });
+        magnitudes = Array.tabulate<Float>(spectrumSize, func(_ : Nat) : Float { 0.0 });
+        phases = Array.tabulate<Float>(spectrumSize, func(_ : Nat) : Float { 0.0 });
+        complexCoeffs = Array.tabulate<Complex>(spectrumSize, func(_ : Nat) : Complex { complexZero() });
+      };
+      spectralMetric = Array.tabulate<[Float]>(dim, func(i : Nat) : [Float] {
+        Array.tabulate<Float>(dim, func(j : Nat) : Float {
+          if (i == j) { 1.0 } else { 0.0 }
+        })
+      });
+      tensorHarmonics = Array.tabulate<[[Float]]>(spectrumSize, func(_ : Nat) : [[Float]] {
+        Array.tabulate<[Float]>(dim, func(_ : Nat) : [Float] {
+          Array.tabulate<Float>(dim, func(_ : Nat) : Float { 0.0 })
+        })
+      });
+      spectralCurvature = 0.0;
+    }
+  };
+
+  // Fourier transform of tensor field
+  public func tensorFourierTransform(tensor : [[Float]], sampleRate : Float) : [[[Complex]]] {
+    let rows = tensor.size();
+    let cols = if (rows > 0) { tensor[0].size() } else { 0 };
+    
+    // Transform each component
+    Array.tabulate<[[Complex]]>(rows, func(i : Nat) : [[Complex]] {
+      Array.tabulate<[Complex]>(cols, func(j : Nat) : [Complex] {
+        let signal = [tensor[i][j]];
+        let spec = dft(signal, sampleRate);
+        spec.complexCoeffs
+      })
+    })
+  };
+
+  // ============================================================================
+  // TOPOLOGICAL FIELD COUPLING — Spectral topology
+  // ============================================================================
+
+  public type TopologyCoupling = {
+    persistentHomologySpectrum : [Float];
+    spectralBettiNumbers : [Nat];
+    spectralWinding : Float;
+    topologicalFrequencies : [Float];
+    spectralConnectedness : Float;
+  };
+
+  public func initTopologyCoupling(maxDim : Nat) : TopologyCoupling {
+    {
+      persistentHomologySpectrum = Array.tabulate<Float>(maxDim, func(_ : Nat) : Float { 0.0 });
+      spectralBettiNumbers = Array.tabulate<Nat>(maxDim, func(_ : Nat) : Nat { 0 });
+      spectralWinding = 0.0;
+      topologicalFrequencies = Array.tabulate<Float>(maxDim, func(_ : Nat) : Float { 0.0 });
+      spectralConnectedness = 1.0;
+    }
+  };
+
+  // Winding number from phase spectrum
+  public func spectralWindingNumber(phases : [Float]) : Float {
+    var totalWinding : Float = 0.0;
+    for (i in Iter.range(0, phases.size() - 2)) {
+      var diff = phases[i + 1] - phases[i];
+      // Normalize to [-π, π]
+      while (diff > π) { diff -= τ };
+      while (diff < -π) { diff += τ };
+      totalWinding += diff;
+    };
+    totalWinding / τ
+  };
+
+  // ============================================================================
+  // FREE ENERGY ENGINE COUPLING — Thermodynamic spectroscopy
+  // ============================================================================
+
+  public type FreeEnergyCoupling = {
+    partitionSpectrum : [Float];
+    spectralFreeEnergy : Float;
+    spectralTemperature : Float;
+    boltzmannSpectrum : [Float];
+    spectralHeatCapacity : Float;
+  };
+
+  public func initFreeEnergyCoupling(spectrumSize : Nat) : FreeEnergyCoupling {
+    {
+      partitionSpectrum = Array.tabulate<Float>(spectrumSize, func(i : Nat) : Float {
+        Float.exp(-Float.fromInt(i))
+      });
+      spectralFreeEnergy = 0.0;
+      spectralTemperature = 1.0;
+      boltzmannSpectrum = Array.tabulate<Float>(spectrumSize, func(i : Nat) : Float {
+        Float.exp(-Float.fromInt(i))
+      });
+      spectralHeatCapacity = 1.0;
+    }
+  };
+
+  // Spectral partition function Z(T) = Σ_ω exp(-E(ω)/kT)
+  public func spectralPartitionFunction(energySpectrum : [Float], temperature : Float) : Float {
+    var Z : Float = 0.0;
+    let beta = 1.0 / temperature;
+    
+    for (E in energySpectrum.vals()) {
+      Z += Float.exp(-beta * E);
+    };
+    
+    Z
+  };
+
+  // Spectral free energy F = -kT log Z
+  public func spectralFreeEnergyFromPartition(coupling : FreeEnergyCoupling, energySpectrum : [Float]) : Float {
+    let Z = spectralPartitionFunction(energySpectrum, coupling.spectralTemperature);
+    -coupling.spectralTemperature * Float.log(Z + 1e-10)
+  };
+
+  // ============================================================================
+  // QUANTUM COUPLING — Quantum spectroscopy
+  // ============================================================================
+
+  public type QuantumCoupling = {
+    energyEigenspectrum : [Float];
+    wavefunctionSpectrum : [Complex];
+    transitionAmplitudes : [[Complex]];
+    spectralDensityOfStates : [Float];
+    quantumSpectralEntropy : Float;
+    levelSpacingDistribution : [Float];
+  };
+
+  public func initQuantumCoupling(numLevels : Nat) : QuantumCoupling {
+    {
+      energyEigenspectrum = Array.tabulate<Float>(numLevels, func(i : Nat) : Float {
+        Float.fromInt(i * i)  // Quantum harmonic oscillator-like
+      });
+      wavefunctionSpectrum = Array.tabulate<Complex>(numLevels, func(_ : Nat) : Complex {
+        complexFromReal(1.0 / Float.sqrt(Float.fromInt(numLevels)))
+      });
+      transitionAmplitudes = Array.tabulate<[Complex]>(numLevels, func(i : Nat) : [Complex] {
+        Array.tabulate<Complex>(numLevels, func(j : Nat) : Complex {
+          if (Int.abs(i - j) == 1) { complexFromReal(1.0) } else { complexZero() }
+        })
+      });
+      spectralDensityOfStates = Array.tabulate<Float>(numLevels, func(_ : Nat) : Float { 1.0 });
+      quantumSpectralEntropy = Float.log(Float.fromInt(numLevels));
+      levelSpacingDistribution = Array.tabulate<Float>(numLevels - 1, func(i : Nat) : Float {
+        Float.fromInt(2 * i + 1)
+      });
+    }
+  };
+
+  // Quantum spectral entropy from energy spectrum
+  public func quantumSpectralEntropy(energies : [Float], temperature : Float) : Float {
+    let Z = spectralPartitionFunction(energies, temperature);
+    let beta = 1.0 / temperature;
+    
+    var S : Float = 0.0;
+    for (E in energies.vals()) {
+      let p = Float.exp(-beta * E) / Z;
+      if (p > 1e-10) {
+        S -= p * Float.log(p);
+      };
+    };
+    
+    S
+  };
+
+  // ============================================================================
+  // PREDICTIVE CODING COUPLING — Spectral prediction
+  // ============================================================================
+
+  public type PredictiveCoupling = {
+    predictionSpectrum : FourierSpectrum;
+    errorSpectrum : FourierSpectrum;
+    hierarchicalSpectra : [FourierSpectrum];
+    spectralPredictionError : Float;
+    frequencyPrecision : [Float];
+    spectralSurprise : Float;
+  };
+
+  public func initPredictiveCoupling(spectrumSize : Nat, levels : Nat) : PredictiveCoupling {
+    let emptySpectrum = {
+      frequencies = Array.tabulate<Float>(spectrumSize, func(i : Nat) : Float { Float.fromInt(i) });
+      magnitudes = Array.tabulate<Float>(spectrumSize, func(_ : Nat) : Float { 0.0 });
+      phases = Array.tabulate<Float>(spectrumSize, func(_ : Nat) : Float { 0.0 });
+      complexCoeffs = Array.tabulate<Complex>(spectrumSize, func(_ : Nat) : Complex { complexZero() });
+    };
+    
+    {
+      predictionSpectrum = emptySpectrum;
+      errorSpectrum = emptySpectrum;
+      hierarchicalSpectra = Array.tabulate<FourierSpectrum>(levels, func(_ : Nat) : FourierSpectrum {
+        emptySpectrum
+      });
+      spectralPredictionError = 0.0;
+      frequencyPrecision = Array.tabulate<Float>(spectrumSize, func(_ : Nat) : Float { 1.0 });
+      spectralSurprise = 0.0;
+    }
+  };
+
+  // Compute spectral prediction error
+  public func computeSpectralPredictionError(prediction : FourierSpectrum, observation : FourierSpectrum) : Float {
+    var error : Float = 0.0;
+    let n = Float.min(Float.fromInt(prediction.complexCoeffs.size()),
+                      Float.fromInt(observation.complexCoeffs.size()));
+    let nInt = Int.abs(Float.toInt(n));
+    
+    for (i in Iter.range(0, nInt - 1)) {
+      let diff = complexSub(observation.complexCoeffs[i], prediction.complexCoeffs[i]);
+      error += complexMagnitude(diff) * complexMagnitude(diff);
+    };
+    
+    Float.sqrt(error)
+  };
+
+  // ============================================================================
+  // UNIFIED ORCHESTRATION STATE — Everything interconnected
+  // ============================================================================
+
+  public type UnifiedHarmonicState = {
+    kuramoto : KuramotoCoupling;
+    friston : FristonCoupling;
+    hebbian : HebbianCoupling;
+    attractor : AttractorCoupling;
+    physics : PhysicsCoupling;
+    entropy : EntropyCoupling;
+    tensor : TensorCoupling;
+    topology : TopologyCoupling;
+    freeEnergy : FreeEnergyCoupling;
+    quantum : QuantumCoupling;
+    predictive : PredictiveCoupling;
+    
+    globalSpectralEntropy : Float;
+    globalSpectralEnergy : Float;
+    globalCoherence : Float;
+    globalPredictability : Float;
+    
+    kuramotoFristonCorrelation : Float;
+    physicsEntropyCorrelation : Float;
+    tensorTopologyCorrelation : Float;
+    quantumClassicalCorrelation : Float;
+  };
+
+  public func initUnifiedHarmonicState() : UnifiedHarmonicState {
+    {
+      kuramoto = initKuramotoCoupling(10);
+      friston = initFristonCoupling(20);
+      hebbian = initHebbianCoupling(10, 10);
+      attractor = initAttractorCoupling(4, 20);
+      physics = initPhysicsCoupling(10);
+      entropy = initEntropyCoupling(20);
+      tensor = initTensorCoupling(3, 20);
+      topology = initTopologyCoupling(3);
+      freeEnergy = initFreeEnergyCoupling(20);
+      quantum = initQuantumCoupling(10);
+      predictive = initPredictiveCoupling(20, 3);
+      
+      globalSpectralEntropy = 0.0;
+      globalSpectralEnergy = 0.0;
+      globalCoherence = 0.0;
+      globalPredictability = 1.0;
+      
+      kuramotoFristonCorrelation = 0.0;
+      physicsEntropyCorrelation = 0.0;
+      tensorTopologyCorrelation = 0.0;
+      quantumClassicalCorrelation = 0.0;
+    }
+  };
+
+  // Execute unified harmonic beat
+  public func executeUnifiedHarmonicBeat(state : UnifiedHarmonicState, signal : [Float], sampleRate : Float) : UnifiedHarmonicState {
+    // Compute spectrum from input signal
+    let spectrum = dft(signal, sampleRate);
+    
+    // Update all couplings
+    let spectralEntropy = computeSpectralEntropy(spectrum);
+    let spectralEnergy = computeSpectralEnergy(state.physics);
+    let coherence = kuramotoSpectralCoherence(state.kuramoto);
+    let predError = computeSpectralPredictionError(state.predictive.predictionSpectrum, spectrum);
+    
+    {
+      kuramoto = state.kuramoto;
+      friston = state.friston;
+      hebbian = state.hebbian;
+      attractor = state.attractor;
+      physics = state.physics;
+      entropy = { 
+        spectralEntropy = spectralEntropy;
+        frequencyDistribution = state.entropy.frequencyDistribution;
+        informationRate = spectralEntropy / (1.0 + Float.log(sampleRate));
+        spectralMutualInformation = state.entropy.spectralMutualInformation;
+        entropySpectrum = state.entropy.entropySpectrum;
+        renyiSpectralEntropy = renyiSpectralEntropy(spectrum, 2.0);
+      };
+      tensor = state.tensor;
+      topology = state.topology;
+      freeEnergy = state.freeEnergy;
+      quantum = state.quantum;
+      predictive = state.predictive;
+      
+      globalSpectralEntropy = spectralEntropy;
+      globalSpectralEnergy = spectralEnergy;
+      globalCoherence = coherence;
+      globalPredictability = 1.0 / (1.0 + predError);
+      
+      kuramotoFristonCorrelation = coherence * state.friston.spectralFreeEnergy;
+      physicsEntropyCorrelation = spectralEnergy * spectralEntropy;
+      tensorTopologyCorrelation = state.topology.spectralConnectedness;
+      quantumClassicalCorrelation = state.quantum.quantumSpectralEntropy / (spectralEntropy + 0.01);
+    }
+  };
+
+  // ============================================================================
+  // MEDINA DOCTRINE ENFORCEMENT — Sovereign spectral bounds
+  // ============================================================================
+
+  public type MedinaDoctrine = {
+    sovereignFloor : Float;
+    entropyLimit : Float;
+    energyThreshold : Float;
+    coherenceMinimum : Float;
+    informationBound : Float;
+  };
+
+  public let MEDINA_HARMONIC_DOCTRINE : MedinaDoctrine = {
+    sovereignFloor = 0.01;
+    entropyLimit = 100.0;
+    energyThreshold = 1000.0;
+    coherenceMinimum = 0.0;
+    informationBound = 1000.0;
+  };
+
+  public func enforceMedinaDoctrine(state : UnifiedHarmonicState) : UnifiedHarmonicState {
+    let clampedEntropy = Float.min(MEDINA_HARMONIC_DOCTRINE.entropyLimit, state.globalSpectralEntropy);
+    let clampedEnergy = Float.min(MEDINA_HARMONIC_DOCTRINE.energyThreshold, state.globalSpectralEnergy);
+    let clampedCoherence = Float.max(MEDINA_HARMONIC_DOCTRINE.coherenceMinimum, state.globalCoherence);
+    
+    {
+      kuramoto = state.kuramoto;
+      friston = state.friston;
+      hebbian = state.hebbian;
+      attractor = state.attractor;
+      physics = state.physics;
+      entropy = state.entropy;
+      tensor = state.tensor;
+      topology = state.topology;
+      freeEnergy = state.freeEnergy;
+      quantum = state.quantum;
+      predictive = state.predictive;
+      
+      globalSpectralEntropy = clampedEntropy;
+      globalSpectralEnergy = clampedEnergy;
+      globalCoherence = clampedCoherence;
+      globalPredictability = state.globalPredictability;
+      
+      kuramotoFristonCorrelation = state.kuramotoFristonCorrelation;
+      physicsEntropyCorrelation = state.physicsEntropyCorrelation;
+      tensorTopologyCorrelation = state.tensorTopologyCorrelation;
+      quantumClassicalCorrelation = state.quantumClassicalCorrelation;
+    }
+  };
+
+  // ============================================================================
+  // DUAL ORGANISM COUPLING — HIM/HER spectral synchronization
+  // ============================================================================
+
+  public type DualOrganismHarmonic = {
+    himHarmonicState : UnifiedHarmonicState;
+    herHarmonicState : UnifiedHarmonicState;
+    spectralSynchronization : Float;
+    entropyCorrelation : Float;
+    energyBalance : Float;
+    coherenceMatch : Float;
+  };
+
+  public func initDualOrganismHarmonic() : DualOrganismHarmonic {
+    {
+      himHarmonicState = initUnifiedHarmonicState();
+      herHarmonicState = initUnifiedHarmonicState();
+      spectralSynchronization = 0.0;
+      entropyCorrelation = 0.0;
+      energyBalance = 1.0;
+      coherenceMatch = 0.0;
+    }
+  };
+
+  public func executeDualOrganismHarmonicBeat(
+    dual : DualOrganismHarmonic,
+    himSignal : [Float],
+    herSignal : [Float],
+    sampleRate : Float
+  ) : DualOrganismHarmonic {
+    let himUpdated = executeUnifiedHarmonicBeat(dual.himHarmonicState, himSignal, sampleRate);
+    let herUpdated = executeUnifiedHarmonicBeat(dual.herHarmonicState, herSignal, sampleRate);
+    
+    // Compute cross-spectrum for synchronization
+    let himSpec = dft(himSignal, sampleRate);
+    let herSpec = dft(herSignal, sampleRate);
+    let mutualInfo = spectralMutualInformation(himSpec, herSpec);
+    
+    {
+      himHarmonicState = enforceMedinaDoctrine(himUpdated);
+      herHarmonicState = enforceMedinaDoctrine(herUpdated);
+      spectralSynchronization = mutualInfo;
+      entropyCorrelation = Float.min(himUpdated.globalSpectralEntropy, herUpdated.globalSpectralEntropy) /
+                          Float.max(himUpdated.globalSpectralEntropy, herUpdated.globalSpectralEntropy);
+      energyBalance = Float.min(himUpdated.globalSpectralEnergy, herUpdated.globalSpectralEnergy) /
+                     (Float.max(himUpdated.globalSpectralEnergy, herUpdated.globalSpectralEnergy) + 0.01);
+      coherenceMatch = Float.min(himUpdated.globalCoherence, herUpdated.globalCoherence) /
+                      (Float.max(himUpdated.globalCoherence, herUpdated.globalCoherence) + 0.01);
+    }
+  };
+
 }

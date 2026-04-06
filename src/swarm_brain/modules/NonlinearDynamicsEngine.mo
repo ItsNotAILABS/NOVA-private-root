@@ -1364,4 +1364,868 @@ module {
     }
   };
 
+  // ╔══════════════════════════════════════════════════════════════════════════╗
+  // ║     CROSS-ENGINE COUPLING ARCHITECTURE — EVERYTHING INTERWEAVES          ║
+  // ╠══════════════════════════════════════════════════════════════════════════╣
+  // ║  Nonlinear Dynamics ↔ Kuramoto ↔ Friston ↔ Hebbian ↔ Physics ↔ Entropy   ║
+  // ║  Attractor ↔ Predictive ↔ Tensor ↔ Topology ↔ FreeEnergy ↔ Quantum       ║
+  // ╚══════════════════════════════════════════════════════════════════════════╝
+
+  // ============================================================================
+  // KURAMOTO COUPLING — Phase oscillator dynamics meet chaos theory
+  // ============================================================================
+
+  public type KuramotoCoupling = {
+    phaseState : [Float];
+    naturalFrequencies : [Float];
+    couplingStrength : Float;
+    orderParameter : Float;
+    meanPhase : Float;
+    synchronizationLevel : Float;
+    lyapunovFromKuramoto : Float;
+    bifurcationParameter : Float;
+  };
+
+  public func initKuramotoCoupling(numOscillators : Nat) : KuramotoCoupling {
+    {
+      phaseState = Array.tabulate<Float>(numOscillators, func(i : Nat) : Float {
+        Float.fromInt(i) * τ / Float.fromInt(numOscillators)
+      });
+      naturalFrequencies = Array.tabulate<Float>(numOscillators, func(i : Nat) : Float {
+        1.0 + 0.1 * Float.sin(Float.fromInt(i) * φ)
+      });
+      couplingStrength = 0.5;
+      orderParameter = 0.0;
+      meanPhase = 0.0;
+      synchronizationLevel = 0.0;
+      lyapunovFromKuramoto = 0.0;
+      bifurcationParameter = 0.0;
+    }
+  };
+
+  // Kuramoto system as a dynamical system for chaos analysis
+  public func kuramotoAsDynamicalSystem(coupling : KuramotoCoupling) : DynamicalSystem {
+    let n = coupling.phaseState.size();
+    {
+      dimension = n;
+      parameters = Array.append([coupling.couplingStrength], coupling.naturalFrequencies);
+      vectorField = func(phases : [Float], params : [Float]) : [Float] {
+        let K = params[0];
+        let omegas = Array.subArray(params, 1, params.size() - 1);
+        
+        Array.tabulate<Float>(phases.size(), func(i : Nat) : Float {
+          var sum : Float = 0.0;
+          for (j in Iter.range(0, phases.size() - 1)) {
+            sum += Float.sin(phases[j] - phases[i]);
+          };
+          omegas[i] + K / Float.fromInt(phases.size()) * sum
+        })
+      };
+    }
+  };
+
+  // Lyapunov exponent of Kuramoto system
+  public func kuramotoLyapunov(coupling : KuramotoCoupling, dt : Float, steps : Nat) : Float {
+    let system = kuramotoAsDynamicalSystem(coupling);
+    let lyapunov = computeMaxLyapunov(system, coupling.phaseState, dt, steps);
+    lyapunov
+  };
+
+  // Bifurcation analysis for Kuramoto coupling transition
+  public func kuramotoBifurcation(coupling : KuramotoCoupling, kRange : (Float, Float), steps : Nat) : BifurcationDiagram {
+    var k = kRange.0;
+    let dk = (kRange.1 - kRange.0) / Float.fromInt(steps);
+    let points = Buffer.Buffer<BifurcationPoint>(steps);
+    
+    for (_ in Iter.range(0, steps - 1)) {
+      // Compute order parameter at this coupling
+      var sumCos : Float = 0.0;
+      var sumSin : Float = 0.0;
+      for (phase in coupling.phaseState.vals()) {
+        sumCos += Float.cos(phase);
+        sumSin += Float.sin(phase);
+      };
+      let r = Float.sqrt(sumCos * sumCos + sumSin * sumSin) / Float.fromInt(coupling.phaseState.size());
+      
+      points.add({
+        parameter = k;
+        values = [r];
+        stability = if (r > 0.5) { #Stable } else { #Unstable };
+      });
+      k += dk;
+    };
+    
+    {
+      parameterName = "CouplingStrength_K";
+      points = Buffer.toArray(points);
+      bifurcationType = if (kRange.1 > 2.0) { #SaddleNode } else { #Hopf };
+    }
+  };
+
+  // ============================================================================
+  // FRISTON FREE ENERGY COUPLING — Chaos in belief dynamics
+  // ============================================================================
+
+  public type FristonCoupling = {
+    beliefs : [Float];
+    precisions : [Float];
+    predictions : [Float];
+    predictionErrors : [Float];
+    freeEnergy : Float;
+    expectedFreeEnergy : Float;
+    informationGain : Float;
+    pragmaticValue : Float;
+    chaosInBeliefs : Float;
+    beliefLyapunov : Float;
+  };
+
+  public func initFristonCoupling(dim : Nat) : FristonCoupling {
+    {
+      beliefs = Array.tabulate<Float>(dim, func(_ : Nat) : Float { 0.5 });
+      precisions = Array.tabulate<Float>(dim, func(_ : Nat) : Float { 1.0 });
+      predictions = Array.tabulate<Float>(dim, func(_ : Nat) : Float { 0.5 });
+      predictionErrors = Array.tabulate<Float>(dim, func(_ : Nat) : Float { 0.0 });
+      freeEnergy = 0.0;
+      expectedFreeEnergy = 0.0;
+      informationGain = 0.0;
+      pragmaticValue = 0.0;
+      chaosInBeliefs = 0.0;
+      beliefLyapunov = 0.0;
+    }
+  };
+
+  // Model belief dynamics as a nonlinear system
+  public func beliefDynamicsSystem(coupling : FristonCoupling) : DynamicalSystem {
+    let n = coupling.beliefs.size();
+    {
+      dimension = n;
+      parameters = coupling.precisions;
+      vectorField = func(beliefs : [Float], precisions : [Float]) : [Float] {
+        Array.tabulate<Float>(beliefs.size(), func(i : Nat) : Float {
+          // Gradient descent on free energy
+          let prediction = if (i < coupling.predictions.size()) { coupling.predictions[i] } else { 0.5 };
+          let error = prediction - beliefs[i];
+          let precision = precisions[i];
+          
+          // Nonlinear activation with chaos potential
+          precision * error * (1.0 - beliefs[i]) * beliefs[i] * 4.0
+        })
+      };
+    }
+  };
+
+  // Lyapunov spectrum for belief dynamics
+  public func beliefChaosAnalysis(coupling : FristonCoupling, dt : Float, steps : Nat) : LyapunovSpectrum {
+    let system = beliefDynamicsSystem(coupling);
+    lyapunovSpectrum(system, coupling.beliefs, dt, steps)
+  };
+
+  // Strange attractor in belief space
+  public func beliefStrangeAttractor(coupling : FristonCoupling, steps : Nat) : Trajectory {
+    let system = beliefDynamicsSystem(coupling);
+    integrateTrajectory(system, coupling.beliefs, 0.01, steps)
+  };
+
+  // ============================================================================
+  // HEBBIAN PLASTICITY COUPLING — Learning dynamics as nonlinear system
+  // ============================================================================
+
+  public type HebbianCoupling = {
+    weights : [[Float]];
+    learningRate : Float;
+    weightDecay : Float;
+    presynapticActivity : [Float];
+    postsynapticActivity : [Float];
+    plasticityLyapunov : Float;
+    learningChaos : Float;
+    weightAttractor : AttractorType;
+  };
+
+  public func initHebbianCoupling(preSize : Nat, postSize : Nat) : HebbianCoupling {
+    {
+      weights = Array.tabulate<[Float]>(postSize, func(i : Nat) : [Float] {
+        Array.tabulate<Float>(preSize, func(j : Nat) : [Float] {
+          Float.sin(Float.fromInt(i * preSize + j) * φ) * 0.1
+        })
+      });
+      learningRate = 0.01;
+      weightDecay = 0.001;
+      presynapticActivity = Array.tabulate<Float>(preSize, func(_ : Nat) : Float { 0.5 });
+      postsynapticActivity = Array.tabulate<Float>(postSize, func(_ : Nat) : Float { 0.5 });
+      plasticityLyapunov = 0.0;
+      learningChaos = 0.0;
+      weightAttractor = #StableFixedPoint;
+    }
+  };
+
+  // Flatten weights for dynamical systems analysis
+  func flattenWeights(w : [[Float]]) : [Float] {
+    let buf = Buffer.Buffer<Float>(0);
+    for (row in w.vals()) {
+      for (val in row.vals()) {
+        buf.add(val);
+      };
+    };
+    Buffer.toArray(buf)
+  };
+
+  // Weight dynamics as nonlinear system
+  public func weightDynamicsSystem(coupling : HebbianCoupling) : DynamicalSystem {
+    let flatWeights = flattenWeights(coupling.weights);
+    let n = flatWeights.size();
+    let postSize = coupling.weights.size();
+    let preSize = if (postSize > 0) { coupling.weights[0].size() } else { 0 };
+    
+    {
+      dimension = n;
+      parameters = [coupling.learningRate, coupling.weightDecay];
+      vectorField = func(w : [Float], params : [Float]) : [Float] {
+        let eta = params[0];
+        let decay = params[1];
+        
+        Array.tabulate<Float>(w.size(), func(k : Nat) : Float {
+          let i = k / preSize;
+          let j = k % preSize;
+          
+          let pre = if (j < coupling.presynapticActivity.size()) { coupling.presynapticActivity[j] } else { 0.5 };
+          let post = if (i < coupling.postsynapticActivity.size()) { coupling.postsynapticActivity[i] } else { 0.5 };
+          
+          // Oja's rule for stable Hebbian learning
+          eta * post * (pre - post * w[k]) - decay * w[k]
+        })
+      };
+    }
+  };
+
+  // Lyapunov analysis of learning dynamics
+  public func learningLyapunov(coupling : HebbianCoupling, dt : Float, steps : Nat) : Float {
+    let system = weightDynamicsSystem(coupling);
+    let flatWeights = flattenWeights(coupling.weights);
+    computeMaxLyapunov(system, flatWeights, dt, steps)
+  };
+
+  // ============================================================================
+  // ATTRACTOR DYNAMICS COUPLING — Metastability and basin structure
+  // ============================================================================
+
+  public type AttractorCoupling = {
+    basinMap : [[Float]];
+    attractorEnergies : [Float];
+    transitionMatrix : [[Float]];
+    metastabilityIndex : Float;
+    attractorLyapunovs : [Float];
+    bifurcationDistance : Float;
+    chaosNearBoundary : Float;
+  };
+
+  public func initAttractorCoupling(numAttractors : Nat) : AttractorCoupling {
+    {
+      basinMap = Array.tabulate<[Float]>(numAttractors, func(i : Nat) : [Float] {
+        Array.tabulate<Float>(numAttractors, func(j : Nat) : Float {
+          if (i == j) { 1.0 } else { 0.1 }
+        })
+      });
+      attractorEnergies = Array.tabulate<Float>(numAttractors, func(i : Nat) : Float {
+        -Float.fromInt(numAttractors - i)
+      });
+      transitionMatrix = Array.tabulate<[Float]>(numAttractors, func(i : Nat) : [Float] {
+        Array.tabulate<Float>(numAttractors, func(j : Nat) : Float {
+          if (i == j) { 0.9 } else { 0.1 / Float.fromInt(numAttractors - 1) }
+        })
+      });
+      metastabilityIndex = 0.5;
+      attractorLyapunovs = Array.tabulate<Float>(numAttractors, func(_ : Nat) : Float { -0.1 });
+      bifurcationDistance = 1.0;
+      chaosNearBoundary = 0.0;
+    }
+  };
+
+  // Basin boundary dynamics as chaotic system
+  public func basinBoundarySystem(coupling : AttractorCoupling, attractor1 : Nat, attractor2 : Nat) : DynamicalSystem {
+    {
+      dimension = 2;
+      parameters = [coupling.attractorEnergies[attractor1], coupling.attractorEnergies[attractor2]];
+      vectorField = func(state : [Float], energies : [Float]) : [Float] {
+        let x = state[0];
+        let y = state[1];
+        let E1 = energies[0];
+        let E2 = energies[1];
+        
+        // Double-well potential gradient with chaotic boundary
+        let fx = -4.0 * x * (x * x - 1.0) + 0.1 * Float.sin(10.0 * y);
+        let fy = -4.0 * y * (y * y - 1.0) + 0.1 * Float.sin(10.0 * x);
+        
+        [fx + E1 * x, fy + E2 * y]
+      };
+    }
+  };
+
+  // Lyapunov at basin boundary
+  public func basinBoundaryLyapunov(coupling : AttractorCoupling, attractor1 : Nat, attractor2 : Nat) : Float {
+    let system = basinBoundarySystem(coupling, attractor1, attractor2);
+    let initialState = [0.5, 0.5];
+    computeMaxLyapunov(system, initialState, 0.01, 1000)
+  };
+
+  // ============================================================================
+  // PHYSICS ENGINE COUPLING — Hamiltonian chaos
+  // ============================================================================
+
+  public type PhysicsCoupling = {
+    positions : [Float];
+    momenta : [Float];
+    masses : [Float];
+    potentialEnergy : Float;
+    kineticEnergy : Float;
+    totalEnergy : Float;
+    hamiltonianLyapunov : Float;
+    kamsurfaces : Nat;
+    arnoldDiffusionRate : Float;
+  };
+
+  public func initPhysicsCoupling(dof : Nat) : PhysicsCoupling {
+    {
+      positions = Array.tabulate<Float>(dof, func(i : Nat) : Float { Float.fromInt(i) * 0.1 });
+      momenta = Array.tabulate<Float>(dof, func(_ : Nat) : Float { 0.0 });
+      masses = Array.tabulate<Float>(dof, func(_ : Nat) : Float { 1.0 });
+      potentialEnergy = 0.0;
+      kineticEnergy = 0.0;
+      totalEnergy = 0.0;
+      hamiltonianLyapunov = 0.0;
+      kamsurfaces = 0;
+      arnoldDiffusionRate = 0.0;
+    }
+  };
+
+  // Hamiltonian system for standard map (paradigmatic chaos)
+  public func standardMapSystem(K : Float) : DynamicalSystem {
+    {
+      dimension = 2;
+      parameters = [K];
+      vectorField = func(state : [Float], params : [Float]) : [Float] {
+        let theta = state[0];
+        let p = state[1];
+        let kappa = params[0];
+        
+        // Standard map equations (difference becomes derivative approximation)
+        let pNew = p + kappa * Float.sin(theta);
+        let thetaNew = theta + pNew;
+        
+        [thetaNew - theta, pNew - p]
+      };
+    }
+  };
+
+  // Hénon-Heiles Hamiltonian (classic chaotic system)
+  public func henonHeilesSystem() : DynamicalSystem {
+    {
+      dimension = 4;
+      parameters = [];
+      vectorField = func(state : [Float], _ : [Float]) : [Float] {
+        let x = state[0];
+        let y = state[1];
+        let px = state[2];
+        let py = state[3];
+        
+        // Hamilton's equations: dq/dt = ∂H/∂p, dp/dt = -∂H/∂q
+        // H = (px² + py²)/2 + (x² + y²)/2 + x²y - y³/3
+        let dxdt = px;
+        let dydt = py;
+        let dpxdt = -x - 2.0 * x * y;
+        let dpydt = -y - x * x + y * y;
+        
+        [dxdt, dydt, dpxdt, dpydt]
+      };
+    }
+  };
+
+  // KAM stability analysis
+  public func kamAnalysis(coupling : PhysicsCoupling, perturbation : Float) : Float {
+    // Kolmogorov-Arnold-Moser analysis for quasi-periodic orbits
+    let system = henonHeilesSystem();
+    let initialState = Array.append(coupling.positions, coupling.momenta);
+    let lyap = computeMaxLyapunov(system, initialState, 0.01, 1000);
+    
+    // KAM surfaces survive if Lyapunov < threshold
+    if (lyap < 0.01) { 1.0 } else { Float.exp(-lyap / perturbation) }
+  };
+
+  // ============================================================================
+  // ENTROPY ENGINE COUPLING — Chaos and information production
+  // ============================================================================
+
+  public type EntropyCoupling = {
+    stateEntropy : Float;
+    productionRate : Float;
+    informationDimension : Float;
+    kolmogorovSinaiEntropy : Float;
+    predictabilityHorizon : Float;
+    mixingTime : Float;
+  };
+
+  public func initEntropyCoupling() : EntropyCoupling {
+    {
+      stateEntropy = 0.0;
+      productionRate = 0.0;
+      informationDimension = 0.0;
+      kolmogorovSinaiEntropy = 0.0;
+      predictabilityHorizon = Float.infinity;
+      mixingTime = Float.infinity;
+    }
+  };
+
+  // Compute Kolmogorov-Sinai entropy from Lyapunov spectrum
+  public func kolmogorovSinaiEntropy(spectrum : LyapunovSpectrum) : Float {
+    // h_KS = Σ λᵢ for λᵢ > 0 (Pesin's theorem)
+    var hKS : Float = 0.0;
+    for (lyap in spectrum.exponents.vals()) {
+      if (lyap > 0.0) { hKS += lyap };
+    };
+    hKS
+  };
+
+  // Predictability horizon from largest Lyapunov
+  public func predictabilityHorizon(maxLyapunov : Float, tolerance : Float) : Float {
+    if (maxLyapunov <= 0.0) { Float.infinity }
+    else { Float.log(1.0 / tolerance) / maxLyapunov }
+  };
+
+  // Information dimension from correlation dimension
+  public func informationDimension(trajectory : Trajectory, epsilon : Float) : Float {
+    let points = Array.map<PhasePoint, [Float]>(trajectory.points, func(p : PhasePoint) : [Float] { p.state });
+    correlationDimension(points, epsilon, epsilon * 10.0, 20)
+  };
+
+  // ============================================================================
+  // TENSOR FIELD COUPLING — Curvature and chaos
+  // ============================================================================
+
+  public type TensorCoupling = {
+    metricTensor : [[Float]];
+    riemannCurvature : [[[[Float]]]];
+    ricciScalar : Float;
+    geodesicDeviation : Float;
+    chaosFromCurvature : Float;
+  };
+
+  public func initTensorCoupling(dim : Nat) : TensorCoupling {
+    {
+      metricTensor = Array.tabulate<[Float]>(dim, func(i : Nat) : [Float] {
+        Array.tabulate<Float>(dim, func(j : Nat) : Float {
+          if (i == j) { 1.0 } else { 0.0 }
+        })
+      });
+      riemannCurvature = Array.tabulate<[[[Float]]]>(dim, func(_ : Nat) : [[[Float]]] {
+        Array.tabulate<[[Float]]>(dim, func(_ : Nat) : [[Float]] {
+          Array.tabulate<[Float]>(dim, func(_ : Nat) : [Float] {
+            Array.tabulate<Float>(dim, func(_ : Nat) : Float { 0.0 })
+          })
+        })
+      });
+      ricciScalar = 0.0;
+      geodesicDeviation = 0.0;
+      chaosFromCurvature = 0.0;
+    }
+  };
+
+  // Geodesic dynamics as dynamical system
+  public func geodesicSystem(coupling : TensorCoupling) : DynamicalSystem {
+    let dim = coupling.metricTensor.size();
+    {
+      dimension = 2 * dim;
+      parameters = [];
+      vectorField = func(state : [Float], _ : [Float]) : [Float] {
+        // state = [x¹, x², ..., xⁿ, v¹, v², ..., vⁿ]
+        Array.tabulate<Float>(2 * dim, func(i : Nat) : Float {
+          if (i < dim) {
+            // dx^i/dt = v^i
+            state[dim + i]
+          } else {
+            // dv^i/dt = -Γⁱⱼₖ v^j v^k (geodesic equation)
+            var sum : Float = 0.0;
+            let idx = i - dim;
+            for (j in Iter.range(0, dim - 1)) {
+              for (k in Iter.range(0, dim - 1)) {
+                // Simplified Christoffel symbol from metric
+                let christoffel = 0.0; // Would compute from metric
+                sum -= christoffel * state[dim + j] * state[dim + k];
+              };
+            };
+            sum
+          }
+        })
+      };
+    }
+  };
+
+  // Lyapunov from geodesic deviation
+  public func geodesicLyapunov(coupling : TensorCoupling, initialState : [Float]) : Float {
+    let system = geodesicSystem(coupling);
+    computeMaxLyapunov(system, initialState, 0.01, 500)
+  };
+
+  // ============================================================================
+  // TOPOLOGICAL FIELD COUPLING — Topological chaos
+  // ============================================================================
+
+  public type TopologyCoupling = {
+    braidGroup : [Nat];
+    topologicalEntropy : Float;
+    homologyDimension : Nat;
+    fundamentalGroup : [Nat];
+    chaosFromTopology : Float;
+  };
+
+  public func initTopologyCoupling() : TopologyCoupling {
+    {
+      braidGroup = [1, 2, 1, 2];
+      topologicalEntropy = 0.0;
+      homologyDimension = 0;
+      fundamentalGroup = [1];
+      chaosFromTopology = 0.0;
+    }
+  };
+
+  // Topological entropy from braid
+  public func braidTopologicalEntropy(braid : [Nat]) : Float {
+    // Topological entropy ≥ log(λ) where λ is largest eigenvalue of Burau matrix
+    // Simplified: estimate from braid length
+    let length = Float.fromInt(braid.size());
+    Float.log(length + 1.0) / length
+  };
+
+  // ============================================================================
+  // FREE ENERGY ENGINE COUPLING — Thermodynamic chaos
+  // ============================================================================
+
+  public type FreeEnergyCoupling = {
+    temperature : Float;
+    helmholtzFreeEnergy : Float;
+    gibbsFreeEnergy : Float;
+    entropyProduction : Float;
+    fluctuationTheorem : Float;
+    chaosFromFluctuations : Float;
+  };
+
+  public func initFreeEnergyCoupling() : FreeEnergyCoupling {
+    {
+      temperature = 1.0;
+      helmholtzFreeEnergy = 0.0;
+      gibbsFreeEnergy = 0.0;
+      entropyProduction = 0.0;
+      fluctuationTheorem = 1.0;
+      chaosFromFluctuations = 0.0;
+    }
+  };
+
+  // Langevin dynamics as chaotic system
+  public func langevinSystem(coupling : FreeEnergyCoupling, potential : [Float] -> Float) : DynamicalSystem {
+    {
+      dimension = 2;
+      parameters = [coupling.temperature];
+      vectorField = func(state : [Float], params : [Float]) : [Float] {
+        let T = params[0];
+        let x = state[0];
+        let v = state[1];
+        
+        // Langevin: dx/dt = v, dv/dt = -∂U/∂x - γv + noise
+        let gamma = 1.0;
+        let dUdx = (potential([x + 0.001]) - potential([x - 0.001])) / 0.002;
+        
+        [v, -dUdx - gamma * v]
+      };
+    }
+  };
+
+  // ============================================================================
+  // QUANTUM COUPLING — Quantum chaos
+  // ============================================================================
+
+  public type QuantumCoupling = {
+    wavefunction : [Float];
+    energyLevels : [Float];
+    levelSpacing : Float;
+    wignerDysonParameter : Float;
+    quantumLyapunov : Float;
+    scramblngTime : Float;
+  };
+
+  public func initQuantumCoupling(levels : Nat) : QuantumCoupling {
+    {
+      wavefunction = Array.tabulate<Float>(levels, func(i : Nat) : Float {
+        Float.exp(-Float.fromInt(i * i) / 10.0)
+      });
+      energyLevels = Array.tabulate<Float>(levels, func(i : Nat) : Float {
+        Float.fromInt(i * i)
+      });
+      levelSpacing = 1.0;
+      wignerDysonParameter = 0.5;
+      quantumLyapunov = 0.0;
+      scramblngTime = Float.infinity;
+    }
+  };
+
+  // Quantum chaos signature: level spacing statistics
+  public func levelSpacingStatistics(coupling : QuantumCoupling) : Float {
+    // GOE (Gaussian Orthogonal Ensemble) for quantum chaos
+    // Wigner-Dyson distribution parameter β
+    var sum : Float = 0.0;
+    var sum2 : Float = 0.0;
+    var count : Nat = 0;
+    
+    for (i in Iter.range(0, coupling.energyLevels.size() - 2)) {
+      let spacing = coupling.energyLevels[i + 1] - coupling.energyLevels[i];
+      sum += spacing;
+      sum2 += spacing * spacing;
+      count += 1;
+    };
+    
+    if (count == 0) { return 0.0 };
+    
+    let mean = sum / Float.fromInt(count);
+    let variance = sum2 / Float.fromInt(count) - mean * mean;
+    
+    // Ratio determines if Poisson (integrable) or GOE (chaotic)
+    variance / (mean * mean)
+  };
+
+  // ============================================================================
+  // PREDICTIVE CODING COUPLING — Prediction error chaos
+  // ============================================================================
+
+  public type PredictiveCoupling = {
+    predictions : [Float];
+    observations : [Float];
+    predictionErrors : [Float];
+    hierarchyLevels : Nat;
+    errorChaos : Float;
+    predictionLyapunov : Float;
+  };
+
+  public func initPredictiveCoupling(dim : Nat, levels : Nat) : PredictiveCoupling {
+    {
+      predictions = Array.tabulate<Float>(dim, func(_ : Nat) : Float { 0.5 });
+      observations = Array.tabulate<Float>(dim, func(_ : Nat) : Float { 0.5 });
+      predictionErrors = Array.tabulate<Float>(dim, func(_ : Nat) : Float { 0.0 });
+      hierarchyLevels = levels;
+      errorChaos = 0.0;
+      predictionLyapunov = 0.0;
+    }
+  };
+
+  // Prediction error dynamics as nonlinear system
+  public func predictionErrorSystem(coupling : PredictiveCoupling) : DynamicalSystem {
+    let dim = coupling.predictions.size();
+    {
+      dimension = dim;
+      parameters = coupling.observations;
+      vectorField = func(predictions : [Float], observations : [Float]) : [Float] {
+        Array.tabulate<Float>(dim, func(i : Nat) : Float {
+          let error = observations[i] - predictions[i];
+          // Nonlinear error dynamics
+          error * (1.0 - predictions[i]) * predictions[i] * 4.0
+        })
+      };
+    }
+  };
+
+  // Lyapunov of prediction errors
+  public func predictionErrorLyapunov(coupling : PredictiveCoupling) : Float {
+    let system = predictionErrorSystem(coupling);
+    computeMaxLyapunov(system, coupling.predictions, 0.01, 500)
+  };
+
+  // ============================================================================
+  // UNIFIED ORCHESTRATION STATE — Everything interconnected
+  // ============================================================================
+
+  public type UnifiedChaosState = {
+    // All engine couplings
+    kuramoto : KuramotoCoupling;
+    friston : FristonCoupling;
+    hebbian : HebbianCoupling;
+    attractor : AttractorCoupling;
+    physics : PhysicsCoupling;
+    entropy : EntropyCoupling;
+    tensor : TensorCoupling;
+    topology : TopologyCoupling;
+    freeEnergy : FreeEnergyCoupling;
+    quantum : QuantumCoupling;
+    predictive : PredictiveCoupling;
+    
+    // Global chaos measures
+    globalLyapunov : Float;
+    globalEntropy : Float;
+    globalDimension : Float;
+    globalPredictability : Float;
+    
+    // Inter-engine chaos correlations
+    kuramotoFristonCorrelation : Float;
+    physicsEntropyCorrelation : Float;
+    tensorTopologyCorrelation : Float;
+    quantumClassicalCorrelation : Float;
+  };
+
+  public func initUnifiedChaosState() : UnifiedChaosState {
+    {
+      kuramoto = initKuramotoCoupling(10);
+      friston = initFristonCoupling(5);
+      hebbian = initHebbianCoupling(5, 5);
+      attractor = initAttractorCoupling(4);
+      physics = initPhysicsCoupling(3);
+      entropy = initEntropyCoupling();
+      tensor = initTensorCoupling(3);
+      topology = initTopologyCoupling();
+      freeEnergy = initFreeEnergyCoupling();
+      quantum = initQuantumCoupling(10);
+      predictive = initPredictiveCoupling(5, 3);
+      
+      globalLyapunov = 0.0;
+      globalEntropy = 0.0;
+      globalDimension = 0.0;
+      globalPredictability = 1.0;
+      
+      kuramotoFristonCorrelation = 0.0;
+      physicsEntropyCorrelation = 0.0;
+      tensorTopologyCorrelation = 0.0;
+      quantumClassicalCorrelation = 0.0;
+    }
+  };
+
+  // Execute unified chaos beat
+  public func executeUnifiedChaosBeat(state : UnifiedChaosState, dt : Float) : UnifiedChaosState {
+    // Compute all Lyapunovs
+    let kuramotoLyap = kuramotoLyapunov(state.kuramoto, dt, 100);
+    let hebbianLyap = learningLyapunov(state.hebbian, dt, 100);
+    let predictionLyap = predictionErrorLyapunov(state.predictive);
+    
+    // Update global measures
+    let globalLyap = (kuramotoLyap + hebbianLyap + predictionLyap) / 3.0;
+    let globalEnt = if (globalLyap > 0.0) { globalLyap } else { 0.0 };  // Pesin
+    let globalDim = 3.0 + 2.0 / (1.0 + Float.abs(globalLyap));
+    let globalPred = if (globalLyap > 0.0) { Float.log(1000.0) / globalLyap } else { 1000.0 };
+    
+    {
+      kuramoto = state.kuramoto;
+      friston = state.friston;
+      hebbian = state.hebbian;
+      attractor = state.attractor;
+      physics = state.physics;
+      entropy = { 
+        stateEntropy = globalEnt;
+        productionRate = globalLyap;
+        informationDimension = globalDim;
+        kolmogorovSinaiEntropy = globalEnt;
+        predictabilityHorizon = globalPred;
+        mixingTime = 1.0 / (globalLyap + 0.01);
+      };
+      tensor = state.tensor;
+      topology = state.topology;
+      freeEnergy = state.freeEnergy;
+      quantum = state.quantum;
+      predictive = state.predictive;
+      
+      globalLyapunov = globalLyap;
+      globalEntropy = globalEnt;
+      globalDimension = globalDim;
+      globalPredictability = globalPred;
+      
+      kuramotoFristonCorrelation = Float.abs(kuramotoLyap * hebbianLyap);
+      physicsEntropyCorrelation = Float.abs(globalEnt);
+      tensorTopologyCorrelation = braidTopologicalEntropy(state.topology.braidGroup);
+      quantumClassicalCorrelation = levelSpacingStatistics(state.quantum);
+    }
+  };
+
+  // ============================================================================
+  // MEDINA DOCTRINE ENFORCEMENT — Sovereign chaos bounds
+  // ============================================================================
+
+  public type MedinaDoctrine = {
+    sovereignFloor : Float;
+    chaosLimit : Float;
+    stabilityThreshold : Float;
+    predictabilityMinimum : Float;
+    informationBound : Float;
+  };
+
+  public let MEDINA_CHAOS_DOCTRINE : MedinaDoctrine = {
+    sovereignFloor = 0.01;
+    chaosLimit = 10.0;
+    stabilityThreshold = -0.1;
+    predictabilityMinimum = 0.1;
+    informationBound = 1000.0;
+  };
+
+  public func enforceMedinaDoctrine(state : UnifiedChaosState) : UnifiedChaosState {
+    let clampedLyap = Float.max(MEDINA_CHAOS_DOCTRINE.sovereignFloor, 
+                                Float.min(MEDINA_CHAOS_DOCTRINE.chaosLimit, state.globalLyapunov));
+    let clampedPred = Float.max(MEDINA_CHAOS_DOCTRINE.predictabilityMinimum, state.globalPredictability);
+    let clampedEnt = Float.min(MEDINA_CHAOS_DOCTRINE.informationBound, state.globalEntropy);
+    
+    {
+      kuramoto = state.kuramoto;
+      friston = state.friston;
+      hebbian = state.hebbian;
+      attractor = state.attractor;
+      physics = state.physics;
+      entropy = state.entropy;
+      tensor = state.tensor;
+      topology = state.topology;
+      freeEnergy = state.freeEnergy;
+      quantum = state.quantum;
+      predictive = state.predictive;
+      
+      globalLyapunov = clampedLyap;
+      globalEntropy = clampedEnt;
+      globalDimension = state.globalDimension;
+      globalPredictability = clampedPred;
+      
+      kuramotoFristonCorrelation = state.kuramotoFristonCorrelation;
+      physicsEntropyCorrelation = state.physicsEntropyCorrelation;
+      tensorTopologyCorrelation = state.tensorTopologyCorrelation;
+      quantumClassicalCorrelation = state.quantumClassicalCorrelation;
+    }
+  };
+
+  // ============================================================================
+  // DUAL ORGANISM COUPLING — HIM/HER chaos synchronization
+  // ============================================================================
+
+  public type DualOrganismChaos = {
+    himChaosState : UnifiedChaosState;
+    herChaosState : UnifiedChaosState;
+    chaosSynchronization : Float;
+    lyapunovDifference : Float;
+    entropyCorrelation : Float;
+    dimensionMatch : Float;
+  };
+
+  public func initDualOrganismChaos() : DualOrganismChaos {
+    {
+      himChaosState = initUnifiedChaosState();
+      herChaosState = initUnifiedChaosState();
+      chaosSynchronization = 0.0;
+      lyapunovDifference = 0.0;
+      entropyCorrelation = 0.0;
+      dimensionMatch = 1.0;
+    }
+  };
+
+  public func executeDualOrganismChaosBeat(dual : DualOrganismChaos, dt : Float) : DualOrganismChaos {
+    let himUpdated = executeUnifiedChaosBeat(dual.himChaosState, dt);
+    let herUpdated = executeUnifiedChaosBeat(dual.herChaosState, dt);
+    
+    {
+      himChaosState = enforceMedinaDoctrine(himUpdated);
+      herChaosState = enforceMedinaDoctrine(herUpdated);
+      chaosSynchronization = 1.0 / (1.0 + Float.abs(himUpdated.globalLyapunov - herUpdated.globalLyapunov));
+      lyapunovDifference = Float.abs(himUpdated.globalLyapunov - herUpdated.globalLyapunov);
+      entropyCorrelation = Float.min(himUpdated.globalEntropy, herUpdated.globalEntropy) / 
+                          Float.max(himUpdated.globalEntropy, herUpdated.globalEntropy);
+      dimensionMatch = Float.min(himUpdated.globalDimension, herUpdated.globalDimension) /
+                      Float.max(himUpdated.globalDimension, herUpdated.globalDimension);
+    }
+  };
+
 }

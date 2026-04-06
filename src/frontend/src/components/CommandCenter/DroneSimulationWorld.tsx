@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // MEDINA TECH — CONFIDENTIAL & PROPRIETARY
 // ═══════════════════════════════════════════════════════════════════════════════
-// TISSUE: DroneSimulationWorld — The Organism's Sensory Cortex
+// TISSUE: DroneSimulationWorld — The Organism's Sensory Cortex (500-Drone Edition)
 // Classification: CONFIDENTIAL — SOVEREIGN DOCTRINE
 //
 // Copyright © 2024-2026 Alfredo Medina Hernandez
@@ -9,100 +9,47 @@
 // Contact: MedinaSITech@outlook.com
 //
 // ╔════════════════════════════════════════════════════════════════════════════════╗
-// ║             DRONE SIMULATION WORLD — SENSORY CORTEX OF THE ORGANISM           ║
+// ║       DRONE SIMULATION WORLD — 500-DRONE SENSORY CORTEX OF THE ORGANISM        ║
 // ╠════════════════════════════════════════════════════════════════════════════════╣
 // ║                                                                                ║
 // ║  THIS IS NOT A GAME — IT IS LIVING TISSUE                                      ║
 // ║                                                                                ║
-// ║  The Drone World is the SENSORY CORTEX where:                                  ║
-// ║    • Drones are NEURONS firing in the swarm brain                              ║
-// ║    • Kuramoto r flows BIDIRECTIONALLY with organism state                      ║
-// ║    • Physics is CONSTRAINED by law enforcement                                 ║
-// ║    • Stability budget GOVERNS all actions                                      ║
+// ║  500 real-spec drones parked in a virtual airstrip holding area:               ║
+// ║    CLASS I — COMMAND   (50 units):  DJI Matrice 350 RTK                        ║
+// ║    CLASS II — SCOUT    (150 units): DJI Mavic 3E / Autel EVO MAX 4T            ║
+// ║    CLASS III — SUPPORT (200 units): Skydio X10 / Autel EVO MAX 4T              ║
+// ║    CLASS IV — HEAVY    (100 units): DJI Agras T40                              ║
 // ║                                                                                ║
-// ║  Everything flows through the organism:                                        ║
-// ║    organism.rSwarm ←→ simulation.r (bidirectional sync)                        ║
-// ║    organism.jDrift ←→ simulation.drift (bidirectional sync)                    ║
-// ║    organism.emergencyStop → simulation.halt                                    ║
+// ║  Airstrip layout:                                                              ║
+// ║    • 500m × 30m runway (RWY 09/27) with full markings and PAPI                 ║
+// ║    • 500-spot parking grid (25 cols × 20 rows) with charging pads              ║
+// ║    • Taxiway A with hold-short lines                                           ║
+// ║    • Control tower, hangars, maintenance building                              ║
 // ║                                                                                ║
+// ║  Kuramoto r flows BIDIRECTIONALLY with organism state.                         ║
 // ║  THE EXPERIMENT IS THE ORGANISM. THE ORGANISM IS THE EXPERIMENT.               ║
 // ║                                                                                ║
 // ╚════════════════════════════════════════════════════════════════════════════════╝
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// TYPES — REAL DRONE STATE (mirrors organism DroneState)
-// ═══════════════════════════════════════════════════════════════════════════════
-
-interface Vec3 {
-  x: number;
-  y: number;
-  z: number;
-}
-
-interface DroneState {
-  id: number;
-  position: Vec3;
-  velocity: Vec3;
-  acceleration: Vec3;
-  orientation: { pitch: number; roll: number; yaw: number };
-  phase: number;           // Kuramoto phase
-  naturalFreq: number;     // ω_i
-  couplingStrength: number;
-  energy: number;
-  health: number;
-  status: 'Active' | 'Damaged' | 'Critical' | 'Offline';
-  role: 'Scout' | 'Fighter' | 'Support' | 'Commander';
-  target: Vec3 | null;
-  trail: Vec3[];
-}
-
-interface SwarmMetrics {
-  rSwarm: number;          // Kuramoto order parameter
-  jDrift: number;          // Jasmine drift
-  coherence: number;
-  stability: number;
-  avgEnergy: number;
-  avgHealth: number;
-  activeDrones: number;
-  totalDrones: number;
-}
-
-interface WorldState {
-  time: number;
-  beat: number;
-  timeOfDay: number;       // 0-24
-  weather: 'Clear' | 'Cloudy' | 'Storm';
-  windSpeed: number;
-  windDirection: Vec3;
-}
-
-interface SimulationConfig {
-  droneCount: number;
-  couplingK: number;
-  noiseStrength: number;
-  gravity: number;
-  drag: number;
-  maxSpeed: number;
-  formationRadius: number;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// CONSTANTS
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const PHI = 1.6180339887498948482;  // Golden ratio
-const DEFAULT_CONFIG: SimulationConfig = {
-  droneCount: 50,
-  couplingK: 2.0,
-  noiseStrength: 0.1,
-  gravity: 9.8,
-  drag: 0.02,
-  maxSpeed: 20,
-  formationRadius: 100,
-};
+import {
+  type FleetState,
+  type RuntimeDroneState,
+  type SwarmConfig,
+  DEFAULT_SWARM_CONFIG,
+  initializeFleetState,
+  stepFleet,
+  batchDispatch,
+  rtbAll,
+  emergencyStopAll,
+  computeKuramotoOrder,
+  computeJasmineDrift,
+  computeFormationTargets,
+  type FormationPattern,
+} from '../../world/DroneFleet500';
+import { droneClassColor, FLEET_ALLOCATION } from '../../world/DroneFleetSpecs';
+import { AIRSTRIP } from '../../world/VirtualAirstrip';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // STYLES
@@ -114,523 +61,431 @@ const S = {
     height: '100%',
     background: '#030810',
     display: 'grid',
-    gridTemplateColumns: '1fr 300px',
-    gridTemplateRows: '1fr 180px',
+    gridTemplateColumns: '1fr 320px',
+    gridTemplateRows: '36px 1fr 200px',
     gap: 2,
     overflow: 'hidden',
   },
+  topBar: {
+    gridColumn: '1 / -1',
+    background: 'rgba(5, 12, 25, 0.95)',
+    borderBottom: '1px solid #1a3a5c',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 20,
+    padding: '0 16px',
+    fontSize: 10,
+    fontFamily: 'monospace',
+  },
+  topBarTitle: {
+    color: '#00d4ff',
+    fontWeight: 'bold',
+    letterSpacing: '0.12em',
+    fontSize: 11,
+    marginRight: 8,
+  },
+  stat: {
+    color: '#6a9aca',
+    whiteSpace: 'nowrap' as const,
+  },
+  statValue: (color: string) => ({
+    color,
+    fontWeight: 'bold' as const,
+  }),
   viewport: {
     position: 'relative' as const,
-    background: 'linear-gradient(180deg, #0a1525 0%, #1a2a45 50%, #0a1a30 100%)',
+    background: 'linear-gradient(180deg, #050f20 0%, #0d1e3a 50%, #050f1a 100%)',
     overflow: 'hidden',
   },
   canvas: {
     width: '100%',
     height: '100%',
+    display: 'block',
   },
   overlay: {
     position: 'absolute' as const,
     top: 12,
-    left: 16,
+    left: 12,
     zIndex: 10,
+    pointerEvents: 'none' as const,
   },
   overlayTitle: {
-    fontSize: 12,
-    color: '#4af',
+    fontSize: 11,
+    color: '#00d4ff',
     letterSpacing: '0.15em',
     textTransform: 'uppercase' as const,
-    marginBottom: 8,
-    textShadow: '0 0 10px rgba(80, 170, 255, 0.5)',
+    marginBottom: 6,
+    textShadow: '0 0 10px rgba(0, 212, 255, 0.5)',
   },
   metricsRow: {
     display: 'flex',
-    gap: 16,
-    marginBottom: 4,
+    gap: 14,
+    marginBottom: 3,
+    fontSize: 9,
   },
   metric: {
-    fontSize: 10,
     color: '#6a9aca',
   },
   metricValue: (color: string) => ({
     color,
-    fontWeight: 'bold',
+    fontWeight: 'bold' as const,
   }),
   controlPanel: {
-    background: 'rgba(5, 15, 30, 0.95)',
+    background: 'rgba(5, 12, 25, 0.95)',
     borderLeft: '1px solid #1a3a5c',
-    padding: '12px',
+    padding: '10px',
     overflow: 'auto',
+    fontSize: 10,
+    fontFamily: 'monospace',
+  },
+  panelSection: {
+    marginBottom: 14,
+    paddingBottom: 10,
+    borderBottom: '1px solid #152a45',
   },
   panelTitle: {
-    fontSize: 11,
-    color: '#4af',
+    fontSize: 9,
+    color: '#4a8aca',
     letterSpacing: '0.12em',
     textTransform: 'uppercase' as const,
-    marginBottom: 12,
-    paddingBottom: 8,
-    borderBottom: '1px solid #1a3a5c',
+    marginBottom: 8,
   },
   sliderGroup: {
-    marginBottom: 16,
+    marginBottom: 10,
   },
   sliderLabel: {
     display: 'flex',
     justifyContent: 'space-between',
-    fontSize: 10,
+    fontSize: 9,
     color: '#6a9aca',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   slider: {
     width: '100%',
-    accentColor: '#4af',
+    accentColor: '#00d4ff',
+    height: 4,
   },
-  button: (active: boolean, color: string = '#4af') => ({
+  button: (active: boolean, color = '#00d4ff') => ({
     width: '100%',
-    padding: '10px',
-    marginBottom: 8,
-    background: active ? `rgba(${color === '#4af' ? '80, 170, 255' : color === '#4f8' ? '80, 255, 120' : '255, 80, 80'}, 0.2)` : 'rgba(10, 30, 50, 0.8)',
+    padding: '7px',
+    marginBottom: 6,
+    background: active ? `rgba(0, 212, 255, 0.15)` : 'rgba(8, 20, 40, 0.8)',
     border: `1px solid ${active ? color : '#2a4a6a'}`,
-    borderRadius: 6,
+    borderRadius: 5,
     color: active ? color : '#6a9aca',
-    fontSize: 10,
+    fontSize: 9,
     textTransform: 'uppercase' as const,
-    letterSpacing: '0.1em',
+    letterSpacing: '0.08em',
     cursor: 'pointer',
   }),
+  selectInput: {
+    width: '100%',
+    background: 'rgba(8, 20, 40, 0.8)',
+    border: '1px solid #2a4a6a',
+    borderRadius: 5,
+    color: '#6a9aca',
+    fontSize: 9,
+    padding: '5px',
+    marginBottom: 6,
+  },
   emergencyBtn: {
     width: '100%',
-    padding: '12px',
-    background: '#3a0a0a',
-    border: '2px solid #f44',
-    borderRadius: 6,
-    color: '#f44',
-    fontSize: 11,
-    fontWeight: 'bold',
+    padding: '10px',
+    background: '#2a0808',
+    border: '2px solid #ff2244',
+    borderRadius: 5,
+    color: '#ff2244',
+    fontSize: 10,
+    fontWeight: 'bold' as const,
     textTransform: 'uppercase' as const,
     letterSpacing: '0.1em',
     cursor: 'pointer',
-    marginTop: 16,
+    marginTop: 10,
   },
   statusPanel: {
     gridColumn: '1 / -1',
-    background: 'rgba(5, 15, 30, 0.95)',
+    background: 'rgba(5, 12, 25, 0.95)',
     borderTop: '1px solid #1a3a5c',
     display: 'grid',
-    gridTemplateColumns: 'repeat(6, 1fr)',
-    gap: 12,
-    padding: '12px 16px',
+    gridTemplateColumns: 'repeat(8, 1fr)',
+    gap: 8,
+    padding: '10px 14px',
+    fontFamily: 'monospace',
   },
   statusCard: {
-    background: 'rgba(10, 30, 50, 0.6)',
+    background: 'rgba(8, 20, 40, 0.6)',
     border: '1px solid #1a3a5c',
-    borderRadius: 8,
-    padding: '12px',
+    borderRadius: 6,
+    padding: '8px',
     textAlign: 'center' as const,
   },
   statusValue: (color: string) => ({
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: 'bold' as const,
     color,
-    marginBottom: 4,
+    marginBottom: 2,
   }),
   statusLabel: {
-    fontSize: 9,
-    color: '#5a8aba',
+    fontSize: 8,
+    color: '#4a7aaa',
     textTransform: 'uppercase' as const,
-    letterSpacing: '0.1em',
+    letterSpacing: '0.08em',
   },
-  droneList: {
-    maxHeight: 200,
-    overflow: 'auto',
-    marginTop: 12,
-  },
-  droneItem: (status: string) => ({
+  classRow: {
     display: 'flex',
     alignItems: 'center',
-    gap: 8,
-    padding: '6px 8px',
-    background: 'rgba(10, 30, 50, 0.6)',
-    border: `1px solid ${
-      status === 'Active' ? '#2a5a8a' :
-      status === 'Damaged' ? '#8a5a2a' :
-      status === 'Critical' ? '#8a2a2a' :
-      '#2a2a2a'
-    }`,
-    borderRadius: 4,
-    marginBottom: 4,
+    gap: 6,
+    padding: '4px 0',
     fontSize: 9,
-    color: '#6a9aca',
-  }),
-  droneIndicator: (status: string) => ({
+  },
+  classDot: (color: string) => ({
     width: 8,
     height: 8,
     borderRadius: '50%',
-    background:
-      status === 'Active' ? '#4af' :
-      status === 'Damaged' ? '#fa4' :
-      status === 'Critical' ? '#f44' :
-      '#444',
+    background: color,
+    flexShrink: 0,
+  }),
+  alertItem: (severity: string) => ({
+    padding: '4px 6px',
+    background: severity === 'Critical' ? 'rgba(255,34,68,0.1)' : 'rgba(255,170,0,0.1)',
+    border: `1px solid ${severity === 'Critical' ? '#ff2244' : '#ffaa00'}`,
+    borderRadius: 4,
+    marginBottom: 4,
+    fontSize: 8,
+    color: severity === 'Critical' ? '#ff7788' : '#ffcc44',
   }),
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// MATH UTILITIES
+// CANVAS RENDERER — 2D top-down view of 500 drones + airstrip
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const vec3 = {
-  zero: (): Vec3 => ({ x: 0, y: 0, z: 0 }),
-  add: (a: Vec3, b: Vec3): Vec3 => ({ x: a.x + b.x, y: a.y + b.y, z: a.z + b.z }),
-  sub: (a: Vec3, b: Vec3): Vec3 => ({ x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }),
-  scale: (v: Vec3, s: number): Vec3 => ({ x: v.x * s, y: v.y * s, z: v.z * s }),
-  length: (v: Vec3): number => Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z),
-  normalize: (v: Vec3): Vec3 => {
-    const len = vec3.length(v);
-    return len > 0 ? vec3.scale(v, 1 / len) : vec3.zero();
-  },
-  distance: (a: Vec3, b: Vec3): number => vec3.length(vec3.sub(b, a)),
-  lerp: (a: Vec3, b: Vec3, t: number): Vec3 => ({
-    x: a.x + (b.x - a.x) * t,
-    y: a.y + (b.y - a.y) * t,
-    z: a.z + (b.z - a.z) * t,
-  }),
-};
-
-// Kuramoto order parameter
-function computeKuramotoOrder(drones: DroneState[]): { r: number; psi: number } {
-  const n = drones.length;
-  if (n === 0) return { r: 0, psi: 0 };
-  
-  let sumCos = 0;
-  let sumSin = 0;
-  
-  for (const d of drones) {
-    sumCos += Math.cos(d.phase);
-    sumSin += Math.sin(d.phase);
-  }
-  
-  const r = Math.sqrt(sumCos * sumCos + sumSin * sumSin) / n;
-  const psi = Math.atan2(sumSin, sumCos);
-  
-  return { r, psi };
-}
-
-// Jasmine drift (deviation from equilibrium)
-function computeJasmineDrift(drones: DroneState[], targetCenter: Vec3): number {
-  if (drones.length === 0) return 0;
-  
-  let totalDrift = 0;
-  for (const d of drones) {
-    const dist = vec3.distance(d.position, targetCenter);
-    totalDrift += dist * dist;
-  }
-  
-  return Math.sqrt(totalDrift / drones.length) / 100; // Normalize
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// DRONE INITIALIZATION
-// ═══════════════════════════════════════════════════════════════════════════════
-
-function initializeDrones(count: number, config: SimulationConfig): DroneState[] {
-  const drones: DroneState[] = [];
-  const roles: DroneState['role'][] = ['Scout', 'Fighter', 'Support', 'Commander'];
-  
-  // Fibonacci sphere distribution for initial positions
-  for (let i = 0; i < count; i++) {
-    const t = i / (count - 1);
-    const inclination = Math.acos(1 - 2 * t);
-    const azimuth = 2 * Math.PI * PHI * i;
-    
-    const r = config.formationRadius * 0.5;
-    const x = r * Math.sin(inclination) * Math.cos(azimuth);
-    const y = r * Math.sin(inclination) * Math.sin(azimuth) + 50; // Offset Y
-    const z = r * Math.cos(inclination);
-    
-    drones.push({
-      id: i,
-      position: { x, y, z },
-      velocity: vec3.zero(),
-      acceleration: vec3.zero(),
-      orientation: { pitch: 0, roll: 0, yaw: Math.random() * Math.PI * 2 },
-      phase: Math.random() * Math.PI * 2,
-      naturalFreq: 1 + (Math.random() - 0.5) * 0.2,
-      couplingStrength: config.couplingK,
-      energy: 1.0,
-      health: 1.0,
-      status: 'Active',
-      role: roles[i % roles.length],
-      target: null,
-      trail: [],
-    });
-  }
-  
-  return drones;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// SIMULATION STEP — THE REAL PHYSICS
-// ═══════════════════════════════════════════════════════════════════════════════
-
-function simulationStep(
-  drones: DroneState[],
-  config: SimulationConfig,
-  world: WorldState,
-  dt: number
-): DroneState[] {
-  const center = { x: 0, y: 50, z: 0 };
-  const { r: rSwarm, psi: globalPhase } = computeKuramotoOrder(drones);
-  
-  return drones.map((drone, i) => {
-    if (drone.status === 'Offline') return drone;
-    
-    // Store trail
-    const trail = [...drone.trail, { ...drone.position }].slice(-20);
-    
-    // ═══ KURAMOTO PHASE DYNAMICS ═══
-    // dθ_i/dt = ω_i + (K/N) * Σ sin(θ_j - θ_i)
-    let phaseVelocity = drone.naturalFreq;
-    
-    for (const other of drones) {
-      if (other.id === drone.id || other.status === 'Offline') continue;
-      const phaseDiff = other.phase - drone.phase;
-      phaseVelocity += (drone.couplingStrength / drones.length) * Math.sin(phaseDiff);
-    }
-    
-    // Add noise
-    phaseVelocity += (Math.random() - 0.5) * config.noiseStrength;
-    
-    const newPhase = (drone.phase + phaseVelocity * dt) % (Math.PI * 2);
-    
-    // ═══ FLOCKING BEHAVIOR ═══
-    let separation = vec3.zero();
-    let alignment = vec3.zero();
-    let cohesion = vec3.zero();
-    let neighborCount = 0;
-    
-    for (const other of drones) {
-      if (other.id === drone.id || other.status === 'Offline') continue;
-      
-      const dist = vec3.distance(drone.position, other.position);
-      
-      if (dist < 30) {
-        // Separation
-        const diff = vec3.sub(drone.position, other.position);
-        separation = vec3.add(separation, vec3.scale(vec3.normalize(diff), 1 / (dist + 0.1)));
-      }
-      
-      if (dist < 50) {
-        // Alignment
-        alignment = vec3.add(alignment, other.velocity);
-        // Cohesion
-        cohesion = vec3.add(cohesion, other.position);
-        neighborCount++;
-      }
-    }
-    
-    if (neighborCount > 0) {
-      alignment = vec3.scale(alignment, 1 / neighborCount);
-      cohesion = vec3.scale(cohesion, 1 / neighborCount);
-      cohesion = vec3.sub(cohesion, drone.position);
-    }
-    
-    // ═══ FORMATION FORCE ═══
-    const toCenter = vec3.sub(center, drone.position);
-    const distToCenter = vec3.length(toCenter);
-    const formationForce = vec3.scale(
-      vec3.normalize(toCenter),
-      Math.max(0, distToCenter - config.formationRadius * 0.3) * 0.1
-    );
-    
-    // ═══ COMBINED ACCELERATION ═══
-    let acceleration = vec3.zero();
-    acceleration = vec3.add(acceleration, vec3.scale(separation, 2.0));
-    acceleration = vec3.add(acceleration, vec3.scale(vec3.normalize(alignment), 1.0));
-    acceleration = vec3.add(acceleration, vec3.scale(vec3.normalize(cohesion), 1.0));
-    acceleration = vec3.add(acceleration, formationForce);
-    
-    // Wind effect
-    acceleration = vec3.add(acceleration, vec3.scale(world.windDirection, world.windSpeed * 0.1));
-    
-    // Phase-based oscillation (creates organic movement)
-    acceleration.y += Math.sin(newPhase) * 0.5;
-    acceleration.x += Math.cos(newPhase * 1.5) * 0.3;
-    
-    // ═══ VELOCITY UPDATE ═══
-    let newVelocity = vec3.add(drone.velocity, vec3.scale(acceleration, dt));
-    
-    // Drag
-    newVelocity = vec3.scale(newVelocity, 1 - config.drag);
-    
-    // Speed limit
-    const speed = vec3.length(newVelocity);
-    if (speed > config.maxSpeed) {
-      newVelocity = vec3.scale(vec3.normalize(newVelocity), config.maxSpeed);
-    }
-    
-    // ═══ POSITION UPDATE ═══
-    const newPosition = vec3.add(drone.position, vec3.scale(newVelocity, dt));
-    
-    // Keep above ground
-    if (newPosition.y < 5) {
-      newPosition.y = 5;
-      newVelocity.y = Math.abs(newVelocity.y) * 0.5;
-    }
-    
-    // ═══ ENERGY & HEALTH ═══
-    const energyDrain = speed * 0.001 + 0.0001;
-    const newEnergy = Math.max(0, drone.energy - energyDrain * dt);
-    
-    // Status based on health and energy
-    let newStatus = drone.status;
-    if (newEnergy < 0.1) {
-      newStatus = 'Critical';
-    } else if (newEnergy < 0.3 || drone.health < 0.5) {
-      newStatus = 'Damaged';
-    } else {
-      newStatus = 'Active';
-    }
-    
-    // ═══ ORIENTATION ═══
-    const yaw = Math.atan2(newVelocity.x, newVelocity.z);
-    const pitch = Math.atan2(-newVelocity.y, Math.sqrt(newVelocity.x ** 2 + newVelocity.z ** 2));
-    
-    return {
-      ...drone,
-      position: newPosition,
-      velocity: newVelocity,
-      acceleration,
-      orientation: { pitch, roll: 0, yaw },
-      phase: newPhase,
-      energy: newEnergy,
-      status: newStatus,
-      trail,
-    };
-  });
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// CANVAS RENDERER
-// ═══════════════════════════════════════════════════════════════════════════════
-
-function renderDrones(
+function renderFleet500(
   ctx: CanvasRenderingContext2D,
-  drones: DroneState[],
-  metrics: SwarmMetrics,
-  world: WorldState,
+  fleetState: FleetState,
   width: number,
-  height: number
+  height: number,
+  viewMode: '2d-top' | '2d-side',
+  scale: number,
+  offsetX: number,
+  offsetZ: number
 ): void {
   ctx.clearRect(0, 0, width, height);
-  
-  // Background gradient based on time of day
+
+  // Sky gradient based on time of day
+  const tod = fleetState.timeOfDay;
+  const isNight = tod < 6 || tod > 20;
   const gradient = ctx.createLinearGradient(0, 0, 0, height);
-  if (world.timeOfDay < 6 || world.timeOfDay > 20) {
-    gradient.addColorStop(0, '#050a15');
-    gradient.addColorStop(1, '#0a1a30');
+  if (isNight) {
+    gradient.addColorStop(0, '#020508');
+    gradient.addColorStop(1, '#060d18');
   } else {
-    gradient.addColorStop(0, '#1a3050');
-    gradient.addColorStop(1, '#2a4a70');
+    gradient.addColorStop(0, '#0a1a30');
+    gradient.addColorStop(1, '#152540');
   }
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, width, height);
-  
-  // Grid
-  ctx.strokeStyle = 'rgba(80, 170, 255, 0.1)';
+
+  const cx = width / 2 + offsetX;
+  const cz = height / 2 + offsetZ;
+
+  // Helper: world → canvas
+  const wx = (x: number) => cx + x * scale;
+  const wz = (z: number) => cz + z * scale;
+  const wlen = (l: number) => l * scale;
+
+  // ─── GRID ───────────────────────────────────────────────────────────────────
+  ctx.strokeStyle = 'rgba(0, 80, 150, 0.1)';
   ctx.lineWidth = 1;
-  const gridSize = 50;
-  for (let x = 0; x < width; x += gridSize) {
+  const gridWorld = 50;
+  const gridStart = -400;
+  const gridEnd = 400;
+  for (let gx = gridStart; gx <= gridEnd; gx += gridWorld) {
     ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, height);
+    ctx.moveTo(wx(gx), wz(gridStart));
+    ctx.lineTo(wx(gx), wz(gridEnd));
     ctx.stroke();
   }
-  for (let y = 0; y < height; y += gridSize) {
+  for (let gz = -300; gz <= 200; gz += gridWorld) {
     ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(width, y);
+    ctx.moveTo(wx(gridStart), wz(gz));
+    ctx.lineTo(wx(gridEnd), wz(gz));
     ctx.stroke();
   }
-  
-  // Center point
-  const cx = width / 2;
-  const cy = height / 2;
-  
+
+  // ─── RUNWAY ─────────────────────────────────────────────────────────────────
+  const halfRwyLen = AIRSTRIP.RUNWAY_LENGTH / 2;
+  const halfRwyW = AIRSTRIP.RUNWAY_WIDTH / 2;
+
+  ctx.fillStyle = '#1a1a20';
+  ctx.fillRect(
+    wx(-halfRwyLen),
+    wz(-halfRwyW),
+    wlen(AIRSTRIP.RUNWAY_LENGTH),
+    wlen(AIRSTRIP.RUNWAY_WIDTH)
+  );
+
+  // Centerline
+  ctx.strokeStyle = '#e0e0e0';
+  ctx.lineWidth = Math.max(1, wlen(0.9));
+  ctx.setLineDash([wlen(15), wlen(10)]);
   ctx.beginPath();
-  ctx.arc(cx, cy, 5, 0, Math.PI * 2);
-  ctx.fillStyle = '#4af';
+  ctx.moveTo(wx(-halfRwyLen), wz(0));
+  ctx.lineTo(wx(halfRwyLen), wz(0));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Runway designation text
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `bold ${Math.max(7, wlen(4))}px monospace`;
+  ctx.textAlign = 'center';
+  ctx.fillText('09', wx(-halfRwyLen + 12), wz(-2));
+  ctx.fillText('27', wx(halfRwyLen - 12), wz(-2));
+  ctx.textAlign = 'left';
+
+  // ─── TAXIWAY A ───────────────────────────────────────────────────────────────
+  ctx.fillStyle = '#191924';
+  ctx.fillRect(
+    wx(-halfRwyLen - 10),
+    wz(AIRSTRIP.TAXIWAY_A_Z - AIRSTRIP.TAXIWAY_A_WIDTH / 2),
+    wlen(AIRSTRIP.TAXIWAY_A_LENGTH + 20),
+    wlen(AIRSTRIP.TAXIWAY_A_WIDTH)
+  );
+
+  // Taxiway centerline (yellow dashed)
+  ctx.strokeStyle = '#cc9900';
+  ctx.lineWidth = Math.max(1, wlen(0.15));
+  ctx.setLineDash([wlen(7), wlen(5)]);
+  ctx.beginPath();
+  ctx.moveTo(wx(-halfRwyLen), wz(AIRSTRIP.TAXIWAY_A_Z));
+  ctx.lineTo(wx(halfRwyLen), wz(AIRSTRIP.TAXIWAY_A_Z));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // ─── APRON ───────────────────────────────────────────────────────────────────
+  ctx.fillStyle = '#1e1e28';
+  ctx.fillRect(
+    wx(AIRSTRIP.APRON_X_WEST),
+    wz(AIRSTRIP.APRON_Z_NORTH),
+    wlen(AIRSTRIP.APRON_X_EAST - AIRSTRIP.APRON_X_WEST),
+    wlen(AIRSTRIP.APRON_Z_SOUTH - AIRSTRIP.APRON_Z_NORTH)
+  );
+
+  // ─── PARKING SPOT OUTLINES ───────────────────────────────────────────────────
+  ctx.strokeStyle = 'rgba(30, 80, 150, 0.4)';
+  ctx.lineWidth = Math.max(0.5, wlen(0.15));
+  for (let row = 0; row < AIRSTRIP.PARKING_ROWS; row++) {
+    for (let col = 0; col < AIRSTRIP.PARKING_COLS; col++) {
+      const sx = AIRSTRIP.PARKING_ORIGIN_X + col * AIRSTRIP.PARKING_SPACING_X;
+      const sz = AIRSTRIP.PARKING_ORIGIN_Z - row * AIRSTRIP.PARKING_SPACING_Z;
+      ctx.strokeRect(
+        wx(sx - AIRSTRIP.SPOT_PAD_SIZE / 2),
+        wz(sz - AIRSTRIP.SPOT_PAD_SIZE / 2),
+        wlen(AIRSTRIP.SPOT_PAD_SIZE),
+        wlen(AIRSTRIP.SPOT_PAD_SIZE)
+      );
+    }
+  }
+
+  // ─── CONTROL TOWER ───────────────────────────────────────────────────────────
+  ctx.fillStyle = '#8899aa';
+  ctx.fillRect(
+    wx(AIRSTRIP.TOWER_X - AIRSTRIP.TOWER_WIDTH / 2),
+    wz(AIRSTRIP.TOWER_Z - AIRSTRIP.TOWER_DEPTH / 2),
+    wlen(AIRSTRIP.TOWER_WIDTH),
+    wlen(AIRSTRIP.TOWER_DEPTH)
+  );
+  ctx.fillStyle = '#00ff44';
+  const beaconSize = Math.max(3, wlen(4));
+  ctx.beginPath();
+  ctx.arc(wx(AIRSTRIP.TOWER_X), wz(AIRSTRIP.TOWER_Z), beaconSize, 0, Math.PI * 2);
   ctx.fill();
-  
-  // Draw drones
+
+  // ─── DRONES ──────────────────────────────────────────────────────────────────
+  const drones = fleetState.drones;
+
   for (const drone of drones) {
     if (drone.status === 'Offline') continue;
-    
-    // Project 3D to 2D (simple orthographic)
-    const scale = 3;
-    const x = cx + drone.position.x * scale;
-    const y = cy - drone.position.z * scale; // Z maps to Y in 2D
-    
-    // Trail
-    if (drone.trail.length > 1) {
+
+    const classColor = droneClassColor(drone.spec.droneClass);
+    const dx = wx(drone.position.x);
+    const dz = wz(drone.position.z);
+
+    // Draw trail for airborne drones
+    if (drone.trail.length > 1 && drone.status !== 'Parked' && drone.status !== 'Charging') {
       ctx.beginPath();
-      ctx.moveTo(cx + drone.trail[0].x * scale, cy - drone.trail[0].z * scale);
-      for (let i = 1; i < drone.trail.length; i++) {
-        const alpha = i / drone.trail.length;
-        ctx.strokeStyle = `rgba(80, 170, 255, ${alpha * 0.3})`;
-        ctx.lineTo(cx + drone.trail[i].x * scale, cy - drone.trail[i].z * scale);
+      ctx.moveTo(wx(drone.trail[0].x), wz(drone.trail[0].z));
+      for (let t = 1; t < drone.trail.length; t++) {
+        const alpha = t / drone.trail.length;
+        ctx.strokeStyle = `${classColor}${Math.floor(alpha * 40).toString(16).padStart(2, '0')}`;
+        ctx.lineWidth = Math.max(0.5, wlen(0.3));
+        ctx.lineTo(wx(drone.trail[t].x), wz(drone.trail[t].z));
       }
       ctx.stroke();
     }
-    
+
+    // Drone dot size
+    const dotSize = drone.status === 'Parked' || drone.status === 'Charging'
+      ? Math.max(2, wlen(1.5))
+      : Math.max(3, wlen(2.5));
+
+    // Color by status / class
+    let fillColor = classColor;
+    if (drone.status === 'Charging') fillColor = '#0044bb';
+    else if (drone.status === 'PreflightCheck') fillColor = '#44bb88';
+    else if (drone.status === 'Emergency') fillColor = '#ff2244';
+    else if (drone.status === 'Offline') fillColor = '#333344';
+
+    // Draw glow for airborne drones
+    if (!['Parked', 'Charging', 'Maintenance', 'Offline'].includes(drone.status)) {
+      const glowGrad = ctx.createRadialGradient(dx, dz, 0, dx, dz, dotSize * 3);
+      glowGrad.addColorStop(0, `${classColor}44`);
+      glowGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = glowGrad;
+      ctx.beginPath();
+      ctx.arc(dx, dz, dotSize * 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
     // Drone body
-    const size = 4 + drone.energy * 4;
-    const color =
-      drone.status === 'Active' ? `hsl(${200 + drone.phase * 30}, 80%, 60%)` :
-      drone.status === 'Damaged' ? '#fa4' :
-      drone.status === 'Critical' ? '#f44' :
-      '#444';
-    
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(-drone.orientation.yaw);
-    
-    // Glow
-    const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 2);
-    glow.addColorStop(0, color);
-    glow.addColorStop(1, 'transparent');
-    ctx.fillStyle = glow;
+    ctx.fillStyle = fillColor;
     ctx.beginPath();
-    ctx.arc(0, 0, size * 2, 0, Math.PI * 2);
+    ctx.arc(dx, dz, dotSize, 0, Math.PI * 2);
     ctx.fill();
-    
-    // Body
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(0, -size);
-    ctx.lineTo(-size * 0.7, size * 0.5);
-    ctx.lineTo(size * 0.7, size * 0.5);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Phase indicator
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(0, 0, size * 1.5, drone.phase - 0.3, drone.phase + 0.3);
-    ctx.stroke();
-    
-    ctx.restore();
+
+    // Heading indicator for airborne drones
+    if (drone.status !== 'Parked' && drone.status !== 'Charging') {
+      const hdLen = dotSize * 2.5;
+      ctx.strokeStyle = fillColor;
+      ctx.lineWidth = Math.max(0.5, wlen(0.4));
+      ctx.beginPath();
+      ctx.moveTo(dx, dz);
+      ctx.lineTo(
+        dx + Math.sin(drone.orientation.yaw) * hdLen,
+        dz + Math.cos(drone.orientation.yaw) * hdLen
+      );
+      ctx.stroke();
+    }
   }
-  
-  // Coherence ring
-  ctx.strokeStyle = `rgba(80, 255, 120, ${metrics.rSwarm})`;
+
+  // ─── KURAMOTO COHERENCE RING ─────────────────────────────────────────────────
+  const r = fleetState.rSwarm;
+  ctx.strokeStyle = `rgba(0, 255, 136, ${r * 0.6})`;
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.arc(cx, cy, 150 * metrics.rSwarm, 0, Math.PI * 2);
+  ctx.arc(wx(0), wz(0), wlen(200 * r), 0, Math.PI * 2);
   ctx.stroke();
+
+  // ─── TIME / WEATHER LABEL ────────────────────────────────────────────────────
+  const tod = fleetState.timeOfDay;
+  const timeStr = `${String(Math.floor(tod)).padStart(2, '0')}:${String(Math.floor((tod % 1) * 60)).padStart(2, '0')}`;
+  ctx.fillStyle = '#4a8aca';
+  ctx.font = '10px monospace';
+  ctx.fillText(`${timeStr} · ${fleetState.weather} · Wind ${fleetState.windSpeedMs.toFixed(1)} m/s`, 8, height - 8);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// COMPONENT — LIVING TISSUE THAT SYNCS WITH ORGANISM
+// MAIN COMPONENT — DroneSimulationWorld (500-drone edition)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 interface Props {
@@ -639,309 +494,382 @@ interface Props {
 
 export function DroneSimulationWorld({ organism }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>(0);
-  
-  // ═══ ORGANISM SIGNALS — Bidirectional flow ═══
+  const animRef = useRef<number>(0);
+  const tickRef = useRef<number>(0);
+
+  // ─── ORGANISM SYNC ──────────────────────────────────────────────────────────
   const {
     rSwarm: organismR = 0.85,
     jDrift: organismDrift = 0,
     beat: organismBeat = 0,
     emergencyActive = false,
-    drones: organismDrones = [],
     architectSignal = 0.5,
   } = organism || {};
-  
-  const [config, setConfig] = useState<SimulationConfig>(() => ({
-    ...DEFAULT_CONFIG,
-    couplingK: 2.0 + architectSignal, // Coupling influenced by architect
+
+  // ─── SIMULATION STATE ───────────────────────────────────────────────────────
+  const [fleetState, setFleetState] = useState<FleetState>(() => initializeFleetState());
+  const [isRunning, setIsRunning] = useState(true);
+  const [swarmConfig, setSwarmConfig] = useState<SwarmConfig>(() => ({
+    ...DEFAULT_SWARM_CONFIG,
+    couplingK: 2.0 + architectSignal,
   }));
-  const [drones, setDrones] = useState<DroneState[]>([]);
-  const [metrics, setMetrics] = useState<SwarmMetrics>({
-    rSwarm: organismR, jDrift: organismDrift, coherence: organismR, stability: 1,
-    avgEnergy: 1, avgHealth: 1, activeDrones: 0, totalDrones: 0,
-  });
-  const [world, setWorld] = useState<WorldState>({
-    time: 0, beat: organismBeat, timeOfDay: 12, weather: 'Clear',
-    windSpeed: 1, windDirection: { x: 1, y: 0, z: 0 },
-  });
-  const [isRunning, setIsRunning] = useState(!emergencyActive);
-  const [selectedView, setSelectedView] = useState<'top' | 'side' | '3d'>('top');
-  
-  // ═══ SYNC WITH ORGANISM — Emergency stop propagates ═══
+  const [selectedFormation, setSelectedFormation] = useState<FormationPattern>('Parked' as any);
+  const [viewMode] = useState<'2d-top'>('2d-top');
+  const [scale, setScale] = useState(1.0);
+  const [dispatchClass, setDispatchClass] = useState<'Commander' | 'Scout' | 'Support' | 'Heavy' | 'All'>('Scout');
+  const [dispatchCount, setDispatchCount] = useState(10);
+
+  // Sync emergency stop from organism
   useEffect(() => {
     if (emergencyActive) {
       setIsRunning(false);
-      setDrones(prev => prev.map(d => ({ ...d, status: 'Offline' as const })));
+      setFleetState(prev => emergencyStopAll(prev));
     }
   }, [emergencyActive]);
-  
-  // ═══ SYNC COUPLING FROM ARCHITECT SIGNAL ═══
+
+  // Sync coupling from architect signal
   useEffect(() => {
-    setConfig(prev => ({ ...prev, couplingK: 2.0 + architectSignal }));
+    setSwarmConfig(prev => ({ ...prev, couplingK: 2.0 + architectSignal }));
   }, [architectSignal]);
-  
-  // ═══ SYNC WORLD BEAT WITH ORGANISM ═══
-  useEffect(() => {
-    setWorld(prev => ({ ...prev, beat: organismBeat }));
-  }, [organismBeat]);
-  
-  // Initialize
-  useEffect(() => {
-    setDrones(initializeDrones(config.droneCount, config));
-  }, [config.droneCount]);
-  
-  // Animation loop
+
+  // ─── ANIMATION LOOP ─────────────────────────────────────────────────────────
+  const fleetStateRef = useRef(fleetState);
+  fleetStateRef.current = fleetState;
+  const swarmConfigRef = useRef(swarmConfig);
+  swarmConfigRef.current = swarmConfig;
+
   useEffect(() => {
     if (!isRunning) return;
-    
+
     let lastTime = performance.now();
-    
-    const animate = (time: number) => {
-      const dt = Math.min((time - lastTime) / 1000, 0.1);
-      lastTime = time;
-      
-      setDrones(prev => {
-        const newDrones = simulationStep(prev, config, world, dt);
-        
-        // Update metrics
-        const { r, psi } = computeKuramotoOrder(newDrones);
-        const center = { x: 0, y: 50, z: 0 };
-        const jDrift = computeJasmineDrift(newDrones, center);
-        const activeDrones = newDrones.filter(d => d.status !== 'Offline').length;
-        const avgEnergy = newDrones.reduce((s, d) => s + d.energy, 0) / newDrones.length;
-        const avgHealth = newDrones.reduce((s, d) => s + d.health, 0) / newDrones.length;
-        
-        // ═══ BLEND LOCAL r WITH ORGANISM r ═══
-        // The simulation is part of the organism — they influence each other
-        const blendedR = r * 0.7 + organismR * 0.3;
-        const blendedDrift = jDrift * 0.7 + organismDrift * 0.3;
-        
-        setMetrics({
-          rSwarm: blendedR,
-          jDrift: blendedDrift,
-          coherence: blendedR,
-          stability: Math.max(0, 1 - blendedDrift * 0.5),
-          avgEnergy,
-          avgHealth,
-          activeDrones,
-          totalDrones: newDrones.length,
-        });
-        
-        return newDrones;
-      });
-      
-      // Update world time
-      setWorld(prev => ({
-        ...prev,
-        time: prev.time + dt,
-        beat: organismBeat,  // Sync with organism beat
-        timeOfDay: (12 + prev.time * 0.1) % 24,
-      }));
-      
-      // Render
+
+    const loop = (now: number) => {
+      const dtMs = Math.min(now - lastTime, 100);
+      lastTime = now;
+      const dt = dtMs / 1000;
+
+      tickRef.current++;
+
+      const newState = stepFleet(
+        fleetStateRef.current,
+        swarmConfigRef.current,
+        dt,
+        tickRef.current
+      );
+
+      // Blend Kuramoto r with organism
+      const blendedR = newState.rSwarm * 0.7 + (organismR || 0.85) * 0.3;
+      setFleetState({ ...newState, rSwarm: blendedR });
+
+      // Render to canvas
       const canvas = canvasRef.current;
       const ctx = canvas?.getContext('2d');
       if (canvas && ctx) {
-        renderDrones(ctx, drones, metrics, world, canvas.width, canvas.height);
+        renderFleet500(ctx, newState, canvas.width, canvas.height, viewMode, scale, 0, 0);
       }
-      
-      animationRef.current = requestAnimationFrame(animate);
+
+      animRef.current = requestAnimationFrame(loop);
     };
-    
-    animationRef.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationRef.current);
-  }, [isRunning, config, drones, metrics, world, organismR, organismDrift, organismBeat]);
-  
-  // Canvas resize
+
+    animRef.current = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(animRef.current);
+  }, [isRunning, viewMode, scale, organismR]);
+
+  // ─── CANVAS RESIZE ──────────────────────────────────────────────────────────
   useEffect(() => {
-    const handleResize = () => {
+    const resize = () => {
       const canvas = canvasRef.current;
-      if (canvas) {
-        const parent = canvas.parentElement;
-        if (parent) {
-          canvas.width = parent.clientWidth;
-          canvas.height = parent.clientHeight;
-        }
+      if (!canvas) return;
+      const parent = canvas.parentElement;
+      if (parent) {
+        canvas.width = parent.clientWidth;
+        canvas.height = parent.clientHeight;
       }
     };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    resize();
+    window.addEventListener('resize', resize);
+    return () => window.removeEventListener('resize', resize);
   }, []);
-  
-  // Emergency stop
-  const handleEmergencyStop = () => {
+
+  // ─── DISPATCH HANDLER ───────────────────────────────────────────────────────
+  const handleDispatch = useCallback(() => {
+    setFleetState(prev => batchDispatch(
+      prev,
+      dispatchClass,
+      'Patrol',
+      { x: (Math.random() - 0.5) * 400, y: 80, z: (Math.random() - 0.5) * 400 },
+      dispatchCount,
+      5
+    ));
+  }, [dispatchClass, dispatchCount]);
+
+  // ─── RTB ALL ────────────────────────────────────────────────────────────────
+  const handleRTB = useCallback(() => {
+    setFleetState(prev => rtbAll(prev));
+  }, []);
+
+  // ─── EMERGENCY STOP ─────────────────────────────────────────────────────────
+  const handleEmergencyStop = useCallback(() => {
     setIsRunning(false);
-    setDrones(prev => prev.map(d => ({ ...d, status: 'Offline' as const })));
-  };
-  
-  // Reset simulation
-  const handleReset = () => {
-    setDrones(initializeDrones(config.droneCount, config));
+    setFleetState(prev => emergencyStopAll(prev));
+  }, []);
+
+  // ─── RESET ──────────────────────────────────────────────────────────────────
+  const handleReset = useCallback(() => {
+    tickRef.current = 0;
+    setFleetState(initializeFleetState());
     setIsRunning(true);
-    setWorld({ time: 0, beat: 0, timeOfDay: 12, weather: 'Clear', windSpeed: 1, windDirection: { x: 1, y: 0, z: 0 } });
-  };
-  
+  }, []);
+
+  const { stats, maintenanceAlerts } = fleetState;
+
+  // ─── RENDER ─────────────────────────────────────────────────────────────────
   return (
     <div style={S.root}>
-      {/* Viewport */}
+      {/* Top status bar */}
+      <div style={S.topBar}>
+        <span style={S.topBarTitle}>⬡ NOVA AIRSTRIP — 500 DRONES</span>
+        <span style={S.stat}>
+          PARKED: <strong style={S.statValue('#445566')}>{stats.parked + stats.charging}</strong>
+        </span>
+        <span style={S.stat}>
+          AIRBORNE: <strong style={S.statValue('#00ff88')}>{stats.airborne}</strong>
+        </span>
+        <span style={S.stat}>
+          TAXI: <strong style={S.statValue('#88aaff')}>{stats.taxiing}</strong>
+        </span>
+        <span style={S.stat}>
+          PREFLIGHT: <strong style={S.statValue('#44ff88')}>{stats.preflight}</strong>
+        </span>
+        {stats.emergency > 0 && (
+          <span style={{ color: '#ff2244', fontWeight: 'bold' }}>
+            ⚠ EMERGENCY: {stats.emergency}
+          </span>
+        )}
+        <span style={{ ...S.stat, marginLeft: 'auto' }}>
+          Coherence r: <strong style={S.statValue(fleetState.rSwarm > 0.7 ? '#00ff88' : '#ffaa00')}>
+            {(fleetState.rSwarm * 100).toFixed(0)}%
+          </strong>
+        </span>
+        <span style={S.stat}>
+          Batt: <strong style={S.statValue('#dddddd')}>{(stats.avgBatterySoC * 100).toFixed(0)}%</strong>
+        </span>
+        <span style={S.stat}>
+          {fleetState.weather} · Wind {fleetState.windSpeedMs.toFixed(1)} m/s
+        </span>
+      </div>
+
+      {/* Canvas viewport */}
       <div style={S.viewport}>
         <canvas ref={canvasRef} style={S.canvas} />
-        
+
+        {/* Overlay HUD */}
         <div style={S.overlay}>
-          <div style={S.overlayTitle}>⬡ DRONE SWARM SIMULATION — LIVE</div>
+          <div style={S.overlayTitle}>⬡ DRONE SWARM — LIVE</div>
           <div style={S.metricsRow}>
             <span style={S.metric}>
-              Beat: <span style={S.metricValue('#4af')}>{world.beat}</span>
+              r: <strong style={S.metricValue('#00ff88')}>{fleetState.rSwarm.toFixed(3)}</strong>
             </span>
             <span style={S.metric}>
-              Time: <span style={S.metricValue('#4af')}>{world.timeOfDay.toFixed(1)}h</span>
+              ψ: <strong style={S.metricValue('#00d4ff')}>{fleetState.psiSwarm.toFixed(2)}</strong>
             </span>
             <span style={S.metric}>
-              Active: <span style={S.metricValue('#4f8')}>{metrics.activeDrones}/{metrics.totalDrones}</span>
+              Drift: <strong style={S.metricValue('#ffaa00')}>{fleetState.jasmineDrift.toFixed(3)}</strong>
+            </span>
+          </div>
+          <div style={S.metricsRow}>
+            <span style={S.metric}>
+              CMD: <strong style={S.metricValue('#00d4ff')}>{stats.byClass.Commander.airborne}/{stats.byClass.Commander.total}</strong>
+            </span>
+            <span style={S.metric}>
+              SCT: <strong style={S.metricValue('#00ff88')}>{stats.byClass.Scout.airborne}/{stats.byClass.Scout.total}</strong>
+            </span>
+            <span style={S.metric}>
+              SUP: <strong style={S.metricValue('#ffaa00')}>{stats.byClass.Support.airborne}/{stats.byClass.Support.total}</strong>
+            </span>
+            <span style={S.metric}>
+              HVY: <strong style={S.metricValue('#ff2244')}>{stats.byClass.Heavy.airborne}/{stats.byClass.Heavy.total}</strong>
             </span>
           </div>
         </div>
       </div>
-      
-      {/* Control Panel */}
+
+      {/* Control panel */}
       <div style={S.controlPanel}>
-        <div style={S.panelTitle}>⚙️ Simulation Controls</div>
-        
-        <button
-          style={S.button(isRunning, '#4f8')}
-          onClick={() => setIsRunning(!isRunning)}
-        >
-          {isRunning ? '⏸ Pause' : '▶ Resume'}
-        </button>
-        
-        <button style={S.button(false)} onClick={handleReset}>
-          🔄 Reset Simulation
-        </button>
-        
-        <div style={S.sliderGroup}>
-          <div style={S.sliderLabel}>
-            <span>Coupling K</span>
-            <span>{config.couplingK.toFixed(2)}</span>
-          </div>
-          <input
-            type="range"
-            min="0"
-            max="5"
-            step="0.1"
-            value={config.couplingK}
-            onChange={e => setConfig(c => ({ ...c, couplingK: Number(e.target.value) }))}
-            style={S.slider}
-          />
+        {/* Simulation Controls */}
+        <div style={S.panelSection}>
+          <div style={S.panelTitle}>⚙ Simulation</div>
+          <button style={S.button(isRunning, '#00ff88')} onClick={() => setIsRunning(v => !v)}>
+            {isRunning ? '⏸ Pause' : '▶ Resume'}
+          </button>
+          <button style={S.button(false)} onClick={handleReset}>
+            🔄 Reset Fleet
+          </button>
         </div>
-        
-        <div style={S.sliderGroup}>
-          <div style={S.sliderLabel}>
-            <span>Noise</span>
-            <span>{config.noiseStrength.toFixed(2)}</span>
+
+        {/* Swarm Physics */}
+        <div style={S.panelSection}>
+          <div style={S.panelTitle}>🌀 Swarm Physics</div>
+          <div style={S.sliderGroup}>
+            <div style={S.sliderLabel}>
+              <span>Coupling K</span>
+              <span>{swarmConfig.couplingK.toFixed(2)}</span>
+            </div>
+            <input
+              type="range" min="0" max="8" step="0.1"
+              value={swarmConfig.couplingK}
+              onChange={e => setSwarmConfig(c => ({ ...c, couplingK: +e.target.value }))}
+              style={S.slider}
+            />
           </div>
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            value={config.noiseStrength}
-            onChange={e => setConfig(c => ({ ...c, noiseStrength: Number(e.target.value) }))}
-            style={S.slider}
-          />
-        </div>
-        
-        <div style={S.sliderGroup}>
-          <div style={S.sliderLabel}>
-            <span>Max Speed</span>
-            <span>{config.maxSpeed}</span>
+          <div style={S.sliderGroup}>
+            <div style={S.sliderLabel}>
+              <span>Noise σ</span>
+              <span>{swarmConfig.noiseStrength.toFixed(2)}</span>
+            </div>
+            <input
+              type="range" min="0" max="0.5" step="0.01"
+              value={swarmConfig.noiseStrength}
+              onChange={e => setSwarmConfig(c => ({ ...c, noiseStrength: +e.target.value }))}
+              style={S.slider}
+            />
           </div>
-          <input
-            type="range"
-            min="5"
-            max="50"
-            step="1"
-            value={config.maxSpeed}
-            onChange={e => setConfig(c => ({ ...c, maxSpeed: Number(e.target.value) }))}
-            style={S.slider}
-          />
-        </div>
-        
-        <div style={S.sliderGroup}>
-          <div style={S.sliderLabel}>
-            <span>Formation Radius</span>
-            <span>{config.formationRadius}</span>
+          <div style={S.sliderGroup}>
+            <div style={S.sliderLabel}>
+              <span>Separation</span>
+              <span>{swarmConfig.separationRadiusM}m</span>
+            </div>
+            <input
+              type="range" min="5" max="60" step="1"
+              value={swarmConfig.separationRadiusM}
+              onChange={e => setSwarmConfig(c => ({ ...c, separationRadiusM: +e.target.value }))}
+              style={S.slider}
+            />
           </div>
-          <input
-            type="range"
-            min="50"
-            max="200"
-            step="10"
-            value={config.formationRadius}
-            onChange={e => setConfig(c => ({ ...c, formationRadius: Number(e.target.value) }))}
-            style={S.slider}
-          />
+          <div style={S.sliderGroup}>
+            <div style={S.sliderLabel}>
+              <span>View Scale</span>
+              <span>{scale.toFixed(1)}×</span>
+            </div>
+            <input
+              type="range" min="0.3" max="4" step="0.1"
+              value={scale}
+              onChange={e => setScale(+e.target.value)}
+              style={S.slider}
+            />
+          </div>
         </div>
-        
-        <div style={S.panelTitle}>🚁 Drone Status</div>
-        <div style={S.droneList}>
-          {drones.slice(0, 10).map(drone => (
-            <div key={drone.id} style={S.droneItem(drone.status)}>
-              <div style={S.droneIndicator(drone.status)} />
-              <span>D{drone.id}</span>
-              <span style={{ flex: 1 }}>{drone.role}</span>
-              <span>{(drone.energy * 100).toFixed(0)}%</span>
+
+        {/* Dispatch */}
+        <div style={S.panelSection}>
+          <div style={S.panelTitle}>🚀 Dispatch</div>
+          <select
+            value={dispatchClass}
+            onChange={e => setDispatchClass(e.target.value as any)}
+            style={S.selectInput}
+          >
+            <option value="All">All Classes</option>
+            <option value="Commander">Commander (50)</option>
+            <option value="Scout">Scout (150)</option>
+            <option value="Support">Support (200)</option>
+            <option value="Heavy">Heavy (100)</option>
+          </select>
+          <div style={S.sliderGroup}>
+            <div style={S.sliderLabel}>
+              <span>Count</span>
+              <span>{dispatchCount}</span>
+            </div>
+            <input
+              type="range" min="1" max="50" step="1"
+              value={dispatchCount}
+              onChange={e => setDispatchCount(+e.target.value)}
+              style={S.slider}
+            />
+          </div>
+          <button style={S.button(false, '#00ff88')} onClick={handleDispatch}>
+            🛫 Launch {dispatchCount} {dispatchClass}
+          </button>
+          <button style={S.button(false, '#ffaa00')} onClick={handleRTB}>
+            🛬 RTB All
+          </button>
+        </div>
+
+        {/* Fleet Class Summary */}
+        <div style={S.panelSection}>
+          <div style={S.panelTitle}>🚁 Fleet Classes</div>
+          {(Object.entries(stats.byClass) as Array<[string, { total: number; airborne: number; parked: number }]>).map(([cls, data]) => (
+            <div key={cls} style={S.classRow}>
+              <div style={S.classDot(droneClassColor(cls as any))} />
+              <span style={{ color: '#6a9aca', flex: 1 }}>{cls}</span>
+              <span style={{ color: droneClassColor(cls as any) }}>{data.airborne}↑</span>
+              <span style={{ color: '#445566', marginLeft: 4 }}>{data.parked}P</span>
             </div>
           ))}
-          {drones.length > 10 && (
-            <div style={{ ...S.droneItem('Active'), justifyContent: 'center' }}>
-              +{drones.length - 10} more...
-            </div>
-          )}
         </div>
-        
+
+        {/* Alerts */}
+        {maintenanceAlerts.length > 0 && (
+          <div style={S.panelSection}>
+            <div style={S.panelTitle}>⚠ Alerts ({maintenanceAlerts.length})</div>
+            {maintenanceAlerts.slice(0, 6).map((alert, i) => (
+              <div key={i} style={S.alertItem(alert.severity)}>
+                <strong>{alert.callSign}</strong>: {alert.message}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Emergency */}
         <button style={S.emergencyBtn} onClick={handleEmergencyStop}>
-          ⛔ EMERGENCY STOP
+          ⛔ EMERGENCY STOP ALL
         </button>
       </div>
-      
-      {/* Status Panel */}
+
+      {/* Status panel */}
       <div style={S.statusPanel}>
         <div style={S.statusCard}>
-          <div style={S.statusValue(metrics.rSwarm > 0.7 ? '#4f8' : metrics.rSwarm > 0.4 ? '#fa4' : '#f44')}>
-            {metrics.rSwarm.toFixed(3)}
+          <div style={S.statusValue(fleetState.rSwarm > 0.7 ? '#00ff88' : fleetState.rSwarm > 0.4 ? '#ffaa00' : '#ff2244')}>
+            {fleetState.rSwarm.toFixed(3)}
           </div>
           <div style={S.statusLabel}>Kuramoto r</div>
         </div>
         <div style={S.statusCard}>
-          <div style={S.statusValue(metrics.jDrift < 1 ? '#4f8' : '#fa4')}>
-            {metrics.jDrift.toFixed(3)}
+          <div style={S.statusValue(fleetState.jasmineDrift < 1 ? '#00ff88' : '#ffaa00')}>
+            {fleetState.jasmineDrift.toFixed(3)}
           </div>
           <div style={S.statusLabel}>Jasmine Drift</div>
         </div>
         <div style={S.statusCard}>
-          <div style={S.statusValue('#4af')}>
-            {(metrics.coherence * 100).toFixed(0)}%
-          </div>
-          <div style={S.statusLabel}>Coherence</div>
+          <div style={S.statusValue('#00ff88')}>{stats.airborne}</div>
+          <div style={S.statusLabel}>Airborne</div>
         </div>
         <div style={S.statusCard}>
-          <div style={S.statusValue(metrics.stability > 0.7 ? '#4f8' : '#f44')}>
-            {(metrics.stability * 100).toFixed(0)}%
-          </div>
-          <div style={S.statusLabel}>Stability</div>
+          <div style={S.statusValue('#445566')}>{stats.parked + stats.charging}</div>
+          <div style={S.statusLabel}>Parked</div>
         </div>
         <div style={S.statusCard}>
-          <div style={S.statusValue(metrics.avgEnergy > 0.5 ? '#4f8' : '#fa4')}>
-            {(metrics.avgEnergy * 100).toFixed(0)}%
+          <div style={S.statusValue(stats.avgBatterySoC > 0.5 ? '#00ff88' : '#ffaa00')}>
+            {(stats.avgBatterySoC * 100).toFixed(0)}%
           </div>
-          <div style={S.statusLabel}>Avg Energy</div>
+          <div style={S.statusLabel}>Avg Battery</div>
         </div>
         <div style={S.statusCard}>
-          <div style={S.statusValue('#4af')}>
-            {metrics.activeDrones}/{metrics.totalDrones}
+          <div style={S.statusValue(stats.avgHealth > 0.8 ? '#00d4ff' : '#ff6600')}>
+            {(stats.avgHealth * 100).toFixed(0)}%
           </div>
-          <div style={S.statusLabel}>Active Drones</div>
+          <div style={S.statusLabel}>Avg Health</div>
+        </div>
+        <div style={S.statusCard}>
+          <div style={S.statusValue(stats.emergency > 0 ? '#ff2244' : '#aaaaaa')}>
+            {stats.emergency}
+          </div>
+          <div style={S.statusLabel}>Emergency</div>
+        </div>
+        <div style={S.statusCard}>
+          <div style={S.statusValue('#dddddd')}>
+            {stats.totalDrones}
+          </div>
+          <div style={S.statusLabel}>Total Fleet</div>
         </div>
       </div>
     </div>
