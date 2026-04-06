@@ -5645,3 +5645,1983 @@ module ChimeraIntelligenceCore {
         
         (worldPos, bestValue)
     };
+
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 44: DEEP NEURAL NETWORK IMPLEMENTATION
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // Tensor (multi-dimensional array)
+    public type Tensor = {
+        data : [Float];
+        shape : [Nat];
+        strides : [Nat];
+    };
+    
+    // Create tensor with given shape
+    public func createTensor(shape : [Nat], initValue : Float) : Tensor {
+        var totalSize : Nat = 1;
+        for (dim in shape.vals()) {
+            totalSize *= dim;
+        };
+        
+        // Compute strides (row-major)
+        let strides = Array.tabulate<Nat>(shape.size(), func(i : Nat) : Nat {
+            var stride : Nat = 1;
+            for (j in Iter.range(i + 1, shape.size() - 1)) {
+                stride *= shape[j];
+            };
+            stride
+        });
+        
+        {
+            data = Array.tabulate<Float>(totalSize, func(_ : Nat) : Float { initValue });
+            shape = shape;
+            strides = strides;
+        }
+    };
+    
+    // Get tensor element
+    public func tensorGet(tensor : Tensor, indices : [Nat]) : Float {
+        var idx : Nat = 0;
+        for (i in Iter.range(0, indices.size() - 1)) {
+            idx += indices[i] * tensor.strides[i];
+        };
+        tensor.data[idx]
+    };
+    
+    // Tensor addition (element-wise)
+    public func tensorAdd(a : Tensor, b : Tensor) : Tensor {
+        assert(a.shape == b.shape);
+        {
+            data = Array.tabulate<Float>(a.data.size(), func(i : Nat) : Float {
+                a.data[i] + b.data[i]
+            });
+            shape = a.shape;
+            strides = a.strides;
+        }
+    };
+    
+    // Tensor multiplication (element-wise)
+    public func tensorMul(a : Tensor, b : Tensor) : Tensor {
+        assert(a.shape == b.shape);
+        {
+            data = Array.tabulate<Float>(a.data.size(), func(i : Nat) : Float {
+                a.data[i] * b.data[i]
+            });
+            shape = a.shape;
+            strides = a.strides;
+        }
+    };
+    
+    // Matrix multiplication (2D tensors)
+    public func matmul(a : Tensor, b : Tensor) : Tensor {
+        assert(a.shape.size() == 2 and b.shape.size() == 2);
+        assert(a.shape[1] == b.shape[0]);
+        
+        let m = a.shape[0];
+        let n = b.shape[1];
+        let k = a.shape[1];
+        
+        let resultData = Array.tabulate<Float>(m * n, func(idx : Nat) : Float {
+            let i = idx / n;
+            let j = idx % n;
+            var sum : Float = 0.0;
+            for (l in Iter.range(0, k - 1)) {
+                sum += tensorGet(a, [i, l]) * tensorGet(b, [l, j]);
+            };
+            sum
+        });
+        
+        {
+            data = resultData;
+            shape = [m, n];
+            strides = [n, 1];
+        }
+    };
+    
+    // Transpose 2D tensor
+    public func transpose(tensor : Tensor) : Tensor {
+        assert(tensor.shape.size() == 2);
+        let rows = tensor.shape[0];
+        let cols = tensor.shape[1];
+        
+        let resultData = Array.tabulate<Float>(rows * cols, func(idx : Nat) : Float {
+            let i = idx / rows;
+            let j = idx % rows;
+            tensorGet(tensor, [j, i])
+        });
+        
+        {
+            data = resultData;
+            shape = [cols, rows];
+            strides = [rows, 1];
+        }
+    };
+    
+    // Apply activation function
+    public func tensorActivation(tensor : Tensor, activation : ActivationFunction) : Tensor {
+        let activated = Array.tabulate<Float>(tensor.data.size(), func(i : Nat) : Float {
+            applyActivation(tensor.data[i], activation)
+        });
+        
+        { data = activated; shape = tensor.shape; strides = tensor.strides }
+    };
+    
+    // Activation function implementations
+    public func applyActivation(x : Float, activation : ActivationFunction) : Float {
+        switch (activation) {
+            case (#RELU) { Float.max(0.0, x) };
+            case (#LEAKY_RELU) { if (x > 0.0) x else 0.01 * x };
+            case (#ELU) { if (x > 0.0) x else Float.exp(x) - 1.0 };
+            case (#SELU) {
+                let alpha = 1.6732632423543772;
+                let scale = 1.0507009873554805;
+                if (x > 0.0) scale * x else scale * alpha * (Float.exp(x) - 1.0)
+            };
+            case (#SIGMOID) { 1.0 / (1.0 + Float.exp(-x)) };
+            case (#TANH) { Float.tanh(x) };
+            case (#SWISH) { x / (1.0 + Float.exp(-x)) };
+            case (#GELU) {
+                0.5 * x * (1.0 + Float.tanh(Float.sqrt(2.0 / PI) * (x + 0.044715 * x * x * x)))
+            };
+            case (#SOFTPLUS) { Float.log(1.0 + Float.exp(x)) };
+            case (#LINEAR) { x };
+            case (#SOFTMAX) { x }; // Softmax needs full vector, handled separately
+        }
+    };
+    
+    // Activation derivative
+    public func activationDerivative(x : Float, activation : ActivationFunction) : Float {
+        switch (activation) {
+            case (#RELU) { if (x > 0.0) 1.0 else 0.0 };
+            case (#LEAKY_RELU) { if (x > 0.0) 1.0 else 0.01 };
+            case (#SIGMOID) {
+                let s = 1.0 / (1.0 + Float.exp(-x));
+                s * (1.0 - s)
+            };
+            case (#TANH) {
+                let t = Float.tanh(x);
+                1.0 - t * t
+            };
+            case (#LINEAR) { 1.0 };
+            case _ { 1.0 };
+        }
+    };
+    
+    // Softmax activation (requires full vector)
+    public func softmax(tensor : Tensor) : Tensor {
+        // Find max for numerical stability
+        var maxVal : Float = tensor.data[0];
+        for (x in tensor.data.vals()) {
+            if (x > maxVal) maxVal := x;
+        };
+        
+        // Compute exp(x - max)
+        var expSum : Float = 0.0;
+        let expVals = Array.tabulate<Float>(tensor.data.size(), func(i : Nat) : Float {
+            let e = Float.exp(tensor.data[i] - maxVal);
+            expSum += e;
+            e
+        });
+        
+        // Normalize
+        let result = Array.tabulate<Float>(tensor.data.size(), func(i : Nat) : Float {
+            expVals[i] / expSum
+        });
+        
+        { data = result; shape = tensor.shape; strides = tensor.strides }
+    };
+    
+    // Dense layer forward pass
+    public func denseForward(input : Tensor, weights : Tensor, bias : Tensor, activation : ActivationFunction) : Tensor {
+        // input: [batch, in_features]
+        // weights: [in_features, out_features]
+        // bias: [out_features]
+        
+        var output = matmul(input, weights);
+        
+        // Add bias
+        output := {
+            data = Array.tabulate<Float>(output.data.size(), func(i : Nat) : Float {
+                let col = i % output.shape[1];
+                output.data[i] + bias.data[col]
+            });
+            shape = output.shape;
+            strides = output.strides;
+        };
+        
+        // Apply activation
+        if (activation == #SOFTMAX) {
+            softmax(output)
+        } else {
+            tensorActivation(output, activation)
+        }
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 45: CONVOLUTIONAL NEURAL NETWORKS
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // Convolution parameters
+    public type Conv2DParams = {
+        kernelSize : (Nat, Nat);
+        stride : (Nat, Nat);
+        padding : (Nat, Nat);
+        inChannels : Nat;
+        outChannels : Nat;
+    };
+    
+    // 2D convolution forward
+    public func conv2DForward(
+        input : Tensor,  // [batch, height, width, channels]
+        kernel : Tensor, // [kernel_h, kernel_w, in_channels, out_channels]
+        bias : Tensor,   // [out_channels]
+        params : Conv2DParams
+    ) : Tensor {
+        let batchSize = input.shape[0];
+        let inHeight = input.shape[1];
+        let inWidth = input.shape[2];
+        let (kh, kw) = params.kernelSize;
+        let (sh, sw) = params.stride;
+        let (ph, pw) = params.padding;
+        
+        let outHeight = (inHeight + 2 * ph - kh) / sh + 1;
+        let outWidth = (inWidth + 2 * pw - kw) / sw + 1;
+        
+        let resultSize = batchSize * outHeight * outWidth * params.outChannels;
+        let result = Array.init<Float>(resultSize, 0.0);
+        
+        for (b in Iter.range(0, batchSize - 1)) {
+            for (oh in Iter.range(0, outHeight - 1)) {
+                for (ow in Iter.range(0, outWidth - 1)) {
+                    for (oc in Iter.range(0, params.outChannels - 1)) {
+                        var sum : Float = bias.data[oc];
+                        
+                        for (ki in Iter.range(0, kh - 1)) {
+                            for (kj in Iter.range(0, kw - 1)) {
+                                let ih = oh * sh + ki - ph;
+                                let iw = ow * sw + kj - pw;
+                                
+                                if (ih >= 0 and ih < inHeight and iw >= 0 and iw < inWidth) {
+                                    for (ic in Iter.range(0, params.inChannels - 1)) {
+                                        let inputIdx = b * (inHeight * inWidth * params.inChannels) +
+                                                      ih * (inWidth * params.inChannels) +
+                                                      iw * params.inChannels + ic;
+                                        let kernelIdx = ki * (kw * params.inChannels * params.outChannels) +
+                                                       kj * (params.inChannels * params.outChannels) +
+                                                       ic * params.outChannels + oc;
+                                        sum += input.data[inputIdx] * kernel.data[kernelIdx];
+                                    };
+                                };
+                            };
+                        };
+                        
+                        let outputIdx = b * (outHeight * outWidth * params.outChannels) +
+                                       oh * (outWidth * params.outChannels) +
+                                       ow * params.outChannels + oc;
+                        result[outputIdx] := sum;
+                    };
+                };
+            };
+        };
+        
+        {
+            data = Array.freeze(result);
+            shape = [batchSize, outHeight, outWidth, params.outChannels];
+            strides = [outHeight * outWidth * params.outChannels, outWidth * params.outChannels, params.outChannels, 1];
+        }
+    };
+    
+    // Max pooling 2D
+    public func maxPool2D(
+        input : Tensor,
+        poolSize : (Nat, Nat),
+        stride : (Nat, Nat)
+    ) : Tensor {
+        let batchSize = input.shape[0];
+        let inHeight = input.shape[1];
+        let inWidth = input.shape[2];
+        let channels = input.shape[3];
+        let (ph, pw) = poolSize;
+        let (sh, sw) = stride;
+        
+        let outHeight = (inHeight - ph) / sh + 1;
+        let outWidth = (inWidth - pw) / sw + 1;
+        
+        let resultSize = batchSize * outHeight * outWidth * channels;
+        let result = Array.init<Float>(resultSize, -1e10);
+        
+        for (b in Iter.range(0, batchSize - 1)) {
+            for (oh in Iter.range(0, outHeight - 1)) {
+                for (ow in Iter.range(0, outWidth - 1)) {
+                    for (c in Iter.range(0, channels - 1)) {
+                        var maxVal : Float = -1e10;
+                        
+                        for (pi in Iter.range(0, ph - 1)) {
+                            for (pj in Iter.range(0, pw - 1)) {
+                                let ih = oh * sh + pi;
+                                let iw = ow * sw + pj;
+                                let inputIdx = b * (inHeight * inWidth * channels) +
+                                              ih * (inWidth * channels) +
+                                              iw * channels + c;
+                                if (input.data[inputIdx] > maxVal) {
+                                    maxVal := input.data[inputIdx];
+                                };
+                            };
+                        };
+                        
+                        let outputIdx = b * (outHeight * outWidth * channels) +
+                                       oh * (outWidth * channels) +
+                                       ow * channels + c;
+                        result[outputIdx] := maxVal;
+                    };
+                };
+            };
+        };
+        
+        {
+            data = Array.freeze(result);
+            shape = [batchSize, outHeight, outWidth, channels];
+            strides = [outHeight * outWidth * channels, outWidth * channels, channels, 1];
+        }
+    };
+    
+    // Average pooling 2D
+    public func avgPool2D(
+        input : Tensor,
+        poolSize : (Nat, Nat),
+        stride : (Nat, Nat)
+    ) : Tensor {
+        let batchSize = input.shape[0];
+        let inHeight = input.shape[1];
+        let inWidth = input.shape[2];
+        let channels = input.shape[3];
+        let (ph, pw) = poolSize;
+        let (sh, sw) = stride;
+        
+        let outHeight = (inHeight - ph) / sh + 1;
+        let outWidth = (inWidth - pw) / sw + 1;
+        let poolArea = Float.fromInt(ph * pw);
+        
+        let resultSize = batchSize * outHeight * outWidth * channels;
+        let result = Array.init<Float>(resultSize, 0.0);
+        
+        for (b in Iter.range(0, batchSize - 1)) {
+            for (oh in Iter.range(0, outHeight - 1)) {
+                for (ow in Iter.range(0, outWidth - 1)) {
+                    for (c in Iter.range(0, channels - 1)) {
+                        var sum : Float = 0.0;
+                        
+                        for (pi in Iter.range(0, ph - 1)) {
+                            for (pj in Iter.range(0, pw - 1)) {
+                                let ih = oh * sh + pi;
+                                let iw = ow * sw + pj;
+                                let inputIdx = b * (inHeight * inWidth * channels) +
+                                              ih * (inWidth * channels) +
+                                              iw * channels + c;
+                                sum += input.data[inputIdx];
+                            };
+                        };
+                        
+                        let outputIdx = b * (outHeight * outWidth * channels) +
+                                       oh * (outWidth * channels) +
+                                       ow * channels + c;
+                        result[outputIdx] := sum / poolArea;
+                    };
+                };
+            };
+        };
+        
+        {
+            data = Array.freeze(result);
+            shape = [batchSize, outHeight, outWidth, channels];
+            strides = [outHeight * outWidth * channels, outWidth * channels, channels, 1];
+        }
+    };
+    
+    // Batch normalization
+    public func batchNorm(
+        input : Tensor,
+        gamma : Tensor,
+        beta : Tensor,
+        epsilon : Float
+    ) : Tensor {
+        let batchSize = input.shape[0];
+        let features = input.data.size() / batchSize;
+        
+        // Compute mean and variance per feature
+        let mean = Array.init<Float>(features, 0.0);
+        let variance = Array.init<Float>(features, 0.0);
+        
+        for (f in Iter.range(0, features - 1)) {
+            var sum : Float = 0.0;
+            for (b in Iter.range(0, batchSize - 1)) {
+                sum += input.data[b * features + f];
+            };
+            mean[f] := sum / Float.fromInt(batchSize);
+        };
+        
+        for (f in Iter.range(0, features - 1)) {
+            var sum : Float = 0.0;
+            for (b in Iter.range(0, batchSize - 1)) {
+                let diff = input.data[b * features + f] - mean[f];
+                sum += diff * diff;
+            };
+            variance[f] := sum / Float.fromInt(batchSize);
+        };
+        
+        // Normalize
+        let result = Array.tabulate<Float>(input.data.size(), func(i : Nat) : Float {
+            let f = i % features;
+            let normalized = (input.data[i] - mean[f]) / Float.sqrt(variance[f] + epsilon);
+            gamma.data[f] * normalized + beta.data[f]
+        });
+        
+        { data = result; shape = input.shape; strides = input.strides }
+    };
+    
+    // Layer normalization
+    public func layerNorm(
+        input : Tensor,
+        gamma : Tensor,
+        beta : Tensor,
+        epsilon : Float
+    ) : Tensor {
+        let batchSize = input.shape[0];
+        let features = input.data.size() / batchSize;
+        
+        let result = Array.init<Float>(input.data.size(), 0.0);
+        
+        for (b in Iter.range(0, batchSize - 1)) {
+            // Compute mean and variance for this sample
+            var mean : Float = 0.0;
+            for (f in Iter.range(0, features - 1)) {
+                mean += input.data[b * features + f];
+            };
+            mean /= Float.fromInt(features);
+            
+            var variance : Float = 0.0;
+            for (f in Iter.range(0, features - 1)) {
+                let diff = input.data[b * features + f] - mean;
+                variance += diff * diff;
+            };
+            variance /= Float.fromInt(features);
+            
+            // Normalize
+            for (f in Iter.range(0, features - 1)) {
+                let idx = b * features + f;
+                let normalized = (input.data[idx] - mean) / Float.sqrt(variance + epsilon);
+                result[idx] := gamma.data[f] * normalized + beta.data[f];
+            };
+        };
+        
+        { data = Array.freeze(result); shape = input.shape; strides = input.strides }
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 46: RECURRENT NEURAL NETWORKS
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // RNN cell state
+    public type RNNCellState = {
+        hidden : Tensor;
+    };
+    
+    // LSTM cell state
+    public type LSTMCellState = {
+        hidden : Tensor;
+        cell : Tensor;
+    };
+    
+    // GRU cell state
+    public type GRUCellState = {
+        hidden : Tensor;
+    };
+    
+    // Simple RNN cell forward
+    public func rnnCellForward(
+        input : Tensor,       // [batch, input_size]
+        prevHidden : Tensor,  // [batch, hidden_size]
+        Wih : Tensor,         // [input_size, hidden_size]
+        Whh : Tensor,         // [hidden_size, hidden_size]
+        bias : Tensor         // [hidden_size]
+    ) : Tensor {
+        // h_t = tanh(W_ih * x_t + W_hh * h_{t-1} + b)
+        let inputContrib = matmul(input, Wih);
+        let hiddenContrib = matmul(prevHidden, Whh);
+        
+        let combined = {
+            data = Array.tabulate<Float>(inputContrib.data.size(), func(i : Nat) : Float {
+                let col = i % inputContrib.shape[1];
+                inputContrib.data[i] + hiddenContrib.data[i] + bias.data[col]
+            });
+            shape = inputContrib.shape;
+            strides = inputContrib.strides;
+        };
+        
+        tensorActivation(combined, #TANH)
+    };
+    
+    // LSTM cell forward
+    public func lstmCellForward(
+        input : Tensor,         // [batch, input_size]
+        prevHidden : Tensor,    // [batch, hidden_size]
+        prevCell : Tensor,      // [batch, hidden_size]
+        Wi : Tensor,            // [input_size, 4 * hidden_size]
+        Wh : Tensor,            // [hidden_size, 4 * hidden_size]
+        bias : Tensor           // [4 * hidden_size]
+    ) : (Tensor, Tensor) {
+        let hiddenSize = prevHidden.shape[1];
+        let batchSize = input.shape[0];
+        
+        // Compute gates
+        let inputGates = matmul(input, Wi);
+        let hiddenGates = matmul(prevHidden, Wh);
+        
+        let gates = {
+            data = Array.tabulate<Float>(inputGates.data.size(), func(i : Nat) : Float {
+                let col = i % inputGates.shape[1];
+                inputGates.data[i] + hiddenGates.data[i] + bias.data[col]
+            });
+            shape = inputGates.shape;
+            strides = inputGates.strides;
+        };
+        
+        // Split into 4 gates: input, forget, cell, output
+        let newHidden = Array.init<Float>(batchSize * hiddenSize, 0.0);
+        let newCell = Array.init<Float>(batchSize * hiddenSize, 0.0);
+        
+        for (b in Iter.range(0, batchSize - 1)) {
+            for (h in Iter.range(0, hiddenSize - 1)) {
+                let baseIdx = b * 4 * hiddenSize;
+                
+                // Apply sigmoid to input, forget, output gates; tanh to cell gate
+                let inputGate = 1.0 / (1.0 + Float.exp(-gates.data[baseIdx + h]));
+                let forgetGate = 1.0 / (1.0 + Float.exp(-gates.data[baseIdx + hiddenSize + h]));
+                let cellGate = Float.tanh(gates.data[baseIdx + 2 * hiddenSize + h]);
+                let outputGate = 1.0 / (1.0 + Float.exp(-gates.data[baseIdx + 3 * hiddenSize + h]));
+                
+                // Update cell state
+                let cellIdx = b * hiddenSize + h;
+                newCell[cellIdx] := forgetGate * prevCell.data[cellIdx] + inputGate * cellGate;
+                
+                // Update hidden state
+                newHidden[cellIdx] := outputGate * Float.tanh(newCell[cellIdx]);
+            };
+        };
+        
+        let hiddenOut : Tensor = {
+            data = Array.freeze(newHidden);
+            shape = [batchSize, hiddenSize];
+            strides = [hiddenSize, 1];
+        };
+        
+        let cellOut : Tensor = {
+            data = Array.freeze(newCell);
+            shape = [batchSize, hiddenSize];
+            strides = [hiddenSize, 1];
+        };
+        
+        (hiddenOut, cellOut)
+    };
+    
+    // GRU cell forward
+    public func gruCellForward(
+        input : Tensor,         // [batch, input_size]
+        prevHidden : Tensor,    // [batch, hidden_size]
+        Wir : Tensor,           // [input_size, hidden_size] - reset gate input weights
+        Whr : Tensor,           // [hidden_size, hidden_size] - reset gate hidden weights
+        Wiz : Tensor,           // [input_size, hidden_size] - update gate input weights
+        Whz : Tensor,           // [hidden_size, hidden_size] - update gate hidden weights
+        Win : Tensor,           // [input_size, hidden_size] - new gate input weights
+        Whn : Tensor,           // [hidden_size, hidden_size] - new gate hidden weights
+        br : Tensor,            // [hidden_size] - reset bias
+        bz : Tensor,            // [hidden_size] - update bias
+        bn : Tensor             // [hidden_size] - new bias
+    ) : Tensor {
+        let batchSize = input.shape[0];
+        let hiddenSize = prevHidden.shape[1];
+        
+        // Reset gate: r = sigmoid(W_ir * x + W_hr * h + b_r)
+        let resetInput = matmul(input, Wir);
+        let resetHidden = matmul(prevHidden, Whr);
+        let resetGate = {
+            data = Array.tabulate<Float>(resetInput.data.size(), func(i : Nat) : Float {
+                let col = i % hiddenSize;
+                1.0 / (1.0 + Float.exp(-(resetInput.data[i] + resetHidden.data[i] + br.data[col])))
+            });
+            shape = [batchSize, hiddenSize];
+            strides = [hiddenSize, 1];
+        };
+        
+        // Update gate: z = sigmoid(W_iz * x + W_hz * h + b_z)
+        let updateInput = matmul(input, Wiz);
+        let updateHidden = matmul(prevHidden, Whz);
+        let updateGate = {
+            data = Array.tabulate<Float>(updateInput.data.size(), func(i : Nat) : Float {
+                let col = i % hiddenSize;
+                1.0 / (1.0 + Float.exp(-(updateInput.data[i] + updateHidden.data[i] + bz.data[col])))
+            });
+            shape = [batchSize, hiddenSize];
+            strides = [hiddenSize, 1];
+        };
+        
+        // New gate: n = tanh(W_in * x + r * (W_hn * h) + b_n)
+        let newInput = matmul(input, Win);
+        let newHiddenBase = matmul(prevHidden, Whn);
+        let newGate = {
+            data = Array.tabulate<Float>(newInput.data.size(), func(i : Nat) : Float {
+                let col = i % hiddenSize;
+                Float.tanh(newInput.data[i] + resetGate.data[i] * newHiddenBase.data[i] + bn.data[col])
+            });
+            shape = [batchSize, hiddenSize];
+            strides = [hiddenSize, 1];
+        };
+        
+        // Hidden state: h = (1 - z) * n + z * h_{t-1}
+        {
+            data = Array.tabulate<Float>(batchSize * hiddenSize, func(i : Nat) : Float {
+                (1.0 - updateGate.data[i]) * newGate.data[i] + updateGate.data[i] * prevHidden.data[i]
+            });
+            shape = [batchSize, hiddenSize];
+            strides = [hiddenSize, 1];
+        }
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 47: ATTENTION MECHANISMS
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // Scaled dot-product attention
+    public func scaledDotProductAttention(
+        query : Tensor,   // [batch, seq_len_q, d_k]
+        key : Tensor,     // [batch, seq_len_k, d_k]
+        value : Tensor,   // [batch, seq_len_k, d_v]
+        mask : ?Tensor    // [batch, seq_len_q, seq_len_k]
+    ) : Tensor {
+        let batchSize = query.shape[0];
+        let seqLenQ = query.shape[1];
+        let seqLenK = key.shape[1];
+        let dk = query.shape[2];
+        let dv = value.shape[2];
+        
+        let scale = 1.0 / Float.sqrt(Float.fromInt(dk));
+        
+        // Compute attention scores: Q * K^T
+        let scores = Array.init<Float>(batchSize * seqLenQ * seqLenK, 0.0);
+        
+        for (b in Iter.range(0, batchSize - 1)) {
+            for (i in Iter.range(0, seqLenQ - 1)) {
+                for (j in Iter.range(0, seqLenK - 1)) {
+                    var dot : Float = 0.0;
+                    for (k in Iter.range(0, dk - 1)) {
+                        let qIdx = b * seqLenQ * dk + i * dk + k;
+                        let kIdx = b * seqLenK * dk + j * dk + k;
+                        dot += query.data[qIdx] * key.data[kIdx];
+                    };
+                    let scoreIdx = b * seqLenQ * seqLenK + i * seqLenK + j;
+                    scores[scoreIdx] := dot * scale;
+                    
+                    // Apply mask if provided
+                    switch (mask) {
+                        case (?m) {
+                            if (m.data[scoreIdx] == 0.0) {
+                                scores[scoreIdx] := -1e9;
+                            };
+                        };
+                        case null {};
+                    };
+                };
+            };
+        };
+        
+        // Apply softmax over key dimension
+        for (b in Iter.range(0, batchSize - 1)) {
+            for (i in Iter.range(0, seqLenQ - 1)) {
+                let rowStart = b * seqLenQ * seqLenK + i * seqLenK;
+                
+                // Find max for stability
+                var maxScore : Float = scores[rowStart];
+                for (j in Iter.range(1, seqLenK - 1)) {
+                    if (scores[rowStart + j] > maxScore) {
+                        maxScore := scores[rowStart + j];
+                    };
+                };
+                
+                // Compute exp and sum
+                var expSum : Float = 0.0;
+                for (j in Iter.range(0, seqLenK - 1)) {
+                    scores[rowStart + j] := Float.exp(scores[rowStart + j] - maxScore);
+                    expSum += scores[rowStart + j];
+                };
+                
+                // Normalize
+                for (j in Iter.range(0, seqLenK - 1)) {
+                    scores[rowStart + j] /= expSum;
+                };
+            };
+        };
+        
+        // Compute attention output: scores * V
+        let output = Array.init<Float>(batchSize * seqLenQ * dv, 0.0);
+        
+        for (b in Iter.range(0, batchSize - 1)) {
+            for (i in Iter.range(0, seqLenQ - 1)) {
+                for (k in Iter.range(0, dv - 1)) {
+                    var sum : Float = 0.0;
+                    for (j in Iter.range(0, seqLenK - 1)) {
+                        let scoreIdx = b * seqLenQ * seqLenK + i * seqLenK + j;
+                        let vIdx = b * seqLenK * dv + j * dv + k;
+                        sum += scores[scoreIdx] * value.data[vIdx];
+                    };
+                    let outIdx = b * seqLenQ * dv + i * dv + k;
+                    output[outIdx] := sum;
+                };
+            };
+        };
+        
+        {
+            data = Array.freeze(output);
+            shape = [batchSize, seqLenQ, dv];
+            strides = [seqLenQ * dv, dv, 1];
+        }
+    };
+    
+    // Multi-head attention
+    public type MultiHeadAttentionParams = {
+        numHeads : Nat;
+        dModel : Nat;
+        dK : Nat;
+        dV : Nat;
+        wQ : Tensor;  // [d_model, num_heads * d_k]
+        wK : Tensor;  // [d_model, num_heads * d_k]
+        wV : Tensor;  // [d_model, num_heads * d_v]
+        wO : Tensor;  // [num_heads * d_v, d_model]
+    };
+    
+    public func multiHeadAttention(
+        query : Tensor,
+        key : Tensor,
+        value : Tensor,
+        params : MultiHeadAttentionParams,
+        mask : ?Tensor
+    ) : Tensor {
+        let batchSize = query.shape[0];
+        let seqLenQ = query.shape[1];
+        let seqLenK = key.shape[1];
+        
+        // Project queries, keys, values
+        let Q = matmul(
+            { data = query.data; shape = [batchSize * seqLenQ, params.dModel]; strides = [params.dModel, 1] },
+            params.wQ
+        );
+        let K = matmul(
+            { data = key.data; shape = [batchSize * seqLenK, params.dModel]; strides = [params.dModel, 1] },
+            params.wK
+        );
+        let V = matmul(
+            { data = value.data; shape = [batchSize * seqLenK, params.dModel]; strides = [params.dModel, 1] },
+            params.wV
+        );
+        
+        // Reshape to [batch * num_heads, seq_len, d_k/d_v]
+        // Simplified: compute attention for each head and concatenate
+        var headOutputs : [Tensor] = [];
+        
+        for (h in Iter.range(0, params.numHeads - 1)) {
+            // Extract head h's queries, keys, values
+            let headQ = {
+                data = Array.tabulate<Float>(batchSize * seqLenQ * params.dK, func(i : Nat) : Float {
+                    let b = i / (seqLenQ * params.dK);
+                    let s = (i / params.dK) % seqLenQ;
+                    let k = i % params.dK;
+                    Q.data[b * seqLenQ * params.numHeads * params.dK + s * params.numHeads * params.dK + h * params.dK + k]
+                });
+                shape = [batchSize, seqLenQ, params.dK];
+                strides = [seqLenQ * params.dK, params.dK, 1];
+            };
+            
+            let headK = {
+                data = Array.tabulate<Float>(batchSize * seqLenK * params.dK, func(i : Nat) : Float {
+                    let b = i / (seqLenK * params.dK);
+                    let s = (i / params.dK) % seqLenK;
+                    let k = i % params.dK;
+                    K.data[b * seqLenK * params.numHeads * params.dK + s * params.numHeads * params.dK + h * params.dK + k]
+                });
+                shape = [batchSize, seqLenK, params.dK];
+                strides = [seqLenK * params.dK, params.dK, 1];
+            };
+            
+            let headV = {
+                data = Array.tabulate<Float>(batchSize * seqLenK * params.dV, func(i : Nat) : Float {
+                    let b = i / (seqLenK * params.dV);
+                    let s = (i / params.dV) % seqLenK;
+                    let k = i % params.dV;
+                    V.data[b * seqLenK * params.numHeads * params.dV + s * params.numHeads * params.dV + h * params.dV + k]
+                });
+                shape = [batchSize, seqLenK, params.dV];
+                strides = [seqLenK * params.dV, params.dV, 1];
+            };
+            
+            let headOutput = scaledDotProductAttention(headQ, headK, headV, mask);
+            headOutputs := Array.append(headOutputs, [headOutput]);
+        };
+        
+        // Concatenate heads
+        let concatenated = Array.init<Float>(batchSize * seqLenQ * params.numHeads * params.dV, 0.0);
+        for (h in Iter.range(0, params.numHeads - 1)) {
+            for (i in Iter.range(0, batchSize * seqLenQ * params.dV - 1)) {
+                let b = i / (seqLenQ * params.dV);
+                let s = (i / params.dV) % seqLenQ;
+                let v = i % params.dV;
+                let outIdx = b * seqLenQ * params.numHeads * params.dV + s * params.numHeads * params.dV + h * params.dV + v;
+                concatenated[outIdx] := headOutputs[h].data[i];
+            };
+        };
+        
+        // Final linear projection
+        let concatTensor : Tensor = {
+            data = Array.freeze(concatenated);
+            shape = [batchSize * seqLenQ, params.numHeads * params.dV];
+            strides = [params.numHeads * params.dV, 1];
+        };
+        
+        let output = matmul(concatTensor, params.wO);
+        
+        {
+            data = output.data;
+            shape = [batchSize, seqLenQ, params.dModel];
+            strides = [seqLenQ * params.dModel, params.dModel, 1];
+        }
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 48: TRANSFORMER ARCHITECTURE
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // Feed-forward network
+    public func feedForward(
+        input : Tensor,
+        w1 : Tensor,
+        b1 : Tensor,
+        w2 : Tensor,
+        b2 : Tensor
+    ) : Tensor {
+        // First linear layer
+        let hidden = denseForward(input, w1, b1, #RELU);
+        // Second linear layer
+        denseForward(hidden, w2, b2, #LINEAR)
+    };
+    
+    // Positional encoding
+    public func positionalEncoding(seqLen : Nat, dModel : Nat) : Tensor {
+        let pe = Array.init<Float>(seqLen * dModel, 0.0);
+        
+        for (pos in Iter.range(0, seqLen - 1)) {
+            for (i in Iter.range(0, dModel / 2 - 1)) {
+                let angle = Float.fromInt(pos) / Float.pow(10000.0, 2.0 * Float.fromInt(i) / Float.fromInt(dModel));
+                pe[pos * dModel + 2 * i] := Float.sin(angle);
+                pe[pos * dModel + 2 * i + 1] := Float.cos(angle);
+            };
+        };
+        
+        {
+            data = Array.freeze(pe);
+            shape = [seqLen, dModel];
+            strides = [dModel, 1];
+        }
+    };
+    
+    // Transformer encoder layer
+    public type TransformerEncoderLayerParams = {
+        selfAttention : MultiHeadAttentionParams;
+        ffW1 : Tensor;
+        ffB1 : Tensor;
+        ffW2 : Tensor;
+        ffB2 : Tensor;
+        layerNormGamma1 : Tensor;
+        layerNormBeta1 : Tensor;
+        layerNormGamma2 : Tensor;
+        layerNormBeta2 : Tensor;
+        dropoutRate : Float;
+    };
+    
+    public func transformerEncoderLayer(
+        input : Tensor,
+        params : TransformerEncoderLayerParams,
+        mask : ?Tensor
+    ) : Tensor {
+        let batchSize = input.shape[0];
+        let seqLen = input.shape[1];
+        let dModel = input.shape[2];
+        
+        // Reshape for operations
+        let flatInput : Tensor = {
+            data = input.data;
+            shape = [batchSize * seqLen, dModel];
+            strides = [dModel, 1];
+        };
+        
+        // Self-attention sub-layer
+        let attnOutput = multiHeadAttention(input, input, input, params.selfAttention, mask);
+        
+        // Add & Norm 1
+        let residual1 = tensorAdd(input, attnOutput);
+        let flatResidual1 : Tensor = {
+            data = residual1.data;
+            shape = [batchSize * seqLen, dModel];
+            strides = [dModel, 1];
+        };
+        let norm1 = layerNorm(flatResidual1, params.layerNormGamma1, params.layerNormBeta1, 1e-6);
+        
+        // Feed-forward sub-layer
+        let ffOutput = feedForward(norm1, params.ffW1, params.ffB1, params.ffW2, params.ffB2);
+        
+        // Add & Norm 2
+        let residual2 = tensorAdd(norm1, ffOutput);
+        let norm2 = layerNorm(residual2, params.layerNormGamma2, params.layerNormBeta2, 1e-6);
+        
+        // Reshape back
+        {
+            data = norm2.data;
+            shape = [batchSize, seqLen, dModel];
+            strides = [seqLen * dModel, dModel, 1];
+        }
+    };
+    
+    // Transformer decoder layer
+    public type TransformerDecoderLayerParams = {
+        selfAttention : MultiHeadAttentionParams;
+        crossAttention : MultiHeadAttentionParams;
+        ffW1 : Tensor;
+        ffB1 : Tensor;
+        ffW2 : Tensor;
+        ffB2 : Tensor;
+        layerNormGamma1 : Tensor;
+        layerNormBeta1 : Tensor;
+        layerNormGamma2 : Tensor;
+        layerNormBeta2 : Tensor;
+        layerNormGamma3 : Tensor;
+        layerNormBeta3 : Tensor;
+    };
+    
+    public func transformerDecoderLayer(
+        input : Tensor,
+        encoderOutput : Tensor,
+        params : TransformerDecoderLayerParams,
+        selfMask : ?Tensor,
+        crossMask : ?Tensor
+    ) : Tensor {
+        let batchSize = input.shape[0];
+        let seqLen = input.shape[1];
+        let dModel = input.shape[2];
+        
+        // Masked self-attention
+        let selfAttnOutput = multiHeadAttention(input, input, input, params.selfAttention, selfMask);
+        let residual1 = tensorAdd(input, selfAttnOutput);
+        let flatResidual1 : Tensor = {
+            data = residual1.data;
+            shape = [batchSize * seqLen, dModel];
+            strides = [dModel, 1];
+        };
+        let norm1 = layerNorm(flatResidual1, params.layerNormGamma1, params.layerNormBeta1, 1e-6);
+        let reshapedNorm1 : Tensor = {
+            data = norm1.data;
+            shape = [batchSize, seqLen, dModel];
+            strides = [seqLen * dModel, dModel, 1];
+        };
+        
+        // Cross-attention with encoder output
+        let crossAttnOutput = multiHeadAttention(reshapedNorm1, encoderOutput, encoderOutput, params.crossAttention, crossMask);
+        let residual2 = tensorAdd(reshapedNorm1, crossAttnOutput);
+        let flatResidual2 : Tensor = {
+            data = residual2.data;
+            shape = [batchSize * seqLen, dModel];
+            strides = [dModel, 1];
+        };
+        let norm2 = layerNorm(flatResidual2, params.layerNormGamma2, params.layerNormBeta2, 1e-6);
+        
+        // Feed-forward
+        let ffOutput = feedForward(norm2, params.ffW1, params.ffB1, params.ffW2, params.ffB2);
+        let residual3 = tensorAdd(norm2, ffOutput);
+        let norm3 = layerNorm(residual3, params.layerNormGamma3, params.layerNormBeta3, 1e-6);
+        
+        {
+            data = norm3.data;
+            shape = [batchSize, seqLen, dModel];
+            strides = [seqLen * dModel, dModel, 1];
+        }
+    };
+
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 49: REINFORCEMENT LEARNING - DEEP Q-NETWORK (DQN)
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // DQN configuration
+    public type DQNConfig = {
+        stateSize : Nat;
+        actionSize : Nat;
+        hiddenSizes : [Nat];
+        learningRate : Float;
+        gamma : Float;
+        epsilon : Float;
+        epsilonDecay : Float;
+        epsilonMin : Float;
+        batchSize : Nat;
+        bufferSize : Nat;
+        targetUpdateFreq : Nat;
+        doubleDQN : Bool;
+        duelingDQN : Bool;
+        prioritizedReplay : Bool;
+    };
+    
+    // DQN state
+    public type DQNState = {
+        config : DQNConfig;
+        qNetwork : NeuralNetwork;
+        targetNetwork : NeuralNetwork;
+        replayBuffer : ExperienceBuffer;
+        epsilon : Float;
+        stepCount : Nat64;
+        updateCount : Nat64;
+        totalReward : Float;
+        episodeRewards : [Float];
+    };
+    
+    // Initialize DQN
+    public func initDQN(config : DQNConfig) : DQNState {
+        // Create Q-network layers
+        var layers : [NeuralLayer] = [];
+        var prevSize = config.stateSize;
+        
+        for (hiddenSize in config.hiddenSizes.vals()) {
+            layers := Array.append(layers, [{
+                layerType = #DENSE;
+                inputSize = prevSize;
+                outputSize = hiddenSize;
+                activation = #RELU;
+                weights = Array.tabulate<Float>(prevSize * hiddenSize, func(i : Nat) : Float {
+                    (Float.sin(Float.fromInt(i) * 12.9898) * 0.5 + 0.5 - 0.5) * 2.0 / Float.sqrt(Float.fromInt(prevSize))
+                });
+                biases = Array.tabulate<Float>(hiddenSize, func(_ : Nat) : Float { 0.0 });
+                gradients = [];
+                momentum = [];
+                dropoutRate = 0.0;
+            }]);
+            prevSize := hiddenSize;
+        };
+        
+        // Output layer
+        layers := Array.append(layers, [{
+            layerType = #DENSE;
+            inputSize = prevSize;
+            outputSize = config.actionSize;
+            activation = #LINEAR;
+            weights = Array.tabulate<Float>(prevSize * config.actionSize, func(i : Nat) : Float {
+                (Float.sin(Float.fromInt(i) * 78.233) * 0.5 + 0.5 - 0.5) * 2.0 / Float.sqrt(Float.fromInt(prevSize))
+            });
+            biases = Array.tabulate<Float>(config.actionSize, func(_ : Nat) : Float { 0.0 });
+            gradients = [];
+            momentum = [];
+            dropoutRate = 0.0;
+        }]);
+        
+        let qNetwork : NeuralNetwork = {
+            id = 1;
+            name = "QNetwork";
+            layers = layers;
+            learningRate = config.learningRate;
+            momentum = 0.9;
+            weightDecay = 0.0001;
+            batchSize = config.batchSize;
+            epochs = 0;
+            trainingLoss = 0.0;
+            validationLoss = 0.0;
+            accuracy = 0.0;
+            lastUpdated = 0;
+        };
+        
+        let replayBuffer : ExperienceBuffer = {
+            capacity = config.bufferSize;
+            transitions = [];
+            priorities = [];
+            currentSize = 0;
+            totalExperiences = 0;
+        };
+        
+        {
+            config = config;
+            qNetwork = qNetwork;
+            targetNetwork = qNetwork;
+            replayBuffer = replayBuffer;
+            epsilon = config.epsilon;
+            stepCount = 0;
+            updateCount = 0;
+            totalReward = 0.0;
+            episodeRewards = [];
+        }
+    };
+    
+    // Forward pass through Q-network
+    public func dqnForward(network : NeuralNetwork, state : [Float]) : [Float] {
+        var activation : Tensor = {
+            data = state;
+            shape = [1, state.size()];
+            strides = [state.size(), 1];
+        };
+        
+        for (layer in network.layers.vals()) {
+            let weights : Tensor = {
+                data = layer.weights;
+                shape = [layer.inputSize, layer.outputSize];
+                strides = [layer.outputSize, 1];
+            };
+            let biases : Tensor = {
+                data = layer.biases;
+                shape = [layer.outputSize];
+                strides = [1];
+            };
+            activation := denseForward(activation, weights, biases, layer.activation);
+        };
+        
+        activation.data
+    };
+    
+    // Epsilon-greedy action selection
+    public func dqnSelectAction(dqn : DQNState, state : [Float], randomSeed : Nat) : Nat {
+        let random = Float.sin(Float.fromInt(randomSeed) * 43758.5453) * 0.5 + 0.5;
+        
+        if (random < dqn.epsilon) {
+            // Random action
+            let actionRandom = Float.sin(Float.fromInt(randomSeed + 1) * 12.9898) * 0.5 + 0.5;
+            Int.abs(Float.toInt(actionRandom * Float.fromInt(dqn.config.actionSize)))
+        } else {
+            // Greedy action
+            let qValues = dqnForward(dqn.qNetwork, state);
+            var bestAction : Nat = 0;
+            var bestValue : Float = qValues[0];
+            for (i in Iter.range(1, dqn.config.actionSize - 1)) {
+                if (qValues[i] > bestValue) {
+                    bestValue := qValues[i];
+                    bestAction := i;
+                };
+            };
+            bestAction
+        }
+    };
+    
+    // Add experience to replay buffer
+    public func dqnAddExperience(dqn : DQNState, transition : RLTransition) : DQNState {
+        var newTransitions = Array.append(dqn.replayBuffer.transitions, [transition]);
+        var newPriorities = Array.append(dqn.replayBuffer.priorities, [1.0]);
+        var newSize = dqn.replayBuffer.currentSize + 1;
+        
+        // Remove oldest if over capacity
+        if (newSize > dqn.config.bufferSize) {
+            newTransitions := Array.tabulate<RLTransition>(dqn.config.bufferSize, func(i : Nat) : RLTransition {
+                newTransitions[i + 1]
+            });
+            newPriorities := Array.tabulate<Float>(dqn.config.bufferSize, func(i : Nat) : Float {
+                newPriorities[i + 1]
+            });
+            newSize := dqn.config.bufferSize;
+        };
+        
+        {
+            config = dqn.config;
+            qNetwork = dqn.qNetwork;
+            targetNetwork = dqn.targetNetwork;
+            replayBuffer = {
+                capacity = dqn.replayBuffer.capacity;
+                transitions = newTransitions;
+                priorities = newPriorities;
+                currentSize = newSize;
+                totalExperiences = dqn.replayBuffer.totalExperiences + 1;
+            };
+            epsilon = dqn.epsilon;
+            stepCount = dqn.stepCount + 1;
+            updateCount = dqn.updateCount;
+            totalReward = dqn.totalReward + transition.reward;
+            episodeRewards = dqn.episodeRewards;
+        }
+    };
+    
+    // Compute TD target
+    public func dqnComputeTarget(dqn : DQNState, nextState : [Float], reward : Float, done : Bool) : Float {
+        if (done) {
+            return reward;
+        };
+        
+        if (dqn.config.doubleDQN) {
+            // Double DQN: use online network to select action, target network to evaluate
+            let onlineQValues = dqnForward(dqn.qNetwork, nextState);
+            var bestAction : Nat = 0;
+            var bestValue : Float = onlineQValues[0];
+            for (i in Iter.range(1, dqn.config.actionSize - 1)) {
+                if (onlineQValues[i] > bestValue) {
+                    bestValue := onlineQValues[i];
+                    bestAction := i;
+                };
+            };
+            
+            let targetQValues = dqnForward(dqn.targetNetwork, nextState);
+            reward + dqn.config.gamma * targetQValues[bestAction]
+        } else {
+            // Standard DQN: use target network for both selection and evaluation
+            let targetQValues = dqnForward(dqn.targetNetwork, nextState);
+            var maxQ : Float = targetQValues[0];
+            for (q in targetQValues.vals()) {
+                if (q > maxQ) maxQ := q;
+            };
+            reward + dqn.config.gamma * maxQ
+        }
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 50: POLICY GRADIENT METHODS (PPO, A2C)
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // PPO configuration
+    public type PPOConfig = {
+        stateSize : Nat;
+        actionSize : Nat;
+        hiddenSizes : [Nat];
+        actorLR : Float;
+        criticLR : Float;
+        gamma : Float;
+        gaeλ : Float;
+        clipEpsilon : Float;
+        entropyCoef : Float;
+        valueCoef : Float;
+        maxGradNorm : Float;
+        numEpochs : Nat;
+        miniBatchSize : Nat;
+        continuous : Bool;
+    };
+    
+    // PPO state
+    public type PPOState = {
+        config : PPOConfig;
+        actor : NeuralNetwork;
+        critic : NeuralNetwork;
+        stepCount : Nat64;
+        episodeCount : Nat64;
+        totalReward : Float;
+        avgReturn : Float;
+    };
+    
+    // Gaussian policy (for continuous actions)
+    public func gaussianPolicy(mean : Float, logStd : Float, action : Float) : Float {
+        let std = Float.exp(logStd);
+        let variance = std * std;
+        let diff = action - mean;
+        
+        // Log probability
+        -0.5 * (Float.log(2.0 * PI * variance) + diff * diff / variance)
+    };
+    
+    // Categorical policy (for discrete actions)
+    public func categoricalPolicy(logits : [Float], action : Nat) : Float {
+        // Softmax then log prob
+        var maxLogit : Float = logits[0];
+        for (l in logits.vals()) {
+            if (l > maxLogit) maxLogit := l;
+        };
+        
+        var expSum : Float = 0.0;
+        for (l in logits.vals()) {
+            expSum += Float.exp(l - maxLogit);
+        };
+        
+        logits[action] - maxLogit - Float.log(expSum)
+    };
+    
+    // Compute GAE (Generalized Advantage Estimation)
+    public func computeGAE(
+        rewards : [Float],
+        values : [Float],
+        nextValue : Float,
+        dones : [Bool],
+        gamma : Float,
+        gaeλ : Float
+    ) : [Float] {
+        let n = rewards.size();
+        var advantages = Array.init<Float>(n, 0.0);
+        var lastGAE : Float = 0.0;
+        
+        // Iterate backwards
+        var i : Int = Int.abs(n) - 1;
+        while (i >= 0) {
+            let mask : Float = if (dones[Int.abs(i)]) 0.0 else 1.0;
+            let nextVal = if (Int.abs(i) == n - 1) nextValue else values[Int.abs(i) + 1];
+            let delta = rewards[Int.abs(i)] + gamma * nextVal * mask - values[Int.abs(i)];
+            lastGAE := delta + gamma * gaeλ * mask * lastGAE;
+            advantages[Int.abs(i)] := lastGAE;
+            i -= 1;
+        };
+        
+        Array.freeze(advantages)
+    };
+    
+    // PPO loss computation
+    public func ppoPolicyLoss(
+        oldLogProbs : [Float],
+        newLogProbs : [Float],
+        advantages : [Float],
+        clipEpsilon : Float
+    ) : Float {
+        var totalLoss : Float = 0.0;
+        
+        for (i in Iter.range(0, advantages.size() - 1)) {
+            let ratio = Float.exp(newLogProbs[i] - oldLogProbs[i]);
+            let clippedRatio = Float.max(Float.min(ratio, 1.0 + clipEpsilon), 1.0 - clipEpsilon);
+            
+            let surr1 = ratio * advantages[i];
+            let surr2 = clippedRatio * advantages[i];
+            
+            totalLoss -= Float.min(surr1, surr2);
+        };
+        
+        totalLoss / Float.fromInt(advantages.size())
+    };
+    
+    // Entropy bonus for exploration
+    public func categoricalEntropy(logits : [Float]) : Float {
+        // Compute softmax
+        var maxLogit : Float = logits[0];
+        for (l in logits.vals()) {
+            if (l > maxLogit) maxLogit := l;
+        };
+        
+        var expSum : Float = 0.0;
+        let probs = Array.tabulate<Float>(logits.size(), func(i : Nat) : Float {
+            let e = Float.exp(logits[i] - maxLogit);
+            expSum += e;
+            e
+        });
+        
+        var entropy : Float = 0.0;
+        for (i in Iter.range(0, probs.size() - 1)) {
+            let p = probs[i] / expSum;
+            if (p > 1e-10) {
+                entropy -= p * Float.log(p);
+            };
+        };
+        
+        entropy
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 51: MULTI-AGENT REINFORCEMENT LEARNING
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // MARL agent
+    public type MARLAgent = {
+        id : Nat64;
+        policy : NeuralNetwork;
+        critic : NeuralNetwork;
+        localState : [Float];
+        reward : Float;
+        lastAction : Nat;
+    };
+    
+    // MARL environment
+    public type MARLEnvironment = {
+        agents : [MARLAgent];
+        globalState : [Float];
+        communicationChannel : [[Float]];
+        step : Nat64;
+        done : Bool;
+    };
+    
+    // Independent Q-Learning (IQL)
+    public type IQLState = {
+        agents : [DQNState];
+        sharedReplayBuffer : ?ExperienceBuffer;
+        centralCritic : ?NeuralNetwork;
+    };
+    
+    // QMIX mixing network
+    public type QMIXState = {
+        agents : [DQNState];
+        mixingNetwork : NeuralNetwork;
+        hypernetwork : NeuralNetwork;
+        globalState : [Float];
+    };
+    
+    // Communication protocol
+    public type CommProtocol = {
+        #NONE;
+        #BROADCAST;
+        #TARGETED;
+        #LEARNED;
+    };
+    
+    // MARL training step
+    public func marlStep(
+        env : MARLEnvironment,
+        actions : [Nat],
+        rewards : [Float],
+        nextStates : [[Float]]
+    ) : MARLEnvironment {
+        // Update agent states
+        let newAgents = Array.tabulate<MARLAgent>(env.agents.size(), func(i : Nat) : MARLAgent {
+            {
+                id = env.agents[i].id;
+                policy = env.agents[i].policy;
+                critic = env.agents[i].critic;
+                localState = nextStates[i];
+                reward = rewards[i];
+                lastAction = actions[i];
+            }
+        });
+        
+        {
+            agents = newAgents;
+            globalState = env.globalState;
+            communicationChannel = env.communicationChannel;
+            step = env.step + 1;
+            done = env.done;
+        }
+    };
+    
+    // Centralized critic input (for CTDE)
+    public func centralizedCriticInput(env : MARLEnvironment) : [Float] {
+        // Concatenate all agent observations and actions
+        var input : [Float] = env.globalState;
+        
+        for (agent in env.agents.vals()) {
+            input := Array.append(input, agent.localState);
+            input := Array.append(input, [Float.fromInt(agent.lastAction)]);
+        };
+        
+        input
+    };
+    
+    // Mean-field approximation
+    public func meanFieldAction(env : MARLEnvironment, agentIdx : Nat) : [Float] {
+        var meanAction = Array.init<Float>(env.agents[0].localState.size(), 0.0);
+        var count : Nat = 0;
+        
+        for (i in Iter.range(0, env.agents.size() - 1)) {
+            if (i != agentIdx) {
+                for (j in Iter.range(0, meanAction.size() - 1)) {
+                    meanAction[j] += env.agents[i].localState[j];
+                };
+                count += 1;
+            };
+        };
+        
+        if (count > 0) {
+            for (j in Iter.range(0, meanAction.size() - 1)) {
+                meanAction[j] /= Float.fromInt(count);
+            };
+        };
+        
+        Array.freeze(meanAction)
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 52: GRAPH NEURAL NETWORKS FOR SWARM
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // Graph structure
+    public type Graph = {
+        numNodes : Nat;
+        edges : [(Nat, Nat)];
+        nodeFeatures : [[Float]];
+        edgeFeatures : [[Float]];
+        adjacencyMatrix : [[Float]];
+    };
+    
+    // GNN layer type
+    public type GNNLayerType = {
+        #GCN;      // Graph Convolutional Network
+        #GAT;      // Graph Attention Network
+        #GraphSAGE;// GraphSAGE
+        #GIN;      // Graph Isomorphism Network
+        #MPNN;     // Message Passing Neural Network
+    };
+    
+    // GCN layer
+    public func gcnLayer(
+        nodeFeatures : [[Float]],
+        adjacency : [[Float]],
+        weights : Tensor,
+        bias : Tensor
+    ) : [[Float]] {
+        let numNodes = nodeFeatures.size();
+        let inFeatures = nodeFeatures[0].size();
+        let outFeatures = weights.shape[1];
+        
+        // Normalize adjacency (add self-loops and normalize)
+        var normAdj = Array.init<[Float]>(numNodes, Array.init<Float>(numNodes, 0.0));
+        
+        for (i in Iter.range(0, numNodes - 1)) {
+            var degree : Float = 1.0; // Self-loop
+            for (j in Iter.range(0, numNodes - 1)) {
+                degree += adjacency[i][j];
+            };
+            let normFactor = 1.0 / Float.sqrt(degree);
+            
+            for (j in Iter.range(0, numNodes - 1)) {
+                var jDegree : Float = 1.0;
+                for (k in Iter.range(0, numNodes - 1)) {
+                    jDegree += adjacency[j][k];
+                };
+                let jNormFactor = 1.0 / Float.sqrt(jDegree);
+                
+                if (i == j) {
+                    normAdj[i][j] := normFactor * jNormFactor;
+                } else {
+                    normAdj[i][j] := adjacency[i][j] * normFactor * jNormFactor;
+                };
+            };
+        };
+        
+        // Aggregate neighborhood features: H' = σ(Ã * H * W + b)
+        let output = Array.init<[Float]>(numNodes, Array.init<Float>(outFeatures, 0.0));
+        
+        for (i in Iter.range(0, numNodes - 1)) {
+            // Aggregate from neighbors
+            var aggregated = Array.init<Float>(inFeatures, 0.0);
+            for (j in Iter.range(0, numNodes - 1)) {
+                for (f in Iter.range(0, inFeatures - 1)) {
+                    aggregated[f] += normAdj[i][j] * nodeFeatures[j][f];
+                };
+            };
+            
+            // Transform with weights
+            for (f in Iter.range(0, outFeatures - 1)) {
+                var sum : Float = bias.data[f];
+                for (k in Iter.range(0, inFeatures - 1)) {
+                    sum += aggregated[k] * tensorGet(weights, [k, f]);
+                };
+                output[i][f] := Float.max(0.0, sum); // ReLU activation
+            };
+        };
+        
+        Array.freeze(output)
+    };
+    
+    // Graph Attention layer
+    public func gatLayer(
+        nodeFeatures : [[Float]],
+        adjacency : [[Float]],
+        wQuery : Tensor,
+        wKey : Tensor,
+        wValue : Tensor,
+        numHeads : Nat
+    ) : [[Float]] {
+        let numNodes = nodeFeatures.size();
+        let inFeatures = nodeFeatures[0].size();
+        let headDim = wQuery.shape[1] / numHeads;
+        
+        // Compute attention coefficients
+        var output = Array.init<[Float]>(numNodes, Array.init<Float>(numHeads * headDim, 0.0));
+        
+        for (h in Iter.range(0, numHeads - 1)) {
+            // Compute queries, keys, values for this head
+            let queries = Array.init<[Float]>(numNodes, Array.init<Float>(headDim, 0.0));
+            let keys = Array.init<[Float]>(numNodes, Array.init<Float>(headDim, 0.0));
+            let values = Array.init<[Float]>(numNodes, Array.init<Float>(headDim, 0.0));
+            
+            for (i in Iter.range(0, numNodes - 1)) {
+                for (d in Iter.range(0, headDim - 1)) {
+                    for (f in Iter.range(0, inFeatures - 1)) {
+                        queries[i][d] += nodeFeatures[i][f] * tensorGet(wQuery, [f, h * headDim + d]);
+                        keys[i][d] += nodeFeatures[i][f] * tensorGet(wKey, [f, h * headDim + d]);
+                        values[i][d] += nodeFeatures[i][f] * tensorGet(wValue, [f, h * headDim + d]);
+                    };
+                };
+            };
+            
+            // Compute attention scores
+            for (i in Iter.range(0, numNodes - 1)) {
+                var attnScores = Array.init<Float>(numNodes, -1e9);
+                var sumExp : Float = 0.0;
+                
+                // Only attend to neighbors (including self)
+                for (j in Iter.range(0, numNodes - 1)) {
+                    if (i == j or adjacency[i][j] > 0.0) {
+                        var score : Float = 0.0;
+                        for (d in Iter.range(0, headDim - 1)) {
+                            score += queries[i][d] * keys[j][d];
+                        };
+                        score /= Float.sqrt(Float.fromInt(headDim));
+                        attnScores[j] := score;
+                        sumExp += Float.exp(score);
+                    };
+                };
+                
+                // Apply attention weights
+                for (j in Iter.range(0, numNodes - 1)) {
+                    if (attnScores[j] > -1e8) {
+                        let attnWeight = Float.exp(attnScores[j]) / sumExp;
+                        for (d in Iter.range(0, headDim - 1)) {
+                            output[i][h * headDim + d] += attnWeight * values[j][d];
+                        };
+                    };
+                };
+            };
+        };
+        
+        Array.freeze(output)
+    };
+    
+    // Message Passing Neural Network
+    public func mpnnLayer(
+        nodeFeatures : [[Float]],
+        edgeFeatures : [[Float]],
+        edges : [(Nat, Nat)],
+        messageNet : NeuralNetwork,
+        updateNet : NeuralNetwork
+    ) : [[Float]] {
+        let numNodes = nodeFeatures.size();
+        let featureDim = nodeFeatures[0].size();
+        
+        // Compute messages for each edge
+        var messages = Array.init<[Float]>(numNodes, Array.init<Float>(featureDim, 0.0));
+        
+        for (ei in Iter.range(0, edges.size() - 1)) {
+            let (src, dst) = edges[ei];
+            
+            // Message = f(h_src, h_dst, e_ij)
+            var messageInput : [Float] = [];
+            messageInput := Array.append(messageInput, nodeFeatures[src]);
+            messageInput := Array.append(messageInput, nodeFeatures[dst]);
+            if (edgeFeatures.size() > ei) {
+                messageInput := Array.append(messageInput, edgeFeatures[ei]);
+            };
+            
+            let message = dqnForward(messageNet, messageInput);
+            
+            // Aggregate messages at destination
+            for (f in Iter.range(0, Float.min(Float.fromInt(featureDim), Float.fromInt(message.size())) - 1)) {
+                messages[dst][Int.abs(Float.toInt(Float.fromInt(f)))] += message[Int.abs(Float.toInt(Float.fromInt(f)))];
+            };
+        };
+        
+        // Update node features
+        let output = Array.init<[Float]>(numNodes, Array.init<Float>(featureDim, 0.0));
+        
+        for (i in Iter.range(0, numNodes - 1)) {
+            var updateInput : [Float] = [];
+            updateInput := Array.append(updateInput, nodeFeatures[i]);
+            updateInput := Array.append(updateInput, Array.freeze(messages[i]));
+            
+            let updated = dqnForward(updateNet, updateInput);
+            for (f in Iter.range(0, Float.min(Float.fromInt(featureDim), Float.fromInt(updated.size())) - 1)) {
+                output[i][Int.abs(Float.toInt(Float.fromInt(f)))] := updated[Int.abs(Float.toInt(Float.fromInt(f)))];
+            };
+        };
+        
+        Array.freeze(output)
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 53: ANOMALY DETECTION
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // Statistical anomaly detection
+    public type AnomalyDetector = {
+        mean : [Float];
+        std : [Float];
+        threshold : Float;
+        windowSize : Nat;
+        history : [[Float]];
+    };
+    
+    // Initialize anomaly detector
+    public func initAnomalyDetector(featureSize : Nat, windowSize : Nat, threshold : Float) : AnomalyDetector {
+        {
+            mean = Array.tabulate<Float>(featureSize, func(_ : Nat) : Float { 0.0 });
+            std = Array.tabulate<Float>(featureSize, func(_ : Nat) : Float { 1.0 });
+            threshold = threshold;
+            windowSize = windowSize;
+            history = [];
+        }
+    };
+    
+    // Update statistics
+    public func updateAnomalyStats(detector : AnomalyDetector, sample : [Float]) : AnomalyDetector {
+        var newHistory = Array.append(detector.history, [sample]);
+        
+        // Keep window size
+        if (newHistory.size() > detector.windowSize) {
+            newHistory := Array.tabulate<[Float]>(detector.windowSize, func(i : Nat) : [Float] {
+                newHistory[i + 1]
+            });
+        };
+        
+        let n = newHistory.size();
+        let featureSize = sample.size();
+        
+        // Compute running mean and std
+        let newMean = Array.tabulate<Float>(featureSize, func(f : Nat) : Float {
+            var sum : Float = 0.0;
+            for (h in newHistory.vals()) {
+                sum += h[f];
+            };
+            sum / Float.fromInt(n)
+        });
+        
+        let newStd = Array.tabulate<Float>(featureSize, func(f : Nat) : Float {
+            var sumSq : Float = 0.0;
+            for (h in newHistory.vals()) {
+                let diff = h[f] - newMean[f];
+                sumSq += diff * diff;
+            };
+            Float.sqrt(sumSq / Float.fromInt(n) + 1e-8)
+        });
+        
+        {
+            mean = newMean;
+            std = newStd;
+            threshold = detector.threshold;
+            windowSize = detector.windowSize;
+            history = newHistory;
+        }
+    };
+    
+    // Detect anomaly (Z-score)
+    public func detectAnomaly(detector : AnomalyDetector, sample : [Float]) : (Bool, Float) {
+        var maxZScore : Float = 0.0;
+        
+        for (f in Iter.range(0, sample.size() - 1)) {
+            let zScore = Float.abs((sample[f] - detector.mean[f]) / detector.std[f]);
+            if (zScore > maxZScore) {
+                maxZScore := zScore;
+            };
+        };
+        
+        (maxZScore > detector.threshold, maxZScore)
+    };
+    
+    // Isolation Forest node
+    public type IsolationNode = {
+        splitFeature : ?Nat;
+        splitValue : ?Float;
+        left : ?IsolationNode;
+        right : ?IsolationNode;
+        size : Nat;
+    };
+    
+    // Isolation Forest
+    public type IsolationForest = {
+        trees : [IsolationNode];
+        numTrees : Nat;
+        sampleSize : Nat;
+        maxDepth : Nat;
+    };
+    
+    // Average path length for normalization
+    public func averagePathLength(n : Nat) : Float {
+        if (n <= 1) return 0.0;
+        let nf = Float.fromInt(n);
+        2.0 * (Float.log(nf - 1.0) + 0.5772156649) - 2.0 * (nf - 1.0) / nf
+    };
+    
+    // Compute anomaly score
+    public func isolationScore(forest : IsolationForest, sample : [Float]) : Float {
+        var totalPathLength : Float = 0.0;
+        
+        for (tree in forest.trees.vals()) {
+            totalPathLength += computePathLength(tree, sample, 0);
+        };
+        
+        let avgPath = totalPathLength / Float.fromInt(forest.numTrees);
+        let c = averagePathLength(forest.sampleSize);
+        
+        Float.pow(2.0, -avgPath / c)
+    };
+    
+    // Compute path length in tree
+    public func computePathLength(node : IsolationNode, sample : [Float], depth : Nat) : Float {
+        switch (node.splitFeature, node.splitValue) {
+            case (?feature, ?value) {
+                switch (node.left, node.right) {
+                    case (?left, ?right) {
+                        if (sample[feature] < value) {
+                            computePathLength(left, sample, depth + 1)
+                        } else {
+                            computePathLength(right, sample, depth + 1)
+                        }
+                    };
+                    case _ {
+                        Float.fromInt(depth) + averagePathLength(node.size)
+                    };
+                };
+            };
+            case _ {
+                Float.fromInt(depth) + averagePathLength(node.size)
+            };
+        }
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 54: OBJECT DETECTION AND TRACKING
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // Detection bounding box
+    public type DetectionBox = {
+        x : Float;
+        y : Float;
+        width : Float;
+        height : Float;
+        confidence : Float;
+        classId : Nat;
+        className : Text;
+    };
+    
+    // Non-maximum suppression
+    public func nonMaxSuppression(
+        boxes : [DetectionBox],
+        iouThreshold : Float,
+        maxDetections : Nat
+    ) : [DetectionBox] {
+        // Sort by confidence
+        let sortedIndices = Array.tabulate<Nat>(boxes.size(), func(i : Nat) : Nat { i });
+        // Simple bubble sort by confidence
+        let sorted = Array.init<Nat>(boxes.size(), 0);
+        for (i in Iter.range(0, boxes.size() - 1)) {
+            sorted[i] := sortedIndices[i];
+        };
+        
+        for (i in Iter.range(0, boxes.size() - 1)) {
+            for (j in Iter.range(0, boxes.size() - i - 2)) {
+                if (boxes[sorted[j]].confidence < boxes[sorted[j + 1]].confidence) {
+                    let temp = sorted[j];
+                    sorted[j] := sorted[j + 1];
+                    sorted[j + 1] := temp;
+                };
+            };
+        };
+        
+        var keep : [DetectionBox] = [];
+        var suppressed = Array.init<Bool>(boxes.size(), false);
+        
+        for (i in Iter.range(0, boxes.size() - 1)) {
+            if (not suppressed[sorted[i]] and keep.size() < maxDetections) {
+                let box1 = boxes[sorted[i]];
+                keep := Array.append(keep, [box1]);
+                
+                // Suppress overlapping boxes
+                for (j in Iter.range(i + 1, boxes.size() - 1)) {
+                    if (not suppressed[sorted[j]]) {
+                        let box2 = boxes[sorted[j]];
+                        let iou = computeIoU(box1, box2);
+                        if (iou > iouThreshold) {
+                            suppressed[sorted[j]] := true;
+                        };
+                    };
+                };
+            };
+        };
+        
+        keep
+    };
+    
+    // Compute IoU (Intersection over Union)
+    public func computeIoU(box1 : DetectionBox, box2 : DetectionBox) : Float {
+        let x1 = Float.max(box1.x, box2.x);
+        let y1 = Float.max(box1.y, box2.y);
+        let x2 = Float.min(box1.x + box1.width, box2.x + box2.width);
+        let y2 = Float.min(box1.y + box1.height, box2.y + box2.height);
+        
+        let intersection = Float.max(0.0, x2 - x1) * Float.max(0.0, y2 - y1);
+        let area1 = box1.width * box1.height;
+        let area2 = box2.width * box2.height;
+        let union = area1 + area2 - intersection;
+        
+        if (union < 1e-10) return 0.0;
+        intersection / union
+    };
+    
+    // Visual tracker state
+    public type VisualTrack = {
+        id : Nat64;
+        box : DetectionBox;
+        velocity : (Float, Float);
+        age : Nat;
+        hitStreak : Nat;
+        missStreak : Nat;
+        kalman : KalmanState;
+    };
+    
+    // Initialize visual track
+    public func initVisualTrack(id : Nat64, box : DetectionBox) : VisualTrack {
+        let kalman = initKalman6DOF();
+        let initialState = Array.tabulate<Float>(9, func(i : Nat) : Float {
+            switch (i) {
+                case 0 { box.x + box.width / 2.0 };
+                case 1 { box.y + box.height / 2.0 };
+                case _ { 0.0 };
+            }
+        });
+        
+        {
+            id = id;
+            box = box;
+            velocity = (0.0, 0.0);
+            age = 0;
+            hitStreak = 1;
+            missStreak = 0;
+            kalman = {
+                stateVector = initialState;
+                covarianceMatrix = kalman.covarianceMatrix;
+                processNoise = kalman.processNoise;
+                measurementNoise = kalman.measurementNoise;
+                stateTransition = kalman.stateTransition;
+                measurementMatrix = kalman.measurementMatrix;
+                controlMatrix = kalman.controlMatrix;
+            };
+        }
+    };
+    
+    // Predict track position
+    public func predictVisualTrack(track : VisualTrack, dt : Float) : VisualTrack {
+        let predictedKalman = kalmanPredict(track.kalman, dt);
+        
+        let predictedX = predictedKalman.stateVector[0] - track.box.width / 2.0;
+        let predictedY = predictedKalman.stateVector[1] - track.box.height / 2.0;
+        
+        {
+            id = track.id;
+            box = {
+                x = predictedX;
+                y = predictedY;
+                width = track.box.width;
+                height = track.box.height;
+                confidence = track.box.confidence * 0.95;
+                classId = track.box.classId;
+                className = track.box.className;
+            };
+            velocity = (predictedKalman.stateVector[3], predictedKalman.stateVector[4]);
+            age = track.age + 1;
+            hitStreak = 0;
+            missStreak = track.missStreak + 1;
+            kalman = predictedKalman;
+        }
+    };
+    
+    // Update track with detection
+    public func updateVisualTrack(track : VisualTrack, detection : DetectionBox) : VisualTrack {
+        let measurement = [
+            detection.x + detection.width / 2.0,
+            detection.y + detection.height / 2.0,
+            0.0 // z = 0 for 2D tracking
+        ];
+        
+        let updatedKalman = kalmanUpdate(track.kalman, measurement);
+        
+        {
+            id = track.id;
+            box = detection;
+            velocity = (updatedKalman.stateVector[3], updatedKalman.stateVector[4]);
+            age = track.age + 1;
+            hitStreak = track.hitStreak + 1;
+            missStreak = 0;
+            kalman = updatedKalman;
+        }
+    };
