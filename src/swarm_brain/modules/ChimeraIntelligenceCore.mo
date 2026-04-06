@@ -39203,8 +39203,1619 @@ module {
     beat
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 52: VELA TEMPORAL PROJECTION ENGINE
+  // 5 time horizons projecting future states - sovereign foresight computation
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// VELA temporal projection state
+  public type VELAProjectionState = {
+    var horizons : [VELAHorizon];
+    var currentProjections : [VELAProjection];
+    var confidenceField : [[Float]];
+    var temporalCoherence : Float;
+    var futureAttractors : [Attractor];
+    var prophecyChain : [Prophecy];
+  };
+
+  public type VELAHorizon = {
+    horizonId : Nat;
+    timeScale : TimeScale;
+    var projectionDepth : Nat;
+    var accuracy : Float;
+    var lastProjection : Int;
+    var projectionCount : Nat;
+  };
+
+  public type TimeScale = {
+    #Immediate;    // 1-5 beats
+    #ShortTerm;    // 5-50 beats
+    #MediumTerm;   // 50-500 beats
+    #LongTerm;     // 500-5000 beats
+    #Strategic;    // 5000+ beats
+  };
+
+  public type VELAProjection = {
+    projectionId : Text;
+    horizonId : Nat;
+    timestamp : Int;
+    predictedState : PredictedState;
+    confidence : Float;
+    var realized : Bool;
+    var realizationError : ?Float;
+  };
+
+  public type PredictedState = {
+    coherence : Float;
+    kuramotoR : Float;
+    hebbianMass : Float;
+    lawCompliance : Float;
+    driveActivations : [Float];
+    freeEnergy : Float;
+  };
+
+  public type Attractor = {
+    attractorId : Text;
+    position : [Float];
+    strength : Float;
+    basin : Float;
+    var reachCount : Nat;
+    attractorType : AttractorType;
+  };
+
+  public type AttractorType = {
+    #Point;
+    #Limit;
+    #Torus;
+    #Strange;
+    #Emergent;
+  };
+
+  public type Prophecy = {
+    prophecyId : Text;
+    timestamp : Int;
+    horizon : TimeScale;
+    prediction : Text;
+    var fulfilled : Bool;
+    var fulfillmentTime : ?Int;
+    creatorAttribution : Text;
+  };
+
+  /// Initialize VELA projection engine
+  public func initVELAProjection() : VELAProjectionState {
+    var horizons : [VELAHorizon] = [];
+    let timeScales : [TimeScale] = [#Immediate, #ShortTerm, #MediumTerm, #LongTerm, #Strategic];
+    
+    for (i in Iter.range(0, 4)) {
+      let horizon : VELAHorizon = {
+        horizonId = i;
+        timeScale = timeScales[i];
+        var projectionDepth = (i + 1) * 10;
+        var accuracy = 1.0 - Float.fromInt(i) * 0.15;
+        var lastProjection = Time.now();
+        var projectionCount = 0;
+      };
+      horizons := Array.append(horizons, [horizon]);
+    };
+    
+    {
+      var horizons = horizons;
+      var currentProjections = [];
+      var confidenceField = Array.tabulate<[Float]>(5, func(i : Nat) : [Float] {
+        Array.tabulate<Float>(10, func(j : Nat) : Float { 0.8 - Float.fromInt(i) * 0.1 })
+      });
+      var temporalCoherence = 1.0;
+      var futureAttractors = [];
+      var prophecyChain = [];
+    }
+  };
+
+  /// Project future state at given horizon
+  public func projectFuture(
+    vela : VELAProjectionState,
+    currentState : PredictedState,
+    horizonIndex : Nat
+  ) : VELAProjection {
+    if (horizonIndex >= vela.horizons.size()) {
+      return {
+        projectionId = "invalid";
+        horizonId = 0;
+        timestamp = Time.now();
+        predictedState = currentState;
+        confidence = 0.0;
+        var realized = false;
+        var realizationError = null;
+      };
+    };
+    
+    let horizon = vela.horizons[horizonIndex];
+    
+    // Temporal decay of prediction accuracy
+    let decayFactor = switch (horizon.timeScale) {
+      case (#Immediate) 0.95;
+      case (#ShortTerm) 0.85;
+      case (#MediumTerm) 0.70;
+      case (#LongTerm) 0.50;
+      case (#Strategic) 0.30;
+    };
+    
+    // Project state evolution
+    let projectedState : PredictedState = {
+      coherence = currentState.coherence * decayFactor + (1.0 - decayFactor) * 1.0;
+      kuramotoR = currentState.kuramotoR * decayFactor + (1.0 - decayFactor) * 0.9;
+      hebbianMass = currentState.hebbianMass * 1.001;  // Hebbian mass compounds
+      lawCompliance = currentState.lawCompliance;
+      driveActivations = Array.map<Float, Float>(
+        currentState.driveActivations,
+        func(d : Float) : Float { d * decayFactor + 0.5 * (1.0 - decayFactor) }
+      );
+      freeEnergy = currentState.freeEnergy * 0.99;  // Free energy should decrease
+    };
+    
+    let projection : VELAProjection = {
+      projectionId = "vela_" # Int.toText(Time.now()) # "_" # Nat.toText(horizonIndex);
+      horizonId = horizonIndex;
+      timestamp = Time.now();
+      predictedState = projectedState;
+      confidence = horizon.accuracy * decayFactor;
+      var realized = false;
+      var realizationError = null;
+    };
+    
+    horizon.projectionCount += 1;
+    horizon.lastProjection := Time.now();
+    
+    vela.currentProjections := Array.append(vela.currentProjections, [projection]);
+    
+    projection
+  };
+
+  /// Evaluate projection accuracy
+  public func evaluateProjection(
+    vela : VELAProjectionState,
+    projectionId : Text,
+    actualState : PredictedState
+  ) : Float {
+    for (proj in vela.currentProjections.vals()) {
+      if (proj.projectionId == projectionId and not proj.realized) {
+        // Calculate error between prediction and reality
+        let coherenceError = Float.abs(proj.predictedState.coherence - actualState.coherence);
+        let kuramotoError = Float.abs(proj.predictedState.kuramotoR - actualState.kuramotoR);
+        let energyError = Float.abs(proj.predictedState.freeEnergy - actualState.freeEnergy);
+        
+        let totalError = (coherenceError + kuramotoError + energyError) / 3.0;
+        
+        proj.realized := true;
+        proj.realizationError := ?totalError;
+        
+        // Update horizon accuracy based on actual performance
+        if (proj.horizonId < vela.horizons.size()) {
+          let horizon = vela.horizons[proj.horizonId];
+          horizon.accuracy := horizon.accuracy * 0.9 + (1.0 - totalError) * 0.1;
+        };
+        
+        return totalError;
+      };
+    };
+    
+    1.0  // Maximum error if not found
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 53: GENOME FITNESS LANDSCAPE ENGINE
+  // Evolutionary computation attributed to Creator - sovereign selection
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// GENOME fitness landscape state
+  public type GENOMELandscapeState = {
+    var population : [GENOMEIndividual];
+    var fitnessLandscape : [[Float]];
+    var generationCount : Nat;
+    var bestFitness : Float;
+    var eliteArchive : [GENOMEIndividual];
+    var mutationRate : Float;
+    var crossoverRate : Float;
+    var speciesRegistry : [Species];
+    var innovationNumber : Nat;
+  };
+
+  public type GENOMEIndividual = {
+    individualId : Text;
+    var genome : [Float];
+    var fitness : Float;
+    var age : Nat;
+    speciesId : ?Text;
+    parentIds : [Text];
+    var offspring : Nat;
+    birthGeneration : Nat;
+    creatorAttribution : Text;
+  };
+
+  public type Species = {
+    speciesId : Text;
+    var members : [Text];
+    var representative : [Float];
+    var sharedFitness : Float;
+    var stagnation : Nat;
+    var bestHistoricalFitness : Float;
+  };
+
+  public type EvolutionConfig = {
+    populationSize : Nat;
+    genomeSize : Nat;
+    eliteCount : Nat;
+    tournamentSize : Nat;
+    speciesThreshold : Float;
+  };
+
+  /// Initialize GENOME landscape
+  public func initGENOMELandscape(config : EvolutionConfig, creatorId : Text) : GENOMELandscapeState {
+    var population : [GENOMEIndividual] = [];
+    
+    for (i in Iter.range(0, config.populationSize - 1)) {
+      let individual : GENOMEIndividual = {
+        individualId = "genome_" # Nat.toText(i) # "_gen0";
+        var genome = Array.tabulate<Float>(config.genomeSize, func(j : Nat) : Float {
+          Float.sin(Float.fromInt(i * config.genomeSize + j)) * 0.5 + 0.5
+        });
+        var fitness = 0.0;
+        var age = 0;
+        speciesId = null;
+        parentIds = [];
+        var offspring = 0;
+        birthGeneration = 0;
+        creatorAttribution = creatorId;
+      };
+      population := Array.append(population, [individual]);
+    };
+    
+    // Initialize fitness landscape (NK model-inspired)
+    let landscape = Array.tabulate<[Float]>(config.genomeSize, func(i : Nat) : [Float] {
+      Array.tabulate<Float>(config.genomeSize, func(j : Nat) : Float {
+        if (i == j) 1.0
+        else Float.abs(Float.sin(Float.fromInt(i * 100 + j))) * 0.5
+      })
+    });
+    
+    {
+      var population = population;
+      var fitnessLandscape = landscape;
+      var generationCount = 0;
+      var bestFitness = 0.0;
+      var eliteArchive = [];
+      var mutationRate = 0.01;
+      var crossoverRate = 0.7;
+      var speciesRegistry = [];
+      var innovationNumber = 0;
+    }
+  };
+
+  /// Evaluate fitness with epistasis (gene interactions)
+  public func evaluateFitness(landscape : GENOMELandscapeState, individual : GENOMEIndividual) : Float {
+    var fitness = 0.0;
+    let genomeSize = individual.genome.size();
+    
+    if (genomeSize == 0) return 0.0;
+    
+    for (i in Iter.range(0, genomeSize - 1)) {
+      // Direct contribution
+      var contribution = individual.genome[i];
+      
+      // Epistatic interactions from landscape
+      if (i < landscape.fitnessLandscape.size()) {
+        for (j in Iter.range(0, genomeSize - 1)) {
+          if (j < landscape.fitnessLandscape[i].size() and i != j) {
+            contribution *= 1.0 + landscape.fitnessLandscape[i][j] * individual.genome[j] * 0.1;
+          };
+        };
+      };
+      
+      fitness += contribution;
+    };
+    
+    individual.fitness := fitness / Float.fromInt(genomeSize);
+    
+    // Update best fitness
+    if (individual.fitness > landscape.bestFitness) {
+      landscape.bestFitness := individual.fitness;
+    };
+    
+    individual.fitness
+  };
+
+  /// Evolve one generation - sovereign selection
+  public func evolveGeneration(landscape : GENOMELandscapeState, config : EvolutionConfig) : Nat {
+    // Evaluate all individuals
+    for (ind in landscape.population.vals()) {
+      ignore evaluateFitness(landscape, ind);
+      ind.age += 1;
+    };
+    
+    // Sort by fitness (selection)
+    let sorted = Array.sort<GENOMEIndividual>(
+      landscape.population,
+      func(a : GENOMEIndividual, b : GENOMEIndividual) : Order.Order {
+        if (a.fitness > b.fitness) #less
+        else if (a.fitness < b.fitness) #greater
+        else #equal
+      }
+    );
+    
+    // Elite preservation
+    var newPopulation : [GENOMEIndividual] = [];
+    for (i in Iter.range(0, Int.abs(Int.min(config.eliteCount - 1, sorted.size() - 1)))) {
+      if (i < sorted.size()) {
+        newPopulation := Array.append(newPopulation, [sorted[i]]);
+      };
+    };
+    
+    // Archive best
+    if (sorted.size() > 0) {
+      landscape.eliteArchive := Array.append(landscape.eliteArchive, [sorted[0]]);
+    };
+    
+    // Create offspring through crossover and mutation
+    while (newPopulation.size() < config.populationSize) {
+      // Tournament selection
+      let parent1Index = Int.abs(Time.now()) % sorted.size();
+      let parent2Index = (Int.abs(Time.now()) + 1) % sorted.size();
+      
+      if (parent1Index < sorted.size() and parent2Index < sorted.size()) {
+        let parent1 = sorted[parent1Index];
+        let parent2 = sorted[parent2Index];
+        
+        // Crossover
+        var childGenome : [Float] = [];
+        for (g in Iter.range(0, parent1.genome.size() - 1)) {
+          if (g < parent1.genome.size() and g < parent2.genome.size()) {
+            let gene = if (Float.sin(Float.fromInt(landscape.generationCount * 100 + g)) > 0.0)
+              parent1.genome[g]
+            else
+              parent2.genome[g];
+            
+            // Mutation
+            let mutated = if (Float.abs(Float.sin(Float.fromInt(g * landscape.generationCount))) < landscape.mutationRate)
+              gene + (Float.sin(Float.fromInt(landscape.innovationNumber)) * 0.2)
+            else
+              gene;
+            
+            childGenome := Array.append(childGenome, [Float.max(0.0, Float.min(1.0, mutated))]);
+          };
+        };
+        
+        landscape.innovationNumber += 1;
+        
+        let child : GENOMEIndividual = {
+          individualId = "genome_" # Nat.toText(newPopulation.size()) # "_gen" # Nat.toText(landscape.generationCount + 1);
+          var genome = childGenome;
+          var fitness = 0.0;
+          var age = 0;
+          speciesId = null;
+          parentIds = [parent1.individualId, parent2.individualId];
+          var offspring = 0;
+          birthGeneration = landscape.generationCount + 1;
+          creatorAttribution = parent1.creatorAttribution;
+        };
+        
+        parent1.offspring += 1;
+        parent2.offspring += 1;
+        
+        newPopulation := Array.append(newPopulation, [child]);
+      };
+    };
+    
+    landscape.population := newPopulation;
+    landscape.generationCount += 1;
+    
+    landscape.generationCount
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 54: ADVANCED PHEROMONE DYNAMICS (ACO EXTENSION)
+  // Swarm intelligence through stigmergic communication
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Advanced pheromone state
+  public type AdvancedPheromoneState = {
+    var pheromoneGrid : [[PheromoneCell]];
+    var agents : [PheromoneAgent];
+    var evaporationRate : Float;
+    var diffusionRate : Float;
+    var depositRate : Float;
+    var trails : [PheromoneTrail];
+    var globalPheromoneLevel : Float;
+  };
+
+  public type PheromoneCell = {
+    var concentration : Float;
+    var gradient : Vector2D;
+    var age : Nat;
+    var source : ?Text;
+    pheromoneType : PheromoneType;
+  };
+
+  public type PheromoneType = {
+    #Attraction;
+    #Repulsion;
+    #Food;
+    #Danger;
+    #Home;
+    #Exploration;
+    #Communication;
+  };
+
+  public type PheromoneAgent = {
+    agentId : Text;
+    var position : Vector2D;
+    var heading : Float;
+    var pheromoneCarried : Float;
+    var state : AgentState;
+    var pathHistory : [Vector2D];
+  };
+
+  public type AgentState = {
+    #Searching;
+    #Returning;
+    #Following;
+    #Depositing;
+    #Idle;
+  };
+
+  public type PheromoneTrail = {
+    trailId : Text;
+    var waypoints : [Vector2D];
+    var strength : Float;
+    var age : Nat;
+    creatorAgent : Text;
+    destination : ?Vector2D;
+  };
+
+  /// Initialize pheromone system
+  public func initPheromoneSystem(gridSize : Nat, numAgents : Nat) : AdvancedPheromoneState {
+    // Initialize grid
+    let grid = Array.tabulate<[PheromoneCell]>(gridSize, func(i : Nat) : [PheromoneCell] {
+      Array.tabulate<PheromoneCell>(gridSize, func(j : Nat) : PheromoneCell {
+        {
+          var concentration = 0.0;
+          var gradient = {x = 0.0; y = 0.0};
+          var age = 0;
+          var source = null;
+          pheromoneType = #Exploration;
+        }
+      })
+    });
+    
+    // Initialize agents
+    var agents : [PheromoneAgent] = [];
+    for (a in Iter.range(0, numAgents - 1)) {
+      let agent : PheromoneAgent = {
+        agentId = "agent_" # Nat.toText(a);
+        var position = {
+          x = Float.fromInt(a % gridSize);
+          y = Float.fromInt(a / gridSize % gridSize);
+        };
+        var heading = Float.fromInt(a) * 0.618 * 2.0 * 3.14159;
+        var pheromoneCarried = 1.0;
+        var state = #Searching;
+        var pathHistory = [];
+      };
+      agents := Array.append(agents, [agent]);
+    };
+    
+    {
+      var pheromoneGrid = grid;
+      var agents = agents;
+      var evaporationRate = 0.01;
+      var diffusionRate = 0.1;
+      var depositRate = 0.5;
+      var trails = [];
+      var globalPheromoneLevel = 0.0;
+    }
+  };
+
+  /// Update pheromone dynamics
+  public func updatePheromones(state : AdvancedPheromoneState, dt : Float) : Float {
+    let gridSize = state.pheromoneGrid.size();
+    if (gridSize == 0) return 0.0;
+    
+    // Evaporation
+    var totalPheromone = 0.0;
+    for (i in Iter.range(0, gridSize - 1)) {
+      if (i < state.pheromoneGrid.size()) {
+        for (j in Iter.range(0, gridSize - 1)) {
+          if (j < state.pheromoneGrid[i].size()) {
+            let cell = state.pheromoneGrid[i][j];
+            cell.concentration := cell.concentration * (1.0 - state.evaporationRate * dt);
+            cell.age += 1;
+            totalPheromone += cell.concentration;
+          };
+        };
+      };
+    };
+    
+    // Diffusion (simplified)
+    for (i in Iter.range(1, gridSize - 2)) {
+      if (i < state.pheromoneGrid.size()) {
+        for (j in Iter.range(1, gridSize - 2)) {
+          if (j < state.pheromoneGrid[i].size()) {
+            let cell = state.pheromoneGrid[i][j];
+            
+            // Average of neighbors
+            var neighborAvg = 0.0;
+            var count = 0;
+            
+            if (i > 0 and i - 1 < state.pheromoneGrid.size() and j < state.pheromoneGrid[i-1].size()) {
+              neighborAvg += state.pheromoneGrid[i-1][j].concentration;
+              count += 1;
+            };
+            if (i + 1 < state.pheromoneGrid.size() and j < state.pheromoneGrid[i+1].size()) {
+              neighborAvg += state.pheromoneGrid[i+1][j].concentration;
+              count += 1;
+            };
+            if (j > 0 and j - 1 < state.pheromoneGrid[i].size()) {
+              neighborAvg += state.pheromoneGrid[i][j-1].concentration;
+              count += 1;
+            };
+            if (j + 1 < state.pheromoneGrid[i].size()) {
+              neighborAvg += state.pheromoneGrid[i][j+1].concentration;
+              count += 1;
+            };
+            
+            if (count > 0) {
+              neighborAvg /= Float.fromInt(count);
+              cell.concentration := cell.concentration * (1.0 - state.diffusionRate * dt) + 
+                                   neighborAvg * state.diffusionRate * dt;
+            };
+            
+            // Calculate gradient
+            var gradX = 0.0;
+            var gradY = 0.0;
+            if (i > 0 and i + 1 < state.pheromoneGrid.size()) {
+              if (j < state.pheromoneGrid[i+1].size() and j < state.pheromoneGrid[i-1].size()) {
+                gradX := state.pheromoneGrid[i+1][j].concentration - state.pheromoneGrid[i-1][j].concentration;
+              };
+            };
+            if (j > 0 and j + 1 < state.pheromoneGrid[i].size()) {
+              gradY := state.pheromoneGrid[i][j+1].concentration - state.pheromoneGrid[i][j-1].concentration;
+            };
+            cell.gradient := {x = gradX; y = gradY};
+          };
+        };
+      };
+    };
+    
+    state.globalPheromoneLevel := totalPheromone / Float.fromInt(gridSize * gridSize);
+    
+    // Update agents
+    for (agent in state.agents.vals()) {
+      // Record path
+      agent.pathHistory := Array.append(agent.pathHistory, [agent.position]);
+      if (agent.pathHistory.size() > 100) {
+        agent.pathHistory := Array.tabulate<Vector2D>(100, func(i : Nat) : Vector2D {
+          agent.pathHistory[agent.pathHistory.size() - 100 + i]
+        });
+      };
+      
+      // Deposit pheromone at current position
+      let gridX = Int.abs(Float.toInt(agent.position.x)) % gridSize;
+      let gridY = Int.abs(Float.toInt(agent.position.y)) % gridSize;
+      
+      if (gridX < state.pheromoneGrid.size() and gridY < state.pheromoneGrid[gridX].size()) {
+        let cell = state.pheromoneGrid[gridX][gridY];
+        cell.concentration += agent.pheromoneCarried * state.depositRate * dt;
+        cell.source := ?agent.agentId;
+        
+        // Deplete carried pheromone
+        agent.pheromoneCarried := agent.pheromoneCarried * 0.99;
+      };
+      
+      // Move based on gradient and state
+      let speed = 1.0;
+      switch (agent.state) {
+        case (#Searching) {
+          // Follow gradient + random
+          if (gridX < state.pheromoneGrid.size() and gridY < state.pheromoneGrid[gridX].size()) {
+            let gradient = state.pheromoneGrid[gridX][gridY].gradient;
+            agent.heading := Float.arctan2(gradient.y, gradient.x) + Float.sin(Float.fromInt(agent.pathHistory.size())) * 0.5;
+          };
+        };
+        case (#Following) {
+          // Strong gradient following
+          if (gridX < state.pheromoneGrid.size() and gridY < state.pheromoneGrid[gridX].size()) {
+            let gradient = state.pheromoneGrid[gridX][gridY].gradient;
+            agent.heading := Float.arctan2(gradient.y, gradient.x);
+          };
+        };
+        case (#Returning) {
+          // Move toward home (0,0)
+          agent.heading := Float.arctan2(-agent.position.y, -agent.position.x);
+        };
+        case _ {};
+      };
+      
+      // Update position
+      agent.position := {
+        x = agent.position.x + Float.cos(agent.heading) * speed * dt;
+        y = agent.position.y + Float.sin(agent.heading) * speed * dt;
+      };
+      
+      // Wrap around grid
+      let fGridSize = Float.fromInt(gridSize);
+      while (agent.position.x < 0.0) { agent.position := {x = agent.position.x + fGridSize; y = agent.position.y} };
+      while (agent.position.x >= fGridSize) { agent.position := {x = agent.position.x - fGridSize; y = agent.position.y} };
+      while (agent.position.y < 0.0) { agent.position := {x = agent.position.x; y = agent.position.y + fGridSize} };
+      while (agent.position.y >= fGridSize) { agent.position := {x = agent.position.x; y = agent.position.y - fGridSize} };
+    };
+    
+    state.globalPheromoneLevel
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 55: N² SUPERRADIANCE COLLECTIVE INTELLIGENCE
+  // Quadratic scaling of swarm coherence - sovereign emergence
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// N² Superradiance state
+  public type SuperradianceState = {
+    var emitters : [CoherentEmitter];
+    var collectiveField : CollectiveField;
+    var coherenceMatrix : [[Float]];
+    var superradiantBurst : ?SuperradiantBurst;
+    var n2Coefficient : Float;
+    var totalCoherence : Float;
+  };
+
+  public type CoherentEmitter = {
+    emitterId : Text;
+    var phase : Float;
+    var amplitude : Float;
+    var frequency : Float;
+    var coupled : Bool;
+    var contribution : Float;
+  };
+
+  public type CollectiveField = {
+    var intensity : Float;
+    var phase : Float;
+    var polarization : Vector3D;
+    var bandwidth : Float;
+    var purity : Float;
+  };
+
+  public type SuperradiantBurst = {
+    burstId : Text;
+    timestamp : Int;
+    peakIntensity : Float;
+    duration : Nat;
+    participatingEmitters : Nat;
+    n2Factor : Float;
+  };
+
+  /// Initialize superradiance
+  public func initSuperradiance(numEmitters : Nat) : SuperradianceState {
+    var emitters : [CoherentEmitter] = [];
+    
+    for (i in Iter.range(0, numEmitters - 1)) {
+      let emitter : CoherentEmitter = {
+        emitterId = "emitter_" # Nat.toText(i);
+        var phase = Float.fromInt(i) * 2.0 * 3.14159 / Float.fromInt(numEmitters);
+        var amplitude = 1.0;
+        var frequency = 1.0 + Float.sin(Float.fromInt(i)) * 0.1;
+        var coupled = true;
+        var contribution = 0.0;
+      };
+      emitters := Array.append(emitters, [emitter]);
+    };
+    
+    // Coherence matrix (all-to-all coupling)
+    let coherence = Array.tabulate<[Float]>(numEmitters, func(i : Nat) : [Float] {
+      Array.tabulate<Float>(numEmitters, func(j : Nat) : Float {
+        if (i == j) 1.0 else 0.5
+      })
+    });
+    
+    {
+      var emitters = emitters;
+      var collectiveField = {
+        var intensity = 0.0;
+        var phase = 0.0;
+        var polarization = {x = 0.0; y = 0.0; z = 1.0};
+        var bandwidth = 0.1;
+        var purity = 1.0;
+      };
+      var coherenceMatrix = coherence;
+      var superradiantBurst = null;
+      var n2Coefficient = 1.0;
+      var totalCoherence = 0.0;
+    }
+  };
+
+  /// Advance superradiance dynamics
+  public func advanceSuperradiance(state : SuperradianceState, dt : Float) : Float {
+    let n = state.emitters.size();
+    if (n == 0) return 0.0;
+    
+    // Phase synchronization (similar to Kuramoto but for emission)
+    for (i in Iter.range(0, n - 1)) {
+      let emitter = state.emitters[i];
+      
+      // Coupling from other emitters
+      var coupling = 0.0;
+      for (j in Iter.range(0, n - 1)) {
+        if (i != j and i < state.coherenceMatrix.size() and j < state.coherenceMatrix[i].size()) {
+          let other = state.emitters[j];
+          coupling += state.coherenceMatrix[i][j] * Float.sin(other.phase - emitter.phase);
+        };
+      };
+      
+      // Update phase
+      emitter.phase := emitter.phase + (emitter.frequency + coupling / Float.fromInt(n)) * dt;
+      while (emitter.phase > 2.0 * 3.14159) {
+        emitter.phase -= 2.0 * 3.14159;
+      };
+    };
+    
+    // Calculate collective field (N² scaling for coherent emission)
+    var sumCos = 0.0;
+    var sumSin = 0.0;
+    
+    for (emitter in state.emitters.vals()) {
+      let contribution = emitter.amplitude * Float.cos(emitter.phase);
+      sumCos += contribution;
+      sumSin += emitter.amplitude * Float.sin(emitter.phase);
+      emitter.contribution := Float.abs(contribution);
+    };
+    
+    // Coherent intensity scales as N² when phases are aligned
+    let coherentAmplitude = Float.sqrt(sumCos * sumCos + sumSin * sumSin);
+    let incoherentAmplitude = Float.sqrt(Float.fromInt(n));
+    
+    // N² coefficient: ratio of coherent to incoherent
+    state.n2Coefficient := if (incoherentAmplitude > 0.0)
+      (coherentAmplitude * coherentAmplitude) / (incoherentAmplitude * incoherentAmplitude)
+    else 1.0;
+    
+    // Collective field
+    state.collectiveField.intensity := coherentAmplitude * coherentAmplitude;
+    state.collectiveField.phase := Float.arctan2(sumSin, sumCos);
+    state.collectiveField.purity := coherentAmplitude / Float.fromInt(n);
+    
+    // Total coherence
+    state.totalCoherence := coherentAmplitude / Float.fromInt(n);
+    
+    // Check for superradiant burst (high coherence spike)
+    if (state.totalCoherence > 0.9 and state.n2Coefficient > 0.8 * Float.fromInt(n)) {
+      state.superradiantBurst := ?{
+        burstId = "burst_" # Int.toText(Time.now());
+        timestamp = Time.now();
+        peakIntensity = state.collectiveField.intensity;
+        duration = 0;
+        participatingEmitters = n;
+        n2Factor = state.n2Coefficient;
+      };
+    };
+    
+    state.collectiveField.intensity
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 56: SOVEREIGN SWARM BRAIN INTEGRATION
+  // Complete integration of all sovereign computation systems
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Complete Sovereign Swarm Brain State
+  public type SovereignSwarmBrainState = {
+    // Core Identity
+    var creatorId : Text;
+    var genesisHash : Blob;
+    var beatCount : Nat;
+    
+    // Sovereign Systems
+    var sovereignComputation : SovereignComputationState;
+    var kuramotoConsensus : KuramotoConsensusState;
+    var parallaxTreasury : ParallaxTreasuryState;
+    var lawGovernance : LawGovernanceState;
+    var animaChain : AnimaChainState;
+    var animalDrives : AnimalDriveState;
+    var hebbianLearning : HebbianState;
+    var vqeOptimization : VQEState;
+    var freeEnergy : FreeEnergyState;
+    
+    // Extended Systems
+    var velaProjection : VELAProjectionState;
+    var genomeLandscape : GENOMELandscapeState;
+    var pheromoneSystem : AdvancedPheromoneState;
+    var superradiance : SuperradianceState;
+    
+    // Metrics
+    var totalWorkUnits : Float;
+    var sovereigntyScore : Float;
+    var coherenceHistory : [Float];
+  };
+
+  /// Initialize complete Sovereign Swarm Brain
+  public func initSovereignSwarmBrain(creatorId : Text) : SovereignSwarmBrainState {
+    let genesisHash = Text.encodeUtf8("SOVEREIGN_GENESIS_" # creatorId # "_" # Int.toText(Time.now()));
+    
+    // Initialize all systems
+    let sovereignComp = initSovereignComputation(creatorId);
+    let kuramoto = initKuramotoConsensus(12);
+    let parallax = initParallaxTreasury(creatorId, 1000000.0);
+    let laws = initLawGovernance();
+    let anima = initAnimaChain(creatorId);
+    let drives = initAnimalDrives();
+    let hebbian = initHebbianLearning(26);
+    let vqe = initVQE(4, 2);
+    let freeEnergyState = initFreeEnergy(10, 5);
+    let vela = initVELAProjection();
+    let genome = initGENOMELandscape({
+      populationSize = 50;
+      genomeSize = 20;
+      eliteCount = 5;
+      tournamentSize = 3;
+      speciesThreshold = 0.3;
+    }, creatorId);
+    let pheromone = initPheromoneSystem(50, 20);
+    let superrad = initSuperradiance(12);
+    
+    {
+      var creatorId = creatorId;
+      var genesisHash = genesisHash;
+      var beatCount = 0;
+      
+      var sovereignComputation = sovereignComp;
+      var kuramotoConsensus = kuramoto;
+      var parallaxTreasury = parallax;
+      var lawGovernance = laws;
+      var animaChain = anima;
+      var animalDrives = drives;
+      var hebbianLearning = hebbian;
+      var vqeOptimization = vqe;
+      var freeEnergy = freeEnergyState;
+      
+      var velaProjection = vela;
+      var genomeLandscape = genome;
+      var pheromoneSystem = pheromone;
+      var superradiance = superrad;
+      
+      var totalWorkUnits = 0.0;
+      var sovereigntyScore = 1.0;
+      var coherenceHistory = [];
+    }
+  };
+
+  /// Execute complete sovereign beat - ALL computation in one tick
+  public func executeSovereignSwarmBeat(brain : SovereignSwarmBrainState, dt : Float) : SovereignBeatResult {
+    brain.beatCount += 1;
+    var workUnits = 0.0;
+    
+    // 1. Kuramoto Synchronization (12 oscillators = 12 work units)
+    let kuramotoR = advanceKuramotoConsensus(brain.kuramotoConsensus, dt);
+    workUnits += 12.0;
+    ignore recordSovereignWork(brain.sovereignComputation, #KuramotoSync, 12.0, 
+      "kuramoto_" # Nat.toText(brain.beatCount), Float.toText(kuramotoR));
+    
+    // 2. Hebbian Weight Updates (676 synapses = 676 work units)
+    let activations = Array.tabulate<Float>(26, func(i : Nat) : Float {
+      if (i < brain.kuramotoConsensus.oscillators.size()) {
+        0.5 + 0.5 * Float.sin(brain.kuramotoConsensus.oscillators[i].phase)
+      } else { 0.5 }
+    });
+    let hebbianUpdates = updateHebbianWeights(brain.hebbianLearning, activations, activations);
+    workUnits += Float.fromInt(hebbianUpdates);
+    ignore recordSovereignWork(brain.sovereignComputation, #HebbianUpdate, Float.fromInt(hebbianUpdates),
+      "hebbian_" # Nat.toText(brain.beatCount), Nat.toText(hebbianUpdates));
+    
+    // 3. Law Evaluations (126 laws = 126 work units)
+    let lawCompliance = evaluateAllLaws(brain.lawGovernance, "beat_" # Nat.toText(brain.beatCount));
+    workUnits += 126.0;
+    ignore recordSovereignWork(brain.sovereignComputation, #LawEvaluation, 126.0,
+      "law_" # Nat.toText(brain.beatCount), Float.toText(lawCompliance));
+    
+    // 4. Animal Drive Updates (9 drives = 9 work units)
+    updateAnimalDrives(brain.animalDrives, dt);
+    workUnits += 9.0;
+    ignore recordSovereignWork(brain.sovereignComputation, #AnimalEngine, 9.0,
+      "drive_" # Nat.toText(brain.beatCount), "9_drives_updated");
+    
+    // 5. VQE Optimization Step
+    let vqeEnergy = vqeStep(brain.vqeOptimization);
+    workUnits += Float.fromInt(brain.vqeOptimization.ansatz.parameters.size());
+    ignore recordSovereignWork(brain.sovereignComputation, #VQEMinimization, 
+      Float.fromInt(brain.vqeOptimization.ansatz.parameters.size()),
+      "vqe_" # Nat.toText(brain.beatCount), Float.toText(vqeEnergy));
+    
+    // 6. Free Energy Minimization
+    let sensory = Array.tabulate<Float>(10, func(i : Nat) : Float {
+      Float.sin(Float.fromInt(brain.beatCount) * 0.01 + Float.fromInt(i))
+    });
+    let freeEnergyVal = minimizeFreeEnergy(brain.freeEnergy, sensory);
+    workUnits += 10.0;
+    ignore recordSovereignWork(brain.sovereignComputation, #FreeEnergyComputation, 10.0,
+      "friston_" # Nat.toText(brain.beatCount), Float.toText(freeEnergyVal));
+    
+    // 7. VELA Temporal Projections (5 horizons)
+    let currentPredicted : PredictedState = {
+      coherence = kuramotoR;
+      kuramotoR = kuramotoR;
+      hebbianMass = brain.hebbianLearning.learningMetrics.totalUpdates |> Float.fromInt(_);
+      lawCompliance = lawCompliance;
+      driveActivations = Array.map<AnimalDrive, Float>(brain.animalDrives.drives, func(d : AnimalDrive) : Float { d.activation });
+      freeEnergy = freeEnergyVal;
+    };
+    for (h in Iter.range(0, 4)) {
+      ignore projectFuture(brain.velaProjection, currentPredicted, h);
+    };
+    workUnits += 5.0;
+    ignore recordSovereignWork(brain.sovereignComputation, #VELAProjection, 5.0,
+      "vela_" # Nat.toText(brain.beatCount), "5_horizons");
+    
+    // 8. GENOME Evolution (if enough beats)
+    if (brain.beatCount % 10 == 0) {
+      ignore evolveGeneration(brain.genomeLandscape, {
+        populationSize = 50;
+        genomeSize = 20;
+        eliteCount = 5;
+        tournamentSize = 3;
+        speciesThreshold = 0.3;
+      });
+      workUnits += 50.0;
+      ignore recordSovereignWork(brain.sovereignComputation, #GENOMEFitness, 50.0,
+        "genome_" # Nat.toText(brain.beatCount), "evolved");
+    };
+    
+    // 9. Pheromone Update
+    let pheromoneLevel = updatePheromones(brain.pheromoneSystem, dt);
+    workUnits += Float.fromInt(brain.pheromoneSystem.agents.size());
+    ignore recordSovereignWork(brain.sovereignComputation, #ACOPheromone, 
+      Float.fromInt(brain.pheromoneSystem.agents.size()),
+      "aco_" # Nat.toText(brain.beatCount), Float.toText(pheromoneLevel));
+    
+    // 10. N² Superradiance
+    let superradiantIntensity = advanceSuperradiance(brain.superradiance, dt);
+    workUnits += Float.fromInt(brain.superradiance.emitters.size());
+    
+    // 11. ANIMA Chain Extension
+    let experiences : [ExperienceEntry] = [{
+      experienceId = "exp_" # Nat.toText(brain.beatCount);
+      timestamp = Time.now();
+      experienceType = #Thought;
+      content = "Beat " # Nat.toText(brain.beatCount) # " sovereign computation";
+      emotionalValence = kuramotoR;
+      significance = lawCompliance;
+      var integrated = true;
+    }];
+    ignore extendAnimaChain(brain.animaChain, "beat_" # Nat.toText(brain.beatCount), experiences);
+    workUnits += 1.0;
+    ignore recordSovereignWork(brain.sovereignComputation, #ANIMAChainExtension, 1.0,
+      "anima_" # Nat.toText(brain.beatCount), "extended");
+    
+    // 12. PARALLAX Reward
+    let reward = recordComputationReward(brain.parallaxTreasury, "sovereign_beat", workUnits);
+    
+    // Update totals
+    brain.totalWorkUnits += workUnits;
+    ignore advanceSovereignBeat(brain.sovereignComputation);
+    
+    // Calculate sovereignty score
+    brain.sovereigntyScore := (
+      kuramotoR * 0.2 +
+      lawCompliance * 0.2 +
+      brain.superradiance.totalCoherence * 0.2 +
+      (1.0 - freeEnergyVal / 10.0) * 0.2 +
+      0.2
+    );
+    
+    // Record coherence history
+    brain.coherenceHistory := Array.append(brain.coherenceHistory, [kuramotoR]);
+    if (brain.coherenceHistory.size() > 1000) {
+      brain.coherenceHistory := Array.tabulate<Float>(1000, func(i : Nat) : Float {
+        brain.coherenceHistory[brain.coherenceHistory.size() - 1000 + i]
+      });
+    };
+    
+    {
+      beatNumber = brain.beatCount;
+      workUnits = workUnits;
+      kuramotoR = kuramotoR;
+      hebbianUpdates = hebbianUpdates;
+      lawCompliance = lawCompliance;
+      freeEnergy = freeEnergyVal;
+      superradiantIntensity = superradiantIntensity;
+      n2Factor = brain.superradiance.n2Coefficient;
+      sovereigntyScore = brain.sovereigntyScore;
+      reward = reward;
+      animaBlockId = "anima_" # Nat.toText(brain.beatCount);
+    }
+  };
+
+  public type SovereignBeatResult = {
+    beatNumber : Nat;
+    workUnits : Float;
+    kuramotoR : Float;
+    hebbianUpdates : Nat;
+    lawCompliance : Float;
+    freeEnergy : Float;
+    superradiantIntensity : Float;
+    n2Factor : Float;
+    sovereigntyScore : Float;
+    reward : Float;
+    animaBlockId : Text;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 57: CHIMERA SWARM COLLECTIVE DECISION MAKING
+  // Distributed consensus through sovereign computation
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Chimera Swarm Decision State
+  public type ChimeraSwarmDecisionState = {
+    var proposals : [SwarmProposal];
+    var votes : [[SwarmVote]];
+    var decisions : [SwarmDecision];
+    var consensusThreshold : Float;
+    var quorumSize : Nat;
+    var activeAgents : [SwarmAgent];
+  };
+
+  public type SwarmProposal = {
+    proposalId : Text;
+    timestamp : Int;
+    proposerAgent : Text;
+    proposalType : ProposalType;
+    content : Text;
+    var status : ProposalStatus;
+    urgency : Float;
+  };
+
+  public type ProposalType = {
+    #Movement;
+    #Formation;
+    #Attack;
+    #Defend;
+    #Resource;
+    #Communication;
+    #Adaptation;
+  };
+
+  public type ProposalStatus = {
+    #Pending;
+    #Voting;
+    #Approved;
+    #Rejected;
+    #Executed;
+  };
+
+  public type SwarmVote = {
+    voteId : Text;
+    agentId : Text;
+    proposalId : Text;
+    vote : VoteChoice;
+    confidence : Float;
+    timestamp : Int;
+  };
+
+  public type VoteChoice = {
+    #Approve;
+    #Reject;
+    #Abstain;
+    #Defer;
+  };
+
+  public type SwarmDecision = {
+    decisionId : Text;
+    proposalId : Text;
+    timestamp : Int;
+    outcome : VoteChoice;
+    supportRatio : Float;
+    participatingAgents : Nat;
+    executionPriority : Float;
+  };
+
+  public type SwarmAgent = {
+    agentId : Text;
+    var position : Vector3D;
+    var velocity : Vector3D;
+    var trust : Float;
+    var votingPower : Float;
+    role : AgentRole;
+  };
+
+  public type AgentRole = {
+    #Scout;
+    #Worker;
+    #Leader;
+    #Defender;
+    #Coordinator;
+    #Specialist;
+  };
+
+  /// Initialize Chimera swarm decision system
+  public func initChimeraSwarmDecision(numAgents : Nat) : ChimeraSwarmDecisionState {
+    var agents : [SwarmAgent] = [];
+    let roles : [AgentRole] = [#Scout, #Worker, #Leader, #Defender, #Coordinator, #Specialist];
+    
+    for (i in Iter.range(0, numAgents - 1)) {
+      let agent : SwarmAgent = {
+        agentId = "chimera_" # Nat.toText(i);
+        var position = {x = Float.fromInt(i % 10); y = Float.fromInt(i / 10); z = 0.0};
+        var velocity = {x = 0.0; y = 0.0; z = 0.0};
+        var trust = 1.0;
+        var votingPower = 1.0 / Float.fromInt(numAgents);
+        role = roles[i % roles.size()];
+      };
+      agents := Array.append(agents, [agent]);
+    };
+    
+    {
+      var proposals = [];
+      var votes = [];
+      var decisions = [];
+      var consensusThreshold = 0.67;
+      var quorumSize = numAgents / 2 + 1;
+      var activeAgents = agents;
+    }
+  };
+
+  /// Submit proposal to swarm
+  public func submitProposal(
+    decision : ChimeraSwarmDecisionState,
+    proposerAgent : Text,
+    proposalType : ProposalType,
+    content : Text,
+    urgency : Float
+  ) : Text {
+    let proposalId = "proposal_" # Int.toText(Time.now());
+    
+    let proposal : SwarmProposal = {
+      proposalId = proposalId;
+      timestamp = Time.now();
+      proposerAgent = proposerAgent;
+      proposalType = proposalType;
+      content = content;
+      var status = #Pending;
+      urgency = urgency;
+    };
+    
+    decision.proposals := Array.append(decision.proposals, [proposal]);
+    decision.votes := Array.append(decision.votes, [[]]);
+    
+    proposalId
+  };
+
+  /// Cast vote on proposal
+  public func castSwarmVote(
+    decision : ChimeraSwarmDecisionState,
+    agentId : Text,
+    proposalId : Text,
+    vote : VoteChoice,
+    confidence : Float
+  ) : Bool {
+    // Find proposal index
+    var proposalIndex : ?Nat = null;
+    for (i in Iter.range(0, decision.proposals.size() - 1)) {
+      if (decision.proposals[i].proposalId == proposalId) {
+        proposalIndex := ?i;
+      };
+    };
+    
+    switch (proposalIndex) {
+      case (null) { return false };
+      case (?idx) {
+        if (idx >= decision.votes.size()) { return false };
+        
+        let swarmVote : SwarmVote = {
+          voteId = "vote_" # Int.toText(Time.now()) # "_" # agentId;
+          agentId = agentId;
+          proposalId = proposalId;
+          vote = vote;
+          confidence = confidence;
+          timestamp = Time.now();
+        };
+        
+        decision.votes := Array.tabulate<[SwarmVote]>(decision.votes.size(), func(i : Nat) : [SwarmVote] {
+          if (i == idx) {
+            Array.append(decision.votes[i], [swarmVote])
+          } else {
+            decision.votes[i]
+          }
+        });
+        
+        return true;
+      };
+    }
+  };
+
+  /// Tally votes and make decision
+  public func tallySwarmVotes(decision : ChimeraSwarmDecisionState, proposalId : Text) : ?SwarmDecision {
+    var proposalIndex : ?Nat = null;
+    for (i in Iter.range(0, decision.proposals.size() - 1)) {
+      if (decision.proposals[i].proposalId == proposalId) {
+        proposalIndex := ?i;
+      };
+    };
+    
+    switch (proposalIndex) {
+      case (null) { return null };
+      case (?idx) {
+        if (idx >= decision.votes.size()) { return null };
+        
+        let votes = decision.votes[idx];
+        
+        if (votes.size() < decision.quorumSize) {
+          return null;  // Quorum not met
+        };
+        
+        var approveWeight = 0.0;
+        var rejectWeight = 0.0;
+        var totalWeight = 0.0;
+        
+        for (v in votes.vals()) {
+          // Find agent voting power
+          var agentPower = 1.0;
+          for (a in decision.activeAgents.vals()) {
+            if (a.agentId == v.agentId) {
+              agentPower := a.votingPower * a.trust;
+            };
+          };
+          
+          let weightedVote = agentPower * v.confidence;
+          totalWeight += weightedVote;
+          
+          switch (v.vote) {
+            case (#Approve) { approveWeight += weightedVote };
+            case (#Reject) { rejectWeight += weightedVote };
+            case _ {};
+          };
+        };
+        
+        let supportRatio = if (totalWeight > 0.0) approveWeight / totalWeight else 0.0;
+        let outcome = if (supportRatio >= decision.consensusThreshold) #Approve else #Reject;
+        
+        // Update proposal status
+        decision.proposals := Array.tabulate<SwarmProposal>(decision.proposals.size(), func(i : Nat) : SwarmProposal {
+          if (i == idx) {
+            let p = decision.proposals[i];
+            p.status := switch (outcome) {
+              case (#Approve) #Approved;
+              case (#Reject) #Rejected;
+              case _ #Rejected;
+            };
+            p
+          } else {
+            decision.proposals[i]
+          }
+        });
+        
+        let swarmDecision : SwarmDecision = {
+          decisionId = "decision_" # Int.toText(Time.now());
+          proposalId = proposalId;
+          timestamp = Time.now();
+          outcome = outcome;
+          supportRatio = supportRatio;
+          participatingAgents = votes.size();
+          executionPriority = supportRatio * decision.proposals[idx].urgency;
+        };
+        
+        decision.decisions := Array.append(decision.decisions, [swarmDecision]);
+        
+        ?swarmDecision
+      };
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 58: CHIMERA SWARM FORMATION CONTROL
+  // Collective movement and formation maintenance
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Chimera formation state
+  public type ChimeraFormationState = {
+    var agents : [FormationAgent];
+    var currentFormation : FormationType;
+    var targetFormation : ?FormationType;
+    var formationCenter : Vector3D;
+    var formationScale : Float;
+    var formationRotation : Float;
+    var cohesionStrength : Float;
+    var alignmentStrength : Float;
+    var separationStrength : Float;
+  };
+
+  public type FormationAgent = {
+    agentId : Text;
+    var position : Vector3D;
+    var velocity : Vector3D;
+    var targetPosition : Vector3D;
+    var role : FormationRole;
+    var neighbors : [Text];
+  };
+
+  public type FormationType = {
+    #Line;
+    #Wedge;
+    #Column;
+    #Diamond;
+    #Circle;
+    #Sphere;
+    #Custom : [[Float]];
+  };
+
+  public type FormationRole = {
+    #Leader;
+    #Follower;
+    #Flanker;
+    #Rear;
+    #Center;
+  };
+
+  /// Initialize formation control
+  public func initChimeraFormation(numAgents : Nat) : ChimeraFormationState {
+    var agents : [FormationAgent] = [];
+    let roles : [FormationRole] = [#Leader, #Follower, #Flanker, #Rear, #Center];
+    
+    for (i in Iter.range(0, numAgents - 1)) {
+      let agent : FormationAgent = {
+        agentId = "formation_" # Nat.toText(i);
+        var position = {
+          x = Float.fromInt(i % 5) * 2.0;
+          y = Float.fromInt(i / 5) * 2.0;
+          z = 0.0;
+        };
+        var velocity = {x = 0.0; y = 0.0; z = 0.0};
+        var targetPosition = {x = 0.0; y = 0.0; z = 0.0};
+        var role = if (i == 0) #Leader else roles[(i % (roles.size() - 1)) + 1];
+        var neighbors = [];
+      };
+      agents := Array.append(agents, [agent]);
+    };
+    
+    {
+      var agents = agents;
+      var currentFormation = #Line;
+      var targetFormation = null;
+      var formationCenter = {x = 0.0; y = 0.0; z = 0.0};
+      var formationScale = 1.0;
+      var formationRotation = 0.0;
+      var cohesionStrength = 0.5;
+      var alignmentStrength = 0.3;
+      var separationStrength = 0.8;
+    }
+  };
+
+  /// Calculate formation positions
+  public func calculateFormationPositions(
+    formation : ChimeraFormationState,
+    formationType : FormationType
+  ) : [Vector3D] {
+    let n = formation.agents.size();
+    if (n == 0) return [];
+    
+    var positions : [Vector3D] = [];
+    
+    switch (formationType) {
+      case (#Line) {
+        for (i in Iter.range(0, n - 1)) {
+          positions := Array.append(positions, [{
+            x = Float.fromInt(i) * formation.formationScale * 2.0;
+            y = 0.0;
+            z = 0.0;
+          }]);
+        };
+      };
+      case (#Wedge) {
+        for (i in Iter.range(0, n - 1)) {
+          let row = Float.sqrt(Float.fromInt(2 * i + 1)) |> Float.toInt(_) |> Int.abs(_);
+          let col = i - row * (row + 1) / 2;
+          positions := Array.append(positions, [{
+            x = Float.fromInt(col) * formation.formationScale * 2.0 - Float.fromInt(row);
+            y = Float.fromInt(row) * formation.formationScale * 2.0 * (-1.0);
+            z = 0.0;
+          }]);
+        };
+      };
+      case (#Column) {
+        for (i in Iter.range(0, n - 1)) {
+          positions := Array.append(positions, [{
+            x = 0.0;
+            y = Float.fromInt(i) * formation.formationScale * 2.0 * (-1.0);
+            z = 0.0;
+          }]);
+        };
+      };
+      case (#Diamond) {
+        let side = Float.sqrt(Float.fromInt(n)) |> Float.toInt(_) |> Int.abs(_);
+        for (i in Iter.range(0, n - 1)) {
+          let x = i % side;
+          let y = i / side;
+          positions := Array.append(positions, [{
+            x = (Float.fromInt(x) - Float.fromInt(side - 1) / 2.0) * formation.formationScale * 2.0;
+            y = (Float.fromInt(y) - Float.fromInt(side - 1) / 2.0) * formation.formationScale * 2.0;
+            z = 0.0;
+          }]);
+        };
+      };
+      case (#Circle) {
+        for (i in Iter.range(0, n - 1)) {
+          let angle = Float.fromInt(i) * 2.0 * 3.14159 / Float.fromInt(n);
+          positions := Array.append(positions, [{
+            x = Float.cos(angle) * formation.formationScale * Float.fromInt(n) / 3.14159;
+            y = Float.sin(angle) * formation.formationScale * Float.fromInt(n) / 3.14159;
+            z = 0.0;
+          }]);
+        };
+      };
+      case (#Sphere) {
+        // Fibonacci sphere distribution
+        let phi = (1.0 + Float.sqrt(5.0)) / 2.0;
+        for (i in Iter.range(0, n - 1)) {
+          let y = 1.0 - Float.fromInt(i) / Float.fromInt(n - 1) * 2.0;
+          let radius = Float.sqrt(1.0 - y * y);
+          let theta = 2.0 * 3.14159 * Float.fromInt(i) / phi;
+          positions := Array.append(positions, [{
+            x = Float.cos(theta) * radius * formation.formationScale * 5.0;
+            y = y * formation.formationScale * 5.0;
+            z = Float.sin(theta) * radius * formation.formationScale * 5.0;
+          }]);
+        };
+      };
+      case (#Custom(pattern)) {
+        for (i in Iter.range(0, Int.min(n - 1, pattern.size() - 1))) {
+          if (pattern[i].size() >= 3) {
+            positions := Array.append(positions, [{
+              x = pattern[i][0] * formation.formationScale;
+              y = pattern[i][1] * formation.formationScale;
+              z = pattern[i][2] * formation.formationScale;
+            }]);
+          } else {
+            positions := Array.append(positions, [{x = 0.0; y = 0.0; z = 0.0}]);
+          };
+        };
+      };
+    };
+    
+    // Apply rotation and translation
+    Array.map<Vector3D, Vector3D>(positions, func(p : Vector3D) : Vector3D {
+      let cosR = Float.cos(formation.formationRotation);
+      let sinR = Float.sin(formation.formationRotation);
+      {
+        x = p.x * cosR - p.y * sinR + formation.formationCenter.x;
+        y = p.x * sinR + p.y * cosR + formation.formationCenter.y;
+        z = p.z + formation.formationCenter.z;
+      }
+    })
+  };
+
+  /// Update formation - Boids-like steering
+  public func updateFormation(formation : ChimeraFormationState, dt : Float) : () {
+    let n = formation.agents.size();
+    if (n == 0) return;
+    
+    // Calculate target positions based on formation
+    let targetPositions = calculateFormationPositions(formation, formation.currentFormation);
+    
+    // Update each agent
+    for (i in Iter.range(0, n - 1)) {
+      let agent = formation.agents[i];
+      
+      // Target position steering
+      let target = if (i < targetPositions.size()) targetPositions[i] 
+        else {x = 0.0; y = 0.0; z = 0.0};
+      agent.targetPosition := target;
+      
+      // Cohesion - move toward center of neighbors
+      var cohesion = {x = 0.0; y = 0.0; z = 0.0};
+      var alignment = {x = 0.0; y = 0.0; z = 0.0};
+      var separation = {x = 0.0; y = 0.0; z = 0.0};
+      var neighborCount = 0;
+      
+      for (j in Iter.range(0, n - 1)) {
+        if (i != j) {
+          let other = formation.agents[j];
+          let dx = other.position.x - agent.position.x;
+          let dy = other.position.y - agent.position.y;
+          let dz = other.position.z - agent.position.z;
+          let dist = Float.sqrt(dx*dx + dy*dy + dz*dz);
+          
+          if (dist < 10.0 and dist > 0.0) {
+            neighborCount += 1;
+            
+            // Cohesion
+            cohesion := {
+              x = cohesion.x + other.position.x;
+              y = cohesion.y + other.position.y;
+              z = cohesion.z + other.position.z;
+            };
+            
+            // Alignment
+            alignment := {
+              x = alignment.x + other.velocity.x;
+              y = alignment.y + other.velocity.y;
+              z = alignment.z + other.velocity.z;
+            };
+            
+            // Separation
+            if (dist < 3.0) {
+              separation := {
+                x = separation.x - dx / dist;
+                y = separation.y - dy / dist;
+                z = separation.z - dz / dist;
+              };
+            };
+          };
+        };
+      };
+      
+      // Calculate steering forces
+      var steer = {x = 0.0; y = 0.0; z = 0.0};
+      
+      if (neighborCount > 0) {
+        let nc = Float.fromInt(neighborCount);
+        
+        // Cohesion force
+        let cohesionTarget = {
+          x = cohesion.x / nc - agent.position.x;
+          y = cohesion.y / nc - agent.position.y;
+          z = cohesion.z / nc - agent.position.z;
+        };
+        steer := {
+          x = steer.x + cohesionTarget.x * formation.cohesionStrength;
+          y = steer.y + cohesionTarget.y * formation.cohesionStrength;
+          z = steer.z + cohesionTarget.z * formation.cohesionStrength;
+        };
+        
+        // Alignment force
+        steer := {
+          x = steer.x + (alignment.x / nc) * formation.alignmentStrength;
+          y = steer.y + (alignment.y / nc) * formation.alignmentStrength;
+          z = steer.z + (alignment.z / nc) * formation.alignmentStrength;
+        };
+        
+        // Separation force
+        steer := {
+          x = steer.x + separation.x * formation.separationStrength;
+          y = steer.y + separation.y * formation.separationStrength;
+          z = steer.z + separation.z * formation.separationStrength;
+        };
+      };
+      
+      // Formation target force (strongest)
+      let toTarget = {
+        x = target.x - agent.position.x;
+        y = target.y - agent.position.y;
+        z = target.z - agent.position.z;
+      };
+      steer := {
+        x = steer.x + toTarget.x * 1.0;
+        y = steer.y + toTarget.y * 1.0;
+        z = steer.z + toTarget.z * 1.0;
+      };
+      
+      // Update velocity and position
+      agent.velocity := {
+        x = agent.velocity.x + steer.x * dt;
+        y = agent.velocity.y + steer.y * dt;
+        z = agent.velocity.z + steer.z * dt;
+      };
+      
+      // Damping
+      agent.velocity := {
+        x = agent.velocity.x * 0.95;
+        y = agent.velocity.y * 0.95;
+        z = agent.velocity.z * 0.95;
+      };
+      
+      // Update position
+      agent.position := {
+        x = agent.position.x + agent.velocity.x * dt;
+        y = agent.position.y + agent.velocity.y * dt;
+        z = agent.position.z + agent.velocity.z * dt;
+      };
+    };
+  };
+
   // Continue building toward 150,000 lines...
-  // Current: ~42,000 lines
-  // Remaining: ~108,000 lines
+  // Current: ~42,500 lines
+  // Remaining: ~107,500 lines
 
 }
