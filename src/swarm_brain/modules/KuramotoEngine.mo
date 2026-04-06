@@ -68,6 +68,118 @@ module {
   // ── Constants ─────────────────────────────────────────────────
   let PI     : Float = 3.14159265358979323846;
   let TWO_PI : Float = 6.28318530717958647692;
+  let PHI    : Float = 1.6180339887498948;
+  let PHI_INV: Float = 0.6180339887498948;
+  let SQRT3  : Float = 1.7320508075688772;  // √3 = Vesica Piscis ratio
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SACRED GEOMETRY 12-NODE HIERARCHY
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // The 12 nodes have SPATIAL GEOMETRY:
+  //   - 4 BODY nodes: TETRAHEDRON (simplest Platonic solid)
+  //   - 8 BRAIN nodes: CUBE/OCTAHEDRON dual (mind duality)
+  //
+  // Coupling strength ∝ geometric adjacency:
+  //   - Tetrahedron edges: 6 connections, coupling = φ
+  //   - Cube edges: 12 connections, coupling = 1.0
+  //   - Body↔Brain interface: 8 connections, coupling = √3 (Vesica Piscis)
+  //
+  // This creates the SACRED COUPLING MATRIX:
+  //   K[i][j] = φ     if both in tetrahedron (body-body)
+  //   K[i][j] = 1.0   if both in cube (brain-brain)
+  //   K[i][j] = √3    if body↔brain interface (Vesica Piscis)
+  //   K[i][j] = 0     if no geometric connection
+  //
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // Node type enumeration
+  public type NodeType = {
+    #Body;   // Tetrahedron node (0-3)
+    #Brain;  // Cube node (4-11)
+  };
+
+  // 12-node sacred geometry layout
+  // Body: 0=heart, 1=gut, 2=adrenals, 3=gonads
+  // Brain: 4=prefrontal, 5=motor, 6=sensory, 7=visual, 
+  //        8=auditory, 9=limbic, 10=memory, 11=executive
+  public let NODE_TYPES : [NodeType] = [
+    #Body,  // 0: heart
+    #Body,  // 1: gut
+    #Body,  // 2: adrenals
+    #Body,  // 3: gonads
+    #Brain, // 4: prefrontal
+    #Brain, // 5: motor
+    #Brain, // 6: sensory
+    #Brain, // 7: visual
+    #Brain, // 8: auditory
+    #Brain, // 9: limbic
+    #Brain, // 10: memory
+    #Brain, // 11: executive
+  ];
+
+  // 12×12 Sacred Coupling Matrix
+  // Encodes the geometric adjacency of the 12 nodes
+  public let SACRED_COUPLING_MATRIX : [[Float]] = [
+    // Row 0: heart (tetrahedron vertex)
+    [0.0, PHI, PHI, PHI, SQRT3, 0.0, 0.0, 0.0, 0.0, SQRT3, 0.0, 0.0],
+    // Row 1: gut (tetrahedron vertex)
+    [PHI, 0.0, PHI, PHI, 0.0, 0.0, SQRT3, 0.0, 0.0, SQRT3, 0.0, 0.0],
+    // Row 2: adrenals (tetrahedron vertex)
+    [PHI, PHI, 0.0, PHI, 0.0, SQRT3, 0.0, 0.0, 0.0, SQRT3, 0.0, SQRT3],
+    // Row 3: gonads (tetrahedron vertex)
+    [PHI, PHI, PHI, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, SQRT3, 0.0, 0.0],
+    // Row 4: prefrontal (cube vertex)
+    [SQRT3, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0],
+    // Row 5: motor (cube vertex)
+    [0.0, 0.0, SQRT3, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+    // Row 6: sensory (cube vertex)
+    [0.0, SQRT3, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0],
+    // Row 7: visual (cube vertex)
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0],
+    // Row 8: auditory (cube vertex)
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0],
+    // Row 9: limbic (cube vertex — emotional center)
+    [SQRT3, SQRT3, SQRT3, SQRT3, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0],
+    // Row 10: memory (cube vertex)
+    [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0],
+    // Row 11: executive (cube vertex)
+    [0.0, 0.0, SQRT3, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0]
+  ];
+
+  // Get coupling strength between two nodes using sacred geometry
+  public func getSacredCoupling(node_i: Nat, node_j: Nat) : Float {
+    if (node_i >= 12 or node_j >= 12) { return 0.0 };
+    SACRED_COUPLING_MATRIX[node_i][node_j]
+  };
+
+  // Total sacred coupling for a node (sum of all connections)
+  public func totalSacredCoupling(node: Nat) : Float {
+    if (node >= 12) { return 0.0 };
+    var total : Float = 0.0;
+    for (coupling in SACRED_COUPLING_MATRIX[node].vals()) {
+      total += coupling;
+    };
+    total
+  };
+
+  // 12-node natural frequencies (octave geometric sequence)
+  // fd(k) = 2.5 × 2^(k-4) Hz for k = 0..11
+  // This creates octave relationships between nodes
+  public let SACRED_NODE_FREQS : [Float] = [
+    0.15625,  // 0: heart      = 2.5 × 2^(-4) = 2.5/16
+    0.3125,   // 1: gut        = 2.5 × 2^(-3) = 2.5/8
+    0.625,    // 2: adrenals   = 2.5 × 2^(-2) = 2.5/4
+    1.25,     // 3: gonads     = 2.5 × 2^(-1) = 2.5/2
+    2.5,      // 4: prefrontal = 2.5 × 2^0 = 2.5
+    5.0,      // 5: motor      = 2.5 × 2^1 = 5
+    10.0,     // 6: sensory    = 2.5 × 2^2 = 10
+    20.0,     // 7: visual     = 2.5 × 2^3 = 20
+    40.0,     // 8: auditory   = 2.5 × 2^4 = 40
+    80.0,     // 9: limbic     = 2.5 × 2^5 = 80
+    160.0,    // 10: memory    = 2.5 × 2^6 = 160
+    320.0     // 11: executive = 2.5 × 2^7 = 320
+  ];
 
   // 18-organ natural frequencies (Hz-equivalent, from swarm_organism spec)
   public let ORGAN_FREQS : [Float] = [
@@ -90,6 +202,177 @@ module {
     0.02,  // ears
     0.13   // spine
   ];
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // SACRED KURAMOTO UPDATE — Using geometric coupling matrix
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Standard Kuramoto: dθᵢ/dt = ωᵢ + (K/N) Σⱼ sin(θⱼ - θᵢ)
+  // Sacred Kuramoto:   dθᵢ/dt = ωᵢ + Σⱼ K[i][j] sin(θⱼ - θᵢ)
+  //
+  // The coupling matrix K[i][j] encodes:
+  //   - φ for body-body (tetrahedron edges)
+  //   - √3 for body-brain interface (Vesica Piscis)
+  //   - 1.0 for brain-brain (cube edges)
+  //
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public type SacredOscillator = {
+    phase      : Float;   // θ ∈ [0, 2π)
+    naturalFreq: Float;   // ωᵢ (from SACRED_NODE_FREQS)
+    nodeType   : NodeType;
+    amplitude  : Float;   // Signal strength
+    nodeIndex  : Nat;     // 0-11
+  };
+
+  public type SacredKuramotoState = {
+    oscillators     : [SacredOscillator];  // 12 sacred nodes
+    globalK         : Float;                // Base coupling strength
+    orderParam      : Float;                // r ∈ [0,1]
+    meanPhase       : Float;                // ψ
+    bodyCoherence   : Float;                // Tetrahedron sync
+    brainCoherence  : Float;                // Cube sync
+    interfaceSync   : Float;                // Body↔Brain sync
+    beatNum         : Nat;
+  };
+
+  // Update single sacred oscillator using geometric coupling
+  func updateSacredOscillator(
+    osc: SacredOscillator,
+    allOscs: [SacredOscillator],
+    globalK: Float,
+    dt: Float
+  ) : SacredOscillator {
+    // Sum coupling influences from all connected nodes
+    var dTheta : Float = osc.naturalFreq;  // Start with natural frequency
+    
+    var j = 0;
+    while (j < 12) {
+      if (j != osc.nodeIndex) {
+        let coupling = getSacredCoupling(osc.nodeIndex, j);
+        if (coupling > 0.0) {
+          // Kuramoto coupling term: K[i][j] × sin(θⱼ - θᵢ)
+          let phaseDiff = allOscs[j].phase - osc.phase;
+          dTheta += globalK * coupling * Float.sin(phaseDiff);
+        };
+      };
+      j += 1;
+    };
+    
+    {
+      phase = wrapPhase(osc.phase + dTheta * dt);
+      naturalFreq = osc.naturalFreq;
+      nodeType = osc.nodeType;
+      amplitude = osc.amplitude;
+      nodeIndex = osc.nodeIndex;
+    }
+  };
+
+  // Compute body coherence (tetrahedron nodes 0-3)
+  public func computeBodyCoherence(oscs: [SacredOscillator]) : Float {
+    if (oscs.size() < 4) { return 0.0 };
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    var i = 0;
+    while (i < 4) {
+      sumCos += Float.cos(oscs[i].phase);
+      sumSin += Float.sin(oscs[i].phase);
+      i += 1;
+    };
+    Float.sqrt(sumCos * sumCos + sumSin * sumSin) / 4.0
+  };
+
+  // Compute brain coherence (cube nodes 4-11)
+  public func computeBrainCoherence(oscs: [SacredOscillator]) : Float {
+    if (oscs.size() < 12) { return 0.0 };
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    var i = 4;
+    while (i < 12) {
+      sumCos += Float.cos(oscs[i].phase);
+      sumSin += Float.sin(oscs[i].phase);
+      i += 1;
+    };
+    Float.sqrt(sumCos * sumCos + sumSin * sumSin) / 8.0
+  };
+
+  // Compute body-brain interface sync (connections with √3 coupling)
+  public func computeInterfaceSync(oscs: [SacredOscillator]) : Float {
+    if (oscs.size() < 12) { return 0.0 };
+    // Average phase coherence across all body-brain connections
+    var syncSum : Float = 0.0;
+    var connections : Nat = 0;
+    
+    // Body nodes (0-3) connected to limbic (9) via √3
+    var body = 0;
+    while (body < 4) {
+      let phaseDiff = Float.abs(oscs[body].phase - oscs[9].phase);
+      syncSum += Float.cos(phaseDiff);  // cos(0) = 1 for perfect sync
+      connections += 1;
+      body += 1;
+    };
+    
+    if (connections > 0) {
+      (syncSum / Float.fromInt(connections) + 1.0) / 2.0  // Normalize to [0,1]
+    } else { 0.5 }
+  };
+
+  // Initialize sacred 12-node Kuramoto system
+  public func initSacredKuramoto() : SacredKuramotoState {
+    let oscs = Array.tabulate<SacredOscillator>(12, func(i) {
+      {
+        phase = Float.fromInt(i) * TWO_PI / 12.0;  // Evenly distributed initial phases
+        naturalFreq = SACRED_NODE_FREQS[i];
+        nodeType = NODE_TYPES[i];
+        amplitude = 1.0;
+        nodeIndex = i;
+      }
+    });
+    
+    {
+      oscillators = oscs;
+      globalK = PHI;  // Golden ratio base coupling
+      orderParam = 0.0;
+      meanPhase = 0.0;
+      bodyCoherence = 0.0;
+      brainCoherence = 0.0;
+      interfaceSync = 0.0;
+      beatNum = 0;
+    }
+  };
+
+  // Tick sacred Kuramoto system
+  public func tickSacredKuramoto(
+    state: SacredKuramotoState,
+    dt: Float,
+    beat: Nat
+  ) : SacredKuramotoState {
+    // Update all oscillators
+    let newOscs = Array.tabulate<SacredOscillator>(12, func(i) {
+      updateSacredOscillator(state.oscillators[i], state.oscillators, state.globalK, dt)
+    });
+    
+    // Compute order parameter for all 12 nodes
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    for (osc in newOscs.vals()) {
+      sumCos += Float.cos(osc.phase);
+      sumSin += Float.sin(osc.phase);
+    };
+    let r = Float.sqrt(sumCos * sumCos + sumSin * sumSin) / 12.0;
+    let psi = Float.arctan2(sumSin, sumCos);
+    
+    {
+      oscillators = newOscs;
+      globalK = state.globalK;
+      orderParam = _clamp(r, 0.0, 1.0);
+      meanPhase = wrapPhase(psi);
+      bodyCoherence = computeBodyCoherence(newOscs);
+      brainCoherence = computeBrainCoherence(newOscs);
+      interfaceSync = computeInterfaceSync(newOscs);
+      beatNum = beat;
+    }
+  };
 
   // ── Clamp helper ──────────────────────────────────────────────
   func _clamp(x: Float, lo: Float, hi: Float) : Float {

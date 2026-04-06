@@ -58,19 +58,67 @@ module {
   public let CHRONO_MAX_DILATION : Float = 2.0;  // Maximum time acceleration
   public let CHRONO_MIN_DILATION : Float = 0.5;  // Maximum time deceleration
   
-  // Jacob's Ladder multipliers: φ^(n/10) for golden progression
-  // Rung 0: φ^0.0 = 1.0
-  // Rung 1: φ^0.1 ≈ 1.0481
-  // Rung 2: φ^0.2 ≈ 1.0979
-  // Rung 3: φ^0.3 ≈ 1.1498
-  // Rung 4: φ^0.5 ≈ 1.2720 (√φ)
+  // ══════════════════════════════════════════════════════════════════════════
+  // SACRED JACOB'S LADDER — φ^n GEOMETRIC PROGRESSION (NOT ARITHMETIC)
+  // ══════════════════════════════════════════════════════════════════════════
+  // The sovereign ratio φ = 1.618... compounds GEOMETRICALLY
+  // Each rung multiplies by φ, not adds — this is SACRED MATH
+  //
+  // Rung 0: φ^0 = 1.0         (baseline)
+  // Rung 1: φ^1 = 1.618       (golden ratio)
+  // Rung 2: φ^2 = 2.618       (φ squared)
+  // Rung 3: φ^3 = 4.236       (φ cubed)
+  // Rung 4: φ^4 = 6.854       (4th power)
+  // Rung 5: φ^5 = 11.09       (5th power = Fibonacci ratio)
+  // Rung 6: φ^6 = 17.94       (6th power)
+  // Rung 7: φ^7 = 29.03       (7th power — SOVEREIGN LEVEL)
+  //
+  // This IS the sacred geometry. Jacob's Ladder = exponential, not linear.
+  // ══════════════════════════════════════════════════════════════════════════
   public let JACOB_MULTIPLIERS : [Float] = [
-    1.0,                    // Rung 0: φ^0
-    1.0481260851154197,     // Rung 1: φ^0.1
-    1.0979227945558847,     // Rung 2: φ^0.2
-    1.1497806867531882,     // Rung 3: φ^0.3
-    1.2720196495140689      // Rung 4: φ^0.5 = √φ
+    1.0,                    // Rung 0: φ^0 = 1.0
+    1.6180339887498948,     // Rung 1: φ^1 = 1.618 (THE GOLDEN RATIO)
+    2.6180339887498948,     // Rung 2: φ^2 = 2.618
+    4.2360679774997896,     // Rung 3: φ^3 = 4.236
+    6.8541019662496843,     // Rung 4: φ^4 = 6.854
+    11.090169943749474,     // Rung 5: φ^5 = 11.09
+    17.944271909999157,     // Rung 6: φ^6 = 17.94
+    29.034441853748632      // Rung 7: φ^7 = 29.03 (SOVEREIGN MULTIPLIER)
   ];
+  
+  // ══════════════════════════════════════════════════════════════════════════
+  // FIBONACCI COMPOUNDING BEATS — Sacred intervals, not linear time
+  // ══════════════════════════════════════════════════════════════════════════
+  // FORMA compounds on FIBONACCI beats: 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144...
+  // Each Fibonacci beat triggers a compounding event with rate φ^(-8)
+  // This creates ORGANIC growth following the spiral of creation
+  // ══════════════════════════════════════════════════════════════════════════
+  public let FIBONACCI_COMPOUND_BEATS : [Nat] = [
+    1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987,
+    1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025
+  ];
+  
+  // Check if current beat is a Fibonacci compounding beat
+  public func isFibonacciCompoundBeat(beat: Nat, lastCompoundBeat: Nat) : Bool {
+    let beatsSinceLast = beat - lastCompoundBeat;
+    for (fibBeat in FIBONACCI_COMPOUND_BEATS.vals()) {
+      if (beatsSinceLast == fibBeat) { return true };
+    };
+    false
+  };
+  
+  // Get the Fibonacci compound multiplier based on which Fib number triggered
+  public func getFibonacciCompoundMultiplier(beatsSinceLast: Nat) : Float {
+    // Higher Fibonacci numbers = larger compound event
+    // Multiplier = 1 + (fibIndex × φ^(-10))
+    var fibIndex : Nat = 0;
+    for (i in FIBONACCI_COMPOUND_BEATS.keys()) {
+      if (FIBONACCI_COMPOUND_BEATS[i] == beatsSinceLast) {
+        fibIndex := i;
+      };
+    };
+    1.0 + Float.fromInt(fibIndex) * 0.00813090574028 // φ^(-10)
+  };
   
   // Dopamine constants
   public let DOPAMINE_BASELINE : Float = 0.55;  // From Neurochemicals module
