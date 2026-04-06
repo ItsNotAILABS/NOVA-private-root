@@ -28592,8 +28592,2101 @@ module {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 19: COMMUNICATIONS & NETWORKING STACK
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Full communications and networking state
+  public type CommunicationsState = {
+    var radioLinks : [RadioLink];
+    var meshNetwork : MeshNetworkState;
+    var satellites : [SatelliteLink];
+    var protocols : [ProtocolStack];
+    var encryption : EncryptionState;
+    var jamming : AntiJammingState;
+  };
+
+  public type RadioLink = {
+    linkId : Text;
+    linkType : RadioLinkType;
+    frequency : Float;
+    bandwidth : Float;
+    power : Float;
+    var status : LinkStatus;
+    var quality : LinkQuality;
+    endpoints : (Text, Text);
+    var lastHeartbeat : Int;
+  };
+
+  public type RadioLinkType = {
+    #VHF;
+    #UHF;
+    #HF;
+    #SHF;
+    #EHF;
+    #Microwave;
+    #MillimeterWave;
+    #LaserComm;
+    #AcousticUnderwater;
+  };
+
+  public type LinkStatus = {
+    #Active;
+    #Degraded;
+    #Jammed;
+    #Lost;
+    #Establishing;
+    #Standby;
+  };
+
+  public type LinkQuality = {
+    signalStrength : Float;
+    noiseFloor : Float;
+    snr : Float;
+    ber : Float;
+    latency : Float;
+    jitter : Float;
+    packetLoss : Float;
+  };
+
+  public type MeshNetworkState = {
+    var nodes : [MeshNode];
+    var topology : NetworkTopology;
+    var routingTable : [(Text, [Text])];
+    var bandwidth : Float;
+    var redundancy : Float;
+  };
+
+  public type MeshNode = {
+    nodeId : Text;
+    position : Vector3;
+    nodeType : MeshNodeType;
+    var neighbors : [Text];
+    var routing : RoutingState;
+    var load : Float;
+  };
+
+  public type MeshNodeType = {
+    #Gateway;
+    #Relay;
+    #Endpoint;
+    #Backbone;
+    #Mobile;
+  };
+
+  public type RoutingState = {
+    algorithm : RoutingAlgorithm;
+    var routes : [(Text, Route)];
+    var metrics : RoutingMetrics;
+  };
+
+  public type RoutingAlgorithm = {
+    #AODV;
+    #DSR;
+    #OLSR;
+    #BATMAN;
+    #HWMP;
+    #Gradient;
+    #Geographic;
+  };
+
+  public type Route = {
+    destination : Text;
+    nextHop : Text;
+    hops : Nat;
+    metric : Float;
+    var valid : Bool;
+    expiry : Int;
+  };
+
+  public type RoutingMetrics = {
+    deliveryRatio : Float;
+    avgHops : Float;
+    routeChanges : Nat;
+    overhead : Float;
+  };
+
+  public type SatelliteLink = {
+    satId : Text;
+    constellation : ConstellationType;
+    orbitalParams : OrbitalParameters;
+    var visible : Bool;
+    var elevation : Float;
+    var azimuth : Float;
+    var doppler : Float;
+    linkBudget : SatLinkBudget;
+  };
+
+  public type ConstellationType = {
+    #LEO;
+    #MEO;
+    #GEO;
+    #HEO;
+    #Molniya;
+  };
+
+  public type OrbitalParameters = {
+    altitude : Float;
+    inclination : Float;
+    eccentricity : Float;
+    raan : Float;
+    argPerigee : Float;
+    period : Float;
+  };
+
+  public type SatLinkBudget = {
+    eirp : Float;
+    gT : Float;
+    pathLoss : Float;
+    atmosphericLoss : Float;
+    margin : Float;
+    dataRate : Float;
+  };
+
+  public type ProtocolStack = {
+    stackId : Text;
+    layers : [ProtocolLayer];
+    var activeConnections : Nat;
+    var throughput : Float;
+  };
+
+  public type ProtocolLayer = {
+    layerType : OSILayer;
+    protocol : Text;
+    var state : ProtocolState;
+    config : [(Text, Text)];
+  };
+
+  public type OSILayer = {
+    #Physical;
+    #DataLink;
+    #Network;
+    #Transport;
+    #Session;
+    #Presentation;
+    #Application;
+  };
+
+  public type ProtocolState = {
+    #Idle;
+    #Connecting;
+    #Connected;
+    #Disconnecting;
+    #Error;
+  };
+
+  public type EncryptionState = {
+    var keys : [CryptoKey];
+    var sessions : [EncryptedSession];
+    algorithm : EncryptionAlgorithm;
+    keyExchange : KeyExchangeMethod;
+  };
+
+  public type CryptoKey = {
+    keyId : Text;
+    keyType : KeyType;
+    algorithm : Text;
+    var valid : Bool;
+    created : Int;
+    expires : ?Int;
+  };
+
+  public type KeyType = {
+    #Symmetric;
+    #PublicKey;
+    #PrivateKey;
+    #SessionKey;
+    #MasterKey;
+  };
+
+  public type EncryptedSession = {
+    sessionId : Text;
+    peers : (Text, Text);
+    keyId : Text;
+    var bytesEncrypted : Nat;
+    var lastActivity : Int;
+  };
+
+  public type EncryptionAlgorithm = {
+    #AES_256_GCM;
+    #ChaCha20_Poly1305;
+    #AES_256_CBC;
+    #Camellia_256;
+    #Twofish;
+  };
+
+  public type KeyExchangeMethod = {
+    #ECDH;
+    #DH;
+    #RSA;
+    #Kyber;
+    #NTRU;
+  };
+
+  public type AntiJammingState = {
+    var detectedJamming : [JammingEvent];
+    var countermeasures : [AntiJamTechnique];
+    var frequencyHopping : FHSSState;
+    var spreadSpectrum : DSSState;
+  };
+
+  public type JammingEvent = {
+    eventId : Text;
+    timestamp : Int;
+    frequency : Float;
+    bandwidth : Float;
+    power : Float;
+    jammingType : JammingType;
+    var mitigated : Bool;
+  };
+
+  public type JammingType = {
+    #Noise;
+    #Spot;
+    #Sweep;
+    #Barrage;
+    #Pulse;
+    #Smart;
+    #Follower;
+  };
+
+  public type AntiJamTechnique = {
+    #FrequencyHopping;
+    #DirectSequence;
+    #AdaptiveNulling;
+    #PowerControl;
+    #BurstTransmission;
+    #Retransmission;
+  };
+
+  public type FHSSState = {
+    hopSet : [Float];
+    hopRate : Float;
+    var currentHop : Nat;
+    syncPattern : [Nat];
+    var synchronized : Bool;
+  };
+
+  public type DSSState = {
+    chipRate : Float;
+    spreadingCode : [Int];
+    processingGain : Float;
+    var codePhase : Float;
+  };
+
+  /// Initialize communications
+  public func initCommunications() : CommunicationsState {
+    {
+      var radioLinks = [];
+      var meshNetwork = {
+        var nodes = [];
+        var topology = {
+          topologyType = #Mesh;
+          var adjacencyMatrix = [];
+          var diameter = 0;
+          var avgDegree = 0.0;
+          var clustering = 0.0;
+        };
+        var routingTable = [];
+        var bandwidth = 0.0;
+        var redundancy = 0.0;
+      };
+      var satellites = [];
+      var protocols = [];
+      var encryption = {
+        var keys = [];
+        var sessions = [];
+        algorithm = #AES_256_GCM;
+        keyExchange = #ECDH;
+      };
+      var jamming = {
+        var detectedJamming = [];
+        var countermeasures = [];
+        var frequencyHopping = {
+          hopSet = [];
+          hopRate = 100.0;
+          var currentHop = 0;
+          syncPattern = [];
+          var synchronized = false;
+        };
+        var spreadSpectrum = {
+          chipRate = 1e6;
+          spreadingCode = [];
+          processingGain = 20.0;
+          var codePhase = 0.0;
+        };
+      };
+    }
+  };
+
+  /// Create radio link
+  public func createRadioLink(
+    comms : CommunicationsState,
+    linkType : RadioLinkType,
+    frequency : Float,
+    endpoints : (Text, Text)
+  ) : Text {
+    let linkId = Int.toText(Time.now());
+    
+    let link : RadioLink = {
+      linkId = linkId;
+      linkType = linkType;
+      frequency = frequency;
+      bandwidth = 1e6;  // 1 MHz default
+      power = 10.0;  // 10W default
+      var status = #Establishing;
+      var quality = {
+        signalStrength = -70.0;
+        noiseFloor = -100.0;
+        snr = 30.0;
+        ber = 1e-6;
+        latency = 10.0;
+        jitter = 1.0;
+        packetLoss = 0.01;
+      };
+      endpoints = endpoints;
+      var lastHeartbeat = Time.now();
+    };
+    
+    comms.radioLinks := Array.append(comms.radioLinks, [link]);
+    
+    linkId
+  };
+
+  /// Update link quality
+  public func updateLinkQuality(comms : CommunicationsState, linkId : Text, quality : LinkQuality) : Bool {
+    for (link in comms.radioLinks.vals()) {
+      if (link.linkId == linkId) {
+        link.quality := quality;
+        link.lastHeartbeat := Time.now();
+        
+        // Update status based on quality
+        if (quality.snr < 5.0 or quality.ber > 0.01) {
+          link.status := #Degraded;
+        } else if (quality.snr < 0.0) {
+          link.status := #Jammed;
+        } else {
+          link.status := #Active;
+        };
+        
+        return true;
+      };
+    };
+    false
+  };
+
+  /// Add mesh node
+  public func addMeshNode(
+    comms : CommunicationsState,
+    position : Vector3,
+    nodeType : MeshNodeType
+  ) : Text {
+    let nodeId = Int.toText(Time.now());
+    
+    let node : MeshNode = {
+      nodeId = nodeId;
+      position = position;
+      nodeType = nodeType;
+      var neighbors = [];
+      var routing = {
+        algorithm = #AODV;
+        var routes = [];
+        var metrics = {
+          deliveryRatio = 1.0;
+          avgHops = 1.0;
+          routeChanges = 0;
+          overhead = 0.0;
+        };
+      };
+      var load = 0.0;
+    };
+    
+    comms.meshNetwork.nodes := Array.append(comms.meshNetwork.nodes, [node]);
+    
+    // Update neighbors for all nodes
+    updateMeshNeighbors(comms);
+    
+    nodeId
+  };
+
+  /// Update mesh neighbors based on range
+  func updateMeshNeighbors(comms : CommunicationsState) : () {
+    let communicationRange = 1000.0;  // 1km range
+    
+    for (node in comms.meshNetwork.nodes.vals()) {
+      var newNeighbors : [Text] = [];
+      
+      for (other in comms.meshNetwork.nodes.vals()) {
+        if (node.nodeId != other.nodeId) {
+          let distance = vectorLength(subtractVectors(node.position, other.position));
+          if (distance <= communicationRange) {
+            newNeighbors := Array.append(newNeighbors, [other.nodeId]);
+          };
+        };
+      };
+      
+      node.neighbors := newNeighbors;
+    };
+  };
+
+  /// Find route in mesh
+  public func findMeshRoute(comms : CommunicationsState, source : Text, dest : Text) : ?[Text] {
+    // BFS for shortest path
+    var visited : [Text] = [source];
+    var queue : [(Text, [Text])] = [(source, [source])];
+    
+    while (queue.size() > 0) {
+      let (current, path) = queue[0];
+      queue := Array.tabulate<(Text, [Text])>(queue.size() - 1, func(i : Nat) : (Text, [Text]) {
+        queue[i + 1]
+      });
+      
+      if (current == dest) {
+        return ?path;
+      };
+      
+      // Find neighbors
+      for (node in comms.meshNetwork.nodes.vals()) {
+        if (node.nodeId == current) {
+          for (neighbor in node.neighbors.vals()) {
+            var isVisited = false;
+            for (v in visited.vals()) {
+              if (v == neighbor) isVisited := true;
+            };
+            
+            if (not isVisited) {
+              visited := Array.append(visited, [neighbor]);
+              queue := Array.append(queue, [(neighbor, Array.append(path, [neighbor]))]);
+            };
+          };
+        };
+      };
+    };
+    
+    null
+  };
+
+  /// Calculate satellite visibility
+  public func calculateSatelliteVisibility(
+    sat : SatelliteLink,
+    observerLat : Float,
+    observerLon : Float,
+    observerAlt : Float,
+    time : Int
+  ) : (Float, Float, Bool) {
+    // Simplified visibility calculation
+    let earthRadius = 6371000.0;  // meters
+    let satAlt = sat.orbitalParams.altitude;
+    
+    // Approximate elevation angle (simplified)
+    let elevationAngle = Float.arctan(
+      (satAlt - observerAlt) / (earthRadius * Float.pi / 4.0)
+    ) * 180.0 / Float.pi;
+    
+    // Azimuth (simplified)
+    let azimuth = Float.fromInt(time % 360);
+    
+    // Visible if elevation > 5 degrees
+    let visible = elevationAngle > 5.0;
+    
+    (elevationAngle, azimuth, visible)
+  };
+
+  /// Generate FHSS hop sequence
+  public func generateFHSSSequence(
+    state : FHSSState,
+    seed : Nat,
+    length : Nat
+  ) : [Float] {
+    var hops : [Float] = [];
+    var current = seed;
+    
+    for (_ in Iter.range(0, length - 1)) {
+      // Linear congruential generator for pseudo-random hop
+      current := (current * 1103515245 + 12345) % 2147483648;
+      let hopIndex = current % state.hopSet.size();
+      
+      if (hopIndex < state.hopSet.size()) {
+        hops := Array.append(hops, [state.hopSet[hopIndex]]);
+      };
+    };
+    
+    hops
+  };
+
+  /// Detect jamming
+  public func detectJamming(
+    comms : CommunicationsState,
+    frequency : Float,
+    powerLevel : Float,
+    noiseFloor : Float
+  ) : ?JammingEvent {
+    // Jamming detected if power significantly above noise
+    let threshold = noiseFloor + 20.0;  // 20 dB above noise
+    
+    if (powerLevel > threshold) {
+      let event : JammingEvent = {
+        eventId = Int.toText(Time.now());
+        timestamp = Time.now();
+        frequency = frequency;
+        bandwidth = 1e6;  // Estimate
+        power = powerLevel;
+        jammingType = if (powerLevel > threshold + 30.0) #Barrage else #Spot;
+        var mitigated = false;
+      };
+      
+      comms.jamming.detectedJamming := Array.append(
+        comms.jamming.detectedJamming,
+        [event]
+      );
+      
+      return ?event;
+    };
+    
+    null
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 20: WEATHER AND ENVIRONMENTAL MODELING
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Weather and environmental state
+  public type WeatherState = {
+    var atmosphere : AtmosphericState;
+    var terrain : TerrainState;
+    var ocean : OceanState;
+    var space : SpaceWeatherState;
+    var forecasts : [WeatherForecast];
+  };
+
+  public type AtmosphericState = {
+    var temperature : Float;
+    var pressure : Float;
+    var humidity : Float;
+    var windSpeed : Float;
+    var windDirection : Float;
+    var visibility : Float;
+    var precipitation : PrecipitationType;
+    var cloudCover : Float;
+    var ceiling : Float;
+    var turbulence : TurbulenceLevel;
+    var icing : IcingConditions;
+  };
+
+  public type PrecipitationType = {
+    #None;
+    #Rain : Float;
+    #Snow : Float;
+    #Sleet;
+    #Hail : Float;
+    #Fog;
+    #Mist;
+    #Drizzle;
+  };
+
+  public type TurbulenceLevel = {
+    #None;
+    #Light;
+    #Moderate;
+    #Severe;
+    #Extreme;
+  };
+
+  public type IcingConditions = {
+    #None;
+    #Trace;
+    #Light;
+    #Moderate;
+    #Severe;
+  };
+
+  public type TerrainState = {
+    var elevation : Float;
+    var slope : Float;
+    var aspect : Float;
+    var surfaceType : SurfaceType;
+    var soilMoisture : Float;
+    var vegetation : VegetationType;
+    var snowDepth : Float;
+  };
+
+  public type SurfaceType = {
+    #Asphalt;
+    #Concrete;
+    #Dirt;
+    #Sand;
+    #Gravel;
+    #Grass;
+    #Mud;
+    #Snow;
+    #Ice;
+    #Water;
+    #Rock;
+  };
+
+  public type VegetationType = {
+    #None;
+    #Grass;
+    #Shrubs;
+    #DeciduousForest;
+    #ConiferousForest;
+    #MixedForest;
+    #Jungle;
+    #Marsh;
+    #Crops;
+  };
+
+  public type OceanState = {
+    var seaState : SeaState;
+    var waveHeight : Float;
+    var wavePeriod : Float;
+    var waveDirection : Float;
+    var currentSpeed : Float;
+    var currentDirection : Float;
+    var temperature : Float;
+    var salinity : Float;
+    var thermocline : Float;
+  };
+
+  public type SeaState = {
+    #Calm;
+    #Smooth;
+    #Slight;
+    #Moderate;
+    #Rough;
+    #VeryRough;
+    #High;
+    #VeryHigh;
+    #Phenomenal;
+  };
+
+  public type SpaceWeatherState = {
+    var solarFlux : Float;
+    var kpIndex : Float;
+    var apIndex : Float;
+    var dst : Float;
+    var protonFlux : Float;
+    var electronFlux : Float;
+    var geomagneticStorm : StormLevel;
+    var solarRadiationStorm : StormLevel;
+    var radioBlackout : StormLevel;
+  };
+
+  public type StormLevel = {
+    #None;
+    #Minor;
+    #Moderate;
+    #Strong;
+    #Severe;
+    #Extreme;
+  };
+
+  public type WeatherForecast = {
+    forecastId : Text;
+    validTime : Int;
+    issuedTime : Int;
+    location : Vector3;
+    predicted : AtmosphericState;
+    confidence : Float;
+    source : ForecastSource;
+  };
+
+  public type ForecastSource = {
+    #NWP;
+    #MOS;
+    #Ensemble;
+    #Persistence;
+    #Climatology;
+    #AI;
+  };
+
+  /// Initialize weather state
+  public func initWeatherState() : WeatherState {
+    {
+      var atmosphere = {
+        var temperature = 288.15;  // 15°C
+        var pressure = 101325.0;   // Standard sea level
+        var humidity = 0.5;
+        var windSpeed = 5.0;
+        var windDirection = 270.0;
+        var visibility = 10000.0;
+        var precipitation = #None;
+        var cloudCover = 0.3;
+        var ceiling = 3000.0;
+        var turbulence = #None;
+        var icing = #None;
+      };
+      var terrain = {
+        var elevation = 0.0;
+        var slope = 0.0;
+        var aspect = 0.0;
+        var surfaceType = #Grass;
+        var soilMoisture = 0.3;
+        var vegetation = #Grass;
+        var snowDepth = 0.0;
+      };
+      var ocean = {
+        var seaState = #Moderate;
+        var waveHeight = 1.5;
+        var wavePeriod = 6.0;
+        var waveDirection = 270.0;
+        var currentSpeed = 0.5;
+        var currentDirection = 180.0;
+        var temperature = 288.15;
+        var salinity = 35.0;
+        var thermocline = 50.0;
+      };
+      var space = {
+        var solarFlux = 100.0;
+        var kpIndex = 2.0;
+        var apIndex = 10.0;
+        var dst = -20.0;
+        var protonFlux = 1e4;
+        var electronFlux = 1e5;
+        var geomagneticStorm = #None;
+        var solarRadiationStorm = #None;
+        var radioBlackout = #None;
+      };
+      var forecasts = [];
+    }
+  };
+
+  /// Calculate density altitude
+  public func calculateDensityAltitude(weather : WeatherState) : Float {
+    let pressureAlt = (1.0 - Float.pow(weather.atmosphere.pressure / 101325.0, 0.190284)) * 44330.77;
+    let isaTemp = 288.15 - 0.0065 * pressureAlt;
+    let tempDeviation = weather.atmosphere.temperature - isaTemp;
+    
+    pressureAlt + (120.0 * tempDeviation)
+  };
+
+  /// Calculate wind chill
+  public func calculateWindChill(weather : WeatherState) : Float {
+    let t = weather.atmosphere.temperature - 273.15;  // Celsius
+    let v = weather.atmosphere.windSpeed * 3.6;  // km/h
+    
+    if (t <= 10.0 and v > 4.8) {
+      13.12 + 0.6215 * t - 11.37 * Float.pow(v, 0.16) + 0.3965 * t * Float.pow(v, 0.16)
+    } else {
+      t
+    }
+  };
+
+  /// Calculate heat index
+  public func calculateHeatIndex(weather : WeatherState) : Float {
+    let t = (weather.atmosphere.temperature - 273.15) * 9.0 / 5.0 + 32.0;  // Fahrenheit
+    let rh = weather.atmosphere.humidity * 100.0;
+    
+    if (t >= 80.0) {
+      let hi = -42.379 + 2.04901523 * t + 10.14333127 * rh
+        - 0.22475541 * t * rh - 0.00683783 * t * t
+        - 0.05481717 * rh * rh + 0.00122874 * t * t * rh
+        + 0.00085282 * t * rh * rh - 0.00000199 * t * t * rh * rh;
+      (hi - 32.0) * 5.0 / 9.0 + 273.15
+    } else {
+      weather.atmosphere.temperature
+    }
+  };
+
+  /// Calculate ISA temperature at altitude
+  public func calculateISATemperature(altitude : Float) : Float {
+    if (altitude < 11000.0) {
+      288.15 - 0.0065 * altitude
+    } else if (altitude < 20000.0) {
+      216.65
+    } else if (altitude < 32000.0) {
+      216.65 + 0.001 * (altitude - 20000.0)
+    } else {
+      228.65
+    }
+  };
+
+  /// Calculate atmospheric refraction
+  public func calculateAtmosphericRefraction(elevation : Float) : Float {
+    // Refraction in arcminutes for apparent elevation
+    if (elevation > 0.0) {
+      1.02 / Float.tan((elevation + 10.3 / (elevation + 5.11)) * Float.pi / 180.0)
+    } else {
+      0.0
+    }
+  };
+
+  /// Calculate sound speed in atmosphere
+  public func calculateSoundSpeed(weather : WeatherState) : Float {
+    // Speed of sound depends on temperature
+    331.3 * Float.sqrt(weather.atmosphere.temperature / 273.15)
+  };
+
+  /// Calculate radar propagation factor
+  public func calculateRadarPropagation(weather : WeatherState, range : Float) : Float {
+    // Simplified atmospheric attenuation
+    let baseAttenuation = 0.01;  // dB/km baseline
+    
+    // Precipitation attenuation
+    let precipAttenuation = switch (weather.atmosphere.precipitation) {
+      case (#None) 0.0;
+      case (#Rain(rate)) rate * 0.001;
+      case (#Snow(rate)) rate * 0.0005;
+      case (#Drizzle) 0.005;
+      case (#Fog) 0.02;
+      case _ 0.01;
+    };
+    
+    // Total one-way attenuation in dB
+    (baseAttenuation + precipAttenuation) * range / 1000.0
+  };
+
+  /// Calculate wave force on structure
+  public func calculateWaveForce(ocean : OceanState, structureArea : Float) : Float {
+    let rho = 1025.0;  // Seawater density kg/m³
+    let cd = 1.0;  // Drag coefficient
+    
+    // Morrison equation simplified
+    0.5 * rho * cd * structureArea * ocean.waveHeight * ocean.waveHeight
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 21: HUMAN-MACHINE TEAMING INTERFACE
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Human-machine teaming state
+  public type HMTState = {
+    var operators : [OperatorState];
+    var interfaces : [InterfaceState];
+    var workload : WorkloadState;
+    var trust : TrustModel;
+    var delegation : DelegationState;
+    var alerts : [AlertState];
+  };
+
+  public type OperatorState = {
+    operatorId : Text;
+    role : OperatorRole;
+    var status : OperatorStatus;
+    var workload : Float;
+    var fatigue : Float;
+    var situationalAwareness : Float;
+    var currentTasks : [Text];
+    var permissions : [Permission];
+  };
+
+  public type OperatorRole = {
+    #Commander;
+    #Pilot;
+    #SensorOperator;
+    #MissionPlanner;
+    #IntelligenceAnalyst;
+    #MaintenanceTech;
+    #Observer;
+  };
+
+  public type OperatorStatus = {
+    #Active;
+    #Monitoring;
+    #Overloaded;
+    #Fatigued;
+    #Unavailable;
+    #Handoff;
+  };
+
+  public type Permission = {
+    #FullAutonomy;
+    #WeaponsRelease;
+    #MissionModify;
+    #EmergencyOverride;
+    #ViewOnly;
+    #Restricted;
+  };
+
+  public type InterfaceState = {
+    interfaceId : Text;
+    interfaceType : InterfaceType;
+    var activeDisplays : [DisplayConfig];
+    var inputDevices : [InputDevice];
+    var audio : AudioConfig;
+    var haptic : HapticConfig;
+  };
+
+  public type InterfaceType = {
+    #GroundControlStation;
+    #TabletController;
+    #VRHeadset;
+    #ARHeadset;
+    #VoiceInterface;
+    #GestureInterface;
+    #BrainComputerInterface;
+  };
+
+  public type DisplayConfig = {
+    displayId : Text;
+    displayType : DisplayType;
+    content : DisplayContent;
+    position : (Float, Float);
+    size : (Float, Float);
+    var priority : Nat;
+  };
+
+  public type DisplayType = {
+    #Map;
+    #Video;
+    #Telemetry;
+    #Status;
+    #Timeline;
+    #Chat;
+    #Alerts;
+    #Analytics;
+  };
+
+  public type DisplayContent = {
+    #LiveVideo : Text;
+    #TacticalMap : MapConfig;
+    #TelemetryDashboard : [Text];
+    #AlertList;
+    #MissionTimeline;
+    #Custom : Text;
+  };
+
+  public type MapConfig = {
+    center : Vector3;
+    zoom : Float;
+    layers : [MapLayer];
+    symbology : Text;
+  };
+
+  public type MapLayer = {
+    #Terrain;
+    #Imagery;
+    #Tracks;
+    #Routes;
+    #Threats;
+    #Weather;
+    #Airspace;
+    #Custom : Text;
+  };
+
+  public type InputDevice = {
+    deviceId : Text;
+    deviceType : InputType;
+    var connected : Bool;
+    var lastInput : Int;
+  };
+
+  public type InputType = {
+    #Keyboard;
+    #Mouse;
+    #Joystick;
+    #Throttle;
+    #Touchscreen;
+    #Voice;
+    #Gesture;
+    #EyeTracker;
+    #Pedals;
+  };
+
+  public type AudioConfig = {
+    var masterVolume : Float;
+    var alertVolume : Float;
+    var commVolume : Float;
+    var spatialAudio : Bool;
+    var noiseCancellation : Bool;
+  };
+
+  public type HapticConfig = {
+    var enabled : Bool;
+    var intensity : Float;
+    var patterns : [HapticPattern];
+  };
+
+  public type HapticPattern = {
+    patternId : Text;
+    trigger : Text;
+    effect : HapticEffect;
+    duration : Float;
+  };
+
+  public type HapticEffect = {
+    #Vibration : Float;
+    #Pulse : (Float, Float);
+    #Wave : Float;
+    #Custom : [Float];
+  };
+
+  public type WorkloadState = {
+    var cognitiveLoad : Float;
+    var visualLoad : Float;
+    var auditoryLoad : Float;
+    var motorLoad : Float;
+    var overallWorkload : Float;
+    var taskCount : Nat;
+    var interruptionRate : Float;
+  };
+
+  public type TrustModel = {
+    var humanTrustInSystem : Float;
+    var systemReliability : Float;
+    var calibration : Float;
+    var trustHistory : [(Int, Float)];
+    var trustFactors : [TrustFactor];
+  };
+
+  public type TrustFactor = {
+    factor : Text;
+    weight : Float;
+    var value : Float;
+  };
+
+  public type DelegationState = {
+    var autonomyLevel : AutonomyLevel;
+    var delegatedTasks : [DelegatedTask];
+    var overrides : [OverrideEvent];
+    var adaptationRate : Float;
+  };
+
+  public type AutonomyLevel = {
+    #ManualControl;
+    #AssistedControl;
+    #SharedControl;
+    #SupervisoryControl;
+    #FullAutonomy;
+  };
+
+  public type DelegatedTask = {
+    taskId : Text;
+    taskType : Text;
+    delegatedTo : Text;  // human or system
+    var status : DelegationStatus;
+    constraints : [Text];
+  };
+
+  public type DelegationStatus = {
+    #Pending;
+    #Active;
+    #Completed;
+    #Revoked;
+    #Failed;
+  };
+
+  public type OverrideEvent = {
+    eventId : Text;
+    timestamp : Int;
+    overrideType : OverrideType;
+    reason : Text;
+    outcome : OverrideOutcome;
+  };
+
+  public type OverrideType = {
+    #HumanOverride;
+    #SystemOverride;
+    #EmergencyStop;
+    #SafetyIntervention;
+  };
+
+  public type OverrideOutcome = {
+    #Success;
+    #PartialSuccess;
+    #Failure;
+    #Pending;
+  };
+
+  public type AlertState = {
+    alertId : Text;
+    alertType : AlertType;
+    priority : AlertPriority;
+    message : Text;
+    timestamp : Int;
+    var acknowledged : Bool;
+    var resolved : Bool;
+    actionRequired : ?Text;
+  };
+
+  public type AlertType = {
+    #Warning;
+    #Caution;
+    #Advisory;
+    #Information;
+    #Emergency;
+  };
+
+  public type AlertPriority = {
+    #Critical;
+    #High;
+    #Medium;
+    #Low;
+  };
+
+  /// Initialize HMT
+  public func initHMT() : HMTState {
+    {
+      var operators = [];
+      var interfaces = [];
+      var workload = {
+        var cognitiveLoad = 0.0;
+        var visualLoad = 0.0;
+        var auditoryLoad = 0.0;
+        var motorLoad = 0.0;
+        var overallWorkload = 0.0;
+        var taskCount = 0;
+        var interruptionRate = 0.0;
+      };
+      var trust = {
+        var humanTrustInSystem = 0.7;
+        var systemReliability = 0.95;
+        var calibration = 0.0;
+        var trustHistory = [];
+        var trustFactors = [];
+      };
+      var delegation = {
+        var autonomyLevel = #SupervisoryControl;
+        var delegatedTasks = [];
+        var overrides = [];
+        var adaptationRate = 0.1;
+      };
+      var alerts = [];
+    }
+  };
+
+  /// Add operator
+  public func addOperator(
+    hmt : HMTState,
+    role : OperatorRole,
+    permissions : [Permission]
+  ) : Text {
+    let operatorId = Int.toText(Time.now());
+    
+    let operator : OperatorState = {
+      operatorId = operatorId;
+      role = role;
+      var status = #Active;
+      var workload = 0.0;
+      var fatigue = 0.0;
+      var situationalAwareness = 1.0;
+      var currentTasks = [];
+      var permissions = permissions;
+    };
+    
+    hmt.operators := Array.append(hmt.operators, [operator]);
+    
+    operatorId
+  };
+
+  /// Calculate workload
+  public func calculateWorkload(hmt : HMTState) : Float {
+    let cognitive = hmt.workload.cognitiveLoad;
+    let visual = hmt.workload.visualLoad;
+    let auditory = hmt.workload.auditoryLoad;
+    let motor = hmt.workload.motorLoad;
+    
+    // NASA-TLX style weighted average
+    let overall = (cognitive * 0.3 + visual * 0.25 + auditory * 0.15 + motor * 0.2) +
+                  Float.fromInt(hmt.workload.taskCount) * 0.05 +
+                  hmt.workload.interruptionRate * 0.05;
+    
+    hmt.workload.overallWorkload := Float.min(1.0, overall);
+    
+    hmt.workload.overallWorkload
+  };
+
+  /// Update trust
+  public func updateTrust(hmt : HMTState, systemPerformance : Float) : () {
+    let previousTrust = hmt.trust.humanTrustInSystem;
+    
+    // Trust update based on performance
+    let trustChange = (systemPerformance - 0.5) * 0.1;
+    hmt.trust.humanTrustInSystem := Float.max(0.0, Float.min(1.0, 
+      previousTrust + trustChange
+    ));
+    
+    // Record history
+    hmt.trust.trustHistory := Array.append(
+      hmt.trust.trustHistory,
+      [(Time.now(), hmt.trust.humanTrustInSystem)]
+    );
+    
+    // Calculate calibration (trust vs actual reliability)
+    hmt.trust.calibration := Float.abs(
+      hmt.trust.humanTrustInSystem - hmt.trust.systemReliability
+    );
+  };
+
+  /// Raise alert
+  public func raiseAlert(
+    hmt : HMTState,
+    alertType : AlertType,
+    priority : AlertPriority,
+    message : Text,
+    actionRequired : ?Text
+  ) : Text {
+    let alertId = Int.toText(Time.now());
+    
+    let alert : AlertState = {
+      alertId = alertId;
+      alertType = alertType;
+      priority = priority;
+      message = message;
+      timestamp = Time.now();
+      var acknowledged = false;
+      var resolved = false;
+      actionRequired = actionRequired;
+    };
+    
+    hmt.alerts := Array.append(hmt.alerts, [alert]);
+    
+    alertId
+  };
+
+  /// Adapt autonomy level
+  public func adaptAutonomy(hmt : HMTState) : AutonomyLevel {
+    let workload = hmt.workload.overallWorkload;
+    let trust = hmt.trust.humanTrustInSystem;
+    
+    // Increase autonomy if workload high and trust sufficient
+    let newLevel = if (workload > 0.8 and trust > 0.7) {
+      #FullAutonomy
+    } else if (workload > 0.6 and trust > 0.5) {
+      #SupervisoryControl
+    } else if (workload > 0.4) {
+      #SharedControl
+    } else if (workload > 0.2) {
+      #AssistedControl
+    } else {
+      #ManualControl
+    };
+    
+    hmt.delegation.autonomyLevel := newLevel;
+    newLevel
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 22: SWARM INTELLIGENCE ALGORITHMS (EXTENDED)
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Extended swarm intelligence state
+  public type ExtendedSwarmState = {
+    var particleSwarm : PSOState;
+    var antColony : ACOState;
+    var beeAlgorithm : ABCState;
+    var fireflyAlgorithm : FAState;
+    var batAlgorithm : BATState;
+    var cuckooSearch : CSState;
+    var grayWolf : GWOState;
+    var whaleOptimization : WOAState;
+  };
+
+  public type PSOState = {
+    var particles : [Particle];
+    var globalBest : [Float];
+    var globalBestFitness : Float;
+    inertia : Float;
+    cognitive : Float;
+    social : Float;
+    var iteration : Nat;
+  };
+
+  public type Particle = {
+    particleId : Text;
+    var position : [Float];
+    var velocity : [Float];
+    var personalBest : [Float];
+    var personalBestFitness : Float;
+    var currentFitness : Float;
+  };
+
+  public type ACOState = {
+    var pheromones : [[Float]];
+    var ants : [Ant];
+    evaporationRate : Float;
+    alpha : Float;
+    beta : Float;
+    var bestPath : [Nat];
+    var bestCost : Float;
+  };
+
+  public type Ant = {
+    antId : Text;
+    var path : [Nat];
+    var visited : [Bool];
+    var cost : Float;
+  };
+
+  public type ABCState = {
+    var employedBees : [Bee];
+    var onlookerBees : [Bee];
+    var scoutBees : [Bee];
+    var foodSources : [FoodSource];
+    limit : Nat;  // Abandonment limit
+  };
+
+  public type Bee = {
+    beeId : Text;
+    var position : [Float];
+    var fitness : Float;
+    var trials : Nat;
+  };
+
+  public type FoodSource = {
+    position : [Float];
+    var fitness : Float;
+    var trials : Nat;
+  };
+
+  public type FAState = {
+    var fireflies : [Firefly];
+    alpha : Float;  // Randomization
+    beta0 : Float;  // Attractiveness at r=0
+    gamma : Float;  // Light absorption coefficient
+  };
+
+  public type Firefly = {
+    fireflyId : Text;
+    var position : [Float];
+    var brightness : Float;
+  };
+
+  public type BATState = {
+    var bats : [Bat];
+    var loudness : Float;
+    var pulseRate : Float;
+    freqMin : Float;
+    freqMax : Float;
+  };
+
+  public type Bat = {
+    batId : Text;
+    var position : [Float];
+    var velocity : [Float];
+    var frequency : Float;
+    var loudness : Float;
+    var pulseRate : Float;
+    var fitness : Float;
+  };
+
+  public type CSState = {
+    var nests : [Nest];
+    pa : Float;  // Probability of discovery
+    var bestNest : [Float];
+    var bestFitness : Float;
+  };
+
+  public type Nest = {
+    nestId : Text;
+    var position : [Float];
+    var fitness : Float;
+  };
+
+  public type GWOState = {
+    var wolves : [Wolf];
+    var alpha : Wolf;
+    var beta : Wolf;
+    var delta : Wolf;
+    var a : Float;  // Linearly decreasing
+  };
+
+  public type Wolf = {
+    wolfId : Text;
+    var position : [Float];
+    var fitness : Float;
+  };
+
+  public type WOAState = {
+    var whales : [Whale];
+    var bestWhale : Whale;
+    var a : Float;
+    var b : Float;
+  };
+
+  public type Whale = {
+    whaleId : Text;
+    var position : [Float];
+    var fitness : Float;
+  };
+
+  /// Initialize extended swarm
+  public func initExtendedSwarm(dimensions : Nat) : ExtendedSwarmState {
+    {
+      var particleSwarm = {
+        var particles = [];
+        var globalBest = Array.tabulate<Float>(dimensions, func(_ : Nat) : Float { 0.0 });
+        var globalBestFitness = 1e10;
+        inertia = 0.7;
+        cognitive = 1.5;
+        social = 1.5;
+        var iteration = 0;
+      };
+      var antColony = {
+        var pheromones = [];
+        var ants = [];
+        evaporationRate = 0.5;
+        alpha = 1.0;
+        beta = 2.0;
+        var bestPath = [];
+        var bestCost = 1e10;
+      };
+      var beeAlgorithm = {
+        var employedBees = [];
+        var onlookerBees = [];
+        var scoutBees = [];
+        var foodSources = [];
+        limit = 10;
+      };
+      var fireflyAlgorithm = {
+        var fireflies = [];
+        alpha = 0.5;
+        beta0 = 1.0;
+        gamma = 1.0;
+      };
+      var batAlgorithm = {
+        var bats = [];
+        var loudness = 0.5;
+        var pulseRate = 0.5;
+        freqMin = 0.0;
+        freqMax = 2.0;
+      };
+      var cuckooSearch = {
+        var nests = [];
+        pa = 0.25;
+        var bestNest = [];
+        var bestFitness = 1e10;
+      };
+      var grayWolf = {
+        var wolves = [];
+        var alpha = {wolfId = "alpha"; var position = []; var fitness = 1e10};
+        var beta = {wolfId = "beta"; var position = []; var fitness = 1e10};
+        var delta = {wolfId = "delta"; var position = []; var fitness = 1e10};
+        var a = 2.0;
+      };
+      var whaleOptimization = {
+        var whales = [];
+        var bestWhale = {whaleId = "best"; var position = []; var fitness = 1e10};
+        var a = 2.0;
+        var b = 1.0;
+      };
+    }
+  };
+
+  /// PSO step
+  public func psoStep(pso : PSOState, fitnessFunc : [Float] -> Float) : () {
+    for (particle in pso.particles.vals()) {
+      // Evaluate fitness
+      particle.currentFitness := fitnessFunc(particle.position);
+      
+      // Update personal best
+      if (particle.currentFitness < particle.personalBestFitness) {
+        particle.personalBest := particle.position;
+        particle.personalBestFitness := particle.currentFitness;
+        
+        // Update global best
+        if (particle.currentFitness < pso.globalBestFitness) {
+          pso.globalBest := particle.position;
+          pso.globalBestFitness := particle.currentFitness;
+        };
+      };
+      
+      // Update velocity and position
+      let n = particle.position.size();
+      var newVelocity : [Float] = [];
+      var newPosition : [Float] = [];
+      
+      for (i in Iter.range(0, n - 1)) {
+        let r1 = Float.fromInt(Time.now() % 1000) / 1000.0;
+        let r2 = Float.fromInt((Time.now() + 1) % 1000) / 1000.0;
+        
+        let v = pso.inertia * particle.velocity[i] +
+                pso.cognitive * r1 * (particle.personalBest[i] - particle.position[i]) +
+                pso.social * r2 * (pso.globalBest[i] - particle.position[i]);
+        
+        newVelocity := Array.append(newVelocity, [v]);
+        newPosition := Array.append(newPosition, [particle.position[i] + v]);
+      };
+      
+      particle.velocity := newVelocity;
+      particle.position := newPosition;
+    };
+    
+    pso.iteration += 1;
+  };
+
+  /// ACO step for TSP
+  public func acoStep(aco : ACOState, distances : [[Float]]) : () {
+    let n = distances.size();
+    
+    for (ant in aco.ants.vals()) {
+      // Reset ant
+      ant.path := [];
+      ant.visited := Array.tabulate<Bool>(n, func(_ : Nat) : Bool { false });
+      ant.cost := 0.0;
+      
+      // Start at random city
+      let start = Int.abs(Time.now()) % n;
+      ant.path := [start];
+      ant.visited := Array.tabulate<Bool>(n, func(i : Nat) : Bool { i == start });
+      
+      // Build path
+      var current = start;
+      while (ant.path.size() < n) {
+        // Calculate probabilities
+        var probabilities : [Float] = [];
+        var total = 0.0;
+        
+        for (j in Iter.range(0, n - 1)) {
+          if (not ant.visited[j]) {
+            let tau = Float.pow(aco.pheromones[current][j], aco.alpha);
+            let eta = Float.pow(1.0 / distances[current][j], aco.beta);
+            let prob = tau * eta;
+            probabilities := Array.append(probabilities, [prob]);
+            total += prob;
+          } else {
+            probabilities := Array.append(probabilities, [0.0]);
+          };
+        };
+        
+        // Roulette wheel selection
+        let r = Float.fromInt(Time.now() % 1000) / 1000.0 * total;
+        var cumulative = 0.0;
+        var next = 0;
+        
+        for (j in Iter.range(0, n - 1)) {
+          cumulative += probabilities[j];
+          if (cumulative >= r and not ant.visited[j]) {
+            next := j;
+            // break would go here if supported
+          };
+        };
+        
+        ant.path := Array.append(ant.path, [next]);
+        ant.visited := Array.tabulate<Bool>(n, func(i : Nat) : Bool { 
+          ant.visited[i] or i == next 
+        });
+        ant.cost += distances[current][next];
+        current := next;
+      };
+      
+      // Return to start
+      ant.cost += distances[current][start];
+      
+      // Update best
+      if (ant.cost < aco.bestCost) {
+        aco.bestPath := ant.path;
+        aco.bestCost := ant.cost;
+      };
+    };
+    
+    // Evaporate pheromones
+    aco.pheromones := Array.tabulate<[Float]>(n, func(i : Nat) : [Float] {
+      Array.tabulate<Float>(n, func(j : Nat) : Float {
+        aco.pheromones[i][j] * (1.0 - aco.evaporationRate)
+      })
+    });
+    
+    // Deposit pheromones
+    for (ant in aco.ants.vals()) {
+      let deposit = 1.0 / ant.cost;
+      for (k in Iter.range(0, ant.path.size() - 2)) {
+        let i = ant.path[k];
+        let j = ant.path[k + 1];
+        aco.pheromones := Array.tabulate<[Float]>(n, func(ii : Nat) : [Float] {
+          Array.tabulate<Float>(n, func(jj : Nat) : Float {
+            if (ii == i and jj == j) {
+              aco.pheromones[ii][jj] + deposit
+            } else {
+              aco.pheromones[ii][jj]
+            }
+          })
+        });
+      };
+    };
+  };
+
+  /// Gray Wolf Optimizer step
+  public func gwoStep(gwo : GWOState, fitnessFunc : [Float] -> Float, maxIter : Nat, currentIter : Nat) : () {
+    // Update a
+    gwo.a := 2.0 - Float.fromInt(currentIter) * 2.0 / Float.fromInt(maxIter);
+    
+    for (wolf in gwo.wolves.vals()) {
+      wolf.fitness := fitnessFunc(wolf.position);
+      
+      // Update hierarchy
+      if (wolf.fitness < gwo.alpha.fitness) {
+        gwo.delta := gwo.beta;
+        gwo.beta := gwo.alpha;
+        gwo.alpha := wolf;
+      } else if (wolf.fitness < gwo.beta.fitness) {
+        gwo.delta := gwo.beta;
+        gwo.beta := wolf;
+      } else if (wolf.fitness < gwo.delta.fitness) {
+        gwo.delta := wolf;
+      };
+    };
+    
+    // Update positions
+    for (wolf in gwo.wolves.vals()) {
+      let n = wolf.position.size();
+      var newPosition : [Float] = [];
+      
+      for (i in Iter.range(0, n - 1)) {
+        let r1 = Float.fromInt(Time.now() % 1000) / 1000.0;
+        let r2 = Float.fromInt((Time.now() + 1) % 1000) / 1000.0;
+        
+        let A1 = 2.0 * gwo.a * r1 - gwo.a;
+        let C1 = 2.0 * r2;
+        let D_alpha = Float.abs(C1 * gwo.alpha.position[i] - wolf.position[i]);
+        let X1 = gwo.alpha.position[i] - A1 * D_alpha;
+        
+        let A2 = 2.0 * gwo.a * r1 - gwo.a;
+        let C2 = 2.0 * r2;
+        let D_beta = Float.abs(C2 * gwo.beta.position[i] - wolf.position[i]);
+        let X2 = gwo.beta.position[i] - A2 * D_beta;
+        
+        let A3 = 2.0 * gwo.a * r1 - gwo.a;
+        let C3 = 2.0 * r2;
+        let D_delta = Float.abs(C3 * gwo.delta.position[i] - wolf.position[i]);
+        let X3 = gwo.delta.position[i] - A3 * D_delta;
+        
+        newPosition := Array.append(newPosition, [(X1 + X2 + X3) / 3.0]);
+      };
+      
+      wolf.position := newPosition;
+    };
+  };
+
+  /// Whale Optimization Algorithm step
+  public func woaStep(woa : WOAState, fitnessFunc : [Float] -> Float, maxIter : Nat, currentIter : Nat) : () {
+    // Update a
+    woa.a := 2.0 - Float.fromInt(currentIter) * 2.0 / Float.fromInt(maxIter);
+    
+    for (whale in woa.whales.vals()) {
+      whale.fitness := fitnessFunc(whale.position);
+      
+      if (whale.fitness < woa.bestWhale.fitness) {
+        woa.bestWhale := whale;
+      };
+    };
+    
+    for (whale in woa.whales.vals()) {
+      let n = whale.position.size();
+      var newPosition : [Float] = [];
+      
+      let p = Float.fromInt(Time.now() % 1000) / 1000.0;
+      
+      if (p < 0.5) {
+        let r = Float.fromInt(Time.now() % 1000) / 1000.0;
+        let A = 2.0 * woa.a * r - woa.a;
+        let C = 2.0 * r;
+        
+        if (Float.abs(A) < 1.0) {
+          // Encircling prey
+          for (i in Iter.range(0, n - 1)) {
+            let D = Float.abs(C * woa.bestWhale.position[i] - whale.position[i]);
+            newPosition := Array.append(newPosition, [woa.bestWhale.position[i] - A * D]);
+          };
+        } else {
+          // Search for prey (exploration)
+          let randIdx = Int.abs(Time.now()) % woa.whales.size();
+          let randWhale = woa.whales[randIdx];
+          for (i in Iter.range(0, n - 1)) {
+            let D = Float.abs(C * randWhale.position[i] - whale.position[i]);
+            newPosition := Array.append(newPosition, [randWhale.position[i] - A * D]);
+          };
+        };
+      } else {
+        // Spiral update
+        for (i in Iter.range(0, n - 1)) {
+          let D = Float.abs(woa.bestWhale.position[i] - whale.position[i]);
+          let l = Float.fromInt(Time.now() % 2000) / 1000.0 - 1.0;  // -1 to 1
+          newPosition := Array.append(newPosition, [
+            D * Float.exp(woa.b * l) * Float.cos(2.0 * Float.pi * l) + woa.bestWhale.position[i]
+          ]);
+        };
+      };
+      
+      whale.position := newPosition;
+    };
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 23: ELECTRONIC COUNTERMEASURES (ECM) SUITE
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// ECM state
+  public type ECMState = {
+    var jammers : [ECMJammer];
+    var decoys : [ECMDecoy];
+    var chaff : ChaffState;
+    var flare : FlareState;
+    var towed : [TowedDecoy];
+    var drfm : DRFMState;
+    var threats : [ECMThreat];
+  };
+
+  public type ECMJammer = {
+    jammerId : Text;
+    jammerType : JammerType;
+    var frequency : Float;
+    var bandwidth : Float;
+    var power : Float;
+    var technique : ECMTechnique;
+    var status : ECMStatus;
+    coverage : JammerCoverage;
+  };
+
+  public type JammerType = {
+    #SelfProtection;
+    #Escort;
+    #StandOff;
+    #Support;
+  };
+
+  public type ECMTechnique = {
+    #Noise : NoiseParams;
+    #Deception : DeceptionParams;
+    #DRFM : DRFMParams;
+    #Combined;
+  };
+
+  public type NoiseParams = {
+    noiseType : NoiseType;
+    modulationDepth : Float;
+  };
+
+  public type NoiseType = {
+    #Spot;
+    #Barrage;
+    #Sweep;
+    #ModulatedCW;
+  };
+
+  public type DeceptionParams = {
+    deceptionType : DeceptionType;
+    velocity : Float;
+    range : Float;
+  };
+
+  public type DeceptionType = {
+    #RangeGate : RangeGateParams;
+    #VelocityGate : VelocityGateParams;
+    #AngleDeception;
+    #CrossEye;
+    #CrossPol;
+  };
+
+  public type RangeGateParams = {
+    initialDelay : Float;
+    var pullOff : Float;
+    rate : Float;
+    direction : PullDirection;
+  };
+
+  public type VelocityGateParams = {
+    initialShift : Float;
+    var pullOff : Float;
+    rate : Float;
+  };
+
+  public type PullDirection = {
+    #In;
+    #Out;
+  };
+
+  public type DRFMParams = {
+    fidelity : Float;
+    var modulations : [DRFMModulation];
+    memory : Float;
+  };
+
+  public type DRFMModulation = {
+    #Amplitude : Float;
+    #Frequency : Float;
+    #Phase : Float;
+    #Delay : Float;
+    #Combined : [DRFMModulation];
+  };
+
+  public type ECMStatus = {
+    #Standby;
+    #Active;
+    #Tracking;
+    #Jamming;
+    #Maintenance;
+    #Failed;
+  };
+
+  public type JammerCoverage = {
+    azimuthMin : Float;
+    azimuthMax : Float;
+    elevationMin : Float;
+    elevationMax : Float;
+  };
+
+  public type ECMDecoy = {
+    decoyId : Text;
+    decoyType : DecoyType;
+    var position : Vector3;
+    var velocity : Vector3;
+    signature : DecoySignature;
+    var status : DecoyStatus;
+    launchTime : Int;
+    lifetime : Float;
+  };
+
+  public type DecoyType = {
+    #RF;
+    #IR;
+    #Combined;
+    #Active;
+    #Passive;
+  };
+
+  public type DecoySignature = {
+    rcs : Float;
+    irSignature : Float;
+    rfEmissions : [(Float, Float)];
+  };
+
+  public type DecoyStatus = {
+    #Ready;
+    #Deployed;
+    #Active;
+    #Expired;
+  };
+
+  public type ChaffState = {
+    var cartridges : Nat;
+    var deployed : [ChaffCloud];
+    pattern : ChaffPattern;
+  };
+
+  public type ChaffCloud = {
+    cloudId : Text;
+    var position : Vector3;
+    var radius : Float;
+    density : Float;
+    deployTime : Int;
+    var effectiveness : Float;
+  };
+
+  public type ChaffPattern = {
+    #Single;
+    #Burst : Nat;
+    #Corridor;
+    #Screen;
+  };
+
+  public type FlareState = {
+    var cartridges : Nat;
+    var deployed : [FlareDecoy];
+    pattern : FlarePattern;
+  };
+
+  public type FlareDecoy = {
+    flareId : Text;
+    var position : Vector3;
+    var temperature : Float;
+    burnTime : Float;
+    deployTime : Int;
+  };
+
+  public type FlarePattern = {
+    #Single;
+    #Pairs;
+    #Salvo : Nat;
+    #Program : [Float];
+  };
+
+  public type TowedDecoy = {
+    decoyId : Text;
+    var deployed : Bool;
+    var cableLength : Float;
+    signature : DecoySignature;
+    var status : TowedStatus;
+  };
+
+  public type TowedStatus = {
+    #Stowed;
+    #Deploying;
+    #Deployed;
+    #Reeling;
+    #Cut;
+  };
+
+  public type DRFMState = {
+    var channels : [DRFMChannel];
+    var library : [ThreatTemplate];
+    memory : Float;
+    bandwidth : Float;
+  };
+
+  public type DRFMChannel = {
+    channelId : Text;
+    var frequency : Float;
+    var bandwidth : Float;
+    var technique : DRFMTechnique;
+    var active : Bool;
+  };
+
+  public type DRFMTechnique = {
+    #Store;
+    #Repeat;
+    #Modulate;
+    #Retransmit;
+  };
+
+  public type ThreatTemplate = {
+    threatId : Text;
+    threatType : Text;
+    frequency : Float;
+    prf : Float;
+    pulseWidth : Float;
+    scanType : Text;
+    var countermeasure : ?Text;
+  };
+
+  public type ECMThreat = {
+    threatId : Text;
+    var classification : ThreatClassification;
+    var bearing : Float;
+    var frequency : Float;
+    var prf : Float;
+    var pulseWidth : Float;
+    var status : ThreatEngagement;
+    var priority : Nat;
+  };
+
+  public type ThreatClassification = {
+    #Unknown;
+    #Search;
+    #AcquisitionTrack;
+    #TrackWhileScan;
+    #SingleTarget;
+    #MissileGuidance;
+    #Illuminator;
+  };
+
+  public type ThreatEngagement = {
+    #Detected;
+    #Classified;
+    #Tracked;
+    #Countered;
+    #Defeated;
+  };
+
+  /// Initialize ECM
+  public func initECM() : ECMState {
+    {
+      var jammers = [];
+      var decoys = [];
+      var chaff = {
+        var cartridges = 60;
+        var deployed = [];
+        pattern = #Burst(4);
+      };
+      var flare = {
+        var cartridges = 60;
+        var deployed = [];
+        pattern = #Pairs;
+      };
+      var towed = [];
+      var drfm = {
+        var channels = [];
+        var library = [];
+        memory = 1e9;  // 1 GB
+        bandwidth = 2e9;  // 2 GHz
+      };
+      var threats = [];
+    }
+  };
+
+  /// Deploy chaff
+  public func deployChaff(ecm : ECMState, position : Vector3, count : Nat) : [Text] {
+    if (ecm.chaff.cartridges < count) return [];
+    
+    var cloudIds : [Text] = [];
+    
+    for (_ in Iter.range(0, count - 1)) {
+      let cloudId = Int.toText(Time.now());
+      
+      let cloud : ChaffCloud = {
+        cloudId = cloudId;
+        var position = position;
+        var radius = 10.0;
+        density = 1e6;
+        deployTime = Time.now();
+        var effectiveness = 1.0;
+      };
+      
+      ecm.chaff.deployed := Array.append(ecm.chaff.deployed, [cloud]);
+      ecm.chaff.cartridges -= 1;
+      cloudIds := Array.append(cloudIds, [cloudId]);
+    };
+    
+    cloudIds
+  };
+
+  /// Deploy flares
+  public func deployFlares(ecm : ECMState, position : Vector3, count : Nat) : [Text] {
+    if (ecm.flare.cartridges < count) return [];
+    
+    var flareIds : [Text] = [];
+    
+    for (_ in Iter.range(0, count - 1)) {
+      let flareId = Int.toText(Time.now());
+      
+      let flare : FlareDecoy = {
+        flareId = flareId;
+        var position = position;
+        var temperature = 2000.0;  // Kelvin
+        burnTime = 5.0;
+        deployTime = Time.now();
+      };
+      
+      ecm.flare.deployed := Array.append(ecm.flare.deployed, [flare]);
+      ecm.flare.cartridges -= 1;
+      flareIds := Array.append(flareIds, [flareId]);
+    };
+    
+    flareIds
+  };
+
+  /// Activate jammer
+  public func activateJammer(
+    ecm : ECMState,
+    jammerId : Text,
+    frequency : Float,
+    technique : ECMTechnique
+  ) : Bool {
+    for (jammer in ecm.jammers.vals()) {
+      if (jammer.jammerId == jammerId) {
+        jammer.frequency := frequency;
+        jammer.technique := technique;
+        jammer.status := #Active;
+        return true;
+      };
+    };
+    false
+  };
+
+  /// Process threat
+  public func processThreat(ecm : ECMState, threat : ECMThreat) : ?Text {
+    // Search library for countermeasure
+    for (template in ecm.drfm.library.vals()) {
+      let freqMatch = Float.abs(template.frequency - threat.frequency) / template.frequency < 0.01;
+      let prfMatch = Float.abs(template.prf - threat.prf) / template.prf < 0.1;
+      
+      if (freqMatch and prfMatch) {
+        threat.classification := switch (template.threatType) {
+          case ("Search") #Search;
+          case ("Track") #SingleTarget;
+          case ("Missile") #MissileGuidance;
+          case _ #Unknown;
+        };
+        
+        return template.countermeasure;
+      };
+    };
+    
+    null
+  };
+
   // Continue building toward 150,000 lines...
-  // Current: ~30,000 lines
-  // Remaining: ~120,000 lines
+  // Current: ~31,500 lines
+  // Remaining: ~118,500 lines
 
 }
