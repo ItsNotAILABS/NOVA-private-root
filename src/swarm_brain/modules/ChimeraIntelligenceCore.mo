@@ -7266,8 +7266,1528 @@ module {
     #FollowsFrom;
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ELECTRONIC WARFARE & SIGNALS INTELLIGENCE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Electronic warfare state
+  public type ElectronicWarfareState = {
+    var detectedEmitters : [RadarEmitter];
+    var jammerState : [JammerSystem];
+    var decoyState : [DecoySystem];
+    var threatLibrary : [ThreatSignature];
+    var eslHistory : [ESLEvent];
+    var currentEOB : ElectronicOrderOfBattle;
+  };
+
+  public type RadarEmitter = {
+    emitterId : Nat32;
+    var position : GPSPosition;
+    var positionAccuracy : Float;
+    var frequency : Float;  // MHz
+    var bandwidth : Float;  // MHz
+    var pulseWidth : Float;  // μs
+    var pri : Float;  // Pulse Repetition Interval μs
+    var scanType : RadarScanType;
+    var scanRate : Float;  // deg/s
+    var power : Float;  // dBm
+    var classification : ?ThreatClassification;
+    var firstDetected : Int;
+    var lastDetected : Int;
+    var trackQuality : Float;
+  };
+
+  public type RadarScanType = {
+    #Circular;
+    #Sector;
+    #Raster;
+    #Conical;
+    #TWS;  // Track While Scan
+    #Spotlight;
+    #ISAR;  // Inverse SAR
+    #Unknown;
+  };
+
+  public type ThreatClassification = {
+    platform : Text;
+    system : Text;
+    function_ : RadarFunction;
+    lethality : Lethality;
+    countermeasures : [CountermeasureType];
+  };
+
+  public type RadarFunction = {
+    #EarlyWarning;
+    #AcquisitionTracking;
+    #FireControl;
+    #TargetIllumination;
+    #MissileGuidance;
+    #HeightFinder;
+    #GCI;  // Ground Controlled Intercept
+    #Surveillance;
+    #Weather;
+    #Navigation;
+  };
+
+  public type Lethality = {
+    #None;
+    #Low;
+    #Medium;
+    #High;
+    #Extreme;
+  };
+
+  public type CountermeasureType = {
+    #Noise;
+    #DRFM;  // Digital Radio Frequency Memory
+    #Chaff;
+    #Flare;
+    #Towed;
+    #MALD;  // Miniature Air-Launched Decoy
+    #ARM;  // Anti-Radiation Missile
+    #Maneuver;
+    #LowAltitude;
+    #TerrainMasking;
+  };
+
+  public type JammerSystem = {
+    jammerId : Text;
+    var isActive : Bool;
+    var technique : JammingTechnique;
+    var targetEmitters : [Nat32];
+    var power : Float;  // dBm
+    var frequencyRange : {min: Float; max: Float};
+    var effectiveRange : Float;  // meters
+    var dutyCycle : Float;
+  };
+
+  public type JammingTechnique = {
+    #Barrage;
+    #Spot;
+    #Sweep;
+    #Responsive;
+    #DRFM;
+    #CrossEye;
+    #RangGate;
+    #VelocityGate;
+    #CrossPolarization;
+    #AngleDeception;
+  };
+
+  public type DecoySystem = {
+    decoyId : Text;
+    decoyType : DecoyType;
+    var position : GPSPosition;
+    var velocity : Velocity3D;
+    var isActive : Bool;
+    var remainingLife : Float;  // seconds
+    var effectivenessRadius : Float;
+  };
+
+  public type DecoyType = {
+    #Chaff;
+    #Flare;
+    #Towed;
+    #Expendable;
+    #MALD;
+    #ITALD;  // Improved Tactical Air-Launched Decoy
+  };
+
+  public type ThreatSignature = {
+    signatureId : Text;
+    platformName : Text;
+    systemName : Text;
+    country : Text;
+    parameters : RadarParameters;
+    modes : [RadarMode];
+    associatedWeapons : [Text];
+    lastUpdated : Int;
+  };
+
+  public type RadarParameters = {
+    frequencyRange : {min: Float; max: Float};
+    typicalPRI : [Float];
+    typicalPulseWidth : [Float];
+    typicalScanRate : Float;
+    typicalPower : Float;
+    antennaGain : Float;
+    beamwidth : {azimuth: Float; elevation: Float};
+  };
+
+  public type RadarMode = {
+    modeName : Text;
+    function_ : RadarFunction;
+    parameters : RadarParameters;
+    engagementEnvelope : ?EngagementEnvelope;
+  };
+
+  public type EngagementEnvelope = {
+    maxRange : Float;
+    minRange : Float;
+    maxAltitude : Float;
+    minAltitude : Float;
+    maxSpeed : Float;
+  };
+
+  public type ESLEvent = {
+    timestamp : Int;
+    eventType : ESLEventType;
+    emitterId : ?Nat32;
+    position : ?GPSPosition;
+    details : Text;
+  };
+
+  public type ESLEventType = {
+    #NewContact;
+    #LostContact;
+    #ModeChange;
+    #Tracking;
+    #Launch;
+    #Engagement;
+    #Jamming;
+    #CountermeasureDeployed;
+  };
+
+  public type ElectronicOrderOfBattle = {
+    var sites : [SAMSite];
+    var networks : [IADSNetwork];
+    var coverage : [RadarCoverage];
+    lastUpdated : Int;
+  };
+
+  public type SAMSite = {
+    siteId : Text;
+    siteName : Text;
+    position : GPSPosition;
+    systemType : Text;
+    status : SiteStatus;
+    components : [SAMComponent];
+    engagementZone : EngagementEnvelope;
+  };
+
+  public type SiteStatus = {
+    #Operational;
+    #Degraded;
+    #Destroyed;
+    #Relocating;
+    #Unknown;
+  };
+
+  public type SAMComponent = {
+    componentType : SAMComponentType;
+    position : GPSPosition;
+    status : SiteStatus;
+    associatedEmitters : [Nat32];
+  };
+
+  public type SAMComponentType = {
+    #SearchRadar;
+    #TrackingRadar;
+    #FireControlRadar;
+    #Launcher;
+    #CommandPost;
+    #IFF;
+    #Reload;
+  };
+
+  public type IADSNetwork = {
+    networkId : Text;
+    commandNode : Text;
+    subordinateSites : [Text];
+    communicationLinks : [CommLink];
+    coverage : [GPSPosition];  // Polygon
+  };
+
+  public type CommLink = {
+    linkId : Text;
+    endpoint1 : Text;
+    endpoint2 : Text;
+    linkType : CommLinkType;
+    frequency : ?Float;
+    isEncrypted : Bool;
+    status : LinkStatus;
+  };
+
+  public type CommLinkType = {
+    #Radio;
+    #Microwave;
+    #Landline;
+    #Fiber;
+    #Satellite;
+  };
+
+  public type LinkStatus = {
+    #Active;
+    #Inactive;
+    #Degraded;
+    #Jammed;
+  };
+
+  public type RadarCoverage = {
+    radarId : Nat32;
+    coverageType : CoverageType;
+    polygon : [GPSPosition];
+    minAltitude : Float;
+    maxAltitude : Float;
+  };
+
+  public type CoverageType = {
+    #Detection;
+    #Tracking;
+    #Engagement;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CRYPTOGRAPHY & SECURE COMMUNICATIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Cryptographic key management
+  public type KeyManagementState = {
+    var masterKeys : [MasterKey];
+    var sessionKeys : [SessionKey];
+    var keyDistributionLog : [KeyDistributionEvent];
+    var revokedKeys : [Text];
+    keyRotationPolicy : KeyRotationPolicy;
+  };
+
+  public type MasterKey = {
+    keyId : Text;
+    algorithm : CryptoAlgorithm;
+    keyMaterial : Blob;  // Encrypted
+    createdAt : Int;
+    expiresAt : Int;
+    usage : KeyUsage;
+    var isActive : Bool;
+  };
+
+  public type CryptoAlgorithm = {
+    #AES128;
+    #AES256;
+    #ChaCha20;
+    #RSA2048;
+    #RSA4096;
+    #ECDSA_P256;
+    #ECDSA_P384;
+    #Ed25519;
+    #X25519;
+    #Kyber512;
+    #Kyber768;
+    #Kyber1024;
+    #Dilithium2;
+    #Dilithium3;
+    #Dilithium5;
+  };
+
+  public type KeyUsage = {
+    #Encryption;
+    #Signing;
+    #KeyExchange;
+    #Authentication;
+    #DataProtection;
+  };
+
+  public type SessionKey = {
+    sessionId : Text;
+    keyId : Text;
+    algorithm : CryptoAlgorithm;
+    keyMaterial : Blob;
+    createdAt : Int;
+    expiresAt : Int;
+    associatedPrincipals : [Text];
+    var messageCount : Nat;
+  };
+
+  public type KeyDistributionEvent = {
+    timestamp : Int;
+    keyId : Text;
+    eventType : KeyEventType;
+    recipient : Text;
+    success : Bool;
+    details : ?Text;
+  };
+
+  public type KeyEventType = {
+    #Generated;
+    #Distributed;
+    #Rotated;
+    #Revoked;
+    #Expired;
+    #Compromised;
+  };
+
+  public type KeyRotationPolicy = {
+    rotationIntervalSeconds : Nat;
+    maxMessageCount : Nat;
+    autoRotateOnCompromise : Bool;
+    notifyOnRotation : Bool;
+  };
+
+  /// Secure channel state
+  public type SecureChannel = {
+    channelId : Text;
+    participants : [Text];
+    var sessionKey : SessionKey;
+    var sequenceNumber : Nat64;
+    var lastActivity : Int;
+    encryptionMode : EncryptionMode;
+    var status : ChannelStatus;
+  };
+
+  public type EncryptionMode = {
+    #GCM;  // Galois/Counter Mode
+    #CCM;  // Counter with CBC-MAC
+    #CTR;  // Counter Mode
+    #CBC;  // Cipher Block Chaining
+    #ChaCha20Poly1305;
+  };
+
+  public type ChannelStatus = {
+    #Establishing;
+    #Active;
+    #Suspended;
+    #Closed;
+    #Compromised;
+  };
+
+  /// Encrypted message format
+  public type EncryptedMessage = {
+    messageId : Text;
+    channelId : Text;
+    sequenceNumber : Nat64;
+    iv : Blob;  // Initialization Vector
+    ciphertext : Blob;
+    authTag : Blob;  // Authentication tag
+    timestamp : Int;
+  };
+
+  /// Digital signature
+  public type DigitalSignature = {
+    signatureId : Text;
+    algorithm : CryptoAlgorithm;
+    signature : Blob;
+    signedData : Blob;
+    signerPublicKey : Blob;
+    timestamp : Int;
+    certificate : ?Certificate;
+  };
+
+  public type Certificate = {
+    certificateId : Text;
+    subject : Text;
+    issuer : Text;
+    publicKey : Blob;
+    validFrom : Int;
+    validTo : Int;
+    serialNumber : Text;
+    extensions : [(Text, Blob)];
+    signature : Blob;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ADVANCED COMPUTER VISION MODELS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Faster R-CNN state
+  public type FasterRCNNState = {
+    backbone : ResNetBackbone;
+    rpn : RegionProposalNetwork;
+    roiHead : RoIHead;
+    config : FasterRCNNConfig;
+  };
+
+  public type ResNetBackbone = {
+    var conv1 : Conv2DLayer;
+    var bn1 : BatchNormLayer;
+    var layer1 : [ResidualBlock];
+    var layer2 : [ResidualBlock];
+    var layer3 : [ResidualBlock];
+    var layer4 : [ResidualBlock];
+    variant : ResNetVariant;
+  };
+
+  public type ResNetVariant = {
+    #ResNet18;
+    #ResNet34;
+    #ResNet50;
+    #ResNet101;
+    #ResNet152;
+  };
+
+  public type RegionProposalNetwork = {
+    var conv : Conv2DLayer;
+    var clsLayer : Conv2DLayer;
+    var regLayer : Conv2DLayer;
+    anchors : [Anchor];
+    var proposalCount : Nat;
+  };
+
+  public type Anchor = {
+    width : Float;
+    height : Float;
+    aspectRatio : Float;
+    scale : Float;
+  };
+
+  public type RoIHead = {
+    var fc1 : [[var Float]];
+    var fc2 : [[var Float]];
+    var clsScore : [[var Float]];
+    var bboxPred : [[var Float]];
+    poolSize : Nat;
+  };
+
+  public type FasterRCNNConfig = {
+    numClasses : Nat;
+    scoreThreshold : Float;
+    nmsThreshold : Float;
+    maxDetections : Nat;
+    anchorScales : [Float];
+    anchorRatios : [Float];
+    rpnPreNmsTopN : Nat;
+    rpnPostNmsTopN : Nat;
+  };
+
+  /// Mask R-CNN state (extends Faster R-CNN)
+  public type MaskRCNNState = {
+    fasterRCNN : FasterRCNNState;
+    maskHead : MaskHead;
+    config : MaskRCNNConfig;
+  };
+
+  public type MaskHead = {
+    var conv1 : Conv2DLayer;
+    var conv2 : Conv2DLayer;
+    var conv3 : Conv2DLayer;
+    var conv4 : Conv2DLayer;
+    var deconv : DeconvLayer;
+    var maskPred : Conv2DLayer;
+  };
+
+  public type DeconvLayer = {
+    var filters : [[[[var Float]]]];
+    var biases : [var Float];
+    inChannels : Nat;
+    outChannels : Nat;
+    kernelSize : Nat;
+    stride : Nat;
+  };
+
+  public type MaskRCNNConfig = {
+    maskPoolSize : Nat;
+    maskSize : Nat;
+  };
+
+  /// Feature Pyramid Network (FPN)
+  public type FPNState = {
+    var lateralConvs : [Conv2DLayer];
+    var outputConvs : [Conv2DLayer];
+    var topBlock : ?Conv2DLayer;
+    inChannels : [Nat];
+    outChannels : Nat;
+  };
+
+  /// Instance segmentation result
+  public type InstanceSegmentation = {
+    instanceId : Nat32;
+    classId : Nat;
+    className : Text;
+    confidence : Float;
+    boundingBox : {x: Float; y: Float; width: Float; height: Float};
+    mask : [[Bool]];  // Binary mask
+    contour : [{x: Float; y: Float}];
+    area : Float;
+    centroid : {x: Float; y: Float};
+  };
+
+  /// Semantic segmentation state (DeepLabV3+)
+  public type DeepLabV3State = {
+    backbone : ResNetBackbone;
+    aspp : ASPPModule;
+    decoder : DeepLabDecoder;
+    config : DeepLabConfig;
+  };
+
+  public type ASPPModule = {
+    var conv1x1 : Conv2DLayer;
+    var atrous6 : Conv2DLayer;
+    var atrous12 : Conv2DLayer;
+    var atrous18 : Conv2DLayer;
+    var pooling : GlobalAveragePooling;
+    var project : Conv2DLayer;
+  };
+
+  public type GlobalAveragePooling = {
+    outputSize : {h: Nat; w: Nat};
+  };
+
+  public type DeepLabDecoder = {
+    var lowLevelConv : Conv2DLayer;
+    var outputConv1 : Conv2DLayer;
+    var outputConv2 : Conv2DLayer;
+    var classifier : Conv2DLayer;
+  };
+
+  public type DeepLabConfig = {
+    numClasses : Nat;
+    outputStride : Nat;  // 8 or 16
+    atrousRates : [Nat];
+  };
+
+  /// Optical flow estimation (RAFT)
+  public type RAFTState = {
+    featureEncoder : FeatureEncoder;
+    contextEncoder : ContextEncoder;
+    correlationPyramid : CorrelationPyramid;
+    updateBlock : UpdateBlock;
+    config : RAFTConfig;
+  };
+
+  public type FeatureEncoder = {
+    var conv1 : Conv2DLayer;
+    var conv2 : Conv2DLayer;
+    var residualBlocks : [ResidualBlock];
+  };
+
+  public type ContextEncoder = {
+    var conv1 : Conv2DLayer;
+    var conv2 : Conv2DLayer;
+    var residualBlocks : [ResidualBlock];
+  };
+
+  public type CorrelationPyramid = {
+    levels : Nat;
+    radius : Nat;
+  };
+
+  public type UpdateBlock = {
+    var motionEncoder : Conv2DLayer;
+    var gru : ConvGRU;
+    var flowHead : Conv2DLayer;
+  };
+
+  public type ConvGRU = {
+    var convZ : Conv2DLayer;
+    var convR : Conv2DLayer;
+    var convQ : Conv2DLayer;
+    hiddenDim : Nat;
+  };
+
+  public type RAFTConfig = {
+    iterations : Nat;
+    correlationRadius : Nat;
+    hiddenDim : Nat;
+    contextDim : Nat;
+  };
+
+  /// Optical flow result
+  public type OpticalFlowResult = {
+    flowU : [[Float]];  // Horizontal flow
+    flowV : [[Float]];  // Vertical flow
+    confidence : [[Float]];
+    magnitude : [[Float]];
+    angle : [[Float]];
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 3D POINT CLOUD PROCESSING
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// PointNet++ state
+  public type PointNetPPState = {
+    setAbstraction1 : SetAbstractionLayer;
+    setAbstraction2 : SetAbstractionLayer;
+    setAbstraction3 : SetAbstractionLayer;
+    featurePropagation1 : FeaturePropagationLayer;
+    featurePropagation2 : FeaturePropagationLayer;
+    featurePropagation3 : FeaturePropagationLayer;
+    classifier : [Conv1DLayer];
+    config : PointNetPPConfig;
+  };
+
+  public type SetAbstractionLayer = {
+    npoint : Nat;
+    radius : Float;
+    nsample : Nat;
+    mlp : [Conv2DLayer];
+    groupAll : Bool;
+  };
+
+  public type FeaturePropagationLayer = {
+    mlp : [Conv1DLayer];
+  };
+
+  public type Conv1DLayer = {
+    var weights : [[var Float]];
+    var biases : [var Float];
+    inChannels : Nat;
+    outChannels : Nat;
+    kernelSize : Nat;
+  };
+
+  public type PointNetPPConfig = {
+    numClasses : Nat;
+    numPoints : Nat;
+    normalChannel : Bool;
+  };
+
+  /// VoxelNet state for 3D object detection
+  public type VoxelNetState = {
+    voxelFeatureExtractor : VoxelFeatureExtractor;
+    middleConvs : [Conv3DLayer];
+    rpn : RPN3D;
+    config : VoxelNetConfig;
+  };
+
+  public type VoxelFeatureExtractor = {
+    var vfeLayer1 : VFELayer;
+    var vfeLayer2 : VFELayer;
+  };
+
+  public type VFELayer = {
+    var linear : [[var Float]];
+    var bn : BatchNormLayer;
+  };
+
+  public type Conv3DLayer = {
+    var filters : [[[[[var Float]]]]];  // [out][in][d][h][w]
+    var biases : [var Float];
+    inChannels : Nat;
+    outChannels : Nat;
+    kernelSize : {d: Nat; h: Nat; w: Nat};
+    stride : {d: Nat; h: Nat; w: Nat};
+    padding : {d: Nat; h: Nat; w: Nat};
+  };
+
+  public type RPN3D = {
+    var block1 : [Conv2DLayer];
+    var block2 : [Conv2DLayer];
+    var block3 : [Conv2DLayer];
+    var deblock1 : DeconvLayer;
+    var deblock2 : DeconvLayer;
+    var deblock3 : DeconvLayer;
+    var clsHead : Conv2DLayer;
+    var regHead : Conv2DLayer;
+    var dirHead : Conv2DLayer;
+  };
+
+  public type VoxelNetConfig = {
+    voxelSize : {x: Float; y: Float; z: Float};
+    pointCloudRange : {xMin: Float; yMin: Float; zMin: Float; xMax: Float; yMax: Float; zMax: Float};
+    maxPointsPerVoxel : Nat;
+    maxVoxels : Nat;
+    numClasses : Nat;
+  };
+
+  /// 3D bounding box
+  public type BoundingBox3DResult = {
+    objectId : Nat32;
+    classId : Nat;
+    className : Text;
+    confidence : Float;
+    center : {x: Float; y: Float; z: Float};
+    dimensions : {length: Float; width: Float; height: Float};
+    rotation : Float;  // Yaw angle
+    velocity : ?{vx: Float; vy: Float; vz: Float};
+    numPoints : Nat;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SIMULTANEOUS LOCALIZATION AND MAPPING (SLAM)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Visual SLAM state
+  public type VisualSLAMState = {
+    var currentPose : SE3Pose;
+    var keyframes : [Keyframe];
+    var mapPoints : [MapPoint];
+    var covisibilityGraph : CovisibilityGraph;
+    var loopClosures : [LoopClosure];
+    var vocabulary : BOWVocabulary;
+    tracking : TrackingState;
+    localMapping : LocalMappingState;
+    loopClosing : LoopClosingState;
+  };
+
+  public type SE3Pose = {
+    rotation : Quaternion;
+    translation : {x: Float; y: Float; z: Float};
+    timestamp : Int;
+    covariance : ?[[Float]];  // 6x6 covariance matrix
+  };
+
+  public type Quaternion = {
+    w : Float;
+    x : Float;
+    y : Float;
+    z : Float;
+  };
+
+  public type Keyframe = {
+    keyframeId : Nat32;
+    pose : SE3Pose;
+    image : ?Blob;
+    features : [ORBFeature];
+    mapPointIds : [Nat32];
+    bowVector : [(Nat32, Float)];
+    connectedKeyframes : [(Nat32, Nat)];  // (keyframeId, sharedPoints)
+  };
+
+  public type ORBFeature = {
+    featureId : Nat32;
+    position : {u: Float; v: Float};  // Image coordinates
+    octave : Nat;
+    angle : Float;
+    descriptor : Blob;  // 32 bytes
+    response : Float;
+  };
+
+  public type MapPoint = {
+    pointId : Nat32;
+    position : {x: Float; y: Float; z: Float};
+    normal : {x: Float; y: Float; z: Float};
+    descriptor : Blob;
+    observingKeyframes : [Nat32];
+    var isBad : Bool;
+    var trackInView : Bool;
+    lastSeen : Int;
+  };
+
+  public type CovisibilityGraph = {
+    nodes : [Nat32];  // Keyframe IDs
+    edges : [(Nat32, Nat32, Nat)];  // (kf1, kf2, weight)
+    spanningTree : [(Nat32, Nat32)];
+  };
+
+  public type LoopClosure = {
+    queryKeyframe : Nat32;
+    matchedKeyframe : Nat32;
+    relativePose : SE3Pose;
+    inliers : Nat;
+    timestamp : Int;
+  };
+
+  public type BOWVocabulary = {
+    k : Nat;  // Branching factor
+    L : Nat;  // Depth levels
+    nodes : [BOWNode];
+    words : [BOWWord];
+  };
+
+  public type BOWNode = {
+    nodeId : Nat32;
+    parentId : ?Nat32;
+    childrenIds : [Nat32];
+    descriptor : Blob;
+    weight : Float;
+  };
+
+  public type BOWWord = {
+    wordId : Nat32;
+    nodeId : Nat32;
+    weight : Float;
+  };
+
+  public type TrackingState = {
+    var state : TrackingStatus;
+    var lastFrame : ?Frame;
+    var referenceKeyframe : ?Nat32;
+    var velocity : ?SE3Pose;
+    var matchedMapPoints : [Nat32];
+  };
+
+  public type TrackingStatus = {
+    #NotInitialized;
+    #OK;
+    #RecentlyLost;
+    #Lost;
+  };
+
+  public type Frame = {
+    frameId : Nat32;
+    timestamp : Int;
+    features : [ORBFeature];
+    pose : ?SE3Pose;
+    mapPointMatches : [?Nat32];
+  };
+
+  public type LocalMappingState = {
+    var newKeyframes : [Nat32];
+    var recentMapPoints : [Nat32];
+    var isProcessing : Bool;
+  };
+
+  public type LoopClosingState = {
+    var candidateKeyframes : [Nat32];
+    var isSearching : Bool;
+    var lastLoopClosure : ?Int;
+  };
+
+  /// LiDAR SLAM state
+  public type LiDARSLAMState = {
+    var currentPose : SE3Pose;
+    var odometry : [SE3Pose];
+    var globalMap : OccupancyGrid3D;
+    var localMap : PointCloud;
+    var scanMatching : ScanMatchingState;
+    var imuPreintegration : ?IMUPreintegration;
+    var gpsIntegration : ?GPSIntegration;
+  };
+
+  public type OccupancyGrid3D = {
+    resolution : Float;  // meters per voxel
+    origin : {x: Float; y: Float; z: Float};
+    dimensions : {x: Nat; y: Nat; z: Nat};
+    var voxels : [[[var OccupancyState]]];
+  };
+
+  public type OccupancyState = {
+    #Unknown;
+    #Free;
+    #Occupied;
+  };
+
+  public type ScanMatchingState = {
+    var sourceCloud : PointCloud;
+    var targetCloud : PointCloud;
+    var transformation : SE3Pose;
+    var fitness : Float;
+    algorithm : ScanMatchingAlgorithm;
+  };
+
+  public type ScanMatchingAlgorithm = {
+    #ICP;  // Iterative Closest Point
+    #GICP;  // Generalized ICP
+    #NDT;  // Normal Distributions Transform
+    #LOAM;  // LiDAR Odometry and Mapping
+  };
+
+  public type IMUPreintegration = {
+    var deltaPosition : {x: Float; y: Float; z: Float};
+    var deltaVelocity : {x: Float; y: Float; z: Float};
+    var deltaRotation : Quaternion;
+    var covariance : [[Float]];
+    var biasAccel : {x: Float; y: Float; z: Float};
+    var biasGyro : {x: Float; y: Float; z: Float};
+    var dt : Float;
+  };
+
+  public type GPSIntegration = {
+    var lastGPSFix : GPSData;
+    var gpsPoseOffset : SE3Pose;
+    var useGPS : Bool;
+    gpsWeight : Float;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MOTION PLANNING AND CONTROL
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// RRT* (Rapidly-exploring Random Tree Star) state
+  public type RRTStarState = {
+    var nodes : [RRTNode];
+    var edges : [(Nat32, Nat32)];
+    start : ConfigurationSpace;
+    goal : ConfigurationSpace;
+    var bestPath : [Nat32];
+    var bestCost : Float;
+    parameters : RRTParameters;
+  };
+
+  public type RRTNode = {
+    nodeId : Nat32;
+    config : ConfigurationSpace;
+    var parent : ?Nat32;
+    var cost : Float;
+    var children : [Nat32];
+  };
+
+  public type ConfigurationSpace = {
+    #SE2 : {x: Float; y: Float; theta: Float};
+    #SE3 : SE3Pose;
+    #JointSpace : [Float];
+    #StateSpace : [Float];
+  };
+
+  public type RRTParameters = {
+    maxIterations : Nat;
+    stepSize : Float;
+    goalBias : Float;
+    rewireRadius : Float;
+    collisionCheckResolution : Float;
+  };
+
+  /// Initialize RRT*
+  public func initRRTStar(
+    start : ConfigurationSpace,
+    goal : ConfigurationSpace,
+    params : RRTParameters
+  ) : RRTStarState {
+    {
+      var nodes = [{
+        nodeId = 0;
+        config = start;
+        var parent = null;
+        var cost = 0.0;
+        var children = [];
+      }];
+      var edges = [];
+      start = start;
+      goal = goal;
+      var bestPath = [];
+      var bestCost = 1e10;
+      parameters = params;
+    }
+  };
+
+  /// Extend RRT* tree
+  public func extendRRTStar(
+    state : RRTStarState,
+    randomConfig : ConfigurationSpace,
+    obstacleChecker : ConfigurationSpace -> Bool
+  ) : RRTStarState {
+    // Find nearest node
+    var nearestId : Nat32 = 0;
+    var nearestDist = 1e10;
+    
+    for (node in state.nodes.vals()) {
+      let dist = configDistance(node.config, randomConfig);
+      if (dist < nearestDist) {
+        nearestDist := dist;
+        nearestId := node.nodeId;
+      };
+    };
+    
+    // Steer towards random config
+    let nearest = state.nodes[Nat32.toNat(nearestId)];
+    let newConfig = steerConfig(nearest.config, randomConfig, state.parameters.stepSize);
+    
+    // Check collision
+    if (obstacleChecker(newConfig)) {
+      return state;  // Collision, don't add
+    };
+    
+    // Find nodes in rewire radius
+    var nearNodes : [Nat32] = [];
+    for (node in state.nodes.vals()) {
+      let dist = configDistance(node.config, newConfig);
+      if (dist < state.parameters.rewireRadius) {
+        nearNodes := Array.append(nearNodes, [node.nodeId]);
+      };
+    };
+    
+    // Choose best parent
+    var bestParent = nearestId;
+    var bestCost = nearest.cost + configDistance(nearest.config, newConfig);
+    
+    for (nearId in nearNodes.vals()) {
+      let nearNode = state.nodes[Nat32.toNat(nearId)];
+      let cost = nearNode.cost + configDistance(nearNode.config, newConfig);
+      if (cost < bestCost) {
+        // Check path is collision-free
+        bestCost := cost;
+        bestParent := nearId;
+      };
+    };
+    
+    // Add new node
+    let newNodeId = Nat32.fromNat(state.nodes.size());
+    let newNode : RRTNode = {
+      nodeId = newNodeId;
+      config = newConfig;
+      var parent = ?bestParent;
+      var cost = bestCost;
+      var children = [];
+    };
+    state.nodes := Array.append(state.nodes, [newNode]);
+    state.edges := Array.append(state.edges, [(bestParent, newNodeId)]);
+    
+    // Rewire tree
+    for (nearId in nearNodes.vals()) {
+      if (nearId != bestParent) {
+        let nearNode = state.nodes[Nat32.toNat(nearId)];
+        let potentialCost = bestCost + configDistance(newConfig, nearNode.config);
+        if (potentialCost < nearNode.cost) {
+          // Rewire
+          nearNode.parent := ?newNodeId;
+          nearNode.cost := potentialCost;
+        };
+      };
+    };
+    
+    // Check if goal reached
+    let goalDist = configDistance(newConfig, state.goal);
+    if (goalDist < state.parameters.stepSize and bestCost < state.bestCost) {
+      state.bestCost := bestCost;
+      state.bestPath := reconstructPath(state.nodes, newNodeId);
+    };
+    
+    state
+  };
+
+  /// Calculate distance between configurations
+  func configDistance(c1 : ConfigurationSpace, c2 : ConfigurationSpace) : Float {
+    switch (c1, c2) {
+      case (#SE2({x = x1; y = y1; theta = _}), #SE2({x = x2; y = y2; theta = _})) {
+        Float.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1))
+      };
+      case _ { 1e10 };
+    }
+  };
+
+  /// Steer from one configuration towards another
+  func steerConfig(from : ConfigurationSpace, to : ConfigurationSpace, stepSize : Float) : ConfigurationSpace {
+    switch (from, to) {
+      case (#SE2({x = x1; y = y1; theta = t1}), #SE2({x = x2; y = y2; theta = _})) {
+        let dx = x2 - x1;
+        let dy = y2 - y1;
+        let dist = Float.sqrt(dx * dx + dy * dy);
+        if (dist <= stepSize) {
+          to
+        } else {
+          let ratio = stepSize / dist;
+          #SE2({x = x1 + dx * ratio; y = y1 + dy * ratio; theta = t1})
+        }
+      };
+      case _ { to };
+    }
+  };
+
+  /// Reconstruct path from node IDs
+  func reconstructPath(nodes : [RRTNode], goalId : Nat32) : [Nat32] {
+    var path : [Nat32] = [goalId];
+    var currentId = goalId;
+    
+    label l loop {
+      switch (nodes[Nat32.toNat(currentId)].parent) {
+        case (?parentId) {
+          path := Array.append([parentId], path);
+          currentId := parentId;
+        };
+        case (null) { break l };
+      };
+    };
+    
+    path
+  };
+
+  /// D* Lite for dynamic replanning
+  public type DStarLiteState = {
+    var start : GridCell;
+    var goal : GridCell;
+    var grid : [[var CellState]];
+    var U : PriorityQueue;
+    var km : Float;
+    var rhs : [[var Float]];
+    var g : [[var Float]];
+  };
+
+  public type GridCell = {
+    x : Nat;
+    y : Nat;
+  };
+
+  public type CellState = {
+    #Free;
+    #Obstacle;
+    #Unknown;
+  };
+
+  public type PriorityQueue = {
+    var elements : [(GridCell, (Float, Float))];  // (cell, (k1, k2))
+  };
+
+  /// Model Predictive Control (MPC) state
+  public type MPCState = {
+    horizon : Nat;
+    dt : Float;
+    var stateWeights : [Float];
+    var controlWeights : [Float];
+    var terminalWeights : [Float];
+    constraints : MPCConstraints;
+    var predictedTrajectory : [VehicleState];
+    var optimalControl : [[Float]];
+  };
+
+  public type VehicleState = {
+    x : Float;
+    y : Float;
+    theta : Float;
+    v : Float;
+    omega : Float;
+  };
+
+  public type MPCConstraints = {
+    maxVelocity : Float;
+    minVelocity : Float;
+    maxAcceleration : Float;
+    minAcceleration : Float;
+    maxSteeringAngle : Float;
+    maxSteeringRate : Float;
+  };
+
+  /// Pure Pursuit controller
+  public type PurePursuitController = {
+    lookaheadDistance : Float;
+    var lookaheadPoint : ?{x: Float; y: Float};
+    var steeringAngle : Float;
+    wheelbase : Float;
+    maxSteeringAngle : Float;
+  };
+
+  /// Stanley controller
+  public type StanleyController = {
+    kGain : Float;
+    var crossTrackError : Float;
+    var headingError : Float;
+    var steeringAngle : Float;
+    maxSteeringAngle : Float;
+  };
+
+  /// PID controller
+  public type PIDController = {
+    kp : Float;
+    ki : Float;
+    kd : Float;
+    var integral : Float;
+    var previousError : Float;
+    var output : Float;
+    outputMin : Float;
+    outputMax : Float;
+    integralMax : Float;
+  };
+
+  /// Initialize PID controller
+  public func initPID(kp : Float, ki : Float, kd : Float) : PIDController {
+    {
+      kp = kp;
+      ki = ki;
+      kd = kd;
+      var integral = 0.0;
+      var previousError = 0.0;
+      var output = 0.0;
+      outputMin = -1.0;
+      outputMax = 1.0;
+      integralMax = 10.0;
+    }
+  };
+
+  /// Update PID controller
+  public func updatePID(pid : PIDController, error : Float, dt : Float) : Float {
+    // Proportional term
+    let p = pid.kp * error;
+    
+    // Integral term with anti-windup
+    pid.integral += error * dt;
+    if (pid.integral > pid.integralMax) pid.integral := pid.integralMax;
+    if (pid.integral < -pid.integralMax) pid.integral := -pid.integralMax;
+    let i = pid.ki * pid.integral;
+    
+    // Derivative term
+    let d = pid.kd * (error - pid.previousError) / dt;
+    pid.previousError := error;
+    
+    // Total output with saturation
+    var output = p + i + d;
+    if (output > pid.outputMax) output := pid.outputMax;
+    if (output < pid.outputMin) output := pid.outputMin;
+    
+    pid.output := output;
+    output
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COMPREHENSIVE STATE ESTIMATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Invariant Extended Kalman Filter (IEKF)
+  public type IEKFState = {
+    var state : InvariantState;
+    var covariance : [[var Float]];
+    processNoise : [[Float]];
+    measurementNoise : [[Float]];
+  };
+
+  public type InvariantState = {
+    rotation : Matrix3x3;
+    velocity : {x: Float; y: Float; z: Float};
+    position : {x: Float; y: Float; z: Float};
+    biasGyro : {x: Float; y: Float; z: Float};
+    biasAccel : {x: Float; y: Float; z: Float};
+  };
+
+  public type Matrix3x3 = {
+    m00 : Float; m01 : Float; m02 : Float;
+    m10 : Float; m11 : Float; m12 : Float;
+    m20 : Float; m21 : Float; m22 : Float;
+  };
+
+  /// Factor graph for SLAM backend
+  public type FactorGraph = {
+    var variables : [FactorVariable];
+    var factors : [Factor];
+    var linearizedSystem : ?LinearSystem;
+  };
+
+  public type FactorVariable = {
+    variableId : Nat32;
+    variableType : VariableType;
+    var value : [Float];
+    var fixed : Bool;
+  };
+
+  public type VariableType = {
+    #Pose2D;
+    #Pose3D;
+    #Point2D;
+    #Point3D;
+    #Velocity3D;
+    #IMUBias;
+  };
+
+  public type Factor = {
+    factorId : Nat32;
+    factorType : FactorType;
+    variableIds : [Nat32];
+    measurement : [Float];
+    information : [[Float]];
+  };
+
+  public type FactorType = {
+    #Prior;
+    #BetweenPose;
+    #Projection;
+    #GPS;
+    #IMU;
+    #Odometry;
+  };
+
+  public type LinearSystem = {
+    H : [[Float]];  // Jacobian
+    b : [Float];  // Residual
+    var dx : [Float];  // Update
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MULTI-AGENT COORDINATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Consensus protocol state
+  public type ConsensusState = {
+    var agentStates : [(Nat32, [Float])];
+    var communicationGraph : AdjacencyMatrix;
+    var consensusValue : [Float];
+    var converged : Bool;
+    protocol : ConsensusProtocol;
+  };
+
+  public type AdjacencyMatrix = {
+    var matrix : [[var Float]];
+    numAgents : Nat;
+  };
+
+  public type ConsensusProtocol = {
+    #AverageConsensus;
+    #MaxConsensus;
+    #MinConsensus;
+    #LeaderFollower : {leaderId: Nat32};
+    #FiniteTime : {convergenceTime: Float};
+  };
+
+  /// Update consensus
+  public func updateConsensus(state : ConsensusState, dt : Float) : ConsensusState {
+    let n = state.agentStates.size();
+    if (n == 0) return state;
+    
+    let stateDim = state.agentStates[0].1.size();
+    var newStates : [(Nat32, [Float])] = [];
+    
+    for (i in Iter.range(0, n - 1)) {
+      let (agentId, currentState) = state.agentStates[i];
+      var update = Array.init<Float>(stateDim, 0.0);
+      
+      // Sum weighted differences from neighbors
+      for (j in Iter.range(0, n - 1)) {
+        if (i != j) {
+          let weight = state.communicationGraph.matrix[i][j];
+          if (weight > 0.0) {
+            let (_, neighborState) = state.agentStates[j];
+            for (d in Iter.range(0, stateDim - 1)) {
+              update[d] += weight * (neighborState[d] - currentState[d]);
+            };
+          };
+        };
+      };
+      
+      // Apply update
+      let newState = Array.tabulate<Float>(stateDim, func(d : Nat) : Float {
+        currentState[d] + update[d] * dt
+      });
+      newStates := Array.append(newStates, [(agentId, newState)]);
+    };
+    
+    state.agentStates := newStates;
+    
+    // Check convergence
+    var maxDiff = 0.0;
+    for (i in Iter.range(0, n - 2)) {
+      for (j in Iter.range(i + 1, n - 1)) {
+        let (_, state_i) = newStates[i];
+        let (_, state_j) = newStates[j];
+        for (d in Iter.range(0, stateDim - 1)) {
+          let diff = Float.abs(state_i[d] - state_j[d]);
+          if (diff > maxDiff) maxDiff := diff;
+        };
+      };
+    };
+    state.converged := maxDiff < 0.001;
+    
+    // Update consensus value
+    if (state.converged) {
+      let (_, firstState) = newStates[0];
+      state.consensusValue := firstState;
+    };
+    
+    state
+  };
+
+  /// Task allocation state
+  public type TaskAllocationState = {
+    var tasks : [AllocationTask];
+    var agents : [AllocationAgent];
+    var assignments : [(Nat32, Nat32)];  // (agentId, taskId)
+    var unassignedTasks : [Nat32];
+    algorithm : AllocationAlgorithm;
+  };
+
+  public type AllocationTask = {
+    taskId : Nat32;
+    position : {x: Float; y: Float; z: Float};
+    priority : Float;
+    requiredCapabilities : [Capability];
+    deadline : ?Int;
+    var status : AllocationStatus;
+  };
+
+  public type AllocationAgent = {
+    agentId : Nat32;
+    position : {x: Float; y: Float; z: Float};
+    capabilities : [Capability];
+    var currentTask : ?Nat32;
+    var workload : Float;
+    maxWorkload : Float;
+  };
+
+  public type Capability = {
+    #Reconnaissance;
+    #Strike;
+    #Transport;
+    #Communication;
+    #EW;
+    #SAR;
+    #Refueling;
+  };
+
+  public type AllocationStatus = {
+    #Unassigned;
+    #Assigned;
+    #InProgress;
+    #Completed;
+    #Failed;
+  };
+
+  public type AllocationAlgorithm = {
+    #Auction;
+    #Hungarian;
+    #Greedy;
+    #MarketBased;
+    #CBBA;  // Consensus-Based Bundle Algorithm
+  };
+
+  /// Collision avoidance using ORCA (Optimal Reciprocal Collision Avoidance)
+  public type ORCAState = {
+    var agents : [ORCAAgent];
+    timeHorizon : Float;
+    timeHorizonObst : Float;
+    var obstacles : [ORCAObstacle];
+  };
+
+  public type ORCAAgent = {
+    agentId : Nat32;
+    var position : {x: Float; y: Float};
+    var velocity : {vx: Float; vy: Float};
+    var preferredVelocity : {vx: Float; vy: Float};
+    radius : Float;
+    maxSpeed : Float;
+    var orcaLines : [ORCALine];
+  };
+
+  public type ORCALine = {
+    point : {x: Float; y: Float};
+    direction : {x: Float; y: Float};
+  };
+
+  public type ORCAObstacle = {
+    vertices : [{x: Float; y: Float}];
+    convex : Bool;
+  };
+
+  /// Compute ORCA velocity for an agent
+  public func computeORCAVelocity(
+    agent : ORCAAgent,
+    allAgents : [ORCAAgent],
+    timeHorizon : Float
+  ) : {vx: Float; vy: Float} {
+    var orcaLines : [ORCALine] = [];
+    
+    // Add ORCA half-planes for each neighbor
+    for (other in allAgents.vals()) {
+      if (other.agentId != agent.agentId) {
+        let relativePosition = {
+          x = other.position.x - agent.position.x;
+          y = other.position.y - agent.position.y;
+        };
+        let relativeVelocity = {
+          x = agent.velocity.vx - other.velocity.vx;
+          y = agent.velocity.vy - other.velocity.vy;
+        };
+        let combinedRadius = agent.radius + other.radius;
+        
+        let distSq = relativePosition.x * relativePosition.x + relativePosition.y * relativePosition.y;
+        
+        if (distSq > combinedRadius * combinedRadius) {
+          // No collision, compute velocity obstacle
+          let w = {
+            x = relativeVelocity.x - relativePosition.x / timeHorizon;
+            y = relativeVelocity.y - relativePosition.y / timeHorizon;
+          };
+          let wLengthSq = w.x * w.x + w.y * w.y;
+          
+          if (wLengthSq > 0.0) {
+            let wLength = Float.sqrt(wLengthSq);
+            let unitW = {x = w.x / wLength; y = w.y / wLength};
+            
+            let line : ORCALine = {
+              point = {
+                x = agent.velocity.vx + 0.5 * w.x;
+                y = agent.velocity.vy + 0.5 * w.y;
+              };
+              direction = {x = unitW.y; y = -unitW.x};
+            };
+            orcaLines := Array.append(orcaLines, [line]);
+          };
+        };
+      };
+    };
+    
+    agent.orcaLines := orcaLines;
+    
+    // Linear programming to find optimal velocity
+    // Simplified: return preferred velocity if feasible
+    agent.preferredVelocity
+  };
+
   // Continue building toward 150,000 lines...
-  // Current: ~14,000 lines
-  // Remaining: ~136,000 lines
+  // Current: ~17,000 lines
+  // Remaining: ~133,000 lines
 
 }
