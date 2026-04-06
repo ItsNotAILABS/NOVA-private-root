@@ -4769,8 +4769,9 @@ actor SwarmBrain {
       heartbeatCoherence := Float.min(1.0, heartbeatCoherence + 0.01);
     };
     
-    // Update average heartbeat coherence (EMA with alpha=0.01)
-    averageHeartbeatCoherence := averageHeartbeatCoherence * 0.99 + quantumHeartbeatState.quantumCoherence * 0.01;
+    // Update average heartbeat coherence (EMA with alpha modulated by emotional state)
+    let emotionalAlpha = 0.01 * emotionalHeartbeatMod;
+    averageHeartbeatCoherence := averageHeartbeatCoherence * (1.0 - emotionalAlpha) + quantumHeartbeatState.quantumCoherence * emotionalAlpha;
     
     // Store VERITAS stabilizer parities for law verification
     var stabIdx = 0;
