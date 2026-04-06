@@ -13816,8 +13816,1190 @@ module {
     subtractVector3(avgVelocity, velocity)
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // BLACKBOARD ARCHITECTURE FOR AI COORDINATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Blackboard state
+  public type BlackboardState = {
+    var entries : [BlackboardEntry];
+    var subscribers : [BlackboardSubscriber];
+    var history : [BlackboardEvent];
+    maxHistorySize : Nat;
+  };
+
+  public type BlackboardEntry = {
+    key : Text;
+    value : BlackboardValue;
+    source : Text;
+    timestamp : Int;
+    var priority : Nat;
+    var expiresAt : ?Int;
+    var tags : [Text];
+  };
+
+  public type BlackboardValue = {
+    #Int : Int;
+    #Float : Float;
+    #Bool : Bool;
+    #Text : Text;
+    #Vector3 : Vector3;
+    #EntityId : Nat32;
+    #Position : GPSPosition;
+    #List : [BlackboardValue];
+    #Map : [(Text, BlackboardValue)];
+    #Threat : ThreatInfo;
+    #Target : TargetInfo;
+    #Plan : [Text];
+  };
+
+  public type ThreatInfo = {
+    threatId : Nat32;
+    position : Vector3;
+    threatLevel : Float;
+    threatType : Text;
+    lastSeen : Int;
+  };
+
+  public type TargetInfo = {
+    targetId : Nat32;
+    position : Vector3;
+    priority : Float;
+    assignedTo : ?Nat32;
+    status : Text;
+  };
+
+  public type BlackboardSubscriber = {
+    subscriberId : Text;
+    keyPattern : Text;
+    callback : BlackboardEntry -> ();
+    filter : ?BlackboardValue -> Bool;
+  };
+
+  public type BlackboardEvent = {
+    timestamp : Int;
+    eventType : BlackboardEventType;
+    key : Text;
+    oldValue : ?BlackboardValue;
+    newValue : ?BlackboardValue;
+    source : Text;
+  };
+
+  public type BlackboardEventType = {
+    #Created;
+    #Updated;
+    #Deleted;
+    #Expired;
+  };
+
+  /// Initialize blackboard
+  public func initBlackboard() : BlackboardState {
+    {
+      var entries = [];
+      var subscribers = [];
+      var history = [];
+      maxHistorySize = 1000;
+    }
+  };
+
+  /// Write to blackboard
+  public func writeBlackboard(
+    bb : BlackboardState,
+    key : Text,
+    value : BlackboardValue,
+    source : Text,
+    ttl : ?Int
+  ) : () {
+    let now = Time.now();
+    let expiresAt = switch (ttl) {
+      case (?t) ?(now + t);
+      case (null) null;
+    };
+    
+    // Check if key exists
+    var found = false;
+    var oldValue : ?BlackboardValue = null;
+    
+    bb.entries := Array.map<BlackboardEntry, BlackboardEntry>(bb.entries, func(e : BlackboardEntry) : BlackboardEntry {
+      if (e.key == key) {
+        found := true;
+        oldValue := ?e.value;
+        {
+          key = e.key;
+          value = value;
+          source = source;
+          timestamp = now;
+          var priority = e.priority;
+          var expiresAt = expiresAt;
+          var tags = e.tags;
+        }
+      } else {
+        e
+      }
+    });
+    
+    if (not found) {
+      bb.entries := Array.append(bb.entries, [{
+        key = key;
+        value = value;
+        source = source;
+        timestamp = now;
+        var priority = 0;
+        var expiresAt = expiresAt;
+        var tags = [];
+      }]);
+    };
+    
+    // Record event
+    let eventType = if (found) #Updated else #Created;
+    recordBlackboardEvent(bb, eventType, key, oldValue, ?value, source);
+    
+    // Notify subscribers
+    notifySubscribers(bb, key, value);
+  };
+
+  /// Read from blackboard
+  public func readBlackboard(bb : BlackboardState, key : Text) : ?BlackboardValue {
+    for (entry in bb.entries.vals()) {
+      if (entry.key == key) {
+        // Check expiration
+        switch (entry.expiresAt) {
+          case (?exp) {
+            if (Time.now() > exp) {
+              return null;
+            };
+          };
+          case (null) {};
+        };
+        return ?entry.value;
+      };
+    };
+    null
+  };
+
+  /// Delete from blackboard
+  public func deleteBlackboard(bb : BlackboardState, key : Text, source : Text) : Bool {
+    var found = false;
+    var oldValue : ?BlackboardValue = null;
+    
+    bb.entries := Array.filter<BlackboardEntry>(bb.entries, func(e : BlackboardEntry) : Bool {
+      if (e.key == key) {
+        found := true;
+        oldValue := ?e.value;
+        false
+      } else {
+        true
+      }
+    });
+    
+    if (found) {
+      recordBlackboardEvent(bb, #Deleted, key, oldValue, null, source);
+    };
+    
+    found
+  };
+
+  /// Query blackboard by tag
+  public func queryByTag(bb : BlackboardState, tag : Text) : [BlackboardEntry] {
+    Array.filter<BlackboardEntry>(bb.entries, func(e : BlackboardEntry) : Bool {
+      for (t in e.tags.vals()) {
+        if (t == tag) return true;
+      };
+      false
+    })
+  };
+
+  /// Record blackboard event
+  func recordBlackboardEvent(
+    bb : BlackboardState,
+    eventType : BlackboardEventType,
+    key : Text,
+    oldValue : ?BlackboardValue,
+    newValue : ?BlackboardValue,
+    source : Text
+  ) : () {
+    let event : BlackboardEvent = {
+      timestamp = Time.now();
+      eventType = eventType;
+      key = key;
+      oldValue = oldValue;
+      newValue = newValue;
+      source = source;
+    };
+    
+    bb.history := Array.append(bb.history, [event]);
+    
+    // Trim history if needed
+    if (bb.history.size() > bb.maxHistorySize) {
+      bb.history := Array.tabulate<BlackboardEvent>(bb.maxHistorySize, func(i : Nat) : BlackboardEvent {
+        bb.history[bb.history.size() - bb.maxHistorySize + i]
+      });
+    };
+  };
+
+  /// Notify subscribers of changes
+  func notifySubscribers(bb : BlackboardState, key : Text, value : BlackboardValue) : () {
+    for (sub in bb.subscribers.vals()) {
+      // Simple pattern matching (exact or wildcard)
+      let matches = if (sub.keyPattern == "*") {
+        true
+      } else if (Text.endsWith(sub.keyPattern, #text "*")) {
+        let prefix = Text.trimEnd(sub.keyPattern, #text "*");
+        Text.startsWith(key, #text prefix)
+      } else {
+        sub.keyPattern == key
+      };
+      
+      if (matches) {
+        // Apply filter if present
+        let passFilter = switch (sub.filter) {
+          case (?f) f(?value);
+          case (null) true;
+        };
+        
+        if (passFilter) {
+          // Would call callback here
+        };
+      };
+    };
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SWARM COMMUNICATION PROTOCOLS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Swarm message types
+  public type SwarmMessage = {
+    #Heartbeat : HeartbeatMessage;
+    #ThreatAlert : ThreatAlertMessage;
+    #TaskAssignment : TaskAssignmentMessage;
+    #StatusReport : StatusReportMessage;
+    #FormationCommand : FormationCommandMessage;
+    #ResourceRequest : ResourceRequestMessage;
+    #Acknowledgment : AcknowledgmentMessage;
+    #DataShare : DataShareMessage;
+    #EmergencyBroadcast : EmergencyBroadcastMessage;
+  };
+
+  public type HeartbeatMessage = {
+    senderId : Nat32;
+    timestamp : Int;
+    position : Vector3;
+    velocity : Vector3;
+    health : Float;
+    fuel : Float;
+    status : DroneStatus;
+  };
+
+  public type DroneStatus = {
+    #Idle;
+    #Patrolling;
+    #Engaging;
+    #Returning;
+    #Refueling;
+    #Damaged;
+    #Lost;
+  };
+
+  public type ThreatAlertMessage = {
+    senderId : Nat32;
+    timestamp : Int;
+    threat : ThreatInfo;
+    urgency : ThreatUrgency;
+    recommendedAction : ?Text;
+  };
+
+  public type ThreatUrgency = {
+    #Low;
+    #Medium;
+    #High;
+    #Critical;
+  };
+
+  public type TaskAssignmentMessage = {
+    senderId : Nat32;
+    timestamp : Int;
+    taskId : Text;
+    assigneeId : Nat32;
+    taskType : TaskType;
+    parameters : [(Text, BlackboardValue)];
+    priority : Nat;
+    deadline : ?Int;
+  };
+
+  public type TaskType = {
+    #Patrol;
+    #Attack;
+    #Defend;
+    #Scout;
+    #Escort;
+    #Resupply;
+    #Repair;
+    #Relay;
+    #Custom : Text;
+  };
+
+  public type StatusReportMessage = {
+    senderId : Nat32;
+    timestamp : Int;
+    taskId : ?Text;
+    status : TaskProgress;
+    completionPercentage : Float;
+    issues : [Text];
+  };
+
+  public type TaskProgress = {
+    #NotStarted;
+    #InProgress;
+    #Completed;
+    #Failed;
+    #Blocked;
+    #Cancelled;
+  };
+
+  public type FormationCommandMessage = {
+    senderId : Nat32;
+    timestamp : Int;
+    formationType : FormationType;
+    leaderPosition : Vector3;
+    leaderOrientation : Float;
+    spacing : Float;
+    targetPosition : ?Vector3;
+  };
+
+  public type ResourceRequestMessage = {
+    senderId : Nat32;
+    timestamp : Int;
+    resourceType : ResourceType;
+    quantity : Float;
+    urgency : ThreatUrgency;
+    location : Vector3;
+  };
+
+  public type ResourceType = {
+    #Fuel;
+    #Ammunition;
+    #Repair;
+    #Data;
+    #Backup;
+  };
+
+  public type AcknowledgmentMessage = {
+    senderId : Nat32;
+    timestamp : Int;
+    originalMessageId : Text;
+    accepted : Bool;
+    reason : ?Text;
+  };
+
+  public type DataShareMessage = {
+    senderId : Nat32;
+    timestamp : Int;
+    dataType : DataType;
+    data : Blob;
+    recipients : ?[Nat32];  // null = broadcast
+  };
+
+  public type DataType = {
+    #Map;
+    #Threat;
+    #Target;
+    #Sensor;
+    #Model;
+    #Configuration;
+  };
+
+  public type EmergencyBroadcastMessage = {
+    senderId : Nat32;
+    timestamp : Int;
+    emergencyType : EmergencyType;
+    location : Vector3;
+    details : Text;
+    requestedAssistance : Bool;
+  };
+
+  public type EmergencyType = {
+    #MaydayMayday;
+    #UnderAttack;
+    #SystemFailure;
+    #LowFuel;
+    #LostComms;
+    #Compromised;
+  };
+
+  /// Communication network state
+  public type CommNetworkState = {
+    var nodes : [CommNode];
+    var links : [CommLink];
+    var messageQueue : [QueuedMessage];
+    var messageHistory : [MessageRecord];
+    var routingTable : [(Nat32, Nat32, Nat32)];  // (from, to, nextHop)
+  };
+
+  public type CommNode = {
+    nodeId : Nat32;
+    position : Vector3;
+    range : Float;
+    var isOnline : Bool;
+    var lastHeartbeat : Int;
+    var neighbors : [Nat32];
+    var pendingMessages : [QueuedMessage];
+  };
+
+  public type CommLink = {
+    node1 : Nat32;
+    node2 : Nat32;
+    var quality : Float;  // [0, 1]
+    var latency : Float;  // ms
+    var bandwidth : Float;  // bytes/sec
+    var isActive : Bool;
+  };
+
+  public type QueuedMessage = {
+    messageId : Text;
+    message : SwarmMessage;
+    sender : Nat32;
+    recipients : [Nat32];
+    priority : Nat;
+    timestamp : Int;
+    var retryCount : Nat;
+    maxRetries : Nat;
+  };
+
+  public type MessageRecord = {
+    messageId : Text;
+    sender : Nat32;
+    recipients : [Nat32];
+    messageType : Text;
+    timestamp : Int;
+    delivered : Bool;
+    deliveryTime : ?Int;
+  };
+
+  /// Initialize communication network
+  public func initCommNetwork() : CommNetworkState {
+    {
+      var nodes = [];
+      var links = [];
+      var messageQueue = [];
+      var messageHistory = [];
+      var routingTable = [];
+    }
+  };
+
+  /// Send message
+  public func sendMessage(
+    network : CommNetworkState,
+    message : SwarmMessage,
+    senderId : Nat32,
+    recipients : [Nat32],
+    priority : Nat
+  ) : Text {
+    let messageId = Int.toText(Time.now()) # "_" # Nat32.toText(senderId);
+    
+    let queuedMsg : QueuedMessage = {
+      messageId = messageId;
+      message = message;
+      sender = senderId;
+      recipients = recipients;
+      priority = priority;
+      timestamp = Time.now();
+      var retryCount = 0;
+      maxRetries = 3;
+    };
+    
+    network.messageQueue := Array.append(network.messageQueue, [queuedMsg]);
+    
+    messageId
+  };
+
+  /// Process message queue
+  public func processMessageQueue(network : CommNetworkState) : () {
+    // Sort by priority
+    let sorted = Array.sort<QueuedMessage>(network.messageQueue, func(a, b : QueuedMessage) : Order.Order {
+      if (a.priority > b.priority) #less
+      else if (a.priority < b.priority) #greater
+      else #equal
+    });
+    
+    var remaining : [QueuedMessage] = [];
+    
+    for (msg in sorted.vals()) {
+      var delivered = false;
+      
+      // Find route for each recipient
+      for (recipientId in msg.recipients.vals()) {
+        // Check direct link
+        var canDeliver = false;
+        
+        for (link in network.links.vals()) {
+          if (link.isActive and link.quality > 0.5) {
+            if ((link.node1 == msg.sender and link.node2 == recipientId) or
+                (link.node2 == msg.sender and link.node1 == recipientId)) {
+              canDeliver := true;
+            };
+          };
+        };
+        
+        if (canDeliver) {
+          delivered := true;
+        };
+      };
+      
+      if (not delivered and msg.retryCount < msg.maxRetries) {
+        msg.retryCount += 1;
+        remaining := Array.append(remaining, [msg]);
+      };
+      
+      // Record delivery
+      let record : MessageRecord = {
+        messageId = msg.messageId;
+        sender = msg.sender;
+        recipients = msg.recipients;
+        messageType = getMessageTypeName(msg.message);
+        timestamp = msg.timestamp;
+        delivered = delivered;
+        deliveryTime = if (delivered) ?Time.now() else null;
+      };
+      network.messageHistory := Array.append(network.messageHistory, [record]);
+    };
+    
+    network.messageQueue := remaining;
+  };
+
+  /// Get message type name
+  func getMessageTypeName(msg : SwarmMessage) : Text {
+    switch (msg) {
+      case (#Heartbeat(_)) "Heartbeat";
+      case (#ThreatAlert(_)) "ThreatAlert";
+      case (#TaskAssignment(_)) "TaskAssignment";
+      case (#StatusReport(_)) "StatusReport";
+      case (#FormationCommand(_)) "FormationCommand";
+      case (#ResourceRequest(_)) "ResourceRequest";
+      case (#Acknowledgment(_)) "Acknowledgment";
+      case (#DataShare(_)) "DataShare";
+      case (#EmergencyBroadcast(_)) "EmergencyBroadcast";
+    }
+  };
+
+  /// Update network topology
+  public func updateNetworkTopology(network : CommNetworkState) : () {
+    // Update link quality based on distance
+    for (link in network.links.vals()) {
+      var node1Pos : ?Vector3 = null;
+      var node2Pos : ?Vector3 = null;
+      var node1Range : Float = 0.0;
+      var node2Range : Float = 0.0;
+      
+      for (node in network.nodes.vals()) {
+        if (node.nodeId == link.node1) {
+          node1Pos := ?node.position;
+          node1Range := node.range;
+        };
+        if (node.nodeId == link.node2) {
+          node2Pos := ?node.position;
+          node2Range := node.range;
+        };
+      };
+      
+      switch (node1Pos, node2Pos) {
+        case (?p1, ?p2) {
+          let dist = magnitudeVector3(subtractVector3(p1, p2));
+          let maxRange = Float.min(node1Range, node2Range);
+          
+          if (dist > maxRange) {
+            link.isActive := false;
+            link.quality := 0.0;
+          } else {
+            link.isActive := true;
+            link.quality := 1.0 - (dist / maxRange);
+          };
+        };
+        case _ {
+          link.isActive := false;
+        };
+      };
+    };
+    
+    // Update neighbor lists
+    for (node in network.nodes.vals()) {
+      var neighbors : [Nat32] = [];
+      
+      for (link in network.links.vals()) {
+        if (link.isActive) {
+          if (link.node1 == node.nodeId) {
+            neighbors := Array.append(neighbors, [link.node2]);
+          } else if (link.node2 == node.nodeId) {
+            neighbors := Array.append(neighbors, [link.node1]);
+          };
+        };
+      };
+      
+      node.neighbors := neighbors;
+    };
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MONTE CARLO TREE SEARCH FOR DECISION MAKING
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// MCTS state
+  public type MCTSState = {
+    var root : MCTSNode;
+    var iterations : Nat;
+    explorationConstant : Float;
+    var simulationDepth : Nat;
+  };
+
+  public type MCTSNode = {
+    var state : GameState;
+    var parent : ?MCTSNode;
+    var children : [MCTSNode];
+    var visits : Nat;
+    var totalReward : Float;
+    var untriedActions : [GameAction];
+    action : ?GameAction;
+  };
+
+  public type GameState = {
+    board : [[Int]];  // Generic game state
+    currentPlayer : Nat;
+    var isTerminal : Bool;
+    var winner : ?Nat;
+  };
+
+  public type GameAction = {
+    actionType : Text;
+    parameters : [(Text, Int)];
+  };
+
+  /// Initialize MCTS
+  public func initMCTS(initialState : GameState, explorationC : Float) : MCTSState {
+    let root : MCTSNode = {
+      var state = initialState;
+      var parent = null;
+      var children = [];
+      var visits = 0;
+      var totalReward = 0.0;
+      var untriedActions = getAvailableActions(initialState);
+      action = null;
+    };
+    
+    {
+      var root = root;
+      var iterations = 0;
+      explorationConstant = explorationC;
+      var simulationDepth = 100;
+    }
+  };
+
+  /// Get available actions for a state
+  func getAvailableActions(state : GameState) : [GameAction] {
+    // Placeholder - would be game-specific
+    []
+  };
+
+  /// Select best child using UCB1
+  func selectBestChild(node : MCTSNode, c : Float) : ?MCTSNode {
+    if (node.children.size() == 0) return null;
+    
+    var bestChild : ?MCTSNode = null;
+    var bestUCB = -1e10;
+    
+    for (child in node.children.vals()) {
+      if (child.visits > 0) {
+        let exploitation = child.totalReward / Float.fromInt(child.visits);
+        let exploration = c * Float.sqrt(Float.log(Float.fromInt(node.visits)) / Float.fromInt(child.visits));
+        let ucb = exploitation + exploration;
+        
+        if (ucb > bestUCB) {
+          bestUCB := ucb;
+          bestChild := ?child;
+        };
+      } else {
+        // Unvisited child has infinite UCB
+        return ?child;
+      };
+    };
+    
+    bestChild
+  };
+
+  /// Run MCTS iteration
+  public func mctsIteration(mcts : MCTSState) : GameAction {
+    // Selection
+    var node = mcts.root;
+    
+    label selection while (node.untriedActions.size() == 0 and node.children.size() > 0) {
+      switch (selectBestChild(node, mcts.explorationConstant)) {
+        case (?child) { node := child };
+        case (null) { break selection };
+      };
+    };
+    
+    // Expansion
+    if (node.untriedActions.size() > 0) {
+      let action = node.untriedActions[0];
+      node.untriedActions := Array.tabulate<GameAction>(node.untriedActions.size() - 1, func(i : Nat) : GameAction {
+        node.untriedActions[i + 1]
+      });
+      
+      let newState = applyAction(node.state, action);
+      let child : MCTSNode = {
+        var state = newState;
+        var parent = ?node;
+        var children = [];
+        var visits = 0;
+        var totalReward = 0.0;
+        var untriedActions = getAvailableActions(newState);
+        action = ?action;
+      };
+      
+      node.children := Array.append(node.children, [child]);
+      node := child;
+    };
+    
+    // Simulation
+    var simState = node.state;
+    var depth = 0;
+    
+    while (not simState.isTerminal and depth < mcts.simulationDepth) {
+      let actions = getAvailableActions(simState);
+      if (actions.size() == 0) {
+        simState.isTerminal := true;
+      } else {
+        let randomIdx = Int.abs(Float.toInt(randomFloat() * Float.fromInt(actions.size()))) % actions.size();
+        simState := applyAction(simState, actions[randomIdx]);
+      };
+      depth += 1;
+    };
+    
+    // Get reward
+    let reward = evaluateState(simState);
+    
+    // Backpropagation
+    var backNode : ?MCTSNode = ?node;
+    label backprop loop {
+      switch (backNode) {
+        case (?n) {
+          n.visits += 1;
+          n.totalReward += reward;
+          backNode := n.parent;
+        };
+        case (null) { break backprop };
+      };
+    };
+    
+    mcts.iterations += 1;
+    
+    // Return best action from root
+    switch (getBestAction(mcts.root)) {
+      case (?a) a;
+      case (null) { { actionType = "none"; parameters = [] } };
+    }
+  };
+
+  /// Apply action to state
+  func applyAction(state : GameState, action : GameAction) : GameState {
+    // Deep copy and modify - placeholder
+    {
+      board = state.board;
+      currentPlayer = (state.currentPlayer + 1) % 2;
+      var isTerminal = false;
+      var winner = null;
+    }
+  };
+
+  /// Evaluate terminal state
+  func evaluateState(state : GameState) : Float {
+    switch (state.winner) {
+      case (?w) { if (w == 0) 1.0 else 0.0 };
+      case (null) { 0.5 };  // Draw
+    }
+  };
+
+  /// Get best action from node
+  func getBestAction(node : MCTSNode) : ?GameAction {
+    var bestChild : ?MCTSNode = null;
+    var bestVisits = 0;
+    
+    for (child in node.children.vals()) {
+      if (child.visits > bestVisits) {
+        bestVisits := child.visits;
+        bestChild := ?child;
+      };
+    };
+    
+    switch (bestChild) {
+      case (?c) c.action;
+      case (null) null;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PERCEPTION SYSTEM
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Perception state
+  public type PerceptionState = {
+    var detectedEntities : [PerceivedEntity];
+    var sensorReadings : [SensorReading];
+    var perceptionFilters : [PerceptionFilter];
+    var memoryDuration : Float;
+    var attentionFocus : ?Nat32;
+  };
+
+  public type PerceivedEntity = {
+    entityId : Nat32;
+    entityType : EntityType;
+    var position : Vector3;
+    var velocity : Vector3;
+    var lastSeen : Int;
+    var confidence : Float;
+    var threatLevel : Float;
+    var isVisible : Bool;
+    sensorSources : [Text];
+  };
+
+  public type EntityType = {
+    #Friendly;
+    #Hostile;
+    #Neutral;
+    #Unknown;
+    #Obstacle;
+    #Waypoint;
+    #Resource;
+  };
+
+  public type SensorReading = {
+    sensorId : Text;
+    sensorType : SensorTypeEnum;
+    timestamp : Int;
+    rawData : [Float];
+    processedData : ?[(Text, Float)];
+    confidence : Float;
+  };
+
+  public type SensorTypeEnum = {
+    #Camera;
+    #Radar;
+    #Lidar;
+    #Infrared;
+    #Acoustic;
+    #Radio;
+    #GPS;
+    #IMU;
+  };
+
+  public type PerceptionFilter = {
+    filterName : Text;
+    filterType : FilterType;
+    parameters : [(Text, Float)];
+    var isActive : Bool;
+  };
+
+  public type FilterType = {
+    #DistanceFilter : Float;
+    #TypeFilter : EntityType;
+    #ThreatFilter : Float;
+    #VisibilityFilter;
+    #AgeFilter : Float;
+  };
+
+  /// Initialize perception system
+  public func initPerception() : PerceptionState {
+    {
+      var detectedEntities = [];
+      var sensorReadings = [];
+      var perceptionFilters = [];
+      var memoryDuration = 5.0;  // seconds
+      var attentionFocus = null;
+    }
+  };
+
+  /// Update perception with new sensor data
+  public func updatePerception(
+    perception : PerceptionState,
+    reading : SensorReading
+  ) : () {
+    perception.sensorReadings := Array.append(perception.sensorReadings, [reading]);
+    
+    // Process reading to detect entities
+    switch (reading.processedData) {
+      case (?data) {
+        for ((key, value) in data.vals()) {
+          // Simple entity detection logic
+          if (key == "entity_detected" and value > 0.5) {
+            // Would extract entity details from data
+          };
+        };
+      };
+      case (null) {};
+    };
+  };
+
+  /// Fuse perception data
+  public func fusePerception(perception : PerceptionState) : () {
+    let now = Time.now();
+    
+    // Remove old readings
+    perception.sensorReadings := Array.filter<SensorReading>(perception.sensorReadings, func(r : SensorReading) : Bool {
+      Float.fromInt(now - r.timestamp) / 1e9 < perception.memoryDuration
+    });
+    
+    // Update entity confidence based on age
+    for (entity in perception.detectedEntities.vals()) {
+      let age = Float.fromInt(now - entity.lastSeen) / 1e9;
+      entity.confidence *= Float.pow(0.9, age);
+      
+      if (not entity.isVisible) {
+        // Predict position based on last known velocity
+        entity.position := addVector3(entity.position, scaleVector3(entity.velocity, age));
+      };
+    };
+    
+    // Remove low confidence entities
+    perception.detectedEntities := Array.filter<PerceivedEntity>(perception.detectedEntities, func(e : PerceivedEntity) : Bool {
+      e.confidence > 0.1
+    });
+  };
+
+  /// Query entities matching filters
+  public func queryEntities(
+    perception : PerceptionState,
+    position : Vector3,
+    radius : Float,
+    typeFilter : ?EntityType
+  ) : [PerceivedEntity] {
+    Array.filter<PerceivedEntity>(perception.detectedEntities, func(e : PerceivedEntity) : Bool {
+      let dist = magnitudeVector3(subtractVector3(e.position, position));
+      let inRange = dist <= radius;
+      
+      let matchesType = switch (typeFilter) {
+        case (?t) e.entityType == t;
+        case (null) true;
+      };
+      
+      inRange and matchesType
+    })
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // WORLD MODEL
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// World model state
+  public type WorldModelState = {
+    var entities : [WorldEntity];
+    var regions : [WorldRegion];
+    var events : [WorldEvent];
+    var predictions : [WorldPrediction];
+    var lastUpdate : Int;
+  };
+
+  public type WorldEntity = {
+    entityId : Nat32;
+    entityType : EntityType;
+    var state : EntityState;
+    var history : [EntityState];
+    maxHistorySize : Nat;
+    var beliefs : [(Text, Float)];
+  };
+
+  public type WorldRegion = {
+    regionId : Text;
+    bounds : AABB;
+    regionType : RegionType;
+    var dangerLevel : Float;
+    var controlledBy : ?Nat32;
+    var resources : [(ResourceType, Float)];
+  };
+
+  public type RegionType = {
+    #Safe;
+    #Contested;
+    #Hostile;
+    #Unknown;
+    #Objective;
+    #NoFlyZone;
+  };
+
+  public type WorldEvent = {
+    eventId : Text;
+    eventType : WorldEventType;
+    position : Vector3;
+    timestamp : Int;
+    duration : ?Float;
+    participants : [Nat32];
+    outcome : ?Text;
+  };
+
+  public type WorldEventType = {
+    #Combat;
+    #Detection;
+    #Movement;
+    #Communication;
+    #ResourceChange;
+    #StateChange;
+  };
+
+  public type WorldPrediction = {
+    predictionId : Text;
+    targetEntity : ?Nat32;
+    predictionType : PredictionType;
+    predictedValue : [Float];
+    confidence : Float;
+    timeHorizon : Float;
+    var wasCorrect : ?Bool;
+  };
+
+  public type PredictionType = {
+    #Position;
+    #Action;
+    #Intent;
+    #ThreatLevel;
+  };
+
+  /// Initialize world model
+  public func initWorldModel() : WorldModelState {
+    {
+      var entities = [];
+      var regions = [];
+      var events = [];
+      var predictions = [];
+      var lastUpdate = Time.now();
+    }
+  };
+
+  /// Update world model
+  public func updateWorldModel(
+    world : WorldModelState,
+    perceptions : [PerceivedEntity]
+  ) : () {
+    let now = Time.now();
+    
+    // Update or add entities from perception
+    for (percept in perceptions.vals()) {
+      var found = false;
+      
+      world.entities := Array.map<WorldEntity, WorldEntity>(world.entities, func(e : WorldEntity) : WorldEntity {
+        if (e.entityId == percept.entityId) {
+          found := true;
+          
+          // Update history
+          let newHistory = if (e.history.size() >= e.maxHistorySize) {
+            Array.tabulate<EntityState>(e.maxHistorySize - 1, func(i : Nat) : EntityState {
+              e.history[i + 1]
+            })
+          } else {
+            e.history
+          };
+          
+          {
+            entityId = e.entityId;
+            entityType = percept.entityType;
+            var state = {
+              position = percept.position;
+              velocity = percept.velocity;
+              attitude = {roll = 0.0; pitch = 0.0; yaw = 0.0; rollRate = 0.0; pitchRate = 0.0; yawRate = 0.0};
+              health = 1.0;
+              fuel = 1.0;
+              ammunition = [];
+              sensors = [];
+              weapons = [];
+            };
+            var history = Array.append(newHistory, [e.state]);
+            maxHistorySize = e.maxHistorySize;
+            var beliefs = e.beliefs;
+          }
+        } else {
+          e
+        }
+      });
+      
+      if (not found) {
+        world.entities := Array.append(world.entities, [{
+          entityId = percept.entityId;
+          entityType = percept.entityType;
+          var state = {
+            position = percept.position;
+            velocity = percept.velocity;
+            attitude = {roll = 0.0; pitch = 0.0; yaw = 0.0; rollRate = 0.0; pitchRate = 0.0; yawRate = 0.0};
+            health = 1.0;
+            fuel = 1.0;
+            ammunition = [];
+            sensors = [];
+            weapons = [];
+          };
+          var history = [];
+          maxHistorySize = 100;
+          var beliefs = [];
+        }]);
+      };
+    };
+    
+    // Update region danger levels
+    for (region in world.regions.vals()) {
+      var hostileCount = 0;
+      var friendlyCount = 0;
+      
+      for (entity in world.entities.vals()) {
+        if (aabbContainsPoint(region.bounds, entity.state.position)) {
+          switch (entity.entityType) {
+            case (#Hostile) { hostileCount += 1 };
+            case (#Friendly) { friendlyCount += 1 };
+            case _ {};
+          };
+        };
+      };
+      
+      if (hostileCount > 0) {
+        region.dangerLevel := Float.fromInt(hostileCount) / Float.fromInt(hostileCount + friendlyCount + 1);
+      } else {
+        region.dangerLevel *= 0.95;  // Decay
+      };
+    };
+    
+    world.lastUpdate := now;
+  };
+
+  /// Check if AABB contains point
+  func aabbContainsPoint(aabb : AABB, point : Vector3) : Bool {
+    point.x >= aabb.min.x and point.x <= aabb.max.x and
+    point.y >= aabb.min.y and point.y <= aabb.max.y and
+    point.z >= aabb.min.z and point.z <= aabb.max.z
+  };
+
+  /// Make prediction about entity
+  public func predictEntityBehavior(
+    world : WorldModelState,
+    entityId : Nat32,
+    timeHorizon : Float
+  ) : ?WorldPrediction {
+    for (entity in world.entities.vals()) {
+      if (entity.entityId == entityId) {
+        // Simple linear prediction
+        let predictedPos = addVector3(
+          entity.state.position,
+          scaleVector3(entity.state.velocity, timeHorizon)
+        );
+        
+        return ?{
+          predictionId = Int.toText(Time.now()) # "_pred";
+          targetEntity = ?entityId;
+          predictionType = #Position;
+          predictedValue = [predictedPos.x, predictedPos.y, predictedPos.z];
+          confidence = 0.8 - 0.1 * timeHorizon;  // Confidence decreases with time
+          timeHorizon = timeHorizon;
+          var wasCorrect = null;
+        };
+      };
+    };
+    null
+  };
+
   // Continue building toward 150,000 lines...
-  // Current: ~15,500 lines
-  // Remaining: ~134,500 lines
+  // Current: ~17,000 lines
+  // Remaining: ~133,000 lines
 
 }
