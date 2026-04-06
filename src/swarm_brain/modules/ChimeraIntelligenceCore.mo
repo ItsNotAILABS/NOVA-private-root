@@ -26967,8 +26967,1633 @@ module {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 16: SENSOR DATA FUSION FRAMEWORK
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Multi-sensor data fusion state
+  public type SensorFusionState = {
+    var sensors : [SensorNode];
+    var tracks : [FusedTrack];
+    var fusionEngine : FusionEngine;
+    var registrationState : RegistrationState;
+    var qualityMetrics : FusionQuality;
+  };
+
+  public type SensorNode = {
+    sensorId : Text;
+    sensorType : SensorType;
+    position : Vector3;
+    orientation : Quaternion;
+    var status : SensorStatus;
+    var measurements : [SensorMeasurement];
+    performance : SensorPerformance;
+    coverage : SensorCoverage;
+  };
+
+  public type SensorType = {
+    #Radar : RadarParams;
+    #EO_IR : EOIRParams;
+    #ESM : ESMParams;
+    #Acoustic : AcousticParams;
+    #Magnetic : MagneticParams;
+    #Seismic : SeismicParams;
+    #Chemical : ChemicalParams;
+    #LIDAR : LIDARParams;
+    #GPS : GPSParams;
+    #IMU : IMUParams;
+  };
+
+  public type RadarParams = {
+    radarType : RadarType;
+    frequency : Float;
+    bandwidth : Float;
+    maxRange : Float;
+    rangeResolution : Float;
+    angleResolution : Float;
+    prf : Float;
+  };
+
+  public type RadarType = {
+    #Surveillance;
+    #TrackingIlluminator;
+    #FireControl;
+    #WeatherAvoidance;
+    #TerrainFollowing;
+    #SAR;
+    #MTI;
+  };
+
+  public type EOIRParams = {
+    modalityType : EOIRModality;
+    fov : Float;
+    resolution : (Nat, Nat);
+    sensitivity : Float;
+    frameRate : Float;
+  };
+
+  public type EOIRModality = {
+    #Visible;
+    #NearIR;
+    #ShortWaveIR;
+    #MidWaveIR;
+    #LongWaveIR;
+    #UV;
+    #MultiSpectral;
+    #HyperSpectral;
+  };
+
+  public type ESMParams = {
+    frequencyRange : (Float, Float);
+    sensitivity : Float;
+    dfAccuracy : Float;
+    instantaneousBandwidth : Float;
+  };
+
+  public type AcousticParams = {
+    frequencyRange : (Float, Float);
+    sensitivity : Float;
+    directional : Bool;
+    numElements : Nat;
+  };
+
+  public type MagneticParams = {
+    sensitivity : Float;
+    bandwidth : Float;
+    vectorMeasurement : Bool;
+  };
+
+  public type SeismicParams = {
+    frequencyRange : (Float, Float);
+    sensitivity : Float;
+    threeAxis : Bool;
+  };
+
+  public type ChemicalParams = {
+    detectedAgents : [Text];
+    sensitivity : Float;
+    responseTime : Float;
+  };
+
+  public type LIDARParams = {
+    wavelength : Float;
+    maxRange : Float;
+    pointRate : Nat;
+    accuracy : Float;
+    scanPattern : LIDARScanPattern;
+  };
+
+  public type LIDARScanPattern = {
+    #Mechanical;
+    #MEMS;
+    #OPA;
+    #Flash;
+  };
+
+  public type GPSParams = {
+    constellations : [Text];
+    accuracy : Float;
+    updateRate : Float;
+  };
+
+  public type IMUParams = {
+    accelerometerRange : Float;
+    gyroscopeRange : Float;
+    updateRate : Float;
+    biasStability : Float;
+  };
+
+  public type SensorStatus = {
+    #Operational;
+    #Degraded : Text;
+    #Failed;
+    #Calibrating;
+    #Maintenance;
+  };
+
+  public type SensorMeasurement = {
+    measurementId : Text;
+    sensorId : Text;
+    timestamp : Int;
+    measurementType : MeasurementType;
+    value : MeasurementValue;
+    uncertainty : MeasurementUncertainty;
+  };
+
+  public type MeasurementType = {
+    #Position;
+    #Velocity;
+    #Bearing;
+    #Range;
+    #RangeRate;
+    #Angle;
+    #Signature;
+    #Classification;
+  };
+
+  public type MeasurementValue = {
+    #Scalar : Float;
+    #Vector : [Float];
+    #Matrix : [[Float]];
+    #Categorical : Text;
+  };
+
+  public type MeasurementUncertainty = {
+    #Gaussian : {mean: Float; stdDev: Float};
+    #Covariance : [[Float]];
+    #Uniform : {min: Float; max: Float};
+    #Discrete : [(Float, Float)];  // (value, probability)
+  };
+
+  public type SensorPerformance = {
+    detectionProbability : Float;
+    falseAlarmRate : Float;
+    accuracy : Float;
+    precision : Float;
+    latency : Float;
+  };
+
+  public type SensorCoverage = {
+    coverageType : CoverageType;
+    azimuthExtent : (Float, Float);
+    elevationExtent : (Float, Float);
+    rangeExtent : (Float, Float);
+  };
+
+  public type CoverageType = {
+    #Omnidirectional;
+    #Hemispherical;
+    #Sector;
+    #Conical;
+    #Custom : [Vector3];
+  };
+
+  public type FusedTrack = {
+    trackId : Text;
+    var state : TrackState;
+    var covariance : [[Float]];
+    var classification : Classification;
+    var confidence : Float;
+    var quality : Float;
+    var contributors : [Text];
+    var history : [TrackUpdate];
+    var predictions : [PredictedState];
+  };
+
+  public type TrackState = {
+    position : Vector3;
+    velocity : Vector3;
+    acceleration : ?Vector3;
+    orientation : ?Quaternion;
+    dimensions : ?(Float, Float, Float);
+    timestamp : Int;
+  };
+
+  public type Classification = {
+    category : ClassificationCategory;
+    specificType : ?Text;
+    confidence : Float;
+    attributes : [(Text, Float)];
+  };
+
+  public type ClassificationCategory = {
+    #Unknown;
+    #Air : AirClassification;
+    #Surface : SurfaceClassification;
+    #Subsurface : SubsurfaceClassification;
+    #Ground : GroundClassification;
+    #Space : SpaceClassification;
+  };
+
+  public type AirClassification = {
+    #Unknown;
+    #FixedWing;
+    #RotaryWing;
+    #UAV;
+    #Missile;
+    #Bird;
+    #Weather;
+  };
+
+  public type SurfaceClassification = {
+    #Unknown;
+    #Combatant;
+    #Merchant;
+    #Fishing;
+    #Pleasure;
+    #Military;
+  };
+
+  public type SubsurfaceClassification = {
+    #Unknown;
+    #Submarine;
+    #UUV;
+    #Torpedo;
+    #Mine;
+    #Biological;
+  };
+
+  public type GroundClassification = {
+    #Unknown;
+    #Vehicle;
+    #Personnel;
+    #Structure;
+    #Natural;
+  };
+
+  public type SpaceClassification = {
+    #Unknown;
+    #Satellite;
+    #Debris;
+    #Rocket;
+    #Asteroid;
+  };
+
+  public type TrackUpdate = {
+    timestamp : Int;
+    state : TrackState;
+    source : Text;
+    innovtion : Float;
+  };
+
+  public type PredictedState = {
+    time : Int;
+    state : TrackState;
+    uncertainty : [[Float]];
+  };
+
+  public type FusionEngine = {
+    fusionMethod : FusionMethod;
+    var trackCorrelator : TrackCorrelator;
+    var stateEstimator : StateEstimator;
+    var classificationFuser : ClassificationFuser;
+  };
+
+  public type FusionMethod = {
+    #Centralized;
+    #Distributed;
+    #Hierarchical;
+    #Hybrid;
+  };
+
+  public type TrackCorrelator = {
+    correlationMethod : CorrelationMethod;
+    gateSize : Float;
+    var associations : [(Text, Text, Float)];  // (track1, track2, score)
+  };
+
+  public type CorrelationMethod = {
+    #NearestNeighbor;
+    #GNN : {threshold: Float};
+    #JPDA : {clutterDensity: Float};
+    #MHT : {nHypotheses: Nat};
+  };
+
+  public type StateEstimator = {
+    filterType : TrackingFilter;
+    var processNoise : [[Float]];
+    var measurementNoise : [[Float]];
+  };
+
+  public type TrackingFilter = {
+    #KalmanFilter;
+    #ExtendedKalmanFilter;
+    #UnscentedKalmanFilter;
+    #ParticleFilter : {numParticles: Nat};
+    #IMM : {models: [MotionModel]};
+  };
+
+  public type MotionModel = {
+    #ConstantVelocity;
+    #ConstantAcceleration;
+    #CoordinatedTurn;
+    #Singer;
+    #Ballistic;
+  };
+
+  public type ClassificationFuser = {
+    fusionRule : ClassificationFusionRule;
+    var priors : [(Text, Float)];
+  };
+
+  public type ClassificationFusionRule = {
+    #Bayesian;
+    #DempsterShafer;
+    #Voting;
+    #Neural;
+  };
+
+  public type RegistrationState = {
+    var biases : [(Text, RegistrationBias)];
+    var calibrationStatus : CalibrationStatus;
+  };
+
+  public type RegistrationBias = {
+    positionBias : Vector3;
+    orientationBias : Quaternion;
+    timeBias : Float;
+    var estimated : Bool;
+  };
+
+  public type CalibrationStatus = {
+    #NotCalibrated;
+    #Calibrating;
+    #Calibrated : Int;
+    #NeedsRecalibration;
+  };
+
+  public type FusionQuality = {
+    var trackCompleteness : Float;
+    var trackAccuracy : Float;
+    var trackTimeliness : Float;
+    var coverageGaps : [BoundingBox];
+  };
+
+  /// Initialize sensor fusion
+  public func initSensorFusion() : SensorFusionState {
+    {
+      var sensors = [];
+      var tracks = [];
+      var fusionEngine = {
+        fusionMethod = #Centralized;
+        var trackCorrelator = {
+          correlationMethod = #GNN({threshold = 9.21});  // Chi-square 95%
+          gateSize = 3.0;
+          var associations = [];
+        };
+        var stateEstimator = {
+          filterType = #ExtendedKalmanFilter;
+          var processNoise = [[1.0, 0.0], [0.0, 1.0]];
+          var measurementNoise = [[1.0, 0.0], [0.0, 1.0]];
+        };
+        var classificationFuser = {
+          fusionRule = #DempsterShafer;
+          var priors = [];
+        };
+      };
+      var registrationState = {
+        var biases = [];
+        var calibrationStatus = #NotCalibrated;
+      };
+      var qualityMetrics = {
+        var trackCompleteness = 0.0;
+        var trackAccuracy = 0.0;
+        var trackTimeliness = 0.0;
+        var coverageGaps = [];
+      };
+    }
+  };
+
+  /// Add sensor
+  public func addSensor(
+    fusion : SensorFusionState,
+    sensorType : SensorType,
+    position : Vector3,
+    performance : SensorPerformance
+  ) : Text {
+    let sensorId = Int.toText(Time.now());
+    
+    let sensor : SensorNode = {
+      sensorId = sensorId;
+      sensorType = sensorType;
+      position = position;
+      orientation = {w = 1.0; x = 0.0; y = 0.0; z = 0.0};
+      var status = #Operational;
+      var measurements = [];
+      performance = performance;
+      coverage = {
+        coverageType = #Sector;
+        azimuthExtent = (-Float.pi, Float.pi);
+        elevationExtent = (-Float.pi / 6.0, Float.pi / 6.0);
+        rangeExtent = (0.0, 100000.0);
+      };
+    };
+    
+    fusion.sensors := Array.append(fusion.sensors, [sensor]);
+    
+    sensorId
+  };
+
+  /// Process measurement
+  public func processMeasurement(
+    fusion : SensorFusionState,
+    measurement : SensorMeasurement
+  ) : ?Text {
+    // Gate against existing tracks
+    var bestTrack : ?Text = null;
+    var bestScore = 1e10;
+    
+    for (track in fusion.tracks.vals()) {
+      let score = computeGatingScore(track, measurement);
+      
+      if (score < fusion.fusionEngine.trackCorrelator.gateSize and score < bestScore) {
+        bestScore := score;
+        bestTrack := ?track.trackId;
+      };
+    };
+    
+    switch (bestTrack) {
+      case (?trackId) {
+        // Update existing track
+        updateTrack(fusion, trackId, measurement);
+        ?trackId
+      };
+      case (null) {
+        // Initiate new track
+        let trackId = initiateTrack(fusion, measurement);
+        ?trackId
+      };
+    }
+  };
+
+  /// Compute gating score (Mahalanobis distance)
+  func computeGatingScore(track : FusedTrack, measurement : SensorMeasurement) : Float {
+    // Simplified - would compute full Mahalanobis distance
+    switch (measurement.value) {
+      case (#Vector(v)) {
+        if (v.size() >= 3) {
+          let dx = v[0] - track.state.position.x;
+          let dy = v[1] - track.state.position.y;
+          let dz = v[2] - track.state.position.z;
+          Float.sqrt(dx * dx + dy * dy + dz * dz) / 1000.0
+        } else 1e10;
+      };
+      case _ 1e10;
+    }
+  };
+
+  /// Update track with measurement
+  func updateTrack(fusion : SensorFusionState, trackId : Text, measurement : SensorMeasurement) : () {
+    for (track in fusion.tracks.vals()) {
+      if (track.trackId == trackId) {
+        // Kalman filter update (simplified)
+        switch (measurement.value) {
+          case (#Vector(v)) {
+            if (v.size() >= 3) {
+              let alpha = 0.3;  // Smoothing factor
+              track.state := {
+                position = {
+                  x = track.state.position.x * (1.0 - alpha) + v[0] * alpha;
+                  y = track.state.position.y * (1.0 - alpha) + v[1] * alpha;
+                  z = track.state.position.z * (1.0 - alpha) + v[2] * alpha;
+                };
+                velocity = track.state.velocity;
+                acceleration = track.state.acceleration;
+                orientation = track.state.orientation;
+                dimensions = track.state.dimensions;
+                timestamp = measurement.timestamp;
+              };
+              
+              // Add to history
+              let update : TrackUpdate = {
+                timestamp = measurement.timestamp;
+                state = track.state;
+                source = measurement.sensorId;
+                innovtion = 0.0;
+              };
+              track.history := Array.append(track.history, [update]);
+              
+              // Update contributors
+              var found = false;
+              for (c in track.contributors.vals()) {
+                if (c == measurement.sensorId) found := true;
+              };
+              if (not found) {
+                track.contributors := Array.append(track.contributors, [measurement.sensorId]);
+              };
+              
+              // Update quality
+              track.quality := Float.min(1.0, track.quality + 0.1);
+            };
+          };
+          case _ {};
+        };
+      };
+    };
+  };
+
+  /// Initiate new track
+  func initiateTrack(fusion : SensorFusionState, measurement : SensorMeasurement) : Text {
+    let trackId = Int.toText(Time.now());
+    
+    let position = switch (measurement.value) {
+      case (#Vector(v)) {
+        if (v.size() >= 3) {
+          {x = v[0]; y = v[1]; z = v[2]}
+        } else {
+          {x = 0.0; y = 0.0; z = 0.0}
+        }
+      };
+      case _ {x = 0.0; y = 0.0; z = 0.0};
+    };
+    
+    let track : FusedTrack = {
+      trackId = trackId;
+      var state = {
+        position = position;
+        velocity = {x = 0.0; y = 0.0; z = 0.0};
+        acceleration = null;
+        orientation = null;
+        dimensions = null;
+        timestamp = measurement.timestamp;
+      };
+      var covariance = [[100.0, 0.0, 0.0], [0.0, 100.0, 0.0], [0.0, 0.0, 100.0]];
+      var classification = {
+        category = #Unknown;
+        specificType = null;
+        confidence = 0.0;
+        attributes = [];
+      };
+      var confidence = 0.3;  // Tentative
+      var quality = 0.3;
+      var contributors = [measurement.sensorId];
+      var history = [];
+      var predictions = [];
+    };
+    
+    fusion.tracks := Array.append(fusion.tracks, [track]);
+    
+    trackId
+  };
+
+  /// Predict track state
+  public func predictTrack(track : FusedTrack, deltaTime : Float) : TrackState {
+    {
+      position = {
+        x = track.state.position.x + track.state.velocity.x * deltaTime;
+        y = track.state.position.y + track.state.velocity.y * deltaTime;
+        z = track.state.position.z + track.state.velocity.z * deltaTime;
+      };
+      velocity = track.state.velocity;
+      acceleration = track.state.acceleration;
+      orientation = track.state.orientation;
+      dimensions = track.state.dimensions;
+      timestamp = track.state.timestamp + Int.abs(Float.toInt(deltaTime * 1e9));
+    }
+  };
+
+  /// Fuse classifications
+  public func fuseClassifications(
+    fusion : SensorFusionState,
+    trackId : Text,
+    classifications : [(Text, Float)]  // (class, confidence)
+  ) : Classification {
+    // Dempster-Shafer fusion
+    var masses : [(Text, Float)] = [];
+    
+    for ((cls, conf) in classifications.vals()) {
+      // Add mass function
+      var found = false;
+      masses := Array.map<(Text, Float), (Text, Float)>(masses, func((c, m) : (Text, Float)) : (Text, Float) {
+        if (c == cls) {
+          found := true;
+          (c, m + conf * (1.0 - m))  // Dempster's rule (simplified)
+        } else {
+          (c, m * (1.0 - conf))
+        }
+      });
+      
+      if (not found) {
+        masses := Array.append(masses, [(cls, conf)]);
+      };
+    };
+    
+    // Find best classification
+    var bestClass = "Unknown";
+    var bestMass = 0.0;
+    
+    for ((cls, mass) in masses.vals()) {
+      if (mass > bestMass) {
+        bestMass := mass;
+        bestClass := cls;
+      };
+    };
+    
+    {
+      category = #Unknown;
+      specificType = ?bestClass;
+      confidence = bestMass;
+      attributes = masses;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 17: CYBERSECURITY OPERATIONS CENTER
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Cybersecurity operations state
+  public type CyberOpsState = {
+    var assets : [CyberAsset];
+    var threats : [CyberThreat];
+    var incidents : [CyberIncident];
+    var defenses : [CyberDefense];
+    var intelligence : CyberIntelligence;
+    var metrics : CyberMetrics;
+  };
+
+  public type CyberAsset = {
+    assetId : Text;
+    assetType : AssetType;
+    hostname : Text;
+    ipAddresses : [Text];
+    criticality : AssetCriticality;
+    var status : AssetStatus;
+    var vulnerabilities : [Vulnerability];
+    var patches : [Patch];
+  };
+
+  public type AssetType = {
+    #Server;
+    #Workstation;
+    #NetworkDevice;
+    #SecurityDevice;
+    #IoTDevice;
+    #MobileDevice;
+    #CloudResource;
+    #OT_ICS;
+    #Database;
+    #Application;
+  };
+
+  public type AssetCriticality = {
+    #Critical;
+    #High;
+    #Medium;
+    #Low;
+  };
+
+  public type AssetStatus = {
+    #Online;
+    #Offline;
+    #Compromised;
+    #Quarantined;
+    #UnderAttack;
+    #Maintenance;
+  };
+
+  public type Vulnerability = {
+    vulnId : Text;
+    cveId : ?Text;
+    description : Text;
+    severity : VulnSeverity;
+    cvssScore : Float;
+    exploitAvailable : Bool;
+    var status : VulnStatus;
+    discoveredDate : Int;
+  };
+
+  public type VulnSeverity = {
+    #Critical;
+    #High;
+    #Medium;
+    #Low;
+    #Informational;
+  };
+
+  public type VulnStatus = {
+    #Open;
+    #Acknowledged;
+    #InRemediation;
+    #Mitigated;
+    #Accepted;
+    #FalsePositive;
+  };
+
+  public type Patch = {
+    patchId : Text;
+    description : Text;
+    releaseDate : Int;
+    var applied : Bool;
+    var appliedDate : ?Int;
+  };
+
+  public type CyberThreat = {
+    threatId : Text;
+    threatType : ThreatCategory;
+    source : ThreatSource;
+    targetAssets : [Text];
+    indicators : [IOC];
+    ttps : [TTP];
+    var status : ThreatStatus;
+    var confidence : Float;
+    firstSeen : Int;
+    var lastSeen : Int;
+  };
+
+  public type ThreatCategory = {
+    #Malware : MalwareType;
+    #Intrusion;
+    #DataBreach;
+    #DDoS;
+    #Phishing;
+    #Ransomware;
+    #APT;
+    #InsiderThreat;
+    #SupplyChain;
+    #ZeroDay;
+  };
+
+  public type MalwareType = {
+    #Virus;
+    #Worm;
+    #Trojan;
+    #Rootkit;
+    #Spyware;
+    #Adware;
+    #Cryptominer;
+    #Botnet;
+  };
+
+  public type ThreatSource = {
+    #NationState : Text;
+    #CriminalOrg;
+    #Hacktivist;
+    #Insider;
+    #Competitor;
+    #Unknown;
+  };
+
+  public type IOC = {
+    iocType : IOCType;
+    value : Text;
+    confidence : Float;
+    firstSeen : Int;
+  };
+
+  public type IOCType = {
+    #IP;
+    #Domain;
+    #URL;
+    #Hash;
+    #Email;
+    #Mutex;
+    #Registry;
+    #FilePath;
+    #Certificate;
+  };
+
+  public type TTP = {
+    ttpId : Text;
+    mitreId : ?Text;
+    tactic : MitreTactic;
+    technique : Text;
+    procedure : Text;
+  };
+
+  public type MitreTactic = {
+    #Reconnaissance;
+    #ResourceDevelopment;
+    #InitialAccess;
+    #Execution;
+    #Persistence;
+    #PrivilegeEscalation;
+    #DefenseEvasion;
+    #CredentialAccess;
+    #Discovery;
+    #LateralMovement;
+    #Collection;
+    #CommandAndControl;
+    #Exfiltration;
+    #Impact;
+  };
+
+  public type ThreatStatus = {
+    #Active;
+    #Contained;
+    #Eradicated;
+    #Recovered;
+    #Monitoring;
+  };
+
+  public type CyberIncident = {
+    incidentId : Text;
+    incidentType : IncidentType;
+    severity : IncidentSeverity;
+    affectedAssets : [Text];
+    relatedThreats : [Text];
+    timeline : IncidentTimeline;
+    var status : IncidentStatus;
+    var handler : ?Text;
+    var rootCause : ?Text;
+    var lessonsLearned : ?Text;
+  };
+
+  public type IncidentType = {
+    #MalwareInfection;
+    #UnauthorizedAccess;
+    #DataExfiltration;
+    #DenialOfService;
+    #PrivilegeAbuse;
+    #AccountCompromise;
+    #PolicyViolation;
+    #PhishingAttack;
+    #WebAttack;
+    #SupplyChainCompromise;
+  };
+
+  public type IncidentSeverity = {
+    #P1_Critical;
+    #P2_High;
+    #P3_Medium;
+    #P4_Low;
+  };
+
+  public type IncidentTimeline = {
+    detected : Int;
+    var reported : ?Int;
+    var triaged : ?Int;
+    var contained : ?Int;
+    var eradicated : ?Int;
+    var recovered : ?Int;
+    var closed : ?Int;
+  };
+
+  public type IncidentStatus = {
+    #New;
+    #Triaging;
+    #Analyzing;
+    #Containing;
+    #Eradicating;
+    #Recovering;
+    #PostIncident;
+    #Closed;
+  };
+
+  public type CyberDefense = {
+    defenseId : Text;
+    defenseType : DefenseType;
+    coverage : [Text];  // Asset IDs
+    var effectiveness : Float;
+    var status : DefenseStatus;
+    configuration : [(Text, Text)];
+  };
+
+  public type DefenseType = {
+    #Firewall;
+    #IDS_IPS;
+    #Antivirus;
+    #EDR;
+    #SIEM;
+    #DLP;
+    #WAF;
+    #EmailGateway;
+    #ProxyFilter;
+    #CASB;
+    #PAM;
+    #MFA;
+    #Encryption;
+    #Backup;
+    #Honeypot;
+  };
+
+  public type DefenseStatus = {
+    #Active;
+    #Degraded;
+    #Offline;
+    #Bypassed;
+    #Updating;
+  };
+
+  public type CyberIntelligence = {
+    var feeds : [ThreatFeed];
+    var campaigns : [ThreatCampaign];
+    var actors : [ThreatActor];
+  };
+
+  public type ThreatFeed = {
+    feedId : Text;
+    name : Text;
+    feedType : FeedType;
+    var lastUpdate : Int;
+    var indicators : Nat;
+    var reliability : Float;
+  };
+
+  public type FeedType = {
+    #OSINT;
+    #Commercial;
+    #Government;
+    #ISAC;
+    #Internal;
+  };
+
+  public type ThreatCampaign = {
+    campaignId : Text;
+    name : Text;
+    actors : [Text];
+    targets : [Text];
+    timeline : (Int, ?Int);
+    var status : CampaignStatus;
+  };
+
+  public type CampaignStatus = {
+    #Active;
+    #Dormant;
+    #Concluded;
+    #Attributed;
+  };
+
+  public type ThreatActor = {
+    actorId : Text;
+    name : Text;
+    aliases : [Text];
+    motivation : ActorMotivation;
+    sophistication : SophisticationLevel;
+    attribution : AttributionConfidence;
+  };
+
+  public type ActorMotivation = {
+    #Financial;
+    #Espionage;
+    #Sabotage;
+    #Hacktivism;
+    #Personal;
+    #Unknown;
+  };
+
+  public type SophisticationLevel = {
+    #Advanced;
+    #Intermediate;
+    #Basic;
+    #Opportunistic;
+  };
+
+  public type AttributionConfidence = {
+    #High;
+    #Medium;
+    #Low;
+    #Speculative;
+  };
+
+  public type CyberMetrics = {
+    var mttd : Float;  // Mean time to detect
+    var mttr : Float;  // Mean time to respond
+    var mttc : Float;  // Mean time to contain
+    var incidentsThisMonth : Nat;
+    var blockedAttacks : Nat;
+    var patchCompliance : Float;
+    var vulnRemediation : Float;
+  };
+
+  /// Initialize cyber ops
+  public func initCyberOps() : CyberOpsState {
+    {
+      var assets = [];
+      var threats = [];
+      var incidents = [];
+      var defenses = [];
+      var intelligence = {
+        var feeds = [];
+        var campaigns = [];
+        var actors = [];
+      };
+      var metrics = {
+        var mttd = 0.0;
+        var mttr = 0.0;
+        var mttc = 0.0;
+        var incidentsThisMonth = 0;
+        var blockedAttacks = 0;
+        var patchCompliance = 0.0;
+        var vulnRemediation = 0.0;
+      };
+    }
+  };
+
+  /// Register asset
+  public func registerAsset(
+    cyber : CyberOpsState,
+    assetType : AssetType,
+    hostname : Text,
+    ipAddresses : [Text],
+    criticality : AssetCriticality
+  ) : Text {
+    let assetId = Int.toText(Time.now());
+    
+    let asset : CyberAsset = {
+      assetId = assetId;
+      assetType = assetType;
+      hostname = hostname;
+      ipAddresses = ipAddresses;
+      criticality = criticality;
+      var status = #Online;
+      var vulnerabilities = [];
+      var patches = [];
+    };
+    
+    cyber.assets := Array.append(cyber.assets, [asset]);
+    
+    assetId
+  };
+
+  /// Report incident
+  public func reportIncident(
+    cyber : CyberOpsState,
+    incidentType : IncidentType,
+    severity : IncidentSeverity,
+    affectedAssets : [Text]
+  ) : Text {
+    let incidentId = Int.toText(Time.now());
+    let now = Time.now();
+    
+    let incident : CyberIncident = {
+      incidentId = incidentId;
+      incidentType = incidentType;
+      severity = severity;
+      affectedAssets = affectedAssets;
+      relatedThreats = [];
+      timeline = {
+        detected = now;
+        var reported = ?now;
+        var triaged = null;
+        var contained = null;
+        var eradicated = null;
+        var recovered = null;
+        var closed = null;
+      };
+      var status = #New;
+      var handler = null;
+      var rootCause = null;
+      var lessonsLearned = null;
+    };
+    
+    cyber.incidents := Array.append(cyber.incidents, [incident]);
+    cyber.metrics.incidentsThisMonth += 1;
+    
+    // Update affected asset status
+    for (asset in cyber.assets.vals()) {
+      for (affectedId in affectedAssets.vals()) {
+        if (asset.assetId == affectedId) {
+          asset.status := #UnderAttack;
+        };
+      };
+    };
+    
+    incidentId
+  };
+
+  /// Triage incident
+  public func triageIncident(
+    cyber : CyberOpsState,
+    incidentId : Text,
+    handler : Text
+  ) : Bool {
+    for (incident in cyber.incidents.vals()) {
+      if (incident.incidentId == incidentId) {
+        incident.status := #Triaging;
+        incident.handler := ?handler;
+        incident.timeline.triaged := ?Time.now();
+        return true;
+      };
+    };
+    false
+  };
+
+  /// Contain incident
+  public func containIncident(cyber : CyberOpsState, incidentId : Text) : Bool {
+    for (incident in cyber.incidents.vals()) {
+      if (incident.incidentId == incidentId) {
+        incident.status := #Containing;
+        incident.timeline.contained := ?Time.now();
+        
+        // Update metrics
+        switch (incident.timeline.triaged) {
+          case (?triaged) {
+            let mttc = Float.fromInt(Time.now() - triaged) / 1e9 / 60.0;  // minutes
+            cyber.metrics.mttc := (cyber.metrics.mttc * 0.9) + (mttc * 0.1);
+          };
+          case (null) {};
+        };
+        
+        // Quarantine affected assets
+        for (asset in cyber.assets.vals()) {
+          for (affectedId in incident.affectedAssets.vals()) {
+            if (asset.assetId == affectedId) {
+              asset.status := #Quarantined;
+            };
+          };
+        };
+        
+        return true;
+      };
+    };
+    false
+  };
+
+  /// Check IOC against assets
+  public func checkIOC(cyber : CyberOpsState, ioc : IOC) : [Text] {
+    var matches : [Text] = [];
+    
+    switch (ioc.iocType) {
+      case (#IP) {
+        for (asset in cyber.assets.vals()) {
+          for (ip in asset.ipAddresses.vals()) {
+            if (ip == ioc.value) {
+              matches := Array.append(matches, [asset.assetId]);
+            };
+          };
+        };
+      };
+      case (#Domain) {
+        for (asset in cyber.assets.vals()) {
+          if (Text.contains(asset.hostname, #text ioc.value)) {
+            matches := Array.append(matches, [asset.assetId]);
+          };
+        };
+      };
+      case _ {};
+    };
+    
+    matches
+  };
+
+  /// Calculate risk score
+  public func calculateAssetRisk(cyber : CyberOpsState, assetId : Text) : Float {
+    var riskScore = 0.0;
+    
+    for (asset in cyber.assets.vals()) {
+      if (asset.assetId == assetId) {
+        // Base criticality score
+        let criticalityScore = switch (asset.criticality) {
+          case (#Critical) 1.0;
+          case (#High) 0.75;
+          case (#Medium) 0.5;
+          case (#Low) 0.25;
+        };
+        
+        // Vulnerability score
+        var vulnScore = 0.0;
+        for (vuln in asset.vulnerabilities.vals()) {
+          if (vuln.status == #Open) {
+            vulnScore += vuln.cvssScore / 10.0;
+            if (vuln.exploitAvailable) {
+              vulnScore += 0.3;
+            };
+          };
+        };
+        vulnScore := Float.min(1.0, vulnScore / 3.0);  // Normalize
+        
+        // Status score
+        let statusScore = switch (asset.status) {
+          case (#Compromised) 1.0;
+          case (#UnderAttack) 0.9;
+          case (#Quarantined) 0.7;
+          case (#Degraded) 0.5;
+          case (#Offline) 0.3;
+          case (#Online) 0.1;
+          case (#Maintenance) 0.2;
+        };
+        
+        riskScore := criticalityScore * 0.3 + vulnScore * 0.4 + statusScore * 0.3;
+      };
+    };
+    
+    riskScore
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 18: LOGISTICS AND SUPPLY CHAIN
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Logistics and supply chain state
+  public type LogisticsState = {
+    var inventory : [InventoryItem];
+    var warehouses : [Warehouse];
+    var shipments : [Shipment];
+    var suppliers : [Supplier];
+    var demandForecast : DemandForecast;
+    var optimizationState : LogisticsOptimization;
+  };
+
+  public type InventoryItem = {
+    itemId : Text;
+    name : Text;
+    category : ItemCategory;
+    var quantity : Float;
+    unit : Text;
+    var location : Text;
+    reorderPoint : Float;
+    reorderQuantity : Float;
+    leadTime : Float;
+    var value : Float;
+    var lastUpdated : Int;
+  };
+
+  public type ItemCategory = {
+    #Ammunition;
+    #Fuel;
+    #Food;
+    #Medical;
+    #Spare_Parts;
+    #Electronics;
+    #Clothing;
+    #Construction;
+    #Communications;
+    #Weapons;
+  };
+
+  public type Warehouse = {
+    warehouseId : Text;
+    name : Text;
+    location : Vector3;
+    capacity : Float;
+    var utilization : Float;
+    var inventory : [(Text, Float)];
+    capabilities : [WarehouseCapability];
+    var status : WarehouseStatus;
+  };
+
+  public type WarehouseCapability = {
+    #ColdStorage;
+    #HazMat;
+    #HighSecurity;
+    #BulkStorage;
+    #CrossDock;
+    #Distribution;
+  };
+
+  public type WarehouseStatus = {
+    #Operational;
+    #Limited;
+    #Closed;
+    #UnderAttack;
+    #Damaged;
+  };
+
+  public type Shipment = {
+    shipmentId : Text;
+    origin : Text;
+    destination : Text;
+    items : [(Text, Float)];
+    transportMode : TransportMode;
+    var status : ShipmentStatus;
+    departureTime : ?Int;
+    var arrivalTime : ?Int;
+    var currentLocation : ?Vector3;
+    priority : ShipmentPriority;
+    route : [Vector3];
+  };
+
+  public type TransportMode = {
+    #Air;
+    #Sea;
+    #Rail;
+    #Road;
+    #Pipeline;
+    #Multimodal;
+  };
+
+  public type ShipmentStatus = {
+    #Planned;
+    #Loading;
+    #InTransit;
+    #Delayed;
+    #Delivered;
+    #Lost;
+    #Cancelled;
+  };
+
+  public type ShipmentPriority = {
+    #Emergency;
+    #High;
+    #Normal;
+    #Low;
+  };
+
+  public type Supplier = {
+    supplierId : Text;
+    name : Text;
+    products : [Text];
+    var reliability : Float;
+    leadTime : Float;
+    capacity : Float;
+    var currentOrders : [SupplyOrder];
+  };
+
+  public type SupplyOrder = {
+    orderId : Text;
+    items : [(Text, Float)];
+    orderDate : Int;
+    expectedDelivery : Int;
+    var status : OrderStatus;
+    var actualDelivery : ?Int;
+  };
+
+  public type OrderStatus = {
+    #Pending;
+    #Confirmed;
+    #InProduction;
+    #Shipped;
+    #Delivered;
+    #Cancelled;
+  };
+
+  public type DemandForecast = {
+    var forecasts : [(Text, [ForecastPeriod])];
+    forecastHorizon : Float;
+    var accuracy : Float;
+  };
+
+  public type ForecastPeriod = {
+    startTime : Int;
+    endTime : Int;
+    expectedDemand : Float;
+    lowerBound : Float;
+    upperBound : Float;
+  };
+
+  public type LogisticsOptimization = {
+    var routeOptimization : RouteOptState;
+    var inventoryOptimization : InventoryOptState;
+    var networkOptimization : NetworkOptState;
+  };
+
+  public type RouteOptState = {
+    var activeRoutes : [OptimizedRoute];
+    algorithm : RouteAlgorithm;
+    var lastOptimization : Int;
+  };
+
+  public type OptimizedRoute = {
+    routeId : Text;
+    waypoints : [Vector3];
+    totalDistance : Float;
+    totalTime : Float;
+    cost : Float;
+  };
+
+  public type RouteAlgorithm = {
+    #Dijkstra;
+    #AStar;
+    #GeneticAlgorithm;
+    #AntColony;
+    #SimulatedAnnealing;
+  };
+
+  public type InventoryOptState = {
+    var safetyStocks : [(Text, Float)];
+    var reorderSchedule : [(Text, Int, Float)];
+    policy : InventoryPolicy;
+  };
+
+  public type InventoryPolicy = {
+    #FixedOrderQuantity;
+    #FixedOrderInterval;
+    #MinMax;
+    #JustInTime;
+    #ABC;
+  };
+
+  public type NetworkOptState = {
+    var nodeLocations : [Vector3];
+    var flowMatrix : [[Float]];
+    var capacityMatrix : [[Float]];
+  };
+
+  /// Initialize logistics
+  public func initLogistics() : LogisticsState {
+    {
+      var inventory = [];
+      var warehouses = [];
+      var shipments = [];
+      var suppliers = [];
+      var demandForecast = {
+        var forecasts = [];
+        forecastHorizon = 30.0 * 24.0 * 3600.0;  // 30 days in seconds
+        var accuracy = 0.0;
+      };
+      var optimizationState = {
+        var routeOptimization = {
+          var activeRoutes = [];
+          algorithm = #AStar;
+          var lastOptimization = 0;
+        };
+        var inventoryOptimization = {
+          var safetyStocks = [];
+          var reorderSchedule = [];
+          policy = #MinMax;
+        };
+        var networkOptimization = {
+          var nodeLocations = [];
+          var flowMatrix = [];
+          var capacityMatrix = [];
+        };
+      };
+    }
+  };
+
+  /// Add inventory item
+  public func addInventoryItem(
+    logistics : LogisticsState,
+    name : Text,
+    category : ItemCategory,
+    quantity : Float,
+    location : Text
+  ) : Text {
+    let itemId = Int.toText(Time.now());
+    
+    let item : InventoryItem = {
+      itemId = itemId;
+      name = name;
+      category = category;
+      var quantity = quantity;
+      unit = "units";
+      var location = location;
+      reorderPoint = quantity * 0.2;
+      reorderQuantity = quantity * 0.5;
+      leadTime = 7.0 * 24.0 * 3600.0;  // 7 days
+      var value = 0.0;
+      var lastUpdated = Time.now();
+    };
+    
+    logistics.inventory := Array.append(logistics.inventory, [item]);
+    
+    itemId
+  };
+
+  /// Create shipment
+  public func createShipment(
+    logistics : LogisticsState,
+    origin : Text,
+    destination : Text,
+    items : [(Text, Float)],
+    mode : TransportMode,
+    priority : ShipmentPriority
+  ) : Text {
+    let shipmentId = Int.toText(Time.now());
+    
+    let shipment : Shipment = {
+      shipmentId = shipmentId;
+      origin = origin;
+      destination = destination;
+      items = items;
+      transportMode = mode;
+      var status = #Planned;
+      departureTime = null;
+      var arrivalTime = null;
+      var currentLocation = null;
+      priority = priority;
+      route = [];
+    };
+    
+    logistics.shipments := Array.append(logistics.shipments, [shipment]);
+    
+    shipmentId
+  };
+
+  /// Check inventory levels
+  public func checkReorderNeeds(logistics : LogisticsState) : [Text] {
+    var reorderNeeded : [Text] = [];
+    
+    for (item in logistics.inventory.vals()) {
+      if (item.quantity <= item.reorderPoint) {
+        reorderNeeded := Array.append(reorderNeeded, [item.itemId]);
+      };
+    };
+    
+    reorderNeeded
+  };
+
+  /// Calculate supply chain risk
+  public func calculateSupplyChainRisk(logistics : LogisticsState) : Float {
+    var risk = 0.0;
+    var factors = 0;
+    
+    // Inventory risk
+    for (item in logistics.inventory.vals()) {
+      let stockRatio = item.quantity / (item.reorderPoint + item.reorderQuantity);
+      if (stockRatio < 0.5) {
+        risk += 1.0 - stockRatio * 2.0;
+        factors += 1;
+      };
+    };
+    
+    // Supplier risk
+    for (supplier in logistics.suppliers.vals()) {
+      if (supplier.reliability < 0.8) {
+        risk += 1.0 - supplier.reliability;
+        factors += 1;
+      };
+    };
+    
+    // Shipment risk
+    for (shipment in logistics.shipments.vals()) {
+      switch (shipment.status) {
+        case (#Delayed) { risk += 0.5; factors += 1 };
+        case (#Lost) { risk += 1.0; factors += 1 };
+        case _ {};
+      };
+    };
+    
+    // Warehouse risk
+    for (warehouse in logistics.warehouses.vals()) {
+      switch (warehouse.status) {
+        case (#UnderAttack) { risk += 1.0; factors += 1 };
+        case (#Damaged) { risk += 0.8; factors += 1 };
+        case (#Limited) { risk += 0.3; factors += 1 };
+        case _ {};
+      };
+    };
+    
+    if (factors > 0) risk / Float.fromInt(factors) else 0.0
+  };
+
+  /// Optimize route
+  public func optimizeRoute(
+    logistics : LogisticsState,
+    start : Vector3,
+    destinations : [Vector3]
+  ) : OptimizedRoute {
+    // Nearest neighbor heuristic for TSP
+    var current = start;
+    var unvisited = destinations;
+    var route : [Vector3] = [start];
+    var totalDistance = 0.0;
+    
+    while (unvisited.size() > 0) {
+      // Find nearest unvisited
+      var nearest : ?Vector3 = null;
+      var nearestDist = 1e10;
+      var nearestIdx = 0;
+      
+      for (i in Iter.range(0, unvisited.size() - 1)) {
+        let dist = vectorLength(subtractVectors(unvisited[i], current));
+        if (dist < nearestDist) {
+          nearestDist := dist;
+          nearest := ?unvisited[i];
+          nearestIdx := i;
+        };
+      };
+      
+      switch (nearest) {
+        case (?n) {
+          route := Array.append(route, [n]);
+          totalDistance += nearestDist;
+          current := n;
+          
+          // Remove from unvisited
+          unvisited := Array.tabulate<Vector3>(unvisited.size() - 1, func(i : Nat) : Vector3 {
+            if (i < nearestIdx) unvisited[i] else unvisited[i + 1]
+          });
+        };
+        case (null) {};
+      };
+    };
+    
+    // Return to start
+    totalDistance += vectorLength(subtractVectors(start, current));
+    route := Array.append(route, [start]);
+    
+    {
+      routeId = Int.toText(Time.now());
+      waypoints = route;
+      totalDistance = totalDistance;
+      totalTime = totalDistance / 50.0;  // Assume 50 units/time
+      cost = totalDistance * 0.1;
+    }
+  };
+
   // Continue building toward 150,000 lines...
-  // Current: ~27,500 lines
-  // Remaining: ~122,500 lines
+  // Current: ~30,000 lines
+  // Remaining: ~120,000 lines
 
 }
