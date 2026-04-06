@@ -23716,8 +23716,1053 @@ module {
     accelerations : [Float];
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SIMULATION ENGINE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Simulation state
+  public type SimulationState = {
+    var entities : [SimEntity];
+    var systems : [SimSystem];
+    var events : [SimEvent];
+    var time : SimTime;
+    var statistics : SimStatistics;
+    config : SimConfig;
+  };
+
+  public type SimEntity = {
+    entityId : Text;
+    entityType : Text;
+    var components : [SimComponent];
+    var isActive : Bool;
+    var layer : Nat;
+  };
+
+  public type SimComponent = {
+    #Transform : {position: Vector3; rotation: Quaternion; scale: Vector3};
+    #Velocity : {linear: Vector3; angular: Vector3};
+    #Physics : {mass: Float; drag: Float; angularDrag: Float; useGravity: Bool};
+    #Collider : ColliderType;
+    #Mesh : {meshId: Text; material: Text};
+    #Script : {scriptId: Text; params: [(Text, Float)]};
+    #AI : {behaviorTree: Text; state: [(Text, Float)]};
+    #Network : {ownerId: Text; syncRate: Float};
+    #Audio : {clipId: Text; volume: Float; spatial: Bool};
+    #Particle : ParticleConfig;
+    #Custom : {componentType: Text; data: [(Text, Float)]};
+  };
+
+  public type ColliderType = {
+    #Box : {size: Vector3; center: Vector3};
+    #Sphere : {radius: Float; center: Vector3};
+    #Capsule : {radius: Float; height: Float};
+    #Mesh : {meshId: Text; convex: Bool};
+    #Terrain : {heightmap: Text; resolution: Nat};
+  };
+
+  public type ParticleConfig = {
+    maxParticles : Nat;
+    emissionRate : Float;
+    lifetime : (Float, Float);
+    speed : (Float, Float);
+    size : (Float, Float);
+    color : (Nat, Nat);  // Start, end RGBA
+  };
+
+  public type SimSystem = {
+    systemId : Text;
+    systemType : SimSystemType;
+    priority : Nat;
+    var isEnabled : Bool;
+    var lastUpdateTime : Int;
+  };
+
+  public type SimSystemType = {
+    #Physics;
+    #Collision;
+    #Rendering;
+    #Animation;
+    #AI;
+    #Audio;
+    #Network;
+    #Particle;
+    #Script;
+    #Custom : Text;
+  };
+
+  public type SimEvent = {
+    eventId : Text;
+    eventType : SimEventType;
+    timestamp : Int;
+    source : Text;
+    target : ?Text;
+    data : [(Text, Float)];
+    var isProcessed : Bool;
+  };
+
+  public type SimEventType = {
+    #Collision : {impulse: Float; normal: Vector3};
+    #Trigger : {isEnter: Bool};
+    #Input : {inputType: Text; value: Float};
+    #Custom : Text;
+  };
+
+  public type SimTime = {
+    var currentTime : Float;
+    var deltaTime : Float;
+    var timeScale : Float;
+    var frameCount : Nat;
+    var fixedDeltaTime : Float;
+    var maxDeltaTime : Float;
+  };
+
+  public type SimStatistics = {
+    var fps : Float;
+    var entityCount : Nat;
+    var activeEntityCount : Nat;
+    var collisionCount : Nat;
+    var updateTime : Float;
+    var renderTime : Float;
+  };
+
+  public type SimConfig = {
+    physicsRate : Float;
+    gravity : Vector3;
+    maxEntities : Nat;
+    spatialPartitioning : SpatialPartition;
+    broadphase : BroadphaseType;
+  };
+
+  public type SpatialPartition = {
+    #Octree : {maxDepth: Nat; minSize: Float};
+    #Grid : {cellSize: Vector3; dimensions: (Nat, Nat, Nat)};
+    #BVH : {maxLeafSize: Nat};
+    #None;
+  };
+
+  public type BroadphaseType = {
+    #BruteForce;
+    #SweepAndPrune;
+    #SpatialHash;
+  };
+
+  /// Initialize simulation
+  public func initSimulation(config : SimConfig) : SimulationState {
+    {
+      var entities = [];
+      var systems = [];
+      var events = [];
+      var time = {
+        var currentTime = 0.0;
+        var deltaTime = 0.016;  // ~60 FPS
+        var timeScale = 1.0;
+        var frameCount = 0;
+        var fixedDeltaTime = 0.02;
+        var maxDeltaTime = 0.1;
+      };
+      var statistics = {
+        var fps = 60.0;
+        var entityCount = 0;
+        var activeEntityCount = 0;
+        var collisionCount = 0;
+        var updateTime = 0.0;
+        var renderTime = 0.0;
+      };
+      config = config;
+    }
+  };
+
+  /// Create entity
+  public func createEntity(
+    sim : SimulationState,
+    entityType : Text,
+    components : [SimComponent]
+  ) : Text {
+    let entityId = Int.toText(Time.now());
+    
+    let entity : SimEntity = {
+      entityId = entityId;
+      entityType = entityType;
+      var components = components;
+      var isActive = true;
+      var layer = 0;
+    };
+    
+    sim.entities := Array.append(sim.entities, [entity]);
+    sim.statistics.entityCount += 1;
+    sim.statistics.activeEntityCount += 1;
+    
+    entityId
+  };
+
+  /// Update simulation
+  public func updateSimulation(sim : SimulationState, deltaTime : Float) : () {
+    let startTime = Time.now();
+    
+    // Clamp delta time
+    sim.time.deltaTime := Float.min(deltaTime * sim.time.timeScale, sim.time.maxDeltaTime);
+    sim.time.currentTime += sim.time.deltaTime;
+    sim.time.frameCount += 1;
+    
+    // Update systems by priority
+    let sortedSystems = Array.sort<SimSystem>(sim.systems, func(a, b : SimSystem) : Order.Order {
+      if (a.priority < b.priority) #less else if (a.priority > b.priority) #greater else #equal
+    });
+    
+    for (system in sortedSystems.vals()) {
+      if (system.isEnabled) {
+        updateSystem(sim, system);
+        system.lastUpdateTime := Time.now();
+      };
+    };
+    
+    // Process events
+    for (event in sim.events.vals()) {
+      if (not event.isProcessed) {
+        processSimEvent(sim, event);
+        event.isProcessed := true;
+      };
+    };
+    
+    // Clear processed events
+    sim.events := Array.filter<SimEvent>(sim.events, func(e : SimEvent) : Bool {
+      not e.isProcessed
+    });
+    
+    // Update statistics
+    let endTime = Time.now();
+    sim.statistics.updateTime := Float.fromInt(endTime - startTime) / 1e9;
+    sim.statistics.fps := 1.0 / sim.time.deltaTime;
+  };
+
+  /// Update system
+  func updateSystem(sim : SimulationState, system : SimSystem) : () {
+    switch (system.systemType) {
+      case (#Physics) {
+        updatePhysicsSystem(sim);
+      };
+      case (#Collision) {
+        updateCollisionSystem(sim);
+      };
+      case (#AI) {
+        updateAISystem(sim);
+      };
+      case _ {};
+    };
+  };
+
+  /// Update physics
+  func updatePhysicsSystem(sim : SimulationState) : () {
+    let dt = sim.time.deltaTime;
+    let gravity = sim.config.gravity;
+    
+    for (entity in sim.entities.vals()) {
+      if (not entity.isActive) continue updatePhysicsSystem;
+      
+      var hasPhysics = false;
+      var hasTransform = false;
+      var hasVelocity = false;
+      var mass = 1.0;
+      var drag = 0.0;
+      var useGravity = true;
+      var position = {x = 0.0; y = 0.0; z = 0.0};
+      var velocity = {x = 0.0; y = 0.0; z = 0.0};
+      
+      for (comp in entity.components.vals()) {
+        switch (comp) {
+          case (#Physics(p)) {
+            hasPhysics := true;
+            mass := p.mass;
+            drag := p.drag;
+            useGravity := p.useGravity;
+          };
+          case (#Transform(t)) {
+            hasTransform := true;
+            position := t.position;
+          };
+          case (#Velocity(v)) {
+            hasVelocity := true;
+            velocity := v.linear;
+          };
+          case _ {};
+        };
+      };
+      
+      if (hasPhysics and hasTransform and hasVelocity) {
+        // Apply gravity
+        if (useGravity) {
+          velocity := {
+            x = velocity.x + gravity.x * dt;
+            y = velocity.y + gravity.y * dt;
+            z = velocity.z + gravity.z * dt;
+          };
+        };
+        
+        // Apply drag
+        velocity := {
+          x = velocity.x * (1.0 - drag * dt);
+          y = velocity.y * (1.0 - drag * dt);
+          z = velocity.z * (1.0 - drag * dt);
+        };
+        
+        // Update position
+        position := {
+          x = position.x + velocity.x * dt;
+          y = position.y + velocity.y * dt;
+          z = position.z + velocity.z * dt;
+        };
+        
+        // Update components
+        entity.components := Array.map<SimComponent, SimComponent>(entity.components, func(c : SimComponent) : SimComponent {
+          switch (c) {
+            case (#Transform(t)) {
+              #Transform({position = position; rotation = t.rotation; scale = t.scale})
+            };
+            case (#Velocity(v)) {
+              #Velocity({linear = velocity; angular = v.angular})
+            };
+            case _ c;
+          }
+        });
+      };
+    };
+  };
+
+  /// Update collision system
+  func updateCollisionSystem(sim : SimulationState) : () {
+    sim.statistics.collisionCount := 0;
+    
+    // Broad phase - collect all entities with colliders
+    var colliders : [(Text, ColliderType, Vector3)] = [];
+    
+    for (entity in sim.entities.vals()) {
+      if (not entity.isActive) continue updateCollisionSystem;
+      
+      var position = {x = 0.0; y = 0.0; z = 0.0};
+      var collider : ?ColliderType = null;
+      
+      for (comp in entity.components.vals()) {
+        switch (comp) {
+          case (#Transform(t)) position := t.position;
+          case (#Collider(c)) collider := ?c;
+          case _ {};
+        };
+      };
+      
+      switch (collider) {
+        case (?c) {
+          colliders := Array.append(colliders, [(entity.entityId, c, position)]);
+        };
+        case (null) {};
+      };
+    };
+    
+    // Narrow phase - check pairs
+    for (i in Iter.range(0, colliders.size() - 1)) {
+      for (j in Iter.range(i + 1, colliders.size() - 1)) {
+        let (id1, col1, pos1) = colliders[i];
+        let (id2, col2, pos2) = colliders[j];
+        
+        if (checkCollision(col1, pos1, col2, pos2)) {
+          sim.statistics.collisionCount += 1;
+          
+          // Generate collision event
+          let event : SimEvent = {
+            eventId = Int.toText(Time.now());
+            eventType = #Collision({
+              impulse = 1.0;
+              normal = normalizeVector(subtractVectors(pos2, pos1));
+            });
+            timestamp = Time.now();
+            source = id1;
+            target = ?id2;
+            data = [];
+            var isProcessed = false;
+          };
+          
+          sim.events := Array.append(sim.events, [event]);
+        };
+      };
+    };
+  };
+
+  /// Check collision between two colliders
+  func checkCollision(
+    col1 : ColliderType,
+    pos1 : Vector3,
+    col2 : ColliderType,
+    pos2 : Vector3
+  ) : Bool {
+    switch (col1, col2) {
+      case (#Sphere({radius = r1; center = c1}), #Sphere({radius = r2; center = c2})) {
+        let center1 = addVectors(pos1, c1);
+        let center2 = addVectors(pos2, c2);
+        let dist = vectorLength(subtractVectors(center2, center1));
+        dist < r1 + r2
+      };
+      case (#Box({size = s1; center = c1}), #Box({size = s2; center = c2})) {
+        // AABB collision
+        let min1 = subtractVectors(addVectors(pos1, c1), scaleVector(s1, 0.5));
+        let max1 = addVectors(addVectors(pos1, c1), scaleVector(s1, 0.5));
+        let min2 = subtractVectors(addVectors(pos2, c2), scaleVector(s2, 0.5));
+        let max2 = addVectors(addVectors(pos2, c2), scaleVector(s2, 0.5));
+        
+        min1.x <= max2.x and max1.x >= min2.x and
+        min1.y <= max2.y and max1.y >= min2.y and
+        min1.z <= max2.z and max1.z >= min2.z
+      };
+      case (#Sphere({radius = r; center = c}), #Box({size = s; center = bc})) {
+        // Sphere-AABB collision
+        let sphereCenter = addVectors(pos1, c);
+        let boxCenter = addVectors(pos2, bc);
+        let halfSize = scaleVector(s, 0.5);
+        
+        let closest = {
+          x = Float.max(boxCenter.x - halfSize.x, Float.min(sphereCenter.x, boxCenter.x + halfSize.x));
+          y = Float.max(boxCenter.y - halfSize.y, Float.min(sphereCenter.y, boxCenter.y + halfSize.y));
+          z = Float.max(boxCenter.z - halfSize.z, Float.min(sphereCenter.z, boxCenter.z + halfSize.z));
+        };
+        
+        let dist = vectorLength(subtractVectors(sphereCenter, closest));
+        dist < r
+      };
+      case (#Box(b), #Sphere(s)) {
+        // Reuse sphere-box
+        checkCollision(#Sphere(s), pos2, #Box(b), pos1)
+      };
+      case _ false;
+    }
+  };
+
+  /// Process simulation event
+  func processSimEvent(sim : SimulationState, event : SimEvent) : () {
+    // Find target entity and process event
+    switch (event.eventType) {
+      case (#Collision({impulse; normal})) {
+        // Apply collision response (simplified)
+        for (entity in sim.entities.vals()) {
+          if (entity.entityId == event.source) {
+            entity.components := Array.map<SimComponent, SimComponent>(entity.components, func(c : SimComponent) : SimComponent {
+              switch (c) {
+                case (#Velocity(v)) {
+                  // Reflect velocity
+                  let dot = v.linear.x * normal.x + v.linear.y * normal.y + v.linear.z * normal.z;
+                  #Velocity({
+                    linear = {
+                      x = v.linear.x - 2.0 * dot * normal.x;
+                      y = v.linear.y - 2.0 * dot * normal.y;
+                      z = v.linear.z - 2.0 * dot * normal.z;
+                    };
+                    angular = v.angular;
+                  })
+                };
+                case _ c;
+              }
+            });
+          };
+        };
+      };
+      case _ {};
+    };
+  };
+
+  /// Update AI system
+  func updateAISystem(sim : SimulationState) : () {
+    for (entity in sim.entities.vals()) {
+      if (not entity.isActive) continue updateAISystem;
+      
+      for (comp in entity.components.vals()) {
+        switch (comp) {
+          case (#AI({behaviorTree; state})) {
+            // Tick behavior tree (simplified)
+            // Would invoke actual BT execution
+          };
+          case _ {};
+        };
+      };
+    };
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RESOURCE MANAGEMENT
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Resource manager state
+  public type ResourceManagerState = {
+    var resources : [Resource];
+    var allocations : [ResourceAllocation];
+    var pools : [ResourcePool];
+    var quotas : [ResourceQuota];
+    var metrics : ResourceMetrics;
+  };
+
+  public type Resource = {
+    resourceId : Text;
+    resourceType : ResourceType;
+    var quantity : Float;
+    var available : Float;
+    var reserved : Float;
+    unit : Text;
+    replenishRate : ?Float;
+    maxQuantity : ?Float;
+  };
+
+  public type ResourceType = {
+    #Compute : ComputeResource;
+    #Memory : MemoryResource;
+    #Storage : StorageResource;
+    #Network : NetworkResource;
+    #Energy : EnergyResource;
+    #Custom : Text;
+  };
+
+  public type ComputeResource = {
+    cores : Nat;
+    frequency : Float;  // GHz
+    architecture : Text;
+  };
+
+  public type MemoryResource = {
+    capacity : Float;  // GB
+    bandwidth : Float;  // GB/s
+    memType : Text;
+  };
+
+  public type StorageResource = {
+    capacity : Float;  // GB
+    iops : Nat;
+    throughput : Float;
+    storageType : Text;
+  };
+
+  public type NetworkResource = {
+    bandwidth : Float;  // Mbps
+    latency : Float;  // ms
+    packetLoss : Float;
+  };
+
+  public type EnergyResource = {
+    capacity : Float;  // kWh
+    power : Float;  // kW
+    efficiency : Float;
+  };
+
+  public type ResourceAllocation = {
+    allocationId : Text;
+    resourceId : Text;
+    consumerId : Text;
+    var amount : Float;
+    priority : Nat;
+    startTime : Int;
+    endTime : ?Int;
+    var status : AllocationStatus;
+  };
+
+  public type AllocationStatus = {
+    #Active;
+    #Pending;
+    #Suspended;
+    #Completed;
+    #Failed;
+  };
+
+  public type ResourcePool = {
+    poolId : Text;
+    resources : [Text];
+    var totalCapacity : Float;
+    var usedCapacity : Float;
+    policy : PoolPolicy;
+  };
+
+  public type PoolPolicy = {
+    #BestFit;
+    #FirstFit;
+    #RoundRobin;
+    #LeastUsed;
+    #Random;
+  };
+
+  public type ResourceQuota = {
+    quotaId : Text;
+    consumerId : Text;
+    resourceType : Text;
+    limit : Float;
+    var used : Float;
+    period : ?Float;  // Reset period in seconds
+    var lastReset : Int;
+  };
+
+  public type ResourceMetrics = {
+    var totalAllocations : Nat;
+    var activeAllocations : Nat;
+    var failedAllocations : Nat;
+    var avgUtilization : Float;
+    var peakUtilization : Float;
+  };
+
+  /// Initialize resource manager
+  public func initResourceManager() : ResourceManagerState {
+    {
+      var resources = [];
+      var allocations = [];
+      var pools = [];
+      var quotas = [];
+      var metrics = {
+        var totalAllocations = 0;
+        var activeAllocations = 0;
+        var failedAllocations = 0;
+        var avgUtilization = 0.0;
+        var peakUtilization = 0.0;
+      };
+    }
+  };
+
+  /// Add resource
+  public func addResource(
+    mgr : ResourceManagerState,
+    resourceType : ResourceType,
+    quantity : Float,
+    unit : Text,
+    replenishRate : ?Float
+  ) : Text {
+    let resourceId = Int.toText(Time.now());
+    
+    let resource : Resource = {
+      resourceId = resourceId;
+      resourceType = resourceType;
+      var quantity = quantity;
+      var available = quantity;
+      var reserved = 0.0;
+      unit = unit;
+      replenishRate = replenishRate;
+      maxQuantity = ?quantity;
+    };
+    
+    mgr.resources := Array.append(mgr.resources, [resource]);
+    
+    resourceId
+  };
+
+  /// Allocate resource
+  public func allocateResource(
+    mgr : ResourceManagerState,
+    resourceId : Text,
+    consumerId : Text,
+    amount : Float,
+    priority : Nat
+  ) : ?Text {
+    // Find resource
+    for (resource in mgr.resources.vals()) {
+      if (resource.resourceId == resourceId) {
+        // Check quota
+        var quotaOk = true;
+        for (quota in mgr.quotas.vals()) {
+          if (quota.consumerId == consumerId) {
+            if (quota.used + amount > quota.limit) {
+              quotaOk := false;
+            };
+          };
+        };
+        
+        if (not quotaOk) {
+          mgr.metrics.failedAllocations += 1;
+          return null;
+        };
+        
+        // Check availability
+        if (resource.available >= amount) {
+          resource.available -= amount;
+          resource.reserved += amount;
+          
+          let allocationId = Int.toText(Time.now());
+          
+          let allocation : ResourceAllocation = {
+            allocationId = allocationId;
+            resourceId = resourceId;
+            consumerId = consumerId;
+            var amount = amount;
+            priority = priority;
+            startTime = Time.now();
+            endTime = null;
+            var status = #Active;
+          };
+          
+          mgr.allocations := Array.append(mgr.allocations, [allocation]);
+          
+          // Update quota
+          for (quota in mgr.quotas.vals()) {
+            if (quota.consumerId == consumerId) {
+              quota.used += amount;
+            };
+          };
+          
+          // Update metrics
+          mgr.metrics.totalAllocations += 1;
+          mgr.metrics.activeAllocations += 1;
+          
+          let utilization = resource.reserved / resource.quantity;
+          if (utilization > mgr.metrics.peakUtilization) {
+            mgr.metrics.peakUtilization := utilization;
+          };
+          
+          return ?allocationId;
+        };
+      };
+    };
+    
+    mgr.metrics.failedAllocations += 1;
+    null
+  };
+
+  /// Release allocation
+  public func releaseAllocation(
+    mgr : ResourceManagerState,
+    allocationId : Text
+  ) : Bool {
+    for (allocation in mgr.allocations.vals()) {
+      if (allocation.allocationId == allocationId and allocation.status == #Active) {
+        allocation.status := #Completed;
+        allocation.endTime := ?Time.now();
+        
+        // Return to resource
+        for (resource in mgr.resources.vals()) {
+          if (resource.resourceId == allocation.resourceId) {
+            resource.available += allocation.amount;
+            resource.reserved -= allocation.amount;
+          };
+        };
+        
+        // Update quota
+        for (quota in mgr.quotas.vals()) {
+          if (quota.consumerId == allocation.consumerId) {
+            quota.used -= allocation.amount;
+          };
+        };
+        
+        mgr.metrics.activeAllocations -= 1;
+        
+        return true;
+      };
+    };
+    
+    false
+  };
+
+  /// Update resource pools
+  public func updateResourcePools(mgr : ResourceManagerState) : () {
+    for (pool in mgr.pools.vals()) {
+      var total = 0.0;
+      var used = 0.0;
+      
+      for (resourceId in pool.resources.vals()) {
+        for (resource in mgr.resources.vals()) {
+          if (resource.resourceId == resourceId) {
+            total += resource.quantity;
+            used += resource.reserved;
+          };
+        };
+      };
+      
+      pool.totalCapacity := total;
+      pool.usedCapacity := used;
+    };
+  };
+
+  /// Replenish resources
+  public func replenishResources(mgr : ResourceManagerState, dt : Float) : () {
+    for (resource in mgr.resources.vals()) {
+      switch (resource.replenishRate) {
+        case (?rate) {
+          let replenish = rate * dt;
+          switch (resource.maxQuantity) {
+            case (?max) {
+              resource.quantity := Float.min(max, resource.quantity + replenish);
+              resource.available := Float.min(max - resource.reserved, resource.available + replenish);
+            };
+            case (null) {
+              resource.quantity += replenish;
+              resource.available += replenish;
+            };
+          };
+        };
+        case (null) {};
+      };
+    };
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CONFIGURATION MANAGEMENT
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Configuration state
+  public type ConfigState = {
+    var configs : [ConfigEntry];
+    var profiles : [ConfigProfile];
+    var history : [ConfigChange];
+    var watchers : [ConfigWatcher];
+  };
+
+  public type ConfigEntry = {
+    key : Text;
+    var value : ConfigValue;
+    valueType : ConfigValueType;
+    defaultValue : ConfigValue;
+    description : Text;
+    constraints : [ConfigConstraint];
+    var lastModified : Int;
+    var source : ConfigSource;
+  };
+
+  public type ConfigValue = {
+    #String : Text;
+    #Int : Int;
+    #Float : Float;
+    #Bool : Bool;
+    #Array : [ConfigValue];
+    #Map : [(Text, ConfigValue)];
+    #Null;
+  };
+
+  public type ConfigValueType = {
+    #String;
+    #Int;
+    #Float;
+    #Bool;
+    #Array : ConfigValueType;
+    #Map;
+    #Any;
+  };
+
+  public type ConfigConstraint = {
+    #Required;
+    #MinValue : Float;
+    #MaxValue : Float;
+    #MinLength : Nat;
+    #MaxLength : Nat;
+    #Pattern : Text;
+    #Enum : [ConfigValue];
+    #Custom : Text;
+  };
+
+  public type ConfigSource = {
+    #Default;
+    #File : Text;
+    #Environment;
+    #Remote : Text;
+    #Override;
+  };
+
+  public type ConfigProfile = {
+    profileId : Text;
+    name : Text;
+    description : Text;
+    overrides : [(Text, ConfigValue)];
+    var isActive : Bool;
+    priority : Nat;
+  };
+
+  public type ConfigChange = {
+    changeId : Text;
+    key : Text;
+    oldValue : ConfigValue;
+    newValue : ConfigValue;
+    source : ConfigSource;
+    timestamp : Int;
+    userId : ?Text;
+  };
+
+  public type ConfigWatcher = {
+    watcherId : Text;
+    keyPattern : Text;
+    callback : Text;
+    var isActive : Bool;
+  };
+
+  /// Initialize config
+  public func initConfig() : ConfigState {
+    {
+      var configs = [];
+      var profiles = [];
+      var history = [];
+      var watchers = [];
+    }
+  };
+
+  /// Set config value
+  public func setConfigValue(
+    config : ConfigState,
+    key : Text,
+    value : ConfigValue,
+    source : ConfigSource
+  ) : Bool {
+    for (entry in config.configs.vals()) {
+      if (entry.key == key) {
+        // Validate constraints
+        if (not validateConfigValue(value, entry.constraints)) {
+          return false;
+        };
+        
+        // Record history
+        let change : ConfigChange = {
+          changeId = Int.toText(Time.now());
+          key = key;
+          oldValue = entry.value;
+          newValue = value;
+          source = source;
+          timestamp = Time.now();
+          userId = null;
+        };
+        config.history := Array.append(config.history, [change]);
+        
+        // Update value
+        entry.value := value;
+        entry.lastModified := Time.now();
+        entry.source := source;
+        
+        // Notify watchers
+        notifyConfigWatchers(config, key, value);
+        
+        return true;
+      };
+    };
+    
+    // Create new entry
+    let entry : ConfigEntry = {
+      key = key;
+      var value = value;
+      valueType = inferConfigType(value);
+      defaultValue = value;
+      description = "";
+      constraints = [];
+      var lastModified = Time.now();
+      var source = source;
+    };
+    
+    config.configs := Array.append(config.configs, [entry]);
+    true
+  };
+
+  /// Get config value
+  public func getConfigValue(config : ConfigState, key : Text) : ?ConfigValue {
+    // Check active profiles (in priority order)
+    let activeProfiles = Array.filter<ConfigProfile>(config.profiles, func(p : ConfigProfile) : Bool {
+      p.isActive
+    });
+    
+    let sortedProfiles = Array.sort<ConfigProfile>(activeProfiles, func(a, b : ConfigProfile) : Order.Order {
+      if (a.priority > b.priority) #less else if (a.priority < b.priority) #greater else #equal
+    });
+    
+    for (profile in sortedProfiles.vals()) {
+      for ((k, v) in profile.overrides.vals()) {
+        if (k == key) {
+          return ?v;
+        };
+      };
+    };
+    
+    // Check base config
+    for (entry in config.configs.vals()) {
+      if (entry.key == key) {
+        return ?entry.value;
+      };
+    };
+    
+    null
+  };
+
+  /// Validate config value
+  func validateConfigValue(value : ConfigValue, constraints : [ConfigConstraint]) : Bool {
+    for (constraint in constraints.vals()) {
+      switch (constraint) {
+        case (#Required) {
+          switch (value) {
+            case (#Null) return false;
+            case (#String(s)) { if (s == "") return false };
+            case _ {};
+          };
+        };
+        case (#MinValue(min)) {
+          switch (value) {
+            case (#Float(f)) { if (f < min) return false };
+            case (#Int(i)) { if (Float.fromInt(i) < min) return false };
+            case _ {};
+          };
+        };
+        case (#MaxValue(max)) {
+          switch (value) {
+            case (#Float(f)) { if (f > max) return false };
+            case (#Int(i)) { if (Float.fromInt(i) > max) return false };
+            case _ {};
+          };
+        };
+        case (#MinLength(min)) {
+          switch (value) {
+            case (#String(s)) { if (s.size() < min) return false };
+            case (#Array(a)) { if (a.size() < min) return false };
+            case _ {};
+          };
+        };
+        case (#MaxLength(max)) {
+          switch (value) {
+            case (#String(s)) { if (s.size() > max) return false };
+            case (#Array(a)) { if (a.size() > max) return false };
+            case _ {};
+          };
+        };
+        case (#Enum(allowed)) {
+          var found = false;
+          for (a in allowed.vals()) {
+            if (configValuesEqual(value, a)) found := true;
+          };
+          if (not found) return false;
+        };
+        case _ {};
+      };
+    };
+    
+    true
+  };
+
+  /// Check config values equal
+  func configValuesEqual(a : ConfigValue, b : ConfigValue) : Bool {
+    switch (a, b) {
+      case (#String(sa), #String(sb)) sa == sb;
+      case (#Int(ia), #Int(ib)) ia == ib;
+      case (#Float(fa), #Float(fb)) Float.abs(fa - fb) < 0.0001;
+      case (#Bool(ba), #Bool(bb)) ba == bb;
+      case (#Null, #Null) true;
+      case _ false;
+    }
+  };
+
+  /// Infer config type
+  func inferConfigType(value : ConfigValue) : ConfigValueType {
+    switch (value) {
+      case (#String(_)) #String;
+      case (#Int(_)) #Int;
+      case (#Float(_)) #Float;
+      case (#Bool(_)) #Bool;
+      case (#Array(_)) #Array(#Any);
+      case (#Map(_)) #Map;
+      case (#Null) #Any;
+    }
+  };
+
+  /// Notify config watchers
+  func notifyConfigWatchers(config : ConfigState, key : Text, value : ConfigValue) : () {
+    for (watcher in config.watchers.vals()) {
+      if (watcher.isActive) {
+        // Simple prefix matching
+        if (Text.startsWith(key, #text watcher.keyPattern)) {
+          // Would invoke callback
+        };
+      };
+    };
+  };
+
   // Continue building toward 150,000 lines...
-  // Current: ~25,500 lines
-  // Remaining: ~124,500 lines
+  // Current: ~26,300 lines
+  // Remaining: ~123,700 lines
 
 }
