@@ -701,6 +701,340 @@ actor SwarmBrain {
   stable var chimeraSwarmEmotionalState : Float = 0.5;
   stable var chimeraSwarmCognitiveState : Float = 0.5;
   
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  VITAL SYSTEMS STATE — THE DEEP CORE THAT MAKES EVERYTHING ALIVE
+  //  These are NOT cosmetic additions. These are the VITAL organs of the organism.
+  //  Without these, the 7 engines are floating in nothing. This IS the body.
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // ─── BRAINSTEM VITAL CENTERS ─────────────────────────────────────────────────────
+  // The brainstem keeps you alive. Period. Without it, consciousness means nothing.
+  // Respiratory, cardiac, vasomotor, vomiting, swallowing, coughing centers.
+  stable var brainstemRespiratoryRate : Float = 0.5;         // Central pattern generator for breathing rhythm
+  stable var brainstemRespiratoryDepth : Float = 0.7;        // Tidal volume analog
+  stable var brainstemCardiacCenter : Float = 0.6;           // Cardiac acceleration/deceleration
+  stable var brainstemVasomotorTone : Float = 0.5;           // Blood pressure regulation
+  stable var brainstemReticuloSpinal : Float = 0.5;          // Postural tone (fight stance readiness)
+  stable var brainstemVestibulospinal : Float = 0.5;         // Balance/equilibrium drive
+  stable var brainstemPontineNuclei : Float = 0.5;           // Sleep/wake transition
+  stable var brainstemRapheNuclei : Float = 0.5;             // Serotonin production center
+  stable var brainstemLocusCoeruleus : Float = 0.5;          // Norepinephrine hub (attention/alarm)
+  stable var brainstemVTA : Float = 0.5;                     // Ventral tegmental area (reward/motivation)
+  stable var brainstemSubstantiaNigra : Float = 0.5;         // Dopamine for motor control
+  stable var brainstemPAG : Float = 0.3;                     // Periaqueductal gray (pain modulation, freeze/fight/flight)
+  stable var brainstemNucleusTractusSolitarius : Float = 0.5; // Visceral afferent integration
+  stable var brainstemDorsalMotorNucleus : Float = 0.5;      // Vagal parasympathetic output
+  stable var brainstemAreaPostrema : Float = 0.5;            // Chemoreceptor trigger zone
+  stable var brainstemSuperiorColliculus : Float = 0.5;      // Visual orienting reflexes
+  stable var brainstemInferiorColliculus : Float = 0.5;      // Auditory orienting reflexes
+  stable var brainstemReticuloFormation : Float = 0.5;       // Ascending reticular activating system
+  stable var brainstemRedNucleus : Float = 0.5;              // Motor coordination
+  stable var brainstemInferiorOlive : Float = 0.5;           // Error signal to cerebellum
+  stable var brainstemParabrachialNucleus : Float = 0.5;     // Taste, pain, visceral integration
+  
+  // ─── AUTONOMIC NERVOUS SYSTEM ─────────────────────────────────────────────────────
+  // Two competing arms: sympathetic (fight/flight) vs parasympathetic (rest/digest)
+  // Their balance IS the organism's fundamental state
+  stable var sympatheticTone : Float = 0.4;                  // Overall sympathetic activation
+  stable var parasympatheticTone : Float = 0.6;              // Overall parasympathetic activation
+  stable var autonomicBalance : Float = 0.0;                 // -1 = full parasympathetic, +1 = full sympathetic
+  stable var sympatheticCardiac : Float = 0.4;               // Heart rate acceleration
+  stable var sympatheticBronchial : Float = 0.3;             // Bronchodilation
+  stable var sympatheticPupillary : Float = 0.3;             // Pupil dilation (mydriasis)
+  stable var sympatheticSweat : Float = 0.2;                 // Sweat gland activation
+  stable var sympatheticAdrenal : Float = 0.3;               // Adrenal medulla stimulation
+  stable var sympatheticSplanchnic : Float = 0.3;            // Gut blood flow reduction
+  stable var sympatheticPiloerector : Float = 0.1;           // Hair standing (goosebumps)
+  stable var parasympatheticVagalCardiac : Float = 0.6;      // Heart rate deceleration
+  stable var parasympatheticSalivary : Float = 0.5;          // Salivation (rest state)
+  stable var parasympatheticLacrimal : Float = 0.3;          // Tears
+  stable var parasympatheticGastric : Float = 0.5;           // Digestion activation
+  stable var parasympatheticBladder : Float = 0.3;           // Bladder control
+  stable var parasympatheticPupillary : Float = 0.5;         // Pupil constriction (miosis)
+  stable var sympatheticChainGanglia : [var Float] = Array.init<Float>(24, 0.4); // 24 segments
+  stable var vagalAfferentSignals : [var Float] = Array.init<Float>(8, 0.5);     // 8 visceral channels
+  stable var vagalEfferentSignals : [var Float] = Array.init<Float>(8, 0.5);     // 8 motor channels
+  stable var baroreceptorSensitivity : Float = 0.5;          // Blood pressure sensing
+  stable var chemoreceptorO2 : Float = 0.95;                 // Blood oxygen sensing
+  stable var chemoreceptorCO2 : Float = 0.04;                // Blood CO2 sensing
+  stable var chemoreceptorPH : Float = 7.4;                  // Blood pH sensing
+  
+  // ─── HYPOTHALAMIC-PITUITARY-ADRENAL (HPA) AXIS ────────────────────────────────────
+  // The master stress-response system. CRH → ACTH → Cortisol feedback loop.
+  stable var hypothalamicCRH : Float = 0.3;                  // Corticotropin-releasing hormone
+  stable var pituitaryACTH : Float = 0.3;                    // Adrenocorticotropic hormone
+  stable var adrenalCortisol : Float = 0.3;                  // Cortisol (stress hormone)
+  stable var adrenalAldosterone : Float = 0.5;               // Blood pressure regulation
+  stable var adrenalDHEA : Float = 0.5;                      // Neuroprotective steroid
+  stable var hypothalamicGnRH : Float = 0.5;                 // Gonadotropin-releasing hormone
+  stable var pituitaryFSH : Float = 0.5;                     // Follicle-stimulating hormone
+  stable var pituitaryLH : Float = 0.5;                      // Luteinizing hormone
+  stable var hypothalamicTRH : Float = 0.5;                  // Thyrotropin-releasing hormone
+  stable var pituitaryTSH : Float = 0.5;                     // Thyroid-stimulating hormone
+  stable var thyroidT3 : Float = 0.5;                        // Triiodothyronine (metabolic rate)
+  stable var thyroidT4 : Float = 0.5;                        // Thyroxine (metabolic precursor)
+  stable var pituitaryGH : Float = 0.5;                      // Growth hormone
+  stable var liverIGF1 : Float = 0.5;                        // Insulin-like growth factor
+  stable var pituitaryProlactin : Float = 0.3;               // Prolactin (bonding, immune)
+  stable var pituitaryOxytocin : Float = 0.4;                // Oxytocin (trust, bonding)
+  stable var pituitaryADH : Float = 0.5;                     // Antidiuretic hormone (water balance)
+  stable var pinealMelatonin : Float = 0.3;                  // Melatonin (circadian hormone)
+  stable var hpaCortisolfeedbackGain : Float = 0.6;          // Negative feedback strength
+  stable var hpaStressResilienceCapacity : Float = 0.5;      // Allostatic load capacity
+  stable var hpaAllostaticLoad : Float = 0.2;                // Accumulated stress damage
+  
+  // ─── IMMUNE-NEURAL CROSSTALK ─────────────────────────────────────────────────────
+  // The immune system IS a sense organ. Cytokines are neurotransmitters.
+  // Sickness behavior is a brain-mediated immune response.
+  stable var proinflammatoryCytokines : Float = 0.2;         // IL-1β, IL-6, TNF-α
+  stable var antiInflammatoryCytokines : Float = 0.5;        // IL-10, TGF-β
+  stable var inflammatoryBalance : Float = 0.0;              // Pro vs anti ratio
+  stable var microglia_activation : Float = 0.2;             // Brain immune cells
+  stable var bloodBrainBarrierIntegrity : Float = 0.9;       // BBB permeability
+  stable var sicknesseBehavior : Float = 0.0;                // Lethargy, anhedonia from inflammation
+  stable var vagalAntiInflammatoryReflex : Float = 0.5;      // Vagus nerve → spleen → cytokine suppression
+  stable var neuralImmuneSignalStrength : Float = 0.3;       // CNS ↔ immune crosstalk
+  stable var tlr4Activation : Float = 0.1;                   // Toll-like receptor 4 (danger sensing)
+  stable var complementSystem : Float = 0.5;                 // Innate immune complement cascade
+  stable var naturalKillerCellActivity : Float = 0.5;        // NK cell activation
+  stable var tCellBalance : Float = 0.5;                     // Th1/Th2 balance
+  stable var bCellAntibodies : Float = 0.3;                  // Adaptive immunity readiness
+  stable var woundHealingRate : Float = 0.5;                 // Tissue repair speed
+  
+  // ─── GUT-BRAIN AXIS (ENTERIC NERVOUS SYSTEM) ─────────────────────────────────────
+  // The second brain: 500 million neurons, produces 95% of serotonin
+  stable var entericNervousSystemActivity : Float = 0.5;     // ENS overall activation
+  stable var gutSerotoninProduction : Float = 0.5;           // 95% of body's serotonin
+  stable var gutMicrobiomeDiversity : Float = 0.7;           // Microbiome health
+  stable var gutPermeability : Float = 0.1;                  // Leaky gut indicator (low = healthy)
+  stable var gutMotility : Float = 0.5;                      // Peristalsis rate
+  stable var gutInflammation : Float = 0.1;                  // Intestinal inflammation
+  stable var gutBrainVagalSignal : Float = 0.5;              // Vagus nerve gut → brain signal
+  stable var gutNeuropeptides : [var Float] = Array.init<Float>(6, 0.5); // VIP, substance P, CGRP, NPY, GLP-1, CCK
+  stable var gutMicrobiomeMetabolites : [var Float] = Array.init<Float>(4, 0.5); // SCFA, tryptophan, GABA, butyrate
+  stable var gutEpithelialIntegrity : Float = 0.8;           // Gut barrier health
+  
+  // ─── SPINAL CORD & MOTOR SYSTEM ──────────────────────────────────────────────────
+  // The highway between brain and body. Motor neurons, reflexes, central pattern generators.
+  stable var spinalMotorPoolAlpha : [var Float] = Array.init<Float>(8, 0.5);  // Alpha motor neurons (8 limb groups)
+  stable var spinalMotorPoolGamma : [var Float] = Array.init<Float>(8, 0.3);  // Gamma motor neurons (muscle spindle)
+  stable var spinalReflexGain : [var Float] = Array.init<Float>(8, 0.5);      // Reflex arc strength per segment
+  stable var spinalCPG_locomotion : Float = 0.0;             // Central pattern generator for locomotion
+  stable var spinalCPG_respiration : Float = 0.5;            // CPG for respiratory rhythm
+  stable var spinalInterneuronPool : [var Float] = Array.init<Float>(8, 0.5); // Interneuron modulation
+  stable var spinalDorsalHorn : [var Float] = Array.init<Float>(8, 0.3);      // Pain/sensory processing
+  stable var spinalVentralHorn : [var Float] = Array.init<Float>(8, 0.5);     // Motor output
+  stable var upperMotorNeuronDrive : Float = 0.5;            // Cortical motor command
+  stable var lowerMotorNeuronOutput : Float = 0.5;           // Final common pathway
+  stable var muscleSpindleAfferents : [var Float] = Array.init<Float>(8, 0.5); // Proprioceptive feedback
+  stable var golgiTendonAfferents : [var Float] = Array.init<Float>(8, 0.3);   // Force feedback
+  stable var motorCoordinationScore : Float = 0.5;           // Overall motor coordination
+  stable var reflexLatency : Float = 0.02;                   // Reflex speed (seconds)
+  
+  // ─── SENSORY INTEGRATION CORTEX ──────────────────────────────────────────────────
+  // Multi-modal sensory binding. All senses become ONE percept.
+  stable var visualCortexV1 : Float = 0.5;                   // Primary visual cortex
+  stable var visualCortexV2 : Float = 0.5;                   // Secondary visual
+  stable var visualCortexV4 : Float = 0.5;                   // Color processing
+  stable var visualCortexMT : Float = 0.5;                   // Motion processing
+  stable var visualCortexIT : Float = 0.5;                   // Object recognition
+  stable var auditoryCortexA1 : Float = 0.5;                 // Primary auditory
+  stable var auditoryCortexA2 : Float = 0.5;                 // Auditory association
+  stable var wernickeArea : Float = 0.5;                     // Language comprehension
+  stable var brocaArea : Float = 0.5;                        // Language production
+  stable var somatosensoryCortexS1 : Float = 0.5;            // Primary touch
+  stable var somatosensoryCortexS2 : Float = 0.5;            // Secondary touch
+  stable var gustatoryCortex : Float = 0.5;                  // Taste processing
+  stable var olfactoryCortex : Float = 0.5;                  // Smell processing
+  stable var vestibularCortex : Float = 0.5;                 // Balance/spatial orientation
+  stable var multimodalIntegration : Float = 0.5;            // Cross-modal binding
+  stable var sensoryGating : Float = 0.5;                    // Thalamic sensory filtering
+  stable var sensoryCortexMap : [var Float] = Array.init<Float>(32, 0.5); // 32-region cortical map
+  stable var tonotopicMap : [var Float] = Array.init<Float>(16, 0.5);     // Auditory frequency map
+  stable var retinotopicMap : [var Float] = Array.init<Float>(16, 0.5);   // Visual spatial map
+  stable var somatotopicMap : [var Float] = Array.init<Float>(16, 0.5);   // Body representation map
+  
+  // ─── LIMBIC SYSTEM DEEP STRUCTURES ───────────────────────────────────────────────
+  // Emotion, memory, motivation — the core of who we ARE
+  stable var amygdalaCentralNucleus : Float = 0.3;           // Fear output
+  stable var amygdalaBasolateral : Float = 0.3;              // Fear learning
+  stable var amygdalaMedial : Float = 0.5;                   // Social/pheromone processing
+  stable var amygdalaExtended : Float = 0.3;                 // Anxiety circuit
+  stable var hippocampusCA1 : Float = 0.5;                   // Memory output
+  stable var hippocampusCA3 : Float = 0.5;                   // Pattern completion
+  stable var hippocampusDentateGyrus : Float = 0.5;          // Pattern separation
+  stable var hippocampusSubiculum : Float = 0.5;             // Hippocampal output
+  stable var entorhinalCortex : Float = 0.5;                 // Grid cells / spatial memory
+  stable var perirhinalCortex : Float = 0.5;                 // Object recognition memory
+  stable var parahippocampalGyrus : Float = 0.5;             // Scene recognition
+  stable var cingulateCortexAnterior : Float = 0.5;          // Conflict monitoring
+  stable var cingulateCortexPosterior : Float = 0.5;         // Self-referential processing
+  stable var cingulateCortexMid : Float = 0.5;               // Pain affect
+  stable var nucleusAccumbens : Float = 0.5;                 // Reward center
+  stable var ventralPallidum : Float = 0.5;                  // Hedonic hotspot
+  stable var lateralHabenula : Float = 0.3;                  // Disappointment/anti-reward
+  stable var medialHabenula : Float = 0.5;                   // Aversion learning
+  stable var septumPellucidum : Float = 0.5;                 // Reward/punishment integration
+  stable var mammillaryBodies : Float = 0.5;                 // Memory relay (Papez circuit)
+  stable var fornix : Float = 0.5;                           // Hippocampus → mammillary connection
+  stable var stria_terminalis : Float = 0.3;                 // Amygdala → hypothalamus anxiety pathway
+  
+  // ─── BASAL GANGLIA EXTENDED ──────────────────────────────────────────────────────
+  // Action selection, habit formation, procedural memory
+  stable var caudateNucleus : Float = 0.5;                   // Goal-directed behavior
+  stable var putamen : Float = 0.5;                          // Habitual behavior
+  stable var globusPallidusExterna : Float = 0.5;            // Indirect pathway (inhibit unwanted actions)
+  stable var globusPallidusInterna : Float = 0.5;            // Direct pathway output (permit wanted actions)
+  stable var subthalamicNucleus : Float = 0.5;               // Hyperdirect pathway (emergency brake)
+  stable var striatumD1Pathway : Float = 0.5;                // GO signal
+  stable var striatumD2Pathway : Float = 0.5;                // NO-GO signal
+  stable var striatumCholinergicInterneurons : Float = 0.5;  // Pause/switch signal
+  stable var directPathwayOutput : Float = 0.5;              // Net GO
+  stable var indirectPathwayOutput : Float = 0.5;            // Net STOP
+  stable var hyperdirectPathwayOutput : Float = 0.3;         // Emergency brake
+  stable var actionSelectionConfidence : Float = 0.5;        // How sure is the action selection
+  stable var habitStrength : Float = 0.3;                    // Putamen dominance over caudate
+  stable var goalDirectedness : Float = 0.7;                 // Caudate dominance over putamen
+  
+  // ─── CEREBELLAR DEEP STATE ───────────────────────────────────────────────────────
+  // Error correction, timing, motor learning, cognitive smoothing
+  stable var cerebellumGranuleCells : [var Float] = Array.init<Float>(16, 0.5);  // Massive expansion layer
+  stable var cerebellumPurkinjeCells : [var Float] = Array.init<Float>(16, 0.5); // Inhibitory output
+  stable var cerebellumDeepNuclei : [var Float] = Array.init<Float>(4, 0.5);     // Dentate, emboliform, globose, fastigial
+  stable var cerebellumClimbingFiberError : Float = 0.0;     // Error signal from inferior olive
+  stable var cerebellumMossyFiberInput : Float = 0.5;        // Sensory/motor input
+  stable var cerebellumParallelFiberLTP : Float = 0.5;       // Long-term potentiation
+  stable var cerebellumParallelFiberLTD : Float = 0.5;       // Long-term depression
+  stable var cerebellumTimingPrecision : Float = 0.5;        // Temporal accuracy
+  stable var cerebellumMotorAdaptation : Float = 0.5;        // Motor learning rate
+  stable var cerebellumCognitiveContribution : Float = 0.5;  // Cognitive timing/sequencing
+  
+  // ─── THALAMIC RELAY EXPANDED ─────────────────────────────────────────────────────
+  // The gateway to consciousness — ALL sensory info (except smell) routes through here
+  stable var thalamusLGN : Float = 0.5;                      // Lateral geniculate (vision)
+  stable var thalamusMGN : Float = 0.5;                      // Medial geniculate (audition)
+  stable var thalamusVPL : Float = 0.5;                      // Ventral posterolateral (body senses)
+  stable var thalamusVPM : Float = 0.5;                      // Ventral posteromedial (face senses)
+  stable var thalamusPulvinar : Float = 0.5;                 // Attention/visual salience
+  stable var thalamusMD : Float = 0.5;                       // Mediodorsal (PFC connection)
+  stable var thalamusVA : Float = 0.5;                       // Ventral anterior (motor planning)
+  stable var thalamusVL : Float = 0.5;                       // Ventral lateral (motor execution)
+  stable var thalamusAnterior : Float = 0.5;                 // Memory (Papez circuit)
+  stable var thalamusCentromedian : Float = 0.5;             // Arousal/consciousness
+  stable var thalamusReticular : Float = 0.5;                // Inhibitory gating
+  stable var thalamusCorticalFeedback : [var Float] = Array.init<Float>(12, 0.5); // Corticothalamic
+  stable var thalamicGatingState : [var Float] = Array.init<Float>(12, 0.5);      // Open/closed gates
+  
+  // ─── PREFRONTAL EXECUTIVE EXPANDED ───────────────────────────────────────────────
+  // The CEO of the brain. Working memory, planning, inhibition, abstract reasoning.
+  stable var dlpfcWorkingMemory : [var Float] = Array.init<Float>(8, 0.5);   // Dorsolateral PFC working memory slots
+  stable var dlpfcMaintenanceStrength : Float = 0.5;         // How well WM items are maintained
+  stable var dlpfcUpdateGate : Float = 0.5;                  // Should WM be updated?
+  stable var vlpfcInhibition : Float = 0.5;                  // Ventrolateral PFC response inhibition
+  stable var ofcValueEstimate : Float = 0.5;                 // Orbitofrontal cortex value computation
+  stable var ofcOutcomeExpectation : Float = 0.5;            // Expected reward/punishment
+  stable var ofcReversal : Float = 0.5;                      // Ability to reverse learned associations
+  stable var accConflictSignal : Float = 0.3;                // Anterior cingulate conflict detection
+  stable var accEffortWillingness : Float = 0.5;             // Willingness to exert effort
+  stable var accErrorDetection : Float = 0.3;                // Error-related negativity
+  stable var fefSaccadePlanning : Float = 0.5;               // Frontal eye fields
+  stable var pmcMotorPlanning : Float = 0.5;                 // Premotor cortex
+  stable var smaSequencing : Float = 0.5;                    // Supplementary motor area
+  stable var prefrontalHierarchicalControl : Float = 0.5;    // Rostro-caudal abstraction gradient
+  stable var prefrontalTemporalAbstraction : Float = 0.5;    // Time horizon of planning
+  stable var cognitiveControlStrength : Float = 0.5;         // Overall top-down control
+  
+  // ─── SLEEP ARCHITECTURE ──────────────────────────────────────────────────────────
+  // Not just circadian — the ACTUAL stages of sleep and their neural signatures
+  stable var sleepStageN1 : Float = 0.0;                     // Light sleep (theta)
+  stable var sleepStageN2 : Float = 0.0;                     // Sleep spindles + K-complexes
+  stable var sleepStageN3 : Float = 0.0;                     // Deep sleep (delta)
+  stable var sleepStageREM : Float = 0.0;                    // REM (dreaming, memory consolidation)
+  stable var sleepSpindleRate : Float = 0.0;                 // Sleep spindles (12-15 Hz bursts)
+  stable var kComplexAmplitude : Float = 0.0;                // K-complex responses
+  stable var deltaWaveAmplitude : Float = 0.0;               // Slow-wave activity (0.5-4 Hz)
+  stable var sleepPressure : Float = 0.0;                    // Homeostatic sleep drive (process S)
+  stable var sleepCyclePhase : Float = 0.0;                  // Where in the 90-min ultradian cycle
+  stable var pontineREM_onCells : Float = 0.0;               // REM-on cholinergic neurons
+  stable var pontineREM_offCells : Float = 0.5;              // REM-off aminergic neurons
+  stable var sleepHomeostatAdenosine : Float = 0.3;          // Adenosine accumulation
+  stable var memoryReplayStrength : Float = 0.0;             // Hippocampal replay during sleep
+  stable var glymphaticClearance : Float = 0.0;              // Brain waste clearance (sleep-dependent)
+  
+  // ─── REWARD/MOTIVATION CIRCUIT ───────────────────────────────────────────────────
+  // VTA → NAc → PFC dopamine pathway. This is WANTING, not LIKING.
+  stable var vtaDopamineFireRate : Float = 0.5;              // VTA phasic firing
+  stable var vtaTonicBaseline : Float = 0.5;                 // VTA tonic baseline
+  stable var rewardPredictionError : Float = 0.0;            // δ = r - V(s)
+  stable var expectedReward : Float = 0.5;                   // V(s) value estimate
+  stable var actualReward : Float = 0.5;                     // r received
+  stable var motivationalSalience : Float = 0.5;             // How motivating is the stimulus
+  stable var incentiveSalience : Float = 0.5;                // "Wanting" (Berridge)
+  stable var hedonicImpact : Float = 0.5;                    // "Liking" (Berridge)
+  stable var effortCostComputation : Float = 0.3;            // Cost of effort
+  stable var rewardDiscountFactor : Float = 0.95;            // Temporal discounting
+  stable var rewardLearningRate : Float = 0.1;               // TD learning rate
+  stable var anhedoniaIndex : Float = 0.0;                   // Inability to feel pleasure
+  stable var lateralHypothalamusOrexin : Float = 0.5;        // Orexin/hypocretin (arousal + feeding)
+  
+  // ─── PAIN MATRIX ─────────────────────────────────────────────────────────────────
+  // Pain is not just sensation — it's a whole-brain experience
+  stable var painSensoryDiscriminative : Float = 0.0;        // S1/S2 — where/how intense
+  stable var painAffectiveMotivational : Float = 0.0;        // ACC/insula — how unpleasant
+  stable var painCognitiveEvaluative : Float = 0.0;          // PFC — meaning/context
+  stable var descendingPainModulation : Float = 0.5;         // PAG → raphe → dorsal horn
+  stable var endogenousOpioids : Float = 0.3;                // Endorphin/enkephalin
+  stable var gateControlSignal : Float = 0.5;                // Melzack-Wall gate control
+  stable var centralSensitization : Float = 0.0;             // Wind-up (chronic pain risk)
+  stable var painCatastrophizing : Float = 0.0;              // Cognitive amplification
+  stable var conditionedPainModulation : Float = 0.5;        // DNIC (diffuse noxious inhibitory control)
+  
+  // ─── MIRROR NEURON / SOCIAL COGNITION ────────────────────────────────────────────
+  // Understanding others' actions and intentions
+  stable var mirrorNeuronActivity : Float = 0.5;             // Action observation = action execution
+  stable var theoryOfMindPFC : Float = 0.5;                  // Mentalizing about others' beliefs
+  stable var empathyInsularActivation : Float = 0.5;         // Shared pain/emotion
+  stable var socialRewardVTASignal : Float = 0.5;            // Social interaction as reward
+  stable var facialExpressionDecoding : Float = 0.5;         // Reading facial emotions
+  stable var prosodyDecoding : Float = 0.5;                  // Reading vocal emotions
+  stable var jointAttentionSignal : Float = 0.5;             // Shared attention focus
+  stable var socialHierarchyPosition : Float = 0.5;          // Perceived social rank
+  stable var inGroupVsOutGroup : Float = 0.5;                // Tribal identification strength
+  stable var oxytocin_socialBonding : Float = 0.4;           // Trust/bonding hormone effect
+  stable var vasopressin_territoriality : Float = 0.3;       // Territorial/pair-bonding
+  
+  // ─── ENERGY METABOLISM ───────────────────────────────────────────────────────────
+  // The organism needs energy. All computation costs energy.
+  stable var metabolicRate : Float = 0.5;                    // Overall metabolic rate
+  stable var glucoseAvailability : Float = 0.8;              // Blood glucose analog
+  stable var glycogenReserves : Float = 0.7;                 // Stored energy
+  stable var atp_level : Float = 0.8;                        // Cellular energy currency
+  stable var mitochondrialEfficiency : Float = 0.7;          // Energy production efficiency
+  stable var lactateLevel : Float = 0.1;                     // Metabolic byproduct
+  stable var insulinLevel : Float = 0.5;                     // Glucose regulation
+  stable var leptinLevel : Float = 0.5;                      // Satiety signal
+  stable var ghrelinLevel : Float = 0.3;                     // Hunger signal
+  stable var cerebralBloodFlow : Float = 0.7;                // Brain perfusion
+  stable var oxygenConsumption : Float = 0.5;                // CMRO2
+  stable var heatGeneration : Float = 0.5;                   // Thermogenic output
+  stable var coreTemperature : Float = 0.5;                  // Thermal homeostasis (0.5 = 37°C)
+  stable var temperatureSetPoint : Float = 0.5;              // Hypothalamic thermostat
+  
+  // ─── DRONE COGNITIVE JOB SYSTEM ──────────────────────────────────────────────────
+  // Every drone has a JOB. Not just movement — cognitive work, 24/7.
+  stable var droneJobAssignments : [var Nat] = Array.init<Nat>(250, 0);     // Job type per drone
+  stable var droneJobProgress : [var Float] = Array.init<Float>(250, 0.0);  // Job completion progress
+  stable var droneJobSatisfaction : [var Float] = Array.init<Float>(250, 0.5); // Cognitive satisfaction
+  stable var droneJobCreativity : [var Float] = Array.init<Float>(250, 0.5);   // Creative output
+  stable var droneAutonomyLevel : [var Float] = Array.init<Float>(250, 0.5);   // Independence level
+  stable var droneLocalDecisionCount : [var Nat] = Array.init<Nat>(250, 0);    // Decisions made locally
+  stable var droneBattlefieldAwareness : [var Float] = Array.init<Float>(250, 0.5); // Situational awareness
+  stable var droneEmotionalState : [var Float] = Array.init<Float>(250, 0.5);  // Individual emotional state
+  stable var droneStressLevel : [var Float] = Array.init<Float>(250, 0.1);     // Individual stress
+  stable var droneFatigueLevel : [var Float] = Array.init<Float>(250, 0.0);    // Fatigue accumulation
+  stable var droneCreativeInsight : [var Float] = Array.init<Float>(250, 0.0); // Eureka moments
+  stable var droneLearningRate : [var Float] = Array.init<Float>(250, 0.5);    // Plasticity per drone
+  
   // ─── ENEMY AI SWARM — For competition training ───────────────────────────────
   // Enemy uses the SAME IRONCLAD architecture: Kuramoto + Hebbian + mean-field
   var enemySwarmState : ?EnemyAISwarm.EnemySwarmState = null;
