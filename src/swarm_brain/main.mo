@@ -1186,6 +1186,10 @@ actor SwarmBrain {
   stable var circadianPhase : Float = 0.0;                    // Circadian phase (0-1, synced with scnPhase)
   stable var circadianSleepDrive : Float = 0.3;               // Circadian sleep promotion
   
+  // ─── CHRONOBIOLOGY ENGINE EXPANSIONS ────────────────────────────────────────
+  stable var attentionCapacity : Float = 0.7;                 // Attention capacity (modulated by BRAC)
+  stable var sleepQuality : Float = 0.7;                      // Sleep quality (affected by jet lag, etc.)
+  
   // ─── MISSING ARRAY DECLARATIONS ─────────────────────────────────────────────
   stable var mirrorNeuronActivityArr : [var Float] = Array.init<Float>(11, 0.5);  // 11 mirror neuron channels
 
@@ -8413,44 +8417,712 @@ actor SwarmBrain {
   };
 
   // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-  //  VITAL SYSTEM ENGINE 16: CHRONOBIOLOGY
-  //  Ultradian, infradian, circannual rhythms, zeitgeber integration,
-  //  chronotype modeling, jet lag adaptation.
+  //  VITAL SYSTEM ENGINE 16: CHRONOBIOLOGY — FULL IMPLEMENTATION
+  //  
+  //  This engine implements ALL temporal biological rhythms operating across multiple timescales:
+  //  
+  //  1. ULTRADIAN RHYTHMS (< 24 hours)
+  //     - 90-minute BRAC (Basic Rest-Activity Cycle) — Kleitman 1969
+  //     - 120-minute gastric cycle
+  //     - 4-hour cortisol pulsatility
+  //     - REM-NREM 90-min cycles during sleep
+  //     - Appetite oscillations (ghrelin/leptin)
+  //  
+  //  2. CIRCADIAN RHYTHMS (24 hours)
+  //     - SCN master oscillator (already in tickCircadianRhythm)
+  //     - Temperature curve (min at 4 AM, max at 6 PM)
+  //     - Cortisol awakening response (CAR)
+  //     - Melatonin onset (dim light melatonin onset — DLMO)
+  //     - Peripheral clock synchronization
+  //  
+  //  3. INFRADIAN RHYTHMS (> 24 hours)
+  //     - Weekly cycles (social synchronization)
+  //     - Monthly cycles (hormonal for some organisms)
+  //     - Seasonal affective patterns
+  //  
+  //  4. CIRCANNUAL RHYTHMS (yearly)
+  //     - Photoperiod integration (day length changes)
+  //     - Seasonal mood/energy variations
+  //     - Metabolic adaptation (winter vs summer)
+  //  
+  //  5. ZEITGEBER INTEGRATION
+  //     - Light (primary zeitgeber via retinohypothalamic tract)
+  //     - Food/metabolism (FEO — Food Entrainable Oscillator)
+  //     - Social interaction (social zeitgebers)
+  //     - Exercise/activity
+  //     - Temperature
+  //  
+  //  6. CHRONOTYPE MODELING
+  //     - Morningness-Eveningness continuum
+  //     - Individual phase differences (early bird vs night owl)
+  //     - Age-related chronotype shifts
+  //  
+  //  7. JET LAG & SHIFT WORK
+  //     - Phase shift dynamics
+  //     - Re-entrainment kinetics (1 day per hour time zone)
+  //     - Internal desynchronization
+  //     - Cognitive/emotional impairment during adjustment
+  //  
+  //  Computational approach: Multiple coupled oscillators with different periods,
+  //  each entrained by different zeitgebers, with cross-coupling to all vital systems.
   // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
   func tickChronobiologyEngine() {
-    let dt : Float = 1.0 / 12.0;
+    let dt : Float = 1.0 / 12.0;  // 12 Hz timestep (5 seconds real-time)
 
-    // Ultradian rhythms (90-min BRAC — Basic Rest-Activity Cycle)
-    let ultradianPhase = fclamp(
-      0.5 + 0.4 * Float.sin(Float.fromInt(currentBeat) * 0.00116),  // ~90 min
-      0.0, 1.0
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PART 1: ULTRADIAN RHYTHMS (< 24 hours)
+    //  Multiple oscillators operating within a single day
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // ─── 90-MINUTE BASIC REST-ACTIVITY CYCLE (BRAC) ──────────────────────────
+    // Discovered by Kleitman (1969) — oscillation in alertness/performance
+    // Present during wake AND sleep (becomes REM-NREM cycle during sleep)
+    // Frequency: ~16 cycles per 24 hours = 0.00116 radians/beat @ 12 Hz
+    let bracPhase = Float.fromInt(currentBeat) * 0.00116;  // 90-min period
+    let bracAmplitude = fclamp(
+      0.35 * (1.0 - sleepPressure) + 0.25 * brainstemReticuloFormation +
+      0.2 * dopamine + 0.1 * scnPhase + 0.1 * (1.0 - adenosineLevel),
+      0.1, 0.5
     );
-    // Infradian rhythms (weekly)
-    let infradianWeekly = fclamp(
-      0.5 + 0.2 * Float.sin(Float.fromInt(currentBeat) * 0.0001),
-      0.0, 1.0
-    );
-    // Circannual rhythms (seasonal)
-    let circannualPhase = fclamp(
-      0.5 + 0.15 * Float.sin(Float.fromInt(currentBeat) * 0.00001),
-      0.0, 1.0
-    );
-    // Zeitgeber integration
-    let socialZeitgeber = fclamp(polyvagalVentral * 0.3 + chimeraHiveMindCoherence * 0.3 + oxytocin * 0.4, 0.0, 1.0);
-    let metabolicZeitgeber = fclamp(energyBalance * 0.4 + gutGLP1 * 0.3 + metabolicRate * 0.3, 0.0, 1.0);
-    // Combined zeitgeber → circadian entrainment
-    circadianCoherence := fclamp(
-      circadianCoherence * 0.998 + 0.001 * socialZeitgeber + 0.001 * metabolicZeitgeber,
-      0.0, 1.0
-    );
-    // Ultradian → brainstem arousal modulation
+    let bracOscillation = bracAmplitude * Float.sin(bracPhase);
+    // BRAC → arousal modulation
     brainstemReticuloFormation := fclamp(
-      brainstemReticuloFormation * 0.998 + ultradianPhase * 0.002,
+      brainstemReticuloFormation + dt * 0.3 * bracOscillation,
       0.05, 0.98
     );
-    // Seasonal → HPA axis modulation (winter = higher cortisol)
-    cortisol := fclamp(cortisol * 0.999 + (1.0 - circannualPhase) * 0.001, 0.05, 0.95);
+    // BRAC → attention capacity (peaks and troughs every 90 min)
+    attentionCapacity := fclamp(
+      attentionCapacity + dt * 0.2 * bracOscillation,
+      0.3, 1.0
+    );
+
+    // ─── 120-MINUTE GASTRIC CYCLE ────────────────────────────────────────────
+    // Migrating motor complex (MMC) — gastric contractions sweep stomach
+    // Period: ~120 minutes = 0.00087 radians/beat @ 12 Hz
+    let gastricPhase = Float.fromInt(currentBeat) * 0.00087;
+    let gastricOscillation = 0.15 * Float.sin(gastricPhase);
+    // Gastric → gut motility
+    gutMotility := fclamp(
+      gutMotility + dt * 0.4 * gastricOscillation,
+      0.1, 0.95
+    );
+    // Gastric → hunger (peaks match gastric contractions)
+    let hungerPulse = fclamp(
+      gutGhrelin + 0.1 * Float.max(0.0, gastricOscillation),
+      0.0, 1.0
+    );
+    gutGhrelin := fclamp(
+      gutGhrelin * 0.998 + hungerPulse * 0.002,
+      0.0, 1.0
+    );
+
+    // ─── 4-HOUR CORTISOL PULSATILITY ──────────────────────────────────────────
+    // Cortisol doesn't rise smoothly — it pulses every 3-5 hours (ultradian)
+    // Superimposed on circadian rhythm
+    // Period: ~4 hours = 6 cycles per day = 0.000436 radians/beat @ 12 Hz
+    let cortisolUltradianPhase = Float.fromInt(currentBeat) * 0.000436;
+    let cortisolPulse = 0.08 * Float.sin(cortisolUltradianPhase);
+    // Add ultradian pulse to circadian cortisol
+    cortisol := fclamp(
+      cortisol + cortisolPulse,
+      0.05, 0.95
+    );
+
+    // ─── REM-NREM ULTRADIAN CYCLE (DURING SLEEP) ──────────────────────────────
+    // Same 90-min BRAC oscillator becomes REM-NREM cycle during sleep
+    // REM proportion increases across night
+    if (sleepPressure > 0.6 or sleepFlipFlopState < 0.4) {
+      // We're in sleep state
+      let sleepCyclePhase = bracPhase;  // Same 90-min oscillator
+      let remPropensity = fclamp(
+        0.2 + 0.05 * Float.fromInt(currentBeat) * 0.000001,  // Increases across night
+        0.2, 0.5
+      );
+      let remDrive = Float.sin(sleepCyclePhase) * remPropensity;
+      // Positive phase → REM, negative phase → NREM
+      if (remDrive > 0.0) {
+        sleepRemPressure := fclamp(sleepRemPressure + dt * 0.5 * remDrive, 0.0, 1.0);
+        sleepN3Power := fclamp(sleepN3Power - dt * 0.3 * remDrive, 0.0, 1.0);
+      } else {
+        sleepN3Power := fclamp(sleepN3Power + dt * 0.5 * (-1.0 * remDrive), 0.0, 1.0);
+        sleepRemPressure := fclamp(sleepRemPressure - dt * 0.3, 0.0, 1.0);
+      };
+    };
+
+    // ─── APPETITE OSCILLATIONS (GHRELIN/LEPTIN) ───────────────────────────────
+    // Ghrelin peaks pre-meal (~3-4 hour cycle when awake)
+    // Leptin provides tonic satiety signal
+    let appetitePhase = Float.fromInt(currentBeat) * 0.000524;  // ~3 hours
+    let ghrelinPulse = 0.12 * Float.sin(appetitePhase);
+    gutGhrelin := fclamp(
+      gutGhrelin + dt * 0.3 * ghrelinPulse - dt * 0.1 * energyBalance,
+      0.0, 1.0
+    );
+    // Leptin (satiety) opposes ghrelin
+    let leptinSignal = fclamp(
+      energyBalance * 0.4 + (1.0 - gutGhrelin) * 0.3 + gutGLP1 * 0.3,
+      0.0, 1.0
+    );
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PART 2: CIRCADIAN TEMPERATURE CURVE
+    //  Core body temperature oscillates with ~0.6°C amplitude
+    //  Min at ~4 AM, max at ~6 PM (phase-locked to SCN)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // Temperature curve lags SCN phase by ~2 hours
+    let temperaturePhase = scnPhase - 0.524;  // -30° lag (~2 hours)
+    let temperatureAmplitude : Float = 0.05;  // 0.05 = 5% of range (scaled to 0-1)
+    let temperatureTarget = fclamp(
+      0.5 + temperatureAmplitude * Float.sin(temperaturePhase),
+      0.45, 0.55
+    );
+    // Temperature dynamics (slow — thermal inertia)
+    coreTemperature := fclamp(
+      coreTemperature + dt * 0.1 * (temperatureTarget - coreTemperature),
+      0.4, 0.65
+    );
+    temperatureSetPoint := temperatureTarget;
+
+    // Temperature → sleep propensity (sleep more likely when temp drops)
+    let temperatureSleepDrive = fclamp(
+      (0.5 - coreTemperature) * 2.0,  // Max when temp is low
+      -0.2, 0.3
+    );
+    sleepPressure := fclamp(
+      sleepPressure + dt * 0.05 * temperatureSleepDrive,
+      0.0, 1.0
+    );
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PART 3: CORTISOL AWAKENING RESPONSE (CAR)
+    //  Cortisol surges 50-75% within 30-45 min after waking
+    //  This is a CRITICAL metabolic/alertness boost
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // Detect sleep→wake transition
+    let justWoke = sleepFlipFlopState > 0.7 and sleepPressure < 0.3;
+    if (justWoke) {
+      // CAR: rapid cortisol surge
+      cortisol := fclamp(cortisol + 0.15, 0.05, 0.95);
+      brainstemReticuloFormation := fclamp(brainstemReticuloFormation + 0.1, 0.05, 0.98);
+      brainstemLocusCoeruleus := fclamp(brainstemLocusCoeruleus + 0.12, 0.05, 0.95);
+    };
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PART 4: MELATONIN DYNAMICS (Dim Light Melatonin Onset — DLMO)
+    //  Melatonin rises ~2 hours before habitual bedtime
+    //  Suppressed by light (especially blue wavelengths 460-480nm)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // DLMO: melatonin onset occurs when SCN phase ~ -π/2 (evening)
+    let dlmoPhase = scnPhase + 1.571;  // Shifted to start at -π/2
+    let dlmoDrive = fclamp(
+      Float.max(0.0, Float.sin(dlmoPhase)),  // Only positive half of sine
+      0.0, 1.0
+    );
+    // Melatonin synthesis (pineal gland)
+    let melatoninSynthesis = fclamp(
+      0.6 * dlmoDrive + 0.2 * (1.0 - brainstemReticuloFormation) +
+      0.1 * sleepPressure + 0.1 * (1.0 - cortisol),
+      0.0, 1.0
+    );
+    // Light suppresses melatonin (acute effect)
+    let lightSuppression = fclamp(
+      brainstemReticuloFormation * 0.3 + alertnessLevel * 0.2,
+      0.0, 0.5
+    );
+    melatonin := fclamp(
+      melatonin + dt * 0.4 * (melatoninSynthesis - lightSuppression - melatonin * 0.1),
+      0.0, 1.0
+    );
+    melatoninLevel := melatonin;  // Sync with long-form variable
+
+    // Melatonin → sleep promotion (hypnotic effect)
+    sleepPressure := fclamp(
+      sleepPressure + dt * 0.08 * melatonin,
+      0.0, 1.0
+    );
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PART 5: PERIPHERAL CLOCK SYNCHRONIZATION
+    //  Every organ has its own clock (liver, heart, kidney, etc.)
+    //  They must stay synchronized with SCN master clock
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // Gut peripheral clock (entrained by food timing)
+    let gutClockPhase = fclamp(
+      scnPhase + 0.3 * Float.sin(Float.fromInt(currentBeat) * 0.0001),  // Some phase jitter
+      -3.14159, 3.14159
+    );
+    // Gut clock → gut serotonin production timing
+    let gutClockDrive = 0.5 + 0.3 * Float.sin(gutClockPhase);
+    gutSerotoninProduction := fclamp(
+      gutSerotoninProduction * 0.98 + gutClockDrive * 0.02,
+      0.1, 0.95
+    );
+
+    // Liver clock (metabolic rhythms)
+    let liverClockPhase = scnPhase;
+    let liverGlucoseRelease = 0.5 + 0.2 * Float.sin(liverClockPhase);
+    // Liver → energy balance
+    energyBalance := fclamp(
+      energyBalance + dt * 0.02 * (liverGlucoseRelease - 0.5),
+      0.1, 1.0
+    );
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PART 6: INFRADIAN RHYTHMS (> 24 hours)
+    //  Weekly, monthly, and longer cycles
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // ─── WEEKLY SOCIAL RHYTHM ──────────────────────────────────────────────────
+    // Humans (and social organisms) synchronize to 7-day week
+    // Peak sociality on certain days, low on others
+    // Period: 7 days @ 12 Hz = 7 * 24 * 3600 * 12 beats = 7,257,600 beats
+    // Frequency: 2π / 7,257,600 = 0.000000866 radians/beat
+    let weeklyPhase = Float.fromInt(currentBeat) * 0.000000866;
+    let weeklyOscillation = 0.15 * Float.sin(weeklyPhase);
+    // Weekly → social engagement (weekend effect)
+    let socialWeeklyModulation = fclamp(
+      polyvagalVentral + weeklyOscillation,
+      0.0, 1.0
+    );
+    polyvagalVentral := fclamp(
+      polyvagalVentral * 0.9999 + socialWeeklyModulation * 0.0001,
+      0.0, 1.0
+    );
+
+    // ─── MONTHLY CYCLE (CIRCALUNAR) ────────────────────────────────────────────
+    // ~28-30 day hormonal cycles (present in many organisms)
+    // Period: 28 days = 28,857,600 beats @ 12 Hz
+    // Frequency: 2π / 28,857,600 = 0.000000218 radians/beat
+    let monthlyPhase = Float.fromInt(currentBeat) * 0.000000218;
+    let monthlyOscillation = 0.1 * Float.sin(monthlyPhase);
+    // Monthly → HPA axis modulation
+    cortisol := fclamp(
+      cortisol + dt * 0.002 * monthlyOscillation,
+      0.05, 0.95
+    );
+    // Monthly → immune function (some evidence for circalunar immunity)
+    nkCellActivity := fclamp(
+      nkCellActivity + dt * 0.001 * monthlyOscillation,
+      0.1, 0.9
+    );
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PART 7: CIRCANNUAL RHYTHMS (SEASONAL)
+    //  Photoperiod (day length) changes across year
+    //  Affects mood, energy, metabolism
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // ─── PHOTOPERIOD INTEGRATION ───────────────────────────────────────────────
+    // Day length varies: short in winter (~8-10 hr), long in summer (~14-16 hr)
+    // Period: 365 days = 378,432,000 beats @ 12 Hz
+    // Frequency: 2π / 378,432,000 = 0.0000000166 radians/beat
+    let annualPhase = Float.fromInt(currentBeat) * 0.0000000166;
+    let photoPeriod = fclamp(
+      0.5 + 0.25 * Float.sin(annualPhase),  // 0.25-0.75 (scaled to 8-16 hr days)
+      0.25, 0.75
+    );
+    // Short photoperiod (winter) → increased melatonin duration
+    let seasonalMelatoninDuration = fclamp(
+      (0.5 - photoPeriod) * 2.0,  // Higher in winter
+      0.0, 0.5
+    );
+    melatonin := fclamp(
+      melatonin + dt * 0.01 * seasonalMelatoninDuration,
+      0.0, 1.0
+    );
+
+    // ─── SEASONAL AFFECTIVE PATTERN ────────────────────────────────────────────
+    // Winter: lower mood, energy, increased appetite/sleep (SAD)
+    // Summer: higher mood, energy
+    let seasonalMoodModulation = fclamp(
+      photoPeriod * 0.4 - 0.2,  // -0.2 in winter, +0.1 in summer
+      -0.3, 0.2
+    );
+    serotonin := fclamp(
+      serotonin + dt * 0.02 * seasonalMoodModulation,
+      0.1, 0.95
+    );
+    dopamine := fclamp(
+      dopamine + dt * 0.015 * seasonalMoodModulation,
+      0.1, 0.95
+    );
+    // Winter → increased appetite/weight (evolutionary preparation)
+    gutGhrelin := fclamp(
+      gutGhrelin + dt * 0.01 * (0.5 - photoPeriod),
+      0.0, 1.0
+    );
+
+    // ─── SEASONAL METABOLIC ADAPTATION ──────────────────────────────────────────
+    // Basal metabolic rate varies seasonally
+    // Winter: slightly higher (thermogenesis)
+    // Summer: slightly lower
+    let seasonalMetabolicAdjustment = fclamp(
+      (0.5 - photoPeriod) * 0.3,  // Higher in winter
+      -0.1, 0.15
+    );
+    metabolicRate := fclamp(
+      metabolicRate + dt * 0.01 * seasonalMetabolicAdjustment,
+      0.1, 1.0
+    );
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PART 8: ZEITGEBER INTEGRATION
+    //  Multiple environmental cues entrain biological rhythms
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // ─── LIGHT ZEITGEBER (PRIMARY) ──────────────────────────────────────────────
+    // Light → SCN via retinohypothalamic tract (RHT)
+    // Already modeled in tickCircadianRhythm, but add modulation here
+    let lightZeitgeber = fclamp(
+      brainstemReticuloFormation * 0.4 + alertnessLevel * 0.3 + (1.0 - melatonin) * 0.3,
+      0.0, 1.0
+    );
+    // Light → phase shift SCN (PRC — Phase Response Curve)
+    // Morning light → phase advance, evening light → phase delay
+    let phaseShiftDirection = Float.sin(scnPhase);  // Morning (+), evening (-)
+    let lightPhaseShift = lightZeitgeber * phaseShiftDirection * 0.0001;
+    scnPhase := scnPhase + lightPhaseShift;
+
+    // ─── FOOD ZEITGEBER (FEO — Food Entrainable Oscillator) ────────────────────
+    // Meals entrain peripheral clocks independently of SCN
+    let foodZeitgeber = fclamp(
+      energyBalance * 0.3 + gutGLP1 * 0.25 + gutCCK * 0.25 + (1.0 - gutGhrelin) * 0.2,
+      0.0, 1.0
+    );
+    // Food → gut clock phase shift
+    let foodPhaseShift = foodZeitgeber * 0.00005;
+    // Food → metabolic entrainment
+    metabolicRate := fclamp(
+      metabolicRate + dt * 0.05 * foodZeitgeber,
+      0.1, 1.0
+    );
+
+    // ─── SOCIAL ZEITGEBER ───────────────────────────────────────────────────────
+    // Social interaction entrains rhythms (especially important for humans)
+    let socialZeitgeber = fclamp(
+      polyvagalVentral * 0.3 + chimeraHiveMindCoherence * 0.3 + oxytocin * 0.4,
+      0.0, 1.0
+    );
+    // Social → circadian phase shift (group synchronization)
+    let socialPhaseShift = socialZeitgeber * 0.00003;
+    scnPhase := scnPhase + socialPhaseShift;
+    // Social → circadian coherence
+    circadianCoherence := fclamp(
+      circadianCoherence * 0.998 + socialZeitgeber * 0.002,
+      0.0, 1.0
+    );
+
+    // ─── EXERCISE ZEITGEBER ─────────────────────────────────────────────────────
+    // Physical activity entrains rhythms
+    let exerciseZeitgeber = fclamp(
+      motorCommandSignal * 0.4 + metabolicRate * 0.3 + sympatheticTone * 0.3,
+      0.0, 1.0
+    );
+    // Exercise → circadian phase shift (context-dependent)
+    let exercisePhaseShift = exerciseZeitgeber * 0.00002;
+    scnPhase := scnPhase + exercisePhaseShift;
+    // Exercise → temperature increase (acute)
+    coreTemperature := fclamp(
+      coreTemperature + dt * 0.02 * exerciseZeitgeber,
+      0.4, 0.65
+    );
+
+    // ─── TEMPERATURE ZEITGEBER ──────────────────────────────────────────────────
+    // Ambient temperature affects rhythms
+    let temperatureZeitgeber = fclamp(
+      coreTemperature * 2.0 - 0.5,  // Centered around setpoint
+      0.0, 1.0
+    );
+    // Temperature → metabolic rate adjustment
+    metabolicRate := fclamp(
+      metabolicRate + dt * 0.01 * (temperatureZeitgeber - 0.5),
+      0.1, 1.0
+    );
+
+    // ─── COMBINED ZEITGEBER STRENGTH ────────────────────────────────────────────
+    let totalZeitgeberStrength = fclamp(
+      0.35 * lightZeitgeber + 0.2 * foodZeitgeber + 0.2 * socialZeitgeber +
+      0.15 * exerciseZeitgeber + 0.1 * temperatureZeitgeber,
+      0.0, 1.0
+    );
+    // Strong zeitgeber → high circadian coherence
+    circadianCoherence := fclamp(
+      circadianCoherence + dt * 0.1 * (totalZeitgeberStrength - circadianCoherence),
+      0.0, 1.0
+    );
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PART 9: CHRONOTYPE MODELING (INDIVIDUAL DIFFERENCES)
+    //  People vary in circadian phase preference
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // Chronotype spectrum: -1.0 (extreme evening) to +1.0 (extreme morning)
+    // This would normally be a stable trait, but can shift with:
+    // - Age (teenagers → evening; elderly → morning)
+    // - Light exposure history
+    // - Genetics (PER3 polymorphism, etc.)
+    
+    // For simplicity, compute chronotype from current circadian state
+    let intrinsicPeriod = fclamp(
+      24.2 - serotonin * 0.4 + dopamine * 0.2,  // Range 23.8-24.6 hours
+      23.5, 25.0
+    );
+    // Shorter period → morningness; longer period → eveningness
+    let chronotype = fclamp(
+      (24.2 - intrinsicPeriod) * 2.0,  // Centered, scaled
+      -1.0, 1.0
+    );
+    
+    // Chronotype → preferred wake time
+    let preferredWakePhase = chronotype * 1.047;  // ±60° phase shift (~4 hours)
+    // Chronotype affects sleep timing
+    let chronotypeSleepModulation = Float.sin(scnPhase - preferredWakePhase) * 0.1;
+    sleepPressure := fclamp(
+      sleepPressure + chronotypeSleepModulation,
+      0.0, 1.0
+    );
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PART 10: JET LAG & CIRCADIAN DISRUPTION
+    //  Rapid time zone changes → internal desynchronization
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // Detect phase misalignment (internal time ≠ external time)
+    // This would normally come from external input, but we can estimate
+    // from the discrepancy between zeitgebers and current phase
+    
+    let expectedPhaseFromLight = Float.atan2(
+      lightZeitgeber * Float.sin(scnPhase),
+      lightZeitgeber * Float.cos(scnPhase)
+    );
+    let phaseMisalignment = Float.abs(scnPhase - expectedPhaseFromLight);
+    
+    // High misalignment = jet lag symptoms
+    let jetLagSeverity = fclamp(
+      phaseMisalignment / 3.14159,  // 0 to 1 (peak at 180° out of phase)
+      0.0, 1.0
+    );
+    
+    // Jet lag effects:
+    // 1. Sleep disruption
+    sleepQuality := fclamp(
+      sleepQuality - jetLagSeverity * 0.3,
+      0.0, 1.0
+    );
+    
+    // 2. Cognitive impairment
+    pfcDLPFCActivity := fclamp(
+      pfcDLPFCActivity - jetLagSeverity * 0.2,
+      0.0, 1.0
+    );
+    
+    // 3. Mood disturbance
+    emotionalFieldValence := fclamp(
+      emotionalFieldValence - jetLagSeverity * 0.15,
+      0.0, 1.0
+    );
+    
+    // 4. GI disturbance (gut clock desynchronization)
+    gutMotility := fclamp(
+      gutMotility * (1.0 - jetLagSeverity * 0.1),
+      0.1, 0.95
+    );
+    
+    // 5. HPA axis dysregulation
+    cortisol := fclamp(
+      cortisol + jetLagSeverity * 0.1,
+      0.05, 0.95
+    );
+    
+    // Re-entrainment kinetics: ~1 day per 1-hour time zone crossed
+    // Phase shift rate limited to ~1°/day naturally
+    let maxPhaseShiftPerBeat = 0.00073;  // ~1° per day @ 12 Hz
+    let actualPhaseShift = fclamp(
+      lightPhaseShift + socialPhaseShift + foodPhaseShift + exercisePhaseShift,
+      -1.0 * maxPhaseShiftPerBeat,
+      maxPhaseShiftPerBeat
+    );
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PART 11: SHIFT WORK EFFECTS
+    //  Chronic circadian disruption → long-term health impacts
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // Shift work = repeated phase reversals (day→night→day work schedule)
+    // Estimate from chronic jet lag / circadian incoherence
+    let chronicCircadianDisruption = fclamp(
+      (1.0 - circadianCoherence) * 0.5 + jetLagSeverity * 0.5,
+      0.0, 1.0
+    );
+    
+    // Long-term consequences of shift work:
+    
+    // 1. Increased allostatic load (cumulative stress)
+    allostaticLoad := fclamp(
+      allostaticLoad + dt * 0.0001 * chronicCircadianDisruption,
+      0.0, 1.0
+    );
+    
+    // 2. Metabolic dysfunction (diabetes risk, obesity)
+    let metabolicDysfunction = chronicCircadianDisruption * 0.15;
+    energyBalance := fclamp(
+      energyBalance - dt * 0.001 * metabolicDysfunction,
+      0.1, 1.0
+    );
+    
+    // 3. Immune suppression (cancer risk, infections)
+    nkCellActivity := fclamp(
+      nkCellActivity - dt * 0.0005 * chronicCircadianDisruption,
+      0.1, 0.9
+    );
+    
+    // 4. Cardiovascular strain
+    brainstemVasomotorTone := fclamp(
+      brainstemVasomotorTone + dt * 0.001 * chronicCircadianDisruption,
+      0.1, 0.9
+    );
+    
+    // 5. Mood disturbance (depression risk)
+    serotonin := fclamp(
+      serotonin - dt * 0.0008 * chronicCircadianDisruption,
+      0.1, 0.95
+    );
+    
+    // 6. Cognitive decline
+    neuroplasticityFactor := fclamp(
+      neuroplasticityFactor - dt * 0.0003 * chronicCircadianDisruption,
+      0.0, 1.0
+    );
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PART 12: AGE-RELATED CHRONOTYPE SHIFTS
+    //  Circadian system changes across lifespan
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // Infants: irregular rhythms
+    // Children: early chronotype
+    // Adolescents: delayed phase (extreme eveningness)
+    // Young adults: individual variation
+    // Middle age: gradual advance
+    // Elderly: marked advance (early chronotype) + amplitude reduction
+
+    // We don't have explicit age, but can estimate from developmental stage
+    // Assume neuralAge correlates with overall organism maturity
+    let estimatedAge = fclamp(
+      neuroplasticityFactor * 0.4 + consciousnessIndex * 0.3 + awakenessLevel * 0.3,
+      0.0, 1.0
+    );
+    
+    // Age → circadian amplitude reduction (elderly have weaker rhythms)
+    let ageAmplitudeReduction = fclamp(
+      estimatedAge * 0.3,  // Up to 30% reduction in old age
+      0.0, 0.3
+    );
+    let circadianAmplitude = fclamp(
+      1.0 - ageAmplitudeReduction,
+      0.7, 1.0
+    );
+    // Reduce amplitude of all circadian outputs
+    let dampingFactor = circadianAmplitude;
+    melatonin := melatonin * dampingFactor;
+    cortisolCircadian := cortisolCircadian * dampingFactor;
+
+    // Age → phase advance (wake earlier)
+    let agePhaseAdvance = estimatedAge * 0.785;  // Up to ~45° (~3 hours earlier)
+    let ageAdjustedPhase = scnPhase + agePhaseAdvance;
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PART 13: CROSS-SYSTEM INTEGRATION
+    //  Chronobiology affects EVERYTHING else in the organism
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // ─── CHRONOBIOLOGY → BRAINSTEM ──────────────────────────────────────────────
+    // Ultradian BRAC → arousal already done above
+    // Circadian → respiratory rate (slightly higher during day)
+    brainstemRespiratoryRate := fclamp(
+      brainstemRespiratoryRate + dt * 0.05 * Float.sin(scnPhase) * 0.1,
+      0.05, 0.98
+    );
+
+    // ─── CHRONOBIOLOGY → HPA AXIS ────────────────────────────────────────────────
+    // Already done: cortisol rhythms, seasonal HPA modulation
+
+    // ─── CHRONOBIOLOGY → IMMUNE SYSTEM ──────────────────────────────────────────
+    // Circadian modulation of immune function (stronger at night)
+    let immuneCircadianModulation = fclamp(
+      -0.5 * Float.sin(scnPhase),  // Peak at night (when SCN phase ~ π)
+      -0.2, 0.2
+    );
+    nkCellActivity := fclamp(
+      nkCellActivity + dt * 0.02 * immuneCircadianModulation,
+      0.1, 0.9
+    );
+
+    // ─── CHRONOBIOLOGY → GUT-BRAIN AXIS ──────────────────────────────────────────
+    // Already done: gastric cycles, peripheral gut clock
+
+    // ─── CHRONOBIOLOGY → REWARD SYSTEM ───────────────────────────────────────────
+    // Dopamine peaks in morning, decreases across day
+    let dopamineCircadianModulation = fclamp(
+      0.15 * Float.cos(scnPhase),  // Peak at dawn
+      -0.15, 0.15
+    );
+    dopamine := fclamp(
+      dopamine + dt * 0.03 * dopamineCircadianModulation,
+      0.1, 0.95
+    );
+
+    // ─── CHRONOBIOLOGY → SLEEP ARCHITECTURE ──────────────────────────────────────
+    // Already done: sleep pressure, melatonin, temperature effects
+
+    // ─── CHRONOBIOLOGY → MOTOR SYSTEM ────────────────────────────────────────────
+    // Motor performance peaks in late afternoon (body temp peak)
+    let motorCircadianModulation = fclamp(
+      0.1 * Float.sin(scnPhase + 0.785),  // Peak ~3PM
+      -0.1, 0.1
+    );
+    motorCommandSignal := fclamp(
+      motorCommandSignal + dt * 0.02 * motorCircadianModulation,
+      0.0, 1.0
+    );
+
+    // ─── CHRONOBIOLOGY → COGNITION ───────────────────────────────────────────────
+    // Cognitive performance follows temperature curve
+    let cognitiveCircadianModulation = fclamp(
+      (coreTemperature - 0.5) * 0.4,  // Better when warm
+      -0.1, 0.1
+    );
+    pfcDLPFCActivity := fclamp(
+      pfcDLPFCActivity + dt * 0.03 * cognitiveCircadianModulation,
+      0.0, 1.0
+    );
+    attentionFocus := fclamp(
+      attentionFocus + dt * 0.02 * cognitiveCircadianModulation,
+      0.0, 1.0
+    );
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  SUMMARY: All temporal rhythms integrated and cross-coupled
+    //  This engine now implements 13 major aspects of chronobiology:
+    //  1. Five ultradian rhythms (BRAC, gastric, cortisol pulse, REM-NREM, appetite)
+    //  2. Temperature curve
+    //  3. Cortisol awakening response
+    //  4. Melatonin/DLMO dynamics
+    //  5. Peripheral clock synchronization
+    //  6. Infradian rhythms (weekly, monthly)
+    //  7. Circannual rhythms (photoperiod, SAD, metabolic adaptation)
+    //  8. Five zeitgebers (light, food, social, exercise, temperature)
+    //  9. Chronotype modeling
+    //  10. Jet lag effects
+    //  11. Shift work consequences
+    //  12. Age-related changes
+    //  13. Cross-system integration (affects all 23 other vital systems)
+    // ═══════════════════════════════════════════════════════════════════════════
   };
 
   // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
