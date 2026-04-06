@@ -3310,3 +3310,2338 @@ module ChimeraIntelligenceCore {
         };
         ?best
     };
+
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 31: SWARM FLOCKING ALGORITHMS (Reynolds Rules)
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // Flocking parameters
+    public type FlockingParams = {
+        separationWeight : Float;
+        alignmentWeight : Float;
+        cohesionWeight : Float;
+        separationRadius : Float;
+        alignmentRadius : Float;
+        cohesionRadius : Float;
+        maxSpeed : Float;
+        maxForce : Float;
+        obstacleAvoidanceWeight : Float;
+        obstacleAvoidanceRadius : Float;
+        targetSeekWeight : Float;
+        wanderWeight : Float;
+        wanderRadius : Float;
+        wanderDistance : Float;
+        wanderJitter : Float;
+    };
+    
+    // Default flocking parameters
+    public func defaultFlockingParams() : FlockingParams {
+        {
+            separationWeight = 1.5;
+            alignmentWeight = 1.0;
+            cohesionWeight = 1.0;
+            separationRadius = 25.0;
+            alignmentRadius = 50.0;
+            cohesionRadius = 50.0;
+            maxSpeed = 10.0;
+            maxForce = 0.5;
+            obstacleAvoidanceWeight = 2.0;
+            obstacleAvoidanceRadius = 30.0;
+            targetSeekWeight = 0.5;
+            wanderWeight = 0.2;
+            wanderRadius = 5.0;
+            wanderDistance = 10.0;
+            wanderJitter = 0.5;
+        }
+    };
+    
+    // Separation force - steer away from nearby flockmates
+    public func computeSeparation(
+        position : Vector3,
+        velocity : Vector3,
+        neighbors : [(Vector3, Vector3)], // (position, velocity) pairs
+        radius : Float,
+        maxForce : Float
+    ) : Vector3 {
+        var steer = zeroVector3();
+        var count : Nat = 0;
+        
+        for ((neighborPos, _) in neighbors.vals()) {
+            let dist = vectorDistance(position, neighborPos);
+            if (dist > 0.0 and dist < radius) {
+                // Vector pointing away from neighbor
+                var diff = vectorSub(position, neighborPos);
+                diff := vectorNormalize(diff);
+                diff := vectorScale(diff, 1.0 / dist); // Weight by distance
+                steer := vectorAdd(steer, diff);
+                count += 1;
+            };
+        };
+        
+        if (count > 0) {
+            steer := vectorScale(steer, 1.0 / Float.fromInt(count));
+            let mag = vectorMagnitude(steer);
+            if (mag > 0.0) {
+                steer := vectorNormalize(steer);
+                steer := vectorScale(steer, maxForce);
+            };
+        };
+        
+        steer
+    };
+    
+    // Alignment force - steer towards average heading of neighbors
+    public func computeAlignment(
+        position : Vector3,
+        velocity : Vector3,
+        neighbors : [(Vector3, Vector3)],
+        radius : Float,
+        maxSpeed : Float,
+        maxForce : Float
+    ) : Vector3 {
+        var avgVelocity = zeroVector3();
+        var count : Nat = 0;
+        
+        for ((neighborPos, neighborVel) in neighbors.vals()) {
+            let dist = vectorDistance(position, neighborPos);
+            if (dist > 0.0 and dist < radius) {
+                avgVelocity := vectorAdd(avgVelocity, neighborVel);
+                count += 1;
+            };
+        };
+        
+        if (count > 0) {
+            avgVelocity := vectorScale(avgVelocity, 1.0 / Float.fromInt(count));
+            avgVelocity := vectorNormalize(avgVelocity);
+            avgVelocity := vectorScale(avgVelocity, maxSpeed);
+            
+            var steer = vectorSub(avgVelocity, velocity);
+            steer := vectorClampMagnitude(steer, maxForce);
+            return steer;
+        };
+        
+        zeroVector3()
+    };
+    
+    // Cohesion force - steer towards center of mass of neighbors
+    public func computeCohesion(
+        position : Vector3,
+        velocity : Vector3,
+        neighbors : [(Vector3, Vector3)],
+        radius : Float,
+        maxSpeed : Float,
+        maxForce : Float
+    ) : Vector3 {
+        var centerOfMass = zeroVector3();
+        var count : Nat = 0;
+        
+        for ((neighborPos, _) in neighbors.vals()) {
+            let dist = vectorDistance(position, neighborPos);
+            if (dist > 0.0 and dist < radius) {
+                centerOfMass := vectorAdd(centerOfMass, neighborPos);
+                count += 1;
+            };
+        };
+        
+        if (count > 0) {
+            centerOfMass := vectorScale(centerOfMass, 1.0 / Float.fromInt(count));
+            return seek(position, velocity, centerOfMass, maxSpeed, maxForce);
+        };
+        
+        zeroVector3()
+    };
+    
+    // Seek behavior - steer towards target
+    public func seek(
+        position : Vector3,
+        velocity : Vector3,
+        target : Vector3,
+        maxSpeed : Float,
+        maxForce : Float
+    ) : Vector3 {
+        var desired = vectorSub(target, position);
+        let dist = vectorMagnitude(desired);
+        
+        if (dist < 0.001) return zeroVector3();
+        
+        desired := vectorNormalize(desired);
+        desired := vectorScale(desired, maxSpeed);
+        
+        var steer = vectorSub(desired, velocity);
+        steer := vectorClampMagnitude(steer, maxForce);
+        steer
+    };
+    
+    // Flee behavior - steer away from target
+    public func flee(
+        position : Vector3,
+        velocity : Vector3,
+        target : Vector3,
+        maxSpeed : Float,
+        maxForce : Float
+    ) : Vector3 {
+        var desired = vectorSub(position, target);
+        let dist = vectorMagnitude(desired);
+        
+        if (dist < 0.001) return zeroVector3();
+        
+        desired := vectorNormalize(desired);
+        desired := vectorScale(desired, maxSpeed);
+        
+        var steer = vectorSub(desired, velocity);
+        steer := vectorClampMagnitude(steer, maxForce);
+        steer
+    };
+    
+    // Arrive behavior - slow down as approaching target
+    public func arrive(
+        position : Vector3,
+        velocity : Vector3,
+        target : Vector3,
+        maxSpeed : Float,
+        maxForce : Float,
+        slowingRadius : Float
+    ) : Vector3 {
+        var desired = vectorSub(target, position);
+        let dist = vectorMagnitude(desired);
+        
+        if (dist < 0.001) return zeroVector3();
+        
+        desired := vectorNormalize(desired);
+        
+        // Slow down within slowing radius
+        let speed = if (dist < slowingRadius) {
+            maxSpeed * (dist / slowingRadius)
+        } else {
+            maxSpeed
+        };
+        
+        desired := vectorScale(desired, speed);
+        
+        var steer = vectorSub(desired, velocity);
+        steer := vectorClampMagnitude(steer, maxForce);
+        steer
+    };
+    
+    // Pursuit behavior - predict where target will be
+    public func pursuit(
+        position : Vector3,
+        velocity : Vector3,
+        targetPos : Vector3,
+        targetVel : Vector3,
+        maxSpeed : Float,
+        maxForce : Float
+    ) : Vector3 {
+        let toTarget = vectorSub(targetPos, position);
+        let dist = vectorMagnitude(toTarget);
+        
+        // Predict future position based on distance
+        let lookAheadTime = dist / maxSpeed;
+        let futurePos = vectorAdd(targetPos, vectorScale(targetVel, lookAheadTime));
+        
+        seek(position, velocity, futurePos, maxSpeed, maxForce)
+    };
+    
+    // Evasion behavior - flee from predicted position
+    public func evade(
+        position : Vector3,
+        velocity : Vector3,
+        pursuerPos : Vector3,
+        pursuerVel : Vector3,
+        maxSpeed : Float,
+        maxForce : Float
+    ) : Vector3 {
+        let toPursuer = vectorSub(pursuerPos, position);
+        let dist = vectorMagnitude(toPursuer);
+        
+        let lookAheadTime = dist / maxSpeed;
+        let futurePos = vectorAdd(pursuerPos, vectorScale(pursuerVel, lookAheadTime));
+        
+        flee(position, velocity, futurePos, maxSpeed, maxForce)
+    };
+    
+    // Wander behavior - random steering
+    public type WanderState = {
+        wanderTarget : Vector3;
+    };
+    
+    public func initWanderState() : WanderState {
+        { wanderTarget = { x = 1.0; y = 0.0; z = 0.0 } }
+    };
+    
+    public func wander(
+        position : Vector3,
+        velocity : Vector3,
+        wanderState : WanderState,
+        params : FlockingParams,
+        randomSeed : Nat
+    ) : (Vector3, WanderState) {
+        // Add random jitter to wander target
+        let jitterX = Float.sin(Float.fromInt(randomSeed) * 12.9898) * params.wanderJitter;
+        let jitterY = Float.sin(Float.fromInt(randomSeed) * 78.233) * params.wanderJitter;
+        let jitterZ = Float.sin(Float.fromInt(randomSeed) * 37.719) * params.wanderJitter;
+        
+        var newTarget = vectorAdd(wanderState.wanderTarget, { x = jitterX; y = jitterY; z = jitterZ });
+        newTarget := vectorNormalize(newTarget);
+        newTarget := vectorScale(newTarget, params.wanderRadius);
+        
+        // Project wander circle in front of agent
+        let forward = if (vectorMagnitude(velocity) > 0.001) {
+            vectorNormalize(velocity)
+        } else {
+            { x = 1.0; y = 0.0; z = 0.0 }
+        };
+        
+        let circleCenter = vectorAdd(position, vectorScale(forward, params.wanderDistance));
+        let targetPos = vectorAdd(circleCenter, newTarget);
+        
+        let steer = seek(position, velocity, targetPos, params.maxSpeed, params.maxForce);
+        (steer, { wanderTarget = newTarget })
+    };
+    
+    // Obstacle avoidance
+    public func avoidObstacles(
+        position : Vector3,
+        velocity : Vector3,
+        obstacles : [BoundingSphere],
+        avoidRadius : Float,
+        maxForce : Float
+    ) : Vector3 {
+        var steer = zeroVector3();
+        
+        for (obstacle in obstacles.vals()) {
+            let toObstacle = vectorSub(obstacle.center, position);
+            let dist = vectorMagnitude(toObstacle) - obstacle.radius;
+            
+            if (dist < avoidRadius and dist > 0.0) {
+                // Steer perpendicular to obstacle
+                var away = vectorNormalize(vectorScale(toObstacle, -1.0));
+                let strength = (avoidRadius - dist) / avoidRadius;
+                away := vectorScale(away, strength * maxForce);
+                steer := vectorAdd(steer, away);
+            };
+        };
+        
+        steer
+    };
+    
+    // Combined flocking steering
+    public func computeFlockingSteering(
+        position : Vector3,
+        velocity : Vector3,
+        neighbors : [(Vector3, Vector3)],
+        params : FlockingParams,
+        target : ?Vector3,
+        obstacles : [BoundingSphere]
+    ) : Vector3 {
+        var totalForce = zeroVector3();
+        
+        // Reynolds rules
+        let separation = computeSeparation(position, velocity, neighbors, params.separationRadius, params.maxForce);
+        let alignment = computeAlignment(position, velocity, neighbors, params.alignmentRadius, params.maxSpeed, params.maxForce);
+        let cohesion = computeCohesion(position, velocity, neighbors, params.cohesionRadius, params.maxSpeed, params.maxForce);
+        
+        totalForce := vectorAdd(totalForce, vectorScale(separation, params.separationWeight));
+        totalForce := vectorAdd(totalForce, vectorScale(alignment, params.alignmentWeight));
+        totalForce := vectorAdd(totalForce, vectorScale(cohesion, params.cohesionWeight));
+        
+        // Obstacle avoidance
+        let avoidance = avoidObstacles(position, velocity, obstacles, params.obstacleAvoidanceRadius, params.maxForce);
+        totalForce := vectorAdd(totalForce, vectorScale(avoidance, params.obstacleAvoidanceWeight));
+        
+        // Target seeking
+        switch (target) {
+            case (?t) {
+                let seekForce = seek(position, velocity, t, params.maxSpeed, params.maxForce);
+                totalForce := vectorAdd(totalForce, vectorScale(seekForce, params.targetSeekWeight));
+            };
+            case null {};
+        };
+        
+        vectorClampMagnitude(totalForce, params.maxForce)
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 32: FORMATION CONTROL
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // Formation definition
+    public type Formation = {
+        formationType : FormationType;
+        positions : [Vector3]; // Relative positions from leader
+        orientations : [Float]; // Relative headings
+        spacing : Float;
+        adaptiveSpacing : Bool;
+    };
+    
+    // Predefined formations
+    public func createLineFormation(numAgents : Nat, spacing : Float) : Formation {
+        let positions = Array.tabulate<Vector3>(numAgents, func(i : Nat) : Vector3 {
+            { x = 0.0; y = -Float.fromInt(i) * spacing; z = 0.0 }
+        });
+        let orientations = Array.tabulate<Float>(numAgents, func(_ : Nat) : Float { 0.0 });
+        
+        {
+            formationType = #LINE;
+            positions = positions;
+            orientations = orientations;
+            spacing = spacing;
+            adaptiveSpacing = false;
+        }
+    };
+    
+    public func createColumnFormation(numAgents : Nat, spacing : Float) : Formation {
+        let positions = Array.tabulate<Vector3>(numAgents, func(i : Nat) : Vector3 {
+            { x = -Float.fromInt(i) * spacing; y = 0.0; z = 0.0 }
+        });
+        let orientations = Array.tabulate<Float>(numAgents, func(_ : Nat) : Float { 0.0 });
+        
+        {
+            formationType = #COLUMN;
+            positions = positions;
+            orientations = orientations;
+            spacing = spacing;
+            adaptiveSpacing = false;
+        }
+    };
+    
+    public func createWedgeFormation(numAgents : Nat, spacing : Float) : Formation {
+        let positions = Array.tabulate<Vector3>(numAgents, func(i : Nat) : Vector3 {
+            if (i == 0) {
+                { x = 0.0; y = 0.0; z = 0.0 }
+            } else {
+                let row = (i + 1) / 2;
+                let side : Float = if (i % 2 == 1) -1.0 else 1.0;
+                {
+                    x = -Float.fromInt(row) * spacing * 0.866; // cos(30)
+                    y = side * Float.fromInt(row) * spacing * 0.5;   // sin(30)
+                    z = 0.0;
+                }
+            }
+        });
+        let orientations = Array.tabulate<Float>(numAgents, func(_ : Nat) : Float { 0.0 });
+        
+        {
+            formationType = #WEDGE;
+            positions = positions;
+            orientations = orientations;
+            spacing = spacing;
+            adaptiveSpacing = false;
+        }
+    };
+    
+    public func createVeeFormation(numAgents : Nat, spacing : Float) : Formation {
+        let positions = Array.tabulate<Vector3>(numAgents, func(i : Nat) : Vector3 {
+            if (i == 0) {
+                { x = 0.0; y = 0.0; z = 0.0 }
+            } else {
+                let idx = (i + 1) / 2;
+                let side : Float = if (i % 2 == 1) -1.0 else 1.0;
+                {
+                    x = -Float.fromInt(idx) * spacing * 0.707;
+                    y = side * Float.fromInt(idx) * spacing * 0.707;
+                    z = 0.0;
+                }
+            }
+        });
+        let orientations = Array.tabulate<Float>(numAgents, func(_ : Nat) : Float { 0.0 });
+        
+        {
+            formationType = #VEE;
+            positions = positions;
+            orientations = orientations;
+            spacing = spacing;
+            adaptiveSpacing = false;
+        }
+    };
+    
+    public func createDiamondFormation(numAgents : Nat, spacing : Float) : Formation {
+        // Diamond pattern: 1 front, 2 sides, 1 back, then expand
+        var positions : [Vector3] = [];
+        
+        for (i in Iter.range(0, numAgents - 1)) {
+            let pos = switch (i) {
+                case 0 { { x = spacing; y = 0.0; z = 0.0 } };
+                case 1 { { x = 0.0; y = -spacing; z = 0.0 } };
+                case 2 { { x = 0.0; y = spacing; z = 0.0 } };
+                case 3 { { x = -spacing; y = 0.0; z = 0.0 } };
+                case _ {
+                    let ring = (i - 4) / 4 + 2;
+                    let pos_in_ring = (i - 4) % 4;
+                    let offset = Float.fromInt(ring) * spacing;
+                    switch (pos_in_ring) {
+                        case 0 { { x = offset; y = 0.0; z = 0.0 } };
+                        case 1 { { x = 0.0; y = -offset; z = 0.0 } };
+                        case 2 { { x = 0.0; y = offset; z = 0.0 } };
+                        case _ { { x = -offset; y = 0.0; z = 0.0 } };
+                    }
+                };
+            };
+            positions := Array.append(positions, [pos]);
+        };
+        
+        let orientations = Array.tabulate<Float>(numAgents, func(_ : Nat) : Float { 0.0 });
+        
+        {
+            formationType = #DIAMOND;
+            positions = positions;
+            orientations = orientations;
+            spacing = spacing;
+            adaptiveSpacing = false;
+        }
+    };
+    
+    public func createCircleFormation(numAgents : Nat, radius : Float) : Formation {
+        let positions = Array.tabulate<Vector3>(numAgents, func(i : Nat) : Vector3 {
+            let angle = TAU * Float.fromInt(i) / Float.fromInt(numAgents);
+            {
+                x = radius * Float.cos(angle);
+                y = radius * Float.sin(angle);
+                z = 0.0;
+            }
+        });
+        
+        let orientations = Array.tabulate<Float>(numAgents, func(i : Nat) : Float {
+            TAU * Float.fromInt(i) / Float.fromInt(numAgents) + PI / 2.0
+        });
+        
+        {
+            formationType = #CIRCLE;
+            positions = positions;
+            orientations = orientations;
+            spacing = radius;
+            adaptiveSpacing = false;
+        }
+    };
+    
+    public func createSphereFormation(numAgents : Nat, radius : Float) : Formation {
+        // Fibonacci spiral distribution on sphere
+        let positions = Array.tabulate<Vector3>(numAgents, func(i : Nat) : Vector3 {
+            let y = 1.0 - (Float.fromInt(i) / Float.fromInt(numAgents - 1)) * 2.0;
+            let radiusAtY = Float.sqrt(1.0 - y * y);
+            let theta = PHI * Float.fromInt(i);
+            
+            {
+                x = Float.cos(theta) * radiusAtY * radius;
+                y = y * radius;
+                z = Float.sin(theta) * radiusAtY * radius;
+            }
+        });
+        
+        let orientations = Array.tabulate<Float>(numAgents, func(_ : Nat) : Float { 0.0 });
+        
+        {
+            formationType = #SPHERE;
+            positions = positions;
+            orientations = orientations;
+            spacing = radius;
+            adaptiveSpacing = false;
+        }
+    };
+    
+    // Transform formation to world coordinates
+    public func transformFormation(
+        formation : Formation,
+        leaderPos : Vector3,
+        leaderHeading : Float
+    ) : [Vector3] {
+        let cosH = Float.cos(leaderHeading);
+        let sinH = Float.sin(leaderHeading);
+        
+        Array.tabulate<Vector3>(formation.positions.size(), func(i : Nat) : Vector3 {
+            let localPos = formation.positions[i];
+            // Rotate by leader heading
+            let rotatedX = localPos.x * cosH - localPos.y * sinH;
+            let rotatedY = localPos.x * sinH + localPos.y * cosH;
+            // Translate to leader position
+            {
+                x = leaderPos.x + rotatedX;
+                y = leaderPos.y + rotatedY;
+                z = leaderPos.z + localPos.z;
+            }
+        })
+    };
+    
+    // Formation keeping force
+    public func computeFormationForce(
+        agentPos : Vector3,
+        agentVel : Vector3,
+        targetFormationPos : Vector3,
+        maxSpeed : Float,
+        maxForce : Float,
+        arriveRadius : Float
+    ) : Vector3 {
+        arrive(agentPos, agentVel, targetFormationPos, maxSpeed, maxForce, arriveRadius)
+    };
+    
+    // Leader-follower formation control
+    public type LeaderFollowerState = {
+        leaderId : Nat64;
+        followers : [Nat64];
+        formation : Formation;
+        leaderPos : Vector3;
+        leaderVel : Vector3;
+        leaderHeading : Float;
+    };
+    
+    public func updateLeaderFollower(
+        state : LeaderFollowerState,
+        newLeaderPos : Vector3,
+        newLeaderVel : Vector3
+    ) : LeaderFollowerState {
+        let heading = if (vectorMagnitude(newLeaderVel) > 0.01) {
+            Float.arctan2(newLeaderVel.y, newLeaderVel.x)
+        } else {
+            state.leaderHeading
+        };
+        
+        {
+            leaderId = state.leaderId;
+            followers = state.followers;
+            formation = state.formation;
+            leaderPos = newLeaderPos;
+            leaderVel = newLeaderVel;
+            leaderHeading = heading;
+        }
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 33: CONSENSUS ALGORITHMS
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // Consensus protocol types
+    public type ConsensusProtocol = {
+        #AVERAGE;
+        #MAX;
+        #MIN;
+        #WEIGHTED_AVERAGE;
+        #MEDIAN;
+        #BYZANTINE_TOLERANT;
+    };
+    
+    // Agent consensus state
+    public type AgentConsensusState = {
+        agentId : Nat64;
+        value : Float;
+        weight : Float;
+        neighbors : [Nat64];
+        iteration : Nat;
+        converged : Bool;
+    };
+    
+    // Average consensus update
+    public func averageConsensusUpdate(
+        myValue : Float,
+        neighborValues : [Float],
+        epsilon : Float
+    ) : Float {
+        if (neighborValues.size() == 0) return myValue;
+        
+        var sum : Float = myValue;
+        for (v in neighborValues.vals()) {
+            sum += v;
+        };
+        
+        let avg = sum / Float.fromInt(neighborValues.size() + 1);
+        myValue + epsilon * (avg - myValue)
+    };
+    
+    // Weighted average consensus
+    public func weightedConsensusUpdate(
+        myValue : Float,
+        myWeight : Float,
+        neighborValuesWeights : [(Float, Float)],
+        epsilon : Float
+    ) : Float {
+        if (neighborValuesWeights.size() == 0) return myValue;
+        
+        var weightedSum : Float = myValue * myWeight;
+        var totalWeight : Float = myWeight;
+        
+        for ((v, w) in neighborValuesWeights.vals()) {
+            weightedSum += v * w;
+            totalWeight += w;
+        };
+        
+        if (totalWeight < 1e-10) return myValue;
+        
+        let weightedAvg = weightedSum / totalWeight;
+        myValue + epsilon * (weightedAvg - myValue)
+    };
+    
+    // Max consensus
+    public func maxConsensusUpdate(myValue : Float, neighborValues : [Float]) : Float {
+        var maxVal = myValue;
+        for (v in neighborValues.vals()) {
+            if (v > maxVal) maxVal := v;
+        };
+        maxVal
+    };
+    
+    // Min consensus
+    public func minConsensusUpdate(myValue : Float, neighborValues : [Float]) : Float {
+        var minVal = myValue;
+        for (v in neighborValues.vals()) {
+            if (v < minVal) minVal := v;
+        };
+        minVal
+    };
+    
+    // Check convergence
+    public func checkConsensusConvergence(
+        values : [Float],
+        tolerance : Float
+    ) : Bool {
+        if (values.size() < 2) return true;
+        
+        var minVal = values[0];
+        var maxVal = values[0];
+        
+        for (v in values.vals()) {
+            if (v < minVal) minVal := v;
+            if (v > maxVal) maxVal := v;
+        };
+        
+        (maxVal - minVal) <= tolerance
+    };
+    
+    // Vector consensus (for positions)
+    public func vectorConsensusUpdate(
+        myPos : Vector3,
+        neighborPositions : [Vector3],
+        epsilon : Float
+    ) : Vector3 {
+        if (neighborPositions.size() == 0) return myPos;
+        
+        var sum = myPos;
+        for (pos in neighborPositions.vals()) {
+            sum := vectorAdd(sum, pos);
+        };
+        
+        let avg = vectorScale(sum, 1.0 / Float.fromInt(neighborPositions.size() + 1));
+        vectorAdd(myPos, vectorScale(vectorSub(avg, myPos), epsilon))
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 34: TASK ALLOCATION ALGORITHMS
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // Task allocation methods
+    public type AllocationMethod = {
+        #AUCTION;
+        #HUNGARIAN;
+        #GREEDY;
+        #MARKET_BASED;
+        #SWARM_BASED;
+    };
+    
+    // Task bid
+    public type TaskBid = {
+        agentId : Nat64;
+        taskId : Nat64;
+        bidValue : Float;
+        capability : Float;
+        estimatedTime : Float;
+        timestamp : Nat64;
+    };
+    
+    // Auction state
+    public type AuctionState = {
+        taskId : Nat64;
+        bids : [TaskBid];
+        winner : ?Nat64;
+        winningBid : ?Float;
+        auctionStart : Nat64;
+        auctionEnd : ?Nat64;
+        status : Text;
+    };
+    
+    // Initialize auction
+    public func initAuction(taskId : Nat64, startTime : Nat64) : AuctionState {
+        {
+            taskId = taskId;
+            bids = [];
+            winner = null;
+            winningBid = null;
+            auctionStart = startTime;
+            auctionEnd = null;
+            status = "OPEN";
+        }
+    };
+    
+    // Submit bid
+    public func submitBid(auction : AuctionState, bid : TaskBid) : AuctionState {
+        if (auction.status != "OPEN") return auction;
+        if (bid.taskId != auction.taskId) return auction;
+        
+        {
+            taskId = auction.taskId;
+            bids = Array.append(auction.bids, [bid]);
+            winner = auction.winner;
+            winningBid = auction.winningBid;
+            auctionStart = auction.auctionStart;
+            auctionEnd = auction.auctionEnd;
+            status = auction.status;
+        }
+    };
+    
+    // Close auction and determine winner (highest bid)
+    public func closeAuction(auction : AuctionState, endTime : Nat64) : AuctionState {
+        if (auction.status != "OPEN") return auction;
+        if (auction.bids.size() == 0) {
+            return {
+                taskId = auction.taskId;
+                bids = auction.bids;
+                winner = null;
+                winningBid = null;
+                auctionStart = auction.auctionStart;
+                auctionEnd = ?endTime;
+                status = "CLOSED_NO_BIDS";
+            };
+        };
+        
+        var bestBid = auction.bids[0];
+        for (bid in auction.bids.vals()) {
+            if (bid.bidValue > bestBid.bidValue) {
+                bestBid := bid;
+            };
+        };
+        
+        {
+            taskId = auction.taskId;
+            bids = auction.bids;
+            winner = ?bestBid.agentId;
+            winningBid = ?bestBid.bidValue;
+            auctionStart = auction.auctionStart;
+            auctionEnd = ?endTime;
+            status = "CLOSED";
+        }
+    };
+    
+    // Greedy task allocation
+    public func greedyAllocation(
+        agents : [Nat64],
+        tasks : [Nat64],
+        costs : [[Float]] // costs[agent][task]
+    ) : [(Nat64, Nat64)] {
+        let numAgents = agents.size();
+        let numTasks = tasks.size();
+        
+        if (numAgents == 0 or numTasks == 0) return [];
+        
+        var assignments : [(Nat64, Nat64)] = [];
+        var assignedAgents = Array.init<Bool>(numAgents, false);
+        var assignedTasks = Array.init<Bool>(numTasks, false);
+        
+        // Find minimum cost assignment iteratively
+        let iterations = Nat.min(numAgents, numTasks);
+        for (_ in Iter.range(0, iterations - 1)) {
+            var bestCost : Float = 1e10;
+            var bestAgent : Nat = 0;
+            var bestTask : Nat = 0;
+            
+            for (a in Iter.range(0, numAgents - 1)) {
+                if (not assignedAgents[a]) {
+                    for (t in Iter.range(0, numTasks - 1)) {
+                        if (not assignedTasks[t]) {
+                            if (costs[a][t] < bestCost) {
+                                bestCost := costs[a][t];
+                                bestAgent := a;
+                                bestTask := t;
+                            };
+                        };
+                    };
+                };
+            };
+            
+            assignedAgents[bestAgent] := true;
+            assignedTasks[bestTask] := true;
+            assignments := Array.append(assignments, [(agents[bestAgent], tasks[bestTask])]);
+        };
+        
+        assignments
+    };
+    
+    // Market-based allocation with prices
+    public type MarketState = {
+        prices : [(Nat64, Float)]; // (taskId, price)
+        allocations : [(Nat64, Nat64)]; // (agentId, taskId)
+        surplusAgents : [Nat64];
+        surplusTasks : [Nat64];
+    };
+    
+    public func initMarket(tasks : [Nat64]) : MarketState {
+        let prices = Array.tabulate<(Nat64, Float)>(tasks.size(), func(i : Nat) : (Nat64, Float) {
+            (tasks[i], 0.0)
+        });
+        
+        {
+            prices = prices;
+            allocations = [];
+            surplusAgents = [];
+            surplusTasks = tasks;
+        }
+    };
+    
+    // Agent utility function
+    public func computeUtility(
+        agentId : Nat64,
+        taskId : Nat64,
+        value : Float,
+        price : Float,
+        capability : Float
+    ) : Float {
+        (value - price) * capability
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 35: STIGMERGY AND PHEROMONE SYSTEMS
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // Pheromone types
+    public type PheromoneType = {
+        #ATTRACTION;
+        #REPULSION;
+        #TRAIL;
+        #ALARM;
+        #FOOD;
+        #NEST;
+        #BOUNDARY;
+        #DANGER;
+        #TASK;
+        #AGGREGATION;
+        #DISPERSAL;
+        #COORDINATION;
+        #LEADER;
+        #COMMUNICATION;
+        #TARGET;
+        #AVOID;
+    };
+    
+    // Pheromone deposit
+    public type PheromoneDeposit = {
+        pheromoneType : PheromoneType;
+        position : Vector3;
+        intensity : Float;
+        timestamp : Nat64;
+        sourceAgent : Nat64;
+        decay_rate : Float;
+        diffusion_rate : Float;
+    };
+    
+    // Pheromone field (grid-based)
+    public type PheromoneGrid = {
+        gridSize : (Nat, Nat, Nat);
+        cellSize : Float;
+        origin : Vector3;
+        channels : [[[[Float]]]]; // [channel][x][y][z]
+        decayRates : [Float];
+        diffusionRates : [Float];
+    };
+    
+    // Initialize pheromone grid
+    public func initPheromoneGrid(
+        gridSize : (Nat, Nat, Nat),
+        cellSize : Float,
+        origin : Vector3,
+        numChannels : Nat
+    ) : PheromoneGrid {
+        let (sx, sy, sz) = gridSize;
+        
+        let channels = Array.tabulate<[[[Float]]]>(numChannels, func(_ : Nat) : [[[Float]]] {
+            Array.tabulate<[[Float]]>(sx, func(_ : Nat) : [[Float]] {
+                Array.tabulate<[Float]>(sy, func(_ : Nat) : [Float] {
+                    Array.tabulate<Float>(sz, func(_ : Nat) : Float { 0.0 })
+                })
+            })
+        });
+        
+        let decayRates = Array.tabulate<Float>(numChannels, func(_ : Nat) : Float { 0.99 });
+        let diffusionRates = Array.tabulate<Float>(numChannels, func(_ : Nat) : Float { 0.1 });
+        
+        {
+            gridSize = gridSize;
+            cellSize = cellSize;
+            origin = origin;
+            channels = channels;
+            decayRates = decayRates;
+            diffusionRates = diffusionRates;
+        }
+    };
+    
+    // World to grid coordinates
+    public func worldToGrid(pos : Vector3, grid : PheromoneGrid) : (Int, Int, Int) {
+        let x = Float.toInt(Float.floor((pos.x - grid.origin.x) / grid.cellSize));
+        let y = Float.toInt(Float.floor((pos.y - grid.origin.y) / grid.cellSize));
+        let z = Float.toInt(Float.floor((pos.z - grid.origin.z) / grid.cellSize));
+        (x, y, z)
+    };
+    
+    // Grid to world coordinates (cell center)
+    public func gridToWorld(x : Int, y : Int, z : Int, grid : PheromoneGrid) : Vector3 {
+        {
+            x = grid.origin.x + (Float.fromInt(x) + 0.5) * grid.cellSize;
+            y = grid.origin.y + (Float.fromInt(y) + 0.5) * grid.cellSize;
+            z = grid.origin.z + (Float.fromInt(z) + 0.5) * grid.cellSize;
+        }
+    };
+    
+    // Sample pheromone at position
+    public func samplePheromone(grid : PheromoneGrid, channel : Nat, pos : Vector3) : Float {
+        let (gx, gy, gz) = worldToGrid(pos, grid);
+        let (sx, sy, sz) = grid.gridSize;
+        
+        if (gx < 0 or gx >= Int.abs(sx) or
+            gy < 0 or gy >= Int.abs(sy) or
+            gz < 0 or gz >= Int.abs(sz) or
+            channel >= grid.channels.size()) {
+            return 0.0;
+        };
+        
+        grid.channels[channel][Int.abs(gx)][Int.abs(gy)][Int.abs(gz)]
+    };
+    
+    // Compute pheromone gradient
+    public func pheromoneGradient(grid : PheromoneGrid, channel : Nat, pos : Vector3) : Vector3 {
+        let h = grid.cellSize;
+        
+        let dx = (samplePheromone(grid, channel, vectorAdd(pos, { x = h; y = 0.0; z = 0.0 })) -
+                  samplePheromone(grid, channel, vectorAdd(pos, { x = -h; y = 0.0; z = 0.0 }))) / (2.0 * h);
+        
+        let dy = (samplePheromone(grid, channel, vectorAdd(pos, { x = 0.0; y = h; z = 0.0 })) -
+                  samplePheromone(grid, channel, vectorAdd(pos, { x = 0.0; y = -h; z = 0.0 }))) / (2.0 * h);
+        
+        let dz = (samplePheromone(grid, channel, vectorAdd(pos, { x = 0.0; y = 0.0; z = h })) -
+                  samplePheromone(grid, channel, vectorAdd(pos, { x = 0.0; y = 0.0; z = -h }))) / (2.0 * h);
+        
+        { x = dx; y = dy; z = dz }
+    };
+    
+    // Pheromone-based steering
+    public func pheromoneSteering(
+        position : Vector3,
+        velocity : Vector3,
+        grid : PheromoneGrid,
+        attractionChannels : [Nat],
+        repulsionChannels : [Nat],
+        maxForce : Float
+    ) : Vector3 {
+        var totalForce = zeroVector3();
+        
+        // Attraction: follow gradient
+        for (channel in attractionChannels.vals()) {
+            let gradient = pheromoneGradient(grid, channel, position);
+            totalForce := vectorAdd(totalForce, gradient);
+        };
+        
+        // Repulsion: opposite of gradient
+        for (channel in repulsionChannels.vals()) {
+            let gradient = pheromoneGradient(grid, channel, position);
+            totalForce := vectorSub(totalForce, gradient);
+        };
+        
+        vectorClampMagnitude(totalForce, maxForce)
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 36: BEHAVIOR TREES
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // Behavior tree node status
+    public type BTStatus = {
+        #SUCCESS;
+        #FAILURE;
+        #RUNNING;
+    };
+    
+    // Behavior tree node types
+    public type BTNodeType = {
+        #SEQUENCE;
+        #SELECTOR;
+        #PARALLEL;
+        #DECORATOR;
+        #ACTION;
+        #CONDITION;
+    };
+    
+    // Behavior tree node
+    public type BTNode = {
+        nodeType : BTNodeType;
+        name : Text;
+        children : [BTNode];
+        decorator : ?BTDecorator;
+        action : ?Text;
+        condition : ?Text;
+    };
+    
+    // Decorator types
+    public type BTDecorator = {
+        #INVERTER;
+        #REPEATER : Nat;
+        #RETRY : Nat;
+        #TIMEOUT : Nat64;
+        #COOLDOWN : Nat64;
+        #ALWAYS_SUCCESS;
+        #ALWAYS_FAILURE;
+    };
+    
+    // Behavior tree state
+    public type BTState = {
+        currentNode : Text;
+        runningNodes : [Text];
+        blackboard : [(Text, Text)];
+        lastStatus : BTStatus;
+        tickCount : Nat;
+    };
+    
+    // Initialize behavior tree state
+    public func initBTState() : BTState {
+        {
+            currentNode = "";
+            runningNodes = [];
+            blackboard = [];
+            lastStatus = #SUCCESS;
+            tickCount = 0;
+        }
+    };
+    
+    // Create sequence node
+    public func btSequence(name : Text, children : [BTNode]) : BTNode {
+        {
+            nodeType = #SEQUENCE;
+            name = name;
+            children = children;
+            decorator = null;
+            action = null;
+            condition = null;
+        }
+    };
+    
+    // Create selector node
+    public func btSelector(name : Text, children : [BTNode]) : BTNode {
+        {
+            nodeType = #SELECTOR;
+            name = name;
+            children = children;
+            decorator = null;
+            action = null;
+            condition = null;
+        }
+    };
+    
+    // Create action node
+    public func btAction(name : Text, actionId : Text) : BTNode {
+        {
+            nodeType = #ACTION;
+            name = name;
+            children = [];
+            decorator = null;
+            action = ?actionId;
+            condition = null;
+        }
+    };
+    
+    // Create condition node
+    public func btCondition(name : Text, conditionId : Text) : BTNode {
+        {
+            nodeType = #CONDITION;
+            name = name;
+            children = [];
+            decorator = null;
+            action = null;
+            condition = ?conditionId;
+        }
+    };
+    
+    // Create decorated node
+    public func btDecorated(decorator : BTDecorator, child : BTNode) : BTNode {
+        {
+            nodeType = #DECORATOR;
+            name = "Decorated_" # child.name;
+            children = [child];
+            decorator = ?decorator;
+            action = null;
+            condition = null;
+        }
+    };
+    
+    // Example: Patrol behavior tree
+    public func createPatrolBehaviorTree() : BTNode {
+        btSelector("Root", [
+            btSequence("RespondToThreat", [
+                btCondition("ThreatDetected", "threat_detected"),
+                btSelector("ThreatResponse", [
+                    btSequence("Engage", [
+                        btCondition("CanEngage", "can_engage"),
+                        btAction("EngageThreat", "engage_threat")
+                    ]),
+                    btAction("Evade", "evade")
+                ])
+            ]),
+            btSequence("Patrol", [
+                btCondition("HasPatrolPoints", "has_patrol_points"),
+                btAction("MoveToNextPoint", "move_to_patrol_point"),
+                btAction("ScanArea", "scan_area")
+            ]),
+            btAction("Idle", "idle")
+        ])
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 37: HIERARCHICAL STATE MACHINES
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // State machine state
+    public type HSMState = {
+        name : Text;
+        parent : ?Text;
+        children : [Text];
+        entryActions : [Text];
+        exitActions : [Text];
+        updateActions : [Text];
+        isActive : Bool;
+    };
+    
+    // State transition
+    public type HSMTransition = {
+        fromState : Text;
+        toState : Text;
+        trigger : Text;
+        guard : ?Text;
+        actions : [Text];
+        priority : Nat;
+    };
+    
+    // Hierarchical state machine
+    public type HSM = {
+        states : [HSMState];
+        transitions : [HSMTransition];
+        currentState : Text;
+        stateStack : [Text];
+        eventQueue : [Text];
+    };
+    
+    // Initialize HSM
+    public func initHSM(initialState : Text) : HSM {
+        {
+            states = [{
+                name = initialState;
+                parent = null;
+                children = [];
+                entryActions = [];
+                exitActions = [];
+                updateActions = [];
+                isActive = true;
+            }];
+            transitions = [];
+            currentState = initialState;
+            stateStack = [initialState];
+            eventQueue = [];
+        }
+    };
+    
+    // Add state to HSM
+    public func hsmAddState(hsm : HSM, state : HSMState) : HSM {
+        {
+            states = Array.append(hsm.states, [state]);
+            transitions = hsm.transitions;
+            currentState = hsm.currentState;
+            stateStack = hsm.stateStack;
+            eventQueue = hsm.eventQueue;
+        }
+    };
+    
+    // Add transition to HSM
+    public func hsmAddTransition(hsm : HSM, transition : HSMTransition) : HSM {
+        {
+            states = hsm.states;
+            transitions = Array.append(hsm.transitions, [transition]);
+            currentState = hsm.currentState;
+            stateStack = hsm.stateStack;
+            eventQueue = hsm.eventQueue;
+        }
+    };
+    
+    // Find state by name
+    public func hsmFindState(hsm : HSM, name : Text) : ?HSMState {
+        for (state in hsm.states.vals()) {
+            if (state.name == name) return ?state;
+        };
+        null
+    };
+    
+    // Queue event
+    public func hsmQueueEvent(hsm : HSM, event : Text) : HSM {
+        {
+            states = hsm.states;
+            transitions = hsm.transitions;
+            currentState = hsm.currentState;
+            stateStack = hsm.stateStack;
+            eventQueue = Array.append(hsm.eventQueue, [event]);
+        }
+    };
+    
+    // Process events
+    public func hsmProcessEvents(hsm : HSM) : (HSM, [Text]) {
+        var currentHSM = hsm;
+        var executedActions : [Text] = [];
+        
+        for (event in hsm.eventQueue.vals()) {
+            // Find matching transition
+            for (trans in currentHSM.transitions.vals()) {
+                if (trans.fromState == currentHSM.currentState and trans.trigger == event) {
+                    // Execute transition
+                    executedActions := Array.append(executedActions, trans.actions);
+                    
+                    currentHSM := {
+                        states = currentHSM.states;
+                        transitions = currentHSM.transitions;
+                        currentState = trans.toState;
+                        stateStack = Array.append(currentHSM.stateStack, [trans.toState]);
+                        eventQueue = [];
+                    };
+                };
+            };
+        };
+        
+        (currentHSM, executedActions)
+    };
+
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 38: GOAL-ORIENTED ACTION PLANNING (GOAP)
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // World state (set of symbolic facts)
+    public type GOAPWorldState = {
+        facts : [(Text, Bool)];
+    };
+    
+    // GOAP Action
+    public type GOAPAction = {
+        name : Text;
+        cost : Float;
+        preconditions : [(Text, Bool)];
+        effects : [(Text, Bool)];
+        procedural_preconditions : [Text]; // Runtime checks
+    };
+    
+    // GOAP Goal
+    public type GOAPGoal = {
+        name : Text;
+        priority : Float;
+        desiredState : [(Text, Bool)];
+        insistence : Float;
+        decayRate : Float;
+    };
+    
+    // GOAP Plan
+    public type GOAPPlan = {
+        actions : [GOAPAction];
+        totalCost : Float;
+        startState : GOAPWorldState;
+        goalState : GOAPWorldState;
+        valid : Bool;
+    };
+    
+    // GOAP Planner state
+    public type GOAPPlanner = {
+        actions : [GOAPAction];
+        goals : [GOAPGoal];
+        currentPlan : ?GOAPPlan;
+        worldState : GOAPWorldState;
+    };
+    
+    // Initialize GOAP planner
+    public func initGOAPPlanner() : GOAPPlanner {
+        {
+            actions = [];
+            goals = [];
+            currentPlan = null;
+            worldState = { facts = [] };
+        }
+    };
+    
+    // Check if fact exists in world state
+    public func goapCheckFact(state : GOAPWorldState, fact : Text) : ?Bool {
+        for ((f, v) in state.facts.vals()) {
+            if (f == fact) return ?v;
+        };
+        null
+    };
+    
+    // Set fact in world state
+    public func goapSetFact(state : GOAPWorldState, fact : Text, value : Bool) : GOAPWorldState {
+        var newFacts : [(Text, Bool)] = [];
+        var found = false;
+        
+        for ((f, v) in state.facts.vals()) {
+            if (f == fact) {
+                newFacts := Array.append(newFacts, [(f, value)]);
+                found := true;
+            } else {
+                newFacts := Array.append(newFacts, [(f, v)]);
+            };
+        };
+        
+        if (not found) {
+            newFacts := Array.append(newFacts, [(fact, value)]);
+        };
+        
+        { facts = newFacts }
+    };
+    
+    // Check if action preconditions are met
+    public func goapCheckPreconditions(action : GOAPAction, state : GOAPWorldState) : Bool {
+        for ((fact, required) in action.preconditions.vals()) {
+            switch (goapCheckFact(state, fact)) {
+                case (?actual) {
+                    if (actual != required) return false;
+                };
+                case null {
+                    if (required) return false;
+                };
+            };
+        };
+        true
+    };
+    
+    // Apply action effects to world state
+    public func goapApplyEffects(action : GOAPAction, state : GOAPWorldState) : GOAPWorldState {
+        var newState = state;
+        for ((fact, value) in action.effects.vals()) {
+            newState := goapSetFact(newState, fact, value);
+        };
+        newState
+    };
+    
+    // Check if goal is satisfied
+    public func goapGoalSatisfied(goal : GOAPGoal, state : GOAPWorldState) : Bool {
+        for ((fact, required) in goal.desiredState.vals()) {
+            switch (goapCheckFact(state, fact)) {
+                case (?actual) {
+                    if (actual != required) return false;
+                };
+                case null {
+                    if (required) return false;
+                };
+            };
+        };
+        true
+    };
+    
+    // Heuristic: count unsatisfied goal conditions
+    public func goapHeuristic(state : GOAPWorldState, goal : GOAPGoal) : Float {
+        var unsatisfied : Float = 0.0;
+        for ((fact, required) in goal.desiredState.vals()) {
+            switch (goapCheckFact(state, fact)) {
+                case (?actual) {
+                    if (actual != required) unsatisfied += 1.0;
+                };
+                case null {
+                    if (required) unsatisfied += 1.0;
+                };
+            };
+        };
+        unsatisfied
+    };
+    
+    // GOAP planning node for A*
+    public type GOAPNode = {
+        state : GOAPWorldState;
+        action : ?GOAPAction;
+        parent : ?Nat;
+        g : Float; // Cost so far
+        h : Float; // Heuristic
+        f : Float; // g + h
+    };
+    
+    // Simple GOAP planner using A*
+    public func goapPlan(
+        planner : GOAPPlanner,
+        goal : GOAPGoal,
+        maxIterations : Nat
+    ) : ?GOAPPlan {
+        var openList : [GOAPNode] = [{
+            state = planner.worldState;
+            action = null;
+            parent = null;
+            g = 0.0;
+            h = goapHeuristic(planner.worldState, goal);
+            f = goapHeuristic(planner.worldState, goal);
+        }];
+        
+        var closedList : [GOAPNode] = [];
+        var iterations : Nat = 0;
+        
+        while (openList.size() > 0 and iterations < maxIterations) {
+            iterations += 1;
+            
+            // Find node with lowest f
+            var bestIdx : Nat = 0;
+            var bestF : Float = openList[0].f;
+            for (i in Iter.range(1, openList.size() - 1)) {
+                if (openList[i].f < bestF) {
+                    bestF := openList[i].f;
+                    bestIdx := i;
+                };
+            };
+            
+            let current = openList[bestIdx];
+            
+            // Check if goal reached
+            if (goapGoalSatisfied(goal, current.state)) {
+                // Reconstruct plan
+                var actions : [GOAPAction] = [];
+                var nodeIdx : ?Nat = ?bestIdx;
+                
+                label reconstruct while (true) {
+                    switch (nodeIdx) {
+                        case (?idx) {
+                            switch (closedList[idx].action) {
+                                case (?a) {
+                                    actions := Array.append([a], actions);
+                                };
+                                case null {};
+                            };
+                            nodeIdx := closedList[idx].parent;
+                        };
+                        case null { break reconstruct };
+                    };
+                };
+                
+                return ?{
+                    actions = actions;
+                    totalCost = current.g;
+                    startState = planner.worldState;
+                    goalState = current.state;
+                    valid = true;
+                };
+            };
+            
+            // Move to closed list
+            closedList := Array.append(closedList, [current]);
+            openList := Array.tabulate<GOAPNode>(openList.size() - 1, func(i : Nat) : GOAPNode {
+                if (i < bestIdx) openList[i] else openList[i + 1]
+            });
+            
+            // Expand neighbors (applicable actions)
+            for (action in planner.actions.vals()) {
+                if (goapCheckPreconditions(action, current.state)) {
+                    let newState = goapApplyEffects(action, current.state);
+                    let g = current.g + action.cost;
+                    let h = goapHeuristic(newState, goal);
+                    
+                    let newNode : GOAPNode = {
+                        state = newState;
+                        action = ?action;
+                        parent = ?(closedList.size() - 1);
+                        g = g;
+                        h = h;
+                        f = g + h;
+                    };
+                    
+                    openList := Array.append(openList, [newNode]);
+                };
+            };
+        };
+        
+        null // No plan found
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 39: A* PATH PLANNING
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // A* node
+    public type AStarNode = {
+        position : Vector3;
+        parent : ?Nat;
+        g : Float;
+        h : Float;
+        f : Float;
+        closed : Bool;
+    };
+    
+    // A* grid cell
+    public type AStarCell = {
+        x : Int;
+        y : Int;
+        walkable : Bool;
+        cost : Float;
+    };
+    
+    // Euclidean heuristic
+    public func euclideanHeuristic(a : Vector3, b : Vector3) : Float {
+        vectorDistance(a, b)
+    };
+    
+    // Manhattan heuristic (for grid)
+    public func manhattanHeuristic(a : Vector3, b : Vector3) : Float {
+        Float.abs(a.x - b.x) + Float.abs(a.y - b.y) + Float.abs(a.z - b.z)
+    };
+    
+    // Diagonal heuristic
+    public func diagonalHeuristic(a : Vector3, b : Vector3) : Float {
+        let dx = Float.abs(a.x - b.x);
+        let dy = Float.abs(a.y - b.y);
+        let dz = Float.abs(a.z - b.z);
+        let dmax = Float.max(Float.max(dx, dy), dz);
+        let dmin = Float.min(Float.min(dx, dy), dz);
+        let dmid = dx + dy + dz - dmax - dmin;
+        dmax + (SQRT2 - 1.0) * dmid + (SQRT3 - SQRT2) * dmin
+    };
+    
+    // A* pathfinding on nav graph
+    public func aStarPathfind(
+        start : Vector3,
+        goal : Vector3,
+        nodes : [NavGraphNode],
+        maxIterations : Nat
+    ) : ?[Vector3] {
+        // Find closest nodes to start and goal
+        var startNodeIdx : Nat = 0;
+        var goalNodeIdx : Nat = 0;
+        var minStartDist : Float = 1e10;
+        var minGoalDist : Float = 1e10;
+        
+        for (i in Iter.range(0, nodes.size() - 1)) {
+            let dStart = vectorDistance(start, nodes[i].position);
+            let dGoal = vectorDistance(goal, nodes[i].position);
+            if (dStart < minStartDist) {
+                minStartDist := dStart;
+                startNodeIdx := i;
+            };
+            if (dGoal < minGoalDist) {
+                minGoalDist := dGoal;
+                goalNodeIdx := i;
+            };
+        };
+        
+        // Initialize open/closed lists
+        var openList = Array.init<AStarNode>(nodes.size(), {
+            position = zeroVector3();
+            parent = null;
+            g = 1e10;
+            h = 0.0;
+            f = 1e10;
+            closed = false;
+        });
+        
+        // Initialize start node
+        openList[startNodeIdx] := {
+            position = nodes[startNodeIdx].position;
+            parent = null;
+            g = 0.0;
+            h = euclideanHeuristic(nodes[startNodeIdx].position, nodes[goalNodeIdx].position);
+            f = euclideanHeuristic(nodes[startNodeIdx].position, nodes[goalNodeIdx].position);
+            closed = false;
+        };
+        
+        var iterations : Nat = 0;
+        var openCount : Nat = 1;
+        
+        while (openCount > 0 and iterations < maxIterations) {
+            iterations += 1;
+            
+            // Find open node with lowest f
+            var currentIdx : Nat = 0;
+            var currentF : Float = 1e10;
+            for (i in Iter.range(0, nodes.size() - 1)) {
+                if (not openList[i].closed and openList[i].f < currentF) {
+                    currentF := openList[i].f;
+                    currentIdx := i;
+                };
+            };
+            
+            // Check if goal reached
+            if (currentIdx == goalNodeIdx) {
+                // Reconstruct path
+                var path : [Vector3] = [];
+                var idx : ?Nat = ?currentIdx;
+                
+                label reconstruct while (true) {
+                    switch (idx) {
+                        case (?i) {
+                            path := Array.append([nodes[i].position], path);
+                            idx := openList[i].parent;
+                        };
+                        case null { break reconstruct };
+                    };
+                };
+                
+                return ?path;
+            };
+            
+            // Close current node
+            openList[currentIdx] := {
+                position = openList[currentIdx].position;
+                parent = openList[currentIdx].parent;
+                g = openList[currentIdx].g;
+                h = openList[currentIdx].h;
+                f = openList[currentIdx].f;
+                closed = true;
+            };
+            openCount -= 1;
+            
+            // Expand neighbors
+            for ((neighborId, edgeCost) in nodes[currentIdx].neighbors.vals()) {
+                // Find neighbor index
+                var neighborIdx : Nat = 0;
+                for (i in Iter.range(0, nodes.size() - 1)) {
+                    if (nodes[i].id == neighborId) {
+                        neighborIdx := i;
+                    };
+                };
+                
+                if (not openList[neighborIdx].closed) {
+                    let tentativeG = openList[currentIdx].g + edgeCost;
+                    
+                    if (tentativeG < openList[neighborIdx].g) {
+                        let h = euclideanHeuristic(nodes[neighborIdx].position, nodes[goalNodeIdx].position);
+                        openList[neighborIdx] := {
+                            position = nodes[neighborIdx].position;
+                            parent = ?currentIdx;
+                            g = tentativeG;
+                            h = h;
+                            f = tentativeG + h;
+                            closed = false;
+                        };
+                        openCount += 1;
+                    };
+                };
+            };
+        };
+        
+        null // No path found
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 40: RAPIDLY-EXPLORING RANDOM TREES (RRT)
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // RRT configuration
+    public type RRTConfig = {
+        maxIterations : Nat;
+        stepSize : Float;
+        goalBias : Float;
+        bounds : BoundingBox;
+        goalThreshold : Float;
+    };
+    
+    // RRT tree
+    public type RRTTree = {
+        nodes : [RRTNode];
+        root : Nat64;
+    };
+    
+    // Initialize RRT
+    public func initRRT(start : Vector3) : RRTTree {
+        {
+            nodes = [{
+                id = 1;
+                position = start;
+                parent = null;
+                cost = 0.0;
+                children = [];
+            }];
+            root = 1;
+        }
+    };
+    
+    // Find nearest node in tree
+    public func rrtFindNearest(tree : RRTTree, point : Vector3) : Nat {
+        var nearestIdx : Nat = 0;
+        var nearestDist : Float = 1e10;
+        
+        for (i in Iter.range(0, tree.nodes.size() - 1)) {
+            let dist = vectorDistance(tree.nodes[i].position, point);
+            if (dist < nearestDist) {
+                nearestDist := dist;
+                nearestIdx := i;
+            };
+        };
+        
+        nearestIdx
+    };
+    
+    // Steer from one point towards another
+    public func rrtSteer(from : Vector3, to : Vector3, stepSize : Float) : Vector3 {
+        let dir = vectorSub(to, from);
+        let dist = vectorMagnitude(dir);
+        
+        if (dist <= stepSize) {
+            return to;
+        };
+        
+        vectorAdd(from, vectorScale(vectorNormalize(dir), stepSize))
+    };
+    
+    // Simple collision check (point vs sphere obstacles)
+    public func rrtCollisionFree(
+        from : Vector3,
+        to : Vector3,
+        obstacles : [BoundingSphere],
+        resolution : Float
+    ) : Bool {
+        let dir = vectorSub(to, from);
+        let dist = vectorMagnitude(dir);
+        let steps = Int.abs(Float.toInt(Float.ceil(dist / resolution)));
+        
+        for (i in Iter.range(0, steps)) {
+            let t = Float.fromInt(i) / Float.fromInt(steps);
+            let point = vectorLerp(from, to, t);
+            
+            for (obs in obstacles.vals()) {
+                if (vectorDistance(point, obs.center) < obs.radius) {
+                    return false;
+                };
+            };
+        };
+        
+        true
+    };
+    
+    // RRT extend
+    public func rrtExtend(
+        tree : RRTTree,
+        randomPoint : Vector3,
+        stepSize : Float,
+        obstacles : [BoundingSphere]
+    ) : (RRTTree, ?Nat) {
+        let nearestIdx = rrtFindNearest(tree, randomPoint);
+        let nearestNode = tree.nodes[nearestIdx];
+        
+        let newPos = rrtSteer(nearestNode.position, randomPoint, stepSize);
+        
+        if (rrtCollisionFree(nearestNode.position, newPos, obstacles, stepSize / 2.0)) {
+            let newId = Nat64.fromNat(tree.nodes.size() + 1);
+            let newNode : RRTNode = {
+                id = newId;
+                position = newPos;
+                parent = ?nearestNode.id;
+                cost = nearestNode.cost + vectorDistance(nearestNode.position, newPos);
+                children = [];
+            };
+            
+            let newTree : RRTTree = {
+                nodes = Array.append(tree.nodes, [newNode]);
+                root = tree.root;
+            };
+            
+            (newTree, ?(tree.nodes.size()))
+        } else {
+            (tree, null)
+        }
+    };
+    
+    // RRT path planning
+    public func rrtPlan(
+        start : Vector3,
+        goal : Vector3,
+        obstacles : [BoundingSphere],
+        config : RRTConfig
+    ) : ?[Vector3] {
+        var tree = initRRT(start);
+        
+        for (i in Iter.range(0, config.maxIterations - 1)) {
+            // Sample random point with goal bias
+            let biasToGoal = Float.sin(Float.fromInt(i) * 0.1) * 0.5 + 0.5 < config.goalBias;
+            let randomPoint = if (biasToGoal) {
+                goal
+            } else {
+                // Random point in bounds
+                let rx = config.bounds.min.x + Float.sin(Float.fromInt(i) * 12.9898) * 0.5 + 0.5 * (config.bounds.max.x - config.bounds.min.x);
+                let ry = config.bounds.min.y + Float.sin(Float.fromInt(i) * 78.233) * 0.5 + 0.5 * (config.bounds.max.y - config.bounds.min.y);
+                let rz = config.bounds.min.z + Float.sin(Float.fromInt(i) * 37.719) * 0.5 + 0.5 * (config.bounds.max.z - config.bounds.min.z);
+                { x = rx; y = ry; z = rz }
+            };
+            
+            let (newTree, newNodeIdx) = rrtExtend(tree, randomPoint, config.stepSize, obstacles);
+            tree := newTree;
+            
+            // Check if goal reached
+            switch (newNodeIdx) {
+                case (?idx) {
+                    if (vectorDistance(tree.nodes[idx].position, goal) < config.goalThreshold) {
+                        // Reconstruct path
+                        var path : [Vector3] = [];
+                        var currentIdx : ?Nat = ?idx;
+                        
+                        label reconstruct while (true) {
+                            switch (currentIdx) {
+                                case (?ci) {
+                                    path := Array.append([tree.nodes[ci].position], path);
+                                    // Find parent index
+                                    switch (tree.nodes[ci].parent) {
+                                        case (?parentId) {
+                                            var foundParent : ?Nat = null;
+                                            for (j in Iter.range(0, tree.nodes.size() - 1)) {
+                                                if (tree.nodes[j].id == parentId) {
+                                                    foundParent := ?j;
+                                                };
+                                            };
+                                            currentIdx := foundParent;
+                                        };
+                                        case null {
+                                            currentIdx := null;
+                                        };
+                                    };
+                                };
+                                case null { break reconstruct };
+                            };
+                        };
+                        
+                        return ?path;
+                    };
+                };
+                case null {};
+            };
+        };
+        
+        null
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 41: POTENTIAL FIELDS FOR NAVIGATION
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // Potential field source
+    public type PotentialSource = {
+        position : Vector3;
+        strength : Float;
+        radius : Float;
+        isAttractor : Bool;
+        falloff : Text; // "linear", "quadratic", "exponential"
+    };
+    
+    // Compute potential at position
+    public func computePotential(position : Vector3, sources : [PotentialSource]) : Float {
+        var totalPotential : Float = 0.0;
+        
+        for (source in sources.vals()) {
+            let dist = vectorDistance(position, source.position);
+            if (dist < source.radius) {
+                let normalizedDist = dist / source.radius;
+                let potential = switch (source.falloff) {
+                    case "linear" { source.strength * (1.0 - normalizedDist) };
+                    case "quadratic" { source.strength * (1.0 - normalizedDist * normalizedDist) };
+                    case "exponential" { source.strength * Float.exp(-normalizedDist * 3.0) };
+                    case _ { source.strength * (1.0 - normalizedDist) };
+                };
+                
+                if (source.isAttractor) {
+                    totalPotential -= potential;
+                } else {
+                    totalPotential += potential;
+                };
+            };
+        };
+        
+        totalPotential
+    };
+    
+    // Compute negative gradient of potential (force direction)
+    public func computePotentialGradient(position : Vector3, sources : [PotentialSource]) : Vector3 {
+        let h = 0.1;
+        
+        let px = computePotential(vectorAdd(position, { x = h; y = 0.0; z = 0.0 }), sources);
+        let nx = computePotential(vectorAdd(position, { x = -h; y = 0.0; z = 0.0 }), sources);
+        let py = computePotential(vectorAdd(position, { x = 0.0; y = h; z = 0.0 }), sources);
+        let ny = computePotential(vectorAdd(position, { x = 0.0; y = -h; z = 0.0 }), sources);
+        let pz = computePotential(vectorAdd(position, { x = 0.0; y = 0.0; z = h }), sources);
+        let nz = computePotential(vectorAdd(position, { x = 0.0; y = 0.0; z = -h }), sources);
+        
+        // Negative gradient (points downhill towards attractors, away from repellers)
+        {
+            x = -(px - nx) / (2.0 * h);
+            y = -(py - ny) / (2.0 * h);
+            z = -(pz - nz) / (2.0 * h);
+        }
+    };
+    
+    // Potential field navigation force
+    public func potentialFieldForce(
+        position : Vector3,
+        velocity : Vector3,
+        goal : Vector3,
+        obstacles : [BoundingSphere],
+        attractStrength : Float,
+        repelStrength : Float,
+        maxForce : Float
+    ) : Vector3 {
+        // Create potential sources
+        var sources : [PotentialSource] = [{
+            position = goal;
+            strength = attractStrength;
+            radius = 1000.0;
+            isAttractor = true;
+            falloff = "linear";
+        }];
+        
+        // Add obstacles as repellers
+        for (obs in obstacles.vals()) {
+            sources := Array.append(sources, [{
+                position = obs.center;
+                strength = repelStrength;
+                radius = obs.radius * 3.0;
+                isAttractor = false;
+                falloff = "quadratic";
+            }]);
+        };
+        
+        let gradient = computePotentialGradient(position, sources);
+        vectorClampMagnitude(gradient, maxForce)
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 42: NAVIGATION MESH (NAVMESH)
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // NavMesh structure
+    public type NavMesh = {
+        polygons : [NavMeshPolygon];
+        vertices : [Vector3];
+        adjacency : [[Nat]]; // polygon[i] -> adjacent polygon indices
+    };
+    
+    // Find polygon containing point
+    public func navMeshFindPolygon(navMesh : NavMesh, point : Vector3) : ?Nat {
+        for (i in Iter.range(0, navMesh.polygons.size() - 1)) {
+            if (pointInNavMeshPolygon(point, navMesh.polygons[i])) {
+                return ?i;
+            };
+        };
+        null
+    };
+    
+    // Point in polygon test (2D projection)
+    public func pointInNavMeshPolygon(point : Vector3, polygon : NavMeshPolygon) : Bool {
+        let n = polygon.vertices.size();
+        if (n < 3) return false;
+        
+        var inside = false;
+        var j = n - 1;
+        
+        for (i in Iter.range(0, n - 1)) {
+            let vi = polygon.vertices[i];
+            let vj = polygon.vertices[j];
+            
+            if (((vi.y > point.y) != (vj.y > point.y)) and
+                (point.x < (vj.x - vi.x) * (point.y - vi.y) / (vj.y - vi.y) + vi.x)) {
+                inside := not inside;
+            };
+            
+            j := i;
+        };
+        
+        inside
+    };
+    
+    // Funnel algorithm for path smoothing
+    public type FunnelState = {
+        apex : Vector3;
+        leftPortal : Vector3;
+        rightPortal : Vector3;
+        path : [Vector3];
+    };
+    
+    public func initFunnel(start : Vector3) : FunnelState {
+        {
+            apex = start;
+            leftPortal = start;
+            rightPortal = start;
+            path = [start];
+        }
+    };
+    
+    // Cross product for 2D (returns z component)
+    public func cross2D(a : Vector3, b : Vector3) : Float {
+        a.x * b.y - a.y * b.x
+    };
+    
+    // Signed area of triangle
+    public func signedArea2D(a : Vector3, b : Vector3, c : Vector3) : Float {
+        cross2D(vectorSub(b, a), vectorSub(c, a))
+    };
+    
+    // NavMesh pathfinding with funnel algorithm
+    public func navMeshPath(
+        navMesh : NavMesh,
+        start : Vector3,
+        goal : Vector3
+    ) : ?[Vector3] {
+        // Find start and goal polygons
+        let startPoly = navMeshFindPolygon(navMesh, start);
+        let goalPoly = navMeshFindPolygon(navMesh, goal);
+        
+        switch (startPoly, goalPoly) {
+            case (?sp, ?gp) {
+                if (sp == gp) {
+                    // Direct path
+                    return ?[start, goal];
+                };
+                
+                // A* on polygon graph
+                var openList = Array.init<(Nat, Float, Float, ?Nat)>(navMesh.polygons.size(), (0, 1e10, 1e10, null));
+                openList[sp] := (sp, 0.0, vectorDistance(navMesh.polygons[sp].center, goal), null);
+                
+                var closedSet : [Bool] = Array.tabulate<Bool>(navMesh.polygons.size(), func(_ : Nat) : Bool { false });
+                
+                var iterations : Nat = 0;
+                let maxIter = navMesh.polygons.size() * 2;
+                
+                while (iterations < maxIter) {
+                    iterations += 1;
+                    
+                    // Find best open node
+                    var bestIdx : ?Nat = null;
+                    var bestF : Float = 1e10;
+                    
+                    for (i in Iter.range(0, navMesh.polygons.size() - 1)) {
+                        if (not closedSet[i]) {
+                            let (_, g, h, _) = openList[i];
+                            if (g + h < bestF and g < 1e9) {
+                                bestF := g + h;
+                                bestIdx := ?i;
+                            };
+                        };
+                    };
+                    
+                    switch (bestIdx) {
+                        case (?current) {
+                            if (current == gp) {
+                                // Reconstruct path through polygon centers
+                                var path : [Vector3] = [goal];
+                                var idx : ?Nat = ?current;
+                                
+                                label reconstruct while (true) {
+                                    switch (idx) {
+                                        case (?i) {
+                                            path := Array.append([navMesh.polygons[i].center], path);
+                                            let (_, _, _, parent) = openList[i];
+                                            idx := parent;
+                                        };
+                                        case null { break reconstruct };
+                                    };
+                                };
+                                
+                                path := Array.append([start], path);
+                                return ?path;
+                            };
+                            
+                            closedSet := Array.tabulate<Bool>(navMesh.polygons.size(), func(i : Nat) : Bool {
+                                if (i == current) true else closedSet[i]
+                            });
+                            
+                            // Expand neighbors
+                            for (neighbor in navMesh.adjacency[current].vals()) {
+                                if (not closedSet[neighbor]) {
+                                    let (_, currentG, _, _) = openList[current];
+                                    let edgeCost = vectorDistance(
+                                        navMesh.polygons[current].center,
+                                        navMesh.polygons[neighbor].center
+                                    );
+                                    let tentativeG = currentG + edgeCost;
+                                    let (_, neighborG, _, _) = openList[neighbor];
+                                    
+                                    if (tentativeG < neighborG) {
+                                        let h = vectorDistance(navMesh.polygons[neighbor].center, goal);
+                                        openList[neighbor] := (neighbor, tentativeG, h, ?current);
+                                    };
+                                };
+                            };
+                        };
+                        case null {
+                            // No path found
+                            return null;
+                        };
+                    };
+                };
+                
+                null
+            };
+            case _ { null };
+        }
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    // SECTION 43: INFLUENCE MAPS
+    // ═══════════════════════════════════════════════════════════════════════════════════════════
+    
+    // Influence map layer
+    public type InfluenceLayer = {
+        name : Text;
+        grid : [[Float]];
+        width : Nat;
+        height : Nat;
+        cellSize : Float;
+        origin : Vector3;
+        decayRate : Float;
+        blendMode : Text;
+    };
+    
+    // Influence map
+    public type InfluenceMap = {
+        layers : [InfluenceLayer];
+        combinedMap : [[Float]];
+        lastUpdate : Nat64;
+    };
+    
+    // Initialize influence layer
+    public func initInfluenceLayer(
+        name : Text,
+        width : Nat,
+        height : Nat,
+        cellSize : Float,
+        origin : Vector3
+    ) : InfluenceLayer {
+        {
+            name = name;
+            grid = Array.tabulate<[Float]>(width, func(_ : Nat) : [Float] {
+                Array.tabulate<Float>(height, func(_ : Nat) : Float { 0.0 })
+            });
+            width = width;
+            height = height;
+            cellSize = cellSize;
+            origin = origin;
+            decayRate = 0.95;
+            blendMode = "add";
+        }
+    };
+    
+    // Add influence at position
+    public func addInfluence(
+        layer : InfluenceLayer,
+        worldPos : Vector3,
+        strength : Float,
+        radius : Float
+    ) : InfluenceLayer {
+        let cellX = Int.abs(Float.toInt((worldPos.x - layer.origin.x) / layer.cellSize));
+        let cellY = Int.abs(Float.toInt((worldPos.y - layer.origin.y) / layer.cellSize));
+        let radiusCells = Int.abs(Float.toInt(radius / layer.cellSize));
+        
+        let newGrid = Array.tabulate<[Float]>(layer.width, func(x : Nat) : [Float] {
+            Array.tabulate<Float>(layer.height, func(y : Nat) : [Float] {
+                let dx = Int.abs(x) - cellX;
+                let dy = Int.abs(y) - cellY;
+                let dist = Float.sqrt(Float.fromInt(dx * dx + dy * dy));
+                
+                if (dist <= Float.fromInt(radiusCells)) {
+                    let falloff = 1.0 - dist / Float.fromInt(radiusCells);
+                    layer.grid[x][y] + strength * falloff
+                } else {
+                    layer.grid[x][y]
+                }
+            })
+        });
+        
+        {
+            name = layer.name;
+            grid = newGrid;
+            width = layer.width;
+            height = layer.height;
+            cellSize = layer.cellSize;
+            origin = layer.origin;
+            decayRate = layer.decayRate;
+            blendMode = layer.blendMode;
+        }
+    };
+    
+    // Sample influence at position
+    public func sampleInfluence(layer : InfluenceLayer, worldPos : Vector3) : Float {
+        let cellX = Int.abs(Float.toInt((worldPos.x - layer.origin.x) / layer.cellSize));
+        let cellY = Int.abs(Float.toInt((worldPos.y - layer.origin.y) / layer.cellSize));
+        
+        if (cellX >= 0 and cellX < layer.width and cellY >= 0 and cellY < layer.height) {
+            layer.grid[cellX][cellY]
+        } else {
+            0.0
+        }
+    };
+    
+    // Decay influence map
+    public func decayInfluence(layer : InfluenceLayer) : InfluenceLayer {
+        let newGrid = Array.tabulate<[Float]>(layer.width, func(x : Nat) : [Float] {
+            Array.tabulate<Float>(layer.height, func(y : Nat) : Float {
+                layer.grid[x][y] * layer.decayRate
+            })
+        });
+        
+        {
+            name = layer.name;
+            grid = newGrid;
+            width = layer.width;
+            height = layer.height;
+            cellSize = layer.cellSize;
+            origin = layer.origin;
+            decayRate = layer.decayRate;
+            blendMode = layer.blendMode;
+        }
+    };
+    
+    // Propagate influence (blur/spread)
+    public func propagateInfluence(layer : InfluenceLayer, spreadRate : Float) : InfluenceLayer {
+        let newGrid = Array.tabulate<[Float]>(layer.width, func(x : Nat) : [Float] {
+            Array.tabulate<Float>(layer.height, func(y : Nat) : Float {
+                var sum : Float = layer.grid[x][y];
+                var count : Float = 1.0;
+                
+                // 4-connected neighbors
+                if (x > 0) { sum += layer.grid[x - 1][y] * spreadRate; count += spreadRate; };
+                if (x < layer.width - 1) { sum += layer.grid[x + 1][y] * spreadRate; count += spreadRate; };
+                if (y > 0) { sum += layer.grid[x][y - 1] * spreadRate; count += spreadRate; };
+                if (y < layer.height - 1) { sum += layer.grid[x][y + 1] * spreadRate; count += spreadRate; };
+                
+                sum / count
+            })
+        });
+        
+        {
+            name = layer.name;
+            grid = newGrid;
+            width = layer.width;
+            height = layer.height;
+            cellSize = layer.cellSize;
+            origin = layer.origin;
+            decayRate = layer.decayRate;
+            blendMode = layer.blendMode;
+        }
+    };
+    
+    // Find highest influence point in region
+    public func findHighestInfluence(
+        layer : InfluenceLayer,
+        searchCenter : Vector3,
+        searchRadius : Float
+    ) : (Vector3, Float) {
+        let centerX = Int.abs(Float.toInt((searchCenter.x - layer.origin.x) / layer.cellSize));
+        let centerY = Int.abs(Float.toInt((searchCenter.y - layer.origin.y) / layer.cellSize));
+        let radiusCells = Int.abs(Float.toInt(searchRadius / layer.cellSize));
+        
+        var bestX : Nat = centerX;
+        var bestY : Nat = centerY;
+        var bestValue : Float = -1e10;
+        
+        let minX = Nat.max(0, Int.abs(centerX - radiusCells));
+        let maxX = Nat.min(layer.width - 1, Int.abs(centerX + radiusCells));
+        let minY = Nat.max(0, Int.abs(centerY - radiusCells));
+        let maxY = Nat.min(layer.height - 1, Int.abs(centerY + radiusCells));
+        
+        for (x in Iter.range(minX, maxX)) {
+            for (y in Iter.range(minY, maxY)) {
+                if (layer.grid[x][y] > bestValue) {
+                    bestValue := layer.grid[x][y];
+                    bestX := x;
+                    bestY := y;
+                };
+            };
+        };
+        
+        let worldPos = {
+            x = layer.origin.x + (Float.fromInt(bestX) + 0.5) * layer.cellSize;
+            y = layer.origin.y + (Float.fromInt(bestY) + 0.5) * layer.cellSize;
+            z = searchCenter.z;
+        };
+        
+        (worldPos, bestValue)
+    };
