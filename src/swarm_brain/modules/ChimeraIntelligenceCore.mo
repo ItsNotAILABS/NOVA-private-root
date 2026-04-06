@@ -15966,8 +15966,1617 @@ module {
     };
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // TEMPORAL REASONING ENGINE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Temporal reasoning state
+  public type TemporalReasoningState = {
+    var timeline : [TemporalEvent];
+    var intervals : [TemporalInterval];
+    var constraints : [TemporalConstraint];
+    var predictions : [TemporalPrediction];
+    var currentTime : Int;
+  };
+
+  public type TemporalEvent = {
+    eventId : Text;
+    eventType : TemporalEventType;
+    timestamp : Int;
+    duration : ?Float;
+    location : ?Vector3;
+    participants : [Nat32];
+    data : [(Text, TemporalValue)];
+    var confidence : Float;
+  };
+
+  public type TemporalEventType = {
+    #PointEvent;
+    #IntervalEvent;
+    #PeriodicEvent;
+    #TriggerEvent;
+    #DeadlineEvent;
+  };
+
+  public type TemporalValue = {
+    #Time : Int;
+    #Duration : Float;
+    #Frequency : Float;
+    #Phase : Float;
+    #Other : Text;
+  };
+
+  public type TemporalInterval = {
+    intervalId : Text;
+    startTime : Int;
+    endTime : Int;
+    eventIds : [Text];
+    var state : IntervalState;
+  };
+
+  public type IntervalState = {
+    #Pending;
+    #Active;
+    #Completed;
+    #Expired;
+  };
+
+  public type TemporalConstraint = {
+    constraintId : Text;
+    constraintType : ConstraintType;
+    eventA : Text;
+    eventB : ?Text;
+    parameters : [(Text, Float)];
+    var isSatisfied : Bool;
+  };
+
+  public type ConstraintType = {
+    #Before;
+    #After;
+    #During;
+    #Overlaps;
+    #Meets;
+    #Equals;
+    #MinGap;
+    #MaxGap;
+    #Deadline;
+    #Duration;
+  };
+
+  public type TemporalPrediction = {
+    predictionId : Text;
+    targetEvent : Text;
+    predictedTime : Int;
+    confidenceInterval : (Int, Int);
+    var confidence : Float;
+    var wasCorrect : ?Bool;
+  };
+
+  /// Initialize temporal reasoning
+  public func initTemporalReasoning() : TemporalReasoningState {
+    {
+      var timeline = [];
+      var intervals = [];
+      var constraints = [];
+      var predictions = [];
+      var currentTime = Time.now();
+    }
+  };
+
+  /// Add temporal event
+  public func addTemporalEvent(
+    state : TemporalReasoningState,
+    event : TemporalEvent
+  ) : () {
+    state.timeline := Array.append(state.timeline, [event]);
+    
+    // Sort timeline by timestamp
+    state.timeline := Array.sort<TemporalEvent>(state.timeline, func(a, b : TemporalEvent) : Order.Order {
+      if (a.timestamp < b.timestamp) #less else if (a.timestamp > b.timestamp) #greater else #equal
+    });
+    
+    // Check constraints
+    checkTemporalConstraints(state);
+  };
+
+  /// Check temporal constraints
+  func checkTemporalConstraints(state : TemporalReasoningState) : () {
+    for (constraint in state.constraints.vals()) {
+      var eventA : ?TemporalEvent = null;
+      var eventB : ?TemporalEvent = null;
+      
+      for (event in state.timeline.vals()) {
+        if (event.eventId == constraint.eventA) eventA := ?event;
+        switch (constraint.eventB) {
+          case (?b) { if (event.eventId == b) eventB := ?event };
+          case (null) {};
+        };
+      };
+      
+      switch (constraint.constraintType, eventA, eventB) {
+        case (#Before, ?a, ?b) {
+          constraint.isSatisfied := a.timestamp < b.timestamp;
+        };
+        case (#After, ?a, ?b) {
+          constraint.isSatisfied := a.timestamp > b.timestamp;
+        };
+        case (#During, ?a, ?b) {
+          let aEnd = switch (a.duration) {
+            case (?d) a.timestamp + Int.abs(Float.toInt(d * 1e9));
+            case (null) a.timestamp;
+          };
+          constraint.isSatisfied := a.timestamp >= b.timestamp and aEnd <= b.timestamp;
+        };
+        case (#MinGap, ?a, ?b) {
+          var minGap = 0.0;
+          for ((key, value) in constraint.parameters.vals()) {
+            if (key == "gap") minGap := value;
+          };
+          let actualGap = Float.fromInt(Int.abs(b.timestamp - a.timestamp)) / 1e9;
+          constraint.isSatisfied := actualGap >= minGap;
+        };
+        case (#MaxGap, ?a, ?b) {
+          var maxGap = 0.0;
+          for ((key, value) in constraint.parameters.vals()) {
+            if (key == "gap") maxGap := value;
+          };
+          let actualGap = Float.fromInt(Int.abs(b.timestamp - a.timestamp)) / 1e9;
+          constraint.isSatisfied := actualGap <= maxGap;
+        };
+        case (#Deadline, ?a, _) {
+          var deadline = 0.0;
+          for ((key, value) in constraint.parameters.vals()) {
+            if (key == "deadline") deadline := value;
+          };
+          let deadlineTime = state.currentTime + Int.abs(Float.toInt(deadline * 1e9));
+          constraint.isSatisfied := a.timestamp <= deadlineTime;
+        };
+        case _ {
+          constraint.isSatisfied := true;
+        };
+      };
+    };
+  };
+
+  /// Predict future event time
+  public func predictEventTime(
+    state : TemporalReasoningState,
+    eventType : TemporalEventType,
+    context : [(Text, Float)]
+  ) : ?TemporalPrediction {
+    // Find similar past events
+    var similarEvents : [TemporalEvent] = [];
+    
+    for (event in state.timeline.vals()) {
+      if (event.eventType == eventType) {
+        similarEvents := Array.append(similarEvents, [event]);
+      };
+    };
+    
+    if (similarEvents.size() < 2) return null;
+    
+    // Simple linear regression on timestamps
+    var sumX = 0.0;
+    var sumY = 0.0;
+    var sumXY = 0.0;
+    var sumX2 = 0.0;
+    let n = Float.fromInt(similarEvents.size());
+    
+    for (i in Iter.range(0, similarEvents.size() - 1)) {
+      let x = Float.fromInt(i);
+      let y = Float.fromInt(similarEvents[i].timestamp);
+      sumX += x;
+      sumY += y;
+      sumXY += x * y;
+      sumX2 += x * x;
+    };
+    
+    let slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    let intercept = (sumY - slope * sumX) / n;
+    
+    let nextX = Float.fromInt(similarEvents.size());
+    let predictedY = slope * nextX + intercept;
+    let predictedTime = Int.abs(Float.toInt(predictedY));
+    
+    // Confidence interval (simplified)
+    let stdDev = Float.abs(slope) * 0.1;
+    let interval = Int.abs(Float.toInt(stdDev * 1e9));
+    
+    ?{
+      predictionId = Int.toText(Time.now());
+      targetEvent = "predicted";
+      predictedTime = predictedTime;
+      confidenceInterval = (predictedTime - interval, predictedTime + interval);
+      var confidence = 0.7;
+      var wasCorrect = null;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CAUSAL REASONING ENGINE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Causal model state
+  public type CausalModelState = {
+    var variables : [CausalVariable];
+    var edges : [CausalEdge];
+    var interventions : [Intervention];
+    var counterfactuals : [Counterfactual];
+  };
+
+  public type CausalVariable = {
+    variableId : Text;
+    variableType : VariableType;
+    var value : Float;
+    var observedValues : [Float];
+    domain : (Float, Float);
+    var isIntervened : Bool;
+  };
+
+  public type VariableType = {
+    #Continuous;
+    #Discrete;
+    #Binary;
+    #Ordinal;
+  };
+
+  public type CausalEdge = {
+    sourceId : Text;
+    targetId : Text;
+    strength : Float;
+    delay : Float;
+    var isActive : Bool;
+    mechanism : CausalMechanism;
+  };
+
+  public type CausalMechanism = {
+    #Linear : Float;  // coefficient
+    #Nonlinear : [Float];  // polynomial coefficients
+    #Threshold : Float;
+    #Probabilistic : Float;  // probability of activation
+  };
+
+  public type Intervention = {
+    interventionId : Text;
+    targetVariable : Text;
+    setValue : Float;
+    timestamp : Int;
+    duration : ?Float;
+  };
+
+  public type Counterfactual = {
+    counterfactualId : Text;
+    intervention : Intervention;
+    queryVariable : Text;
+    observedValue : Float;
+    counterfactualValue : Float;
+    var confidence : Float;
+  };
+
+  /// Initialize causal model
+  public func initCausalModel() : CausalModelState {
+    {
+      var variables = [];
+      var edges = [];
+      var interventions = [];
+      var counterfactuals = [];
+    }
+  };
+
+  /// Add causal variable
+  public func addCausalVariable(
+    model : CausalModelState,
+    variable : CausalVariable
+  ) : () {
+    model.variables := Array.append(model.variables, [variable]);
+  };
+
+  /// Add causal edge
+  public func addCausalEdge(
+    model : CausalModelState,
+    edge : CausalEdge
+  ) : () {
+    model.edges := Array.append(model.edges, [edge]);
+  };
+
+  /// Perform intervention (do-calculus)
+  public func doIntervention(
+    model : CausalModelState,
+    intervention : Intervention
+  ) : () {
+    model.interventions := Array.append(model.interventions, [intervention]);
+    
+    // Set the variable value
+    for (variable in model.variables.vals()) {
+      if (variable.variableId == intervention.targetVariable) {
+        variable.value := intervention.setValue;
+        variable.isIntervened := true;
+      };
+    };
+    
+    // Propagate effects through causal graph
+    propagateCausalEffects(model);
+  };
+
+  /// Propagate causal effects
+  func propagateCausalEffects(model : CausalModelState) : () {
+    // Topological sort for propagation order
+    var processedIds : [Text] = [];
+    var changed = true;
+    
+    while (changed) {
+      changed := false;
+      
+      for (edge in model.edges.vals()) {
+        if (edge.isActive) {
+          // Check if source is processed
+          var sourceProcessed = false;
+          for (processed in processedIds.vals()) {
+            if (processed == edge.sourceId) sourceProcessed := true;
+          };
+          
+          if (sourceProcessed or isRootVariable(model, edge.sourceId)) {
+            // Find source and target variables
+            var sourceValue = 0.0;
+            var targetVar : ?CausalVariable = null;
+            
+            for (variable in model.variables.vals()) {
+              if (variable.variableId == edge.sourceId) {
+                sourceValue := variable.value;
+              };
+              if (variable.variableId == edge.targetId) {
+                targetVar := ?variable;
+              };
+            };
+            
+            switch (targetVar) {
+              case (?target) {
+                if (not target.isIntervened) {
+                  // Apply causal mechanism
+                  let effect = applyCausalMechanism(edge.mechanism, sourceValue);
+                  target.value := target.value + effect * edge.strength;
+                  
+                  // Clamp to domain
+                  target.value := Float.max(target.domain.0, Float.min(target.domain.1, target.value));
+                  
+                  // Mark as processed
+                  var alreadyProcessed = false;
+                  for (processed in processedIds.vals()) {
+                    if (processed == edge.targetId) alreadyProcessed := true;
+                  };
+                  if (not alreadyProcessed) {
+                    processedIds := Array.append(processedIds, [edge.targetId]);
+                    changed := true;
+                  };
+                };
+              };
+              case (null) {};
+            };
+          };
+        };
+      };
+    };
+  };
+
+  /// Check if variable is a root (no incoming edges)
+  func isRootVariable(model : CausalModelState, variableId : Text) : Bool {
+    for (edge in model.edges.vals()) {
+      if (edge.targetId == variableId and edge.isActive) {
+        return false;
+      };
+    };
+    true
+  };
+
+  /// Apply causal mechanism
+  func applyCausalMechanism(mechanism : CausalMechanism, input : Float) : Float {
+    switch (mechanism) {
+      case (#Linear(coef)) {
+        input * coef
+      };
+      case (#Nonlinear(coeffs)) {
+        var result = 0.0;
+        for (i in Iter.range(0, coeffs.size() - 1)) {
+          result += coeffs[i] * Float.pow(input, Float.fromInt(i));
+        };
+        result
+      };
+      case (#Threshold(thresh)) {
+        if (input >= thresh) 1.0 else 0.0
+      };
+      case (#Probabilistic(prob)) {
+        if (randomFloat() < prob) input else 0.0
+      };
+    }
+  };
+
+  /// Compute counterfactual
+  public func computeCounterfactual(
+    model : CausalModelState,
+    intervention : Intervention,
+    queryVariable : Text
+  ) : ?Counterfactual {
+    // Save current state
+    var savedValues : [(Text, Float)] = [];
+    for (variable in model.variables.vals()) {
+      savedValues := Array.append(savedValues, [(variable.variableId, variable.value)]);
+    };
+    
+    // Get observed value
+    var observedValue = 0.0;
+    for (variable in model.variables.vals()) {
+      if (variable.variableId == queryVariable) {
+        observedValue := variable.value;
+      };
+    };
+    
+    // Apply intervention
+    doIntervention(model, intervention);
+    
+    // Get counterfactual value
+    var counterfactualValue = 0.0;
+    for (variable in model.variables.vals()) {
+      if (variable.variableId == queryVariable) {
+        counterfactualValue := variable.value;
+      };
+    };
+    
+    // Restore state
+    for ((varId, value) in savedValues.vals()) {
+      for (variable in model.variables.vals()) {
+        if (variable.variableId == varId) {
+          variable.value := value;
+          variable.isIntervened := false;
+        };
+      };
+    };
+    
+    ?{
+      counterfactualId = Int.toText(Time.now());
+      intervention = intervention;
+      queryVariable = queryVariable;
+      observedValue = observedValue;
+      counterfactualValue = counterfactualValue;
+      var confidence = 0.8;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MULTI-OBJECTIVE OPTIMIZATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Multi-objective optimization state
+  public type MOOState = {
+    var objectives : [Objective];
+    var constraints : [MOOConstraint];
+    var population : [Solution];
+    var paretoFront : [Solution];
+    var archive : [Solution];
+    algorithm : MOOAlgorithm;
+  };
+
+  public type Objective = {
+    objectiveId : Text;
+    name : Text;
+    direction : OptimizationDirection;
+    weight : Float;
+    evaluate : [Float] -> Float;
+  };
+
+  public type OptimizationDirection = {
+    #Minimize;
+    #Maximize;
+  };
+
+  public type MOOConstraint = {
+    constraintId : Text;
+    constraintType : MOOConstraintType;
+    evaluate : [Float] -> Float;
+    bound : Float;
+  };
+
+  public type MOOConstraintType = {
+    #LessThan;
+    #GreaterThan;
+    #Equal;
+  };
+
+  public type Solution = {
+    solutionId : Text;
+    variables : [Float];
+    objectiveValues : [Float];
+    constraintViolation : Float;
+    var crowdingDistance : Float;
+    var rank : Nat;
+    var dominatedBy : [Text];
+    var dominates : [Text];
+  };
+
+  public type MOOAlgorithm = {
+    #NSGA2;
+    #NSGA3;
+    #MOEAD;
+    #SPEA2;
+    #IBEA;
+  };
+
+  /// Initialize MOO
+  public func initMOO(
+    objectives : [Objective],
+    algorithm : MOOAlgorithm
+  ) : MOOState {
+    {
+      var objectives = objectives;
+      var constraints = [];
+      var population = [];
+      var paretoFront = [];
+      var archive = [];
+      algorithm = algorithm;
+    }
+  };
+
+  /// Evaluate solution
+  public func evaluateSolution(
+    moo : MOOState,
+    variables : [Float]
+  ) : Solution {
+    // Evaluate all objectives
+    var objectiveValues : [Float] = [];
+    for (obj in moo.objectives.vals()) {
+      let value = obj.evaluate(variables);
+      objectiveValues := Array.append(objectiveValues, [value]);
+    };
+    
+    // Evaluate constraint violation
+    var totalViolation = 0.0;
+    for (constraint in moo.constraints.vals()) {
+      let value = constraint.evaluate(variables);
+      let violation = switch (constraint.constraintType) {
+        case (#LessThan) { Float.max(0.0, value - constraint.bound) };
+        case (#GreaterThan) { Float.max(0.0, constraint.bound - value) };
+        case (#Equal) { Float.abs(value - constraint.bound) };
+      };
+      totalViolation += violation;
+    };
+    
+    {
+      solutionId = Int.toText(Time.now());
+      variables = variables;
+      objectiveValues = objectiveValues;
+      constraintViolation = totalViolation;
+      var crowdingDistance = 0.0;
+      var rank = 0;
+      var dominatedBy = [];
+      var dominates = [];
+    }
+  };
+
+  /// Check if solution A dominates solution B
+  public func dominates(a : Solution, b : Solution, objectives : [Objective]) : Bool {
+    var betterInOne = false;
+    var worseInOne = false;
+    
+    for (i in Iter.range(0, objectives.size() - 1)) {
+      let aVal = a.objectiveValues[i];
+      let bVal = b.objectiveValues[i];
+      
+      let aBetter = switch (objectives[i].direction) {
+        case (#Minimize) aVal < bVal;
+        case (#Maximize) aVal > bVal;
+      };
+      
+      let bBetter = switch (objectives[i].direction) {
+        case (#Minimize) bVal < aVal;
+        case (#Maximize) bVal > aVal;
+      };
+      
+      if (aBetter) betterInOne := true;
+      if (bBetter) worseInOne := true;
+    };
+    
+    betterInOne and not worseInOne
+  };
+
+  /// Non-dominated sorting (NSGA-II)
+  public func nonDominatedSort(moo : MOOState) : () {
+    // Reset domination info
+    for (sol in moo.population.vals()) {
+      sol.dominatedBy := [];
+      sol.dominates := [];
+      sol.rank := 0;
+    };
+    
+    // Compute domination relationships
+    for (i in Iter.range(0, moo.population.size() - 1)) {
+      for (j in Iter.range(i + 1, moo.population.size() - 1)) {
+        let solI = moo.population[i];
+        let solJ = moo.population[j];
+        
+        if (dominates(solI, solJ, moo.objectives)) {
+          solI.dominates := Array.append(solI.dominates, [solJ.solutionId]);
+          solJ.dominatedBy := Array.append(solJ.dominatedBy, [solI.solutionId]);
+        } else if (dominates(solJ, solI, moo.objectives)) {
+          solJ.dominates := Array.append(solJ.dominates, [solI.solutionId]);
+          solI.dominatedBy := Array.append(solI.dominatedBy, [solJ.solutionId]);
+        };
+      };
+    };
+    
+    // Assign ranks
+    var currentRank = 0;
+    var remaining = moo.population.size();
+    
+    while (remaining > 0) {
+      // Find solutions with no remaining domination
+      for (sol in moo.population.vals()) {
+        if (sol.rank == 0 and sol.dominatedBy.size() == 0) {
+          sol.rank := currentRank + 1;
+          remaining -= 1;
+          
+          // Update Pareto front
+          if (currentRank == 0) {
+            moo.paretoFront := Array.append(moo.paretoFront, [sol]);
+          };
+        };
+      };
+      
+      // Remove dominated solutions for next iteration
+      for (sol in moo.population.vals()) {
+        if (sol.rank == currentRank + 1) {
+          for (domId in sol.dominates.vals()) {
+            for (other in moo.population.vals()) {
+              if (other.solutionId == domId and other.rank == 0) {
+                other.dominatedBy := Array.filter<Text>(other.dominatedBy, func(id : Text) : Bool {
+                  id != sol.solutionId
+                });
+              };
+            };
+          };
+        };
+      };
+      
+      currentRank += 1;
+    };
+  };
+
+  /// Compute crowding distance
+  public func computeCrowdingDistance(moo : MOOState) : () {
+    for (sol in moo.population.vals()) {
+      sol.crowdingDistance := 0.0;
+    };
+    
+    // For each objective
+    for (objIdx in Iter.range(0, moo.objectives.size() - 1)) {
+      // Sort by objective value
+      let sorted = Array.sort<Solution>(moo.population, func(a, b : Solution) : Order.Order {
+        if (a.objectiveValues[objIdx] < b.objectiveValues[objIdx]) #less
+        else if (a.objectiveValues[objIdx] > b.objectiveValues[objIdx]) #greater
+        else #equal
+      });
+      
+      // Boundary solutions get infinite distance
+      if (sorted.size() > 0) {
+        sorted[0].crowdingDistance := 1e10;
+        sorted[sorted.size() - 1].crowdingDistance := 1e10;
+      };
+      
+      // Compute distance for middle solutions
+      if (sorted.size() > 2) {
+        let objRange = sorted[sorted.size() - 1].objectiveValues[objIdx] - sorted[0].objectiveValues[objIdx];
+        
+        if (objRange > 0.0) {
+          for (i in Iter.range(1, sorted.size() - 2)) {
+            let distance = (sorted[i + 1].objectiveValues[objIdx] - sorted[i - 1].objectiveValues[objIdx]) / objRange;
+            sorted[i].crowdingDistance += distance;
+          };
+        };
+      };
+    };
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DISTRIBUTED CONSENSUS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Distributed consensus state
+  public type ConsensusState = {
+    var nodes : [ConsensusNode];
+    var proposals : [ConsensusProposal];
+    var votes : [(Text, Nat32, Bool)];  // (proposalId, nodeId, vote)
+    var decisions : [ConsensusDecision];
+    consensusAlgorithm : ConsensusAlgorithm;
+    var currentRound : Nat;
+  };
+
+  public type ConsensusNode = {
+    nodeId : Nat32;
+    var state : NodeState;
+    var lastHeartbeat : Int;
+    var proposalQueue : [Text];
+    var votedProposals : [Text];
+    trustScore : Float;
+  };
+
+  public type NodeState = {
+    #Follower;
+    #Candidate;
+    #Leader;
+    #Offline;
+  };
+
+  public type ConsensusProposal = {
+    proposalId : Text;
+    proposer : Nat32;
+    content : ProposalContent;
+    timestamp : Int;
+    var status : ProposalStatus;
+    var yesVotes : Nat;
+    var noVotes : Nat;
+    requiredQuorum : Float;
+  };
+
+  public type ProposalContent = {
+    #ValueChange : {key: Text; value: Float};
+    #ConfigUpdate : {parameter: Text; value: Text};
+    #MembershipChange : {nodeId: Nat32; action: MembershipAction};
+    #TaskAssignment : {taskId: Text; assignee: Nat32};
+    #Custom : Blob;
+  };
+
+  public type MembershipAction = {
+    #Add;
+    #Remove;
+    #Suspend;
+  };
+
+  public type ProposalStatus = {
+    #Pending;
+    #Voting;
+    #Accepted;
+    #Rejected;
+    #Expired;
+  };
+
+  public type ConsensusDecision = {
+    decisionId : Text;
+    proposalId : Text;
+    outcome : Bool;
+    timestamp : Int;
+    participatingNodes : [Nat32];
+    finalVotes : {yes: Nat; no: Nat};
+  };
+
+  public type ConsensusAlgorithm = {
+    #Raft;
+    #PBFT;
+    #Paxos;
+    #SimpleMajority;
+    #WeightedVoting;
+  };
+
+  /// Initialize consensus
+  public func initConsensus(algorithm : ConsensusAlgorithm) : ConsensusState {
+    {
+      var nodes = [];
+      var proposals = [];
+      var votes = [];
+      var decisions = [];
+      consensusAlgorithm = algorithm;
+      var currentRound = 0;
+    }
+  };
+
+  /// Submit proposal
+  public func submitProposal(
+    state : ConsensusState,
+    proposer : Nat32,
+    content : ProposalContent,
+    quorum : Float
+  ) : Text {
+    let proposalId = Int.toText(Time.now()) # "_" # Nat32.toText(proposer);
+    
+    let proposal : ConsensusProposal = {
+      proposalId = proposalId;
+      proposer = proposer;
+      content = content;
+      timestamp = Time.now();
+      var status = #Voting;
+      var yesVotes = 0;
+      var noVotes = 0;
+      requiredQuorum = quorum;
+    };
+    
+    state.proposals := Array.append(state.proposals, [proposal]);
+    
+    proposalId
+  };
+
+  /// Cast vote
+  public func castVote(
+    state : ConsensusState,
+    nodeId : Nat32,
+    proposalId : Text,
+    vote : Bool
+  ) : Bool {
+    // Check if node has already voted
+    for ((pId, nId, _) in state.votes.vals()) {
+      if (pId == proposalId and nId == nodeId) {
+        return false;  // Already voted
+      };
+    };
+    
+    // Record vote
+    state.votes := Array.append(state.votes, [(proposalId, nodeId, vote)]);
+    
+    // Update proposal vote count
+    for (proposal in state.proposals.vals()) {
+      if (proposal.proposalId == proposalId) {
+        if (vote) {
+          proposal.yesVotes += 1;
+        } else {
+          proposal.noVotes += 1;
+        };
+        
+        // Check if consensus reached
+        let totalVotes = proposal.yesVotes + proposal.noVotes;
+        let totalNodes = state.nodes.size();
+        
+        if (totalNodes > 0 and Float.fromInt(totalVotes) / Float.fromInt(totalNodes) >= proposal.requiredQuorum) {
+          let accepted = Float.fromInt(proposal.yesVotes) / Float.fromInt(totalVotes) > 0.5;
+          proposal.status := if (accepted) #Accepted else #Rejected;
+          
+          // Record decision
+          var participatingNodes : [Nat32] = [];
+          for ((pId, nId, _) in state.votes.vals()) {
+            if (pId == proposalId) {
+              participatingNodes := Array.append(participatingNodes, [nId]);
+            };
+          };
+          
+          let decision : ConsensusDecision = {
+            decisionId = Int.toText(Time.now());
+            proposalId = proposalId;
+            outcome = accepted;
+            timestamp = Time.now();
+            participatingNodes = participatingNodes;
+            finalVotes = {yes = proposal.yesVotes; no = proposal.noVotes};
+          };
+          
+          state.decisions := Array.append(state.decisions, [decision]);
+        };
+      };
+    };
+    
+    true
+  };
+
+  /// Run consensus round (Raft-style)
+  public func runConsensusRound(state : ConsensusState) : () {
+    state.currentRound += 1;
+    
+    switch (state.consensusAlgorithm) {
+      case (#Raft) {
+        // Find leader
+        var leader : ?ConsensusNode = null;
+        for (node in state.nodes.vals()) {
+          if (node.state == #Leader) leader := ?node;
+        };
+        
+        switch (leader) {
+          case (?l) {
+            // Leader sends heartbeats and processes proposals
+            for (node in state.nodes.vals()) {
+              if (node.nodeId != l.nodeId and node.state != #Offline) {
+                node.lastHeartbeat := Time.now();
+              };
+            };
+          };
+          case (null) {
+            // Election needed
+            runLeaderElection(state);
+          };
+        };
+      };
+      
+      case (#SimpleMajority) {
+        // Process all pending proposals
+        for (proposal in state.proposals.vals()) {
+          if (proposal.status == #Voting) {
+            let totalVotes = proposal.yesVotes + proposal.noVotes;
+            if (totalVotes >= state.nodes.size() / 2) {
+              let accepted = proposal.yesVotes > proposal.noVotes;
+              proposal.status := if (accepted) #Accepted else #Rejected;
+            };
+          };
+        };
+      };
+      
+      case _ {};
+    };
+  };
+
+  /// Run leader election (Raft-style)
+  func runLeaderElection(state : ConsensusState) : () {
+    // Find node with highest trust score
+    var bestNode : ?ConsensusNode = null;
+    var bestScore = -1.0;
+    
+    for (node in state.nodes.vals()) {
+      if (node.state != #Offline and node.trustScore > bestScore) {
+        bestScore := node.trustScore;
+        bestNode := ?node;
+      };
+    };
+    
+    switch (bestNode) {
+      case (?node) {
+        // Make this node the leader
+        for (n in state.nodes.vals()) {
+          if (n.nodeId == node.nodeId) {
+            n.state := #Leader;
+          } else if (n.state != #Offline) {
+            n.state := #Follower;
+          };
+        };
+      };
+      case (null) {};
+    };
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // FAULT TOLERANCE AND RECOVERY
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Fault tolerance state
+  public type FaultToleranceState = {
+    var monitors : [FaultMonitor];
+    var detectedFaults : [DetectedFault];
+    var recoveryActions : [RecoveryAction];
+    var checkpoints : [SystemCheckpoint];
+    var redundancyLevel : Nat;
+  };
+
+  public type FaultMonitor = {
+    monitorId : Text;
+    targetComponent : Text;
+    monitorType : MonitorType;
+    var status : MonitorStatus;
+    checkInterval : Float;
+    var lastCheck : Int;
+    var failureCount : Nat;
+    failureThreshold : Nat;
+  };
+
+  public type MonitorType = {
+    #Heartbeat;
+    #ResponseTime;
+    #ErrorRate;
+    #ResourceUsage;
+    #DataIntegrity;
+    #Consensus;
+  };
+
+  public type MonitorStatus = {
+    #Healthy;
+    #Degraded;
+    #Failed;
+    #Unknown;
+  };
+
+  public type DetectedFault = {
+    faultId : Text;
+    faultType : FaultType;
+    component : Text;
+    timestamp : Int;
+    severity : FaultSeverity;
+    description : Text;
+    var isResolved : Bool;
+    var resolvedAt : ?Int;
+    var recoveryAttempts : Nat;
+  };
+
+  public type FaultType = {
+    #Crash;
+    #Timeout;
+    #CorruptedData;
+    #NetworkPartition;
+    #ResourceExhaustion;
+    #Byzantine;
+    #SoftError;
+  };
+
+  public type FaultSeverity = {
+    #Low;
+    #Medium;
+    #High;
+    #Critical;
+  };
+
+  public type RecoveryAction = {
+    actionId : Text;
+    faultId : Text;
+    actionType : RecoveryActionType;
+    timestamp : Int;
+    var status : RecoveryStatus;
+    var result : ?Text;
+  };
+
+  public type RecoveryActionType = {
+    #Restart;
+    #Rollback;
+    #Failover;
+    #Reconfigure;
+    #ScaleOut;
+    #Isolate;
+    #Manual;
+  };
+
+  public type RecoveryStatus = {
+    #Pending;
+    #InProgress;
+    #Succeeded;
+    #Failed;
+  };
+
+  public type SystemCheckpoint = {
+    checkpointId : Text;
+    timestamp : Int;
+    stateHash : Blob;
+    stateData : Blob;
+    componentStates : [(Text, Blob)];
+    var isValid : Bool;
+  };
+
+  /// Initialize fault tolerance
+  public func initFaultTolerance(redundancy : Nat) : FaultToleranceState {
+    {
+      var monitors = [];
+      var detectedFaults = [];
+      var recoveryActions = [];
+      var checkpoints = [];
+      var redundancyLevel = redundancy;
+    }
+  };
+
+  /// Add fault monitor
+  public func addFaultMonitor(
+    state : FaultToleranceState,
+    targetComponent : Text,
+    monitorType : MonitorType,
+    checkInterval : Float,
+    failureThreshold : Nat
+  ) : Text {
+    let monitorId = Int.toText(Time.now());
+    
+    let monitor : FaultMonitor = {
+      monitorId = monitorId;
+      targetComponent = targetComponent;
+      monitorType = monitorType;
+      var status = #Unknown;
+      checkInterval = checkInterval;
+      var lastCheck = Time.now();
+      var failureCount = 0;
+      failureThreshold = failureThreshold;
+    };
+    
+    state.monitors := Array.append(state.monitors, [monitor]);
+    
+    monitorId
+  };
+
+  /// Check component health
+  public func checkHealth(
+    state : FaultToleranceState,
+    monitorId : Text,
+    isHealthy : Bool
+  ) : () {
+    for (monitor in state.monitors.vals()) {
+      if (monitor.monitorId == monitorId) {
+        monitor.lastCheck := Time.now();
+        
+        if (isHealthy) {
+          monitor.status := #Healthy;
+          monitor.failureCount := 0;
+        } else {
+          monitor.failureCount += 1;
+          
+          if (monitor.failureCount >= monitor.failureThreshold) {
+            monitor.status := #Failed;
+            
+            // Create detected fault
+            let fault : DetectedFault = {
+              faultId = Int.toText(Time.now());
+              faultType = switch (monitor.monitorType) {
+                case (#Heartbeat) #Crash;
+                case (#ResponseTime) #Timeout;
+                case (#ErrorRate) #SoftError;
+                case (#ResourceUsage) #ResourceExhaustion;
+                case (#DataIntegrity) #CorruptedData;
+                case (#Consensus) #Byzantine;
+              };
+              component = monitor.targetComponent;
+              timestamp = Time.now();
+              severity = if (monitor.failureCount > monitor.failureThreshold * 2) #Critical else #High;
+              description = "Monitor " # monitorId # " detected failure";
+              var isResolved = false;
+              var resolvedAt = null;
+              var recoveryAttempts = 0;
+            };
+            
+            state.detectedFaults := Array.append(state.detectedFaults, [fault]);
+          } else {
+            monitor.status := #Degraded;
+          };
+        };
+      };
+    };
+  };
+
+  /// Initiate recovery
+  public func initiateRecovery(
+    state : FaultToleranceState,
+    faultId : Text,
+    actionType : RecoveryActionType
+  ) : Text {
+    let actionId = Int.toText(Time.now());
+    
+    let action : RecoveryAction = {
+      actionId = actionId;
+      faultId = faultId;
+      actionType = actionType;
+      timestamp = Time.now();
+      var status = #InProgress;
+      var result = null;
+    };
+    
+    state.recoveryActions := Array.append(state.recoveryActions, [action]);
+    
+    // Update fault recovery attempts
+    for (fault in state.detectedFaults.vals()) {
+      if (fault.faultId == faultId) {
+        fault.recoveryAttempts += 1;
+      };
+    };
+    
+    actionId
+  };
+
+  /// Complete recovery
+  public func completeRecovery(
+    state : FaultToleranceState,
+    actionId : Text,
+    success : Bool,
+    result : Text
+  ) : () {
+    for (action in state.recoveryActions.vals()) {
+      if (action.actionId == actionId) {
+        action.status := if (success) #Succeeded else #Failed;
+        action.result := ?result;
+        
+        // Mark fault as resolved if successful
+        if (success) {
+          for (fault in state.detectedFaults.vals()) {
+            if (fault.faultId == action.faultId) {
+              fault.isResolved := true;
+              fault.resolvedAt := ?Time.now();
+            };
+          };
+        };
+      };
+    };
+  };
+
+  /// Create checkpoint
+  public func createCheckpoint(
+    state : FaultToleranceState,
+    stateData : Blob,
+    componentStates : [(Text, Blob)]
+  ) : Text {
+    let checkpointId = Int.toText(Time.now());
+    
+    // Simple hash (would use proper hash in production)
+    let stateHash = stateData;
+    
+    let checkpoint : SystemCheckpoint = {
+      checkpointId = checkpointId;
+      timestamp = Time.now();
+      stateHash = stateHash;
+      stateData = stateData;
+      componentStates = componentStates;
+      var isValid = true;
+    };
+    
+    state.checkpoints := Array.append(state.checkpoints, [checkpoint]);
+    
+    // Keep only recent checkpoints
+    if (state.checkpoints.size() > 10) {
+      state.checkpoints := Array.tabulate<SystemCheckpoint>(10, func(i : Nat) : SystemCheckpoint {
+        state.checkpoints[state.checkpoints.size() - 10 + i]
+      });
+    };
+    
+    checkpointId
+  };
+
+  /// Rollback to checkpoint
+  public func rollbackToCheckpoint(
+    state : FaultToleranceState,
+    checkpointId : Text
+  ) : ?SystemCheckpoint {
+    for (checkpoint in state.checkpoints.vals()) {
+      if (checkpoint.checkpointId == checkpointId and checkpoint.isValid) {
+        return ?checkpoint;
+      };
+    };
+    null
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ADAPTIVE LOAD BALANCING
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Load balancer state
+  public type LoadBalancerState = {
+    var workers : [WorkerNode];
+    var taskQueue : [LoadTask];
+    var assignments : [(Text, Nat32)];  // (taskId, workerId)
+    var metrics : LoadMetrics;
+    balancingStrategy : BalancingStrategy;
+  };
+
+  public type WorkerNode = {
+    workerId : Nat32;
+    var capacity : Float;
+    var currentLoad : Float;
+    var tasksAssigned : Nat;
+    var tasksCompleted : Nat;
+    var avgProcessingTime : Float;
+    var isAvailable : Bool;
+    var lastUpdate : Int;
+    specializations : [Text];
+  };
+
+  public type LoadTask = {
+    taskId : Text;
+    taskType : Text;
+    priority : Nat;
+    estimatedLoad : Float;
+    deadline : ?Int;
+    requirements : [Text];
+    var status : LoadTaskStatus;
+    var assignedWorker : ?Nat32;
+    var startTime : ?Int;
+    var endTime : ?Int;
+  };
+
+  public type LoadTaskStatus = {
+    #Queued;
+    #Assigned;
+    #Running;
+    #Completed;
+    #Failed;
+  };
+
+  public type LoadMetrics = {
+    var totalTasksProcessed : Nat;
+    var avgWaitTime : Float;
+    var avgProcessingTime : Float;
+    var throughput : Float;
+    var utilizationRate : Float;
+    var loadVariance : Float;
+  };
+
+  public type BalancingStrategy = {
+    #RoundRobin;
+    #LeastLoaded;
+    #WeightedRandom;
+    #Affinity;
+    #AdaptiveLearning;
+  };
+
+  /// Initialize load balancer
+  public func initLoadBalancer(strategy : BalancingStrategy) : LoadBalancerState {
+    {
+      var workers = [];
+      var taskQueue = [];
+      var assignments = [];
+      var metrics = {
+        var totalTasksProcessed = 0;
+        var avgWaitTime = 0.0;
+        var avgProcessingTime = 0.0;
+        var throughput = 0.0;
+        var utilizationRate = 0.0;
+        var loadVariance = 0.0;
+      };
+      balancingStrategy = strategy;
+    }
+  };
+
+  /// Add worker
+  public func addWorker(
+    state : LoadBalancerState,
+    capacity : Float,
+    specializations : [Text]
+  ) : Nat32 {
+    let workerId = Nat32.fromNat(state.workers.size());
+    
+    let worker : WorkerNode = {
+      workerId = workerId;
+      var capacity = capacity;
+      var currentLoad = 0.0;
+      var tasksAssigned = 0;
+      var tasksCompleted = 0;
+      var avgProcessingTime = 0.0;
+      var isAvailable = true;
+      var lastUpdate = Time.now();
+      specializations = specializations;
+    };
+    
+    state.workers := Array.append(state.workers, [worker]);
+    
+    workerId
+  };
+
+  /// Submit task
+  public func submitTask(
+    state : LoadBalancerState,
+    taskType : Text,
+    priority : Nat,
+    estimatedLoad : Float,
+    deadline : ?Int,
+    requirements : [Text]
+  ) : Text {
+    let taskId = Int.toText(Time.now());
+    
+    let task : LoadTask = {
+      taskId = taskId;
+      taskType = taskType;
+      priority = priority;
+      estimatedLoad = estimatedLoad;
+      deadline = deadline;
+      requirements = requirements;
+      var status = #Queued;
+      var assignedWorker = null;
+      var startTime = null;
+      var endTime = null;
+    };
+    
+    state.taskQueue := Array.append(state.taskQueue, [task]);
+    
+    taskId
+  };
+
+  /// Assign tasks to workers
+  public func assignTasks(state : LoadBalancerState) : () {
+    // Sort queue by priority
+    let sortedQueue = Array.sort<LoadTask>(
+      Array.filter<LoadTask>(state.taskQueue, func(t : LoadTask) : Bool {
+        t.status == #Queued
+      }),
+      func(a, b : LoadTask) : Order.Order {
+        if (a.priority > b.priority) #less else if (a.priority < b.priority) #greater else #equal
+      }
+    );
+    
+    for (task in sortedQueue.vals()) {
+      let worker = selectWorker(state, task);
+      
+      switch (worker) {
+        case (?w) {
+          task.status := #Assigned;
+          task.assignedWorker := ?w.workerId;
+          task.startTime := ?Time.now();
+          
+          w.currentLoad += task.estimatedLoad;
+          w.tasksAssigned += 1;
+          
+          state.assignments := Array.append(state.assignments, [(task.taskId, w.workerId)]);
+        };
+        case (null) {};
+      };
+    };
+  };
+
+  /// Select worker based on strategy
+  func selectWorker(state : LoadBalancerState, task : LoadTask) : ?WorkerNode {
+    // Filter available workers with capacity
+    var candidates : [WorkerNode] = [];
+    
+    for (worker in state.workers.vals()) {
+      if (worker.isAvailable and worker.currentLoad + task.estimatedLoad <= worker.capacity) {
+        // Check requirements
+        var meetsRequirements = true;
+        for (req in task.requirements.vals()) {
+          var hasSpec = false;
+          for (spec in worker.specializations.vals()) {
+            if (spec == req) hasSpec := true;
+          };
+          if (not hasSpec) meetsRequirements := false;
+        };
+        
+        if (meetsRequirements) {
+          candidates := Array.append(candidates, [worker]);
+        };
+      };
+    };
+    
+    if (candidates.size() == 0) return null;
+    
+    switch (state.balancingStrategy) {
+      case (#RoundRobin) {
+        // Simple round robin
+        ?candidates[state.metrics.totalTasksProcessed % candidates.size()]
+      };
+      
+      case (#LeastLoaded) {
+        // Find worker with lowest load
+        var best : ?WorkerNode = null;
+        var lowestLoad = 1e10;
+        
+        for (worker in candidates.vals()) {
+          if (worker.currentLoad < lowestLoad) {
+            lowestLoad := worker.currentLoad;
+            best := ?worker;
+          };
+        };
+        
+        best
+      };
+      
+      case (#WeightedRandom) {
+        // Random weighted by available capacity
+        var totalCapacity = 0.0;
+        for (worker in candidates.vals()) {
+          totalCapacity += worker.capacity - worker.currentLoad;
+        };
+        
+        var random = randomFloat() * totalCapacity;
+        
+        for (worker in candidates.vals()) {
+          random -= worker.capacity - worker.currentLoad;
+          if (random <= 0.0) {
+            return ?worker;
+          };
+        };
+        
+        ?candidates[0]
+      };
+      
+      case (#Affinity) {
+        // Prefer workers with matching specializations
+        var best : ?WorkerNode = null;
+        var bestScore = 0;
+        
+        for (worker in candidates.vals()) {
+          var score = 0;
+          for (spec in worker.specializations.vals()) {
+            if (spec == task.taskType) {
+              score += 10;
+            };
+          };
+          
+          if (score > bestScore) {
+            bestScore := score;
+            best := ?worker;
+          };
+        };
+        
+        switch (best) {
+          case (?b) ?b;
+          case (null) ?candidates[0];
+        }
+      };
+      
+      case (#AdaptiveLearning) {
+        // Use historical performance
+        var best : ?WorkerNode = null;
+        var bestScore = -1e10;
+        
+        for (worker in candidates.vals()) {
+          // Score based on success rate and processing time
+          let successRate = if (worker.tasksAssigned > 0) {
+            Float.fromInt(worker.tasksCompleted) / Float.fromInt(worker.tasksAssigned)
+          } else {
+            0.5
+          };
+          
+          let timeScore = if (worker.avgProcessingTime > 0.0) {
+            1.0 / worker.avgProcessingTime
+          } else {
+            1.0
+          };
+          
+          let loadScore = 1.0 - worker.currentLoad / worker.capacity;
+          
+          let totalScore = successRate * 0.3 + timeScore * 0.3 + loadScore * 0.4;
+          
+          if (totalScore > bestScore) {
+            bestScore := totalScore;
+            best := ?worker;
+          };
+        };
+        
+        best
+      };
+    }
+  };
+
+  /// Complete task
+  public func completeTask(
+    state : LoadBalancerState,
+    taskId : Text,
+    success : Bool
+  ) : () {
+    for (task in state.taskQueue.vals()) {
+      if (task.taskId == taskId) {
+        task.status := if (success) #Completed else #Failed;
+        task.endTime := ?Time.now();
+        
+        // Update worker stats
+        switch (task.assignedWorker) {
+          case (?workerId) {
+            for (worker in state.workers.vals()) {
+              if (worker.workerId == workerId) {
+                worker.currentLoad -= task.estimatedLoad;
+                
+                if (success) {
+                  worker.tasksCompleted += 1;
+                  
+                  // Update average processing time
+                  switch (task.startTime, task.endTime) {
+                    case (?start, ?end) {
+                      let processingTime = Float.fromInt(end - start) / 1e9;
+                      let alpha = 0.2;
+                      worker.avgProcessingTime := alpha * processingTime + (1.0 - alpha) * worker.avgProcessingTime;
+                    };
+                    case _ {};
+                  };
+                };
+              };
+            };
+          };
+          case (null) {};
+        };
+        
+        // Update metrics
+        state.metrics.totalTasksProcessed += 1;
+      };
+    };
+    
+    // Update aggregate metrics
+    updateLoadMetrics(state);
+  };
+
+  /// Update load metrics
+  func updateLoadMetrics(state : LoadBalancerState) : () {
+    var totalLoad = 0.0;
+    var totalCapacity = 0.0;
+    var loadSum = 0.0;
+    var loadSumSq = 0.0;
+    
+    for (worker in state.workers.vals()) {
+      if (worker.isAvailable) {
+        totalLoad += worker.currentLoad;
+        totalCapacity += worker.capacity;
+        loadSum += worker.currentLoad;
+        loadSumSq += worker.currentLoad * worker.currentLoad;
+      };
+    };
+    
+    let n = Float.fromInt(state.workers.size());
+    
+    if (totalCapacity > 0.0) {
+      state.metrics.utilizationRate := totalLoad / totalCapacity;
+    };
+    
+    if (n > 0.0) {
+      let mean = loadSum / n;
+      state.metrics.loadVariance := loadSumSq / n - mean * mean;
+    };
+  };
+
   // Continue building toward 150,000 lines...
-  // Current: ~18,500 lines
-  // Remaining: ~131,500 lines
+  // Current: ~19,000 lines
+  // Remaining: ~131,000 lines
 
 }
