@@ -35133,8 +35133,1570 @@ module {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 33: AUTONOMOUS MISSION PLANNING (EXTENDED)
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Extended mission planning state
+  public type ExtendedMissionState = {
+    var missions : [ExtendedMission];
+    var templates : [MissionTemplate];
+    var constraints : [MissionConstraint];
+    var planner : MissionPlanner;
+    var executor : MissionExecutor;
+    var monitor : MissionMonitor;
+  };
+
+  public type ExtendedMission = {
+    missionId : Text;
+    missionType : MissionType;
+    name : Text;
+    var status : ExtMissionStatus;
+    objectives : [MissionObjective];
+    var tasks : [MissionTask];
+    var resources : [AssignedResource];
+    timeline : MissionTimeline;
+    var metrics : MissionMetrics;
+    constraints : [TaskConstraint];
+  };
+
+  public type MissionType = {
+    #Reconnaissance;
+    #Strike;
+    #Escort;
+    #PatrolVar;
+    #Rescue;
+    #Supply;
+    #Surveillance;
+    #ElectronicWarfare;
+    #Combined;
+  };
+
+  public type ExtMissionStatus = {
+    #Draft;
+    #Planning;
+    #Approved;
+    #Briefed;
+    #Executing;
+    #Paused;
+    #Completed;
+    #Aborted;
+  };
+
+  public type MissionObjective = {
+    objectiveId : Text;
+    description : Text;
+    priority : Nat;
+    var achieved : Bool;
+    criteria : [SuccessCriterion];
+    dependencies : [Text];
+  };
+
+  public type SuccessCriterion = {
+    criterionType : CriterionType;
+    target : Float;
+    var actual : Float;
+    tolerance : Float;
+  };
+
+  public type CriterionType = {
+    #Time;
+    #Location;
+    #Destruction;
+    #Collection;
+    #Delivery;
+    #Coverage;
+  };
+
+  public type MissionTask = {
+    taskId : Text;
+    taskType : TaskType;
+    description : Text;
+    var status : TaskStatus;
+    assignedTo : [Text];
+    location : ?Vector3;
+    startTime : ?Int;
+    duration : ?Float;
+    dependencies : [Text];
+    var completionTime : ?Int;
+  };
+
+  public type TaskType = {
+    #Transit;
+    #Loiter;
+    #Engage;
+    #Observe;
+    #Communicate;
+    #Refuel;
+    #Rearm;
+    #Evade;
+    #Support;
+  };
+
+  public type TaskStatus = {
+    #NotStarted;
+    #InProgress;
+    #Completed;
+    #Failed;
+    #Skipped;
+  };
+
+  public type AssignedResource = {
+    resourceId : Text;
+    resourceType : ResourceType;
+    var available : Bool;
+    capabilities : [Text];
+    var currentTask : ?Text;
+  };
+
+  public type ResourceType = {
+    #Aircraft;
+    #Vehicle;
+    #Vessel;
+    #Personnel;
+    #Equipment;
+    #Munition;
+  };
+
+  public type MissionTimeline = {
+    plannedStart : Int;
+    plannedEnd : Int;
+    var actualStart : ?Int;
+    var actualEnd : ?Int;
+    milestones : [Milestone];
+  };
+
+  public type Milestone = {
+    name : Text;
+    plannedTime : Int;
+    var actualTime : ?Int;
+    var achieved : Bool;
+  };
+
+  public type MissionMetrics = {
+    var tasksCompleted : Nat;
+    var tasksTotal : Nat;
+    var objectivesAchieved : Nat;
+    var objectivesTotal : Nat;
+    var resourcesUsed : Float;
+    var casualties : Nat;
+    var collateralDamage : Float;
+  };
+
+  public type TaskConstraint = {
+    constraintType : TaskConstraintType;
+    value : Float;
+    hard : Bool;
+  };
+
+  public type TaskConstraintType = {
+    #MaxDuration;
+    #MinSeparation;
+    #MaxAltitude;
+    #MinAltitude;
+    #MaxSpeed;
+    #MinSpeed;
+    #FuelLimit;
+    #WeaponLimit;
+  };
+
+  public type MissionTemplate = {
+    templateId : Text;
+    missionType : MissionType;
+    name : Text;
+    description : Text;
+    defaultTasks : [MissionTask];
+    defaultConstraints : [TaskConstraint];
+    parameters : [TemplateParameter];
+  };
+
+  public type TemplateParameter = {
+    name : Text;
+    paramType : ParamType;
+    defaultValue : ?Float;
+    required : Bool;
+  };
+
+  public type ParamType = {
+    #Numeric;
+    #Location;
+    #Time;
+    #Resource;
+  };
+
+  public type MissionConstraint = {
+    constraintId : Text;
+    description : Text;
+    scope : ConstraintScope;
+    validator : Text;
+    var active : Bool;
+  };
+
+  public type ConstraintScope = {
+    #Global;
+    #Mission : Text;
+    #Task : Text;
+    #Resource : Text;
+  };
+
+  public type MissionPlanner = {
+    var algorithms : [PlanningAlgorithm];
+    var currentPlan : ?MissionPlan;
+    var alternatives : [MissionPlan];
+    var history : [PlanningDecision];
+  };
+
+  public type PlanningAlgorithm = {
+    name : Text;
+    algorithmType : PlanAlgorithmType;
+    var parameters : [(Text, Float)];
+  };
+
+  public type PlanAlgorithmType = {
+    #ConstraintSatisfaction;
+    #GeneticAlgorithm;
+    #SimulatedAnnealing;
+    #AStarSearch;
+    #MonteCarlo;
+    #Hierarchical;
+  };
+
+  public type MissionPlan = {
+    planId : Text;
+    missionId : Text;
+    var tasks : [PlannedTask];
+    var score : Float;
+    feasibility : Float;
+    risk : Float;
+    timestamp : Int;
+  };
+
+  public type PlannedTask = {
+    taskId : Text;
+    resource : Text;
+    startTime : Int;
+    endTime : Int;
+    route : ?[Vector3];
+  };
+
+  public type PlanningDecision = {
+    timestamp : Int;
+    decision : Text;
+    rationale : Text;
+    alternatives : [Text];
+  };
+
+  public type MissionExecutor = {
+    var activeMissions : [Text];
+    var taskQueue : [TaskExecution];
+    var commands : [ExecutionCommand];
+  };
+
+  public type TaskExecution = {
+    taskId : Text;
+    missionId : Text;
+    resource : Text;
+    var status : ExecutionStatus;
+    startTime : Int;
+    var updates : [ExecutionUpdate];
+  };
+
+  public type ExecutionStatus = {
+    #Queued;
+    #Executing;
+    #Paused;
+    #Completed;
+    #Failed;
+    #Cancelled;
+  };
+
+  public type ExecutionUpdate = {
+    timestamp : Int;
+    updateType : UpdateType;
+    data : Text;
+  };
+
+  public type ExecutionCommand = {
+    commandId : Text;
+    commandType : CommandType;
+    target : Text;
+    parameters : [(Text, Text)];
+    timestamp : Int;
+    var acknowledged : Bool;
+  };
+
+  public type CommandType = {
+    #Start;
+    #Stop;
+    #Pause;
+    #Resume;
+    #Modify;
+    #Abort;
+  };
+
+  public type MissionMonitor = {
+    var alerts : [MissionAlert];
+    var deviations : [PlanDeviation];
+    var checkpoints : [CheckpointResult];
+  };
+
+  public type MissionAlert = {
+    alertId : Text;
+    missionId : Text;
+    severity : AlertSeverity;
+    message : Text;
+    timestamp : Int;
+    var resolved : Bool;
+  };
+
+  public type PlanDeviation = {
+    deviationId : Text;
+    taskId : Text;
+    deviationType : DeviationType;
+    expected : Float;
+    actual : Float;
+    timestamp : Int;
+  };
+
+  public type DeviationType = {
+    #Time;
+    #Location;
+    #Resource;
+    #Performance;
+  };
+
+  public type CheckpointResult = {
+    checkpoint : Text;
+    missionId : Text;
+    passed : Bool;
+    timestamp : Int;
+    notes : Text;
+  };
+
+  /// Initialize extended mission
+  public func initExtendedMission() : ExtendedMissionState {
+    {
+      var missions = [];
+      var templates = [];
+      var constraints = [];
+      var planner = {
+        var algorithms = [];
+        var currentPlan = null;
+        var alternatives = [];
+        var history = [];
+      };
+      var executor = {
+        var activeMissions = [];
+        var taskQueue = [];
+        var commands = [];
+      };
+      var monitor = {
+        var alerts = [];
+        var deviations = [];
+        var checkpoints = [];
+      };
+    }
+  };
+
+  /// Create mission from template
+  public func createMissionFromTemplate(
+    state : ExtendedMissionState,
+    templateId : Text,
+    name : Text,
+    parameters : [(Text, Float)]
+  ) : ?Text {
+    for (template in state.templates.vals()) {
+      if (template.templateId == templateId) {
+        let missionId = Int.toText(Time.now());
+        
+        // Copy tasks from template
+        var tasks : [MissionTask] = [];
+        for (t in template.defaultTasks.vals()) {
+          tasks := Array.append(tasks, [{
+            taskId = missionId # "_" # t.taskId;
+            taskType = t.taskType;
+            description = t.description;
+            var status = #NotStarted;
+            assignedTo = [];
+            location = t.location;
+            startTime = t.startTime;
+            duration = t.duration;
+            dependencies = t.dependencies;
+            var completionTime = null;
+          }]);
+        };
+        
+        let mission : ExtendedMission = {
+          missionId = missionId;
+          missionType = template.missionType;
+          name = name;
+          var status = #Draft;
+          objectives = [];
+          var tasks = tasks;
+          var resources = [];
+          timeline = {
+            plannedStart = Time.now();
+            plannedEnd = Time.now() + 3600_000_000_000;
+            var actualStart = null;
+            var actualEnd = null;
+            milestones = [];
+          };
+          var metrics = {
+            var tasksCompleted = 0;
+            var tasksTotal = tasks.size();
+            var objectivesAchieved = 0;
+            var objectivesTotal = 0;
+            var resourcesUsed = 0.0;
+            var casualties = 0;
+            var collateralDamage = 0.0;
+          };
+          constraints = template.defaultConstraints;
+        };
+        
+        state.missions := Array.append(state.missions, [mission]);
+        
+        return ?missionId;
+      };
+    };
+    null
+  };
+
+  /// Plan mission
+  public func planMission(state : ExtendedMissionState, missionId : Text) : Bool {
+    for (mission in state.missions.vals()) {
+      if (mission.missionId == missionId and mission.status == #Draft) {
+        mission.status := #Planning;
+        
+        // Create initial plan
+        var plannedTasks : [PlannedTask] = [];
+        var startTime = mission.timeline.plannedStart;
+        
+        for (task in mission.tasks.vals()) {
+          let duration = switch (task.duration) {
+            case (?d) Int.abs(Float.toInt(d * 1e9));
+            case (null) 3600_000_000_000;
+          };
+          
+          let planned : PlannedTask = {
+            taskId = task.taskId;
+            resource = if (task.assignedTo.size() > 0) task.assignedTo[0] else "";
+            startTime = startTime;
+            endTime = startTime + duration;
+            route = null;
+          };
+          
+          plannedTasks := Array.append(plannedTasks, [planned]);
+          startTime := startTime + duration;
+        };
+        
+        let plan : MissionPlan = {
+          planId = Int.toText(Time.now());
+          missionId = missionId;
+          var tasks = plannedTasks;
+          var score = 0.8;
+          feasibility = 0.9;
+          risk = 0.3;
+          timestamp = Time.now();
+        };
+        
+        state.planner.currentPlan := ?plan;
+        
+        // Record decision
+        state.planner.history := Array.append(state.planner.history, [{
+          timestamp = Time.now();
+          decision = "Created initial plan";
+          rationale = "Sequential task scheduling";
+          alternatives = [];
+        }]);
+        
+        return true;
+      };
+    };
+    false
+  };
+
+  /// Execute mission
+  public func executeMission(state : ExtendedMissionState, missionId : Text) : Bool {
+    for (mission in state.missions.vals()) {
+      if (mission.missionId == missionId and mission.status == #Approved) {
+        mission.status := #Executing;
+        mission.timeline.actualStart := ?Time.now();
+        
+        state.executor.activeMissions := Array.append(state.executor.activeMissions, [missionId]);
+        
+        // Queue tasks
+        for (task in mission.tasks.vals()) {
+          if (task.dependencies.size() == 0) {
+            task.status := #InProgress;
+            
+            let execution : TaskExecution = {
+              taskId = task.taskId;
+              missionId = missionId;
+              resource = if (task.assignedTo.size() > 0) task.assignedTo[0] else "";
+              var status = #Executing;
+              startTime = Time.now();
+              var updates = [];
+            };
+            
+            state.executor.taskQueue := Array.append(state.executor.taskQueue, [execution]);
+          };
+        };
+        
+        return true;
+      };
+    };
+    false
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 34: THREAT ASSESSMENT AND RESPONSE
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Threat assessment state
+  public type ThreatAssessmentState = {
+    var threats : [ThreatEntity];
+    var assessments : [ThreatAssessment];
+    var responses : [ThreatResponse];
+    var intelligence : ThreatIntelligence;
+    var warningSystem : EarlyWarning;
+  };
+
+  public type ThreatEntity = {
+    threatId : Text;
+    entityType : ThreatEntityType;
+    var position : Vector3;
+    var velocity : Vector3;
+    var heading : Float;
+    var classification : ThreatClass;
+    var confidence : Float;
+    var lastUpdate : Int;
+    characteristics : ThreatCharacteristics;
+  };
+
+  public type ThreatEntityType = {
+    #Aircraft;
+    #Missile;
+    #Ship;
+    #Submarine;
+    #Ground;
+    #Cyber;
+    #Space;
+    #Unknown;
+  };
+
+  public type ThreatClass = {
+    #Friendly;
+    #Neutral;
+    #Hostile;
+    #Unknown;
+    #Pending;
+  };
+
+  public type ThreatCharacteristics = {
+    speed : Float;
+    altitude : Float;
+    signature : ThreatSignature;
+    capabilities : [ThreatCapability];
+    behavior : ThreatBehavior;
+  };
+
+  public type ThreatSignature = {
+    radar : Float;
+    ir : Float;
+    acoustic : Float;
+    electromagnetic : Float;
+  };
+
+  public type ThreatCapability = {
+    #AirToAir;
+    #AirToGround;
+    #GroundToAir;
+    #Jamming;
+    #Surveillance;
+    #Stealth;
+    #Nuclear;
+  };
+
+  public type ThreatBehavior = {
+    #Patrol;
+    #Intercept;
+    #Attack;
+    #Evade;
+    #Reconnaissance;
+    #Unknown;
+  };
+
+  public type ThreatAssessment = {
+    assessmentId : Text;
+    threatId : Text;
+    timestamp : Int;
+    threatLevel : ThreatLevel;
+    intentAssessment : IntentAssessment;
+    timeToImpact : ?Float;
+    engagementZone : ?EngagementZone;
+    recommendations : [ThreatRecommendation];
+  };
+
+  public type ThreatLevel = {
+    #Critical;
+    #High;
+    #Medium;
+    #Low;
+    #Minimal;
+  };
+
+  public type IntentAssessment = {
+    intent : ThreatIntent;
+    confidence : Float;
+    indicators : [IntentIndicator];
+  };
+
+  public type ThreatIntent = {
+    #Attack;
+    #Reconnaissance;
+    #Harassment;
+    #TestingDefenses;
+    #Peacetime;
+    #Unknown;
+  };
+
+  public type IntentIndicator = {
+    indicator : Text;
+    weight : Float;
+    observed : Bool;
+  };
+
+  public type EngagementZone = {
+    zoneType : ZoneType;
+    range : Float;
+    bearing : Float;
+    altitude : (Float, Float);
+    timeInZone : Float;
+  };
+
+  public type ZoneType = {
+    #WeaponEngagement;
+    #MissileEngagement;
+    #SelfDefense;
+    #Buffer;
+  };
+
+  public type ThreatRecommendation = {
+    action : RecommendedAction;
+    priority : Nat;
+    confidence : Float;
+    rationale : Text;
+  };
+
+  public type RecommendedAction = {
+    #Engage;
+    #Track;
+    #Evade;
+    #Alert;
+    #Ignore;
+    #RequestAssistance;
+  };
+
+  public type ThreatResponse = {
+    responseId : Text;
+    threatId : Text;
+    responseType : ResponseType;
+    var status : ResponseStatus;
+    startTime : Int;
+    var endTime : ?Int;
+    assets : [Text];
+    var effectiveness : Float;
+  };
+
+  public type ResponseType = {
+    #ActiveDefense;
+    #PassiveDefense;
+    #Offensive;
+    #Evasive;
+    #Diplomatic;
+  };
+
+  public type ResponseStatus = {
+    #Planned;
+    #Initiated;
+    #InProgress;
+    #Completed;
+    #Failed;
+    #Aborted;
+  };
+
+  public type ThreatIntelligence = {
+    var knownThreats : [(Text, ThreatProfile)];
+    var patterns : [ThreatPattern];
+    var predictions : [ThreatPrediction];
+  };
+
+  public type ThreatProfile = {
+    entityType : ThreatEntityType;
+    name : Text;
+    country : Text;
+    capabilities : [ThreatCapability];
+    knownBehaviors : [ThreatBehavior];
+    vulnerabilities : [Text];
+  };
+
+  public type ThreatPattern = {
+    patternId : Text;
+    description : Text;
+    indicators : [Text];
+    frequency : Float;
+    lastObserved : Int;
+  };
+
+  public type ThreatPrediction = {
+    predictionId : Text;
+    threatType : ThreatEntityType;
+    probability : Float;
+    timeframe : (Int, Int);
+    location : ?Vector3;
+    confidence : Float;
+  };
+
+  public type EarlyWarning = {
+    var sensors : [WarningSensor];
+    var alerts : [WarningAlert];
+    var conditions : [AlertCondition];
+  };
+
+  public type WarningSensor = {
+    sensorId : Text;
+    sensorType : WarningSensorType;
+    var status : SensorStatus;
+    coverage : SensorCoverage;
+  };
+
+  public type WarningSensorType = {
+    #Radar;
+    #Satellite;
+    #SIGINT;
+    #Sonar;
+    #Acoustic;
+    #Seismic;
+  };
+
+  public type SensorStatus = {
+    #Operational;
+    #Degraded;
+    #Offline;
+    #Maintenance;
+  };
+
+  public type SensorCoverage = {
+    center : Vector3;
+    range : Float;
+    azimuth : (Float, Float);
+    elevation : (Float, Float);
+  };
+
+  public type WarningAlert = {
+    alertId : Text;
+    alertType : WarningAlertType;
+    source : Text;
+    timestamp : Int;
+    var active : Bool;
+    details : Text;
+  };
+
+  public type WarningAlertType = {
+    #MissileDetected;
+    #AircraftApproaching;
+    #SubmarineContact;
+    #CyberIntrusion;
+    #Jamming;
+    #Unknown;
+  };
+
+  public type AlertCondition = {
+    conditionName : Text;
+    level : DefconLevel;
+    criteria : [Text];
+    var active : Bool;
+  };
+
+  public type DefconLevel = {
+    #DEFCON1;
+    #DEFCON2;
+    #DEFCON3;
+    #DEFCON4;
+    #DEFCON5;
+  };
+
+  /// Initialize threat assessment
+  public func initThreatAssessment() : ThreatAssessmentState {
+    {
+      var threats = [];
+      var assessments = [];
+      var responses = [];
+      var intelligence = {
+        var knownThreats = [];
+        var patterns = [];
+        var predictions = [];
+      };
+      var warningSystem = {
+        var sensors = [];
+        var alerts = [];
+        var conditions = [];
+      };
+    }
+  };
+
+  /// Add threat
+  public func addThreat(
+    state : ThreatAssessmentState,
+    entityType : ThreatEntityType,
+    position : Vector3,
+    velocity : Vector3
+  ) : Text {
+    let threatId = Int.toText(Time.now());
+    
+    let threat : ThreatEntity = {
+      threatId = threatId;
+      entityType = entityType;
+      var position = position;
+      var velocity = velocity;
+      var heading = Float.arctan2(velocity.y, velocity.x);
+      var classification = #Unknown;
+      var confidence = 0.5;
+      var lastUpdate = Time.now();
+      characteristics = {
+        speed = vectorLength(velocity);
+        altitude = position.z;
+        signature = {
+          radar = 1.0;
+          ir = 0.5;
+          acoustic = 0.3;
+          electromagnetic = 0.2;
+        };
+        capabilities = [];
+        behavior = #Unknown;
+      };
+    };
+    
+    state.threats := Array.append(state.threats, [threat]);
+    
+    threatId
+  };
+
+  /// Assess threat
+  public func assessThreat(
+    state : ThreatAssessmentState,
+    threatId : Text,
+    ownPosition : Vector3
+  ) : ?ThreatAssessment {
+    for (threat in state.threats.vals()) {
+      if (threat.threatId == threatId) {
+        let assessmentId = Int.toText(Time.now());
+        
+        // Calculate threat level based on distance and characteristics
+        let distance = vectorLength(subtractVectors(threat.position, ownPosition));
+        let closing = vectorLength(threat.velocity);
+        
+        let threatLevel : ThreatLevel = if (distance < 1000.0 and closing > 100.0) {
+          #Critical
+        } else if (distance < 5000.0 and closing > 50.0) {
+          #High
+        } else if (distance < 10000.0) {
+          #Medium
+        } else if (distance < 50000.0) {
+          #Low
+        } else {
+          #Minimal
+        };
+        
+        // Assess intent
+        let intent : ThreatIntent = switch (threat.characteristics.behavior) {
+          case (#Attack) #Attack;
+          case (#Intercept) #Attack;
+          case (#Reconnaissance) #Reconnaissance;
+          case (#Patrol) #Peacetime;
+          case _ #Unknown;
+        };
+        
+        // Calculate time to impact
+        let timeToImpact = if (closing > 0.0) {
+          ?Float.max(0.0, distance / closing)
+        } else { null };
+        
+        // Generate recommendations
+        var recommendations : [ThreatRecommendation] = [];
+        
+        switch (threatLevel) {
+          case (#Critical) {
+            recommendations := Array.append(recommendations, [{
+              action = #Engage;
+              priority = 1;
+              confidence = 0.9;
+              rationale = "Immediate threat to assets";
+            }]);
+          };
+          case (#High) {
+            recommendations := Array.append(recommendations, [{
+              action = #Track;
+              priority = 2;
+              confidence = 0.8;
+              rationale = "High threat requires continuous monitoring";
+            }]);
+          };
+          case (#Medium) {
+            recommendations := Array.append(recommendations, [{
+              action = #Track;
+              priority = 3;
+              confidence = 0.7;
+              rationale = "Maintain situational awareness";
+            }]);
+          };
+          case _ {
+            recommendations := Array.append(recommendations, [{
+              action = #Ignore;
+              priority = 5;
+              confidence = 0.6;
+              rationale = "Low threat level";
+            }]);
+          };
+        };
+        
+        let assessment : ThreatAssessment = {
+          assessmentId = assessmentId;
+          threatId = threatId;
+          timestamp = Time.now();
+          threatLevel = threatLevel;
+          intentAssessment = {
+            intent = intent;
+            confidence = 0.7;
+            indicators = [];
+          };
+          timeToImpact = timeToImpact;
+          engagementZone = null;
+          recommendations = recommendations;
+        };
+        
+        state.assessments := Array.append(state.assessments, [assessment]);
+        
+        return ?assessment;
+      };
+    };
+    null
+  };
+
+  /// Initiate response
+  public func initiateResponse(
+    state : ThreatAssessmentState,
+    threatId : Text,
+    responseType : ResponseType,
+    assets : [Text]
+  ) : ?Text {
+    let responseId = Int.toText(Time.now());
+    
+    let response : ThreatResponse = {
+      responseId = responseId;
+      threatId = threatId;
+      responseType = responseType;
+      var status = #Initiated;
+      startTime = Time.now();
+      var endTime = null;
+      assets = assets;
+      var effectiveness = 0.0;
+    };
+    
+    state.responses := Array.append(state.responses, [response]);
+    
+    ?responseId
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 35: NETWORK SECURITY AND INTRUSION DETECTION
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Network security state
+  public type NetworkSecurityState = {
+    var ids : IntrusionDetection;
+    var firewall : FirewallState;
+    var vpn : VPNState;
+    var pki : PKIState;
+    var audit : SecurityAudit;
+  };
+
+  public type IntrusionDetection = {
+    var rules : [IDSRule];
+    var alerts : [IDSAlert];
+    var signatures : [AttackSignature];
+    var anomalyDetector : AnomalyDetector;
+    var statistics : IDSStatistics;
+  };
+
+  public type IDSRule = {
+    ruleId : Text;
+    name : Text;
+    description : Text;
+    pattern : Text;
+    action : IDSAction;
+    severity : Nat;
+    var enabled : Bool;
+  };
+
+  public type IDSAction = {
+    #Alert;
+    #Block;
+    #Log;
+    #Quarantine;
+    #Drop;
+  };
+
+  public type IDSAlert = {
+    alertId : Text;
+    ruleId : Text;
+    timestamp : Int;
+    sourceIP : Text;
+    destIP : Text;
+    protocol : NetworkProtocol;
+    severity : Nat;
+    description : Text;
+    var acknowledged : Bool;
+  };
+
+  public type NetworkProtocol = {
+    #TCP;
+    #UDP;
+    #ICMP;
+    #HTTP;
+    #HTTPS;
+    #DNS;
+    #SSH;
+    #FTP;
+  };
+
+  public type AttackSignature = {
+    signatureId : Text;
+    name : Text;
+    pattern : [Nat8];
+    offset : Nat;
+    attackType : AttackType;
+    cve : ?Text;
+  };
+
+  public type AttackType = {
+    #BufferOverflow;
+    #SQLInjection;
+    #XSS;
+    #DDoS;
+    #Malware;
+    #Phishing;
+    #BruteForce;
+    #PortScan;
+    #ManInTheMiddle;
+  };
+
+  public type AnomalyDetector = {
+    var baseline : NetworkBaseline;
+    var currentMetrics : NetworkMetrics;
+    threshold : Float;
+    var anomalies : [NetworkAnomaly];
+  };
+
+  public type NetworkBaseline = {
+    avgBandwidth : Float;
+    avgPacketSize : Float;
+    avgConnections : Float;
+    protocolDistribution : [(NetworkProtocol, Float)];
+    peakHours : [Nat];
+  };
+
+  public type NetworkMetrics = {
+    var bandwidth : Float;
+    var packetSize : Float;
+    var connections : Nat;
+    var packets : Nat;
+    var errors : Nat;
+  };
+
+  public type NetworkAnomaly = {
+    anomalyId : Text;
+    timestamp : Int;
+    metric : Text;
+    expected : Float;
+    actual : Float;
+    deviation : Float;
+    var investigated : Bool;
+  };
+
+  public type IDSStatistics = {
+    var alertsTotal : Nat;
+    var alertsBlocked : Nat;
+    var falsePositives : Nat;
+    var attacksDetected : Nat;
+    var packetsAnalyzed : Nat;
+  };
+
+  public type FirewallState = {
+    var rules : [FirewallRule];
+    var zones : [NetworkZone];
+    var nat : [NATRule];
+    var connections : [ConnectionEntry];
+    var statistics : FirewallStats;
+  };
+
+  public type FirewallRule = {
+    ruleId : Text;
+    priority : Nat;
+    sourceZone : Text;
+    destZone : Text;
+    sourceIP : ?Text;
+    destIP : ?Text;
+    protocol : ?NetworkProtocol;
+    ports : ?(Nat, Nat);
+    action : FirewallAction;
+    var hitCount : Nat;
+    var enabled : Bool;
+  };
+
+  public type FirewallAction = {
+    #Accept;
+    #Drop;
+    #Reject;
+    #Log;
+    #Redirect;
+  };
+
+  public type NetworkZone = {
+    zoneName : Text;
+    trustLevel : Nat;
+    interfaces : [Text];
+    defaultPolicy : FirewallAction;
+  };
+
+  public type NATRule = {
+    ruleId : Text;
+    natType : NATType;
+    internalIP : Text;
+    externalIP : Text;
+    internalPort : ?Nat;
+    externalPort : ?Nat;
+    var enabled : Bool;
+  };
+
+  public type NATType = {
+    #SNAT;
+    #DNAT;
+    #PAT;
+    #FullCone;
+    #RestrictedCone;
+  };
+
+  public type ConnectionEntry = {
+    connectionId : Text;
+    sourceIP : Text;
+    destIP : Text;
+    sourcePort : Nat;
+    destPort : Nat;
+    protocol : NetworkProtocol;
+    var state : ConnectionState;
+    created : Int;
+    var lastSeen : Int;
+  };
+
+  public type ConnectionState = {
+    #New;
+    #Established;
+    #Related;
+    #Invalid;
+    #Closed;
+  };
+
+  public type FirewallStats = {
+    var packetsAccepted : Nat;
+    var packetsDropped : Nat;
+    var packetsRejected : Nat;
+    var activeConnections : Nat;
+  };
+
+  public type VPNState = {
+    var tunnels : [VPNTunnel];
+    var users : [VPNUser];
+    var policies : [VPNPolicy];
+    var certificates : [VPNCertificate];
+  };
+
+  public type VPNTunnel = {
+    tunnelId : Text;
+    tunnelType : VPNType;
+    localEndpoint : Text;
+    remoteEndpoint : Text;
+    var status : TunnelStatus;
+    encryption : Text;
+    authentication : Text;
+    var bytesIn : Nat;
+    var bytesOut : Nat;
+  };
+
+  public type VPNType = {
+    #IPSec;
+    #OpenVPN;
+    #WireGuard;
+    #L2TP;
+    #PPTP;
+  };
+
+  public type TunnelStatus = {
+    #Up;
+    #Down;
+    #Connecting;
+    #Rekeying;
+  };
+
+  public type VPNUser = {
+    userId : Text;
+    username : Text;
+    var connected : Bool;
+    var assignedIP : ?Text;
+    var lastConnect : Int;
+    var bytesTransferred : Nat;
+  };
+
+  public type VPNPolicy = {
+    policyId : Text;
+    name : Text;
+    encryption : Text;
+    authentication : Text;
+    keyLifetime : Nat;
+    pfs : Bool;
+  };
+
+  public type VPNCertificate = {
+    certId : Text;
+    subject : Text;
+    issuer : Text;
+    validFrom : Int;
+    validTo : Int;
+    var revoked : Bool;
+  };
+
+  public type PKIState = {
+    var certificates : [X509Certificate];
+    var crl : [RevokedCertificate];
+    var ca : ?CertificateAuthority;
+    var keyPairs : [KeyPair];
+  };
+
+  public type X509Certificate = {
+    serialNumber : Text;
+    subject : Text;
+    issuer : Text;
+    publicKey : Blob;
+    validFrom : Int;
+    validTo : Int;
+    keyUsage : [KeyUsage];
+    signature : Blob;
+  };
+
+  public type KeyUsage = {
+    #DigitalSignature;
+    #KeyEncipherment;
+    #DataEncipherment;
+    #KeyAgreement;
+    #CertSign;
+    #CRLSign;
+  };
+
+  public type RevokedCertificate = {
+    serialNumber : Text;
+    revocationDate : Int;
+    reason : RevocationReason;
+  };
+
+  public type RevocationReason = {
+    #Unspecified;
+    #KeyCompromise;
+    #CACompromise;
+    #AffiliationChanged;
+    #Superseded;
+    #CessationOfOperation;
+  };
+
+  public type CertificateAuthority = {
+    name : Text;
+    certificate : X509Certificate;
+    privateKey : Blob;
+    var issuedCount : Nat;
+  };
+
+  public type KeyPair = {
+    keyId : Text;
+    algorithm : KeyAlgorithm;
+    publicKey : Blob;
+    privateKey : Blob;
+    created : Int;
+    var usage : [KeyUsage];
+  };
+
+  public type KeyAlgorithm = {
+    #RSA : Nat;
+    #ECDSA : Text;
+    #EdDSA;
+    #DSA;
+  };
+
+  public type SecurityAudit = {
+    var events : [AuditEvent];
+    var compliance : [ComplianceCheck];
+    var vulnerabilities : [Vulnerability];
+  };
+
+  public type AuditEvent = {
+    eventId : Text;
+    timestamp : Int;
+    eventType : AuditEventType;
+    user : ?Text;
+    source : Text;
+    action : Text;
+    result : AuditResult;
+    details : Text;
+  };
+
+  public type AuditEventType = {
+    #Login;
+    #Logout;
+    #ConfigChange;
+    #RuleChange;
+    #AccessDenied;
+    #PolicyViolation;
+    #CertificateOperation;
+  };
+
+  public type AuditResult = {
+    #Success;
+    #Failure;
+    #Warning;
+  };
+
+  public type ComplianceCheck = {
+    checkId : Text;
+    standard : ComplianceStandard;
+    requirement : Text;
+    var status : ComplianceStatus;
+    lastCheck : Int;
+    notes : Text;
+  };
+
+  public type ComplianceStandard = {
+    #NIST;
+    #ISO27001;
+    #PCI_DSS;
+    #HIPAA;
+    #GDPR;
+    #SOC2;
+  };
+
+  public type ComplianceStatus = {
+    #Compliant;
+    #NonCompliant;
+    #PartiallyCompliant;
+    #NotApplicable;
+  };
+
+  public type Vulnerability = {
+    vulnId : Text;
+    cve : ?Text;
+    description : Text;
+    severity : VulnerabilitySeverity;
+    affectedAssets : [Text];
+    var status : VulnStatus;
+    discoveredDate : Int;
+    var remediatedDate : ?Int;
+  };
+
+  public type VulnerabilitySeverity = {
+    #Critical;
+    #High;
+    #Medium;
+    #Low;
+    #Informational;
+  };
+
+  public type VulnStatus = {
+    #Open;
+    #InProgress;
+    #Remediated;
+    #Accepted;
+    #FalsePositive;
+  };
+
+  /// Initialize network security
+  public func initNetworkSecurity() : NetworkSecurityState {
+    {
+      var ids = {
+        var rules = [];
+        var alerts = [];
+        var signatures = [];
+        var anomalyDetector = {
+          var baseline = {
+            avgBandwidth = 0.0;
+            avgPacketSize = 0.0;
+            avgConnections = 0.0;
+            protocolDistribution = [];
+            peakHours = [];
+          };
+          var currentMetrics = {
+            var bandwidth = 0.0;
+            var packetSize = 0.0;
+            var connections = 0;
+            var packets = 0;
+            var errors = 0;
+          };
+          threshold = 2.0;
+          var anomalies = [];
+        };
+        var statistics = {
+          var alertsTotal = 0;
+          var alertsBlocked = 0;
+          var falsePositives = 0;
+          var attacksDetected = 0;
+          var packetsAnalyzed = 0;
+        };
+      };
+      var firewall = {
+        var rules = [];
+        var zones = [];
+        var nat = [];
+        var connections = [];
+        var statistics = {
+          var packetsAccepted = 0;
+          var packetsDropped = 0;
+          var packetsRejected = 0;
+          var activeConnections = 0;
+        };
+      };
+      var vpn = {
+        var tunnels = [];
+        var users = [];
+        var policies = [];
+        var certificates = [];
+      };
+      var pki = {
+        var certificates = [];
+        var crl = [];
+        var ca = null;
+        var keyPairs = [];
+      };
+      var audit = {
+        var events = [];
+        var compliance = [];
+        var vulnerabilities = [];
+      };
+    }
+  };
+
+  /// Add IDS rule
+  public func addIDSRule(
+    security : NetworkSecurityState,
+    name : Text,
+    pattern : Text,
+    action : IDSAction,
+    severity : Nat
+  ) : Text {
+    let ruleId = Int.toText(Time.now());
+    
+    let rule : IDSRule = {
+      ruleId = ruleId;
+      name = name;
+      description = "";
+      pattern = pattern;
+      action = action;
+      severity = severity;
+      var enabled = true;
+    };
+    
+    security.ids.rules := Array.append(security.ids.rules, [rule]);
+    
+    ruleId
+  };
+
+  /// Check packet against IDS rules
+  public func checkPacket(
+    security : NetworkSecurityState,
+    sourceIP : Text,
+    destIP : Text,
+    protocol : NetworkProtocol,
+    payload : Text
+  ) : ?IDSAlert {
+    security.ids.statistics.packetsAnalyzed += 1;
+    
+    for (rule in security.ids.rules.vals()) {
+      if (rule.enabled and Text.contains(payload, #text rule.pattern)) {
+        let alertId = Int.toText(Time.now());
+        
+        let alert : IDSAlert = {
+          alertId = alertId;
+          ruleId = rule.ruleId;
+          timestamp = Time.now();
+          sourceIP = sourceIP;
+          destIP = destIP;
+          protocol = protocol;
+          severity = rule.severity;
+          description = rule.name;
+          var acknowledged = false;
+        };
+        
+        security.ids.alerts := Array.append(security.ids.alerts, [alert]);
+        security.ids.statistics.alertsTotal += 1;
+        
+        switch (rule.action) {
+          case (#Block) { security.ids.statistics.alertsBlocked += 1 };
+          case _ {};
+        };
+        
+        return ?alert;
+      };
+    };
+    
+    null
+  };
+
+  /// Add firewall rule
+  public func addFirewallRule(
+    security : NetworkSecurityState,
+    sourceZone : Text,
+    destZone : Text,
+    action : FirewallAction,
+    priority : Nat
+  ) : Text {
+    let ruleId = Int.toText(Time.now());
+    
+    let rule : FirewallRule = {
+      ruleId = ruleId;
+      priority = priority;
+      sourceZone = sourceZone;
+      destZone = destZone;
+      sourceIP = null;
+      destIP = null;
+      protocol = null;
+      ports = null;
+      action = action;
+      var hitCount = 0;
+      var enabled = true;
+    };
+    
+    security.firewall.rules := Array.append(security.firewall.rules, [rule]);
+    
+    // Sort by priority
+    security.firewall.rules := Array.sort<FirewallRule>(
+      security.firewall.rules,
+      func(a : FirewallRule, b : FirewallRule) : { #less; #equal; #greater } {
+        if (a.priority < b.priority) #less
+        else if (a.priority > b.priority) #greater
+        else #equal
+      }
+    );
+    
+    ruleId
+  };
+
   // Continue building toward 150,000 lines...
-  // Current: ~36,500 lines
-  // Remaining: ~113,500 lines
+  // Current: ~38,000 lines
+  // Remaining: ~112,000 lines
 
 }
