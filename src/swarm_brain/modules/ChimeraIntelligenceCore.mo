@@ -10249,8 +10249,2158 @@ module {
     tokens
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // REINFORCEMENT LEARNING INFRASTRUCTURE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Multi-Agent Reinforcement Learning state
+  public type MARLState = {
+    var agents : [RLAgent];
+    var centralizedCritic : ?CentralizedCritic;
+    var communicationChannel : CommChannel;
+    var sharedExperience : SharedExperienceBuffer;
+    var jointPolicy : ?JointPolicy;
+    algorithm : MARLAlgorithm;
+  };
+
+  public type RLAgent = {
+    agentId : Nat32;
+    var policy : Policy;
+    var valueFunction : ValueFunction;
+    var experienceBuffer : ExperienceBuffer;
+    var optimizer : RLOptimizer;
+    var explorationStrategy : ExplorationStrategy;
+    var reward : Float;
+    var cumulativeReward : Float;
+    var episodeCount : Nat;
+    var stepCount : Nat;
+  };
+
+  public type Policy = {
+    policyType : PolicyType;
+    var parameters : [[var Float]];
+    inputDim : Nat;
+    outputDim : Nat;
+    var entropy : Float;
+  };
+
+  public type PolicyType = {
+    #Deterministic;
+    #Stochastic;
+    #Categorical;
+    #Gaussian;
+    #MixedGaussian;
+  };
+
+  public type ValueFunction = {
+    functionType : ValueFunctionType;
+    var parameters : [[var Float]];
+    inputDim : Nat;
+    var estimatedValue : Float;
+  };
+
+  public type ValueFunctionType = {
+    #StateValue;
+    #ActionValue;
+    #Advantage;
+    #Dueling;
+  };
+
+  public type ExperienceBuffer = {
+    var buffer : [Experience];
+    maxSize : Nat;
+    var currentIndex : Nat;
+    var isFull : Bool;
+  };
+
+  public type Experience = {
+    state : [Float];
+    action : [Float];
+    reward : Float;
+    nextState : [Float];
+    done : Bool;
+    logProb : ?Float;
+    value : ?Float;
+    advantage : ?Float;
+  };
+
+  public type SharedExperienceBuffer = {
+    var buffer : [(Nat32, Experience)];  // (agentId, experience)
+    maxSize : Nat;
+    var currentIndex : Nat;
+  };
+
+  public type RLOptimizer = {
+    optimizerType : RLOptimizerType;
+    learningRate : Float;
+    var momentum : [var Float];
+    var velocity : [var Float];
+    beta1 : Float;
+    beta2 : Float;
+    epsilon : Float;
+    var t : Nat;
+  };
+
+  public type RLOptimizerType = {
+    #SGD;
+    #Adam;
+    #RMSprop;
+    #Adagrad;
+  };
+
+  public type ExplorationStrategy = {
+    strategyType : ExplorationStrategyType;
+    var epsilon : Float;
+    epsilonDecay : Float;
+    epsilonMin : Float;
+    var temperature : Float;
+    temperatureDecay : Float;
+  };
+
+  public type ExplorationStrategyType = {
+    #EpsilonGreedy;
+    #Boltzmann;
+    #UCB;
+    #NoisyNetwork;
+    #ICM;  // Intrinsic Curiosity Module
+  };
+
+  public type CentralizedCritic = {
+    var parameters : [[var Float]];
+    inputDim : Nat;  // Sum of all agent observations + actions
+    var estimatedValue : Float;
+  };
+
+  public type CommChannel = {
+    var messages : [(Nat32, Nat32, [Float])];  // (sender, receiver, message)
+    bandwidth : Nat;
+    latency : Float;
+    var noiseLevel : Float;
+  };
+
+  public type JointPolicy = {
+    var parameters : [[var Float]];
+    numAgents : Nat;
+    agentActionDims : [Nat];
+  };
+
+  public type MARLAlgorithm = {
+    #QMIX;
+    #COMA;
+    #MADDPG;
+    #MAPPO;
+    #VDN;
+    #IPPO;
+    #QPLEX;
+  };
+
+  /// Initialize MARL state
+  public func initMARL(
+    numAgents : Nat,
+    observationDim : Nat,
+    actionDim : Nat,
+    algorithm : MARLAlgorithm
+  ) : MARLState {
+    {
+      var agents = Array.tabulate<RLAgent>(numAgents, func(i : Nat) : RLAgent {
+        {
+          agentId = Nat32.fromNat(i);
+          var policy = {
+            policyType = #Gaussian;
+            var parameters = Array.tabulate<[var Float]>(actionDim, func(_ : Nat) : [var Float] {
+              Array.init<Float>(observationDim + 1, randomFloat() * 0.1)
+            });
+            inputDim = observationDim;
+            outputDim = actionDim;
+            var entropy = 0.0;
+          };
+          var valueFunction = {
+            functionType = #StateValue;
+            var parameters = Array.tabulate<[var Float]>(1, func(_ : Nat) : [var Float] {
+              Array.init<Float>(observationDim + 1, randomFloat() * 0.1)
+            });
+            inputDim = observationDim;
+            var estimatedValue = 0.0;
+          };
+          var experienceBuffer = {
+            var buffer = [];
+            maxSize = 10000;
+            var currentIndex = 0;
+            var isFull = false;
+          };
+          var optimizer = {
+            optimizerType = #Adam;
+            learningRate = 0.0003;
+            var momentum = Array.init<Float>(observationDim * actionDim, 0.0);
+            var velocity = Array.init<Float>(observationDim * actionDim, 0.0);
+            beta1 = 0.9;
+            beta2 = 0.999;
+            epsilon = 1e-8;
+            var t = 0;
+          };
+          var explorationStrategy = {
+            strategyType = #EpsilonGreedy;
+            var epsilon = 1.0;
+            epsilonDecay = 0.995;
+            epsilonMin = 0.01;
+            var temperature = 1.0;
+            temperatureDecay = 0.99;
+          };
+          var reward = 0.0;
+          var cumulativeReward = 0.0;
+          var episodeCount = 0;
+          var stepCount = 0;
+        }
+      });
+      var centralizedCritic = null;
+      var communicationChannel = {
+        var messages = [];
+        bandwidth = 100;
+        latency = 0.01;
+        var noiseLevel = 0.0;
+      };
+      var sharedExperience = {
+        var buffer = [];
+        maxSize = 100000;
+        var currentIndex = 0;
+      };
+      var jointPolicy = null;
+      algorithm = algorithm;
+    }
+  };
+
+  /// Compute policy gradient
+  public func computePolicyGradient(
+    agent : RLAgent,
+    experiences : [Experience],
+    gamma : Float
+  ) : [[Float]] {
+    let numParams = agent.policy.parameters.size();
+    let paramSize = if (numParams > 0) agent.policy.parameters[0].size() else 0;
+    
+    var gradients = Array.tabulate<[Float]>(numParams, func(_ : Nat) : [Float] {
+      Array.tabulate<Float>(paramSize, func(_ : Nat) : Float { 0.0 })
+    });
+    
+    // Compute returns
+    var returns : [Float] = [];
+    var G = 0.0;
+    
+    // Reverse iteration for computing returns
+    var i = experiences.size();
+    while (i > 0) {
+      i -= 1;
+      let exp = experiences[i];
+      G := exp.reward + gamma * G * (if exp.done then 0.0 else 1.0);
+      returns := Array.append([G], returns);
+    };
+    
+    // Compute gradients
+    for (j in Iter.range(0, experiences.size() - 1)) {
+      let exp = experiences[j];
+      let advantage = switch (exp.advantage) {
+        case (?a) a;
+        case (null) returns[j] - agent.valueFunction.estimatedValue;
+      };
+      
+      let logProb = switch (exp.logProb) {
+        case (?lp) lp;
+        case (null) -1.0;
+      };
+      
+      // Gradient of log policy * advantage
+      for (p in Iter.range(0, numParams - 1)) {
+        for (q in Iter.range(0, paramSize - 1)) {
+          let stateFeature = if (q < exp.state.size()) exp.state[q] else 1.0;
+          gradients[p] := Array.tabulate<Float>(paramSize, func(k : Nat) : Float {
+            gradients[p][k] + advantage * logProb * stateFeature
+          });
+        };
+      };
+    };
+    
+    gradients
+  };
+
+  /// PPO clipped objective
+  public func computePPOLoss(
+    oldLogProb : Float,
+    newLogProb : Float,
+    advantage : Float,
+    clipEpsilon : Float
+  ) : Float {
+    let ratio = Float.exp(newLogProb - oldLogProb);
+    let clippedRatio = Float.max(
+      Float.min(ratio, 1.0 + clipEpsilon),
+      1.0 - clipEpsilon
+    );
+    
+    -Float.min(ratio * advantage, clippedRatio * advantage)
+  };
+
+  /// Generalized Advantage Estimation (GAE)
+  public func computeGAE(
+    rewards : [Float],
+    values : [Float],
+    dones : [Bool],
+    gamma : Float,
+    lambda : Float
+  ) : [Float] {
+    let n = rewards.size();
+    var advantages = Array.init<Float>(n, 0.0);
+    var lastGaeLam = 0.0;
+    
+    var i = n;
+    while (i > 0) {
+      i -= 1;
+      let nextValue = if (i + 1 < n) values[i + 1] else 0.0;
+      let nextNonTerminal = if (i + 1 < n and not dones[i]) 1.0 else 0.0;
+      
+      let delta = rewards[i] + gamma * nextValue * nextNonTerminal - values[i];
+      lastGaeLam := delta + gamma * lambda * nextNonTerminal * lastGaeLam;
+      advantages[i] := lastGaeLam;
+    };
+    
+    Array.freeze(advantages)
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // GRAPH NEURAL NETWORKS FOR SWARM
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Graph Neural Network state
+  public type GNNState = {
+    var nodeFeatures : [[var Float]];
+    var edgeFeatures : [[[var Float]]];
+    var adjacencyMatrix : [[var Float]];
+    var messagePassingLayers : [MessagePassingLayer];
+    var readoutLayer : ReadoutLayer;
+    config : GNNConfig;
+  };
+
+  public type MessagePassingLayer = {
+    var messageNet : [[var Float]];
+    var updateNet : [[var Float]];
+    var aggregation : AggregationType;
+    var attention : ?AttentionWeights;
+  };
+
+  public type AttentionWeights = {
+    var queryWeights : [[var Float]];
+    var keyWeights : [[var Float]];
+    var valueWeights : [[var Float]];
+    numHeads : Nat;
+  };
+
+  public type ReadoutLayer = {
+    readoutType : ReadoutType;
+    var weights : [[var Float]];
+  };
+
+  public type ReadoutType = {
+    #Sum;
+    #Mean;
+    #Max;
+    #Attention;
+    #SetToSet;
+  };
+
+  public type GNNConfig = {
+    numNodes : Nat;
+    nodeFeatureDim : Nat;
+    edgeFeatureDim : Nat;
+    hiddenDim : Nat;
+    numLayers : Nat;
+    outputDim : Nat;
+    useSelfLoops : Bool;
+    normalizeAdjacency : Bool;
+  };
+
+  /// Initialize GNN
+  public func initGNN(config : GNNConfig) : GNNState {
+    {
+      var nodeFeatures = Array.tabulate<[var Float]>(config.numNodes, func(_ : Nat) : [var Float] {
+        Array.init<Float>(config.nodeFeatureDim, 0.0)
+      });
+      var edgeFeatures = Array.tabulate<[[var Float]]>(config.numNodes, func(_ : Nat) : [[var Float]] {
+        Array.tabulate<[var Float]>(config.numNodes, func(_ : Nat) : [var Float] {
+          Array.init<Float>(config.edgeFeatureDim, 0.0)
+        })
+      });
+      var adjacencyMatrix = Array.tabulate<[var Float]>(config.numNodes, func(i : Nat) : [var Float] {
+        Array.init<Float>(config.numNodes, if (config.useSelfLoops and i < config.numNodes) 1.0 else 0.0)
+      });
+      var messagePassingLayers = Array.tabulate<MessagePassingLayer>(config.numLayers, func(_ : Nat) : MessagePassingLayer {
+        {
+          var messageNet = Array.tabulate<[var Float]>(config.hiddenDim, func(_ : Nat) : [var Float] {
+            Array.init<Float>(config.nodeFeatureDim * 2 + config.edgeFeatureDim, randomFloat() * 0.1)
+          });
+          var updateNet = Array.tabulate<[var Float]>(config.hiddenDim, func(_ : Nat) : [var Float] {
+            Array.init<Float>(config.hiddenDim * 2, randomFloat() * 0.1)
+          });
+          var aggregation = #Sum;
+          var attention = null;
+        }
+      });
+      var readoutLayer = {
+        readoutType = #Mean;
+        var weights = Array.tabulate<[var Float]>(config.outputDim, func(_ : Nat) : [var Float] {
+          Array.init<Float>(config.hiddenDim, randomFloat() * 0.1)
+        });
+      };
+      config = config;
+    }
+  };
+
+  /// Forward pass through GNN
+  public func forwardGNN(gnn : GNNState) : [Float] {
+    var h = Array.tabulate<[Float]>(gnn.config.numNodes, func(i : Nat) : [Float] {
+      Array.freeze(gnn.nodeFeatures[i])
+    });
+    
+    // Message passing layers
+    for (layer in gnn.messagePassingLayers.vals()) {
+      var newH : [[Float]] = [];
+      
+      for (i in Iter.range(0, gnn.config.numNodes - 1)) {
+        // Aggregate messages from neighbors
+        var aggregatedMessage = Array.tabulate<Float>(gnn.config.hiddenDim, func(_ : Nat) : Float { 0.0 });
+        var neighborCount = 0.0;
+        
+        for (j in Iter.range(0, gnn.config.numNodes - 1)) {
+          if (gnn.adjacencyMatrix[i][j] > 0.0) {
+            // Compute message from j to i
+            let edgeFeature = Array.freeze(gnn.edgeFeatures[j][i]);
+            let concatenated = Array.append(Array.append(h[i], h[j]), edgeFeature);
+            
+            // Apply message network
+            let message = applyLinear(layer.messageNet, concatenated);
+            
+            // Aggregate
+            aggregatedMessage := Array.tabulate<Float>(gnn.config.hiddenDim, func(k : Nat) : Float {
+              aggregatedMessage[k] + message[k] * gnn.adjacencyMatrix[i][j]
+            });
+            neighborCount += gnn.adjacencyMatrix[i][j];
+          };
+        };
+        
+        // Normalize if needed
+        if (neighborCount > 0.0) {
+          aggregatedMessage := Array.map<Float, Float>(aggregatedMessage, func(x : Float) : Float {
+            x / neighborCount
+          });
+        };
+        
+        // Update node representation
+        let updateInput = Array.append(h[i], aggregatedMessage);
+        let updated = applyLinear(layer.updateNet, updateInput);
+        newH := Array.append(newH, [relu(updated)]);
+      };
+      
+      h := newH;
+    };
+    
+    // Readout
+    var graphEmbedding = Array.tabulate<Float>(gnn.config.hiddenDim, func(_ : Nat) : Float { 0.0 });
+    
+    switch (gnn.readoutLayer.readoutType) {
+      case (#Sum) {
+        for (nodeH in h.vals()) {
+          graphEmbedding := Array.tabulate<Float>(gnn.config.hiddenDim, func(k : Nat) : Float {
+            graphEmbedding[k] + nodeH[k]
+          });
+        };
+      };
+      case (#Mean) {
+        for (nodeH in h.vals()) {
+          graphEmbedding := Array.tabulate<Float>(gnn.config.hiddenDim, func(k : Nat) : Float {
+            graphEmbedding[k] + nodeH[k]
+          });
+        };
+        let n = Float.fromInt(gnn.config.numNodes);
+        graphEmbedding := Array.map<Float, Float>(graphEmbedding, func(x : Float) : Float { x / n });
+      };
+      case (#Max) {
+        graphEmbedding := h[0];
+        for (nodeH in h.vals()) {
+          graphEmbedding := Array.tabulate<Float>(gnn.config.hiddenDim, func(k : Nat) : Float {
+            Float.max(graphEmbedding[k], nodeH[k])
+          });
+        };
+      };
+      case _ {
+        // Default to mean
+        for (nodeH in h.vals()) {
+          graphEmbedding := Array.tabulate<Float>(gnn.config.hiddenDim, func(k : Nat) : Float {
+            graphEmbedding[k] + nodeH[k]
+          });
+        };
+        let n = Float.fromInt(gnn.config.numNodes);
+        graphEmbedding := Array.map<Float, Float>(graphEmbedding, func(x : Float) : Float { x / n });
+      };
+    };
+    
+    // Final projection
+    applyLinear(gnn.readoutLayer.weights, graphEmbedding)
+  };
+
+  /// Apply linear transformation
+  func applyLinear(weights : [[var Float]], input : [Float]) : [Float] {
+    Array.tabulate<Float>(weights.size(), func(i : Nat) : Float {
+      var sum = 0.0;
+      for (j in Iter.range(0, input.size() - 1)) {
+        if (j < weights[i].size()) {
+          sum += weights[i][j] * input[j];
+        };
+      };
+      sum
+    })
+  };
+
+  /// ReLU activation
+  func relu(x : [Float]) : [Float] {
+    Array.map<Float, Float>(x, func(v : Float) : Float {
+      Float.max(0.0, v)
+    })
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ANOMALY DETECTION SYSTEMS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Anomaly detection state
+  public type AnomalyDetectionState = {
+    var isolationForest : IsolationForest;
+    var autoencoder : Autoencoder;
+    var oneClassSVM : OneClassSVM;
+    var localOutlierFactor : LOF;
+    var detectedAnomalies : [AnomalyRecord];
+    var normalBehaviorModel : NormalBehaviorModel;
+  };
+
+  public type IsolationForest = {
+    var trees : [IsolationTree];
+    numTrees : Nat;
+    sampleSize : Nat;
+    var threshold : Float;
+  };
+
+  public type IsolationTree = {
+    var nodes : [IsolationNode];
+    maxDepth : Nat;
+  };
+
+  public type IsolationNode = {
+    nodeType : IsolationNodeType;
+    splitAttribute : ?Nat;
+    splitValue : ?Float;
+    leftChild : ?Nat;
+    rightChild : ?Nat;
+    size : Nat;
+  };
+
+  public type IsolationNodeType = {
+    #Internal;
+    #Leaf;
+  };
+
+  public type Autoencoder = {
+    var encoder : [AutoencoderLayer];
+    var decoder : [AutoencoderLayer];
+    latentDim : Nat;
+    var reconstructionThreshold : Float;
+  };
+
+  public type AutoencoderLayer = {
+    var weights : [[var Float]];
+    var biases : [var Float];
+    activation : ActivationType;
+  };
+
+  public type ActivationType = {
+    #ReLU;
+    #Sigmoid;
+    #Tanh;
+    #LeakyReLU;
+    #Linear;
+  };
+
+  public type OneClassSVM = {
+    var supportVectors : [[Float]];
+    var alphas : [Float];
+    var rho : Float;
+    kernel : KernelType;
+    gamma : Float;
+  };
+
+  public type KernelType = {
+    #RBF;
+    #Linear;
+    #Polynomial : Nat;
+    #Sigmoid;
+  };
+
+  public type LOF = {
+    var dataPoints : [[Float]];
+    k : Nat;  // Number of neighbors
+    var lrdValues : [Float];  // Local reachability density
+    var lofScores : [Float];
+  };
+
+  public type AnomalyRecord = {
+    timestamp : Int;
+    dataPoint : [Float];
+    anomalyScore : Float;
+    anomalyType : AnomalyType;
+    detectorUsed : Text;
+    confidence : Float;
+  };
+
+  public type AnomalyType = {
+    #PointAnomaly;
+    #ContextualAnomaly;
+    #CollectiveAnomaly;
+    #NoveltyDetection;
+  };
+
+  public type NormalBehaviorModel = {
+    var means : [Float];
+    var stds : [Float];
+    var covariance : [[Float]];
+    var pca : ?PCAModel;
+    var updateCount : Nat;
+  };
+
+  public type PCAModel = {
+    var components : [[Float]];
+    var explainedVariance : [Float];
+    numComponents : Nat;
+  };
+
+  /// Initialize anomaly detection
+  public func initAnomalyDetection(inputDim : Nat) : AnomalyDetectionState {
+    let hiddenDim = inputDim * 2;
+    let latentDim = inputDim / 2;
+    
+    {
+      var isolationForest = {
+        var trees = [];
+        numTrees = 100;
+        sampleSize = 256;
+        var threshold = 0.5;
+      };
+      var autoencoder = {
+        var encoder = [
+          {
+            var weights = Array.tabulate<[var Float]>(hiddenDim, func(_ : Nat) : [var Float] {
+              Array.init<Float>(inputDim, randomFloat() * 0.1)
+            });
+            var biases = Array.init<Float>(hiddenDim, 0.0);
+            activation = #ReLU;
+          },
+          {
+            var weights = Array.tabulate<[var Float]>(latentDim, func(_ : Nat) : [var Float] {
+              Array.init<Float>(hiddenDim, randomFloat() * 0.1)
+            });
+            var biases = Array.init<Float>(latentDim, 0.0);
+            activation = #ReLU;
+          }
+        ];
+        var decoder = [
+          {
+            var weights = Array.tabulate<[var Float]>(hiddenDim, func(_ : Nat) : [var Float] {
+              Array.init<Float>(latentDim, randomFloat() * 0.1)
+            });
+            var biases = Array.init<Float>(hiddenDim, 0.0);
+            activation = #ReLU;
+          },
+          {
+            var weights = Array.tabulate<[var Float]>(inputDim, func(_ : Nat) : [var Float] {
+              Array.init<Float>(hiddenDim, randomFloat() * 0.1)
+            });
+            var biases = Array.init<Float>(inputDim, 0.0);
+            activation = #Sigmoid;
+          }
+        ];
+        latentDim = latentDim;
+        var reconstructionThreshold = 0.1;
+      };
+      var oneClassSVM = {
+        var supportVectors = [];
+        var alphas = [];
+        var rho = 0.0;
+        kernel = #RBF;
+        gamma = 0.1;
+      };
+      var localOutlierFactor = {
+        var dataPoints = [];
+        k = 20;
+        var lrdValues = [];
+        var lofScores = [];
+      };
+      var detectedAnomalies = [];
+      var normalBehaviorModel = {
+        var means = Array.tabulate<Float>(inputDim, func(_ : Nat) : Float { 0.0 });
+        var stds = Array.tabulate<Float>(inputDim, func(_ : Nat) : Float { 1.0 });
+        var covariance = Array.tabulate<[Float]>(inputDim, func(i : Nat) : [Float] {
+          Array.tabulate<Float>(inputDim, func(j : Nat) : Float {
+            if (i == j) 1.0 else 0.0
+          })
+        });
+        var pca = null;
+        var updateCount = 0;
+      };
+    }
+  };
+
+  /// Compute anomaly score using Isolation Forest
+  public func computeIsolationScore(
+    forest : IsolationForest,
+    dataPoint : [Float]
+  ) : Float {
+    if (forest.trees.size() == 0) return 0.5;
+    
+    var totalPathLength = 0.0;
+    
+    for (tree in forest.trees.vals()) {
+      totalPathLength += Float.fromInt(computePathLength(tree, dataPoint, 0, 0));
+    };
+    
+    let avgPathLength = totalPathLength / Float.fromInt(forest.trees.size());
+    let c = 2.0 * (Float.log(Float.fromInt(forest.sampleSize - 1)) + 0.5772156649) - 
+            2.0 * Float.fromInt(forest.sampleSize - 1) / Float.fromInt(forest.sampleSize);
+    
+    Float.pow(2.0, -avgPathLength / c)
+  };
+
+  /// Compute path length in isolation tree
+  func computePathLength(
+    tree : IsolationTree,
+    dataPoint : [Float],
+    nodeIdx : Nat,
+    currentDepth : Nat
+  ) : Nat {
+    if (nodeIdx >= tree.nodes.size()) return currentDepth;
+    
+    let node = tree.nodes[nodeIdx];
+    
+    switch (node.nodeType) {
+      case (#Leaf) {
+        currentDepth + estimatePathLength(node.size)
+      };
+      case (#Internal) {
+        switch (node.splitAttribute, node.splitValue, node.leftChild, node.rightChild) {
+          case (?attr, ?val, ?left, ?right) {
+            if (attr < dataPoint.size() and dataPoint[attr] < val) {
+              computePathLength(tree, dataPoint, left, currentDepth + 1)
+            } else {
+              computePathLength(tree, dataPoint, right, currentDepth + 1)
+            }
+          };
+          case _ {
+            currentDepth
+          };
+        }
+      };
+    }
+  };
+
+  /// Estimate path length for remaining samples
+  func estimatePathLength(n : Nat) : Nat {
+    if (n <= 1) return 0;
+    let nFloat = Float.fromInt(n);
+    Int.abs(Float.toInt(2.0 * (Float.log(nFloat - 1.0) + 0.5772156649) - 2.0 * (nFloat - 1.0) / nFloat))
+  };
+
+  /// Compute autoencoder reconstruction error
+  public func computeReconstructionError(
+    ae : Autoencoder,
+    input : [Float]
+  ) : Float {
+    // Encode
+    var h = input;
+    for (layer in ae.encoder.vals()) {
+      h := applyAutoencoderLayer(layer, h);
+    };
+    
+    // Decode
+    for (layer in ae.decoder.vals()) {
+      h := applyAutoencoderLayer(layer, h);
+    };
+    
+    // Compute MSE
+    var mse = 0.0;
+    for (i in Iter.range(0, input.size() - 1)) {
+      if (i < h.size()) {
+        let diff = input[i] - h[i];
+        mse += diff * diff;
+      };
+    };
+    
+    mse / Float.fromInt(input.size())
+  };
+
+  /// Apply autoencoder layer
+  func applyAutoencoderLayer(layer : AutoencoderLayer, input : [Float]) : [Float] {
+    let linear = applyLinear(layer.weights, input);
+    let withBias = Array.tabulate<Float>(linear.size(), func(i : Nat) : Float {
+      linear[i] + layer.biases[i]
+    });
+    
+    switch (layer.activation) {
+      case (#ReLU) { relu(withBias) };
+      case (#Sigmoid) { sigmoid(withBias) };
+      case (#Tanh) { Array.map<Float, Float>(withBias, func(x : Float) : Float { Float.tanh(x) }) };
+      case (#LeakyReLU) { leakyRelu(withBias, 0.01) };
+      case (#Linear) { withBias };
+    }
+  };
+
+  /// Sigmoid activation
+  func sigmoid(x : [Float]) : [Float] {
+    Array.map<Float, Float>(x, func(v : Float) : Float {
+      1.0 / (1.0 + Float.exp(-v))
+    })
+  };
+
+  /// Leaky ReLU activation
+  func leakyRelu(x : [Float], alpha : Float) : [Float] {
+    Array.map<Float, Float>(x, func(v : Float) : Float {
+      if (v > 0.0) v else alpha * v
+    })
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // BAYESIAN OPTIMIZATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Bayesian Optimization state
+  public type BayesianOptState = {
+    var gp : GaussianProcess;
+    var observedX : [[Float]];
+    var observedY : [Float];
+    acquisitionFunction : AcquisitionFunction;
+    bounds : [(Float, Float)];
+    var bestX : [Float];
+    var bestY : Float;
+    var iteration : Nat;
+  };
+
+  public type GaussianProcess = {
+    kernel : GPKernel;
+    var lengthScale : [Float];
+    var signalVariance : Float;
+    var noiseVariance : Float;
+    var alpha : [Float];  // Precomputed for predictions
+    var K : [[Float]];  // Kernel matrix
+    var L : [[Float]];  // Cholesky decomposition
+  };
+
+  public type GPKernel = {
+    #SquaredExponential;
+    #Matern32;
+    #Matern52;
+    #RationalQuadratic;
+    #Periodic;
+  };
+
+  public type AcquisitionFunction = {
+    #ExpectedImprovement;
+    #ProbabilityOfImprovement;
+    #UCB : Float;  // kappa parameter
+    #ThompsonSampling;
+    #KnowledgeGradient;
+  };
+
+  /// Initialize Bayesian Optimization
+  public func initBayesianOpt(
+    bounds : [(Float, Float)],
+    acquisition : AcquisitionFunction
+  ) : BayesianOptState {
+    let dims = bounds.size();
+    {
+      var gp = {
+        kernel = #Matern52;
+        var lengthScale = Array.tabulate<Float>(dims, func(_ : Nat) : Float { 1.0 });
+        var signalVariance = 1.0;
+        var noiseVariance = 0.01;
+        var alpha = [];
+        var K = [];
+        var L = [];
+      };
+      var observedX = [];
+      var observedY = [];
+      acquisitionFunction = acquisition;
+      bounds = bounds;
+      var bestX = [];
+      var bestY = -1e10;
+      var iteration = 0;
+    }
+  };
+
+  /// Compute kernel value
+  public func computeKernel(
+    gp : GaussianProcess,
+    x1 : [Float],
+    x2 : [Float]
+  ) : Float {
+    switch (gp.kernel) {
+      case (#SquaredExponential) {
+        var r2 = 0.0;
+        for (i in Iter.range(0, x1.size() - 1)) {
+          if (i < x2.size() and i < gp.lengthScale.size()) {
+            let diff = (x1[i] - x2[i]) / gp.lengthScale[i];
+            r2 += diff * diff;
+          };
+        };
+        gp.signalVariance * Float.exp(-0.5 * r2)
+      };
+      case (#Matern52) {
+        var r2 = 0.0;
+        for (i in Iter.range(0, x1.size() - 1)) {
+          if (i < x2.size() and i < gp.lengthScale.size()) {
+            let diff = (x1[i] - x2[i]) / gp.lengthScale[i];
+            r2 += diff * diff;
+          };
+        };
+        let r = Float.sqrt(r2);
+        let sqrt5r = Float.sqrt(5.0) * r;
+        gp.signalVariance * (1.0 + sqrt5r + 5.0 * r2 / 3.0) * Float.exp(-sqrt5r)
+      };
+      case (#Matern32) {
+        var r2 = 0.0;
+        for (i in Iter.range(0, x1.size() - 1)) {
+          if (i < x2.size() and i < gp.lengthScale.size()) {
+            let diff = (x1[i] - x2[i]) / gp.lengthScale[i];
+            r2 += diff * diff;
+          };
+        };
+        let r = Float.sqrt(r2);
+        let sqrt3r = Float.sqrt(3.0) * r;
+        gp.signalVariance * (1.0 + sqrt3r) * Float.exp(-sqrt3r)
+      };
+      case (#RationalQuadratic) {
+        var r2 = 0.0;
+        for (i in Iter.range(0, x1.size() - 1)) {
+          if (i < x2.size() and i < gp.lengthScale.size()) {
+            let diff = (x1[i] - x2[i]) / gp.lengthScale[i];
+            r2 += diff * diff;
+          };
+        };
+        let alpha = 1.0;  // Mixing parameter
+        gp.signalVariance * Float.pow(1.0 + r2 / (2.0 * alpha), -alpha)
+      };
+      case (#Periodic) {
+        var r2 = 0.0;
+        for (i in Iter.range(0, x1.size() - 1)) {
+          if (i < x2.size() and i < gp.lengthScale.size()) {
+            let diff = x1[i] - x2[i];
+            let period = 2.0 * π;
+            r2 += Float.pow(Float.sin(π * diff / period) / gp.lengthScale[i], 2.0);
+          };
+        };
+        gp.signalVariance * Float.exp(-2.0 * r2)
+      };
+    }
+  };
+
+  /// Compute Expected Improvement
+  public func computeEI(
+    mean : Float,
+    std : Float,
+    bestY : Float,
+    xi : Float  // Exploration-exploitation tradeoff
+  ) : Float {
+    if (std <= 0.0) return 0.0;
+    
+    let z = (mean - bestY - xi) / std;
+    let pdf = Float.exp(-0.5 * z * z) / Float.sqrt(2.0 * π);
+    let cdf = 0.5 * (1.0 + erf(z / Float.sqrt(2.0)));
+    
+    (mean - bestY - xi) * cdf + std * pdf
+  };
+
+  /// Error function approximation
+  func erf(x : Float) : Float {
+    // Horner's method approximation
+    let a1 = 0.254829592;
+    let a2 = -0.284496736;
+    let a3 = 1.421413741;
+    let a4 = -1.453152027;
+    let a5 = 1.061405429;
+    let p = 0.3275911;
+    
+    let sign = if (x < 0.0) -1.0 else 1.0;
+    let absX = Float.abs(x);
+    let t = 1.0 / (1.0 + p * absX);
+    let y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Float.exp(-absX * absX);
+    
+    sign * y
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PHYSICS SIMULATION ENGINE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Physics simulation state
+  public type PhysicsSimState = {
+    var rigidBodies : [RigidBody];
+    var constraints : [PhysicsConstraint];
+    var forceGenerators : [ForceGenerator];
+    var collisionDetector : CollisionDetector;
+    var integrator : IntegratorType;
+    var dt : Float;
+    var simulationTime : Float;
+  };
+
+  public type RigidBody = {
+    bodyId : Nat32;
+    var position : Vector3;
+    var velocity : Vector3;
+    var acceleration : Vector3;
+    var orientation : Quaternion;
+    var angularVelocity : Vector3;
+    var angularAcceleration : Vector3;
+    mass : Float;
+    inverseMass : Float;
+    inertiaTensor : Matrix3x3;
+    inverseInertiaTensor : Matrix3x3;
+    var forceAccumulator : Vector3;
+    var torqueAccumulator : Vector3;
+    collider : Collider;
+    material : PhysicsMaterial;
+    var isAwake : Bool;
+    var isStatic : Bool;
+  };
+
+  public type Vector3 = {
+    x : Float;
+    y : Float;
+    z : Float;
+  };
+
+  public type Collider = {
+    #Sphere : {radius: Float};
+    #Box : {halfExtents: Vector3};
+    #Capsule : {radius: Float; height: Float};
+    #Cylinder : {radius: Float; height: Float};
+    #ConvexHull : {vertices: [Vector3]};
+    #TriangleMesh : {vertices: [Vector3]; indices: [Nat32]};
+  };
+
+  public type PhysicsMaterial = {
+    restitution : Float;  // Bounciness
+    friction : Float;
+    staticFriction : Float;
+    density : Float;
+  };
+
+  public type PhysicsConstraint = {
+    #Distance : DistanceConstraint;
+    #Hinge : HingeConstraint;
+    #Ball : BallConstraint;
+    #Slider : SliderConstraint;
+    #Fixed : FixedConstraint;
+  };
+
+  public type DistanceConstraint = {
+    bodyA : Nat32;
+    bodyB : Nat32;
+    anchorA : Vector3;
+    anchorB : Vector3;
+    distance : Float;
+    stiffness : Float;
+    damping : Float;
+  };
+
+  public type HingeConstraint = {
+    bodyA : Nat32;
+    bodyB : Nat32;
+    anchorA : Vector3;
+    anchorB : Vector3;
+    axisA : Vector3;
+    axisB : Vector3;
+    minAngle : ?Float;
+    maxAngle : ?Float;
+  };
+
+  public type BallConstraint = {
+    bodyA : Nat32;
+    bodyB : Nat32;
+    anchorA : Vector3;
+    anchorB : Vector3;
+  };
+
+  public type SliderConstraint = {
+    bodyA : Nat32;
+    bodyB : Nat32;
+    axisA : Vector3;
+    minDistance : ?Float;
+    maxDistance : ?Float;
+  };
+
+  public type FixedConstraint = {
+    bodyA : Nat32;
+    bodyB : Nat32;
+    relativeTransform : {position: Vector3; orientation: Quaternion};
+  };
+
+  public type ForceGenerator = {
+    #Gravity : {acceleration: Vector3};
+    #Spring : {bodyA: Nat32; bodyB: Nat32; anchorA: Vector3; anchorB: Vector3; restLength: Float; stiffness: Float; damping: Float};
+    #Drag : {linear: Float; quadratic: Float};
+    #Buoyancy : {waterHeight: Float; density: Float; volume: Float};
+    #Thrust : {bodyId: Nat32; force: Vector3; applicationPoint: Vector3};
+    #Wind : {velocity: Vector3; dragCoefficient: Float};
+  };
+
+  public type CollisionDetector = {
+    var broadPhase : BroadPhaseType;
+    var potentialCollisions : [(Nat32, Nat32)];
+    var contacts : [ContactPoint];
+  };
+
+  public type BroadPhaseType = {
+    #BruteForce;
+    #SpatialHash : {cellSize: Float};
+    #BVH;
+    #SweepAndPrune;
+  };
+
+  public type ContactPoint = {
+    bodyA : Nat32;
+    bodyB : Nat32;
+    pointOnA : Vector3;
+    pointOnB : Vector3;
+    normal : Vector3;
+    penetration : Float;
+    var friction : Float;
+    var restitution : Float;
+  };
+
+  public type IntegratorType = {
+    #Euler;
+    #Verlet;
+    #RK4;
+    #SemiImplicitEuler;
+  };
+
+  /// Initialize physics simulation
+  public func initPhysicsSim(dt : Float) : PhysicsSimState {
+    {
+      var rigidBodies = [];
+      var constraints = [];
+      var forceGenerators = [#Gravity({acceleration = {x = 0.0; y = -9.81; z = 0.0}})];
+      var collisionDetector = {
+        var broadPhase = #SpatialHash({cellSize = 10.0});
+        var potentialCollisions = [];
+        var contacts = [];
+      };
+      var integrator = #SemiImplicitEuler;
+      var dt = dt;
+      var simulationTime = 0.0;
+    }
+  };
+
+  /// Add rigid body to simulation
+  public func addRigidBody(
+    sim : PhysicsSimState,
+    position : Vector3,
+    mass : Float,
+    collider : Collider
+  ) : Nat32 {
+    let bodyId = Nat32.fromNat(sim.rigidBodies.size());
+    let inverseMass = if (mass > 0.0) 1.0 / mass else 0.0;
+    
+    let body : RigidBody = {
+      bodyId = bodyId;
+      var position = position;
+      var velocity = {x = 0.0; y = 0.0; z = 0.0};
+      var acceleration = {x = 0.0; y = 0.0; z = 0.0};
+      var orientation = {w = 1.0; x = 0.0; y = 0.0; z = 0.0};
+      var angularVelocity = {x = 0.0; y = 0.0; z = 0.0};
+      var angularAcceleration = {x = 0.0; y = 0.0; z = 0.0};
+      mass = mass;
+      inverseMass = inverseMass;
+      inertiaTensor = computeInertiaTensor(collider, mass);
+      inverseInertiaTensor = invertMatrix3x3(computeInertiaTensor(collider, mass));
+      var forceAccumulator = {x = 0.0; y = 0.0; z = 0.0};
+      var torqueAccumulator = {x = 0.0; y = 0.0; z = 0.0};
+      collider = collider;
+      material = {
+        restitution = 0.5;
+        friction = 0.5;
+        staticFriction = 0.6;
+        density = 1.0;
+      };
+      var isAwake = true;
+      var isStatic = mass <= 0.0;
+    };
+    
+    sim.rigidBodies := Array.append(sim.rigidBodies, [body]);
+    bodyId
+  };
+
+  /// Compute inertia tensor for collider
+  func computeInertiaTensor(collider : Collider, mass : Float) : Matrix3x3 {
+    switch (collider) {
+      case (#Sphere({radius})) {
+        let i = 0.4 * mass * radius * radius;
+        {
+          m00 = i; m01 = 0.0; m02 = 0.0;
+          m10 = 0.0; m11 = i; m12 = 0.0;
+          m20 = 0.0; m21 = 0.0; m22 = i;
+        }
+      };
+      case (#Box({halfExtents})) {
+        let factor = mass / 12.0;
+        {
+          m00 = factor * (halfExtents.y * halfExtents.y + halfExtents.z * halfExtents.z) * 4.0;
+          m01 = 0.0; m02 = 0.0;
+          m10 = 0.0;
+          m11 = factor * (halfExtents.x * halfExtents.x + halfExtents.z * halfExtents.z) * 4.0;
+          m12 = 0.0;
+          m20 = 0.0; m21 = 0.0;
+          m22 = factor * (halfExtents.x * halfExtents.x + halfExtents.y * halfExtents.y) * 4.0;
+        }
+      };
+      case _ {
+        // Default to sphere approximation
+        {
+          m00 = mass; m01 = 0.0; m02 = 0.0;
+          m10 = 0.0; m11 = mass; m12 = 0.0;
+          m20 = 0.0; m21 = 0.0; m22 = mass;
+        }
+      };
+    }
+  };
+
+  /// Invert 3x3 matrix
+  func invertMatrix3x3(m : Matrix3x3) : Matrix3x3 {
+    let det = m.m00 * (m.m11 * m.m22 - m.m12 * m.m21) -
+              m.m01 * (m.m10 * m.m22 - m.m12 * m.m20) +
+              m.m02 * (m.m10 * m.m21 - m.m11 * m.m20);
+    
+    if (Float.abs(det) < 1e-10) {
+      return {
+        m00 = 1.0; m01 = 0.0; m02 = 0.0;
+        m10 = 0.0; m11 = 1.0; m12 = 0.0;
+        m20 = 0.0; m21 = 0.0; m22 = 1.0;
+      };
+    };
+    
+    let invDet = 1.0 / det;
+    {
+      m00 = (m.m11 * m.m22 - m.m12 * m.m21) * invDet;
+      m01 = (m.m02 * m.m21 - m.m01 * m.m22) * invDet;
+      m02 = (m.m01 * m.m12 - m.m02 * m.m11) * invDet;
+      m10 = (m.m12 * m.m20 - m.m10 * m.m22) * invDet;
+      m11 = (m.m00 * m.m22 - m.m02 * m.m20) * invDet;
+      m12 = (m.m02 * m.m10 - m.m00 * m.m12) * invDet;
+      m20 = (m.m10 * m.m21 - m.m11 * m.m20) * invDet;
+      m21 = (m.m01 * m.m20 - m.m00 * m.m21) * invDet;
+      m22 = (m.m00 * m.m11 - m.m01 * m.m10) * invDet;
+    }
+  };
+
+  /// Step physics simulation
+  public func stepPhysics(sim : PhysicsSimState) : () {
+    // Apply force generators
+    for (generator in sim.forceGenerators.vals()) {
+      switch (generator) {
+        case (#Gravity({acceleration})) {
+          for (body in sim.rigidBodies.vals()) {
+            if (not body.isStatic and body.isAwake) {
+              body.forceAccumulator := addVector3(
+                body.forceAccumulator,
+                scaleVector3(acceleration, body.mass)
+              );
+            };
+          };
+        };
+        case (#Spring({bodyA; bodyB; anchorA; anchorB; restLength; stiffness; damping})) {
+          if (Nat32.toNat(bodyA) < sim.rigidBodies.size() and 
+              Nat32.toNat(bodyB) < sim.rigidBodies.size()) {
+            let bA = sim.rigidBodies[Nat32.toNat(bodyA)];
+            let bB = sim.rigidBodies[Nat32.toNat(bodyB)];
+            
+            let worldAnchorA = addVector3(bA.position, anchorA);
+            let worldAnchorB = addVector3(bB.position, anchorB);
+            
+            let delta = subtractVector3(worldAnchorB, worldAnchorA);
+            let length = magnitudeVector3(delta);
+            
+            if (length > 0.0) {
+              let direction = scaleVector3(delta, 1.0 / length);
+              let extension = length - restLength;
+              
+              let relativeVelocity = subtractVector3(bB.velocity, bA.velocity);
+              let dampingForce = dotProduct3(relativeVelocity, direction) * damping;
+              
+              let forceMagnitude = stiffness * extension + dampingForce;
+              let force = scaleVector3(direction, forceMagnitude);
+              
+              if (not bA.isStatic) {
+                bA.forceAccumulator := addVector3(bA.forceAccumulator, force);
+              };
+              if (not bB.isStatic) {
+                bB.forceAccumulator := subtractVector3(bB.forceAccumulator, force);
+              };
+            };
+          };
+        };
+        case (#Drag({linear; quadratic})) {
+          for (body in sim.rigidBodies.vals()) {
+            if (not body.isStatic and body.isAwake) {
+              let speed = magnitudeVector3(body.velocity);
+              if (speed > 0.0) {
+                let dragCoeff = linear * speed + quadratic * speed * speed;
+                let dragForce = scaleVector3(body.velocity, -dragCoeff / speed);
+                body.forceAccumulator := addVector3(body.forceAccumulator, dragForce);
+              };
+            };
+          };
+        };
+        case _ {};
+      };
+    };
+    
+    // Integrate
+    for (body in sim.rigidBodies.vals()) {
+      if (not body.isStatic and body.isAwake) {
+        // Linear motion
+        body.acceleration := scaleVector3(body.forceAccumulator, body.inverseMass);
+        body.velocity := addVector3(body.velocity, scaleVector3(body.acceleration, sim.dt));
+        body.position := addVector3(body.position, scaleVector3(body.velocity, sim.dt));
+        
+        // Angular motion
+        body.angularAcceleration := multiplyMatrix3x3Vector3(
+          body.inverseInertiaTensor,
+          body.torqueAccumulator
+        );
+        body.angularVelocity := addVector3(
+          body.angularVelocity,
+          scaleVector3(body.angularAcceleration, sim.dt)
+        );
+        body.orientation := normalizeQuaternion(
+          addQuaternion(
+            body.orientation,
+            scaleQuaternion(
+              multiplyQuaternion(
+                {w = 0.0; x = body.angularVelocity.x; y = body.angularVelocity.y; z = body.angularVelocity.z},
+                body.orientation
+              ),
+              0.5 * sim.dt
+            )
+          )
+        );
+        
+        // Clear accumulators
+        body.forceAccumulator := {x = 0.0; y = 0.0; z = 0.0};
+        body.torqueAccumulator := {x = 0.0; y = 0.0; z = 0.0};
+      };
+    };
+    
+    sim.simulationTime += sim.dt;
+  };
+
+  /// Vector3 operations
+  func addVector3(a : Vector3, b : Vector3) : Vector3 {
+    {x = a.x + b.x; y = a.y + b.y; z = a.z + b.z}
+  };
+
+  func subtractVector3(a : Vector3, b : Vector3) : Vector3 {
+    {x = a.x - b.x; y = a.y - b.y; z = a.z - b.z}
+  };
+
+  func scaleVector3(v : Vector3, s : Float) : Vector3 {
+    {x = v.x * s; y = v.y * s; z = v.z * s}
+  };
+
+  func magnitudeVector3(v : Vector3) : Float {
+    Float.sqrt(v.x * v.x + v.y * v.y + v.z * v.z)
+  };
+
+  func dotProduct3(a : Vector3, b : Vector3) : Float {
+    a.x * b.x + a.y * b.y + a.z * b.z
+  };
+
+  func crossProduct3(a : Vector3, b : Vector3) : Vector3 {
+    {
+      x = a.y * b.z - a.z * b.y;
+      y = a.z * b.x - a.x * b.z;
+      z = a.x * b.y - a.y * b.x;
+    }
+  };
+
+  func multiplyMatrix3x3Vector3(m : Matrix3x3, v : Vector3) : Vector3 {
+    {
+      x = m.m00 * v.x + m.m01 * v.y + m.m02 * v.z;
+      y = m.m10 * v.x + m.m11 * v.y + m.m12 * v.z;
+      z = m.m20 * v.x + m.m21 * v.y + m.m22 * v.z;
+    }
+  };
+
+  /// Quaternion operations
+  func multiplyQuaternion(a : Quaternion, b : Quaternion) : Quaternion {
+    {
+      w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
+      x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
+      y = a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x;
+      z = a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w;
+    }
+  };
+
+  func addQuaternion(a : Quaternion, b : Quaternion) : Quaternion {
+    {w = a.w + b.w; x = a.x + b.x; y = a.y + b.y; z = a.z + b.z}
+  };
+
+  func scaleQuaternion(q : Quaternion, s : Float) : Quaternion {
+    {w = q.w * s; x = q.x * s; y = q.y * s; z = q.z * s}
+  };
+
+  func normalizeQuaternion(q : Quaternion) : Quaternion {
+    let mag = Float.sqrt(q.w * q.w + q.x * q.x + q.y * q.y + q.z * q.z);
+    if (mag > 0.0) {
+      {w = q.w / mag; x = q.x / mag; y = q.y / mag; z = q.z / mag}
+    } else {
+      {w = 1.0; x = 0.0; y = 0.0; z = 0.0}
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AUDIO PROCESSING FOR DRONE COMMUNICATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Audio processing state
+  public type AudioProcessingState = {
+    var fftState : FFTState;
+    var melFilterBank : MelFilterBank;
+    var voiceActivityDetector : VADState;
+    var noiseReducer : NoiseReducer;
+    var audioFeatures : AudioFeatures;
+  };
+
+  public type FFTState = {
+    fftSize : Nat;
+    var realPart : [var Float];
+    var imagPart : [var Float];
+    var magnitude : [var Float];
+    var phase : [var Float];
+    var window : [Float];  // Hann, Hamming, etc.
+  };
+
+  public type MelFilterBank = {
+    numFilters : Nat;
+    var filters : [[Float]];
+    fMin : Float;
+    fMax : Float;
+    sampleRate : Float;
+  };
+
+  public type VADState = {
+    var energyThreshold : Float;
+    var zeroCrossingThreshold : Float;
+    var speechFrameCount : Nat;
+    var silenceFrameCount : Nat;
+    var isSpeech : Bool;
+    hangoverFrames : Nat;
+    var hangoverCount : Nat;
+  };
+
+  public type NoiseReducer = {
+    var noiseEstimate : [var Float];
+    var snrPosterior : [var Float];
+    smoothingFactor : Float;
+    spectralFloor : Float;
+  };
+
+  public type AudioFeatures = {
+    var mfcc : [Float];  // Mel-frequency cepstral coefficients
+    var spectralCentroid : Float;
+    var spectralFlatness : Float;
+    var spectralRolloff : Float;
+    var zeroCrossingRate : Float;
+    var rmsEnergy : Float;
+    var pitch : Float;
+  };
+
+  /// Initialize audio processing
+  public func initAudioProcessing(fftSize : Nat, sampleRate : Float) : AudioProcessingState {
+    {
+      var fftState = {
+        fftSize = fftSize;
+        var realPart = Array.init<Float>(fftSize, 0.0);
+        var imagPart = Array.init<Float>(fftSize, 0.0);
+        var magnitude = Array.init<Float>(fftSize / 2 + 1, 0.0);
+        var phase = Array.init<Float>(fftSize / 2 + 1, 0.0);
+        var window = createHannWindow(fftSize);
+      };
+      var melFilterBank = {
+        numFilters = 40;
+        var filters = createMelFilters(40, fftSize, sampleRate, 20.0, sampleRate / 2.0);
+        fMin = 20.0;
+        fMax = sampleRate / 2.0;
+        sampleRate = sampleRate;
+      };
+      var voiceActivityDetector = {
+        var energyThreshold = 0.01;
+        var zeroCrossingThreshold = 50.0;
+        var speechFrameCount = 0;
+        var silenceFrameCount = 0;
+        var isSpeech = false;
+        hangoverFrames = 5;
+        var hangoverCount = 0;
+      };
+      var noiseReducer = {
+        var noiseEstimate = Array.init<Float>(fftSize / 2 + 1, 0.001);
+        var snrPosterior = Array.init<Float>(fftSize / 2 + 1, 1.0);
+        smoothingFactor = 0.98;
+        spectralFloor = 0.001;
+      };
+      var audioFeatures = {
+        var mfcc = [];
+        var spectralCentroid = 0.0;
+        var spectralFlatness = 0.0;
+        var spectralRolloff = 0.0;
+        var zeroCrossingRate = 0.0;
+        var rmsEnergy = 0.0;
+        var pitch = 0.0;
+      };
+    }
+  };
+
+  /// Create Hann window
+  func createHannWindow(size : Nat) : [Float] {
+    Array.tabulate<Float>(size, func(i : Nat) : Float {
+      0.5 * (1.0 - Float.cos(2.0 * π * Float.fromInt(i) / Float.fromInt(size - 1)))
+    })
+  };
+
+  /// Create Mel filter bank
+  func createMelFilters(
+    numFilters : Nat,
+    fftSize : Nat,
+    sampleRate : Float,
+    fMin : Float,
+    fMax : Float
+  ) : [[Float]] {
+    let numBins = fftSize / 2 + 1;
+    
+    // Convert to Mel scale
+    let melMin = 2595.0 * Float.log10(1.0 + fMin / 700.0);
+    let melMax = 2595.0 * Float.log10(1.0 + fMax / 700.0);
+    
+    // Create Mel points
+    let melPoints = Array.tabulate<Float>(numFilters + 2, func(i : Nat) : Float {
+      melMin + Float.fromInt(i) * (melMax - melMin) / Float.fromInt(numFilters + 1)
+    });
+    
+    // Convert back to Hz
+    let hzPoints = Array.map<Float, Float>(melPoints, func(mel : Float) : Float {
+      700.0 * (Float.pow(10.0, mel / 2595.0) - 1.0)
+    });
+    
+    // Convert to FFT bins
+    let binPoints = Array.map<Float, Nat>(hzPoints, func(hz : Float) : Nat {
+      Int.abs(Float.toInt((hz / sampleRate) * Float.fromInt(fftSize)))
+    });
+    
+    // Create filters
+    Array.tabulate<[Float]>(numFilters, func(i : Nat) : [Float] {
+      Array.tabulate<Float>(numBins, func(bin : Nat) : Float {
+        let left = binPoints[i];
+        let center = binPoints[i + 1];
+        let right = binPoints[i + 2];
+        
+        if (bin < left or bin > right) {
+          0.0
+        } else if (bin < center) {
+          Float.fromInt(bin - left) / Float.fromInt(center - left)
+        } else {
+          Float.fromInt(right - bin) / Float.fromInt(right - center)
+        }
+      })
+    })
+  };
+
+  /// Compute MFCC
+  public func computeMFCC(
+    audio : AudioProcessingState,
+    numCoeffs : Nat
+  ) : [Float] {
+    // Apply Mel filter bank
+    var melEnergies = Array.tabulate<Float>(audio.melFilterBank.numFilters, func(i : Nat) : Float {
+      var energy = 0.0;
+      for (j in Iter.range(0, audio.fftState.magnitude.size() - 1)) {
+        energy += audio.fftState.magnitude[j] * audio.fftState.magnitude[j] * audio.melFilterBank.filters[i][j];
+      };
+      Float.log(Float.max(energy, 1e-10))
+    });
+    
+    // DCT
+    Array.tabulate<Float>(numCoeffs, func(k : Nat) : Float {
+      var sum = 0.0;
+      for (n in Iter.range(0, audio.melFilterBank.numFilters - 1)) {
+        sum += melEnergies[n] * Float.cos(π * Float.fromInt(k) * (Float.fromInt(n) + 0.5) / Float.fromInt(audio.melFilterBank.numFilters));
+      };
+      sum * Float.sqrt(2.0 / Float.fromInt(audio.melFilterBank.numFilters))
+    })
+  };
+
+  /// Voice activity detection
+  public func detectVoiceActivity(
+    vad : VADState,
+    frame : [Float]
+  ) : Bool {
+    // Compute frame energy
+    var energy = 0.0;
+    for (sample in frame.vals()) {
+      energy += sample * sample;
+    };
+    energy /= Float.fromInt(frame.size());
+    
+    // Compute zero crossing rate
+    var zeroCrossings = 0;
+    for (i in Iter.range(1, frame.size() - 1)) {
+      if ((frame[i - 1] >= 0.0 and frame[i] < 0.0) or (frame[i - 1] < 0.0 and frame[i] >= 0.0)) {
+        zeroCrossings += 1;
+      };
+    };
+    let zcr = Float.fromInt(zeroCrossings) / Float.fromInt(frame.size() - 1);
+    
+    // Update VAD state
+    let isSpeechFrame = energy > vad.energyThreshold and zcr < vad.zeroCrossingThreshold;
+    
+    if (isSpeechFrame) {
+      vad.speechFrameCount += 1;
+      vad.silenceFrameCount := 0;
+      vad.hangoverCount := vad.hangoverFrames;
+      vad.isSpeech := true;
+    } else {
+      vad.silenceFrameCount += 1;
+      if (vad.hangoverCount > 0) {
+        vad.hangoverCount -= 1;
+      } else {
+        vad.isSpeech := false;
+      };
+    };
+    
+    vad.isSpeech
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PROCEDURAL TERRAIN GENERATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Terrain generation state
+  public type TerrainGeneratorState = {
+    var seed : Nat32;
+    var noiseOctaves : Nat;
+    var persistence : Float;
+    var lacunarity : Float;
+    var scale : Float;
+    var heightMap : [[var Float]];
+    var biomeMap : [[var BiomeType]];
+    var erosionState : ErosionState;
+  };
+
+  public type BiomeType = {
+    #Ocean;
+    #Beach;
+    #Grassland;
+    #Forest;
+    #Desert;
+    #Tundra;
+    #Mountain;
+    #Snow;
+    #Swamp;
+    #Jungle;
+  };
+
+  public type ErosionState = {
+    var waterMap : [[var Float]];
+    var sedimentMap : [[var Float]];
+    var velocityMap : [[var {vx: Float; vy: Float}]];
+    rainRate : Float;
+    evaporationRate : Float;
+    sedimentCapacity : Float;
+    erosionRate : Float;
+    depositionRate : Float;
+  };
+
+  /// Initialize terrain generator
+  public func initTerrainGenerator(
+    width : Nat,
+    height : Nat,
+    seed : Nat32
+  ) : TerrainGeneratorState {
+    {
+      var seed = seed;
+      var noiseOctaves = 6;
+      var persistence = 0.5;
+      var lacunarity = 2.0;
+      var scale = 100.0;
+      var heightMap = Array.tabulate<[var Float]>(width, func(_ : Nat) : [var Float] {
+        Array.init<Float>(height, 0.0)
+      });
+      var biomeMap = Array.tabulate<[var BiomeType]>(width, func(_ : Nat) : [var BiomeType] {
+        Array.init<BiomeType>(height, #Grassland)
+      });
+      var erosionState = {
+        var waterMap = Array.tabulate<[var Float]>(width, func(_ : Nat) : [var Float] {
+          Array.init<Float>(height, 0.0)
+        });
+        var sedimentMap = Array.tabulate<[var Float]>(width, func(_ : Nat) : [var Float] {
+          Array.init<Float>(height, 0.0)
+        });
+        var velocityMap = Array.tabulate<[var {vx: Float; vy: Float}]>(width, func(_ : Nat) : [var {vx: Float; vy: Float}] {
+          Array.init<{vx: Float; vy: Float}>(height, {vx = 0.0; vy = 0.0})
+        });
+        rainRate = 0.01;
+        evaporationRate = 0.001;
+        sedimentCapacity = 0.1;
+        erosionRate = 0.1;
+        depositionRate = 0.1;
+      };
+    }
+  };
+
+  /// Generate terrain using Perlin noise
+  public func generateTerrain(state : TerrainGeneratorState) : () {
+    let width = state.heightMap.size();
+    let height = if (width > 0) state.heightMap[0].size() else 0;
+    
+    for (x in Iter.range(0, width - 1)) {
+      for (y in Iter.range(0, height - 1)) {
+        var amplitude = 1.0;
+        var frequency = 1.0;
+        var noiseHeight = 0.0;
+        
+        for (o in Iter.range(0, state.noiseOctaves - 1)) {
+          let sampleX = Float.fromInt(x) / state.scale * frequency;
+          let sampleY = Float.fromInt(y) / state.scale * frequency;
+          
+          let perlinValue = perlinNoise2D(sampleX, sampleY, state.seed);
+          noiseHeight += perlinValue * amplitude;
+          
+          amplitude *= state.persistence;
+          frequency *= state.lacunarity;
+        };
+        
+        state.heightMap[x][y] := noiseHeight;
+      };
+    };
+    
+    // Assign biomes based on height and moisture
+    for (x in Iter.range(0, width - 1)) {
+      for (y in Iter.range(0, height - 1)) {
+        let h = state.heightMap[x][y];
+        let moisture = perlinNoise2D(
+          Float.fromInt(x) / (state.scale * 0.5),
+          Float.fromInt(y) / (state.scale * 0.5),
+          state.seed +% 1000
+        );
+        
+        state.biomeMap[x][y] := determineBiome(h, moisture);
+      };
+    };
+  };
+
+  /// Perlin noise 2D
+  func perlinNoise2D(x : Float, y : Float, seed : Nat32) : Float {
+    let xi = Int.abs(Float.toInt(Float.floor(x)));
+    let yi = Int.abs(Float.toInt(Float.floor(y)));
+    
+    let xf = x - Float.floor(x);
+    let yf = y - Float.floor(y);
+    
+    let u = fade(xf);
+    let v = fade(yf);
+    
+    let aa = hash2D(xi, yi, seed);
+    let ab = hash2D(xi, yi + 1, seed);
+    let ba = hash2D(xi + 1, yi, seed);
+    let bb = hash2D(xi + 1, yi + 1, seed);
+    
+    let x1 = lerp(grad2D(aa, xf, yf), grad2D(ba, xf - 1.0, yf), u);
+    let x2 = lerp(grad2D(ab, xf, yf - 1.0), grad2D(bb, xf - 1.0, yf - 1.0), u);
+    
+    lerp(x1, x2, v)
+  };
+
+  /// Fade function for smooth interpolation
+  func fade(t : Float) : Float {
+    t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
+  };
+
+  /// Linear interpolation
+  func lerp(a : Float, b : Float, t : Float) : Float {
+    a + t * (b - a)
+  };
+
+  /// Hash function for 2D coordinates
+  func hash2D(x : Int, y : Int, seed : Nat32) : Nat32 {
+    var h = seed;
+    h := h +% Nat32.fromIntWrap(x) *% 374761393;
+    h := h +% Nat32.fromIntWrap(y) *% 668265263;
+    h := (h ^% (h >> 13)) *% 1274126177;
+    h ^^ (h >> 16)
+  };
+
+  /// Gradient function for Perlin noise
+  func grad2D(hash : Nat32, x : Float, y : Float) : Float {
+    let h = hash & 3;
+    switch (h) {
+      case 0 { x + y };
+      case 1 { -x + y };
+      case 2 { x - y };
+      case _ { -x - y };
+    }
+  };
+
+  /// Determine biome based on height and moisture
+  func determineBiome(height : Float, moisture : Float) : BiomeType {
+    if (height < -0.3) { return #Ocean };
+    if (height < -0.1) { return #Beach };
+    
+    if (height > 0.7) {
+      if (height > 0.85) { return #Snow };
+      return #Mountain;
+    };
+    
+    if (moisture < -0.3) {
+      if (height > 0.3) { return #Desert };
+      return #Desert;
+    };
+    
+    if (moisture > 0.3) {
+      if (height < 0.1) { return #Swamp };
+      if (moisture > 0.6) { return #Jungle };
+      return #Forest;
+    };
+    
+    if (height < 0.0 and moisture < 0.0) { return #Tundra };
+    
+    #Grassland
+  };
+
+  /// Simulate hydraulic erosion
+  public func simulateErosion(state : TerrainGeneratorState, iterations : Nat) : () {
+    let width = state.heightMap.size();
+    let height = if (width > 0) state.heightMap[0].size() else 0;
+    
+    for (_ in Iter.range(0, iterations - 1)) {
+      // Add rain
+      for (x in Iter.range(0, width - 1)) {
+        for (y in Iter.range(0, height - 1)) {
+          state.erosionState.waterMap[x][y] += state.erosionState.rainRate;
+        };
+      };
+      
+      // Calculate water flow
+      for (x in Iter.range(1, width - 2)) {
+        for (y in Iter.range(1, height - 2)) {
+          let totalHeight = state.heightMap[x][y] + state.erosionState.waterMap[x][y];
+          
+          var maxDiff = 0.0;
+          var flowDir = (0, 0);
+          
+          // Check all neighbors
+          let neighbors = [(-1, 0), (1, 0), (0, -1), (0, 1)];
+          for ((dx, dy) in neighbors.vals()) {
+            let nx = x + dx;
+            let ny = y + dy;
+            let neighborHeight = state.heightMap[nx][ny] + state.erosionState.waterMap[nx][ny];
+            let diff = totalHeight - neighborHeight;
+            if (diff > maxDiff) {
+              maxDiff := diff;
+              flowDir := (dx, dy);
+            };
+          };
+          
+          // Move water and erode
+          if (maxDiff > 0.0) {
+            let flowAmount = Float.min(state.erosionState.waterMap[x][y], maxDiff * 0.5);
+            let (dx, dy) = flowDir;
+            let nx = x + dx;
+            let ny = y + dy;
+            
+            state.erosionState.waterMap[x][y] -= flowAmount;
+            state.erosionState.waterMap[nx][ny] += flowAmount;
+            
+            // Erode terrain
+            let erosionAmount = flowAmount * state.erosionState.erosionRate;
+            state.heightMap[x][y] -= erosionAmount;
+            state.erosionState.sedimentMap[x][y] += erosionAmount;
+            
+            // Deposit sediment
+            let depositAmount = state.erosionState.sedimentMap[x][y] * state.erosionState.depositionRate;
+            state.heightMap[nx][ny] += depositAmount;
+            state.erosionState.sedimentMap[nx][ny] += state.erosionState.sedimentMap[x][y] - depositAmount;
+            state.erosionState.sedimentMap[x][y] := 0.0;
+          };
+        };
+      };
+      
+      // Evaporation
+      for (x in Iter.range(0, width - 1)) {
+        for (y in Iter.range(0, height - 1)) {
+          state.erosionState.waterMap[x][y] *= (1.0 - state.erosionState.evaporationRate);
+          if (state.erosionState.waterMap[x][y] < 0.001) {
+            // Deposit remaining sediment
+            state.heightMap[x][y] += state.erosionState.sedimentMap[x][y];
+            state.erosionState.sedimentMap[x][y] := 0.0;
+          };
+        };
+      };
+    };
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // BEHAVIOR TREES FOR DRONE AI
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Behavior tree node
+  public type BTNode = {
+    #Sequence : [BTNode];
+    #Selector : [BTNode];
+    #Parallel : {children: [BTNode]; successThreshold: Nat};
+    #Decorator : {child: BTNode; decorator: DecoratorType};
+    #Action : ActionNode;
+    #Condition : ConditionNode;
+  };
+
+  public type DecoratorType = {
+    #Inverter;
+    #Succeeder;
+    #Repeater : Nat;
+    #RepeatUntilFail;
+    #RateLimiter : Float;  // Seconds between executions
+    #TimeLimit : Float;
+  };
+
+  public type ActionNode = {
+    actionType : ActionType;
+    parameters : [(Text, Float)];
+  };
+
+  public type ActionType = {
+    #MoveTo : {targetX: Float; targetY: Float; targetZ: Float};
+    #Patrol : {waypoints: [{x: Float; y: Float; z: Float}]};
+    #Attack : {targetId: Nat32};
+    #Flee : {threatId: Nat32};
+    #Search : {area: {minX: Float; maxX: Float; minY: Float; maxY: Float}};
+    #Wait : {duration: Float};
+    #Communicate : {message: Text; recipients: [Nat32]};
+    #FormUp : {formationId: Text};
+    #Recharge : {stationId: Nat32};
+    #Idle;
+    #Custom : Text;
+  };
+
+  public type ConditionNode = {
+    conditionType : ConditionType;
+    parameters : [(Text, Float)];
+  };
+
+  public type ConditionType = {
+    #HasTarget;
+    #TargetInRange : {range: Float};
+    #HealthAbove : {threshold: Float};
+    #FuelAbove : {threshold: Float};
+    #AmmoAbove : {threshold: Float};
+    #EnemyVisible;
+    #AllyInDanger;
+    #AtPosition : {x: Float; y: Float; z: Float; tolerance: Float};
+    #TimeElapsed : {since: Text; duration: Float};
+    #RandomChance : {probability: Float};
+    #Custom : Text;
+  };
+
+  /// Behavior tree execution state
+  public type BTExecutionState = {
+    var currentNode : Nat;
+    var status : BTStatus;
+    var blackboard : [(Text, BTValue)];
+    var runningNodes : [Nat];
+    var lastUpdateTime : Int;
+  };
+
+  public type BTStatus = {
+    #Success;
+    #Failure;
+    #Running;
+  };
+
+  public type BTValue = {
+    #Float : Float;
+    #Int : Int;
+    #Bool : Bool;
+    #Text : Text;
+    #Vector3 : Vector3;
+    #EntityId : Nat32;
+    #List : [BTValue];
+  };
+
+  /// Execute behavior tree node
+  public func executeBTNode(
+    node : BTNode,
+    context : BTExecutionState,
+    droneState : DroneTelemetryPacket
+  ) : BTStatus {
+    switch (node) {
+      case (#Sequence(children)) {
+        for (child in children.vals()) {
+          let status = executeBTNode(child, context, droneState);
+          switch (status) {
+            case (#Failure) { return #Failure };
+            case (#Running) { return #Running };
+            case (#Success) {};
+          };
+        };
+        #Success
+      };
+      
+      case (#Selector(children)) {
+        for (child in children.vals()) {
+          let status = executeBTNode(child, context, droneState);
+          switch (status) {
+            case (#Success) { return #Success };
+            case (#Running) { return #Running };
+            case (#Failure) {};
+          };
+        };
+        #Failure
+      };
+      
+      case (#Parallel({children; successThreshold})) {
+        var successCount = 0;
+        var failureCount = 0;
+        var hasRunning = false;
+        
+        for (child in children.vals()) {
+          let status = executeBTNode(child, context, droneState);
+          switch (status) {
+            case (#Success) { successCount += 1 };
+            case (#Failure) { failureCount += 1 };
+            case (#Running) { hasRunning := true };
+          };
+        };
+        
+        if (successCount >= successThreshold) {
+          #Success
+        } else if (failureCount > children.size() - successThreshold) {
+          #Failure
+        } else if (hasRunning) {
+          #Running
+        } else {
+          #Failure
+        }
+      };
+      
+      case (#Decorator({child; decorator})) {
+        let childStatus = executeBTNode(child, context, droneState);
+        switch (decorator) {
+          case (#Inverter) {
+            switch (childStatus) {
+              case (#Success) { #Failure };
+              case (#Failure) { #Success };
+              case (#Running) { #Running };
+            }
+          };
+          case (#Succeeder) { #Success };
+          case (#Repeater(n)) {
+            // Would need iteration counter in context
+            childStatus
+          };
+          case (#RepeatUntilFail) {
+            switch (childStatus) {
+              case (#Failure) { #Success };
+              case _ { #Running };
+            }
+          };
+          case _ { childStatus };
+        }
+      };
+      
+      case (#Action(action)) {
+        executeAction(action, context, droneState)
+      };
+      
+      case (#Condition(condition)) {
+        if (evaluateCondition(condition, context, droneState)) {
+          #Success
+        } else {
+          #Failure
+        }
+      };
+    }
+  };
+
+  /// Execute action node
+  func executeAction(
+    action : ActionNode,
+    context : BTExecutionState,
+    droneState : DroneTelemetryPacket
+  ) : BTStatus {
+    switch (action.actionType) {
+      case (#MoveTo({targetX; targetY; targetZ})) {
+        let dx = targetX - droneState.position.longitude;
+        let dy = targetY - droneState.position.latitude;
+        let dz = targetZ - droneState.position.altitude;
+        let dist = Float.sqrt(dx * dx + dy * dy + dz * dz);
+        
+        if (dist < 1.0) {
+          #Success
+        } else {
+          #Running
+        }
+      };
+      
+      case (#Wait({duration})) {
+        // Check elapsed time
+        #Running
+      };
+      
+      case (#Idle) { #Running };
+      
+      case _ { #Success };
+    }
+  };
+
+  /// Evaluate condition node
+  func evaluateCondition(
+    condition : ConditionNode,
+    context : BTExecutionState,
+    droneState : DroneTelemetryPacket
+  ) : Bool {
+    switch (condition.conditionType) {
+      case (#HealthAbove({threshold})) {
+        droneState.batteryState.percentage > threshold
+      };
+      
+      case (#FuelAbove({threshold})) {
+        droneState.batteryState.percentage > threshold
+      };
+      
+      case (#HasTarget) {
+        switch (droneState.targetWaypoint) {
+          case (?_) { true };
+          case (null) { false };
+        }
+      };
+      
+      case (#RandomChance({probability})) {
+        randomFloat() < probability
+      };
+      
+      case _ { true };
+    }
+  };
+
   // Continue building toward 150,000 lines...
-  // Current: ~12,000 lines
-  // Remaining: ~138,000 lines
+  // Current: ~14,500 lines
+  // Remaining: ~135,500 lines
 
 }
