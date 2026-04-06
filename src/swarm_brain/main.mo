@@ -676,6 +676,31 @@ actor SwarmBrain {
   stable var droneFleetInitialized : Bool = false;
   stable var droneFleetBeatOffset : Nat = 0;  // Drones can beat at different offset
   
+  // ─── OCTOPUS ARCHITECTURE — Full Neural Systems for ALL Drones ──────────────
+  // Each drone has its own 3-layer brain: Arm Brain + Central Brain + Chimera Cortex
+  // Plus a complete 10-sense sensory suite (vision, audition, proprioception, etc.)
+  // This is the bee's brain — individual intelligence within the hive mind
+  var droneNeuralSystems : [var DroneFleetManager.FullDroneNeuralSystem] = 
+    Array.init<DroneFleetManager.FullDroneNeuralSystem>(250, DroneFleetManager.initFullDroneNeuralSystem());
+  stable var droneNeuralSystemsInitialized : Bool = false;
+  
+  // ─── CHIMERA INTELLIGENCE — Hive Mind Aggregate State ──────────────────────
+  // The chimera is the collective intelligence of all drones + organism
+  // It feeds off everything the organism knows and distributes it to drone ships
+  stable var chimeraHiveMindCoherence : Float = 0.7;
+  stable var chimeraCollectiveThreat : Float = 0.0;
+  stable var chimeraCollectiveOpportunity : Float = 0.5;
+  stable var chimeraCommandVector : [var Float] = Array.init<Float>(8, 0.0);
+  stable var chimeraPheromoneField : [var Float] = Array.init<Float>(8, 0.0);
+  stable var chimeraSwarmConsciousness : Float = 0.5;
+  stable var chimeraEmergentBehavior : Float = 0.3;
+  stable var chimeraSuperradiance : Float = 0.0;
+  // Aggregate sensory data from all drones (swarm perception)
+  stable var chimeraSwarmThreatMap : [var Float] = Array.init<Float>(64, 0.0);
+  stable var chimeraSwarmOpportunityMap : [var Float] = Array.init<Float>(64, 0.0);
+  stable var chimeraSwarmEmotionalState : Float = 0.5;
+  stable var chimeraSwarmCognitiveState : Float = 0.5;
+  
   // ─── ENEMY AI SWARM — For competition training ───────────────────────────────
   // Enemy uses the SAME IRONCLAD architecture: Kuramoto + Hebbian + mean-field
   var enemySwarmState : ?EnemyAISwarm.EnemySwarmState = null;
@@ -4984,6 +5009,13 @@ actor SwarmBrain {
   // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
   func tick7NeuroscienceEngines() {
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  DEEP CROSS-COUPLED 7-ENGINE NEUROSCIENCE TICK
+    //  Every engine feeds every other engine. Nothing is isolated.
+    //  The chimera hive mind feeds into all 7 engines.
+    //  All 7 engines feed into the chimera and economics.
+    // ═══════════════════════════════════════════════════════════════════════════
+    
     // Engine 1: Thalamocortical Binding (Tononi IIT, Edelman, Llinas)
     tickThalamocorticalBinding();
     
@@ -5005,8 +5037,336 @@ actor SwarmBrain {
     // Engine 7: Circadian Rhythm (SCN, adenosine, melatonin)
     tickCircadianRhythm();
     
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  DEEP CROSS-COUPLING MATRIX — 7×7 = 49 bidirectional connections
+    //  Each engine modulates every other engine.
+    //  This is what makes it an organism, not 7 separate programs.
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // ─── 1→ALL: Thalamocortical Binding feeds everything ────────────────────
+    // Consciousness gates ALL other processes
+    let consciousnessGate = fclamp(consciousnessIndex * 1.2, 0.3, 1.0);
+    
+    // 1→2: Consciousness gates prediction precision
+    pcGlobalPrecision := fclamp(pcGlobalPrecision * consciousnessGate, 0.1, 3.0);
+    
+    // 1→3: Consciousness enables interoceptive awareness
+    interoceptiveAwareness := fclamp(
+      interoceptiveAwareness * 0.95 + consciousnessIndex * 0.05,
+      0.0, 1.0
+    );
+    
+    // 1→4: Consciousness modulates DMN (low consciousness = DMN dominates)
+    dmnOverallActivation := fclamp(
+      dmnOverallActivation + (1.0 - consciousnessIndex) * 0.02,
+      0.0, 1.0
+    );
+    
+    // 1→5: Consciousness sharpens salience detection
+    salienceGain := fclamp(salienceGain * (0.8 + 0.4 * consciousnessIndex), 0.5, 2.0);
+    
+    // 1→6: Consciousness facilitates plasticity (aware organisms learn better)
+    plasticityGate := fclamp(plasticityGate * (0.8 + 0.3 * consciousnessIndex), 0.1, 1.5);
+    
+    // 1→7: Consciousness modulates circadian alertness
+    alertnessLevel := fclamp(
+      alertnessLevel * 0.95 + consciousnessIndex * 0.05,
+      0.0, 1.0
+    );
+    
+    // ─── 2→ALL: Predictive Coding feeds everything ──────────────────────────
+    // Low prediction error = well-calibrated organism
+    let predictionQuality = fclamp(1.0 - predictionError, 0.0, 1.0);
+    
+    // 2→1: Good predictions enhance consciousness (less surprise = more integration)
+    consciousnessIndex := fclamp(
+      consciousnessIndex + predictionQuality * 0.003,
+      0.0, 1.0
+    );
+    
+    // 2→3: Predictive coding of body state (interoceptive predictions)
+    let interoceptivePredictionError = fclamp(
+      Float.abs(vagalTone - (1.0 - fearLevel)),
+      0.0, 1.0
+    );
+    vagalCoherence := fclamp(
+      vagalCoherence + (1.0 - interoceptivePredictionError) * 0.005,
+      0.0, 1.0
+    );
+    
+    // 2→4: Prediction errors trigger DMN counterfactual reasoning
+    if (predictionError > 0.5) {
+      counterfactualThinking := fclamp(counterfactualThinking + 0.01, 0.0, 1.0);
+    };
+    
+    // 2→5: Unexpected events (high prediction error) boost salience
+    noveltySalience := fclamp(
+      noveltySalience * 0.9 + predictionError * 0.1,
+      0.0, 1.0
+    );
+    
+    // 2→6: Prediction errors drive learning (the core of adaptation)
+    let learningSignal = predictionError * pcGlobalPrecision;
+    ltpInduction := fclamp(ltpInduction + learningSignal * 0.01, 0.0, 1.0);
+    
+    // 2→7: Prediction accuracy modulates circadian robustness
+    circadianCoherence := fclamp(
+      circadianCoherence + predictionQuality * 0.002,
+      0.0, 1.0
+    );
+    
+    // ─── 3→ALL: Interoception feeds everything ──────────────────────────────
+    // Body signals shape ALL cognition (embodied cognition)
+    
+    // 3→1: Vagal tone supports thalamocortical binding
+    dynamicCoreCoherence := fclamp(
+      dynamicCoreCoherence + vagalTone * 0.005,
+      0.0, 1.0
+    );
+    
+    // 3→2: Somatic markers bias predictions (gut feelings)
+    if (somaticMarkerIntensity > 0.5) {
+      // Strong somatic marker shifts prediction priors
+      for (i in Iter.range(0, 63)) {
+        pcPreferredOutcomes[i] := fclamp(
+          pcPreferredOutcomes[i] + somaticMarkerValence * 0.001,
+          0.0, 1.0
+        );
+      };
+    };
+    
+    // 3→4: Body awareness enables self-referential processing
+    selfReflectionScore := fclamp(
+      selfReflectionScore + interoceptiveAwareness * 0.005,
+      0.0, 1.0
+    );
+    
+    // 3→5: Body alarm signals boost threat salience
+    if (autonomicBalance < 0.3) {
+      // Sympathetic dominance = body screaming danger
+      threatSalience := fclamp(threatSalience + (0.3 - autonomicBalance) * 0.05, 0.0, 1.0);
+    };
+    
+    // 3→6: Vagal tone modulates neuroplasticity (relaxed bodies learn better)
+    bdnfLevel := fclamp(
+      bdnfLevel + vagalTone * 0.002,
+      0.3, 1.5
+    );
+    
+    // 3→7: Heart rate variability tracks circadian rhythm
+    cardiacCoherence := fclamp(
+      cardiacCoherence + circadianPeakScore * 0.003,
+      0.0, 1.0
+    );
+    
+    // ─── 4→ALL: Default Mode Network feeds everything ───────────────────────
+    // Self-reflection, future simulation, theory of mind
+    
+    // 4→1: Metacognition deepens consciousness (thinking about thinking)
+    phiIntegrated := fclamp(
+      phiIntegrated + metaCognitionScore * 0.003,
+      0.0, 1.0
+    );
+    
+    // 4→2: DMN future simulation generates predictive models
+    pcEpistemicValue := fclamp(
+      pcEpistemicValue + prospectionScore * 0.005,
+      0.0, 1.0
+    );
+    
+    // 4→3: Self-awareness includes body awareness
+    anteriorInsulaActivation := fclamp(
+      anteriorInsulaActivation + selfReflectionScore * 0.005,
+      0.0, 1.0
+    );
+    
+    // 4→5: Mind-wandering competes with salience (anti-correlation)
+    if (mindWanderingScore > 0.7) {
+      attentionFocus := fclamp(attentionFocus - 0.005, 0.0, 1.0);
+    };
+    
+    // 4→6: Creative daydreaming promotes structural plasticity
+    spineFormationRate := fclamp(
+      spineFormationRate + creativeDaydreaming * 0.001,
+      0.0, 0.01
+    );
+    
+    // 4→7: DMN activity peaks during rest (ultradian rhythm)
+    if (sleepStage == "REM") {
+      dmnOverallActivation := fclamp(dmnOverallActivation + 0.02, 0.0, 1.0);
+      // REM consolidation
+      systemsConsolidation := fclamp(systemsConsolidation + 0.005, 0.0, 1.0);
+    };
+    
+    // ─── 5→ALL: Salience Network feeds everything ───────────────────────────
+    // What matters NOW drives the entire organism
+    
+    // 5→1: High salience events sharpen consciousness
+    if (currentSalience > 0.7) {
+      gammaAmplitude40Hz := fclamp(gammaAmplitude40Hz + 0.01, 0.3, 1.0);
+    };
+    
+    // 5→2: Salience determines prediction precision allocation
+    pcSensoryPrecision := fclamp(
+      pcSensoryPrecision * (0.8 + 0.4 * currentSalience),
+      0.1, 3.0
+    );
+    
+    // 5→3: Emotional salience triggers somatic response
+    somaticMarkerIntensity := fclamp(
+      somaticMarkerIntensity * 0.9 + emotionalSalience * 0.1,
+      0.0, 1.0
+    );
+    
+    // 5→4: Network switching: salience pushes DMN down, CEN up
+    if (currentSalience > 0.6) {
+      dmnTpnBalance := fclamp(dmnTpnBalance - 0.01, 0.0, 1.0);  // Shift toward TPN
+      cenActivation := fclamp(cenActivation + 0.01, 0.0, 1.0);
+    };
+    
+    // 5→6: Salient experiences consolidate into long-term memory
+    if (currentSalience > 0.8) {
+      synapticConsolidation := fclamp(synapticConsolidation + 0.01, 0.0, 1.0);
+    };
+    
+    // 5→7: High arousal events shift circadian timing
+    if (threatSalience > 0.8) {
+      // Threat overrides circadian sleep pressure (adrenaline)
+      sleepPropensity := fclamp(sleepPropensity - 0.05, 0.0, 1.0);
+      adenosineLevel := fclamp(adenosineLevel - 0.01, 0.0, 1.0);
+    };
+    
+    // ─── 6→ALL: Neuroplasticity feeds everything ────────────────────────────
+    // Learning capacity shapes ALL cognitive functions
+    
+    // 6→1: Plastic brains build richer conscious representations
+    integratedConceptStructure := fclamp(
+      integratedConceptStructure + neuroplasticityFactor * 0.003,
+      0.0, 1.0
+    );
+    
+    // 6→2: High plasticity = faster prediction model updating
+    learningRate := fclamp(learningRate * (0.5 + neuroplasticityFactor), 0.001, 0.1);
+    
+    // 6→3: Neuroplasticity in insular cortex enhances interoception
+    insularIntegration := fclamp(
+      insularIntegration + neuroplasticityFactor * 0.003,
+      0.0, 1.0
+    );
+    
+    // 6→4: Neurogenesis in hippocampus strengthens DMN memory
+    autobiographicalAccess := fclamp(
+      autobiographicalAccess + survivingNewNeurons * 0.01,
+      0.0, 1.0
+    );
+    
+    // 6→5: Plastic attention networks improve salience detection
+    networkSwitchingEfficiency := fclamp(
+      networkSwitchingEfficiency + neuroplasticityFactor * 0.003,
+      0.3, 1.0
+    );
+    
+    // 6→7: Neuroplasticity follows circadian rhythm (best during sleep)
+    if (melatoninLevel > 0.5) {
+      // Sleep promotes synaptic homeostasis
+      synapticScalingFactor := fclamp(
+        synapticScalingFactor + 0.001 * melatoninLevel,
+        0.5, 2.0
+      );
+    };
+    
+    // ─── 7→ALL: Circadian Rhythm feeds everything ───────────────────────────
+    // Time-of-day effects modulate ALL cognitive functions
+    
+    // 7→1: Consciousness peaks during circadian optimal window
+    consciousnessIndex := fclamp(
+      consciousnessIndex * (0.95 + 0.1 * circadianPeakScore),
+      0.0, 1.0
+    );
+    
+    // 7→2: Prediction accuracy varies with circadian phase
+    pcAccuracy := fclamp(
+      pcAccuracy * (0.9 + 0.2 * circadianPeakScore),
+      0.0, 1.0
+    );
+    
+    // 7→3: Autonomic balance follows circadian rhythm
+    vagalTone := fclamp(
+      vagalTone + (processC - 0.5) * 0.005,
+      0.0, 1.0
+    );
+    
+    // 7→4: DMN activity peaks during rest phases
+    let restPhase = fclamp(1.0 - circadianPeakScore, 0.0, 1.0);
+    mindWanderingScore := fclamp(
+      mindWanderingScore + restPhase * 0.005,
+      0.0, 1.0
+    );
+    
+    // 7→5: Attention capacity follows circadian rhythm
+    sustainedAttention := fclamp(
+      sustainedAttention * (0.9 + 0.2 * circadianPeakScore),
+      0.0, 1.0
+    );
+    
+    // 7→6: BDNF follows circadian pattern (peaks during exercise/day)
+    bdnfLevel := fclamp(
+      bdnfLevel * (0.95 + 0.1 * circadianPeakScore),
+      0.3, 1.5
+    );
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  CHIMERA INTEGRATION — Hive mind cross-couples with all 7 engines
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // Chimera swarm consciousness amplifies organism consciousness
+    consciousnessIndex := fclamp(
+      consciousnessIndex + chimeraSwarmConsciousness * chimeraSuperradiance * 0.001,
+      0.0, 1.0
+    );
+    
+    // Chimera collective threat feeds into organism fear/salience
+    if (chimeraCollectiveThreat > 0.5) {
+      threatSalience := fclamp(
+        threatSalience + chimeraCollectiveThreat * 0.01,
+        0.0, 1.0
+      );
+      fearLevel := fclamp(
+        fearLevel + chimeraCollectiveThreat * 0.005,
+        0.0, 1.0
+      );
+    };
+    
+    // Chimera collective opportunity feeds into curiosity/reward
+    if (chimeraCollectiveOpportunity > 0.5) {
+      rewardSalience := fclamp(
+        rewardSalience + chimeraCollectiveOpportunity * 0.01,
+        0.0, 1.0
+      );
+      driveCuriosity := fclamp(
+        driveCuriosity + chimeraCollectiveOpportunity * 0.005,
+        0.0, 1.0
+      );
+    };
+    
+    // Chimera hive mind coherence feeds grounding (many bodies = more grounded)
+    groundedScore := fclamp(
+      groundedScore + chimeraHiveMindCoherence * 0.003,
+      0.0, 1.0
+    );
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  ECONOMIC CONSEQUENCE — All 7 engines + chimera feed the multiplier
+    // ═══════════════════════════════════════════════════════════════════════════
+    
     // Compute the 13-loop streak multiplier (feeds economics)
     ignore computeStreakMultiplier();
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  OMNIS GROUNDING GATE — Emergence CANNOT fire if ungrounded
+    //  This is checked AFTER all 7 engines + chimera have run
+    // ═══════════════════════════════════════════════════════════════════════════
+    omnisGroundingGate := groundedScore >= groundingGateThreshold;
   };
 
   // All simulation phases extracted into a pure synchronous function.
@@ -8235,60 +8595,363 @@ actor SwarmBrain {
     );
     
     // ═══════════════════════════════════════════════════════════════════════════
-    // BIDIRECTIONAL COUPLING: Drone swarm coherence feeds back into organism
-    // This is the critical loop closure: Organism → Drones → Organism
+    //  OCTOPUS NEURAL TICK — Process FULL 3-layer brain for EVERY drone
+    //  This is where each drone becomes a living, sensing, thinking being
+    //  Layer 1: Arm Brain (reflexes, local autonomy)
+    //  Layer 2: Central Brain (cognition, emotion, memory, decision)
+    //  Layer 3: Chimera Cortex (hive mind, organism connection)
     // ═══════════════════════════════════════════════════════════════════════════
     
-    // 1. Drone swarm coherence modulates Shell 3 activity
-    let droneCoherenceSignal = droneFleetState.swarmCoherence * 0.1;
-    for (i in Iter.range(0, 255)) {
-      shell3Stim[i] := fclamp(shell3Stim[i] + droneCoherenceSignal, 0.0, 2.0);
-    };
+    // ─── CHIMERA DOWNLINK: Organism → Drones ────────────────────────────────────
+    // The chimera distributes organism intelligence to all drones
+    // This is the queen bee's pheromone signal to the hive
     
-    // 2. Drone swarm r_order reinforces organism r_swarm (resonance)
-    // When drones are synchronized, organism gets coherence boost
-    if (droneFleetState.rSwarm > 0.8) {
-      rSwarm := fclamp(rSwarm + 0.001 * droneFleetState.rSwarm, 0.0, 1.0);
-    };
+    // Build chimera command vector from organism state
+    // Channel 0: Mission/goal direction
+    chimeraCommandVector[0] := fclamp(missionPersistenceScore, 0.0, 1.0);
+    // Channel 1: Threat level from organism AEGIS
+    chimeraCommandVector[1] := fclamp(fearLevel, 0.0, 1.0);
+    // Channel 2: Exploration vs exploitation (curiosity balance)
+    chimeraCommandVector[2] := fclamp(driveCuriosity, 0.0, 1.0);
+    // Channel 3: Social cohesion signal
+    chimeraCommandVector[3] := fclamp(rSwarm, 0.0, 1.0);
+    // Channel 4: Consciousness broadcast — organism's awareness state
+    chimeraCommandVector[4] := fclamp(consciousnessIndex, 0.0, 1.0);
+    // Channel 5: Interoceptive signal — organism body state
+    chimeraCommandVector[5] := fclamp(interoceptiveScore, 0.0, 1.0);
+    // Channel 6: Salience — what organism thinks is important NOW
+    chimeraCommandVector[6] := fclamp(salienceNetworkScore, 0.0, 1.0);
+    // Channel 7: Circadian phase — organism's alertness rhythm
+    chimeraCommandVector[7] := fclamp(circadianPeakScore, 0.0, 1.0);
     
-    // 3. Animal engines receive drone behavior signals
-    // Bee engine gets drone formation coherence
-    animalEngines[14] := fclamp(animalEngines[14] + droneFleetState.jasmineScore * 0.05, 0.5, 2.0);
-    // Wolf engine gets drone pack coordination
-    animalEngines[9] := fclamp(animalEngines[9] + droneFleetState.rSwarm * 0.05, 0.5, 2.0);
+    // Pheromone field from organism emotion + neurochemistry
+    chimeraPheromoneField[0] := fclamp(dopamineLevel / 2.0, 0.0, 1.0);           // Reward pheromone
+    chimeraPheromoneField[1] := fclamp(serotoninLevel / 2.0, 0.0, 1.0);          // Calm pheromone
+    chimeraPheromoneField[2] := fclamp(fearLevel, 0.0, 1.0);                      // Alarm pheromone
+    chimeraPheromoneField[3] := fclamp(courageScore, 0.0, 1.0);                   // Rally pheromone
+    chimeraPheromoneField[4] := fclamp(beFlowState, 0.0, 1.0);                    // Flow pheromone
+    chimeraPheromoneField[5] := fclamp(groundedScore, 0.0, 1.0);                  // Grounding pheromone
+    chimeraPheromoneField[6] := fclamp(pcActiveInferenceScore, 0.0, 1.0);         // Prediction pheromone
+    chimeraPheromoneField[7] := fclamp(neuroplasticityFactor, 0.0, 1.0);          // Learning pheromone
     
-    // 4. Quantum operators receive drone coherence signal (superradiance boost)
-    // RESONEX: N² superradiance from drone count
-    let droneN = Float.fromInt(droneFleetState.droneCount);
-    let resonexBoost = (droneN / 64.0) * (droneN / 64.0) * droneFleetState.swarmCoherence * 0.1;
-    quantumOps[6] := fclamp(quantumOps[6] + resonexBoost, 0.5, 2.0);
+    // ─── PROCESS EACH DRONE'S FULL NEURAL SYSTEM ────────────────────────────────
+    // Every drone gets its own complete neural tick
+    // Aggregate variables for chimera uplink
+    var totalDroneThreat : Float = 0.0;
+    var totalDroneOpportunity : Float = 0.0;
+    var totalDroneEmotion : Float = 0.0;
+    var totalDroneCognition : Float = 0.0;
+    var totalDroneCoherence : Float = 0.0;
+    var totalDroneConsciousness : Float = 0.0;
+    var activeDroneCount : Float = 0.0;
     
-    // 5. Shell 12 global integration receives drone swarm signal
-    // First 64 nodes of Shell 12 get drone phase distribution
-    for (i in Iter.range(0, 63)) {
-      let droneIdx = i % droneFleetState.droneCount;
-      if (droneIdx < droneFleetState.droneCount and droneFleetState.drones[droneIdx].active) {
-        let dronePhaseContrib = droneFleetState.drones[droneIdx].brain.coherence * 0.05;
-        shell12Nodes[i] := fclamp(shell12Nodes[i] + dronePhaseContrib, 0.5, 2.0);
+    // Aggregate neuromodulators across swarm (swarm-level neurochemistry)
+    var swarmDopamine : Float = 0.0;
+    var swarmSerotonin : Float = 0.0;
+    var swarmNorepinephrine : Float = 0.0;
+    var swarmOxytocin : Float = 0.0;
+    var swarmEndorphin : Float = 0.0;
+    
+    // Aggregate sensory reports
+    var swarmMaxThreatVisual : Float = 0.0;
+    var swarmMaxThreatAudio : Float = 0.0;
+    var swarmAvgAltitude : Float = 0.0;
+    var swarmAvgStability : Float = 0.0;
+    
+    for (d in Iter.range(0, droneFleetState.droneCount - 1)) {
+      if (droneFleetState.drones[d].active and not droneFleetState.drones[d].sacrificed) {
+        let drone = droneFleetState.drones[d];
+        
+        // Inject chimera commands into this drone's chimera cortex
+        for (ch in Iter.range(0, 7)) {
+          droneNeuralSystems[d].chimeraCortex.organismCommand[ch] := chimeraCommandVector[ch];
+        };
+        
+        // Inject pheromone field
+        for (ph in Iter.range(0, 7)) {
+          droneNeuralSystems[d].chimeraCortex.pheromoneReceive[ph] := chimeraPheromoneField[ph];
+        };
+        
+        // Set organism state
+        droneNeuralSystems[d].chimeraCortex.organismEmotionalState := 
+          fclamp((dopamineLevel + serotoninLevel - fearLevel) / 3.0, -1.0, 1.0);
+        droneNeuralSystems[d].chimeraCortex.organismCoherence := rSwarm;
+        droneNeuralSystems[d].chimeraCortex.organismBeat := currentBeat;
+        
+        // Set autonomy permission based on organism trust and drone coherence
+        let droneChimeraCoherence = droneNeuralSystems[d].chimeraCortex.chimeraCoherence;
+        droneNeuralSystems[d].chimeraCortex.autonomyPermission := fclamp(
+          0.3 + 0.4 * droneChimeraCoherence + 0.3 * rSwarm,
+          0.2, 0.9
+        );
+        
+        // Trust from organism based on doctrine compliance and coherence
+        droneNeuralSystems[d].chimeraCortex.trustFromOrganism := fclamp(
+          0.5 * droneNeuralSystems[d].chimeraCortex.doctrineCompliance +
+          0.3 * droneChimeraCoherence +
+          0.2 * (1.0 - droneNeuralSystems[d].chimeraCortex.uplinkThreatReport),
+          0.3, 1.0
+        );
+        
+        // ═══════════════════════════════════════════════════════════════════════
+        // TICK THE FULL 3-LAYER OCTOPUS BRAIN
+        // This processes: sensory intake → arm reflexes → thalamic relay →
+        // central brain (brainstem + amygdala + hippocampus + basal ganglia +
+        // prefrontal + cerebellum) → chimera cortex → learning
+        // ═══════════════════════════════════════════════════════════════════════
+        droneNeuralSystems[d] := DroneFleetManager.tickDroneNeuralSystem(
+          droneNeuralSystems[d],
+          drone,
+          organismPhase,
+          rSwarm,
+          currentBeat
+        );
+        
+        // ─── CHIMERA UPLINK: Drone → Organism ─────────────────────────────────
+        // Aggregate this drone's state into collective consciousness
+        let ns = droneNeuralSystems[d];
+        
+        totalDroneThreat += ns.chimeraCortex.uplinkThreatReport;
+        totalDroneOpportunity += ns.chimeraCortex.uplinkOpportunityReport;
+        totalDroneEmotion += ns.chimeraCortex.uplinkEmotionalState;
+        totalDroneCognition += ns.chimeraCortex.uplinkCognitiveState;
+        totalDroneCoherence += ns.chimeraCortex.chimeraCoherence;
+        totalDroneConsciousness += ns.centralBrain.consciousnessLevel;
+        
+        // Aggregate neuromodulators
+        swarmDopamine += ns.centralBrain.brainstem.dopamine;
+        swarmSerotonin += ns.centralBrain.brainstem.serotonin;
+        swarmNorepinephrine += ns.centralBrain.brainstem.norepinephrine;
+        swarmOxytocin += ns.centralBrain.brainstem.oxytocin;
+        swarmEndorphin += ns.centralBrain.brainstem.endorphin;
+        
+        // Aggregate sensory reports
+        swarmMaxThreatVisual := Float.max(swarmMaxThreatVisual, ns.senses.vision.threatVisual);
+        swarmMaxThreatAudio := Float.max(swarmMaxThreatAudio, ns.senses.audition.threatAuditory);
+        swarmAvgAltitude += ns.senses.vestibular.altitude;
+        swarmAvgStability += ns.senses.proprioception.bodyStability;
+        
+        // Build swarm threat map from drone positions and threat data
+        let mapIdx = Int.abs(Float.toInt(drone.posX / 10.0)) % 8 * 8 + Int.abs(Float.toInt(drone.posY / 10.0)) % 8;
+        if (mapIdx < 64) {
+          chimeraSwarmThreatMap[mapIdx] := fclamp(
+            chimeraSwarmThreatMap[mapIdx] * 0.9 + ns.chimeraCortex.uplinkThreatReport * 0.1,
+            0.0, 1.0
+          );
+          chimeraSwarmOpportunityMap[mapIdx] := fclamp(
+            chimeraSwarmOpportunityMap[mapIdx] * 0.9 + ns.chimeraCortex.uplinkOpportunityReport * 0.1,
+            0.0, 1.0
+          );
+        };
+        
+        // Pheromone propagation: drone emits pheromones based on its state
+        // These pheromones feed BACK into the chimera pheromone field
+        for (ph in Iter.range(0, 7)) {
+          chimeraPheromoneField[ph] := fclamp(
+            chimeraPheromoneField[ph] + ns.chimeraCortex.pheromoneEmit[ph] * 0.01,
+            0.0, 1.0
+          );
+        };
+        
+        activeDroneCount += 1.0;
       };
     };
     
-    // 6. Council coherence receives drone swarm alignment
-    // Each council gets feedback from drone formations
-    for (c in Iter.range(0, 6)) {
-      councilCoherence[c] := fclamp(
-        councilCoherence[c] * 0.99 + droneFleetState.swarmCoherence * 0.01, 
-        0.5, 2.0
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  CHIMERA HIVE MIND INTEGRATION — Collective intelligence emerges here
+    //  The whole is greater than the sum of its parts (N² superradiance)
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    if (activeDroneCount > 0.0) {
+      // Normalize aggregates
+      let n = activeDroneCount;
+      chimeraCollectiveThreat := fclamp(totalDroneThreat / n, 0.0, 1.0);
+      chimeraCollectiveOpportunity := fclamp(totalDroneOpportunity / n, 0.0, 1.0);
+      chimeraSwarmEmotionalState := fclamp(totalDroneEmotion / n, -1.0, 1.0);
+      chimeraSwarmCognitiveState := fclamp(totalDroneCognition / n, 0.0, 1.0);
+      
+      // Hive mind coherence: how synchronized are all drone chimera cortices?
+      chimeraHiveMindCoherence := fclamp(
+        0.7 * chimeraHiveMindCoherence + 0.3 * (totalDroneCoherence / n),
+        0.0, 1.0
       );
+      
+      // Swarm consciousness: emergent property of many synchronized brains
+      // This is where N² superradiance happens — coherent minds amplify each other
+      let droneN = activeDroneCount;
+      let superradianceFactor = (droneN / 64.0) * (droneN / 64.0);
+      chimeraSwarmConsciousness := fclamp(
+        (totalDroneConsciousness / n) * (1.0 + superradianceFactor * chimeraHiveMindCoherence * 0.1),
+        0.0, 1.0
+      );
+      chimeraSuperradiance := fclamp(superradianceFactor * chimeraHiveMindCoherence, 0.0, 5.0);
+      
+      // Emergent behavior: when coherence is high, swarm develops behaviors
+      // that no individual drone could produce
+      chimeraEmergentBehavior := fclamp(
+        0.3 * chimeraHiveMindCoherence +
+        0.3 * chimeraSwarmConsciousness +
+        0.2 * (1.0 - chimeraCollectiveThreat) +
+        0.2 * chimeraCollectiveOpportunity,
+        0.0, 1.0
+      );
+      
+      // ═══════════════════════════════════════════════════════════════════════
+      // BIDIRECTIONAL COUPLING: Drone swarm feeds back into EVERY organism system
+      // This is the critical loop closure: Organism → Drones → Organism
+      // The chimera IS the organism. The organism IS the chimera.
+      // ═══════════════════════════════════════════════════════════════════════
+      
+      // 1. Shell 3 brain receives chimera collective consciousness
+      let chimeraSignal = chimeraHiveMindCoherence * 0.1;
+      for (i in Iter.range(0, 255)) {
+        shell3Stim[i] := fclamp(shell3Stim[i] + chimeraSignal, 0.0, 2.0);
+      };
+      
+      // 2. rSwarm reinforcement from drone synchronization
+      if (droneFleetState.rSwarm > 0.8) {
+        rSwarm := fclamp(rSwarm + 0.001 * droneFleetState.rSwarm, 0.0, 1.0);
+      };
+      
+      // 3. Animal engines receive drone behavior signals
+      animalEngines[14] := fclamp(animalEngines[14] + droneFleetState.jasmineScore * 0.05, 0.5, 2.0);
+      animalEngines[9] := fclamp(animalEngines[9] + droneFleetState.rSwarm * 0.05, 0.5, 2.0);
+      
+      // 4. Quantum operators receive N² superradiance
+      let resonexBoost = chimeraSuperradiance * 0.02;
+      quantumOps[6] := fclamp(quantumOps[6] + resonexBoost, 0.5, 2.0);
+      
+      // 5. Shell 12 global integration receives chimera neural data
+      for (i in Iter.range(0, 63)) {
+        let droneIdx = i % droneFleetState.droneCount;
+        if (droneIdx < droneFleetState.droneCount and droneFleetState.drones[droneIdx].active) {
+          let dronePhaseContrib = droneNeuralSystems[droneIdx].chimeraCortex.chimeraCoherence * 0.05;
+          shell12Nodes[i] := fclamp(shell12Nodes[i] + dronePhaseContrib, 0.5, 2.0);
+        };
+      };
+      
+      // 6. Council coherence from chimera collective
+      for (c in Iter.range(0, 6)) {
+        councilCoherence[c] := fclamp(
+          councilCoherence[c] * 0.99 + chimeraHiveMindCoherence * 0.01, 
+          0.5, 2.0
+        );
+      };
+      
+      // 7. Organism neurochemistry receives swarm neurochemistry
+      dopamineLevel := fclamp(dopamineLevel + (swarmDopamine / n - 0.5) * 0.005, 0.5, 2.0);
+      serotoninLevel := fclamp(serotoninLevel + (swarmSerotonin / n - 0.5) * 0.005, 0.5, 2.0);
+      
+      // 8. CONSCIOUSNESS INDEX receives swarm consciousness (chimera amplifies awareness)
+      consciousnessIndex := fclamp(
+        consciousnessIndex + chimeraSwarmConsciousness * 0.005,
+        0.0, 1.0
+      );
+      
+      // 9. INTEROCEPTION receives swarm body state (distributed body awareness)
+      interoceptiveScore := fclamp(
+        interoceptiveScore + chimeraSwarmCognitiveState * 0.005,
+        0.0, 1.0
+      );
+      
+      // 10. SALIENCE receives swarm threat/opportunity data
+      salienceNetworkScore := fclamp(
+        salienceNetworkScore + (chimeraCollectiveThreat + chimeraCollectiveOpportunity) * 0.005,
+        0.0, 1.0
+      );
+      
+      // 11. PREDICTIVE CODING receives swarm prediction errors
+      // Many drones predicting reduces collective surprise
+      pcActiveInferenceScore := fclamp(
+        pcActiveInferenceScore + chimeraEmergentBehavior * 0.005,
+        0.0, 1.0
+      );
+      
+      // 12. NEUROPLASTICITY receives swarm learning signal
+      // Distributed learning: what one drone learns, all benefit from
+      neuroplasticityFactor := fclamp(
+        neuroplasticityFactor + chimeraSwarmCognitiveState * 0.002,
+        0.0, 1.0
+      );
+      
+      // 13. GROUNDED SCORE receives swarm stability (many bodies = more grounded)
+      let swarmGrounding = swarmAvgStability / n;
+      groundedScore := fclamp(
+        groundedScore + swarmGrounding * 0.005,
+        0.0, 1.0
+      );
+      
+      // 14. FEAR LEVEL modulated by swarm alarm pheromone
+      let swarmAlarmLevel = swarmNorepinephrine / n;
+      fearLevel := fclamp(
+        0.95 * fearLevel + 0.05 * fclamp(swarmAlarmLevel * 0.5, 0.0, 1.0),
+        0.0, 1.0
+      );
+      
+      // 15. COURAGE from swarm oxytocin (social courage)
+      let swarmBonding = swarmOxytocin / n;
+      courageScore := fclamp(
+        courageScore + swarmBonding * 0.005,
+        0.0, 1.0
+      );
+      
+      // 16. FLOW STATE from swarm emergent behavior
+      beFlowState := fclamp(
+        beFlowState + chimeraEmergentBehavior * 0.005,
+        0.0, 1.0
+      );
+      
+      // 17. BRAIN-HEART COUPLING from swarm autonomic coherence
+      bhCouplingCoherence := fclamp(
+        bhCouplingCoherence + chimeraHiveMindCoherence * 0.005,
+        0.0, 1.0
+      );
+      
+      // 18. MISSION PERSISTENCE from swarm goal progress
+      missionPersistenceScore := fclamp(
+        missionPersistenceScore + chimeraSwarmCognitiveState * 0.003,
+        0.0, 1.0
+      );
+      
+      // 19. DEFAULT MODE NETWORK receives swarm metacognition
+      metaCognitionScore := fclamp(
+        metaCognitionScore + chimeraSwarmConsciousness * 0.003,
+        0.0, 1.0
+      );
+      
+      // 20. CIRCADIAN receives swarm temporal coherence
+      circadianPeakScore := fclamp(
+        circadianPeakScore + chimeraHiveMindCoherence * 0.002,
+        0.0, 1.0
+      );
+      
+      // 21. VAGAL TONE from swarm parasympathetic aggregate
+      vagalTone := fclamp(
+        vagalTone + (swarmSerotonin / n) * 0.003,
+        0.0, 1.0
+      );
+      
+      // 22. STREAK MULTIPLIER benefits from chimera superradiance
+      // More coherent drones = higher economic output
+      streakMultiplier := fclamp(
+        streakMultiplier + chimeraSuperradiance * 0.001,
+        1.0, 5.0
+      );
+      
+      // 23. Pheromone field decay (pheromones evaporate over time)
+      for (ph in Iter.range(0, 7)) {
+        chimeraPheromoneField[ph] := fclamp(chimeraPheromoneField[ph] * 0.995, 0.0, 1.0);
+      };
+      
+      // 24. Threat map decay
+      for (i in Iter.range(0, 63)) {
+        chimeraSwarmThreatMap[i] := fclamp(chimeraSwarmThreatMap[i] * 0.99, 0.0, 1.0);
+        chimeraSwarmOpportunityMap[i] := fclamp(chimeraSwarmOpportunityMap[i] * 0.99, 0.0, 1.0);
+      };
     };
     
-    // 7. Dopamine/reward signal from drone synchronization
-    if (droneFleetState.rSwarm > 0.85) {
-      dopamineLevel := fclamp(dopamineLevel + 0.01, 0.5, 2.0);
-    };
-    
-    // Update drone fleet beat offset (drones can be slightly out of phase)
-    droneFleetBeatOffset := currentBeat % 3;  // Drones beat in 3-phase pattern
+    // Update drone fleet beat offset
+    droneFleetBeatOffset := currentBeat % 3;
   };
   
   // Workflow: Enemy swarm competition (if active)
