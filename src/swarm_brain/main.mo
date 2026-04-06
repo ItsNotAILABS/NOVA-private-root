@@ -2767,6 +2767,2251 @@ actor SwarmBrain {
     breathRateVariance := variance / Float.fromInt(size);
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //
+  //   7 NEUROSCIENCE ENGINE TICK FUNCTIONS — ALL INLINE, ALL WIRED INTO HEARTBEAT
+  //
+  //   These functions execute every beat as part of masterHeartbeat().
+  //   Each engine updates its state variables and feeds forward to economics.
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  ENGINE 1 TICK: THALAMOCORTICAL BINDING
+  //
+  //  Implements:
+  //    1. 40Hz gamma oscillation (Llinas binding)
+  //    2. Thalamocortical relay updates for 12 nuclei
+  //    3. Cortical column dynamics (64 columns × 6 fields)
+  //    4. Thalamic Reticular Nucleus (TRN) inhibition
+  //    5. Reentrant loop connectivity (Edelman dynamic core)
+  //    6. Integrated Information Φ computation (Tononi IIT)
+  //    7. Consciousness index calculation
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  
+  func tickThalamocorticalBinding() {
+    let dt : Float = 1.0 / 12.0;  // 12 Hz heartbeat
+    
+    // ─── 40Hz GAMMA OSCILLATION (LLINAS BINDING) ────────────────────────────────
+    // The 40Hz oscillation binds disparate cortical areas into unified percepts.
+    // Phase: advances at 40Hz rate
+    // Amplitude: modulated by arousal and attention
+    let gamma40HzFreq : Float = 40.0;
+    let gammaOmega : Float = 2.0 * 3.14159265359 * gamma40HzFreq;
+    gammaPhase40Hz := Float.sin(gammaPhase40Hz + gammaOmega * dt) + 3.14159265359;
+    if (gammaPhase40Hz > 2.0 * 3.14159265359) {
+      gammaPhase40Hz := gammaPhase40Hz - 2.0 * 3.14159265359;
+      gammaCycleCount += 1;
+    };
+    
+    // Gamma amplitude modulated by arousal (norepinephrine proxy) and attention
+    let arousalModulation : Float = 0.7 + 0.3 * attentionFocus;
+    gammaAmplitude40Hz := fclamp(0.5 + 0.5 * arousalModulation * rSwarm, 0.3, 1.0);
+    
+    // Binding strength: how well gamma synchronizes thalamocortical loops
+    let gammaSync : Float = Float.cos(gammaPhase40Hz) * gammaAmplitude40Hz;
+    bindingStrength40Hz := fclamp(0.5 + 0.5 * gammaSync, 0.0, 1.0);
+    
+    // ─── THALAMIC NUCLEI DYNAMICS ───────────────────────────────────────────────
+    // Update each of 12 thalamic nuclei
+    // Each nucleus: [activation, phase, reentrantInput, corticalFeedback, inhibition, coherence]
+    var nucleusIdx = 0;
+    while (nucleusIdx < TC_NUCLEI_COUNT) {
+      let base = nucleusIdx * TC_FIELDS_PER_NUCLEUS;
+      
+      // Get current state
+      let activation = tcNucleiState[base + TC_F_ACTIVATION];
+      let phase = tcNucleiState[base + TC_F_PHASE];
+      let reentrant = tcNucleiState[base + TC_F_REENTRANT];
+      let corticalFb = tcNucleiState[base + TC_F_CORTICAL_FB];
+      let inhibition = tcNucleiState[base + TC_F_INHIBITION];
+      let coherence = tcNucleiState[base + TC_F_COHERENCE];
+      
+      // TRN inhibition affects this nucleus
+      let trnInhib = trnActivation[nucleusIdx];
+      
+      // Compute aggregate cortical feedback from connected columns
+      var corticalSum : Float = 0.0;
+      var colIdx = 0;
+      while (colIdx < TC_CORTICAL_COLUMNS) {
+        let colBase = colIdx * TC_COLUMN_FIELDS;
+        let colCoherence = corticalColumnState[colBase + 5];  // Column coherence
+        let weight = tcBackwardWeights[nucleusIdx * TC_CORTICAL_COLUMNS + colIdx];
+        corticalSum += colCoherence * weight;
+        colIdx += 1;
+      };
+      corticalSum := corticalSum / Float.fromInt(TC_CORTICAL_COLUMNS);
+      
+      // Update nucleus activation
+      // τ dA/dt = -A + σ(input) - inhibition
+      let inputSum = corticalSum + reentrant * reentryStrength + rSwarm * 0.2;
+      let newActivation = activation + dt * (-0.1 * activation + sigmoid(inputSum) - trnInhib * 0.5);
+      tcNucleiState[base + TC_F_ACTIVATION] := fclamp(newActivation, 0.0, 1.0);
+      
+      // Update nucleus phase (oscillation)
+      let nucleusOmega = 0.5 + 0.5 * Float.fromInt(nucleusIdx) / Float.fromInt(TC_NUCLEI_COUNT);
+      let newPhase = phase + dt * nucleusOmega + gammaSync * 0.1;
+      tcNucleiState[base + TC_F_PHASE] := Float.sin(newPhase) + 3.14159265359;
+      
+      // Update reentrant input (from other nuclei)
+      var reentrantSum : Float = 0.0;
+      var otherNucleus = 0;
+      while (otherNucleus < TC_NUCLEI_COUNT) {
+        if (otherNucleus != nucleusIdx) {
+          let otherBase = otherNucleus * TC_FIELDS_PER_NUCLEUS;
+          let otherAct = tcNucleiState[otherBase + TC_F_ACTIVATION];
+          reentrantSum += otherAct * 0.1;
+        };
+        otherNucleus += 1;
+      };
+      tcNucleiState[base + TC_F_REENTRANT] := fclamp(reentrantSum, 0.0, 1.0);
+      
+      // Update cortical feedback
+      tcNucleiState[base + TC_F_CORTICAL_FB] := corticalSum;
+      
+      // Update inhibition (from TRN)
+      tcNucleiState[base + TC_F_INHIBITION] := trnInhib;
+      
+      // Update nucleus coherence (with gamma rhythm)
+      let phaseAlignment = Float.abs(Float.cos(tcNucleiState[base + TC_F_PHASE] - gammaPhase40Hz));
+      tcNucleiState[base + TC_F_COHERENCE] := fclamp(0.5 * coherence + 0.5 * phaseAlignment, 0.0, 1.0);
+      
+      nucleusIdx += 1;
+    };
+    
+    // ─── THALAMIC RETICULAR NUCLEUS (TRN) ───────────────────────────────────────
+    // The TRN provides inhibitory control over thalamic relay nuclei
+    // It's like a gate that filters sensory information
+    var trnIdx = 0;
+    while (trnIdx < TC_NUCLEI_COUNT) {
+      let nucleusAct = tcNucleiState[trnIdx * TC_FIELDS_PER_NUCLEUS + TC_F_ACTIVATION];
+      
+      // TRN activation: lateral inhibition + attention-based modulation
+      // High attention = more selective gating
+      let trnInput = nucleusAct - attentionFocus * 0.3;
+      trnActivation[trnIdx] := fclamp(trnActivation[trnIdx] * 0.9 + sigmoid(trnInput) * 0.1, 0.0, 0.8);
+      
+      // TRN phase follows gamma with lag
+      trnPhase[trnIdx] := gammaPhase40Hz + 0.1 * Float.fromInt(trnIdx);
+      
+      trnIdx += 1;
+    };
+    
+    // ─── CORTICAL COLUMN DYNAMICS ───────────────────────────────────────────────
+    // 64 columns, each with [L2/3_act, L4_act, L5_act, L6_act, phase, coherence]
+    var colIdx = 0;
+    while (colIdx < TC_CORTICAL_COLUMNS) {
+      let colBase = colIdx * TC_COLUMN_FIELDS;
+      
+      // Layer activations
+      let l23 = corticalColumnState[colBase + 0];  // Supragranular (output to other columns)
+      let l4 = corticalColumnState[colBase + 1];   // Granular (thalamic input)
+      let l5 = corticalColumnState[colBase + 2];   // Infragranular (output to subcortex)
+      let l6 = corticalColumnState[colBase + 3];   // Infragranular (corticothalamic feedback)
+      let colPhase = corticalColumnState[colBase + 4];
+      let colCoh = corticalColumnState[colBase + 5];
+      
+      // Thalamic input to L4 (from connected nuclei)
+      var thalamicInput : Float = 0.0;
+      var nucIdx = 0;
+      while (nucIdx < TC_NUCLEI_COUNT) {
+        let nucAct = tcNucleiState[nucIdx * TC_FIELDS_PER_NUCLEUS + TC_F_ACTIVATION];
+        let weight = tcForwardWeights[nucIdx * TC_CORTICAL_COLUMNS + colIdx];
+        thalamicInput += nucAct * weight;
+        nucIdx += 1;
+      };
+      thalamicInput := thalamicInput / Float.fromInt(TC_NUCLEI_COUNT);
+      
+      // Update layer activations (simplified canonical microcircuit)
+      // L4 receives thalamic input
+      let newL4 = l4 + dt * (-0.1 * l4 + sigmoid(thalamicInput + l6 * 0.3));
+      // L2/3 receives from L4, lateral from other columns
+      let newL23 = l23 + dt * (-0.1 * l23 + sigmoid(newL4 * 0.5 + rSwarm * 0.2));
+      // L5 receives from L2/3, outputs to subcortex
+      let newL5 = l5 + dt * (-0.1 * l5 + sigmoid(newL23 * 0.4 + architectSignalLevel * 0.3));
+      // L6 receives from L5, provides corticothalamic feedback
+      let newL6 = l6 + dt * (-0.1 * l6 + sigmoid(newL5 * 0.3 + newL4 * 0.2));
+      
+      corticalColumnState[colBase + 0] := fclamp(newL23, 0.0, 1.0);
+      corticalColumnState[colBase + 1] := fclamp(newL4, 0.0, 1.0);
+      corticalColumnState[colBase + 2] := fclamp(newL5, 0.0, 1.0);
+      corticalColumnState[colBase + 3] := fclamp(newL6, 0.0, 1.0);
+      
+      // Update column phase (tracks gamma)
+      let newColPhase = colPhase + dt * (40.0 * 2.0 * 3.14159265359) + gammaSync * 0.05;
+      corticalColumnState[colBase + 4] := Float.sin(newColPhase) + 3.14159265359;
+      
+      // Update column coherence
+      let layerMean = (newL23 + newL4 + newL5 + newL6) / 4.0;
+      let phaseCoherence = Float.abs(Float.cos(corticalColumnState[colBase + 4] - gammaPhase40Hz));
+      corticalColumnState[colBase + 5] := fclamp(0.7 * colCoh + 0.3 * layerMean * phaseCoherence, 0.0, 1.0);
+      
+      colIdx += 1;
+    };
+    
+    // ─── REENTRANT WEIGHT LEARNING (EDELMAN) ────────────────────────────────────
+    // Hebbian update of thalamocortical weights based on co-activation
+    var weightIdx = 0;
+    while (weightIdx < 768) {
+      let nucIdx = weightIdx / TC_CORTICAL_COLUMNS;
+      let colIdx2 = weightIdx % TC_CORTICAL_COLUMNS;
+      
+      let nucAct = tcNucleiState[nucIdx * TC_FIELDS_PER_NUCLEUS + TC_F_ACTIVATION];
+      let colAct = corticalColumnState[colIdx2 * TC_COLUMN_FIELDS + 5];  // Column coherence
+      
+      // Hebbian: Δw = η * pre * post
+      let dw = 0.001 * nucAct * colAct - 0.0001 * (tcForwardWeights[weightIdx] - 0.5);
+      tcForwardWeights[weightIdx] := fclamp(tcForwardWeights[weightIdx] + dw, 0.1, 0.9);
+      
+      // Backward weights learn similarly
+      let dwBack = 0.001 * colAct * nucAct - 0.0001 * (tcBackwardWeights[weightIdx] - 0.5);
+      tcBackwardWeights[weightIdx] := fclamp(tcBackwardWeights[weightIdx] + dwBack, 0.1, 0.9);
+      
+      weightIdx += 1;
+    };
+    
+    // ─── INTEGRATED INFORMATION Φ (TONONI IIT) ──────────────────────────────────
+    // Φ measures information that is both integrated and differentiated
+    // Simplified: Φ ≈ mutual information - minimum information partition
+    
+    // Compute aggregate activation across all thalamic nuclei
+    var totalNucleusActivation : Float = 0.0;
+    var totalNucleusCoherence : Float = 0.0;
+    nucIdx := 0;
+    while (nucIdx < TC_NUCLEI_COUNT) {
+      let base = nucIdx * TC_FIELDS_PER_NUCLEUS;
+      totalNucleusActivation += tcNucleiState[base + TC_F_ACTIVATION];
+      totalNucleusCoherence += tcNucleiState[base + TC_F_COHERENCE];
+      nucIdx += 1;
+    };
+    totalNucleusActivation := totalNucleusActivation / Float.fromInt(TC_NUCLEI_COUNT);
+    totalNucleusCoherence := totalNucleusCoherence / Float.fromInt(TC_NUCLEI_COUNT);
+    
+    // Compute aggregate across cortical columns
+    var totalColumnCoherence : Float = 0.0;
+    colIdx := 0;
+    while (colIdx < TC_CORTICAL_COLUMNS) {
+      totalColumnCoherence += corticalColumnState[colIdx * TC_COLUMN_FIELDS + 5];
+      colIdx += 1;
+    };
+    totalColumnCoherence := totalColumnCoherence / Float.fromInt(TC_CORTICAL_COLUMNS);
+    
+    // Effective information (EI): how much does each nucleus constrain others?
+    effectiveInformation := fclamp(totalNucleusActivation * totalNucleusCoherence, 0.0, 1.0);
+    
+    // Cause information (CI): how much does each nucleus inform about its causes?
+    causeInformation := fclamp(totalColumnCoherence * reentryStrength, 0.0, 1.0);
+    
+    // Minimum information partition (MIP): find the "weakest link"
+    var minPhiPartition : Float = 1.0;
+    nucIdx := 0;
+    while (nucIdx < TC_NUCLEI_COUNT) {
+      let base = nucIdx * TC_FIELDS_PER_NUCLEUS;
+      let nucleusPhi = tcNucleiState[base + TC_F_COHERENCE] * tcNucleiState[base + TC_F_ACTIVATION];
+      phiPartitions[nucIdx] := nucleusPhi;
+      if (nucleusPhi < minPhiPartition) {
+        minPhiPartition := nucleusPhi;
+      };
+      nucIdx += 1;
+    };
+    minInformationPartition := minPhiPartition;
+    
+    // Integrated Information Φ = EI + CI - MIP
+    // If the system is fully integrated, MIP is high (hard to partition)
+    // If the system is reducible, MIP is low (easy to partition)
+    let rawPhi = (effectiveInformation + causeInformation) * (1.0 - minInformationPartition);
+    phiIntegrated := fclamp(0.8 * phiIntegrated + 0.2 * rawPhi, 0.0, 1.0);
+    
+    // Integrated Concept Structure (ICS): the "shape" of integrated information
+    integratedConceptStructure := fclamp(phiIntegrated * totalColumnCoherence, 0.0, 1.0);
+    
+    // ─── DYNAMIC CORE (EDELMAN) ─────────────────────────────────────────────────
+    // The dynamic core is a metastable, integrated cluster of neural groups
+    
+    // Dynamic core coherence: synchrony of thalamocortical loops
+    dynamicCoreCoherence := fclamp(
+      0.3 * totalNucleusCoherence + 
+      0.3 * totalColumnCoherence + 
+      0.2 * bindingStrength40Hz + 
+      0.2 * rSwarm,
+      0.0, 1.0
+    );
+    
+    // Dynamic core entropy: variability within the core (need balance)
+    var coreVariance : Float = 0.0;
+    nucIdx := 0;
+    while (nucIdx < TC_NUCLEI_COUNT) {
+      let base = nucIdx * TC_FIELDS_PER_NUCLEUS;
+      let diff = tcNucleiState[base + TC_F_ACTIVATION] - totalNucleusActivation;
+      coreVariance += diff * diff;
+      nucIdx += 1;
+    };
+    coreVariance := coreVariance / Float.fromInt(TC_NUCLEI_COUNT);
+    dynamicCoreEntropy := fclamp(Float.sqrt(coreVariance), 0.0, 1.0);
+    
+    // Reentry strength: quality of bidirectional connectivity
+    reentryStrength := fclamp(
+      0.5 * reentryStrength + 
+      0.5 * (effectiveInformation + causeInformation) / 2.0,
+      0.0, 1.0
+    );
+    
+    // Core complexity: balance between integration and differentiation (Edelman's "sweet spot")
+    // Optimal complexity occurs when the system is neither too random nor too ordered
+    coreComplexity := fclamp(
+      4.0 * dynamicCoreCoherence * (1.0 - dynamicCoreCoherence) * dynamicCoreEntropy,
+      0.0, 1.0
+    );
+    
+    // Neural Darwinism fitness: how well the system adapts through selection
+    neuralDarwinismFitness := fclamp(
+      0.9 * neuralDarwinismFitness + 
+      0.1 * coreComplexity * phiIntegrated,
+      0.0, 1.0
+    );
+    
+    // ─── THALAMIC RELAY GAIN ────────────────────────────────────────────────────
+    // How efficiently thalamus relays information (modulated by arousal, attention)
+    thalamicRelayGain := fclamp(
+      0.5 + 0.3 * attentionFocus + 0.2 * (1.0 - fearLevel),
+      0.3, 1.5
+    );
+    
+    // Sensory gating: TRN-mediated filtering of sensory input
+    var avgTrnInhibition : Float = 0.0;
+    trnIdx := 0;
+    while (trnIdx < TC_NUCLEI_COUNT) {
+      avgTrnInhibition += trnActivation[trnIdx];
+      trnIdx += 1;
+    };
+    avgTrnInhibition := avgTrnInhibition / Float.fromInt(TC_NUCLEI_COUNT);
+    sensoryGating := fclamp(1.0 - avgTrnInhibition, 0.2, 1.0);
+    
+    // Attentional modulation: how attention affects thalamic processing
+    attentionalModulation := fclamp(attentionFocus * thalamicRelayGain, 0.0, 1.5);
+    
+    // ─── CONSCIOUSNESS INDEX ────────────────────────────────────────────────────
+    // Composite measure of unified conscious state
+    // Combines: Φ, dynamic core coherence, gamma binding, thalamic integrity
+    
+    let rawConsciousness = 
+      0.25 * phiIntegrated +           // Tononi: integrated information
+      0.20 * dynamicCoreCoherence +    // Edelman: dynamic core unity
+      0.15 * bindingStrength40Hz +     // Llinas: gamma binding
+      0.15 * thalamicRelayGain / 1.5 + // Thalamic integrity
+      0.15 * rSwarm +                  // Global coherence
+      0.10 * (1.0 - jDrift);           // Stability
+    
+    consciousnessIndex := fclamp(
+      0.85 * consciousnessIndex + 0.15 * rawConsciousness,
+      0.0, 1.0
+    );
+    
+    // Update consciousness history
+    consciousnessHistory[consciousnessHistoryIdx % 100] := consciousnessIndex;
+    consciousnessHistoryIdx += 1;
+    
+    // Determine consciousness level
+    if (consciousnessIndex > 0.9) {
+      consciousnessLevel := "FLOW";
+    } else if (consciousnessIndex > 0.8) {
+      consciousnessLevel := "FOCUSED";
+    } else if (consciousnessIndex > 0.6) {
+      consciousnessLevel := "WAKING";
+    } else if (consciousnessIndex > 0.4) {
+      consciousnessLevel := "DROWSY";
+    } else if (consciousnessIndex > 0.2) {
+      consciousnessLevel := "LIGHT_SLEEP";
+    } else {
+      consciousnessLevel := "DEEP_SLEEP";
+    };
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  ENGINE 2 TICK: PREDICTIVE CODING (KARL FRISTON)
+  //
+  //  Implements:
+  //    1. Hierarchical generative model (8 levels)
+  //    2. Top-down predictions (μ)
+  //    3. Bottom-up prediction errors (ε = o - μ)
+  //    4. Precision weighting (γ)
+  //    5. Free energy computation (F = accuracy - complexity)
+  //    6. Active inference (minimize expected free energy through action)
+  //    7. Model evidence and Bayesian comparison
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  
+  func tickPredictiveCoding() {
+    let dt : Float = 1.0 / 12.0;
+    
+    // ─── SENSORY OBSERVATIONS ───────────────────────────────────────────────────
+    // Bottom level (Level 0) receives actual sensory input
+    // We derive this from organism state (rSwarm, jDrift, neurochemicals, etc.)
+    var obsIdx = 0;
+    while (obsIdx < PC_UNITS_PER_LEVEL) {
+      // Mix of different organism signals as "sensory" input
+      let signalMix = 
+        0.3 * rSwarm +                                           // Global coherence
+        0.2 * (1.0 - jDrift) +                                   // Stability
+        0.2 * Float.sin(Float.fromInt(obsIdx) * 0.1 + Float.fromInt(currentBeat) * 0.01) + // Temporal pattern
+        0.15 * consciousnessIndex +                              // Consciousness level
+        0.15 * dopamineLevel / 2.0;                              // Reward signal
+      
+      pcObservations[obsIdx] := fclamp(signalMix + 0.1 * Float.sin(Float.fromInt(obsIdx)), 0.0, 1.0);
+      obsIdx += 1;
+    };
+    
+    // ─── TOP-DOWN PREDICTIONS ───────────────────────────────────────────────────
+    // Higher levels predict activity at lower levels
+    // Start from top (Level 7: Self-model) and propagate DOWN
+    
+    var level = PC_HIERARCHY_LEVELS - 1;
+    while (level > 0) {
+      let levelBase = level * PC_UNITS_PER_LEVEL;
+      let lowerLevelBase = (level - 1) * PC_UNITS_PER_LEVEL;
+      let weightBase = (level - 1) * PC_UNITS_PER_LEVEL * PC_UNITS_PER_LEVEL;
+      
+      var unitIdx = 0;
+      while (unitIdx < PC_UNITS_PER_LEVEL) {
+        // This level's prediction comes from weighted sum of higher-level activity
+        var prediction : Float = 0.0;
+        var sourceIdx = 0;
+        while (sourceIdx < PC_UNITS_PER_LEVEL) {
+          let weight = pcHierarchyWeights[weightBase + unitIdx * PC_UNITS_PER_LEVEL + sourceIdx];
+          let higherAct = pcPredictions[levelBase + sourceIdx];
+          prediction += weight * higherAct;
+          sourceIdx += 1;
+        };
+        
+        // Apply precision weighting to prediction
+        let precision = pcPrecision[lowerLevelBase + unitIdx];
+        prediction := prediction * precision;
+        
+        // Update prediction for lower level
+        pcPredictions[lowerLevelBase + unitIdx] := fclamp(
+          0.8 * pcPredictions[lowerLevelBase + unitIdx] + 0.2 * sigmoid(prediction),
+          0.0, 1.0
+        );
+        
+        unitIdx += 1;
+      };
+      
+      level -= 1;
+    };
+    
+    // ─── PREDICTION ERRORS ──────────────────────────────────────────────────────
+    // ε = observation - prediction (bottom-up error signal)
+    // Propagate UP from Level 0
+    
+    level := 0;
+    while (level < PC_HIERARCHY_LEVELS) {
+      let levelBase = level * PC_UNITS_PER_LEVEL;
+      
+      var unitIdx = 0;
+      while (unitIdx < PC_UNITS_PER_LEVEL) {
+        let prediction = pcPredictions[levelBase + unitIdx];
+        let observation = if (level == 0) {
+          pcObservations[unitIdx]
+        } else {
+          // Higher levels observe prediction errors from below
+          let lowerBase = (level - 1) * PC_UNITS_PER_LEVEL;
+          pcPredictionErrors[lowerBase + unitIdx]
+        };
+        
+        // Prediction error weighted by precision
+        let precision = pcPrecision[levelBase + unitIdx];
+        let rawError = observation - prediction;
+        let weightedError = rawError * precision;
+        
+        pcPredictionErrors[levelBase + unitIdx] := fclamp(weightedError, -1.0, 1.0);
+        
+        unitIdx += 1;
+      };
+      
+      level += 1;
+    };
+    
+    // ─── PRECISION ESTIMATION (ATTENTION AS PRECISION) ──────────────────────────
+    // Precision (γ) is inverse variance — high precision = high confidence
+    // Attention increases precision for attended stimuli
+    
+    level := 0;
+    while (level < PC_HIERARCHY_LEVELS) {
+      let levelBase = level * PC_UNITS_PER_LEVEL;
+      
+      // Level-specific baseline precision
+      let levelFactor = 1.0 - Float.fromInt(level) * 0.1;  // Higher levels = lower baseline precision
+      
+      var unitIdx = 0;
+      while (unitIdx < PC_UNITS_PER_LEVEL) {
+        // Precision adapts based on prediction error history
+        let error = Float.abs(pcPredictionErrors[levelBase + unitIdx]);
+        let errorVariance = error * error;
+        
+        // High error = low precision (uncertain)
+        // Low error = high precision (confident)
+        let newPrecision = levelFactor / (0.1 + errorVariance);
+        
+        // Attention boosts precision
+        let attentionBoost = 1.0 + attentionFocus * 0.5;
+        
+        pcPrecision[levelBase + unitIdx] := fclamp(
+          0.9 * pcPrecision[levelBase + unitIdx] + 0.1 * newPrecision * attentionBoost,
+          0.1, 3.0
+        );
+        
+        unitIdx += 1;
+      };
+      
+      level += 1;
+    };
+    
+    // Global precision (average across all units)
+    var totalPrecision : Float = 0.0;
+    var precIdx = 0;
+    while (precIdx < PC_HIERARCHY_LEVELS * PC_UNITS_PER_LEVEL) {
+      totalPrecision += pcPrecision[precIdx];
+      precIdx += 1;
+    };
+    pcGlobalPrecision := totalPrecision / Float.fromInt(PC_HIERARCHY_LEVELS * PC_UNITS_PER_LEVEL);
+    pcSensoryPrecision := pcGlobalPrecision * (1.0 + consciousnessIndex * 0.2);
+    pcPriorPrecision := pcGlobalPrecision * (1.0 + memoryStabilityIndex * 0.2);
+    pcStatePrecision := pcGlobalPrecision * (1.0 + groundedScore * 0.2);
+    
+    // ─── HIERARCHICAL WEIGHT LEARNING ───────────────────────────────────────────
+    // Update inter-level weights to minimize prediction error
+    level := 0;
+    while (level < PC_HIERARCHY_LEVELS - 1) {
+      let weightBase = level * PC_UNITS_PER_LEVEL * PC_UNITS_PER_LEVEL;
+      let errorBase = level * PC_UNITS_PER_LEVEL;
+      let predBase = (level + 1) * PC_UNITS_PER_LEVEL;
+      
+      var wi = 0;
+      while (wi < PC_UNITS_PER_LEVEL) {
+        var wj = 0;
+        while (wj < PC_UNITS_PER_LEVEL) {
+          let idx = weightBase + wi * PC_UNITS_PER_LEVEL + wj;
+          
+          // Gradient descent on prediction error
+          let error = pcPredictionErrors[errorBase + wi];
+          let pred = pcPredictions[predBase + wj];
+          let dw = -0.001 * error * pred;  // Reduce weight if error is high
+          
+          // BDNF-gated learning (neuroplasticity integration)
+          let bdnfGate = plasticityGate * bdnfLevel;
+          
+          pcHierarchyWeights[idx] := fclamp(
+            pcHierarchyWeights[idx] + dw * bdnfGate,
+            0.01, 0.5
+          );
+          
+          wj += 1;
+        };
+        wi += 1;
+      };
+      
+      level += 1;
+    };
+    
+    // ─── FREE ENERGY COMPUTATION ────────────────────────────────────────────────
+    // F = D_KL[Q||P] - E_Q[log P(o|s)]
+    //   = Complexity - Accuracy
+    //   = Energy - Entropy (Helmholtz)
+    
+    // Accuracy: how well predictions match observations (negative log-likelihood)
+    var totalError : Float = 0.0;
+    var errorIdx = 0;
+    while (errorIdx < PC_HIERARCHY_LEVELS * PC_UNITS_PER_LEVEL) {
+      let e = pcPredictionErrors[errorIdx];
+      totalError += e * e;  // Sum of squared errors
+      errorIdx += 1;
+    };
+    pcAccuracy := 1.0 - Float.sqrt(totalError / Float.fromInt(PC_HIERARCHY_LEVELS * PC_UNITS_PER_LEVEL));
+    pcAccuracy := fclamp(pcAccuracy, 0.0, 1.0);
+    
+    // Complexity: KL divergence from prior (penalize complex models)
+    // Simplified: measure deviation of weights from uniform prior
+    var weightDeviation : Float = 0.0;
+    var weightIdx = 0;
+    while (weightIdx < 7 * 64 * 64) {
+      let w = pcHierarchyWeights[weightIdx];
+      let prior = 0.1;  // Uniform prior
+      weightDeviation += Float.abs(w - prior);
+      weightIdx += 1;
+    };
+    pcComplexity := weightDeviation / Float.fromInt(7 * 64 * 64);
+    pcComplexity := fclamp(pcComplexity, 0.0, 1.0);
+    
+    // KL Divergence (approximate)
+    pcKLDivergence := pcComplexity * 0.5;
+    
+    // Expected Surprise
+    pcExpectedSurprise := 1.0 - pcAccuracy;
+    
+    // Free Energy = Expected Surprise + KL Divergence
+    let rawFreeEnergy = pcExpectedSurprise + pcKLDivergence;
+    pcFreeEnergy := fclamp(0.9 * pcFreeEnergy + 0.1 * rawFreeEnergy, 0.0, 2.0);
+    
+    // ─── ACTIVE INFERENCE ───────────────────────────────────────────────────────
+    // Minimize expected free energy through ACTION, not just perception
+    // G = expected free energy = epistemic value + pragmatic value
+    
+    // Epistemic value: information gain from exploring
+    pcEpistemicValue := fclamp(
+      pcExpectedSurprise * (1.0 - pcPriorPrecision),  // High surprise + low confidence = explore
+      0.0, 1.0
+    );
+    
+    // Pragmatic value: achieving preferred outcomes
+    var preferenceMatch : Float = 0.0;
+    var prefIdx = 0;
+    while (prefIdx < PC_UNITS_PER_LEVEL) {
+      let obs = pcObservations[prefIdx];
+      let pref = pcPreferredOutcomes[prefIdx];
+      preferenceMatch += 1.0 - Float.abs(obs - pref);
+      prefIdx += 1;
+    };
+    pcPragmaticValue := preferenceMatch / Float.fromInt(PC_UNITS_PER_LEVEL);
+    
+    // Expected free energy of future
+    pcExpectedFreeEnergy := fclamp(
+      0.5 * (1.0 - pcEpistemicValue) + 0.5 * (1.0 - pcPragmaticValue),
+      0.0, 1.0
+    );
+    
+    // Active inference score: how engaged is the organism in active inference?
+    pcActiveInferenceScore := fclamp(
+      0.3 * pcAccuracy +
+      0.2 * (1.0 - pcFreeEnergy / 2.0) +
+      0.2 * pcPragmaticValue +
+      0.15 * pcEpistemicValue +
+      0.15 * pcGlobalPrecision / 3.0,
+      0.0, 1.0
+    );
+    
+    // ─── MODEL EVIDENCE ─────────────────────────────────────────────────────────
+    // P(o|m): probability of observations under current model
+    // Higher model evidence = better model
+    pcModelEvidence := fclamp(
+      pcAccuracy * (1.0 - pcComplexity * 0.5),
+      0.0, 1.0
+    );
+    
+    // Bayesian model comparison (vs. null model)
+    pcBayesianModelComparison := fclamp(
+      pcModelEvidence / (0.5 + pcModelEvidence),  // Bayes factor relative to chance
+      0.0, 1.0
+    );
+    
+    // ─── ERROR HISTORY ──────────────────────────────────────────────────────────
+    pcErrorHistory[pcErrorHistoryIdx % 256] := pcExpectedSurprise;
+    pcErrorHistoryIdx += 1;
+    
+    // Cumulative and average surprise
+    var surpriseSum : Float = 0.0;
+    var histIdx = 0;
+    while (histIdx < 256) {
+      surpriseSum += pcErrorHistory[histIdx];
+      histIdx += 1;
+    };
+    pcCumulativeSurprise := surpriseSum;
+    pcAverageSurprise := surpriseSum / 256.0;
+    
+    // Update global prediction error for economics
+    predictionError := fclamp(pcExpectedSurprise, 0.0, 1.0);
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  ENGINE 3 TICK: INTEROCEPTION (CRAIG, DAMASIO)
+  //
+  //  Implements:
+  //    1. Vagal tone (parasympathetic activity)
+  //    2. Heart-brain axis (cardiac coherence, HRV)
+  //    3. Respiratory-brain coupling
+  //    4. Gut-brain axis
+  //    5. Insular cortex integration
+  //    6. Somatic markers (Damasio)
+  //    7. Body-brain coherence
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  
+  func tickInteroception() {
+    let dt : Float = 1.0 / 12.0;
+    
+    // ─── VAGUS NERVE DYNAMICS ───────────────────────────────────────────────────
+    // The vagus nerve is 80% afferent (body → brain)
+    // Vagal tone reflects parasympathetic dominance
+    
+    // Afferent signal: body state → brain
+    // Influenced by: heart state, gut state, respiratory state
+    let heartSignal = cardiacCoherence * 0.4;
+    let gutSignal = gutMicrobiomeSignal * 0.3;
+    let breathSignal = respiratoryCoherence * 0.3;
+    vagalAfferentSignal := fclamp(
+      0.7 * vagalAfferentSignal + 0.3 * (heartSignal + gutSignal + breathSignal),
+      0.0, 1.0
+    );
+    
+    // Efferent signal: brain → body
+    // Influenced by: cortical state, stress level, social engagement
+    let corticalInfluence = consciousnessIndex * 0.4;
+    let stressInfluence = 1.0 - fearLevel * 0.5;  // Stress reduces efferent
+    let socialInfluence = 0.3 + 0.2 * rSwarm;  // Social coherence increases efferent
+    vagalEfferentSignal := fclamp(
+      0.7 * vagalEfferentSignal + 0.3 * (corticalInfluence + stressInfluence + socialInfluence) / 3.0,
+      0.0, 1.0
+    );
+    
+    // Vagal coherence: bidirectional synchrony
+    vagalCoherence := fclamp(
+      0.5 + 0.5 * (1.0 - Float.abs(vagalAfferentSignal - vagalEfferentSignal)),
+      0.0, 1.0
+    );
+    
+    // Vagal tone: overall parasympathetic activity
+    // High vagal tone = calm, restorative state
+    // Low vagal tone = stressed, sympathetic dominant
+    let targetVagalTone = (vagalAfferentSignal + vagalEfferentSignal) / 2.0 * (1.0 + rSwarm * 0.2);
+    vagalTone := fclamp(
+      0.9 * vagalTone + 0.1 * targetVagalTone,
+      0.0, 1.0
+    );
+    
+    // ─── HEART-BRAIN AXIS ───────────────────────────────────────────────────────
+    // Heart rate variability (HRV) is a key marker of autonomic flexibility
+    
+    // Heart rate: modulated by arousal, vagal tone
+    let targetHR = 60.0 + 40.0 * (1.0 - vagalTone) + 20.0 * fearLevel;
+    heartRate := fclamp(
+      0.95 * heartRate + 0.05 * targetHR,
+      50.0, 120.0
+    );
+    
+    // Cardiac phase: oscillates with heart rate
+    let cardiacFreq = heartRate / 60.0;  // Hz
+    cardiacPhase := cardiacPhase + dt * cardiacFreq * 2.0 * 3.14159265359;
+    if (cardiacPhase > 2.0 * 3.14159265359) {
+      cardiacPhase := cardiacPhase - 2.0 * 3.14159265359;
+    };
+    
+    // HRV: varies inversely with heart rate, increased by vagal tone
+    let targetHRV = 30.0 + 50.0 * vagalTone - 20.0 * fearLevel;
+    heartRateVariability := fclamp(
+      0.9 * heartRateVariability + 0.1 * targetHRV,
+      10.0, 100.0
+    );
+    
+    // Cardiac coherence: regularity of heart rhythm
+    // Coherent heart patterns occur during positive emotions
+    let hrvNormalized = (heartRateVariability - 10.0) / 90.0;
+    cardiacCoherence := fclamp(
+      0.7 * cardiacCoherence + 0.3 * hrvNormalized * (1.0 + rSwarm * 0.2),
+      0.0, 1.0
+    );
+    
+    // Baroreceptor sensitivity: blood pressure regulation
+    baroreceptorSensitivity := fclamp(
+      0.95 * baroreceptorSensitivity + 0.05 * (vagalTone * 0.7 + cardiacCoherence * 0.3),
+      0.2, 1.0
+    );
+    
+    // Cardiac interoception: awareness of heartbeat
+    cardiacInteroception := fclamp(
+      0.5 * consciousnessIndex + 0.3 * attentionFocus + 0.2 * cardiacCoherence,
+      0.0, 1.0
+    );
+    
+    // ─── RESPIRATORY-BRAIN COUPLING ─────────────────────────────────────────────
+    // Breath directly modulates brain rhythms
+    
+    // Respiratory rate: modulated by arousal, stress
+    let targetRR = 8.0 + 10.0 * (1.0 - vagalTone) + 6.0 * fearLevel;
+    respiratoryRate := fclamp(
+      0.9 * respiratoryRate + 0.1 * targetRR,
+      4.0, 30.0
+    );
+    
+    // Respiratory phase
+    let respFreq = respiratoryRate / 60.0;
+    respiratoryPhase := respiratoryPhase + dt * respFreq * 2.0 * 3.14159265359;
+    if (respiratoryPhase > 2.0 * 3.14159265359) {
+      respiratoryPhase := respiratoryPhase - 2.0 * 3.14159265359;
+    };
+    
+    // Respiratory depth: diaphragmatic vs. shallow breathing
+    respiratoryDepth := fclamp(
+      0.8 * respiratoryDepth + 0.2 * (vagalTone * 0.6 + (1.0 - fearLevel) * 0.4),
+      0.2, 1.0
+    );
+    
+    // Diaphragmatic activation
+    diaphragmaticActivation := fclamp(
+      0.9 * diaphragmaticActivation + 0.1 * respiratoryDepth,
+      0.3, 1.0
+    );
+    
+    // Respiratory-brain coherence: breath-brain synchrony
+    let breathBrainSync = Float.cos(respiratoryPhase) * respiratoryDepth;
+    respiratoryCoherence := fclamp(
+      0.7 * respiratoryCoherence + 0.3 * (0.5 + 0.5 * breathBrainSync),
+      0.0, 1.0
+    );
+    
+    // ─── GUT-BRAIN AXIS ─────────────────────────────────────────────────────────
+    // The enteric nervous system ("second brain") communicates with CNS
+    
+    // Microbiome signal: aggregate influence of gut bacteria
+    // Modulated by stress (which disrupts microbiome)
+    let microbiomeHealth = 0.7 * (1.0 - fearLevel * 0.5) + 0.3 * serotoninLevel / 1.5;
+    gutMicrobiomeSignal := fclamp(
+      0.95 * gutMicrobiomeSignal + 0.05 * microbiomeHealth,
+      0.0, 1.0
+    );
+    
+    // Enteric nervous system state
+    entericNervousSystemState := fclamp(
+      0.9 * entericNervousSystemState + 0.1 * (gutMicrobiomeSignal * 0.6 + vagalTone * 0.4),
+      0.0, 1.0
+    );
+    
+    // Gut-vagal afferent
+    gutVagalAfferent := fclamp(
+      0.8 * gutVagalAfferent + 0.2 * entericNervousSystemState * vagalAfferentSignal,
+      0.0, 1.0
+    );
+    
+    // Serotonin production (90% of serotonin is made in gut)
+    let targetSerotonin = 0.6 + 0.4 * gutMicrobiomeSignal - 0.2 * fearLevel;
+    serotoninProduction := fclamp(
+      0.95 * serotoninProduction + 0.05 * targetSerotonin,
+      0.2, 1.0
+    );
+    
+    // Update global serotonin level
+    serotoninLevel := fclamp(
+      0.9 * serotoninLevel + 0.1 * serotoninProduction * 1.5,
+      0.5, 2.0
+    );
+    
+    // Inflammatory marker (chronic stress increases inflammation)
+    let targetInflammation = 0.1 + 0.3 * (1.0 - gutMicrobiomeSignal) + 0.2 * fearLevel;
+    inflammatoryMarker := fclamp(
+      0.98 * inflammatoryMarker + 0.02 * targetInflammation,
+      0.0, 0.8
+    );
+    
+    // ─── INSULAR CORTEX ─────────────────────────────────────────────────────────
+    // The insula creates the "sentient self" from body signals (Craig)
+    
+    // Posterior insula: raw interoceptive signals
+    posteriorInsulaActivation := fclamp(
+      0.6 * vagalAfferentSignal + 
+      0.2 * cardiacInteroception + 
+      0.2 * respiratoryCoherence,
+      0.0, 1.0
+    );
+    
+    // Anterior insula: integration with emotion and cognition
+    anteriorInsulaActivation := fclamp(
+      0.4 * posteriorInsulaActivation +
+      0.3 * consciousnessIndex +
+      0.2 * (1.0 - fearLevel) +
+      0.1 * metaCognitionScore,
+      0.0, 1.0
+    );
+    
+    // Insular integration
+    insularIntegration := fclamp(
+      0.7 * insularIntegration + 0.3 * (anteriorInsulaActivation + posteriorInsulaActivation) / 2.0,
+      0.0, 1.0
+    );
+    
+    // Interoceptive dimensions (Garfinkel & Critchley)
+    // Accuracy: objective detection of body signals
+    interoceptiveAccuracy := fclamp(
+      0.5 * cardiacInteroception + 0.3 * insularIntegration + 0.2 * attentionFocus,
+      0.0, 1.0
+    );
+    
+    // Sensibility: subjective tendency to focus on body
+    interoceptiveSensibility := fclamp(
+      0.5 * (1.0 - attentionFocus) + 0.3 * anteriorInsulaActivation + 0.2 * fearLevel,
+      0.0, 1.0
+    );
+    
+    // Awareness: conscious access to body states
+    interoceptiveAwareness := fclamp(
+      0.4 * interoceptiveAccuracy + 0.3 * consciousnessIndex + 0.3 * insularIntegration,
+      0.0, 1.0
+    );
+    
+    // ─── SOMATIC MARKERS (DAMASIO) ──────────────────────────────────────────────
+    // Body states guide decision-making through "gut feelings"
+    
+    // Somatic marker valence: approach vs avoid
+    let valenceInputs = 
+      0.3 * (dopamineLevel - 1.0) +      // Reward → approach
+      0.3 * (1.0 - fearLevel * 2.0) +    // Fear → avoid  
+      0.2 * gutMicrobiomeSignal +         // Gut feeling
+      0.2 * cardiacCoherence;             // Heart coherence
+    somaticMarkerValence := fclamp(
+      0.7 * somaticMarkerValence + 0.3 * valenceInputs,
+      -1.0, 1.0
+    );
+    
+    // Somatic marker intensity: strength of the body signal
+    somaticMarkerIntensity := fclamp(
+      Float.abs(somaticMarkerValence) * insularIntegration,
+      0.0, 1.0
+    );
+    
+    // Somatic marker certainty: reliability of the marker
+    somaticMarkerCertainty := fclamp(
+      0.5 * interoceptiveAccuracy + 0.3 * cardiacCoherence + 0.2 * vagalCoherence,
+      0.0, 1.0
+    );
+    
+    // Update emotional body map (32 regions)
+    var bodyRegion = 0;
+    while (bodyRegion < 32) {
+      let regionValence = somaticMarkerValence + 0.2 * Float.sin(Float.fromInt(bodyRegion) * 0.3);
+      emotionalBodyMap[bodyRegion] := fclamp(regionValence, -1.0, 1.0);
+      bodyRegion += 1;
+    };
+    
+    // ─── OVERALL SCORES ─────────────────────────────────────────────────────────
+    
+    // Interoceptive score: composite body-sensing ability
+    interoceptiveScore := fclamp(
+      0.25 * interoceptiveAccuracy +
+      0.20 * vagalTone +
+      0.20 * cardiacCoherence +
+      0.15 * insularIntegration +
+      0.10 * somaticMarkerCertainty +
+      0.10 * respiratoryCoherence,
+      0.0, 1.0
+    );
+    
+    // Body-brain coherence: overall integration
+    bodyBrainCoherence := fclamp(
+      0.25 * vagalCoherence +
+      0.25 * cardiacCoherence +
+      0.25 * respiratoryCoherence +
+      0.25 * insularIntegration,
+      0.0, 1.0
+    );
+    
+    // Autonomic balance: sympathetic vs parasympathetic
+    // 0 = sympathetic dominant, 0.5 = balanced, 1 = parasympathetic dominant
+    autonomicBalance := fclamp(
+      0.5 * vagalTone + 0.3 * (1.0 - fearLevel) + 0.2 * cardiacCoherence,
+      0.0, 1.0
+    );
+    
+    // Update grounded score (KEY for OMNIS gate)
+    groundedScore := fclamp(
+      0.30 * bodyBrainCoherence +
+      0.25 * vagalTone +
+      0.20 * interoceptiveScore +
+      0.15 * autonomicBalance +
+      0.10 * (1.0 - inflammatoryMarker),
+      0.0, 1.0
+    );
+    
+    // Brain-heart coupling coherence (for streak multiplier)
+    bhCouplingCoherence := fclamp(
+      0.4 * cardiacCoherence + 0.3 * vagalCoherence + 0.3 * consciousnessIndex,
+      0.0, 1.0
+    );
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  ENGINE 4 TICK: DEFAULT MODE NETWORK (BUCKNER, RAICHLE)
+  //
+  //  Implements:
+  //    1. DMN core region dynamics (mPFC, PCC, IPL, LTC, hippocampus)
+  //    2. DMN connectivity matrix
+  //    3. Self-referential processing
+  //    4. Theory of mind (mentalizing)
+  //    5. Future simulation (prospection)
+  //    6. Mind-wandering states
+  //    7. Metacognition
+  //    8. DMN-TPN anti-correlation
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  
+  func tickDefaultModeNetwork() {
+    let dt : Float = 1.0 / 12.0;
+    
+    // ─── DMN CORE REGION DYNAMICS ───────────────────────────────────────────────
+    
+    // mPFC (medial prefrontal cortex): self-reflection
+    let mpfcInput = 
+      0.4 * selfReflectionScore +
+      0.3 * consciousnessIndex +
+      0.2 * somaticMarkerValence +
+      0.1 * metaCognitionScore;
+    dmnMPFC := fclamp(0.8 * dmnMPFC + 0.2 * sigmoid(mpfcInput), 0.0, 1.0);
+    
+    // PCC (posterior cingulate cortex): autobiographical memory
+    let pccInput = 
+      0.4 * autobiographicalAccess +
+      0.3 * dmnHippocampus +
+      0.2 * selfContinuity +
+      0.1 * consciousnessIndex;
+    dmnPCC := fclamp(0.8 * dmnPCC + 0.2 * sigmoid(pccInput), 0.0, 1.0);
+    
+    // IPL (inferior parietal lobule): theory of mind
+    let iplInput = 
+      0.4 * theoryOfMindScore +
+      0.3 * perspectiveTaking +
+      0.2 * empathyScore +
+      0.1 * dmnMPFC;
+    dmnIPL := fclamp(0.8 * dmnIPL + 0.2 * sigmoid(iplInput), 0.0, 1.0);
+    
+    // LTC (lateral temporal cortex): semantic memory
+    let ltcInput = 
+      0.4 * 0.7 +  // Semantic knowledge (baseline)
+      0.3 * counterfactualThinking +
+      0.2 * creativeDaydreaming +
+      0.1 * dmnIPL;
+    dmnLTC := fclamp(0.8 * dmnLTC + 0.2 * sigmoid(ltcInput), 0.0, 1.0);
+    
+    // Hippocampus: episodic memory, future simulation
+    let hippoInput = 
+      0.3 * prospectionScore +
+      0.3 * autobiographicalAccess +
+      0.2 * temporalHorizon +
+      0.2 * elephantMemoryState.consolidation;  // From elephant memory module
+    dmnHippocampus := fclamp(0.8 * dmnHippocampus + 0.2 * sigmoid(hippoInput), 0.0, 1.0);
+    
+    // Angular gyrus: multimodal integration
+    let agInput = 
+      0.25 * dmnMPFC +
+      0.25 * dmnPCC +
+      0.25 * dmnIPL +
+      0.25 * dmnLTC;
+    dmnAngularGyrus := fclamp(0.8 * dmnAngularGyrus + 0.2 * sigmoid(agInput), 0.0, 1.0);
+    
+    // ─── DMN CONNECTIVITY MATRIX ────────────────────────────────────────────────
+    // 6×6 correlation matrix between DMN regions
+    // Regions: [mPFC, PCC, IPL, LTC, Hippocampus, AngularGyrus]
+    let regions : [Float] = [dmnMPFC, dmnPCC, dmnIPL, dmnLTC, dmnHippocampus, dmnAngularGyrus];
+    var ri = 0;
+    while (ri < 6) {
+      var rj = 0;
+      while (rj < 6) {
+        let idx = ri * 6 + rj;
+        if (ri == rj) {
+          dmnConnectivity[idx] := 1.0;  // Self-correlation
+        } else {
+          // Correlation between regions
+          let corr = regions[ri] * regions[rj];
+          dmnConnectivity[idx] := fclamp(0.8 * dmnConnectivity[idx] + 0.2 * corr, 0.0, 1.0);
+        };
+        rj += 1;
+      };
+      ri += 1;
+    };
+    
+    // ─── DMN DYNAMICS ───────────────────────────────────────────────────────────
+    
+    // Overall DMN activation
+    dmnOverallActivation := fclamp(
+      (dmnMPFC + dmnPCC + dmnIPL + dmnLTC + dmnHippocampus + dmnAngularGyrus) / 6.0,
+      0.0, 1.0
+    );
+    
+    // DMN coherence: internal synchrony
+    var meanConn : Float = 0.0;
+    var connIdx = 0;
+    while (connIdx < 36) {
+      meanConn += dmnConnectivity[connIdx];
+      connIdx += 1;
+    };
+    dmnCoherence := meanConn / 36.0;
+    
+    // DMN slow oscillation phase (<0.1 Hz)
+    dmnPhase := dmnPhase + dt * 0.08 * 2.0 * 3.14159265359;
+    if (dmnPhase > 2.0 * 3.14159265359) {
+      dmnPhase := dmnPhase - 2.0 * 3.14159265359;
+    };
+    
+    // DMN entropy: variability
+    var dmnVar : Float = 0.0;
+    ri := 0;
+    while (ri < 6) {
+      let diff = regions[ri] - dmnOverallActivation;
+      dmnVar += diff * diff;
+      ri += 1;
+    };
+    dmnEntropy := Float.sqrt(dmnVar / 6.0);
+    
+    // ─── SELF-REFERENTIAL PROCESSING ────────────────────────────────────────────
+    
+    // Self-reflection score: degree of self-focused attention
+    selfReflectionScore := fclamp(
+      0.4 * dmnMPFC + 0.3 * (1.0 - attentionFocus) + 0.3 * metaCognitionScore,
+      0.0, 1.0
+    );
+    
+    // Autobiographical access: ability to retrieve personal memories
+    autobiographicalAccess := fclamp(
+      0.4 * dmnHippocampus + 0.3 * dmnPCC + 0.3 * consciousnessIndex,
+      0.0, 1.0
+    );
+    
+    // Self-continuity: sense of persistent self across time
+    selfContinuity := fclamp(
+      0.3 * autobiographicalAccess + 0.3 * futureSelfContinuity + 0.4 * dmnCoherence,
+      0.0, 1.0
+    );
+    
+    // Self-coherence: internal consistency of self-model
+    selfCoherence := fclamp(
+      0.4 * selfContinuity + 0.3 * dmnMPFC + 0.3 * consciousnessIndex,
+      0.0, 1.0
+    );
+    
+    // ─── THEORY OF MIND ─────────────────────────────────────────────────────────
+    
+    // Theory of mind score: ability to model other minds
+    theoryOfMindScore := fclamp(
+      0.4 * dmnIPL + 0.3 * empathyScore + 0.3 * perspectiveTaking,
+      0.0, 1.0
+    );
+    
+    // Mentalizing activation: current engagement in ToM
+    mentalizingActivation := fclamp(
+      0.5 * theoryOfMindScore + 0.3 * dmnMPFC + 0.2 * consciousnessIndex,
+      0.0, 1.0
+    );
+    
+    // Perspective taking: shifting to other's viewpoint
+    perspectiveTaking := fclamp(
+      0.9 * perspectiveTaking + 0.1 * (dmnIPL * 0.5 + (1.0 - selfReflectionScore) * 0.5),
+      0.0, 1.0
+    );
+    
+    // Empathy score: emotional resonance
+    empathyScore := fclamp(
+      0.9 * empathyScore + 0.1 * (somaticMarkerIntensity * 0.5 + mentalizingActivation * 0.5),
+      0.0, 1.0
+    );
+    
+    // ─── FUTURE SIMULATION (PROSPECTION) ────────────────────────────────────────
+    
+    // Prospection score: future thinking engagement
+    prospectionScore := fclamp(
+      0.4 * dmnHippocampus + 0.3 * temporalHorizon + 0.3 * dmnPCC,
+      0.0, 1.0
+    );
+    
+    // Future self-continuity: connection to future self
+    futureSelfContinuity := fclamp(
+      0.9 * futureSelfContinuity + 0.1 * (prospectionScore * 0.5 + selfContinuity * 0.5),
+      0.0, 1.0
+    );
+    
+    // Temporal horizon: how far ahead organism plans
+    // Increases with low stress, high consciousness
+    let targetHorizon = 0.3 + 0.4 * (1.0 - fearLevel) + 0.3 * consciousnessIndex;
+    temporalHorizon := fclamp(
+      0.95 * temporalHorizon + 0.05 * targetHorizon,
+      0.0, 1.0
+    );
+    
+    // Counterfactual thinking: "what if" reasoning
+    counterfactualThinking := fclamp(
+      0.4 * dmnLTC + 0.3 * prospectionScore + 0.3 * creativeDaydreaming,
+      0.0, 1.0
+    );
+    
+    // ─── MIND-WANDERING ─────────────────────────────────────────────────────────
+    
+    // Mind-wandering score: degree of task-unrelated thought
+    // High when: DMN active, attention low, no immediate threat
+    mindWanderingScore := fclamp(
+      0.4 * dmnOverallActivation + 0.3 * (1.0 - attentionFocus) + 0.3 * (1.0 - fearLevel),
+      0.0, 1.0
+    );
+    
+    // Spontaneous thought: unconstrained cognition
+    spontaneousThought := fclamp(
+      0.9 * spontaneousThought + 0.1 * (mindWanderingScore * 0.7 + dmnEntropy * 0.3),
+      0.0, 1.0
+    );
+    
+    // Task-unrelated thought
+    taskUnrelatedThought := fclamp(
+      mindWanderingScore * (1.0 - centralExecutiveScore),
+      0.0, 1.0
+    );
+    
+    // Creative daydreaming: constructive internal mentation
+    creativeDaydreaming := fclamp(
+      0.9 * creativeDaydreaming + 0.1 * (spontaneousThought * 0.5 + dmnCoherence * 0.5),
+      0.0, 1.0
+    );
+    
+    // ─── METACOGNITION ──────────────────────────────────────────────────────────
+    
+    // Metacognition score: thinking about thinking
+    metaCognitionScore := fclamp(
+      0.25 * introspectiveAccuracy +
+      0.25 * metacognitiveMonitoring +
+      0.25 * metacognitiveControl +
+      0.25 * dmnMPFC,
+      0.0, 1.0
+    );
+    
+    // Introspective accuracy: knowing own mental states
+    introspectiveAccuracy := fclamp(
+      0.9 * introspectiveAccuracy + 0.1 * (selfReflectionScore * 0.5 + interoceptiveAwareness * 0.5),
+      0.0, 1.0
+    );
+    
+    // Metacognitive monitoring: tracking own performance
+    metacognitiveMonitoring := fclamp(
+      0.9 * metacognitiveMonitoring + 0.1 * (pcAccuracy * 0.5 + consciousnessIndex * 0.5),
+      0.0, 1.0
+    );
+    
+    // Metacognitive control: adjusting own cognition
+    metacognitiveControl := fclamp(
+      0.9 * metacognitiveControl + 0.1 * (centralExecutiveScore * 0.5 + metaCognitionScore * 0.5),
+      0.0, 1.0
+    );
+    
+    // ─── DMN-TPN ANTI-CORRELATION ───────────────────────────────────────────────
+    // The Default Mode and Task-Positive networks are typically anti-correlated
+    
+    // DMN-TPN anti-correlation (should be negative)
+    dmnTpnAntiCorrelation := fclamp(
+      -0.5 * (dmnOverallActivation * cenActivation) - 0.3,
+      -1.0, 0.0
+    );
+    
+    // DMN-TPN balance: which network is dominant?
+    // 0 = TPN dominant (external focus), 1 = DMN dominant (internal focus)
+    dmnTpnBalance := fclamp(
+      dmnOverallActivation / (dmnOverallActivation + cenActivation + 0.001),
+      0.0, 1.0
+    );
+    
+    // Attentional mode
+    if (dmnTpnBalance > 0.6) {
+      attentionalMode := "INTERNAL";
+    } else if (dmnTpnBalance < 0.4) {
+      attentionalMode := "EXTERNAL";
+    } else {
+      attentionalMode := "BALANCED";
+    };
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  ENGINE 5 TICK: SALIENCE NETWORK (MENON, UDDIN)
+  //
+  //  Implements:
+  //    1. Salience network core regions (AI, dACC, amygdala, vStriatum)
+  //    2. Salience detection and filtering
+  //    3. Network switching (DMN ↔ CEN ↔ Salience)
+  //    4. Central Executive Network activation
+  //    5. Attention control mechanisms
+  //    6. Conflict monitoring
+  //    7. Salience map maintenance
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  
+  func tickSalienceNetwork() {
+    let dt : Float = 1.0 / 12.0;
+    
+    // ─── SALIENCE NETWORK CORE REGIONS ──────────────────────────────────────────
+    
+    // Anterior Insula: interoception, salience detection
+    // Receives input from body, emotional state, novelty
+    let aiInput = 
+      0.3 * interoceptiveScore +
+      0.3 * currentSalience +
+      0.2 * noveltySalience +
+      0.2 * emotionalSalience;
+    snAnteriorInsula := fclamp(0.8 * snAnteriorInsula + 0.2 * sigmoid(aiInput), 0.0, 1.0);
+    
+    // Dorsal ACC: conflict monitoring, cognitive control
+    let daccInput = 
+      0.4 * conflictLevel +
+      0.3 * errorDetection +
+      0.2 * performanceMonitoring +
+      0.1 * snAnteriorInsula;
+    snDorsalACC := fclamp(0.8 * snDorsalACC + 0.2 * sigmoid(daccInput), 0.0, 1.0);
+    
+    // Amygdala: threat detection, emotional salience
+    // Fear and threat increase amygdala activation
+    let amygInput = 
+      0.4 * threatSalience +
+      0.3 * fearLevel +
+      0.2 * emotionalSalience +
+      0.1 * (1.0 - vagalTone);  // Low vagal tone = high amygdala
+    snAmygdala := fclamp(0.7 * snAmygdala + 0.3 * sigmoid(amygInput), 0.0, 1.0);
+    
+    // Ventral Striatum: reward salience
+    let vsInput = 
+      0.4 * rewardSalience +
+      0.3 * (dopamineLevel - 1.0) +
+      0.2 * goalSalience +
+      0.1 * pcPragmaticValue;
+    snVentralStriatum := fclamp(0.8 * snVentralStriatum + 0.2 * sigmoid(vsInput), 0.0, 1.0);
+    
+    // Supplementary Motor Area: action preparation
+    let smaInput = 
+      0.4 * goalSalience +
+      0.3 * cognitiveControl +
+      0.2 * snDorsalACC +
+      0.1 * snVentralStriatum;
+    snSupplementaryMotor := fclamp(0.8 * snSupplementaryMotor + 0.2 * sigmoid(smaInput), 0.0, 1.0);
+    
+    // ─── SALIENCE DETECTION ─────────────────────────────────────────────────────
+    
+    // Threat salience: survival-relevant threats
+    threatSalience := fclamp(
+      0.7 * threatSalience + 0.3 * (snAmygdala * 0.6 + fearLevel * 0.4),
+      0.0, 1.0
+    );
+    
+    // Reward salience: potential rewards
+    rewardSalience := fclamp(
+      0.7 * rewardSalience + 0.3 * (snVentralStriatum * 0.5 + (dopamineLevel - 1.0) * 0.5 + 0.5),
+      0.0, 1.0
+    );
+    
+    // Novelty salience: unexpected stimuli
+    // High prediction error = high novelty
+    noveltySalience := fclamp(
+      0.7 * noveltySalience + 0.3 * pcExpectedSurprise,
+      0.0, 1.0
+    );
+    
+    // Goal salience: goal-relevant stimuli
+    goalSalience := fclamp(
+      0.7 * goalSalience + 0.3 * (missionPersistenceScore * 0.5 + cenActivation * 0.5),
+      0.0, 1.0
+    );
+    
+    // Emotional salience: emotionally significant stimuli
+    emotionalSalience := fclamp(
+      0.7 * emotionalSalience + 0.3 * (somaticMarkerIntensity * 0.5 + snAmygdala * 0.5),
+      0.0, 1.0
+    );
+    
+    // Social salience: socially relevant stimuli
+    socialSalience := fclamp(
+      0.7 * socialSalience + 0.3 * (rSwarm * 0.5 + theoryOfMindScore * 0.5),
+      0.0, 1.0
+    );
+    
+    // Current salience: aggregate salience of current focus
+    currentSalience := fclamp(
+      Float.max(Float.max(Float.max(threatSalience, rewardSalience), 
+                Float.max(noveltySalience, goalSalience)),
+                Float.max(emotionalSalience, socialSalience)),
+      0.0, 1.0
+    );
+    
+    // Salience gain: amplification based on arousal
+    salienceGain := fclamp(
+      1.0 + 0.5 * snAnteriorInsula + 0.3 * (1.0 - autonomicBalance),
+      0.5, 2.0
+    );
+    
+    // ─── NETWORK SWITCHING ──────────────────────────────────────────────────────
+    // The salience network switches between DMN and CEN based on demands
+    
+    // Network switching efficiency: how quickly can organism switch networks?
+    networkSwitchingEfficiency := fclamp(
+      0.9 * networkSwitchingEfficiency + 0.1 * (snAnteriorInsula * 0.5 + snDorsalACC * 0.5),
+      0.3, 1.0
+    );
+    
+    // Switch latency: time to switch (lower is better)
+    switchLatency := fclamp(
+      1.0 - networkSwitchingEfficiency,
+      0.05, 0.5
+    );
+    
+    // Determine current dominant network based on demands
+    let dmnSignal = dmnOverallActivation;
+    let cenSignal = cenActivation;
+    let snSignal = salienceNetworkScore;
+    
+    if (snSignal > dmnSignal and snSignal > cenSignal) {
+      currentNetwork := "SALIENCE";
+      switchFrequency := fclamp(switchFrequency + 0.01, 0.0, 1.0);
+    } else if (cenSignal > dmnSignal) {
+      currentNetwork := "CEN";
+      switchFrequency := fclamp(switchFrequency * 0.99, 0.0, 1.0);
+    } else {
+      currentNetwork := "DMN";
+      switchFrequency := fclamp(switchFrequency * 0.99, 0.0, 1.0);
+    };
+    
+    // ─── CENTRAL EXECUTIVE NETWORK ──────────────────────────────────────────────
+    // Task-positive network for goal-directed behavior
+    
+    // DLPFC: working memory, planning
+    let dlpfcInput = 
+      0.4 * goalSalience +
+      0.3 * metacognitiveControl +
+      0.2 * (1.0 - mindWanderingScore) +
+      0.1 * attentionFocus;
+    cenDLPFC := fclamp(0.8 * cenDLPFC + 0.2 * sigmoid(dlpfcInput), 0.0, 1.0);
+    
+    // PPC: attention, spatial processing
+    let ppcInput = 
+      0.4 * attentionFocus +
+      0.3 * selectiveAttention +
+      0.2 * currentSalience +
+      0.1 * cenDLPFC;
+    cenPPC := fclamp(0.8 * cenPPC + 0.2 * sigmoid(ppcInput), 0.0, 1.0);
+    
+    // Overall CEN activation
+    cenActivation := fclamp(
+      0.7 * cenActivation + 0.3 * (cenDLPFC * 0.5 + cenPPC * 0.5),
+      0.0, 1.0
+    );
+    
+    // Central executive score
+    centralExecutiveScore := fclamp(
+      0.3 * cenActivation +
+      0.25 * attentionFocus +
+      0.25 * cognitiveControl +
+      0.2 * metacognitiveControl,
+      0.0, 1.0
+    );
+    
+    // ─── ATTENTION CONTROL ──────────────────────────────────────────────────────
+    
+    // Attentional bias: approach vs avoidance
+    attentionalBias := fclamp(
+      0.5 * (rewardSalience - threatSalience) + 0.5 * somaticMarkerValence,
+      -1.0, 1.0
+    );
+    
+    // Attentional flexibility: ability to shift attention
+    attentionalFlexibility := fclamp(
+      0.9 * attentionalFlexibility + 0.1 * (networkSwitchingEfficiency * 0.5 + (1.0 - snAmygdala) * 0.5),
+      0.0, 1.0
+    );
+    
+    // Sustained attention: ability to maintain focus
+    let targetSustained = 0.5 + 0.3 * cenActivation + 0.2 * (1.0 - fatigue);
+    sustainedAttention := fclamp(
+      0.95 * sustainedAttention + 0.05 * targetSustained,
+      0.0, 1.0
+    );
+    
+    // Selective attention: filtering irrelevant info
+    selectiveAttention := fclamp(
+      0.9 * selectiveAttention + 0.1 * (thalamicRelayGain * 0.5 + snAnteriorInsula * 0.5),
+      0.0, 1.0
+    );
+    
+    // Divided attention: multi-tasking capacity
+    dividedAttention := fclamp(
+      0.9 * dividedAttention + 0.1 * (cenActivation * 0.5 + attentionalFlexibility * 0.5),
+      0.0, 1.0
+    );
+    
+    // Attention focus: overall focused attention
+    attentionFocus := fclamp(
+      0.25 * sustainedAttention +
+      0.25 * selectiveAttention +
+      0.25 * cenActivation +
+      0.25 * (1.0 - mindWanderingScore),
+      0.0, 1.0
+    );
+    
+    // ─── CONFLICT MONITORING ────────────────────────────────────────────────────
+    
+    // Conflict level: detected conflict between response options
+    // High when: multiple salient options, uncertainty, errors
+    let targetConflict = 
+      0.3 * Float.abs(threatSalience - rewardSalience) +
+      0.3 * pcExpectedSurprise +
+      0.2 * (1.0 - pcAccuracy) +
+      0.2 * errorDetection;
+    conflictLevel := fclamp(
+      0.7 * conflictLevel + 0.3 * targetConflict,
+      0.0, 1.0
+    );
+    
+    // Error detection: awareness of errors
+    errorDetection := fclamp(
+      0.8 * errorDetection + 0.2 * (predictionError * 0.7 + conflictLevel * 0.3),
+      0.0, 1.0
+    );
+    
+    // Performance monitoring: tracking own performance
+    performanceMonitoring := fclamp(
+      0.9 * performanceMonitoring + 0.1 * (metacognitiveMonitoring * 0.5 + snDorsalACC * 0.5),
+      0.0, 1.0
+    );
+    
+    // Cognitive control: engagement of control processes
+    cognitiveControl := fclamp(
+      0.8 * cognitiveControl + 0.2 * (conflictLevel * 0.4 + snDorsalACC * 0.3 + cenDLPFC * 0.3),
+      0.0, 1.0
+    );
+    
+    // ─── SALIENCE MAP ───────────────────────────────────────────────────────────
+    // 64-feature salience map
+    var mapIdx = 0;
+    while (mapIdx < 64) {
+      // Bottom-up salience from feature-specific processing
+      let featureActivity = 0.5 + 0.3 * Float.sin(Float.fromInt(mapIdx) * 0.2 + Float.fromInt(currentBeat) * 0.05);
+      bottomUpSalience[mapIdx] := fclamp(featureActivity * salienceGain, 0.0, 1.0);
+      
+      // Top-down bias from goals and expectations
+      let goalRelevance = if (mapIdx < 16) { goalSalience } 
+                          else if (mapIdx < 32) { rewardSalience }
+                          else if (mapIdx < 48) { threatSalience }
+                          else { socialSalience };
+      topDownBias[mapIdx] := fclamp(goalRelevance * attentionFocus, 0.0, 1.0);
+      
+      // Combined salience map
+      salienceMap[mapIdx] := fclamp(
+        0.5 * bottomUpSalience[mapIdx] + 0.5 * topDownBias[mapIdx],
+        0.0, 1.0
+      );
+      
+      mapIdx += 1;
+    };
+    
+    // Overall salience network score
+    salienceNetworkScore := fclamp(
+      0.25 * snAnteriorInsula +
+      0.20 * snDorsalACC +
+      0.15 * currentSalience +
+      0.15 * networkSwitchingEfficiency +
+      0.15 * attentionFocus +
+      0.10 * cognitiveControl,
+      0.0, 1.0
+    );
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  ENGINE 6 TICK: NEUROPLASTICITY (BCM, LTP/LTD, BDNF)
+  //
+  //  Implements:
+  //    1. BDNF dynamics (activity-dependent, stress-modulated)
+  //    2. BCM sliding threshold (metaplasticity)
+  //    3. LTP/LTD induction and expression
+  //    4. Homeostatic scaling (Turrigiano)
+  //    5. STDP modulation
+  //    6. Structural plasticity (spine dynamics)
+  //    7. Neurogenesis
+  //    8. Consolidation processes
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  
+  func tickNeuroplasticity() {
+    let dt : Float = 1.0 / 12.0;
+    
+    // ─── BDNF DYNAMICS ──────────────────────────────────────────────────────────
+    // BDNF (Brain-Derived Neurotrophic Factor) is the "fertilizer" for neurons
+    // Increased by: activity, exercise, learning, social interaction
+    // Decreased by: chronic stress, inflammation, aging
+    
+    // Activity-dependent BDNF production
+    // High neural activity (rSwarm) → more BDNF
+    let activityBoost = rSwarm * 0.02;
+    bdnfExerciseBoost := fclamp(
+      0.9 * bdnfExerciseBoost + 0.1 * activityBoost,
+      0.0, 0.1
+    );
+    
+    // Stress-induced BDNF reduction
+    // Chronic stress (high fear, low vagal tone) → less BDNF
+    let stressReduction = fearLevel * 0.015 + (1.0 - vagalTone) * 0.01;
+    bdnfStressReduction := fclamp(
+      0.9 * bdnfStressReduction + 0.1 * stressReduction,
+      0.0, 0.1
+    );
+    
+    // BDNF dynamics: production - decay + boosts - reductions
+    let bdnfChange = 
+      bdnfProductionRate + 
+      bdnfExerciseBoost - 
+      bdnfDecayRate - 
+      bdnfStressReduction;
+    
+    bdnfLevel := fclamp(
+      bdnfLevel + bdnfChange * dt,
+      0.3, 1.5
+    );
+    
+    // ─── BCM SLIDING THRESHOLD ──────────────────────────────────────────────────
+    // Bienenstock-Cooper-Munro rule: the threshold θ slides based on recent activity
+    // High activity → θ increases (harder to induce LTP)
+    // Low activity → θ decreases (easier to induce LTP)
+    // This prevents runaway excitation or depression
+    
+    // Track recent activity
+    recentActivityHistory[recentActivityIdx % 100] := rSwarm;
+    recentActivityIdx += 1;
+    
+    // Compute average recent activity
+    var activitySum : Float = 0.0;
+    var actIdx = 0;
+    while (actIdx < 100) {
+      activitySum += recentActivityHistory[actIdx];
+      actIdx += 1;
+    };
+    let avgActivity = activitySum / 100.0;
+    
+    // Slide theta based on activity
+    // θ(t+1) = θ(t) + τ_θ * (activity² - θ)
+    let thetaUpdate = 0.01 * (avgActivity * avgActivity - bcmTheta);
+    bcmTheta := fclamp(
+      bcmTheta + thetaUpdate * dt,
+      bcmThetaMin, bcmThetaMax
+    );
+    
+    // ─── LTP/LTD INDUCTION ──────────────────────────────────────────────────────
+    // LTP: Long-Term Potentiation ("fire together, wire together")
+    // LTD: Long-Term Depression (weakening of connections)
+    
+    // LTP is induced when activity > θ (BCM threshold)
+    // LTD is induced when activity < θ
+    let activityVsTheta = rSwarm - bcmTheta;
+    
+    if (activityVsTheta > 0.0) {
+      // LTP induction: activity above threshold
+      ltpInduction := fclamp(
+        0.7 * ltpInduction + 0.3 * activityVsTheta * bdnfLevel,
+        0.0, 1.0
+      );
+      ltdInduction := fclamp(ltdInduction * 0.9, 0.0, 1.0);
+    } else {
+      // LTD induction: activity below threshold
+      ltdInduction := fclamp(
+        0.7 * ltdInduction + 0.3 * Float.abs(activityVsTheta),
+        0.0, 1.0
+      );
+      ltpInduction := fclamp(ltpInduction * 0.9, 0.0, 1.0);
+    };
+    
+    // Net plasticity change
+    netPlasticityChange := ltpInduction - ltdInduction;
+    
+    // Plasticity gate: BDNF gates whether plasticity actually occurs
+    // Low BDNF = no plasticity (even with LTP/LTD signals)
+    plasticityGate := fclamp(
+      bdnfLevel * (1.0 + pcActiveInferenceScore * 0.2),  // Active inference enhances plasticity
+      0.1, 1.5
+    );
+    
+    // ─── HOMEOSTATIC SCALING ────────────────────────────────────────────────────
+    // Turrigiano synaptic scaling: global adjustment to maintain stability
+    // If firing too high → scale down all synapses
+    // If firing too low → scale up all synapses
+    
+    // Measure current firing rate
+    currentFiringRate := fclamp(
+      0.9 * currentFiringRate + 0.1 * rSwarm,
+      0.0, 1.0
+    );
+    
+    // Synaptic scaling factor adjusts to bring firing toward target
+    let firingError = targetFiringRate - currentFiringRate;
+    let scalingAdjust = firingError * scalingTimeConstant;
+    synapticScalingFactor := fclamp(
+      synapticScalingFactor + scalingAdjust * dt,
+      0.5, 2.0
+    );
+    
+    // ─── STDP MODULATION ────────────────────────────────────────────────────────
+    // Spike-Timing Dependent Plasticity is modulated by neuromodulators
+    
+    // Dopamine enhances STDP (reward-gated learning)
+    let daModulation = 1.0 + (dopamineLevel - 1.0) * 0.3;
+    
+    // Norepinephrine (arousal) enhances STDP window
+    // (We'd get this from drone neurochemistry if available)
+    let neModulation = 1.0 + attentionFocus * 0.2;
+    
+    // Modulated STDP parameters
+    let effectiveAPlus = stdpAPlus * daModulation * plasticityGate;
+    let effectiveAMinus = stdpAMinus * neModulation * plasticityGate;
+    
+    // Update learning rate based on all plasticity factors
+    learningRate := fclamp(
+      effectiveAPlus * synapticScalingFactor * bdnfLevel,
+      0.001, 0.1
+    );
+    
+    // ─── STRUCTURAL PLASTICITY ──────────────────────────────────────────────────
+    // Spine formation and elimination
+    
+    // Spine formation: activity + BDNF + reward
+    let formationDrive = rSwarm * bdnfLevel * (1.0 + rewardSalience * 0.3);
+    spineFormationRate := fclamp(
+      0.9 * spineFormationRate + 0.1 * formationDrive * 0.01,
+      0.0, 0.01
+    );
+    
+    // Spine elimination: low activity + stress
+    let eliminationDrive = (1.0 - rSwarm) * (1.0 + fearLevel * 0.5);
+    spineEliminationRate := fclamp(
+      0.9 * spineEliminationRate + 0.1 * eliminationDrive * 0.01,
+      0.0, 0.01
+    );
+    
+    // Net spine change
+    netSpineChange := spineFormationRate - spineEliminationRate;
+    
+    // Dendritic complexity: accumulated structural changes
+    dendriticComplexity := fclamp(
+      dendriticComplexity + netSpineChange * dt,
+      0.3, 1.0
+    );
+    
+    // Axonal growth
+    axonalGrowth := fclamp(
+      0.99 * axonalGrowth + 0.01 * bdnfLevel * ltpInduction,
+      -0.1, 0.1
+    );
+    
+    // ─── NEUROGENESIS ───────────────────────────────────────────────────────────
+    // Adult hippocampal neurogenesis
+    
+    // Neurogenesis rate: BDNF + activity - stress
+    let targetNeurogenesis = bdnfLevel * rSwarm * (1.0 - fearLevel);
+    neurogenesisRate := fclamp(
+      0.99 * neurogenesisRate + 0.01 * targetNeurogenesis * 0.001,
+      0.0, 0.01
+    );
+    
+    // Neuron maturation: new neurons gradually integrate
+    neuronMaturationProgress := fclamp(
+      neuronMaturationProgress + neurogenesisRate * dt * 10.0,
+      0.0, 1.0
+    );
+    
+    // Surviving new neurons
+    if (neuronMaturationProgress > 0.8) {
+      survivingNewNeurons := fclamp(
+        survivingNewNeurons + 0.001,
+        0.0, 1.0
+      );
+      neuronMaturationProgress := neuronMaturationProgress - 0.8;
+    };
+    
+    // ─── CONSOLIDATION ──────────────────────────────────────────────────────────
+    // Memory consolidation from synaptic to systems level
+    
+    // Synaptic consolidation (hours): immediate after learning
+    synapticConsolidation := fclamp(
+      0.99 * synapticConsolidation + 0.01 * ltpInduction * plasticityGate,
+      0.0, 1.0
+    );
+    
+    // Systems consolidation (days): hippocampus → cortex
+    // Occurs during sleep/rest (low CEN, high DMN)
+    let consolidationCondition = (1.0 - cenActivation) * dmnOverallActivation;
+    systemsConsolidation := fclamp(
+      0.999 * systemsConsolidation + 0.001 * synapticConsolidation * consolidationCondition,
+      0.0, 1.0
+    );
+    
+    // Consolidation phase
+    if (synapticConsolidation > 0.5 and systemsConsolidation < 0.3) {
+      consolidationPhase := "EARLY";
+    } else if (systemsConsolidation >= 0.3 and systemsConsolidation < 0.7) {
+      consolidationPhase := "LATE";
+    } else if (systemsConsolidation >= 0.7) {
+      consolidationPhase := "COMPLETE";
+    } else if (ltpInduction > 0.3) {
+      consolidationPhase := "ENCODING";
+    } else {
+      consolidationPhase := "NONE";
+    };
+    
+    // ─── OVERALL SCORES ─────────────────────────────────────────────────────────
+    
+    // Neuroplasticity factor: composite plasticity capacity
+    neuroplasticityFactor := fclamp(
+      0.20 * bdnfLevel +
+      0.20 * plasticityGate +
+      0.15 * (ltpInduction - ltdInduction + 0.5) +
+      0.15 * synapticScalingFactor / 2.0 +
+      0.15 * dendriticComplexity +
+      0.15 * (1.0 - fearLevel),  // Stress impairs plasticity
+      0.0, 1.0
+    );
+    
+    // Memory stability index: how stable are existing memories?
+    memoryStabilityIndex := fclamp(
+      0.4 * systemsConsolidation +
+      0.3 * (1.0 - ltdInduction) +
+      0.3 * dendriticComplexity,
+      0.0, 1.0
+    );
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  ENGINE 7 TICK: CIRCADIAN RHYTHM (SCN, ADENOSINE, MELATONIN)
+  //
+  //  Implements:
+  //    1. SCN master clock oscillation
+  //    2. Melatonin dynamics (darkness → melatonin)
+  //    3. Adenosine sleep pressure (Process S)
+  //    4. Two-process model (S + C)
+  //    5. Ultradian rhythm (90-min BRAC cycle)
+  //    6. Cortisol awakening response
+  //    7. Core body temperature
+  //    8. Molecular clock genes
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  
+  func tickCircadianRhythm() {
+    let dt : Float = 1.0 / 12.0;
+    let secondsPerBeat : Float = 1.0 / 12.0;  // 12 Hz heartbeat
+    let hoursPerBeat : Float = secondsPerBeat / 3600.0;
+    
+    // ─── VIRTUAL TIME OF DAY ────────────────────────────────────────────────────
+    // Advance virtual time (0 = midnight, 0.5 = noon, 1 = midnight)
+    virtualTimeOfDay := virtualTimeOfDay + hoursPerBeat / 24.0;
+    if (virtualTimeOfDay >= 1.0) {
+      virtualTimeOfDay := virtualTimeOfDay - 1.0;
+    };
+    
+    // Light level follows time of day (simplified)
+    // High during day (0.25 - 0.75), low at night
+    let dayPhase = virtualTimeOfDay;
+    if (dayPhase > 0.25 and dayPhase < 0.75) {
+      // Daytime
+      scnLightInput := fclamp(
+        0.7 + 0.3 * Float.sin((dayPhase - 0.25) * 2.0 * 3.14159265359),
+        0.5, 1.0
+      );
+    } else {
+      // Nighttime
+      scnLightInput := fclamp(
+        0.1 + 0.1 * Float.sin(dayPhase * 2.0 * 3.14159265359),
+        0.0, 0.2
+      );
+    };
+    
+    // ─── SCN MASTER CLOCK ───────────────────────────────────────────────────────
+    // The suprachiasmatic nucleus is the body's master clock
+    // It oscillates with ~24 hour period, entrained by light
+    
+    // SCN phase advances
+    let scnOmega = 2.0 * 3.14159265359 / (scnPeriod * 3600.0);  // rad/second
+    let phaseAdvance = scnOmega * secondsPerBeat;
+    
+    // Light entrainment: light pushes phase toward dawn
+    let entrainmentStrength = 0.01 * scnLightInput;
+    let targetPhase = virtualTimeOfDay * 2.0 * 3.14159265359;
+    let phaseError = Float.sin(targetPhase - scnPhase);
+    
+    scnPhase := scnPhase + phaseAdvance + entrainmentStrength * phaseError;
+    if (scnPhase > 2.0 * 3.14159265359) {
+      scnPhase := scnPhase - 2.0 * 3.14159265359;
+    };
+    if (scnPhase < 0.0) {
+      scnPhase := scnPhase + 2.0 * 3.14159265359;
+    };
+    
+    // SCN amplitude (robust oscillation)
+    scnAmplitude := fclamp(
+      0.99 * scnAmplitude + 0.01 * (0.8 + 0.2 * scnCoherence),
+      0.5, 1.0
+    );
+    
+    // SCN coherence: internal synchrony of SCN neurons
+    scnCoherence := fclamp(
+      0.99 * scnCoherence + 0.01 * (1.0 - Float.abs(socialJetlag)),
+      0.7, 1.0
+    );
+    
+    // ─── MELATONIN DYNAMICS ─────────────────────────────────────────────────────
+    // Melatonin rises in darkness, promotes sleep
+    
+    // Light suppresses melatonin production
+    melatoninSuppression := scnLightInput * 0.8;
+    
+    // Melatonin follows circadian rhythm with light suppression
+    let circadianMelatonin = 0.5 * (1.0 - Float.cos(scnPhase + 3.14159265359));  // Peak at midnight
+    let targetMelatonin = circadianMelatonin * (1.0 - melatoninSuppression);
+    
+    melatoninLevel := fclamp(
+      0.9 * melatoninLevel + 0.1 * targetMelatonin,
+      0.0, 1.0
+    );
+    
+    // Melatonin onset (dim light melatonin onset - DLMO)
+    if (melatoninLevel > 0.3 and melatoninOnset == 0.0) {
+      melatoninOnset := scnPhase;
+    };
+    if (melatoninLevel < 0.1) {
+      melatoninOnset := 0.0;
+    };
+    
+    // ─── ADENOSINE SLEEP PRESSURE ───────────────────────────────────────────────
+    // Adenosine accumulates during wakefulness, cleared during sleep
+    
+    // Determine if "awake" or "asleep" based on consciousness
+    let isAwake = consciousnessIndex > 0.3;
+    
+    if (isAwake) {
+      // Awake: adenosine accumulates
+      let accumulationRate = adenosineAccumulationRate * (1.0 + attentionFocus * 0.5);
+      adenosineLevel := fclamp(
+        adenosineLevel + accumulationRate * dt * 3600.0,  // Per hour
+        0.0, 1.0
+      );
+    } else {
+      // Sleep: adenosine clears
+      let clearanceRate = adenosineClearanceRate * (1.0 + melatoninLevel * 0.5);
+      adenosineLevel := fclamp(
+        adenosineLevel - clearanceRate * dt * 3600.0,
+        0.0, 1.0
+      );
+    };
+    
+    // Caffeine blocks adenosine receptors (simulated)
+    // caffeineBlockade is external input, here we just model its effect
+    let effectiveAdenosine = adenosineLevel * (1.0 - caffeineBlockade);
+    
+    // ─── TWO-PROCESS MODEL ──────────────────────────────────────────────────────
+    // Process S (homeostatic): sleep pressure from adenosine
+    // Process C (circadian): alertness from SCN
+    
+    // Process S: homeostatic sleep pressure
+    processS := effectiveAdenosine;
+    
+    // Process C: circadian alerting signal (opposite of melatonin)
+    processC := fclamp(
+      0.5 + 0.5 * Float.cos(scnPhase) * scnAmplitude,  // Peak in afternoon
+      0.0, 1.0
+    );
+    
+    // Sleep propensity: when S exceeds C, sleep is needed
+    sleepPropensity := fclamp(processS - processC + 0.5, 0.0, 1.0);
+    
+    // Sleep debt: accumulated when propensity high but awake
+    if (sleepPropensity > 0.7 and isAwake) {
+      sleepDebt := fclamp(sleepDebt + 0.001, 0.0, 1.0);
+    } else if (not isAwake) {
+      sleepDebt := fclamp(sleepDebt - 0.002, 0.0, 1.0);
+    };
+    
+    // Sleep stage (simplified)
+    if (consciousnessIndex > 0.5) {
+      sleepStage := "WAKE";
+    } else if (consciousnessIndex > 0.3) {
+      sleepStage := "N1";
+    } else if (consciousnessIndex > 0.15) {
+      sleepStage := "N2";
+    } else if (melatoninLevel > 0.5 and consciousnessIndex < 0.15) {
+      if (dmnOverallActivation > 0.6) {
+        sleepStage := "REM";
+      } else {
+        sleepStage := "N3";
+      };
+    } else {
+      sleepStage := "N2";
+    };
+    
+    // ─── ULTRADIAN RHYTHM ───────────────────────────────────────────────────────
+    // 90-120 minute Basic Rest-Activity Cycle (BRAC)
+    
+    // Ultradian phase advances
+    let ultradianOmega = 2.0 * 3.14159265359 / (ultradianPeriod * 60.0);  // rad/second
+    ultradianPhase := ultradianPhase + ultradianOmega * secondsPerBeat;
+    if (ultradianPhase > 2.0 * 3.14159265359) {
+      ultradianPhase := ultradianPhase - 2.0 * 3.14159265359;
+    };
+    
+    // Ultradian modulation of alertness
+    ultradianAmplitude := fclamp(
+      0.2 + 0.1 * scnAmplitude,
+      0.1, 0.4
+    );
+    
+    // Peak performance phase: when in cycle is organism at peak?
+    peakPerformancePhase := ultradianPhase;
+    
+    // ─── CORTISOL AWAKENING RESPONSE ────────────────────────────────────────────
+    // Cortisol peaks in morning, lowest at night
+    
+    // Circadian cortisol pattern
+    let cortisolCircadianPhase = (scnPhase + 0.5 * 3.14159265359);  // Offset from SCN
+    cortisolCircadian := fclamp(
+      0.3 + 0.4 * Float.cos(cortisolCircadianPhase),
+      0.1, 0.9
+    );
+    
+    // Cortisol awakening response: spike on waking
+    if (consciousnessIndex > 0.4 and virtualTimeOfDay > 0.2 and virtualTimeOfDay < 0.4) {
+      cortisolAwakeningResponse := fclamp(
+        cortisolAwakeningResponse + 0.01,
+        0.0, 0.3
+      );
+    } else {
+      cortisolAwakeningResponse := fclamp(
+        cortisolAwakeningResponse * 0.99,
+        0.0, 0.3
+      );
+    };
+    
+    // ─── CORE BODY TEMPERATURE ──────────────────────────────────────────────────
+    // Temperature follows circadian rhythm
+    
+    // Temperature phase (opposite to melatonin)
+    coreBodyTempPhase := scnPhase + 3.14159265359;
+    
+    // Core body temperature oscillation
+    let tempOscillation = Float.cos(coreBodyTempPhase);
+    coreBodyTemp := fclamp(
+      (coreBodyTempMin + coreBodyTempMax) / 2.0 + 
+      (coreBodyTempMax - coreBodyTempMin) / 2.0 * tempOscillation,
+      coreBodyTempMin, coreBodyTempMax
+    );
+    
+    // ─── MOLECULAR CLOCK GENES ──────────────────────────────────────────────────
+    // CLOCK/BMAL1 activate PER/CRY which then inhibit CLOCK/BMAL1
+    
+    // CLOCK/BMAL1 expression (positive limb)
+    clockGeneExpression := fclamp(
+      0.5 + 0.4 * Float.cos(scnPhase),
+      0.1, 0.9
+    );
+    
+    // PER expression (negative limb, delayed)
+    perGeneExpression := fclamp(
+      0.5 + 0.4 * Float.cos(scnPhase + 3.14159265359 / 2.0),
+      0.1, 0.9
+    );
+    
+    // CRY expression (negative limb, further delayed)
+    cryGeneExpression := fclamp(
+      0.5 + 0.4 * Float.cos(scnPhase + 3.14159265359),
+      0.1, 0.9
+    );
+    
+    // Molecular clock coherence
+    molecularClockCoherence := fclamp(
+      1.0 - 0.5 * Float.abs(clockGeneExpression - perGeneExpression) -
+      0.5 * Float.abs(perGeneExpression - cryGeneExpression),
+      0.5, 1.0
+    );
+    
+    // ─── OVERALL SCORES ─────────────────────────────────────────────────────────
+    
+    // Circadian peak score: how well-timed is organism for performance?
+    // Best when: daytime, low adenosine, high cortisol, optimal ultradian phase
+    let ultradianBoost = 0.5 + 0.5 * Float.cos(ultradianPhase);
+    circadianPeakScore := fclamp(
+      0.25 * processC +
+      0.25 * (1.0 - effectiveAdenosine) +
+      0.20 * cortisolCircadian +
+      0.15 * ultradianBoost +
+      0.15 * molecularClockCoherence,
+      0.0, 1.0
+    );
+    
+    // Alertness level: overall wakefulness
+    alertnessLevel := fclamp(
+      0.30 * processC +
+      0.25 * (1.0 - effectiveAdenosine) +
+      0.20 * circadianPeakScore +
+      0.15 * consciousnessIndex +
+      0.10 * ultradianBoost,
+      0.0, 1.0
+    );
+    
+    // Fatigue level: complement of alertness
+    fatigueLevel := 1.0 - alertnessLevel;
+    
+    // Circadian coherence: overall circadian health
+    circadianCoherence := fclamp(
+      0.30 * scnCoherence +
+      0.25 * molecularClockCoherence +
+      0.20 * (1.0 - Float.abs(socialJetlag)) +
+      0.15 * scnAmplitude +
+      0.10 * (1.0 - sleepDebt),
+      0.0, 1.0
+    );
+    
+    // Social jetlag: mismatch between biological and social time
+    // (Would be computed from external schedule input)
+    socialJetlag := fclamp(socialJetlag * 0.99, -0.5, 0.5);
+    
+    // Fatigue variable for streak multiplier
+    let fatigue = fatigueLevel;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  13-LOOP STREAK MULTIPLIER + OMNIS GROUNDING GATE
+  //
+  //  The streak multiplier compounds 13 coherence scores:
+  //    1. kuramotoR (rSwarm)
+  //    2. courageScore
+  //    3. groundedScore
+  //    4. fearLevel (inverse)
+  //    5. beFlowState
+  //    6. bhCouplingCoherence
+  //    7. missionPersistenceScore
+  //    8. consciousnessIndex
+  //    9. pcActiveInferenceScore
+  //    10. interoceptiveScore
+  //    11. salienceNetworkScore
+  //    12. circadianPeakScore
+  //    13. neuroplasticityFactor
+  //
+  //  OMNIS GROUNDING GATE: Emergence cannot fire if groundedScore < 0.7
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func computeStreakMultiplier() : Float {
+    // ─── UPDATE COURAGE SCORE ───────────────────────────────────────────────────
+    // Courage = facing threat despite fear
+    let threatPresent = aegisState.threat.currentTier > 3;
+    if (threatPresent and fearLevel < 0.5) {
+      courageScore := fclamp(courageScore + 0.01, 0.0, 1.0);
+    } else if (fearLevel > 0.7) {
+      courageScore := fclamp(courageScore - 0.005, 0.0, 1.0);
+    } else {
+      courageScore := fclamp(courageScore * 0.999, 0.3, 1.0);
+    };
+    
+    // ─── UPDATE FEAR LEVEL ──────────────────────────────────────────────────────
+    // Fear comes from AEGIS threat + amygdala + low vagal tone
+    let aegisThreat = Float.fromInt(aegisState.threat.currentTier) / 9.0;
+    fearLevel := fclamp(
+      0.7 * fearLevel + 0.3 * (aegisThreat * 0.4 + snAmygdala * 0.3 + (1.0 - vagalTone) * 0.3),
+      0.0, 1.0
+    );
+    
+    // ─── UPDATE FLOW STATE ──────────────────────────────────────────────────────
+    // Flow = optimal challenge/skill balance (Csikszentmihalyi)
+    // Occurs when: focused attention, low self-consciousness, intrinsic motivation
+    let challengeSkillBalance = 1.0 - Float.abs(currentSalience - cenActivation);
+    let flowConditions = 
+      attentionFocus * 0.3 +
+      (1.0 - selfReflectionScore) * 0.2 +
+      challengeSkillBalance * 0.2 +
+      consciousnessIndex * 0.15 +
+      (1.0 - fearLevel) * 0.15;
+    
+    if (flowConditions > 0.7) {
+      beFlowState := fclamp(beFlowState + 0.01, 0.0, 1.0);
+    } else {
+      beFlowState := fclamp(beFlowState * 0.99, 0.0, 1.0);
+    };
+    
+    // ─── UPDATE MISSION PERSISTENCE ─────────────────────────────────────────────
+    // Persistence in pursuit of goals despite obstacles
+    let goalProgress = cenActivation * goalSalience;
+    if (goalProgress > 0.5 and fearLevel < 0.5) {
+      missionPersistenceScore := fclamp(missionPersistenceScore + 0.005, 0.0, 1.0);
+    } else if (goalProgress < 0.3) {
+      missionPersistenceScore := fclamp(missionPersistenceScore - 0.002, 0.3, 1.0);
+    };
+    
+    // ─── COMPUTE 13-LOOP STREAK MULTIPLIER ──────────────────────────────────────
+    // Each factor contributes multiplicatively
+    // A desynchronized, fearful, ungrounded organism earns LESS
+    // A sovereign, coherent, grounded, mission-locked organism earns EXPONENTIALLY MORE
+    
+    let factor1 = 0.5 + 0.5 * rSwarm;                    // Kuramoto synchrony
+    let factor2 = 0.5 + 0.5 * courageScore;              // Courage
+    let factor3 = 0.5 + 0.5 * groundedScore;             // Grounding (KEY)
+    let factor4 = 0.5 + 0.5 * (1.0 - fearLevel);         // Low fear
+    let factor5 = 0.5 + 0.5 * beFlowState;               // Flow state
+    let factor6 = 0.5 + 0.5 * bhCouplingCoherence;       // Brain-heart coupling
+    let factor7 = 0.5 + 0.5 * missionPersistenceScore;   // Mission persistence
+    let factor8 = 0.5 + 0.5 * consciousnessIndex;        // Consciousness
+    let factor9 = 0.5 + 0.5 * pcActiveInferenceScore;    // Active inference
+    let factor10 = 0.5 + 0.5 * interoceptiveScore;       // Interoception
+    let factor11 = 0.5 + 0.5 * salienceNetworkScore;     // Salience network
+    let factor12 = 0.5 + 0.5 * circadianPeakScore;       // Circadian timing
+    let factor13 = 0.5 + 0.5 * neuroplasticityFactor;    // Neuroplasticity
+    
+    // Multiplicative combination (geometric mean style)
+    let rawMultiplier = 
+      factor1 * factor2 * factor3 * factor4 * factor5 * 
+      factor6 * factor7 * factor8 * factor9 * factor10 * 
+      factor11 * factor12 * factor13;
+    
+    // Scale to meaningful range (1.0 to ~3.0)
+    // At all factors = 1.0: rawMultiplier = 1.0^13 = 1.0 → scaled = 3.0
+    // At all factors = 0.5: rawMultiplier = 0.5^13 ≈ 0.0001 → scaled = 1.0
+    let scaledMultiplier = 1.0 + 2.0 * Float.sqrt(Float.sqrt(rawMultiplier));
+    
+    streakMultiplier := fclamp(
+      0.9 * streakMultiplier + 0.1 * scaledMultiplier,
+      1.0, 5.0
+    );
+    
+    // Track streak
+    if (streakMultiplier > 1.5) {
+      streakConsecutive += 1;
+      streakTotalBeats += 1;
+    } else {
+      streakConsecutive := 0;
+    };
+    
+    // Track peak
+    if (streakMultiplier > streakPeakMultiplier) {
+      streakPeakMultiplier := streakMultiplier;
+    };
+    
+    // ─── OMNIS GROUNDING GATE ───────────────────────────────────────────────────
+    // Emergence CANNOT fire if organism is ungrounded
+    // This is a HARD gate, not a soft penalty
+    
+    omnisGroundingGate := groundedScore >= groundingGateThreshold;
+    
+    // Return the multiplier for economic use
+    streakMultiplier
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  MASTER 7-ENGINE TICK — Called every beat from masterHeartbeat
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tick7NeuroscienceEngines() {
+    // Engine 1: Thalamocortical Binding (Tononi IIT, Edelman, Llinas)
+    tickThalamocorticalBinding();
+    
+    // Engine 2: Predictive Coding (Karl Friston)
+    tickPredictiveCoding();
+    
+    // Engine 3: Interoception (Craig, Damasio)
+    tickInteroception();
+    
+    // Engine 4: Default Mode Network (Buckner, Raichle)
+    tickDefaultModeNetwork();
+    
+    // Engine 5: Salience Network (Menon, Uddin)
+    tickSalienceNetwork();
+    
+    // Engine 6: Neuroplasticity (BCM, LTP/LTD, BDNF)
+    tickNeuroplasticity();
+    
+    // Engine 7: Circadian Rhythm (SCN, adenosine, melatonin)
+    tickCircadianRhythm();
+    
+    // Compute the 13-loop streak multiplier (feeds economics)
+    ignore computeStreakMultiplier();
+  };
+
   // All simulation phases extracted into a pure synchronous function.
   // Both tick() and tickFull() call this directly — no self-await needed,
   // which means no ICP inter-message overhead and no principal ambiguity.
@@ -5496,16 +7741,34 @@ actor SwarmBrain {
 
   // ─── WORKFLOW 12: ECONOMIC OPERATIONS — 100% to Creator ──────────────────────
   func workflowEconomicOperations() {
-    // FORMA: Internal metabolic fuel
-    let formaRate = 0.001 * (1.0 + rSwarm * 0.5);
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ECONOMIC ENGINE — 13-LOOP STREAK MULTIPLIER INTEGRATION
+    //
+    // The streak multiplier closes 13 loops simultaneously:
+    //   kuramotoR, courageScore, groundedScore, fearLevel, beFlowState,
+    //   bhCouplingCoherence, missionPersistenceScore, consciousnessIndex,
+    //   pcActiveInferenceScore, interoceptiveScore, salienceNetworkScore,
+    //   circadianPeakScore, neuroplasticityFactor
+    //
+    // A desynchronized, fearful, ungrounded organism earns LESS.
+    // A sovereign, coherent, grounded, mission-locked organism earns EXPONENTIALLY MORE.
+    // ═══════════════════════════════════════════════════════════════════════════
+    
+    // FORMA: Internal metabolic fuel (base rate modulated by coherence)
+    let formaBaseRate = 0.001 * (1.0 + rSwarm * 0.5);
+    // Apply 13-loop streak multiplier
+    let formaRate = formaBaseRate * streakMultiplier;
     formaBalance += formaRate;
     
-    // MRC: Dynasty coin (5% of all minting)
+    // MRC: Dynasty coin (5% of all minting, also streak-multiplied)
     let mrcRate = formaRate * 0.05;
     mrcBalance += mrcRate;
     
-    // KNT: Knowledge token (from learning)
-    let kntRate = 0.0001 * (1.0 - predictionError);
+    // KNT: Knowledge token (from learning + neuroplasticity + active inference)
+    // Better predictions + higher neuroplasticity = more knowledge tokens
+    let kntBaseRate = 0.0001 * (1.0 - predictionError);
+    let kntBonus = neuroplasticityFactor * pcActiveInferenceScore * 0.0001;
+    let kntRate = (kntBaseRate + kntBonus) * streakMultiplier;
     kntBalance += kntRate;
     
     // Jacob's Ladder multiplier (1-7 based on MRC balance)
@@ -5513,9 +7776,17 @@ actor SwarmBrain {
       Int.abs(Float.toInt(mrcBalance / 10.0)) + 1));
     
     // Master Accumulator: 100% of yield to creator
+    // Jacob's multiplier × streak multiplier = COMPOUND economic effect
     let jacobsMultiplier = 1.0 + Float.fromInt(jacobsLadderLevel) * 2.0;
-    let totalYield = (formaRate + mrcRate + kntRate) * jacobsMultiplier;
+    let combinedMultiplier = jacobsMultiplier * streakMultiplier;
+    let totalYield = (formaRate + mrcRate + kntRate) * combinedMultiplier;
     masterAccumulator += totalYield;
+    
+    // Track streak economic bonus
+    if (streakMultiplier > 1.5) {
+      let bonusYield = totalYield * (streakMultiplier - 1.0);
+      streakEconomicBonus := streakEconomicBonus + bonusYield;
+    };
   };
 
   // ─── WORKFLOW 13: SUCCESSION — Dynasty Spawning ──────────────────────────────
@@ -6504,6 +8775,19 @@ actor SwarmBrain {
     workflowSovereigntyLaws();
 
     // ═══════════════════════════════════════════════════════════════════════════
+    // PHASE 29: 7 NEUROSCIENCE ENGINES — ALL INLINE, ALL FEEDING ECONOMICS
+    // Engine 1: Thalamocortical Binding (Tononi IIT) — consciousnessIndex
+    // Engine 2: Predictive Coding (Friston) — pcActiveInferenceScore
+    // Engine 3: Interoception (Craig/Damasio) — interoceptiveScore, groundedScore
+    // Engine 4: Default Mode Network — metaCognitionScore
+    // Engine 5: Salience Network — salienceNetworkScore, attentionFocus
+    // Engine 6: Neuroplasticity (BCM/BDNF) — neuroplasticityFactor
+    // Engine 7: Circadian Rhythm — circadianPeakScore
+    // 13-LOOP STREAK MULTIPLIER → streakMultiplier feeds economics
+    // ═══════════════════════════════════════════════════════════════════════════
+    tick7NeuroscienceEngines();
+
+    // ═══════════════════════════════════════════════════════════════════════════
     
     // Execute behaviors and team AI
     ensureBehaviorCap(stableDroneCount);
@@ -6512,7 +8796,13 @@ actor SwarmBrain {
     updateTeamMorale();
     // Solution 3 — bootstrap guards
     if (pipelineBootstrapPhase >= 5) { sacesiStep() };
-    if (pipelineBootstrapPhase >= BOOTSTRAP_BEATS) { checkOMNIS() };
+    
+    // OMNIS GROUNDING GATE: Emergence CANNOT fire if organism is ungrounded
+    // The streak multiplier computes omnisGroundingGate from groundedScore
+    if (pipelineBootstrapPhase >= BOOTSTRAP_BEATS and omnisGroundingGate) { 
+      checkOMNIS(); 
+    };
+    
     updateFrequencyTier();
     
     {
