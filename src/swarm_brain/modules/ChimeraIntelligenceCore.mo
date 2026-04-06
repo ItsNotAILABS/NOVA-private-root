@@ -40814,8 +40814,1308 @@ module {
     };
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 59: CHIMERA TACTICAL AI - BATTLEFIELD INTELLIGENCE
+  // Sovereign military-grade decision making and threat response
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Tactical AI State
+  public type TacticalAIState = {
+    var situationalAwareness : SituationalAwareness;
+    var threatDatabase : ThreatDatabase;
+    var missionObjectives : [MissionObjective];
+    var tacticalRules : [TacticalRule];
+    var combatState : CombatState;
+    var resourceAllocation : ResourceAllocation;
+  };
+
+  public type SituationalAwareness = {
+    var friendlyForces : [TacticalUnit];
+    var hostileForces : [TacticalUnit];
+    var neutralEntities : [TacticalUnit];
+    var terrainMap : [[TerrainCell]];
+    var visibilityMatrix : [[Float]];
+    var threatLevel : ThreatLevel;
+    var lastUpdate : Int;
+  };
+
+  public type TacticalUnit = {
+    unitId : Text;
+    var position : Vector3D;
+    var velocity : Vector3D;
+    var heading : Float;
+    unitType : UnitType;
+    var health : Float;
+    var ammunition : Float;
+    var fuel : Float;
+    var capabilities : [Capability];
+    var status : UnitStatus;
+    allegiance : Allegiance;
+  };
+
+  public type UnitType = {
+    #Infantry;
+    #Armor;
+    #Artillery;
+    #Air;
+    #Naval;
+    #Drone;
+    #Support;
+    #Command;
+    #Electronic;
+    #Reconnaissance;
+  };
+
+  public type Capability = {
+    #DirectFire;
+    #IndirectFire;
+    #AntiAir;
+    #AntiArmor;
+    #Electronic;
+    #Reconnaissance;
+    #Medical;
+    #Engineering;
+    #Transport;
+    #Communication;
+  };
+
+  public type UnitStatus = {
+    #Operational;
+    #Degraded;
+    #Damaged;
+    #Disabled;
+    #Destroyed;
+    #Unknown;
+  };
+
+  public type Allegiance = {
+    #Friendly;
+    #Hostile;
+    #Neutral;
+    #Unknown;
+  };
+
+  public type TerrainCell = {
+    var elevation : Float;
+    terrainType : TerrainType;
+    var concealment : Float;
+    var cover : Float;
+    var trafficability : Float;
+    var occupied : Bool;
+    var lastSeen : Int;
+  };
+
+  public type TerrainType = {
+    #Open;
+    #Urban;
+    #Forest;
+    #Water;
+    #Mountain;
+    #Desert;
+    #Marsh;
+    #Road;
+  };
+
+  public type ThreatLevel = {
+    #Green;    // No threats
+    #Yellow;   // Low threat
+    #Orange;   // Moderate threat
+    #Red;      // High threat
+    #Black;    // Critical threat
+  };
+
+  public type ThreatDatabase = {
+    var knownThreats : [ThreatEntry];
+    var threatPatterns : [ThreatPattern];
+    var predictedThreats : [PredictedThreat];
+  };
+
+  public type ThreatEntry = {
+    threatId : Text;
+    var position : ?Vector3D;
+    var confidence : Float;
+    threatType : ThreatType;
+    var lethality : Float;
+    var range : Float;
+    var lastDetection : Int;
+    var trackHistory : [Vector3D];
+  };
+
+  public type ThreatType = {
+    #DirectFire;
+    #IndirectFire;
+    #Missile;
+    #Electronic;
+    #Chemical;
+    #Biological;
+    #Nuclear;
+    #Cyber;
+    #Kinetic;
+  };
+
+  public type ThreatPattern = {
+    patternId : Text;
+    indicators : [Text];
+    var frequency : Nat;
+    var confidence : Float;
+    response : Text;
+  };
+
+  public type PredictedThreat = {
+    predictionId : Text;
+    threatType : ThreatType;
+    var probability : Float;
+    var estimatedPosition : Vector3D;
+    var timeToImpact : Float;
+    var recommended : [Text];
+  };
+
+  public type MissionObjective = {
+    objectiveId : Text;
+    objectiveType : ObjectiveType;
+    var status : ObjectiveStatus;
+    priority : Float;
+    location : ?Vector3D;
+    timeConstraint : ?Int;
+    var progress : Float;
+    dependencies : [Text];
+  };
+
+  public type ObjectiveType = {
+    #Secure;
+    #Destroy;
+    #Defend;
+    #Recon;
+    #Support;
+    #Extract;
+    #Infiltrate;
+    #Deny;
+  };
+
+  public type ObjectiveStatus = {
+    #Pending;
+    #Active;
+    #Completed;
+    #Failed;
+    #Cancelled;
+  };
+
+  public type TacticalRule = {
+    ruleId : Text;
+    condition : RuleCondition;
+    action : RuleAction;
+    priority : Float;
+    var activations : Nat;
+  };
+
+  public type RuleCondition = {
+    #ThreatDetected : ThreatLevel;
+    #UnitsInRange : (Float, Nat);
+    #ObjectiveStatus : ObjectiveStatus;
+    #ResourceBelow : (Text, Float);
+    #TimeElapsed : Nat;
+    #Compound : [RuleCondition];
+  };
+
+  public type RuleAction = {
+    #Engage;
+    #Retreat;
+    #Defend;
+    #Maneuver;
+    #CallSupport;
+    #Regroup;
+    #Alert;
+    #Custom : Text;
+  };
+
+  public type CombatState = {
+    var engagedTargets : [(Text, Text)];  // (unitId, targetId)
+    var suppressedAreas : [Vector3D];
+    var artilleryMissions : [ArtilleryMission];
+    var airSupport : [AirSupportMission];
+    var casualties : Nat;
+    var killCount : Nat;
+  };
+
+  public type ArtilleryMission = {
+    missionId : Text;
+    targetArea : Vector3D;
+    missionType : ArtilleryType;
+    rounds : Nat;
+    var status : MissionStatus;
+  };
+
+  public type ArtilleryType = {
+    #Suppression;
+    #Destruction;
+    #Smoke;
+    #Illumination;
+  };
+
+  public type AirSupportMission = {
+    missionId : Text;
+    supportType : AirSupportType;
+    targetArea : Vector3D;
+    var status : MissionStatus;
+    var timeOnStation : Float;
+  };
+
+  public type AirSupportType = {
+    #CAS;
+    #Interdiction;
+    #SEAD;
+    #Transport;
+    #MEDEVAC;
+    #Recon;
+  };
+
+  public type MissionStatus = {
+    #Requested;
+    #Approved;
+    #Enroute;
+    #OnStation;
+    #Completed;
+    #Aborted;
+  };
+
+  public type ResourceAllocation = {
+    var ammunition : [(Text, Float)];
+    var fuel : [(Text, Float)];
+    var medical : [(Text, Float)];
+    var reserves : [Text];
+  };
+
+  /// Initialize Tactical AI
+  public func initTacticalAI(gridSize : Nat) : TacticalAIState {
+    // Initialize terrain
+    let terrain = Array.tabulate<[TerrainCell]>(gridSize, func(i : Nat) : [TerrainCell] {
+      Array.tabulate<TerrainCell>(gridSize, func(j : Nat) : TerrainCell {
+        {
+          var elevation = Float.sin(Float.fromInt(i * 10 + j)) * 100.0;
+          terrainType = switch ((i + j) % 8) {
+            case 0 #Open;
+            case 1 #Urban;
+            case 2 #Forest;
+            case 3 #Water;
+            case 4 #Mountain;
+            case 5 #Desert;
+            case 6 #Marsh;
+            case _ #Road;
+          };
+          var concealment = Float.abs(Float.sin(Float.fromInt(i * j))) * 0.5 + 0.3;
+          var cover = Float.abs(Float.cos(Float.fromInt(i + j * 10))) * 0.5 + 0.2;
+          var trafficability = 0.8;
+          var occupied = false;
+          var lastSeen = Time.now();
+        }
+      })
+    });
+
+    // Visibility matrix
+    let visibility = Array.tabulate<[Float]>(gridSize, func(i : Nat) : [Float] {
+      Array.tabulate<Float>(gridSize, func(j : Nat) : Float {
+        0.0  // Not visible initially
+      })
+    });
+
+    {
+      var situationalAwareness = {
+        var friendlyForces = [];
+        var hostileForces = [];
+        var neutralEntities = [];
+        var terrainMap = terrain;
+        var visibilityMatrix = visibility;
+        var threatLevel = #Green;
+        var lastUpdate = Time.now();
+      };
+      var threatDatabase = {
+        var knownThreats = [];
+        var threatPatterns = [];
+        var predictedThreats = [];
+      };
+      var missionObjectives = [];
+      var tacticalRules = [];
+      var combatState = {
+        var engagedTargets = [];
+        var suppressedAreas = [];
+        var artilleryMissions = [];
+        var airSupport = [];
+        var casualties = 0;
+        var killCount = 0;
+      };
+      var resourceAllocation = {
+        var ammunition = [];
+        var fuel = [];
+        var medical = [];
+        var reserves = [];
+      };
+    }
+  };
+
+  /// Add tactical unit to awareness
+  public func addTacticalUnit(tactical : TacticalAIState, unit : TacticalUnit) : () {
+    switch (unit.allegiance) {
+      case (#Friendly) {
+        tactical.situationalAwareness.friendlyForces := 
+          Array.append(tactical.situationalAwareness.friendlyForces, [unit]);
+      };
+      case (#Hostile) {
+        tactical.situationalAwareness.hostileForces := 
+          Array.append(tactical.situationalAwareness.hostileForces, [unit]);
+        
+        // Add to threat database
+        let threat : ThreatEntry = {
+          threatId = unit.unitId;
+          var position = ?unit.position;
+          var confidence = 0.8;
+          threatType = #Kinetic;
+          var lethality = 0.7;
+          var range = 1000.0;
+          var lastDetection = Time.now();
+          var trackHistory = [unit.position];
+        };
+        tactical.threatDatabase.knownThreats := 
+          Array.append(tactical.threatDatabase.knownThreats, [threat]);
+      };
+      case (#Neutral) {
+        tactical.situationalAwareness.neutralEntities := 
+          Array.append(tactical.situationalAwareness.neutralEntities, [unit]);
+      };
+      case (#Unknown) {};
+    };
+  };
+
+  /// Assess current threat level
+  public func assessThreatLevel(tactical : TacticalAIState) : ThreatLevel {
+    let hostileCount = tactical.situationalAwareness.hostileForces.size();
+    let friendlyCount = tactical.situationalAwareness.friendlyForces.size();
+    
+    // Calculate threat ratio
+    let ratio = if (friendlyCount > 0) 
+      Float.fromInt(hostileCount) / Float.fromInt(friendlyCount)
+    else if (hostileCount > 0) 10.0 else 0.0;
+    
+    // Assess based on ratio and threat database
+    let level = if (ratio >= 3.0) #Black
+      else if (ratio >= 2.0) #Red
+      else if (ratio >= 1.0) #Orange
+      else if (ratio >= 0.5) #Yellow
+      else #Green;
+    
+    tactical.situationalAwareness.threatLevel := level;
+    level
+  };
+
+  /// Process tactical rules
+  public func processTacticalRules(tactical : TacticalAIState) : [RuleAction] {
+    var actions : [RuleAction] = [];
+    
+    for (rule in tactical.tacticalRules.vals()) {
+      let conditionMet = switch (rule.condition) {
+        case (#ThreatDetected(level)) {
+          let currentLevel = tactical.situationalAwareness.threatLevel;
+          switch (level, currentLevel) {
+            case (#Green, #Green) true;
+            case (#Yellow, #Yellow) true;
+            case (#Yellow, #Orange) true;
+            case (#Yellow, #Red) true;
+            case (#Yellow, #Black) true;
+            case (#Orange, #Orange) true;
+            case (#Orange, #Red) true;
+            case (#Orange, #Black) true;
+            case (#Red, #Red) true;
+            case (#Red, #Black) true;
+            case (#Black, #Black) true;
+            case _ false;
+          }
+        };
+        case (#UnitsInRange(range, count)) {
+          // Simplified - would check actual distances
+          tactical.situationalAwareness.hostileForces.size() >= count
+        };
+        case (#ObjectiveStatus(status)) {
+          var found = false;
+          for (obj in tactical.missionObjectives.vals()) {
+            if (obj.status == status) { found := true };
+          };
+          found
+        };
+        case (#ResourceBelow(resource, threshold)) {
+          // Check resources
+          var below = false;
+          for ((r, v) in tactical.resourceAllocation.ammunition.vals()) {
+            if (r == resource and v < threshold) { below := true };
+          };
+          below
+        };
+        case (#TimeElapsed(_)) {
+          true  // Would check actual elapsed time
+        };
+        case (#Compound(conditions)) {
+          true  // Would recursively check all conditions
+        };
+      };
+      
+      if (conditionMet) {
+        actions := Array.append(actions, [rule.action]);
+        rule.activations += 1;
+      };
+    };
+    
+    actions
+  };
+
+  /// Execute tactical engagement
+  public func executeTacticalEngagement(
+    tactical : TacticalAIState,
+    attackerId : Text,
+    targetId : Text
+  ) : Bool {
+    // Find attacker
+    var attacker : ?TacticalUnit = null;
+    for (unit in tactical.situationalAwareness.friendlyForces.vals()) {
+      if (unit.unitId == attackerId) {
+        attacker := ?unit;
+      };
+    };
+    
+    // Find target
+    var target : ?TacticalUnit = null;
+    for (unit in tactical.situationalAwareness.hostileForces.vals()) {
+      if (unit.unitId == targetId) {
+        target := ?unit;
+      };
+    };
+    
+    switch (attacker, target) {
+      case (?a, ?t) {
+        // Calculate hit probability based on range, terrain, etc.
+        let dx = t.position.x - a.position.x;
+        let dy = t.position.y - a.position.y;
+        let dz = t.position.z - a.position.z;
+        let range = Float.sqrt(dx*dx + dy*dy + dz*dz);
+        
+        let hitProbability = Float.max(0.1, 1.0 - range / 2000.0);
+        
+        // Record engagement
+        tactical.combatState.engagedTargets := 
+          Array.append(tactical.combatState.engagedTargets, [(attackerId, targetId)]);
+        
+        // Simulate hit
+        let hit = Float.sin(Float.fromInt(Time.now() |> Int.abs(_))) > (1.0 - hitProbability);
+        
+        if (hit) {
+          t.health := Float.max(0.0, t.health - 0.3);
+          if (t.health <= 0.0) {
+            t.status := #Destroyed;
+            tactical.combatState.killCount += 1;
+          };
+        };
+        
+        // Consume ammunition
+        a.ammunition := Float.max(0.0, a.ammunition - 0.01);
+        
+        true
+      };
+      case _ { false };
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 60: CHIMERA MULTI-AGENT COORDINATION PROTOCOL
+  // Sovereign distributed coordination without central control
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Multi-Agent Coordination State
+  public type MultiAgentCoordinationState = {
+    var agents : [CoordinatedAgent];
+    var coalitions : [Coalition];
+    var tasks : [CoordinatedTask];
+    var negotiations : [Negotiation];
+    var contractNet : ContractNetState;
+    var auctionState : AuctionState;
+  };
+
+  public type CoordinatedAgent = {
+    agentId : Text;
+    var capabilities : [AgentCapability];
+    var currentTask : ?Text;
+    var utilization : Float;
+    var reliability : Float;
+    var coalitionMembership : [Text];
+    var preferences : [(Text, Float)];
+  };
+
+  public type AgentCapability = {
+    capabilityId : Text;
+    capabilityType : CapabilityType;
+    var level : Float;
+    var availability : Float;
+  };
+
+  public type CapabilityType = {
+    #Sensing;
+    #Acting;
+    #Computing;
+    #Communication;
+    #Storage;
+    #Mobility;
+    #Manipulation;
+  };
+
+  public type Coalition = {
+    coalitionId : Text;
+    var members : [Text];
+    var taskId : ?Text;
+    var utility : Float;
+    var stability : Float;
+    formationTime : Int;
+  };
+
+  public type CoordinatedTask = {
+    taskId : Text;
+    taskType : TaskType;
+    var requirements : [AgentCapability];
+    var assignedAgents : [Text];
+    var status : TaskStatus;
+    priority : Float;
+    deadline : ?Int;
+    var progress : Float;
+  };
+
+  public type TaskType = {
+    #Observation;
+    #Action;
+    #Computation;
+    #Communication;
+    #Coordination;
+    #Planning;
+  };
+
+  public type TaskStatus = {
+    #Available;
+    #Assigned;
+    #InProgress;
+    #Completed;
+    #Failed;
+    #Cancelled;
+  };
+
+  public type Negotiation = {
+    negotiationId : Text;
+    participants : [Text];
+    subject : Text;
+    var round : Nat;
+    var proposals : [NegotiationProposal];
+    var status : NegotiationStatus;
+  };
+
+  public type NegotiationProposal = {
+    proposalId : Text;
+    proposerId : Text;
+    content : [(Text, Float)];
+    var acceptances : [Text];
+    var rejections : [Text];
+  };
+
+  public type NegotiationStatus = {
+    #Active;
+    #Agreement;
+    #Impasse;
+    #Timeout;
+  };
+
+  public type ContractNetState = {
+    var announcements : [TaskAnnouncement];
+    var bids : [[ContractBid]];
+    var awards : [(Text, Text)];  // (taskId, agentId)
+  };
+
+  public type TaskAnnouncement = {
+    announcementId : Text;
+    taskId : Text;
+    requirements : [Text];
+    deadline : Int;
+    var bidCount : Nat;
+  };
+
+  public type ContractBid = {
+    bidId : Text;
+    agentId : Text;
+    taskId : Text;
+    bidValue : Float;
+    capabilities : [Text];
+    availability : Float;
+  };
+
+  public type AuctionState = {
+    var auctions : [ResourceAuction];
+    var winners : [(Text, Text, Float)];  // (auctionId, agentId, price)
+  };
+
+  public type ResourceAuction = {
+    auctionId : Text;
+    resourceId : Text;
+    auctionType : AuctionType;
+    var currentBid : Float;
+    var highestBidder : ?Text;
+    var status : AuctionStatus;
+    endTime : Int;
+  };
+
+  public type AuctionType = {
+    #English;
+    #Dutch;
+    #FirstPrice;
+    #SecondPrice;
+    #Combinatorial;
+  };
+
+  public type AuctionStatus = {
+    #Open;
+    #Closed;
+    #Settled;
+    #Cancelled;
+  };
+
+  /// Initialize multi-agent coordination
+  public func initMultiAgentCoordination(numAgents : Nat) : MultiAgentCoordinationState {
+    var agents : [CoordinatedAgent] = [];
+    let capTypes : [CapabilityType] = [#Sensing, #Acting, #Computing, #Communication, #Storage, #Mobility, #Manipulation];
+    
+    for (i in Iter.range(0, numAgents - 1)) {
+      var caps : [AgentCapability] = [];
+      for (c in Iter.range(0, 2)) {
+        let cap : AgentCapability = {
+          capabilityId = "cap_" # Nat.toText(i) # "_" # Nat.toText(c);
+          capabilityType = capTypes[(i + c) % capTypes.size()];
+          var level = 0.5 + Float.sin(Float.fromInt(i * c)) * 0.3;
+          var availability = 1.0;
+        };
+        caps := Array.append(caps, [cap]);
+      };
+      
+      let agent : CoordinatedAgent = {
+        agentId = "coord_" # Nat.toText(i);
+        var capabilities = caps;
+        var currentTask = null;
+        var utilization = 0.0;
+        var reliability = 0.9 + Float.sin(Float.fromInt(i)) * 0.1;
+        var coalitionMembership = [];
+        var preferences = [];
+      };
+      agents := Array.append(agents, [agent]);
+    };
+    
+    {
+      var agents = agents;
+      var coalitions = [];
+      var tasks = [];
+      var negotiations = [];
+      var contractNet = {
+        var announcements = [];
+        var bids = [];
+        var awards = [];
+      };
+      var auctionState = {
+        var auctions = [];
+        var winners = [];
+      };
+    }
+  };
+
+  /// Announce task via Contract Net Protocol
+  public func announceTask(
+    coordination : MultiAgentCoordinationState,
+    taskId : Text,
+    requirements : [Text],
+    deadline : Int
+  ) : Text {
+    let announcementId = "announce_" # Int.toText(Time.now());
+    
+    let announcement : TaskAnnouncement = {
+      announcementId = announcementId;
+      taskId = taskId;
+      requirements = requirements;
+      deadline = deadline;
+      var bidCount = 0;
+    };
+    
+    coordination.contractNet.announcements := 
+      Array.append(coordination.contractNet.announcements, [announcement]);
+    coordination.contractNet.bids := 
+      Array.append(coordination.contractNet.bids, [[]]);
+    
+    announcementId
+  };
+
+  /// Submit bid for task
+  public func submitBid(
+    coordination : MultiAgentCoordinationState,
+    agentId : Text,
+    announcementId : Text,
+    bidValue : Float
+  ) : Bool {
+    // Find announcement index
+    var announcementIndex : ?Nat = null;
+    for (i in Iter.range(0, coordination.contractNet.announcements.size() - 1)) {
+      if (coordination.contractNet.announcements[i].announcementId == announcementId) {
+        announcementIndex := ?i;
+      };
+    };
+    
+    switch (announcementIndex) {
+      case (null) { return false };
+      case (?idx) {
+        let announcement = coordination.contractNet.announcements[idx];
+        
+        // Find agent and get capabilities
+        var agentCaps : [Text] = [];
+        var avail = 0.0;
+        for (a in coordination.agents.vals()) {
+          if (a.agentId == agentId) {
+            for (c in a.capabilities.vals()) {
+              agentCaps := Array.append(agentCaps, [c.capabilityId]);
+            };
+            avail := 1.0 - a.utilization;
+          };
+        };
+        
+        let bid : ContractBid = {
+          bidId = "bid_" # Int.toText(Time.now()) # "_" # agentId;
+          agentId = agentId;
+          taskId = announcement.taskId;
+          bidValue = bidValue;
+          capabilities = agentCaps;
+          availability = avail;
+        };
+        
+        // Add bid
+        if (idx < coordination.contractNet.bids.size()) {
+          coordination.contractNet.bids := Array.tabulate<[ContractBid]>(
+            coordination.contractNet.bids.size(),
+            func(i : Nat) : [ContractBid] {
+              if (i == idx) {
+                Array.append(coordination.contractNet.bids[i], [bid])
+              } else {
+                coordination.contractNet.bids[i]
+              }
+            }
+          );
+        };
+        
+        announcement.bidCount += 1;
+        return true;
+      };
+    }
+  };
+
+  /// Award contract to best bidder
+  public func awardContract(
+    coordination : MultiAgentCoordinationState,
+    announcementId : Text
+  ) : ?Text {
+    // Find announcement
+    var announcementIndex : ?Nat = null;
+    for (i in Iter.range(0, coordination.contractNet.announcements.size() - 1)) {
+      if (coordination.contractNet.announcements[i].announcementId == announcementId) {
+        announcementIndex := ?i;
+      };
+    };
+    
+    switch (announcementIndex) {
+      case (null) { return null };
+      case (?idx) {
+        if (idx >= coordination.contractNet.bids.size()) { return null };
+        
+        let bids = coordination.contractNet.bids[idx];
+        if (bids.size() == 0) { return null };
+        
+        // Find best bid (lowest value)
+        var bestBid : ?ContractBid = null;
+        var bestValue = 1000000.0;
+        
+        for (bid in bids.vals()) {
+          // Score = bidValue / availability (lower is better)
+          let score = if (bid.availability > 0.0) bid.bidValue / bid.availability else 1000000.0;
+          if (score < bestValue) {
+            bestValue := score;
+            bestBid := ?bid;
+          };
+        };
+        
+        switch (bestBid) {
+          case (null) { return null };
+          case (?b) {
+            let taskId = coordination.contractNet.announcements[idx].taskId;
+            coordination.contractNet.awards := 
+              Array.append(coordination.contractNet.awards, [(taskId, b.agentId)]);
+            
+            // Update agent
+            for (a in coordination.agents.vals()) {
+              if (a.agentId == b.agentId) {
+                a.currentTask := ?taskId;
+                a.utilization := Float.min(1.0, a.utilization + 0.2);
+              };
+            };
+            
+            return ?b.agentId;
+          };
+        }
+      };
+    }
+  };
+
+  /// Form coalition for complex task
+  public func formCoalition(
+    coordination : MultiAgentCoordinationState,
+    taskId : Text,
+    requiredCapabilities : [CapabilityType]
+  ) : ?Coalition {
+    var members : [Text] = [];
+    var coveredCapabilities : [CapabilityType] = [];
+    
+    // Greedy coalition formation
+    for (cap in requiredCapabilities.vals()) {
+      // Find agent with this capability not already in coalition
+      for (agent in coordination.agents.vals()) {
+        var hasCapability = false;
+        var inCoalition = false;
+        
+        for (c in agent.capabilities.vals()) {
+          if (c.capabilityType == cap and c.availability > 0.5) {
+            hasCapability := true;
+          };
+        };
+        
+        for (m in members.vals()) {
+          if (m == agent.agentId) {
+            inCoalition := true;
+          };
+        };
+        
+        if (hasCapability and not inCoalition and agent.currentTask == null) {
+          members := Array.append(members, [agent.agentId]);
+          coveredCapabilities := Array.append(coveredCapabilities, [cap]);
+        };
+      };
+    };
+    
+    // Check if all capabilities covered
+    if (coveredCapabilities.size() < requiredCapabilities.size()) {
+      return null;  // Cannot form viable coalition
+    };
+    
+    let coalition : Coalition = {
+      coalitionId = "coalition_" # Int.toText(Time.now());
+      var members = members;
+      var taskId = ?taskId;
+      var utility = Float.fromInt(members.size()) / Float.fromInt(requiredCapabilities.size());
+      var stability = 0.8;  // Initial stability
+      formationTime = Time.now();
+    };
+    
+    coordination.coalitions := Array.append(coordination.coalitions, [coalition]);
+    
+    // Update agent coalition membership
+    for (agent in coordination.agents.vals()) {
+      for (m in members.vals()) {
+        if (agent.agentId == m) {
+          agent.coalitionMembership := Array.append(agent.coalitionMembership, [coalition.coalitionId]);
+        };
+      };
+    };
+    
+    ?coalition
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 61: CHIMERA SWARM LEARNING - COLLECTIVE INTELLIGENCE EVOLUTION
+  // Distributed learning that compounds sovereign knowledge
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Swarm Learning State
+  public type SwarmLearningState = {
+    var learners : [SwarmLearner];
+    var sharedKnowledge : SharedKnowledgeBase;
+    var federatedModel : FederatedModel;
+    var evolutionaryOptimizer : EvolutionaryOptimizer;
+    var rewardSignals : [RewardSignal];
+  };
+
+  public type SwarmLearner = {
+    learnerId : Text;
+    var localModel : LocalModel;
+    var experience : [Experience];
+    var learningRate : Float;
+    var exploration : Float;
+    var contributionScore : Float;
+  };
+
+  public type LocalModel = {
+    var weights : [[Float]];
+    var biases : [Float];
+    var gradients : [[Float]];
+    var version : Nat;
+    var performance : Float;
+  };
+
+  public type Experience = {
+    experienceId : Text;
+    state : [Float];
+    action : Nat;
+    reward : Float;
+    nextState : [Float];
+    done : Bool;
+    timestamp : Int;
+  };
+
+  public type SharedKnowledgeBase = {
+    var facts : [SharedFact];
+    var rules : [SharedRule];
+    var patterns : [SharedPattern];
+    var consensusLevel : Float;
+  };
+
+  public type SharedFact = {
+    factId : Text;
+    content : Text;
+    var confidence : Float;
+    var supporters : Nat;
+    var challengers : Nat;
+    source : Text;
+  };
+
+  public type SharedRule = {
+    ruleId : Text;
+    condition : Text;
+    consequence : Text;
+    var accuracy : Float;
+    var usageCount : Nat;
+  };
+
+  public type SharedPattern = {
+    patternId : Text;
+    features : [Float];
+    label : Text;
+    var occurrences : Nat;
+    var confidence : Float;
+  };
+
+  public type FederatedModel = {
+    var globalWeights : [[Float]];
+    var globalBiases : [Float];
+    var aggregationMethod : AggregationMethod;
+    var round : Nat;
+    var participantCount : Nat;
+    var convergenceMetric : Float;
+  };
+
+  public type AggregationMethod = {
+    #FedAvg;
+    #FedProx;
+    #FedMA;
+    #Scaffold;
+    #FedNova;
+  };
+
+  public type EvolutionaryOptimizer = {
+    var population : [Individual];
+    var bestIndividual : ?Individual;
+    var generation : Nat;
+    var mutationRate : Float;
+    var crossoverRate : Float;
+    var diversityIndex : Float;
+  };
+
+  public type Individual = {
+    individualId : Text;
+    var genome : [Float];
+    var fitness : Float;
+    var age : Nat;
+    parentIds : [Text];
+  };
+
+  public type RewardSignal = {
+    signalId : Text;
+    learnerId : Text;
+    reward : Float;
+    reason : Text;
+    timestamp : Int;
+  };
+
+  /// Initialize swarm learning
+  public func initSwarmLearning(numLearners : Nat, modelSize : Nat) : SwarmLearningState {
+    var learners : [SwarmLearner] = [];
+    
+    for (i in Iter.range(0, numLearners - 1)) {
+      // Initialize local model
+      let weights = Array.tabulate<[Float]>(modelSize, func(j : Nat) : [Float] {
+        Array.tabulate<Float>(modelSize, func(k : Nat) : Float {
+          Float.sin(Float.fromInt(i * 100 + j * 10 + k)) * 0.1
+        })
+      });
+      
+      let biases = Array.tabulate<Float>(modelSize, func(j : Nat) : Float {
+        Float.cos(Float.fromInt(i * 50 + j)) * 0.05
+      });
+      
+      let gradients = Array.tabulate<[Float]>(modelSize, func(j : Nat) : [Float] {
+        Array.tabulate<Float>(modelSize, func(_ : Nat) : Float { 0.0 })
+      });
+      
+      let learner : SwarmLearner = {
+        learnerId = "learner_" # Nat.toText(i);
+        var localModel = {
+          var weights = weights;
+          var biases = biases;
+          var gradients = gradients;
+          var version = 0;
+          var performance = 0.0;
+        };
+        var experience = [];
+        var learningRate = 0.01;
+        var exploration = 0.1;
+        var contributionScore = 0.0;
+      };
+      learners := Array.append(learners, [learner]);
+    };
+    
+    // Initialize global model
+    let globalWeights = Array.tabulate<[Float]>(modelSize, func(j : Nat) : [Float] {
+      Array.tabulate<Float>(modelSize, func(k : Nat) : Float {
+        Float.sin(Float.fromInt(j * 10 + k)) * 0.1
+      })
+    });
+    
+    let globalBiases = Array.tabulate<Float>(modelSize, func(j : Nat) : Float {
+      0.0
+    });
+    
+    {
+      var learners = learners;
+      var sharedKnowledge = {
+        var facts = [];
+        var rules = [];
+        var patterns = [];
+        var consensusLevel = 0.0;
+      };
+      var federatedModel = {
+        var globalWeights = globalWeights;
+        var globalBiases = globalBiases;
+        var aggregationMethod = #FedAvg;
+        var round = 0;
+        var participantCount = 0;
+        var convergenceMetric = 0.0;
+      };
+      var evolutionaryOptimizer = {
+        var population = [];
+        var bestIndividual = null;
+        var generation = 0;
+        var mutationRate = 0.01;
+        var crossoverRate = 0.7;
+        var diversityIndex = 1.0;
+      };
+      var rewardSignals = [];
+    }
+  };
+
+  /// Local training step
+  public func localTrainingStep(
+    learning : SwarmLearningState,
+    learnerId : Text,
+    batch : [Experience]
+  ) : Float {
+    // Find learner
+    var learnerOpt : ?SwarmLearner = null;
+    for (l in learning.learners.vals()) {
+      if (l.learnerId == learnerId) {
+        learnerOpt := ?l;
+      };
+    };
+    
+    switch (learnerOpt) {
+      case (null) { return 0.0 };
+      case (?learner) {
+        if (batch.size() == 0) { return 0.0 };
+        
+        var totalLoss = 0.0;
+        
+        // Process each experience
+        for (exp in batch.vals()) {
+          // Forward pass (simplified)
+          var output = 0.0;
+          for (i in Iter.range(0, learner.localModel.weights.size() - 1)) {
+            if (i < exp.state.size() and i < learner.localModel.weights.size()) {
+              for (j in Iter.range(0, learner.localModel.weights[i].size() - 1)) {
+                if (j < exp.state.size()) {
+                  output += learner.localModel.weights[i][j] * exp.state[j];
+                };
+              };
+            };
+          };
+          
+          // Loss (simplified MSE)
+          let target = exp.reward;
+          let loss = (output - target) * (output - target);
+          totalLoss += loss;
+          
+          // Backward pass (simplified gradient)
+          for (i in Iter.range(0, learner.localModel.gradients.size() - 1)) {
+            for (j in Iter.range(0, learner.localModel.gradients[i].size() - 1)) {
+              if (j < exp.state.size()) {
+                let grad = 2.0 * (output - target) * exp.state[j];
+                learner.localModel.gradients := Array.tabulate<[Float]>(
+                  learner.localModel.gradients.size(),
+                  func(gi : Nat) : [Float] {
+                    Array.tabulate<Float>(learner.localModel.gradients[gi].size(), func(gj : Nat) : Float {
+                      if (gi == i and gj == j) {
+                        learner.localModel.gradients[gi][gj] + grad
+                      } else {
+                        learner.localModel.gradients[gi][gj]
+                      }
+                    })
+                  }
+                );
+              };
+            };
+          };
+        };
+        
+        // Apply gradients
+        for (i in Iter.range(0, learner.localModel.weights.size() - 1)) {
+          for (j in Iter.range(0, learner.localModel.weights[i].size() - 1)) {
+            if (i < learner.localModel.gradients.size() and j < learner.localModel.gradients[i].size()) {
+              let update = learner.learningRate * learner.localModel.gradients[i][j] / Float.fromInt(batch.size());
+              learner.localModel.weights := Array.tabulate<[Float]>(
+                learner.localModel.weights.size(),
+                func(wi : Nat) : [Float] {
+                  Array.tabulate<Float>(learner.localModel.weights[wi].size(), func(wj : Nat) : Float {
+                    if (wi == i and wj == j) {
+                      learner.localModel.weights[wi][wj] - update
+                    } else {
+                      learner.localModel.weights[wi][wj]
+                    }
+                  })
+                }
+              );
+              // Reset gradient
+              learner.localModel.gradients := Array.tabulate<[Float]>(
+                learner.localModel.gradients.size(),
+                func(gi : Nat) : [Float] {
+                  Array.tabulate<Float>(learner.localModel.gradients[gi].size(), func(gj : Nat) : Float {
+                    if (gi == i and gj == j) 0.0 else learner.localModel.gradients[gi][gj]
+                  })
+                }
+              );
+            };
+          };
+        };
+        
+        learner.localModel.version += 1;
+        learner.localModel.performance := 1.0 / (1.0 + totalLoss / Float.fromInt(batch.size()));
+        
+        totalLoss / Float.fromInt(batch.size())
+      };
+    }
+  };
+
+  /// Federated aggregation (FedAvg)
+  public func federatedAggregation(learning : SwarmLearningState) : Float {
+    let numLearners = learning.learners.size();
+    if (numLearners == 0) { return 0.0 };
+    
+    let modelSize = learning.federatedModel.globalWeights.size();
+    if (modelSize == 0) { return 0.0 };
+    
+    // Sum all local weights
+    var sumWeights = Array.tabulate<[Float]>(modelSize, func(i : Nat) : [Float] {
+      Array.tabulate<Float>(modelSize, func(_ : Nat) : Float { 0.0 })
+    });
+    
+    var sumBiases = Array.tabulate<Float>(modelSize, func(_ : Nat) : Float { 0.0 });
+    var totalPerformance = 0.0;
+    
+    for (learner in learning.learners.vals()) {
+      for (i in Iter.range(0, modelSize - 1)) {
+        if (i < learner.localModel.weights.size()) {
+          for (j in Iter.range(0, modelSize - 1)) {
+            if (j < learner.localModel.weights[i].size() and i < sumWeights.size() and j < sumWeights[i].size()) {
+              sumWeights := Array.tabulate<[Float]>(sumWeights.size(), func(si : Nat) : [Float] {
+                Array.tabulate<Float>(sumWeights[si].size(), func(sj : Nat) : Float {
+                  if (si == i and sj == j) {
+                    sumWeights[si][sj] + learner.localModel.weights[i][j]
+                  } else {
+                    sumWeights[si][sj]
+                  }
+                })
+              });
+            };
+          };
+        };
+        if (i < learner.localModel.biases.size()) {
+          sumBiases := Array.tabulate<Float>(sumBiases.size(), func(bi : Nat) : Float {
+            if (bi == i) sumBiases[bi] + learner.localModel.biases[i] else sumBiases[bi]
+          });
+        };
+      };
+      totalPerformance += learner.localModel.performance;
+    };
+    
+    // Average
+    let n = Float.fromInt(numLearners);
+    learning.federatedModel.globalWeights := Array.tabulate<[Float]>(modelSize, func(i : Nat) : [Float] {
+      Array.tabulate<Float>(modelSize, func(j : Nat) : Float {
+        if (i < sumWeights.size() and j < sumWeights[i].size()) {
+          sumWeights[i][j] / n
+        } else { 0.0 }
+      })
+    });
+    
+    learning.federatedModel.globalBiases := Array.tabulate<Float>(modelSize, func(i : Nat) : Float {
+      if (i < sumBiases.size()) sumBiases[i] / n else 0.0
+    });
+    
+    learning.federatedModel.round += 1;
+    learning.federatedModel.participantCount := numLearners;
+    learning.federatedModel.convergenceMetric := totalPerformance / n;
+    
+    learning.federatedModel.convergenceMetric
+  };
+
+  /// Share knowledge fact
+  public func shareKnowledgeFact(
+    learning : SwarmLearningState,
+    source : Text,
+    content : Text,
+    confidence : Float
+  ) : Text {
+    let factId = "fact_" # Int.toText(Time.now());
+    
+    let fact : SharedFact = {
+      factId = factId;
+      content = content;
+      var confidence = confidence;
+      var supporters = 1;
+      var challengers = 0;
+      source = source;
+    };
+    
+    learning.sharedKnowledge.facts := Array.append(learning.sharedKnowledge.facts, [fact]);
+    
+    // Update consensus level
+    var totalConfidence = 0.0;
+    for (f in learning.sharedKnowledge.facts.vals()) {
+      totalConfidence += f.confidence;
+    };
+    learning.sharedKnowledge.consensusLevel := 
+      totalConfidence / Float.fromInt(learning.sharedKnowledge.facts.size());
+    
+    factId
+  };
+
   // Continue building toward 150,000 lines...
-  // Current: ~42,500 lines
-  // Remaining: ~107,500 lines
+  // Current: ~44,000 lines
+  // Remaining: ~106,000 lines
 
 }
