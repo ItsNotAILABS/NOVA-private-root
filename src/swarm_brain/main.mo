@@ -520,6 +520,7 @@ import StabilityBudgetEngine                         "./modules/StabilityBudgetE
 import TensorFieldEngine                             "./modules/TensorFieldEngine";
 import TopologicalFieldEngine                        "./modules/TopologicalFieldEngine";
 import TriModalSwarmKernel                           "./modules/TriModalSwarmKernel";
+import UnifiedEmotionalField                         "./modules/UnifiedEmotionalField";
 
 actor SwarmBrain {
 
@@ -965,6 +966,30 @@ actor SwarmBrain {
   stable var neurochemicalEIRatio : Float = 1.0;        // Excitation/Inhibition (Glu/GABA)
   stable var neurochemicalArousalLevel : Float = 0.5;   // Aggregate arousal (NE, HA, ORX)
   stable var neurochemicalMemoryPotentiation : Float = 1.0;  // ACh × BDNF × NGF factor
+  
+  // ─── UNIFIED EMOTIONAL FIELD STATE ─────────────────────────────────────────────
+  // ONE continuous field — not separate emotions. Gradients emerge from 21 neurochemicals.
+  // "We humans made the divisions. The field was already there." — Medina Doctrine
+  var emotionalFieldState : UnifiedEmotionalField.EmotionalFieldState = UnifiedEmotionalField.initEmotionalField();
+  stable var emotionalValence : Float = 0.0;       // Negative ←→ Positive
+  stable var emotionalArousal : Float = 0.0;       // Calm ←→ Excited
+  stable var emotionalDominance : Float = 0.0;     // Submissive ←→ Dominant
+  stable var emotionalApproach : Float = 0.0;      // Withdraw ←→ Approach
+  stable var emotionalSocial : Float = 0.0;        // Isolated ←→ Connected
+  stable var emotionalTemporal : Float = 0.0;      // Past-focused ←→ Future-focused
+  stable var emotionalCertainty : Float = 0.0;     // Confused ←→ Certain
+  stable var emotionalEmbodiment : Float = 0.0;    // Dissociated ←→ Present
+  stable var emotionalIntensity : Float = 0.0;     // |Ψ| — overall emotional magnitude
+  stable var emotionalStability : Float = 1.0;     // How stable the emotional state is
+  stable var emotionalComplexity : Float = 0.0;    // How many dimensions simultaneously active
+  stable var emotionalResonance : Float = 0.0;     // Does current match baseline mood?
+  stable var emotionalRewardPrediction : Float = 0.0;   // Behavioral bias: reward expectation
+  stable var emotionalResponseSpeed : Float = 1.0;      // Behavioral bias: response speed multiplier
+  stable var emotionalSwarmCohesion : Float = 0.5;      // Behavioral bias: stick together drive
+  stable var emotionalExplorationDrive : Float = 0.0;   // Behavioral bias: explore vs exploit
+  stable var emotionalRiskTolerance : Float = 0.5;      // Behavioral bias: risk acceptance
+  stable var emotionalMemoryBoost : Float = 1.0;        // Behavioral bias: memory encoding strength
+  stable var totalEmotionalFieldUpdates : Nat = 0;
   
   // ─── SPHERICAL QUANTUM STATE — ALL LAYERS INTEGRATED ─────────────────────────
   // This is computed every beat and used by ALL subsystems
@@ -4754,6 +4779,102 @@ actor SwarmBrain {
   };
 
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+  // SECTION 2.25: UPDATE UNIFIED EMOTIONAL FIELD
+  // ONE continuous field Ψ emerges from ALL 21 neurochemical concentrations.
+  // Emotions are not separate boxes — they are gradients of this unified field.
+  // The field feeds BACK into neurochemistry (closed loop) and modulates behavior.
+  // "We humans made the divisions. The field was already there." — Medina Doctrine
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+  func updateUnifiedEmotionalField() {
+    // Build the complete neurochemical concentration array (all 21)
+    let chemicals : [Float] = [
+      dopamineConcent,          // 0:  DA  — reward/motivation
+      serotoninConcent,         // 1:  5-HT — mood/satiety/well-being
+      norepinephrineConcent,    // 2:  NE  — alertness/arousal
+      acetylcholineConcent,     // 3:  ACh — learning/memory/attention
+      gabaConcent,              // 4:  GABA — inhibition/calm
+      glutamateConcent,         // 5:  Glu — excitation/learning
+      endorphinConcent,         // 6:  β-End — pain relief/euphoria
+      oxytocinConcent,          // 7:  OT  — bonding/trust/love
+      cortisolConcent,          // 8:  CORT — stress response
+      adrenalineConcent,        // 9:  EPI — fight-or-flight
+      melatoninConcent,         // 10: MEL — sleep/circadian
+      histamineConcent,         // 11: HA  — wakefulness
+      substancePConcent,        // 12: SP  — pain transmission
+      adenosineConcent,         // 13: ADO — sleep pressure
+      anandamideConcent,        // 14: AEA — bliss/pain modulation
+      dynorphinConcent,         // 15: DYN — dysphoria/stress
+      vasopressinConcent,       // 16: AVP — social behavior
+      npyConcent,               // 17: NPY — stress resilience
+      orexinConcent,            // 18: ORX — wakefulness/appetite
+      bdnfConcent,              // 19: BDNF — neuroplasticity
+      ngfConcent                // 20: NGF — neuron survival
+    ];
+
+    // Tick the unified emotional field
+    emotionalFieldState := UnifiedEmotionalField.tickEmotionalField(
+      emotionalFieldState,
+      chemicals,
+      currentBeat
+    );
+
+    // Extract the 8 emotional gradients for easy access by other systems
+    if (emotionalFieldState.gradients.size() >= 8) {
+      emotionalValence := emotionalFieldState.gradients[UnifiedEmotionalField.VALENCE];
+      emotionalArousal := emotionalFieldState.gradients[UnifiedEmotionalField.AROUSAL];
+      emotionalDominance := emotionalFieldState.gradients[UnifiedEmotionalField.DOMINANCE];
+      emotionalApproach := emotionalFieldState.gradients[UnifiedEmotionalField.APPROACH];
+      emotionalSocial := emotionalFieldState.gradients[UnifiedEmotionalField.SOCIAL];
+      emotionalTemporal := emotionalFieldState.gradients[UnifiedEmotionalField.TEMPORAL];
+      emotionalCertainty := emotionalFieldState.gradients[UnifiedEmotionalField.CERTAINTY];
+      emotionalEmbodiment := emotionalFieldState.gradients[UnifiedEmotionalField.EMBODIMENT];
+    };
+
+    // Extract field properties
+    emotionalIntensity := emotionalFieldState.magnitude;
+    emotionalStability := emotionalFieldState.stability;
+    emotionalComplexity := emotionalFieldState.complexity;
+    emotionalResonance := emotionalFieldState.resonance;
+
+    // Extract behavioral biases (these modulate behavior selection)
+    emotionalRewardPrediction := emotionalFieldState.behavioralBias.rewardPrediction;
+    emotionalResponseSpeed := emotionalFieldState.behavioralBias.responseSpeed;
+    emotionalSwarmCohesion := emotionalFieldState.behavioralBias.swarmCohesion;
+    emotionalExplorationDrive := emotionalFieldState.behavioralBias.explorationDrive;
+    emotionalRiskTolerance := emotionalFieldState.behavioralBias.riskTolerance;
+    emotionalMemoryBoost := emotionalFieldState.behavioralBias.memoryConsolidation;
+
+    // CLOSED LOOP: Feed emotional field back into neurochemical system
+    // The emotional field modulates neurochemical synthesis rates
+    // Using direct concentration modulation (same pattern as other systems)
+    if (emotionalFieldState.feedbackSignals.size() >= 21) {
+      let fc = UnifiedEmotionalField.FIELD_COUPLING;
+      // Dopamine: approach/reward drives more DA
+      dopamineConcent := dopamineConcent + emotionalFieldState.feedbackSignals[0] * fc;
+      if (dopamineConcent < 0.1) { dopamineConcent := 0.1 };
+      // Serotonin: valence/certainty modulates 5-HT
+      serotoninConcent := serotoninConcent + emotionalFieldState.feedbackSignals[1] * fc;
+      if (serotoninConcent < 0.1) { serotoninConcent := 0.1 };
+      // Oxytocin: social drive modulates OT
+      oxytocinConcent := oxytocinConcent + emotionalFieldState.feedbackSignals[7] * fc;
+      if (oxytocinConcent < 0.1) { oxytocinConcent := 0.1 };
+      // Cortisol: stress/arousal modulates CORT
+      cortisolConcent := cortisolConcent + emotionalFieldState.feedbackSignals[8] * fc;
+      if (cortisolConcent < 0.1) { cortisolConcent := 0.1 };
+    };
+
+    // Update fearLevel from the unified field (replaces old fear-only system)
+    // Fear is now just ONE gradient of the unified field, not the whole system
+    let landscape = UnifiedEmotionalField.getEmotionalLandscape(emotionalFieldState);
+    if (landscape.size() > 0) {
+      fearLevel := landscape[0];  // Fear score from unified field
+    };
+
+    totalEmotionalFieldUpdates += 1;
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   // SECTION 2.5: UPDATE PARALLAX DECISION ENGINE
   // 5-path quantum amplitude interference for multi-perspective decision making
   // This is called every beat to evolve decision amplitudes based on neurochemical state
@@ -5990,6 +6111,11 @@ actor SwarmBrain {
     
     // Step 2: Update neurochemical system (441 coupled equations)
     updateNeurochemicalSystem();
+    
+    // Step 2.5: Update UNIFIED EMOTIONAL FIELD — the continuous Ψ field
+    // Takes ALL 21 neurochemical concentrations → computes 8-dimensional emotional gradients
+    // Feeds back into neurochemistry (closed loop) and modulates behavior
+    updateUnifiedEmotionalField();
     
     // Step 3: Update PARALLAX Decision Engine (5-path quantum amplitude interference)
     updatePARALLAXDecisionEngine();
@@ -18225,6 +18351,52 @@ actor SwarmBrain {
       surrenderFloor = surrenderFloor;
       permanentFloor = permanentCoherenceFloor;
       streakMultiplier = economicStreakMultiplier;
+    }
+  };
+
+  // ─── UNIFIED EMOTIONAL FIELD QUERY ─────────────────────────────────────────────
+  // Returns the full emotional field state — 8 gradients, intensity, behavioral biases
+  public query func getEmotionalFieldState() : async {
+    valence : Float;
+    arousal : Float;
+    dominance : Float;
+    approach : Float;
+    social : Float;
+    temporal : Float;
+    certainty : Float;
+    embodiment : Float;
+    intensity : Float;
+    stability : Float;
+    complexity : Float;
+    resonance : Float;
+    rewardPrediction : Float;
+    responseSpeed : Float;
+    swarmCohesion : Float;
+    explorationDrive : Float;
+    riskTolerance : Float;
+    memoryBoost : Float;
+    totalUpdates : Nat;
+  } {
+    {
+      valence = emotionalValence;
+      arousal = emotionalArousal;
+      dominance = emotionalDominance;
+      approach = emotionalApproach;
+      social = emotionalSocial;
+      temporal = emotionalTemporal;
+      certainty = emotionalCertainty;
+      embodiment = emotionalEmbodiment;
+      intensity = emotionalIntensity;
+      stability = emotionalStability;
+      complexity = emotionalComplexity;
+      resonance = emotionalResonance;
+      rewardPrediction = emotionalRewardPrediction;
+      responseSpeed = emotionalResponseSpeed;
+      swarmCohesion = emotionalSwarmCohesion;
+      explorationDrive = emotionalExplorationDrive;
+      riskTolerance = emotionalRiskTolerance;
+      memoryBoost = emotionalMemoryBoost;
+      totalUpdates = totalEmotionalFieldUpdates;
     }
   };
 
