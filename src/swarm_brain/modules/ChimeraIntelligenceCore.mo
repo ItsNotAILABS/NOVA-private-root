@@ -8786,8 +8786,1471 @@ module {
     agent.preferredVelocity
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // WEAPON SYSTEMS MODELING
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Weapon system state
+  public type WeaponSystemState = {
+    var weapons : [Weapon];
+    var ammunition : [AmmunitionStore];
+    var fireControlSolution : ?FireControlSolution;
+    var engagementHistory : [EngagementRecord];
+    rules : RulesOfEngagement;
+  };
+
+  public type Weapon = {
+    weaponId : Text;
+    weaponType : WeaponType;
+    var status : WeaponStatus;
+    var roundsRemaining : Nat;
+    maxRounds : Nat;
+    characteristics : WeaponCharacteristics;
+    var lastFired : Int;
+    var temperature : Float;
+    mountPosition : {x: Float; y: Float; z: Float};
+    gimbalLimits : ?GimbalLimits;
+  };
+
+  public type WeaponType = {
+    #Missile : MissileType;
+    #Gun : GunType;
+    #Bomb : BombType;
+    #Laser : LaserType;
+    #EMP;
+    #Cyber;
+  };
+
+  public type MissileType = {
+    #AAM_ShortRange;
+    #AAM_MediumRange;
+    #AAM_LongRange;
+    #AGM_AntiShip;
+    #AGM_AntiRadiation;
+    #AGM_CruiseMissile;
+    #SAM;
+    #ATM;
+  };
+
+  public type GunType = {
+    #MachineGun;
+    #Cannon;
+    #Autocannon;
+    #Gatling;
+    #Railgun;
+  };
+
+  public type BombType = {
+    #Unguided;
+    #LaserGuided;
+    #GPSGuided;
+    #Glide;
+    #Cluster;
+    #Penetrator;
+  };
+
+  public type LaserType = {
+    #Designator;
+    #Dazzler;
+    #HighEnergy;
+  };
+
+  public type WeaponStatus = {
+    #Ready;
+    #NotReady;
+    #Firing;
+    #Reloading;
+    #Jammed;
+    #Damaged;
+    #OutOfAmmo;
+    #Overheated;
+  };
+
+  public type WeaponCharacteristics = {
+    caliber : ?Float;  // mm
+    muzzleVelocity : ?Float;  // m/s
+    rateOfFire : ?Float;  // rounds/min
+    effectiveRange : Float;  // meters
+    maxRange : Float;  // meters
+    accuracy : Float;  // CEP or angular error
+    guidanceType : ?GuidanceType;
+    warheadType : WarheadType;
+    weight : Float;  // kg
+    length : Float;  // m
+  };
+
+  public type GuidanceType = {
+    #None;
+    #IIR;  // Imaging Infrared
+    #ActiveRadar;
+    #SemiActiveRadar;
+    #LaserHoming;
+    #GPS_INS;
+    #CommandGuided;
+    #BeamRiding;
+    #TV;
+    #ARH_IOG;  // Active Radar Homing with Inertial + Over-the-horizon Guidance
+  };
+
+  public type WarheadType = {
+    #HE;  // High Explosive
+    #HEAT;  // High Explosive Anti-Tank
+    #Fragmentation;
+    #AP;  // Armor Piercing
+    #APFSDS;  // Armor Piercing Fin Stabilized Discarding Sabot
+    #Incendiary;
+    #Thermobaric;
+    #Nuclear;
+    #Chemical;
+    #EMP;
+    #Kinetic;
+  };
+
+  public type GimbalLimits = {
+    azimuthMin : Float;
+    azimuthMax : Float;
+    elevationMin : Float;
+    elevationMax : Float;
+    slewRate : Float;  // deg/s
+  };
+
+  public type AmmunitionStore = {
+    ammoType : Text;
+    var quantity : Nat;
+    maxQuantity : Nat;
+    weight : Float;  // kg per round
+    var temperature : Float;
+    var moisture : Float;
+  };
+
+  public type FireControlSolution = {
+    targetId : Nat32;
+    weaponId : Text;
+    aimPoint : {x: Float; y: Float; z: Float};
+    leadAngle : {azimuth: Float; elevation: Float};
+    timeToImpact : Float;
+    probability : Float;
+    var isValid : Bool;
+    computedAt : Int;
+    expiresAt : Int;
+  };
+
+  public type EngagementRecord = {
+    engagementId : Text;
+    targetId : Nat32;
+    weaponId : Text;
+    roundsFired : Nat;
+    timestamp : Int;
+    result : EngagementResult;
+    battleDamageAssessment : ?BDA;
+  };
+
+  public type EngagementResult = {
+    #Hit;
+    #Miss;
+    #Kill;
+    #Probable;
+    #Unknown;
+    #Aborted;
+  };
+
+  public type BDA = {
+    damageLevel : DamageLevel;
+    functionalImpact : Text;
+    confidence : Float;
+    source : Text;
+    timestamp : Int;
+  };
+
+  public type DamageLevel = {
+    #None;
+    #Light;
+    #Moderate;
+    #Severe;
+    #Destroyed;
+  };
+
+  public type RulesOfEngagement = {
+    weaponsFree : Bool;
+    selfDefenseOnly : Bool;
+    requirePositiveID : Bool;
+    requireHigherAuth : Bool;
+    prohibitedTargets : [Text];
+    collateralDamageLimit : Float;
+    minEngagementRange : Float;
+    maxEngagementRange : Float;
+  };
+
+  /// Compute fire control solution
+  public func computeFireControlSolution(
+    weapon : Weapon,
+    ownship : {position: GPSPosition; velocity: Velocity3D},
+    target : {position: GPSPosition; velocity: Velocity3D},
+    environment : EnvironmentState
+  ) : ?FireControlSolution {
+    // Calculate relative position
+    let relPos = {
+      x = latLonToMeters(target.position.latitude - ownship.position.latitude);
+      y = latLonToMeters(target.position.longitude - ownship.position.longitude);
+      z = target.position.altitude - ownship.position.altitude;
+    };
+    
+    // Calculate range
+    let range = Float.sqrt(relPos.x * relPos.x + relPos.y * relPos.y + relPos.z * relPos.z);
+    
+    // Check if in range
+    if (range > weapon.characteristics.maxRange or range < weapon.characteristics.effectiveRange * 0.1) {
+      return null;
+    };
+    
+    // Relative velocity
+    let relVel = {
+      x = target.velocity.vx - ownship.velocity.vx;
+      y = target.velocity.vy - ownship.velocity.vy;
+      z = target.velocity.vz - ownship.velocity.vz;
+    };
+    
+    // Time of flight estimation
+    let muzzleVel = switch (weapon.characteristics.muzzleVelocity) {
+      case (?v) v;
+      case (null) 300.0;  // Default for missiles
+    };
+    
+    let tof = range / muzzleVel;
+    
+    // Lead calculation (predict target position)
+    let aimPoint = {
+      x = relPos.x + relVel.x * tof;
+      y = relPos.y + relVel.y * tof;
+      z = relPos.z + relVel.z * tof;
+    };
+    
+    // Calculate angles
+    let aimRange = Float.sqrt(aimPoint.x * aimPoint.x + aimPoint.y * aimPoint.y + aimPoint.z * aimPoint.z);
+    let azimuth = Float.arctan2(aimPoint.y, aimPoint.x);
+    let elevation = Float.arcsin(aimPoint.z / aimRange);
+    
+    // Check gimbal limits
+    switch (weapon.gimbalLimits) {
+      case (?limits) {
+        if (azimuth < limits.azimuthMin or azimuth > limits.azimuthMax or
+            elevation < limits.elevationMin or elevation > limits.elevationMax) {
+          return null;
+        };
+      };
+      case (null) {};
+    };
+    
+    // Compute kill probability (simplified)
+    let basePk = 0.8;
+    let rangeFactor = 1.0 - (range / weapon.characteristics.maxRange);
+    let pk = basePk * rangeFactor * weapon.characteristics.accuracy;
+    
+    ?{
+      targetId = 0;
+      weaponId = weapon.weaponId;
+      aimPoint = aimPoint;
+      leadAngle = {azimuth = azimuth; elevation = elevation};
+      timeToImpact = tof;
+      probability = pk;
+      var isValid = true;
+      computedAt = Time.now();
+      expiresAt = Time.now() + 1_000_000_000;  // 1 second
+    }
+  };
+
+  /// Convert latitude/longitude difference to meters (approximate)
+  func latLonToMeters(degrees : Float) : Float {
+    degrees * 111320.0  // Approximate meters per degree at equator
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LOGISTICS & SUPPLY CHAIN
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Logistics state
+  public type LogisticsState = {
+    var supplyNodes : [SupplyNode];
+    var transportAssets : [TransportAsset];
+    var supplyRequests : [SupplyRequest];
+    var deliveryRoutes : [DeliveryRoute];
+    var inventory : [InventoryItem];
+    var consumptionRates : [(Text, Float)];
+  };
+
+  public type SupplyNode = {
+    nodeId : Text;
+    nodeName : Text;
+    nodeType : SupplyNodeType;
+    position : GPSPosition;
+    var capacity : Float;
+    var currentLoad : Float;
+    var inventory : [InventoryItem];
+    var status : NodeStatus;
+    capabilities : [SupplyCapability];
+  };
+
+  public type SupplyNodeType = {
+    #Depot;
+    #FARP;  // Forward Arming and Refueling Point
+    #FOB;  // Forward Operating Base
+    #Port;
+    #Airfield;
+    #RailHead;
+    #Mobile;
+  };
+
+  public type NodeStatus = {
+    #Operational;
+    #Limited;
+    #NonOperational;
+    #UnderAttack;
+    #Evacuating;
+  };
+
+  public type SupplyCapability = {
+    #Fuel;
+    #Ammunition;
+    #Maintenance;
+    #MedicalSupply;
+    #Food;
+    #Water;
+    #SparesParts;
+    #GeneralCargo;
+  };
+
+  public type TransportAsset = {
+    assetId : Text;
+    assetType : TransportType;
+    var position : GPSPosition;
+    var destination : ?GPSPosition;
+    var cargo : [CargoItem];
+    var cargoWeight : Float;
+    maxCargoWeight : Float;
+    var fuelLevel : Float;
+    maxFuel : Float;
+    speed : Float;
+    var status : TransportStatus;
+  };
+
+  public type TransportType = {
+    #Truck;
+    #Helicopter;
+    #FixedWing;
+    #Ship;
+    #Train;
+    #Drone;
+    #Convoy;
+  };
+
+  public type TransportStatus = {
+    #Idle;
+    #Loading;
+    #EnRoute;
+    #Unloading;
+    #Returning;
+    #Maintenance;
+    #Damaged;
+  };
+
+  public type CargoItem = {
+    itemId : Text;
+    itemType : SupplyCapability;
+    quantity : Float;
+    weight : Float;
+    priority : Nat;
+    destination : Text;
+  };
+
+  public type SupplyRequest = {
+    requestId : Text;
+    requester : Text;
+    itemType : SupplyCapability;
+    quantity : Float;
+    priority : RequestPriority;
+    requiredBy : Int;
+    var status : RequestStatus;
+    assignedAsset : ?Text;
+  };
+
+  public type RequestPriority = {
+    #Routine;
+    #Priority;
+    #Immediate;
+    #FlashOverride;
+  };
+
+  public type DeliveryRoute = {
+    routeId : Text;
+    origin : Text;
+    destination : Text;
+    waypoints : [GPSPosition];
+    distance : Float;
+    estimatedTime : Float;
+    riskLevel : Float;
+    var status : RouteStatus;
+  };
+
+  public type RouteStatus = {
+    #Open;
+    #Restricted;
+    #Closed;
+    #UnderAttack;
+  };
+
+  public type InventoryItem = {
+    itemId : Text;
+    itemType : SupplyCapability;
+    var quantity : Float;
+    unit : Text;
+    expirationDate : ?Int;
+    location : Text;
+    var reserved : Float;
+  };
+
+  /// Calculate supply priority
+  public func calculateSupplyPriority(
+    currentLevel : Float,
+    consumptionRate : Float,
+    criticalLevel : Float
+  ) : RequestPriority {
+    if (consumptionRate <= 0.0) return #Routine;
+    
+    let daysRemaining = currentLevel / consumptionRate;
+    
+    if (daysRemaining < 0.5) {
+      #FlashOverride
+    } else if (daysRemaining < 1.0) {
+      #Immediate
+    } else if (daysRemaining < 3.0) {
+      #Priority
+    } else {
+      #Routine
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ENVIRONMENTAL MODELING
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Comprehensive environment state
+  public type EnvironmentState = {
+    weather : WeatherState;
+    terrain : TerrainState;
+    atmosphere : AtmosphereState;
+    electromagnetic : EMEnvironment;
+    acousticEnvironment : AcousticEnvironment;
+    timeOfDay : TimeOfDay;
+    celestial : CelestialState;
+  };
+
+  public type TerrainState = {
+    var elevationGrid : [[var Float]];
+    var terrainType : [[var TerrainType]];
+    var surfaceNormals : [[[var Float]]];
+    var obstacles : [TerrainObstacle];
+    resolution : Float;  // meters per cell
+    origin : GPSPosition;
+  };
+
+  public type TerrainType = {
+    #Urban;
+    #Suburban;
+    #Forest;
+    #Grassland;
+    #Desert;
+    #Mountain;
+    #Water;
+    #Wetland;
+    #Snow;
+    #Agricultural;
+    #Industrial;
+  };
+
+  public type TerrainObstacle = {
+    obstacleId : Nat32;
+    obstacleType : ObstacleType;
+    position : GPSPosition;
+    dimensions : {length: Float; width: Float; height: Float};
+    orientation : Float;
+    var isMoving : Bool;
+  };
+
+  public type ObstacleType = {
+    #Building;
+    #Tower;
+    #Tree;
+    #Vehicle;
+    #Wall;
+    #Fence;
+    #PowerLine;
+    #Bridge;
+  };
+
+  public type AtmosphereState = {
+    var layers : [AtmosphereLayer];
+    var ionosphere : IonosphereState;
+    var refractiveIndex : Float;
+    var absorptionCoefficients : [(Float, Float)];  // (frequency, coefficient)
+  };
+
+  public type AtmosphereLayer = {
+    altitudeMin : Float;
+    altitudeMax : Float;
+    temperature : Float;
+    pressure : Float;
+    humidity : Float;
+    windSpeed : Float;
+    windDirection : Float;
+    turbulence : Float;
+  };
+
+  public type IonosphereState = {
+    var foF2 : Float;  // F2 layer critical frequency
+    var hmF2 : Float;  // F2 layer peak height
+    var TEC : Float;  // Total Electron Content
+    var scintillation : Float;
+  };
+
+  public type EMEnvironment = {
+    var rfSources : [RFSource];
+    var jammerLocations : [GPSPosition];
+    var spectrumOccupancy : [(Float, Float, Float)];  // (freq, bandwidth, power)
+    var gpsConditions : GPSConditions;
+  };
+
+  public type RFSource = {
+    sourceId : Nat32;
+    frequency : Float;
+    bandwidth : Float;
+    power : Float;
+    position : GPSPosition;
+    antenna : AntennaPattern;
+    modulation : Modulation;
+  };
+
+  public type AntennaPattern = {
+    patternType : AntennaPatternType;
+    gain : Float;
+    beamwidth : Float;
+    sidelobeLevel : Float;
+    azimuthPointing : Float;
+    elevationPointing : Float;
+  };
+
+  public type AntennaPatternType = {
+    #Omnidirectional;
+    #Directional;
+    #PhasedArray;
+    #Parabolic;
+    #Yagi;
+    #Dipole;
+  };
+
+  public type Modulation = {
+    #AM;
+    #FM;
+    #PM;
+    #FSK;
+    #PSK;
+    #QAM;
+    #OFDM;
+    #SpreadSpectrum;
+    #PulsedRadar;
+    #CW;
+  };
+
+  public type GPSConditions = {
+    satellitesVisible : Nat;
+    hdop : Float;
+    vdop : Float;
+    pdop : Float;
+    var spoofingDetected : Bool;
+    var jammingLevel : Float;
+  };
+
+  public type AcousticEnvironment = {
+    ambientNoiseLevel : Float;  // dB
+    noiseSources : [NoiseSource];
+    propagationConditions : AcousticPropagation;
+  };
+
+  public type NoiseSource = {
+    sourceId : Nat32;
+    position : GPSPosition;
+    level : Float;  // dB
+    frequency : Float;
+    var isActive : Bool;
+  };
+
+  public type AcousticPropagation = {
+    temperature : Float;
+    humidity : Float;
+    windSpeed : Float;
+    windDirection : Float;
+    groundType : GroundType;
+  };
+
+  public type GroundType = {
+    #Hard;
+    #Soft;
+    #Grass;
+    #Snow;
+    #Water;
+  };
+
+  public type TimeOfDay = {
+    hour : Nat;
+    minute : Nat;
+    second : Nat;
+    isDaylight : Bool;
+    civilTwilight : Bool;
+    nauticalTwilight : Bool;
+    astronomicalTwilight : Bool;
+  };
+
+  public type CelestialState = {
+    sunAzimuth : Float;
+    sunElevation : Float;
+    moonAzimuth : Float;
+    moonElevation : Float;
+    moonPhase : Float;  // [0, 1]
+    illumination : Float;
+  };
+
+  /// Calculate line-of-sight between two points
+  public func calculateLineOfSight(
+    observer : GPSPosition,
+    target : GPSPosition,
+    terrain : TerrainState
+  ) : Bool {
+    let steps = 100;
+    let dx = (target.longitude - observer.longitude) / Float.fromInt(steps);
+    let dy = (target.latitude - observer.latitude) / Float.fromInt(steps);
+    let dz = (target.altitude - observer.altitude) / Float.fromInt(steps);
+    
+    for (i in Iter.range(1, steps - 1)) {
+      let lon = observer.longitude + dx * Float.fromInt(i);
+      let lat = observer.latitude + dy * Float.fromInt(i);
+      let alt = observer.altitude + dz * Float.fromInt(i);
+      
+      // Get terrain elevation at this point
+      let terrainElev = getTerrainElevation(terrain, lat, lon);
+      
+      if (alt < terrainElev) {
+        return false;  // Blocked by terrain
+      };
+    };
+    
+    true
+  };
+
+  /// Get terrain elevation at a point
+  func getTerrainElevation(terrain : TerrainState, lat : Float, lon : Float) : Float {
+    let dx = (lon - terrain.origin.longitude) * 111320.0 * Float.cos(lat * π / 180.0);
+    let dy = (lat - terrain.origin.latitude) * 111320.0;
+    
+    let xi = Int.abs(Float.toInt(dx / terrain.resolution));
+    let yi = Int.abs(Float.toInt(dy / terrain.resolution));
+    
+    if (xi >= 0 and xi < terrain.elevationGrid.size() and
+        yi >= 0 and yi < terrain.elevationGrid[0].size()) {
+      terrain.elevationGrid[xi][yi]
+    } else {
+      0.0
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HUMAN-MACHINE INTERFACE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Operator interface state
+  public type OperatorInterfaceState = {
+    var displayState : DisplayState;
+    var alertQueue : [Alert];
+    var commandHistory : [OperatorCommand];
+    var workload : WorkloadMetrics;
+    var automationLevel : AutomationLevel;
+    var controlAuthority : ControlAuthority;
+  };
+
+  public type DisplayState = {
+    var mapCenter : GPSPosition;
+    var mapZoom : Float;
+    var mapRotation : Float;
+    var selectedEntity : ?Nat32;
+    var displayLayers : [DisplayLayer];
+    var annotations : [MapAnnotation];
+  };
+
+  public type DisplayLayer = {
+    layerName : Text;
+    layerType : LayerType;
+    var isVisible : Bool;
+    var opacity : Float;
+    var zOrder : Nat;
+  };
+
+  public type LayerType = {
+    #Terrain;
+    #Weather;
+    #Threats;
+    #FriendlyForces;
+    #Routes;
+    #Objectives;
+    #Sensors;
+    #Communications;
+  };
+
+  public type MapAnnotation = {
+    annotationId : Nat32;
+    position : GPSPosition;
+    annotationType : AnnotationType;
+    text : ?Text;
+    color : {r: Nat8; g: Nat8; b: Nat8; a: Nat8};
+    createdBy : Text;
+    timestamp : Int;
+  };
+
+  public type AnnotationType = {
+    #Point;
+    #Line;
+    #Area;
+    #Arrow;
+    #Text;
+    #Symbol;
+  };
+
+  public type Alert = {
+    alertId : Nat32;
+    alertType : AlertType;
+    severity : AlertSeverity;
+    source : Text;
+    message : Text;
+    timestamp : Int;
+    var acknowledged : Bool;
+    relatedEntity : ?Nat32;
+    recommendedAction : ?Text;
+  };
+
+  public type AlertType = {
+    #ThreatWarning;
+    #SystemMalfunction;
+    #LowFuel;
+    #WeaponStatus;
+    #MissionUpdate;
+    #Communication;
+    #Weather;
+    #Collision;
+    #Geofence;
+  };
+
+  public type AlertSeverity = {
+    #Info;
+    #Caution;
+    #Warning;
+    #Critical;
+  };
+
+  public type OperatorCommand = {
+    commandId : Nat32;
+    commandType : CommandType;
+    parameters : [(Text, Text)];
+    targetEntity : ?Nat32;
+    timestamp : Int;
+    var executionStatus : ExecutionStatus;
+    issuedBy : Text;
+  };
+
+  public type CommandType = {
+    #Navigate;
+    #Engage;
+    #Disengage;
+    #RTB;  // Return to Base
+    #Loiter;
+    #Survey;
+    #ChangeAltitude;
+    #ChangeSpeed;
+    #ActivateSensor;
+    #DeactivateSensor;
+    #EmergencyStop;
+    #Resume;
+    #FormationChange;
+    #AssignMission;
+  };
+
+  public type ExecutionStatus = {
+    #Queued;
+    #Executing;
+    #Completed;
+    #Failed;
+    #Cancelled;
+  };
+
+  public type WorkloadMetrics = {
+    var cognitiveLoad : Float;  // [0, 1]
+    var taskSaturation : Float;  // [0, 1]
+    var decisionFrequency : Float;  // decisions/minute
+    var errorRate : Float;
+    var responseLatency : Float;  // seconds
+  };
+
+  public type AutomationLevel = {
+    #Manual;
+    #Assisted;
+    #Supervised;
+    #HighlyAutomated;
+    #FullyAutonomous;
+  };
+
+  public type ControlAuthority = {
+    #Human;
+    #Shared;
+    #Autonomous;
+    #RemoteOverride;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // TRAINING & SIMULATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Simulation state
+  public type SimulationState = {
+    var simTime : Int;
+    var realTime : Int;
+    var timeScale : Float;
+    var isPaused : Bool;
+    var entities : [SimEntity];
+    var events : [SimEvent];
+    var scenarioConfig : ScenarioConfig;
+    var metrics : SimMetrics;
+    var checkpoints : [Checkpoint];
+  };
+
+  public type SimEntity = {
+    entityId : Nat32;
+    entityType : SimEntityType;
+    var state : EntityState;
+    var behavior : EntityBehavior;
+    var isPlayer : Bool;
+    faction : Faction;
+  };
+
+  public type SimEntityType = {
+    #Aircraft;
+    #GroundVehicle;
+    #Ship;
+    #Missile;
+    #Personnel;
+    #Installation;
+    #Sensor;
+    #Jammer;
+  };
+
+  public type EntityState = {
+    position : GPSPosition;
+    velocity : Velocity3D;
+    attitude : Attitude;
+    health : Float;
+    fuel : Float;
+    ammunition : [AmmunitionStore];
+    sensors : [SensorState];
+    weapons : [WeaponState];
+  };
+
+  public type SensorState = {
+    sensorId : Text;
+    var isActive : Bool;
+    var mode : Text;
+    var detections : [Nat32];
+  };
+
+  public type WeaponState = {
+    weaponId : Text;
+    var status : WeaponStatus;
+    var targetId : ?Nat32;
+  };
+
+  public type EntityBehavior = {
+    behaviorType : BehaviorType;
+    parameters : [(Text, Float)];
+    var currentGoal : ?Text;
+  };
+
+  public type BehaviorType = {
+    #Scripted;
+    #Reactive;
+    #Deliberative;
+    #Learning;
+    #Manual;
+  };
+
+  public type Faction = {
+    #Blue;
+    #Red;
+    #Green;
+    #Neutral;
+    #Unknown;
+  };
+
+  public type SimEvent = {
+    eventId : Nat32;
+    eventType : SimEventType;
+    timestamp : Int;
+    entityId : ?Nat32;
+    parameters : [(Text, Text)];
+    processed : Bool;
+  };
+
+  public type SimEventType = {
+    #Spawn;
+    #Destroy;
+    #Detect;
+    #LoseTrack;
+    #Fire;
+    #Hit;
+    #Miss;
+    #Damage;
+    #ModeChange;
+    #Communication;
+    #Waypoint;
+    #MissionStart;
+    #MissionEnd;
+    #Trigger;
+  };
+
+  public type ScenarioConfig = {
+    scenarioId : Text;
+    scenarioName : Text;
+    description : Text;
+    duration : Nat;
+    environment : EnvironmentState;
+    initialEntities : [SimEntity];
+    objectives : [ScenarioObjective];
+    triggers : [ScenarioTrigger];
+    successCriteria : [Criterion];
+    failureCriteria : [Criterion];
+  };
+
+  public type ScenarioObjective = {
+    objectiveId : Text;
+    description : Text;
+    priority : Nat;
+    var status : ObjectiveStatus;
+  };
+
+  public type ObjectiveStatus = {
+    #NotStarted;
+    #InProgress;
+    #Completed;
+    #Failed;
+  };
+
+  public type ScenarioTrigger = {
+    triggerId : Text;
+    condition : TriggerCondition;
+    action : TriggerAction;
+    var hasTriggered : Bool;
+    repeatCount : Nat;
+    var currentCount : Nat;
+  };
+
+  public type TriggerCondition = {
+    #TimeElapsed : Nat;
+    #EntityInArea : {entityId: Nat32; area: TargetArea};
+    #EntityDestroyed : Nat32;
+    #ObjectiveComplete : Text;
+    #CustomCondition : Text;
+  };
+
+  public type TriggerAction = {
+    #SpawnEntity : SimEntity;
+    #DestroyEntity : Nat32;
+    #ChangeEnvironment : EnvironmentState;
+    #DisplayMessage : Text;
+    #EndScenario : Bool;
+    #CustomAction : Text;
+  };
+
+  public type Criterion = {
+    criterionType : CriterionType;
+    value : Float;
+    operator : ComparisonOperator;
+  };
+
+  public type CriterionType = {
+    #EnemiesDestroyed;
+    #FriendlyLosses;
+    #MissionTime;
+    #ObjectivesComplete;
+    #FuelRemaining;
+    #AmmoRemaining;
+  };
+
+  public type ComparisonOperator = {
+    #GreaterThan;
+    #LessThan;
+    #Equal;
+    #GreaterOrEqual;
+    #LessOrEqual;
+  };
+
+  public type SimMetrics = {
+    var totalKills : Nat;
+    var totalLosses : Nat;
+    var missionSuccessRate : Float;
+    var averageEngagementRange : Float;
+    var averageResponseTime : Float;
+    var detectionRate : Float;
+    var falseAlarmRate : Float;
+  };
+
+  public type Checkpoint = {
+    checkpointId : Text;
+    simTime : Int;
+    entityStates : [(Nat32, EntityState)];
+    events : [SimEvent];
+    metrics : SimMetrics;
+  };
+
+  /// Create simulation checkpoint
+  public func createCheckpoint(sim : SimulationState) : Checkpoint {
+    let entityStates = Array.map<SimEntity, (Nat32, EntityState)>(
+      sim.entities,
+      func(e : SimEntity) : (Nat32, EntityState) { (e.entityId, e.state) }
+    );
+    
+    {
+      checkpointId = Int.toText(sim.simTime);
+      simTime = sim.simTime;
+      entityStates = entityStates;
+      events = sim.events;
+      metrics = sim.metrics;
+    }
+  };
+
+  /// Restore simulation from checkpoint
+  public func restoreCheckpoint(sim : SimulationState, checkpoint : Checkpoint) : SimulationState {
+    sim.simTime := checkpoint.simTime;
+    
+    for ((entityId, state) in checkpoint.entityStates.vals()) {
+      for (entity in sim.entities.vals()) {
+        if (entity.entityId == entityId) {
+          entity.state := state;
+        };
+      };
+    };
+    
+    sim.events := checkpoint.events;
+    sim.metrics := checkpoint.metrics;
+    
+    sim
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DATA ANALYTICS & REPORTING
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Analytics state
+  public type AnalyticsState = {
+    var dataSources : [DataSource];
+    var metrics : [MetricDefinition];
+    var dashboards : [Dashboard];
+    var reports : [Report];
+    var alerts : [AnalyticsAlert];
+    var aggregations : [Aggregation];
+  };
+
+  public type DataSource = {
+    sourceId : Text;
+    sourceName : Text;
+    sourceType : DataSourceType;
+    connectionString : Text;
+    var isConnected : Bool;
+    schema : [FieldDefinition];
+    refreshRate : Nat;  // seconds
+  };
+
+  public type DataSourceType = {
+    #Telemetry;
+    #Logs;
+    #Events;
+    #ExternalAPI;
+    #Database;
+    #FileSystem;
+  };
+
+  public type FieldDefinition = {
+    fieldName : Text;
+    fieldType : FieldType;
+    isRequired : Bool;
+    defaultValue : ?Text;
+  };
+
+  public type FieldType = {
+    #Integer;
+    #Float;
+    #String;
+    #Boolean;
+    #Timestamp;
+    #GPS;
+    #Blob;
+    #Array : FieldType;
+  };
+
+  public type MetricDefinition = {
+    metricId : Text;
+    metricName : Text;
+    description : Text;
+    sourceId : Text;
+    calculation : CalculationType;
+    aggregation : AggregationType;
+    dimensions : [Text];
+    unit : ?Text;
+  };
+
+  public type CalculationType = {
+    #Raw;
+    #Derived : Text;  // Formula
+    #Computed : Text;  // Function name
+  };
+
+  public type AggregationType = {
+    #Sum;
+    #Average;
+    #Min;
+    #Max;
+    #Count;
+    #Percentile : Float;
+    #StdDev;
+    #Variance;
+  };
+
+  public type Dashboard = {
+    dashboardId : Text;
+    dashboardName : Text;
+    widgets : [Widget];
+    layout : DashboardLayout;
+    refreshRate : Nat;
+    var lastRefresh : Int;
+  };
+
+  public type Widget = {
+    widgetId : Text;
+    widgetType : WidgetType;
+    metricIds : [Text];
+    position : {x: Nat; y: Nat; width: Nat; height: Nat};
+    config : [(Text, Text)];
+  };
+
+  public type WidgetType = {
+    #LineChart;
+    #BarChart;
+    #PieChart;
+    #Gauge;
+    #Map;
+    #Table;
+    #SingleValue;
+    #Heatmap;
+    #Scatter;
+  };
+
+  public type DashboardLayout = {
+    columns : Nat;
+    rows : Nat;
+    padding : Nat;
+  };
+
+  public type Report = {
+    reportId : Text;
+    reportName : Text;
+    template : Text;
+    schedule : ?ReportSchedule;
+    recipients : [Text];
+    format : ReportFormat;
+    var lastGenerated : ?Int;
+    sections : [ReportSection];
+  };
+
+  public type ReportSchedule = {
+    frequency : ReportFrequency;
+    dayOfWeek : ?Nat;
+    hourOfDay : Nat;
+    timezone : Text;
+  };
+
+  public type ReportFrequency = {
+    #Daily;
+    #Weekly;
+    #Monthly;
+    #Quarterly;
+    #OnDemand;
+  };
+
+  public type ReportFormat = {
+    #PDF;
+    #HTML;
+    #CSV;
+    #JSON;
+  };
+
+  public type ReportSection = {
+    sectionName : Text;
+    sectionType : SectionType;
+    content : Text;
+  };
+
+  public type SectionType = {
+    #Summary;
+    #Chart;
+    #Table;
+    #Text;
+    #Map;
+  };
+
+  public type AnalyticsAlert = {
+    alertId : Text;
+    alertName : Text;
+    metricId : Text;
+    condition : AlertCondition;
+    threshold : Float;
+    var isTriggered : Bool;
+    recipients : [Text];
+    cooldownSeconds : Nat;
+    var lastTriggered : ?Int;
+  };
+
+  public type AlertCondition = {
+    #Above;
+    #Below;
+    #Equals;
+    #PercentChange : Float;
+    #Anomaly;
+  };
+
+  public type Aggregation = {
+    aggregationId : Text;
+    sourceMetric : Text;
+    targetMetric : Text;
+    aggregationType : AggregationType;
+    timeWindow : Nat;  // seconds
+    dimensions : [Text];
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // FEDERATED LEARNING
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Federated learning state
+  public type FederatedLearningState = {
+    var globalModel : NeuralNetwork;
+    var localModels : [(Principal, NeuralNetwork)];
+    var aggregationRound : Nat;
+    var participants : [FLParticipant];
+    var trainingConfig : FLConfig;
+    var convergenceHistory : [Float];
+  };
+
+  public type FLParticipant = {
+    participantId : Principal;
+    var modelVersion : Nat;
+    var dataSize : Nat;
+    var lastUpdate : Int;
+    var isActive : Bool;
+    var computeCapability : Float;
+  };
+
+  public type FLConfig = {
+    minParticipants : Nat;
+    roundsPerEpoch : Nat;
+    localEpochs : Nat;
+    learningRate : Float;
+    aggregationMethod : FLAggregation;
+    privacyBudget : ?Float;  // For differential privacy
+    compression : ?ModelCompression;
+  };
+
+  public type FLAggregation = {
+    #FedAvg;
+    #FedProx : {mu: Float};
+    #FedAdam;
+    #SecureAggregation;
+  };
+
+  public type ModelCompression = {
+    #Quantization : {bits: Nat};
+    #Pruning : {sparsity: Float};
+    #TopK : {k: Nat};
+    #RandomSparsification : {rate: Float};
+  };
+
+  /// Aggregate local models using FedAvg
+  public func federatedAverage(
+    globalModel : NeuralNetwork,
+    localUpdates : [(Principal, NeuralNetwork, Nat)]  // (participant, model, data_size)
+  ) : NeuralNetwork {
+    let totalDataSize = Array.foldLeft<(Principal, NeuralNetwork, Nat), Nat>(
+      localUpdates,
+      0,
+      func(acc, (_, _, size)) { acc + size }
+    );
+    
+    if (totalDataSize == 0) return globalModel;
+    
+    // Weighted average of model weights
+    for (layerIdx in Iter.range(0, globalModel.weights.size() - 1)) {
+      for (neuronIdx in Iter.range(0, globalModel.weights[layerIdx].size() - 1)) {
+        for (weightIdx in Iter.range(0, globalModel.weights[layerIdx][neuronIdx][0].size() - 1)) {
+          var weightedSum = 0.0;
+          
+          for ((_, localModel, dataSize) in localUpdates.vals()) {
+            let weight = Float.fromInt(dataSize) / Float.fromInt(totalDataSize);
+            weightedSum += localModel.weights[layerIdx][neuronIdx][0][weightIdx] * weight;
+          };
+          
+          globalModel.weights[layerIdx][neuronIdx][0][weightIdx] := weightedSum;
+        };
+      };
+    };
+    
+    globalModel
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NATURAL LANGUAGE PROCESSING
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// NLP state
+  public type NLPState = {
+    var tokenizer : Tokenizer;
+    var languageModel : ?TransformerState;
+    var namedEntityRecognizer : ?NERModel;
+    var sentimentAnalyzer : ?SentimentModel;
+    var intentClassifier : ?IntentModel;
+    vocabulary : Vocabulary;
+  };
+
+  public type Tokenizer = {
+    tokenizerType : TokenizerType;
+    vocabulary : [Text];
+    merges : [(Text, Text)];  // For BPE
+    specialTokens : SpecialTokens;
+  };
+
+  public type TokenizerType = {
+    #WordLevel;
+    #BPE;  // Byte Pair Encoding
+    #WordPiece;
+    #SentencePiece;
+    #Character;
+  };
+
+  public type SpecialTokens = {
+    padToken : Text;
+    unkToken : Text;
+    clsToken : Text;
+    sepToken : Text;
+    maskToken : Text;
+  };
+
+  public type Vocabulary = {
+    tokens : [(Text, Nat)];
+    var size : Nat;
+    minFrequency : Nat;
+  };
+
+  public type NERModel = {
+    tagSet : [NETag];
+    var weights : [[var Float]];
+    var crf : ?CRFLayer;
+  };
+
+  public type NETag = {
+    #Person;
+    #Organization;
+    #Location;
+    #DateTime;
+    #Quantity;
+    #Weapon;
+    #Vehicle;
+    #Installation;
+    #Event;
+    #Other;
+  };
+
+  public type CRFLayer = {
+    var transitionMatrix : [[var Float]];
+    numTags : Nat;
+  };
+
+  public type SentimentModel = {
+    numClasses : Nat;
+    var weights : [[var Float]];
+    labels : [SentimentLabel];
+  };
+
+  public type SentimentLabel = {
+    #VeryNegative;
+    #Negative;
+    #Neutral;
+    #Positive;
+    #VeryPositive;
+  };
+
+  public type IntentModel = {
+    intents : [Intent];
+    var weights : [[var Float]];
+    var slotExtractor : ?SlotExtractor;
+  };
+
+  public type Intent = {
+    intentName : Text;
+    examples : [Text];
+    slots : [SlotDefinition];
+  };
+
+  public type SlotDefinition = {
+    slotName : Text;
+    slotType : Text;
+    required : Bool;
+  };
+
+  public type SlotExtractor = {
+    var weights : [[var Float]];
+    slotTags : [Text];
+  };
+
+  /// Tokenize text
+  public func tokenize(tokenizer : Tokenizer, text : Text) : [Nat] {
+    // Simple whitespace tokenization
+    let words = Text.split(text, #char ' ');
+    var tokens : [Nat] = [];
+    
+    for (word in words) {
+      // Look up in vocabulary
+      var found = false;
+      for ((w, idx) in tokenizer.vocabulary.vals()) {
+        if (w == word) {
+          tokens := Array.append(tokens, [idx]);
+          found := true;
+        };
+      };
+      if (not found) {
+        // Unknown token
+        for ((w, idx) in tokenizer.vocabulary.vals()) {
+          if (w == tokenizer.specialTokens.unkToken) {
+            tokens := Array.append(tokens, [idx]);
+          };
+        };
+      };
+    };
+    
+    tokens
+  };
+
   // Continue building toward 150,000 lines...
-  // Current: ~17,000 lines
-  // Remaining: ~133,000 lines
+  // Current: ~12,000 lines
+  // Remaining: ~138,000 lines
 
 }
