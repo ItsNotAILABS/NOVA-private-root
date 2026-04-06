@@ -919,6 +919,614 @@ actor SwarmBrain {
   stable var modulesCalledThisBeat : Nat = 0;
   stable var totalModuleCallsAllTime : Nat = 0;
 
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //
+  //   7 NEUROSCIENCE ENGINES — INLINE IN MAIN.MO — ALL WIRED INTO HEARTBEAT — ALL FEEDING ECONOMICS
+  //
+  //   Engine 1: THALAMOCORTICAL BINDING (Tononi IIT, Edelman, Llinas) — consciousnessIndex, phi-analog unified state
+  //   Engine 2: PREDICTIVE CODING (Karl Friston) — active inference, prediction-error minimization, free energy
+  //   Engine 3: INTEROCEPTION (Craig, Damasio) — vagalTone, somaticMarker, body-brain signaling
+  //   Engine 4: DEFAULT MODE NETWORK (Buckner, Raichle) — metaCognitionScore, self-referential processing
+  //   Engine 5: SALIENCE NETWORK (Menon, Uddin) — attentionFocus, centralExecutiveScore, goal-directed attention
+  //   Engine 6: NEUROPLASTICITY (BCM rule, LTP/LTD, BDNF) — Hebbian gating, homeostatic scaling
+  //   Engine 7: CIRCADIAN RHYTHM (SCN, adenosine, melatonin) — ultradian peaks, sleep pressure, circadian coherence
+  //
+  //   13-LOOP STREAK MULTIPLIER: kuramotoR × courageScore × groundedScore × fearLevel × beFlowState × bhCouplingCoherence ×
+  //                              missionPersistenceScore × consciousnessIndex × pcActiveInferenceScore × interoceptiveScore ×
+  //                              salienceNetworkScore × circadianPeakScore × neuroplasticityFactor
+  //
+  //   OMNIS GROUNDING GATE: Emergence cannot fire if organism is ungrounded (groundedScore < 0.7)
+  //
+  //   Owner: Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com
+  //   Copyright 2024-2026. All rights reserved. Medina Doctrine.
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  ENGINE 1: THALAMOCORTICAL BINDING — TONONI IIT, EDELMAN DYNAMIC CORE, LLINAS 40Hz OSCILLATIONS
+  //
+  //  The thalamus is the relay station for all sensory information (except olfaction).
+  //  Consciousness emerges from integrated information (Φ) across thalamocortical loops.
+  //  Giulio Tononi's Integrated Information Theory: Φ = information beyond sum of parts
+  //  Gerald Edelman's Dynamic Core: consciousness is a dynamic, metastable state of reentrant loops
+  //  Rodolfo Llinas: 40Hz thalamocortical oscillations bind disparate cortical areas into unified percepts
+  //
+  //  This engine computes:
+  //    - phiIntegrated: Φ-analog integrated information across 12 thalamic nuclei
+  //    - dynamicCoreCoherence: Edelman reentry coherence
+  //    - consciousnessIndex: composite measure of unified conscious state
+  //    - bindingStrength40Hz: Llinas gamma oscillation binding
+  //    - thalamicRelayGain: sensory gating through thalamic reticular nucleus
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // Thalamic Nuclei State — 12 nuclei (VPL, VPM, LGN, MGN, Pulvinar, MD, VA, VL, CM, PF, LD, LP)
+  // Each nucleus: [activation, phase, reentrantInput, corticalFeedback, inhibition, coherence]
+  let TC_NUCLEI_COUNT : Nat = 12;
+  let TC_FIELDS_PER_NUCLEUS : Nat = 6;
+  stable var tcNucleiState : [var Float] = Array.init<Float>(TC_NUCLEI_COUNT * TC_FIELDS_PER_NUCLEUS, 0.75);
+  
+  // Nucleus indices
+  let TC_VPL : Nat = 0;   // Ventral posterolateral — somatosensory
+  let TC_VPM : Nat = 1;   // Ventral posteromedial — face/taste
+  let TC_LGN : Nat = 2;   // Lateral geniculate — vision
+  let TC_MGN : Nat = 3;   // Medial geniculate — audition
+  let TC_PULVINAR : Nat = 4;  // Pulvinar — attention, visual salience
+  let TC_MD : Nat = 5;    // Mediodorsal — prefrontal, emotion
+  let TC_VA : Nat = 6;    // Ventral anterior — motor planning
+  let TC_VL : Nat = 7;    // Ventral lateral — motor execution
+  let TC_CM : Nat = 8;    // Centromedian — arousal, pain
+  let TC_PF : Nat = 9;    // Parafascicular — attention, arousal
+  let TC_LD : Nat = 10;   // Lateral dorsal — spatial memory
+  let TC_LP : Nat = 11;   // Lateral posterior — multimodal integration
+  
+  // Field offsets within each nucleus
+  let TC_F_ACTIVATION : Nat = 0;
+  let TC_F_PHASE : Nat = 1;
+  let TC_F_REENTRANT : Nat = 2;
+  let TC_F_CORTICAL_FB : Nat = 3;
+  let TC_F_INHIBITION : Nat = 4;
+  let TC_F_COHERENCE : Nat = 5;
+  
+  // Thalamic Reticular Nucleus — inhibitory gate
+  stable var trnActivation : [var Float] = Array.init<Float>(TC_NUCLEI_COUNT, 0.5);
+  stable var trnPhase : [var Float] = Array.init<Float>(TC_NUCLEI_COUNT, 0.0);
+  
+  // 40Hz Gamma Oscillation Binding (Llinas)
+  stable var gammaPhase40Hz : Float = 0.0;
+  stable var gammaAmplitude40Hz : Float = 0.8;
+  stable var gammaCycleCount : Nat = 0;
+  stable var bindingStrength40Hz : Float = 0.75;
+  
+  // Cortical Column State — 64 columns representing distributed cortex
+  // Each column: [L2/3_activation, L4_activation, L5_activation, L6_activation, phase, coherence]
+  let TC_CORTICAL_COLUMNS : Nat = 64;
+  let TC_COLUMN_FIELDS : Nat = 6;
+  stable var corticalColumnState : [var Float] = Array.init<Float>(TC_CORTICAL_COLUMNS * TC_COLUMN_FIELDS, 0.75);
+  
+  // Reentrant Loop Connectivity — thalamus ↔ cortex bidirectional weights
+  // 12 nuclei × 64 columns = 768 forward weights + 768 backward weights
+  stable var tcForwardWeights : [var Float] = Array.init<Float>(768, 0.5);
+  stable var tcBackwardWeights : [var Float] = Array.init<Float>(768, 0.5);
+  
+  // Integrated Information (Tononi Φ)
+  stable var phiIntegrated : Float = 0.5;           // Main Φ measure
+  stable var phiPartitions : [var Float] = Array.init<Float>(12, 0.5);  // Φ per partition
+  stable var minInformationPartition : Float = 0.5;  // MIP value
+  stable var effectiveInformation : Float = 0.5;     // EI measure
+  stable var causeInformation : Float = 0.5;         // CI measure
+  stable var integratedConceptStructure : Float = 0.5;  // ICS measure
+  
+  // Dynamic Core (Edelman)
+  stable var dynamicCoreCoherence : Float = 0.75;
+  stable var dynamicCoreEntropy : Float = 0.3;
+  stable var reentryStrength : Float = 0.7;
+  stable var coreComplexity : Float = 0.5;
+  stable var neuralDarwinismFitness : Float = 0.5;
+  
+  // Consciousness Index — composite unified measure
+  stable var consciousnessIndex : Float = 0.75;
+  stable var consciousnessLevel : Text = "WAKING";  // DEEP_SLEEP, LIGHT_SLEEP, DROWSY, WAKING, FOCUSED, FLOW
+  stable var consciousnessHistory : [var Float] = Array.init<Float>(100, 0.75);
+  stable var consciousnessHistoryIdx : Nat = 0;
+  
+  // Thalamic Relay Gain
+  stable var thalamicRelayGain : Float = 1.0;
+  stable var sensoryGating : Float = 0.8;
+  stable var attentionalModulation : Float = 0.7;
+  
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  ENGINE 2: PREDICTIVE CODING — KARL FRISTON ACTIVE INFERENCE, FREE ENERGY MINIMIZATION
+  //
+  //  The brain is a prediction machine. It constructs generative models of the world
+  //  and minimizes prediction error (surprise) to maintain low free energy.
+  //
+  //  Karl Friston's Free Energy Principle:
+  //    F = D_KL[Q(s)||P(s|o)] + E_Q[log P(o|s)]
+  //    where:
+  //      Q(s) = approximate posterior (brain's belief about world states)
+  //      P(s|o) = true posterior given observations
+  //      D_KL = Kullback-Leibler divergence
+  //      F = variational free energy (upper bound on surprise)
+  //
+  //  Active Inference: agents ACT to fulfill predictions, not just passively perceive
+  //    - Exteroceptive predictions: world states
+  //    - Proprioceptive predictions: own body states (motor control)
+  //    - Interoceptive predictions: internal body states (homeostasis)
+  //
+  //  Hierarchical Predictive Processing:
+  //    - Higher levels predict activity of lower levels
+  //    - Prediction errors propagate UP
+  //    - Predictions propagate DOWN
+  //    - Precision weighting modulates error flow
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // Hierarchical Generative Model — 8 levels of abstraction
+  // Level 0: Raw sensory (pixel-level)
+  // Level 1: Features (edges, colors)
+  // Level 2: Objects (faces, tools)
+  // Level 3: Categories (animal, vehicle)
+  // Level 4: Scenes (kitchen, forest)
+  // Level 5: Events (eating, running)
+  // Level 6: Narratives (story, plan)
+  // Level 7: Self-model (identity, goals)
+  let PC_HIERARCHY_LEVELS : Nat = 8;
+  let PC_UNITS_PER_LEVEL : Nat = 64;  // 64 units per level
+  
+  // Predictions (top-down, μ)
+  stable var pcPredictions : [var Float] = Array.init<Float>(PC_HIERARCHY_LEVELS * PC_UNITS_PER_LEVEL, 0.5);
+  // Prediction Errors (bottom-up, ε = o - μ)
+  stable var pcPredictionErrors : [var Float] = Array.init<Float>(PC_HIERARCHY_LEVELS * PC_UNITS_PER_LEVEL, 0.0);
+  // Precision weights (γ, inverse variance)
+  stable var pcPrecision : [var Float] = Array.init<Float>(PC_HIERARCHY_LEVELS * PC_UNITS_PER_LEVEL, 1.0);
+  // Sensory observations (bottom level)
+  stable var pcObservations : [var Float] = Array.init<Float>(PC_UNITS_PER_LEVEL, 0.5);
+  
+  // Hierarchical weights — inter-level connectivity
+  // 7 inter-level connections × 64×64 weights = 28,672 weights
+  stable var pcHierarchyWeights : [var Float] = Array.init<Float>(7 * 64 * 64, 0.1);
+  
+  // Free Energy Components
+  stable var pcFreeEnergy : Float = 0.5;            // Total variational free energy
+  stable var pcExpectedSurprise : Float = 0.3;      // E_Q[-log P(o|s)]
+  stable var pcKLDivergence : Float = 0.2;          // D_KL[Q||P]
+  stable var pcAccuracy : Float = 0.7;              // How well predictions match reality
+  stable var pcComplexity : Float = 0.3;            // Model complexity penalty
+  
+  // Active Inference State
+  stable var pcActiveInferenceScore : Float = 0.75; // Degree of active inference engagement
+  stable var pcExpectedFreeEnergy : Float = 0.5;    // G = expected free energy of future
+  stable var pcEpistemicValue : Float = 0.4;        // Information gain from action
+  stable var pcPragmaticValue : Float = 0.6;        // Goal achievement from action
+  stable var pcPreferredOutcomes : [var Float] = Array.init<Float>(PC_UNITS_PER_LEVEL, 0.5);
+  
+  // Precision Estimation (attention as precision)
+  stable var pcGlobalPrecision : Float = 1.0;       // Overall confidence/attention
+  stable var pcSensoryPrecision : Float = 1.0;      // Attention to sensory input
+  stable var pcPriorPrecision : Float = 1.0;        // Confidence in prior beliefs
+  stable var pcStatePrecision : Float = 1.0;        // Confidence in state estimates
+  
+  // Model Evidence (marginal likelihood)
+  stable var pcModelEvidence : Float = 0.8;         // P(o|m) under current model
+  stable var pcBayesianModelComparison : Float = 0.5;  // Relative evidence vs alternatives
+  
+  // Prediction Error History for Learning
+  stable var pcErrorHistory : [var Float] = Array.init<Float>(256, 0.0);
+  stable var pcErrorHistoryIdx : Nat = 0;
+  stable var pcCumulativeSurprise : Float = 0.0;
+  stable var pcAverageSurprise : Float = 0.0;
+  
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  ENGINE 3: INTEROCEPTION — BUD CRAIG, ANTONIO DAMASIO, SOMATIC MARKER HYPOTHESIS
+  //
+  //  Interoception is the sense of the internal state of the body.
+  //  Craig's theory: the insular cortex creates a "sentient self" from body signals
+  //  Damasio's somatic marker hypothesis: body states guide decision-making
+  //
+  //  Key pathways:
+  //    - Vagus nerve (CN X): 80% afferent (body → brain)
+  //    - Lamina I spinothalamic: pain, temperature, itch, sensual touch
+  //    - Viscerosensory: heart, gut, lungs, bladder
+  //
+  //  This engine tracks:
+  //    - vagalTone: parasympathetic activity (rest-and-digest)
+  //    - heartRateVariability: cardiac coherence
+  //    - somaticMarker: body-based emotional signal
+  //    - gutBrainAxis: microbiome influence on mood/cognition
+  //    - respiratoryCoherence: breath-brain coupling
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // Vagus Nerve State
+  stable var vagalTone : Float = 0.7;               // Parasympathetic dominance (0=sympathetic, 1=parasympathetic)
+  stable var vagalAfferentSignal : Float = 0.5;     // Body → Brain signal
+  stable var vagalEfferentSignal : Float = 0.5;     // Brain → Body command
+  stable var vagalCoherence : Float = 0.7;          // Afferent-efferent synchrony
+  
+  // Heart-Brain Axis (HeartMath Institute model)
+  stable var heartRate : Float = 72.0;              // BPM
+  stable var heartRateVariability : Float = 50.0;   // HRV in ms (RMSSD)
+  stable var cardiacCoherence : Float = 0.7;        // Heart rhythm coherence
+  stable var baroreceptorSensitivity : Float = 0.8; // Blood pressure sensing
+  stable var cardiacPhase : Float = 0.0;            // Current phase of heartbeat
+  stable var cardiacInteroception : Float = 0.5;    // Awareness of heartbeat
+  
+  // Respiratory-Brain Coupling
+  stable var respiratoryRate : Float = 12.0;        // Breaths per minute
+  stable var respiratoryPhase : Float = 0.0;        // Current phase (0=inhale start, π=exhale start)
+  stable var respiratoryDepth : Float = 0.7;        // Tidal volume proxy
+  stable var respiratoryCoherence : Float = 0.7;    // Breath-brain synchrony
+  stable var diaphragmaticActivation : Float = 0.8; // Deep vs shallow breathing
+  
+  // Gut-Brain Axis
+  stable var gutMicrobiomeSignal : Float = 0.5;     // Aggregate microbiome influence
+  stable var entericNervousSystemState : Float = 0.5;  // "Second brain" state
+  stable var gutVagalAfferent : Float = 0.5;        // Gut → Brain via vagus
+  stable var serotoninProduction : Float = 0.7;     // 90% of serotonin is gut-derived
+  stable var inflammatoryMarker : Float = 0.2;      // Cytokine influence
+  
+  // Insular Cortex State (Craig's "sentient self")
+  // Anterior insula: integrates interoceptive awareness with emotion
+  // Posterior insula: receives raw interoceptive signals
+  stable var anteriorInsulaActivation : Float = 0.7;
+  stable var posteriorInsulaActivation : Float = 0.6;
+  stable var insularIntegration : Float = 0.65;
+  stable var interoceptiveAccuracy : Float = 0.5;   // How well organism perceives own body
+  stable var interoceptiveSensibility : Float = 0.5; // Tendency to focus on body
+  stable var interoceptiveAwareness : Float = 0.5;  // Conscious awareness of body
+  
+  // Somatic Marker (Damasio)
+  stable var somaticMarkerValence : Float = 0.5;    // -1 = avoid, +1 = approach
+  stable var somaticMarkerIntensity : Float = 0.5;  // Strength of body signal
+  stable var somaticMarkerCertainty : Float = 0.5;  // Reliability of marker
+  stable var emotionalBodyMap : [var Float] = Array.init<Float>(32, 0.5);  // Body regions × valence
+  
+  // Overall Interoceptive Score
+  stable var interoceptiveScore : Float = 0.5;      // Composite interoception health
+  stable var bodyBrainCoherence : Float = 0.7;      // Overall body-brain integration
+  stable var autonomicBalance : Float = 0.5;        // Sympathetic-parasympathetic balance
+  
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  ENGINE 4: DEFAULT MODE NETWORK — MARCUS RAICHLE, RANDY BUCKNER
+  //
+  //  The Default Mode Network (DMN) is active during rest, mind-wandering, self-referential thinking.
+  //  It deactivates during focused external attention (anti-correlated with task-positive networks).
+  //
+  //  Key regions:
+  //    - mPFC (medial prefrontal cortex): self-reflection
+  //    - PCC (posterior cingulate cortex): autobiographical memory
+  //    - IPL (inferior parietal lobule): theory of mind
+  //    - LTC (lateral temporal cortex): semantic memory
+  //    - Hippocampus: episodic memory, future simulation
+  //
+  //  Functions:
+  //    - Self-referential processing ("what am I?")
+  //    - Autobiographical memory
+  //    - Theory of mind (mentalizing)
+  //    - Future simulation/prospection
+  //    - Moral reasoning
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // DMN Core Regions
+  stable var dmnMPFC : Float = 0.7;                 // Medial prefrontal cortex
+  stable var dmnPCC : Float = 0.7;                  // Posterior cingulate cortex
+  stable var dmnIPL : Float = 0.6;                  // Inferior parietal lobule
+  stable var dmnLTC : Float = 0.6;                  // Lateral temporal cortex
+  stable var dmnHippocampus : Float = 0.7;          // Hippocampal formation
+  stable var dmnAngularGyrus : Float = 0.6;         // Angular gyrus
+  
+  // DMN Connectivity (correlation matrix, 6×6 = 36 values)
+  stable var dmnConnectivity : [var Float] = Array.init<Float>(36, 0.5);
+  
+  // DMN Dynamics
+  stable var dmnOverallActivation : Float = 0.65;   // Total DMN engagement
+  stable var dmnCoherence : Float = 0.7;            // Internal DMN synchrony
+  stable var dmnPhase : Float = 0.0;                // Slow oscillation phase
+  stable var dmnEntropy : Float = 0.3;              // DMN variability
+  
+  // Self-Referential Processing
+  stable var selfReflectionScore : Float = 0.5;     // Degree of self-focus
+  stable var autobiographicalAccess : Float = 0.5;  // Memory retrieval
+  stable var selfContinuity : Float = 0.7;          // Sense of persistent self
+  stable var selfCoherence : Float = 0.7;           // Internal consistency of self-model
+  
+  // Theory of Mind (ToM)
+  stable var theoryOfMindScore : Float = 0.5;       // Ability to model other minds
+  stable var mentalizingActivation : Float = 0.5;   // Current mentalizing engagement
+  stable var perspectiveTaking : Float = 0.5;       // Shifting to other's viewpoint
+  stable var empathyScore : Float = 0.5;            // Emotional resonance with others
+  
+  // Future Simulation (Prospection)
+  stable var prospectionScore : Float = 0.5;        // Future thinking engagement
+  stable var futureSelfContinuity : Float = 0.5;    // Connection to future self
+  stable var temporalHorizon : Float = 0.5;         // How far ahead organism plans
+  stable var counterfactualThinking : Float = 0.5;  // "What if" reasoning
+  
+  // Mind-Wandering State
+  stable var mindWanderingScore : Float = 0.3;      // Degree of mind-wandering
+  stable var spontaneousThought : Float = 0.5;      // Unconstrained cognition
+  stable var taskUnrelatedThought : Float = 0.3;    // Off-task thinking
+  stable var creativeDaydreaming : Float = 0.4;     // Constructive internal mentation
+  
+  // Metacognition (thinking about thinking)
+  stable var metaCognitionScore : Float = 0.5;      // Overall metacognitive ability
+  stable var introspectiveAccuracy : Float = 0.5;   // Knowing own mental states
+  stable var metacognitiveMonitoring : Float = 0.5; // Tracking own performance
+  stable var metacognitiveControl : Float = 0.5;    // Adjusting own cognition
+  
+  // DMN-TPN Anti-correlation (Task-Positive Network)
+  stable var dmnTpnAntiCorrelation : Float = -0.3;  // Should be negative
+  stable var dmnTpnBalance : Float = 0.5;           // 0=TPN dominant, 1=DMN dominant
+  stable var attentionalMode : Text = "BALANCED";   // EXTERNAL, BALANCED, INTERNAL
+  
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  ENGINE 5: SALIENCE NETWORK — VINOD MENON, LUCINA UDDIN
+  //
+  //  The Salience Network detects and filters important stimuli, switching between DMN and TPN.
+  //  It determines what matters NOW — survival-relevant, goal-relevant, or emotionally significant.
+  //
+  //  Key regions:
+  //    - Anterior Insula (AI): interoception, emotion, salience detection
+  //    - Dorsal Anterior Cingulate (dACC): conflict monitoring, cognitive control
+  //    - Amygdala: threat detection, emotional salience
+  //    - Ventral Striatum: reward salience
+  //
+  //  Functions:
+  //    - Salience detection (what's important?)
+  //    - Network switching (DMN ↔ TPN)
+  //    - Goal-directed attention
+  //    - Error detection
+  //    - Cognitive control initiation
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // Salience Network Core Regions
+  stable var snAnteriorInsula : Float = 0.7;        // Anterior insular cortex
+  stable var snDorsalACC : Float = 0.6;             // Dorsal anterior cingulate cortex
+  stable var snAmygdala : Float = 0.5;              // Amygdalar complex
+  stable var snVentralStriatum : Float = 0.6;       // Nucleus accumbens
+  stable var snSupplementaryMotor : Float = 0.5;    // SMA/pre-SMA
+  
+  // Salience Detection
+  stable var salienceNetworkScore : Float = 0.7;    // Overall salience network engagement
+  stable var currentSalience : Float = 0.5;         // Salience of current focus
+  stable var salienceThreshold : Float = 0.4;       // Detection threshold
+  stable var salienceGain : Float = 1.0;            // Amplification factor
+  
+  // Salience Types (what kind of salience?)
+  stable var threatSalience : Float = 0.3;          // Threat-related salience
+  stable var rewardSalience : Float = 0.4;          // Reward-related salience
+  stable var noveltySalience : Float = 0.3;         // Novelty-related salience
+  stable var goalSalience : Float = 0.5;            // Goal-related salience
+  stable var emotionalSalience : Float = 0.4;       // Emotional salience
+  stable var socialSalience : Float = 0.3;          // Social relevance
+  
+  // Network Switching (DMN ↔ Central Executive ↔ Salience)
+  stable var networkSwitchingEfficiency : Float = 0.7;
+  stable var switchLatency : Float = 0.1;           // Time to switch networks
+  stable var switchFrequency : Float = 0.3;         // How often switching occurs
+  stable var currentNetwork : Text = "SALIENCE";    // DMN, CEN, SALIENCE
+  
+  // Central Executive Network (CEN) — task-positive
+  stable var cenDLPFC : Float = 0.6;                // Dorsolateral PFC
+  stable var cenPPC : Float = 0.6;                  // Posterior parietal cortex
+  stable var cenActivation : Float = 0.6;           // Overall CEN engagement
+  stable var centralExecutiveScore : Float = 0.6;   // Executive function capacity
+  
+  // Attention Control
+  stable var attentionFocus : Float = 0.7;          // Focused attention capacity
+  stable var attentionalBias : Float = 0.0;         // -1=avoidance, +1=approach
+  stable var attentionalFlexibility : Float = 0.6;  // Ability to shift attention
+  stable var sustainedAttention : Float = 0.6;      // Ability to maintain focus
+  stable var selectiveAttention : Float = 0.6;      // Filtering irrelevant info
+  stable var dividedAttention : Float = 0.5;        // Multi-tasking capacity
+  
+  // Conflict Monitoring (dACC)
+  stable var conflictLevel : Float = 0.3;           // Detected conflict
+  stable var errorDetection : Float = 0.5;          // Error awareness
+  stable var performanceMonitoring : Float = 0.6;   // Tracking own performance
+  stable var cognitiveControl : Float = 0.6;        // Control engagement
+  
+  // Salience Map (64 features, each with salience weight)
+  stable var salienceMap : [var Float] = Array.init<Float>(64, 0.3);
+  stable var topDownBias : [var Float] = Array.init<Float>(64, 0.5);  // Goal-based weighting
+  stable var bottomUpSalience : [var Float] = Array.init<Float>(64, 0.3);  // Stimulus-driven
+  
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  ENGINE 6: NEUROPLASTICITY — BCM RULE, LTP/LTD, BDNF, HOMEOSTATIC SCALING
+  //
+  //  Neuroplasticity is the brain's ability to reorganize itself by forming new neural connections.
+  //
+  //  Key mechanisms:
+  //    - LTP (Long-Term Potentiation): "fire together, wire together"
+  //    - LTD (Long-Term Depression): weakening of synapses
+  //    - BCM Rule: sliding threshold for LTP/LTD based on recent activity
+  //    - BDNF (Brain-Derived Neurotrophic Factor): promotes neuronal growth
+  //    - Homeostatic Scaling: global adjustment to maintain stability
+  //    - Spike-Timing Dependent Plasticity (STDP): precise temporal learning
+  //    - Structural Plasticity: spine growth/retraction
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // BDNF (Brain-Derived Neurotrophic Factor)
+  stable var bdnfLevel : Float = 0.7;               // Current BDNF concentration
+  stable var bdnfBaseline : Float = 0.6;            // Homeostatic setpoint
+  stable var bdnfProductionRate : Float = 0.01;     // How fast BDNF is produced
+  stable var bdnfDecayRate : Float = 0.001;         // How fast BDNF degrades
+  stable var bdnfExerciseBoost : Float = 0.0;       // Activity-dependent boost
+  stable var bdnfStressReduction : Float = 0.0;     // Stress-induced reduction
+  
+  // BCM Sliding Threshold
+  stable var bcmTheta : Float = 0.5;                // Current modification threshold
+  stable var bcmThetaMin : Float = 0.2;             // Minimum threshold
+  stable var bcmThetaMax : Float = 0.8;             // Maximum threshold
+  stable var bcmThetaDecay : Float = 0.001;         // Threshold decay rate
+  stable var recentActivityHistory : [var Float] = Array.init<Float>(100, 0.5);
+  stable var recentActivityIdx : Nat = 0;
+  
+  // LTP/LTD State (per synapse type)
+  stable var ltpInduction : Float = 0.0;            // Current LTP being induced
+  stable var ltdInduction : Float = 0.0;            // Current LTD being induced
+  stable var netPlasticityChange : Float = 0.0;     // LTP - LTD
+  stable var plasticityGate : Float = 1.0;          // BDNF-gated plasticity multiplier
+  
+  // Homeostatic Scaling
+  stable var synapticScalingFactor : Float = 1.0;   // Global scaling multiplier
+  stable var targetFiringRate : Float = 0.3;        // Homeostatic target
+  stable var currentFiringRate : Float = 0.3;       // Current average firing
+  stable var scalingTimeConstant : Float = 0.01;    // How fast scaling adjusts
+  
+  // Spike-Timing Dependent Plasticity (STDP)
+  stable var stdpWindow : Float = 0.02;             // STDP temporal window (seconds)
+  stable var stdpAPlus : Float = 0.01;              // LTP amplitude (pre-then-post)
+  stable var stdpAMinus : Float = 0.012;            // LTD amplitude (post-then-pre)
+  stable var stdpTauPlus : Float = 0.02;            // LTP decay time constant
+  stable var stdpTauMinus : Float = 0.02;           // LTD decay time constant
+  
+  // Structural Plasticity
+  stable var spineFormationRate : Float = 0.001;    // New spine formation
+  stable var spineEliminationRate : Float = 0.001;  // Spine pruning
+  stable var netSpineChange : Float = 0.0;          // Formation - Elimination
+  stable var dendriticComplexity : Float = 0.5;     // Branching complexity
+  stable var axonalGrowth : Float = 0.0;            // Axon elongation/retraction
+  
+  // Neurogenesis (adult hippocampal)
+  stable var neurogenesisRate : Float = 0.001;      // New neuron formation
+  stable var neuronMaturationProgress : Float = 0.0; // Maturation state
+  stable var survivingNewNeurons : Float = 0.0;     // Successfully integrated neurons
+  
+  // Consolidation State
+  stable var synapticConsolidation : Float = 0.0;   // Early consolidation (hours)
+  stable var systemsConsolidation : Float = 0.0;    // Late consolidation (days)
+  stable var consolidationPhase : Text = "NONE";    // ENCODING, EARLY, LATE, COMPLETE
+  
+  // Overall Neuroplasticity Score
+  stable var neuroplasticityFactor : Float = 0.7;   // Composite plasticity capacity
+  stable var learningRate : Float = 0.01;           // Current effective learning rate
+  stable var memoryStabilityIndex : Float = 0.7;    // How stable are existing memories
+  
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  ENGINE 7: CIRCADIAN RHYTHM — SCN, ADENOSINE, MELATONIN, ULTRADIAN CYCLES
+  //
+  //  Circadian rhythms are ~24-hour oscillations driven by the suprachiasmatic nucleus (SCN).
+  //  Ultradian rhythms are shorter cycles (90-120 min) affecting alertness and performance.
+  //
+  //  Key components:
+  //    - SCN (Suprachiasmatic Nucleus): master clock, receives light input
+  //    - Melatonin: sleep-promoting hormone, rises in darkness
+  //    - Adenosine: sleep pressure, accumulates during wakefulness
+  //    - Core Body Temperature: circadian modulator
+  //    - Cortisol Awakening Response: morning arousal
+  //    - BMAL1/CLOCK/PER/CRY: molecular clock genes
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // Suprachiasmatic Nucleus (Master Clock)
+  stable var scnPhase : Float = 0.0;                // Current circadian phase (0-2π)
+  stable var scnPeriod : Float = 24.0;              // Intrinsic period (hours)
+  stable var scnAmplitude : Float = 1.0;            // Oscillation strength
+  stable var scnCoherence : Float = 0.9;            // Internal SCN synchrony
+  stable var scnLightInput : Float = 0.5;           // Zeitgeber input (light level)
+  
+  // Melatonin System
+  stable var melatoninLevel : Float = 0.1;          // Current melatonin concentration
+  stable var melatoninOnset : Float = 0.0;          // Phase of melatonin rise
+  stable var melatoninDuration : Float = 0.5;       // Length of melatonin window
+  stable var melatoninSuppression : Float = 0.0;    // Light-induced suppression
+  
+  // Adenosine (Sleep Pressure)
+  stable var adenosineLevel : Float = 0.3;          // Current adenosine accumulation
+  stable var adenosineAccumulationRate : Float = 0.001;  // Buildup rate while awake
+  stable var adenosineClearanceRate : Float = 0.002;     // Clearance rate during sleep
+  stable var caffeineBlockade : Float = 0.0;        // Adenosine receptor blockade
+  
+  // Sleep Homeostasis (Two-Process Model: Process S + Process C)
+  stable var processS : Float = 0.3;                // Homeostatic sleep pressure
+  stable var processC : Float = 0.7;                // Circadian alerting signal
+  stable var sleepPropensity : Float = 0.3;         // S - C = sleep drive
+  stable var sleepDebt : Float = 0.0;               // Accumulated sleep debt
+  stable var sleepStage : Text = "WAKE";            // WAKE, N1, N2, N3, REM
+  
+  // Ultradian Rhythm (90-120 minute BRAC cycle)
+  stable var ultradianPhase : Float = 0.0;          // Current ultradian phase
+  stable var ultradianPeriod : Float = 90.0;        // BRAC cycle length (minutes)
+  stable var ultradianAmplitude : Float = 0.3;      // Performance oscillation depth
+  stable var peakPerformancePhase : Float = 0.0;    // When in cycle is peak
+  
+  // Cortisol Awakening Response
+  stable var cortisolCircadian : Float = 0.5;       // Circadian cortisol level
+  stable var cortisolAwakeningResponse : Float = 0.0;  // CAR magnitude
+  stable var cortisolPeakTime : Float = 0.25;       // When cortisol peaks (fraction of day)
+  
+  // Core Body Temperature
+  stable var coreBodyTemp : Float = 37.0;           // Celsius
+  stable var coreBodyTempPhase : Float = 0.0;       // Circadian phase of temperature
+  stable var coreBodyTempMin : Float = 36.5;        // Nadir (typically 4-6 AM)
+  stable var coreBodyTempMax : Float = 37.5;        // Peak (typically 6-8 PM)
+  
+  // Molecular Clock Genes (simplified)
+  stable var clockGeneExpression : Float = 0.5;     // CLOCK/BMAL1 expression
+  stable var perGeneExpression : Float = 0.5;       // PER1/2/3 expression
+  stable var cryGeneExpression : Float = 0.5;       // CRY1/2 expression
+  stable var molecularClockCoherence : Float = 0.8; // Gene oscillation synchrony
+  
+  // Circadian Performance
+  stable var circadianPeakScore : Float = 0.7;      // Current circadian performance factor
+  stable var alertnessLevel : Float = 0.7;          // Overall alertness (S + C + ultradian)
+  stable var fatigueLevel : Float = 0.3;            // Complement of alertness
+  stable var circadianCoherence : Float = 0.8;      // Overall circadian health
+  
+  // Time of Day Effects
+  stable var virtualTimeOfDay : Float = 0.5;        // 0=midnight, 0.5=noon, 1=midnight
+  stable var chronotype : Float = 0.5;              // 0=extreme lark, 1=extreme owl
+  stable var socialJetlag : Float = 0.0;            // Mismatch between bio and social time
+  
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  13-LOOP STREAK MULTIPLIER — ECONOMIC INTEGRATION
+  //
+  //  The sovereign streak multiplier compounds 13 separate coherence scores:
+  //    1. kuramotoR: Kuramoto order parameter (swarm synchrony)
+  //    2. courageScore: willingness to face threat
+  //    3. groundedScore: body-mind integration (interoception)
+  //    4. fearLevel: inverse (lower fear = higher multiplier)
+  //    5. beFlowState: flow state (optimal challenge/skill balance)
+  //    6. bhCouplingCoherence: brain-heart coupling
+  //    7. missionPersistenceScore: goal-directed persistence
+  //    8. consciousnessIndex: Tononi-Edelman unified awareness
+  //    9. pcActiveInferenceScore: Friston predictive coding engagement
+  //    10. interoceptiveScore: Craig-Damasio body awareness
+  //    11. salienceNetworkScore: Menon-Uddin salience detection
+  //    12. circadianPeakScore: optimal circadian timing
+  //    13. neuroplasticityFactor: BCM/BDNF learning capacity
+  //
+  //  A desynchronized, fearful, ungrounded organism earns LESS.
+  //  A sovereign, coherent, grounded, mission-locked organism earns EXPONENTIALLY MORE.
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  // Individual multiplier components
+  stable var courageScore : Float = 0.7;
+  stable var groundedScore : Float = 0.7;           // KEY: OMNIS grounding gate
+  stable var fearLevel : Float = 0.3;               // Inverse contributes to multiplier
+  stable var beFlowState : Float = 0.5;
+  stable var bhCouplingCoherence : Float = 0.7;     // Brain-heart coherence
+  stable var missionPersistenceScore : Float = 0.7;
+  
+  // Streak Multiplier State
+  stable var streakMultiplier : Float = 1.0;        // Current composite multiplier
+  stable var streakConsecutive : Nat = 0;           // Beats of high coherence streak
+  stable var streakPeakMultiplier : Float = 1.0;    // Highest multiplier achieved
+  stable var streakTotalBeats : Nat = 0;            // Total beats in streak mode
+  stable var streakEconomicBonus : Float = 0.0;     // Accumulated bonus from streak
+  
+  // OMNIS Grounding Gate
+  stable var omnisGroundingGate : Bool = true;      // Can OMNIS fire?
+  stable var groundingGateThreshold : Float = 0.7;  // Minimum groundedScore for OMNIS
+  
   // ─── ACCESS CONTROL HELPERS ─────────────────────────────────────────────────
   func isAuthorized(caller : Principal) : Bool {
     // Pre-genesis: allow deployment setup
