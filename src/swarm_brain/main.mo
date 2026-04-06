@@ -4120,39 +4120,49 @@ actor SwarmBrain {
 
   // ─── FORAGE ─── (RELAY class primary; SCOUT secondary)
   // Lévy-flight random walk toward low-signal zones (resource seeking).
+  // NOW MODULATED by unified emotional field: approach + valence amplify foraging speed
   func behaviorForage(id : Nat) {
     let phase = stablePhases[id];
+    // Emotional modulation: positive approach/valence → faster, more eager foraging
+    let emotionalGain = 1.0 + emotionalApproach * 0.3 + emotionalRewardPrediction * 0.2;
     let (lx, lz) = levyStep(phase + Float.fromInt(currentBeat) * 0.01, 1.5);
-    stableVelX[id] := stableVelX[id] * 0.7 + lx * 0.1;
-    stableVelZ[id] := stableVelZ[id] * 0.7 + lz * 0.1;
+    stableVelX[id] := stableVelX[id] * 0.7 + lx * 0.1 * emotionalGain;
+    stableVelZ[id] := stableVelZ[id] * 0.7 + lz * 0.1 * emotionalGain;
     stablePosX[id] := stablePosX[id] + stableVelX[id];
     stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
     // Boost dopamine on successful forage (signal gain)
     let ncBase = id * 4;
     stableNeuroChem[ncBase + DOPAMINE] :=
-      sf(stableNeuroChem[ncBase + DOPAMINE] + 0.02);
+      sf(stableNeuroChem[ncBase + DOPAMINE] + 0.02 * emotionalGain);
   };
 
   // ─── DEFEND ─── (GUARDIAN primary)
   // Expand outward radially to form a protective ring.
+  // NOW MODULATED by emotional field: dominance → wider ring, social → tighter bonding
   func behaviorDefend(id : Nat) {
-    let r = 40.0 + Float.fromInt(id) * 0.5;
+    // Emotional modulation: dominance expands defensive perimeter, social tightens it
+    let emotionalRadius = 40.0 + emotionalDominance * 10.0 - emotionalSocial * 5.0;
+    let r = emotionalRadius + Float.fromInt(id) * 0.5;
     let theta = Float.fromInt(id) * 6.2832 / Float.fromInt(Nat.max(1, stableDroneCount));
     let targetX = r * Float.cos(theta);
     let targetZ = r * Float.sin(theta);
     let (fx, fz) = artificialPotential(id, targetX, targetZ);
-    stableVelX[id] := stableVelX[id] * 0.8 + fx;
-    stableVelZ[id] := stableVelZ[id] * 0.8 + fz;
+    // Response speed modulated by emotional field
+    let emotionalDamping = 0.8 + emotionalResponseSpeed * 0.1;
+    stableVelX[id] := stableVelX[id] * emotionalDamping + fx;
+    stableVelZ[id] := stableVelZ[id] * emotionalDamping + fz;
     stablePosX[id] := stablePosX[id] + stableVelX[id];
     stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
-    // Raise oxytocin: bonding with protected inner drones
+    // Raise oxytocin: bonding with protected inner drones (boosted by social emotion)
     let ncBase = id * 4;
+    let socialBoost = 0.03 + emotionalSwarmCohesion * 0.02;
     stableNeuroChem[ncBase + OXYTOCIN] :=
-      sf(stableNeuroChem[ncBase + OXYTOCIN] + 0.03);
+      sf(stableNeuroChem[ncBase + OXYTOCIN] + socialBoost);
   };
 
   // ─── ENGAGE ─── (STRIKER primary)
   // Converge aggressively on swarm centroid (OMNIS attack formation).
+  // NOW MODULATED by emotional field: riskTolerance → aggression, arousal → intensity
   func behaviorEngage(id : Nat) {
     let n = stableDroneCount;
     var cx : Float = 0.0; var cz : Float = 0.0; var cnt : Float = 0.0;
@@ -4166,34 +4176,41 @@ actor SwarmBrain {
     let goalX = if (cnt > 0.0) cx / cnt + 20.0 else 20.0;
     let goalZ = if (cnt > 0.0) cz / cnt else 0.0;
     let (fx, fz) = artificialPotential(id, goalX, goalZ);
-    // Aggressive: higher gain
-    stableVelX[id] := stableVelX[id] * 0.7 + fx * 1.5;
-    stableVelZ[id] := stableVelZ[id] * 0.7 + fz * 1.5;
+    // Emotional modulation: risk tolerance and arousal amplify aggression
+    let aggressionGain = 1.5 + emotionalRiskTolerance * 0.5 + emotionalArousal * 0.3;
+    stableVelX[id] := stableVelX[id] * 0.7 + fx * aggressionGain;
+    stableVelZ[id] := stableVelZ[id] * 0.7 + fz * aggressionGain;
     stablePosX[id] := stablePosX[id] + stableVelX[id];
     stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
-    // Raise norepinephrine: combat arousal
+    // Raise norepinephrine: combat arousal (modulated by emotional intensity)
     let ncBase = id * 4;
+    let combatBoost = 0.05 + emotionalIntensity * 0.02;
     stableNeuroChem[ncBase + NOREPINEPHRINE] :=
-      sf(stableNeuroChem[ncBase + NOREPINEPHRINE] + 0.05);
+      sf(stableNeuroChem[ncBase + NOREPINEPHRINE] + combatBoost);
     stableNeuroChem[ncBase + CORTISOL] :=
       sf(stableNeuroChem[ncBase + CORTISOL] + 0.02);
   };
 
   // ─── RETREAT ─── (all classes; triggered by high cortisol)
   // Move away from centroid, reduce energy expenditure.
+  // NOW MODULATED by emotional field: positive valence → faster cortisol decay (resilience)
   func behaviorRetreat(id : Nat) {
     // Flee toward a safe anchor offset from origin
     let (fx, fz) = artificialPotential(id, -80.0, 0.0);
-    stableVelX[id] := stableVelX[id] * 0.6 + fx;
-    stableVelZ[id] := stableVelZ[id] * 0.6 + fz;
+    // Emotional modulation: high arousal → faster retreat, positive valence → slower (more brave)
+    let flightGain = 1.0 + emotionalArousal * 0.2 - emotionalValence * 0.1;
+    stableVelX[id] := stableVelX[id] * 0.6 + fx * flightGain;
+    stableVelZ[id] := stableVelZ[id] * 0.6 + fz * flightGain;
     stablePosX[id] := stablePosX[id] + stableVelX[id];
     stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
     // Reduce cortisol/norepinephrine on safe distance
+    // Emotional resilience: positive valence → faster stress recovery
     let ncBase = id * 4;
+    let recoveryRate = 1.0 + emotionalValence * 0.3 + emotionalCertainty * 0.2;
     stableNeuroChem[ncBase + CORTISOL] :=
-      Float.max(1.0, stableNeuroChem[ncBase + CORTISOL] - 0.04);
+      Float.max(1.0, stableNeuroChem[ncBase + CORTISOL] - 0.04 * recoveryRate);
     stableNeuroChem[ncBase + NOREPINEPHRINE] :=
-      Float.max(1.0, stableNeuroChem[ncBase + NOREPINEPHRINE] - 0.03);
+      Float.max(1.0, stableNeuroChem[ncBase + NOREPINEPHRINE] - 0.03 * recoveryRate);
   };
 
   // ─── RELAY ─── (RELAY class primary)
@@ -4225,6 +4242,7 @@ actor SwarmBrain {
 
   // ─── HEAL ─── (MEDIC class)
   // Move to the lowest-activation neighbor and boost their oxytocin.
+  // NOW MODULATED by emotional field: social/swarmCohesion → stronger healing, wider range
   func behaviorHeal(id : Nat) {
     let n = stableDroneCount;
     var minAct : Float = 999.0; var targetId : Nat = id;
@@ -4237,31 +4255,41 @@ actor SwarmBrain {
     };
     if (targetId == id) return;
     let (fx, fz) = artificialPotential(id, stablePosX[targetId], stablePosZ[targetId]);
-    stableVelX[id] := stableVelX[id] * 0.75 + fx;
-    stableVelZ[id] := stableVelZ[id] * 0.75 + fz;
+    // Social emotion makes healers move faster toward wounded
+    let socialSpeed = 0.75 + emotionalSwarmCohesion * 0.15;
+    stableVelX[id] := stableVelX[id] * socialSpeed + fx;
+    stableVelZ[id] := stableVelZ[id] * socialSpeed + fz;
     stablePosX[id] := stablePosX[id] + stableVelX[id];
     stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
-    // If close enough, apply healing boost
+    // If close enough, apply healing boost (amplified by emotional social/valence)
     let dx = stablePosX[id] - stablePosX[targetId];
     let dz = stablePosZ[id] - stablePosZ[targetId];
     let dist = Float.sqrt(dx*dx + dz*dz);
-    if (dist < 10.0) {
+    // Emotional modulation: social emotions extend healing range
+    let healRange = 10.0 + emotionalSocial * 5.0;
+    if (dist < healRange) {
       let ncT = targetId * 4;
-      stableNeuroChem[ncT + OXYTOCIN]  := sf(stableNeuroChem[ncT + OXYTOCIN]  + 0.1);
-      stableNeuroChem[ncT + DOPAMINE]  := sf(stableNeuroChem[ncT + DOPAMINE]  + 0.05);
+      // Healing strength amplified by emotional valence and social drive
+      let healPower = 1.0 + emotionalValence * 0.3 + emotionalSocial * 0.2;
+      stableNeuroChem[ncT + OXYTOCIN]  := sf(stableNeuroChem[ncT + OXYTOCIN]  + 0.1 * healPower);
+      stableNeuroChem[ncT + DOPAMINE]  := sf(stableNeuroChem[ncT + DOPAMINE]  + 0.05 * healPower);
       stableNeuroChem[ncT + CORTISOL]  :=
-        Float.max(1.0, stableNeuroChem[ncT + CORTISOL] - 0.05);
-      stableEnergy[targetId] := Float.min(2.0, stableEnergy[targetId] + 0.03);
+        Float.max(1.0, stableNeuroChem[ncT + CORTISOL] - 0.05 * healPower);
+      stableEnergy[targetId] := Float.min(2.0, stableEnergy[targetId] + 0.03 * healPower);
     };
   };
 
   // ─── SCOUT ─── (SCOUT class primary)
   // Lévy-flight exploration with memory of visited zones (phase-encoded).
+  // NOW MODULATED by emotional field: explorationDrive → wider exploration tail
   func behaviorScout(id : Nat) {
     let phase = stablePhases[id] + Float.fromInt(id) * 0.777;
-    let (lx, lz) = levyStep(phase, 1.7); // heavier tail for wide exploration
-    stableVelX[id] := stableVelX[id] * 0.5 + lx * 0.3;
-    stableVelZ[id] := stableVelZ[id] * 0.5 + lz * 0.3;
+    // Emotional modulation: exploration drive widens Lévy tail
+    let tailExponent = 1.7 + emotionalExplorationDrive * 0.3;
+    let rangeGain = 0.3 + emotionalExplorationDrive * 0.2;
+    let (lx, lz) = levyStep(phase, tailExponent);
+    stableVelX[id] := stableVelX[id] * 0.5 + lx * rangeGain;
+    stableVelZ[id] := stableVelZ[id] * 0.5 + lz * rangeGain;
     stablePosX[id] := stablePosX[id] + stableVelX[id];
     stablePosZ[id] := stablePosZ[id] + stableVelZ[id];
     // Scouts share discoveries: boost Hebbian weights with nearby drones
@@ -4328,18 +4356,47 @@ actor SwarmBrain {
     let dop  = stableNeuroChem[ncBase + DOPAMINE];
     let cls  = stableClasses[id];
 
+    // ─── UNIFIED EMOTIONAL FIELD MODULATION ───────────────────────────────
+    // The 8-dimensional emotional field now modulates behavior assignment.
+    // Emotions don't just trigger defense (old fear-only system);
+    // they shape the ENTIRE behavioral repertoire.
+    // High approach + high valence → more foraging/exploration
+    // High social → more healing/relay/bonding behaviors
+    // High arousal + low valence → more defensive/combat behaviors
+    // High dominance → more formation/leadership behaviors
+    // explorationDrive and riskTolerance bias SCOUT/AMBUSH thresholds
+    let approachBias   = emotionalApproach;        // [-1..1] seek vs avoid
+    let socialBias     = emotionalSocial;           // [-1..1] bond vs isolate
+    let arouseBias     = emotionalArousal;          // [0..1] calm vs activated
+    let valenceBias    = emotionalValence;           // [-1..1] negative vs positive
+    let dominanceBias  = emotionalDominance;         // [-1..1] submissive vs dominant
+    let exploreDrive   = emotionalExplorationDrive;  // [0..1] wander urge
+    let riskBias       = emotionalRiskTolerance;     // [0..1] risk appetite
+
+    // Emotional retreat threshold: base 2.0, but positive emotions raise it
+    // (harder to panic when feeling good), negative emotions lower it
+    let retreatThreshold = 2.0 + valenceBias * 0.3 + approachBias * 0.2;
+
     let beh : Text =
-      // Emergency retreat: extreme stress
-      if (cor > 2.0) "RETREAT"
-      // Class-primary behaviors modulated by neuro state
+      // Emergency retreat: extreme stress (modulated by emotional resilience)
+      if (cor > retreatThreshold) "RETREAT"
+      // High social + positive valence: prioritize bonding behaviors
+      else if (socialBias > 0.6 and valenceBias > 0.3 and cls == "MEDIC") "HEAL"
+      // High exploration drive overrides class defaults for scouts
+      else if (exploreDrive > 0.7 and (cls == "SCOUT" or cls == "RELAY")) "SCOUT"
+      // High approach + positive valence: forage (seek resources with optimism)
+      else if (approachBias > 0.5 and valenceBias > 0.2 and nor < 1.6) "FORAGE"
+      // High dominance + high arousal: form up (leadership behavior)
+      else if (dominanceBias > 0.5 and arouseBias > 0.5 and cls == "SOVEREIGN") "FORM"
+      // Class-primary behaviors modulated by neuro state AND emotional field
       else switch cls {
-        case "SCOUT"    { if (nor > 1.4) "FORAGE" else "SCOUT" };
-        case "STRIKER"  { if (nor > 1.3 and cor < 1.6) "ENGAGE"
-                          else if (cor < 1.3) "AMBUSH" else "RETREAT" };
+        case "SCOUT"    { if (nor > 1.4 or exploreDrive > 0.5) "FORAGE" else "SCOUT" };
+        case "STRIKER"  { if (nor > 1.3 and cor < 1.6 and riskBias > 0.3) "ENGAGE"
+                          else if (cor < 1.3 and riskBias > 0.5) "AMBUSH" else "RETREAT" };
         case "GUARDIAN" { "DEFEND" };
-        case "RELAY"    { "RELAY" };
-        case "MEDIC"    { "HEAL" };
-        case "SOVEREIGN"{ if (dop > 1.3) "FORM" else "DEFEND" };
+        case "RELAY"    { if (socialBias > 0.5) "RELAY" else "SCOUT" };
+        case "MEDIC"    { if (socialBias > 0.3 or valenceBias > 0.0) "HEAL" else "RETREAT" };
+        case "SOVEREIGN"{ if (dop > 1.3 or dominanceBias > 0.4) "FORM" else "DEFEND" };
         case _          { "SCOUT" };
       };
     stableBehavior[id] := beh;
@@ -4699,6 +4756,19 @@ actor SwarmBrain {
     // Update total heartbeats
     totalHeartbeats += 1;
     
+    // ─── EMOTIONAL FIELD → HEARTBEAT RHYTHM COUPLING ───────────────────────
+    // The emotional field modulates heartbeat timing:
+    // High arousal → faster heartbeat (higher coherence drive)
+    // High valence → smoother rhythm (lower variability)
+    // High embodiment → stronger cardiac coupling to body state
+    // This is the emotional rhythm — emotions shape the organism's timing substrate.
+    let emotionalHeartbeatMod = 1.0 + emotionalArousal * 0.15 - emotionalValence * 0.05;
+    heartbeatCoherence := heartbeatCoherence * (0.95 + emotionalEmbodiment * 0.05);
+    // Emotional resonance stabilizes heartbeat (coherent emotions = coherent heart)
+    if (emotionalResonance > 0.7) {
+      heartbeatCoherence := Float.min(1.0, heartbeatCoherence + 0.01);
+    };
+    
     // Update average heartbeat coherence (EMA with alpha=0.01)
     averageHeartbeatCoherence := averageHeartbeatCoherence * 0.99 + quantumHeartbeatState.quantumCoherence * 0.01;
     
@@ -4872,6 +4942,32 @@ actor SwarmBrain {
     };
 
     totalEmotionalFieldUpdates += 1;
+
+    // ─── DEEP NEUROSCIENCE ENGINE ↔ EMOTIONAL FIELD COUPLING ───────────────
+    // Brain regions modulate emotional dynamics and vice versa:
+    // - Basal ganglia action selection influenced by emotional valence/approach
+    // - Hippocampal memory consolidation boosted by emotional intensity
+    // - Prefrontal cortex (ACC) monitors emotional conflict/certainty
+    // - Brainstem arousal regulated by emotional arousal gradient
+    // These connections make emotions and brain regions ONE unified system.
+    let bgActionBias = emotionalApproach * 0.3 + emotionalDominance * 0.2;
+    let hippoMemBoost = emotionalIntensity * emotionalMemoryBoost;
+    let pfcConflict = Float.abs(emotionalValence) * (1.0 - emotionalCertainty);
+    let brainstemDrive = emotionalArousal * 0.4 + emotionalEmbodiment * 0.3;
+    
+    // Feed emotional state into BDNF (neuroplasticity) — intense emotions → more plasticity
+    if (emotionalIntensity > 0.5) {
+      bdnfConcent := Float.min(2.0, bdnfConcent + hippoMemBoost * 0.01);
+    };
+    // Feed emotional arousal into norepinephrine (brainstem → arousal loop)
+    norepinephrineConcent := norepinephrineConcent + brainstemDrive * 0.005;
+    if (norepinephrineConcent > 2.5) { norepinephrineConcent := 2.5 };
+    // Feed emotional approach into dopamine (basal ganglia → reward loop)
+    dopamineConcent := dopamineConcent + bgActionBias * 0.005;
+    if (dopamineConcent > 2.5) { dopamineConcent := 2.5 };
+    // Prefrontal conflict detection → acetylcholine (attention focus)
+    acetylcholineConcent := acetylcholineConcent + pfcConflict * 0.005;
+    if (acetylcholineConcent > 2.5) { acetylcholineConcent := 2.5 };
   };
 
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -11704,6 +11800,9 @@ actor SwarmBrain {
     // ─── RUN BASE TICK (satisfies criteria 1, 2) ──────────────────────────────
     let baseResult = tickCore();
     
+    // ─── EMOTIONAL FIELD UPDATE (spherical: emotions flow through EVERY tick path) ──
+    updateUnifiedEmotionalField();
+    
     // ─── CRITERION 3, 4, 5: CROSS-COUPLING, FEED-FORWARD, FEED-BACKWARD ───────
     // Phase A: Compute all engine outputs with memory modification
     
@@ -13165,6 +13264,8 @@ actor SwarmBrain {
     // Run base tick first
     let baseResult = tickCore();
     
+    // ─── EMOTIONAL FIELD UPDATE (spherical: emotions flow through EVERY tick path) ──
+    updateUnifiedEmotionalField();
     // Sacred beat amplification
     let sacredAmp = getSacredAmplifier(currentBeat);
     
@@ -14353,6 +14454,9 @@ actor SwarmBrain {
     
     // Run base tick
     let baseResult = tickCore();
+    
+    // ─── EMOTIONAL FIELD UPDATE (spherical: emotions flow through EVERY tick path) ──
+    updateUnifiedEmotionalField();
     
     // Sacred beat amplification
     let sacredAmp = getSacredAmplifier(currentBeat);
