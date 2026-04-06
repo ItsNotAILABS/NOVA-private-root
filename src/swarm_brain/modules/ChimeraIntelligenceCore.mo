@@ -19699,8 +19699,1096 @@ module {
     result
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // EVENT-DRIVEN ARCHITECTURE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Event system state
+  public type EventSystemState = {
+    var eventQueue : [SystemEvent];
+    var subscribers : [EventSubscriber];
+    var eventHistory : [SystemEvent];
+    var processors : [EventProcessor];
+    var deadLetterQueue : [SystemEvent];
+    maxHistorySize : Nat;
+  };
+
+  public type SystemEvent = {
+    eventId : Text;
+    eventType : EventType;
+    source : Text;
+    timestamp : Int;
+    payload : EventPayload;
+    var priority : EventPriority;
+    var processed : Bool;
+    var processedAt : ?Int;
+    correlationId : ?Text;
+    causationId : ?Text;
+  };
+
+  public type EventType = {
+    #Command;
+    #Query;
+    #Notification;
+    #StateChange;
+    #Error;
+    #Metric;
+    #Log;
+    #Custom : Text;
+  };
+
+  public type EventPayload = {
+    #Json : Text;
+    #Binary : Blob;
+    #Structured : [(Text, EventValue)];
+    #Empty;
+  };
+
+  public type EventValue = {
+    #String : Text;
+    #Number : Float;
+    #Boolean : Bool;
+    #List : [EventValue];
+    #Map : [(Text, EventValue)];
+    #Null;
+  };
+
+  public type EventPriority = {
+    #Low;
+    #Normal;
+    #High;
+    #Critical;
+  };
+
+  public type EventSubscriber = {
+    subscriberId : Text;
+    eventTypes : [EventType];
+    filter : ?EventFilter;
+    handler : Text;  // Handler name
+    var isActive : Bool;
+    var lastReceived : ?Int;
+    var errorCount : Nat;
+    maxRetries : Nat;
+  };
+
+  public type EventFilter = {
+    sourcePattern : ?Text;
+    payloadMatch : ?[(Text, EventValue)];
+    priorityMin : ?EventPriority;
+    timeWindow : ?Float;
+  };
+
+  public type EventProcessor = {
+    processorId : Text;
+    inputTypes : [EventType];
+    outputType : ?EventType;
+    transformation : Text;  // Transformation name
+    var isRunning : Bool;
+    var processedCount : Nat;
+    var errorCount : Nat;
+  };
+
+  /// Initialize event system
+  public func initEventSystem(maxHistory : Nat) : EventSystemState {
+    {
+      var eventQueue = [];
+      var subscribers = [];
+      var eventHistory = [];
+      var processors = [];
+      var deadLetterQueue = [];
+      maxHistorySize = maxHistory;
+    }
+  };
+
+  /// Publish event
+  public func publishEvent(
+    system : EventSystemState,
+    eventType : EventType,
+    source : Text,
+    payload : EventPayload,
+    priority : EventPriority,
+    correlationId : ?Text
+  ) : Text {
+    let eventId = Int.toText(Time.now()) # "_" # source;
+    
+    let event : SystemEvent = {
+      eventId = eventId;
+      eventType = eventType;
+      source = source;
+      timestamp = Time.now();
+      payload = payload;
+      var priority = priority;
+      var processed = false;
+      var processedAt = null;
+      correlationId = correlationId;
+      causationId = null;
+    };
+    
+    system.eventQueue := Array.append(system.eventQueue, [event]);
+    
+    // Sort by priority
+    system.eventQueue := Array.sort<SystemEvent>(system.eventQueue, func(a, b : SystemEvent) : Order.Order {
+      let ap = priorityToInt(a.priority);
+      let bp = priorityToInt(b.priority);
+      if (ap > bp) #less else if (ap < bp) #greater else #equal
+    });
+    
+    eventId
+  };
+
+  /// Convert priority to int for sorting
+  func priorityToInt(p : EventPriority) : Int {
+    switch (p) {
+      case (#Critical) 3;
+      case (#High) 2;
+      case (#Normal) 1;
+      case (#Low) 0;
+    }
+  };
+
+  /// Subscribe to events
+  public func subscribeToEvents(
+    system : EventSystemState,
+    eventTypes : [EventType],
+    handler : Text,
+    filter : ?EventFilter
+  ) : Text {
+    let subscriberId = Int.toText(Time.now());
+    
+    let subscriber : EventSubscriber = {
+      subscriberId = subscriberId;
+      eventTypes = eventTypes;
+      filter = filter;
+      handler = handler;
+      var isActive = true;
+      var lastReceived = null;
+      var errorCount = 0;
+      maxRetries = 3;
+    };
+    
+    system.subscribers := Array.append(system.subscribers, [subscriber]);
+    
+    subscriberId
+  };
+
+  /// Process events
+  public func processEvents(system : EventSystemState) : Nat {
+    var processedCount = 0;
+    
+    for (event in system.eventQueue.vals()) {
+      if (not event.processed) {
+        // Find matching subscribers
+        for (subscriber in system.subscribers.vals()) {
+          if (subscriber.isActive) {
+            var matches = false;
+            
+            for (subType in subscriber.eventTypes.vals()) {
+              if (eventTypesMatch(event.eventType, subType)) {
+                matches := true;
+              };
+            };
+            
+            if (matches) {
+              // Apply filter
+              let passesFilter = switch (subscriber.filter) {
+                case (?f) applyEventFilter(event, f);
+                case (null) true;
+              };
+              
+              if (passesFilter) {
+                // Process event (would invoke handler here)
+                subscriber.lastReceived := ?Time.now();
+                processedCount += 1;
+              };
+            };
+          };
+        };
+        
+        event.processed := true;
+        event.processedAt := ?Time.now();
+        
+        // Move to history
+        system.eventHistory := Array.append(system.eventHistory, [event]);
+        
+        // Trim history
+        if (system.eventHistory.size() > system.maxHistorySize) {
+          system.eventHistory := Array.tabulate<SystemEvent>(system.maxHistorySize, func(i : Nat) : SystemEvent {
+            system.eventHistory[system.eventHistory.size() - system.maxHistorySize + i]
+          });
+        };
+      };
+    };
+    
+    // Remove processed events from queue
+    system.eventQueue := Array.filter<SystemEvent>(system.eventQueue, func(e : SystemEvent) : Bool {
+      not e.processed
+    });
+    
+    processedCount
+  };
+
+  /// Check if event types match
+  func eventTypesMatch(a : EventType, b : EventType) : Bool {
+    switch (a, b) {
+      case (#Command, #Command) true;
+      case (#Query, #Query) true;
+      case (#Notification, #Notification) true;
+      case (#StateChange, #StateChange) true;
+      case (#Error, #Error) true;
+      case (#Metric, #Metric) true;
+      case (#Log, #Log) true;
+      case (#Custom(ca), #Custom(cb)) ca == cb;
+      case _ false;
+    }
+  };
+
+  /// Apply event filter
+  func applyEventFilter(event : SystemEvent, filter : EventFilter) : Bool {
+    // Check source pattern
+    switch (filter.sourcePattern) {
+      case (?pattern) {
+        if (not Text.startsWith(event.source, #text pattern)) {
+          return false;
+        };
+      };
+      case (null) {};
+    };
+    
+    // Check priority
+    switch (filter.priorityMin) {
+      case (?minPriority) {
+        if (priorityToInt(event.priority) < priorityToInt(minPriority)) {
+          return false;
+        };
+      };
+      case (null) {};
+    };
+    
+    // Check time window
+    switch (filter.timeWindow) {
+      case (?window) {
+        let age = Float.fromInt(Time.now() - event.timestamp) / 1e9;
+        if (age > window) {
+          return false;
+        };
+      };
+      case (null) {};
+    };
+    
+    true
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // STREAM PROCESSING
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Stream processing state
+  public type StreamProcessingState = {
+    var streams : [DataStream];
+    var operators : [StreamOperator];
+    var windows : [StreamWindow];
+    var sinks : [StreamSink];
+    var metrics : StreamMetrics;
+  };
+
+  public type DataStream = {
+    streamId : Text;
+    name : Text;
+    var buffer : [StreamRecord];
+    bufferSize : Nat;
+    var watermark : Int;  // Event time watermark
+    var processedCount : Nat;
+    schema : StreamSchema;
+  };
+
+  public type StreamRecord = {
+    key : ?Text;
+    value : StreamValue;
+    timestamp : Int;
+    eventTime : Int;
+    var offset : Nat;
+  };
+
+  public type StreamValue = {
+    #Primitive : Float;
+    #Text : Text;
+    #Record : [(Text, StreamValue)];
+    #Array : [StreamValue];
+  };
+
+  public type StreamSchema = {
+    fields : [(Text, FieldType)];
+    keyField : ?Text;
+    timestampField : ?Text;
+  };
+
+  public type FieldType = {
+    #Int;
+    #Float;
+    #String;
+    #Boolean;
+    #Timestamp;
+    #Nested : StreamSchema;
+    #Array : FieldType;
+  };
+
+  public type StreamOperator = {
+    operatorId : Text;
+    operatorType : OperatorType;
+    inputStream : Text;
+    outputStream : Text;
+    var isRunning : Bool;
+    parallelism : Nat;
+  };
+
+  public type OperatorType = {
+    #Map : MapFunction;
+    #Filter : FilterFunction;
+    #FlatMap : FlatMapFunction;
+    #KeyBy : Text;  // Key field
+    #Reduce : ReduceFunction;
+    #Aggregate : AggregateFunction;
+    #Join : JoinConfig;
+    #Window : WindowConfig;
+  };
+
+  public type MapFunction = {
+    transformation : Text;
+  };
+
+  public type FilterFunction = {
+    predicate : Text;
+  };
+
+  public type FlatMapFunction = {
+    transformation : Text;
+  };
+
+  public type ReduceFunction = {
+    reducer : Text;
+    initialValue : StreamValue;
+  };
+
+  public type AggregateFunction = {
+    #Count;
+    #Sum : Text;  // Field
+    #Avg : Text;
+    #Min : Text;
+    #Max : Text;
+    #Custom : Text;
+  };
+
+  public type JoinConfig = {
+    rightStream : Text;
+    joinType : JoinType;
+    joinCondition : Text;
+    windowSize : Float;
+  };
+
+  public type JoinType = {
+    #Inner;
+    #Left;
+    #Right;
+    #Full;
+  };
+
+  public type WindowConfig = {
+    windowType : WindowType;
+    size : Float;
+    slide : ?Float;
+    allowedLateness : Float;
+  };
+
+  public type WindowType = {
+    #Tumbling;
+    #Sliding;
+    #Session;
+    #Global;
+  };
+
+  public type StreamWindow = {
+    windowId : Text;
+    streamId : Text;
+    windowType : WindowType;
+    startTime : Int;
+    endTime : Int;
+    var records : [StreamRecord];
+    var aggregateState : ?StreamValue;
+    var isClosed : Bool;
+  };
+
+  public type StreamSink = {
+    sinkId : Text;
+    sinkType : SinkType;
+    inputStream : Text;
+    var isActive : Bool;
+    var writtenCount : Nat;
+  };
+
+  public type SinkType = {
+    #Console;
+    #File : Text;  // Path
+    #Http : Text;  // URL
+    #Database : Text;
+    #Custom : Text;
+  };
+
+  public type StreamMetrics = {
+    var totalRecords : Nat;
+    var throughput : Float;  // Records per second
+    var latency : Float;  // Average processing latency
+    var backpressure : Float;  // [0, 1]
+    var errorRate : Float;
+  };
+
+  /// Initialize stream processing
+  public func initStreamProcessing() : StreamProcessingState {
+    {
+      var streams = [];
+      var operators = [];
+      var windows = [];
+      var sinks = [];
+      var metrics = {
+        var totalRecords = 0;
+        var throughput = 0.0;
+        var latency = 0.0;
+        var backpressure = 0.0;
+        var errorRate = 0.0;
+      };
+    }
+  };
+
+  /// Create stream
+  public func createStream(
+    state : StreamProcessingState,
+    name : Text,
+    schema : StreamSchema,
+    bufferSize : Nat
+  ) : Text {
+    let streamId = Int.toText(Time.now()) # "_" # name;
+    
+    let stream : DataStream = {
+      streamId = streamId;
+      name = name;
+      var buffer = [];
+      bufferSize = bufferSize;
+      var watermark = 0;
+      var processedCount = 0;
+      schema = schema;
+    };
+    
+    state.streams := Array.append(state.streams, [stream]);
+    
+    streamId
+  };
+
+  /// Emit record to stream
+  public func emitRecord(
+    state : StreamProcessingState,
+    streamId : Text,
+    key : ?Text,
+    value : StreamValue,
+    eventTime : Int
+  ) : Bool {
+    for (stream in state.streams.vals()) {
+      if (stream.streamId == streamId) {
+        let record : StreamRecord = {
+          key = key;
+          value = value;
+          timestamp = Time.now();
+          eventTime = eventTime;
+          var offset = stream.processedCount;
+        };
+        
+        // Add to buffer
+        if (stream.buffer.size() < stream.bufferSize) {
+          stream.buffer := Array.append(stream.buffer, [record]);
+        } else {
+          // Buffer full - apply backpressure
+          state.metrics.backpressure := Float.min(1.0, state.metrics.backpressure + 0.1);
+          return false;
+        };
+        
+        // Update watermark
+        if (eventTime > stream.watermark) {
+          stream.watermark := eventTime;
+        };
+        
+        state.metrics.totalRecords += 1;
+        return true;
+      };
+    };
+    false
+  };
+
+  /// Apply map operator
+  public func applyMapOperator(
+    record : StreamRecord,
+    mapFn : StreamValue -> StreamValue
+  ) : StreamRecord {
+    {
+      key = record.key;
+      value = mapFn(record.value);
+      timestamp = record.timestamp;
+      eventTime = record.eventTime;
+      var offset = record.offset;
+    }
+  };
+
+  /// Apply filter operator
+  public func applyFilterOperator(
+    records : [StreamRecord],
+    filterFn : StreamRecord -> Bool
+  ) : [StreamRecord] {
+    Array.filter<StreamRecord>(records, filterFn)
+  };
+
+  /// Process windowed aggregation
+  public func processWindowAggregation(
+    window : StreamWindow,
+    aggFn : AggregateFunction
+  ) : StreamValue {
+    switch (aggFn) {
+      case (#Count) {
+        #Primitive(Float.fromInt(window.records.size()))
+      };
+      
+      case (#Sum(field)) {
+        var sum = 0.0;
+        for (record in window.records.vals()) {
+          switch (record.value) {
+            case (#Record(fields)) {
+              for ((f, v) in fields.vals()) {
+                if (f == field) {
+                  switch (v) {
+                    case (#Primitive(n)) sum += n;
+                    case _ {};
+                  };
+                };
+              };
+            };
+            case (#Primitive(n)) sum += n;
+            case _ {};
+          };
+        };
+        #Primitive(sum)
+      };
+      
+      case (#Avg(field)) {
+        var sum = 0.0;
+        var count = 0;
+        for (record in window.records.vals()) {
+          switch (record.value) {
+            case (#Record(fields)) {
+              for ((f, v) in fields.vals()) {
+                if (f == field) {
+                  switch (v) {
+                    case (#Primitive(n)) {
+                      sum += n;
+                      count += 1;
+                    };
+                    case _ {};
+                  };
+                };
+              };
+            };
+            case (#Primitive(n)) {
+              sum += n;
+              count += 1;
+            };
+            case _ {};
+          };
+        };
+        if (count > 0) {
+          #Primitive(sum / Float.fromInt(count))
+        } else {
+          #Primitive(0.0)
+        }
+      };
+      
+      case (#Min(field)) {
+        var min = 1e10;
+        for (record in window.records.vals()) {
+          switch (record.value) {
+            case (#Primitive(n)) {
+              if (n < min) min := n;
+            };
+            case _ {};
+          };
+        };
+        #Primitive(min)
+      };
+      
+      case (#Max(field)) {
+        var max = -1e10;
+        for (record in window.records.vals()) {
+          switch (record.value) {
+            case (#Primitive(n)) {
+              if (n > max) max := n;
+            };
+            case _ {};
+          };
+        };
+        #Primitive(max)
+      };
+      
+      case _ {
+        #Primitive(0.0)
+      };
+    }
+  };
+
+  /// Advance window watermark
+  public func advanceWatermark(state : StreamProcessingState, streamId : Text, watermark : Int) : () {
+    for (stream in state.streams.vals()) {
+      if (stream.streamId == streamId) {
+        stream.watermark := watermark;
+        
+        // Close windows that are past watermark
+        for (window in state.windows.vals()) {
+          if (window.streamId == streamId and not window.isClosed) {
+            if (window.endTime <= watermark) {
+              window.isClosed := true;
+            };
+          };
+        };
+      };
+    };
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CIRCUIT BREAKER PATTERN
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Circuit breaker state
+  public type CircuitBreakerState = {
+    var state : CircuitState;
+    var failureCount : Nat;
+    failureThreshold : Nat;
+    var successCount : Nat;
+    successThreshold : Nat;
+    var lastFailure : ?Int;
+    var lastSuccess : ?Int;
+    resetTimeout : Float;
+    halfOpenMaxCalls : Nat;
+    var halfOpenCalls : Nat;
+  };
+
+  public type CircuitState = {
+    #Closed;
+    #Open;
+    #HalfOpen;
+  };
+
+  /// Initialize circuit breaker
+  public func initCircuitBreaker(
+    failureThreshold : Nat,
+    successThreshold : Nat,
+    resetTimeout : Float
+  ) : CircuitBreakerState {
+    {
+      var state = #Closed;
+      var failureCount = 0;
+      failureThreshold = failureThreshold;
+      var successCount = 0;
+      successThreshold = successThreshold;
+      var lastFailure = null;
+      var lastSuccess = null;
+      resetTimeout = resetTimeout;
+      halfOpenMaxCalls = 3;
+      var halfOpenCalls = 0;
+    }
+  };
+
+  /// Check if circuit allows request
+  public func canExecute(cb : CircuitBreakerState) : Bool {
+    switch (cb.state) {
+      case (#Closed) true;
+      case (#Open) {
+        // Check if timeout has passed
+        switch (cb.lastFailure) {
+          case (?lf) {
+            let elapsed = Float.fromInt(Time.now() - lf) / 1e9;
+            if (elapsed >= cb.resetTimeout) {
+              cb.state := #HalfOpen;
+              cb.halfOpenCalls := 0;
+              true
+            } else {
+              false
+            }
+          };
+          case (null) {
+            cb.state := #HalfOpen;
+            true
+          };
+        }
+      };
+      case (#HalfOpen) {
+        cb.halfOpenCalls < cb.halfOpenMaxCalls
+      };
+    }
+  };
+
+  /// Record success
+  public func recordSuccess(cb : CircuitBreakerState) : () {
+    cb.lastSuccess := ?Time.now();
+    
+    switch (cb.state) {
+      case (#HalfOpen) {
+        cb.successCount += 1;
+        cb.halfOpenCalls += 1;
+        
+        if (cb.successCount >= cb.successThreshold) {
+          cb.state := #Closed;
+          cb.failureCount := 0;
+          cb.successCount := 0;
+        };
+      };
+      case (#Closed) {
+        cb.failureCount := 0;
+      };
+      case (#Open) {};
+    };
+  };
+
+  /// Record failure
+  public func recordFailure(cb : CircuitBreakerState) : () {
+    cb.lastFailure := ?Time.now();
+    
+    switch (cb.state) {
+      case (#Closed) {
+        cb.failureCount += 1;
+        
+        if (cb.failureCount >= cb.failureThreshold) {
+          cb.state := #Open;
+        };
+      };
+      case (#HalfOpen) {
+        cb.state := #Open;
+        cb.successCount := 0;
+        cb.halfOpenCalls := 0;
+      };
+      case (#Open) {};
+    };
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RATE LIMITING
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Rate limiter state
+  public type RateLimiterState = {
+    var tokens : Float;
+    maxTokens : Float;
+    refillRate : Float;  // Tokens per second
+    var lastRefill : Int;
+    algorithm : RateLimitAlgorithm;
+    var requestHistory : [Int];  // Timestamps
+    windowSize : Float;  // For sliding window
+  };
+
+  public type RateLimitAlgorithm = {
+    #TokenBucket;
+    #LeakyBucket;
+    #SlidingWindow;
+    #FixedWindow;
+  };
+
+  /// Initialize rate limiter
+  public func initRateLimiter(
+    maxTokens : Float,
+    refillRate : Float,
+    algorithm : RateLimitAlgorithm
+  ) : RateLimiterState {
+    {
+      var tokens = maxTokens;
+      maxTokens = maxTokens;
+      refillRate = refillRate;
+      var lastRefill = Time.now();
+      algorithm = algorithm;
+      var requestHistory = [];
+      windowSize = 1.0;  // 1 second default
+    }
+  };
+
+  /// Try to acquire permission
+  public func tryAcquire(rl : RateLimiterState, cost : Float) : Bool {
+    switch (rl.algorithm) {
+      case (#TokenBucket) {
+        // Refill tokens
+        let now = Time.now();
+        let elapsed = Float.fromInt(now - rl.lastRefill) / 1e9;
+        rl.tokens := Float.min(rl.maxTokens, rl.tokens + elapsed * rl.refillRate);
+        rl.lastRefill := now;
+        
+        // Check if enough tokens
+        if (rl.tokens >= cost) {
+          rl.tokens -= cost;
+          true
+        } else {
+          false
+        }
+      };
+      
+      case (#LeakyBucket) {
+        let now = Time.now();
+        let elapsed = Float.fromInt(now - rl.lastRefill) / 1e9;
+        
+        // Drain bucket
+        rl.tokens := Float.max(0.0, rl.tokens - elapsed * rl.refillRate);
+        rl.lastRefill := now;
+        
+        // Check if bucket has space
+        if (rl.tokens + cost <= rl.maxTokens) {
+          rl.tokens += cost;
+          true
+        } else {
+          false
+        }
+      };
+      
+      case (#SlidingWindow) {
+        let now = Time.now();
+        let windowStart = now - Int.abs(Float.toInt(rl.windowSize * 1e9));
+        
+        // Remove old requests
+        rl.requestHistory := Array.filter<Int>(rl.requestHistory, func(t : Int) : Bool {
+          t >= windowStart
+        });
+        
+        // Check if under limit
+        if (Float.fromInt(rl.requestHistory.size()) < rl.maxTokens) {
+          rl.requestHistory := Array.append(rl.requestHistory, [now]);
+          true
+        } else {
+          false
+        }
+      };
+      
+      case (#FixedWindow) {
+        let now = Time.now();
+        let windowStart = now - (now % Int.abs(Float.toInt(rl.windowSize * 1e9)));
+        
+        // Count requests in current window
+        var count = 0;
+        for (t in rl.requestHistory.vals()) {
+          if (t >= windowStart) count += 1;
+        };
+        
+        if (Float.fromInt(count) < rl.maxTokens) {
+          rl.requestHistory := Array.append(rl.requestHistory, [now]);
+          true
+        } else {
+          false
+        }
+      };
+    }
+  };
+
+  /// Get remaining tokens/capacity
+  public func getRemainingCapacity(rl : RateLimiterState) : Float {
+    switch (rl.algorithm) {
+      case (#TokenBucket) rl.tokens;
+      case (#LeakyBucket) rl.maxTokens - rl.tokens;
+      case (#SlidingWindow) {
+        let now = Time.now();
+        let windowStart = now - Int.abs(Float.toInt(rl.windowSize * 1e9));
+        var count = 0;
+        for (t in rl.requestHistory.vals()) {
+          if (t >= windowStart) count += 1;
+        };
+        rl.maxTokens - Float.fromInt(count)
+      };
+      case (#FixedWindow) {
+        let now = Time.now();
+        let windowStart = now - (now % Int.abs(Float.toInt(rl.windowSize * 1e9)));
+        var count = 0;
+        for (t in rl.requestHistory.vals()) {
+          if (t >= windowStart) count += 1;
+        };
+        rl.maxTokens - Float.fromInt(count)
+      };
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SEMANTIC VERSIONING
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Version state
+  public type VersionState = {
+    major : Nat;
+    minor : Nat;
+    patch : Nat;
+    prerelease : ?Text;
+    buildMetadata : ?Text;
+  };
+
+  /// Parse version string
+  public func parseVersion(versionStr : Text) : ?VersionState {
+    // Simple parser - format: major.minor.patch[-prerelease][+build]
+    var parts = splitByChar(versionStr, '.');
+    
+    if (parts.size() < 3) return null;
+    
+    let major = textToNat(parts[0]);
+    let minor = textToNat(parts[1]);
+    
+    // Parse patch (may include prerelease and build)
+    var patchPart = parts[2];
+    var prerelease : ?Text = null;
+    var buildMeta : ?Text = null;
+    
+    // Check for build metadata
+    let buildParts = splitByChar(patchPart, '+');
+    if (buildParts.size() > 1) {
+      patchPart := buildParts[0];
+      buildMeta := ?buildParts[1];
+    };
+    
+    // Check for prerelease
+    let prereleaseParts = splitByChar(patchPart, '-');
+    if (prereleaseParts.size() > 1) {
+      patchPart := prereleaseParts[0];
+      prerelease := ?prereleaseParts[1];
+    };
+    
+    let patch = textToNat(patchPart);
+    
+    ?{
+      major = major;
+      minor = minor;
+      patch = patch;
+      prerelease = prerelease;
+      buildMetadata = buildMeta;
+    }
+  };
+
+  /// Split text by character
+  func splitByChar(text : Text, separator : Char) : [Text] {
+    var parts : [Text] = [];
+    var current = "";
+    
+    for (c in text.chars()) {
+      if (c == separator) {
+        parts := Array.append(parts, [current]);
+        current := "";
+      } else {
+        current := current # Text.fromChar(c);
+      };
+    };
+    
+    if (current != "") {
+      parts := Array.append(parts, [current]);
+    };
+    
+    parts
+  };
+
+  /// Convert text to nat
+  func textToNat(t : Text) : Nat {
+    var result = 0;
+    for (c in t.chars()) {
+      if (c >= '0' and c <= '9') {
+        result := result * 10 + Nat32.toNat(Char.toNat32(c) - 48);
+      };
+    };
+    result
+  };
+
+  /// Compare versions
+  public func compareVersions(a : VersionState, b : VersionState) : Order.Order {
+    if (a.major != b.major) {
+      return if (a.major > b.major) #greater else #less;
+    };
+    
+    if (a.minor != b.minor) {
+      return if (a.minor > b.minor) #greater else #less;
+    };
+    
+    if (a.patch != b.patch) {
+      return if (a.patch > b.patch) #greater else #less;
+    };
+    
+    // Prerelease versions have lower precedence
+    switch (a.prerelease, b.prerelease) {
+      case (null, ?_) #greater;  // a is release, b is prerelease
+      case (?_, null) #less;     // a is prerelease, b is release
+      case (null, null) #equal;
+      case (?pa, ?pb) {
+        if (pa < pb) #less else if (pa > pb) #greater else #equal
+      };
+    }
+  };
+
+  /// Version to string
+  public func versionToString(v : VersionState) : Text {
+    var result = Nat.toText(v.major) # "." # Nat.toText(v.minor) # "." # Nat.toText(v.patch);
+    
+    switch (v.prerelease) {
+      case (?pr) { result := result # "-" # pr };
+      case (null) {};
+    };
+    
+    switch (v.buildMetadata) {
+      case (?bm) { result := result # "+" # bm };
+      case (null) {};
+    };
+    
+    result
+  };
+
+  /// Bump version
+  public func bumpVersion(v : VersionState, bumpType : VersionBumpType) : VersionState {
+    switch (bumpType) {
+      case (#Major) {
+        {
+          major = v.major + 1;
+          minor = 0;
+          patch = 0;
+          prerelease = null;
+          buildMetadata = v.buildMetadata;
+        }
+      };
+      case (#Minor) {
+        {
+          major = v.major;
+          minor = v.minor + 1;
+          patch = 0;
+          prerelease = null;
+          buildMetadata = v.buildMetadata;
+        }
+      };
+      case (#Patch) {
+        {
+          major = v.major;
+          minor = v.minor;
+          patch = v.patch + 1;
+          prerelease = null;
+          buildMetadata = v.buildMetadata;
+        }
+      };
+      case (#Prerelease(pr)) {
+        {
+          major = v.major;
+          minor = v.minor;
+          patch = v.patch;
+          prerelease = ?pr;
+          buildMetadata = v.buildMetadata;
+        }
+      };
+    }
+  };
+
+  public type VersionBumpType = {
+    #Major;
+    #Minor;
+    #Patch;
+    #Prerelease : Text;
+  };
+
   // Continue building toward 150,000 lines...
-  // Current: ~21,500 lines
-  // Remaining: ~128,500 lines
+  // Current: ~22,500 lines
+  // Remaining: ~127,500 lines
 
 }
