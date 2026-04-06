@@ -2801,7 +2801,7 @@ actor SwarmBrain {
     // Amplitude: modulated by arousal and attention
     let gamma40HzFreq : Float = 40.0;
     let gammaOmega : Float = 2.0 * 3.14159265359 * gamma40HzFreq;
-    gammaPhase40Hz := Float.sin(gammaPhase40Hz + gammaOmega * dt) + 3.14159265359;
+    gammaPhase40Hz := gammaPhase40Hz + gammaOmega * dt;
     if (gammaPhase40Hz > 2.0 * 3.14159265359) {
       gammaPhase40Hz := gammaPhase40Hz - 2.0 * 3.14159265359;
       gammaCycleCount += 1;
@@ -4206,7 +4206,7 @@ actor SwarmBrain {
     );
     
     // Sustained attention: ability to maintain focus
-    let targetSustained = 0.5 + 0.3 * cenActivation + 0.2 * (1.0 - fatigue);
+    let targetSustained = 0.5 + 0.3 * cenActivation + 0.2 * (1.0 - fatigueLevel);
     sustainedAttention := fclamp(
       0.95 * sustainedAttention + 0.05 * targetSustained,
       0.0, 1.0
@@ -4851,9 +4851,6 @@ actor SwarmBrain {
     // Social jetlag: mismatch between biological and social time
     // (Would be computed from external schedule input)
     socialJetlag := fclamp(socialJetlag * 0.99, -0.5, 0.5);
-    
-    // Fatigue variable for streak multiplier
-    let fatigue = fatigueLevel;
   };
 
   // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
