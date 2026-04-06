@@ -12399,8 +12399,1425 @@ module {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // STATE MACHINES FOR COMPLEX BEHAVIORS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Hierarchical State Machine
+  public type HSMState = {
+    stateId : Text;
+    var currentState : ?HSMState;
+    var parentState : ?HSMState;
+    onEnter : ?(() -> ());
+    onExit : ?(() -> ());
+    onUpdate : ?((Float) -> ());
+    transitions : [HSMTransition];
+    children : [HSMState];
+  };
+
+  public type HSMTransition = {
+    targetState : Text;
+    condition : () -> Bool;
+    priority : Nat;
+    onTransition : ?(() -> ());
+  };
+
+  /// Utility AI System
+  public type UtilityAIState = {
+    var actions : [UtilityAction];
+    var considerations : [Consideration];
+    var currentAction : ?Text;
+    var actionScores : [(Text, Float)];
+    var decisionFrequency : Float;
+    var lastDecisionTime : Int;
+  };
+
+  public type UtilityAction = {
+    actionId : Text;
+    actionName : Text;
+    considerations : [ConsiderationRef];
+    weight : Float;
+    cooldown : Float;
+    var lastUsed : Int;
+    interruptible : Bool;
+  };
+
+  public type ConsiderationRef = {
+    considerationId : Text;
+    weight : Float;
+    modifier : ?ResponseCurve;
+  };
+
+  public type Consideration = {
+    considerationId : Text;
+    inputType : ConsiderationInput;
+    responseCurve : ResponseCurve;
+    bookends : {min: Float; max: Float};
+  };
+
+  public type ConsiderationInput = {
+    #Health;
+    #Fuel;
+    #DistanceToTarget;
+    #ThreatLevel;
+    #Ammunition;
+    #AllyCount;
+    #EnemyCount;
+    #TimeSinceLastAction;
+    #Custom : Text;
+  };
+
+  public type ResponseCurve = {
+    #Linear : {slope: Float; intercept: Float};
+    #Quadratic : {a: Float; b: Float; c: Float};
+    #Logistic : {k: Float; x0: Float; L: Float};
+    #Exponential : {base: Float; exponent: Float};
+    #Sine : {amplitude: Float; frequency: Float; phase: Float};
+    #Threshold : {threshold: Float; below: Float; above: Float};
+  };
+
+  /// Compute consideration score
+  public func computeConsiderationScore(
+    consideration : Consideration,
+    inputValue : Float
+  ) : Float {
+    // Normalize input to [0, 1]
+    let normalizedInput = (inputValue - consideration.bookends.min) / 
+                          (consideration.bookends.max - consideration.bookends.min);
+    let clampedInput = Float.max(0.0, Float.min(1.0, normalizedInput));
+    
+    // Apply response curve
+    applyResponseCurve(consideration.responseCurve, clampedInput)
+  };
+
+  /// Apply response curve to input
+  func applyResponseCurve(curve : ResponseCurve, x : Float) : Float {
+    switch (curve) {
+      case (#Linear({slope; intercept})) {
+        slope * x + intercept
+      };
+      case (#Quadratic({a; b; c})) {
+        a * x * x + b * x + c
+      };
+      case (#Logistic({k; x0; L})) {
+        L / (1.0 + Float.exp(-k * (x - x0)))
+      };
+      case (#Exponential({base; exponent})) {
+        Float.pow(base, x * exponent)
+      };
+      case (#Sine({amplitude; frequency; phase})) {
+        amplitude * Float.sin(frequency * x * 2.0 * π + phase)
+      };
+      case (#Threshold({threshold; below; above})) {
+        if (x < threshold) below else above
+      };
+    }
+  };
+
+  /// Compute overall action score using geometric mean
+  public func computeActionScore(
+    action : UtilityAction,
+    considerations : [Consideration],
+    inputs : [(Text, Float)]
+  ) : Float {
+    if (action.considerations.size() == 0) return 0.0;
+    
+    var product = 1.0;
+    var count = 0;
+    
+    for (considRef in action.considerations.vals()) {
+      // Find the consideration
+      for (consid in considerations.vals()) {
+        if (consid.considerationId == considRef.considerationId) {
+          // Find the input value
+          for ((inputId, value) in inputs.vals()) {
+            // Match input type to id
+            var score = computeConsiderationScore(consid, value);
+            
+            // Apply modifier if present
+            switch (considRef.modifier) {
+              case (?mod) {
+                score := applyResponseCurve(mod, score);
+              };
+              case (null) {};
+            };
+            
+            // Weight the score
+            score := score * considRef.weight;
+            
+            product *= score;
+            count += 1;
+          };
+        };
+      };
+    };
+    
+    if (count == 0) return 0.0;
+    
+    // Geometric mean with compensation factor
+    let geometricMean = Float.pow(product, 1.0 / Float.fromInt(count));
+    let compensationFactor = 1.0 - (1.0 / Float.fromInt(count));
+    
+    geometricMean + (1.0 - geometricMean) * compensationFactor * geometricMean
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // GOAL-ORIENTED ACTION PLANNING (GOAP)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// GOAP state
+  public type GOAPState = {
+    var worldState : [(Text, GOAPValue)];
+    var goals : [GOAPGoal];
+    var actions : [GOAPAction];
+    var currentPlan : [GOAPAction];
+    var planIndex : Nat;
+  };
+
+  public type GOAPValue = {
+    #Bool : Bool;
+    #Int : Int;
+    #Float : Float;
+    #Text : Text;
+  };
+
+  public type GOAPGoal = {
+    goalId : Text;
+    desiredState : [(Text, GOAPValue)];
+    priority : Float;
+    var relevance : Float;
+  };
+
+  public type GOAPAction = {
+    actionId : Text;
+    preconditions : [(Text, GOAPValue)];
+    effects : [(Text, GOAPValue)];
+    cost : Float;
+    duration : Float;
+    var isRunning : Bool;
+  };
+
+  /// Plan actions to achieve goal using A*
+  public func planGOAP(state : GOAPState, goal : GOAPGoal) : [GOAPAction] {
+    // A* search through action space
+    var openSet : [([(Text, GOAPValue)], [GOAPAction], Float)] = [(state.worldState, [], 0.0)];
+    var closedSet : [[(Text, GOAPValue)]] = [];
+    
+    label search while (openSet.size() > 0) {
+      // Find node with lowest f-score
+      var bestIdx = 0;
+      var bestScore = 1e10;
+      
+      for (i in Iter.range(0, openSet.size() - 1)) {
+        let (_, plan, cost) = openSet[i];
+        let heuristic = computeGOAPHeuristic(openSet[i].0, goal.desiredState);
+        let fScore = cost + heuristic;
+        if (fScore < bestScore) {
+          bestScore := fScore;
+          bestIdx := i;
+        };
+      };
+      
+      let (currentState, currentPlan, currentCost) = openSet[bestIdx];
+      
+      // Check if goal reached
+      if (goalSatisfied(currentState, goal.desiredState)) {
+        return currentPlan;
+      };
+      
+      // Move to closed set
+      closedSet := Array.append(closedSet, [currentState]);
+      openSet := removeAtIndex(openSet, bestIdx);
+      
+      // Expand neighbors (applicable actions)
+      for (action in state.actions.vals()) {
+        if (preconditionsSatisfied(currentState, action.preconditions)) {
+          let newState = applyEffects(currentState, action.effects);
+          
+          // Check if in closed set
+          var inClosed = false;
+          for (closed in closedSet.vals()) {
+            if (statesEqual(newState, closed)) {
+              inClosed := true;
+            };
+          };
+          
+          if (not inClosed) {
+            let newPlan = Array.append(currentPlan, [action]);
+            let newCost = currentCost + action.cost;
+            openSet := Array.append(openSet, [(newState, newPlan, newCost)]);
+          };
+        };
+      };
+    };
+    
+    []  // No plan found
+  };
+
+  /// Compute heuristic for GOAP planning
+  func computeGOAPHeuristic(
+    current : [(Text, GOAPValue)],
+    goal : [(Text, GOAPValue)]
+  ) : Float {
+    var unsatisfied = 0;
+    
+    for ((key, value) in goal.vals()) {
+      var found = false;
+      for ((curKey, curValue) in current.vals()) {
+        if (curKey == key and goapValuesEqual(curValue, value)) {
+          found := true;
+        };
+      };
+      if (not found) {
+        unsatisfied += 1;
+      };
+    };
+    
+    Float.fromInt(unsatisfied)
+  };
+
+  /// Check if goal is satisfied by current state
+  func goalSatisfied(
+    current : [(Text, GOAPValue)],
+    goal : [(Text, GOAPValue)]
+  ) : Bool {
+    for ((key, value) in goal.vals()) {
+      var found = false;
+      for ((curKey, curValue) in current.vals()) {
+        if (curKey == key and goapValuesEqual(curValue, value)) {
+          found := true;
+        };
+      };
+      if (not found) {
+        return false;
+      };
+    };
+    true
+  };
+
+  /// Check if preconditions are satisfied
+  func preconditionsSatisfied(
+    current : [(Text, GOAPValue)],
+    preconditions : [(Text, GOAPValue)]
+  ) : Bool {
+    for ((key, value) in preconditions.vals()) {
+      var found = false;
+      for ((curKey, curValue) in current.vals()) {
+        if (curKey == key and goapValuesEqual(curValue, value)) {
+          found := true;
+        };
+      };
+      if (not found) {
+        return false;
+      };
+    };
+    true
+  };
+
+  /// Apply effects to current state
+  func applyEffects(
+    current : [(Text, GOAPValue)],
+    effects : [(Text, GOAPValue)]
+  ) : [(Text, GOAPValue)] {
+    var newState = current;
+    
+    for ((key, value) in effects.vals()) {
+      var found = false;
+      newState := Array.map<(Text, GOAPValue), (Text, GOAPValue)>(newState, func((k, v) : (Text, GOAPValue)) : (Text, GOAPValue) {
+        if (k == key) {
+          found := true;
+          (k, value)
+        } else {
+          (k, v)
+        }
+      });
+      if (not found) {
+        newState := Array.append(newState, [(key, value)]);
+      };
+    };
+    
+    newState
+  };
+
+  /// Compare GOAP values
+  func goapValuesEqual(a : GOAPValue, b : GOAPValue) : Bool {
+    switch (a, b) {
+      case (#Bool(av), #Bool(bv)) { av == bv };
+      case (#Int(av), #Int(bv)) { av == bv };
+      case (#Float(av), #Float(bv)) { Float.abs(av - bv) < 0.001 };
+      case (#Text(av), #Text(bv)) { av == bv };
+      case _ { false };
+    }
+  };
+
+  /// Compare states
+  func statesEqual(a : [(Text, GOAPValue)], b : [(Text, GOAPValue)]) : Bool {
+    if (a.size() != b.size()) return false;
+    
+    for ((key, value) in a.vals()) {
+      var found = false;
+      for ((bKey, bValue) in b.vals()) {
+        if (key == bKey and goapValuesEqual(value, bValue)) {
+          found := true;
+        };
+      };
+      if (not found) return false;
+    };
+    
+    true
+  };
+
+  /// Remove element at index
+  func removeAtIndex<T>(arr : [T], idx : Nat) : [T] {
+    Array.tabulate<T>(arr.size() - 1, func(i : Nat) : T {
+      if (i < idx) arr[i] else arr[i + 1]
+    })
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NAVIGATION MESH (NAVMESH)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// NavMesh state
+  public type NavMeshState = {
+    var polygons : [NavPolygon];
+    var edges : [NavEdge];
+    var connections : [(Nat32, Nat32)];  // Polygon adjacency
+    var pathCache : [(Vector3, Vector3, [Vector3])];
+  };
+
+  public type NavPolygon = {
+    polygonId : Nat32;
+    vertices : [Vector3];
+    center : Vector3;
+    normal : Vector3;
+    area : Float;
+    neighborIds : [Nat32];
+    var cost : Float;
+  };
+
+  public type NavEdge = {
+    edgeId : Nat32;
+    startVertex : Vector3;
+    endVertex : Vector3;
+    leftPolygon : Nat32;
+    rightPolygon : Nat32;
+    width : Float;
+  };
+
+  /// Initialize NavMesh from polygons
+  public func initNavMesh(polygons : [NavPolygon]) : NavMeshState {
+    var connections : [(Nat32, Nat32)] = [];
+    var edges : [NavEdge] = [];
+    var edgeId : Nat32 = 0;
+    
+    // Find adjacent polygons (share edge)
+    for (i in Iter.range(0, polygons.size() - 1)) {
+      for (j in Iter.range(i + 1, polygons.size() - 1)) {
+        let sharedEdge = findSharedEdge(polygons[i], polygons[j]);
+        switch (sharedEdge) {
+          case (?edge) {
+            connections := Array.append(connections, [(polygons[i].polygonId, polygons[j].polygonId)]);
+            edges := Array.append(edges, [{
+              edgeId = edgeId;
+              startVertex = edge.0;
+              endVertex = edge.1;
+              leftPolygon = polygons[i].polygonId;
+              rightPolygon = polygons[j].polygonId;
+              width = magnitudeVector3(subtractVector3(edge.1, edge.0));
+            }]);
+            edgeId += 1;
+          };
+          case (null) {};
+        };
+      };
+    };
+    
+    {
+      var polygons = polygons;
+      var edges = edges;
+      var connections = connections;
+      var pathCache = [];
+    }
+  };
+
+  /// Find shared edge between two polygons
+  func findSharedEdge(a : NavPolygon, b : NavPolygon) : ?(Vector3, Vector3) {
+    for (i in Iter.range(0, a.vertices.size() - 1)) {
+      let a1 = a.vertices[i];
+      let a2 = a.vertices[(i + 1) % a.vertices.size()];
+      
+      for (j in Iter.range(0, b.vertices.size() - 1)) {
+        let b1 = b.vertices[j];
+        let b2 = b.vertices[(j + 1) % b.vertices.size()];
+        
+        // Check if edges match (in either direction)
+        if ((vectorsEqual(a1, b1) and vectorsEqual(a2, b2)) or
+            (vectorsEqual(a1, b2) and vectorsEqual(a2, b1))) {
+          return ?(a1, a2);
+        };
+      };
+    };
+    null
+  };
+
+  /// Check if vectors are approximately equal
+  func vectorsEqual(a : Vector3, b : Vector3) : Bool {
+    let epsilon = 0.001;
+    Float.abs(a.x - b.x) < epsilon and
+    Float.abs(a.y - b.y) < epsilon and
+    Float.abs(a.z - b.z) < epsilon
+  };
+
+  /// Find path through NavMesh using A*
+  public func findNavMeshPath(
+    navMesh : NavMeshState,
+    start : Vector3,
+    goal : Vector3
+  ) : [Vector3] {
+    // Find start and goal polygons
+    let startPoly = findContainingPolygon(navMesh, start);
+    let goalPoly = findContainingPolygon(navMesh, goal);
+    
+    switch (startPoly, goalPoly) {
+      case (?sp, ?gp) {
+        if (sp.polygonId == gp.polygonId) {
+          // Same polygon, direct path
+          return [start, goal];
+        };
+        
+        // A* through polygon graph
+        let polygonPath = aStarNavMesh(navMesh, sp.polygonId, gp.polygonId);
+        
+        // Convert polygon path to waypoints using string pulling (funnel algorithm)
+        funnelPath(navMesh, polygonPath, start, goal)
+      };
+      case _ {
+        // No valid path
+        []
+      };
+    }
+  };
+
+  /// Find polygon containing point
+  func findContainingPolygon(navMesh : NavMeshState, point : Vector3) : ?NavPolygon {
+    for (polygon in navMesh.polygons.vals()) {
+      if (pointInPolygon(point, polygon)) {
+        return ?polygon;
+      };
+    };
+    null
+  };
+
+  /// Check if point is inside polygon (2D, ignoring Y)
+  func pointInPolygon(point : Vector3, polygon : NavPolygon) : Bool {
+    let n = polygon.vertices.size();
+    var inside = false;
+    
+    var j = n - 1;
+    for (i in Iter.range(0, n - 1)) {
+      let vi = polygon.vertices[i];
+      let vj = polygon.vertices[j];
+      
+      if ((vi.z > point.z) != (vj.z > point.z) and
+          point.x < (vj.x - vi.x) * (point.z - vi.z) / (vj.z - vi.z) + vi.x) {
+        inside := not inside;
+      };
+      
+      j := i;
+    };
+    
+    inside
+  };
+
+  /// A* search through NavMesh polygons
+  func aStarNavMesh(
+    navMesh : NavMeshState,
+    startId : Nat32,
+    goalId : Nat32
+  ) : [Nat32] {
+    var openSet : [(Nat32, Float, [Nat32])] = [(startId, 0.0, [startId])];
+    var closedSet : [Nat32] = [];
+    
+    // Find goal polygon center for heuristic
+    var goalCenter : Vector3 = {x = 0.0; y = 0.0; z = 0.0};
+    for (poly in navMesh.polygons.vals()) {
+      if (poly.polygonId == goalId) {
+        goalCenter := poly.center;
+      };
+    };
+    
+    label search while (openSet.size() > 0) {
+      // Find node with lowest f-score
+      var bestIdx = 0;
+      var bestF = 1e10;
+      
+      for (i in Iter.range(0, openSet.size() - 1)) {
+        let (polyId, g, _) = openSet[i];
+        var h = 0.0;
+        for (poly in navMesh.polygons.vals()) {
+          if (poly.polygonId == polyId) {
+            h := magnitudeVector3(subtractVector3(poly.center, goalCenter));
+          };
+        };
+        let f = g + h;
+        if (f < bestF) {
+          bestF := f;
+          bestIdx := i;
+        };
+      };
+      
+      let (currentId, currentG, currentPath) = openSet[bestIdx];
+      
+      // Goal reached?
+      if (currentId == goalId) {
+        return currentPath;
+      };
+      
+      // Move to closed
+      closedSet := Array.append(closedSet, [currentId]);
+      openSet := removeAtIndex(openSet, bestIdx);
+      
+      // Find current polygon and expand neighbors
+      for (poly in navMesh.polygons.vals()) {
+        if (poly.polygonId == currentId) {
+          for (neighborId in poly.neighborIds.vals()) {
+            // Check if in closed
+            var inClosed = false;
+            for (closed in closedSet.vals()) {
+              if (closed == neighborId) inClosed := true;
+            };
+            
+            if (not inClosed) {
+              // Find neighbor polygon
+              for (neighbor in navMesh.polygons.vals()) {
+                if (neighbor.polygonId == neighborId) {
+                  let edgeCost = magnitudeVector3(subtractVector3(neighbor.center, poly.center));
+                  let newG = currentG + edgeCost;
+                  let newPath = Array.append(currentPath, [neighborId]);
+                  
+                  // Check if already in open with better cost
+                  var found = false;
+                  openSet := Array.map<(Nat32, Float, [Nat32]), (Nat32, Float, [Nat32])>(openSet, func((id, g, p) : (Nat32, Float, [Nat32])) : (Nat32, Float, [Nat32]) {
+                    if (id == neighborId) {
+                      found := true;
+                      if (newG < g) (id, newG, newPath) else (id, g, p)
+                    } else {
+                      (id, g, p)
+                    }
+                  });
+                  
+                  if (not found) {
+                    openSet := Array.append(openSet, [(neighborId, newG, newPath)]);
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+    
+    []  // No path found
+  };
+
+  /// Funnel algorithm for path smoothing
+  func funnelPath(
+    navMesh : NavMeshState,
+    polygonPath : [Nat32],
+    start : Vector3,
+    goal : Vector3
+  ) : [Vector3] {
+    if (polygonPath.size() == 0) return [];
+    if (polygonPath.size() == 1) return [start, goal];
+    
+    var path : [Vector3] = [start];
+    
+    // Simple implementation: use polygon centers
+    for (polyId in polygonPath.vals()) {
+      for (poly in navMesh.polygons.vals()) {
+        if (poly.polygonId == polyId) {
+          path := Array.append(path, [poly.center]);
+        };
+      };
+    };
+    
+    path := Array.append(path, [goal]);
+    path
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // INFLUENCE MAPS FOR TACTICAL DECISIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Influence map state
+  public type InfluenceMapState = {
+    var gridSizeX : Nat;
+    var gridSizeY : Nat;
+    var cellSize : Float;
+    var origin : Vector3;
+    var layers : [InfluenceLayer];
+    var combinedMap : [[var Float]];
+  };
+
+  public type InfluenceLayer = {
+    layerName : Text;
+    var values : [[var Float]];
+    decay : Float;
+    momentum : Float;
+    propagation : PropagationType;
+    weight : Float;
+  };
+
+  public type PropagationType = {
+    #Linear;
+    #Exponential;
+    #Gaussian;
+    #None;
+  };
+
+  /// Initialize influence map
+  public func initInfluenceMap(
+    sizeX : Nat,
+    sizeY : Nat,
+    cellSize : Float,
+    origin : Vector3,
+    layerNames : [Text]
+  ) : InfluenceMapState {
+    {
+      var gridSizeX = sizeX;
+      var gridSizeY = sizeY;
+      var cellSize = cellSize;
+      var origin = origin;
+      var layers = Array.map<Text, InfluenceLayer>(layerNames, func(name : Text) : InfluenceLayer {
+        {
+          layerName = name;
+          var values = Array.tabulate<[var Float]>(sizeX, func(_ : Nat) : [var Float] {
+            Array.init<Float>(sizeY, 0.0)
+          });
+          decay = 0.1;
+          momentum = 0.5;
+          propagation = #Gaussian;
+          weight = 1.0;
+        }
+      });
+      var combinedMap = Array.tabulate<[var Float]>(sizeX, func(_ : Nat) : [var Float] {
+        Array.init<Float>(sizeY, 0.0)
+      });
+    }
+  };
+
+  /// Add influence at position
+  public func addInfluence(
+    map : InfluenceMapState,
+    layerName : Text,
+    worldPos : Vector3,
+    value : Float,
+    radius : Float
+  ) : () {
+    let cellX = Int.abs(Float.toInt((worldPos.x - map.origin.x) / map.cellSize));
+    let cellY = Int.abs(Float.toInt((worldPos.z - map.origin.z) / map.cellSize));
+    let cellRadius = Int.abs(Float.toInt(radius / map.cellSize));
+    
+    for (layer in map.layers.vals()) {
+      if (layer.layerName == layerName) {
+        for (x in Iter.range(0, map.gridSizeX - 1)) {
+          for (y in Iter.range(0, map.gridSizeY - 1)) {
+            let dx = Float.fromInt(Int.abs(x - cellX));
+            let dy = Float.fromInt(Int.abs(y - cellY));
+            let dist = Float.sqrt(dx * dx + dy * dy);
+            
+            if (dist <= Float.fromInt(cellRadius)) {
+              let influence = switch (layer.propagation) {
+                case (#Linear) {
+                  value * (1.0 - dist / Float.fromInt(cellRadius))
+                };
+                case (#Exponential) {
+                  value * Float.exp(-dist * layer.decay)
+                };
+                case (#Gaussian) {
+                  let sigma = Float.fromInt(cellRadius) / 3.0;
+                  value * Float.exp(-(dist * dist) / (2.0 * sigma * sigma))
+                };
+                case (#None) {
+                  if (dist < 1.0) value else 0.0
+                };
+              };
+              
+              layer.values[x][y] += influence;
+            };
+          };
+        };
+      };
+    };
+  };
+
+  /// Update influence map (decay and propagation)
+  public func updateInfluenceMap(map : InfluenceMapState, dt : Float) : () {
+    // Update each layer
+    for (layer in map.layers.vals()) {
+      // Apply decay
+      for (x in Iter.range(0, map.gridSizeX - 1)) {
+        for (y in Iter.range(0, map.gridSizeY - 1)) {
+          layer.values[x][y] *= (1.0 - layer.decay * dt);
+        };
+      };
+      
+      // Propagate (blur)
+      let newValues = Array.tabulate<[var Float]>(map.gridSizeX, func(x : Nat) : [var Float] {
+        Array.tabulate<var Float>(map.gridSizeY, func(y : Nat) : Float {
+          var sum = layer.values[x][y];
+          var count = 1.0;
+          
+          // 4-connected neighbors
+          if (x > 0) { sum += layer.values[x - 1][y] * layer.momentum; count += layer.momentum };
+          if (x + 1 < map.gridSizeX) { sum += layer.values[x + 1][y] * layer.momentum; count += layer.momentum };
+          if (y > 0) { sum += layer.values[x][y - 1] * layer.momentum; count += layer.momentum };
+          if (y + 1 < map.gridSizeY) { sum += layer.values[x][y + 1] * layer.momentum; count += layer.momentum };
+          
+          sum / count
+        })
+      });
+      
+      // Copy back
+      for (x in Iter.range(0, map.gridSizeX - 1)) {
+        for (y in Iter.range(0, map.gridSizeY - 1)) {
+          layer.values[x][y] := newValues[x][y];
+        };
+      };
+    };
+    
+    // Combine layers
+    for (x in Iter.range(0, map.gridSizeX - 1)) {
+      for (y in Iter.range(0, map.gridSizeY - 1)) {
+        var combined = 0.0;
+        for (layer in map.layers.vals()) {
+          combined += layer.values[x][y] * layer.weight;
+        };
+        map.combinedMap[x][y] := combined;
+      };
+    };
+  };
+
+  /// Query influence at position
+  public func queryInfluence(
+    map : InfluenceMapState,
+    worldPos : Vector3,
+    layerName : ?Text
+  ) : Float {
+    let cellX = Int.abs(Float.toInt((worldPos.x - map.origin.x) / map.cellSize));
+    let cellY = Int.abs(Float.toInt((worldPos.z - map.origin.z) / map.cellSize));
+    
+    if (cellX < 0 or cellX >= map.gridSizeX or cellY < 0 or cellY >= map.gridSizeY) {
+      return 0.0;
+    };
+    
+    switch (layerName) {
+      case (?name) {
+        for (layer in map.layers.vals()) {
+          if (layer.layerName == name) {
+            return layer.values[cellX][cellY];
+          };
+        };
+        0.0
+      };
+      case (null) {
+        map.combinedMap[cellX][cellY]
+      };
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SPATIAL HASHING FOR COLLISION DETECTION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Spatial hash state
+  public type SpatialHashState = {
+    var cells : [(Int, [Nat32])];  // (cellHash, entityIds)
+    cellSize : Float;
+    var entityPositions : [(Nat32, Vector3)];
+    var entityBounds : [(Nat32, AABB)];
+  };
+
+  public type AABB = {
+    min : Vector3;
+    max : Vector3;
+  };
+
+  /// Initialize spatial hash
+  public func initSpatialHash(cellSize : Float) : SpatialHashState {
+    {
+      var cells = [];
+      cellSize = cellSize;
+      var entityPositions = [];
+      var entityBounds = [];
+    }
+  };
+
+  /// Compute cell hash from position
+  func computeCellHash(pos : Vector3, cellSize : Float) : Int {
+    let x = Float.toInt(Float.floor(pos.x / cellSize));
+    let y = Float.toInt(Float.floor(pos.y / cellSize));
+    let z = Float.toInt(Float.floor(pos.z / cellSize));
+    
+    // Simple hash combining
+    x * 73856093 + y * 19349663 + z * 83492791
+  };
+
+  /// Insert entity into spatial hash
+  public func insertEntity(
+    hash : SpatialHashState,
+    entityId : Nat32,
+    position : Vector3,
+    bounds : AABB
+  ) : () {
+    // Calculate cells covered by AABB
+    let minCell = {
+      x = Float.toInt(Float.floor(bounds.min.x / hash.cellSize));
+      y = Float.toInt(Float.floor(bounds.min.y / hash.cellSize));
+      z = Float.toInt(Float.floor(bounds.min.z / hash.cellSize));
+    };
+    let maxCell = {
+      x = Float.toInt(Float.floor(bounds.max.x / hash.cellSize));
+      y = Float.toInt(Float.floor(bounds.max.y / hash.cellSize));
+      z = Float.toInt(Float.floor(bounds.max.z / hash.cellSize));
+    };
+    
+    // Insert into all covered cells
+    var x = minCell.x;
+    while (x <= maxCell.x) {
+      var y = minCell.y;
+      while (y <= maxCell.y) {
+        var z = minCell.z;
+        while (z <= maxCell.z) {
+          let cellHash = x * 73856093 + y * 19349663 + z * 83492791;
+          
+          var found = false;
+          hash.cells := Array.map<(Int, [Nat32]), (Int, [Nat32])>(hash.cells, func((h, entities) : (Int, [Nat32])) : (Int, [Nat32]) {
+            if (h == cellHash) {
+              found := true;
+              (h, Array.append(entities, [entityId]))
+            } else {
+              (h, entities)
+            }
+          });
+          
+          if (not found) {
+            hash.cells := Array.append(hash.cells, [(cellHash, [entityId])]);
+          };
+          
+          z += 1;
+        };
+        y += 1;
+      };
+      x += 1;
+    };
+    
+    // Store entity data
+    hash.entityPositions := Array.append(hash.entityPositions, [(entityId, position)]);
+    hash.entityBounds := Array.append(hash.entityBounds, [(entityId, bounds)]);
+  };
+
+  /// Query nearby entities
+  public func queryNearby(
+    hash : SpatialHashState,
+    position : Vector3,
+    radius : Float
+  ) : [Nat32] {
+    let minCell = {
+      x = Float.toInt(Float.floor((position.x - radius) / hash.cellSize));
+      y = Float.toInt(Float.floor((position.y - radius) / hash.cellSize));
+      z = Float.toInt(Float.floor((position.z - radius) / hash.cellSize));
+    };
+    let maxCell = {
+      x = Float.toInt(Float.floor((position.x + radius) / hash.cellSize));
+      y = Float.toInt(Float.floor((position.y + radius) / hash.cellSize));
+      z = Float.toInt(Float.floor((position.z + radius) / hash.cellSize));
+    };
+    
+    var candidates : [Nat32] = [];
+    var seen : [Nat32] = [];
+    
+    var x = minCell.x;
+    while (x <= maxCell.x) {
+      var y = minCell.y;
+      while (y <= maxCell.y) {
+        var z = minCell.z;
+        while (z <= maxCell.z) {
+          let cellHash = x * 73856093 + y * 19349663 + z * 83492791;
+          
+          for ((h, entities) in hash.cells.vals()) {
+            if (h == cellHash) {
+              for (entityId in entities.vals()) {
+                var alreadySeen = false;
+                for (s in seen.vals()) {
+                  if (s == entityId) alreadySeen := true;
+                };
+                if (not alreadySeen) {
+                  seen := Array.append(seen, [entityId]);
+                  
+                  // Check actual distance
+                  for ((id, pos) in hash.entityPositions.vals()) {
+                    if (id == entityId) {
+                      let dist = magnitudeVector3(subtractVector3(pos, position));
+                      if (dist <= radius) {
+                        candidates := Array.append(candidates, [entityId]);
+                      };
+                    };
+                  };
+                };
+              };
+            };
+          };
+          
+          z += 1;
+        };
+        y += 1;
+      };
+      x += 1;
+    };
+    
+    candidates
+  };
+
+  /// Check AABB overlap
+  public func aabbOverlap(a : AABB, b : AABB) : Bool {
+    a.min.x <= b.max.x and a.max.x >= b.min.x and
+    a.min.y <= b.max.y and a.max.y >= b.min.y and
+    a.min.z <= b.max.z and a.max.z >= b.min.z
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // FORMATION SYSTEM
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Formation state
+  public type FormationState = {
+    formationId : Text;
+    formationType : FormationType;
+    var leaderPosition : Vector3;
+    var leaderOrientation : Float;  // Yaw
+    var slots : [FormationSlot];
+    spacing : Float;
+    var isMoving : Bool;
+  };
+
+  public type FormationType = {
+    #Line;
+    #Column;
+    #Wedge;
+    #Vee;
+    #Echelon : EchelonDirection;
+    #Circle;
+    #Box;
+    #Staggered;
+    #Custom : [[Float]];  // Relative positions
+  };
+
+  public type EchelonDirection = {
+    #Left;
+    #Right;
+  };
+
+  public type FormationSlot = {
+    slotIndex : Nat;
+    var assignedEntity : ?Nat32;
+    relativePosition : Vector3;
+    var worldPosition : Vector3;
+    var isOccupied : Bool;
+  };
+
+  /// Generate formation slots
+  public func generateFormationSlots(
+    formationType : FormationType,
+    numSlots : Nat,
+    spacing : Float
+  ) : [FormationSlot] {
+    var slots : [FormationSlot] = [];
+    
+    switch (formationType) {
+      case (#Line) {
+        for (i in Iter.range(0, numSlots - 1)) {
+          let offset = Float.fromInt(i) - Float.fromInt(numSlots - 1) / 2.0;
+          slots := Array.append(slots, [{
+            slotIndex = i;
+            var assignedEntity = null;
+            relativePosition = {x = offset * spacing; y = 0.0; z = 0.0};
+            var worldPosition = {x = 0.0; y = 0.0; z = 0.0};
+            var isOccupied = false;
+          }]);
+        };
+      };
+      
+      case (#Column) {
+        for (i in Iter.range(0, numSlots - 1)) {
+          slots := Array.append(slots, [{
+            slotIndex = i;
+            var assignedEntity = null;
+            relativePosition = {x = 0.0; y = 0.0; z = -Float.fromInt(i) * spacing};
+            var worldPosition = {x = 0.0; y = 0.0; z = 0.0};
+            var isOccupied = false;
+          }]);
+        };
+      };
+      
+      case (#Wedge) {
+        slots := Array.append(slots, [{
+          slotIndex = 0;
+          var assignedEntity = null;
+          relativePosition = {x = 0.0; y = 0.0; z = 0.0};
+          var worldPosition = {x = 0.0; y = 0.0; z = 0.0};
+          var isOccupied = false;
+        }]);
+        
+        for (i in Iter.range(1, numSlots - 1)) {
+          let row = (i + 1) / 2;
+          let side = if (i % 2 == 1) 1.0 else -1.0;
+          slots := Array.append(slots, [{
+            slotIndex = i;
+            var assignedEntity = null;
+            relativePosition = {
+              x = side * Float.fromInt(row) * spacing;
+              y = 0.0;
+              z = -Float.fromInt(row) * spacing;
+            };
+            var worldPosition = {x = 0.0; y = 0.0; z = 0.0};
+            var isOccupied = false;
+          }]);
+        };
+      };
+      
+      case (#Circle) {
+        for (i in Iter.range(0, numSlots - 1)) {
+          let angle = 2.0 * π * Float.fromInt(i) / Float.fromInt(numSlots);
+          let radius = spacing * Float.fromInt(numSlots) / (2.0 * π);
+          slots := Array.append(slots, [{
+            slotIndex = i;
+            var assignedEntity = null;
+            relativePosition = {
+              x = radius * Float.cos(angle);
+              y = 0.0;
+              z = radius * Float.sin(angle);
+            };
+            var worldPosition = {x = 0.0; y = 0.0; z = 0.0};
+            var isOccupied = false;
+          }]);
+        };
+      };
+      
+      case (#Echelon(dir)) {
+        let sideMult = switch (dir) { case (#Left) -1.0; case (#Right) 1.0 };
+        for (i in Iter.range(0, numSlots - 1)) {
+          slots := Array.append(slots, [{
+            slotIndex = i;
+            var assignedEntity = null;
+            relativePosition = {
+              x = sideMult * Float.fromInt(i) * spacing;
+              y = 0.0;
+              z = -Float.fromInt(i) * spacing;
+            };
+            var worldPosition = {x = 0.0; y = 0.0; z = 0.0};
+            var isOccupied = false;
+          }]);
+        };
+      };
+      
+      case _ {
+        // Default to line
+        for (i in Iter.range(0, numSlots - 1)) {
+          let offset = Float.fromInt(i) - Float.fromInt(numSlots - 1) / 2.0;
+          slots := Array.append(slots, [{
+            slotIndex = i;
+            var assignedEntity = null;
+            relativePosition = {x = offset * spacing; y = 0.0; z = 0.0};
+            var worldPosition = {x = 0.0; y = 0.0; z = 0.0};
+            var isOccupied = false;
+          }]);
+        };
+      };
+    };
+    
+    slots
+  };
+
+  /// Update formation world positions
+  public func updateFormation(formation : FormationState) : () {
+    let cosYaw = Float.cos(formation.leaderOrientation);
+    let sinYaw = Float.sin(formation.leaderOrientation);
+    
+    for (slot in formation.slots.vals()) {
+      // Rotate relative position by leader orientation
+      let rotatedX = slot.relativePosition.x * cosYaw - slot.relativePosition.z * sinYaw;
+      let rotatedZ = slot.relativePosition.x * sinYaw + slot.relativePosition.z * cosYaw;
+      
+      slot.worldPosition := {
+        x = formation.leaderPosition.x + rotatedX;
+        y = formation.leaderPosition.y + slot.relativePosition.y;
+        z = formation.leaderPosition.z + rotatedZ;
+      };
+    };
+  };
+
+  /// Find best slot for entity to join
+  public func findBestSlot(formation : FormationState, entityPos : Vector3) : ?Nat {
+    var bestSlot : ?Nat = null;
+    var bestDist = 1e10;
+    
+    for (slot in formation.slots.vals()) {
+      if (not slot.isOccupied) {
+        let dist = magnitudeVector3(subtractVector3(slot.worldPosition, entityPos));
+        if (dist < bestDist) {
+          bestDist := dist;
+          bestSlot := ?slot.slotIndex;
+        };
+      };
+    };
+    
+    bestSlot
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // STEERING BEHAVIORS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Steering output
+  public type SteeringOutput = {
+    linear : Vector3;
+    angular : Float;
+  };
+
+  /// Seek behavior
+  public func seek(
+    position : Vector3,
+    target : Vector3,
+    maxSpeed : Float
+  ) : Vector3 {
+    let desired = subtractVector3(target, position);
+    let dist = magnitudeVector3(desired);
+    
+    if (dist > 0.0) {
+      scaleVector3(desired, maxSpeed / dist)
+    } else {
+      {x = 0.0; y = 0.0; z = 0.0}
+    }
+  };
+
+  /// Flee behavior
+  public func flee(
+    position : Vector3,
+    threat : Vector3,
+    maxSpeed : Float
+  ) : Vector3 {
+    let desired = subtractVector3(position, threat);
+    let dist = magnitudeVector3(desired);
+    
+    if (dist > 0.0) {
+      scaleVector3(desired, maxSpeed / dist)
+    } else {
+      {x = 0.0; y = 0.0; z = 0.0}
+    }
+  };
+
+  /// Arrive behavior
+  public func arrive(
+    position : Vector3,
+    target : Vector3,
+    maxSpeed : Float,
+    slowRadius : Float
+  ) : Vector3 {
+    let desired = subtractVector3(target, position);
+    let dist = magnitudeVector3(desired);
+    
+    if (dist < 0.1) {
+      return {x = 0.0; y = 0.0; z = 0.0};
+    };
+    
+    let speed = if (dist < slowRadius) {
+      maxSpeed * dist / slowRadius
+    } else {
+      maxSpeed
+    };
+    
+    scaleVector3(desired, speed / dist)
+  };
+
+  /// Pursue behavior
+  public func pursue(
+    position : Vector3,
+    targetPosition : Vector3,
+    targetVelocity : Vector3,
+    maxSpeed : Float
+  ) : Vector3 {
+    let toTarget = subtractVector3(targetPosition, position);
+    let dist = magnitudeVector3(toTarget);
+    
+    // Estimate time to intercept
+    let t = dist / maxSpeed;
+    
+    // Predict target position
+    let predictedPos = addVector3(targetPosition, scaleVector3(targetVelocity, t));
+    
+    seek(position, predictedPos, maxSpeed)
+  };
+
+  /// Evade behavior
+  public func evade(
+    position : Vector3,
+    threatPosition : Vector3,
+    threatVelocity : Vector3,
+    maxSpeed : Float
+  ) : Vector3 {
+    let toThreat = subtractVector3(threatPosition, position);
+    let dist = magnitudeVector3(toThreat);
+    
+    let t = dist / maxSpeed;
+    let predictedPos = addVector3(threatPosition, scaleVector3(threatVelocity, t));
+    
+    flee(position, predictedPos, maxSpeed)
+  };
+
+  /// Wander behavior
+  public func wander(
+    position : Vector3,
+    forward : Vector3,
+    wanderRadius : Float,
+    wanderDistance : Float,
+    wanderJitter : Float,
+    var wanderTarget : Vector3
+  ) : Vector3 {
+    // Add jitter to wander target
+    wanderTarget := addVector3(wanderTarget, {
+      x = (randomFloat() - 0.5) * 2.0 * wanderJitter;
+      y = 0.0;
+      z = (randomFloat() - 0.5) * 2.0 * wanderJitter;
+    });
+    
+    // Project onto circle
+    let mag = magnitudeVector3(wanderTarget);
+    if (mag > 0.0) {
+      wanderTarget := scaleVector3(wanderTarget, wanderRadius / mag);
+    };
+    
+    // Move circle in front of agent
+    let circleCenter = addVector3(position, scaleVector3(forward, wanderDistance));
+    let targetPos = addVector3(circleCenter, wanderTarget);
+    
+    subtractVector3(targetPos, position)
+  };
+
+  /// Obstacle avoidance
+  public func obstacleAvoidance(
+    position : Vector3,
+    velocity : Vector3,
+    obstacles : [AABB],
+    avoidDistance : Float
+  ) : Vector3 {
+    let ahead = addVector3(position, scaleVector3(velocity, avoidDistance));
+    let ahead2 = addVector3(position, scaleVector3(velocity, avoidDistance * 0.5));
+    
+    var mostThreatening : ?AABB = null;
+    var minDist = 1e10;
+    
+    for (obstacle in obstacles.vals()) {
+      let center = {
+        x = (obstacle.min.x + obstacle.max.x) * 0.5;
+        y = (obstacle.min.y + obstacle.max.y) * 0.5;
+        z = (obstacle.min.z + obstacle.max.z) * 0.5;
+      };
+      let radius = magnitudeVector3(subtractVector3(obstacle.max, center));
+      
+      // Check if ahead or ahead2 is inside obstacle
+      let dist1 = magnitudeVector3(subtractVector3(ahead, center));
+      let dist2 = magnitudeVector3(subtractVector3(ahead2, center));
+      let distPos = magnitudeVector3(subtractVector3(position, center));
+      
+      if (dist1 < radius or dist2 < radius) {
+        if (distPos < minDist) {
+          minDist := distPos;
+          mostThreatening := ?obstacle;
+        };
+      };
+    };
+    
+    switch (mostThreatening) {
+      case (?obstacle) {
+        let center = {
+          x = (obstacle.min.x + obstacle.max.x) * 0.5;
+          y = (obstacle.min.y + obstacle.max.y) * 0.5;
+          z = (obstacle.min.z + obstacle.max.z) * 0.5;
+        };
+        subtractVector3(ahead, center)
+      };
+      case (null) {
+        {x = 0.0; y = 0.0; z = 0.0}
+      };
+    }
+  };
+
+  /// Separation behavior
+  public func separation(
+    position : Vector3,
+    neighbors : [Vector3],
+    separationRadius : Float
+  ) : Vector3 {
+    var force = {x = 0.0; y = 0.0; z = 0.0};
+    var count = 0;
+    
+    for (neighbor in neighbors.vals()) {
+      let toAgent = subtractVector3(position, neighbor);
+      let dist = magnitudeVector3(toAgent);
+      
+      if (dist > 0.0 and dist < separationRadius) {
+        force := addVector3(force, scaleVector3(toAgent, 1.0 / dist));
+        count += 1;
+      };
+    };
+    
+    if (count > 0) {
+      scaleVector3(force, 1.0 / Float.fromInt(count))
+    } else {
+      force
+    }
+  };
+
+  /// Cohesion behavior
+  public func cohesion(
+    position : Vector3,
+    neighbors : [Vector3]
+  ) : Vector3 {
+    if (neighbors.size() == 0) return {x = 0.0; y = 0.0; z = 0.0};
+    
+    var centerOfMass = {x = 0.0; y = 0.0; z = 0.0};
+    
+    for (neighbor in neighbors.vals()) {
+      centerOfMass := addVector3(centerOfMass, neighbor);
+    };
+    
+    centerOfMass := scaleVector3(centerOfMass, 1.0 / Float.fromInt(neighbors.size()));
+    
+    subtractVector3(centerOfMass, position)
+  };
+
+  /// Alignment behavior
+  public func alignment(
+    velocity : Vector3,
+    neighborVelocities : [Vector3]
+  ) : Vector3 {
+    if (neighborVelocities.size() == 0) return {x = 0.0; y = 0.0; z = 0.0};
+    
+    var avgVelocity = {x = 0.0; y = 0.0; z = 0.0};
+    
+    for (v in neighborVelocities.vals()) {
+      avgVelocity := addVector3(avgVelocity, v);
+    };
+    
+    avgVelocity := scaleVector3(avgVelocity, 1.0 / Float.fromInt(neighborVelocities.size()));
+    
+    subtractVector3(avgVelocity, velocity)
+  };
+
   // Continue building toward 150,000 lines...
-  // Current: ~14,500 lines
-  // Remaining: ~135,500 lines
+  // Current: ~15,500 lines
+  // Remaining: ~134,500 lines
 
 }
