@@ -42114,8 +42114,1247 @@ module {
     factId
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 62: CHIMERA PREDICTIVE THREAT ENGINE
+  // Sovereign foresight through pattern recognition and trajectory prediction
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Predictive Threat Engine State
+  public type PredictiveThreatState = {
+    var trackDatabase : [TrackedEntity];
+    var trajectoryModels : [TrajectoryModel];
+    var intentPredictor : IntentPredictor;
+    var collisionDetector : CollisionDetector;
+    var warningSystem : EarlyWarningSystem;
+  };
+
+  public type TrackedEntity = {
+    trackId : Text;
+    var position : Vector3D;
+    var velocity : Vector3D;
+    var acceleration : Vector3D;
+    var positionHistory : [TimestampedPosition];
+    var classification : EntityClassification;
+    var confidence : Float;
+    var lastUpdate : Int;
+    var predictedPath : [Vector3D];
+  };
+
+  public type TimestampedPosition = {
+    position : Vector3D;
+    velocity : Vector3D;
+    timestamp : Int;
+  };
+
+  public type EntityClassification = {
+    #Aircraft;
+    #Missile;
+    #Vehicle;
+    #Personnel;
+    #Drone;
+    #Ship;
+    #Submarine;
+    #Satellite;
+    #Unknown;
+  };
+
+  public type TrajectoryModel = {
+    modelId : Text;
+    entityType : EntityClassification;
+    var parameters : [Float];
+    var accuracy : Float;
+    modelType : TrajectoryModelType;
+  };
+
+  public type TrajectoryModelType = {
+    #Linear;
+    #Ballistic;
+    #Maneuvering;
+    #Orbital;
+    #ConstantTurn;
+    #Singer;
+    #IMM;  // Interacting Multiple Model
+  };
+
+  public type IntentPredictor = {
+    var threatIntents : [ThreatIntent];
+    var behaviorPatterns : [BehaviorPattern];
+    var intentConfidence : Float;
+  };
+
+  public type ThreatIntent = {
+    intentId : Text;
+    trackId : Text;
+    intentType : IntentType;
+    var probability : Float;
+    var targetId : ?Text;
+    var estimatedTimeToAction : Float;
+  };
+
+  public type IntentType = {
+    #Attack;
+    #Surveillance;
+    #Evasion;
+    #Intercept;
+    #Support;
+    #Patrol;
+    #Unknown;
+  };
+
+  public type BehaviorPattern = {
+    patternId : Text;
+    indicators : [Text];
+    var frequency : Nat;
+    associatedIntent : IntentType;
+  };
+
+  public type CollisionDetector = {
+    var potentialCollisions : [CollisionPrediction];
+    var missDistanceThreshold : Float;
+    var timeHorizon : Float;
+  };
+
+  public type CollisionPrediction = {
+    predictionId : Text;
+    track1Id : Text;
+    track2Id : Text;
+    var timeToCollision : Float;
+    var missDistance : Float;
+    var probability : Float;
+    var closestApproachPoint : Vector3D;
+  };
+
+  public type EarlyWarningSystem = {
+    var activeWarnings : [Warning];
+    var warningThresholds : [(WarningType, Float)];
+    var escalationRules : [EscalationRule];
+  };
+
+  public type Warning = {
+    warningId : Text;
+    warningType : WarningType;
+    severity : WarningSeverity;
+    sourceTrackId : Text;
+    var acknowledged : Bool;
+    timestamp : Int;
+    message : Text;
+  };
+
+  public type WarningType = {
+    #IncomingMissile;
+    #AircraftApproach;
+    #GroundThreat;
+    #Electronic;
+    #Collision;
+    #Boundary;
+    #Resource;
+  };
+
+  public type WarningSeverity = {
+    #Advisory;
+    #Caution;
+    #Warning;
+    #Critical;
+    #Emergency;
+  };
+
+  public type EscalationRule = {
+    ruleId : Text;
+    fromSeverity : WarningSeverity;
+    toSeverity : WarningSeverity;
+    condition : Text;
+    timeThreshold : Float;
+  };
+
+  /// Initialize predictive threat engine
+  public func initPredictiveThreat() : PredictiveThreatState {
+    // Initialize trajectory models
+    var models : [TrajectoryModel] = [];
+    let modelTypes : [TrajectoryModelType] = [#Linear, #Ballistic, #Maneuvering, #Orbital, #ConstantTurn, #Singer, #IMM];
+    let entityTypes : [EntityClassification] = [#Aircraft, #Missile, #Vehicle, #Drone, #Ship];
+    
+    for (i in Iter.range(0, entityTypes.size() - 1)) {
+      for (j in Iter.range(0, modelTypes.size() - 1)) {
+        let model : TrajectoryModel = {
+          modelId = "model_" # Nat.toText(i) # "_" # Nat.toText(j);
+          entityType = entityTypes[i];
+          var parameters = Array.tabulate<Float>(10, func(k : Nat) : Float {
+            Float.sin(Float.fromInt(i * 10 + j * 5 + k)) * 0.5 + 0.5
+          });
+          var accuracy = 0.8;
+          modelType = modelTypes[j];
+        };
+        models := Array.append(models, [model]);
+      };
+    };
+    
+    // Initialize warning thresholds
+    let thresholds : [(WarningType, Float)] = [
+      (#IncomingMissile, 30.0),
+      (#AircraftApproach, 60.0),
+      (#GroundThreat, 120.0),
+      (#Electronic, 10.0),
+      (#Collision, 15.0),
+      (#Boundary, 300.0),
+      (#Resource, 600.0)
+    ];
+    
+    {
+      var trackDatabase = [];
+      var trajectoryModels = models;
+      var intentPredictor = {
+        var threatIntents = [];
+        var behaviorPatterns = [];
+        var intentConfidence = 0.0;
+      };
+      var collisionDetector = {
+        var potentialCollisions = [];
+        var missDistanceThreshold = 100.0;
+        var timeHorizon = 300.0;
+      };
+      var warningSystem = {
+        var activeWarnings = [];
+        var warningThresholds = thresholds;
+        var escalationRules = [];
+      };
+    }
+  };
+
+  /// Update track with new observation
+  public func updateTrack(
+    threat : PredictiveThreatState,
+    trackId : Text,
+    position : Vector3D,
+    velocity : Vector3D
+  ) : () {
+    let now = Time.now();
+    
+    // Find existing track
+    var found = false;
+    for (track in threat.trackDatabase.vals()) {
+      if (track.trackId == trackId) {
+        found := true;
+        
+        // Update acceleration from velocity change
+        let dt = Float.fromInt(Int.abs(now - track.lastUpdate)) / 1000000000.0;
+        if (dt > 0.0) {
+          track.acceleration := {
+            x = (velocity.x - track.velocity.x) / dt;
+            y = (velocity.y - track.velocity.y) / dt;
+            z = (velocity.z - track.velocity.z) / dt;
+          };
+        };
+        
+        // Store history
+        track.positionHistory := Array.append(track.positionHistory, [{
+          position = track.position;
+          velocity = track.velocity;
+          timestamp = track.lastUpdate;
+        }]);
+        
+        // Keep only last 100 positions
+        if (track.positionHistory.size() > 100) {
+          track.positionHistory := Array.tabulate<TimestampedPosition>(100, func(i : Nat) : TimestampedPosition {
+            track.positionHistory[track.positionHistory.size() - 100 + i]
+          });
+        };
+        
+        // Update current state
+        track.position := position;
+        track.velocity := velocity;
+        track.lastUpdate := now;
+        
+        // Predict future path
+        track.predictedPath := predictTrajectory(threat, track, 10);
+      };
+    };
+    
+    // Create new track if not found
+    if (not found) {
+      let newTrack : TrackedEntity = {
+        trackId = trackId;
+        var position = position;
+        var velocity = velocity;
+        var acceleration = {x = 0.0; y = 0.0; z = 0.0};
+        var positionHistory = [{position = position; velocity = velocity; timestamp = now}];
+        var classification = #Unknown;
+        var confidence = 0.5;
+        var lastUpdate = now;
+        var predictedPath = [];
+      };
+      threat.trackDatabase := Array.append(threat.trackDatabase, [newTrack]);
+    };
+  };
+
+  /// Predict trajectory for track
+  public func predictTrajectory(
+    threat : PredictiveThreatState,
+    track : TrackedEntity,
+    numSteps : Nat
+  ) : [Vector3D] {
+    var predictions : [Vector3D] = [];
+    let dt = 1.0;  // 1 second steps
+    
+    var pos = track.position;
+    var vel = track.velocity;
+    let acc = track.acceleration;
+    
+    for (_ in Iter.range(0, numSteps - 1)) {
+      // Simple kinematic prediction
+      pos := {
+        x = pos.x + vel.x * dt + 0.5 * acc.x * dt * dt;
+        y = pos.y + vel.y * dt + 0.5 * acc.y * dt * dt;
+        z = pos.z + vel.z * dt + 0.5 * acc.z * dt * dt;
+      };
+      vel := {
+        x = vel.x + acc.x * dt;
+        y = vel.y + acc.y * dt;
+        z = vel.z + acc.z * dt;
+      };
+      predictions := Array.append(predictions, [pos]);
+    };
+    
+    predictions
+  };
+
+  /// Predict intent from behavior
+  public func predictIntent(threat : PredictiveThreatState, trackId : Text) : ?ThreatIntent {
+    // Find track
+    var trackOpt : ?TrackedEntity = null;
+    for (t in threat.trackDatabase.vals()) {
+      if (t.trackId == trackId) {
+        trackOpt := ?t;
+      };
+    };
+    
+    switch (trackOpt) {
+      case (null) { return null };
+      case (?track) {
+        // Analyze behavior patterns
+        let speed = Float.sqrt(
+          track.velocity.x * track.velocity.x +
+          track.velocity.y * track.velocity.y +
+          track.velocity.z * track.velocity.z
+        );
+        
+        let accelMag = Float.sqrt(
+          track.acceleration.x * track.acceleration.x +
+          track.acceleration.y * track.acceleration.y +
+          track.acceleration.z * track.acceleration.z
+        );
+        
+        // Simple intent classification
+        let intentType = 
+          if (accelMag > 50.0) #Evasion
+          else if (speed > 500.0) #Attack
+          else if (speed > 200.0) #Intercept
+          else if (speed > 50.0) #Patrol
+          else #Surveillance;
+        
+        let intent : ThreatIntent = {
+          intentId = "intent_" # trackId # "_" # Int.toText(Time.now());
+          trackId = trackId;
+          intentType = intentType;
+          var probability = 0.6 + accelMag / 100.0 * 0.3;
+          var targetId = null;
+          var estimatedTimeToAction = 60.0 / (speed + 1.0);
+        };
+        
+        threat.intentPredictor.threatIntents := 
+          Array.append(threat.intentPredictor.threatIntents, [intent]);
+        
+        ?intent
+      };
+    }
+  };
+
+  /// Check for potential collisions
+  public func checkCollisions(threat : PredictiveThreatState) : [CollisionPrediction] {
+    var collisions : [CollisionPrediction] = [];
+    let numTracks = threat.trackDatabase.size();
+    
+    for (i in Iter.range(0, numTracks - 1)) {
+      for (j in Iter.range(i + 1, numTracks - 1)) {
+        if (i < numTracks and j < numTracks) {
+          let track1 = threat.trackDatabase[i];
+          let track2 = threat.trackDatabase[j];
+          
+          // Check each predicted position
+          let path1 = track1.predictedPath;
+          let path2 = track2.predictedPath;
+          
+          for (k in Iter.range(0, Int.min(path1.size() - 1, path2.size() - 1))) {
+            if (k < path1.size() and k < path2.size()) {
+              let dx = path1[k].x - path2[k].x;
+              let dy = path1[k].y - path2[k].y;
+              let dz = path1[k].z - path2[k].z;
+              let distance = Float.sqrt(dx*dx + dy*dy + dz*dz);
+              
+              if (distance < threat.collisionDetector.missDistanceThreshold) {
+                let collision : CollisionPrediction = {
+                  predictionId = "collision_" # Int.toText(Time.now()) # "_" # Nat.toText(k);
+                  track1Id = track1.trackId;
+                  track2Id = track2.trackId;
+                  var timeToCollision = Float.fromInt(k);
+                  var missDistance = distance;
+                  var probability = 1.0 - distance / threat.collisionDetector.missDistanceThreshold;
+                  var closestApproachPoint = {
+                    x = (path1[k].x + path2[k].x) / 2.0;
+                    y = (path1[k].y + path2[k].y) / 2.0;
+                    z = (path1[k].z + path2[k].z) / 2.0;
+                  };
+                };
+                collisions := Array.append(collisions, [collision]);
+              };
+            };
+          };
+        };
+      };
+    };
+    
+    threat.collisionDetector.potentialCollisions := collisions;
+    collisions
+  };
+
+  /// Generate warning
+  public func generateWarning(
+    threat : PredictiveThreatState,
+    warningType : WarningType,
+    severity : WarningSeverity,
+    sourceTrackId : Text,
+    message : Text
+  ) : Warning {
+    let warning : Warning = {
+      warningId = "warning_" # Int.toText(Time.now());
+      warningType = warningType;
+      severity = severity;
+      sourceTrackId = sourceTrackId;
+      var acknowledged = false;
+      timestamp = Time.now();
+      message = message;
+    };
+    
+    threat.warningSystem.activeWarnings := 
+      Array.append(threat.warningSystem.activeWarnings, [warning]);
+    
+    warning
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 63: CHIMERA ADAPTIVE BEHAVIOR SYSTEM
+  // Dynamic strategy adjustment based on environmental feedback
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Adaptive Behavior State
+  public type AdaptiveBehaviorState = {
+    var behaviorLibrary : [Behavior];
+    var activeBehaviors : [ActiveBehavior];
+    var adaptationEngine : AdaptationEngine;
+    var performanceMonitor : PerformanceMonitor;
+    var contextAnalyzer : ContextAnalyzer;
+  };
+
+  public type Behavior = {
+    behaviorId : Text;
+    name : Text;
+    behaviorType : BehaviorType;
+    var priority : Float;
+    var successRate : Float;
+    preconditions : [Precondition];
+    actions : [BehaviorAction];
+    postconditions : [Postcondition];
+  };
+
+  public type BehaviorType = {
+    #Reactive;
+    #Deliberative;
+    #Hybrid;
+    #Learning;
+    #Social;
+  };
+
+  public type Precondition = {
+    conditionId : Text;
+    conditionType : ConditionType;
+    threshold : Float;
+    operator : ComparisonOp;
+  };
+
+  public type ConditionType = {
+    #ThreatLevel;
+    #ResourceLevel;
+    #ProximityToGoal;
+    #TeamSize;
+    #TimeRemaining;
+    #EnvironmentalFactor;
+  };
+
+  public type ComparisonOp = {
+    #LessThan;
+    #GreaterThan;
+    #Equal;
+    #NotEqual;
+    #LessOrEqual;
+    #GreaterOrEqual;
+  };
+
+  public type BehaviorAction = {
+    actionId : Text;
+    actionType : ActionType;
+    parameters : [(Text, Float)];
+    duration : Float;
+  };
+
+  public type ActionType = {
+    #Move;
+    #Attack;
+    #Defend;
+    #Communicate;
+    #Sense;
+    #Wait;
+    #Cooperate;
+  };
+
+  public type Postcondition = {
+    conditionId : Text;
+    expectedOutcome : Text;
+    verificationMethod : Text;
+  };
+
+  public type ActiveBehavior = {
+    instanceId : Text;
+    behaviorId : Text;
+    var state : BehaviorState;
+    startTime : Int;
+    var progress : Float;
+    var reward : Float;
+  };
+
+  public type BehaviorState = {
+    #Pending;
+    #Running;
+    #Paused;
+    #Completed;
+    #Failed;
+    #Interrupted;
+  };
+
+  public type AdaptationEngine = {
+    var learningHistory : [AdaptationEvent];
+    var parameterSpace : [(Text, Float, Float)];  // (name, min, max)
+    var currentParameters : [(Text, Float)];
+    adaptationRate : Float;
+    var explorationFactor : Float;
+  };
+
+  public type AdaptationEvent = {
+    eventId : Text;
+    timestamp : Int;
+    parameterChanges : [(Text, Float, Float)];  // (name, old, new)
+    performanceDelta : Float;
+  };
+
+  public type PerformanceMonitor = {
+    var metrics : [PerformanceMetric];
+    var aggregatePerformance : Float;
+    var trend : Float;
+    windowSize : Nat;
+  };
+
+  public type PerformanceMetric = {
+    metricId : Text;
+    metricType : MetricType;
+    var value : Float;
+    var history : [Float];
+    weight : Float;
+  };
+
+  public type MetricType = {
+    #TaskCompletion;
+    #ResourceEfficiency;
+    #TimeEfficiency;
+    #Survivability;
+    #CooperationQuality;
+    #AdaptationSpeed;
+  };
+
+  public type ContextAnalyzer = {
+    var currentContext : Context;
+    var contextHistory : [Context];
+    var contextPatterns : [ContextPattern];
+  };
+
+  public type Context = {
+    contextId : Text;
+    timestamp : Int;
+    environmentalFactors : [(Text, Float)];
+    teamState : TeamState;
+    threatAssessment : Float;
+    missionProgress : Float;
+  };
+
+  public type TeamState = {
+    var memberCount : Nat;
+    var avgHealth : Float;
+    var avgResources : Float;
+    var cohesion : Float;
+    var morale : Float;
+  };
+
+  public type ContextPattern = {
+    patternId : Text;
+    indicators : [(Text, Float, Float)];  // (factor, min, max)
+    var frequency : Nat;
+    recommendedBehaviors : [Text];
+  };
+
+  /// Initialize adaptive behavior system
+  public func initAdaptiveBehavior() : AdaptiveBehaviorState {
+    // Create behavior library
+    var behaviors : [Behavior] = [];
+    
+    let behaviorDefs : [(Text, BehaviorType)] = [
+      ("patrol", #Reactive),
+      ("engage", #Deliberative),
+      ("evade", #Reactive),
+      ("regroup", #Social),
+      ("explore", #Hybrid),
+      ("defend", #Deliberative),
+      ("support", #Social),
+      ("adapt", #Learning)
+    ];
+    
+    for ((name, bType) in behaviorDefs.vals()) {
+      let behavior : Behavior = {
+        behaviorId = "behavior_" # name;
+        name = name;
+        behaviorType = bType;
+        var priority = 0.5;
+        var successRate = 0.8;
+        preconditions = [];
+        actions = [];
+        postconditions = [];
+      };
+      behaviors := Array.append(behaviors, [behavior]);
+    };
+    
+    // Initialize performance metrics
+    var metrics : [PerformanceMetric] = [];
+    let metricTypes : [MetricType] = [#TaskCompletion, #ResourceEfficiency, #TimeEfficiency, #Survivability, #CooperationQuality, #AdaptationSpeed];
+    
+    for (mType in metricTypes.vals()) {
+      let metric : PerformanceMetric = {
+        metricId = "metric_" # Int.toText(Time.now());
+        metricType = mType;
+        var value = 0.5;
+        var history = [];
+        weight = 1.0 / Float.fromInt(metricTypes.size());
+      };
+      metrics := Array.append(metrics, [metric]);
+    };
+    
+    {
+      var behaviorLibrary = behaviors;
+      var activeBehaviors = [];
+      var adaptationEngine = {
+        var learningHistory = [];
+        var parameterSpace = [
+          ("aggressiveness", 0.0, 1.0),
+          ("caution", 0.0, 1.0),
+          ("cooperativeness", 0.0, 1.0),
+          ("explorationRate", 0.0, 0.5)
+        ];
+        var currentParameters = [
+          ("aggressiveness", 0.5),
+          ("caution", 0.5),
+          ("cooperativeness", 0.5),
+          ("explorationRate", 0.1)
+        ];
+        adaptationRate = 0.01;
+        var explorationFactor = 0.1;
+      };
+      var performanceMonitor = {
+        var metrics = metrics;
+        var aggregatePerformance = 0.0;
+        var trend = 0.0;
+        windowSize = 100;
+      };
+      var contextAnalyzer = {
+        var currentContext = {
+          contextId = "initial";
+          timestamp = Time.now();
+          environmentalFactors = [];
+          teamState = {
+            var memberCount = 0;
+            var avgHealth = 1.0;
+            var avgResources = 1.0;
+            var cohesion = 1.0;
+            var morale = 1.0;
+          };
+          threatAssessment = 0.0;
+          missionProgress = 0.0;
+        };
+        var contextHistory = [];
+        var contextPatterns = [];
+      };
+    }
+  };
+
+  /// Activate behavior
+  public func activateBehavior(
+    adaptive : AdaptiveBehaviorState,
+    behaviorId : Text
+  ) : ?ActiveBehavior {
+    // Find behavior
+    var behaviorOpt : ?Behavior = null;
+    for (b in adaptive.behaviorLibrary.vals()) {
+      if (b.behaviorId == behaviorId) {
+        behaviorOpt := ?b;
+      };
+    };
+    
+    switch (behaviorOpt) {
+      case (null) { return null };
+      case (?behavior) {
+        let active : ActiveBehavior = {
+          instanceId = "active_" # behaviorId # "_" # Int.toText(Time.now());
+          behaviorId = behaviorId;
+          var state = #Running;
+          startTime = Time.now();
+          var progress = 0.0;
+          var reward = 0.0;
+        };
+        
+        adaptive.activeBehaviors := Array.append(adaptive.activeBehaviors, [active]);
+        ?active
+      };
+    }
+  };
+
+  /// Update behavior progress
+  public func updateBehaviorProgress(
+    adaptive : AdaptiveBehaviorState,
+    instanceId : Text,
+    progress : Float,
+    reward : Float
+  ) : () {
+    for (active in adaptive.activeBehaviors.vals()) {
+      if (active.instanceId == instanceId) {
+        active.progress := progress;
+        active.reward := reward;
+        
+        if (progress >= 1.0) {
+          active.state := #Completed;
+          
+          // Update behavior success rate
+          for (behavior in adaptive.behaviorLibrary.vals()) {
+            if (behavior.behaviorId == active.behaviorId) {
+              behavior.successRate := behavior.successRate * 0.9 + 
+                (if (reward > 0.0) 0.1 else 0.0);
+            };
+          };
+        };
+      };
+    };
+  };
+
+  /// Analyze context
+  public func analyzeContext(
+    adaptive : AdaptiveBehaviorState,
+    factors : [(Text, Float)],
+    team : TeamState,
+    threat : Float,
+    progress : Float
+  ) : Context {
+    let context : Context = {
+      contextId = "context_" # Int.toText(Time.now());
+      timestamp = Time.now();
+      environmentalFactors = factors;
+      teamState = team;
+      threatAssessment = threat;
+      missionProgress = progress;
+    };
+    
+    adaptive.contextAnalyzer.currentContext := context;
+    adaptive.contextAnalyzer.contextHistory := 
+      Array.append(adaptive.contextAnalyzer.contextHistory, [context]);
+    
+    // Keep only recent history
+    if (adaptive.contextAnalyzer.contextHistory.size() > 1000) {
+      adaptive.contextAnalyzer.contextHistory := Array.tabulate<Context>(1000, func(i : Nat) : Context {
+        adaptive.contextAnalyzer.contextHistory[adaptive.contextAnalyzer.contextHistory.size() - 1000 + i]
+      });
+    };
+    
+    context
+  };
+
+  /// Adapt parameters based on performance
+  public func adaptParameters(adaptive : AdaptiveBehaviorState) : () {
+    // Calculate current performance
+    var totalPerformance = 0.0;
+    var totalWeight = 0.0;
+    
+    for (metric in adaptive.performanceMonitor.metrics.vals()) {
+      totalPerformance += metric.value * metric.weight;
+      totalWeight += metric.weight;
+    };
+    
+    if (totalWeight > 0.0) {
+      let performance = totalPerformance / totalWeight;
+      let delta = performance - adaptive.performanceMonitor.aggregatePerformance;
+      
+      // Update trend
+      adaptive.performanceMonitor.trend := 
+        adaptive.performanceMonitor.trend * 0.9 + delta * 0.1;
+      adaptive.performanceMonitor.aggregatePerformance := performance;
+      
+      // Adapt if performance is declining
+      if (adaptive.performanceMonitor.trend < -0.01) {
+        // Increase exploration
+        adaptive.adaptationEngine.explorationFactor := 
+          Float.min(0.5, adaptive.adaptationEngine.explorationFactor * 1.1);
+        
+        // Perturb parameters
+        adaptive.adaptationEngine.currentParameters := Array.map<(Text, Float), (Text, Float)>(
+          adaptive.adaptationEngine.currentParameters,
+          func((name, value) : (Text, Float)) : (Text, Float) {
+            let perturbation = Float.sin(Float.fromInt(Time.now() |> Int.abs(_))) * 
+              adaptive.adaptationEngine.explorationFactor;
+            (name, Float.max(0.0, Float.min(1.0, value + perturbation)))
+          }
+        );
+        
+        // Record adaptation event
+        let event : AdaptationEvent = {
+          eventId = "adapt_" # Int.toText(Time.now());
+          timestamp = Time.now();
+          parameterChanges = [];
+          performanceDelta = delta;
+        };
+        adaptive.adaptationEngine.learningHistory := 
+          Array.append(adaptive.adaptationEngine.learningHistory, [event]);
+      } else if (adaptive.performanceMonitor.trend > 0.01) {
+        // Decrease exploration if improving
+        adaptive.adaptationEngine.explorationFactor := 
+          Float.max(0.01, adaptive.adaptationEngine.explorationFactor * 0.95);
+      };
+    };
+  };
+
+  /// Select best behavior for current context
+  public func selectBehavior(adaptive : AdaptiveBehaviorState) : ?Behavior {
+    var bestBehavior : ?Behavior = null;
+    var bestScore = 0.0;
+    
+    let context = adaptive.contextAnalyzer.currentContext;
+    
+    for (behavior in adaptive.behaviorLibrary.vals()) {
+      // Calculate behavior score based on context
+      var score = behavior.priority * behavior.successRate;
+      
+      // Adjust based on behavior type and context
+      switch (behavior.behaviorType) {
+        case (#Reactive) {
+          // Reactive behaviors are better for high threat
+          score *= (1.0 + context.threatAssessment * 0.5);
+        };
+        case (#Deliberative) {
+          // Deliberative behaviors need low threat
+          score *= (1.0 - context.threatAssessment * 0.3);
+        };
+        case (#Social) {
+          // Social behaviors benefit from team cohesion
+          score *= (1.0 + context.teamState.cohesion * 0.4);
+        };
+        case (#Learning) {
+          // Learning behaviors for novel situations
+          score *= (1.0 + adaptive.adaptationEngine.explorationFactor);
+        };
+        case (#Hybrid) {
+          // Hybrid behaviors are balanced
+        };
+      };
+      
+      if (score > bestScore) {
+        bestScore := score;
+        bestBehavior := ?behavior;
+      };
+    };
+    
+    bestBehavior
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHASE 64: CHIMERA MANEUVER GENERATION ENGINE
+  // Tactical movement patterns and formation dynamics
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Maneuver Generation State
+  public type ManeuverState = {
+    var maneuverLibrary : [ManeuverTemplate];
+    var activeManeuvers : [ActiveManeuver];
+    var waypointGenerator : WaypointGenerator;
+    var trajectoryOptimizer : TrajectoryOptimizer;
+    var terrainAnalyzer : TerrainAnalyzer;
+  };
+
+  public type ManeuverTemplate = {
+    maneuverId : Text;
+    name : Text;
+    maneuverType : ManeuverType;
+    waypoints : [RelativeWaypoint];
+    duration : Float;
+    parameters : [(Text, Float)];
+  };
+
+  public type ManeuverType = {
+    #Advance;
+    #Retreat;
+    #Flank;
+    #Encircle;
+    #Ambush;
+    #Diversion;
+    #Breakthrough;
+    #Withdrawal;
+    #Pursuit;
+    #Defense;
+  };
+
+  public type RelativeWaypoint = {
+    offsetX : Float;
+    offsetY : Float;
+    offsetZ : Float;
+    speedFactor : Float;
+    formationType : ?FormationType;
+  };
+
+  public type ActiveManeuver = {
+    instanceId : Text;
+    maneuverId : Text;
+    var currentWaypoint : Nat;
+    var progress : Float;
+    startPosition : Vector3D;
+    startTime : Int;
+    var units : [Text];
+    var status : ManeuverStatus;
+  };
+
+  public type ManeuverStatus = {
+    #Preparing;
+    #Executing;
+    #Completed;
+    #Aborted;
+    #Paused;
+  };
+
+  public type WaypointGenerator = {
+    var generatedPaths : [[Vector3D]];
+    var pathQuality : [Float];
+    algorithmType : PathAlgorithm;
+  };
+
+  public type PathAlgorithm = {
+    #AStar;
+    #RRT;
+    #PRM;
+    #Dijkstra;
+    #Potential;
+    #Hybrid;
+  };
+
+  public type TrajectoryOptimizer = {
+    var optimizedTrajectories : [Trajectory];
+    var constraints : [TrajectoryConstraint];
+    objectiveWeights : [(Text, Float)];
+  };
+
+  public type Trajectory = {
+    trajectoryId : Text;
+    points : [TrajectoryPoint];
+    var cost : Float;
+    var feasible : Bool;
+  };
+
+  public type TrajectoryPoint = {
+    position : Vector3D;
+    velocity : Vector3D;
+    time : Float;
+    heading : Float;
+  };
+
+  public type TrajectoryConstraint = {
+    constraintType : ConstraintType;
+    value : Float;
+    hardConstraint : Bool;
+  };
+
+  public type ConstraintType = {
+    #MaxSpeed;
+    #MaxAcceleration;
+    #MinAltitude;
+    #MaxAltitude;
+    #ObstacleDistance;
+    #TurnRadius;
+    #TimeLimit;
+  };
+
+  public type TerrainAnalyzer = {
+    var elevationMap : [[Float]];
+    var obstacleMap : [[Bool]];
+    var coverMap : [[Float]];
+    var visibilityGraph : [[Bool]];
+    resolution : Float;
+  };
+
+  /// Initialize maneuver generation
+  public func initManeuverGeneration(gridSize : Nat) : ManeuverState {
+    // Create maneuver library
+    var maneuvers : [ManeuverTemplate] = [];
+    
+    // Advance maneuver
+    maneuvers := Array.append(maneuvers, [{
+      maneuverId = "advance_standard";
+      name = "Standard Advance";
+      maneuverType = #Advance;
+      waypoints = [
+        {offsetX = 0.0; offsetY = 100.0; offsetZ = 0.0; speedFactor = 0.8; formationType = ?#Line},
+        {offsetX = 0.0; offsetY = 200.0; offsetZ = 0.0; speedFactor = 1.0; formationType = ?#Wedge}
+      ];
+      duration = 120.0;
+      parameters = [("aggression", 0.7), ("caution", 0.3)];
+    }]);
+    
+    // Flank maneuver
+    maneuvers := Array.append(maneuvers, [{
+      maneuverId = "flank_left";
+      name = "Left Flank";
+      maneuverType = #Flank;
+      waypoints = [
+        {offsetX = -100.0; offsetY = 50.0; offsetZ = 0.0; speedFactor = 1.0; formationType = ?#Column},
+        {offsetX = -150.0; offsetY = 100.0; offsetZ = 0.0; speedFactor = 0.8; formationType = ?#Line},
+        {offsetX = -100.0; offsetY = 150.0; offsetZ = 0.0; speedFactor = 1.0; formationType = ?#Wedge}
+      ];
+      duration = 180.0;
+      parameters = [("stealth", 0.8), ("speed", 0.7)];
+    }]);
+    
+    // Encircle maneuver
+    maneuvers := Array.append(maneuvers, [{
+      maneuverId = "encircle_standard";
+      name = "Standard Encirclement";
+      maneuverType = #Encircle;
+      waypoints = [
+        {offsetX = -100.0; offsetY = 0.0; offsetZ = 0.0; speedFactor = 0.8; formationType = null},
+        {offsetX = -100.0; offsetY = 100.0; offsetZ = 0.0; speedFactor = 0.8; formationType = null},
+        {offsetX = 0.0; offsetY = 150.0; offsetZ = 0.0; speedFactor = 0.8; formationType = null},
+        {offsetX = 100.0; offsetY = 100.0; offsetZ = 0.0; speedFactor = 0.8; formationType = null},
+        {offsetX = 100.0; offsetY = 0.0; offsetZ = 0.0; speedFactor = 0.8; formationType = ?#Circle}
+      ];
+      duration = 300.0;
+      parameters = [("coordination", 0.9), ("timing", 0.85)];
+    }]);
+    
+    // Initialize terrain
+    let elevation = Array.tabulate<[Float]>(gridSize, func(i : Nat) : [Float] {
+      Array.tabulate<Float>(gridSize, func(j : Nat) : Float {
+        Float.sin(Float.fromInt(i) * 0.1) * Float.cos(Float.fromInt(j) * 0.1) * 50.0
+      })
+    });
+    
+    let obstacles = Array.tabulate<[Bool]>(gridSize, func(i : Nat) : [Bool] {
+      Array.tabulate<Bool>(gridSize, func(j : Nat) : Bool {
+        Float.abs(Float.sin(Float.fromInt(i * 7 + j * 13))) > 0.9
+      })
+    });
+    
+    let cover = Array.tabulate<[Float]>(gridSize, func(i : Nat) : [Float] {
+      Array.tabulate<Float>(gridSize, func(j : Nat) : Float {
+        Float.abs(Float.sin(Float.fromInt(i * 3 + j * 5))) * 0.5
+      })
+    });
+    
+    {
+      var maneuverLibrary = maneuvers;
+      var activeManeuvers = [];
+      var waypointGenerator = {
+        var generatedPaths = [];
+        var pathQuality = [];
+        algorithmType = #AStar;
+      };
+      var trajectoryOptimizer = {
+        var optimizedTrajectories = [];
+        var constraints = [
+          {constraintType = #MaxSpeed; value = 100.0; hardConstraint = true},
+          {constraintType = #MaxAcceleration; value = 20.0; hardConstraint = true},
+          {constraintType = #MinAltitude; value = 0.0; hardConstraint = true},
+          {constraintType = #ObstacleDistance; value = 10.0; hardConstraint = true}
+        ];
+        objectiveWeights = [("time", 0.4), ("fuel", 0.3), ("safety", 0.3)];
+      };
+      var terrainAnalyzer = {
+        var elevationMap = elevation;
+        var obstacleMap = obstacles;
+        var coverMap = cover;
+        var visibilityGraph = [];
+        resolution = 10.0;
+      };
+    }
+  };
+
+  /// Execute maneuver
+  public func executeManeuver(
+    maneuver : ManeuverState,
+    maneuverId : Text,
+    startPos : Vector3D,
+    units : [Text]
+  ) : ?ActiveManeuver {
+    // Find maneuver template
+    var templateOpt : ?ManeuverTemplate = null;
+    for (t in maneuver.maneuverLibrary.vals()) {
+      if (t.maneuverId == maneuverId) {
+        templateOpt := ?t;
+      };
+    };
+    
+    switch (templateOpt) {
+      case (null) { return null };
+      case (?template) {
+        let active : ActiveManeuver = {
+          instanceId = "maneuver_" # Int.toText(Time.now());
+          maneuverId = maneuverId;
+          var currentWaypoint = 0;
+          var progress = 0.0;
+          startPosition = startPos;
+          startTime = Time.now();
+          var units = units;
+          var status = #Executing;
+        };
+        
+        maneuver.activeManeuvers := Array.append(maneuver.activeManeuvers, [active]);
+        ?active
+      };
+    }
+  };
+
+  /// Update maneuver progress
+  public func updateManeuver(
+    maneuver : ManeuverState,
+    instanceId : Text,
+    dt : Float
+  ) : () {
+    for (active in maneuver.activeManeuvers.vals()) {
+      if (active.instanceId == instanceId and active.status == #Executing) {
+        // Find template
+        var templateOpt : ?ManeuverTemplate = null;
+        for (t in maneuver.maneuverLibrary.vals()) {
+          if (t.maneuverId == active.maneuverId) {
+            templateOpt := ?t;
+          };
+        };
+        
+        switch (templateOpt) {
+          case (null) {};
+          case (?template) {
+            // Update progress
+            active.progress := active.progress + dt / template.duration;
+            
+            // Calculate current waypoint
+            let waypointProgress = active.progress * Float.fromInt(template.waypoints.size());
+            active.currentWaypoint := Int.abs(Float.toInt(waypointProgress));
+            
+            if (active.progress >= 1.0) {
+              active.status := #Completed;
+              active.progress := 1.0;
+            };
+          };
+        };
+      };
+    };
+  };
+
+  /// Generate path using A*
+  public func generatePath(
+    maneuver : ManeuverState,
+    start : Vector3D,
+    goal : Vector3D
+  ) : [Vector3D] {
+    var path : [Vector3D] = [];
+    let gridSize = maneuver.terrainAnalyzer.elevationMap.size();
+    if (gridSize == 0) { return [start, goal] };
+    
+    let resolution = maneuver.terrainAnalyzer.resolution;
+    
+    // Convert to grid coordinates
+    let startGrid = {
+      x = Int.abs(Float.toInt(start.x / resolution)) % gridSize;
+      y = Int.abs(Float.toInt(start.y / resolution)) % gridSize;
+    };
+    let goalGrid = {
+      x = Int.abs(Float.toInt(goal.x / resolution)) % gridSize;
+      y = Int.abs(Float.toInt(goal.y / resolution)) % gridSize;
+    };
+    
+    // Simplified A* (straight line with obstacle avoidance)
+    var currentX = startGrid.x;
+    var currentY = startGrid.y;
+    
+    while (currentX != goalGrid.x or currentY != goalGrid.y) {
+      // Add current position to path
+      path := Array.append(path, [{
+        x = Float.fromInt(currentX) * resolution;
+        y = Float.fromInt(currentY) * resolution;
+        z = if (currentX < gridSize and currentY < gridSize and 
+               currentX < maneuver.terrainAnalyzer.elevationMap.size() and
+               currentY < maneuver.terrainAnalyzer.elevationMap[currentX].size())
+          maneuver.terrainAnalyzer.elevationMap[currentX][currentY]
+        else 0.0;
+      }]);
+      
+      // Move toward goal
+      let dx = goalGrid.x - currentX;
+      let dy = goalGrid.y - currentY;
+      
+      // Check for obstacle
+      let nextX = if (dx > 0) currentX + 1 else if (dx < 0) currentX - 1 else currentX;
+      let nextY = if (dy > 0) currentY + 1 else if (dy < 0) currentY - 1 else currentY;
+      
+      var blocked = false;
+      if (nextX < gridSize and nextY < gridSize and
+          nextX < maneuver.terrainAnalyzer.obstacleMap.size() and
+          nextY < maneuver.terrainAnalyzer.obstacleMap[nextX].size()) {
+        blocked := maneuver.terrainAnalyzer.obstacleMap[nextX][nextY];
+      };
+      
+      if (blocked) {
+        // Try perpendicular
+        if (Int.abs(dx) > Int.abs(dy)) {
+          currentY := if (currentY < gridSize - 1) currentY + 1 else currentY - 1;
+        } else {
+          currentX := if (currentX < gridSize - 1) currentX + 1 else currentX - 1;
+        };
+      } else {
+        currentX := nextX;
+        currentY := nextY;
+      };
+      
+      // Safety limit
+      if (path.size() > 1000) {
+        return path;
+      };
+    };
+    
+    // Add goal
+    path := Array.append(path, [goal]);
+    
+    maneuver.waypointGenerator.generatedPaths := 
+      Array.append(maneuver.waypointGenerator.generatedPaths, [path]);
+    
+    path
+  };
+
   // Continue building toward 150,000 lines...
-  // Current: ~44,000 lines
-  // Remaining: ~106,000 lines
+  // Current: ~45,500 lines
+  // Remaining: ~104,500 lines
 
 }
