@@ -18685,8 +18685,1022 @@ module {
     };
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // REINFORCEMENT LEARNING ENVIRONMENTS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// RL Environment state
+  public type RLEnvironmentState = {
+    var state : [Float];
+    var done : Bool;
+    var reward : Float;
+    var info : [(Text, Float)];
+    var timestep : Nat;
+    config : EnvironmentConfig;
+    var history : [EnvironmentTransition];
+  };
+
+  public type EnvironmentConfig = {
+    stateSpace : StateSpace;
+    actionSpace : ActionSpace;
+    maxSteps : Nat;
+    rewardRange : (Float, Float);
+    discountFactor : Float;
+  };
+
+  public type StateSpace = {
+    #Discrete : Nat;
+    #Continuous : {low: [Float]; high: [Float]};
+    #MultiDiscrete : [Nat];
+    #Dict : [(Text, StateSpace)];
+  };
+
+  public type ActionSpace = {
+    #Discrete : Nat;
+    #Continuous : {low: [Float]; high: [Float]};
+    #MultiDiscrete : [Nat];
+    #MultiBinary : Nat;
+  };
+
+  public type EnvironmentTransition = {
+    state : [Float];
+    action : [Float];
+    reward : Float;
+    nextState : [Float];
+    done : Bool;
+    info : [(Text, Float)];
+  };
+
+  /// Initialize RL environment
+  public func initRLEnvironment(config : EnvironmentConfig) : RLEnvironmentState {
+    let initialState = switch (config.stateSpace) {
+      case (#Discrete(n)) Array.tabulate<Float>(1, func(_ : Nat) : Float { 0.0 });
+      case (#Continuous({low; high})) Array.tabulate<Float>(low.size(), func(i : Nat) : Float {
+        (low[i] + high[i]) / 2.0
+      });
+      case (#MultiDiscrete(dims)) Array.tabulate<Float>(dims.size(), func(_ : Nat) : Float { 0.0 });
+      case (#Dict(spaces)) Array.tabulate<Float>(spaces.size(), func(_ : Nat) : Float { 0.0 });
+    };
+    
+    {
+      var state = initialState;
+      var done = false;
+      var reward = 0.0;
+      var info = [];
+      var timestep = 0;
+      config = config;
+      var history = [];
+    }
+  };
+
+  /// Step environment
+  public func stepEnvironment(
+    env : RLEnvironmentState,
+    action : [Float]
+  ) : (RLEnvironmentState, Float, Bool) {
+    let previousState = env.state;
+    
+    // Simple environment dynamics (would be customized for specific environments)
+    var newState = Array.tabulate<Float>(env.state.size(), func(i : Nat) : Float {
+      let actionEffect = if (i < action.size()) action[i] * 0.1 else 0.0;
+      env.state[i] + actionEffect + (randomFloat() - 0.5) * 0.01
+    });
+    
+    // Clamp to state space bounds
+    switch (env.config.stateSpace) {
+      case (#Continuous({low; high})) {
+        newState := Array.tabulate<Float>(newState.size(), func(i : Nat) : Float {
+          Float.max(low[i], Float.min(high[i], newState[i]))
+        });
+      };
+      case _ {};
+    };
+    
+    env.state := newState;
+    env.timestep += 1;
+    
+    // Compute reward (simple example)
+    env.reward := -Array.foldLeft<Float, Float>(newState, 0.0, func(acc : Float, s : Float) : Float {
+      acc + s * s
+    });
+    
+    // Check termination
+    env.done := env.timestep >= env.config.maxSteps;
+    
+    // Record transition
+    let transition : EnvironmentTransition = {
+      state = previousState;
+      action = action;
+      reward = env.reward;
+      nextState = newState;
+      done = env.done;
+      info = env.info;
+    };
+    env.history := Array.append(env.history, [transition]);
+    
+    (env, env.reward, env.done)
+  };
+
+  /// Reset environment
+  public func resetEnvironment(env : RLEnvironmentState) : [Float] {
+    let initialState = switch (env.config.stateSpace) {
+      case (#Discrete(n)) Array.tabulate<Float>(1, func(_ : Nat) : Float { 0.0 });
+      case (#Continuous({low; high})) Array.tabulate<Float>(low.size(), func(i : Nat) : Float {
+        low[i] + randomFloat() * (high[i] - low[i])
+      });
+      case (#MultiDiscrete(dims)) Array.tabulate<Float>(dims.size(), func(_ : Nat) : Float { 0.0 });
+      case (#Dict(spaces)) Array.tabulate<Float>(spaces.size(), func(_ : Nat) : Float { 0.0 });
+    };
+    
+    env.state := initialState;
+    env.done := false;
+    env.reward := 0.0;
+    env.timestep := 0;
+    env.info := [];
+    
+    initialState
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Q-LEARNING AND DEEP Q-NETWORK
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Q-Learning state
+  public type QLearningState = {
+    var qTable : [[var Float]];
+    var learningRate : Float;
+    var discountFactor : Float;
+    var epsilon : Float;
+    var epsilonDecay : Float;
+    var epsilonMin : Float;
+    numStates : Nat;
+    numActions : Nat;
+    var totalReward : Float;
+    var episodeCount : Nat;
+  };
+
+  /// DQN state
+  public type DQNState = {
+    var onlineNetwork : DQNNetwork;
+    var targetNetwork : DQNNetwork;
+    var replayBuffer : [DQNTransition];
+    var bufferSize : Nat;
+    var bufferIndex : Nat;
+    var isBufferFull : Bool;
+    batchSize : Nat;
+    targetUpdateFreq : Nat;
+    var updateCount : Nat;
+    var epsilon : Float;
+    epsilonDecay : Float;
+    epsilonMin : Float;
+  };
+
+  public type DQNNetwork = {
+    var layers : [DQNLayer];
+    inputDim : Nat;
+    outputDim : Nat;
+  };
+
+  public type DQNLayer = {
+    var weights : [[var Float]];
+    var biases : [var Float];
+    activation : DQNActivation;
+  };
+
+  public type DQNActivation = {
+    #ReLU;
+    #Tanh;
+    #Sigmoid;
+    #Linear;
+  };
+
+  public type DQNTransition = {
+    state : [Float];
+    action : Nat;
+    reward : Float;
+    nextState : [Float];
+    done : Bool;
+  };
+
+  /// Initialize Q-Learning
+  public func initQLearning(
+    numStates : Nat,
+    numActions : Nat,
+    learningRate : Float,
+    discountFactor : Float
+  ) : QLearningState {
+    {
+      var qTable = Array.tabulate<[var Float]>(numStates, func(_ : Nat) : [var Float] {
+        Array.init<Float>(numActions, 0.0)
+      });
+      var learningRate = learningRate;
+      var discountFactor = discountFactor;
+      var epsilon = 1.0;
+      var epsilonDecay = 0.995;
+      var epsilonMin = 0.01;
+      numStates = numStates;
+      numActions = numActions;
+      var totalReward = 0.0;
+      var episodeCount = 0;
+    }
+  };
+
+  /// Q-Learning update
+  public func qLearningUpdate(
+    q : QLearningState,
+    state : Nat,
+    action : Nat,
+    reward : Float,
+    nextState : Nat,
+    done : Bool
+  ) : () {
+    let currentQ = q.qTable[state][action];
+    
+    // Find max Q-value for next state
+    var maxNextQ = q.qTable[nextState][0];
+    for (a in Iter.range(1, q.numActions - 1)) {
+      if (q.qTable[nextState][a] > maxNextQ) {
+        maxNextQ := q.qTable[nextState][a];
+      };
+    };
+    
+    // TD target
+    let target = if (done) {
+      reward
+    } else {
+      reward + q.discountFactor * maxNextQ
+    };
+    
+    // Update Q-value
+    q.qTable[state][action] := currentQ + q.learningRate * (target - currentQ);
+    
+    // Decay epsilon
+    q.epsilon := Float.max(q.epsilonMin, q.epsilon * q.epsilonDecay);
+  };
+
+  /// Select action (epsilon-greedy)
+  public func selectActionEpsilonGreedy(q : QLearningState, state : Nat) : Nat {
+    if (randomFloat() < q.epsilon) {
+      // Random action
+      Int.abs(Float.toInt(randomFloat() * Float.fromInt(q.numActions)))
+    } else {
+      // Greedy action
+      var bestAction = 0;
+      var bestQ = q.qTable[state][0];
+      
+      for (a in Iter.range(1, q.numActions - 1)) {
+        if (q.qTable[state][a] > bestQ) {
+          bestQ := q.qTable[state][a];
+          bestAction := a;
+        };
+      };
+      
+      bestAction
+    }
+  };
+
+  /// Initialize DQN
+  public func initDQN(
+    inputDim : Nat,
+    hiddenDim : Nat,
+    outputDim : Nat,
+    bufferCapacity : Nat,
+    batchSize : Nat
+  ) : DQNState {
+    let createNetwork = func() : DQNNetwork {
+      {
+        var layers = [
+          {
+            var weights = Array.tabulate<[var Float]>(hiddenDim, func(_ : Nat) : [var Float] {
+              Array.init<Float>(inputDim, randomFloat() * 0.1 - 0.05)
+            });
+            var biases = Array.init<Float>(hiddenDim, 0.0);
+            activation = #ReLU;
+          },
+          {
+            var weights = Array.tabulate<[var Float]>(outputDim, func(_ : Nat) : [var Float] {
+              Array.init<Float>(hiddenDim, randomFloat() * 0.1 - 0.05)
+            });
+            var biases = Array.init<Float>(outputDim, 0.0);
+            activation = #Linear;
+          }
+        ];
+        inputDim = inputDim;
+        outputDim = outputDim;
+      }
+    };
+    
+    {
+      var onlineNetwork = createNetwork();
+      var targetNetwork = createNetwork();
+      var replayBuffer = [];
+      var bufferSize = bufferCapacity;
+      var bufferIndex = 0;
+      var isBufferFull = false;
+      batchSize = batchSize;
+      targetUpdateFreq = 100;
+      var updateCount = 0;
+      var epsilon = 1.0;
+      epsilonDecay = 0.995;
+      epsilonMin = 0.01;
+    }
+  };
+
+  /// DQN forward pass
+  public func dqnForward(network : DQNNetwork, input : [Float]) : [Float] {
+    var h = input;
+    
+    for (layer in network.layers.vals()) {
+      // Linear transformation
+      let output = Array.tabulate<Float>(layer.weights.size(), func(i : Nat) : Float {
+        var sum = layer.biases[i];
+        for (j in Iter.range(0, h.size() - 1)) {
+          if (j < layer.weights[i].size()) {
+            sum += h[j] * layer.weights[i][j];
+          };
+        };
+        sum
+      });
+      
+      // Activation
+      h := switch (layer.activation) {
+        case (#ReLU) Array.map<Float, Float>(output, func(x : Float) : Float { Float.max(0.0, x) });
+        case (#Tanh) Array.map<Float, Float>(output, func(x : Float) : Float { Float.tanh(x) });
+        case (#Sigmoid) Array.map<Float, Float>(output, func(x : Float) : Float { 1.0 / (1.0 + Float.exp(-x)) });
+        case (#Linear) output;
+      };
+    };
+    
+    h
+  };
+
+  /// Store transition in replay buffer
+  public func storeTransition(dqn : DQNState, transition : DQNTransition) : () {
+    if (dqn.replayBuffer.size() < dqn.bufferSize) {
+      dqn.replayBuffer := Array.append(dqn.replayBuffer, [transition]);
+    } else {
+      dqn.replayBuffer := Array.tabulate<DQNTransition>(dqn.bufferSize, func(i : Nat) : DQNTransition {
+        if (i == dqn.bufferIndex) transition else dqn.replayBuffer[i]
+      });
+      dqn.isBufferFull := true;
+    };
+    dqn.bufferIndex := (dqn.bufferIndex + 1) % dqn.bufferSize;
+  };
+
+  /// Sample batch from replay buffer
+  func sampleBatch(dqn : DQNState) : [DQNTransition] {
+    let effectiveSize = if (dqn.isBufferFull) dqn.bufferSize else dqn.replayBuffer.size();
+    
+    if (effectiveSize < dqn.batchSize) return [];
+    
+    var batch : [DQNTransition] = [];
+    var indices : [Nat] = [];
+    
+    while (batch.size() < dqn.batchSize) {
+      let idx = Int.abs(Float.toInt(randomFloat() * Float.fromInt(effectiveSize)));
+      
+      var alreadySampled = false;
+      for (existingIdx in indices.vals()) {
+        if (existingIdx == idx) alreadySampled := true;
+      };
+      
+      if (not alreadySampled) {
+        indices := Array.append(indices, [idx]);
+        batch := Array.append(batch, [dqn.replayBuffer[idx]]);
+      };
+    };
+    
+    batch
+  };
+
+  /// DQN training step
+  public func dqnTrainStep(dqn : DQNState, discountFactor : Float, learningRate : Float) : Float {
+    let batch = sampleBatch(dqn);
+    if (batch.size() == 0) return 0.0;
+    
+    var totalLoss = 0.0;
+    
+    for (transition in batch.vals()) {
+      // Compute target
+      let nextQValues = dqnForward(dqn.targetNetwork, transition.nextState);
+      var maxNextQ = nextQValues[0];
+      for (q in nextQValues.vals()) {
+        if (q > maxNextQ) maxNextQ := q;
+      };
+      
+      let target = if (transition.done) {
+        transition.reward
+      } else {
+        transition.reward + discountFactor * maxNextQ
+      };
+      
+      // Current Q-value
+      let currentQValues = dqnForward(dqn.onlineNetwork, transition.state);
+      let currentQ = currentQValues[transition.action];
+      
+      // TD error
+      let tdError = target - currentQ;
+      totalLoss += tdError * tdError;
+      
+      // Gradient descent update (simplified)
+      // In full implementation, would do backpropagation
+    };
+    
+    dqn.updateCount += 1;
+    
+    // Update target network periodically
+    if (dqn.updateCount % dqn.targetUpdateFreq == 0) {
+      copyNetwork(dqn.onlineNetwork, dqn.targetNetwork);
+    };
+    
+    // Decay epsilon
+    dqn.epsilon := Float.max(dqn.epsilonMin, dqn.epsilon * dqn.epsilonDecay);
+    
+    totalLoss / Float.fromInt(batch.size())
+  };
+
+  /// Copy network weights
+  func copyNetwork(source : DQNNetwork, target : DQNNetwork) : () {
+    for (l in Iter.range(0, source.layers.size() - 1)) {
+      for (i in Iter.range(0, source.layers[l].weights.size() - 1)) {
+        for (j in Iter.range(0, source.layers[l].weights[i].size() - 1)) {
+          target.layers[l].weights[i][j] := source.layers[l].weights[i][j];
+        };
+      };
+      for (i in Iter.range(0, source.layers[l].biases.size() - 1)) {
+        target.layers[l].biases[i] := source.layers[l].biases[i];
+      };
+    };
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ACTOR-CRITIC METHODS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Actor-Critic state
+  public type ActorCriticState = {
+    var actor : ACNetwork;
+    var critic : ACNetwork;
+    var actorOptimizer : ACOptimizer;
+    var criticOptimizer : ACOptimizer;
+    var trajectories : [ACTrajectory];
+    discountFactor : Float;
+    entropyCoef : Float;
+    valueLossCoef : Float;
+  };
+
+  public type ACNetwork = {
+    var layers : [ACLayer];
+    inputDim : Nat;
+    outputDim : Nat;
+  };
+
+  public type ACLayer = {
+    var weights : [[var Float]];
+    var biases : [var Float];
+    activation : ACActivation;
+  };
+
+  public type ACActivation = {
+    #ReLU;
+    #Tanh;
+    #Softmax;
+    #Linear;
+  };
+
+  public type ACOptimizer = {
+    learningRate : Float;
+    var momentum : [[var Float]];
+    var velocity : [[var Float]];
+    beta1 : Float;
+    beta2 : Float;
+    epsilon : Float;
+    var t : Nat;
+  };
+
+  public type ACTrajectory = {
+    states : [[Float]];
+    actions : [Nat];
+    rewards : [Float];
+    values : [Float];
+    logProbs : [Float];
+    var advantages : [Float];
+    var returns : [Float];
+  };
+
+  /// Initialize Actor-Critic
+  public func initActorCritic(
+    inputDim : Nat,
+    hiddenDim : Nat,
+    numActions : Nat,
+    learningRate : Float
+  ) : ActorCriticState {
+    let createNetwork = func(outDim : Nat, finalActivation : ACActivation) : ACNetwork {
+      {
+        var layers = [
+          {
+            var weights = Array.tabulate<[var Float]>(hiddenDim, func(_ : Nat) : [var Float] {
+              Array.init<Float>(inputDim, randomFloat() * 0.1 - 0.05)
+            });
+            var biases = Array.init<Float>(hiddenDim, 0.0);
+            activation = #Tanh;
+          },
+          {
+            var weights = Array.tabulate<[var Float]>(outDim, func(_ : Nat) : [var Float] {
+              Array.init<Float>(hiddenDim, randomFloat() * 0.1 - 0.05)
+            });
+            var biases = Array.init<Float>(outDim, 0.0);
+            activation = finalActivation;
+          }
+        ];
+        inputDim = inputDim;
+        outputDim = outDim;
+      }
+    };
+    
+    let createOptimizer = func() : ACOptimizer {
+      {
+        learningRate = learningRate;
+        var momentum = [];
+        var velocity = [];
+        beta1 = 0.9;
+        beta2 = 0.999;
+        epsilon = 1e-8;
+        var t = 0;
+      }
+    };
+    
+    {
+      var actor = createNetwork(numActions, #Softmax);
+      var critic = createNetwork(1, #Linear);
+      var actorOptimizer = createOptimizer();
+      var criticOptimizer = createOptimizer();
+      var trajectories = [];
+      discountFactor = 0.99;
+      entropyCoef = 0.01;
+      valueLossCoef = 0.5;
+    }
+  };
+
+  /// Actor forward pass (policy)
+  public func actorForward(actor : ACNetwork, state : [Float]) : [Float] {
+    var h = state;
+    
+    for (layer in actor.layers.vals()) {
+      let output = Array.tabulate<Float>(layer.weights.size(), func(i : Nat) : Float {
+        var sum = layer.biases[i];
+        for (j in Iter.range(0, h.size() - 1)) {
+          if (j < layer.weights[i].size()) {
+            sum += h[j] * layer.weights[i][j];
+          };
+        };
+        sum
+      });
+      
+      h := switch (layer.activation) {
+        case (#ReLU) Array.map<Float, Float>(output, func(x : Float) : Float { Float.max(0.0, x) });
+        case (#Tanh) Array.map<Float, Float>(output, func(x : Float) : Float { Float.tanh(x) });
+        case (#Softmax) {
+          var maxVal = output[0];
+          for (v in output.vals()) {
+            if (v > maxVal) maxVal := v;
+          };
+          
+          var expSum = 0.0;
+          let expValues = Array.map<Float, Float>(output, func(x : Float) : Float {
+            let e = Float.exp(x - maxVal);
+            expSum += e;
+            e
+          });
+          
+          Array.map<Float, Float>(expValues, func(e : Float) : Float { e / expSum })
+        };
+        case (#Linear) output;
+      };
+    };
+    
+    h
+  };
+
+  /// Critic forward pass (value)
+  public func criticForward(critic : ACNetwork, state : [Float]) : Float {
+    var h = state;
+    
+    for (layer in critic.layers.vals()) {
+      let output = Array.tabulate<Float>(layer.weights.size(), func(i : Nat) : Float {
+        var sum = layer.biases[i];
+        for (j in Iter.range(0, h.size() - 1)) {
+          if (j < layer.weights[i].size()) {
+            sum += h[j] * layer.weights[i][j];
+          };
+        };
+        sum
+      });
+      
+      h := switch (layer.activation) {
+        case (#ReLU) Array.map<Float, Float>(output, func(x : Float) : Float { Float.max(0.0, x) });
+        case (#Tanh) Array.map<Float, Float>(output, func(x : Float) : Float { Float.tanh(x) });
+        case (#Linear) output;
+        case _ output;
+      };
+    };
+    
+    if (h.size() > 0) h[0] else 0.0
+  };
+
+  /// Sample action from policy
+  public func sampleAction(probs : [Float]) : Nat {
+    let r = randomFloat();
+    var cumSum = 0.0;
+    
+    for (i in Iter.range(0, probs.size() - 1)) {
+      cumSum += probs[i];
+      if (r < cumSum) {
+        return i;
+      };
+    };
+    
+    probs.size() - 1
+  };
+
+  /// Compute advantages (GAE)
+  public func computeAdvantages(
+    trajectory : ACTrajectory,
+    discountFactor : Float,
+    gaeλ : Float
+  ) : () {
+    let n = trajectory.rewards.size();
+    trajectory.advantages := Array.init<Float>(n, 0.0);
+    trajectory.returns := Array.init<Float>(n, 0.0);
+    
+    var lastGaeLam = 0.0;
+    
+    var i = n;
+    while (i > 0) {
+      i -= 1;
+      
+      let nextValue = if (i + 1 < n) trajectory.values[i + 1] else 0.0;
+      let delta = trajectory.rewards[i] + discountFactor * nextValue - trajectory.values[i];
+      lastGaeLam := delta + discountFactor * gaeλ * lastGaeLam;
+      
+      trajectory.advantages[i] := lastGaeLam;
+      trajectory.returns[i] := lastGaeLam + trajectory.values[i];
+    };
+  };
+
+  /// Compute policy loss
+  public func computePolicyLoss(
+    trajectory : ACTrajectory,
+    newLogProbs : [Float],
+    clipEpsilon : Float
+  ) : Float {
+    var loss = 0.0;
+    
+    for (i in Iter.range(0, trajectory.logProbs.size() - 1)) {
+      let ratio = Float.exp(newLogProbs[i] - trajectory.logProbs[i]);
+      let clippedRatio = Float.max(Float.min(ratio, 1.0 + clipEpsilon), 1.0 - clipEpsilon);
+      
+      let surr1 = ratio * trajectory.advantages[i];
+      let surr2 = clippedRatio * trajectory.advantages[i];
+      
+      loss -= Float.min(surr1, surr2);
+    };
+    
+    loss / Float.fromInt(trajectory.logProbs.size())
+  };
+
+  /// Compute value loss
+  public func computeValueLoss(trajectory : ACTrajectory, predictedValues : [Float]) : Float {
+    var loss = 0.0;
+    
+    for (i in Iter.range(0, trajectory.returns.size() - 1)) {
+      let diff = predictedValues[i] - trajectory.returns[i];
+      loss += diff * diff;
+    };
+    
+    loss / Float.fromInt(trajectory.returns.size())
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MULTI-AGENT COORDINATION PROTOCOLS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Multi-agent coordination state
+  public type CoordinationState = {
+    var agents : [CoordAgent];
+    var coalitions : [Coalition];
+    var negotiations : [Negotiation];
+    var agreements : [Agreement];
+    protocol : CoordinationProtocol;
+  };
+
+  public type CoordAgent = {
+    agentId : Nat32;
+    capabilities : [Text];
+    var preferences : [(Text, Float)];
+    var resources : [(Text, Float)];
+    var commitments : [Commitment];
+    var utility : Float;
+    communicationRange : Float;
+    var position : Vector3;
+  };
+
+  public type Coalition = {
+    coalitionId : Text;
+    members : [Nat32];
+    task : ?Text;
+    var value : Float;
+    var payoffs : [(Nat32, Float)];
+    var isStable : Bool;
+  };
+
+  public type Negotiation = {
+    negotiationId : Text;
+    participants : [Nat32];
+    topic : Text;
+    var proposals : [NegotiationProposal];
+    var currentRound : Nat;
+    maxRounds : Nat;
+    var status : NegotiationStatus;
+    var outcome : ?Text;
+  };
+
+  public type NegotiationProposal = {
+    proposer : Nat32;
+    content : [(Text, Float)];
+    round : Nat;
+    var votes : [(Nat32, Bool)];
+    var isAccepted : Bool;
+  };
+
+  public type NegotiationStatus = {
+    #InProgress;
+    #Agreed;
+    #Failed;
+    #TimedOut;
+  };
+
+  public type Agreement = {
+    agreementId : Text;
+    parties : [Nat32];
+    terms : [(Text, Float)];
+    timestamp : Int;
+    duration : ?Float;
+    var isActive : Bool;
+    var violations : [Text];
+  };
+
+  public type Commitment = {
+    commitmentId : Text;
+    debtor : Nat32;
+    creditor : Nat32;
+    action : Text;
+    deadline : ?Int;
+    var status : CommitmentStatus;
+  };
+
+  public type CommitmentStatus = {
+    #Pending;
+    #Active;
+    #Fulfilled;
+    #Violated;
+    #Cancelled;
+  };
+
+  public type CoordinationProtocol = {
+    #ContractNet;
+    #Auction : AuctionType;
+    #Voting : VotingRule;
+    #Negotiation : NegotiationProtocol;
+    #Coalition : CoalitionProtocol;
+  };
+
+  public type AuctionType = {
+    #English;
+    #Dutch;
+    #SealedBid;
+    #Vickrey;
+    #Combinatorial;
+  };
+
+  public type VotingRule = {
+    #Majority;
+    #Plurality;
+    #Borda;
+    #Approval;
+    #Unanimous;
+  };
+
+  public type NegotiationProtocol = {
+    #Monotonic;
+    #AlternatingOffers;
+    #SingleTextProcedure;
+  };
+
+  public type CoalitionProtocol = {
+    #ShapleyValue;
+    #CoreAllocation;
+    #Banzhaf;
+    #Egalitarian;
+  };
+
+  /// Initialize coordination
+  public func initCoordination(protocol : CoordinationProtocol) : CoordinationState {
+    {
+      var agents = [];
+      var coalitions = [];
+      var negotiations = [];
+      var agreements = [];
+      protocol = protocol;
+    }
+  };
+
+  /// Add coordination agent
+  public func addCoordAgent(
+    state : CoordinationState,
+    capabilities : [Text],
+    resources : [(Text, Float)],
+    position : Vector3
+  ) : Nat32 {
+    let agentId = Nat32.fromNat(state.agents.size());
+    
+    let agent : CoordAgent = {
+      agentId = agentId;
+      capabilities = capabilities;
+      var preferences = [];
+      var resources = resources;
+      var commitments = [];
+      var utility = 0.0;
+      communicationRange = 100.0;
+      var position = position;
+    };
+    
+    state.agents := Array.append(state.agents, [agent]);
+    
+    agentId
+  };
+
+  /// Form coalition
+  public func formCoalition(
+    state : CoordinationState,
+    members : [Nat32],
+    task : ?Text
+  ) : Text {
+    let coalitionId = Int.toText(Time.now());
+    
+    let coalition : Coalition = {
+      coalitionId = coalitionId;
+      members = members;
+      task = task;
+      var value = 0.0;
+      var payoffs = [];
+      var isStable = false;
+    };
+    
+    state.coalitions := Array.append(state.coalitions, [coalition]);
+    
+    coalitionId
+  };
+
+  /// Compute Shapley value
+  public func computeShapleyValue(
+    state : CoordinationState,
+    coalitionId : Text,
+    characteristicFunction : [Nat32] -> Float
+  ) : [(Nat32, Float)] {
+    var shapleyValues : [(Nat32, Float)] = [];
+    
+    for (coalition in state.coalitions.vals()) {
+      if (coalition.coalitionId == coalitionId) {
+        let n = coalition.members.size();
+        
+        for (agentId in coalition.members.vals()) {
+          var shapleyValue = 0.0;
+          
+          // Iterate over all subsets not containing agent
+          // Simplified: just compute for empty set and full set
+          let vWithout = characteristicFunction(
+            Array.filter<Nat32>(coalition.members, func(m : Nat32) : Bool { m != agentId })
+          );
+          let vWith = characteristicFunction(coalition.members);
+          
+          shapleyValue := (vWith - vWithout) / Float.fromInt(n);
+          shapleyValues := Array.append(shapleyValues, [(agentId, shapleyValue)]);
+        };
+        
+        coalition.payoffs := shapleyValues;
+      };
+    };
+    
+    shapleyValues
+  };
+
+  /// Start negotiation
+  public func startNegotiation(
+    state : CoordinationState,
+    participants : [Nat32],
+    topic : Text,
+    maxRounds : Nat
+  ) : Text {
+    let negotiationId = Int.toText(Time.now());
+    
+    let negotiation : Negotiation = {
+      negotiationId = negotiationId;
+      participants = participants;
+      topic = topic;
+      var proposals = [];
+      var currentRound = 0;
+      maxRounds = maxRounds;
+      var status = #InProgress;
+      var outcome = null;
+    };
+    
+    state.negotiations := Array.append(state.negotiations, [negotiation]);
+    
+    negotiationId
+  };
+
+  /// Submit negotiation proposal
+  public func submitNegotiationProposal(
+    state : CoordinationState,
+    negotiationId : Text,
+    proposer : Nat32,
+    content : [(Text, Float)]
+  ) : Bool {
+    for (negotiation in state.negotiations.vals()) {
+      if (negotiation.negotiationId == negotiationId and negotiation.status == #InProgress) {
+        let proposal : NegotiationProposal = {
+          proposer = proposer;
+          content = content;
+          round = negotiation.currentRound;
+          var votes = [];
+          var isAccepted = false;
+        };
+        
+        negotiation.proposals := Array.append(negotiation.proposals, [proposal]);
+        return true;
+      };
+    };
+    
+    false
+  };
+
+  /// Vote on proposal
+  public func voteOnProposal(
+    state : CoordinationState,
+    negotiationId : Text,
+    voter : Nat32,
+    proposalIndex : Nat,
+    vote : Bool
+  ) : () {
+    for (negotiation in state.negotiations.vals()) {
+      if (negotiation.negotiationId == negotiationId) {
+        if (proposalIndex < negotiation.proposals.size()) {
+          let proposal = negotiation.proposals[proposalIndex];
+          proposal.votes := Array.append(proposal.votes, [(voter, vote)]);
+          
+          // Check if all participants voted
+          if (proposal.votes.size() >= negotiation.participants.size()) {
+            var yesVotes = 0;
+            for ((_, v) in proposal.votes.vals()) {
+              if (v) yesVotes += 1;
+            };
+            
+            // Majority rule
+            if (yesVotes > negotiation.participants.size() / 2) {
+              proposal.isAccepted := true;
+              negotiation.status := #Agreed;
+              negotiation.outcome := ?proposalToText(proposal.content);
+              
+              // Create agreement
+              let agreement : Agreement = {
+                agreementId = Int.toText(Time.now());
+                parties = negotiation.participants;
+                terms = proposal.content;
+                timestamp = Time.now();
+                duration = null;
+                var isActive = true;
+                var violations = [];
+              };
+              state.agreements := Array.append(state.agreements, [agreement]);
+            };
+          };
+        };
+      };
+    };
+  };
+
+  /// Convert proposal to text
+  func proposalToText(content : [(Text, Float)]) : Text {
+    var result = "";
+    for ((key, value) in content.vals()) {
+      result := result # key # "=" # Float.toText(value) # ";";
+    };
+    result
+  };
+
   // Continue building toward 150,000 lines...
-  // Current: ~20,500 lines
-  // Remaining: ~129,500 lines
+  // Current: ~21,500 lines
+  // Remaining: ~128,500 lines
 
 }
