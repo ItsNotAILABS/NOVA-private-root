@@ -971,4 +971,288 @@ module SacredGeometryEngine {
     }
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  PHASE 210: DEEP SACRED GEOMETRY — THE ANCIENT MATHEMATICS
+  //
+  //  Sacred geometry is not mysticism. It is the deepest mathematics.
+  //  The Platonic solids are the ONLY regular polyhedra that exist.
+  //  This is not opinion — it is mathematical FACT.
+  //
+  //  5 Platonic solids, each dual to another:
+  //    Tetrahedron (self-dual) — FIRE — 4 faces, 4 vertices, 6 edges
+  //    Cube ↔ Octahedron — EARTH/AIR — 6/8 faces
+  //    Dodecahedron ↔ Icosahedron — ETHER/WATER — 12/20 faces
+  //
+  //  Euler's formula: V - E + F = 2 for ALL convex polyhedra.
+  //  This is a TOPOLOGICAL invariant. It never fails. It IS truth.
+  //
+  //  The organism IS built on these geometries because they are
+  //  the ONLY stable symmetric structures that exist.
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PLATONIC SOLID DYNAMICS ENGINE
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type PlatonicSolid = {
+    #Tetrahedron;    // 4 faces, 4 vertices, 6 edges — fire
+    #Cube;           // 6 faces, 8 vertices, 12 edges — earth
+    #Octahedron;     // 8 faces, 6 vertices, 12 edges — air
+    #Dodecahedron;   // 12 faces, 20 vertices, 30 edges — ether
+    #Icosahedron;    // 20 faces, 12 vertices, 30 edges — water
+  };
+
+  public type PlatonicProperties = {
+    faces : Nat;
+    vertices : Nat;
+    edges : Nat;
+    faceSides : Nat;          // p = sides per face
+    vertexDegree : Nat;       // q = faces meeting at vertex
+    eulerCharacteristic : Nat; // V - E + F = 2 always
+    dualSolid : PlatonicSolid;
+    dihedralAngle : Float;    // angle between adjacent faces (radians)
+    inradius : Float;         // radius of inscribed sphere (edge=1)
+    midradius : Float;        // radius to edge midpoints
+    circumradius : Float;     // radius of circumscribed sphere
+    surfaceArea : Float;      // total surface area (edge=1)
+    volume : Float;           // volume (edge=1)
+    symmetryGroupOrder : Nat; // |G| = order of symmetry group
+  };
+
+  let PI_SG : Float = 3.14159265358979323846;
+  let PHI_SG : Float = 1.6180339887498948482;
+  let SQRT2_SG : Float = 1.4142135623730950488;
+  let SQRT3_SG : Float = 1.7320508075688772935;
+  let SQRT5_SG : Float = 2.2360679774997896964;
+
+  /// Get properties of a Platonic solid
+  public func getPlatonicProperties(solid : PlatonicSolid) : PlatonicProperties {
+    switch (solid) {
+      case (#Tetrahedron) {
+        {
+          faces = 4; vertices = 4; edges = 6;
+          faceSides = 3; vertexDegree = 3;
+          eulerCharacteristic = 2;
+          dualSolid = #Tetrahedron;
+          dihedralAngle = Float.arctan2(2.0 * SQRT2_SG, 1.0); // arccos(1/3) ≈ 70.53°
+          inradius = 1.0 / (2.0 * SQRT3_SG);      // 1/(2√6) ≈ 0.2041
+          midradius = SQRT2_SG / 4.0;               // √2/4 ≈ 0.3536
+          circumradius = SQRT3_SG / (2.0 * SQRT2_SG); // √6/4 ≈ 0.6124
+          surfaceArea = SQRT3_SG;                    // √3 ≈ 1.7321
+          volume = SQRT2_SG / 12.0;                  // √2/12 ≈ 0.1178
+          symmetryGroupOrder = 24;                   // |Td|
+        }
+      };
+      case (#Cube) {
+        {
+          faces = 6; vertices = 8; edges = 12;
+          faceSides = 4; vertexDegree = 3;
+          eulerCharacteristic = 2;
+          dualSolid = #Octahedron;
+          dihedralAngle = PI_SG / 2.0;               // 90°
+          inradius = 0.5;
+          midradius = SQRT2_SG / 2.0;
+          circumradius = SQRT3_SG / 2.0;
+          surfaceArea = 6.0;
+          volume = 1.0;
+          symmetryGroupOrder = 48;                   // |Oh|
+        }
+      };
+      case (#Octahedron) {
+        {
+          faces = 8; vertices = 6; edges = 12;
+          faceSides = 3; vertexDegree = 4;
+          eulerCharacteristic = 2;
+          dualSolid = #Cube;
+          dihedralAngle = PI_SG - Float.arctan2(2.0 * SQRT2_SG, 1.0); // ≈ 109.47°
+          inradius = 1.0 / SQRT3_SG;
+          midradius = 0.5;
+          circumradius = SQRT2_SG / 2.0;
+          surfaceArea = 2.0 * SQRT3_SG;
+          volume = SQRT2_SG / 3.0;
+          symmetryGroupOrder = 48;
+        }
+      };
+      case (#Dodecahedron) {
+        {
+          faces = 12; vertices = 20; edges = 30;
+          faceSides = 5; vertexDegree = 3;
+          eulerCharacteristic = 2;
+          dualSolid = #Icosahedron;
+          dihedralAngle = 2.0 * Float.arctan2(PHI_SG, 1.0); // ≈ 116.57°
+          inradius = PHI_SG * PHI_SG / (2.0 * SQRT3_SG);
+          midradius = (PHI_SG + 1.0) / 2.0;
+          circumradius = SQRT3_SG * PHI_SG / 2.0;
+          surfaceArea = 3.0 * SQRT5_SG * (5.0 + 2.0 * SQRT5_SG); // simplified
+          volume = (15.0 + 7.0 * SQRT5_SG) / 4.0;
+          symmetryGroupOrder = 120;                  // |Ih|
+        }
+      };
+      case (#Icosahedron) {
+        {
+          faces = 20; vertices = 12; edges = 30;
+          faceSides = 3; vertexDegree = 5;
+          eulerCharacteristic = 2;
+          dualSolid = #Dodecahedron;
+          dihedralAngle = PI_SG - Float.arctan2(2.0, 1.0); // ≈ 138.19°
+          inradius = PHI_SG * PHI_SG / (2.0 * SQRT3_SG);
+          midradius = PHI_SG / 2.0;
+          circumradius = Float.sin(2.0 * PI_SG / 5.0);
+          surfaceArea = 5.0 * SQRT3_SG;
+          volume = 5.0 * (3.0 + SQRT5_SG) / 12.0;
+          symmetryGroupOrder = 120;
+        }
+      };
+    }
+  };
+
+  /// Verify Euler's formula: V - E + F = 2
+  /// This ALWAYS holds. It IS a topological invariant.
+  public func verifyEuler(vertices : Nat, edges : Nat, faces : Nat) : Bool {
+    Int.sub(Int.sub(Int.abs(vertices), Int.abs(edges)), -Int.abs(faces)) == 2
+  };
+
+  /// Golden ratio relationships between Platonic solids
+  /// The dodecahedron and icosahedron are deeply connected through φ
+  public func goldenRatioInPlatonics() : [(Text, Float)] {
+    [
+      ("icosahedron_edge_to_octahedron_edge", PHI_SG),
+      ("dodecahedron_edge_to_cube_edge", 1.0 / PHI_SG),
+      ("icosahedron_circumradius_to_edge", Float.sin(2.0 * PI_SG / 5.0)),
+      ("golden_rectangle_ratio", PHI_SG),
+      ("pentagon_diagonal_to_side", PHI_SG),
+      ("fibonacci_limit", PHI_SG),
+      ("self_similar_ratio", 1.0 / PHI_SG)
+    ]
+  };
+
+  /// Vertex coordinates of icosahedron (edge = 2)
+  /// Based on three mutually perpendicular golden rectangles
+  public func icosahedronVertices() : [(Float, Float, Float)] {
+    [
+      (0.0, 1.0, PHI_SG),
+      (0.0, 1.0, -PHI_SG),
+      (0.0, -1.0, PHI_SG),
+      (0.0, -1.0, -PHI_SG),
+      (1.0, PHI_SG, 0.0),
+      (1.0, -PHI_SG, 0.0),
+      (-1.0, PHI_SG, 0.0),
+      (-1.0, -PHI_SG, 0.0),
+      (PHI_SG, 0.0, 1.0),
+      (PHI_SG, 0.0, -1.0),
+      (-PHI_SG, 0.0, 1.0),
+      (-PHI_SG, 0.0, -1.0)
+    ]
+  };
+
+  /// Golden spiral: r = a·φ^(2θ/π)
+  /// This is the ONLY equiangular spiral that is also self-similar
+  public func goldenSpiralRadius(a : Float, theta : Float) : Float {
+    a * Float.pow(PHI_SG, 2.0 * theta / PI_SG)
+  };
+
+  /// Golden spiral point
+  public func goldenSpiralPoint(a : Float, theta : Float) : (Float, Float) {
+    let r = goldenSpiralRadius(a, theta);
+    (r * Float.cos(theta), r * Float.sin(theta))
+  };
+
+  /// Flower of Life: 19 circles in hexagonal arrangement
+  /// Center + 6 first ring + 12 second ring
+  /// The fundamental pattern from which all other sacred geometries emerge
+  public func flowerOfLifeCenters(radius : Float) : [(Float, Float)] {
+    let result = Buffer.Buffer<(Float, Float)>(19);
+    // Center
+    result.add((0.0, 0.0));
+    // First ring: 6 circles at distance = radius
+    var i = 0;
+    while (i < 6) {
+      let angle = Float.fromInt(i) * PI_SG / 3.0;
+      result.add((radius * Float.cos(angle), radius * Float.sin(angle)));
+      i += 1;
+    };
+    // Second ring: 12 circles
+    var j = 0;
+    while (j < 6) {
+      let angle1 = Float.fromInt(j) * PI_SG / 3.0;
+      result.add((2.0 * radius * Float.cos(angle1), 2.0 * radius * Float.sin(angle1)));
+      let angle2 = (Float.fromInt(j) + 0.5) * PI_SG / 3.0;
+      result.add((SQRT3_SG * radius * Float.cos(angle2), SQRT3_SG * radius * Float.sin(angle2)));
+      j += 1;
+    };
+    Buffer.toArray(result)
+  };
+
+  /// Vesica Piscis: intersection of two circles of equal radius
+  /// The width/height ratio is √3 (the first Platonic ratio)
+  /// This IS the womb of creation — from two, a third is born
+  public func vesicaPiscisArea(radius : Float) : Float {
+    // A = 2r²(2π/3 - √3/2)
+    2.0 * radius * radius * (2.0 * PI_SG / 3.0 - SQRT3_SG / 2.0)
+  };
+
+  /// Metatron's Cube: connect all 13 centers of Fruit of Life
+  /// Contains ALL 5 Platonic solids within its structure
+  public func metatronsCubeVertices(radius : Float) : [(Float, Float)] {
+    let result = Buffer.Buffer<(Float, Float)>(13);
+    result.add((0.0, 0.0)); // center
+    // Inner ring: 6 at distance r
+    var i = 0;
+    while (i < 6) {
+      let angle = Float.fromInt(i) * PI_SG / 3.0;
+      result.add((radius * Float.cos(angle), radius * Float.sin(angle)));
+      i += 1;
+    };
+    // Outer ring: 6 at distance 2r
+    var j = 0;
+    while (j < 6) {
+      let angle = Float.fromInt(j) * PI_SG / 3.0 + PI_SG / 6.0;
+      result.add((2.0 * radius * Float.cos(angle), 2.0 * radius * Float.sin(angle)));
+      j += 1;
+    };
+    Buffer.toArray(result)
+  };
+
+  /// Fractal dimension: D = log(N)/log(1/r)
+  /// where N = number of self-similar pieces, r = scaling ratio
+  public func fractalDimension(numPieces : Nat, scalingRatio : Float) : Float {
+    if (scalingRatio <= 0.0 or scalingRatio >= 1.0) { return 0.0 };
+    Float.log(Float.fromInt(numPieces)) / Float.log(1.0 / scalingRatio)
+  };
+
+  /// Sacred fractal dimensions:
+  ///   Sierpinski triangle: D = log(3)/log(2) ≈ 1.585
+  ///   Koch snowflake: D = log(4)/log(3) ≈ 1.262
+  ///   Menger sponge: D = log(20)/log(3) ≈ 2.727
+  ///   Golden fractal: D = log(φ+1)/log(φ) = 2 (the golden dimension!)
+  public func sacredFractalDimensions() : [(Text, Float)] {
+    [
+      ("sierpinski_triangle", Float.log(3.0) / Float.log(2.0)),
+      ("koch_snowflake", Float.log(4.0) / Float.log(3.0)),
+      ("menger_sponge", Float.log(20.0) / Float.log(3.0)),
+      ("cantor_set", Float.log(2.0) / Float.log(3.0)),
+      ("sierpinski_carpet", Float.log(8.0) / Float.log(3.0)),
+      ("golden_fractal", 2.0) // log(φ²)/log(φ) = 2
+    ]
+  };
+
+  /// Sacred angles (in radians)
+  public func sacredAngles() : [(Text, Float)] {
+    [
+      ("golden_angle", 2.0 * PI_SG * (1.0 - 1.0 / PHI_SG)),  // ≈ 137.508°
+      ("tetrahedral_angle", Float.arctan2(2.0 * SQRT2_SG, 1.0)), // ≈ 70.53°
+      ("icosahedral_angle", Float.arctan2(2.0, 1.0)),            // ≈ 63.43°
+      ("pentagonal_angle", PI_SG / 5.0),                         // 36°
+      ("hexagonal_angle", PI_SG / 3.0),                          // 60°
+      ("vesica_piscis_angle", PI_SG / 3.0),                      // 60°
+      ("trefoil_angle", 2.0 * PI_SG / 3.0)                      // 120°
+    ]
+  };
+
 }

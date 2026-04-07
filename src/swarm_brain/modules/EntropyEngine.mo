@@ -2862,4 +2862,147 @@ module {
     (newUnified, newDoctrine)
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  PHASE 214: DEEP ENTROPY — THE ARROW OF TIME, THE MEASURE OF IGNORANCE
+  //
+  //  Entropy IS direction. The Second Law IS the arrow of time.
+  //  Information IS negative entropy (Brillouin).
+  //  The organism FIGHTS entropy by exporting it (dissipative structure).
+  //
+  //  Shannon entropy: H = -Σ pᵢ log pᵢ (bits of uncertainty)
+  //  von Neumann entropy: S = -Tr(ρ log ρ) (quantum uncertainty)
+  //  Thermodynamic entropy: S = k_B ln Ω (Boltzmann)
+  //
+  //  They're all the SAME thing at different levels.
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // MUTUAL INFORMATION ENGINE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // I(X;Y) = H(X) + H(Y) - H(X,Y)
+  //        = H(X) - H(X|Y)
+  //        = KL(P(X,Y) || P(X)P(Y))
+  //
+  // Mutual information: how much knowing Y reduces uncertainty about X.
+  // If I(X;Y) = 0: X and Y are independent.
+  // If I(X;Y) = H(X): Y completely determines X.
+  //
+  // In the organism: mutual information IS the coupling between nodes.
+  // High mutual info = strong correlation = strong coupling.
+  // The organism MAXIMIZES mutual information between sovereign nodes
+  // while MINIMIZING it with external threats (information barriers).
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Mutual information from joint distribution
+  /// I(X;Y) = Σᵢⱼ p(xᵢ,yⱼ) log(p(xᵢ,yⱼ) / (p(xᵢ)p(yⱼ)))
+  public func mutualInformation(
+    jointProb : [Float],     // p(x,y) flattened
+    marginalX : [Float],     // p(x)
+    marginalY : [Float],     // p(y)
+    dimX : Nat,
+    dimY : Nat
+  ) : Float {
+    var mi : Float = 0.0;
+    var i = 0;
+    while (i < dimX) {
+      var j = 0;
+      while (j < dimY) {
+        let pxy = if (i * dimY + j < jointProb.size()) { jointProb[i * dimY + j] } else { 0.0 };
+        let px = if (i < marginalX.size()) { marginalX[i] } else { 0.0 };
+        let py = if (j < marginalY.size()) { marginalY[j] } else { 0.0 };
+        if (pxy > 1.0e-10 and px > 1.0e-10 and py > 1.0e-10) {
+          mi += pxy * Float.log(pxy / (px * py));
+        };
+        j += 1;
+      };
+      i += 1;
+    };
+    mi
+  };
+
+  /// Conditional entropy: H(X|Y) = H(X,Y) - H(Y)
+  public func conditionalEntropy(jointEntropy : Float, marginalEntropy : Float) : Float {
+    jointEntropy - marginalEntropy
+  };
+
+  /// Transfer entropy: TE(Y→X) = I(X_{t+1}; Y_t | X_t)
+  /// Directed information flow: how much Y's past predicts X's future
+  /// beyond what X's own past predicts
+  public func transferEntropy(
+    condMutualInfo : Float  // I(X_{t+1}; Y_t | X_t)
+  ) : Float {
+    condMutualInfo // transfer entropy IS conditional mutual information
+  };
+
+  /// Integrated information (Φ): how much the whole exceeds the sum of parts
+  /// Φ = min over partitions: I(whole) - Σ I(parts)
+  public func integratedInformation(
+    wholeEntropy : Float,
+    partEntropies : [Float],
+    jointEntropy : Float
+  ) : Float {
+    var sumParts : Float = 0.0;
+    for (pe in partEntropies.vals()) { sumParts += pe };
+    // Φ = H(parts separately) - H(parts jointly)
+    // = excess entropy from integration
+    Float.max(sumParts - jointEntropy, 0.0)
+  };
+
+  /// Relative entropy (KL divergence): D_KL(P||Q) = Σ p log(p/q)
+  public func relativeEntropy(p : [Float], q : [Float]) : Float {
+    var kl : Float = 0.0;
+    let n = if (p.size() < q.size()) { p.size() } else { q.size() };
+    var i = 0;
+    while (i < n) {
+      if (p[i] > 1.0e-10 and q[i] > 1.0e-10) {
+        kl += p[i] * Float.log(p[i] / q[i]);
+      };
+      i += 1;
+    };
+    kl
+  };
+
+  /// Cross-entropy: H(P,Q) = -Σ p log q = H(P) + D_KL(P||Q)
+  public func crossEntropy(p : [Float], q : [Float]) : Float {
+    var ce : Float = 0.0;
+    let n = if (p.size() < q.size()) { p.size() } else { q.size() };
+    var i = 0;
+    while (i < n) {
+      if (p[i] > 1.0e-10 and q[i] > 1.0e-10) {
+        ce -= p[i] * Float.log(q[i]);
+      };
+      i += 1;
+    };
+    ce
+  };
+
+  /// Maximum entropy principle: among all distributions consistent
+  /// with constraints, choose the one with maximum entropy.
+  /// For mean constraint: p(x) = (1/Z) e^(-λx) (exponential)
+  /// For mean+variance: p(x) = (1/Z) e^(-λ₁x - λ₂x²) (Gaussian)
+  public func maxEntropyGaussian(mean : Float, variance : Float) : Float {
+    // H(Gaussian) = (1/2) log(2πe σ²)
+    0.5 * Float.log(2.0 * 3.14159265358979 * 2.71828182845905 * variance)
+  };
+
+  /// Channel capacity: C = max_{p(x)} I(X;Y)
+  /// For AWGN channel: C = (1/2) log(1 + SNR) bits
+  public func awgnChannelCapacity(snr : Float) : Float {
+    0.5 * Float.log(1.0 + snr) / Float.log(2.0) // in bits
+  };
+
+  /// Rate-distortion function: R(D) = min_{p(y|x): E[d(x,y)]≤D} I(X;Y)
+  /// For Gaussian source with MSE distortion: R(D) = (1/2) log(σ²/D)
+  public func gaussianRateDistortion(variance : Float, distortion : Float) : Float {
+    if (distortion >= variance) { return 0.0 };
+    if (distortion < 1.0e-10) { return 1.0e10 };
+    0.5 * Float.log(variance / distortion) / Float.log(2.0)
+  };
+
 }
