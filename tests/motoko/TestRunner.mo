@@ -22,6 +22,14 @@ import FristonEngineTest "./FristonEngineTest";
 import AnimalIntelligenceTest "./AnimalIntelligenceTest";
 import DynamicalSystemsTest "./DynamicalSystemsTest";
 
+// New G-M module tests
+import LyapunovStabilityTest "./LyapunovStabilityTest";
+import HarmonicAnalysisEngineTest "./HarmonicAnalysisEngineTest";
+import MultiResponsibilityEngineTest "./MultiResponsibilityEngineTest";
+import HzFrequencySubstrateTest "./HzFrequencySubstrateTest";
+import GovernanceHeartbeatTest "./GovernanceHeartbeatTest";
+import MedinaUnifiedOrganismCoreTest "./MedinaUnifiedOrganismCoreTest";
+
 actor TestRunner {
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -199,6 +207,118 @@ actor TestRunner {
     };
 
     // ═══════════════════════════════════════════════════════════════════════════════
+    // NEW G-M MODULE TEST RUNNERS
+    // ═══════════════════════════════════════════════════════════════════════════════
+
+    public func runLyapunovStabilityTests() : async TestSuiteResult {
+        let results = LyapunovStabilityTest.runAllTests();
+        var passed : Nat = 0;
+        var failed : Nat = 0;
+        
+        for (result in results.vals()) {
+            if (result.passed) { passed += 1 } else { failed += 1 };
+        };
+        
+        {
+            suiteName = "Lyapunov Stability (Nonlinear Stability Certification)";
+            results = results;
+            passed = passed;
+            failed = failed;
+            total = results.size();
+        }
+    };
+
+    public func runHarmonicAnalysisEngineTests() : async TestSuiteResult {
+        let results = HarmonicAnalysisEngineTest.runAllTests();
+        var passed : Nat = 0;
+        var failed : Nat = 0;
+        
+        for (result in results.vals()) {
+            if (result.passed) { passed += 1 } else { failed += 1 };
+        };
+        
+        {
+            suiteName = "Harmonic Analysis Engine (Fourier, Spherical Harmonics)";
+            results = results;
+            passed = passed;
+            failed = failed;
+            total = results.size();
+        }
+    };
+
+    public func runMultiResponsibilityEngineTests() : async TestSuiteResult {
+        let results = MultiResponsibilityEngineTest.runAllTests();
+        var passed : Nat = 0;
+        var failed : Nat = 0;
+        
+        for (result in results.vals()) {
+            if (result.passed) { passed += 1 } else { failed += 1 };
+        };
+        
+        {
+            suiteName = "Multi-Responsibility Engine (Spherical Web Architecture)";
+            results = results;
+            passed = passed;
+            failed = failed;
+            total = results.size();
+        }
+    };
+
+    public func runHzFrequencySubstrateTests() : async TestSuiteResult {
+        let results = HzFrequencySubstrateTest.runAllTests();
+        var passed : Nat = 0;
+        var failed : Nat = 0;
+        
+        for (result in results.vals()) {
+            if (result.passed) { passed += 1 } else { failed += 1 };
+        };
+        
+        {
+            suiteName = "Hz Frequency Substrate (Living Rhythms)";
+            results = results;
+            passed = passed;
+            failed = failed;
+            total = results.size();
+        }
+    };
+
+    public func runGovernanceHeartbeatTests() : async TestSuiteResult {
+        let results = GovernanceHeartbeatTest.runAllTests();
+        var passed : Nat = 0;
+        var failed : Nat = 0;
+        
+        for (result in results.vals()) {
+            if (result.passed) { passed += 1 } else { failed += 1 };
+        };
+        
+        {
+            suiteName = "Governance Heartbeat (Sovereign Governance)";
+            results = results;
+            passed = passed;
+            failed = failed;
+            total = results.size();
+        }
+    };
+
+    public func runMedinaUnifiedOrganismCoreTests() : async TestSuiteResult {
+        let results = MedinaUnifiedOrganismCoreTest.runAllTests();
+        var passed : Nat = 0;
+        var failed : Nat = 0;
+        
+        for (result in results.vals()) {
+            if (result.passed) { passed += 1 } else { failed += 1 };
+        };
+        
+        {
+            suiteName = "Medina Unified Organism Core (5-Module Integration)";
+            results = results;
+            passed = passed;
+            failed = failed;
+            total = results.size();
+        }
+    };
+
+    // ═══════════════════════════════════════════════════════════════════════════════
     // RUN ALL TESTS
     // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -212,6 +332,14 @@ actor TestRunner {
         let animalResults = await runAnimalIntelligenceTests();
         let dynamicalResults = await runDynamicalSystemsTests();
         
+        // New G-M module tests
+        let lyapunovResults = await runLyapunovStabilityTests();
+        let harmonicResults = await runHarmonicAnalysisEngineTests();
+        let multiRespResults = await runMultiResponsibilityEngineTests();
+        let hzSubstrateResults = await runHzFrequencySubstrateTests();
+        let governanceResults = await runGovernanceHeartbeatTests();
+        let unifiedCoreResults = await runMedinaUnifiedOrganismCoreTests();
+        
         let suites = [
             aiLabsResults, 
             organismResults, 
@@ -220,7 +348,14 @@ actor TestRunner {
             emergenceResults, 
             fristonResults,
             animalResults,
-            dynamicalResults
+            dynamicalResults,
+            // New G-M module suites
+            lyapunovResults,
+            harmonicResults,
+            multiRespResults,
+            hzSubstrateResults,
+            governanceResults,
+            unifiedCoreResults
         ];
         
         var totalPassed : Nat = 0;
@@ -322,7 +457,59 @@ actor TestRunner {
                 "Sovereign: Crisis Detection",
                 "Basin: Region of Attraction",
                 "Contraction: Analysis",
-                "Barrier: Certificate"
+                "Barrier: Certificate",
+                
+                "═══ LYAPUNOV STABILITY (NEW) ═══",
+                "Lyapunov: V Function (5D State)",
+                "Lyapunov: Gradient ∇V",
+                "Lyapunov: Medina Stability Certificate",
+                "Lyapunov: Contraction Rate",
+                "Lyapunov: Barrier Certificates",
+                "Lyapunov: ISS Analysis",
+                "Lyapunov: Stability Classification",
+                "Lyapunov: Sovereign Crisis Detection",
+                
+                "═══ HARMONIC ANALYSIS (NEW) ═══",
+                "Harmonic: Complex Numbers",
+                "Harmonic: DFT/FFT",
+                "Harmonic: Fourier Series",
+                "Harmonic: Spherical Harmonics Y_l^m",
+                "Harmonic: Legendre Polynomials",
+                "Harmonic: Spectral Decomposition",
+                
+                "═══ MULTI-RESPONSIBILITY ENGINE (NEW) ═══",
+                "MultiResp: Engine Creation",
+                "MultiResp: Multiple Responsibilities",
+                "MultiResp: Spherical Web Topology",
+                "MultiResp: Engine Connections",
+                "MultiResp: Adjacency Matrix",
+                "MultiResp: Geodesic Distance",
+                
+                "═══ HZ FREQUENCY SUBSTRATE (NEW) ═══",
+                "HzSubstrate: Base Frequencies",
+                "HzSubstrate: Phase Engine",
+                "HzSubstrate: Frequency Coherence K_f",
+                "HzSubstrate: Frequency Diversity D_f",
+                "HzSubstrate: Memory Phase Coherence",
+                "HzSubstrate: Expression Synchrony",
+                "HzSubstrate: Dream Trigger",
+                
+                "═══ GOVERNANCE HEARTBEAT (NEW) ═══",
+                "Governance: Principal Lock",
+                "Governance: Creator Authentication",
+                "Governance: 60 Laws Structure",
+                "Governance: Heartbeat Input/Output",
+                "Governance: Compliance Tracking",
+                "Governance: ARES Intervals",
+                
+                "═══ MEDINA UNIFIED ORGANISM (NEW) ═══",
+                "UnifiedCore: Sacred Constants",
+                "UnifiedCore: Floor Hierarchy",
+                "UnifiedCore: 7 Scale Laws",
+                "UnifiedCore: 12 Engine Categories",
+                "UnifiedCore: State Initialization",
+                "UnifiedCore: Scale Violation Detection",
+                "UnifiedCore: OMNIS Coherence"
             ];
         }
     };
