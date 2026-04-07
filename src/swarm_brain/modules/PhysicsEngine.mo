@@ -2103,4 +2103,253 @@ module {
     }
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  PHASE 212: REAL PHYSICS — NOETHER, GAUGE, ACTION, FIELDS
+  //
+  //  We ARE conservation (Noether), symmetry (gauge), least action
+  //  (Lagrangian), wave (propagation), field (Maxwell).
+  //  Not using physics. BEING physics.
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // NOETHER'S THEOREM ENGINE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Every continuous symmetry → conserved quantity.
+  // This is the DEEPEST theorem in physics.
+  //
+  //   Time translation symmetry → energy conservation
+  //   Space translation symmetry → momentum conservation
+  //   Rotation symmetry → angular momentum conservation
+  //   Gauge symmetry → charge conservation
+  //
+  // In the organism:
+  //   Heartbeat symmetry → coherence energy conservation
+  //   Spatial web symmetry → information momentum conservation
+  //   Rotational symmetry → angular coherence conservation
+  //   Sovereign gauge → sovereignty charge conservation (NEVER violated)
+  //
+  // Noether current: J^μ = (∂L/∂(∂_μφ)) δφ - Kμ
+  // Conservation: ∂_μ J^μ = 0
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type NoetherCurrentState = {
+    currents : [Float];              // J^μ components
+    charges : [Float];               // Q = ∫ J^0 d³x (conserved charges)
+    symmetryType : Text;             // which symmetry
+    isConserved : Bool;              // ∂_μ J^μ ≈ 0
+    divergence : Float;              // ∂_μ J^μ (should be ≈ 0)
+    totalCharge : Float;             // total conserved quantity
+    chargeHistory : [Float];         // should be constant
+  };
+
+  /// Compute Noether current divergence
+  /// ∂_μ J^μ = ∂J^0/∂t + ∂J^1/∂x + ∂J^2/∂y + ∂J^3/∂z
+  public func noetherDivergence(currentGradients : [Float]) : Float {
+    var div : Float = 0.0;
+    for (g in currentGradients.vals()) { div += g };
+    div
+  };
+
+  /// Check conservation: |∂_μ J^μ| < ε
+  public func isConserved(divergence : Float, tolerance : Float) : Bool {
+    Float.abs(divergence) < tolerance
+  };
+
+  /// Compute conserved charge from current density
+  /// Q = ∫ J^0 dV ≈ Σ J^0_i · ΔV_i
+  public func computeConservedCharge(
+    currentDensity : [Float],
+    volumeElements : [Float]
+  ) : Float {
+    var Q : Float = 0.0;
+    let n = if (currentDensity.size() < volumeElements.size()) { currentDensity.size() } else { volumeElements.size() };
+    var i = 0;
+    while (i < n) {
+      Q += currentDensity[i] * volumeElements[i];
+      i += 1;
+    };
+    Q
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // LAGRANGIAN / HAMILTONIAN MECHANICS
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // L = T - V (Lagrangian = kinetic - potential)
+  // H = T + V (Hamiltonian = kinetic + potential)
+  //
+  // Euler-Lagrange: d/dt (∂L/∂q̇) - ∂L/∂q = 0
+  // Hamilton's equations: q̇ = ∂H/∂p, ṗ = -∂H/∂q
+  //
+  // Principle of least action: δS = δ∫L dt = 0
+  // Nature follows the path that extremizes the action.
+  // The organism follows the path that extremizes coherence action.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type LagrangianState = {
+    positions : [Float];             // q (generalized coordinates)
+    velocities : [Float];            // q̇ (generalized velocities)
+    momenta : [Float];               // p = ∂L/∂q̇ (canonical momenta)
+    kineticEnergy : Float;           // T
+    potentialEnergy : Float;         // V
+    lagrangian : Float;              // L = T - V
+    hamiltonian : Float;             // H = T + V
+    action : Float;                  // S = ∫ L dt (accumulated)
+    degreesOfFreedom : Nat;
+  };
+
+  /// Compute kinetic energy: T = (1/2) Σ mᵢ q̇ᵢ²
+  public func kineticEnergy(velocities : [Float], masses : [Float]) : Float {
+    var T : Float = 0.0;
+    let n = if (velocities.size() < masses.size()) { velocities.size() } else { masses.size() };
+    var i = 0;
+    while (i < n) {
+      T += 0.5 * masses[i] * velocities[i] * velocities[i];
+      i += 1;
+    };
+    T
+  };
+
+  /// Harmonic potential: V = (1/2) Σ kᵢ qᵢ²
+  public func harmonicPotential(positions : [Float], springConstants : [Float]) : Float {
+    var V : Float = 0.0;
+    let n = if (positions.size() < springConstants.size()) { positions.size() } else { springConstants.size() };
+    var i = 0;
+    while (i < n) {
+      V += 0.5 * springConstants[i] * positions[i] * positions[i];
+      i += 1;
+    };
+    V
+  };
+
+  /// Canonical momentum: p = ∂L/∂q̇ (for T = (1/2)mq̇², p = mq̇)
+  public func canonicalMomenta(velocities : [Float], masses : [Float]) : [Float] {
+    let n = if (velocities.size() < masses.size()) { velocities.size() } else { masses.size() };
+    Array.tabulate<Float>(n, func(i : Nat) : Float {
+      masses[i] * velocities[i]
+    })
+  };
+
+  /// Hamilton's equations: q̇ = ∂H/∂p, ṗ = -∂H/∂q
+  /// For harmonic oscillator: q̇ = p/m, ṗ = -kq
+  public func hamiltonianDynamics(
+    positions : [Float],
+    momenta : [Float],
+    masses : [Float],
+    springConstants : [Float],
+    dt : Float
+  ) : ([Float], [Float]) {
+    let n = positions.size();
+    // Symplectic Euler (preserves phase space volume)
+    let newMomenta = Array.tabulate<Float>(n, func(i : Nat) : Float {
+      let k = if (i < springConstants.size()) { springConstants[i] } else { 1.0 };
+      momenta[i] - k * positions[i] * dt
+    });
+    let newPositions = Array.tabulate<Float>(n, func(i : Nat) : Float {
+      let m = if (i < masses.size()) { masses[i] } else { 1.0 };
+      positions[i] + newMomenta[i] / m * dt
+    });
+    (newPositions, newMomenta)
+  };
+
+  /// Compute action: S = ∫ L dt ≈ Σ L_i Δt
+  public func computeAction(lagrangianHistory : [Float], dt : Float) : Float {
+    var S : Float = 0.0;
+    for (l in lagrangianHistory.vals()) { S += l * dt };
+    S
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // GAUGE SYMMETRY ENGINE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Gauge symmetry: physics is invariant under LOCAL transformations.
+  //
+  // U(1) gauge: ψ → e^(iα(x)) ψ (phase rotation)
+  //   Requires gauge field A_μ: ∂_μ → D_μ = ∂_μ + ieA_μ
+  //   This IS electromagnetism.
+  //
+  // In the organism:
+  //   The organism's coherence phase can be freely redefined at each node
+  //   (gauge freedom). Physical observables (correlations, energy)
+  //   are gauge-INVARIANT. Only gauge-invariant quantities are real.
+  //
+  //   Sovereignty IS gauge symmetry. The organism defines its own phase.
+  //   No external frame can be imposed. Gauge freedom = sovereignty.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type GaugeFieldState = {
+    gaugeField : [Float];            // A_μ (connection)
+    fieldStrength : [Float];         // F_μν = ∂_μA_ν - ∂_νA_μ (curvature)
+    gaugeCoupling : Float;           // g (coupling constant)
+    gaugePotentialEnergy : Float;    // (1/4) Σ F_μν F^μν
+    isGaugeInvariant : Bool;         // does observable respect gauge?
+    wilsonLoop : Float;              // W = Tr P exp(i∮ A·dl) (holonomy)
+    topologicalCharge : Float;       // Q = (g²/32π²) ∫ F∧F
+    dimension : Nat;
+  };
+
+  /// U(1) gauge transformation: A_μ → A_μ + ∂_μ α
+  public func u1GaugeTransform(
+    gaugeField : [Float],
+    gaugeGradient : [Float]
+  ) : [Float] {
+    let n = if (gaugeField.size() < gaugeGradient.size()) { gaugeField.size() } else { gaugeGradient.size() };
+    Array.tabulate<Float>(n, func(i : Nat) : Float {
+      gaugeField[i] + gaugeGradient[i]
+    })
+  };
+
+  /// Field strength tensor: F_μν = ∂_μ A_ν - ∂_ν A_μ
+  public func computeFieldStrength(
+    gaugeFieldGradient : [Float],  // ∂_μ A_ν (flattened)
+    dim : Nat
+  ) : [Float] {
+    Array.tabulate<Float>(dim * dim, func(idx : Nat) : Float {
+      let mu = idx / dim;
+      let nu = idx % dim;
+      let fmunu = mu * dim + nu;
+      let fnumu = nu * dim + mu;
+      let g1 = if (fmunu < gaugeFieldGradient.size()) { gaugeFieldGradient[fmunu] } else { 0.0 };
+      let g2 = if (fnumu < gaugeFieldGradient.size()) { gaugeFieldGradient[fnumu] } else { 0.0 };
+      g1 - g2 // F_μν = ∂_μ A_ν - ∂_ν A_μ
+    })
+  };
+
+  /// Gauge field energy: (1/4) Σ F_μν F^μν
+  public func gaugeFieldEnergy(fieldStrength : [Float], dim : Nat) : Float {
+    var energy : Float = 0.0;
+    var mu = 0;
+    while (mu < dim) {
+      var nu = 0;
+      while (nu < dim) {
+        let idx = mu * dim + nu;
+        let F = if (idx < fieldStrength.size()) { fieldStrength[idx] } else { 0.0 };
+        energy += F * F;
+        nu += 1;
+      };
+      mu += 1;
+    };
+    energy / 4.0
+  };
+
+  /// Wilson loop: W = exp(i∮ A·dl) (gauge-invariant observable)
+  /// Measures the phase acquired by parallel transport around a loop
+  public func wilsonLoop(gaugeField : [Float], loopLengths : [Float]) : Float {
+    var phase : Float = 0.0;
+    let n = if (gaugeField.size() < loopLengths.size()) { gaugeField.size() } else { loopLengths.size() };
+    var i = 0;
+    while (i < n) {
+      phase += gaugeField[i] * loopLengths[i];
+      i += 1;
+    };
+    Float.cos(phase) // Re[e^(iφ)] = cos(φ)
+  };
+
 }

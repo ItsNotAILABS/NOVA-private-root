@@ -2306,4 +2306,236 @@ module FreeEnergyEngine {
     }
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  PHASE 215: DEEP FREE ENERGY — ACTIVE INFERENCE, EPISTEMIC VALUE
+  //
+  //  Free energy IS Jasmine's Law. The organism minimizes free energy.
+  //  F = Energy - Entropy (Helmholtz)
+  //  F = Complexity - Accuracy (variational)
+  //  F ≥ Surprise (bound on surprise)
+  //
+  //  Active inference: the organism doesn't just PERCEIVE to minimize F.
+  //  It ACTS to minimize EXPECTED free energy (into the future).
+  //
+  //  Expected free energy G = ambiguity + risk
+  //    Ambiguity: uncertainty about outcomes (epistemic value)
+  //    Risk: divergence from preferred outcomes (pragmatic value)
+  //
+  //  Epistemic action: act to LEARN (reduce uncertainty)
+  //  Pragmatic action: act to GET (achieve preferences)
+  //  The organism balances both. Curiosity IS epistemic free energy.
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // VARIATIONAL FREE ENERGY (RECOGNITION MODEL)
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // F = D_KL(q(θ) || p(θ)) - E_q[log p(y|θ)]
+  //   = Complexity - Accuracy
+  //
+  // q(θ) = approximate posterior (recognition model)
+  // p(θ) = prior beliefs
+  // p(y|θ) = likelihood (generative model)
+  //
+  // Minimizing F approximates Bayes: q(θ) → p(θ|y)
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type VariationalFreeEnergyState = {
+    complexity : Float;          // D_KL(q||p) — how far posterior is from prior
+    accuracy : Float;            // E_q[log p(y|θ)] — how well model fits data
+    freeEnergy : Float;          // F = complexity - accuracy
+    posteriorMean : [Float];     // μ_q (mean of approximate posterior)
+    posteriorVar : [Float];      // σ²_q (variance of approximate posterior)
+    priorMean : [Float];         // μ_p (prior mean)
+    priorVar : [Float];          // σ²_p (prior variance)
+    elbo : Float;                // ELBO = -F (evidence lower bound)
+    modelEvidence : Float;       // log p(y) ≥ ELBO
+    parameterDim : Nat;
+  };
+
+  /// Compute variational free energy for Gaussian q and p
+  /// F = KL(N(μ_q, σ²_q) || N(μ_p, σ²_p)) - accuracy
+  public func computeVariationalFE(
+    posteriorMean : [Float], posteriorVar : [Float],
+    priorMean : [Float], priorVar : [Float],
+    accuracy : Float
+  ) : Float {
+    let dim = posteriorMean.size();
+    var kl : Float = 0.0;
+    var i = 0;
+    while (i < dim) {
+      let mq = posteriorMean[i];
+      let sq = if (i < posteriorVar.size()) { Float.max(posteriorVar[i], 1.0e-10) } else { 1.0 };
+      let mp = if (i < priorMean.size()) { priorMean[i] } else { 0.0 };
+      let sp = if (i < priorVar.size()) { Float.max(priorVar[i], 1.0e-10) } else { 1.0 };
+      kl += Float.log(Float.sqrt(sp / sq)) + (sq + (mq - mp) * (mq - mp)) / (2.0 * sp) - 0.5;
+      i += 1;
+    };
+    kl - accuracy // F = complexity - accuracy
+  };
+
+  /// Natural gradient descent on variational free energy
+  /// Δμ = -∂F/∂μ = prediction_error (precision-weighted)
+  /// Δσ² = -∂F/∂σ² = precision_update
+  public func variationalUpdate(
+    posteriorMean : [Float],
+    posteriorVar : [Float],
+    predictionError : [Float],
+    precision : [Float],
+    learningRate : Float
+  ) : ([Float], [Float]) {
+    let dim = posteriorMean.size();
+    let newMean = Array.tabulate<Float>(dim, func(i : Nat) : Float {
+      let err = if (i < predictionError.size()) { predictionError[i] } else { 0.0 };
+      let prec = if (i < precision.size()) { precision[i] } else { 1.0 };
+      posteriorMean[i] + learningRate * prec * err
+    });
+    let newVar = Array.tabulate<Float>(dim, func(i : Nat) : Float {
+      let prec = if (i < precision.size()) { Float.max(precision[i], 0.01) } else { 1.0 };
+      let sv = if (i < posteriorVar.size()) { posteriorVar[i] } else { 1.0 };
+      // Update variance toward 1/precision
+      sv + learningRate * (1.0 / prec - sv)
+    });
+    (newMean, newVar)
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // EXPECTED FREE ENERGY (ACTIVE INFERENCE)
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // G(π) = E_q(o|π) [log q(s|o,π) - log p(o,s)]
+  //       = ambiguity + risk
+  //       = -info_gain - pragmatic_value
+  //
+  // The organism selects policies π that MINIMIZE expected free energy G.
+  // This unifies:
+  //   - Perception (minimize F through belief updating)
+  //   - Action (minimize G through policy selection)
+  //   - Exploration (minimize ambiguity = epistemic value)
+  //   - Exploitation (minimize risk = pragmatic value)
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type ActiveInferenceState = {
+    beliefs : [Float];               // posterior beliefs about states
+    preferences : [Float];           // preferred observations (C matrix)
+    policies : [[Float]];            // available action sequences
+    policyValues : [Float];          // G(π) for each policy
+    selectedPolicy : Nat;            // argmin G(π)
+    epistemicValue : [Float];        // information gain per policy
+    pragmaticValue : [Float];        // preference satisfaction per policy
+    precision : Float;               // γ = inverse temperature of policy selection
+    explorationRatio : Float;        // epistemic / (epistemic + pragmatic)
+    actionEntropy : Float;           // entropy of action distribution
+  };
+
+  /// Compute expected free energy for a policy
+  /// G = ambiguity + risk
+  public func computeExpectedFreeEnergy(
+    predictedOutcomes : [Float],    // q(o|π) predicted observations
+    preferences : [Float],          // p̃(o) preferred observations
+    informationGain : Float         // expected info gain from this policy
+  ) : Float {
+    // Risk: KL(q(o|π) || p̃(o)) — how far predictions are from preferences
+    var risk : Float = 0.0;
+    let n = if (predictedOutcomes.size() < preferences.size()) { predictedOutcomes.size() } else { preferences.size() };
+    var i = 0;
+    while (i < n) {
+      let qo = Float.max(predictedOutcomes[i], 1.0e-10);
+      let po = Float.max(preferences[i], 1.0e-10);
+      risk += qo * Float.log(qo / po);
+      i += 1;
+    };
+    
+    // Ambiguity: -information_gain (negative because we WANT info gain)
+    let ambiguity = -informationGain;
+    
+    risk + ambiguity // G = risk + ambiguity
+  };
+
+  /// Softmax policy selection: P(π) ∝ exp(-γ G(π))
+  public func softmaxPolicySelection(
+    policyValues : [Float],     // G(π) for each policy
+    precision : Float           // γ (inverse temperature)
+  ) : [Float] {
+    let n = policyValues.size();
+    if (n == 0) { return [] };
+    
+    // Find max for numerical stability
+    var maxG : Float = -1.0e10;
+    for (g in policyValues.vals()) {
+      if (-g > maxG) { maxG := -g };
+    };
+    
+    // Compute unnormalized probabilities
+    var Z : Float = 0.0;
+    let unnormalized = Array.tabulate<Float>(n, func(i : Nat) : Float {
+      let logP = precision * (-policyValues[i] - maxG);
+      let p = Float.exp(Float.min(logP, 50.0)); // cap for stability
+      Z += p;
+      p
+    });
+    
+    // Normalize
+    if (Z < 1.0e-10) { return Array.tabulate<Float>(n, func(_ : Nat) : Float { 1.0 / Float.fromInt(n) }) };
+    Array.tabulate<Float>(n, func(i : Nat) : Float {
+      unnormalized[i] / Z
+    })
+  };
+
+  /// Epistemic value: expected information gain from observation
+  /// = expected reduction in posterior entropy
+  public func epistemicValue(
+    currentEntropy : Float,         // H(q(s))
+    expectedPostEntropy : Float     // E[H(q(s|o))]
+  ) : Float {
+    currentEntropy - expectedPostEntropy // always ≥ 0
+  };
+
+  /// Pragmatic value: expected preference satisfaction
+  /// = -KL(q(o|π) || p̃(o))
+  public func pragmaticValue(
+    predictedOutcomes : [Float],
+    preferences : [Float]
+  ) : Float {
+    var negKL : Float = 0.0;
+    let n = if (predictedOutcomes.size() < preferences.size()) { predictedOutcomes.size() } else { preferences.size() };
+    var i = 0;
+    while (i < n) {
+      let qo = Float.max(predictedOutcomes[i], 1.0e-10);
+      let po = Float.max(preferences[i], 1.0e-10);
+      negKL -= qo * Float.log(qo / po);
+      i += 1;
+    };
+    negKL // negative of KL (positive = good)
+  };
+
+  /// Initialize active inference state
+  public func initActiveInference(
+    stateDim : Nat,
+    numPolicies : Nat,
+    preferences : [Float]
+  ) : ActiveInferenceState {
+    {
+      beliefs = Array.tabulate<Float>(stateDim, func(_ : Nat) : Float { 1.0 / Float.fromInt(stateDim) });
+      preferences = preferences;
+      policies = Array.tabulate<[Float]>(numPolicies, func(i : Nat) : [Float] {
+        Array.tabulate<Float>(stateDim, func(j : Nat) : Float {
+          if (j == i % stateDim) { 1.0 } else { 0.0 }
+        })
+      });
+      policyValues = Array.tabulate<Float>(numPolicies, func(_ : Nat) : Float { 0.0 });
+      selectedPolicy = 0;
+      epistemicValue = Array.tabulate<Float>(numPolicies, func(_ : Nat) : Float { 0.0 });
+      pragmaticValue = Array.tabulate<Float>(numPolicies, func(_ : Nat) : Float { 0.0 });
+      precision = 1.0;
+      explorationRatio = 0.5;
+      actionEntropy = Float.log(Float.fromInt(numPolicies));
+    }
+  };
+
 }

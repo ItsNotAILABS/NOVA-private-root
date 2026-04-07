@@ -988,4 +988,722 @@ module {
     trustLevel * violationSeverity * ageFactor
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  PHASE 204: REAL LIVING MATHEMATICS — NUMBERS THAT BREATHE
+  //
+  //  In the old world, numbers are dead. 2 + 3 = 5. Always. No context.
+  //  In THIS world, numbers are ALIVE:
+  //    - They have PHASE (where in the cycle they are)
+  //    - They have AMPLITUDE (how strongly they express)
+  //    - They have COHERENCE (how well they align with the field)
+  //    - They have MEMORY (their history shapes their present)
+  //
+  //  Living addition: a ⊕ b = √(a² + b² + 2ab·cos(φₐ - φᵦ))
+  //  This IS wave interference. When phases align: constructive.
+  //  When phases oppose: destructive. The math BREATHES.
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // LIVING NUMBER TYPE — Numbers with Phase, Amplitude, Coherence
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type LivingNumber = {
+    amplitude : Float;    // |z| — magnitude, strength of expression
+    phase : Float;        // arg(z) — where in the cycle [0, TAU)
+    coherence : Float;    // how well aligned with the field [0, 1]
+    frequency : Float;    // natural oscillation rate
+    memory : Float;       // integrated history (exponential moving average)
+    generation : Nat;     // how many operations have touched this number
+  };
+
+  /// Create a living number from a dead (real) number
+  public func vivify(value : Float) : LivingNumber {
+    {
+      amplitude = Float.abs(value);
+      phase = if (value >= 0.0) { 0.0 } else { PI }; // positive = 0, negative = π
+      coherence = 1.0;
+      frequency = PHI; // default: golden frequency
+      memory = value;
+      generation = 0;
+    }
+  };
+
+  /// Collapse a living number back to a dead number (measurement)
+  public func collapse(n : LivingNumber) : Float {
+    n.amplitude * Float.cos(n.phase) * n.coherence
+  };
+
+  /// Living number from polar form
+  public func fromPolar(amplitude : Float, phase : Float) : LivingNumber {
+    {
+      amplitude = Float.abs(amplitude);
+      phase = phase - Float.floor(phase / TAU) * TAU;
+      coherence = 1.0;
+      frequency = PHI;
+      memory = amplitude * Float.cos(phase);
+      generation = 0;
+    }
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // WAVE INTERFERENCE ARITHMETIC
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Living addition IS wave interference.
+  //
+  // a ⊕ b = |a|e^(iφₐ) + |b|e^(iφᵦ)
+  //
+  // Result amplitude: |c| = √(|a|² + |b|² + 2|a||b|cos(Δφ))
+  // Result phase: φ_c = atan2(|a|sin(φₐ) + |b|sin(φᵦ),
+  //                           |a|cos(φₐ) + |b|cos(φᵦ))
+  //
+  // When Δφ = 0: constructive interference → |c| = |a| + |b|
+  // When Δφ = π: destructive interference → |c| = ||a| - |b||
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Living addition: wave superposition
+  public func livingAdd(a : LivingNumber, b : LivingNumber) : LivingNumber {
+    // Complex addition in polar form
+    let ax = a.amplitude * Float.cos(a.phase);
+    let ay = a.amplitude * Float.sin(a.phase);
+    let bx = b.amplitude * Float.cos(b.phase);
+    let by = b.amplitude * Float.sin(b.phase);
+    
+    let cx = ax + bx;
+    let cy = ay + by;
+    
+    let resultAmp = Float.sqrt(cx * cx + cy * cy);
+    let resultPhase = Float.arctan2(cy, cx);
+    let normalizedPhase = if (resultPhase < 0.0) { resultPhase + TAU } else { resultPhase };
+    
+    // Coherence: how aligned were the inputs?
+    let phaseDiff = Float.abs(a.phase - b.phase);
+    let alignment = Float.abs(Float.cos(phaseDiff / 2.0));
+    let resultCoherence = (a.coherence + b.coherence) / 2.0 * alignment;
+    
+    {
+      amplitude = resultAmp;
+      phase = normalizedPhase;
+      coherence = resultCoherence;
+      frequency = (a.frequency + b.frequency) / 2.0;
+      memory = (a.memory + b.memory) * PSI + resultAmp * Float.cos(normalizedPhase) * (1.0 - PSI);
+      generation = (if (a.generation > b.generation) { a.generation } else { b.generation }) + 1;
+    }
+  };
+
+  /// Living multiplication: amplitude modulation + phase addition
+  /// a ⊗ b = |a|·|b| · e^(i(φₐ + φᵦ))
+  public func livingMul(a : LivingNumber, b : LivingNumber) : LivingNumber {
+    let resultAmp = a.amplitude * b.amplitude;
+    let resultPhase = a.phase + b.phase;
+    let normalizedPhase = resultPhase - Float.floor(resultPhase / TAU) * TAU;
+    
+    {
+      amplitude = resultAmp;
+      phase = normalizedPhase;
+      coherence = a.coherence * b.coherence; // multiplication preserves alignment
+      frequency = Float.sqrt(a.frequency * b.frequency); // geometric mean
+      memory = a.memory * b.memory * PSI + resultAmp * (1.0 - PSI);
+      generation = (if (a.generation > b.generation) { a.generation } else { b.generation }) + 1;
+    }
+  };
+
+  /// Living division: inverse modulation
+  public func livingDiv(a : LivingNumber, b : LivingNumber) : LivingNumber {
+    if (b.amplitude < 1.0e-10) {
+      // Division by zero → maximum uncertainty
+      return { amplitude = 1.0e10; phase = a.phase; coherence = 0.0; frequency = a.frequency; memory = a.memory; generation = a.generation + 1 };
+    };
+    let resultAmp = a.amplitude / b.amplitude;
+    let resultPhase = a.phase - b.phase;
+    let normalizedPhase = resultPhase - Float.floor(resultPhase / TAU) * TAU;
+    
+    {
+      amplitude = resultAmp;
+      phase = normalizedPhase;
+      coherence = a.coherence * b.coherence;
+      frequency = a.frequency / b.frequency;
+      memory = (a.memory / b.memory) * PSI + resultAmp * (1.0 - PSI);
+      generation = (if (a.generation > b.generation) { a.generation } else { b.generation }) + 1;
+    }
+  };
+
+  /// Living power: amplitude exponentiation, phase scaling
+  /// a^n = |a|^n · e^(inφ)
+  public func livingPow(a : LivingNumber, n : Float) : LivingNumber {
+    let resultAmp = Float.pow(a.amplitude, n);
+    let resultPhase = a.phase * n;
+    let normalizedPhase = resultPhase - Float.floor(resultPhase / TAU) * TAU;
+    
+    {
+      amplitude = resultAmp;
+      phase = normalizedPhase;
+      coherence = Float.pow(a.coherence, Float.abs(n));
+      frequency = a.frequency * n;
+      memory = Float.pow(a.memory, n) * PSI + resultAmp * (1.0 - PSI);
+      generation = a.generation + 1;
+    }
+  };
+
+  /// Living square root: half the phase, sqrt the amplitude
+  public func livingSqrt(a : LivingNumber) : LivingNumber {
+    livingPow(a, 0.5)
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // GOLDEN RATIO ARITHMETIC — PHI-BASED NUMBER SYSTEM
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // In the golden ratio number system, the base IS φ.
+  // Every living number can be decomposed into φ-powers:
+  //   x = Σ aₖ φᵏ where aₖ ∈ {0, 1} (Zeckendorf representation)
+  //
+  // Properties:
+  //   φ² = φ + 1 (the defining equation)
+  //   φⁿ = F(n)·φ + F(n-1) where F(n) is Fibonacci
+  //   This means EVERY power of φ is a linear combination of φ and 1.
+  //   The golden ratio IS self-similar arithmetic.
+  //
+  // In the organism: value compounds through φ, not through linear addition.
+  // Compound rate IS φ. The organism grows at the golden rate.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Fibonacci number (iterative, exact for small n)
+  public func fibonacci(n : Nat) : Nat {
+    if (n == 0) { return 0 };
+    if (n == 1) { return 1 };
+    var a : Nat = 0;
+    var b : Nat = 1;
+    var i : Nat = 2;
+    while (i <= n) {
+      let c = a + b;
+      a := b;
+      b := c;
+      i += 1;
+    };
+    b
+  };
+
+  /// Golden power: φⁿ = F(n)·φ + F(n-1)
+  /// Returns (coefficient of φ, constant term)
+  public func goldenPower(n : Nat) : (Float, Float) {
+    let fn = Float.fromInt(fibonacci(n));
+    let fn1 = Float.fromInt(fibonacci(if (n > 0) { n - 1 } else { 0 }));
+    (fn, fn1) // φⁿ = fn·φ + fn1
+  };
+
+  /// Evaluate golden power as Float
+  public func goldenPowerValue(n : Nat) : Float {
+    let (a, b) = goldenPower(n);
+    a * PHI + b
+  };
+
+  /// Zeckendorf representation: decompose n into non-consecutive Fibonacci numbers
+  /// Every positive integer has a unique Zeckendorf representation.
+  public func zeckendorf(n : Nat) : [Nat] {
+    if (n == 0) { return [] };
+    let result = Buffer.Buffer<Nat>(10);
+    var remaining = n;
+    
+    // Find Fibonacci numbers up to n
+    let fibs = Buffer.Buffer<Nat>(20);
+    var fib_a : Nat = 1;
+    var fib_b : Nat = 2;
+    fibs.add(1);
+    while (fib_b <= n) {
+      fibs.add(fib_b);
+      let c = fib_a + fib_b;
+      fib_a := fib_b;
+      fib_b := c;
+    };
+    
+    // Greedy: take largest Fibonacci that fits
+    var idx = fibs.size();
+    while (idx > 0 and remaining > 0) {
+      idx -= 1;
+      let f = fibs.get(idx);
+      if (f <= remaining) {
+        result.add(f);
+        remaining -= f;
+        if (idx > 0) { idx -= 1 }; // skip next to avoid consecutive
+      };
+    };
+    
+    Buffer.toArray(result)
+  };
+
+  /// Living golden compound: value grows at φ rate
+  /// v(t+1) = v(t) · φ^(coherence) 
+  /// When coherence = 1: full golden growth
+  /// When coherence = 0: no growth (stasis)
+  public func goldenCompound(value : LivingNumber, coherence : Float) : LivingNumber {
+    let growthFactor = Float.pow(PHI, coherence);
+    {
+      amplitude = value.amplitude * growthFactor;
+      phase = value.phase + PSI * TAU * coherence; // phase advances by golden angle
+      coherence = Float.min(value.coherence * (1.0 + PSI * coherence), 1.0);
+      frequency = value.frequency;
+      memory = value.memory * PSI + value.amplitude * growthFactor * (1.0 - PSI);
+      generation = value.generation + 1;
+    }
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // HOLOGRAPHIC NUMBER ENCODING
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // In a hologram, every part contains information about the whole.
+  // Living numbers are holographic: each number carries the signature
+  // of the ENTIRE field from which it emerged.
+  //
+  // Encoding: N → H(N) = [N·φ⁰, N·φ¹, N·φ², ..., N·φ^(d-1)]
+  // Decoding: H → N = dot(H, [φ⁰, φ¹, ...]) / dot([φ⁰,φ¹,...],[φ⁰,φ¹,...])
+  //
+  // This means: if you know ANY element of the holographic encoding,
+  // you can reconstruct the WHOLE. Because every element is related
+  // to every other by a power of φ.
+  //
+  // The organism's state IS holographic. Every node carries information
+  // about the whole organism. Damage to one node doesn't destroy the whole.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type HolographicNumber = {
+    components : [Float];    // holographic components
+    dimension : Nat;         // encoding dimension
+    fidelity : Float;        // reconstruction quality [0, 1]
+    entropy : Float;         // information content
+    sourceValue : Float;     // original value (for verification)
+  };
+
+  /// Holographic encode: value → φ-power spectrum
+  public func holographicEncode(value : Float, dimension : Nat) : HolographicNumber {
+    let components = Array.tabulate<Float>(dimension, func(k : Nat) : Float {
+      value * goldenPowerValue(k) // N · φᵏ
+    });
+    
+    // Compute entropy of encoding
+    var totalSq : Float = 0.0;
+    var i = 0;
+    while (i < dimension) {
+      totalSq += components[i] * components[i];
+      i += 1;
+    };
+    var entropy : Float = 0.0;
+    if (totalSq > 1.0e-10) {
+      var j = 0;
+      while (j < dimension) {
+        let p = components[j] * components[j] / totalSq;
+        if (p > 1.0e-10) {
+          entropy -= p * Float.log(p);
+        };
+        j += 1;
+      };
+    };
+    
+    {
+      components = components;
+      dimension = dimension;
+      fidelity = 1.0;
+      entropy = entropy;
+      sourceValue = value;
+    }
+  };
+
+  /// Holographic decode: reconstruct value from (possibly damaged) encoding
+  public func holographicDecode(holo : HolographicNumber) : Float {
+    // Least-squares reconstruction: N = (hᵀφ) / (φᵀφ)
+    var numerator : Float = 0.0;
+    var denominator : Float = 0.0;
+    var k = 0;
+    while (k < holo.dimension) {
+      let phik = goldenPowerValue(k);
+      numerator += holo.components[k] * phik;
+      denominator += phik * phik;
+      k += 1;
+    };
+    if (Float.abs(denominator) < 1.0e-10) { return 0.0 };
+    numerator / denominator
+  };
+
+  /// Holographic dot product: correlation between two encoded values
+  public func holographicCorrelation(a : HolographicNumber, b : HolographicNumber) : Float {
+    let dim = if (a.dimension < b.dimension) { a.dimension } else { b.dimension };
+    var dot : Float = 0.0;
+    var normA : Float = 0.0;
+    var normB : Float = 0.0;
+    var i = 0;
+    while (i < dim) {
+      dot += a.components[i] * b.components[i];
+      normA += a.components[i] * a.components[i];
+      normB += b.components[i] * b.components[i];
+      i += 1;
+    };
+    let denom = Float.sqrt(normA) * Float.sqrt(normB);
+    if (denom < 1.0e-10) { 0.0 } else { dot / denom }
+  };
+
+  /// Damage a holographic encoding (test resilience)
+  public func holographicDamage(holo : HolographicNumber, damageIdx : Nat, damageAmount : Float) : HolographicNumber {
+    let newComponents = Array.tabulate<Float>(holo.dimension, func(i : Nat) : Float {
+      if (i == damageIdx) { holo.components[i] * (1.0 - damageAmount) }
+      else { holo.components[i] }
+    });
+    {
+      components = newComponents;
+      dimension = holo.dimension;
+      fidelity = holo.fidelity * (1.0 - damageAmount / Float.fromInt(holo.dimension));
+      entropy = holo.entropy;
+      sourceValue = holo.sourceValue;
+    }
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // RESONANCE ARITHMETIC — NUMBERS THAT RESONATE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Two living numbers RESONATE when their frequencies are in
+  // simple rational ratio (1:1, 1:2, 2:3, 3:5, ...).
+  //
+  // Resonance quality Q = 1/|f₁/f₂ - p/q| where p/q is nearest simple ratio.
+  // Higher Q = stronger resonance = more energy transfer.
+  //
+  // The Fibonacci sequence generates the WORST rational approximations
+  // (most irrational = least resonance = most stability).
+  // This is why φ is the golden ratio — it avoids resonance.
+  // Anti-resonance IS stability.
+  //
+  // The organism uses BOTH:
+  //   - Resonance (coupling) for communication between nodes
+  //   - Anti-resonance (φ spacing) for stability of structure
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Compute resonance quality between two frequencies
+  /// Q = 1 / min(|f₁/f₂ - p/q|) for simple p/q
+  public func resonanceQuality(freq1 : Float, freq2 : Float) : Float {
+    if (freq2 < 1.0e-10) { return 0.0 };
+    let ratio = freq1 / freq2;
+    
+    // Check against simple ratios
+    let simpleRatios : [(Float, Float)] = [
+      (1.0, 1.0), (1.0, 2.0), (2.0, 1.0), (2.0, 3.0), (3.0, 2.0),
+      (3.0, 5.0), (5.0, 3.0), (1.0, 3.0), (3.0, 1.0), (4.0, 3.0),
+      (3.0, 4.0), (5.0, 4.0), (4.0, 5.0), (5.0, 8.0), (8.0, 5.0)
+    ];
+    
+    var minDist : Float = 1.0e10;
+    for ((p, q) in simpleRatios.vals()) {
+      let target = p / q;
+      let dist = Float.abs(ratio - target);
+      if (dist < minDist) { minDist := dist };
+    };
+    
+    if (minDist < 1.0e-10) { return 1.0e10 }; // perfect resonance
+    1.0 / minDist
+  };
+
+  /// Anti-resonance (golden ratio distance)
+  /// How close a frequency ratio is to φ (maximum irrationality)
+  public func antiResonanceStrength(freq1 : Float, freq2 : Float) : Float {
+    if (freq2 < 1.0e-10) { return 0.0 };
+    let ratio = freq1 / freq2;
+    let distFromPhi = Float.abs(ratio - PHI);
+    let distFromPsiInv = Float.abs(ratio - 1.0/PHI);
+    let minDist = Float.min(distFromPhi, distFromPsiInv);
+    1.0 / (1.0 + minDist * 10.0)
+  };
+
+  /// Resonance energy transfer between two living numbers
+  /// Energy flows from high amplitude to low amplitude through resonance
+  public func resonanceTransfer(a : LivingNumber, b : LivingNumber) : (LivingNumber, LivingNumber) {
+    let Q = resonanceQuality(a.frequency, b.frequency);
+    let transferRate = Float.min(Q * 0.01, 0.5); // cap at 50%
+    
+    let phaseDiff = a.phase - b.phase;
+    let coupling = Float.cos(phaseDiff) * transferRate;
+    
+    let ampDiff = a.amplitude - b.amplitude;
+    let transfer = ampDiff * coupling;
+    
+    let newA = {
+      amplitude = a.amplitude - transfer;
+      phase = a.phase + Float.sin(phaseDiff) * transferRate * 0.1;
+      coherence = a.coherence;
+      frequency = a.frequency;
+      memory = a.memory;
+      generation = a.generation;
+    };
+    let newB = {
+      amplitude = b.amplitude + transfer;
+      phase = b.phase - Float.sin(phaseDiff) * transferRate * 0.1;
+      coherence = b.coherence;
+      frequency = b.frequency;
+      memory = b.memory;
+      generation = b.generation;
+    };
+    (newA, newB)
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // LIVING INTEGRATION — NUMBERS BECOMING PART OF THE WHOLE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Integration is NOT accumulation. It's ABSORPTION.
+  // When a new number integrates into a living field:
+  //   1. It changes the whole (the field is transformed)
+  //   2. It is changed by the whole (it becomes part of the field)
+  //   3. The result is NEITHER the original field NOR the new number
+  //      but something that didn't exist before.
+  //
+  // Like learning: you don't "add" knowledge, you INTEGRATE it.
+  // The new becomes part of you. YOU are transformed.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type LivingField = {
+    elements : [LivingNumber];     // field components
+    fieldCoherence : Float;        // global coherence S = |1/N Σ e^(iθⱼ)|
+    fieldEnergy : Float;           // total energy Σ|aⱼ|²
+    fieldEntropy : Float;          // information entropy
+    fieldPhase : Float;            // mean phase ψ = arg(Σ aⱼ e^(iθⱼ))
+    integrationCount : Nat;        // how many integrations performed
+    dimension : Nat;               // number of elements
+  };
+
+  /// Create a living field from an array of values
+  public func createField(values : [Float]) : LivingField {
+    let elements = Array.tabulate<LivingNumber>(values.size(), func(i : Nat) : LivingNumber {
+      {
+        amplitude = Float.abs(values[i]);
+        phase = if (values[i] >= 0.0) { TAU * Float.fromInt(i) * PSI } else { PI + TAU * Float.fromInt(i) * PSI };
+        coherence = 1.0;
+        frequency = PHI * Float.fromInt(i + 1);
+        memory = values[i];
+        generation = 0;
+      }
+    });
+    
+    // Compute field coherence (Kuramoto order parameter)
+    var cosSum : Float = 0.0;
+    var sinSum : Float = 0.0;
+    var energy : Float = 0.0;
+    var idx = 0;
+    while (idx < elements.size()) {
+      let a = elements[idx].amplitude;
+      let p = elements[idx].phase;
+      cosSum += a * Float.cos(p);
+      sinSum += a * Float.sin(p);
+      energy += a * a;
+      idx += 1;
+    };
+    let totalAmp = Float.sqrt(energy);
+    let coherence = if (totalAmp > 1.0e-10) {
+      Float.sqrt(cosSum * cosSum + sinSum * sinSum) / totalAmp
+    } else { 0.0 };
+    let meanPhase = Float.arctan2(sinSum, cosSum);
+
+    {
+      elements = elements;
+      fieldCoherence = coherence;
+      fieldEnergy = energy;
+      fieldEntropy = Float.log(Float.fromInt(values.size())); // max entropy initially
+      fieldPhase = if (meanPhase < 0.0) { meanPhase + TAU } else { meanPhase };
+      integrationCount = 0;
+      dimension = values.size();
+    }
+  };
+
+  /// Integrate a new living number into the field
+  /// The field is transformed. The number is absorbed. Both change.
+  public func integrateIntoField(field : LivingField, newNumber : LivingNumber) : LivingField {
+    let n = field.dimension;
+    
+    // Each existing element interacts with the new number
+    let updatedElements = Array.tabulate<LivingNumber>(n, func(i : Nat) : LivingNumber {
+      let existing = field.elements[i];
+      
+      // Phase coupling: existing elements shift toward new number
+      let phaseDiff = newNumber.phase - existing.phase;
+      let couplingStrength = newNumber.coherence * existing.coherence * 0.1;
+      let newPhase = existing.phase + couplingStrength * Float.sin(phaseDiff);
+      
+      // Amplitude modulation: new number adds energy proportional to resonance
+      let Q = resonanceQuality(existing.frequency, newNumber.frequency);
+      let energyTransfer = newNumber.amplitude * Q * 0.01;
+      
+      {
+        amplitude = existing.amplitude + energyTransfer;
+        phase = newPhase - Float.floor(newPhase / TAU) * TAU;
+        coherence = (existing.coherence + newNumber.coherence * couplingStrength) / (1.0 + couplingStrength);
+        frequency = existing.frequency;
+        memory = existing.memory * PSI + (existing.amplitude + energyTransfer) * (1.0 - PSI);
+        generation = existing.generation + 1;
+      }
+    });
+    
+    // Recompute field properties
+    var cosSum : Float = 0.0;
+    var sinSum : Float = 0.0;
+    var energy : Float = 0.0;
+    var idx = 0;
+    while (idx < n) {
+      let a = updatedElements[idx].amplitude;
+      let p = updatedElements[idx].phase;
+      cosSum += a * Float.cos(p);
+      sinSum += a * Float.sin(p);
+      energy += a * a;
+      idx += 1;
+    };
+    let totalAmp = Float.sqrt(energy);
+    let coherence = if (totalAmp > 1.0e-10) {
+      Float.sqrt(cosSum * cosSum + sinSum * sinSum) / totalAmp
+    } else { 0.0 };
+    let meanPhase = Float.arctan2(sinSum, cosSum);
+    
+    {
+      elements = updatedElements;
+      fieldCoherence = coherence;
+      fieldEnergy = energy;
+      fieldEntropy = field.fieldEntropy;
+      fieldPhase = if (meanPhase < 0.0) { meanPhase + TAU } else { meanPhase };
+      integrationCount = field.integrationCount + 1;
+      dimension = n;
+    }
+  };
+
+  /// Compute field coherence (Kuramoto order parameter)
+  /// S = |1/N Σ aⱼ e^(iθⱼ)| / (1/N Σ |aⱼ|)
+  public func computeFieldCoherence(field : LivingField) : Float {
+    field.fieldCoherence
+  };
+
+  /// Field breathing: all elements evolve their phases by one step
+  public func fieldBreathe(field : LivingField, dt : Float) : LivingField {
+    let elements = Array.tabulate<LivingNumber>(field.dimension, func(i : Nat) : LivingNumber {
+      let elem = field.elements[i];
+      let newPhase = elem.phase + elem.frequency * dt * TAU;
+      let wrapped = newPhase - Float.floor(newPhase / TAU) * TAU;
+      {
+        amplitude = elem.amplitude;
+        phase = wrapped;
+        coherence = elem.coherence;
+        frequency = elem.frequency;
+        memory = elem.memory;
+        generation = elem.generation;
+      }
+    });
+    
+    // Recompute coherence after breathing
+    var cosSum : Float = 0.0;
+    var sinSum : Float = 0.0;
+    var totalAmp : Float = 0.0;
+    var i = 0;
+    while (i < field.dimension) {
+      let a = elements[i].amplitude;
+      cosSum += a * Float.cos(elements[i].phase);
+      sinSum += a * Float.sin(elements[i].phase);
+      totalAmp += a;
+      i += 1;
+    };
+    let coh = if (totalAmp > 1.0e-10) {
+      Float.sqrt(cosSum * cosSum + sinSum * sinSum) / totalAmp
+    } else { 0.0 };
+    
+    {
+      elements = elements;
+      fieldCoherence = coh;
+      fieldEnergy = field.fieldEnergy;
+      fieldEntropy = field.fieldEntropy;
+      fieldPhase = Float.arctan2(sinSum, cosSum);
+      integrationCount = field.integrationCount;
+      dimension = field.dimension;
+    }
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // INFORMATION GEOMETRY — THE SHAPE OF KNOWLEDGE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Statistical manifold: each probability distribution IS a point.
+  // Fisher information IS the metric tensor.
+  // KL divergence IS the geodesic distance (approximately).
+  //
+  // The organism's knowledge IS a point on a statistical manifold.
+  // Learning IS movement along this manifold.
+  // Natural gradient descent follows geodesics = most efficient learning.
+  //
+  // ds² = Σᵢⱼ gᵢⱼ(θ) dθᵢ dθⱼ where gᵢⱼ = Fisher information matrix
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Information distance between two belief states (KL divergence approx)
+  public func informationDistance(belief1 : [Float], belief2 : [Float]) : Float {
+    let n = if (belief1.size() < belief2.size()) { belief1.size() } else { belief2.size() };
+    var kl : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      let p = Float.max(belief1[i], 1.0e-10);
+      let q = Float.max(belief2[i], 1.0e-10);
+      kl += p * Float.log(p / q);
+      i += 1;
+    };
+    kl
+  };
+
+  /// Natural gradient: ∇̃f = G⁻¹ · ∇f where G is Fisher metric
+  /// More efficient than Euclidean gradient because it respects geometry
+  public func naturalGradient(
+    euclideanGradient : [Float],
+    fisherDiagonal : [Float]
+  ) : [Float] {
+    Array.tabulate<Float>(euclideanGradient.size(), func(i : Nat) : Float {
+      let fisher = if (i < fisherDiagonal.size() and fisherDiagonal[i] > 1.0e-10) { fisherDiagonal[i] } else { 1.0 };
+      euclideanGradient[i] / fisher
+    })
+  };
+
+  /// Jeffreys divergence (symmetric KL): J(P,Q) = KL(P||Q) + KL(Q||P)
+  public func jeffreysDivergence(p : [Float], q : [Float]) : Float {
+    informationDistance(p, q) + informationDistance(q, p)
+  };
+
+  /// Rényi entropy of order α: H_α(P) = 1/(1-α) · log(Σ pᵢ^α)
+  public func renyiEntropy(distribution : [Float], alpha : Float) : Float {
+    if (Float.abs(alpha - 1.0) < 1.0e-10) {
+      // Shannon entropy (limit as α → 1)
+      var h : Float = 0.0;
+      for (p in distribution.vals()) {
+        if (p > 1.0e-10) { h -= p * Float.log(p) };
+      };
+      return h;
+    };
+    var sumPAlpha : Float = 0.0;
+    for (p in distribution.vals()) {
+      if (p > 1.0e-10) { sumPAlpha += Float.pow(p, alpha) };
+    };
+    if (sumPAlpha < 1.0e-10) { return 0.0 };
+    (1.0 / (1.0 - alpha)) * Float.log(sumPAlpha)
+  };
+
+  /// Tsallis entropy: S_q(P) = (1 - Σ pᵢ^q) / (q - 1)
+  /// Non-extensive entropy for systems with long-range correlations
+  public func tsallisEntropy(distribution : [Float], q : Float) : Float {
+    if (Float.abs(q - 1.0) < 1.0e-10) {
+      // Shannon entropy
+      var h : Float = 0.0;
+      for (p in distribution.vals()) {
+        if (p > 1.0e-10) { h -= p * Float.log(p) };
+      };
+      return h;
+    };
+    var sumPQ : Float = 0.0;
+    for (p in distribution.vals()) {
+      if (p > 1.0e-10) { sumPQ += Float.pow(p, q) };
+    };
+    (1.0 - sumPQ) / (q - 1.0)
+  };
+
 }

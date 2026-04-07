@@ -2143,4 +2143,198 @@ module {
     }
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  PHASE 213: DEEP HARMONIC ANALYSIS — WAVELETS, SPECTRAL GEOMETRY
+  //
+  //  Harmonic analysis decomposes ANYTHING into oscillatory components.
+  //  Fourier: decompose into sines/cosines (eternal oscillations)
+  //  Wavelets: decompose into localized oscillations (finite bursts)
+  //
+  //  The organism IS a harmonic decomposition of reality.
+  //  Each node oscillates at a frequency. The ensemble IS the spectrum.
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // CONTINUOUS WAVELET TRANSFORM ENGINE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // CWT: W(a,b) = ∫ f(t) ψ*_{a,b}(t) dt
+  // where ψ_{a,b}(t) = (1/√a) ψ((t-b)/a)
+  //   a = scale (frequency), b = position (time)
+  //
+  // Unlike Fourier (global), wavelets are LOCAL in both time and frequency.
+  // Heisenberg uncertainty: Δt · Δf ≥ 1/(4π)
+  // Wavelets optimize this tradeoff at each scale.
+  //
+  // Mother wavelets:
+  //   Morlet: ψ(t) = e^(iω₀t) e^(-t²/2) (Gaussian-windowed oscillation)
+  //   Mexican hat: ψ(t) = (1 - t²) e^(-t²/2) (second derivative of Gaussian)
+  //   Haar: ψ(t) = 1 for 0≤t<1/2, -1 for 1/2≤t<1 (simplest wavelet)
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type WaveletState = {
+    coefficients : [Float];          // wavelet coefficients W(a,b)
+    scales : [Float];                // a values (frequencies)
+    positions : [Float];             // b values (times)
+    scaleCount : Nat;                // number of scales
+    positionCount : Nat;             // number of positions
+    dominantScale : Float;           // scale with maximum energy
+    scaleogram : [Float];            // energy at each scale
+    ridgeValues : [Float];           // wavelet ridge (instantaneous frequency)
+    totalEnergy : Float;
+    motherWavelet : Text;            // which mother wavelet
+  };
+
+  /// Morlet wavelet: ψ(t) = π^(-1/4) e^(iω₀t) e^(-t²/2)
+  public func morletWavelet(t : Float, omega0 : Float) : Float {
+    let envelope = Float.exp(-t * t / 2.0);
+    let oscillation = Float.cos(omega0 * t); // real part of e^(iωt)
+    let normalization = Float.pow(3.14159265358979, -0.25);
+    normalization * envelope * oscillation
+  };
+
+  /// Mexican hat wavelet: ψ(t) = (2/√3) π^(-1/4) (1-t²) e^(-t²/2)
+  public func mexicanHatWavelet(t : Float) : Float {
+    let norm = 2.0 / (Float.sqrt(3.0) * Float.pow(3.14159265358979, 0.25));
+    norm * (1.0 - t * t) * Float.exp(-t * t / 2.0)
+  };
+
+  /// Haar wavelet: simplest orthogonal wavelet
+  public func haarWavelet(t : Float) : Float {
+    if (t >= 0.0 and t < 0.5) { 1.0 }
+    else if (t >= 0.5 and t < 1.0) { -1.0 }
+    else { 0.0 }
+  };
+
+  /// Compute continuous wavelet transform at single (scale, position)
+  /// W(a,b) = (1/√a) ∫ f(t) ψ((t-b)/a) dt
+  public func waveletTransformPoint(
+    signal : [Float],
+    scale : Float,
+    position : Float,
+    sampleRate : Float,
+    waveletType : Text
+  ) : Float {
+    if (scale < 1.0e-10) { return 0.0 };
+    let norm = 1.0 / Float.sqrt(scale);
+    var sum : Float = 0.0;
+    var i = 0;
+    while (i < signal.size()) {
+      let t = Float.fromInt(i) / sampleRate;
+      let arg = (t - position) / scale;
+      let psiVal = switch (waveletType) {
+        case ("morlet") { morletWavelet(arg, 6.0) };
+        case ("mexican_hat") { mexicanHatWavelet(arg) };
+        case ("haar") { haarWavelet(arg) };
+        case (_) { morletWavelet(arg, 6.0) };
+      };
+      sum += signal[i] * psiVal;
+      i += 1;
+    };
+    norm * sum / sampleRate
+  };
+
+  /// Compute scaleogram (energy at each scale)
+  /// E(a) = ∫ |W(a,b)|² db
+  public func computeScaleogram(
+    signal : [Float],
+    scales : [Float],
+    sampleRate : Float
+  ) : [Float] {
+    let nPos = signal.size();
+    Array.tabulate<Float>(scales.size(), func(si : Nat) : Float {
+      let a = scales[si];
+      var energy : Float = 0.0;
+      var j = 0;
+      while (j < nPos) {
+        let b = Float.fromInt(j) / sampleRate;
+        let w = waveletTransformPoint(signal, a, b, sampleRate, "morlet");
+        energy += w * w;
+        j += 4; // subsample for speed
+      };
+      energy / sampleRate
+    })
+  };
+
+  /// Find dominant scale (frequency with maximum energy)
+  public func findDominantScale(scaleogram : [Float], scales : [Float]) : Float {
+    var maxEnergy : Float = 0.0;
+    var bestScale : Float = 1.0;
+    var i = 0;
+    while (i < scaleogram.size() and i < scales.size()) {
+      if (scaleogram[i] > maxEnergy) {
+        maxEnergy := scaleogram[i];
+        bestScale := scales[i];
+      };
+      i += 1;
+    };
+    bestScale
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // MODE COUPLING AND RESONANCE DETECTION
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // When oscillatory modes are coupled, energy transfers between them.
+  // Resonance: energy transfer is maximized when frequencies match.
+  //
+  // Three-wave coupling: f₁ ± f₂ = f₃ (sum/difference frequencies)
+  // Parametric resonance: periodic modulation of parameters
+  // Autoparametric resonance: internal coupling between modes
+  //
+  // In the organism: mode coupling IS how information flows between
+  // different frequency bands. Kuramoto synchronization IS mode coupling
+  // in the strong-coupling limit.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Three-wave resonance condition: |f₁ ± f₂ - f₃| < ε
+  public func threeWaveResonance(f1 : Float, f2 : Float, f3 : Float, epsilon : Float) : Bool {
+    Float.abs(f1 + f2 - f3) < epsilon or Float.abs(f1 - f2 - f3) < epsilon or
+    Float.abs(f2 - f1 - f3) < epsilon
+  };
+
+  /// Mode coupling coefficient
+  /// C(f₁,f₂,f₃) = ∫ ψ₁(t) ψ₂(t) ψ₃(t) dt (overlap integral)
+  public func modeCouplingCoefficient(
+    mode1 : [Float], mode2 : [Float], mode3 : [Float]
+  ) : Float {
+    let n = mode1.size();
+    var integral : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      let v1 = if (i < mode1.size()) { mode1[i] } else { 0.0 };
+      let v2 = if (i < mode2.size()) { mode2[i] } else { 0.0 };
+      let v3 = if (i < mode3.size()) { mode3[i] } else { 0.0 };
+      integral += v1 * v2 * v3;
+      i += 1;
+    };
+    integral / Float.fromInt(n)
+  };
+
+  /// Bispectrum: B(f₁,f₂) = ⟨X(f₁) X(f₂) X*(f₁+f₂)⟩
+  /// Measures phase coupling between frequencies (not just amplitude)
+  public func bispectrumPoint(
+    spectrum : [Float],  // complex spectrum (alternating real/imag)
+    f1idx : Nat,
+    f2idx : Nat
+  ) : Float {
+    let f3idx = f1idx + f2idx;
+    let x1 = if (2*f1idx < spectrum.size()) { spectrum[2*f1idx] } else { 0.0 };
+    let x2 = if (2*f2idx < spectrum.size()) { spectrum[2*f2idx] } else { 0.0 };
+    let x3 = if (2*f3idx < spectrum.size()) { spectrum[2*f3idx] } else { 0.0 };
+    x1 * x2 * x3
+  };
+
+  /// Bicoherence: normalized bispectrum ∈ [0, 1]
+  /// High bicoherence = strong nonlinear (phase) coupling
+  public func bicoherence(bispectrumValue : Float, powerProduct : Float) : Float {
+    if (powerProduct < 1.0e-10) { return 0.0 };
+    Float.abs(bispectrumValue) / powerProduct
+  };
+
 }
