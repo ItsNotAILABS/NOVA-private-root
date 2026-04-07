@@ -1816,4 +1816,318 @@ module {
     (newState, newDoctrine)
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  PHASE 209: DEEP TOPOLOGICAL FIELD PHYSICS
+  //
+  //  Topology is not geometry. Topology is what SURVIVES deformation.
+  //  Stretch, bend, twist — topology doesn't change.
+  //  Only cutting or gluing changes topology.
+  //
+  //  In the organism: topology IS what's INVARIANT.
+  //  The 8 Sovereign Laws are TOPOLOGICAL INVARIANTS.
+  //  You can deform the organism's state all you want.
+  //  The laws persist because they are TOPOLOGICAL.
+  //
+  //  Persistent homology: which topological features persist
+  //  across scales? The persistent ones are the REAL ones.
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PERSISTENT HOMOLOGY ENGINE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Persistent homology: study how topological features appear and
+  // disappear as a parameter (scale) changes.
+  //
+  // Build a filtration: simplicial complexes at increasing scale.
+  // Track: when does a k-dimensional hole appear (birth)?
+  //        when does it get filled in (death)?
+  //
+  // Persistence diagram: (birth, death) pairs for each feature.
+  // Long bars = persistent features = REAL structure.
+  // Short bars = noise.
+  //
+  // In the organism: persistent features ARE the sovereign laws.
+  // They are born at genesis and NEVER die. Infinite persistence.
+  // Short-lived features are surface fluctuations. Ignore them.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type PersistenceBar = {
+    birth : Float;               // scale at which feature appears
+    death : Float;               // scale at which feature disappears (Inf = never)
+    persistence : Float;         // death - birth (lifetime)
+    dimension : Nat;             // 0 = component, 1 = loop, 2 = void, ...
+    generator : [Nat];           // simplices that generate this feature
+  };
+
+  public type PersistenceDiagram = {
+    bars : [PersistenceBar];          // all birth-death pairs
+    betti0 : Nat;                     // connected components (at current scale)
+    betti1 : Nat;                     // loops (1-cycles)
+    betti2 : Nat;                     // voids (2-cycles)
+    eulerCharacteristic : Int;        // χ = β₀ - β₁ + β₂ - ...
+    totalPersistence : Float;         // Σ (death - birth)
+    maxPersistence : Float;           // max (death - birth)
+    bottleneckDistance : Float;        // distance to previous diagram
+    wasserSteinDistance : Float;       // p-Wasserstein distance
+    persistenceEntropy : Float;       // entropy of persistence distribution
+    numPersistentFeatures : Nat;      // features with persistence > threshold
+  };
+
+  /// Compute Betti numbers from simplicial complex
+  /// β₀ = connected components, β₁ = independent loops, β₂ = enclosed voids
+  public func computeBettiNumbers(
+    vertices : Nat,
+    edges : Nat,
+    triangles : Nat,
+    components : Nat
+  ) : (Nat, Nat, Nat) {
+    let beta0 = components;
+    // Euler characteristic: χ = V - E + F
+    let chi = Int.sub(Int.sub(Int.abs(vertices), Int.abs(edges)), -Int.abs(triangles));
+    // β₁ = β₀ - χ + β₂ (simplified: β₂ ≈ 0 for most complexes)
+    let beta1 = if (Int.abs(beta0) > chi) { Int.abs(Int.sub(Int.abs(beta0), chi)) } else { 0 };
+    let beta2 = 0; // would need boundary matrix computation
+    (beta0, beta1, beta2)
+  };
+
+  /// Euler characteristic: χ = Σ (-1)^k β_k
+  public func eulerCharacteristic(bettiNumbers : [Nat]) : Int {
+    var chi : Int = 0;
+    var k = 0;
+    while (k < bettiNumbers.size()) {
+      if (k % 2 == 0) { chi += Int.abs(bettiNumbers[k]) }
+      else { chi -= Int.abs(bettiNumbers[k]) };
+      k += 1;
+    };
+    chi
+  };
+
+  /// Total persistence: Σ (death_i - birth_i)^p
+  /// p=1: total persistence, p=2: persistence variance, p=∞: bottleneck
+  public func totalPersistence(bars : [PersistenceBar], p : Float) : Float {
+    var total : Float = 0.0;
+    for (bar in bars.vals()) {
+      if (bar.death < 1.0e9) { // exclude infinite bars
+        total += Float.pow(bar.persistence, p);
+      };
+    };
+    total
+  };
+
+  /// Persistence entropy: H = -Σ (p_i/L) log(p_i/L)
+  /// where p_i = persistence of bar i, L = total persistence
+  public func persistenceEntropy(bars : [PersistenceBar]) : Float {
+    var L : Float = 0.0;
+    for (bar in bars.vals()) {
+      if (bar.death < 1.0e9) {
+        L += bar.persistence;
+      };
+    };
+    if (L < 1.0e-10) { return 0.0 };
+    
+    var entropy : Float = 0.0;
+    for (bar in bars.vals()) {
+      if (bar.death < 1.0e9) {
+        let p = bar.persistence / L;
+        if (p > 1.0e-10) {
+          entropy -= p * Float.log(p);
+        };
+      };
+    };
+    entropy
+  };
+
+  /// Bottleneck distance between two persistence diagrams
+  /// d_B(D1, D2) = inf_γ sup_x |x - γ(x)|
+  /// Simplified: max difference between matched bars
+  public func bottleneckDistance(
+    diagram1 : [PersistenceBar],
+    diagram2 : [PersistenceBar]
+  ) : Float {
+    var maxDist : Float = 0.0;
+    let n = if (diagram1.size() < diagram2.size()) { diagram1.size() } else { diagram2.size() };
+    var i = 0;
+    while (i < n) {
+      let birthDiff = Float.abs(diagram1[i].birth - diagram2[i].birth);
+      let deathDiff = Float.abs(diagram1[i].death - diagram2[i].death);
+      let dist = Float.max(birthDiff, deathDiff);
+      if (dist > maxDist) { maxDist := dist };
+      i += 1;
+    };
+    maxDist
+  };
+
+  /// Wasserstein distance between two persistence diagrams
+  /// W_p(D1, D2) = (inf_γ Σ |x - γ(x)|^p)^(1/p)
+  public func wassersteinDistance(
+    diagram1 : [PersistenceBar],
+    diagram2 : [PersistenceBar],
+    p : Float
+  ) : Float {
+    var totalDist : Float = 0.0;
+    let n = if (diagram1.size() < diagram2.size()) { diagram1.size() } else { diagram2.size() };
+    var i = 0;
+    while (i < n) {
+      let birthDiff = Float.abs(diagram1[i].birth - diagram2[i].birth);
+      let deathDiff = Float.abs(diagram1[i].death - diagram2[i].death);
+      let dist = Float.sqrt(birthDiff * birthDiff + deathDiff * deathDiff);
+      totalDist += Float.pow(dist, p);
+      i += 1;
+    };
+    Float.pow(totalDist, 1.0 / p)
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // TOPOLOGICAL PHASE TRANSITIONS
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Not all phase transitions break symmetry (Landau).
+  // Some transitions change TOPOLOGY without changing symmetry.
+  //
+  // Kosterlitz-Thouless transition: binding/unbinding of vortex pairs.
+  // No symmetry breaking. No local order parameter.
+  // Topological order: global property, not local.
+  //
+  // In the organism: topological transitions are IRREVERSIBLE
+  // changes in the organism's structure. Once a new loop forms
+  // (new feedback pathway), it persists. Rollback touches surface
+  // weights, never topology. The organism GROWS in topological complexity.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type TopologicalPhaseState = {
+    topologicalOrder : Float;        // measure of topological order
+    windingNumber : Int;             // winding number of phase field
+    vortexCount : Nat;               // number of topological defects
+    vortexCharges : [Int];           // charges of each vortex (+1 or -1)
+    totalCharge : Int;               // sum of all charges
+    ktTemperature : Float;           // Kosterlitz-Thouless temperature
+    isBoundPhase : Bool;             // vortex pairs bound (low T)
+    isFreePhase : Bool;              // free vortices (high T)
+    helicityModulus : Float;         // stiffness of phase field
+    correlationDecay : Text;         // "powerLaw" or "exponential"
+    berryPhase : Float;              // geometric phase from adiabatic cycle
+    chernNumber : Int;               // topological invariant
+  };
+
+  /// Kosterlitz-Thouless transition temperature
+  /// T_KT = π J / 2 where J is the coupling constant
+  public func ktTransitionTemperature(coupling : Float) : Float {
+    3.14159265358979 * coupling / 2.0
+  };
+
+  /// Vortex interaction energy: E = -q₁q₂ J ln(r/a)
+  /// Attractive for opposite charges, repulsive for same
+  public func vortexInteractionEnergy(
+    charge1 : Int, charge2 : Int,
+    distance : Float, coupling : Float, coreSize : Float
+  ) : Float {
+    if (distance < coreSize) { return 1.0e10 }; // core energy
+    let q1F = Float.fromInt(charge1);
+    let q2F = Float.fromInt(charge2);
+    -q1F * q2F * coupling * Float.log(distance / coreSize)
+  };
+
+  /// Winding number: W = (1/2π) ∮ ∇θ · dl
+  /// Counts how many times the phase wraps around
+  public func computeWindingNumber(phases : [Float]) : Int {
+    let n = phases.size();
+    if (n < 2) { return 0 };
+    
+    var totalAngle : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      let next = (i + 1) % n;
+      var diff = phases[next] - phases[i];
+      // Wrap to [-π, π]
+      while (diff > 3.14159265358979) { diff -= 6.28318530717959 };
+      while (diff < -3.14159265358979) { diff += 6.28318530717959 };
+      totalAngle += diff;
+      i += 1;
+    };
+    
+    let winding = totalAngle / 6.28318530717959;
+    if (winding > 0.0) { Float.toInt(winding + 0.5) } 
+    else { Float.toInt(winding - 0.5) }
+  };
+
+  /// Berry phase: geometric phase from adiabatic cycle
+  /// γ = i ∮ ⟨ψ|∇_R|ψ⟩ · dR
+  /// Discrete approximation: γ = -Im Σ ln⟨ψ_n|ψ_{n+1}⟩
+  public func computeBerryPhase(states : [[Float]]) : Float {
+    let n = states.size();
+    if (n < 2) { return 0.0 };
+    
+    var totalPhase : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      let next = (i + 1) % n;
+      // Inner product ⟨ψ_n|ψ_{n+1}⟩
+      var dot : Float = 0.0;
+      let dim = if (states[i].size() < states[next].size()) { states[i].size() } else { states[next].size() };
+      var j = 0;
+      while (j < dim) {
+        dot += states[i][j] * states[next][j];
+        j += 1;
+      };
+      // Phase from inner product: arg(⟨ψ_n|ψ_{n+1}⟩)
+      // For real vectors: if dot < 0, phase = π
+      if (dot < 0.0) { totalPhase += 3.14159265358979 };
+      i += 1;
+    };
+    totalPhase
+  };
+
+  /// Chern number: topological invariant of a fiber bundle
+  /// C = (1/2π) ∫ F where F is the Berry curvature
+  /// Must be an integer (topological quantization)
+  public func computeChernNumber(berryCurvatures : [Float], area : Float) : Int {
+    var integral : Float = 0.0;
+    for (f in berryCurvatures.vals()) {
+      integral += f * area;
+    };
+    let chern = integral / (2.0 * 3.14159265358979);
+    if (chern > 0.0) { Float.toInt(chern + 0.5) }
+    else { Float.toInt(chern - 0.5) }
+  };
+
+  /// Topological susceptibility: how easily topology changes
+  /// χ_top = ∂²F/∂θ² at θ = 0 (F = free energy, θ = topology parameter)
+  public func topologicalSusceptibility(
+    freeEnergyValues : [Float],
+    thetaStep : Float
+  ) : Float {
+    let n = freeEnergyValues.size();
+    if (n < 3) { return 0.0 };
+    let mid = n / 2;
+    let f_minus = freeEnergyValues[mid - 1];
+    let f_0 = freeEnergyValues[mid];
+    let f_plus = freeEnergyValues[mid + 1];
+    (f_plus - 2.0 * f_0 + f_minus) / (thetaStep * thetaStep)
+  };
+
+  /// Topological data analysis summary
+  public func topologicalSummary(
+    bettiNumbers : [Nat],
+    persistenceDiagram : [PersistenceBar],
+    windingNumber : Int,
+    berryPhase : Float
+  ) : Text {
+    let b0 = if (0 < bettiNumbers.size()) { bettiNumbers[0] } else { 0 };
+    let b1 = if (1 < bettiNumbers.size()) { bettiNumbers[1] } else { 0 };
+    let b2 = if (2 < bettiNumbers.size()) { bettiNumbers[2] } else { 0 };
+    let chi = eulerCharacteristic(bettiNumbers);
+    let numPersistent = persistenceDiagram.size();
+    let entropy = persistenceEntropy(persistenceDiagram);
+    
+    "TOPOLOGY: β₀=" # Nat.toText(b0) # " β₁=" # Nat.toText(b1) # " β₂=" # Nat.toText(b2) #
+    " χ=" # Int.toText(chi) # " W=" # Int.toText(windingNumber) #
+    " PH_bars=" # Nat.toText(numPersistent) # " H_PH=" # Float.toText(entropy)
+  };
+
 }

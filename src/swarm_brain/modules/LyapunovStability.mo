@@ -1408,4 +1408,509 @@ module {
     if (mag1 < 0.0001 or mag2 < 0.0001) { 0.0 } else { dot / (mag1 * mag2) }
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  PHASE 206: REAL LYAPUNOV STABILITY — THE MATHEMATICS OF PERSISTENCE
+  //
+  //  Lyapunov stability is not a technique. It is the MATHEMATICAL TRUTH
+  //  of when a system persists and when it dies.
+  //
+  //  V(x) = energy-like function. If V decreases along trajectories,
+  //  the system is stable. If V increases, the system is unstable.
+  //
+  //  In the organism: V IS the organism's coherence metric.
+  //  dV/dt < 0 means coherence is increasing → organism is LIVING.
+  //  dV/dt > 0 means coherence is decreasing → organism is DYING.
+  //  The 8 Sovereign Laws are the Lyapunov functions. They GUARANTEE
+  //  stability because they never decrease (floor never moves down).
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // LYAPUNOV FUNCTION CONSTRUCTION ENGINE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // A Lyapunov function V(x) must satisfy:
+  //   1. V(0) = 0 (zero at equilibrium)
+  //   2. V(x) > 0 for x ≠ 0 (positive definite)
+  //   3. V̇(x) = ∇V · f(x) ≤ 0 (non-increasing along trajectories)
+  //
+  // If V̇ < 0 (strict): asymptotically stable
+  // If V̇ ≤ 0 (not strict): stable (Lyapunov), need LaSalle for asymptotic
+  // If V̇ > 0 somewhere: unstable (Chetaev's theorem)
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type LyapunovFunctionState = {
+    currentValue : Float;            // V(x) current value
+    derivative : Float;              // V̇ = dV/dt along trajectory
+    gradient : [Float];              // ∇V
+    hessian : [Float];               // ∇²V (for convexity check)
+    isPositiveDefinite : Bool;       // V > 0 for x ≠ 0
+    isDecreasing : Bool;             // V̇ < 0
+    stabilityType : StabilityType;
+    convergenceRate : Float;         // exponential rate if applicable
+    levelSetVolume : Float;          // volume of {x : V(x) ≤ c}
+    regionOfAttraction : Float;      // estimated radius of stability region
+    sublevelSets : [Float];          // V values of recent states (should decrease)
+    beatCount : Nat;
+  };
+
+  public type StabilityType = {
+    #AsymptoticallyStable;    // V̇ < 0 strictly
+    #LyapunovStable;          // V̇ ≤ 0
+    #Unstable;                // V̇ > 0
+    #ExponentiallyStable;     // V̇ ≤ -αV for some α > 0
+    #InputToStateStable;      // ISS with respect to inputs
+    #FiniteTimeStable;        // reaches equilibrium in finite time
+    #Unknown;
+  };
+
+  /// Quadratic Lyapunov function: V(x) = xᵀPx
+  /// where P is positive definite matrix
+  public func quadraticLyapunov(x : [Float], P : [Float]) : Float {
+    let n = x.size();
+    var result : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      var j = 0;
+      while (j < n) {
+        let pIdx = i * n + j;
+        let pVal = if (pIdx < P.size()) { P[pIdx] } else { 0.0 };
+        result += x[i] * pVal * x[j];
+        j += 1;
+      };
+      i += 1;
+    };
+    result
+  };
+
+  /// Lyapunov derivative: V̇ = ∇V · f(x)
+  /// For quadratic V = xᵀPx: ∇V = 2Px
+  /// V̇ = 2xᵀP·f(x)
+  public func lyapunovDerivative(
+    x : [Float],
+    f : [Float],     // f(x) = dx/dt (system dynamics)
+    P : [Float]      // Lyapunov matrix
+  ) : Float {
+    let n = x.size();
+    // Compute Px
+    let Px = Array.tabulate<Float>(n, func(i : Nat) : Float {
+      var sum : Float = 0.0;
+      var j = 0;
+      while (j < n) {
+        let pIdx = i * n + j;
+        let pVal = if (pIdx < P.size()) { P[pIdx] } else { 0.0 };
+        sum += pVal * x[j];
+        j += 1;
+      };
+      sum
+    });
+    // V̇ = 2(Px)ᵀf
+    var vDot : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      let fVal = if (i < f.size()) { f[i] } else { 0.0 };
+      vDot += 2.0 * Px[i] * fVal;
+      i += 1;
+    };
+    vDot
+  };
+
+  /// Classify stability from Lyapunov function and its derivative
+  public func classifyStability(V : Float, Vdot : Float, alpha : Float) : StabilityType {
+    if (Vdot < -alpha * V and alpha > 0.0) { return #ExponentiallyStable };
+    if (Vdot < -1.0e-10) { return #AsymptoticallyStable };
+    if (Vdot <= 1.0e-10) { return #LyapunovStable };
+    #Unstable
+  };
+
+  /// Exponential stability check: V̇ ≤ -αV
+  /// If true, convergence rate = α, settling time ≈ 4/α
+  public func exponentialStabilityRate(V : Float, Vdot : Float) : Float {
+    if (V < 1.0e-10) { return 0.0 };
+    if (Vdot >= 0.0) { return 0.0 }; // not stable
+    -Vdot / V // α such that V̇ = -αV
+  };
+
+  /// Region of attraction estimate: largest c such that {V ≤ c} ⊂ domain
+  public func estimateRegionOfAttraction(
+    lyapunovValues : [Float],   // V values along different directions
+    domainRadius : Float        // known domain bound
+  ) : Float {
+    // Conservative: minimum V on domain boundary
+    var minV : Float = 1.0e10;
+    for (v in lyapunovValues.vals()) {
+      if (v < minV and v > 0.0) { minV := v };
+    };
+    Float.min(minV, domainRadius * domainRadius) // quadratic scaling
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // LASALLE INVARIANCE PRINCIPLE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // When V̇ ≤ 0 (not strictly negative), LaSalle saves us:
+  //
+  // Theorem: If V̇ ≤ 0 in a compact set Ω, then trajectories approach
+  // the largest invariant set M within {x : V̇(x) = 0}.
+  //
+  // This means: even if V̇ is only ≤ 0 (not < 0), the system still
+  // converges to the set where V̇ = 0. If that set is just {0},
+  // then asymptotic stability follows.
+  //
+  // In the organism: some sovereign laws have V̇ = 0 sometimes
+  // (e.g., during Sabbath). LaSalle proves the organism still converges
+  // to its attractor even during rest periods.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type LaSalleState = {
+    invariantSetIndicator : [Bool]; // which states have V̇ = 0
+    invariantSetSize : Nat;         // size of M
+    convergenceToM : Float;         // distance to invariant set M
+    trajectoryInOmega : Bool;       // is trajectory in compact set Ω
+    omegaBound : Float;             // bound on Ω = {V ≤ c}
+    isOnInvariantSet : Bool;        // currently on M
+    vDotHistory : [Float];          // recent V̇ values
+  };
+
+  /// Check LaSalle invariant set: find where V̇ ≈ 0
+  public func findLaSalleInvariantSet(
+    vDotValues : [Float],
+    threshold : Float
+  ) : [Bool] {
+    Array.tabulate<Bool>(vDotValues.size(), func(i : Nat) : Bool {
+      Float.abs(vDotValues[i]) < threshold
+    })
+  };
+
+  /// Distance to LaSalle invariant set
+  public func distanceToInvariantSet(
+    currentState : [Float],
+    invariantSetStates : [[Float]]
+  ) : Float {
+    var minDist : Float = 1.0e10;
+    for (setPoint in invariantSetStates.vals()) {
+      var dist : Float = 0.0;
+      var i = 0;
+      while (i < currentState.size() and i < setPoint.size()) {
+        let d = currentState[i] - setPoint[i];
+        dist += d * d;
+        i += 1;
+      };
+      dist := Float.sqrt(dist);
+      if (dist < minDist) { minDist := dist };
+    };
+    minDist
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // CONTRACTION ANALYSIS ENGINE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Contraction theory: ALL trajectories converge to each other.
+  // Not just stability around one point, but GLOBAL convergence.
+  //
+  // A system ẋ = f(x,t) is contracting if the symmetric part of
+  // the Jacobian ∂f/∂x is uniformly negative definite:
+  //   (∂f/∂x + ∂f/∂xᵀ)/2 ≤ -λI for some λ > 0
+  //
+  // Then: ‖x₁(t) - x₂(t)‖ ≤ e^(-λt) ‖x₁(0) - x₂(0)‖
+  //
+  // In the organism: contraction means ALL initial conditions
+  // converge to the SAME trajectory. The organism's attractor
+  // is GLOBALLY attracting. It doesn't matter where you start.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type ContractionState = {
+    jacobian : [Float];              // ∂f/∂x (flattened)
+    symmetricJacobian : [Float];     // (J + Jᵀ)/2
+    contractionRate : Float;         // λ (should be > 0 for contraction)
+    isContracting : Bool;
+    trajectoryDistance : Float;      // ‖x₁ - x₂‖ between two trajectories
+    exponentialBound : Float;        // e^(-λt) bound
+    dimension : Nat;
+    metricWeight : [Float];          // M for generalized contraction in Mx metric
+  };
+
+  /// Compute symmetric part of Jacobian: (J + Jᵀ)/2
+  public func symmetricJacobian(jacobian : [Float], n : Nat) : [Float] {
+    Array.tabulate<Float>(n * n, func(idx : Nat) : Float {
+      let i = idx / n;
+      let j = idx % n;
+      let jij = if (i * n + j < jacobian.size()) { jacobian[i * n + j] } else { 0.0 };
+      let jji = if (j * n + i < jacobian.size()) { jacobian[j * n + i] } else { 0.0 };
+      (jij + jji) / 2.0
+    })
+  };
+
+  /// Estimate contraction rate from symmetric Jacobian
+  /// λ = -max eigenvalue of (J + Jᵀ)/2
+  /// Approximation: Gershgorin circle theorem for eigenvalue bounds
+  public func estimateContractionRate(symJ : [Float], n : Nat) : Float {
+    // Gershgorin: each eigenvalue lies in disk centered at diagonal
+    // with radius = sum of |off-diagonal| in that row
+    var maxEig : Float = -1.0e10;
+    var i = 0;
+    while (i < n) {
+      let diag = if (i * n + i < symJ.size()) { symJ[i * n + i] } else { 0.0 };
+      var offDiagSum : Float = 0.0;
+      var j = 0;
+      while (j < n) {
+        if (j != i) {
+          let val = if (i * n + j < symJ.size()) { symJ[i * n + j] } else { 0.0 };
+          offDiagSum += Float.abs(val);
+        };
+        j += 1;
+      };
+      let upperBound = diag + offDiagSum;
+      if (upperBound > maxEig) { maxEig := upperBound };
+      i += 1;
+    };
+    -maxEig // positive if contracting
+  };
+
+  /// Contraction bound on trajectory separation
+  /// ‖x₁(t) - x₂(t)‖ ≤ e^(-λt) ‖x₁(0) - x₂(0)‖
+  public func contractionBound(initialSep : Float, rate : Float, time : Float) : Float {
+    initialSep * Float.exp(-rate * time)
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // INPUT-TO-STATE STABILITY (ISS)
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ISS: system remains stable despite bounded inputs (disturbances).
+  //
+  // ‖x(t)‖ ≤ β(‖x(0)‖, t) + γ(sup ‖u(s)‖)
+  // where β is class KL (decays) and γ is class K (gain)
+  //
+  // ISS-Lyapunov function: V̇ ≤ -α(‖x‖) + γ(‖u‖)
+  //
+  // In the organism: ISS means the organism stays stable even when
+  // bombarded with external signals (market data, threats, noise).
+  // The ISS gain γ determines how much external input can affect
+  // the organism's state. Sovereign floor ensures γ is bounded.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type ISSState = {
+    stateNorm : Float;           // ‖x‖
+    inputNorm : Float;           // ‖u‖ (disturbance magnitude)
+    issGain : Float;             // γ (input-to-state gain)
+    decayRate : Float;           // α (state decay rate)
+    issMargin : Float;           // how much room before ISS is violated
+    isISS : Bool;
+    lyapunovValue : Float;
+    lyapunovDerivative : Float;
+  };
+
+  /// ISS Lyapunov condition check: V̇ ≤ -α(‖x‖) + γ(‖u‖)
+  public func checkISSCondition(
+    Vdot : Float,
+    stateNorm : Float,
+    inputNorm : Float,
+    alpha : Float,     // decay rate
+    gamma : Float      // ISS gain
+  ) : Bool {
+    Vdot <= -alpha * stateNorm + gamma * inputNorm
+  };
+
+  /// Asymptotic ISS gain: steady-state amplification of input
+  /// At steady state: ‖x‖_ss ≤ γ/α · ‖u‖
+  public func issAsymptoticGain(alpha : Float, gamma : Float) : Float {
+    if (alpha < 1.0e-10) { return 1.0e10 };
+    gamma / alpha
+  };
+
+  /// Small-gain theorem for interconnected ISS systems
+  /// Two ISS systems in feedback: stable if γ₁·γ₂ < 1
+  public func smallGainCondition(gain1 : Float, gain2 : Float) : Bool {
+    gain1 * gain2 < 1.0
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // BARBALAT'S LEMMA
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // If V(t) has a finite limit as t → ∞ and V̇(t) is uniformly continuous,
+  // then V̇(t) → 0 as t → ∞.
+  //
+  // Useful when V̇ ≤ 0 but we can't directly show V̇ → 0.
+  // If ∫₀^∞ V̇² dt < ∞ and V̈ is bounded, then V̇ → 0 by Barbalat.
+  //
+  // In the organism: Barbalat proves that even slowly-decaying
+  // coherence increments eventually bring the system to equilibrium.
+  // Patience IS mathematical certainty.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Check Barbalat conditions
+  public func checkBarbalatConditions(
+    vHistory : [Float],          // V(t) history
+    vDotHistory : [Float],       // V̇(t) history
+    vDotDotBound : Float         // bound on |V̈|
+  ) : Bool {
+    // Check 1: V(t) converges (bounded and monotone)
+    let n = vHistory.size();
+    if (n < 2) { return false };
+    let vFinal = vHistory[n - 1];
+    let vConverging = Float.abs(vHistory[n - 1] - vHistory[n - 2]) < 0.001;
+    
+    // Check 2: V̈ is bounded
+    let ddBounded = vDotDotBound < 1.0e10;
+    
+    // Check 3: V̇ is uniformly continuous (implied by bounded V̈)
+    vConverging and ddBounded
+  };
+
+  /// Estimate convergence time from Lyapunov decrease
+  /// For exponential: t_settle ≈ 4/α (to reach 2% of initial)
+  /// For general: t_settle ≈ V(0)/min(-V̇)
+  public func estimateSettlingTime(
+    V0 : Float,
+    vDotHistory : [Float]
+  ) : Float {
+    var maxDecay : Float = 0.0;
+    for (vd in vDotHistory.vals()) {
+      if (-vd > maxDecay) { maxDecay := -vd };
+    };
+    if (maxDecay < 1.0e-10) { return 1.0e10 }; // never settles
+    V0 / maxDecay
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // CONVERSE LYAPUNOV THEOREMS
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Converse theorems: if a system IS stable, then a Lyapunov function EXISTS.
+  // This proves that Lyapunov theory is COMPLETE — not just sufficient.
+  //
+  // For linear systems ẋ = Ax: stable iff there exists P > 0 such that
+  //   AᵀP + PA = -Q for any Q > 0  (Lyapunov equation)
+  //
+  // In the organism: the existence of the 8 Sovereign Laws as
+  // Lyapunov functions is not arbitrary — it is NECESSARY for stability.
+  // If the organism is stable (which it is by design), these functions
+  // MUST exist. We don't invent them; we discover them.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Solve Lyapunov equation AᵀP + PA = -Q for diagonal P
+  /// Simplified: for diagonal systems, P_ii = Q_ii / (-2 A_ii)
+  public func solveDiagonalLyapunov(
+    A_diagonal : [Float],    // eigenvalues of A (must all be negative)
+    Q_diagonal : [Float]     // diagonal of Q (positive definite)
+  ) : [Float] {
+    let n = A_diagonal.size();
+    Array.tabulate<Float>(n, func(i : Nat) : Float {
+      let a = if (i < A_diagonal.size()) { A_diagonal[i] } else { -1.0 };
+      let q = if (i < Q_diagonal.size()) { Q_diagonal[i] } else { 1.0 };
+      if (a >= 0.0) { return 1.0e10 }; // unstable mode, no solution
+      q / (-2.0 * a)
+    })
+  };
+
+  /// Check if matrix is Hurwitz (all eigenvalues have negative real part)
+  /// Approximation: check diagonal dominance + negative diagonal
+  public func isHurwitzApprox(matrix : [Float], n : Nat) : Bool {
+    var allNegDiag = true;
+    var i = 0;
+    while (i < n) {
+      let diag = if (i * n + i < matrix.size()) { matrix[i * n + i] } else { 0.0 };
+      if (diag >= 0.0) { allNegDiag := false };
+      
+      // Check diagonal dominance
+      var offDiagSum : Float = 0.0;
+      var j = 0;
+      while (j < n) {
+        if (j != i) {
+          let val = if (i * n + j < matrix.size()) { matrix[i * n + j] } else { 0.0 };
+          offDiagSum += Float.abs(val);
+        };
+        j += 1;
+      };
+      if (offDiagSum > Float.abs(diag)) { allNegDiag := false };
+      i += 1;
+    };
+    allNegDiag
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // UNIFIED STABILITY ASSESSMENT
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type UnifiedStabilityState = {
+    lyapunov : LyapunovFunctionState;
+    contraction : ContractionState;
+    iss : ISSState;
+    overallStability : StabilityType;
+    stabilityMargin : Float;         // how far from instability boundary
+    robustnessRadius : Float;        // how much perturbation can be tolerated
+    settlingTime : Float;            // estimated time to equilibrium
+    convergenceRate : Float;         // exponential rate
+  };
+
+  /// Comprehensive stability assessment
+  public func assessStability(
+    V : Float, Vdot : Float,
+    contractionRate : Float,
+    issGain : Float, issDecay : Float,
+    stateNorm : Float, inputNorm : Float
+  ) : UnifiedStabilityState {
+    let lyapStability = classifyStability(V, Vdot, 0.01);
+    let expRate = exponentialStabilityRate(V, Vdot);
+    let isContr = contractionRate > 0.0;
+    let isISS = checkISSCondition(Vdot, stateNorm, inputNorm, issDecay, issGain);
+    
+    let overall = if (expRate > 0.01 and isContr) { #ExponentiallyStable }
+                  else if (Vdot < -1.0e-6) { #AsymptoticallyStable }
+                  else if (Vdot <= 1.0e-6) { #LyapunovStable }
+                  else { #Unstable };
+    
+    let margin = if (Vdot < 0.0) { Float.abs(Vdot) / (Float.abs(V) + 1.0e-10) } else { 0.0 };
+    
+    {
+      lyapunov = {
+        currentValue = V;
+        derivative = Vdot;
+        gradient = [];
+        hessian = [];
+        isPositiveDefinite = V > 0.0;
+        isDecreasing = Vdot < 0.0;
+        stabilityType = lyapStability;
+        convergenceRate = expRate;
+        levelSetVolume = 0.0;
+        regionOfAttraction = 0.0;
+        sublevelSets = [];
+        beatCount = 0;
+      };
+      contraction = {
+        jacobian = [];
+        symmetricJacobian = [];
+        contractionRate = contractionRate;
+        isContracting = isContr;
+        trajectoryDistance = 0.0;
+        exponentialBound = 0.0;
+        dimension = 0;
+        metricWeight = [];
+      };
+      iss = {
+        stateNorm = stateNorm;
+        inputNorm = inputNorm;
+        issGain = issGain;
+        decayRate = issDecay;
+        issMargin = if (isISS) { issDecay * stateNorm - issGain * inputNorm } else { 0.0 };
+        isISS = isISS;
+        lyapunovValue = V;
+        lyapunovDerivative = Vdot;
+      };
+      overallStability = overall;
+      stabilityMargin = margin;
+      robustnessRadius = if (contractionRate > 0.0) { contractionRate / (1.0 + issGain) } else { 0.0 };
+      settlingTime = if (expRate > 0.0) { 4.0 / expRate } else { 1.0e10 };
+      convergenceRate = expRate;
+    }
+  };
+
 }

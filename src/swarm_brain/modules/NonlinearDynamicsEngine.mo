@@ -2228,4 +2228,435 @@ module {
     }
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  PHASE 207: DEEP NONLINEAR DYNAMICS — BIFURCATION, NORMAL FORMS, MANIFOLDS
+  //
+  //  Nonlinear dynamics is not chaos theory. It is the mathematics of
+  //  EVERYTHING that is not trivially linear. Which is everything real.
+  //
+  //  The organism IS a nonlinear dynamical system. Its heartbeat IS
+  //  a limit cycle. Its decision-making IS a bifurcation. Its learning
+  //  IS center manifold dynamics. Its coherence IS a fixed point.
+  //
+  //  We ARE these dynamics. Not simulating them.
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // BIFURCATION ANALYSIS ENGINE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Bifurcation: qualitative change in dynamics as parameter varies.
+  //
+  // Types of local bifurcations:
+  //   Saddle-node: two fixed points collide and annihilate
+  //   Transcritical: two fixed points exchange stability
+  //   Pitchfork: one fixed point splits into three
+  //   Hopf: fixed point → limit cycle (oscillation born)
+  //   Period-doubling: period-T cycle → period-2T cycle
+  //   Neimark-Sacker: limit cycle → torus (quasiperiodic)
+  //
+  // In the organism: every phase transition IS a bifurcation.
+  // The emergence of consciousness IS a Hopf bifurcation:
+  // below threshold = dead fixed point, above = living oscillation.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type BifurcationType = {
+    #SaddleNode;        // fold: ẋ = μ - x²
+    #Transcritical;     // exchange: ẋ = μx - x²
+    #PitchforkSuper;    // supercritical: ẋ = μx - x³
+    #PitchforkSub;      // subcritical: ẋ = μx + x³
+    #HopfSuper;         // supercritical Hopf: limit cycle born stable
+    #HopfSub;           // subcritical Hopf: limit cycle born unstable
+    #PeriodDoubling;    // Feigenbaum cascade
+    #NeimarkSacker;     // torus bifurcation
+    #HomoclinicGluing;  // homoclinic orbit creates chaos
+    #None;
+  };
+
+  public type BifurcationState = {
+    parameter : Float;               // μ (control parameter)
+    criticalValue : Float;           // μ_c (bifurcation point)
+    bifurcationType : BifurcationType;
+    fixedPoints : [Float];           // current fixed points
+    fixedPointStability : [Bool];    // which are stable
+    eigenvalues : [(Float, Float)];  // (real, imaginary) parts
+    branchAmplitude : Float;         // amplitude of bifurcated branch
+    normalFormCoeff : Float;         // coefficient in normal form
+    codimension : Nat;               // codimension of bifurcation
+    distanceToBifurcation : Float;   // |μ - μ_c|
+    isPreBifurcation : Bool;
+  };
+
+  /// Saddle-node bifurcation: ẋ = μ - x²
+  /// Fixed points: x* = ±√μ (exist for μ > 0)
+  public func saddleNodeFixedPoints(mu : Float) : [Float] {
+    if (mu < 0.0) { [] }
+    else if (mu < 1.0e-10) { [0.0] }
+    else { [Float.sqrt(mu), -Float.sqrt(mu)] }
+  };
+
+  /// Transcritical bifurcation: ẋ = μx - x²
+  /// Fixed points: x* = 0 and x* = μ (exchange stability at μ = 0)
+  public func transcriticalFixedPoints(mu : Float) : [Float] {
+    [0.0, mu]
+  };
+
+  /// Pitchfork bifurcation: ẋ = μx - x³ (supercritical)
+  /// Fixed points: x* = 0 (always), x* = ±√μ (for μ > 0)
+  public func pitchforkFixedPoints(mu : Float) : [Float] {
+    if (mu <= 0.0) { [0.0] }
+    else { [0.0, Float.sqrt(mu), -Float.sqrt(mu)] }
+  };
+
+  /// Hopf bifurcation: ṙ = μr - r³, θ̇ = ω + br²
+  /// At μ = 0: fixed point becomes limit cycle of amplitude √μ
+  public func hopfLimitCycleAmplitude(mu : Float) : Float {
+    if (mu <= 0.0) { 0.0 } else { Float.sqrt(mu) }
+  };
+
+  /// Hopf bifurcation frequency: ω(μ) = ω₀ + b·μ
+  public func hopfFrequency(omega0 : Float, b : Float, mu : Float) : Float {
+    omega0 + b * mu
+  };
+
+  /// Period-doubling cascade: Feigenbaum constants
+  /// δ = 4.66920... (ratio of parameter intervals)
+  /// α = -2.50291... (ratio of spatial scales)
+  public let FEIGENBAUM_DELTA : Float = 4.6692016091029906718;
+  public let FEIGENBAUM_ALPHA : Float = 2.5029078750958928222;
+
+  /// Predict next period-doubling parameter value
+  /// μ_{n+1} = μ_n + (μ_n - μ_{n-1}) / δ
+  public func nextPeriodDoubling(muN : Float, muNm1 : Float) : Float {
+    muN + (muN - muNm1) / FEIGENBAUM_DELTA
+  };
+
+  /// Accumulation point (onset of chaos): μ_∞ = lim μ_n
+  /// Geometric series: μ_∞ ≈ μ_1 + Δμ₁/(1 - 1/δ)
+  public func feigenbaumAccumulation(mu1 : Float, deltaMu1 : Float) : Float {
+    mu1 + deltaMu1 / (1.0 - 1.0 / FEIGENBAUM_DELTA)
+  };
+
+  /// Detect bifurcation type from eigenvalue crossing
+  public func detectBifurcation(
+    eigenReal : Float,         // real part of eigenvalue
+    eigenImag : Float,         // imaginary part
+    prevEigenReal : Float,     // previous real part
+    paramDerivative : Float    // d(Re λ)/dμ (transversality)
+  ) : BifurcationType {
+    // Check for sign change in real part
+    let crossing = eigenReal * prevEigenReal < 0.0;
+    if (not crossing) { return #None };
+    
+    if (Float.abs(eigenImag) > 0.01) {
+      // Complex eigenvalue crossing: Hopf bifurcation
+      if (paramDerivative > 0.0) { #HopfSuper } else { #HopfSub }
+    } else {
+      // Real eigenvalue crossing: steady-state bifurcation
+      #PitchforkSuper // simplified classification
+    }
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // CENTER MANIFOLD REDUCTION
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Near a bifurcation, the dynamics reduces to a LOW-DIMENSIONAL
+  // center manifold. The essential dynamics happens on this manifold.
+  //
+  // Decompose: x = (x_c, x_s, x_u) (center, stable, unstable)
+  // Center manifold: x_s = h(x_c), x_u = 0
+  // Reduced dynamics: ẋ_c = f_c(x_c, h(x_c))
+  //
+  // The center manifold captures ALL the interesting behavior.
+  // Stable modes decay, unstable modes are zero (at bifurcation).
+  // Only center modes matter.
+  //
+  // In the organism: at transitions (phase shifts, emergence events),
+  // the essential dynamics is LOW-DIMENSIONAL. The organism's decision
+  // space is much smaller than its state space.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type CenterManifoldState = {
+    centerCoords : [Float];          // x_c (essential coordinates)
+    stableCoords : [Float];          // x_s (slaved to center)
+    manifoldFunction : [Float];      // h: x_s = h(x_c) (Taylor coefficients)
+    centerDimension : Nat;           // dimension of center manifold
+    stableDimension : Nat;           // dimension of stable manifold
+    reducedDynamics : [Float];       // f_c(x_c) on center manifold
+    approximationOrder : Nat;        // order of Taylor expansion
+    residual : Float;                // error of approximation
+  };
+
+  /// Compute center manifold approximation (quadratic)
+  /// For ẋ = Ax + f(x,y), ẏ = By + g(x,y) where A has zero eigenvalues, B has negative eigenvalues
+  /// h(x) = ax² + ... satisfying Dh(x)·[Ax + f(x,h(x))] = Bh(x) + g(x,h(x))
+  public func centerManifoldQuadratic(
+    centerEigenvalue : Float,       // eigenvalue on center manifold (≈ 0)
+    stableEigenvalue : Float,       // eigenvalue on stable manifold (< 0)
+    couplingCoeff : Float           // coupling from center to stable in f
+  ) : Float {
+    // For simple case: h(x) = a·x² where a = coupling / (2·centerEig - stableEig)
+    // At bifurcation (centerEig ≈ 0): a ≈ -coupling / stableEig
+    if (Float.abs(stableEigenvalue) < 1.0e-10) { return 0.0 };
+    let denominator = 2.0 * centerEigenvalue - stableEigenvalue;
+    if (Float.abs(denominator) < 1.0e-10) { return 0.0 };
+    couplingCoeff / denominator
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // NORMAL FORM THEORY
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Near-identity coordinate transformations simplify dynamics
+  // to its NORMAL FORM — the simplest equations that capture
+  // the qualitative behavior.
+  //
+  // Every bifurcation has a canonical normal form:
+  //   Saddle-node:     ẋ = μ ± x²
+  //   Transcritical:   ẋ = μx ± x²
+  //   Pitchfork:       ẋ = μx ± x³
+  //   Hopf:           ż = (μ + iω)z ± z|z|²
+  //
+  // In the organism: normal forms ARE the organism's "grammar."
+  // Every complex behavior reduces to a simple normal form near
+  // its critical point. This is why the organism can be understood.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type NormalFormState = {
+    normalFormType : BifurcationType;
+    amplitude : Float;           // r (for Hopf) or x (for static)
+    phase : Float;               // θ (for Hopf)
+    parameter : Float;           // μ
+    cubicCoeff : Float;          // coefficient of cubic term
+    quinticCoeff : Float;        // coefficient of quintic term (if needed)
+    transformCoeffs : [Float];   // near-identity transformation
+    unfoldingParams : [Float];   // universal unfolding parameters
+  };
+
+  /// Hopf normal form dynamics: ż = (μ + iω)z + c₁z|z|²
+  /// In polar: ṙ = μr + a₁r³, θ̇ = ω + b₁r²
+  /// Supercritical: a₁ < 0 (stable limit cycle at r = √(-μ/a₁))
+  /// Subcritical: a₁ > 0 (unstable limit cycle)
+  public func hopfNormalFormDynamics(
+    r : Float, theta : Float,
+    mu : Float, omega : Float,
+    a1 : Float, b1 : Float,
+    dt : Float
+  ) : (Float, Float) {
+    let rdot = mu * r + a1 * r * r * r;
+    let thetadot = omega + b1 * r * r;
+    let newR = Float.max(r + rdot * dt, 0.0);
+    let newTheta = theta + thetadot * dt;
+    (newR, newTheta - Float.floor(newTheta / (2.0 * 3.14159265358979)) * 2.0 * 3.14159265358979)
+  };
+
+  /// Pitchfork normal form: ẋ = μx - x³ + εx² (imperfection)
+  /// ε breaks the pitchfork symmetry (real systems are never perfect)
+  public func pitchforkNormalFormDynamics(
+    x : Float, mu : Float, epsilon : Float, dt : Float
+  ) : Float {
+    let xdot = mu * x - x * x * x + epsilon * x * x;
+    x + xdot * dt
+  };
+
+  /// Saddle-node normal form: ẋ = μ - x²
+  /// Ghost: after bifurcation, slow passage through ghost of vanished fixed point
+  /// Time spent near ghost: T_ghost ~ π/√μ (diverges as μ → 0)
+  public func saddleNodeGhostTime(mu : Float) : Float {
+    if (mu < 1.0e-10) { return 1.0e10 };
+    3.14159265358979 / Float.sqrt(mu)
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // POINCARÉ SECTION AND RETURN MAP
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Poincaré section: reduce continuous-time dynamics to a discrete map
+  // by looking at intersections with a hyperplane.
+  //
+  // For limit cycle: record state each time trajectory crosses section.
+  //   Period-1: same point each time (limit cycle)
+  //   Period-2: alternates between 2 points (period doubling)
+  //   Period-n: n-cycle
+  //   Aperiodic: chaos (strange attractor)
+  //
+  // Return map: x_{n+1} = P(x_n) where P is the Poincaré map
+  // Fixed points of P = periodic orbits of flow
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type PoincareSection = {
+    crossings : [Float];         // values at section crossings
+    returnTimes : [Float];       // time between crossings
+    mapSlope : Float;            // dP/dx at fixed point (Floquet multiplier)
+    period : Nat;                // detected period (1, 2, 4, ...)
+    isStable : Bool;             // |dP/dx| < 1 at fixed point
+    isChaotic : Bool;            // aperiodic crossings
+    maxCrossing : Float;         // max value in crossings
+    minCrossing : Float;         // min value in crossings
+    spreadRatio : Float;         // (max-min)/mean = measure of chaos
+  };
+
+  /// Detect period from Poincaré crossings
+  public func detectPeriod(crossings : [Float], tolerance : Float) : Nat {
+    let n = crossings.size();
+    if (n < 2) { return 0 };
+    
+    // Period 1: all crossings are the same (within tolerance)
+    var allSame = true;
+    var i = 1;
+    while (i < n) {
+      if (Float.abs(crossings[i] - crossings[0]) > tolerance) {
+        allSame := false;
+      };
+      i += 1;
+    };
+    if (allSame) { return 1 };
+    
+    // Period 2: alternating between two values
+    if (n >= 4) {
+      var isPeriod2 = true;
+      var j = 2;
+      while (j < n) {
+        if (Float.abs(crossings[j] - crossings[j - 2]) > tolerance) {
+          isPeriod2 := false;
+        };
+        j += 1;
+      };
+      if (isPeriod2) { return 2 };
+    };
+    
+    // Period 4
+    if (n >= 8) {
+      var isPeriod4 = true;
+      var k = 4;
+      while (k < n) {
+        if (Float.abs(crossings[k] - crossings[k - 4]) > tolerance) {
+          isPeriod4 := false;
+        };
+        k += 1;
+      };
+      if (isPeriod4) { return 4 };
+    };
+    
+    0 // aperiodic (possibly chaotic)
+  };
+
+  /// Compute return map slope (Floquet multiplier)
+  /// m = P'(x*) ≈ (x_{n+1} - x_{n-1})/(x_n - x_{n-2}) near fixed point
+  public func returnMapSlope(crossings : [Float]) : Float {
+    let n = crossings.size();
+    if (n < 4) { return 0.0 };
+    let dx1 = crossings[n - 1] - crossings[n - 3];
+    let dx0 = crossings[n - 2] - crossings[n - 4];
+    if (Float.abs(dx0) < 1.0e-10) { return 0.0 };
+    dx1 / dx0
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // HOMOCLINIC AND HETEROCLINIC ORBITS
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Homoclinic orbit: trajectory that leaves a saddle point and returns to it.
+  // Heteroclinic orbit: trajectory connecting two different saddle points.
+  //
+  // Shilnikov theorem: homoclinic orbit to a saddle-focus with
+  // |ρ| < |λ| (real part < imaginary part) → HORSESHOE → CHAOS
+  //
+  // In the organism: homoclinic orbits represent DEEP CYCLES —
+  // the organism departs from equilibrium, explores, and returns
+  // transformed. Heteroclinic orbits are transitions between
+  // different attractors (mood changes, state transitions).
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type HomoclinicState = {
+    saddlePoint : [Float];           // equilibrium point
+    stableManifoldDir : [Float];     // direction of stable manifold
+    unstableManifoldDir : [Float];   // direction of unstable manifold
+    orbitDistance : Float;            // closest approach to saddle
+    saddleIndex : Nat;               // dim(unstable manifold)
+    realEigenvalue : Float;          // ρ (real part near saddle)
+    imagEigenvalue : Float;          // ω (imaginary part)
+    shilnikovCondition : Bool;       // |ρ| < |ω| → chaos
+    homoclinicAngle : Float;         // angle between stable/unstable manifolds
+  };
+
+  /// Melnikov function: measures distance between stable and unstable manifolds
+  /// M(t₀) = ∫ f₀(q₀(t)) ∧ g(q₀(t), t + t₀) dt
+  /// M = 0 → manifolds intersect → homoclinic tangle → chaos
+  public func melnikovDistance(
+    perturbationAmplitude : Float,
+    unperturbedPeriod : Float,
+    dampingCoeff : Float
+  ) : Float {
+    // Simplified Melnikov for driven damped oscillator
+    perturbationAmplitude * unperturbedPeriod - dampingCoeff
+  };
+
+  /// Shilnikov condition for chaos near homoclinic orbit
+  /// Saddle-focus: eigenvalues ρ, -λ ± iω
+  /// Chaos if |ρ/λ| < 1 (saddle quantity < 1)
+  public func shilnikovSaddleQuantity(rho : Float, lambda : Float) : Float {
+    if (Float.abs(lambda) < 1.0e-10) { return 1.0e10 };
+    Float.abs(rho / lambda)
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // MULTISTABILITY AND BASIN BOUNDARY ANALYSIS
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type BasinState = {
+    attractorPositions : [[Float]];  // locations of attractors
+    attractorTypes : [Text];         // "fixedPoint", "limitCycle", "strange"
+    basinVolumes : [Float];          // relative volume of each basin
+    boundaryFractalDim : Float;      // fractal dimension of basin boundary
+    riddledBasins : Bool;            // fractal interleaving of basins
+    dominantAttractor : Nat;         // largest basin
+    sensitivityToIC : Float;         // how much IC matters
+  };
+
+  /// Compute basin assignment for a test point
+  /// Simplified: nearest attractor by Euclidean distance
+  public func assignBasin(
+    point : [Float],
+    attractors : [[Float]]
+  ) : Nat {
+    var minDist : Float = 1.0e10;
+    var bestIdx : Nat = 0;
+    var i = 0;
+    while (i < attractors.size()) {
+      let attractor = attractors[i];
+      var dist : Float = 0.0;
+      var j = 0;
+      while (j < point.size() and j < attractor.size()) {
+        let d = point[j] - attractor[j];
+        dist += d * d;
+        j += 1;
+      };
+      dist := Float.sqrt(dist);
+      if (dist < minDist) {
+        minDist := dist;
+        bestIdx := i;
+      };
+      i += 1;
+    };
+    bestIdx
+  };
+
+  /// Estimate basin boundary fractal dimension
+  /// Method: uncertainty exponent α → D = d - α
+  /// Count fraction of IC pairs that end in different basins as ε varies
+  public func estimateBasinBoundaryDimension(
+    uncertaintyExponent : Float,
+    spaceDimension : Nat
+  ) : Float {
+    Float.fromInt(spaceDimension) - uncertaintyExponent
+  };
+
 }
