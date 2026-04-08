@@ -136,8 +136,8 @@ module {
     
     // Statistics
     viewCount : Nat;
-    downloadCount : Nat;
-    likeCount : Nat;
+    accessCount : Nat;    // Changed from downloadCount - we ACCESS, not download
+    resonanceCount : Nat; // Changed from likeCount - resonance with artifact
   };
   
   public type ArtifactSource = {
@@ -324,8 +324,8 @@ module {
       updatedAt = now;
       publishedAt = null;
       viewCount = 0;
-      downloadCount = 0;
-      likeCount = 0;
+      accessCount = 0;
+      resonanceCount = 0;
     };
     
     // Update recent creations (keep last 100)
@@ -421,8 +421,8 @@ module {
       updatedAt = now;
       publishedAt = artifact.publishedAt;
       viewCount = artifact.viewCount;
-      downloadCount = artifact.downloadCount;
-      likeCount = artifact.likeCount;
+      accessCount = artifact.accessCount;
+      resonanceCount = artifact.resonanceCount;
     };
     
     // Update artifacts array
