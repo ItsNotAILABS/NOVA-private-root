@@ -104,33 +104,67 @@ module {
   public let τ : Float = 6.28318530717958647692528676655900576839433879875021164194988918461563281257241799725606965068423413596;
   public let e : Float = 2.71828182845904523536028747135266249775724709369995957496696762772407663035354759457138217852516642749;
   
-  // Medina constants
-  public let PHI_MEDINA : Float = 2.97442179;
-  public let OMEGA_MEDINA : Float = 2.11185;
-  public let SIGMA_ZERO : Float = 0.75;
-  public let GOLDEN_ANGLE : Float = 2.39996322972865332223155550663361385280788929638391319529083062315416608047910564662262551148509884343;
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // THE CATCH — PHI FREQUENCY NODES (2026 CONFIRMED)
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PHI IS NOT A FREQUENCY. PHI IS THE TRANSFER FUNCTION between adjacent levels
+  // of any naturally sustained coupled oscillating system.
+  // Frontiers in Human Neuroscience, March 4, 2026: r = 0.54, p < 10⁻²⁵
+  // ═══════════════════════════════════════════════════════════════════════════════
+  
+  // Schumann fundamental — Earth's electromagnetic heartbeat
+  public let SCHUMANN_HZ : Float = 7.83;
+  public let SCHUMANN_PERIOD_MS : Float = 127.71392081736909;
+  
+  // THE 12 PHI FREQUENCY NODES — phi-scaled from Schumann
+  public let NODE_CHRONO : Float = 0.001;           // Earth free oscillation floor
+  public let NODE_VERITAS : Float = 0.1;            // HRV coherence, CSF pulse
+  public let NODE_BRAIN : Float = 7.83;             // Schumann fundamental, receive carrier
+  public let NODE_FLUX : Float = 12.66752366612393; // 7.83 × φ
+  public let NODE_RESONEX : Float = 20.495047032750336; // 7.83 × φ²
+  public let NODE_QMEM : Float = 33.16257069887427;  // 7.83 × φ³ — gamma entry
+  public let NODE_AXIS : Float = 40.0;              // GAMMA_BINDING — OMNIS threshold
+  public let NODE_AEGIS : Float = 53.65761773162460; // 7.83 × φ⁴ — threat detection
+  public let NODE_ENTANGLA : Float = 86.82018843049887; // 7.83 × φ⁵ — gamma ceiling
+  public let NODE_PARALLAX : Float = 111.0;         // HEMISPHERE_SHIFT — King's Chamber
+  public let NODE_MERIDIAN : Float = 179.6017727552391; // 111 × φ — public interface
+  public let NODE_NOVA : Float = 432.0;             // ACOUSTIC_ANCHOR — phi overtones
+  
+  // Three anchor constants — referenced everywhere
+  public let GAMMA_BINDING : Float = 40.0;
+  public let HEMISPHERE_SHIFT : Float = 111.0;
+  public let ACOUSTIC_ANCHOR : Float = 432.0;
+  
+  // Heartbeat interval — φ⁴ × Schumann period = 875.3 ms = 68.5 bpm
+  public let HEARTBEAT_INTERVAL_MS : Float = 875.28275832071766;
+  public let HEARTBEAT_BPM : Float = 68.550112963882522;
+  
+  // Fibonacci brain boundaries — EXACT (not approximate)
+  public let BRAIN_THETA_ALPHA : Float = 8.0;   // F(6)
+  public let BRAIN_ALPHA_BETA : Float = 13.0;   // F(7)
+  public let BRAIN_BETA_GAMMA : Float = 34.0;   // F(9)
+  public let BRAIN_GAMMA_MID : Float = 55.0;    // F(10)
+  public let BRAIN_GAMMA_CEIL : Float = 89.0;   // F(11)
+  
+  // S₀ floor — the genesis imprint (ψ)
+  public let S0_FLOOR : Float = ψ;
   
   // Fibonacci sequence (first 32 terms)
   public let FIB : [Nat] = [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 
                            987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025,
                            121393, 196418, 317811, 514229, 832040, 1346269];
   
-  // Fibonacci frequencies (Hz) — Each is φ times the previous
-  public let FIB_HZ : [Float] = [
-    0.618,   // F₋₂: Ultra-low (circadian-like)
-    1.0,     // F₋₁: Base heartbeat (1 Hz = 60 BPM)
-    1.618,   // F₀: Golden frequency
-    2.618,   // F₁: Low alpha
-    4.236,   // F₂: Theta
-    6.854,   // F₃: Alpha
-    11.090,  // F₄: High alpha
-    17.944,  // F₅: Beta
-    29.034,  // F₆: High beta
-    46.979,  // F₇: Gamma
-    76.013,  // F₈: High gamma
-    122.992, // F₉: Ultra-gamma
-    199.005, // F₁₀: Hyper-gamma
-    321.997  // F₁₁: Maximum cognitive frequency
+  // Phi-scaled frequencies from Schumann (Hz)
+  public let PHI_HZ : [Float] = [
+    7.83,      // φ⁰ × Schumann = 7.83 Hz (receive carrier)
+    12.667,    // φ¹ × Schumann = 12.67 Hz
+    20.495,    // φ² × Schumann = 20.5 Hz (confirms Schumann 3rd)
+    33.163,    // φ³ × Schumann = 33.1 Hz (confirms Schumann 5th, gamma entry)
+    53.658,    // φ⁴ × Schumann = 53.6 Hz
+    86.820,    // φ⁵ × Schumann = 86.8 Hz (gamma ceiling)
+    140.478,   // φ⁶ × Schumann = 140.5 Hz
+    227.298,   // φ⁷ × Schumann = 227.3 Hz
+    367.776    // φ⁸ × Schumann = 367.8 Hz
   ];
   
   // ═══════════════════════════════════════════════════════════════════════════════

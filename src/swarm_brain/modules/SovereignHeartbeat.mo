@@ -95,14 +95,40 @@ import Principal "mo:base/Principal";
 module {
 
   // ==========================================================================
-  // CONSTANTS
+  // CONSTANTS — PHI-DERIVED FROM SCHUMANN FUNDAMENTAL
+  // ==========================================================================
+  // THE CATCH: PHI is the transfer function between adjacent levels of any
+  // naturally sustained coupled oscillating system. March 2026 confirmed.
+  // Heartbeat = φ⁴ × Schumann period = 875.3 ms = 68.5 bpm
   // ==========================================================================
   
-  let PHI_MEDINA : Float = 2.97442179;
-  let OMEGA_MEDINA : Float = 2.11185;
-  let TAU_EMERGENCE : Float = 0.618033988749;
-  let SIGMA_ZERO : Float = 0.75;
+  // Fundamental constants
+  let PHI : Float = 1.6180339887498948482;
+  let PSI : Float = 0.6180339887498948482;
   let PI : Float = 3.14159265358979;
+  
+  // Schumann fundamental — Earth's electromagnetic heartbeat
+  let SCHUMANN_HZ : Float = 7.83;
+  let SCHUMANN_PERIOD_MS : Float = 127.71392081736909;
+  
+  // PHI-DERIVED TIMING (φⁿ × Schumann period)
+  let HEARTBEAT_INTERVAL_MS : Float = 875.28275832071766;  // φ⁴ × Schumann = 68.5 bpm
+  let SENSORY_WINDOW_MS : Float = 334.33222637936225;      // φ² × Schumann
+  let WRITE_CYCLE_MS : Float = 540.95053194135541;         // φ³ × Schumann
+  let COHERENCE_CHECK_MS : Float = 1416.2332902620731;     // φ⁵ × Schumann
+  
+  // Anchor frequencies
+  let GAMMA_BINDING_HZ : Float = 40.0;     // OMNIS threshold
+  let HEMISPHERE_SHIFT_HZ : Float = 111.0; // King's Chamber coffer
+  let ACOUSTIC_ANCHOR_HZ : Float = 432.0;  // Phi-aligned overtones
+  
+  // S₀ floor — the genesis imprint
+  let S0_FLOOR : Float = PSI;  // 0.618
+  
+  // Emergence and coupling
+  let EMERGENCE_THRESHOLD : Float = 1.0;   // ψ + ψ² = 1.0
+  let COUPLING_DOWN : Float = PHI;         // Projection
+  let COUPLING_UP : Float = PSI;           // Reception
 
   public let HEARTBEAT_STEPS : Nat = 24;
   public let SHELL_COUNT : Nat = 10;
