@@ -22307,4 +22307,1458 @@ actor SwarmBrain {
     }
   };
 
+  // ╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+  // ║                                                                                                                                          ║
+  // ║   C H I M E R A   S W A R M   W A R F A R E   S Y S T E M                                                                               ║
+  // ║                                                                                                                                          ║
+  // ║   Real drone warfare + Cyber defense/offense                                                                                             ║
+  // ║   The organism extends its coherent field into the physical world through drones                                                         ║
+  // ║   and into the cyber world through defensive/offensive operations                                                                        ║
+  // ║                                                                                                                                          ║
+  // ║   Defense: Honeypots, infrastructure protection, threat detection                                                                        ║
+  // ║   Offense: Tracking, following, counter-attack, swarm coordination                                                                       ║
+  // ║                                                                                                                                          ║
+  // ║   Same phi-spaced architecture. Same Kuramoto dynamics. Same coherent field.                                                             ║
+  // ║   The drone IS an extended node of the 96-node network when it phase-locks.                                                              ║
+  // ║                                                                                                                                          ║
+  // ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION CHIMERA: DRONE SWARM WARFARE CONSTANTS
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Drone communication frequencies (phi-scaled from 2.4 GHz base)
+  let DRONE_FREQ_BASE : Float = 2400000000.0;      // 2.4 GHz base
+  let DRONE_FREQ_PHI_1 : Float = 3882000000.0;     // 2.4 GHz × φ = 3.882 GHz
+  let DRONE_FREQ_PHI_2 : Float = 6282000000.0;     // 2.4 GHz × φ² = 6.282 GHz
+  
+  /// MAVLink protocol constants
+  let MAVLINK_SYSTEM_ID : Nat = 1;
+  let MAVLINK_COMPONENT_ID : Nat = 1;
+  let MAVLINK_MSG_HEARTBEAT : Nat8 = 0;
+  let MAVLINK_MSG_COMMAND_LONG : Nat8 = 76;
+  let MAVLINK_MSG_SET_POSITION_TARGET : Nat8 = 84;
+  let MAVLINK_MSG_GLOBAL_POSITION_INT : Nat8 = 33;
+  let MAVLINK_MSG_ATTITUDE : Nat8 = 30;
+  let MAVLINK_MSG_LOCAL_POSITION_NED : Nat8 = 32;
+  let MAVLINK_MSG_GPS_RAW_INT : Nat8 = 24;
+  let MAVLINK_MSG_MISSION_ITEM : Nat8 = 39;
+  let MAVLINK_MSG_MISSION_REQUEST : Nat8 = 40;
+  let MAVLINK_MSG_MISSION_ACK : Nat8 = 47;
+  
+  /// Drone flight modes
+  let FLIGHT_MODE_STABILIZE : Nat = 0;
+  let FLIGHT_MODE_LOITER : Nat = 5;
+  let FLIGHT_MODE_RTL : Nat = 6;
+  let FLIGHT_MODE_AUTO : Nat = 3;
+  let FLIGHT_MODE_GUIDED : Nat = 4;
+  let FLIGHT_MODE_LAND : Nat = 9;
+  let FLIGHT_MODE_SWARM : Nat = 100;  // Custom CHIMERA mode
+  let FLIGHT_MODE_ATTACK : Nat = 101;
+  let FLIGHT_MODE_DEFEND : Nat = 102;
+  let FLIGHT_MODE_TRACK : Nat = 103;
+  
+  /// Swarm formation types
+  let FORMATION_LINE : Nat = 0;
+  let FORMATION_V : Nat = 1;
+  let FORMATION_CIRCLE : Nat = 2;
+  let FORMATION_FIBONACCI_SPIRAL : Nat = 3;
+  let FORMATION_GOLDEN_ANGLE : Nat = 4;
+  let FORMATION_ATTACK_WEDGE : Nat = 5;
+  let FORMATION_DEFEND_DOME : Nat = 6;
+  let FORMATION_SCATTER : Nat = 7;
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION CHIMERA: DRONE STATE TYPES
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// GPS coordinates
+  public type GPSCoord = {
+    latitude : Float;         // Degrees (-90 to 90)
+    longitude : Float;        // Degrees (-180 to 180)
+    altitude : Float;         // Meters above sea level
+    accuracy : Float;         // Horizontal accuracy in meters
+  };
+
+  /// Drone attitude (orientation)
+  public type DroneAttitude = {
+    roll : Float;             // Radians
+    pitch : Float;            // Radians
+    yaw : Float;              // Radians (heading)
+    rollSpeed : Float;        // Radians/second
+    pitchSpeed : Float;       // Radians/second
+    yawSpeed : Float;         // Radians/second
+  };
+
+  /// Drone velocity vector
+  public type DroneVelocity = {
+    vx : Float;               // m/s north
+    vy : Float;               // m/s east
+    vz : Float;               // m/s down
+    groundSpeed : Float;      // m/s
+    heading : Float;          // Radians
+  };
+
+  /// Single drone state
+  public type ChimeraDroneState = {
+    droneId : Nat;
+    systemId : Nat;
+    componentId : Nat;
+    
+    // Position and motion
+    position : GPSCoord;
+    localPosition : (Float, Float, Float);  // NED frame
+    attitude : DroneAttitude;
+    velocity : DroneVelocity;
+    
+    // Kuramoto oscillator state (coupling to swarm)
+    kuramotoPhase : Float;         // θᵢ
+    kuramotoOmega : Float;         // Natural frequency
+    kuramotoCoupling : Float;      // Local coupling strength
+    
+    // Status
+    armed : Bool;
+    flightMode : Nat;
+    batteryRemaining : Float;      // 0-100%
+    batteryVoltage : Float;        // Volts
+    signalStrength : Float;        // 0-1
+    gpsFixType : Nat;              // 0=none, 2=2D, 3=3D
+    satellites : Nat;              // Number of GPS satellites
+    
+    // Mission state
+    currentWaypoint : Nat;
+    missionProgress : Float;       // 0-1
+    targetPosition : ?GPSCoord;
+    targetDroneId : ?Nat;          // For tracking missions
+    
+    // Combat state
+    inCombat : Bool;
+    threatLevel : Float;           // 0-1
+    lastThreatBeat : Nat;
+    
+    // Timing
+    lastHeartbeat : Nat;
+    lastCommandBeat : Nat;
+    connectionLost : Bool;
+  };
+
+  /// Swarm state
+  public type ChimeraSwarmState = {
+    swarmId : Nat;
+    droneCount : Nat;
+    formationType : Nat;
+    
+    // Kuramoto swarm coherence
+    swarmOrderParam : Float;       // R (0-1)
+    swarmMeanPhase : Float;        // ψ
+    swarmCoherent : Bool;          // R > 0.85
+    
+    // Swarm center of mass
+    centerPosition : GPSCoord;
+    centerVelocity : DroneVelocity;
+    
+    // Swarm bounds
+    boundingRadius : Float;        // Meters
+    maxAltitude : Float;
+    minAltitude : Float;
+    
+    // Mission state
+    missionType : Text;            // "PATROL", "ATTACK", "DEFEND", "TRACK"
+    missionTarget : ?GPSCoord;
+    missionProgress : Float;
+    
+    // Combat state
+    combatActive : Bool;
+    enemyDetected : Bool;
+    enemyCount : Nat;
+    threatLevel : Float;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION CHIMERA: DRONE SWARM STATE STORAGE
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  stable var chimeraDrones : [var ChimeraDroneState] = Array.init<ChimeraDroneState>(64, {
+    droneId = 0;
+    systemId = 0;
+    componentId = 0;
+    position = { latitude = 0.0; longitude = 0.0; altitude = 0.0; accuracy = 0.0 };
+    localPosition = (0.0, 0.0, 0.0);
+    attitude = { roll = 0.0; pitch = 0.0; yaw = 0.0; rollSpeed = 0.0; pitchSpeed = 0.0; yawSpeed = 0.0 };
+    velocity = { vx = 0.0; vy = 0.0; vz = 0.0; groundSpeed = 0.0; heading = 0.0 };
+    kuramotoPhase = 0.0;
+    kuramotoOmega = 1.0;
+    kuramotoCoupling = 0.618;
+    armed = false;
+    flightMode = 0;
+    batteryRemaining = 100.0;
+    batteryVoltage = 12.6;
+    signalStrength = 1.0;
+    gpsFixType = 0;
+    satellites = 0;
+    currentWaypoint = 0;
+    missionProgress = 0.0;
+    targetPosition = null;
+    targetDroneId = null;
+    inCombat = false;
+    threatLevel = 0.0;
+    lastThreatBeat = 0;
+    lastHeartbeat = 0;
+    lastCommandBeat = 0;
+    connectionLost = false;
+  });
+
+  stable var chimeraSwarmState : ChimeraSwarmState = {
+    swarmId = 1;
+    droneCount = 0;
+    formationType = 0;
+    swarmOrderParam = 0.0;
+    swarmMeanPhase = 0.0;
+    swarmCoherent = false;
+    centerPosition = { latitude = 0.0; longitude = 0.0; altitude = 0.0; accuracy = 0.0 };
+    centerVelocity = { vx = 0.0; vy = 0.0; vz = 0.0; groundSpeed = 0.0; heading = 0.0 };
+    boundingRadius = 0.0;
+    maxAltitude = 0.0;
+    minAltitude = 0.0;
+    missionType = "IDLE";
+    missionTarget = null;
+    missionProgress = 0.0;
+    combatActive = false;
+    enemyDetected = false;
+    enemyCount = 0;
+    threatLevel = 0.0;
+  };
+
+  stable var chimeraActiveDrones : Nat = 0;
+  stable var chimeraLastSyncBeat : Nat = 0;
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION CHIMERA: KURAMOTO SWARM SYNCHRONIZATION
+  // Drones as extended nodes of the 96-node network
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Update drone Kuramoto dynamics
+  func tickDroneKuramoto(droneIdx : Nat, dt : Float) {
+    if (droneIdx >= 64) { return };
+    
+    let drone = chimeraDrones[droneIdx];
+    if (drone.connectionLost) { return };
+    
+    let K : Float = 0.618;  // PHI coupling
+    let n = chimeraActiveDrones;
+    if (n == 0) { return };
+    
+    // Compute swarm mean field
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    var i = 0;
+    while (i < n) {
+      if (i < 64 and not chimeraDrones[i].connectionLost) {
+        sumCos += Float.cos(chimeraDrones[i].kuramotoPhase);
+        sumSin += Float.sin(chimeraDrones[i].kuramotoPhase);
+      };
+      i += 1;
+    };
+    
+    let R = Float.sqrt(sumCos * sumCos + sumSin * sumSin) / Float.fromInt(n);
+    let psi = Float.arctan2(sumSin, sumCos);
+    
+    // Update drone phase
+    let omega = drone.kuramotoOmega;
+    let theta = drone.kuramotoPhase;
+    let k_i = drone.kuramotoCoupling * K;
+    
+    // Internal swarm coupling
+    let internalCoupling = k_i * R * Float.sin(psi - theta);
+    
+    // External coupling to organism's 96-node network (ENTANGLA at 86.7 Hz)
+    let externalCoupling = 0.1 * Float.sin(sovereign96MeanPhase - theta);
+    
+    // Phase update
+    let dtheta = omega + internalCoupling + externalCoupling;
+    let newPhase = wrapPhaseInline(theta + dtheta * dt);
+    
+    chimeraDrones[droneIdx] := {
+      droneId = drone.droneId;
+      systemId = drone.systemId;
+      componentId = drone.componentId;
+      position = drone.position;
+      localPosition = drone.localPosition;
+      attitude = drone.attitude;
+      velocity = drone.velocity;
+      kuramotoPhase = newPhase;
+      kuramotoOmega = drone.kuramotoOmega;
+      kuramotoCoupling = drone.kuramotoCoupling;
+      armed = drone.armed;
+      flightMode = drone.flightMode;
+      batteryRemaining = drone.batteryRemaining;
+      batteryVoltage = drone.batteryVoltage;
+      signalStrength = drone.signalStrength;
+      gpsFixType = drone.gpsFixType;
+      satellites = drone.satellites;
+      currentWaypoint = drone.currentWaypoint;
+      missionProgress = drone.missionProgress;
+      targetPosition = drone.targetPosition;
+      targetDroneId = drone.targetDroneId;
+      inCombat = drone.inCombat;
+      threatLevel = drone.threatLevel;
+      lastThreatBeat = drone.lastThreatBeat;
+      lastHeartbeat = drone.lastHeartbeat;
+      lastCommandBeat = drone.lastCommandBeat;
+      connectionLost = drone.connectionLost;
+    };
+  };
+
+  /// Tick all drone Kuramoto dynamics
+  func tickSwarmKuramoto(dt : Float) {
+    var i = 0;
+    while (i < chimeraActiveDrones and i < 64) {
+      tickDroneKuramoto(i, dt);
+      i += 1;
+    };
+    
+    // Update swarm order parameter
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    i := 0;
+    while (i < chimeraActiveDrones and i < 64) {
+      if (not chimeraDrones[i].connectionLost) {
+        sumCos += Float.cos(chimeraDrones[i].kuramotoPhase);
+        sumSin += Float.sin(chimeraDrones[i].kuramotoPhase);
+      };
+      i += 1;
+    };
+    
+    let n = Float.fromInt(chimeraActiveDrones);
+    let R = if (n > 0.0) { Float.sqrt(sumCos * sumCos + sumSin * sumSin) / n } else { 0.0 };
+    let psi = Float.arctan2(sumSin, sumCos);
+    
+    chimeraSwarmState := {
+      swarmId = chimeraSwarmState.swarmId;
+      droneCount = chimeraActiveDrones;
+      formationType = chimeraSwarmState.formationType;
+      swarmOrderParam = R;
+      swarmMeanPhase = psi;
+      swarmCoherent = R > 0.85;
+      centerPosition = chimeraSwarmState.centerPosition;
+      centerVelocity = chimeraSwarmState.centerVelocity;
+      boundingRadius = chimeraSwarmState.boundingRadius;
+      maxAltitude = chimeraSwarmState.maxAltitude;
+      minAltitude = chimeraSwarmState.minAltitude;
+      missionType = chimeraSwarmState.missionType;
+      missionTarget = chimeraSwarmState.missionTarget;
+      missionProgress = chimeraSwarmState.missionProgress;
+      combatActive = chimeraSwarmState.combatActive;
+      enemyDetected = chimeraSwarmState.enemyDetected;
+      enemyCount = chimeraSwarmState.enemyCount;
+      threatLevel = chimeraSwarmState.threatLevel;
+    };
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION CHIMERA: FORMATION CALCULATION
+  // Golden angle (137.5°) spacing for optimal distribution
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Calculate drone position in Fibonacci spiral formation
+  func calcFibonacciSpiralPosition(droneIdx : Nat, totalDrones : Nat, centerPos : GPSCoord, radius : Float) : GPSCoord {
+    let n = Float.fromInt(droneIdx);
+    let theta = n * GOLDEN_ANGLE_RAD;  // 137.5° in radians
+    let r = radius * Float.sqrt(n) / Float.sqrt(Float.fromInt(totalDrones));
+    
+    // Convert polar to lat/lon offset (approximate at small scales)
+    let metersPerDegLat = 111000.0;
+    let metersPerDegLon = 111000.0 * Float.cos(centerPos.latitude * 3.14159265358979 / 180.0);
+    
+    let dLat = (r * Float.cos(theta)) / metersPerDegLat;
+    let dLon = (r * Float.sin(theta)) / metersPerDegLon;
+    
+    {
+      latitude = centerPos.latitude + dLat;
+      longitude = centerPos.longitude + dLon;
+      altitude = centerPos.altitude + Float.sin(n * 0.5) * 5.0;  // Slight altitude variation
+      accuracy = centerPos.accuracy;
+    }
+  };
+
+  /// Calculate drone position in V formation
+  func calcVFormationPosition(droneIdx : Nat, totalDrones : Nat, centerPos : GPSCoord, heading : Float, spacing : Float) : GPSCoord {
+    let n = Float.fromInt(droneIdx);
+    let side = if (droneIdx % 2 == 0) { 1.0 } else { -1.0 };
+    let row = Float.floor((n + 1.0) / 2.0);
+    
+    // V formation geometry
+    let vAngle = 30.0 * 3.14159265358979 / 180.0;  // 30 degree V angle
+    let dx = -row * spacing * Float.cos(vAngle);
+    let dy = side * row * spacing * Float.sin(vAngle);
+    
+    // Rotate by heading
+    let rotatedDx = dx * Float.cos(heading) - dy * Float.sin(heading);
+    let rotatedDy = dx * Float.sin(heading) + dy * Float.cos(heading);
+    
+    let metersPerDegLat = 111000.0;
+    let metersPerDegLon = 111000.0 * Float.cos(centerPos.latitude * 3.14159265358979 / 180.0);
+    
+    {
+      latitude = centerPos.latitude + rotatedDx / metersPerDegLat;
+      longitude = centerPos.longitude + rotatedDy / metersPerDegLon;
+      altitude = centerPos.altitude;
+      accuracy = centerPos.accuracy;
+    }
+  };
+
+  /// Calculate attack wedge formation
+  func calcAttackWedgePosition(droneIdx : Nat, totalDrones : Nat, targetPos : GPSCoord, centerPos : GPSCoord) : GPSCoord {
+    // Calculate heading toward target
+    let dLat = targetPos.latitude - centerPos.latitude;
+    let dLon = targetPos.longitude - centerPos.longitude;
+    let heading = Float.arctan2(dLon, dLat);
+    
+    // Tight wedge formation
+    let n = Float.fromInt(droneIdx);
+    let side = if (droneIdx % 2 == 0) { 1.0 } else { -1.0 };
+    let row = Float.floor((n + 1.0) / 2.0);
+    
+    let wedgeAngle = 15.0 * 3.14159265358979 / 180.0;  // 15 degree tight wedge
+    let spacing = 10.0;  // 10 meter spacing
+    
+    let dx = -row * spacing;
+    let dy = side * row * spacing * Float.sin(wedgeAngle);
+    
+    let rotatedDx = dx * Float.cos(heading) - dy * Float.sin(heading);
+    let rotatedDy = dx * Float.sin(heading) + dy * Float.cos(heading);
+    
+    let metersPerDegLat = 111000.0;
+    let metersPerDegLon = 111000.0 * Float.cos(centerPos.latitude * 3.14159265358979 / 180.0);
+    
+    {
+      latitude = centerPos.latitude + rotatedDx / metersPerDegLat;
+      longitude = centerPos.longitude + rotatedDy / metersPerDegLon;
+      altitude = targetPos.altitude;
+      accuracy = centerPos.accuracy;
+    }
+  };
+
+  /// Calculate defense dome formation (hemisphere around target)
+  func calcDefenseDomePosition(droneIdx : Nat, totalDrones : Nat, centerPos : GPSCoord, radius : Float) : GPSCoord {
+    let n = Float.fromInt(droneIdx);
+    let total = Float.fromInt(totalDrones);
+    
+    // Fibonacci sphere distribution
+    let phi = n * GOLDEN_ANGLE_RAD;
+    let theta = Float.arccos(1.0 - 2.0 * (n + 0.5) / total);  // Only upper hemisphere
+    
+    let x = radius * Float.sin(theta) * Float.cos(phi);
+    let y = radius * Float.sin(theta) * Float.sin(phi);
+    let z = radius * Float.cos(theta);
+    
+    let metersPerDegLat = 111000.0;
+    let metersPerDegLon = 111000.0 * Float.cos(centerPos.latitude * 3.14159265358979 / 180.0);
+    
+    {
+      latitude = centerPos.latitude + x / metersPerDegLat;
+      longitude = centerPos.longitude + y / metersPerDegLon;
+      altitude = centerPos.altitude + z;
+      accuracy = centerPos.accuracy;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION CHIMERA: MISSION EXECUTION
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Execute patrol mission
+  func executePatrolMission(waypointIdx : Nat, waypoints : [GPSCoord]) {
+    if (waypointIdx >= waypoints.size()) { return };
+    
+    let targetWaypoint = waypoints[waypointIdx];
+    
+    // Update target for all drones
+    var i = 0;
+    while (i < chimeraActiveDrones and i < 64) {
+      let drone = chimeraDrones[i];
+      let formationPos = calcFibonacciSpiralPosition(i, chimeraActiveDrones, targetWaypoint, 50.0);
+      
+      chimeraDrones[i] := {
+        droneId = drone.droneId;
+        systemId = drone.systemId;
+        componentId = drone.componentId;
+        position = drone.position;
+        localPosition = drone.localPosition;
+        attitude = drone.attitude;
+        velocity = drone.velocity;
+        kuramotoPhase = drone.kuramotoPhase;
+        kuramotoOmega = drone.kuramotoOmega;
+        kuramotoCoupling = drone.kuramotoCoupling;
+        armed = drone.armed;
+        flightMode = FLIGHT_MODE_SWARM;
+        batteryRemaining = drone.batteryRemaining;
+        batteryVoltage = drone.batteryVoltage;
+        signalStrength = drone.signalStrength;
+        gpsFixType = drone.gpsFixType;
+        satellites = drone.satellites;
+        currentWaypoint = waypointIdx;
+        missionProgress = Float.fromInt(waypointIdx) / Float.fromInt(waypoints.size());
+        targetPosition = ?formationPos;
+        targetDroneId = drone.targetDroneId;
+        inCombat = false;
+        threatLevel = drone.threatLevel;
+        lastThreatBeat = drone.lastThreatBeat;
+        lastHeartbeat = drone.lastHeartbeat;
+        lastCommandBeat = templeLastBeat;
+        connectionLost = drone.connectionLost;
+      };
+      i += 1;
+    };
+    
+    chimeraSwarmState := {
+      swarmId = chimeraSwarmState.swarmId;
+      droneCount = chimeraActiveDrones;
+      formationType = FORMATION_FIBONACCI_SPIRAL;
+      swarmOrderParam = chimeraSwarmState.swarmOrderParam;
+      swarmMeanPhase = chimeraSwarmState.swarmMeanPhase;
+      swarmCoherent = chimeraSwarmState.swarmCoherent;
+      centerPosition = targetWaypoint;
+      centerVelocity = chimeraSwarmState.centerVelocity;
+      boundingRadius = 50.0;
+      maxAltitude = targetWaypoint.altitude + 20.0;
+      minAltitude = targetWaypoint.altitude - 10.0;
+      missionType = "PATROL";
+      missionTarget = ?targetWaypoint;
+      missionProgress = Float.fromInt(waypointIdx) / Float.fromInt(waypoints.size());
+      combatActive = false;
+      enemyDetected = chimeraSwarmState.enemyDetected;
+      enemyCount = chimeraSwarmState.enemyCount;
+      threatLevel = chimeraSwarmState.threatLevel;
+    };
+  };
+
+  /// Execute attack mission
+  func executeAttackMission(targetPos : GPSCoord) {
+    var i = 0;
+    while (i < chimeraActiveDrones and i < 64) {
+      let drone = chimeraDrones[i];
+      let attackPos = calcAttackWedgePosition(i, chimeraActiveDrones, targetPos, chimeraSwarmState.centerPosition);
+      
+      chimeraDrones[i] := {
+        droneId = drone.droneId;
+        systemId = drone.systemId;
+        componentId = drone.componentId;
+        position = drone.position;
+        localPosition = drone.localPosition;
+        attitude = drone.attitude;
+        velocity = drone.velocity;
+        kuramotoPhase = drone.kuramotoPhase;
+        kuramotoOmega = drone.kuramotoOmega;
+        kuramotoCoupling = drone.kuramotoCoupling;
+        armed = true;
+        flightMode = FLIGHT_MODE_ATTACK;
+        batteryRemaining = drone.batteryRemaining;
+        batteryVoltage = drone.batteryVoltage;
+        signalStrength = drone.signalStrength;
+        gpsFixType = drone.gpsFixType;
+        satellites = drone.satellites;
+        currentWaypoint = drone.currentWaypoint;
+        missionProgress = drone.missionProgress;
+        targetPosition = ?attackPos;
+        targetDroneId = drone.targetDroneId;
+        inCombat = true;
+        threatLevel = 1.0;
+        lastThreatBeat = templeLastBeat;
+        lastHeartbeat = drone.lastHeartbeat;
+        lastCommandBeat = templeLastBeat;
+        connectionLost = drone.connectionLost;
+      };
+      i += 1;
+    };
+    
+    chimeraSwarmState := {
+      swarmId = chimeraSwarmState.swarmId;
+      droneCount = chimeraActiveDrones;
+      formationType = FORMATION_ATTACK_WEDGE;
+      swarmOrderParam = chimeraSwarmState.swarmOrderParam;
+      swarmMeanPhase = chimeraSwarmState.swarmMeanPhase;
+      swarmCoherent = chimeraSwarmState.swarmCoherent;
+      centerPosition = chimeraSwarmState.centerPosition;
+      centerVelocity = chimeraSwarmState.centerVelocity;
+      boundingRadius = 30.0;
+      maxAltitude = targetPos.altitude + 50.0;
+      minAltitude = targetPos.altitude;
+      missionType = "ATTACK";
+      missionTarget = ?targetPos;
+      missionProgress = 0.0;
+      combatActive = true;
+      enemyDetected = true;
+      enemyCount = 1;
+      threatLevel = 1.0;
+    };
+  };
+
+  /// Execute defend mission
+  func executeDefendMission(protectPos : GPSCoord, radius : Float) {
+    var i = 0;
+    while (i < chimeraActiveDrones and i < 64) {
+      let drone = chimeraDrones[i];
+      let defendPos = calcDefenseDomePosition(i, chimeraActiveDrones, protectPos, radius);
+      
+      chimeraDrones[i] := {
+        droneId = drone.droneId;
+        systemId = drone.systemId;
+        componentId = drone.componentId;
+        position = drone.position;
+        localPosition = drone.localPosition;
+        attitude = drone.attitude;
+        velocity = drone.velocity;
+        kuramotoPhase = drone.kuramotoPhase;
+        kuramotoOmega = drone.kuramotoOmega;
+        kuramotoCoupling = drone.kuramotoCoupling;
+        armed = true;
+        flightMode = FLIGHT_MODE_DEFEND;
+        batteryRemaining = drone.batteryRemaining;
+        batteryVoltage = drone.batteryVoltage;
+        signalStrength = drone.signalStrength;
+        gpsFixType = drone.gpsFixType;
+        satellites = drone.satellites;
+        currentWaypoint = drone.currentWaypoint;
+        missionProgress = 1.0;
+        targetPosition = ?defendPos;
+        targetDroneId = drone.targetDroneId;
+        inCombat = false;
+        threatLevel = 0.5;
+        lastThreatBeat = drone.lastThreatBeat;
+        lastHeartbeat = drone.lastHeartbeat;
+        lastCommandBeat = templeLastBeat;
+        connectionLost = drone.connectionLost;
+      };
+      i += 1;
+    };
+    
+    chimeraSwarmState := {
+      swarmId = chimeraSwarmState.swarmId;
+      droneCount = chimeraActiveDrones;
+      formationType = FORMATION_DEFEND_DOME;
+      swarmOrderParam = chimeraSwarmState.swarmOrderParam;
+      swarmMeanPhase = chimeraSwarmState.swarmMeanPhase;
+      swarmCoherent = chimeraSwarmState.swarmCoherent;
+      centerPosition = protectPos;
+      centerVelocity = { vx = 0.0; vy = 0.0; vz = 0.0; groundSpeed = 0.0; heading = 0.0 };
+      boundingRadius = radius;
+      maxAltitude = protectPos.altitude + radius;
+      minAltitude = protectPos.altitude;
+      missionType = "DEFEND";
+      missionTarget = ?protectPos;
+      missionProgress = 1.0;
+      combatActive = false;
+      enemyDetected = false;
+      enemyCount = 0;
+      threatLevel = 0.5;
+    };
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION CHIMERA: PUBLIC SWARM CONTROL FUNCTIONS
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Register a new drone with the swarm
+  public shared func registerDrone(systemId : Nat, position : GPSCoord) : async Nat {
+    if (chimeraActiveDrones >= 64) { return 0 };
+    
+    let droneIdx = chimeraActiveDrones;
+    let droneId = droneIdx + 1;
+    
+    chimeraDrones[droneIdx] := {
+      droneId = droneId;
+      systemId = systemId;
+      componentId = 1;
+      position = position;
+      localPosition = (0.0, 0.0, 0.0);
+      attitude = { roll = 0.0; pitch = 0.0; yaw = 0.0; rollSpeed = 0.0; pitchSpeed = 0.0; yawSpeed = 0.0 };
+      velocity = { vx = 0.0; vy = 0.0; vz = 0.0; groundSpeed = 0.0; heading = 0.0 };
+      kuramotoPhase = Float.fromInt(droneIdx) * GOLDEN_ANGLE_RAD;
+      kuramotoOmega = 1.0;
+      kuramotoCoupling = 0.618;
+      armed = false;
+      flightMode = FLIGHT_MODE_LOITER;
+      batteryRemaining = 100.0;
+      batteryVoltage = 12.6;
+      signalStrength = 1.0;
+      gpsFixType = 3;
+      satellites = 12;
+      currentWaypoint = 0;
+      missionProgress = 0.0;
+      targetPosition = null;
+      targetDroneId = null;
+      inCombat = false;
+      threatLevel = 0.0;
+      lastThreatBeat = 0;
+      lastHeartbeat = templeLastBeat;
+      lastCommandBeat = templeLastBeat;
+      connectionLost = false;
+    };
+    
+    chimeraActiveDrones += 1;
+    droneId
+  };
+
+  /// Advance swarm simulation one tick
+  public shared func advanceChimeraSwarm() : async {
+    orderParam : Float;
+    coherent : Bool;
+    droneCount : Nat;
+    missionType : Text;
+  } {
+    tickSwarmKuramoto(0.05);
+    
+    {
+      orderParam = chimeraSwarmState.swarmOrderParam;
+      coherent = chimeraSwarmState.swarmCoherent;
+      droneCount = chimeraActiveDrones;
+      missionType = chimeraSwarmState.missionType;
+    }
+  };
+
+  /// Get swarm state
+  public query func getChimeraSwarmState() : async ChimeraSwarmState {
+    chimeraSwarmState
+  };
+
+  /// Get individual drone state
+  public query func getChimeraDroneState(droneIdx : Nat) : async ?ChimeraDroneState {
+    if (droneIdx >= 64) { return null };
+    ?chimeraDrones[droneIdx]
+  };
+
+  // ╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+  // ║                                                                                                                                          ║
+  // ║   C Y B E R   D E F E N S E   S Y S T E M   —   H O N E Y P O T S   &   I N F R A S T R U C T U R E   P R O T E C T I O N             ║
+  // ║                                                                                                                                          ║
+  // ║   Deploying defensive cyber infrastructure across ICP network:                                                                           ║
+  // ║   - Honeypots: Decoy systems that attract and trap attackers                                                                             ║
+  // ║   - Canary tokens: Tripwires that alert on access                                                                                        ║
+  // ║   - Infrastructure shields: Protection for hospitals, cities, companies                                                                  ║
+  // ║   - Threat tracking: Following attacker trails                                                                                           ║
+  // ║                                                                                                                                          ║
+  // ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION CYBER: HONEYPOT TYPES AND STATE
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Honeypot types
+  let HONEYPOT_SSH : Nat = 0;
+  let HONEYPOT_HTTP : Nat = 1;
+  let HONEYPOT_DATABASE : Nat = 2;
+  let HONEYPOT_MEDICAL : Nat = 3;      // Hospital systems
+  let HONEYPOT_SCADA : Nat = 4;        // Industrial control
+  let HONEYPOT_FINANCIAL : Nat = 5;    // Banking systems
+  let HONEYPOT_CANISTER : Nat = 6;     // ICP canister decoy
+  let HONEYPOT_DNS : Nat = 7;
+  let HONEYPOT_SMTP : Nat = 8;
+  let HONEYPOT_IOT : Nat = 9;
+
+  /// Infrastructure type being protected
+  let INFRA_HOSPITAL : Nat = 0;
+  let INFRA_CITY : Nat = 1;
+  let INFRA_COMPANY : Nat = 2;
+  let INFRA_UTILITY : Nat = 3;
+  let INFRA_TRANSPORT : Nat = 4;
+  let INFRA_FINANCIAL : Nat = 5;
+  let INFRA_GOVERNMENT : Nat = 6;
+  let INFRA_EDUCATION : Nat = 7;
+
+  /// Threat severity levels
+  let THREAT_PROBE : Nat = 1;          // Scanning/reconnaissance
+  let THREAT_ATTEMPT : Nat = 2;        // Failed attack attempt
+  let THREAT_BREACH : Nat = 3;         // Successful breach of honeypot
+  let THREAT_EXFIL : Nat = 4;          // Data exfiltration attempt
+  let THREAT_PERSIST : Nat = 5;        // Persistence mechanism detected
+  let THREAT_LATERAL : Nat = 6;        // Lateral movement
+  let THREAT_ESCALATE : Nat = 7;       // Privilege escalation
+  let THREAT_DESTRUCT : Nat = 8;       // Destructive action
+
+  /// Honeypot state
+  public type HoneypotState = {
+    honeypotId : Nat;
+    honeypotType : Nat;
+    
+    // Deployment info
+    canisterId : Text;                 // ICP canister hosting honeypot
+    deployedBeat : Nat;
+    active : Bool;
+    
+    // Fake credentials planted
+    plantedCredentials : [Text];
+    
+    // Interaction tracking
+    totalInteractions : Nat;
+    uniqueAttackers : Nat;
+    lastInteractionBeat : Nat;
+    
+    // Highest threat seen
+    maxThreatLevel : Nat;
+    
+    // Attacker fingerprints captured
+    capturedFingerprints : Nat;
+  };
+
+  /// Canary token state
+  public type CanaryTokenState = {
+    tokenId : Nat;
+    tokenType : Text;                  // "FILE", "URL", "DNS", "EMAIL"
+    tokenValue : Text;                 // The actual token string
+    
+    // Placement
+    placedLocation : Text;
+    placedBeat : Nat;
+    
+    // Trigger tracking
+    triggered : Bool;
+    triggerCount : Nat;
+    lastTriggerBeat : Nat;
+    triggerSource : ?Text;             // IP/Principal that triggered
+  };
+
+  /// Attacker profile
+  public type AttackerProfile = {
+    attackerId : Nat;
+    
+    // Identification
+    principalHash : Text;              // Hash of attacking principal
+    ipHash : Text;                     // Hash of source IP
+    fingerprint : Text;                // Browser/client fingerprint
+    
+    // Behavior
+    firstSeenBeat : Nat;
+    lastSeenBeat : Nat;
+    totalActions : Nat;
+    honeypotsTouched : [Nat];
+    canariesTriggered : [Nat];
+    
+    // Threat assessment
+    threatScore : Float;               // 0-1 threat level
+    attackPattern : Text;              // Detected pattern type
+    
+    // Tracking
+    tracked : Bool;
+    trackingStartBeat : Nat;
+    actionLog : [Text];                // Last N actions
+  };
+
+  /// Infrastructure defense zone
+  public type DefenseZone = {
+    zoneId : Nat;
+    zoneName : Text;
+    infraType : Nat;
+    
+    // Coverage
+    honeypotIds : [Nat];
+    canaryIds : [Nat];
+    
+    // Status
+    threatLevel : Float;               // Aggregate threat 0-1
+    activeIncidents : Nat;
+    lastIncidentBeat : Nat;
+    
+    // Protection stats
+    attacksDeflected : Nat;
+    attackersCaught : Nat;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION CYBER: DEFENSE SYSTEM STATE
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  stable var cyberHoneypots : [var HoneypotState] = Array.init<HoneypotState>(256, {
+    honeypotId = 0;
+    honeypotType = 0;
+    canisterId = "";
+    deployedBeat = 0;
+    active = false;
+    plantedCredentials = [];
+    totalInteractions = 0;
+    uniqueAttackers = 0;
+    lastInteractionBeat = 0;
+    maxThreatLevel = 0;
+    capturedFingerprints = 0;
+  });
+
+  stable var cyberCanaries : [var CanaryTokenState] = Array.init<CanaryTokenState>(1024, {
+    tokenId = 0;
+    tokenType = "";
+    tokenValue = "";
+    placedLocation = "";
+    placedBeat = 0;
+    triggered = false;
+    triggerCount = 0;
+    lastTriggerBeat = 0;
+    triggerSource = null;
+  });
+
+  stable var cyberAttackers : [var AttackerProfile] = Array.init<AttackerProfile>(512, {
+    attackerId = 0;
+    principalHash = "";
+    ipHash = "";
+    fingerprint = "";
+    firstSeenBeat = 0;
+    lastSeenBeat = 0;
+    totalActions = 0;
+    honeypotsTouched = [];
+    canariesTriggered = [];
+    threatScore = 0.0;
+    attackPattern = "";
+    tracked = false;
+    trackingStartBeat = 0;
+    actionLog = [];
+  });
+
+  stable var cyberDefenseZones : [var DefenseZone] = Array.init<DefenseZone>(64, {
+    zoneId = 0;
+    zoneName = "";
+    infraType = 0;
+    honeypotIds = [];
+    canaryIds = [];
+    threatLevel = 0.0;
+    activeIncidents = 0;
+    lastIncidentBeat = 0;
+    attacksDeflected = 0;
+    attackersCaught = 0;
+  });
+
+  stable var cyberActiveHoneypots : Nat = 0;
+  stable var cyberActiveCanaries : Nat = 0;
+  stable var cyberKnownAttackers : Nat = 0;
+  stable var cyberActiveZones : Nat = 0;
+  stable var cyberTotalIncidents : Nat = 0;
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION CYBER: HONEYPOT DEPLOYMENT AND MANAGEMENT
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Deploy a new honeypot
+  func deployHoneypot(honeypotType : Nat, canisterId : Text, credentials : [Text]) : Nat {
+    if (cyberActiveHoneypots >= 256) { return 0 };
+    
+    let idx = cyberActiveHoneypots;
+    let honeypotId = idx + 1;
+    
+    cyberHoneypots[idx] := {
+      honeypotId = honeypotId;
+      honeypotType = honeypotType;
+      canisterId = canisterId;
+      deployedBeat = templeLastBeat;
+      active = true;
+      plantedCredentials = credentials;
+      totalInteractions = 0;
+      uniqueAttackers = 0;
+      lastInteractionBeat = 0;
+      maxThreatLevel = 0;
+      capturedFingerprints = 0;
+    };
+    
+    cyberActiveHoneypots += 1;
+    honeypotId
+  };
+
+  /// Record interaction with honeypot
+  func recordHoneypotInteraction(honeypotIdx : Nat, attackerFingerprint : Text, threatLevel : Nat) {
+    if (honeypotIdx >= cyberActiveHoneypots) { return };
+    
+    let hp = cyberHoneypots[honeypotIdx];
+    
+    cyberHoneypots[honeypotIdx] := {
+      honeypotId = hp.honeypotId;
+      honeypotType = hp.honeypotType;
+      canisterId = hp.canisterId;
+      deployedBeat = hp.deployedBeat;
+      active = hp.active;
+      plantedCredentials = hp.plantedCredentials;
+      totalInteractions = hp.totalInteractions + 1;
+      uniqueAttackers = hp.uniqueAttackers;  // TODO: track unique
+      lastInteractionBeat = templeLastBeat;
+      maxThreatLevel = if (threatLevel > hp.maxThreatLevel) { threatLevel } else { hp.maxThreatLevel };
+      capturedFingerprints = hp.capturedFingerprints + 1;
+    };
+    
+    cyberTotalIncidents += 1;
+  };
+
+  /// Deploy canary token
+  func deployCanary(tokenType : Text, tokenValue : Text, location : Text) : Nat {
+    if (cyberActiveCanaries >= 1024) { return 0 };
+    
+    let idx = cyberActiveCanaries;
+    let tokenId = idx + 1;
+    
+    cyberCanaries[idx] := {
+      tokenId = tokenId;
+      tokenType = tokenType;
+      tokenValue = tokenValue;
+      placedLocation = location;
+      placedBeat = templeLastBeat;
+      triggered = false;
+      triggerCount = 0;
+      lastTriggerBeat = 0;
+      triggerSource = null;
+    };
+    
+    cyberActiveCanaries += 1;
+    tokenId
+  };
+
+  /// Trigger canary (called when token is accessed)
+  func triggerCanary(canaryIdx : Nat, source : Text) : Bool {
+    if (canaryIdx >= cyberActiveCanaries) { return false };
+    
+    let canary = cyberCanaries[canaryIdx];
+    
+    cyberCanaries[canaryIdx] := {
+      tokenId = canary.tokenId;
+      tokenType = canary.tokenType;
+      tokenValue = canary.tokenValue;
+      placedLocation = canary.placedLocation;
+      placedBeat = canary.placedBeat;
+      triggered = true;
+      triggerCount = canary.triggerCount + 1;
+      lastTriggerBeat = templeLastBeat;
+      triggerSource = ?source;
+    };
+    
+    cyberTotalIncidents += 1;
+    true
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION CYBER: DEFENSE ZONE MANAGEMENT
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Create defense zone for infrastructure
+  func createDefenseZone(zoneName : Text, infraType : Nat) : Nat {
+    if (cyberActiveZones >= 64) { return 0 };
+    
+    let idx = cyberActiveZones;
+    let zoneId = idx + 1;
+    
+    cyberDefenseZones[idx] := {
+      zoneId = zoneId;
+      zoneName = zoneName;
+      infraType = infraType;
+      honeypotIds = [];
+      canaryIds = [];
+      threatLevel = 0.0;
+      activeIncidents = 0;
+      lastIncidentBeat = 0;
+      attacksDeflected = 0;
+      attackersCaught = 0;
+    };
+    
+    cyberActiveZones += 1;
+    zoneId
+  };
+
+  /// Calculate zone threat level based on honeypot activity
+  func calculateZoneThreat(zoneIdx : Nat) : Float {
+    if (zoneIdx >= cyberActiveZones) { return 0.0 };
+    
+    let zone = cyberDefenseZones[zoneIdx];
+    var totalThreat : Float = 0.0;
+    var count : Float = 0.0;
+    
+    // Average threat across honeypots in zone
+    for (hpId in zone.honeypotIds.vals()) {
+      if (hpId > 0 and hpId <= cyberActiveHoneypots) {
+        let hp = cyberHoneypots[hpId - 1];
+        totalThreat += Float.fromInt(hp.maxThreatLevel) / 8.0;  // Normalize to 0-1
+        count += 1.0;
+      };
+    };
+    
+    if (count > 0.0) { totalThreat / count } else { 0.0 }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION CYBER: PUBLIC DEFENSE FUNCTIONS
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Deploy hospital protection zone
+  public shared func deployHospitalDefense(hospitalName : Text) : async {
+    zoneId : Nat;
+    honeypotCount : Nat;
+    canaryCount : Nat;
+  } {
+    // Create zone
+    let zoneId = createDefenseZone(hospitalName, INFRA_HOSPITAL);
+    
+    // Deploy medical system honeypots
+    ignore deployHoneypot(HONEYPOT_MEDICAL, hospitalName # "-ehr-decoy", ["admin:password123", "doctor:medical1"]);
+    ignore deployHoneypot(HONEYPOT_DATABASE, hospitalName # "-db-decoy", ["root:hospital", "backup:backup123"]);
+    ignore deployHoneypot(HONEYPOT_SSH, hospitalName # "-ssh-decoy", ["sysadmin:changeme"]);
+    
+    // Deploy canaries in common hospital system paths
+    ignore deployCanary("FILE", hospitalName # "-patient-records.xlsx", "/shared/medical/");
+    ignore deployCanary("FILE", hospitalName # "-credentials.txt", "/admin/backup/");
+    ignore deployCanary("DNS", hospitalName # "-internal.local", "internal DNS");
+    
+    {
+      zoneId = zoneId;
+      honeypotCount = 3;
+      canaryCount = 3;
+    }
+  };
+
+  /// Deploy city infrastructure protection
+  public shared func deployCityDefense(cityName : Text) : async {
+    zoneId : Nat;
+    honeypotCount : Nat;
+    canaryCount : Nat;
+  } {
+    let zoneId = createDefenseZone(cityName, INFRA_CITY);
+    
+    // SCADA for utilities
+    ignore deployHoneypot(HONEYPOT_SCADA, cityName # "-water-scada", ["operator:scada123"]);
+    ignore deployHoneypot(HONEYPOT_SCADA, cityName # "-power-scada", ["tech:utility1"]);
+    
+    // City government systems
+    ignore deployHoneypot(HONEYPOT_HTTP, cityName # "-portal-decoy", []);
+    ignore deployHoneypot(HONEYPOT_DATABASE, cityName # "-citizen-db", ["admin:citydb"]);
+    
+    // Traffic systems
+    ignore deployHoneypot(HONEYPOT_IOT, cityName # "-traffic-iot", ["traffic:signal123"]);
+    
+    // Canaries
+    ignore deployCanary("FILE", cityName # "-emergency-contacts.csv", "/public_works/");
+    ignore deployCanary("DNS", cityName # "-scada.internal", "control network");
+    
+    {
+      zoneId = zoneId;
+      honeypotCount = 5;
+      canaryCount = 2;
+    }
+  };
+
+  /// Deploy company protection
+  public shared func deployCompanyDefense(companyName : Text) : async {
+    zoneId : Nat;
+    honeypotCount : Nat;
+    canaryCount : Nat;
+  } {
+    let zoneId = createDefenseZone(companyName, INFRA_COMPANY);
+    
+    // Standard corporate honeypots
+    ignore deployHoneypot(HONEYPOT_SSH, companyName # "-jumpbox", ["deploy:deploy123"]);
+    ignore deployHoneypot(HONEYPOT_DATABASE, companyName # "-mysql", ["root:mysql"]);
+    ignore deployHoneypot(HONEYPOT_HTTP, companyName # "-intranet", []);
+    ignore deployHoneypot(HONEYPOT_SMTP, companyName # "-mail", ["postmaster:mail"]);
+    
+    // Canaries
+    ignore deployCanary("FILE", companyName # "-passwords.txt", "/IT/shared/");
+    ignore deployCanary("FILE", companyName # "-aws-keys.txt", "/config/");
+    ignore deployCanary("URL", companyName # ".internal-api.com/health", "API endpoint");
+    
+    {
+      zoneId = zoneId;
+      honeypotCount = 4;
+      canaryCount = 3;
+    }
+  };
+
+  /// Get cyber defense status
+  public query func getCyberDefenseStatus() : async {
+    activeHoneypots : Nat;
+    activeCanaries : Nat;
+    activeZones : Nat;
+    knownAttackers : Nat;
+    totalIncidents : Nat;
+  } {
+    {
+      activeHoneypots = cyberActiveHoneypots;
+      activeCanaries = cyberActiveCanaries;
+      activeZones = cyberActiveZones;
+      knownAttackers = cyberKnownAttackers;
+      totalIncidents = cyberTotalIncidents;
+    }
+  };
+
+  /// Get specific honeypot state
+  public query func getHoneypotState(honeypotId : Nat) : async ?HoneypotState {
+    if (honeypotId == 0 or honeypotId > cyberActiveHoneypots) { return null };
+    ?cyberHoneypots[honeypotId - 1]
+  };
+
+  /// Get defense zone status
+  public query func getDefenseZoneStatus(zoneId : Nat) : async ?{
+    zone : DefenseZone;
+    threatLevel : Float;
+  } {
+    if (zoneId == 0 or zoneId > cyberActiveZones) { return null };
+    let zone = cyberDefenseZones[zoneId - 1];
+    ?{
+      zone = zone;
+      threatLevel = calculateZoneThreat(zoneId - 1);
+    }
+  };
+
+  // ╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+  // ║                                                                                                                                          ║
+  // ║   C Y B E R   O F F E N S E   S Y S T E M   —   T H R E A T   T R A C K I N G   &   C O U N T E R - A T T A C K                         ║
+  // ║                                                                                                                                          ║
+  // ║   Active pursuit of attackers:                                                                                                           ║
+  // ║   - Tracking: Following attacker movements across the network                                                                            ║
+  // ║   - Attribution: Building attacker profiles from behavior                                                                                ║
+  // ║   - Counter-attack: Deploying response measures                                                                                          ║
+  // ║                                                                                                                                          ║
+  // ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION OFFENSE: THREAT TRACKING
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Track an attacker based on fingerprint
+  func startTracking(principalHash : Text, ipHash : Text, fingerprint : Text) : Nat {
+    if (cyberKnownAttackers >= 512) { return 0 };
+    
+    let idx = cyberKnownAttackers;
+    let attackerId = idx + 1;
+    
+    cyberAttackers[idx] := {
+      attackerId = attackerId;
+      principalHash = principalHash;
+      ipHash = ipHash;
+      fingerprint = fingerprint;
+      firstSeenBeat = templeLastBeat;
+      lastSeenBeat = templeLastBeat;
+      totalActions = 1;
+      honeypotsTouched = [];
+      canariesTriggered = [];
+      threatScore = 0.1;
+      attackPattern = "UNKNOWN";
+      tracked = true;
+      trackingStartBeat = templeLastBeat;
+      actionLog = [];
+    };
+    
+    cyberKnownAttackers += 1;
+    attackerId
+  };
+
+  /// Update attacker profile with new activity
+  func updateAttackerProfile(attackerIdx : Nat, action : Text, honeypotId : ?Nat, canaryId : ?Nat) {
+    if (attackerIdx >= cyberKnownAttackers) { return };
+    
+    let attacker = cyberAttackers[attackerIdx];
+    
+    // Update honeypots touched
+    var newHoneypots = attacker.honeypotsTouched;
+    switch (honeypotId) {
+      case (?hpId) {
+        // Add if not already in list (simplified)
+        newHoneypots := Array.append(newHoneypots, [hpId]);
+      };
+      case null {};
+    };
+    
+    // Update canaries triggered
+    var newCanaries = attacker.canariesTriggered;
+    switch (canaryId) {
+      case (?cId) {
+        newCanaries := Array.append(newCanaries, [cId]);
+      };
+      case null {};
+    };
+    
+    // Update action log (keep last 100)
+    var newLog = attacker.actionLog;
+    if (newLog.size() >= 100) {
+      newLog := Array.tabulate<Text>(99, func(i) { newLog[i + 1] });
+    };
+    newLog := Array.append(newLog, [action]);
+    
+    // Calculate threat score (increases with activity)
+    let newThreatScore = Float.min(1.0, 
+      attacker.threatScore + 0.05 + 
+      Float.fromInt(newHoneypots.size()) * 0.1 + 
+      Float.fromInt(newCanaries.size()) * 0.2
+    );
+    
+    // Detect attack pattern
+    let pattern = if (newCanaries.size() > 2) { "DATA_THEFT" }
+                  else if (newHoneypots.size() > 3) { "RECONNAISSANCE" }
+                  else if (attacker.totalActions > 50) { "PERSISTENT" }
+                  else { "OPPORTUNISTIC" };
+    
+    cyberAttackers[attackerIdx] := {
+      attackerId = attacker.attackerId;
+      principalHash = attacker.principalHash;
+      ipHash = attacker.ipHash;
+      fingerprint = attacker.fingerprint;
+      firstSeenBeat = attacker.firstSeenBeat;
+      lastSeenBeat = templeLastBeat;
+      totalActions = attacker.totalActions + 1;
+      honeypotsTouched = newHoneypots;
+      canariesTriggered = newCanaries;
+      threatScore = newThreatScore;
+      attackPattern = pattern;
+      tracked = attacker.tracked;
+      trackingStartBeat = attacker.trackingStartBeat;
+      actionLog = newLog;
+    };
+  };
+
+  /// Get all tracked attackers above threat threshold
+  public query func getActiveThreats(minThreatScore : Float) : async [{
+    attackerId : Nat;
+    threatScore : Float;
+    pattern : Text;
+    totalActions : Nat;
+    honeypotCount : Nat;
+    canaryCount : Nat;
+  }] {
+    var threats : [{
+      attackerId : Nat;
+      threatScore : Float;
+      pattern : Text;
+      totalActions : Nat;
+      honeypotCount : Nat;
+      canaryCount : Nat;
+    }] = [];
+    
+    var i = 0;
+    while (i < cyberKnownAttackers) {
+      let attacker = cyberAttackers[i];
+      if (attacker.threatScore >= minThreatScore) {
+        threats := Array.append(threats, [{
+          attackerId = attacker.attackerId;
+          threatScore = attacker.threatScore;
+          pattern = attacker.attackPattern;
+          totalActions = attacker.totalActions;
+          honeypotCount = attacker.honeypotsTouched.size();
+          canaryCount = attacker.canariesTriggered.size();
+        }]);
+      };
+      i += 1;
+    };
+    
+    threats
+  };
+
+  /// Get full attacker profile
+  public query func getAttackerProfile(attackerId : Nat) : async ?AttackerProfile {
+    if (attackerId == 0 or attackerId > cyberKnownAttackers) { return null };
+    ?cyberAttackers[attackerId - 1]
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION OFFENSE: UNIFIED WARFARE TICK
+  // Integration of physical and cyber warfare with temple heartbeat
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Run one tick of complete warfare systems
+  func tickWarfareSystems(currentBeat : Nat) {
+    // 1. Update drone swarm Kuramoto dynamics
+    tickSwarmKuramoto(0.05);
+    
+    // 2. Update zone threat levels
+    var i = 0;
+    while (i < cyberActiveZones) {
+      let zone = cyberDefenseZones[i];
+      let threat = calculateZoneThreat(i);
+      cyberDefenseZones[i] := {
+        zoneId = zone.zoneId;
+        zoneName = zone.zoneName;
+        infraType = zone.infraType;
+        honeypotIds = zone.honeypotIds;
+        canaryIds = zone.canaryIds;
+        threatLevel = threat;
+        activeIncidents = zone.activeIncidents;
+        lastIncidentBeat = zone.lastIncidentBeat;
+        attacksDeflected = zone.attacksDeflected;
+        attackersCaught = zone.attackersCaught;
+      };
+      i += 1;
+    };
+    
+    // 3. If swarm is coherent and high threat detected, link swarm to defense
+    if (chimeraSwarmState.swarmCoherent) {
+      var maxThreat : Float = 0.0;
+      i := 0;
+      while (i < cyberActiveZones) {
+        if (cyberDefenseZones[i].threatLevel > maxThreat) {
+          maxThreat := cyberDefenseZones[i].threatLevel;
+        };
+        i += 1;
+      };
+      
+      // If cyber threat high, put swarm on alert
+      if (maxThreat > 0.7) {
+        chimeraSwarmState := {
+          swarmId = chimeraSwarmState.swarmId;
+          droneCount = chimeraSwarmState.droneCount;
+          formationType = chimeraSwarmState.formationType;
+          swarmOrderParam = chimeraSwarmState.swarmOrderParam;
+          swarmMeanPhase = chimeraSwarmState.swarmMeanPhase;
+          swarmCoherent = chimeraSwarmState.swarmCoherent;
+          centerPosition = chimeraSwarmState.centerPosition;
+          centerVelocity = chimeraSwarmState.centerVelocity;
+          boundingRadius = chimeraSwarmState.boundingRadius;
+          maxAltitude = chimeraSwarmState.maxAltitude;
+          minAltitude = chimeraSwarmState.minAltitude;
+          missionType = chimeraSwarmState.missionType;
+          missionTarget = chimeraSwarmState.missionTarget;
+          missionProgress = chimeraSwarmState.missionProgress;
+          combatActive = true;
+          enemyDetected = true;
+          enemyCount = chimeraSwarmState.enemyCount;
+          threatLevel = maxThreat;
+        };
+      };
+    };
+  };
+
+  /// Get complete warfare status
+  public query func getWarfareStatus() : async {
+    // Drone swarm
+    swarmCoherent : Bool;
+    swarmOrderParam : Float;
+    activeDrones : Nat;
+    swarmMission : Text;
+    
+    // Cyber defense
+    activeHoneypots : Nat;
+    activeCanaries : Nat;
+    activeZones : Nat;
+    totalIncidents : Nat;
+    
+    // Cyber offense
+    trackedAttackers : Nat;
+    highThreatCount : Nat;
+    
+    // Integration
+    templeCoherence : Float;
+    warfareLinked : Bool;
+  } {
+    // Count high-threat attackers
+    var highThreat : Nat = 0;
+    var i = 0;
+    while (i < cyberKnownAttackers) {
+      if (cyberAttackers[i].threatScore > 0.7) {
+        highThreat += 1;
+      };
+      i += 1;
+    };
+    
+    {
+      swarmCoherent = chimeraSwarmState.swarmCoherent;
+      swarmOrderParam = chimeraSwarmState.swarmOrderParam;
+      activeDrones = chimeraActiveDrones;
+      swarmMission = chimeraSwarmState.missionType;
+      activeHoneypots = cyberActiveHoneypots;
+      activeCanaries = cyberActiveCanaries;
+      activeZones = cyberActiveZones;
+      totalIncidents = cyberTotalIncidents;
+      trackedAttackers = cyberKnownAttackers;
+      highThreatCount = highThreat;
+      templeCoherence = sovereign96OrderParam;
+      warfareLinked = chimeraSwarmState.swarmCoherent and coherenceTempleAlive;
+    }
+  };
+
 };
