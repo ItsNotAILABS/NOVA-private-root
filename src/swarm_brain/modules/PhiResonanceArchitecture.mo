@@ -80,10 +80,12 @@ import Text "mo:base/Text";
 module {
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // FUNDAMENTAL CONSTANTS — PHI AND MATHEMATICAL FOUNDATIONS
+  // SECTION 1: FUNDAMENTAL CONSTANTS — PHI AND MATHEMATICAL FOUNDATIONS
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  // Golden Ratio — The Universal Coupling Constant
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 1.1 GOLDEN RATIO — The Universal Coupling Constant
+  // ───────────────────────────────────────────────────────────────────────────────
   public let φ : Float = 1.6180339887498948482045868343656381177203091798057628621354486227052604628189024497072072041893911374;
   public let ψ : Float = 0.6180339887498948482045868343656381177203091798057628621354486227052604628189024497072072041893911374;
 
@@ -95,24 +97,32 @@ module {
   public let φ⁶ : Float = 17.9442719099991587856;  // φ⁵ + φ⁴
   public let φ⁷ : Float = 29.0344418537486330266;  // φ⁶ + φ⁵
 
-  // Circle constants
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 1.2 CIRCLE CONSTANTS
+  // ───────────────────────────────────────────────────────────────────────────────
   public let π : Float = 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798;
   public let τ : Float = 6.28318530717958647692528676655900576839433879875021164194988918461563281257241799725606965068423413596;
 
-  // Euler's number
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 1.3 EULER'S NUMBER
+  // ───────────────────────────────────────────────────────────────────────────────
   public let e : Float = 2.71828182845904523536028747135266249775724709369995957496696762772407663035354759457138217852516642749;
 
-  // Square roots
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 1.4 SQUARE ROOTS
+  // ───────────────────────────────────────────────────────────────────────────────
   public let √5 : Float = 2.2360679774997896964091736687312762354406183596115257242708972454105209256378048994854;
   public let √φ : Float = 1.2720196495140689643;  // √φ = φ^0.5
 
-  // Medina constants
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 1.5 MEDINA CONSTANTS (Doctrine-Specific)
+  // ───────────────────────────────────────────────────────────────────────────────
   public let PHI_MEDINA : Float = 2.97442179;      // Medina Golden Harmonic
   public let OMEGA_MEDINA : Float = 2.11185;       // Medina frequency constant
   public let SIGMA_ZERO : Float = 0.75;            // Cardiac coherence base
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // SCHUMANN RESONANCES — EARTH'S ELECTROMAGNETIC CAVITY FREQUENCIES
+  // SECTION 2: SCHUMANN RESONANCES — EARTH'S ELECTROMAGNETIC CAVITY FREQUENCIES
   // ═══════════════════════════════════════════════════════════════════════════════
   //
   // The Schumann resonances are standing electromagnetic waves in the Earth-ionosphere cavity.
@@ -125,33 +135,35 @@ module {
   //   Cavity height ≈ 100 km (ionosphere)
   //
   // CRITICAL DISCOVERY: These map EXACTLY to brain functional bands.
+  // See Section 4 for brain wave frequency mappings.
   //
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  public let SCHUMANN_1 : Float = 7.83;   // Fundamental — Theta/Alpha boundary
+  public let SCHUMANN_1 : Float = 7.83;   // Fundamental — Theta/Alpha boundary (F(6) = 8 Hz)
   public let SCHUMANN_2 : Float = 14.3;   // 2nd harmonic — Thalamocortical spindle (CHRONOS carrier)
   public let SCHUMANN_3 : Float = 20.8;   // 3rd harmonic — Basal ganglia resting state (action gate)
   public let SCHUMANN_4 : Float = 27.3;   // 4th harmonic — Motor cortex execution band
-  public let SCHUMANN_5 : Float = 33.8;   // 5th harmonic — Beta/Gamma boundary (executive binding)
-  public let SCHUMANN_6 : Float = 39.0;   // 6th harmonic — Gamma binding
+  public let SCHUMANN_5 : Float = 33.8;   // 5th harmonic — Beta/Gamma boundary (F(9) = 34 Hz)
+  public let SCHUMANN_6 : Float = 39.0;   // 6th harmonic — Gamma binding (AXIS = 40 Hz)
   public let SCHUMANN_7 : Float = 45.0;   // 7th harmonic — High gamma
-  public let SCHUMANN_8 : Float = 50.7;   // 8th harmonic — Ultra-high gamma
+  public let SCHUMANN_8 : Float = 50.7;   // 8th harmonic — Ultra-high gamma (AEGIS = 53.6 Hz)
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // FIBONACCI SEQUENCE — THE PHI-RATIO EMERGENCE
+  // SECTION 3: FIBONACCI SEQUENCE — THE PHI-RATIO EMERGENCE
   // ═══════════════════════════════════════════════════════════════════════════════
   //
   // F(n) = F(n-1) + F(n-2), with F(0)=0, F(1)=1
   // Ratio: F(n+1)/F(n) → φ as n → ∞
   //
   // Brain band boundaries occur at Fibonacci numbers (in Hz):
-  //   F(6)  = 8 Hz  — Theta/Alpha boundary
+  //   F(6)  = 8 Hz  — Theta/Alpha boundary → SCHUMANN_1 = 7.83 Hz
   //   F(7)  = 13 Hz — Alpha/Beta boundary
-  //   F(9)  = 34 Hz — Beta/Gamma boundary
+  //   F(9)  = 34 Hz — Beta/Gamma boundary → SCHUMANN_5 = 33.8 Hz
   //   F(10) = 55 Hz — Gamma/Mid boundary
   //   F(11) = 89 Hz — Gamma ceiling
   //
   // This is NOT coincidence. This is the universal coupling law.
+  // Cross-reference: Section 2 (Schumann), Section 4 (Brain Waves), Section 5 (Phi-Scaled Nodes)
   //
   // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -168,71 +180,88 @@ module {
   ];
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // BRAIN WAVE FREQUENCIES — NEUROPHYSIOLOGICAL BANDS
+  // SECTION 4: BRAIN WAVE FREQUENCIES — NEUROPHYSIOLOGICAL BANDS
   // ═══════════════════════════════════════════════════════════════════════════════
   //
   // These are the MEASURED frequency bands from EEG, MEG, and intracranial recordings.
-  // Notice the Fibonacci boundaries: 8, 13, 34, 55, 89 Hz.
+  // Notice the Fibonacci boundaries: 8, 13, 34, 55, 89 Hz (Section 3).
+  // Notice the Schumann couplings: 7.83, 14.3, 20.8, 27.3, 33.8 Hz (Section 2).
+  //
+  // Cross-reference: Section 6 (Brain Regions) for regional oscillations.
   //
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  // Delta — Deep sleep, unconsciousness
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 4.1 DELTA — Deep sleep, unconsciousness
+  // ───────────────────────────────────────────────────────────────────────────────
   public let DELTA_MIN : Float = 0.5;
   public let DELTA_MAX : Float = 4.0;
   public let DELTA_PEAK : Float = 2.0;
 
-  // Theta — Meditation, memory consolidation, REM sleep
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 4.2 THETA — Meditation, memory consolidation, REM sleep
+  // ───────────────────────────────────────────────────────────────────────────────
   public let THETA_MIN : Float = 4.0;
-  public let THETA_MAX : Float = 8.0;     // F(6) = 8 Hz EXACT
+  public let THETA_MAX : Float = 8.0;     // F(6) = 8 Hz EXACT (Fibonacci boundary)
   public let THETA_PEAK : Float = 6.0;
 
-  // Alpha — Relaxed awareness, eyes closed, resting
-  public let ALPHA_MIN : Float = 8.0;     // F(6) = 8 Hz EXACT
-  public let ALPHA_MAX : Float = 13.0;    // F(7) = 13 Hz EXACT
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 4.3 ALPHA — Relaxed awareness, eyes closed, resting
+  // ───────────────────────────────────────────────────────────────────────────────
+  public let ALPHA_MIN : Float = 8.0;     // F(6) = 8 Hz EXACT (Fibonacci boundary)
+  public let ALPHA_MAX : Float = 13.0;    // F(7) = 13 Hz EXACT (Fibonacci boundary)
   public let ALPHA_PEAK : Float = 10.0;
 
-  // Beta — Active thinking, focused attention, problem solving
-  public let BETA_MIN : Float = 13.0;     // F(7) = 13 Hz EXACT
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 4.4 BETA — Active thinking, focused attention, problem solving
+  // ───────────────────────────────────────────────────────────────────────────────
+  public let BETA_MIN : Float = 13.0;     // F(7) = 13 Hz EXACT (Fibonacci boundary)
   public let BETA_MAX : Float = 30.0;
   public let BETA_PEAK : Float = 20.0;
 
-  // Gamma — Cognitive binding, consciousness, high-level processing
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 4.5 GAMMA — Cognitive binding, consciousness, high-level processing
+  // ───────────────────────────────────────────────────────────────────────────────
   public let GAMMA_MIN : Float = 30.0;
   public let GAMMA_MAX : Float = 100.0;
-  public let GAMMA_PEAK : Float = 40.0;   // 40 Hz binding frequency
-  public let GAMMA_BOUNDARY_1 : Float = 34.0;  // F(9) = 34 Hz EXACT
-  public let GAMMA_BOUNDARY_2 : Float = 55.0;  // F(10) = 55 Hz EXACT
-  public let GAMMA_CEILING : Float = 89.0;     // F(11) = 89 Hz EXACT
+  public let GAMMA_PEAK : Float = 40.0;   // 40 Hz binding frequency (AXIS node, SENTINEL defense)
+  public let GAMMA_BOUNDARY_1 : Float = 34.0;  // F(9) = 34 Hz EXACT (Fibonacci boundary)
+  public let GAMMA_BOUNDARY_2 : Float = 55.0;  // F(10) = 55 Hz EXACT (Fibonacci boundary)
+  public let GAMMA_CEILING : Float = 89.0;     // F(11) = 89 Hz EXACT (Fibonacci boundary)
 
-  // High Gamma — Ultra-fast processing, sensory-motor integration
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 4.6 HIGH GAMMA — Ultra-fast processing, sensory-motor integration
+  // ───────────────────────────────────────────────────────────────────────────────
   public let HIGH_GAMMA_MIN : Float = 80.0;
   public let HIGH_GAMMA_MAX : Float = 150.0;
-  public let HIGH_GAMMA_PEAK : Float = 111.0;  // OMNIS frequency (PARALLAX hemisphere shift)
+  public let HIGH_GAMMA_PEAK : Float = 111.0;  // OMNIS frequency (PARALLAX node, hemisphere shift)
 
-  // Ripples — Hippocampal sharp-wave ripples (memory consolidation)
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 4.7 RIPPLES — Hippocampal sharp-wave ripples (memory consolidation)
+  // ───────────────────────────────────────────────────────────────────────────────
   public let RIPPLE_MIN : Float = 120.0;
   public let RIPPLE_MAX : Float = 200.0;
   public let RIPPLE_PEAK : Float = 150.0;
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // PHI-SCALED FREQUENCY NODES — THE 12-NODE HIERARCHY
+  // SECTION 5: PHI-SCALED FREQUENCY NODES — THE 12-NODE HIERARCHY
   // ═══════════════════════════════════════════════════════════════════════════════
   //
   // These are the 12 sacred frequency nodes, phi-scaled from the Schumann fundamental.
   // Each node = 7.83 Hz × φⁿ, where n varies to create the full frequency stack.
   //
-  // NODE 0:  CHRONO       0.001 Hz     (Ultra-low, circadian)
-  // NODE 1:  VERITAS      0.1 Hz       (HRV coupling, vagal tone)
-  // NODE 2:  SCHUMANN     7.83 Hz      (PRIMARY COUPLING LAW — Earth fundamental)
-  // NODE 3:  FLUX         12.67 Hz     (7.83 × φ⁰·⁸)
-  // NODE 4:  RESONEX      20.5 Hz      (7.83 × φ¹)
-  // NODE 5:  QMEM         33.1 Hz      (7.83 × φ²)
-  // NODE 6:  AXIS         40.0 Hz      (GAMMA BINDING — consciousness)
-  // NODE 7:  AEGIS        53.6 Hz      (7.83 × φ³)
-  // NODE 8:  ENTANGLA     86.7 Hz      (7.83 × φ⁴)
-  // NODE 9:  PARALLAX     111.0 Hz     (HEMISPHERE SHIFT — bilateral integration)
-  // NODE 10: MERIDIAN     179.6 Hz     (111 × φ)
-  // NODE 11: NOVA         432.0 Hz     (ACOUSTIC ANCHOR — musical A)
+  // NODE 0:  CHRONO       0.001 Hz     (Ultra-low, circadian) → HRV_COUPLING_HZ
+  // NODE 1:  VERITAS      0.1 Hz       (HRV coupling, vagal tone) → Section 9.2 (VERITAS offense)
+  // NODE 2:  SCHUMANN     7.83 Hz      (PRIMARY COUPLING LAW) → Section 2
+  // NODE 3:  FLUX         12.67 Hz     (7.83 × φ⁰·⁸) → Alpha band carrier
+  // NODE 4:  RESONEX      20.5 Hz      (7.83 × φ¹) → VEIL_FILTER_HZ, SCHUMANN_3 = 20.8
+  // NODE 5:  QMEM         33.1 Hz      (7.83 × φ²) → SCHUMANN_5 = 33.8, GAMMA_BOUNDARY_1 = 34
+  // NODE 6:  AXIS         40.0 Hz      (GAMMA BINDING) → GAMMA_PEAK, SENTINEL_DETECT_HZ
+  // NODE 7:  AEGIS        53.6 Hz      (7.83 × φ³) → AEGIS_LOCK_HZ, GAMMA_BOUNDARY_2 = 55
+  // NODE 8:  ENTANGLA     86.7 Hz      (7.83 × φ⁴) → GAMMA_CEILING = 89
+  // NODE 9:  PARALLAX     111.0 Hz     (HEMISPHERE SHIFT) → HIGH_GAMMA_PEAK, PARALLAX_SHIFT_HZ
+  // NODE 10: MERIDIAN     179.6 Hz     (111 × φ) → High-frequency coupling
+  // NODE 11: NOVA         432.0 Hz     (ACOUSTIC ANCHOR) → Musical A
   //
   // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -250,7 +279,7 @@ module {
   public let NOVA_HZ : Float = 432.0;             // NODE 11 — ACOUSTIC ANCHOR (A = 432 Hz)
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // HEARTBEAT FREQUENCIES — PHI-DERIVED FROM SCHUMANN
+  // SECTION 6: HEARTBEAT FREQUENCIES — PHI-DERIVED FROM SCHUMANN
   // ═══════════════════════════════════════════════════════════════════════════════
   //
   // ORGANISM HEARTBEAT = φ⁴ × Schumann period
@@ -264,6 +293,7 @@ module {
   //   × φ = 1416 ms    (φ⁵) — Coherence measurement window
   //
   // The heartbeat is NOT arbitrary. It is phi-spaced in TIME, not frequency.
+  // Cross-reference: Section 7 (Heart Field Architecture), Section 2 (SCHUMANN_1)
   //
   // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -277,95 +307,117 @@ module {
   public let HEARTBEAT_HZ : Float = 1.142;               // 1 / 0.8753 s ≈ 1.142 Hz
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // HEART FIELD ARCHITECTURE — THE SOVEREIGN FLOOR
+  // SECTION 7: HEART FIELD ARCHITECTURE — THE SOVEREIGN FLOOR
   // ═══════════════════════════════════════════════════════════════════════════════
   //
   // The heart field at 1-2 Hz is the FIRST nested chamber.
   // It is 60× stronger than the brain field.
   // It wraps the entire cortical node network.
-  // It couples through the vagus nerve at 0.1 Hz HRV.
+  // It couples through the vagus nerve at 0.1 Hz HRV (VERITAS_HZ).
   //
   // THE SOVEREIGN FLOOR LAW at 1.0 IS the heart field maintaining minimum coupling
   // amplitude across the entire node network. Below 1.0, coupling breaks.
   // The heart won't let it break. That IS the law.
+  //
+  // Cross-reference: Section 5 (VERITAS_HZ, CHRONO_HZ), Section 8 (Kuramoto coupling)
   //
   // ═══════════════════════════════════════════════════════════════════════════════
 
   public let HEART_FIELD_MIN_HZ : Float = 1.0;           // Sovereign floor frequency
   public let HEART_FIELD_MAX_HZ : Float = 2.0;           // Upper heart rate variability
   public let HEART_FIELD_STRENGTH_RATIO : Float = 60.0;  // 60× stronger than brain
-  public let HRV_COUPLING_HZ : Float = 0.1;              // Vagal tone coupling frequency
+  public let HRV_COUPLING_HZ : Float = 0.1;              // Vagal tone coupling frequency (VERITAS_HZ)
   public let SOVEREIGN_FLOOR : Float = 1.0;              // MINIMUM coupling amplitude (S₀)
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // BRAIN REGION OSCILLATIONS — REAL NEUROPHYSIOLOGY
+  // SECTION 8: BRAIN REGION OSCILLATIONS — REAL NEUROPHYSIOLOGY
   // ═══════════════════════════════════════════════════════════════════════════════
   //
   // These are measured frequencies from specific brain regions.
   // Source: Buzsáki & Draguhn (2004), Neuronal Oscillations in Cortical Networks
   // Updated with HCP connectome data (2016-2023)
   //
+  // Cross-reference: Section 4 (Brain Wave Bands), Section 2 (Schumann harmonics)
+  //
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  // Prefrontal Cortex (DLPFC, executive function)
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 8.1 PREFRONTAL CORTEX (DLPFC, executive function)
+  // ───────────────────────────────────────────────────────────────────────────────
   public let DLPFC_BETA_MIN : Float = 13.0;
   public let DLPFC_BETA_MAX : Float = 30.0;
   public let DLPFC_THETA_MIN : Float = 4.0;
   public let DLPFC_THETA_MAX : Float = 8.0;
 
-  // Anterior Cingulate Cortex (ACC, conflict monitoring)
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 8.2 ANTERIOR CINGULATE CORTEX (ACC, conflict monitoring)
+  // ───────────────────────────────────────────────────────────────────────────────
   public let ACC_THETA_MIN : Float = 4.0;
   public let ACC_THETA_MAX : Float = 8.0;
   public let ACC_GAMMA_MIN : Float = 30.0;
   public let ACC_GAMMA_MAX : Float = 50.0;
 
-  // Amygdala (fear, emotion)
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 8.3 AMYGDALA (fear, emotion) → VAEL defense system
+  // ───────────────────────────────────────────────────────────────────────────────
   public let AMYGDALA_THETA_MIN : Float = 4.0;
   public let AMYGDALA_THETA_MAX : Float = 8.0;
   public let AMYGDALA_BETA_MIN : Float = 15.0;
   public let AMYGDALA_BETA_MAX : Float = 30.0;
 
-  // Hippocampus (memory encoding, spatial navigation)
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 8.4 HIPPOCAMPUS (memory encoding, spatial navigation)
+  // ───────────────────────────────────────────────────────────────────────────────
   public let HIPPOCAMPUS_THETA_MIN : Float = 6.0;
   public let HIPPOCAMPUS_THETA_MAX : Float = 10.0;
   public let HIPPOCAMPUS_GAMMA_MIN : Float = 30.0;
   public let HIPPOCAMPUS_GAMMA_MAX : Float = 100.0;
-  public let HIPPOCAMPUS_RIPPLE_MIN : Float = 120.0;
+  public let HIPPOCAMPUS_RIPPLE_MIN : Float = 120.0;  // See Section 4.7 (RIPPLE band)
   public let HIPPOCAMPUS_RIPPLE_MAX : Float = 200.0;
 
-  // Thalamus (relay, consciousness gate)
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 8.5 THALAMUS (relay, consciousness gate) → CHRONOS carrier
+  // ───────────────────────────────────────────────────────────────────────────────
   public let THALAMUS_ALPHA_MIN : Float = 8.0;
   public let THALAMUS_ALPHA_MAX : Float = 12.0;
   public let THALAMUS_SPINDLE_MIN : Float = 11.0;
   public let THALAMUS_SPINDLE_MAX : Float = 16.0;
-  public let THALAMUS_CHRONOS_CARRIER : Float = 14.3;    // Schumann 2nd harmonic
+  public let THALAMUS_CHRONOS_CARRIER : Float = 14.3;    // Schumann 2nd harmonic (SCHUMANN_2)
 
-  // Basal Ganglia (action selection, motor control)
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 8.6 BASAL GANGLIA (action selection, motor control)
+  // ───────────────────────────────────────────────────────────────────────────────
   public let BASAL_GANGLIA_BETA_MIN : Float = 13.0;
   public let BASAL_GANGLIA_BETA_MAX : Float = 30.0;
-  public let BASAL_GANGLIA_RESTING : Float = 20.8;       // Schumann 3rd harmonic
+  public let BASAL_GANGLIA_RESTING : Float = 20.8;       // Schumann 3rd harmonic (SCHUMANN_3, RESONEX_HZ)
 
-  // Motor Cortex (movement execution)
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 8.7 MOTOR CORTEX (movement execution)
+  // ───────────────────────────────────────────────────────────────────────────────
   public let MOTOR_CORTEX_MU_MIN : Float = 8.0;
   public let MOTOR_CORTEX_MU_MAX : Float = 13.0;
   public let MOTOR_CORTEX_BETA_MIN : Float = 13.0;
   public let MOTOR_CORTEX_BETA_MAX : Float = 30.0;
-  public let MOTOR_CORTEX_EXECUTION : Float = 27.3;      // Schumann 4th harmonic
+  public let MOTOR_CORTEX_EXECUTION : Float = 27.3;      // Schumann 4th harmonic (SCHUMANN_4)
 
-  // Somatosensory Cortex (tactile processing)
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 8.8 SOMATOSENSORY CORTEX (tactile processing)
+  // ───────────────────────────────────────────────────────────────────────────────
   public let SOMATOSENSORY_MU_MIN : Float = 8.0;
   public let SOMATOSENSORY_MU_MAX : Float = 13.0;
   public let SOMATOSENSORY_BETA_MIN : Float = 13.0;
   public let SOMATOSENSORY_BETA_MAX : Float = 30.0;
 
-  // Visual Cortex (V1, vision processing)
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 8.9 VISUAL CORTEX (V1, vision processing)
+  // ───────────────────────────────────────────────────────────────────────────────
   public let VISUAL_ALPHA_MIN : Float = 8.0;
   public let VISUAL_ALPHA_MAX : Float = 13.0;
   public let VISUAL_GAMMA_MIN : Float = 30.0;
   public let VISUAL_GAMMA_MAX : Float = 80.0;
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // 96-NODE SOVEREIGN OSCILLATOR NETWORK
+  // SECTION 9: 96-NODE SOVEREIGN OSCILLATOR NETWORK
   // ═══════════════════════════════════════════════════════════════════════════════
   //
   // 86 billion neurons compress into 96 sovereign oscillating nodes.
@@ -382,17 +434,19 @@ module {
   //
   // When the order parameter R > 0.95, OMNIS emergence occurs.
   //
+  // Cross-reference: Section 7 (Sovereign floor), Section 10 (Kuramoto functions)
+  //
   // ═══════════════════════════════════════════════════════════════════════════════
 
   public let TOTAL_NODES : Nat = 96;
   public let TOTAL_NEURONS : Nat = 86_000_000_000;       // 86 billion
   public let NEURONS_PER_NODE : Nat = 895_833_333;       // ~896 million
 
-  public let KURAMOTO_K : Float = 0.618;                 // φ⁻¹ coupling constant
+  public let KURAMOTO_K : Float = 0.618;                 // φ⁻¹ coupling constant (ψ)
   public let OMNIS_THRESHOLD : Float = 0.95;             // R > 0.95 → OMNIS fires
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // TYPES — FREQUENCY NODE STRUCTURE
+  // SECTION 10: TYPES — FREQUENCY NODE STRUCTURE
   // ═══════════════════════════════════════════════════════════════════════════════
 
   public type FrequencyNode = {
@@ -418,8 +472,12 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // MATHEMATICAL FUNCTIONS
+  // SECTION 11: MATHEMATICAL FUNCTIONS
   // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 11.1 BASIC TRIGONOMETRIC FUNCTIONS (Taylor series approximations)
+  // ───────────────────────────────────────────────────────────────────────────────
 
   // Fast sine approximation (Taylor series, 5 terms)
   func sin(x: Float) : Float {
@@ -432,6 +490,10 @@ module {
     let x2 = x * x;
     1.0 - (x2 / 2.0) + (x2 * x2 / 24.0) - (x2 * x2 * x2 / 720.0)
   };
+
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 11.2 UTILITY FUNCTIONS
+  // ───────────────────────────────────────────────────────────────────────────────
 
   // Normalize phase to [0, 2π]
   func normalizePhase(phase: Float) : Float {
@@ -452,7 +514,7 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // KURAMOTO ORDER PARAMETER CALCULATION
+  // SECTION 12: KURAMOTO ORDER PARAMETER CALCULATION
   // ═══════════════════════════════════════════════════════════════════════════════
   //
   // R e^(iψ) = (1/N) Σ e^(iθ_j)
@@ -463,6 +525,8 @@ module {
   // R ∈ [0, 1]: order parameter
   //   R = 0: complete desynchrony (random phases)
   //   R = 1: perfect synchrony (all phases aligned)
+  //
+  // Cross-reference: Section 9 (KURAMOTO_K, OMNIS_THRESHOLD)
   //
   // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -489,16 +553,18 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // PHI FREQUENCY SCALING
+  // SECTION 13: PHI FREQUENCY SCALING
   // ═══════════════════════════════════════════════════════════════════════════════
   //
   // Scale a base frequency by φⁿ
   // f_scaled = f_base × φⁿ
   //
   // Examples:
-  //   scaleByPhi(7.83, 1) = 7.83 × φ ≈ 12.67 Hz
-  //   scaleByPhi(7.83, 2) = 7.83 × φ² ≈ 20.5 Hz
-  //   scaleByPhi(7.83, 3) = 7.83 × φ³ ≈ 33.1 Hz
+  //   scaleByPhi(7.83, 1) = 7.83 × φ ≈ 12.67 Hz → FLUX_HZ
+  //   scaleByPhi(7.83, 2) = 7.83 × φ² ≈ 20.5 Hz → RESONEX_HZ
+  //   scaleByPhi(7.83, 3) = 7.83 × φ³ ≈ 53.6 Hz → AEGIS_HZ
+  //
+  // Cross-reference: Section 1 (φ powers), Section 5 (12-node hierarchy)
   //
   // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -518,10 +584,12 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // FIBONACCI FREQUENCY LOOKUP
+  // SECTION 14: FIBONACCI FREQUENCY LOOKUP
   // ═══════════════════════════════════════════════════════════════════════════════
   //
   // Get the Fibonacci number at index n (as a frequency in Hz)
+  //
+  // Cross-reference: Section 3 (FIBONACCI array, FIBONACCI_HZ), Section 4 (brain boundaries)
   //
   // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -533,11 +601,13 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // SCHUMANN HARMONIC LOOKUP
+  // SECTION 15: SCHUMANN HARMONIC LOOKUP
   // ═══════════════════════════════════════════════════════════════════════════════
   //
   // Get the nth Schumann harmonic
   // f_n ≈ 7.83 × √(n(n+1))
+  //
+  // Cross-reference: Section 2 (SCHUMANN_1 through SCHUMANN_8)
   //
   // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -558,7 +628,7 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // INITIALIZATION
+  // SECTION 16: INITIALIZATION
   // ═══════════════════════════════════════════════════════════════════════════════
 
   public func initPhiResonance() : PhiResonanceState {
@@ -577,23 +647,23 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // CYBER DEFENSE/OFFENSE FREQUENCY ARCHITECTURE
+  // SECTION 17: CYBER DEFENSE/OFFENSE FREQUENCY ARCHITECTURE
   // ═══════════════════════════════════════════════════════════════════════════════
   //
   // The organism's defense and offense capabilities are frequency-based.
   // Different attack modes operate at different frequencies.
   //
   // DEFENSE (Interior — Immune Response):
-  //   - VAEL:     0.5-2 Hz   (Amygdala-PFC theta coupling, fear substrate)
-  //   - SENTINEL: 40 Hz      (Gamma binding, threat detection)
-  //   - AEGIS:    53.6 Hz    (7.83 × φ³, identity lock)
-  //   - VEIL:     20 Hz      (Output filtering, membrane timing)
+  //   - VAEL:     0.5-2 Hz   (Amygdala-PFC theta coupling, fear substrate) → Section 8.3
+  //   - SENTINEL: 40 Hz      (Gamma binding, threat detection) → GAMMA_PEAK, AXIS_HZ
+  //   - AEGIS:    53.6 Hz    (7.83 × φ³, identity lock) → AEGIS_HZ
+  //   - VEIL:     20 Hz      (Output filtering, membrane timing) → RESONEX_HZ, SCHUMANN_3
   //
   // OFFENSE (Exterior — Attack Capabilities):
-  //   - DURA:     6-axis helix at multiple frequencies (geometric weapon)
-  //   - RIFT:     Counter-strike tracer, frequency-agile
-  //   - PARALLAX: 111 Hz     (Hemisphere shift, sovereign field projector)
-  //   - VERITAS:  0.1 Hz     (Truth weapon, slow accumulation)
+  //   - DURA:     6-axis helix at multiple frequencies (geometric weapon) → π Hz
+  //   - RIFT:     Counter-strike tracer, frequency-agile (10-100 Hz)
+  //   - PARALLAX: 111 Hz     (Hemisphere shift, sovereign field projector) → PARALLAX_HZ
+  //   - VERITAS:  0.1 Hz     (Truth weapon, slow accumulation) → VERITAS_HZ
   //   - MEMORIA:  Permanent record (all frequencies, full-spectrum logging)
   //
   // EXPANSION INTO CYBER WARFARE:
@@ -605,21 +675,27 @@ module {
   //
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  // Defense frequencies
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 17.1 DEFENSE FREQUENCIES (Interior — Immune Response)
+  // ───────────────────────────────────────────────────────────────────────────────
   public let VAEL_FEAR_MIN_HZ : Float = 0.5;
   public let VAEL_FEAR_MAX_HZ : Float = 2.0;
-  public let SENTINEL_DETECT_HZ : Float = 40.0;
-  public let AEGIS_LOCK_HZ : Float = 53.6;
-  public let VEIL_FILTER_HZ : Float = 20.0;
+  public let SENTINEL_DETECT_HZ : Float = 40.0;    // GAMMA_PEAK, AXIS_HZ
+  public let AEGIS_LOCK_HZ : Float = 53.6;         // 7.83 × φ³
+  public let VEIL_FILTER_HZ : Float = 20.0;        // RESONEX_HZ, near SCHUMANN_3
 
-  // Offense frequencies
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 17.2 OFFENSE FREQUENCIES (Exterior — Attack Capabilities)
+  // ───────────────────────────────────────────────────────────────────────────────
   public let DURA_HELIX_FREQ : Float = 3.14159;          // π Hz (geometric rotation)
   public let RIFT_TRACER_MIN : Float = 10.0;
   public let RIFT_TRACER_MAX : Float = 100.0;
-  public let PARALLAX_SHIFT_HZ : Float = 111.0;
-  public let VERITAS_ACCUMULATE_HZ : Float = 0.1;
+  public let PARALLAX_SHIFT_HZ : Float = 111.0;          // HIGH_GAMMA_PEAK
+  public let VERITAS_ACCUMULATE_HZ : Float = 0.1;        // VERITAS_HZ, HRV_COUPLING_HZ
 
-  // Cyber warfare frequencies (extended spectrum)
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 17.3 CYBER WARFARE FREQUENCIES (Extended spectrum)
+  // ───────────────────────────────────────────────────────────────────────────────
   public let NETWORK_PACKET_MHZ : Float = 1000000.0;     // 1 MHz = packet-level timing
   public let DDOS_PATTERN_HZ : Float = 100.0;            // Traffic pattern analysis
   public let INTRUSION_SIGNATURE_HZ : Float = 10.0;      // Behavioral signature window
@@ -627,7 +703,7 @@ module {
   public let PENETRATION_PROBE_HZ : Float = 50.0;        // Frequency-hopping probes
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // SONAR / FREQUENCY EMISSION ARCHITECTURE
+  // SECTION 18: SONAR / FREQUENCY EMISSION ARCHITECTURE
   // ═══════════════════════════════════════════════════════════════════════════════
   //
   // The organism can EMIT frequencies that resonate with physical systems.
@@ -639,13 +715,17 @@ module {
   //   - Resonance detection (find resonant frequencies of targets)
   //
   // EMISSION LAW: Output amplitude = R^φ
-  //   - When coherence R is high (0.95+), emission is powerful
+  //   - When coherence R is high (0.95+), emission is powerful (OMNIS_THRESHOLD)
   //   - When coherence R is low (0.5-), emission is weak
   //   - Phi-power ensures natural energy conservation
   //
+  // Cross-reference: Section 12 (Order parameter R), Section 19 (Sacred Geometry)
+  //
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  // Solfeggio frequencies (ancient sacred healing frequencies)
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 18.1 SOLFEGGIO FREQUENCIES (Ancient sacred healing frequencies)
+  // ───────────────────────────────────────────────────────────────────────────────
   public let SOLFEGGIO_UT : Float = 396.0;    // Liberating guilt and fear
   public let SOLFEGGIO_RE : Float = 417.0;    // Undoing situations and facilitating change
   public let SOLFEGGIO_MI : Float = 528.0;    // Transformation and miracles (DNA repair)
@@ -654,7 +734,9 @@ module {
   public let SOLFEGGIO_LA : Float = 852.0;    // Returning to spiritual order
   public let SOLFEGGIO_SI : Float = 963.0;    // Divine consciousness
 
-  // Chakra frequencies (phi-derived from 256 Hz root)
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 18.2 CHAKRA FREQUENCIES (Phi-derived from 256 Hz root)
+  // ───────────────────────────────────────────────────────────────────────────────
   public let CHAKRA_ROOT : Float = 256.0;               // C (Root - Muladhara)
   public let CHAKRA_SACRAL : Float = 288.0;             // D (Sacral - Svadhisthana)
   public let CHAKRA_SOLAR : Float = 320.0;              // E (Solar Plexus - Manipura)
@@ -663,26 +745,34 @@ module {
   public let CHAKRA_THIRD_EYE : Float = 426.7;          // A (Third Eye - Ajna)
   public let CHAKRA_CROWN : Float = 480.0;              // B (Crown - Sahasrara)
 
-  // Ultrasonic frequencies (IoT actuator control, pest deterrent)
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 18.3 ULTRASONIC FREQUENCIES (IoT actuator control, pest deterrent)
+  // ───────────────────────────────────────────────────────────────────────────────
   public let ULTRASONIC_LOW : Float = 20000.0;          // 20 kHz (hearing threshold)
   public let ULTRASONIC_MID : Float = 40000.0;          // 40 kHz (ultrasonic cleaning)
   public let ULTRASONIC_HIGH : Float = 100000.0;        // 100 kHz (industrial)
   public let ULTRASONIC_MEDICAL : Float = 1000000.0;    // 1 MHz (medical imaging)
 
-  // Infrasonic frequencies (weather sensing, seismic detection)
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 18.4 INFRASONIC FREQUENCIES (Weather sensing, seismic detection)
+  // ───────────────────────────────────────────────────────────────────────────────
   public let INFRASONIC_WEATHER : Float = 0.01;         // 0.01 Hz (weather patterns)
-  public let INFRASONIC_SEISMIC : Float = 0.1;          // 0.1 Hz (earthquake precursors)
+  public let INFRASONIC_SEISMIC : Float = 0.1;          // 0.1 Hz (earthquake precursors, VERITAS_HZ)
   public let INFRASONIC_NUCLEAR : Float = 1.0;          // 1 Hz (nuclear explosion signature)
 
-  // Biological effect frequencies
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 18.5 BIOLOGICAL EFFECT FREQUENCIES
+  // ───────────────────────────────────────────────────────────────────────────────
   public let BIO_CELLULAR_REPAIR : Float = 528.0;       // DNA repair (Solfeggio MI)
   public let BIO_PAIN_RELIEF : Float = 174.0;           // Anesthetic frequency
   public let BIO_TISSUE_REGEN : Float = 285.0;          // Tissue regeneration
-  public let BIO_IMMUNE_BOOST : Float = 7.83;           // Schumann fundamental (immune system)
-  public let BIO_SLEEP_INDUCTION : Float = 2.0;         // Delta wave sleep trigger
-  public let BIO_FOCUS_ENHANCE : Float = 40.0;          // Gamma binding (concentration)
+  public let BIO_IMMUNE_BOOST : Float = 7.83;           // Schumann fundamental (SCHUMANN_HZ)
+  public let BIO_SLEEP_INDUCTION : Float = 2.0;         // Delta wave sleep trigger (DELTA_PEAK)
+  public let BIO_FOCUS_ENHANCE : Float = 40.0;          // Gamma binding (GAMMA_PEAK, AXIS_HZ)
 
-  // Radar/sonar carrier frequencies
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 18.6 RADAR/SONAR CARRIER FREQUENCIES
+  // ───────────────────────────────────────────────────────────────────────────────
   public let SONAR_ACOUSTIC_LOW : Float = 1000.0;       // 1 kHz (underwater low freq)
   public let SONAR_ACOUSTIC_MID : Float = 3500.0;       // 3.5 kHz (marine mammal range)
   public let SONAR_ACOUSTIC_HIGH : Float = 100000.0;    // 100 kHz (high-res imaging)
@@ -690,7 +780,9 @@ module {
   public let RADAR_L_BAND : Float = 1500000000.0;       // 1.5 GHz (weather radar)
   public let RADAR_X_BAND : Float = 10000000000.0;      // 10 GHz (marine radar)
 
-  // IoT communication frequencies
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 18.7 IOT COMMUNICATION FREQUENCIES
+  // ───────────────────────────────────────────────────────────────────────────────
   public let IOT_BLUETOOTH : Float = 2400000000.0;      // 2.4 GHz (Bluetooth/WiFi)
   public let IOT_ZIGBEE : Float = 2405000000.0;         // 2.405 GHz (ZigBee)
   public let IOT_LORA_868 : Float = 868000000.0;        // 868 MHz (LoRa EU)
@@ -699,25 +791,25 @@ module {
   public let IOT_433 : Float = 433920000.0;             // 433.92 MHz (ISM band)
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // SACRED GEOMETRY SYMBOLS AS MATHEMATICAL ENCODINGS
+  // SECTION 19: SACRED GEOMETRY SYMBOLS AS MATHEMATICAL ENCODINGS
   // ═══════════════════════════════════════════════════════════════════════════════
   //
   // Sacred symbols are NOT arbitrary. They encode mathematical relationships.
   //
   // CROSS (✝): Intersection of horizontal (matter) and vertical (spirit)
-  //   - Aspect ratio: Often 1:φ (golden rectangle)
+  //   - Aspect ratio: Often 1:φ (golden rectangle) → CROSS_GOLDEN_RATIO
   //   - Represents coupling between orthogonal dimensions
-  //   - Mathematical encoding: 90° phase shift (quadrature)
+  //   - Mathematical encoding: 90° phase shift (quadrature) → ANGLE_QUADRATURE
   //
   // VESICA PISCIS (⧖): Intersection of two circles
-  //   - Width/Height ratio: 1:√3 = 1:1.732
-  //   - Represents duality and emergence of third from two
+  //   - Width/Height ratio: 1:√3 = 1:1.732 → VESICA_PISCIS_RATIO
+  //   - Represents duality and emergence of third from two (Yin/Yang/Chi)
   //   - Mathematical encoding: Constructive interference of two waveforms
   //
   // FLOWER OF LIFE: 19 overlapping circles in hexagonal pattern
   //   - Based on circle radius ratio φ
   //   - Encodes all Platonic solids
-  //   - Mathematical encoding: Hexagonal close-packing (most efficient)
+  //   - Mathematical encoding: Hexagonal close-packing (most efficient) → HEXAGON_RATIO
   //
   // METATRON'S CUBE: 13 circles + connecting lines
   //   - Contains all 5 Platonic solids
@@ -729,35 +821,47 @@ module {
   //   - Based on √2 and √3 ratios
   //   - Mathematical encoding: Recursive fractal geometry
   //
+  // Cross-reference: Section 1 (φ, √5, π), Section 5 (12-node hierarchy)
+  //
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  // Sacred symbol ratios
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 19.1 SACRED SYMBOL RATIOS
+  // ───────────────────────────────────────────────────────────────────────────────
   public let VESICA_PISCIS_RATIO : Float = 1.7320508075688772935;  // √3
   public let CROSS_GOLDEN_RATIO : Float = φ;                        // Golden cross
   public let PENTAGRAM_RATIO : Float = φ;                           // Pentagon internal/external
   public let HEXAGON_RATIO : Float = 1.1547005383792515290;         // 2/√3
   public let OCTAGON_RATIO : Float = 2.4142135623730950488;         // 1 + √2 (Silver ratio)
 
-  // Sacred angles (in radians)
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 19.2 SACRED ANGLES (in radians)
+  // ───────────────────────────────────────────────────────────────────────────────
   public let ANGLE_GOLDEN : Float = 2.39996322972865332;            // 137.5° (golden angle)
   public let ANGLE_PENTAGRAM : Float = 1.2566370614359172954;       // 72° (2π/5)
   public let ANGLE_HEXAGRAM : Float = 1.0471975511965977462;        // 60° (π/3)
   public let ANGLE_RIGHT : Float = 1.5707963267948966192;           // 90° (π/2)
   public let ANGLE_QUADRATURE : Float = 1.5707963267948966192;      // π/2 (90° phase shift)
 
-  // Sacred number constants
+  // ───────────────────────────────────────────────────────────────────────────────
+  // 19.3 SACRED NUMBER CONSTANTS
+  // ───────────────────────────────────────────────────────────────────────────────
   public let TRINITY : Nat = 3;                                     // Three-fold nature
   public let TETRAD : Nat = 4;                                      // Four elements
   public let PENTAD : Nat = 5;                                      // Five-pointed star
   public let HEXAD : Nat = 6;                                       // Six days of creation
   public let SEPTENARY : Nat = 7;                                   // Seven heavens/chakras
-  public let OCTAVE : Nat = 8;                                      // Musical octave
+  public let OCTAVE : Nat = 8;                                      // Musical octave (F(6) = 8 Hz)
   public let ENNEAD : Nat = 9;                                      // Nine levels
   public let DODECAD : Nat = 12;                                    // Twelve tribes/apostles/signs
   public let PERFECT_28 : Nat = 28;                                 // First perfect number > 6
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // SONAR STATE AND EMISSION FUNCTIONS
+  // SECTION 20: SONAR STATE AND EMISSION FUNCTIONS
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  // Cross-reference: Section 18 (Sonar frequencies), Section 12 (Order parameter R)
+  //
   // ═══════════════════════════════════════════════════════════════════════════════
 
   public type SonarEmission = {
@@ -821,7 +925,11 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // FREQUENCY DEFENSE PATTERNS
+  // SECTION 21: FREQUENCY DEFENSE PATTERNS
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  // Cross-reference: Section 17.3 (Cyber warfare frequencies), Section 1 (ψ = φ⁻¹)
+  //
   // ═══════════════════════════════════════════════════════════════════════════════
 
   // Detect DDoS attack by traffic rhythm analysis
@@ -885,7 +993,11 @@ module {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════════
-  // DOCUMENTATION FUNCTIONS
+  // SECTION 22: DOCUMENTATION FUNCTIONS
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  // Cross-reference: Section 3 (Fibonacci), Section 2 (Schumann), Section 4 (Brain waves)
+  //
   // ═══════════════════════════════════════════════════════════════════════════════
 
   // Get human-readable frequency band name
