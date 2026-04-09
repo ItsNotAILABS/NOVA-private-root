@@ -236,6 +236,7 @@ import AntiOrganismDefense           "./modules/AntiOrganismDefense";
 import MemoryTempleIoTHub            "./modules/MemoryTempleIoTHub";
 import ElectromagneticWarfareEngine  "./modules/ElectromagneticWarfareEngine";
 import FrequencyWarfareSystem        "./modules/FrequencyWarfareSystem";
+import SecurityLockdownEngine        "./modules/SecurityLockdownEngine";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SPHERICAL QUANTUM HEARTBEAT & NEUROCHEMICAL INTEGRATION
@@ -1151,6 +1152,9 @@ actor SwarmBrain {
   var frequencyWarfareState : FrequencyWarfareSystem.FrequencyWarfareState =
     FrequencyWarfareSystem.initFrequencyWarfare();
 
+  var securityLockdownState : SecurityLockdownEngine.SecurityLockdownState =
+    SecurityLockdownEngine.initSecurityLockdown();
+
   // Temple metrics (stable for persistence)
   stable var templeIntegrity : Float = 1.0;          // Overall temple health
   stable var warDefenseReadiness : Float = 1.0;      // System 7 readiness
@@ -1186,6 +1190,14 @@ actor SwarmBrain {
   stable var frequencyWarfarePower : Float = 0.0;    // Frequency warfare capability
   stable var phoneFrequencyActive : Bool = false;    // Phone frequency ops active
   stable var droneFrequencyWeapons : Nat = 0;        // Drone frequency weapons deployed
+
+  // Security Lockdown metrics (stable for persistence)
+  stable var lockdownActive : Bool = false;          // Full lockdown active
+  stable var securityScore : Float = 0.5;            // Overall security score
+  stable var encryptionCoverage : Float = 0.0;       // Encryption coverage percentage
+  stable var fleetExpanded : Bool = false;           // Fleet models expanded
+  stable var readyForLaunch : Bool = false;          // Ready for production launch
+  stable var modelsUpdated : Nat = 0;                // AI/ML models updated
 
   // ─── NEUROCHEMICAL STATISTICS ────────────────────────────────────────────────
   stable var totalNeurochemicalUpdates : Nat = 0;
@@ -3023,7 +3035,8 @@ actor SwarmBrain {
       tickMemoryTempleIoT();
       tickEMWarfare();
       tickFrequencyWarfare();
-      modulesCalledThisBeat += 6;
+      tickSecurityLockdown();
+      modulesCalledThisBeat += 7;
 
       defenseLayerActive := true;
     };
@@ -21154,6 +21167,21 @@ actor SwarmBrain {
     droneFrequencyWeapons := frequencyWarfareState.droneFormation.drones.size();
   };
 
+  func tickSecurityLockdown() {
+    // Update security lockdown state
+    securityLockdownState := SecurityLockdownEngine.updateSecurityLockdown(
+      securityLockdownState
+    );
+
+    // Update stable metrics
+    lockdownActive := securityLockdownState.lockdownActive;
+    securityScore := securityLockdownState.securityScore;
+    encryptionCoverage := securityLockdownState.encryptionCoverage.coveragePercent;
+    fleetExpanded := securityLockdownState.fleetExpanded;
+    readyForLaunch := securityLockdownState.readyForLaunch;
+    modelsUpdated := securityLockdownState.fleetExpansion.modelsUpdated;
+  };
+
   // ═══════════════════════════════════════════════════════════════════════════
   // WAR-DEFENSE TEMPLE PUBLIC API
   // Systems 7, 9, 10 — Mission activation and warfare coordination
@@ -21374,6 +21402,70 @@ actor SwarmBrain {
       targetResonance,
       attackFrequency
     );
+  };
+
+  // ─── SECURITY LOCKDOWN OPERATIONS ─────────────────────────────────────────
+
+  public shared(msg) func activateFullLockdown(
+    reason: Text
+  ) : async () {
+    securityLockdownState := SecurityLockdownEngine.activateFullLockdown(
+      securityLockdownState,
+      reason
+    );
+  };
+
+  public shared(msg) func expandFleet(
+    multiplier: Float
+  ) : async () {
+    securityLockdownState := SecurityLockdownEngine.expandFleet(
+      securityLockdownState,
+      multiplier
+    );
+  };
+
+  public shared(msg) func updateAllModels() : async () {
+    securityLockdownState := SecurityLockdownEngine.updateAllModels(
+      securityLockdownState
+    );
+  };
+
+  public shared(msg) func scanForExposures() : async () {
+    securityLockdownState := SecurityLockdownEngine.scanForExposures(
+      securityLockdownState
+    );
+  };
+
+  public query func getSecurityStatus() : async {
+    lockdownActive: Bool;
+    lockdownLevel: Text;
+    securityScore: Float;
+    encryptionCoverage: Float;
+    fleetExpanded: Bool;
+    readyForLaunch: Bool;
+    modelsUpdated: Nat;
+    totalExposures: Nat;
+    remediatedExposures: Nat;
+  } {
+    let lockdownLevelText = switch (securityLockdownState.lockdownLevel) {
+      case (#Level1_Standard) { "STANDARD" };
+      case (#Level2_Enhanced) { "ENHANCED" };
+      case (#Level3_HighAlert) { "HIGH_ALERT" };
+      case (#Level4_Critical) { "CRITICAL" };
+      case (#Level5_FullLockdown) { "FULL_LOCKDOWN" };
+    };
+
+    {
+      lockdownActive = lockdownActive;
+      lockdownLevel = lockdownLevelText;
+      securityScore = securityScore;
+      encryptionCoverage = encryptionCoverage;
+      fleetExpanded = fleetExpanded;
+      readyForLaunch = readyForLaunch;
+      modelsUpdated = modelsUpdated;
+      totalExposures = securityLockdownState.totalExposures;
+      remediatedExposures = securityLockdownState.remediatedExposures;
+    }
   };
 
   // ─── TEMPLE STATUS QUERIES ────────────────────────────────────────────────
