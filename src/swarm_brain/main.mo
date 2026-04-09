@@ -21025,4 +21025,256 @@ actor SwarmBrain {
     intelligenceQuality := offenseDefenseCoordinationState.intelligence.intelligenceQuality;
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // WAR-DEFENSE TEMPLE PUBLIC API
+  // Systems 7, 9, 10 — Mission activation and warfare coordination
+  // Owner: Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ─── SYSTEM 7: WAR-DEFENSE ACTIVATION ─────────────────────────────────────
+
+  public shared(msg) func activatePerimeter(
+    physical: Bool,
+    cyber: Bool,
+    geometric: Bool
+  ) : async () {
+    warDefenseTempleState := WarDefenseTempleIntegration.activatePerimeter(
+      warDefenseTempleState,
+      physical,
+      cyber,
+      geometric
+    );
+  };
+
+  public shared(msg) func mobilizeReserves(
+    deployCount: Nat,
+    emergency: Bool
+  ) : async () {
+    warDefenseTempleState := WarDefenseTempleIntegration.mobilizeReserves(
+      warDefenseTempleState,
+      deployCount,
+      emergency
+    );
+  };
+
+  // ─── SYSTEM 9: INTEGRATION-EMBODIMENT MISSION LAUNCH ──────────────────────
+
+  public shared(msg) func launchWarMission(
+    missionType: Text,
+    offensiveOps: Nat,
+    defensiveOps: Nat,
+    probeMissions: Nat
+  ) : async () {
+    warDefenseTempleState := WarDefenseTempleIntegration.launchMission(
+      warDefenseTempleState,
+      missionType,
+      offensiveOps,
+      defensiveOps,
+      probeMissions
+    );
+  };
+
+  // ─── OFFENSIVE OPERATIONS ─────────────────────────────────────────────────
+
+  public shared(msg) func activateDroneOffensive(
+    droneCount: Nat,
+    formation: Text,
+    targetLocked: Bool
+  ) : async () {
+    offenseDefenseCoordinationState := OffenseDefenseCoordination.activateDroneOffensive(
+      offenseDefenseCoordinationState,
+      droneCount,
+      formation,
+      targetLocked
+    );
+  };
+
+  public shared(msg) func activateCyberOffensive(
+    attackVectors: Nat,
+    stealthMode: Bool
+  ) : async () {
+    offenseDefenseCoordinationState := OffenseDefenseCoordination.activateCyberOffensive(
+      offenseDefenseCoordinationState,
+      attackVectors,
+      stealthMode
+    );
+  };
+
+  // ─── DEFENSIVE OPERATIONS ─────────────────────────────────────────────────
+
+  public shared(msg) func activateHoneypots(
+    honeypotTypes: [Text]
+  ) : async () {
+    offenseDefenseCoordinationState := OffenseDefenseCoordination.activateHoneypots(
+      offenseDefenseCoordinationState,
+      honeypotTypes
+    );
+  };
+
+  public shared(msg) func activateShield(
+    geometric: Bool,
+    helix: Bool,
+    frequency: Bool
+  ) : async () {
+    offenseDefenseCoordinationState := OffenseDefenseCoordination.activateShield(
+      offenseDefenseCoordinationState,
+      geometric,
+      helix,
+      frequency
+    );
+  };
+
+  // ─── TEMPLE STATUS QUERIES ────────────────────────────────────────────────
+
+  public query func getTempleStatus() : async {
+    templeIntegrity: Float;
+    warDefenseReadiness: Float;
+    embodimentPower: Float;
+    regenerationCapacity: Float;
+    missionActive: Bool;
+    missionType: Text;
+    geometryCoherent: Bool;
+    harmonicsResonant: Bool;
+    frequencyStable: Bool;
+    velocityEfficient: Bool;
+    energized: Bool;
+  } {
+    {
+      templeIntegrity = templeIntegrity;
+      warDefenseReadiness = warDefenseReadiness;
+      embodimentPower = embodimentPower;
+      regenerationCapacity = regenerationCapacity;
+      missionActive = missionActive;
+      missionType = missionType;
+      geometryCoherent = warDefenseTempleState.geometryCoherent;
+      harmonicsResonant = warDefenseTempleState.harmonicsResonant;
+      frequencyStable = warDefenseTempleState.frequencyStable;
+      velocityEfficient = warDefenseTempleState.velocityEfficient;
+      energized = warDefenseTempleState.energized;
+    }
+  };
+
+  public query func getOffenseDefenseStatus() : async {
+    architectureFlowIntegrity: Float;
+    offensivePower: Float;
+    defensivePower: Float;
+    intelligenceQuality: Float;
+    offenseDefenseBalance: Float;
+    coordinationQuality: Float;
+    energized: Bool;
+    dronesDeployed: Nat;
+    cyberAttackVectors: Nat;
+    honeypotsActive: Nat;
+    shieldStrength: Float;
+    threatsActive: Nat;
+  } {
+    {
+      architectureFlowIntegrity = architectureFlowIntegrity;
+      offensivePower = offensivePower;
+      defensivePower = defensivePower;
+      intelligenceQuality = intelligenceQuality;
+      offenseDefenseBalance = offenseDefenseCoordinationState.offenseDefenseBalance;
+      coordinationQuality = offenseDefenseCoordinationState.coordinationQuality;
+      energized = offenseDefenseCoordinationState.energized;
+      dronesDeployed = offenseDefenseCoordinationState.offensive.drone.dronesDeployed;
+      cyberAttackVectors = offenseDefenseCoordinationState.offensive.cyber.attackVectors;
+      honeypotsActive = offenseDefenseCoordinationState.defensive.honeypot.honeypotsActive;
+      shieldStrength = offenseDefenseCoordinationState.defensive.shield.shieldStrength;
+      threatsActive = offenseDefenseCoordinationState.defensive.threatsActive;
+    }
+  };
+
+  public query func getWarDefenseDetails() : async {
+    // System 7: War-Defense
+    physicalPerimeter: Bool;
+    cyberPerimeter: Bool;
+    geometricShield: Bool;
+    perimeterIntegrity: Float;
+    threatDetected: Bool;
+    antibodyCount: Nat;
+    quarantineZones: Nat;
+    immuneStrength: Float;
+    spoofingActive: Bool;
+    deceptionScore: Float;
+    reservesAvailable: Nat;
+    reservesDeployed: Nat;
+    underAttack: Bool;
+  } {
+    {
+      physicalPerimeter = warDefenseTempleState.warDefense.perimeter.physicalPerimeter;
+      cyberPerimeter = warDefenseTempleState.warDefense.perimeter.cyberPerimeter;
+      geometricShield = warDefenseTempleState.warDefense.perimeter.geometricShield;
+      perimeterIntegrity = warDefenseTempleState.warDefense.perimeter.perimeterIntegrity;
+      threatDetected = warDefenseTempleState.warDefense.immune.threatDetected;
+      antibodyCount = warDefenseTempleState.warDefense.immune.antibodyCount;
+      quarantineZones = warDefenseTempleState.warDefense.immune.quarantineZones;
+      immuneStrength = warDefenseTempleState.warDefense.immune.immuneStrength;
+      spoofingActive = warDefenseTempleState.warDefense.counterDeception.spoofingActive;
+      deceptionScore = warDefenseTempleState.warDefense.counterDeception.deceptionScore;
+      reservesAvailable = warDefenseTempleState.warDefense.reserves.reservesAvailable;
+      reservesDeployed = warDefenseTempleState.warDefense.reserves.reservesDeployed;
+      underAttack = warDefenseTempleState.warDefense.underAttack;
+    }
+  };
+
+  public query func getIntegrationEmbodimentDetails() : async {
+    // System 9: Integration-Embodiment
+    physicalAssets: Nat;
+    cyberInfrastructure: Nat;
+    geometricStructures: Nat;
+    lawsEnforced: Nat;
+    doctrinesActive: Nat;
+    tradingActive: Bool;
+    territorySecured: Nat;
+    territoryContested: Nat;
+    offensiveOps: Nat;
+    defensiveOps: Nat;
+    probesMissions: Nat;
+    embodimentPower: Float;
+    doctrineToWorldGap: Float;
+  } {
+    {
+      physicalAssets = warDefenseTempleState.integrationEmbodiment.construction.physicalAssets;
+      cyberInfrastructure = warDefenseTempleState.integrationEmbodiment.construction.cyberInfrastructure;
+      geometricStructures = warDefenseTempleState.integrationEmbodiment.construction.geometricStructures;
+      lawsEnforced = warDefenseTempleState.integrationEmbodiment.governance.lawsEnforced;
+      doctrinesActive = warDefenseTempleState.integrationEmbodiment.governance.doctrinesActive;
+      tradingActive = warDefenseTempleState.integrationEmbodiment.trade.tradingActive;
+      territorySecured = warDefenseTempleState.integrationEmbodiment.territory.territorySecured;
+      territoryContested = warDefenseTempleState.integrationEmbodiment.territory.territoryContested;
+      offensiveOps = warDefenseTempleState.integrationEmbodiment.defenseAction.offensiveOps;
+      defensiveOps = warDefenseTempleState.integrationEmbodiment.defenseAction.defensiveOps;
+      probesMissions = warDefenseTempleState.integrationEmbodiment.defenseAction.probesMissions;
+      embodimentPower = warDefenseTempleState.integrationEmbodiment.embodimentPower;
+      doctrineToWorldGap = warDefenseTempleState.integrationEmbodiment.doctrineToWorldGap;
+    }
+  };
+
+  public query func getRegenerationDetails() : async {
+    // System 10: Regeneration
+    remnantCoreCount: Nat;
+    redundancyFactor: Nat;
+    geographicSpread: Nat;
+    networkSpread: Nat;
+    entrainmentActive: Bool;
+    targetFrequency: Float;
+    phaseLock: Bool;
+    survivalProbability: Float;
+    regenerationCapacity: Float;
+    collapseDetected: Bool;
+  } {
+    {
+      remnantCoreCount = warDefenseTempleState.regeneration.remnantCores.size();
+      redundancyFactor = warDefenseTempleState.regeneration.redundancy.redundancyFactor;
+      geographicSpread = warDefenseTempleState.regeneration.redundancy.geographicSpread;
+      networkSpread = warDefenseTempleState.regeneration.redundancy.networkSpread;
+      entrainmentActive = warDefenseTempleState.regeneration.reEntrainment.entrainmentActive;
+      targetFrequency = warDefenseTempleState.regeneration.reEntrainment.targetFrequency;
+      phaseLock = warDefenseTempleState.regeneration.reEntrainment.phaseLock;
+      survivalProbability = warDefenseTempleState.regeneration.survivalProbability;
+      regenerationCapacity = warDefenseTempleState.regeneration.regenerationCapacity;
+      collapseDetected = warDefenseTempleState.regeneration.collapseDetected;
+    }
+  };
+
 };
