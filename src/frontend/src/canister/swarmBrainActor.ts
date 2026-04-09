@@ -69,6 +69,64 @@ export interface SwarmQMetrics {
   swarmNowIndex: number;
 }
 
+export interface QuantumHeartbeatState {
+  quantumBeatNumber: number;
+  quantumPhase: number;
+  quantumCoherence: number;
+  cardiacCoherence: number;
+  circadianPhase: number;
+  fibonacciBeatNumber: number;
+  parallaxWinnerPath: number;
+  parallaxScore: number;
+  parallaxPathAmplitudes: number[];
+  chronoFisherInfo: number;
+  chronoCramerRao: number;
+  chronoScore: number;
+  entanglaSValue: number;
+  entanglaEMA: number;
+  entanglaViolationBonus: number;
+  entanglaScore: number;
+  qmemFidelity: number;
+  qmemT2Time: number;
+  qmemTimeSinceReset: number;
+  qmemScore: number;
+  veritasStabilizers: number[];
+  veritasParityScore: number;
+  veritasScore: number;
+  bypassSelectedRhythm: number;
+  bypassTemperature: number;
+  bypassScore: number;
+  resonexParticipants: number;
+  resonexAmplitude: number;
+  resonexCascadeActive: boolean;
+  resonexScore: number;
+  qsovScore: number;
+  qsovGeometricMean: number;
+  totalHeartbeats: number;
+  averageCoherence: number;
+  heartbeatVariability: number;
+  circadianAlignment: number;
+  cardioCerebralResonance: number;
+  cardioCerebralPhaseLag: number;
+  cardioCerebralPropulsion: number;
+  cardioCerebralAlignment: number;
+  cardioCerebralPushEffectiveness: number;
+}
+
+export interface CardioCerebralState {
+  resonance: number;
+  phaseLag: number;
+  directionX: number;
+  directionY: number;
+  directionZ: number;
+  propulsion: number;
+  alignment: number;
+  pushEffectiveness: number;
+  beatNum: number;
+  resonanceHistory: number[];
+  propulsionHistory: number[];
+}
+
 export interface TickResult {
   rSwarm: number;
   jDrift: number;
@@ -151,6 +209,64 @@ const swarmBrainIDLFactory = ({ IDL }: { IDL: typeof IDL }) => {
       swarmConvergence: IDL.Float64,
       swarmNowIndex: IDL.Float64,
     })], ['query']),
+
+    getQuantumHeartbeatState: IDL.Func([], [IDL.Record({
+      quantumBeatNumber: IDL.Nat,
+      quantumPhase: IDL.Float64,
+      quantumCoherence: IDL.Float64,
+      cardiacCoherence: IDL.Float64,
+      circadianPhase: IDL.Float64,
+      fibonacciBeatNumber: IDL.Nat,
+      parallaxWinnerPath: IDL.Nat,
+      parallaxScore: IDL.Float64,
+      parallaxPathAmplitudes: IDL.Vec(IDL.Float64),
+      chronoFisherInfo: IDL.Float64,
+      chronoCramerRao: IDL.Float64,
+      chronoScore: IDL.Float64,
+      entanglaSValue: IDL.Float64,
+      entanglaEMA: IDL.Float64,
+      entanglaViolationBonus: IDL.Float64,
+      entanglaScore: IDL.Float64,
+      qmemFidelity: IDL.Float64,
+      qmemT2Time: IDL.Float64,
+      qmemTimeSinceReset: IDL.Nat,
+      qmemScore: IDL.Float64,
+      veritasStabilizers: IDL.Vec(IDL.Float64),
+      veritasParityScore: IDL.Float64,
+      veritasScore: IDL.Float64,
+      bypassSelectedRhythm: IDL.Nat,
+      bypassTemperature: IDL.Float64,
+      bypassScore: IDL.Float64,
+      resonexParticipants: IDL.Nat,
+      resonexAmplitude: IDL.Float64,
+      resonexCascadeActive: IDL.Bool,
+      resonexScore: IDL.Float64,
+      qsovScore: IDL.Float64,
+      qsovGeometricMean: IDL.Float64,
+      totalHeartbeats: IDL.Nat,
+      averageCoherence: IDL.Float64,
+      heartbeatVariability: IDL.Float64,
+      circadianAlignment: IDL.Float64,
+      cardioCerebralResonance: IDL.Float64,
+      cardioCerebralPhaseLag: IDL.Float64,
+      cardioCerebralPropulsion: IDL.Float64,
+      cardioCerebralAlignment: IDL.Float64,
+      cardioCerebralPushEffectiveness: IDL.Float64,
+    })], ['query']),
+
+    getCardioCerebralState: IDL.Func([], [IDL.Record({
+      resonance: IDL.Float64,
+      phaseLag: IDL.Float64,
+      directionX: IDL.Float64,
+      directionY: IDL.Float64,
+      directionZ: IDL.Float64,
+      propulsion: IDL.Float64,
+      alignment: IDL.Float64,
+      pushEffectiveness: IDL.Float64,
+      beatNum: IDL.Nat,
+      resonanceHistory: IDL.Vec(IDL.Float64),
+      propulsionHistory: IDL.Vec(IDL.Float64),
+    })], ['query']),
     
     getDroneCount: IDL.Func([], [IDL.Nat], ['query']),
     getRSwarm: IDL.Func([], [IDL.Float64], ['query']),
@@ -206,6 +322,8 @@ export interface SwarmBrainActor {
   getSwarmSnapshot: () => Promise<SwarmSnapshot>;
   getExtendedSnapshot: () => Promise<ExtendedSnapshot>;
   getSwarmQMetrics: () => Promise<SwarmQMetrics>;
+  getQuantumHeartbeatState: () => Promise<QuantumHeartbeatState>;
+  getCardioCerebralState: () => Promise<CardioCerebralState>;
   getDroneCount: () => Promise<bigint>;
   getRSwarm: () => Promise<number>;
   getJDrift: () => Promise<number>;

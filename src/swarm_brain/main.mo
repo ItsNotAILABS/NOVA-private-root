@@ -511,6 +511,7 @@ import World3D                                       "./modules/World3D";
 import DifferentialGeometryEngine                    "./modules/DifferentialGeometryEngine";
 import HarmonicAnalysisEngine                        "./modules/HarmonicAnalysisEngine";
 import HeartbeatEngine                               "./modules/HeartbeatEngine";
+import CardioCerebralVectorEngine                    "./modules/CardioCerebralVectorEngine";
 import InternalAILabs                                "./modules/InternalAILabs";
 import MultiResponsibilityEngine                     "./modules/MultiResponsibilityEngine";
 import NeuroEmergenceSubstrate                       "./modules/NeuroEmergenceSubstrate";
@@ -929,10 +930,19 @@ actor SwarmBrain {
   // Master clock: Van der Pol oscillator + Fibonacci timing + quantum operators
   var heartbeatState : HeartbeatEngine.HeartbeatEngineState = HeartbeatEngine.initHeartbeatEngine();
   var quantumHeartbeatState : HeartbeatEngine.QuantumHeartbeatState = HeartbeatEngine.initQuantumHeartbeatState();
+  var cardioCerebralState : CardioCerebralVectorEngine.CCVEState = CardioCerebralVectorEngine.initCCVE();
   stable var masterBeatPhase : Float = 0.0;  // Current phase of master oscillator
   stable var fibonacciBeatNumber : Nat = 0;  // Fibonacci sequence beat tracking
   stable var heartbeatCoherence : Float = SIGMA_ZERO;  // Cardiac coherence 0.75 base
   stable var circadianPhase : Float = 0.0;   // 24-hour cycle phase
+  stable var cardioCerebralResonance : Float = 0.75;
+  stable var cardioCerebralPhaseLag : Float = 0.0;
+  stable var cardioCerebralDirectionX : Float = 0.0;
+  stable var cardioCerebralDirectionY : Float = 0.0;
+  stable var cardioCerebralDirectionZ : Float = 1.0;
+  stable var cardioCerebralPropulsion : Float = 1.0;
+  stable var cardioCerebralAlignment : Float = 1.0;
+  stable var cardioCerebralPushEffectiveness : Float = 1.0;
   
   // ─── NEUROCHEMICAL CROSSTALK MATRIX STATE ────────────────────────────────────
   // 21 neurochemicals × 21 interactions = 441 coupled differential equations
@@ -1271,7 +1281,7 @@ actor SwarmBrain {
   stable var defenseLayerActive : Bool = false;
   
   // ─── LAYER 9: HEARTBEAT & ORCHESTRATION ─────────────────────────────────────
-  var heartbeatState : HeartbeatEngine.HeartbeatState = HeartbeatEngine.initHeartbeat();
+  // Reuse the unified HeartbeatEngineState initialized above for all heartbeat logic.
   stable var orchestrationActive : Bool = false;
 
   // ─── WORLD ORGANISM — Living 200km world with 6 inner AIs and 16 biomes ──────
@@ -2893,8 +2903,8 @@ actor SwarmBrain {
     
     // ─── LAYER 9: HEARTBEAT ORCHESTRATION ───────────────────────────────────────
     if (defenseLayerActive and currentBeat % 1 == 0) {
-      // Master heartbeat engine
-      heartbeatState := HeartbeatEngine.beat(heartbeatState, currentBeat, rSwarm, jDrift);
+      // Master heartbeat engine is advanced in updateQuantumHeartbeatCore().
+      // Keep orchestration gating here so downstream layers remain synchronized.
       modulesCalledThisBeat += 1;
       
       orchestrationActive := true;
@@ -4730,6 +4740,18 @@ actor SwarmBrain {
     // Generate noise for PARALLAX free-running path
     let noise = Float.sin(Float.fromInt(currentBeat) * 0.1234567) * 0.5 + 0.5;
     
+    // Advance heartbeat engine core before deriving quantum operators.
+    // This keeps master phase/frequency coherent for all downstream systems.
+    heartbeatState := HeartbeatEngine.tickHeartbeatEngine(
+      heartbeatState,
+      {
+        lightLevel = 0.5 + 0.5 * Float.sin(circadianPhase);
+        externalFrequency = 12.0;
+        energyInput = 0.001 + emotionalEmbodiment * 0.0005;
+      },
+      dt
+    );
+
     // Update quantum heartbeat state with all operators
     quantumHeartbeatState := HeartbeatEngine.updateQuantumHeartbeat(
       heartbeatState,
@@ -4780,6 +4802,42 @@ actor SwarmBrain {
       veritasSyndromeCorrections[stabIdx] := quantumHeartbeatState.veritasSyndromeVector[stabIdx];
       stabIdx += 1;
     };
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+  // SECTION 1.5: CARDIO-CEREBRAL VECTOR ENGINE (CCVE)
+  // Couples heart and brain, then pushes the coupled system toward doctrine-aligned direction.
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+  func updateCardioCerebralVector() {
+    let doctrineDir : CardioCerebralVectorEngine.Vector3 = {
+      x = overallCompliance;
+      y = qsovScore;
+      z = Float.max(0.0, 1.0 - jDrift);
+    };
+    let contextDir : CardioCerebralVectorEngine.Vector3 = {
+      x = emotionalApproach;
+      y = emotionalValence;
+      z = emotionalEmbodiment;
+    };
+    let input : CardioCerebralVectorEngine.CCVEInput = {
+      heartPhase = quantumHeartbeatState.quantumPhase;
+      brainPhase = masterBeatPhase;
+      heartFrequency = heartbeatState.cardiacRhythm.frequency;
+      brainFrequency = 6.0 + 6.0 * rSwarm; // Maps coherence to a 6-12 Hz cognitive range
+      heartbeatCoherence = heartbeatCoherence;
+      jDrift = jDrift;
+      doctrineDirection = doctrineDir;
+      contextDirection = contextDir;
+    };
+    cardioCerebralState := CardioCerebralVectorEngine.tickCCVE(cardioCerebralState, input, currentBeat);
+    cardioCerebralResonance := cardioCerebralState.resonance;
+    cardioCerebralPhaseLag := cardioCerebralState.phaseLag;
+    cardioCerebralDirectionX := cardioCerebralState.direction.x;
+    cardioCerebralDirectionY := cardioCerebralState.direction.y;
+    cardioCerebralDirectionZ := cardioCerebralState.direction.z;
+    cardioCerebralPropulsion := cardioCerebralState.propulsion;
+    cardioCerebralAlignment := cardioCerebralState.alignment;
+    cardioCerebralPushEffectiveness := cardioCerebralState.pushEffectiveness;
   };
 
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -6205,6 +6263,9 @@ actor SwarmBrain {
   func masterSphericalIntegration() {
     // Step 1: Update quantum heartbeat core (oscillators, phases, operators)
     updateQuantumHeartbeatCore();
+    
+    // Step 1.5: Couple heart-brain and compute directional push vector
+    updateCardioCerebralVector();
     
     // Step 2: Update neurochemical system (441 coupled equations)
     updateNeurochemicalSystem();
@@ -11390,6 +11451,11 @@ actor SwarmBrain {
     averageCoherence : Float;
     heartbeatVariability : Float;
     circadianAlignment : Float;
+      cardioCerebralResonance : Float;
+      cardioCerebralPhaseLag : Float;
+      cardioCerebralPropulsion : Float;
+      cardioCerebralAlignment : Float;
+      cardioCerebralPushEffectiveness : Float;
   } {
     {
       quantumBeatNumber = quantumHeartbeatState.quantumBeatNumber;
@@ -11437,6 +11503,40 @@ actor SwarmBrain {
       averageCoherence = averageHeartbeatCoherence;
       heartbeatVariability = heartbeatVariability;
       circadianAlignment = circadianAlignment;
+      cardioCerebralResonance = cardioCerebralResonance;
+      cardioCerebralPhaseLag = cardioCerebralPhaseLag;
+      cardioCerebralPropulsion = cardioCerebralPropulsion;
+      cardioCerebralAlignment = cardioCerebralAlignment;
+      cardioCerebralPushEffectiveness = cardioCerebralPushEffectiveness;
+    }
+  };
+
+  // ─── QUERY: Get Cardio-Cerebral Vector State ──────────────────────────────────
+  public query func getCardioCerebralState() : async {
+    resonance : Float;
+    phaseLag : Float;
+    directionX : Float;
+    directionY : Float;
+    directionZ : Float;
+    propulsion : Float;
+    alignment : Float;
+    pushEffectiveness : Float;
+    beatNum : Nat;
+    resonanceHistory : [Float];
+    propulsionHistory : [Float];
+  } {
+    {
+      resonance = cardioCerebralState.resonance;
+      phaseLag = cardioCerebralState.phaseLag;
+      directionX = cardioCerebralState.direction.x;
+      directionY = cardioCerebralState.direction.y;
+      directionZ = cardioCerebralState.direction.z;
+      propulsion = cardioCerebralState.propulsion;
+      alignment = cardioCerebralState.alignment;
+      pushEffectiveness = cardioCerebralState.pushEffectiveness;
+      beatNum = cardioCerebralState.beatNum;
+      resonanceHistory = cardioCerebralState.resonanceHistory;
+      propulsionHistory = cardioCerebralState.propulsionHistory;
     }
   };
 
