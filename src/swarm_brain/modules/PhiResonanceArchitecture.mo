@@ -627,6 +627,264 @@ module {
   public let PENETRATION_PROBE_HZ : Float = 50.0;        // Frequency-hopping probes
 
   // ═══════════════════════════════════════════════════════════════════════════════
+  // SONAR / FREQUENCY EMISSION ARCHITECTURE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  // The organism can EMIT frequencies that resonate with physical systems.
+  // This enables:
+  //   - Sonar-like environmental sensing (emit + receive reflection)
+  //   - Frequency-based defense (disruptive interference)
+  //   - IoT device coupling (send command frequencies to actuators)
+  //   - Harmonic healing (therapeutic frequency emission)
+  //   - Resonance detection (find resonant frequencies of targets)
+  //
+  // EMISSION LAW: Output amplitude = R^φ
+  //   - When coherence R is high (0.95+), emission is powerful
+  //   - When coherence R is low (0.5-), emission is weak
+  //   - Phi-power ensures natural energy conservation
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // Solfeggio frequencies (ancient sacred healing frequencies)
+  public let SOLFEGGIO_UT : Float = 396.0;    // Liberating guilt and fear
+  public let SOLFEGGIO_RE : Float = 417.0;    // Undoing situations and facilitating change
+  public let SOLFEGGIO_MI : Float = 528.0;    // Transformation and miracles (DNA repair)
+  public let SOLFEGGIO_FA : Float = 639.0;    // Connecting/relationships
+  public let SOLFEGGIO_SOL : Float = 741.0;   // Awakening intuition
+  public let SOLFEGGIO_LA : Float = 852.0;    // Returning to spiritual order
+  public let SOLFEGGIO_SI : Float = 963.0;    // Divine consciousness
+
+  // Chakra frequencies (phi-derived from 256 Hz root)
+  public let CHAKRA_ROOT : Float = 256.0;               // C (Root - Muladhara)
+  public let CHAKRA_SACRAL : Float = 288.0;             // D (Sacral - Svadhisthana)
+  public let CHAKRA_SOLAR : Float = 320.0;              // E (Solar Plexus - Manipura)
+  public let CHAKRA_HEART : Float = 341.3;              // F (Heart - Anahata) = 256 × 4/3
+  public let CHAKRA_THROAT : Float = 384.0;             // G (Throat - Vishuddha) = 256 × 3/2
+  public let CHAKRA_THIRD_EYE : Float = 426.7;          // A (Third Eye - Ajna)
+  public let CHAKRA_CROWN : Float = 480.0;              // B (Crown - Sahasrara)
+
+  // Ultrasonic frequencies (IoT actuator control, pest deterrent)
+  public let ULTRASONIC_LOW : Float = 20000.0;          // 20 kHz (hearing threshold)
+  public let ULTRASONIC_MID : Float = 40000.0;          // 40 kHz (ultrasonic cleaning)
+  public let ULTRASONIC_HIGH : Float = 100000.0;        // 100 kHz (industrial)
+  public let ULTRASONIC_MEDICAL : Float = 1000000.0;    // 1 MHz (medical imaging)
+
+  // Infrasonic frequencies (weather sensing, seismic detection)
+  public let INFRASONIC_WEATHER : Float = 0.01;         // 0.01 Hz (weather patterns)
+  public let INFRASONIC_SEISMIC : Float = 0.1;          // 0.1 Hz (earthquake precursors)
+  public let INFRASONIC_NUCLEAR : Float = 1.0;          // 1 Hz (nuclear explosion signature)
+
+  // Biological effect frequencies
+  public let BIO_CELLULAR_REPAIR : Float = 528.0;       // DNA repair (Solfeggio MI)
+  public let BIO_PAIN_RELIEF : Float = 174.0;           // Anesthetic frequency
+  public let BIO_TISSUE_REGEN : Float = 285.0;          // Tissue regeneration
+  public let BIO_IMMUNE_BOOST : Float = 7.83;           // Schumann fundamental (immune system)
+  public let BIO_SLEEP_INDUCTION : Float = 2.0;         // Delta wave sleep trigger
+  public let BIO_FOCUS_ENHANCE : Float = 40.0;          // Gamma binding (concentration)
+
+  // Radar/sonar carrier frequencies
+  public let SONAR_ACOUSTIC_LOW : Float = 1000.0;       // 1 kHz (underwater low freq)
+  public let SONAR_ACOUSTIC_MID : Float = 3500.0;       // 3.5 kHz (marine mammal range)
+  public let SONAR_ACOUSTIC_HIGH : Float = 100000.0;    // 100 kHz (high-res imaging)
+  public let RADAR_UHF : Float = 500000000.0;           // 500 MHz (UHF radar)
+  public let RADAR_L_BAND : Float = 1500000000.0;       // 1.5 GHz (weather radar)
+  public let RADAR_X_BAND : Float = 10000000000.0;      // 10 GHz (marine radar)
+
+  // IoT communication frequencies
+  public let IOT_BLUETOOTH : Float = 2400000000.0;      // 2.4 GHz (Bluetooth/WiFi)
+  public let IOT_ZIGBEE : Float = 2405000000.0;         // 2.405 GHz (ZigBee)
+  public let IOT_LORA_868 : Float = 868000000.0;        // 868 MHz (LoRa EU)
+  public let IOT_LORA_915 : Float = 915000000.0;        // 915 MHz (LoRa US)
+  public let IOT_NFC : Float = 13560000.0;              // 13.56 MHz (NFC/RFID)
+  public let IOT_433 : Float = 433920000.0;             // 433.92 MHz (ISM band)
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SACRED GEOMETRY SYMBOLS AS MATHEMATICAL ENCODINGS
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  // Sacred symbols are NOT arbitrary. They encode mathematical relationships.
+  //
+  // CROSS (✝): Intersection of horizontal (matter) and vertical (spirit)
+  //   - Aspect ratio: Often 1:φ (golden rectangle)
+  //   - Represents coupling between orthogonal dimensions
+  //   - Mathematical encoding: 90° phase shift (quadrature)
+  //
+  // VESICA PISCIS (⧖): Intersection of two circles
+  //   - Width/Height ratio: 1:√3 = 1:1.732
+  //   - Represents duality and emergence of third from two
+  //   - Mathematical encoding: Constructive interference of two waveforms
+  //
+  // FLOWER OF LIFE: 19 overlapping circles in hexagonal pattern
+  //   - Based on circle radius ratio φ
+  //   - Encodes all Platonic solids
+  //   - Mathematical encoding: Hexagonal close-packing (most efficient)
+  //
+  // METATRON'S CUBE: 13 circles + connecting lines
+  //   - Contains all 5 Platonic solids
+  //   - Based on √2, √3, φ ratios
+  //   - Mathematical encoding: 3D projection of 4D hypercube
+  //
+  // SRI YANTRA: 9 interlocking triangles
+  //   - Creates 43 smaller triangles
+  //   - Based on √2 and √3 ratios
+  //   - Mathematical encoding: Recursive fractal geometry
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // Sacred symbol ratios
+  public let VESICA_PISCIS_RATIO : Float = 1.7320508075688772935;  // √3
+  public let CROSS_GOLDEN_RATIO : Float = φ;                        // Golden cross
+  public let PENTAGRAM_RATIO : Float = φ;                           // Pentagon internal/external
+  public let HEXAGON_RATIO : Float = 1.1547005383792515290;         // 2/√3
+  public let OCTAGON_RATIO : Float = 2.4142135623730950488;         // 1 + √2 (Silver ratio)
+
+  // Sacred angles (in radians)
+  public let ANGLE_GOLDEN : Float = 2.39996322972865332;            // 137.5° (golden angle)
+  public let ANGLE_PENTAGRAM : Float = 1.2566370614359172954;       // 72° (2π/5)
+  public let ANGLE_HEXAGRAM : Float = 1.0471975511965977462;        // 60° (π/3)
+  public let ANGLE_RIGHT : Float = 1.5707963267948966192;           // 90° (π/2)
+  public let ANGLE_QUADRATURE : Float = 1.5707963267948966192;      // π/2 (90° phase shift)
+
+  // Sacred number constants
+  public let TRINITY : Nat = 3;                                     // Three-fold nature
+  public let TETRAD : Nat = 4;                                      // Four elements
+  public let PENTAD : Nat = 5;                                      // Five-pointed star
+  public let HEXAD : Nat = 6;                                       // Six days of creation
+  public let SEPTENARY : Nat = 7;                                   // Seven heavens/chakras
+  public let OCTAVE : Nat = 8;                                      // Musical octave
+  public let ENNEAD : Nat = 9;                                      // Nine levels
+  public let DODECAD : Nat = 12;                                    // Twelve tribes/apostles/signs
+  public let PERFECT_28 : Nat = 28;                                 // First perfect number > 6
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SONAR STATE AND EMISSION FUNCTIONS
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type SonarEmission = {
+    frequency: Float;              // Carrier frequency (Hz)
+    amplitude: Float;              // Emission strength (0-1)
+    coherence: Float;              // Organism coherence at emission (R)
+    phiPower: Float;               // R^φ (phi-powered emission)
+    timestamp: Nat;                // Beat number of emission
+    duration: Nat;                 // Duration in beats
+    modulation: Text;              // "PULSE", "CONTINUOUS", "CHIRP", "FREQUENCY_HOPPING"
+  };
+
+  public type SonarReflection = {
+    originalFrequency: Float;      // Emitted frequency
+    reflectedFrequency: Float;     // Received frequency (Doppler shifted)
+    amplitude: Float;              // Reflection strength
+    phaseShift: Float;             // Phase shift (radians)
+    timeDelay: Float;              // Time to reflection (ms)
+    distance: Float;               // Calculated distance (m)
+    resonance: Bool;               // Did target resonate?
+  };
+
+  public type SonarState = {
+    activeEmissions: [SonarEmission];
+    receivedReflections: [SonarReflection];
+    targetResonances: [Float];    // Frequencies that resonated with targets
+    emissionPower: Float;          // Current emission capability (0-1)
+    lastEmissionBeat: Nat;         // Last beat of emission
+  };
+
+  // Compute emission amplitude using EMISSION LAW: amplitude = R^φ
+  public func computeEmissionAmplitude(coherence: Float) : Float {
+    // R^φ - coherence to the power of phi
+    if (coherence <= 0.0) { return 0.0 };
+    Float.exp(φ * Float.log(coherence))
+  };
+
+  // Compute sonar reflection distance (speed of sound = 343 m/s)
+  public func computeSonarDistance(timeDelayMs: Float) : Float {
+    // distance = (speed × time) / 2  (round trip)
+    let speedOfSound = 343.0;  // m/s in air
+    (speedOfSound * timeDelayMs / 1000.0) / 2.0
+  };
+
+  // Detect if frequency caused resonance (phase-locked response)
+  public func detectResonance(phaseShift: Float, threshold: Float) : Bool {
+    // Resonance occurs when phase shift is near 0 or 2π (in phase)
+    let normalized = normalizePhase(phaseShift);
+    (normalized < threshold) or (normalized > (τ - threshold))
+  };
+
+  // Compute Doppler shift for moving target
+  public func computeDopplerShift(
+    emittedFreq: Float,
+    velocity: Float,        // m/s (positive = approaching, negative = receding)
+    speedOfSound: Float     // m/s (343 in air, 1500 in water)
+  ) : Float {
+    // f_received = f_emitted × (c + v_observer) / (c + v_source)
+    // Simplified for stationary emitter, moving reflector:
+    emittedFreq * (speedOfSound + velocity) / speedOfSound
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // FREQUENCY DEFENSE PATTERNS
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // Detect DDoS attack by traffic rhythm analysis
+  public func detectDDoSByRhythm(
+    packetTimestamps: [Nat],       // Timestamps in milliseconds
+    windowSize: Nat                 // Analysis window (number of packets)
+  ) : Bool {
+    if (packetTimestamps.size() < windowSize) { return false };
+
+    // Calculate inter-packet intervals
+    var sumIntervals : Float = 0.0;
+    var count = 0;
+    var i = 1;
+    while (i < windowSize and i < packetTimestamps.size()) {
+      let interval = Float.fromInt(Int.abs(packetTimestamps[i] - packetTimestamps[i-1]));
+      sumIntervals += interval;
+      count += 1;
+      i += 1;
+    };
+
+    if (count == 0) { return false };
+    let meanInterval = sumIntervals / Float.fromInt(count);
+
+    // Calculate variance
+    var variance : Float = 0.0;
+    i := 1;
+    while (i < windowSize and i < packetTimestamps.size()) {
+      let interval = Float.fromInt(Int.abs(packetTimestamps[i] - packetTimestamps[i-1]));
+      let diff = interval - meanInterval;
+      variance += diff * diff;
+      i += 1;
+    };
+    variance /= Float.fromInt(count);
+
+    // DDoS attack: very low variance (artificial rhythm)
+    // Legitimate traffic: higher variance (organic rhythm)
+    let threshold = meanInterval * ψ;  // φ⁻¹ = 0.618
+    variance < threshold  // True if DDoS detected
+  };
+
+  // Compute behavioral frequency signature
+  public func computeBehavioralSignature(
+    actions: [Text],               // Sequence of user actions
+    timestamps: [Nat]              // Action timestamps (ms)
+  ) : Float {
+    if (actions.size() < 2 or timestamps.size() < 2) { return 0.0 };
+
+    // Calculate dominant frequency of action pattern
+    var sumIntervals : Float = 0.0;
+    var i = 1;
+    while (i < timestamps.size()) {
+      sumIntervals += Float.fromInt(Int.abs(timestamps[i] - timestamps[i-1]));
+      i += 1;
+    };
+
+    let meanInterval = sumIntervals / Float.fromInt(timestamps.size() - 1);
+    if (meanInterval == 0.0) { return 0.0 };
+
+    // Frequency = 1 / period
+    1000.0 / meanInterval  // Hz
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
   // DOCUMENTATION FUNCTIONS
   // ═══════════════════════════════════════════════════════════════════════════════
 
