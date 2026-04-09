@@ -561,7 +561,7 @@ module {
       // Middle connections
       (4, 8), (4, 9), (5, 7), (5, 8), (5, 9),
       (6, 10), (6, 11), (7, 10), (7, 11),
-      (8, 9), (10, 11), (9, 1)
+      (8, 9), (10, 11)
     ]
   };
   
@@ -897,7 +897,7 @@ module {
     
     // Resultant field
     let amplitude = Float.sqrt(totalSin * totalSin + totalCos * totalCos) / fmax(weightSum, 1.0);
-    let phase = Float.arctan2(totalSin, totalCos);
+    let phase = arctan2(totalSin, totalCos);
     
     { amplitude = amplitude; phase = normalizePhase(phase) }
   };
@@ -981,7 +981,7 @@ module {
     };
     let zonePath : FieldValue = { 
       amplitude = fabs(zoneAmp / 12.0) * currentField.amplitude;
-      phase = Float.arctan2(zonePhaseSin, zonePhaseCos)
+      phase = arctan2(zonePhaseSin, zonePhaseCos)
     };
     
     // Mastery path: M(Ψ, S) = max_k{⟨Ψ, D_k⟩ · α_k} — doctrine projection
@@ -1293,7 +1293,7 @@ module {
       activationProduct := activationProduct * (face.activation + 0.1);
       faceCount += 1;
     };
-    let geometricMean = Float.pow(activationProduct, 1.0 / Float.fromInt(faceCount));
+    let geometricMean = fpow(activationProduct, 1.0 / Float.fromInt(faceCount));
     let newGlobalCoherence = geometricMean * 0.5 + psi_next.amplitude * 0.5;
     
     // Global resonance: √(coherence × unified) × φ⁻¹
@@ -1463,6 +1463,110 @@ module {
   
   func fmin(x : Float, y : Float) : Float {
     if (x < y) { x } else { y }
+  };
+  
+  // Custom arctan2 implementation (not available in Motoko base library)
+  func arctan2(y : Float, x : Float) : Float {
+    // Handle special cases
+    if (x > 0.0) {
+      return arctan(y / x);
+    } else if (x < 0.0 and y >= 0.0) {
+      return arctan(y / x) + PI;
+    } else if (x < 0.0 and y < 0.0) {
+      return arctan(y / x) - PI;
+    } else if (x == 0.0 and y > 0.0) {
+      return PI / 2.0;
+    } else if (x == 0.0 and y < 0.0) {
+      return -PI / 2.0;
+    } else {
+      return 0.0;  // x == 0 and y == 0
+    };
+  };
+  
+  // Custom arctan approximation using Taylor series
+  func arctan(z : Float) : Float {
+    // For |z| > 1, use identity: arctan(z) = π/2 - arctan(1/z)
+    if (fabs(z) > 1.0) {
+      let sign = if (z > 0.0) { 1.0 } else { -1.0 };
+      return sign * (PI / 2.0) - arctanSmall(1.0 / z);
+    };
+    arctanSmall(z)
+  };
+  
+  // Taylor series for arctan, valid for |z| <= 1
+  func arctanSmall(z : Float) : Float {
+    // arctan(z) ≈ z - z³/3 + z⁵/5 - z⁷/7 + z⁹/9
+    let z2 = z * z;
+    let z3 = z2 * z;
+    let z5 = z3 * z2;
+    let z7 = z5 * z2;
+    let z9 = z7 * z2;
+    z - z3 / 3.0 + z5 / 5.0 - z7 / 7.0 + z9 / 9.0
+  };
+  
+  // Custom power function for Float (integer exponent approximation)
+  func fpow(base : Float, exp : Float) : Float {
+    // For small positive exponents, use multiplication
+    // For exp = 1/n (roots), use Newton-Raphson
+    if (exp == 0.0) { return 1.0 };
+    if (exp == 1.0) { return base };
+    if (exp == 2.0) { return base * base };
+    if (exp == 0.5) { return Float.sqrt(base) };
+    
+    // For general case, use exp(exp * ln(base))
+    // ln approximation using continued fraction
+    if (base <= 0.0) { return 0.0 };
+    
+    let ln_base = fln(base);
+    fexp(exp * ln_base)
+  };
+  
+  // Natural logarithm approximation
+  func fln(x : Float) : Float {
+    if (x <= 0.0) { return -1000.0 };  // Undefined, return large negative
+    if (x == 1.0) { return 0.0 };
+    
+    // Normalize to [0.5, 2] range
+    var val = x;
+    var adjustment : Float = 0.0;
+    
+    while (val > 2.0) {
+      val := val / 2.71828182845904523536;  // e
+      adjustment += 1.0;
+    };
+    while (val < 0.5) {
+      val := val * 2.71828182845904523536;
+      adjustment -= 1.0;
+    };
+    
+    // Taylor series for ln(1+x) near x=0: x - x²/2 + x³/3 - x⁴/4
+    let y = val - 1.0;
+    let y2 = y * y;
+    let y3 = y2 * y;
+    let y4 = y3 * y;
+    let y5 = y4 * y;
+    
+    y - y2 / 2.0 + y3 / 3.0 - y4 / 4.0 + y5 / 5.0 + adjustment
+  };
+  
+  // Exponential function approximation
+  func fexp(x : Float) : Float {
+    if (x == 0.0) { return 1.0 };
+    if (x > 20.0) { return 485165195.409790; };  // e^20 approx
+    if (x < -20.0) { return 0.0 };
+    
+    // Taylor series: e^x = 1 + x + x²/2! + x³/3! + x⁴/4! + ...
+    var result : Float = 1.0;
+    var term : Float = 1.0;
+    var n : Nat = 1;
+    
+    while (n < 20) {
+      term := term * x / Float.fromInt(n);
+      result += term;
+      n += 1;
+    };
+    
+    result
   };
   
   // FNV-1a hash function
