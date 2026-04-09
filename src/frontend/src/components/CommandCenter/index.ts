@@ -18,6 +18,7 @@ export { MathPhysicsLab } from './MathPhysicsLab';
 export { NeuroCogLab } from './NeuroCogLab';
 export { GRPELab } from './GRPELab';
 export { InternalAnalysisLab } from './InternalAnalysisLab';
+export { MemoryTempleLab } from './MemoryTempleLab';
 
 // The Actual Experiment
 export { DroneSimulationWorld } from './DroneSimulationWorld';

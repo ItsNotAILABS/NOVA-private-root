@@ -21,6 +21,7 @@ export {
   fetchGeoResonanceProtectionState,
   fetchCardioNeuralConversionOrganState,
   fetchAutonomousAnalystTeamState,
+  fetchMemoryTempleState,
   triggerTick,
   triggerHeartbeat,
   setArchitectSignal,
@@ -32,6 +33,7 @@ export {
   type GeoResonanceProtectionState,
   type CardioNeuralConversionOrganState,
   type AutonomousAnalystTeamState,
+  type MemoryTempleState,
   type SwarmBrainActor,
 } from './swarmBrainActor';
 

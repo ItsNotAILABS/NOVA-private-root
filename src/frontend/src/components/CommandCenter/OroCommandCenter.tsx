@@ -41,6 +41,7 @@ import { MathPhysicsLab } from './MathPhysicsLab';
 import { NeuroCogLab } from './NeuroCogLab';
 import { GRPELab } from './GRPELab';
 import { InternalAnalysisLab } from './InternalAnalysisLab';
+import { MemoryTempleLab } from './MemoryTempleLab';
 import {
   OrganismState, organismInit, organismTick, getOrganismStatus,
   EmergenceLabData, NeuroCogLabData, MathPhysicsLabData,
@@ -49,9 +50,7 @@ import {
   fetchGeoResonanceProtectionState,
   fetchCardioNeuralConversionOrganState,
   fetchAutonomousAnalystTeamState,
-  type GeoResonanceProtectionState,
-  type CardioNeuralConversionOrganState,
-  type AutonomousAnalystTeamState,
+  fetchMemoryTempleState,
 } from '../../canister';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -261,6 +260,32 @@ type AnalystViewState = {
   topRecommendations : string[];
 };
 
+type MemoryTempleViewState = {
+  backendConnected : boolean;
+  beat : number;
+  continuityWeave : number;
+  resonanceField : number;
+  cognitiveLoad : number;
+  memoryRetention : number;
+  recallReadiness : number;
+  memoryCognitionCoupling : number;
+  iotCouplingScore : number;
+  deviceTwinIntegrity : number;
+  phantomIntegrity : number;
+  agentWorkCapacity : number;
+  artifactReadiness : number;
+  directionX : number;
+  directionY : number;
+  directionZ : number;
+  pedestalNames : string[];
+  pedestalCouplings : number[];
+  narrativeSummary : string;
+  recommendations : string[];
+  continuityHistory : number[];
+  resonanceHistory : number[];
+  couplingHistory : number[];
+};
+
 const defaultAnalystState = (): AnalystViewState => ({
   backendConnected: false,
   beat: 0,
@@ -282,6 +307,39 @@ const defaultAnalystState = (): AnalystViewState => ({
     'Preserve law-aligned governance.',
     'Publish analyst packet to operator.',
   ],
+});
+
+const defaultMemoryTempleState = (): MemoryTempleViewState => ({
+  backendConnected: false,
+  beat: 0,
+  continuityWeave: 0.74,
+  resonanceField: 0.72,
+  cognitiveLoad: 0.50,
+  memoryRetention: 0.73,
+  recallReadiness: 0.70,
+  memoryCognitionCoupling: 0.72,
+  iotCouplingScore: 0.62,
+  deviceTwinIntegrity: 0.78,
+  phantomIntegrity: 0.84,
+  agentWorkCapacity: 0.68,
+  artifactReadiness: 0.67,
+  directionX: 0.0,
+  directionY: 0.0,
+  directionZ: 1.0,
+  pedestalNames: ['lineage', 'doctrine', 'heart', 'brain', 'middle-organ', 'field', 'embodiment'],
+  pedestalCouplings: [0.70, 0.72, 0.74, 0.73, 0.71, 0.69, 0.75],
+  narrativeSummary: 'Memory temple running in fallback mode.',
+  recommendations: [
+    'Increase IoT coupling integrity and lock device twins before broad command expansion.',
+    'Maintain phantom integrity envelope and continue low-observable operation.',
+    'Reinforce memory-cognition loop by prioritizing recall + conversion coherence training.',
+    'Keep emergency bounded with protection-first rerouting when needed.',
+    'Increase artifact readiness via internal lab tasks and replay-driven synthesis.',
+    'Preserve no-drop continuity every beat.',
+  ],
+  continuityHistory: [],
+  resonanceHistory: [],
+  couplingHistory: [],
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -561,10 +619,11 @@ export function OroCommandCenter({ organism }: Props) {
   const [selectedAgent, setSelectedAgent] = useState<string | null>('oro-prime');
   const [userInput, setUserInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'command' | 'emergence' | 'physics' | 'neurocog' | 'grpe' | 'analysis'>('command');
+  const [activeTab, setActiveTab] = useState<'command' | 'emergence' | 'physics' | 'neurocog' | 'grpe' | 'analysis' | 'memory'>('command');
   const [grpeState, setGrpeState] = useState<GRPEViewState>(defaultGRPEState());
   const [cardioNeuralState, setCardioNeuralState] = useState<CardioNeuralViewState>(defaultCardioNeuralState());
   const [analystState, setAnalystState] = useState<AnalystViewState>(defaultAnalystState());
+  const [memoryTempleState, setMemoryTempleState] = useState<MemoryTempleViewState>(defaultMemoryTempleState());
   
   // ═══ UNIFIED ORGANISM STATE — The living wiring ═══
   const organismStateRef = useRef<OrganismState>(organismInit());
@@ -638,6 +697,53 @@ export function OroCommandCenter({ organism }: Props) {
       } else {
         setAnalystState(prev => ({ ...prev, backendConnected: false }));
       }
+    };
+
+    void pull();
+    const id = setInterval(() => { void pull(); }, 1250);
+    return () => {
+      stopped = true;
+      clearInterval(id);
+    };
+  }, []);
+
+  // ═══ MEMORY TEMPLE POLL ═══
+  useEffect(() => {
+    let stopped = false;
+
+    const pull = async () => {
+      const data = await fetchMemoryTempleState();
+      if (stopped) return;
+      if (!data) {
+        setMemoryTempleState(prev => ({ ...prev, backendConnected: false }));
+        return;
+      }
+      const next: MemoryTempleViewState = {
+        backendConnected: true,
+        beat: Number(data.beat),
+        continuityWeave: data.continuityWeave,
+        resonanceField: data.resonanceField,
+        cognitiveLoad: data.cognitiveLoad,
+        memoryRetention: data.memoryRetention,
+        recallReadiness: data.recallReadiness,
+        memoryCognitionCoupling: data.memoryCognitionCoupling,
+        iotCouplingScore: data.iotCouplingScore,
+        deviceTwinIntegrity: data.deviceTwinIntegrity,
+        phantomIntegrity: data.phantomIntegrity,
+        agentWorkCapacity: data.agentWorkCapacity,
+        artifactReadiness: data.artifactReadiness,
+        directionX: data.directionX,
+        directionY: data.directionY,
+        directionZ: data.directionZ,
+        pedestalNames: data.pedestalNames,
+        pedestalCouplings: data.pedestalCouplings,
+        narrativeSummary: data.narrativeSummary,
+        recommendations: data.recommendations,
+        continuityHistory: data.continuityHistory,
+        resonanceHistory: data.resonanceHistory,
+        couplingHistory: data.couplingHistory,
+      };
+      setMemoryTempleState(next);
     };
 
     void pull();
@@ -936,6 +1042,7 @@ export function OroCommandCenter({ organism }: Props) {
             { key: 'emergence' as const, label: 'Emergence Lab' },
             { key: 'physics' as const, label: 'Math Physics' },
             { key: 'neurocog' as const, label: 'NeuroCog' },
+            { key: 'memory' as const, label: 'Memory Temple' },
             { key: 'grpe' as const, label: 'GRPE Intelligence' },
             { key: 'analysis' as const, label: 'Internal Analysis' },
           ].map(tab => (
@@ -1058,7 +1165,7 @@ export function OroCommandCenter({ organism }: Props) {
             </div>
             <button
               style={S.newTaskBtn}
-              onClick={() => setShowTaskModal(true)}
+              onClick={() => inputRef.current?.focus()}
             >
               <span>+</span> Create Task
             </button>
@@ -1089,10 +1196,17 @@ export function OroCommandCenter({ organism }: Props) {
       ) : activeTab === 'grpe' ? (
         <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
           <GRPELab
+            state={grpeState}
+            source={grpeState.backendConnected ? 'backend' : 'local'}
+          />
+        </div>
+      ) : activeTab === 'memory' ? (
+        <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
+          <MemoryTempleLab
             beat={beat}
             rSwarm={rSwarm}
             jDrift={jDrift}
-            grpe={grpeState}
+            memoryTemple={memoryTempleState}
           />
         </div>
       ) : (

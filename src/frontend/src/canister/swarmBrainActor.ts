@@ -181,6 +181,31 @@ export interface AutonomousAnalystTeamState {
   topRecommendations: string[];
 }
 
+export interface MemoryTempleState {
+  beat: number;
+  continuityWeave: number;
+  resonanceField: number;
+  cognitiveLoad: number;
+  memoryRetention: number;
+  recallReadiness: number;
+  memoryCognitionCoupling: number;
+  iotCouplingScore: number;
+  deviceTwinIntegrity: number;
+  phantomIntegrity: number;
+  agentWorkCapacity: number;
+  artifactReadiness: number;
+  directionX: number;
+  directionY: number;
+  directionZ: number;
+  pedestalNames: string[];
+  pedestalCouplings: number[];
+  narrativeSummary: string;
+  recommendations: string[];
+  continuityHistory: number[];
+  resonanceHistory: number[];
+  couplingHistory: number[];
+}
+
 export interface TickResult {
   rSwarm: number;
   jDrift: number;
@@ -375,6 +400,31 @@ const swarmBrainIDLFactory = ({ IDL }: { IDL: typeof IDL }) => {
       growthNarrative: IDL.Text,
       topRecommendations: IDL.Vec(IDL.Text),
     })], ['query']),
+
+    getMemoryTempleState: IDL.Func([], [IDL.Record({
+      beat: IDL.Nat,
+      continuityWeave: IDL.Float64,
+      resonanceField: IDL.Float64,
+      cognitiveLoad: IDL.Float64,
+      memoryRetention: IDL.Float64,
+      recallReadiness: IDL.Float64,
+      memoryCognitionCoupling: IDL.Float64,
+      iotCouplingScore: IDL.Float64,
+      deviceTwinIntegrity: IDL.Float64,
+      phantomIntegrity: IDL.Float64,
+      agentWorkCapacity: IDL.Float64,
+      artifactReadiness: IDL.Float64,
+      directionX: IDL.Float64,
+      directionY: IDL.Float64,
+      directionZ: IDL.Float64,
+      pedestalNames: IDL.Vec(IDL.Text),
+      pedestalCouplings: IDL.Vec(IDL.Float64),
+      narrativeSummary: IDL.Text,
+      recommendations: IDL.Vec(IDL.Text),
+      continuityHistory: IDL.Vec(IDL.Float64),
+      resonanceHistory: IDL.Vec(IDL.Float64),
+      couplingHistory: IDL.Vec(IDL.Float64),
+    })], ['query']),
     
     getDroneCount: IDL.Func([], [IDL.Nat], ['query']),
     getRSwarm: IDL.Func([], [IDL.Float64], ['query']),
@@ -435,6 +485,7 @@ export interface SwarmBrainActor {
   getGeoResonanceProtectionState: () => Promise<GeoResonanceProtectionState>;
   getCardioNeuralConversionOrganState: () => Promise<CardioNeuralConversionOrganState>;
   getAutonomousAnalystTeamState: () => Promise<AutonomousAnalystTeamState>;
+  getMemoryTempleState: () => Promise<MemoryTempleState>;
   getDroneCount: () => Promise<bigint>;
   getRSwarm: () => Promise<number>;
   getJDrift: () => Promise<number>;
@@ -632,6 +683,19 @@ export async function fetchAutonomousAnalystTeamState(): Promise<AutonomousAnaly
 }
 
 /**
+ * Fetch memory temple state
+ */
+export async function fetchMemoryTempleState(): Promise<MemoryTempleState | null> {
+  try {
+    const actor = await connectSwarmBrain();
+    return await actor.getMemoryTempleState();
+  } catch (error) {
+    console.error('[SwarmBrainActor] fetchMemoryTempleState failed:', error);
+    return null;
+  }
+}
+
+/**
  * Trigger a backend tick
  */
 export async function triggerTick(): Promise<TickResult | null> {
@@ -683,6 +747,7 @@ export default {
   fetchGeoResonanceProtectionState,
   fetchCardioNeuralConversionOrganState,
   fetchAutonomousAnalystTeamState,
+  fetchMemoryTempleState,
   triggerTick,
   triggerHeartbeat,
   setArchitectSignal,
