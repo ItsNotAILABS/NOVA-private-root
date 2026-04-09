@@ -211,7 +211,7 @@ module {
     precipitation : Float;         // mm/hour
     
     // Derived
-    conducitivityIndex : Float;    // Atmospheric conductivity indicator
+    conductivityIndex : Float;     // Atmospheric conductivity indicator
     staticChargeRisk : Float;      // [0, 1]
     
     dataQuality : Float;

@@ -1625,7 +1625,8 @@ module {
       };
     };
     
-    totalRelevance / Float.fromInt(Float.max(1.0, Float.fromInt(state.activeMemories)))
+    let divisor = Float.max(1.0, Float.fromInt(state.activeMemories));
+    totalRelevance / divisor
   };
 
   /// Calculate graph connectivity
