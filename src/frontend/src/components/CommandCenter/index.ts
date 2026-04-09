@@ -16,6 +16,7 @@ export { MissionBriefing } from './MissionBriefing';
 export { EmergenceLab } from './EmergenceLab';
 export { MathPhysicsLab } from './MathPhysicsLab';
 export { NeuroCogLab } from './NeuroCogLab';
+export { GRPELab } from './GRPELab';
 
 // The Actual Experiment
 export { DroneSimulationWorld } from './DroneSimulationWorld';

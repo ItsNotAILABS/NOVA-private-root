@@ -18,6 +18,7 @@ export {
   fetchSwarmSnapshot,
   fetchExtendedSnapshot,
   fetchOrganismState,
+  fetchGeoResonanceProtectionState,
   triggerTick,
   triggerHeartbeat,
   setArchitectSignal,
@@ -26,6 +27,7 @@ export {
   type TickResult,
   type OrganismState,
   type ExtendedSnapshot,
+  type GeoResonanceProtectionState,
   type SwarmBrainActor,
 } from './swarmBrainActor';
 

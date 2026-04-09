@@ -512,6 +512,7 @@ import DifferentialGeometryEngine                    "./modules/DifferentialGeom
 import HarmonicAnalysisEngine                        "./modules/HarmonicAnalysisEngine";
 import HeartbeatEngine                               "./modules/HeartbeatEngine";
 import CardioCerebralVectorEngine                    "./modules/CardioCerebralVectorEngine";
+import GeoResonanceProtectionEngine                  "./modules/GeoResonanceProtectionEngine";
 import InternalAILabs                                "./modules/InternalAILabs";
 import MultiResponsibilityEngine                     "./modules/MultiResponsibilityEngine";
 import NeuroEmergenceSubstrate                       "./modules/NeuroEmergenceSubstrate";
@@ -931,6 +932,7 @@ actor SwarmBrain {
   var heartbeatState : HeartbeatEngine.HeartbeatEngineState = HeartbeatEngine.initHeartbeatEngine();
   var quantumHeartbeatState : HeartbeatEngine.QuantumHeartbeatState = HeartbeatEngine.initQuantumHeartbeatState();
   var cardioCerebralState : CardioCerebralVectorEngine.CCVEState = CardioCerebralVectorEngine.initCCVE();
+  var geoResonanceState : GeoResonanceProtectionEngine.GRPEState = GeoResonanceProtectionEngine.initGRPE();
   stable var masterBeatPhase : Float = 0.0;  // Current phase of master oscillator
   stable var fibonacciBeatNumber : Nat = 0;  // Fibonacci sequence beat tracking
   stable var heartbeatCoherence : Float = SIGMA_ZERO;  // Cardiac coherence 0.75 base
@@ -943,6 +945,15 @@ actor SwarmBrain {
   stable var cardioCerebralPropulsion : Float = 1.0;
   stable var cardioCerebralAlignment : Float = 1.0;
   stable var cardioCerebralPushEffectiveness : Float = 1.0;
+  stable var geoResonanceFieldEnergy : Float = 0.0;
+  stable var geoResonanceHotspotScore : Float = 0.0;
+  stable var geoResonanceProtectionScore : Float = 0.0;
+  stable var geoResonanceThreatScore : Float = 0.0;
+  stable var geoResonanceServiceReadiness : Float = 0.0;
+  stable var geoResonanceDirectionX : Float = 0.0;
+  stable var geoResonanceDirectionY : Float = 0.0;
+  stable var geoResonanceDirectionZ : Float = 1.0;
+  stable var geoResonanceSevenHeritageSignature : [var Float] = Array.init<Float>(7, 0.0);
   
   // ─── NEUROCHEMICAL CROSSTALK MATRIX STATE ────────────────────────────────────
   // 21 neurochemicals × 21 interactions = 441 coupled differential equations
@@ -4846,6 +4857,71 @@ actor SwarmBrain {
   };
 
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+  // SECTION 1.75: GEO-RESONANCE PROTECTION ENGINE (GRPE)
+  // Scans electromagnetic + coherence field, computes service/protection surfaces and a seven-node lineage
+  // signature that can be expressed in command center and defense orchestration.
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+  func updateGeoResonanceProtection() {
+    let doctrineDir : GeoResonanceProtectionEngine.Vector3 = {
+      x = overallCompliance;
+      y = qsovScore;
+      z = cardioCerebralPushEffectiveness;
+    };
+    let emotionalDir : GeoResonanceProtectionEngine.Vector3 = {
+      x = emotionalApproach;
+      y = emotionalValence;
+      z = emotionalEmbodiment;
+    };
+    let magneticFlux = cardioCerebralResonance * 0.35 + rSwarm * 0.30 + heartbeatCoherence * 0.20 + (1.0 - Float.min(1.0, jDrift)) * 0.15;
+    let rfIntensity = 0.5 + 0.25 * parallaxLastEntropyScore + 0.25 * entanglaBellViolationRate;
+    let hydrologyPotential = 0.5 + 0.3 * infoNutrientExtraction + 0.2 * infoDigestionEfficiency;
+    let infrastructureLoad = 0.45 + 0.25 * threatAssessmentOutput + 0.30 * riskManagementOutput;
+    let anomaly = Float.max(0.0, Float.min(2.0, predictionError * 0.5 + Float.abs(jDrift) * 0.5));
+    let input : GeoResonanceProtectionEngine.GRPEInput = {
+      beat = currentBeat;
+      rSwarm = rSwarm;
+      jDrift = jDrift;
+      qsovScore = qsovScore;
+      cardioCerebralPush = cardioCerebralPushEffectiveness;
+      emotionalArousal = emotionalArousal;
+      emotionalCertainty = emotionalCertainty;
+      magneticFlux = magneticFlux;
+      rfIntensity = rfIntensity;
+      hydrologyPotential = hydrologyPotential;
+      infrastructureLoad = infrastructureLoad;
+      anomalyScore = anomaly;
+      doctrineDirection = doctrineDir;
+      emotionalDirection = emotionalDir;
+    };
+    geoResonanceState := GeoResonanceProtectionEngine.tickGRPE(geoResonanceState, input);
+
+    geoResonanceFieldEnergy := geoResonanceState.fieldEnergy;
+    geoResonanceHotspotScore := geoResonanceState.hotspotScore;
+    geoResonanceProtectionScore := geoResonanceState.protectionScore;
+    geoResonanceThreatScore := geoResonanceState.threatScore;
+    geoResonanceServiceReadiness := geoResonanceState.serviceReadiness;
+    geoResonanceDirectionX := geoResonanceState.fieldDirection.x;
+    geoResonanceDirectionY := geoResonanceState.fieldDirection.y;
+    geoResonanceDirectionZ := geoResonanceState.fieldDirection.z;
+    let geoResonanceRiskIndex = Float.max(
+      0.0,
+      Float.min(
+        2.0,
+        geoResonanceState.threatScore * (1.0 - geoResonanceState.protectionScore) + geoResonanceState.hotspotScore * 0.5
+      )
+    );
+    threatAssessmentOutput := threatAssessmentOutput * 0.85 + geoResonanceRiskIndex * 0.15;
+    riskManagementOutput := riskManagementOutput * 0.85 + (1.0 - geoResonanceState.protectionScore) * 0.15;
+    anomalyScore := anomalyScore * 0.90 + geoResonanceRiskIndex * 0.10;
+
+    var i : Nat = 0;
+    while (i < 7 and i < geoResonanceState.sevenHeritageNodes.size()) {
+      geoResonanceSevenHeritageSignature[i] := geoResonanceState.sevenHeritageNodes[i];
+      i += 1;
+    };
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   // SECTION 2: UPDATE NEUROCHEMICAL SYSTEM (21×21 = 441 Coupled Equations)
   // This updates all 21 neurochemical concentrations based on quantum modulation and cross-coupling
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -6279,6 +6355,10 @@ actor SwarmBrain {
     // Takes ALL 21 neurochemical concentrations → computes 8-dimensional emotional gradients
     // Feeds back into neurochemistry (closed loop) and modulates behavior
     updateUnifiedEmotionalField();
+    
+    // Step 2.75: Update Geo-Resonance Protection Engine (EM/hydrology/RF/infrastructure field scanner)
+    // Produces hotspot + defense + external service readiness surfaces
+    updateGeoResonanceProtection();
     
     // Step 3: Update PARALLAX Decision Engine (5-path quantum amplitude interference)
     updatePARALLAXDecisionEngine();
@@ -11542,6 +11622,47 @@ actor SwarmBrain {
       beatNum = cardioCerebralState.beatNum;
       resonanceHistory = cardioCerebralState.resonanceHistory;
       propulsionHistory = cardioCerebralState.propulsionHistory;
+    }
+  };
+
+  // ─── QUERY: Get Geo-Resonance Protection Engine (GRPE) State ───────────────────
+  public query func getGeoResonanceProtectionState() : async {
+    beat : Nat;
+    fieldEnergy : Float;
+    hotspotScore : Float;
+    protectionScore : Float;
+    threatScore : Float;
+    serviceReadiness : Float;
+    fieldDirectionX : Float;
+    fieldDirectionY : Float;
+    fieldDirectionZ : Float;
+    sevenHeritageNodes : [Float];
+    serviceOpportunity : [Float];
+    defenseServiceOpportunity : [Float];
+    memoryServiceOpportunity : [Float];
+    worldServiceOpportunity : [Float];
+    fieldHistory : [Float];
+    hotspotHistory : [Float];
+    protectionHistory : [Float];
+  } {
+    {
+      beat = geoResonanceState.beat;
+      fieldEnergy = geoResonanceState.fieldEnergy;
+      hotspotScore = geoResonanceState.hotspotScore;
+      protectionScore = geoResonanceState.protectionScore;
+      threatScore = geoResonanceState.threatScore;
+      serviceReadiness = geoResonanceState.serviceReadiness;
+      fieldDirectionX = geoResonanceState.fieldDirection.x;
+      fieldDirectionY = geoResonanceState.fieldDirection.y;
+      fieldDirectionZ = geoResonanceState.fieldDirection.z;
+      sevenHeritageNodes = geoResonanceState.sevenHeritageNodes;
+      serviceOpportunity = geoResonanceState.serviceOpportunity;
+      defenseServiceOpportunity = geoResonanceState.defenseServiceOpportunity;
+      memoryServiceOpportunity = geoResonanceState.memoryServiceOpportunity;
+      worldServiceOpportunity = geoResonanceState.worldServiceOpportunity;
+      fieldHistory = geoResonanceState.fieldHistory;
+      hotspotHistory = geoResonanceState.hotspotHistory;
+      protectionHistory = geoResonanceState.protectionHistory;
     }
   };
 

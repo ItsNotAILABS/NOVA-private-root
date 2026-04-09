@@ -39,10 +39,12 @@ import { MissionBriefing } from './MissionBriefing';
 import { EmergenceLab } from './EmergenceLab';
 import { MathPhysicsLab } from './MathPhysicsLab';
 import { NeuroCogLab } from './NeuroCogLab';
+import { GRPELab } from './GRPELab';
 import {
   OrganismState, organismInit, organismTick, getOrganismStatus,
   EmergenceLabData, NeuroCogLabData, MathPhysicsLabData,
 } from '../../math/organism-wiring';
+import { fetchGeoResonanceProtectionState, type GeoResonanceProtectionState } from '../../canister';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -152,6 +154,48 @@ export interface ComputeNode {
   memory: number;
   currentProcess: string | null;
 }
+
+type GRPEViewState = {
+  backendConnected : boolean;
+  backendBeat : number;
+  fieldEnergy : number;
+  hotspotScore : number;
+  protectionScore : number;
+  threatScore : number;
+  serviceReadiness : number;
+  fieldDirectionX : number;
+  fieldDirectionY : number;
+  fieldDirectionZ : number;
+  sevenHeritageNodes : number[];
+  serviceOpportunity : number[];
+  defenseServiceOpportunity : number[];
+  memoryServiceOpportunity : number[];
+  worldServiceOpportunity : number[];
+  fieldHistory : number[];
+  hotspotHistory : number[];
+  protectionHistory : number[];
+};
+
+const defaultGRPEState = (): GRPEViewState => ({
+  backendConnected: false,
+  backendBeat: 0,
+  fieldEnergy: 0.72,
+  hotspotScore: 0.28,
+  protectionScore: 0.74,
+  threatScore: 0.26,
+  serviceReadiness: 0.71,
+  fieldDirectionX: 0.0,
+  fieldDirectionY: 0.0,
+  fieldDirectionZ: 1.0,
+  sevenHeritageNodes: [0.72, 0.70, 0.68, 0.69, 0.74, 0.71, 0.73],
+  serviceOpportunity: Array(20).fill(0.70),
+  defenseServiceOpportunity: Array(5).fill(0.72),
+  memoryServiceOpportunity: Array(5).fill(0.70),
+  worldServiceOpportunity: Array(5).fill(0.71),
+  fieldHistory: [],
+  hotspotHistory: [],
+  protectionHistory: [],
+});
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // STYLES
@@ -430,7 +474,8 @@ export function OroCommandCenter({ organism }: Props) {
   const [selectedAgent, setSelectedAgent] = useState<string | null>('oro-prime');
   const [userInput, setUserInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'command' | 'emergence' | 'physics' | 'neurocog'>('command');
+  const [activeTab, setActiveTab] = useState<'command' | 'emergence' | 'physics' | 'neurocog' | 'grpe'>('command');
+  const [grpeState, setGrpeState] = useState<GRPEViewState>(defaultGRPEState());
   
   // ═══ UNIFIED ORGANISM STATE — The living wiring ═══
   const organismStateRef = useRef<OrganismState>(organismInit());
@@ -522,6 +567,48 @@ export function OroCommandCenter({ organism }: Props) {
       }
     }
   }, [organismAuditLog, messages]);
+
+  // ═══ GRPE BACKEND POLL — REAL SUBSTRATE WHEN AVAILABLE ═══
+  useEffect(() => {
+    let stopped = false;
+
+    const pull = async () => {
+      const data = await fetchGeoResonanceProtectionState();
+      if (stopped) return;
+      if (!data) {
+        setGrpeState(prev => ({ ...prev, backendConnected: false }));
+        return;
+      }
+      const next: GRPEViewState = {
+        backendConnected: true,
+        backendBeat: Number(data.beat),
+        fieldEnergy: data.fieldEnergy,
+        hotspotScore: data.hotspotScore,
+        protectionScore: data.protectionScore,
+        threatScore: data.threatScore,
+        serviceReadiness: data.serviceReadiness,
+        fieldDirectionX: data.fieldDirectionX,
+        fieldDirectionY: data.fieldDirectionY,
+        fieldDirectionZ: data.fieldDirectionZ,
+        sevenHeritageNodes: data.sevenHeritageNodes,
+        serviceOpportunity: data.serviceOpportunity,
+        defenseServiceOpportunity: data.defenseServiceOpportunity,
+        memoryServiceOpportunity: data.memoryServiceOpportunity,
+        worldServiceOpportunity: data.worldServiceOpportunity,
+        fieldHistory: data.fieldHistory,
+        hotspotHistory: data.hotspotHistory,
+        protectionHistory: data.protectionHistory,
+      };
+      setGrpeState(next);
+    };
+
+    void pull();
+    const id = setInterval(() => { void pull(); }, 1250);
+    return () => {
+      stopped = true;
+      clearInterval(id);
+    };
+  }, []);
   
   // Calculate aggregate stats
   const activeAgents = agents.filter(a => a.status === 'Working' || a.status === 'Thinking').length;
@@ -694,6 +781,7 @@ export function OroCommandCenter({ organism }: Props) {
             { key: 'emergence' as const, label: 'Emergence Lab' },
             { key: 'physics' as const, label: 'Math Physics' },
             { key: 'neurocog' as const, label: 'NeuroCog' },
+            { key: 'grpe' as const, label: 'GRPE Intelligence' },
           ].map(tab => (
             <button
               key={tab.key}
@@ -838,9 +926,18 @@ export function OroCommandCenter({ organism }: Props) {
         <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
           <MathPhysicsLab organism={{ ...organism, ...mathPhysicsLabData }} />
         </div>
-      ) : (
+      ) : activeTab === 'neurocog' ? (
         <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
           <NeuroCogLab organism={{ ...organism, ...neuroCogLabData }} />
+        </div>
+      ) : (
+        <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
+          <GRPELab
+            beat={beat}
+            rSwarm={rSwarm}
+            jDrift={jDrift}
+            grpe={grpeState}
+          />
         </div>
       )}
       

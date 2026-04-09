@@ -127,6 +127,26 @@ export interface CardioCerebralState {
   propulsionHistory: number[];
 }
 
+export interface GeoResonanceProtectionState {
+  beat: number;
+  fieldEnergy: number;
+  hotspotScore: number;
+  protectionScore: number;
+  threatScore: number;
+  serviceReadiness: number;
+  fieldDirectionX: number;
+  fieldDirectionY: number;
+  fieldDirectionZ: number;
+  sevenHeritageNodes: number[];
+  serviceOpportunity: number[];
+  defenseServiceOpportunity: number[];
+  memoryServiceOpportunity: number[];
+  worldServiceOpportunity: number[];
+  fieldHistory: number[];
+  hotspotHistory: number[];
+  protectionHistory: number[];
+}
+
 export interface TickResult {
   rSwarm: number;
   jDrift: number;
@@ -267,6 +287,26 @@ const swarmBrainIDLFactory = ({ IDL }: { IDL: typeof IDL }) => {
       resonanceHistory: IDL.Vec(IDL.Float64),
       propulsionHistory: IDL.Vec(IDL.Float64),
     })], ['query']),
+
+    getGeoResonanceProtectionState: IDL.Func([], [IDL.Record({
+      beat: IDL.Nat,
+      fieldEnergy: IDL.Float64,
+      hotspotScore: IDL.Float64,
+      protectionScore: IDL.Float64,
+      threatScore: IDL.Float64,
+      serviceReadiness: IDL.Float64,
+      fieldDirectionX: IDL.Float64,
+      fieldDirectionY: IDL.Float64,
+      fieldDirectionZ: IDL.Float64,
+      sevenHeritageNodes: IDL.Vec(IDL.Float64),
+      serviceOpportunity: IDL.Vec(IDL.Float64),
+      defenseServiceOpportunity: IDL.Vec(IDL.Float64),
+      memoryServiceOpportunity: IDL.Vec(IDL.Float64),
+      worldServiceOpportunity: IDL.Vec(IDL.Float64),
+      fieldHistory: IDL.Vec(IDL.Float64),
+      hotspotHistory: IDL.Vec(IDL.Float64),
+      protectionHistory: IDL.Vec(IDL.Float64),
+    })], ['query']),
     
     getDroneCount: IDL.Func([], [IDL.Nat], ['query']),
     getRSwarm: IDL.Func([], [IDL.Float64], ['query']),
@@ -324,6 +364,7 @@ export interface SwarmBrainActor {
   getSwarmQMetrics: () => Promise<SwarmQMetrics>;
   getQuantumHeartbeatState: () => Promise<QuantumHeartbeatState>;
   getCardioCerebralState: () => Promise<CardioCerebralState>;
+  getGeoResonanceProtectionState: () => Promise<GeoResonanceProtectionState>;
   getDroneCount: () => Promise<bigint>;
   getRSwarm: () => Promise<number>;
   getJDrift: () => Promise<number>;
@@ -482,6 +523,19 @@ export async function fetchOrganismState(): Promise<OrganismState | null> {
 }
 
 /**
+ * Fetch geo-resonance protection engine state
+ */
+export async function fetchGeoResonanceProtectionState(): Promise<GeoResonanceProtectionState | null> {
+  try {
+    const actor = await connectSwarmBrain();
+    return await actor.getGeoResonanceProtectionState();
+  } catch (error) {
+    console.error('[SwarmBrainActor] fetchGeoResonanceProtectionState failed:', error);
+    return null;
+  }
+}
+
+/**
  * Trigger a backend tick
  */
 export async function triggerTick(): Promise<TickResult | null> {
@@ -530,6 +584,7 @@ export default {
   fetchSwarmSnapshot,
   fetchExtendedSnapshot,
   fetchOrganismState,
+  fetchGeoResonanceProtectionState,
   triggerTick,
   triggerHeartbeat,
   setArchitectSignal,
