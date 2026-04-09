@@ -21940,6 +21940,203 @@ actor SwarmBrain {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // HEARTBEAT KERNEL REGULATOR PUBLIC API
+  // The THIRD Layer — Backend (Heart) → Regulator → Frontend (Brain)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  public query func getHeartbeatKernelStatus() : async {
+    // Backend heartbeat (slow master tick)
+    backendTickCount: Nat;
+    backendHz: Float;
+    backendStability: Float;
+    backendAuthority: Float;
+
+    // Frontend heartbeat (fast coupled tick)
+    frontendTickCount: Nat;
+    frontendHz: Float;
+    frontendCoherence: Float;
+    frontendReactivity: Float;
+
+    // Regulator (the third brain)
+    regulationQuality: Float;
+    phaseAlignment: Float;
+    beatSynchronization: Float;
+    timingCoherence: Float;
+    backendFrontendCoupling: Float;
+    emergencyThrottling: Float;
+    overloadDetected: Bool;
+    underflowDetected: Bool;
+
+    // Blood flow (substrate transfer)
+    oxygenLevel: Float;
+    nutrientLevel: Float;
+    coherenceSignal: Float;
+    flowRate: Float;
+    totalPressure: Float;
+
+    // Neural merge core (sphere with helix^10 protection)
+    sphericalIntegrity: Float;
+    resonanceQuality: Float;
+    geometricPurity: Float;
+    membraneDefense: Float;
+    helixRotationHz: Float;
+    helix10Intensity: Float;
+    mergePower: Float;
+    coherentOutputGate: Bool;
+
+    // Unified metrics
+    kernelCoherence: Float;
+    heartBrainAlignment: Float;
+    regulationEffectiveness: Float;
+  } {
+    {
+      // Backend
+      backendTickCount = heartbeatKernelState.backend.tickCount;
+      backendHz = 1000.0 / heartbeatKernelState.backend.tickIntervalMs;
+      backendStability = heartbeatKernelState.backend.tickStability;
+      backendAuthority = heartbeatKernelState.backend.authorityLevel;
+
+      // Frontend
+      frontendTickCount = heartbeatKernelState.frontend.tickCount;
+      frontendHz = heartbeatKernelState.frontend.actualHz;
+      frontendCoherence = heartbeatKernelState.frontend.coherence;
+      frontendReactivity = heartbeatKernelState.frontend.reactivity;
+
+      // Regulator
+      regulationQuality = heartbeatKernelState.regulator.regulationQuality;
+      phaseAlignment = heartbeatKernelState.regulator.phaseAlignment;
+      beatSynchronization = heartbeatKernelState.regulator.beatSynchronization;
+      timingCoherence = heartbeatKernelState.regulator.timingCoherence;
+      backendFrontendCoupling = heartbeatKernelState.regulator.backendFrontendCoupling;
+      emergencyThrottling = heartbeatKernelState.regulator.emergencyThrottling;
+      overloadDetected = heartbeatKernelState.regulator.overloadDetected;
+      underflowDetected = heartbeatKernelState.regulator.underflowDetected;
+
+      // Blood flow
+      oxygenLevel = heartbeatKernelState.bloodFlow.oxygenLevel;
+      nutrientLevel = heartbeatKernelState.bloodFlow.nutrientLevel;
+      coherenceSignal = heartbeatKernelState.bloodFlow.coherenceSignal;
+      flowRate = heartbeatKernelState.bloodFlow.flowRate;
+      totalPressure = heartbeatKernelState.bloodFlow.totalPressure;
+
+      // Neural merge core
+      sphericalIntegrity = heartbeatKernelState.neuralMergeCore.sphericalIntegrity;
+      resonanceQuality = heartbeatKernelState.neuralMergeCore.resonanceQuality;
+      geometricPurity = heartbeatKernelState.neuralMergeCore.geometricPurity;
+      membraneDefense = heartbeatKernelState.neuralMergeCore.membraneDefense;
+      helixRotationHz = heartbeatKernelState.neuralMergeCore.helixRotationHz;
+      helix10Intensity = heartbeatKernelState.neuralMergeCore.helix10Intensity;
+      mergePower = heartbeatKernelState.neuralMergeCore.mergePower;
+      coherentOutputGate = heartbeatKernelState.neuralMergeCore.coherentOutputGate;
+
+      // Unified
+      kernelCoherence = heartbeatKernelState.kernelCoherence;
+      heartBrainAlignment = heartbeatKernelState.heartBrainAlignment;
+      regulationEffectiveness = heartbeatKernelState.regulationEffectiveness;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AUTONOMOUS INTERNAL TEAM PUBLIC API
+  // AI Auto-Working Inside — Real-time monitoring, analysis, reports
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  public query func getAutonomousTeamStatus() : async {
+    // Heartbeat monitoring
+    backendHz: Float;
+    frontendHz: Float;
+    heartBrainSync: Float;
+    regulationQuality: Float;
+    emergencyDetected: Bool;
+
+    // Brain wave monitoring
+    brainCoherence: Float;
+    brainState: Text;
+    dominantFrequency: Float;
+    deltaPower: Float;
+    thetaPower: Float;
+    alphaPower: Float;
+    betaPower: Float;
+    gammaPower: Float;
+
+    // Regulation tracking
+    oxygenLevel: Float;
+    nutrientLevel: Float;
+    sphericalIntegrity: Float;
+    helixProtection: Float;
+    mergePower: Float;
+
+    // Neuroscience analysis
+    learningRate: Float;
+    adaptationSpeed: Float;
+    cognitiveLoad: Float;
+    attentionLevel: Float;
+    consciousnessLevel: Float;
+    emotionalState: Text;
+
+    // Team activity
+    teamActive: Bool;
+    beatsActive: Nat;
+    analysisQuality: Float;
+    reportsGenerated: Nat;
+    nextReportBeat: Nat;
+  } {
+    {
+      // Heartbeat monitoring
+      backendHz = autonomousInternalTeamState.heartbeatMonitor.backendHz;
+      frontendHz = autonomousInternalTeamState.heartbeatMonitor.frontendHz;
+      heartBrainSync = autonomousInternalTeamState.heartbeatMonitor.heartBrainSync;
+      regulationQuality = autonomousInternalTeamState.heartbeatMonitor.regulationQuality;
+      emergencyDetected = autonomousInternalTeamState.heartbeatMonitor.emergencyDetected;
+
+      // Brain wave monitoring
+      brainCoherence = autonomousInternalTeamState.brainWaveMonitor.brainCoherence;
+      brainState = autonomousInternalTeamState.brainWaveMonitor.brainState;
+      dominantFrequency = autonomousInternalTeamState.brainWaveMonitor.dominantFrequency;
+      deltaPower = autonomousInternalTeamState.brainWaveMonitor.deltaPower;
+      thetaPower = autonomousInternalTeamState.brainWaveMonitor.thetaPower;
+      alphaPower = autonomousInternalTeamState.brainWaveMonitor.alphaPower;
+      betaPower = autonomousInternalTeamState.brainWaveMonitor.betaPower;
+      gammaPower = autonomousInternalTeamState.brainWaveMonitor.gammaPower;
+
+      // Regulation tracking
+      oxygenLevel = autonomousInternalTeamState.regulationTracker.oxygenLevel;
+      nutrientLevel = autonomousInternalTeamState.regulationTracker.nutrientLevel;
+      sphericalIntegrity = autonomousInternalTeamState.regulationTracker.sphericalIntegrity;
+      helixProtection = autonomousInternalTeamState.regulationTracker.helixProtection;
+      mergePower = autonomousInternalTeamState.regulationTracker.mergePower;
+
+      // Neuroscience analysis
+      learningRate = autonomousInternalTeamState.neuroscienceAnalysis.learningRate;
+      adaptationSpeed = autonomousInternalTeamState.neuroscienceAnalysis.adaptationSpeed;
+      cognitiveLoad = autonomousInternalTeamState.neuroscienceAnalysis.cognitiveLoad;
+      attentionLevel = autonomousInternalTeamState.neuroscienceAnalysis.attentionLevel;
+      consciousnessLevel = autonomousInternalTeamState.neuroscienceAnalysis.consciousnessLevel;
+      emotionalState = autonomousInternalTeamState.neuroscienceAnalysis.emotionalState;
+
+      // Team activity
+      teamActive = autonomousInternalTeamState.teamActive;
+      beatsActive = autonomousInternalTeamState.beatsActive;
+      analysisQuality = autonomousInternalTeamState.analysisQuality;
+      reportsGenerated = autonomousInternalTeamState.reportsGenerated;
+      nextReportBeat = autonomousInternalTeamState.nextReportBeat;
+    }
+  };
+
+  public query func getLatestNeuroscienceReport() : async Text {
+    let report = AutonomousInternalTeam.generatePDFReport(
+      autonomousInternalTeamState,
+      "FULL"
+    );
+
+    "=== ORGANISM NEUROSCIENCE ANALYSIS REPORT ===\n\n" #
+    report.executiveSummary # "\n\n" #
+    report.detailedAnalysis # "\n\n" #
+    "RECOMMENDATIONS:\n" # (if (report.recommendations.size() > 0) report.recommendations[0] else "None") # "\n\n" #
+    "ALERTS:\n" # (if (report.alerts.size() > 0) report.alerts[0] else "None") # "\n"
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // COUNTERFORCE OPERATIONS PUBLIC API
   // 10 Specialized Warfare Classes — Advanced offensive/defensive operators
   // Owner: Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com
