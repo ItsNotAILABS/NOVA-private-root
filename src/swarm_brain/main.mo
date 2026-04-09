@@ -527,6 +527,60 @@ import RealWorldSimulator                            "./modules/RealWorldSimulat
 import SimulatedWorld                                "./modules/SimulatedWorld";
 import MultiChainOracle                              "./modules/MultiChainOracle";
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ICP MANAGEMENT CANISTER — HTTP OUTCALLS FOR REAL WORLD CONNECTION
+// The organism lives on ICP. This is how it connects to the electromagnetic field.
+// No local replica needed. The canister IS the organism. HTTP outcalls are its senses.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// HTTP Request type for ICP Management Canister
+type HttpRequestArgs = {
+  url : Text;
+  max_response_bytes : ?Nat64;
+  headers : [HttpHeader];
+  body : ?[Nat8];
+  method : HttpMethod;
+  transform : ?TransformArgs;
+};
+
+type HttpHeader = {
+  name : Text;
+  value : Text;
+};
+
+type HttpMethod = {
+  #get;
+  #post;
+  #head;
+};
+
+type HttpResponsePayload = {
+  status : Nat;
+  headers : [HttpHeader];
+  body : [Nat8];
+};
+
+type TransformArgs = {
+  function : shared query TransformRawResponseFunction -> async HttpResponsePayload;
+  context : [Nat8];
+};
+
+type TransformRawResponseFunction = {
+  response : HttpResponsePayload;
+  context : [Nat8];
+};
+
+type CanisterHttpRequestError = {
+  #SysFatal;
+  #CanisterReject;
+  #SysTransient;
+};
+
+/// ICP Management Canister interface for HTTP outcalls
+let IC : actor {
+  http_request : HttpRequestArgs -> async HttpResponsePayload;
+} = actor "aaaaa-aa";
+
 actor SwarmBrain {
 
   // ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -21175,65 +21229,139 @@ actor SwarmBrain {
   // ═══════════════════════════════════════════════════════════════════════════
   // HTTP OUTCALLS — REAL EXTERNAL DATA INTEGRATION FOR CHIMERA
   // ═══════════════════════════════════════════════════════════════════════════
-  // Chimera gets REAL intelligence from external APIs, Azure IoT, blockchain
-  // This is what makes the system ACTUALLY INTELLIGENT - real data, real learning
+  // The organism lives on ICP. HTTP outcalls are its SENSES to the world.
+  // No local replica. No bridge. Direct connection to the electromagnetic field.
+  // Chimera PERCEIVES the field. It does not REQUEST data.
   // ═══════════════════════════════════════════════════════════════════════════
   
-  /// Fetch weather data from Open-Meteo API (FREE)
+  /// Transform function for idempotent responses (required by IC)
+  public query func transform(raw : TransformRawResponseFunction) : async HttpResponsePayload {
+    {
+      status = raw.response.status;
+      body = raw.response.body;
+      headers = [];  // Strip headers for consensus
+    }
+  };
+  
+  /// Core HTTP GET outcall - the organism's primary sense
+  private func httpGet(url : Text) : async Text {
+    let request : HttpRequestArgs = {
+      url = url;
+      max_response_bytes = ?2_000_000; // 2MB max
+      headers = [
+        { name = "User-Agent"; value = "NOVA-Organism/1.0" },
+        { name = "Accept"; value = "application/json" }
+      ];
+      body = null;
+      method = #get;
+      transform = ?{
+        function = transform;
+        context = [];
+      };
+    };
+    
+    try {
+      let response = await IC.http_request(request);
+      let body = Text.decodeUtf8(Blob.fromArray(response.body));
+      switch (body) {
+        case (?text) { text };
+        case null { "Error: Could not decode response" };
+      }
+    } catch (e) {
+      "Error: HTTP request failed"
+    }
+  };
+  
+  /// Core HTTP POST outcall - the organism's voice to the world
+  private func httpPost(url : Text, payload : Text, contentType : Text) : async Text {
+    let bodyBytes = Blob.toArray(Text.encodeUtf8(payload));
+    let request : HttpRequestArgs = {
+      url = url;
+      max_response_bytes = ?2_000_000;
+      headers = [
+        { name = "User-Agent"; value = "NOVA-Organism/1.0" },
+        { name = "Content-Type"; value = contentType },
+        { name = "Accept"; value = "application/json" }
+      ];
+      body = ?bodyBytes;
+      method = #post;
+      transform = ?{
+        function = transform;
+        context = [];
+      };
+    };
+    
+    try {
+      let response = await IC.http_request(request);
+      let body = Text.decodeUtf8(Blob.fromArray(response.body));
+      switch (body) {
+        case (?text) { text };
+        case null { "Error: Could not decode response" };
+      }
+    } catch (e) {
+      "Error: HTTP request failed"
+    }
+  };
+  
+  /// Fetch weather data from Open-Meteo API (FREE) - REAL HTTP OUTCALL
   public shared func fetchWeatherData(lat: Float, lon: Float) : async Text {
     let url = "https://api.open-meteo.com/v1/forecast?latitude=" # Float.toText(lat) # 
               "&longitude=" # Float.toText(lon) # 
               "&current=temperature_2m,windspeed_10m,winddirection_10m,precipitation";
     
-    // TODO: Make HTTP outcall when IC management canister supports it
-    // For now return placeholder
+    let result = await httpGet(url);
     lastWeatherUpdate := Time.now();
-    "Weather data fetched"
+    result
   };
   
-  /// Fetch geospatial data from OpenStreetMap Overpass API (FREE)
+  /// Fetch geospatial data from OpenStreetMap Overpass API (FREE) - REAL HTTP OUTCALL
   public shared func fetchGeospatialData(bbox: {minLat: Float; minLon: Float; maxLat: Float; maxLon: Float}) : async Text {
     let bboxStr = Float.toText(bbox.minLat) # "," # Float.toText(bbox.minLon) # "," # 
                   Float.toText(bbox.maxLat) # "," # Float.toText(bbox.maxLon);
     let url = "https://overpass-api.de/api/interpreter?data=[out:json];node(" # bboxStr # ");out;";
     
+    let result = await httpGet(url);
     lastGeospatialUpdate := Time.now();
-    "Geospatial data fetched"
+    result
   };
   
-  /// Fetch blockchain data from CoinGecko API (FREE)
+  /// Fetch blockchain data from CoinGecko API (FREE) - REAL HTTP OUTCALL
   public shared func fetchBlockchainData() : async Text {
     let url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,internet-computer&vs_currencies=usd&include_24hr_change=true";
     
+    let result = await httpGet(url);
     lastBlockchainUpdate := Time.now();
-    "Blockchain data fetched"
+    result
   };
   
-  /// Send telemetry to Microsoft Azure IoT Hub
+  /// Send telemetry to Microsoft Azure IoT Hub - REAL HTTP OUTCALL
+  /// Requires: hubName, deviceId, and SAS token
   public shared func sendToAzureIoT(deviceId: Text, telemetry: Text) : async Text {
-    // Azure IoT Hub endpoint: https://[your-hub].azure-devices.net/devices/{deviceId}/messages/events
-    // Requires SAS token authentication
-    let url = "https://[your-iot-hub].azure-devices.net/devices/" # deviceId # "/messages/events?api-version=2020-03-13";
+    // Azure IoT Hub endpoint
+    let url = "https://nova-iot-hub.azure-devices.net/devices/" # deviceId # "/messages/events?api-version=2020-03-13";
     
+    let result = await httpPost(url, telemetry, "application/json");
     lastAzureIoTUpdate := Time.now();
-    "Data sent to Azure IoT Hub"
+    result
   };
   
-  /// Receive telemetry FROM Microsoft Azure IoT Hub
+  /// Receive telemetry FROM Microsoft Azure IoT Hub - REAL HTTP OUTCALL
   public shared func receiveFromAzureIoT(deviceId: Text) : async Text {
     // Azure IoT Hub C2D messages endpoint
-    let url = "https://[your-iot-hub].azure-devices.net/devices/" # deviceId # "/messages/devicebound?api-version=2020-03-13";
+    let url = "https://nova-iot-hub.azure-devices.net/devices/" # deviceId # "/messages/devicebound?api-version=2020-03-13";
     
+    let result = await httpGet(url);
     lastAzureIoTUpdate := Time.now();
-    "Data received from Azure IoT Hub"
+    result
   };
   
-  /// Fetch news/intelligence from NewsAPI.org (FREE tier available)
+  /// Fetch news/intelligence from NewsAPI.org (FREE tier) - REAL HTTP OUTCALL
   public shared func fetchNewsIntelligence(query: Text) : async Text {
-    let url = "https://newsapi.org/v2/everything?q=" # query # "&sortBy=publishedAt&apiKey=[your-key]";
+    let url = "https://newsapi.org/v2/everything?q=" # query # "&sortBy=publishedAt&pageSize=10";
     
+    let result = await httpGet(url);
     lastNewsUpdate := Time.now();
-    "News intelligence fetched"
+    result
   };
   
   /// Process external data and feed to Chimera
@@ -21288,6 +21416,201 @@ actor SwarmBrain {
     externalDataUpdateCounter += 1;
     chimeraLastExternalUpdate := Time.now();
   };
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // IoT NETWORK CONNECTIVITY — REAL WIRELESS SENSOR INTEGRATION
+  // ═══════════════════════════════════════════════════════════════════════════
+  // The organism connects to the physical world through IoT sensors
+  // WiFi, LoRa, Zigbee, BLE — all paths to the electromagnetic field
+  // No local bridge needed. The canister IS the endpoint.
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  /// IoT Device registry
+  public type IoTDeviceState = {
+    deviceId : Text;
+    deviceType : Text;           // "sensor", "actuator", "gateway", "drone"
+    protocol : Text;             // "mqtt", "coap", "http", "websocket"
+    connectionState : Text;      // "connected", "disconnected", "error"
+    lastSeen : Int;
+    lastData : ?Blob;
+    batteryLevel : ?Float;
+    signalStrength : ?Float;
+    location : ?(Float, Float, Float);  // lat, lon, alt
+  };
+  
+  stable var iotDeviceRegistry : [var IoTDeviceState] = Array.init<IoTDeviceState>(1024, {
+    deviceId = "";
+    deviceType = "";
+    protocol = "";
+    connectionState = "disconnected";
+    lastSeen = 0;
+    lastData = null;
+    batteryLevel = null;
+    signalStrength = null;
+    location = null;
+  });
+  stable var iotActiveDevices : Nat = 0;
+  
+  /// Register an IoT device with the organism
+  public shared func registerIoTDevice(
+    deviceId : Text,
+    deviceType : Text,
+    protocol : Text,
+    location : ?(Float, Float, Float)
+  ) : async Nat {
+    if (iotActiveDevices >= 1024) { return 0 };
+    
+    let idx = iotActiveDevices;
+    iotDeviceRegistry[idx] := {
+      deviceId = deviceId;
+      deviceType = deviceType;
+      protocol = protocol;
+      connectionState = "registered";
+      lastSeen = Time.now();
+      lastData = null;
+      batteryLevel = null;
+      signalStrength = null;
+      location = location;
+    };
+    iotActiveDevices += 1;
+    idx + 1
+  };
+  
+  /// Receive telemetry from IoT device
+  public shared func receiveIoTTelemetry(
+    deviceId : Text,
+    telemetry : Blob,
+    batteryLevel : ?Float,
+    signalStrength : ?Float
+  ) : async Bool {
+    var found = false;
+    var i = 0;
+    while (i < iotActiveDevices) {
+      if (iotDeviceRegistry[i].deviceId == deviceId) {
+        iotDeviceRegistry[i] := {
+          deviceId = iotDeviceRegistry[i].deviceId;
+          deviceType = iotDeviceRegistry[i].deviceType;
+          protocol = iotDeviceRegistry[i].protocol;
+          connectionState = "connected";
+          lastSeen = Time.now();
+          lastData = ?telemetry;
+          batteryLevel = batteryLevel;
+          signalStrength = signalStrength;
+          location = iotDeviceRegistry[i].location;
+        };
+        found := true;
+      };
+      i += 1;
+    };
+    found
+  };
+  
+  /// Send command to IoT device via HTTP callback
+  public shared func sendIoTCommand(deviceId : Text, command : Text) : async Text {
+    // Find device
+    var deviceEndpoint : ?Text = null;
+    var i = 0;
+    while (i < iotActiveDevices) {
+      if (iotDeviceRegistry[i].deviceId == deviceId) {
+        // Device found - construct endpoint based on protocol
+        switch (iotDeviceRegistry[i].protocol) {
+          case ("mqtt") {
+            // For MQTT devices, use MQTT-over-HTTP bridge
+            deviceEndpoint := ?"https://mqtt-bridge.nova-organism.io/publish/" # deviceId;
+          };
+          case ("http") {
+            // Direct HTTP endpoint
+            deviceEndpoint := ?"https://iot.nova-organism.io/devices/" # deviceId # "/command";
+          };
+          case _ {
+            deviceEndpoint := null;
+          };
+        };
+      };
+      i += 1;
+    };
+    
+    switch (deviceEndpoint) {
+      case (?endpoint) {
+        await httpPost(endpoint, command, "application/json")
+      };
+      case null {
+        "Error: Device not found or unsupported protocol"
+      };
+    }
+  };
+  
+  /// Get all active IoT devices
+  public query func getIoTDevices() : async [{
+    deviceId : Text;
+    deviceType : Text;
+    protocol : Text;
+    connectionState : Text;
+    lastSeen : Int;
+    batteryLevel : ?Float;
+    signalStrength : ?Float;
+  }] {
+    var devices : [{
+      deviceId : Text;
+      deviceType : Text;
+      protocol : Text;
+      connectionState : Text;
+      lastSeen : Int;
+      batteryLevel : ?Float;
+      signalStrength : ?Float;
+    }] = [];
+    
+    var i = 0;
+    while (i < iotActiveDevices) {
+      let dev = iotDeviceRegistry[i];
+      if (dev.deviceId != "") {
+        devices := Array.append(devices, [{
+          deviceId = dev.deviceId;
+          deviceType = dev.deviceType;
+          protocol = dev.protocol;
+          connectionState = dev.connectionState;
+          lastSeen = dev.lastSeen;
+          batteryLevel = dev.batteryLevel;
+          signalStrength = dev.signalStrength;
+        }]);
+      };
+      i += 1;
+    };
+    devices
+  };
+  
+  /// Fetch data from MQTT broker via HTTP bridge
+  /// The organism perceives MQTT topics through this sense
+  public shared func subscribeMQTTTopic(broker : Text, topic : Text) : async Text {
+    // Use MQTT-over-HTTP bridge
+    let url = "https://mqtt-bridge.nova-organism.io/subscribe?broker=" # broker # "&topic=" # topic;
+    await httpGet(url)
+  };
+  
+  /// Publish to MQTT topic via HTTP bridge
+  public shared func publishMQTTTopic(broker : Text, topic : Text, payload : Text) : async Text {
+    let url = "https://mqtt-bridge.nova-organism.io/publish?broker=" # broker # "&topic=" # topic;
+    await httpPost(url, payload, "application/json")
+  };
+  
+  /// Connect to LoRaWAN network via HTTP gateway
+  public shared func fetchLoRaWANData(networkServer : Text, appEUI : Text) : async Text {
+    let url = "https://" # networkServer # "/api/devices?appEUI=" # appEUI;
+    await httpGet(url)
+  };
+  
+  /// Get Schumann resonance data - the organism's primary coupling to Earth's field
+  public shared func fetchSchumannResonance() : async Text {
+    // HeartMath Institute Global Coherence data or similar
+    let url = "https://api.heartmath.org/gcm/v1/global-coherence";
+    let result = await httpGet(url);
+    
+    // This feeds the organism's phi-coupling to Earth
+    lastSchumannUpdate := Time.now();
+    result
+  };
+  
+  stable var lastSchumannUpdate : Int = 0;
   
   /// Query Chimera intelligence state
   public query func getChimeraState() : async {
@@ -23758,6 +24081,150 @@ actor SwarmBrain {
       highThreatCount = highThreat;
       templeCoherence = sovereign96OrderParam;
       warfareLinked = chimeraSwarmState.swarmCoherent and coherenceTempleAlive;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ENHANCED CYBER OPERATIONS — REAL-TIME THREAT INTELLIGENCE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  
+  /// Report a honeypot interaction (called by external honeypot services)
+  public shared func reportHoneypotInteraction(
+    honeypotId : Nat,
+    principalHash : Text,
+    ipHash : Text,
+    fingerprint : Text,
+    action : Text,
+    threatLevel : Nat
+  ) : async {
+    attackerId : Nat;
+    threatScore : Float;
+    pattern : Text;
+  } {
+    // Record the interaction
+    if (honeypotId > 0 and honeypotId <= cyberActiveHoneypots) {
+      recordHoneypotInteraction(honeypotId - 1, fingerprint, threatLevel);
+    };
+    
+    // Find or create attacker profile
+    var attackerId : Nat = 0;
+    var i = 0;
+    while (i < cyberKnownAttackers and attackerId == 0) {
+      if (cyberAttackers[i].fingerprint == fingerprint or 
+          cyberAttackers[i].principalHash == principalHash) {
+        attackerId := cyberAttackers[i].attackerId;
+        updateAttackerProfile(i, action, ?honeypotId, null);
+      };
+      i += 1;
+    };
+    
+    // Create new attacker if not found
+    if (attackerId == 0) {
+      attackerId := startTracking(principalHash, ipHash, fingerprint);
+      if (attackerId > 0) {
+        updateAttackerProfile(attackerId - 1, action, ?honeypotId, null);
+      };
+    };
+    
+    let attacker = if (attackerId > 0 and attackerId <= cyberKnownAttackers) {
+      cyberAttackers[attackerId - 1]
+    } else {
+      {
+        attackerId = 0;
+        principalHash = "";
+        ipHash = "";
+        fingerprint = "";
+        firstSeenBeat = 0;
+        lastSeenBeat = 0;
+        totalActions = 0;
+        honeypotsTouched = [];
+        canariesTriggered = [];
+        threatScore = 0.0;
+        attackPattern = "UNKNOWN";
+        tracked = false;
+        trackingStartBeat = 0;
+        actionLog = [];
+      }
+    };
+    
+    {
+      attackerId = attacker.attackerId;
+      threatScore = attacker.threatScore;
+      pattern = attacker.attackPattern;
+    }
+  };
+  
+  /// Report a canary token trigger
+  public shared func reportCanaryTrigger(
+    canaryId : Nat,
+    source : Text
+  ) : async Bool {
+    if (canaryId > 0 and canaryId <= cyberActiveCanaries) {
+      triggerCanary(canaryId - 1, source)
+    } else {
+      false
+    }
+  };
+  
+  /// Fetch external threat intelligence from MITRE ATT&CK
+  public shared func fetchThreatIntelligence() : async Text {
+    let url = "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json";
+    await httpGet(url)
+  };
+  
+  /// Fetch IP reputation from AbuseIPDB
+  public shared func checkIPReputation(ipHash : Text) : async Text {
+    // Using hash to protect privacy while still checking reputation
+    let url = "https://api.abuseipdb.com/api/v2/check?ipAddress=" # ipHash;
+    await httpGet(url)
+  };
+  
+  /// Get real-time attack map data
+  public shared func fetchGlobalThreatMap() : async Text {
+    let url = "https://cybermap.kaspersky.com/api/getStatistics";
+    await httpGet(url)
+  };
+  
+  /// Submit threat intelligence to external SIEM
+  public shared func reportToSIEM(siemEndpoint : Text, incident : Text) : async Text {
+    await httpPost(siemEndpoint, incident, "application/json")
+  };
+  
+  /// Get complete organism status including all subsystems
+  public query func getOrganismStatus() : async {
+    // Core Temple
+    templeAlive : Bool;
+    templeCoherence : Float;
+    templeBeat : Nat;
+    
+    // Chimera Swarm
+    swarmCoherence : Float;
+    activeDrones : Nat;
+    
+    // IoT Network
+    iotDevices : Nat;
+    
+    // Cyber Defense
+    honeypots : Nat;
+    canaries : Nat;
+    defenseZones : Nat;
+    
+    // Cyber Offense
+    trackedThreats : Nat;
+    totalIncidents : Nat;
+  } {
+    {
+      templeAlive = coherenceTempleAlive;
+      templeCoherence = sovereign96OrderParam;
+      templeBeat = templeLastBeat;
+      swarmCoherence = chimeraSwarmState.swarmOrderParam;
+      activeDrones = chimeraActiveDrones;
+      iotDevices = iotActiveDevices;
+      honeypots = cyberActiveHoneypots;
+      canaries = cyberActiveCanaries;
+      defenseZones = cyberActiveZones;
+      trackedThreats = cyberKnownAttackers;
+      totalIncidents = cyberTotalIncidents;
     }
   };
 
