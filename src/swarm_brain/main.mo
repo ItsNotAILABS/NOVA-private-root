@@ -238,6 +238,8 @@ import MemoryTempleIoTHub            "./modules/MemoryTempleIoTHub";
 import ElectromagneticWarfareEngine  "./modules/ElectromagneticWarfareEngine";
 import FrequencyWarfareSystem        "./modules/FrequencyWarfareSystem";
 import SecurityLockdownEngine        "./modules/SecurityLockdownEngine";
+import HeartbeatKernelRegulator      "./modules/HeartbeatKernelRegulator";
+import AutonomousInternalTeam        "./modules/AutonomousInternalTeam";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SPHERICAL QUANTUM HEARTBEAT & NEUROCHEMICAL INTEGRATION
@@ -1161,6 +1163,20 @@ actor SwarmBrain {
 
   var securityLockdownState : SecurityLockdownEngine.SecurityLockdownState =
     SecurityLockdownEngine.initSecurityLockdown();
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HEARTBEAT KERNEL REGULATOR — The THIRD Layer (Heart-Regulator-Brain)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  var heartbeatKernelState : HeartbeatKernelRegulator.HeartbeatKernelState =
+    HeartbeatKernelRegulator.initHeartbeatKernel();
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AUTONOMOUS INTERNAL TEAM — AI Auto-Working Inside
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  var autonomousInternalTeamState : AutonomousInternalTeam.AutonomousInternalTeamState =
+    AutonomousInternalTeam.initAutonomousInternalTeam();
 
   // Temple metrics (stable for persistence)
   stable var templeIntegrity : Float = 1.0;          // Overall temple health
@@ -3088,6 +3104,26 @@ actor SwarmBrain {
       tickFrequencyWarfare();
       tickSecurityLockdown();
       modulesCalledThisBeat += 7;
+
+      // ═══════════════════════════════════════════════════════════════════════════
+      // HEARTBEAT KERNEL REGULATOR — The THIRD Layer
+      // Backend (slow master) → REGULATOR → Frontend (fast coupled)
+      // Blood flow simulation: Heart → Regulator → Brain
+      // Neural merge core: Sphere radiating in/out with helix^10 protection
+      // ═══════════════════════════════════════════════════════════════════════════
+
+      tickHeartbeatKernelRegulator();
+      modulesCalledThisBeat += 1;
+
+      // ═══════════════════════════════════════════════════════════════════════════
+      // AUTONOMOUS INTERNAL TEAM — AI Auto-Working Inside
+      // Real-time monitoring, neuroscience analysis, PDF reports
+      // Heartbeat monitors, brain wave tracking, regulation quality
+      // This is the INTERNAL LAB watching the organism 24/7
+      // ═══════════════════════════════════════════════════════════════════════════
+
+      tickAutonomousInternalTeam();
+      modulesCalledThisBeat += 1;
 
       defenseLayerActive := true;
     };
@@ -21231,6 +21267,122 @@ actor SwarmBrain {
     fleetExpanded := securityLockdownState.fleetExpanded;
     readyForLaunch := securityLockdownState.readyForLaunch;
     modelsUpdated := securityLockdownState.fleetExpansion.modelsUpdated;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HEARTBEAT KERNEL REGULATOR TICK
+  // The THIRD layer between backend (slow) and frontend (fast) heartbeats
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  func tickHeartbeatKernelRegulator() {
+    let currentTimeNs = Int.abs(Time.now());
+
+    // Determine if this is a backend tick (every ~10 seconds = ~120 beats at 12 Hz)
+    let isBackendTick = currentBeat % 120 == 0;
+
+    // Get current Kuramoto state for frontend coupling
+    let kuramotoPhase = 0.0;  // Will be computed from actual Kuramoto state
+
+    // Update the complete heartbeat kernel
+    heartbeatKernelState := HeartbeatKernelRegulator.tickKernel(
+      heartbeatKernelState,
+      currentTimeNs,
+      rSwarm,          // Kuramoto coherence
+      kuramotoPhase,   // Kuramoto phase
+      isBackendTick
+    );
+
+    // Update heartbeat coherence from kernel
+    heartbeatCoherence := heartbeatKernelState.kernelCoherence;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AUTONOMOUS INTERNAL TEAM TICK
+  // AI team auto-working inside, monitoring, analyzing, reporting
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  func tickAutonomousInternalTeam() {
+    // Update heartbeat monitor with current heartbeat kernel state
+    let updatedHeartbeatMonitor = {
+      autonomousInternalTeamState.heartbeatMonitor with
+      backendHz = heartbeatKernelState.backend.tickIntervalMs / 1000.0;
+      backendStability = heartbeatKernelState.backend.tickStability;
+      backendAuthority = heartbeatKernelState.backend.authorityLevel;
+      frontendHz = heartbeatKernelState.frontend.actualHz;
+      frontendCoherence = heartbeatKernelState.frontend.coherence;
+      frontendReactivity = heartbeatKernelState.frontend.reactivity;
+      heartBrainSync = heartbeatKernelState.heartBrainAlignment;
+      regulationQuality = heartbeatKernelState.regulationEffectiveness;
+      bloodFlowRate = heartbeatKernelState.bloodFlow.flowRate;
+      backendIrregular = heartbeatKernelState.backend.tickStability < 0.7;
+      frontendOverload = heartbeatKernelState.regulator.overloadDetected;
+      couplingBreakdown = heartbeatKernelState.regulator.regulationQuality < 0.5;
+      emergencyDetected = heartbeatKernelState.regulator.overloadDetected or heartbeatKernelState.regulator.underflowDetected;
+    };
+
+    // Update brain wave monitor with current coherence state
+    let updatedBrainWaveMonitor = {
+      autonomousInternalTeamState.brainWaveMonitor with
+      brainCoherence = rSwarm;
+      brainEnergy = rSwarm;
+      dominantFrequency = if (rSwarm > 0.9) 40.0 else if (rSwarm > 0.7) 12.67 else 7.83;
+      brainState = if (rSwarm > 0.95) "PEAK" else if (rSwarm > 0.85) "FLOW" else if (rSwarm > 0.7) "FOCUS" else "MEDITATION";
+    };
+
+    // Update regulation tracker from kernel state
+    let updatedRegulationTracker = {
+      autonomousInternalTeamState.regulationTracker with
+      couplingStrength = heartbeatKernelState.regulator.backendFrontendCoupling;
+      adaptationRate = heartbeatKernelState.regulator.adaptationRate;
+      phaseAlignment = heartbeatKernelState.regulator.phaseAlignment;
+      beatSynchronization = heartbeatKernelState.regulator.beatSynchronization;
+      timingCoherence = heartbeatKernelState.regulator.timingCoherence;
+      oxygenLevel = heartbeatKernelState.bloodFlow.oxygenLevel;
+      nutrientLevel = heartbeatKernelState.bloodFlow.nutrientLevel;
+      coherenceSignal = heartbeatKernelState.bloodFlow.coherenceSignal;
+      sphericalIntegrity = heartbeatKernelState.neuralMergeCore.sphericalIntegrity;
+      helixProtection = heartbeatKernelState.neuralMergeCore.helix10Intensity;
+      geometricPurity = heartbeatKernelState.neuralMergeCore.geometricPurity;
+      mergePower = heartbeatKernelState.neuralMergeCore.mergePower;
+      regulationEfficiency = heartbeatKernelState.regulationEffectiveness;
+      emergencyThrottling = heartbeatKernelState.regulator.emergencyThrottling;
+    };
+
+    // Update neuroscience analysis
+    let updatedNeuroscienceAnalysis = {
+      autonomousInternalTeamState.neuroscienceAnalysis with
+      cognitiveLoad = 1.0 - rSwarm;  // High coherence = low load
+      attentionLevel = rSwarm;
+      consciousnessLevel = rSwarm;
+    };
+
+    // Update complete autonomous team state
+    autonomousInternalTeamState := {
+      autonomousInternalTeamState with
+      heartbeatMonitor = updatedHeartbeatMonitor;
+      brainWaveMonitor = updatedBrainWaveMonitor;
+      regulationTracker = updatedRegulationTracker;
+      neuroscienceAnalysis = updatedNeuroscienceAnalysis;
+      beatsActive = autonomousInternalTeamState.beatsActive + 1;
+      analysisQuality = rSwarm;
+      beat = currentBeat;
+    };
+
+    // Generate PDF report every N beats
+    if (currentBeat >= autonomousInternalTeamState.nextReportBeat) {
+      let report = AutonomousInternalTeam.generatePDFReport(
+        autonomousInternalTeamState,
+        "FULL"
+      );
+
+      // Update report tracking
+      autonomousInternalTeamState := {
+        autonomousInternalTeamState with
+        reportsGenerated = autonomousInternalTeamState.reportsGenerated + 1;
+        lastReportBeat = currentBeat;
+        nextReportBeat = currentBeat + autonomousInternalTeamState.reportFrequency;
+      };
+    };
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
