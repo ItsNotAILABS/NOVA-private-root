@@ -774,4 +774,125 @@ module {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 12: CONTAINMENT BREAKER (#6) SPECIFIC DEFENSES
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  // CRITICAL: Anti-Organism #6 is ACTIVE IN THE WILD (confirmed April 2026)
+  // This organism learns quarantine boundaries and exploits release paths
+  //
+  // Defense strategy:
+  // 1. Track escape attempts and learn attack patterns
+  // 2. Detect rollback state poisoning
+  // 3. Identify false recovery signals
+  // 4. Monitor for boundary learning behavior
+  // 5. Implement multi-layer containment with no single point of failure
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type ContainmentBreakerThreat = {
+    escapeAttempts: Nat;             // Count of quarantine escape attempts
+    learningDetected: Bool;          // Pattern learning detected
+    rollbackCompromised: Bool;       // Rollback states poisoned
+    falseRecoveryCount: Nat;         // Fake "all clear" signals
+    escapePathsDiscovered: Nat;      // Known escape routes
+    threatLevel: Float;              // [0,1] overall threat
+    containmentLayers: Nat;          // Active containment layers
+  };
+
+  public func assessContainmentBreakerThreat(
+    escapeAttempts: Nat,
+    rollbackPoisoned: Bool,
+    falseRecoverySignals: Nat,
+    escapePaths: Nat
+  ) : ContainmentBreakerThreat {
+    // Learning detected if multiple escape attempts (trying different strategies)
+    let learningDetected = escapeAttempts > 2;
+
+    // Threat level increases with each factor
+    var threatLevel = 0.0;
+    threatLevel += Float.fromInt(escapeAttempts) / 10.0;  // Max 1.0 at 10 attempts
+    if (rollbackPoisoned) { threatLevel += 0.5 };
+    threatLevel += Float.fromInt(falseRecoverySignals) / 10.0;
+    threatLevel += Float.fromInt(escapePaths) / 5.0;
+
+    let finalThreat = clamp(threatLevel, 0.0, 1.0);
+
+    // Multi-layer containment based on threat
+    let containmentLayers = if (finalThreat > 0.8) 5
+                           else if (finalThreat > 0.6) 4
+                           else if (finalThreat > 0.4) 3
+                           else if (finalThreat > 0.2) 2
+                           else 1;
+
+    {
+      escapeAttempts = escapeAttempts;
+      learningDetected = learningDetected;
+      rollbackCompromised = rollbackPoisoned;
+      falseRecoveryCount = falseRecoverySignals;
+      escapePathsDiscovered = escapePaths;
+      threatLevel = finalThreat;
+      containmentLayers = containmentLayers;
+    }
+  };
+
+  // Multi-layer containment response (no single point of failure)
+  public type ContainmentResponse = {
+    #Layer1_Monitor;          // Just watch
+    #Layer2_Quarantine;       // Isolate entity
+    #Layer3_DoubleQuarantine; // Quarantine the quarantine
+    #Layer4_TripleIsolation;  // Three nested isolation layers
+    #Layer5_HardIsolation;    // Complete disconnection + Helix shield
+    #EmergencyPurge;          // Last resort: complete purge
+  };
+
+  public func determineContainmentResponse(
+    threat: ContainmentBreakerThreat
+  ) : ContainmentResponse {
+    if (threat.threatLevel > 0.9 or threat.rollbackCompromised) {
+      #EmergencyPurge
+    } else if (threat.threatLevel > 0.8) {
+      #Layer5_HardIsolation
+    } else if (threat.threatLevel > 0.6 or threat.learningDetected) {
+      #Layer4_TripleIsolation
+    } else if (threat.threatLevel > 0.4 or threat.escapePathsDiscovered > 0) {
+      #Layer3_DoubleQuarantine
+    } else if (threat.threatLevel > 0.2 or threat.escapeAttempts > 0) {
+      #Layer2_Quarantine
+    } else {
+      #Layer1_Monitor
+    }
+  };
+
+  // Detect false recovery signals (organism claims to be "fixed" but isn't)
+  public func detectFalseRecoverySignal(
+    reportedHealth: Float,        // What entity reports
+    measuredHealth: Float,         // What we measure
+    recoverySpeed: Float           // How fast it "recovered"
+  ) : Bool {
+    // Suspicious if:
+    // 1. Reports much better health than measured
+    // 2. Recovery was impossibly fast
+    let healthDiscrepancy = reportedHealth - measuredHealth;
+    let suspiciousDiscrepancy = healthDiscrepancy > 0.3;
+    let impossiblyFast = recoverySpeed > 0.8;  // >80% recovery in one beat
+
+    suspiciousDiscrepancy or impossiblyFast
+  };
+
+  // Validate rollback state integrity (detect poisoning)
+  public func validateRollbackState(
+    stateHash: Nat,                // Hash of rollback state
+    expectedHash: Nat,             // Expected hash
+    stateAge: Nat                  // Beats since state saved
+  ) : Bool {
+    // State is valid if:
+    // 1. Hash matches expected
+    // 2. Not too old (max 1000 beats)
+    let hashMatches = stateHash == expectedHash;
+    let notExpired = stateAge < 1000;
+
+    hashMatches and notExpired
+  };
+
 }
