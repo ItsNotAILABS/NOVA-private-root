@@ -229,6 +229,7 @@ import SelfRepairEngine              "./modules/SelfRepairEngine";
 
 import WarDefenseTempleIntegration   "./modules/WarDefenseTempleIntegration";
 import OffenseDefenseCoordination    "./modules/OffenseDefenseCoordination";
+import WarDefenseModeController      "./modules/WarDefenseModeController";
 import CounterforceOperations        "./modules/CounterforceOperations";
 import FullConstructiveStack         "./modules/FullConstructiveStack";
 import FullRedAntiOrganismStack      "./modules/FullRedAntiOrganismStack";
@@ -1128,6 +1129,12 @@ actor SwarmBrain {
   // Owner: Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com
   // ═══════════════════════════════════════════════════════════════════════════
 
+  // ─── WAR-DEFENSE MODE CONTROLLER (Super-State Governance) ─────────────────
+  // Sits ABOVE all layers as super-state controller
+  // When Mode = WarDefense, every subsystem is reweighted
+  var warDefenseModeState : WarDefenseModeController.WarDefenseModeState =
+    WarDefenseModeController.initWarDefenseMode();
+
   var warDefenseTempleState : WarDefenseTempleIntegration.WarDefenseTempleState =
     WarDefenseTempleIntegration.initWarDefenseTemple();
 
@@ -1166,6 +1173,17 @@ actor SwarmBrain {
   stable var intelligenceQuality : Float = 0.0;      // Intel quality
   stable var missionActive : Bool = false;           // Mission in progress
   stable var missionType : Text = "STANDBY";         // Current mission
+
+  // War-Defense Mode metrics (stable for persistence)
+  stable var warDefenseMode : Text = "Build";        // { Build, Guard, WarDefense, Recovery }
+  stable var warDefensePosture : Nat = 0;            // WD0-WD5 posture level
+  stable var warDefenseThreatScore : Float = 0.0;    // Overall threat score
+  stable var warDefenseGateStrictness : Float = 0.5; // Gate strictness level
+  stable var warDefenseContainmentDepth : Nat = 0;   // Containment layers (0-5)
+  stable var warDefenseInterfaceLockdown : Bool = false; // Interfaces locked?
+  stable var warDefenseContinuityScore : Float = 1.0;    // Continuity preservation
+  stable var warDefenseCoherenceScore : Float = 1.0;     // System coherence
+  stable var warDefenseIntegrityScore : Float = 1.0;     // System integrity
 
   // Counterforce metrics (stable for persistence)
   stable var counterforceEffectiveness : Float = 0.0; // Overall counterforce effectiveness
@@ -2666,6 +2684,39 @@ actor SwarmBrain {
     currentBeat += 1;
     let n = stableDroneCount;
     if (n == 0) return { rSwarm = 0.88; jDrift = 0.0; beat = currentBeat };
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // WAR-DEFENSE MODE TICK — RUNS FIRST, GOVERNS ALL DOWNSTREAM SUBSYSTEMS
+    // Super-state controller that reweights every subsystem when Mode = WarDefense
+    // ═══════════════════════════════════════════════════════════════════════════
+    warDefenseModeState := WarDefenseModeController.warDefenseTick(
+      warDefenseModeState,
+      rSwarm,       // Previous rSwarm (will be updated below)
+      jDrift        // Previous jDrift (will be updated below)
+    );
+
+    // Update stable metrics from War-Defense Mode state
+    warDefenseMode := switch (warDefenseModeState.mode) {
+      case (#Build) "Build";
+      case (#Guard) "Guard";
+      case (#WarDefense) "WarDefense";
+      case (#Recovery) "Recovery";
+    };
+    warDefensePosture := switch (warDefenseModeState.posture) {
+      case (#WD0_Standby) 0;
+      case (#WD1_Elevated) 1;
+      case (#WD2_Alert) 2;
+      case (#WD3_Defense) 3;
+      case (#WD4_Combat) 4;
+      case (#WD5_Lockdown) 5;
+    };
+    warDefenseThreatScore := warDefenseModeState.threatScore;
+    warDefenseGateStrictness := warDefenseModeState.gateStrictness;
+    warDefenseContainmentDepth := warDefenseModeState.containmentDepth;
+    warDefenseInterfaceLockdown := warDefenseModeState.interfaceLockdown;
+    warDefenseContinuityScore := warDefenseModeState.continuityScore;
+    warDefenseCoherenceScore := warDefenseModeState.coherenceScore;
+    warDefenseIntegrityScore := warDefenseModeState.integrityScore;
 
     // Phase 1: decay signals (Law 23)
     var i = 0;
