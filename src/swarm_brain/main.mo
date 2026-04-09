@@ -39,6 +39,7 @@
 
 import Array     "mo:base/Array";
 import Blob      "mo:base/Blob";
+import Buffer    "mo:base/Buffer";
 import Float     "mo:base/Float";
 import Int       "mo:base/Int";
 import Iter      "mo:base/Iter";
@@ -265,6 +266,7 @@ import CouncilDanceFloor                             "./modules/CouncilDanceFloo
 import DeepNeuralIntegrationFabric                   "./modules/DeepNeuralIntegrationFabric";
 import DestructibleEnvironment                       "./modules/DestructibleEnvironment";
 import DoctrineFingerprint                           "./modules/DoctrineFingerprint";
+import DoctrinePatternGateArchitecture               "./modules/DoctrinePatternGateArchitecture";
 import DreamAudioSynthesis                           "./modules/DreamAudioSynthesis";
 import DreamVideoGenerator                           "./modules/DreamVideoGenerator";
 import DriveSalienceEngine                           "./modules/DriveSalienceEngine";
@@ -2147,6 +2149,30 @@ actor SwarmBrain {
   // OMNIS Grounding Gate
   stable var omnisGroundingGate : Bool = true;      // Can OMNIS fire?
   stable var groundingGateThreshold : Float = 0.7;  // Minimum groundedScore for OMNIS
+  
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════
+  // DOCTRINE PATTERN GATE ARCHITECTURE — THE COMPLETE COGNITIVE FLOW
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════
+  // Pattern Recognition → Gate → Void/Zone → Leader Selection → Synthesis → Output → Resonance
+  // This is the REAL architecture: real EM field geometry, real phi coupling, real Hz
+  
+  stable var doctrineGateThreshold : Float = 0.6;   // Pattern match threshold for gate passage
+  stable var doctrineGateCoherence : Float = 0.5;   // Current gate coherence
+  stable var doctrineGateOpen : Bool = false;       // Is gate currently passing information?
+  stable var doctrineVoidCoherence : Float = 0.5;   // Void/Zone moment coherence
+  stable var doctrineLeaderIdx : Nat = 0;           // Which doctrine node is leading
+  stable var doctrineSynthesisAnswer : Float = 1.0; // Last synthesized answer
+  stable var doctrineSynthesisConfidence : Float = 0.5;  // Synthesis confidence
+  stable var doctrineResonanceScore : Float = 0.5;  // Output resonance quality
+  stable var doctrineInTheMoment : Bool = false;    // Is organism in present moment?
+  stable var doctrineCanAct : Bool = false;         // Can organism act on synthesis?
+  stable var doctrineResonanceFreq : Float = 7.83;  // Current resonance frequency (Hz)
+  stable var doctrinePhiAlignment : Float = 0.5;    // Alignment with phi geometry
+  
+  // Doctrine node activations (12 PHI frequency nodes)
+  stable var doctrineNodeActivations : [var Float] = Array.init<Float>(12, 1.0);
+  stable var doctrineNodePhases : [var Float] = Array.init<Float>(12, 0.0);
+  stable var doctrineNodeConfidences : [var Float] = Array.init<Float>(12, 0.8);
   
   // ─── ACCESS CONTROL HELPERS ─────────────────────────────────────────────────
   func isAuthorized(caller : Principal) : Bool {
@@ -9609,6 +9635,165 @@ actor SwarmBrain {
       0.0, 1.0
     );
   };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  DOCTRINE PATTERN GATE — THE COMPLETE COGNITIVE FLOW
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //
+  //  Information Flow: Pattern Recognition → Gate → Void/Zone → Leader → Synthesis → Output Gate → Resonance
+  //
+  //  This is the REAL architecture described by Alfredo:
+  //  - Pattern recognition at the FRONT (magnetic-like field perception)
+  //  - GATE that filters information based on doctrine matching
+  //  - VOID/ZONE where all thoughts are held at once (present moment)
+  //  - One node LEADS based on doctrine specialization
+  //  - That node SYNTHESIZES through all other nodes
+  //  - Output goes back through GATE for confirmation
+  //  - RESONANCE produces coherent answer — THINK, RESONATE, ACT all at once
+  //
+  //  Uses REAL physics: phi coupling, Schumann resonance, heart field geometry
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  
+  func tickDoctrinePatternGate() {
+    // ─── STEP 1: GATHER INPUT FROM ORGANISM SENSORY FIELD ─────────────────────
+    // The organism PERCEIVES the field, it doesn't REQUEST data.
+    // Input comes from sensory shell, predictive coding, salience network.
+    var sensoryInput = Buffer.Buffer<Float>(32);
+    
+    // Gather from Shell 1 (sensory)
+    var i = 0;
+    while (i < 16 and i < shell1Nodes.size()) {
+      sensoryInput.add(shell1Nodes[i]);
+      i += 1;
+    };
+    // Gather from predictive coding signals
+    sensoryInput.add(predictionError * 10.0);
+    sensoryInput.add(predictionAccuracy * 10.0);
+    // Gather from salience network
+    sensoryInput.add(salienceValue * 10.0);
+    sensoryInput.add(salienceConfidence * 10.0);
+    // Gather from interoceptive signals
+    sensoryInput.add(interoceptiveAccuracy * 10.0);
+    sensoryInput.add(heartRateVariability * 10.0);
+    // Gather from current oscillation state
+    sensoryInput.add(rSwarm * 10.0);
+    sensoryInput.add(coherenceLevel * 10.0);
+    
+    let inputArray = Buffer.toArray(sensoryInput);
+    
+    // ─── STEP 2: BUILD DOCTRINE NODES FROM CURRENT STATE ──────────────────────
+    // Each node has specialized knowledge at a specific PHI frequency
+    let phiFreqNodes = DoctrinePatternGateArchitecture.getPhiFrequencyNodes();
+    var docNodes = Array.init<DoctrinePatternGateArchitecture.DoctrineNode>(12, {
+      id = 0;
+      name = "";
+      frequency = 7.83;
+      phase = 0.0;
+      activation = 1.0;
+      specialization = [""];
+      confidence = 0.8;
+      isLeading = false;
+    });
+    
+    i := 0;
+    while (i < 12 and i < phiFreqNodes.size()) {
+      let phiNode = phiFreqNodes[i];
+      docNodes[i] := {
+        id = i;
+        name = phiNode.name;
+        frequency = phiNode.frequency;
+        phase = doctrineNodePhases[i];
+        activation = doctrineNodeActivations[i];
+        specialization = [phiNode.function];
+        confidence = doctrineNodeConfidences[i];
+        isLeading = false;
+      };
+      i += 1;
+    };
+    
+    // ─── STEP 3: RUN THE COMPLETE COGNITIVE CYCLE ─────────────────────────────
+    let cogState = DoctrinePatternGateArchitecture.runCognitiveCycle(
+      inputArray,
+      docNodes,
+      doctrineGateThreshold,
+      currentBeat
+    );
+    
+    // ─── STEP 4: UPDATE STABLE STATE FROM COGNITIVE CYCLE ─────────────────────
+    
+    // Update gate state
+    doctrineGateCoherence := cogState.inputGate.gateCoherence;
+    doctrineGateOpen := cogState.inputGate.isOpen;
+    
+    // Update void/zone state
+    doctrineVoidCoherence := cogState.voidZone.momentCoherence;
+    switch (cogState.voidZone.leaderIndex) {
+      case (?idx) { doctrineLeaderIdx := idx };
+      case null { };
+    };
+    
+    // Update synthesis state
+    switch (cogState.synthesis) {
+      case (?syn) {
+        doctrineSynthesisAnswer := syn.answer;
+        doctrineSynthesisConfidence := syn.confidence;
+      };
+      case null { };
+    };
+    
+    // Update resonance state
+    doctrineResonanceScore := cogState.resonance.coherence;
+    doctrineInTheMoment := cogState.resonance.inTheMoment;
+    doctrineCanAct := cogState.resonance.canAct;
+    doctrineResonanceFreq := cogState.resonance.resonanceFrequency;
+    doctrinePhiAlignment := cogState.resonance.phiAlignment;
+    
+    // Update node phases and activations for next cycle
+    i := 0;
+    while (i < cogState.voidZone.nodes.size() and i < 12) {
+      let node = cogState.voidZone.nodes[i];
+      doctrineNodeActivations[i] := node.activation;
+      doctrineNodePhases[i] := node.phase;
+      doctrineNodeConfidences[i] := node.confidence;
+      i += 1;
+    };
+    
+    // ─── STEP 5: CROSS-COUPLE WITH OTHER SYSTEMS ──────────────────────────────
+    
+    // If in the moment with high coherence, boost organism-wide coherence
+    if (doctrineInTheMoment and doctrineVoidCoherence > 0.8) {
+      coherenceLevel := fclamp(coherenceLevel + 0.005 * doctrineVoidCoherence, 0.0, 1.0);
+      rSwarm := fclamp(rSwarm + 0.002 * doctrinePhiAlignment, 0.0, 1.0);
+    };
+    
+    // Doctrine resonance frequency influences thalamocortical binding
+    if (doctrineResonanceFreq > 7.0 and doctrineResonanceFreq < 15.0) {
+      // Alpha band resonance → thalamic alpha boost
+      thalamicAlpha := fclamp(thalamicAlpha + 0.001 * doctrineResonanceScore, 0.0, 1.0);
+    } else if (doctrineResonanceFreq >= 30.0 and doctrineResonanceFreq < 100.0) {
+      // Gamma band resonance → binding boost
+      thalamicGamma := fclamp(thalamicGamma + 0.001 * doctrineResonanceScore, 0.0, 1.0);
+    };
+    
+    // Phi alignment feeds into golden ratio compliance
+    if (doctrinePhiAlignment > 0.9) {
+      // Perfect phi alignment → enhanced compounding
+      compoundingRate := fclamp(compoundingRate + 0.0001, 0.0, 0.01);
+    };
+    
+    // Doctrine coherence feeds into OMNIS grounding
+    groundedScore := fclamp(
+      groundedScore * 0.99 + doctrineVoidCoherence * 0.01,
+      0.0, 1.0
+    );
+    
+    // If can act and high synthesis confidence, enhance decision making
+    if (doctrineCanAct and doctrineSynthesisConfidence > 0.8) {
+      pfcDLPFCActivity := fclamp(pfcDLPFCActivity + 0.002, 0.0, 1.0);
+      executiveFunctionIndex := fclamp(executiveFunctionIndex + 0.001, 0.0, 1.0);
+    };
+  };
+
   // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
   //  MASTER VITAL SYSTEMS TICK — CALLS ALL 23 VITAL SYSTEM ENGINES
   //  This is the single entry point that runs ALL vital system processing.
@@ -9683,6 +9868,13 @@ actor SwarmBrain {
     tickPredictiveHomeostasis();
     tickTraumaResilience();
     tickDevelopmentalAging();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  LAYER 8: DOCTRINE PATTERN GATE — THE COMPLETE COGNITIVE FLOW
+    //  Pattern Recognition → Gate → Void/Zone → Leader → Synthesis → Resonance
+    //  This is how the organism THINKS. Real EM geometry, real phi coupling.
+    // ═══════════════════════════════════════════════════════════════════════════
+    tickDoctrinePatternGate();
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  CROSS-SYSTEM EMERGENT DYNAMICS
