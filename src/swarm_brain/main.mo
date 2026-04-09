@@ -229,6 +229,7 @@ import SelfRepairEngine              "./modules/SelfRepairEngine";
 
 import WarDefenseTempleIntegration   "./modules/WarDefenseTempleIntegration";
 import OffenseDefenseCoordination    "./modules/OffenseDefenseCoordination";
+import CounterforceOperations        "./modules/CounterforceOperations";
 import FullConstructiveStack         "./modules/FullConstructiveStack";
 import FullRedAntiOrganismStack      "./modules/FullRedAntiOrganismStack";
 import AntiOrganismDefense           "./modules/AntiOrganismDefense";
@@ -1129,6 +1130,9 @@ actor SwarmBrain {
   var offenseDefenseCoordinationState : OffenseDefenseCoordination.OffenseDefenseCoordinationState =
     OffenseDefenseCoordination.initOffenseDefenseCoordination();
 
+  var counterforceState : CounterforceOperations.CounterforceState =
+    CounterforceOperations.initCounterforce();
+
   var fullConstructiveStackState : FullConstructiveStack.FullStackState =
     FullConstructiveStack.initFullStack();
 
@@ -1146,6 +1150,20 @@ actor SwarmBrain {
   stable var intelligenceQuality : Float = 0.0;      // Intel quality
   stable var missionActive : Bool = false;           // Mission in progress
   stable var missionType : Text = "STANDBY";         // Current mission
+
+  // Counterforce metrics (stable for persistence)
+  stable var counterforceEffectiveness : Float = 0.0; // Overall counterforce effectiveness
+  stable var scoutCoverage : Float = 0.0;            // Scout coverage area
+  stable var profilerAccuracy : Float = 0.0;         // Profiler model accuracy
+  stable var trapweaverEffectiveness : Float = 0.0;  // Trapweaver deception effectiveness
+  stable var hunterSuccessRate : Float = 0.0;        // Hunter success rate
+  stable var interdictionEffectiveness : Float = 0.0; // Interdictor effectiveness
+  stable var dislocationEffectiveness : Float = 0.0; // Dislocator effectiveness
+  stable var counterDeceiverAccuracy : Float = 0.0;  // Counter-deceiver detection accuracy
+  stable var attributionAccuracy : Float = 0.0;      // Pursuit forensics attribution accuracy
+  stable var deterrenceEffectiveness : Float = 0.0;  // Deterrence operator effectiveness
+  stable var orchestrationQuality : Float = 0.0;     // Campaign orchestration quality
+  stable var adversaryPressure : Float = 0.0;        // Pressure on adversaries
 
   // ─── NEUROCHEMICAL STATISTICS ────────────────────────────────────────────────
   stable var totalNeurochemicalUpdates : Nat = 0;
@@ -2979,7 +2997,8 @@ actor SwarmBrain {
 
       tickWarDefenseTemple();
       tickOffenseDefenseCoordination();
-      modulesCalledThisBeat += 2;
+      tickCounterforce();
+      modulesCalledThisBeat += 3;
 
       defenseLayerActive := true;
     };
@@ -21025,6 +21044,50 @@ actor SwarmBrain {
     intelligenceQuality := offenseDefenseCoordinationState.intelligence.intelligenceQuality;
   };
 
+  func tickCounterforce() {
+    // Update counterforce state with current beat
+    counterforceState := {
+      counterforceState with
+      beat = currentBeat;
+    };
+
+    // Compute overall effectiveness
+    let newEffectiveness = CounterforceOperations.computeCounterforceEffectiveness(counterforceState);
+
+    // Update stable metrics from each counterforce class
+    counterforceEffectiveness := newEffectiveness;
+    scoutCoverage := counterforceState.scout.coverageArea;
+    profilerAccuracy := counterforceState.profiler.modelAccuracy;
+    trapweaverEffectiveness := counterforceState.trapweaver.deceptionEffectiveness;
+    hunterSuccessRate := counterforceState.hunter.huntSuccessRate;
+    interdictionEffectiveness := counterforceState.interdictor.interdictionEffectiveness;
+    dislocationEffectiveness := counterforceState.dislocator.dislocationEffectiveness;
+    counterDeceiverAccuracy := counterforceState.counterDeceiver.detectionAccuracy;
+    attributionAccuracy := counterforceState.pursuitForensics.attributionAccuracy;
+    deterrenceEffectiveness := counterforceState.deterrenceOperator.deterrenceEffectiveness;
+    orchestrationQuality := counterforceState.campaignOrchestrator.orchestrationQuality;
+    adversaryPressure := counterforceState.adversaryPressure;
+
+    // Update coordination quality based on active operations
+    let activeOps =
+      (if (counterforceState.scout.continuousScan) 1.0 else 0.0) +
+      (if (counterforceState.profiler.activeProfiles.size() > 0) 1.0 else 0.0) +
+      (if (counterforceState.trapweaver.trapsDeployed.size() > 0) 1.0 else 0.0) +
+      (if (counterforceState.hunter.activeMissions.size() > 0) 1.0 else 0.0) +
+      (if (counterforceState.interdictor.activeInterdictions.size() > 0) 1.0 else 0.0) +
+      (if (counterforceState.dislocator.activeOperations.size() > 0) 1.0 else 0.0) +
+      (if (counterforceState.counterDeceiver.detectedCampaigns.size() > 0) 1.0 else 0.0) +
+      (if (counterforceState.pursuitForensics.attributionChains.size() > 0) 1.0 else 0.0) +
+      (if (counterforceState.deterrenceOperator.activeSignals.size() > 0) 1.0 else 0.0) +
+      (if (counterforceState.campaignOrchestrator.activeCampaigns.size() > 0) 1.0 else 0.0);
+
+    counterforceState := {
+      counterforceState with
+      coordinationQuality = activeOps / 10.0;  // [0,1] based on active ops
+      overallEffectiveness = newEffectiveness;
+    };
+  };
+
   // ═══════════════════════════════════════════════════════════════════════════
   // WAR-DEFENSE TEMPLE PUBLIC API
   // Systems 7, 9, 10 — Mission activation and warfare coordination
@@ -21274,6 +21337,224 @@ actor SwarmBrain {
       survivalProbability = warDefenseTempleState.regeneration.survivalProbability;
       regenerationCapacity = warDefenseTempleState.regeneration.regenerationCapacity;
       collapseDetected = warDefenseTempleState.regeneration.collapseDetected;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COUNTERFORCE OPERATIONS PUBLIC API
+  // 10 Specialized Warfare Classes — Advanced offensive/defensive operators
+  // Owner: Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ─── SCOUT OPERATIONS ─────────────────────────────────────────────────────
+
+  public shared(msg) func deployScouts(
+    scoutCount: Nat,
+    continuousScan: Bool
+  ) : async () {
+    counterforceState := {
+      counterforceState with
+      scout = CounterforceOperations.deployScouts(
+        counterforceState.scout,
+        scoutCount,
+        continuousScan
+      );
+    };
+  };
+
+  // ─── PROFILER OPERATIONS ──────────────────────────────────────────────────
+
+  public shared(msg) func createAdversaryProfile(
+    adversaryId: Text,
+    initialThreat: Float
+  ) : async () {
+    let newProfile = CounterforceOperations.createAdversaryProfile(adversaryId, initialThreat);
+    let updatedProfiles = Array.append(counterforceState.profiler.activeProfiles, [newProfile]);
+
+    counterforceState := {
+      counterforceState with
+      profiler = {
+        counterforceState.profiler with
+        activeProfiles = updatedProfiles;
+      };
+    };
+  };
+
+  // ─── TRAPWEAVER OPERATIONS ────────────────────────────────────────────────
+
+  public shared(msg) func deployTrap(
+    trapType: Text,  // "Honeypot" | "Honeyfield" | "FalseSurface" | "DecoyData" | "FakeVulnerability"
+    believability: Float,
+    resourceCost: Float
+  ) : async () {
+    let trapTypeVariant = switch (trapType) {
+      case ("Honeypot") #Honeypot;
+      case ("Honeyfield") #Honeyfield;
+      case ("FalseSurface") #FalseSurface;
+      case ("DecoyData") #DecoyData;
+      case ("FakeVulnerability") #FakeVulnerability;
+      case (_) #Honeypot;  // Default
+    };
+
+    let trapId = counterforceState.trapweaver.trapsDeployed.size();
+    let newTrap = CounterforceOperations.deployTrap(
+      trapTypeVariant,
+      believability,
+      resourceCost,
+      trapId,
+      currentBeat
+    );
+
+    let updatedTraps = Array.append(counterforceState.trapweaver.trapsDeployed, [newTrap]);
+
+    counterforceState := {
+      counterforceState with
+      trapweaver = {
+        counterforceState.trapweaver with
+        trapsDeployed = updatedTraps;
+      };
+    };
+  };
+
+  // ─── HUNTER OPERATIONS ────────────────────────────────────────────────────
+
+  public shared(msg) func launchHuntMission(
+    hypothesis: Text
+  ) : async () {
+    let missionId = counterforceState.hunter.activeMissions.size();
+    let newMission = CounterforceOperations.launchHuntMission(
+      missionId,
+      hypothesis,
+      currentBeat
+    );
+
+    let updatedMissions = Array.append(counterforceState.hunter.activeMissions, [newMission]);
+
+    counterforceState := {
+      counterforceState with
+      hunter = {
+        counterforceState.hunter with
+        activeMissions = updatedMissions;
+      };
+    };
+  };
+
+  // ─── CAMPAIGN ORCHESTRATOR ────────────────────────────────────────────────
+
+  public shared(msg) func launchCounterforceCampaign(
+    campaignName: Text,
+    initialPhase: Text,  // "Reconnaissance" | "Profiling" | etc.
+    targets: [Text]
+  ) : async () {
+    let phaseVariant = switch (initialPhase) {
+      case ("Reconnaissance") #Reconnaissance;
+      case ("Profiling") #Profiling;
+      case ("Deception") #Deception;
+      case ("Hunting") #Hunting;
+      case ("Interdiction") #Interdiction;
+      case ("Dislocation") #Dislocation;
+      case ("CounterDeception") #CounterDeception;
+      case ("Attribution") #Attribution;
+      case ("Deterrence") #Deterrence;
+      case ("Termination") #Termination;
+      case (_) #Reconnaissance;  // Default
+    };
+
+    let campaignId = counterforceState.campaignOrchestrator.activeCampaigns.size();
+    let newCampaign = CounterforceOperations.launchCampaign(
+      campaignId,
+      campaignName,
+      phaseVariant,
+      targets,
+      currentBeat
+    );
+
+    let updatedCampaigns = Array.append(
+      counterforceState.campaignOrchestrator.activeCampaigns,
+      [newCampaign]
+    );
+
+    counterforceState := {
+      counterforceState with
+      campaignOrchestrator = {
+        counterforceState.campaignOrchestrator with
+        activeCampaigns = updatedCampaigns;
+        totalCampaigns = counterforceState.campaignOrchestrator.totalCampaigns + 1;
+      };
+    };
+  };
+
+  // ─── COUNTERFORCE STATUS QUERIES ──────────────────────────────────────────
+
+  public query func getCounterforceStatus() : async {
+    overallEffectiveness: Float;
+    adversaryPressure: Float;
+    coordinationQuality: Float;
+    scoutCoverage: Float;
+    profilerAccuracy: Float;
+    hunterSuccessRate: Float;
+    activeCampaigns: Nat;
+    totalThreatsFound: Nat;
+  } {
+    {
+      overallEffectiveness = counterforceEffectiveness;
+      adversaryPressure = adversaryPressure;
+      coordinationQuality = counterforceState.coordinationQuality;
+      scoutCoverage = scoutCoverage;
+      profilerAccuracy = profilerAccuracy;
+      hunterSuccessRate = hunterSuccessRate;
+      activeCampaigns = counterforceState.campaignOrchestrator.activeCampaigns.size();
+      totalThreatsFound = counterforceState.hunter.totalThreatsFound;
+    }
+  };
+
+  public query func getScoutDetails() : async {
+    scoutsDeployed: Nat;
+    coverageArea: Float;
+    threatsDetected: Nat;
+    earlyWarnings: Nat;
+    reconQuality: Float;
+    continuousScan: Bool;
+  } {
+    {
+      scoutsDeployed = counterforceState.scout.scoutsDeployed;
+      coverageArea = counterforceState.scout.coverageArea;
+      threatsDetected = counterforceState.scout.threatsDetected;
+      earlyWarnings = counterforceState.scout.earlyWarnings;
+      reconQuality = counterforceState.scout.reconQuality;
+      continuousScan = counterforceState.scout.continuousScan;
+    }
+  };
+
+  public query func getTrapweaverDetails() : async {
+    trapsDeployed: Nat;
+    attackersTrapped: Nat;
+    adversaryTimeWasted: Float;
+    deceptionEffectiveness: Float;
+  } {
+    {
+      trapsDeployed = counterforceState.trapweaver.trapsDeployed.size();
+      attackersTrapped = counterforceState.trapweaver.totalAttackersTrapped;
+      adversaryTimeWasted = counterforceState.trapweaver.adversaryTimeWasted;
+      deceptionEffectiveness = counterforceState.trapweaver.deceptionEffectiveness;
+    }
+  };
+
+  public query func getHunterDetails() : async {
+    activeMissions: Nat;
+    totalThreatsFound: Nat;
+    huntSuccessRate: Float;
+    signalCoverage: Float;
+    internalHunts: Nat;
+    externalHunts: Nat;
+  } {
+    {
+      activeMissions = counterforceState.hunter.activeMissions.size();
+      totalThreatsFound = counterforceState.hunter.totalThreatsFound;
+      huntSuccessRate = counterforceState.hunter.huntSuccessRate;
+      signalCoverage = counterforceState.hunter.signalCoverage;
+      internalHunts = counterforceState.hunter.internalHunts;
+      externalHunts = counterforceState.hunter.externalHunts;
     }
   };
 
