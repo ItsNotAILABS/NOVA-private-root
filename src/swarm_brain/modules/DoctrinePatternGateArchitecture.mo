@@ -115,6 +115,7 @@ import Array "mo:base/Array";
 import Nat   "mo:base/Nat";
 import Nat32 "mo:base/Nat32";
 import Int   "mo:base/Int";
+import Char  "mo:base/Char";
 import Buffer "mo:base/Buffer";
 
 module {
@@ -181,19 +182,23 @@ module {
   };
   
   public func getPhiFrequencyNodes() : [PhiFrequencyNode] {
+    // Note: Some nodes use phiMultiplier = 0.0 to indicate they are anchor points
+    // or derived differently (e.g., AXIS at 40Hz is gamma binding constant,
+    // NOVA at 432Hz is acoustic anchor). These are NOT phi-derived but are
+    // critical coupling points in the frequency stack.
     [
-      { name = "CHRONO";    frequency = 0.001;   phiMultiplier = 0.0;    function = "Deep time" },
-      { name = "VERITAS";   frequency = 0.1;     phiMultiplier = 0.0;    function = "Truth baseline" },
-      { name = "BRAIN";     frequency = 7.83;    phiMultiplier = 1.0;    function = "Schumann fundamental" },
-      { name = "FLUX";      frequency = 12.67;   phiMultiplier = PHI;    function = "7.83×φ — Alpha peak" },
+      { name = "CHRONO";    frequency = 0.001;   phiMultiplier = 0.0;    function = "Deep time (anchor, not phi-derived)" },
+      { name = "VERITAS";   frequency = 0.1;     phiMultiplier = 0.0;    function = "Truth baseline (anchor)" },
+      { name = "BRAIN";     frequency = 7.83;    phiMultiplier = 1.0;    function = "Schumann fundamental (φ⁰)" },
+      { name = "FLUX";      frequency = 12.67;   phiMultiplier = PHI;    function = "7.83×φ¹ — Alpha peak" },
       { name = "RESONEX";   frequency = 20.5;    phiMultiplier = PHI_SQ; function = "7.83×φ² — Beta low" },
       { name = "QMEM";      frequency = 33.1;    phiMultiplier = PHI_CUBED; function = "7.83×φ³ — Beta high" },
-      { name = "AXIS";      frequency = 40.0;    phiMultiplier = 0.0;    function = "Gamma binding (40 Hz)" },
+      { name = "AXIS";      frequency = 40.0;    phiMultiplier = 0.0;    function = "Gamma binding (40Hz constant, not phi-derived)" },
       { name = "AEGIS";     frequency = 53.6;    phiMultiplier = PHI_FOURTH; function = "7.83×φ⁴ — Protection" },
-      { name = "ENTANGLA";  frequency = 86.7;    phiMultiplier = 0.0;    function = "7.83×φ⁵ — Entanglement" },
-      { name = "PARALLAX";  frequency = 111.0;   phiMultiplier = 0.0;    function = "Hemisphere shift" },
-      { name = "MERIDIAN";  frequency = 179.6;   phiMultiplier = 0.0;    function = "111×φ — Full integration" },
-      { name = "NOVA";      frequency = 432.0;   phiMultiplier = 0.0;    function = "Acoustic anchor" }
+      { name = "ENTANGLA";  frequency = 86.7;    phiMultiplier = 0.0;    function = "~7.83×φ⁵ — Entanglement (anchor)" },
+      { name = "PARALLAX";  frequency = 111.0;   phiMultiplier = 0.0;    function = "Hemisphere shift (measured constant)" },
+      { name = "MERIDIAN";  frequency = 179.6;   phiMultiplier = 0.0;    function = "~111×φ — Full integration (anchor)" },
+      { name = "NOVA";      frequency = 432.0;   phiMultiplier = 0.0;    function = "Acoustic anchor (432Hz constant)" }
     ]
   };
   
@@ -368,9 +373,10 @@ module {
     };
     
     let passedCount = Float.fromInt(passed.size());
+    let usedThreshold = threshold;  // Record the threshold that was used
     {
       isOpen = passed.size() > 0;
-      threshold = threshold;
+      threshold = usedThreshold;
       passedPatterns = Buffer.toArray(passed);
       gateCoherence = if (passedCount > 0.0) { coherenceSum / passedCount } else { 0.0 };
       lastGateTime = currentBeat;
@@ -578,20 +584,20 @@ module {
   ) : OutputGate {
     // Synthesis must meet both its own confidence and gate coherence
     let confirmationScore = synthesis.confidence * inputGate.gateCoherence;
-    let confirmed = confirmationScore >= threshold;
+    let isConfirmed = confirmationScore >= threshold;  // Renamed to avoid field/variable name collision
     
     // Adjust answer based on gate resonance
-    let adjustment = if (confirmed) {
+    let adjustment = if (isConfirmed) {
       1.0 + (confirmationScore - threshold) * 0.1
     } else {
       0.9  // Slight penalty for unconfirmed synthesis
     };
     
     {
-      confirmed = confirmed;
+      confirmed = isConfirmed;
       confirmationScore = confirmationScore;
       adjustedAnswer = synthesis.answer * adjustment;
-      outputReady = confirmed;
+      outputReady = isConfirmed;
     }
   };
   
@@ -769,11 +775,14 @@ module {
     if (x < y) { x } else { y }
   };
   
-  // FNV-1a hash function
+  // FNV-1a hash function - proper implementation using character code
   func fnv1a(input : Text) : Nat32 {
     var hash : Nat32 = 2166136261;
     for (c in input.chars()) {
-      let byte = Nat32.fromNat(Nat32.toNat(Nat32.fromIntWrap(Int.abs(Nat32.toNat(hash)))) % 256);
+      // Convert char to its Unicode code point, then to Nat32
+      let charCode : Nat32 = Char.toNat32(c);
+      // XOR hash with the character byte (using low 8 bits for ASCII-like behavior)
+      let byte : Nat32 = charCode & 0xFF;
       hash := (hash ^ byte) *% 16777619;
     };
     hash
