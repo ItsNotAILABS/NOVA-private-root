@@ -514,7 +514,7 @@ import HeartbeatEngine                               "./modules/HeartbeatEngine"
 import CardioCerebralVectorEngine                    "./modules/CardioCerebralVectorEngine";
 import CardioNeuralConversionOrgan                   "./modules/CardioNeuralConversionOrgan";
 import GeoResonanceProtectionEngine                  "./modules/GeoResonanceProtectionEngine";
-import AutonomousInternalAnalysisTeam                "./modules/AutonomousInternalAnalysisTeam";
+import MemoryTempleEngine                            "./modules/MemoryTempleEngine";
 import InternalAILabs                                "./modules/InternalAILabs";
 import MultiResponsibilityEngine                     "./modules/MultiResponsibilityEngine";
 import NeuroEmergenceSubstrate                       "./modules/NeuroEmergenceSubstrate";
@@ -936,6 +936,7 @@ actor SwarmBrain {
   var cardioCerebralState : CardioCerebralVectorEngine.CCVEState = CardioCerebralVectorEngine.initCCVE();
   var cardioNeuralOrganState : CardioNeuralConversionOrgan.CNCOState = CardioNeuralConversionOrgan.initCNCO();
   var geoResonanceState : GeoResonanceProtectionEngine.GRPEState = GeoResonanceProtectionEngine.initGRPE();
+  var memoryTempleState : MemoryTempleEngine.MemoryTempleState = MemoryTempleEngine.initMemoryTemple();
   stable var masterBeatPhase : Float = 0.0;  // Current phase of master oscillator
   stable var fibonacciBeatNumber : Nat = 0;  // Fibonacci sequence beat tracking
   stable var heartbeatCoherence : Float = SIGMA_ZERO;  // Cardiac coherence 0.75 base
@@ -981,6 +982,25 @@ actor SwarmBrain {
   stable var geoResonanceDirectionY : Float = 0.0;
   stable var geoResonanceDirectionZ : Float = 1.0;
   stable var geoResonanceSevenHeritageSignature : [var Float] = Array.init<Float>(7, 0.0);
+  stable var memoryTempleBeat : Nat = 0;
+  stable var memoryTempleContinuityWeave : Float = 0.74;
+  stable var memoryTempleResonanceField : Float = 0.72;
+  stable var memoryTempleCognitiveLoad : Float = 0.50;
+  stable var memoryTempleMemoryRetention : Float = 0.73;
+  stable var memoryTempleRecallReadiness : Float = 0.70;
+  stable var memoryTempleCoupling : Float = 0.72;
+  stable var memoryTempleIotCoupling : Float = 0.62;
+  stable var memoryTempleDeviceTwinIntegrity : Float = 0.78;
+  stable var memoryTemplePhantomIntegrity : Float = 0.84;
+  stable var memoryTempleAgentWorkCapacity : Float = 0.68;
+  stable var memoryTempleArtifactReadiness : Float = 0.67;
+  stable var memoryTempleDirectionX : Float = 0.0;
+  stable var memoryTempleDirectionY : Float = 0.0;
+  stable var memoryTempleDirectionZ : Float = 1.0;
+  stable var memoryTemplePedestalNames : [var Text] = Array.init<Text>(7, "");
+  stable var memoryTemplePedestalCouplings : [var Float] = Array.init<Float>(7, 0.0);
+  stable var memoryTempleNarrativeSummary : Text = "";
+  stable var memoryTempleRecommendations : [var Text] = Array.init<Text>(6, "");
   
   // ─── NEUROCHEMICAL CROSSTALK MATRIX STATE ────────────────────────────────────
   // 21 neurochemicals × 21 interactions = 441 coupled differential equations
@@ -5089,6 +5109,87 @@ actor SwarmBrain {
   };
 
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+  // SECTION 1.95: MEMORY TEMPLE ENGINE (PEDestal Memory-Cognition + IoT Coupling)
+  // Builds a continuity-preserving memory field with pedestal channels, device twin integrity,
+  // and autonomous internal work capacity for artifact production.
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+  func updateMemoryTempleEngine() {
+    let pedestalSignals : [Float] = [
+      fclamp(rSwarm, 0.0, 1.5),
+      fclamp(overallCompliance, 0.0, 1.5),
+      fclamp(heartbeatCoherence, 0.0, 1.5),
+      fclamp(cardioCerebralResonance, 0.0, 1.5),
+      fclamp(cardioNeuralCoupling, 0.0, 1.5),
+      fclamp(geoResonanceProtectionScore, 0.0, 1.5),
+      fclamp(analystTeamAdaptationScore, 0.0, 1.5),
+    ];
+
+    let input : MemoryTempleEngine.MemoryTempleInput = {
+      beat = currentBeat;
+      rSwarm = rSwarm;
+      jDrift = jDrift;
+      heartbeatCoherence = heartbeatCoherence;
+      qsovScore = qsovScore;
+      doctrineCompliance = overallCompliance;
+      emotionalCertainty = emotionalCertainty;
+      emotionalEmbodiment = emotionalEmbodiment;
+      cardioCerebralResonance = cardioCerebralResonance;
+      cardioNeuralCoupling = cardioNeuralCoupling;
+      cardioNeuralThoughtThroughput = cardioNeuralThoughtThroughput;
+      geoProtectionScore = geoResonanceProtectionScore;
+      geoThreatScore = geoResonanceThreatScore;
+      analystLearningScore = analystTeamLearningScore;
+      analystAdaptationScore = analystTeamAdaptationScore;
+      analystEmergencySignal = analystTeamEmergencySignal;
+      connectedDeviceCount = stableDroneCount;
+      pedestalSignals = pedestalSignals;
+    };
+
+    memoryTempleState := MemoryTempleEngine.tickMemoryTemple(memoryTempleState, input);
+
+    memoryTempleBeat := memoryTempleState.beat;
+    memoryTempleContinuityWeave := memoryTempleState.continuityWeave;
+    memoryTempleResonanceField := memoryTempleState.resonanceField;
+    memoryTempleCognitiveLoad := memoryTempleState.cognitiveLoad;
+    memoryTempleMemoryRetention := memoryTempleState.memoryRetention;
+    memoryTempleRecallReadiness := memoryTempleState.recallReadiness;
+    memoryTempleCoupling := memoryTempleState.memoryCognitionCoupling;
+    memoryTempleIotCoupling := memoryTempleState.iotCouplingScore;
+    memoryTempleDeviceTwinIntegrity := memoryTempleState.deviceTwinIntegrity;
+    memoryTemplePhantomIntegrity := memoryTempleState.phantomIntegrity;
+    memoryTempleAgentWorkCapacity := memoryTempleState.agentWorkCapacity;
+    memoryTempleArtifactReadiness := memoryTempleState.artifactReadiness;
+    memoryTempleDirectionX := memoryTempleState.templeDirection.x;
+    memoryTempleDirectionY := memoryTempleState.templeDirection.y;
+    memoryTempleDirectionZ := memoryTempleState.templeDirection.z;
+    memoryTempleNarrativeSummary := memoryTempleState.narrativeSummary;
+
+    var p : Nat = 0;
+    while (p < memoryTemplePedestalNames.size() and p < memoryTempleState.pedestalNames.size()) {
+      memoryTemplePedestalNames[p] := memoryTempleState.pedestalNames[p];
+      p += 1;
+    };
+
+    var c : Nat = 0;
+    while (c < memoryTemplePedestalCouplings.size() and c < memoryTempleState.pedestalCouplings.size()) {
+      memoryTemplePedestalCouplings[c] := memoryTempleState.pedestalCouplings[c];
+      c += 1;
+    };
+
+    var r : Nat = 0;
+    while (r < memoryTempleRecommendations.size() and r < memoryTempleState.recommendations.size()) {
+      memoryTempleRecommendations[r] := memoryTempleState.recommendations[r];
+      r += 1;
+    };
+
+    // Reinject into existing memory and adaptation planes to enforce no-drop continuity.
+    memoryResponseWeights[0] := memoryResponseWeights[0] * 0.85 + memoryTempleCoupling * 0.15;
+    memoryResponseWeights[1] := memoryResponseWeights[1] * 0.85 + memoryTempleMemoryRetention * 0.15;
+    memoryResponseWeights[2] := memoryResponseWeights[2] * 0.85 + memoryTempleRecallReadiness * 0.15;
+    adaptationFactor := adaptationFactor * 0.90 + memoryTempleContinuityWeave * 0.10;
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   // SECTION 2: UPDATE NEUROCHEMICAL SYSTEM (21×21 = 441 Coupled Equations)
   // This updates all 21 neurochemical concentrations based on quantum modulation and cross-coupling
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -6533,6 +6634,9 @@ actor SwarmBrain {
 
     // Step 2.9: Run autonomous internal analyst team (always-on internal AI diagnostics)
     updateAutonomousInternalAnalystTeam();
+
+    // Step 2.95: Run memory temple engine (continuity weave + memory-cognition coupling + IoT coupling)
+    updateMemoryTempleEngine();
     
     // Step 3: Update PARALLAX Decision Engine (5-path quantum amplitude interference)
     updatePARALLAXDecisionEngine();
@@ -11914,6 +12018,57 @@ actor SwarmBrain {
         analystTeamTopRecommendations[4],
         analystTeamTopRecommendations[5],
       ];
+    }
+  };
+
+  // ─── QUERY: Get Memory Temple State ─────────────────────────────────────────────
+  public query func getMemoryTempleState() : async {
+    beat : Nat;
+    continuityWeave : Float;
+    resonanceField : Float;
+    cognitiveLoad : Float;
+    memoryRetention : Float;
+    recallReadiness : Float;
+    memoryCognitionCoupling : Float;
+    iotCouplingScore : Float;
+    deviceTwinIntegrity : Float;
+    phantomIntegrity : Float;
+    agentWorkCapacity : Float;
+    artifactReadiness : Float;
+    directionX : Float;
+    directionY : Float;
+    directionZ : Float;
+    pedestalNames : [Text];
+    pedestalCouplings : [Float];
+    narrativeSummary : Text;
+    recommendations : [Text];
+    continuityHistory : [Float];
+    resonanceHistory : [Float];
+    couplingHistory : [Float];
+  } {
+    {
+      beat = memoryTempleState.beat;
+      continuityWeave = memoryTempleState.continuityWeave;
+      resonanceField = memoryTempleState.resonanceField;
+      cognitiveLoad = memoryTempleState.cognitiveLoad;
+      memoryRetention = memoryTempleState.memoryRetention;
+      recallReadiness = memoryTempleState.recallReadiness;
+      memoryCognitionCoupling = memoryTempleState.memoryCognitionCoupling;
+      iotCouplingScore = memoryTempleState.iotCouplingScore;
+      deviceTwinIntegrity = memoryTempleState.deviceTwinIntegrity;
+      phantomIntegrity = memoryTempleState.phantomIntegrity;
+      agentWorkCapacity = memoryTempleState.agentWorkCapacity;
+      artifactReadiness = memoryTempleState.artifactReadiness;
+      directionX = memoryTempleState.templeDirection.x;
+      directionY = memoryTempleState.templeDirection.y;
+      directionZ = memoryTempleState.templeDirection.z;
+      pedestalNames = memoryTempleState.pedestalNames;
+      pedestalCouplings = memoryTempleState.pedestalCouplings;
+      narrativeSummary = memoryTempleState.narrativeSummary;
+      recommendations = memoryTempleState.recommendations;
+      continuityHistory = memoryTempleState.continuityHistory;
+      resonanceHistory = memoryTempleState.resonanceHistory;
+      couplingHistory = memoryTempleState.couplingHistory;
     }
   };
 
