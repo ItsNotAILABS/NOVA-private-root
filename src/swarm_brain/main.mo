@@ -3558,6 +3558,8 @@ actor SwarmBrain {
   // Protected: only architect or trusted organism canister may call.
   public shared(msg) func tick() : async { rSwarm : Float; jDrift : Float; beat : Nat } {
     requireAuthorized(msg.caller);
+    // Keep spherical heartbeat + CCVE active on the standard tick path.
+    masterSphericalIntegration();
     tickCore()
   };
 
@@ -4579,6 +4581,9 @@ actor SwarmBrain {
     omnis     : Bool;
   } {
     requireAuthorized(msg.caller);
+    // Keep spherical heartbeat + CCVE active on the full sovereign tick path.
+    // swarm_organism drives this path, so this guarantees heart-brain state advances.
+    masterSphericalIntegration();
     let base = tickCore();
     // Phase 8: behavior execution
     ensureBehaviorCap(stableDroneCount);
