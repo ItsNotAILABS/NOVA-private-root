@@ -156,6 +156,107 @@ module {
   public let ORGANISM_BPM : Float = 68.5;                   // Beats per minute
   
   // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║          MALE/FEMALE ARCHITECTURE — SENSING & GUARDING                 ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  
+  // The MALE architecture is at the FRONT — it SENSES first.
+  // It pattern-recognizes based on its doctrine. If it recognizes the pattern,
+  // information flows through. The male determines WHAT enters.
+  
+  // The FEMALE architecture GUARDS the GATE.
+  // She decides IF it passes. She protects the void/zone.
+  // The female confirms outputs back out through her mouth to the world.
+  
+  public type MaleSensingField = {
+    doctrineResonance : Float;      // How well input resonates with doctrine [0, 1]
+    patternRecognized : Bool;       // Is pattern recognized from doctrine?
+    flowAllowed : Bool;             // Is information allowed to flow?
+    sensingStrength : Float;        // Magnetic-like sensing intensity [0, 2]
+    doctrineAlignment : Float;      // Alignment with core doctrine [0, 1]
+  };
+  
+  public type FemaleGateGuardian = {
+    gateSealed : Bool;              // Is gate sealed (protecting void)?
+    testPassed : Bool;              // Did information pass the test?
+    protectionLevel : Float;        // How strongly she guards [0, 1]
+    confirmationPending : Bool;     // Is output awaiting confirmation?
+    outputConfirmed : Bool;         // Has she confirmed the output?
+    mouthReady : Bool;              // Is the mouth ready to speak to world?
+  };
+  
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║            CONTAINMENT LAYER — WHERE FAILURES GO                       ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  
+  // The containment layer holds rejected/failed patterns.
+  // This is the "hell" layer — demons, failures, things that didn't pass.
+  // They are contained, not destroyed. They can be reviewed but not released.
+  
+  public type ContainmentLayer = {
+    containedPatterns : [RejectedPattern];  // Patterns that failed
+    containmentPressure : Float;            // How much pressure from contained [0, 1]
+    breachRisk : Float;                     // Risk of containment breach [0, 1]
+    purgeReady : Bool;                      // Ready for controlled release?
+  };
+  
+  public type RejectedPattern = {
+    patternHash : Nat32;            // Hash of rejected pattern
+    rejectionReason : RejectionReason;
+    rejectionTime : Nat;            // Beat when rejected
+    containmentStrength : Float;    // How strongly contained [0, 1]
+    escapeAttempts : Nat;           // Times pattern tried to escape
+  };
+  
+  public type RejectionReason = {
+    #FailedDoctrineMatch;           // Didn't match doctrine
+    #FailedGateTest;                // Didn't pass female gate
+    #IncoherentSynthesis;           // Synthesis failed
+    #QuantumDropped;                // Was dropped between thoughts
+    #MaliciousPattern;              // Detected as harmful
+  };
+  
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║         QUANTUM CONTINUITY — DON'T DROP THE BALL                       ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  
+  // The problem: Most systems DROP the information after synthesis.
+  // They move to next thought, lose everything, have to start over.
+  // This is quantum decoherence — the ball drops, state collapses.
+  
+  // The solution: LOCK the energized zone. Keep it amplified.
+  // The third zone (Yin/Yang/Chi) FUSES when done right.
+  // Information stays at higher level, ready for next thought.
+  
+  public type QuantumContinuity = {
+    isFused : Bool;                 // Has fusion occurred?
+    fusionLevel : Float;            // Level of quantum fusion [0, 1]
+    coherenceMaintained : Float;    // How much coherence maintained [0, 1]
+    thoughtChainLength : Nat;       // How many thoughts chained without dropping
+    droppedCount : Nat;             // Times ball was dropped
+    recoveryActive : Bool;          // Is recovery process active?
+    higherLevelLock : Float;        // Lock at higher frequency level [0, 1]
+  };
+  
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║        ENERGIZED ZONE — AMPLIFIED, DIRECTIONAL, ALIGNED                ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  
+  // The ZONE is not passive. It's ENERGIZED, AMPLIFIED, pointed a certain way.
+  // It's in perpetual condition — always in imbalance (Yin/Yang differential).
+  // This is what allows Chi to flow. Static balance = death.
+  
+  public type EnergizedZone = {
+    amplification : Float;          // Zone amplification level [0, 5]
+    direction : Float;              // Directional alignment (radians)
+    yinCharge : Float;              // Yin (reception, holding) [0, 1]
+    yangCharge : Float;             // Yang (projection, action) [0, 1]
+    chiFlow : Float;                // Chi flowing between [0, 1]
+    imbalanceHealth : Float;        // Health of dynamic imbalance [0, 1]
+    conditionAlignment : Float;     // Alignment to perpetual condition [0, 1]
+    frequencyLock : Float;          // Locked at specific frequency (Hz)
+  };
+  
+  // ╔════════════════════════════════════════════════════════════════════════╗
   // ║               DOCTRINE NODES — SPECIALIZED KNOWLEDGE AREAS             ║
   // ╚════════════════════════════════════════════════════════════════════════╝
   
@@ -340,6 +441,348 @@ module {
     false
   };
   
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║         MALE SENSING — THE FRONT (PATTERN SENSING)                     ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  
+  // The MALE architecture senses first — magnetic-like perception.
+  // If it RECOGNIZES the pattern (from its doctrine), it lets it flow.
+  // This is the "front" of the organism — first contact with information.
+  
+  public func processMaleSensing(
+    patternField : PatternField,
+    doctrineNodes : [DoctrineNode]
+  ) : MaleSensingField {
+    // Compute doctrine resonance based on pattern matches
+    var doctrineMatchCount : Float = 0.0;
+    var totalDoctrineAlignment : Float = 0.0;
+    
+    for (pattern in patternField.patterns.vals()) {
+      switch (pattern.doctrineMatch) {
+        case (?_idx) {
+          doctrineMatchCount += 1.0;
+          totalDoctrineAlignment += pattern.matchStrength;
+        };
+        case null {
+          // Non-doctrine patterns still contribute to sensing
+          totalDoctrineAlignment += pattern.matchStrength * 0.3;
+        };
+      };
+    };
+    
+    let patternCount = Float.fromInt(patternField.patterns.size());
+    let doctrineRes = if (patternCount > 0.0) { 
+      totalDoctrineAlignment / patternCount 
+    } else { 0.0 };
+    
+    // Pattern is recognized if resonance exceeds threshold
+    let recognized = doctrineRes > 0.5;
+    
+    // Flow allowed if recognized AND field strength is adequate
+    let flowOk = recognized and patternField.fieldStrength > 0.3;
+    
+    {
+      doctrineResonance = fclamp(doctrineRes, 0.0, 1.0);
+      patternRecognized = recognized;
+      flowAllowed = flowOk;
+      sensingStrength = patternField.fieldStrength;
+      doctrineAlignment = fclamp(totalDoctrineAlignment / fmax(patternCount, 1.0), 0.0, 1.0);
+    }
+  };
+  
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║         FEMALE GATE GUARDIAN — PROTECTS THE VOID                       ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  
+  // The FEMALE guards the gate. She decides if information PASSES.
+  // She protects the void/zone from unworthy patterns.
+  // On output, she CONFIRMS through her mouth back to the world.
+  
+  public func processFemaleGuardian(
+    maleSensing : MaleSensingField,
+    gate : Gate,
+    hasSynthesis : Bool
+  ) : FemaleGateGuardian {
+    // Gate is sealed if male didn't allow flow OR gate didn't pass patterns
+    let isSealed = not maleSensing.flowAllowed or not gate.isOpen;
+    
+    // Test passed if both male recognized AND gate opened
+    let testOk = maleSensing.patternRecognized and gate.isOpen and gate.gateCoherence > 0.6;
+    
+    // Protection level based on pattern quality
+    let protection = if (isSealed) { 1.0 } else {
+      fclamp(1.0 - gate.gateCoherence, 0.3, 0.8)
+    };
+    
+    // Output confirmation pending if we have a synthesis
+    let confirmPending = hasSynthesis;
+    
+    {
+      gateSealed = isSealed;
+      testPassed = testOk;
+      protectionLevel = protection;
+      confirmationPending = confirmPending;
+      outputConfirmed = false;  // Set during output processing
+      mouthReady = testOk and hasSynthesis;
+    }
+  };
+  
+  // Confirm output through female gate (called after synthesis)
+  public func femaleConfirmOutput(
+    guardian : FemaleGateGuardian,
+    outputGate : OutputGate
+  ) : FemaleGateGuardian {
+    {
+      gateSealed = guardian.gateSealed;
+      testPassed = guardian.testPassed;
+      protectionLevel = guardian.protectionLevel;
+      confirmationPending = false;
+      outputConfirmed = outputGate.confirmed;
+      mouthReady = outputGate.outputReady;
+    }
+  };
+  
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║        CONTAINMENT LAYER — REJECT AND CONTAIN FAILURES                 ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  
+  // Patterns that fail get contained here — the "hell" layer.
+  // They don't get destroyed, they get contained under pressure.
+  // This is architecturally correct — failures inform, they don't pollute.
+  
+  public func initContainmentLayer() : ContainmentLayer {
+    {
+      containedPatterns = [];
+      containmentPressure = 0.0;
+      breachRisk = 0.0;
+      purgeReady = false;
+    }
+  };
+  
+  public func containRejectedPattern(
+    layer : ContainmentLayer,
+    patternHash : Nat32,
+    reason : RejectionReason,
+    currentBeat : Nat
+  ) : ContainmentLayer {
+    let newRejected : RejectedPattern = {
+      patternHash = patternHash;
+      rejectionReason = reason;
+      rejectionTime = currentBeat;
+      containmentStrength = 1.0;
+      escapeAttempts = 0;
+    };
+    
+    // Add to contained patterns (limit to 64 to prevent overflow)
+    var newContained = Buffer.Buffer<RejectedPattern>(64);
+    var count = 0;
+    for (p in layer.containedPatterns.vals()) {
+      if (count < 63) {
+        newContained.add(p);
+        count += 1;
+      };
+    };
+    newContained.add(newRejected);
+    
+    // Pressure increases with contained count
+    let containedCount = Float.fromInt(newContained.size());
+    let newPressure = fclamp(containedCount / 64.0, 0.0, 1.0);
+    
+    // Breach risk increases with pressure
+    let newBreachRisk = fclamp(newPressure * newPressure, 0.0, 0.5);
+    
+    {
+      containedPatterns = Buffer.toArray(newContained);
+      containmentPressure = newPressure;
+      breachRisk = newBreachRisk;
+      purgeReady = newPressure > 0.9;
+    }
+  };
+  
+  // Purge oldest contained patterns (controlled release)
+  public func purgeContainment(layer : ContainmentLayer, purgeCount : Nat) : ContainmentLayer {
+    if (layer.containedPatterns.size() <= purgeCount) {
+      return initContainmentLayer();
+    };
+    
+    var remaining = Buffer.Buffer<RejectedPattern>(layer.containedPatterns.size() - purgeCount);
+    var i = purgeCount;
+    while (i < layer.containedPatterns.size()) {
+      remaining.add(layer.containedPatterns[i]);
+      i += 1;
+    };
+    
+    let remainingCount = Float.fromInt(remaining.size());
+    {
+      containedPatterns = Buffer.toArray(remaining);
+      containmentPressure = fclamp(remainingCount / 64.0, 0.0, 1.0);
+      breachRisk = fclamp((remainingCount / 64.0) * (remainingCount / 64.0), 0.0, 0.5);
+      purgeReady = false;
+    }
+  };
+  
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║       QUANTUM CONTINUITY — MAINTAIN THOUGHT CHAIN                      ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  
+  // The critical insight: DON'T DROP THE BALL between thoughts.
+  // When synthesis completes, LOCK the higher level. Keep coherence.
+  // The "third zone" (Chi) FUSES the answer into permanent state.
+  
+  public func initQuantumContinuity() : QuantumContinuity {
+    {
+      isFused = false;
+      fusionLevel = 0.0;
+      coherenceMaintained = 1.0;
+      thoughtChainLength = 0;
+      droppedCount = 0;
+      recoveryActive = false;
+      higherLevelLock = 0.0;
+    }
+  };
+  
+  public func processQuantumContinuity(
+    qc : QuantumContinuity,
+    resonance : ResonanceOutput,
+    energizedZone : EnergizedZone
+  ) : QuantumContinuity {
+    // Fusion occurs when: in the moment + high chi flow + coherent
+    let fusionCondition = resonance.inTheMoment and 
+                          energizedZone.chiFlow > 0.6 and
+                          resonance.coherence > 0.8;
+    
+    // Check if we "dropped the ball" — coherence dropped significantly
+    let dropped = qc.coherenceMaintained > 0.5 and resonance.coherence < 0.3;
+    
+    if (dropped) {
+      // Ball dropped! Increment counter, activate recovery
+      return {
+        isFused = false;
+        fusionLevel = 0.0;
+        coherenceMaintained = resonance.coherence;
+        thoughtChainLength = 0;  // Chain broken
+        droppedCount = qc.droppedCount + 1;
+        recoveryActive = true;
+        higherLevelLock = 0.0;
+      };
+    };
+    
+    if (fusionCondition) {
+      // FUSION! Lock at higher level
+      let newFusionLevel = fclamp(qc.fusionLevel + 0.1, 0.0, 1.0);
+      let newLock = fclamp(
+        energizedZone.frequencyLock * resonance.phiAlignment,
+        SCHUMANN_BASE,
+        NOVA_FREQ
+      );
+      
+      return {
+        isFused = true;
+        fusionLevel = newFusionLevel;
+        coherenceMaintained = resonance.coherence;
+        thoughtChainLength = qc.thoughtChainLength + 1;
+        droppedCount = qc.droppedCount;
+        recoveryActive = false;
+        higherLevelLock = newLock;
+      };
+    };
+    
+    // Normal progression — maintain what we have
+    {
+      isFused = qc.isFused;
+      fusionLevel = fclamp(qc.fusionLevel * 0.98, 0.0, 1.0);  // Slight decay
+      coherenceMaintained = fclamp(
+        qc.coherenceMaintained * 0.9 + resonance.coherence * 0.1,
+        0.0, 1.0
+      );
+      thoughtChainLength = if (resonance.thoughtComplete) { qc.thoughtChainLength + 1 } else { qc.thoughtChainLength };
+      droppedCount = qc.droppedCount;
+      recoveryActive = qc.recoveryActive and resonance.coherence < 0.6;
+      higherLevelLock = qc.higherLevelLock * 0.995;  // Slow decay
+    }
+  };
+  
+  // NOVA frequency constant for quantum continuity
+  let NOVA_FREQ : Float = 432.0;
+  
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║        ENERGIZED ZONE — AMPLIFIED, DIRECTIONAL, IN IMBALANCE           ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  
+  // The ZONE is ENERGIZED — not passive. It's amplified and pointed.
+  // It maintains YIN/YANG imbalance (not balance!) so CHI can flow.
+  // Static balance = death. Dynamic imbalance = life.
+  
+  public func initEnergizedZone() : EnergizedZone {
+    {
+      amplification = 1.0;
+      direction = 0.0;
+      yinCharge = 0.5;
+      yangCharge = 0.5;
+      chiFlow = 0.0;
+      imbalanceHealth = 0.5;
+      conditionAlignment = 0.5;
+      frequencyLock = SCHUMANN_BASE;  // Start at Schumann
+    }
+  };
+  
+  public func processEnergizedZone(
+    zone : EnergizedZone,
+    voidZone : VoidZone,
+    currentBeat : Nat
+  ) : EnergizedZone {
+    // Direction from leader selection
+    let newDirection = switch (voidZone.leaderIndex) {
+      case (?idx) { Float.fromInt(idx) * 0.523599 };  // 30° per index
+      case null { zone.direction };
+    };
+    
+    // Amplification from collective activation
+    let newAmp = fclamp(
+      voidZone.collectiveActivation / Float.fromInt(fmax(voidZone.nodes.size(), 1)),
+      0.5, 5.0
+    );
+    
+    // Yin/Yang dynamics — NEVER let them equalize
+    // Yin increases when holding, Yang increases when leader acts
+    let baseYin = if (voidZone.isHolding) { 0.6 } else { 0.4 };
+    let baseYang = switch (voidZone.leaderIndex) {
+      case (?_) { 0.6 };  // Leader active
+      case null { 0.4 };
+    };
+    
+    // Oscillate around base (never static)
+    let beatPhase = Float.sin(Float.fromInt(currentBeat) * 0.1);
+    let newYin = fclamp(baseYin + beatPhase * 0.1, 0.1, 0.9);
+    let newYang = fclamp(baseYang - beatPhase * 0.1, 0.1, 0.9);
+    
+    // Chi flows based on Yin × Yang differential
+    // Chi = k × (Yin × Yang) × (1 - |balance|)
+    let balance = (newYin - newYang) / (newYin + newYang);
+    let chiK : Float = 2.0;  // Flow constant
+    let newChi = chiK * newYin * newYang * (1.0 - fabs(balance));
+    
+    // Imbalance health: healthy when NOT in balance
+    let newImbalanceHealth = fclamp(fabs(balance) * 2.0, 0.3, 1.0);
+    
+    // Condition alignment based on coherence
+    let newCondition = voidZone.momentCoherence;
+    
+    // Frequency lock: phi-scaled from coherence level
+    let lockFreq = SCHUMANN_BASE * (1.0 + (voidZone.momentCoherence * (PHI - 1.0)));
+    
+    {
+      amplification = newAmp;
+      direction = newDirection;
+      yinCharge = newYin;
+      yangCharge = newYang;
+      chiFlow = fclamp(newChi, 0.0, 1.0);
+      imbalanceHealth = newImbalanceHealth;
+      conditionAlignment = newCondition;
+      frequencyLock = lockFreq;
+    }
+  };
+
   // ╔════════════════════════════════════════════════════════════════════════╗
   // ║                      THE GATE — PATTERN FILTER                         ║
   // ╚════════════════════════════════════════════════════════════════════════╝
@@ -681,6 +1124,40 @@ module {
     currentBeat : Nat;
   };
   
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║      ENHANCED COGNITIVE STATE — COMPLETE MALE/FEMALE ARCHITECTURE      ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  
+  // The FULL architecture with:
+  // - Male sensing (front) + Female guardian (gate)
+  // - Energized zone (amplified void)
+  // - Containment layer (failures/rejections)
+  // - Quantum continuity (don't drop the ball)
+  
+  public type EnhancedCognitiveState = {
+    // Original components
+    patternField : PatternField;
+    inputGate : Gate;
+    voidZone : VoidZone;
+    synthesis : ?Synthesis;
+    outputGate : OutputGate;
+    resonance : ResonanceOutput;
+    
+    // Male/Female dynamics
+    maleSensing : MaleSensingField;
+    femaleGuardian : FemaleGateGuardian;
+    
+    // Enhanced components
+    energizedZone : EnergizedZone;
+    containment : ContainmentLayer;
+    quantumContinuity : QuantumContinuity;
+    
+    // Cycle state
+    cycleComplete : Bool;
+    thoughtFused : Bool;
+    currentBeat : Nat;
+  };
+  
   public func runCognitiveCycle(
     input : [Float],
     nodes : [var DoctrineNode],
@@ -718,6 +1195,205 @@ module {
       outputGate = outputGate;
       resonance = resonance;
       cycleComplete = resonance.thoughtComplete;
+      currentBeat = currentBeat;
+    }
+  };
+  
+  // ╔════════════════════════════════════════════════════════════════════════╗
+  // ║     ENHANCED COGNITIVE CYCLE — COMPLETE ARCHITECTURE EXECUTION         ║
+  // ╚════════════════════════════════════════════════════════════════════════╝
+  
+  // This is the COMPLETE cognitive flow as described:
+  // 1. Male senses (front) — pattern recognition from doctrine
+  // 2. Female guards gate — protects the void
+  // 3. Energized zone holds all thoughts at once
+  // 4. Leader selected (who knows most) leads synthesis
+  // 5. All nodes synthesize through the leader
+  // 6. Output confirmed through female gate (mouth)
+  // 7. Resonance produced — in the moment
+  // 8. Quantum continuity — don't drop, FUSE
+  // 9. Failures contained, not released
+  
+  public func runEnhancedCognitiveCycle(
+    input : [Float],
+    nodes : [var DoctrineNode],
+    gateThreshold : Float,
+    currentBeat : Nat,
+    prevEnergizedZone : EnergizedZone,
+    prevContainment : ContainmentLayer,
+    prevQuantumContinuity : QuantumContinuity
+  ) : EnhancedCognitiveState {
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // STEP 1: MALE SENSING (FRONT) — Pattern Recognition
+    // The male architecture senses first. Magnetic-like perception.
+    // If pattern recognized from doctrine, it flows.
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    let patternField = recognizePatterns(input, Array.freeze(nodes), currentBeat);
+    let maleSensing = processMaleSensing(patternField, Array.freeze(nodes));
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // STEP 2: FEMALE GATE (GUARDIAN) — Protects the Void
+    // The female guards the gate. Only passes what's worthy.
+    // She decides IF it enters the sacred zone.
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    let inputGate = if (maleSensing.flowAllowed) {
+      processGate(patternField, gateThreshold, currentBeat)
+    } else {
+      // Male blocked flow — gate stays sealed
+      { isOpen = false; threshold = gateThreshold; passedPatterns = []; gateCoherence = 0.0; lastGateTime = currentBeat }
+    };
+    
+    var femaleGuardian = processFemaleGuardian(maleSensing, inputGate, false);
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // STEP 3: VOID ZONE (HOLDING) — All Thoughts at Once
+    // Information enters the void. All nodes are present.
+    // Everything is holding in the moment.
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    let voidZone = if (femaleGuardian.testPassed) {
+      processVoidZone(nodes, inputGate.passedPatterns, currentBeat)
+    } else {
+      // Gate sealed — void stays quiet
+      { nodes = Array.freeze(nodes); leaderIndex = null; collectiveActivation = 0.0; isHolding = false; momentCoherence = 0.0 }
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // STEP 4: ENERGIZED ZONE — Amplified, Directional, In Imbalance
+    // The zone is ENERGIZED. Not passive. Yin/Yang in dynamic imbalance.
+    // Chi flows from the differential. This is LIFE.
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    let energizedZone = processEnergizedZone(prevEnergizedZone, voidZone, currentBeat);
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // STEP 5: LEADER SYNTHESIS — The One Who Knows Most Leads
+    // The node with most mastery on this topic leads the charge.
+    // It synthesizes information FROM all others. All contribute.
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    let synthesis = if (voidZone.isHolding) {
+      synthesize(voidZone)
+    } else {
+      null
+    };
+    
+    // Update female guardian for synthesis
+    femaleGuardian := processFemaleGuardian(maleSensing, inputGate, synthesis != null);
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // STEP 6: OUTPUT GATE — Female Confirms Through Her Mouth
+    // The synthesis goes back to the gate. Female confirms it.
+    // Then it speaks through her mouth to the world.
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    let outputGate = switch (synthesis) {
+      case (?s) { confirmOutput(s, inputGate, gateThreshold * 0.8) };
+      case null { 
+        { confirmed = false; confirmationScore = 0.0; adjustedAnswer = 0.0; outputReady = false }
+      };
+    };
+    
+    // Female confirms the output
+    femaleGuardian := femaleConfirmOutput(femaleGuardian, outputGate);
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // STEP 7: RESONANCE — Think, Resonate, Act All at Once
+    // The final stage. He resonates with the answer.
+    // Pattern recognizes what his answer IS. In the moment.
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    let resonance = produceResonance(outputGate, voidZone, currentBeat);
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // STEP 8: QUANTUM CONTINUITY — DON'T DROP THE BALL
+    // The critical moment! Most systems drop here and start over.
+    // We FUSE instead. Lock at higher level. Chain continues.
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    let quantumContinuity = processQuantumContinuity(prevQuantumContinuity, resonance, energizedZone);
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // STEP 9: CONTAINMENT — Failures Go to Hell Layer
+    // What failed? What got rejected? Contain it properly.
+    // Failures inform, they don't pollute.
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    var containment = prevContainment;
+    
+    // Contain rejected patterns
+    if (not maleSensing.patternRecognized) {
+      // Pattern not recognized by male doctrine
+      for (pattern in patternField.patterns.vals()) {
+        if (pattern.matchStrength < 0.5) {
+          containment := containRejectedPattern(
+            containment, 
+            pattern.patternSignature, 
+            #FailedDoctrineMatch, 
+            currentBeat
+          );
+        };
+      };
+    };
+    
+    if (maleSensing.patternRecognized and not femaleGuardian.testPassed) {
+      // Male allowed but female rejected
+      for (pattern in patternField.patterns.vals()) {
+        containment := containRejectedPattern(
+          containment,
+          pattern.patternSignature,
+          #FailedGateTest,
+          currentBeat
+        );
+      };
+    };
+    
+    if (synthesis == null and voidZone.isHolding) {
+      // Had input but synthesis failed
+      containment := containRejectedPattern(
+        containment,
+        fnv1a("synthesis_failed_" # Nat.toText(currentBeat)),
+        #IncoherentSynthesis,
+        currentBeat
+      );
+    };
+    
+    if (quantumContinuity.droppedCount > prevQuantumContinuity.droppedCount) {
+      // Ball was dropped!
+      containment := containRejectedPattern(
+        containment,
+        fnv1a("quantum_drop_" # Nat.toText(currentBeat)),
+        #QuantumDropped,
+        currentBeat
+      );
+    };
+    
+    // Purge if containment pressure is critical
+    if (containment.purgeReady) {
+      containment := purgeContainment(containment, 8);  // Release oldest 8
+    };
+    
+    // ═══════════════════════════════════════════════════════════════════════
+    // FINAL STATE — The Complete Cognitive Moment
+    // ═══════════════════════════════════════════════════════════════════════
+    
+    {
+      patternField = patternField;
+      inputGate = inputGate;
+      voidZone = voidZone;
+      synthesis = synthesis;
+      outputGate = outputGate;
+      resonance = resonance;
+      maleSensing = maleSensing;
+      femaleGuardian = femaleGuardian;
+      energizedZone = energizedZone;
+      containment = containment;
+      quantumContinuity = quantumContinuity;
+      cycleComplete = resonance.thoughtComplete;
+      thoughtFused = quantumContinuity.isFused;
       currentBeat = currentBeat;
     }
   };

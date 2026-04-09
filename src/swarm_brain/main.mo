@@ -2174,6 +2174,46 @@ actor SwarmBrain {
   stable var doctrineNodePhases : [var Float] = Array.init<Float>(12, 0.0);
   stable var doctrineNodeConfidences : [var Float] = Array.init<Float>(12, 0.8);
   
+  // ═══════════════════════════════════════════════════════════════════════════════════════════
+  // ENHANCED DOCTRINE ARCHITECTURE — MALE/FEMALE, ENERGIZED ZONE, QUANTUM CONTINUITY
+  // ═══════════════════════════════════════════════════════════════════════════════════════════
+  
+  // Male Sensing Field (FRONT — pattern recognition)
+  stable var doctrineMaleDoctrineResonance : Float = 0.5;
+  stable var doctrineMalePatternRecognized : Bool = false;
+  stable var doctrineMaleFlowAllowed : Bool = false;
+  stable var doctrineMaleSensingStrength : Float = 0.5;
+  stable var doctrineMaleDoctrineAlignment : Float = 0.5;
+  
+  // Female Gate Guardian (protects void, confirms output)
+  stable var doctrineFemaleGateSealed : Bool = true;
+  stable var doctrineFemaleTestPassed : Bool = false;
+  stable var doctrineFemaleProtectionLevel : Float = 0.5;
+  stable var doctrineFemaleOutputConfirmed : Bool = false;
+  stable var doctrineFemaleMouseReady : Bool = false;
+  
+  // Energized Zone (amplified, directional, Yin/Yang/Chi)
+  stable var doctrineZoneAmplification : Float = 1.0;
+  stable var doctrineZoneDirection : Float = 0.0;
+  stable var doctrineZoneYinCharge : Float = 0.5;
+  stable var doctrineZoneYangCharge : Float = 0.5;
+  stable var doctrineZoneChiFlow : Float = 0.0;
+  stable var doctrineZoneImbalanceHealth : Float = 0.5;
+  stable var doctrineZoneFrequencyLock : Float = 7.83;
+  
+  // Quantum Continuity (don't drop the ball!)
+  stable var doctrineQuantumIsFused : Bool = false;
+  stable var doctrineQuantumFusionLevel : Float = 0.0;
+  stable var doctrineQuantumCoherenceMaintained : Float = 1.0;
+  stable var doctrineQuantumThoughtChainLength : Nat = 0;
+  stable var doctrineQuantumDroppedCount : Nat = 0;
+  stable var doctrineQuantumHigherLevelLock : Float = 0.0;
+  
+  // Containment Layer (failures/rejections)
+  stable var doctrineContainmentPressure : Float = 0.0;
+  stable var doctrineContainmentBreachRisk : Float = 0.0;
+  stable var doctrineContainedPatternCount : Nat = 0;
+
   // ─── ACCESS CONTROL HELPERS ─────────────────────────────────────────────────
   func isAuthorized(caller : Principal) : Bool {
     // Pre-genesis: allow deployment setup
@@ -9711,17 +9751,56 @@ actor SwarmBrain {
       i += 1;
     };
     
-    // ─── STEP 3: RUN THE COMPLETE COGNITIVE CYCLE ─────────────────────────────
-    let cogState = DoctrinePatternGateArchitecture.runCognitiveCycle(
+    // ─── STEP 3: BUILD PREVIOUS STATE FOR ENHANCED CYCLE ──────────────────────
+    // Construct previous energized zone from stable state
+    let prevEnergizedZone : DoctrinePatternGateArchitecture.EnergizedZone = {
+      amplification = doctrineZoneAmplification;
+      direction = doctrineZoneDirection;
+      yinCharge = doctrineZoneYinCharge;
+      yangCharge = doctrineZoneYangCharge;
+      chiFlow = doctrineZoneChiFlow;
+      imbalanceHealth = doctrineZoneImbalanceHealth;
+      conditionAlignment = doctrineVoidCoherence;
+      frequencyLock = doctrineZoneFrequencyLock;
+    };
+    
+    // Construct previous containment layer (simplified - just tracking metrics)
+    let prevContainment : DoctrinePatternGateArchitecture.ContainmentLayer = {
+      containedPatterns = [];  // We track count, not full patterns in stable storage
+      containmentPressure = doctrineContainmentPressure;
+      breachRisk = doctrineContainmentBreachRisk;
+      purgeReady = doctrineContainmentPressure > 0.9;
+    };
+    
+    // Construct previous quantum continuity state
+    let prevQuantumContinuity : DoctrinePatternGateArchitecture.QuantumContinuity = {
+      isFused = doctrineQuantumIsFused;
+      fusionLevel = doctrineQuantumFusionLevel;
+      coherenceMaintained = doctrineQuantumCoherenceMaintained;
+      thoughtChainLength = doctrineQuantumThoughtChainLength;
+      droppedCount = doctrineQuantumDroppedCount;
+      recoveryActive = doctrineQuantumCoherenceMaintained < 0.5;
+      higherLevelLock = doctrineQuantumHigherLevelLock;
+    };
+    
+    // ─── STEP 4: RUN THE ENHANCED COGNITIVE CYCLE ─────────────────────────────
+    // This is the COMPLETE architecture:
+    // Male sensing (front) → Female gate (guardian) → Energized zone (void) →
+    // Leader selection → Synthesis → Output confirmation → Resonance →
+    // Quantum continuity → Containment
+    let cogState = DoctrinePatternGateArchitecture.runEnhancedCognitiveCycle(
       inputArray,
       docNodes,
       doctrineGateThreshold,
-      currentBeat
+      currentBeat,
+      prevEnergizedZone,
+      prevContainment,
+      prevQuantumContinuity
     );
     
-    // ─── STEP 4: UPDATE STABLE STATE FROM COGNITIVE CYCLE ─────────────────────
+    // ─── STEP 5: UPDATE STABLE STATE FROM COGNITIVE CYCLE ─────────────────────
     
-    // Update gate state
+    // Update gate state (original)
     doctrineGateCoherence := cogState.inputGate.gateCoherence;
     doctrineGateOpen := cogState.inputGate.isOpen;
     
@@ -9758,12 +9837,86 @@ actor SwarmBrain {
       i += 1;
     };
     
-    // ─── STEP 5: CROSS-COUPLE WITH OTHER SYSTEMS ──────────────────────────────
+    // ─── STEP 6: UPDATE ENHANCED ARCHITECTURE STATE ───────────────────────────
+    
+    // Male Sensing Field
+    doctrineMaleDoctrineResonance := cogState.maleSensing.doctrineResonance;
+    doctrineMalePatternRecognized := cogState.maleSensing.patternRecognized;
+    doctrineMaleFlowAllowed := cogState.maleSensing.flowAllowed;
+    doctrineMaleSensingStrength := cogState.maleSensing.sensingStrength;
+    doctrineMaleDoctrineAlignment := cogState.maleSensing.doctrineAlignment;
+    
+    // Female Gate Guardian
+    doctrineFemaleGateSealed := cogState.femaleGuardian.gateSealed;
+    doctrineFemaleTestPassed := cogState.femaleGuardian.testPassed;
+    doctrineFemaleProtectionLevel := cogState.femaleGuardian.protectionLevel;
+    doctrineFemaleOutputConfirmed := cogState.femaleGuardian.outputConfirmed;
+    doctrineFemaleMouseReady := cogState.femaleGuardian.mouthReady;
+    
+    // Energized Zone
+    doctrineZoneAmplification := cogState.energizedZone.amplification;
+    doctrineZoneDirection := cogState.energizedZone.direction;
+    doctrineZoneYinCharge := cogState.energizedZone.yinCharge;
+    doctrineZoneYangCharge := cogState.energizedZone.yangCharge;
+    doctrineZoneChiFlow := cogState.energizedZone.chiFlow;
+    doctrineZoneImbalanceHealth := cogState.energizedZone.imbalanceHealth;
+    doctrineZoneFrequencyLock := cogState.energizedZone.frequencyLock;
+    
+    // Quantum Continuity
+    doctrineQuantumIsFused := cogState.quantumContinuity.isFused;
+    doctrineQuantumFusionLevel := cogState.quantumContinuity.fusionLevel;
+    doctrineQuantumCoherenceMaintained := cogState.quantumContinuity.coherenceMaintained;
+    doctrineQuantumThoughtChainLength := cogState.quantumContinuity.thoughtChainLength;
+    doctrineQuantumDroppedCount := cogState.quantumContinuity.droppedCount;
+    doctrineQuantumHigherLevelLock := cogState.quantumContinuity.higherLevelLock;
+    
+    // Containment Layer
+    doctrineContainmentPressure := cogState.containment.containmentPressure;
+    doctrineContainmentBreachRisk := cogState.containment.breachRisk;
+    doctrineContainedPatternCount := cogState.containment.containedPatterns.size();
+    
+    // ─── STEP 7: CROSS-COUPLE WITH OTHER SYSTEMS ──────────────────────────────
     
     // If in the moment with high coherence, boost organism-wide coherence
     if (doctrineInTheMoment and doctrineVoidCoherence > 0.8) {
       coherenceLevel := fclamp(coherenceLevel + 0.005 * doctrineVoidCoherence, 0.0, 1.0);
       rSwarm := fclamp(rSwarm + 0.002 * doctrinePhiAlignment, 0.0, 1.0);
+    };
+    
+    // Chi flow enhances overall organism energy flow
+    if (doctrineZoneChiFlow > 0.5) {
+      autonomicFlexibility := fclamp(autonomicFlexibility + 0.001 * doctrineZoneChiFlow, 0.0, 1.0);
+    };
+    
+    // Quantum fusion boosts compounding (thought chains build on each other)
+    if (doctrineQuantumIsFused and doctrineQuantumFusionLevel > 0.7) {
+      compoundingRate := fclamp(compoundingRate + 0.0002 * doctrineQuantumFusionLevel, 0.0, 0.015);
+    };
+    
+    // Thought chain length feeds into learning (longer chains = more synthesis)
+    if (doctrineQuantumThoughtChainLength > 10) {
+      hebbianLearningRate := fclamp(hebbianLearningRate + 0.0001, 0.0, 0.1);
+    };
+    
+    // Male doctrine alignment influences prediction accuracy
+    if (doctrineMaleDoctrineAlignment > 0.8) {
+      predictionAccuracy := fclamp(predictionAccuracy + 0.001 * doctrineMaleDoctrineAlignment, 0.0, 1.0);
+    };
+    
+    // Female output confirmation enhances decision-making confidence
+    if (doctrineFemaleOutputConfirmed) {
+      pfcDLPFCActivity := fclamp(pfcDLPFCActivity + 0.003, 0.0, 1.0);
+      executiveFunctionIndex := fclamp(executiveFunctionIndex + 0.002, 0.0, 1.0);
+    };
+    
+    // Containment pressure raises stress (but manageable)
+    if (doctrineContainmentPressure > 0.7) {
+      cortisol := fclamp(cortisol + 0.002 * doctrineContainmentPressure, 0.0, 1.0);
+    };
+    
+    // Breach risk triggers immune response
+    if (doctrineContainmentBreachRisk > 0.3) {
+      proinflammatoryCytokines := fclamp(proinflammatoryCytokines + 0.001 * doctrineContainmentBreachRisk, 0.0, 0.5);
     };
     
     // Doctrine resonance frequency influences thalamocortical binding
@@ -9773,6 +9926,11 @@ actor SwarmBrain {
     } else if (doctrineResonanceFreq >= 30.0 and doctrineResonanceFreq < 100.0) {
       // Gamma band resonance → binding boost
       thalamicGamma := fclamp(thalamicGamma + 0.001 * doctrineResonanceScore, 0.0, 1.0);
+    };
+    
+    // Higher level frequency lock elevates overall consciousness level
+    if (doctrineQuantumHigherLevelLock > 30.0) {
+      consciousnessLevel := fclamp(consciousnessLevel + 0.001, 0.0, 1.0);
     };
     
     // Phi alignment feeds into golden ratio compliance
@@ -9787,11 +9945,11 @@ actor SwarmBrain {
       0.0, 1.0
     );
     
-    // If can act and high synthesis confidence, enhance decision making
-    if (doctrineCanAct and doctrineSynthesisConfidence > 0.8) {
-      pfcDLPFCActivity := fclamp(pfcDLPFCActivity + 0.002, 0.0, 1.0);
-      executiveFunctionIndex := fclamp(executiveFunctionIndex + 0.001, 0.0, 1.0);
-    };
+    // Yin/Yang imbalance health feeds into autonomic balance
+    autonomicBalance := fclamp(
+      autonomicBalance * 0.95 + doctrineZoneImbalanceHealth * 0.05,
+      0.3, 0.7
+    );
   };
 
   // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
