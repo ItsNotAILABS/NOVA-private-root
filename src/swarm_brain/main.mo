@@ -2190,7 +2190,7 @@ actor SwarmBrain {
   stable var doctrineFemaleTestPassed : Bool = false;
   stable var doctrineFemaleProtectionLevel : Float = 0.5;
   stable var doctrineFemaleOutputConfirmed : Bool = false;
-  stable var doctrineFemaleMouseReady : Bool = false;
+  stable var doctrineFemaleMouthReady : Bool = false;
   
   // Energized Zone (amplified, directional, Yin/Yang/Chi)
   stable var doctrineZoneAmplification : Float = 1.0;
@@ -9851,7 +9851,7 @@ actor SwarmBrain {
     doctrineFemaleTestPassed := cogState.femaleGuardian.testPassed;
     doctrineFemaleProtectionLevel := cogState.femaleGuardian.protectionLevel;
     doctrineFemaleOutputConfirmed := cogState.femaleGuardian.outputConfirmed;
-    doctrineFemaleMouseReady := cogState.femaleGuardian.mouthReady;
+    doctrineFemaleMouthReady := cogState.femaleGuardian.mouthReady;
     
     // Energized Zone
     doctrineZoneAmplification := cogState.energizedZone.amplification;
