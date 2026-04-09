@@ -233,6 +233,9 @@ import CounterforceOperations        "./modules/CounterforceOperations";
 import FullConstructiveStack         "./modules/FullConstructiveStack";
 import FullRedAntiOrganismStack      "./modules/FullRedAntiOrganismStack";
 import AntiOrganismDefense           "./modules/AntiOrganismDefense";
+import MemoryTempleIoTHub            "./modules/MemoryTempleIoTHub";
+import ElectromagneticWarfareEngine  "./modules/ElectromagneticWarfareEngine";
+import FrequencyWarfareSystem        "./modules/FrequencyWarfareSystem";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SPHERICAL QUANTUM HEARTBEAT & NEUROCHEMICAL INTEGRATION
@@ -1139,6 +1142,15 @@ actor SwarmBrain {
   var fullRedAntiOrganismStackState : FullRedAntiOrganismStack.FullRedStackState =
     FullRedAntiOrganismStack.initFullRedStack();
 
+  var memoryTempleIoTState : MemoryTempleIoTHub.MemoryTempleIoTHubState =
+    MemoryTempleIoTHub.initMemoryTempleIoTHub();
+
+  var emWarfareState : ElectromagneticWarfareEngine.EMWarfareState =
+    ElectromagneticWarfareEngine.initEMWarfare();
+
+  var frequencyWarfareState : FrequencyWarfareSystem.FrequencyWarfareState =
+    FrequencyWarfareSystem.initFrequencyWarfare();
+
   // Temple metrics (stable for persistence)
   stable var templeIntegrity : Float = 1.0;          // Overall temple health
   stable var warDefenseReadiness : Float = 1.0;      // System 7 readiness
@@ -1164,6 +1176,16 @@ actor SwarmBrain {
   stable var deterrenceEffectiveness : Float = 0.0;  // Deterrence operator effectiveness
   stable var orchestrationQuality : Float = 0.0;     // Campaign orchestration quality
   stable var adversaryPressure : Float = 0.0;        // Pressure on adversaries
+
+  // Frequency & EM Warfare metrics (stable for persistence)
+  stable var iotDevicesConnected : Nat = 0;          // Connected IoT devices
+  stable var iotHubCoherence : Float = 1.0;          // IoT hub coherence
+  stable var emOffensivePower : Float = 0.0;         // EM offensive power
+  stable var emDefensivePower : Float = 0.0;         // EM defensive power
+  stable var emFieldControl : Float = 1.0;           // EM field control
+  stable var frequencyWarfarePower : Float = 0.0;    // Frequency warfare capability
+  stable var phoneFrequencyActive : Bool = false;    // Phone frequency ops active
+  stable var droneFrequencyWeapons : Nat = 0;        // Drone frequency weapons deployed
 
   // ─── NEUROCHEMICAL STATISTICS ────────────────────────────────────────────────
   stable var totalNeurochemicalUpdates : Nat = 0;
@@ -2998,7 +3020,10 @@ actor SwarmBrain {
       tickWarDefenseTemple();
       tickOffenseDefenseCoordination();
       tickCounterforce();
-      modulesCalledThisBeat += 3;
+      tickMemoryTempleIoT();
+      tickEMWarfare();
+      tickFrequencyWarfare();
+      modulesCalledThisBeat += 6;
 
       defenseLayerActive := true;
     };
@@ -21088,6 +21113,47 @@ actor SwarmBrain {
     };
   };
 
+  func tickMemoryTempleIoT() {
+    // Update frequency coupling for all IoT devices
+    let dt = 1.0 / 12.0;  // 12 Hz heartbeat = 0.0833s per beat
+    memoryTempleIoTState := MemoryTempleIoTHub.updateFrequencyCoupling(
+      memoryTempleIoTState,
+      dt
+    );
+
+    // Update stable metrics
+    iotDevicesConnected := memoryTempleIoTState.totalDevices;
+    iotHubCoherence := memoryTempleIoTState.hubCoherence;
+  };
+
+  func tickEMWarfare() {
+    // Update electromagnetic warfare state
+    let dt = 1.0 / 12.0;  // 12 Hz heartbeat = 0.0833s per beat
+    emWarfareState := ElectromagneticWarfareEngine.updateEMWarfare(
+      emWarfareState,
+      dt
+    );
+
+    // Update stable metrics
+    emOffensivePower := emWarfareState.offensivePower;
+    emDefensivePower := emWarfareState.defensivePower;
+    emFieldControl := emWarfareState.fieldControl;
+  };
+
+  func tickFrequencyWarfare() {
+    // Update frequency warfare state
+    let dt = 1.0 / 12.0;  // 12 Hz heartbeat = 0.0833s per beat
+    frequencyWarfareState := FrequencyWarfareSystem.updateFrequencyWarfare(
+      frequencyWarfareState,
+      dt
+    );
+
+    // Update stable metrics
+    frequencyWarfarePower := frequencyWarfareState.totalWarfarePower;
+    phoneFrequencyActive := frequencyWarfareState.phoneOps.active;
+    droneFrequencyWeapons := frequencyWarfareState.droneFormation.drones.size();
+  };
+
   // ═══════════════════════════════════════════════════════════════════════════
   // WAR-DEFENSE TEMPLE PUBLIC API
   // Systems 7, 9, 10 — Mission activation and warfare coordination
@@ -21184,6 +21250,129 @@ actor SwarmBrain {
       geometric,
       helix,
       frequency
+    );
+  };
+
+  // ─── IoT HUB OPERATIONS ───────────────────────────────────────────────────
+
+  public shared(msg) func registerIoTDevice(
+    deviceId: Text,
+    deviceType: Text,
+    protocol: Text
+  ) : async Nat {
+    let deviceTypeEnum = switch (deviceType) {
+      case ("Sensor") { #Sensor };
+      case ("Drone") { #Drone };
+      case ("Camera") { #Camera };
+      case ("Audio") { #Audio };
+      case ("Gateway") { #Gateway };
+      case ("Edge") { #Edge };
+      case ("Medical") { #Medical };
+      case ("Industrial") { #Industrial };
+      case ("SmartHome") { #SmartHome };
+      case ("Wearable") { #Wearable };
+      case ("Vehicle") { #Vehicle };
+      case ("Actuator") { #Actuator };
+      case _ { #Sensor };
+    };
+
+    let protocolEnum = switch (protocol) {
+      case ("MQTT") { #MQTT };
+      case ("HTTP") { #HTTP };
+      case ("CoAP") { #CoAP };
+      case ("LoRa") { #LoRa };
+      case ("Zigbee") { #Zigbee };
+      case ("BLE") { #BLE };
+      case ("Modbus") { #Modbus };
+      case ("OPC_UA") { #OPC_UA };
+      case ("Frequency") { #Frequency };
+      case _ { #MQTT };
+    };
+
+    let (newState, phiNode) = MemoryTempleIoTHub.registerDevice(
+      memoryTempleIoTState,
+      deviceId,
+      deviceTypeEnum,
+      protocolEnum,
+      null
+    );
+    memoryTempleIoTState := newState;
+    phiNode
+  };
+
+  // ─── ELECTROMAGNETIC WARFARE OPERATIONS ───────────────────────────────────
+
+  public shared(msg) func activateEMPulse(
+    frequency: Float,
+    amplitude: Float,
+    duration: Nat,
+    targetArea: Float
+  ) : async () {
+    emWarfareState := ElectromagneticWarfareEngine.activateEMP(
+      emWarfareState,
+      frequency,
+      amplitude,
+      duration,
+      targetArea
+    );
+  };
+
+  public shared(msg) func activateEMShield(
+    shieldType: Text,
+    radius: Float,
+    withHelix: Bool
+  ) : async () {
+    emWarfareState := ElectromagneticWarfareEngine.activateEMShield(
+      emWarfareState,
+      shieldType,
+      radius,
+      withHelix
+    );
+  };
+
+  public shared(msg) func activatePhiSpiralField(
+    droneCount: Nat
+  ) : async () {
+    emWarfareState := ElectromagneticWarfareEngine.activatePhiSpiralField(
+      emWarfareState,
+      droneCount
+    );
+  };
+
+  // ─── FREQUENCY WARFARE OPERATIONS ─────────────────────────────────────────
+
+  public shared(msg) func deployDroneFrequencyWeapon(
+    droneId: Nat,
+    weaponType: Text,
+    frequency: Float,
+    targetType: Text
+  ) : async () {
+    frequencyWarfareState := FrequencyWarfareSystem.deployDroneFrequencyWeapon(
+      frequencyWarfareState,
+      droneId,
+      weaponType,
+      frequency,
+      targetType
+    );
+  };
+
+  public shared(msg) func activatePhoneFrequencyDefense(
+    activityFrequencies: [Float]
+  ) : async () {
+    frequencyWarfareState := FrequencyWarfareSystem.activatePhoneFrequencyDefense(
+      frequencyWarfareState,
+      activityFrequencies
+    );
+  };
+
+  public shared(msg) func activateResonanceDoS(
+    targetResonance: Float,
+    attackFrequency: Float
+  ) : async () {
+    frequencyWarfareState := FrequencyWarfareSystem.activateResonanceDoS(
+      frequencyWarfareState,
+      targetResonance,
+      attackFrequency
     );
   };
 
