@@ -21282,6 +21282,50 @@ actor SwarmBrain {
     );
   };
 
+  // ─── WAR-DEFENSE MODE CONTROLLER ACTIVATION ───────────────────────────────
+
+  public shared(msg) func setWarDefenseMode(mode: Text) : async () {
+    let newMode = switch (mode) {
+      case ("Build") #Build;
+      case ("Guard") #Guard;
+      case ("WarDefense") #WarDefense;
+      case ("Recovery") #Recovery;
+      case _ #Build;  // Default to Build
+    };
+    warDefenseModeState := WarDefenseModeController.setMode(
+      warDefenseModeState,
+      newMode
+    );
+  };
+
+  public shared(msg) func escalateWarDefensePosture(
+    threatLevel: Float
+  ) : async () {
+    warDefenseModeState := WarDefenseModeController.escalatePosture(
+      warDefenseModeState,
+      threatLevel
+    );
+  };
+
+  public shared(msg) func enterWarDefenseMode() : async () {
+    warDefenseModeState := WarDefenseModeController.setMode(
+      warDefenseModeState,
+      #WarDefense
+    );
+    // Auto-escalate to at least WD2_Alert
+    warDefenseModeState := WarDefenseModeController.escalatePosture(
+      warDefenseModeState,
+      0.5  // Threat level 0.5 = WD2_Alert
+    );
+  };
+
+  public shared(msg) func exitWarDefenseMode() : async () {
+    warDefenseModeState := WarDefenseModeController.setMode(
+      warDefenseModeState,
+      #Recovery
+    );
+  };
+
   // ─── OFFENSIVE OPERATIONS ─────────────────────────────────────────────────
 
   public shared(msg) func activateDroneOffensive(
@@ -21669,6 +21713,77 @@ actor SwarmBrain {
       survivalProbability = warDefenseTempleState.regeneration.survivalProbability;
       regenerationCapacity = warDefenseTempleState.regeneration.regenerationCapacity;
       collapseDetected = warDefenseTempleState.regeneration.collapseDetected;
+    }
+  };
+
+  // ─── QUERY: Get War-Defense Mode Controller State ────────────────────────────
+  public query func getWarDefenseModeState() : async {
+    mode: Text;
+    posture: Nat;
+    threatScore: Float;
+    gateStrictness: Float;
+    containmentDepth: Nat;
+    rollbackTier: Nat;
+    interfaceLockdown: Bool;
+    continuityScore: Float;
+    coherenceScore: Float;
+    integrityScore: Float;
+    driftScore: Float;
+    bypassScore: Float;
+    escapeScore: Float;
+    // Defensive classes
+    sentinelSensitivity: Float;
+    verifierStrength: Float;
+    gatekeeperStrictness: Float;
+    resonanceQuality: Float;
+    cartographerThreatsTracked: Nat;
+    guardianShieldsActive: Bool;
+    restorerRecoveryReady: Bool;
+    // Offensive classes
+    scoutsDeployed: Nat;
+    adversariesProfiled: Nat;
+    trapsDeployed: Nat;
+    huntsActive: Nat;
+    pathwaysCut: Nat;
+    dislocationsExecuted: Nat;
+    spoofCampaignsDetected: Nat;
+    evidenceChainsBuilt: Nat;
+    resilienceSignals: Nat;
+    campaignsActive: Nat;
+  } {
+    {
+      mode = warDefenseMode;
+      posture = warDefensePosture;
+      threatScore = warDefenseThreatScore;
+      gateStrictness = warDefenseGateStrictness;
+      containmentDepth = warDefenseContainmentDepth;
+      rollbackTier = warDefenseModeState.rollbackTier;
+      interfaceLockdown = warDefenseInterfaceLockdown;
+      continuityScore = warDefenseContinuityScore;
+      coherenceScore = warDefenseCoherenceScore;
+      integrityScore = warDefenseIntegrityScore;
+      driftScore = warDefenseModeState.driftScore;
+      bypassScore = warDefenseModeState.bypassScore;
+      escapeScore = warDefenseModeState.escapeScore;
+      // Defensive classes
+      sentinelSensitivity = warDefenseModeState.sentinel.sensitivityLevel;
+      verifierStrength = warDefenseModeState.verifier.verificationStrength;
+      gatekeeperStrictness = warDefenseModeState.gatekeeper.gateStrictness;
+      resonanceQuality = warDefenseModeState.resonanceCore.resonanceQuality;
+      cartographerThreatsTracked = warDefenseModeState.cartographer.threatsTracked;
+      guardianShieldsActive = warDefenseModeState.guardian.shieldsActive;
+      restorerRecoveryReady = warDefenseModeState.restorer.recoveryPathComputed;
+      // Offensive classes
+      scoutsDeployed = warDefenseModeState.scout.scoutsDeployed;
+      adversariesProfiled = warDefenseModeState.profiler.adversariesProfiled;
+      trapsDeployed = warDefenseModeState.trapweaver.trapsDeployed;
+      huntsActive = warDefenseModeState.hunter.huntsActive;
+      pathwaysCut = warDefenseModeState.interdictor.pathwaysCut;
+      dislocationsExecuted = warDefenseModeState.dislocator.dislocationsExecuted;
+      spoofCampaignsDetected = warDefenseModeState.counterDeceiver.spoofCampaignsDetected;
+      evidenceChainsBuilt = warDefenseModeState.pursuitForensics.evidenceChainsBuilt;
+      resilienceSignals = warDefenseModeState.deterrenceOperator.resilienceSignals;
+      campaignsActive = warDefenseModeState.campaignOrchestrator.campaignsActive;
     }
   };
 
