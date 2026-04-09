@@ -267,6 +267,8 @@ module {
   public let PHI_FOURTH : Float = 6.8541019662496845446;    // φ⁴
   public let PI : Float = 3.14159265358979323846;           // π
   public let TAU : Float = 6.28318530717958647692;          // 2π
+  public let E : Float = 2.71828182845904523536;            // Euler's number e
+  public let E_20 : Float = 485165195.409790;               // e^20 — upper bound for fexp
   
   // ICOSAHEDRAL SACRED NUMBERS
   public let ICOSA_VERTICES : Nat = 12;     // 12 PHI frequency nodes
@@ -1526,16 +1528,16 @@ module {
     if (x <= 0.0) { return -1000.0 };  // Undefined, return large negative
     if (x == 1.0) { return 0.0 };
     
-    // Normalize to [0.5, 2] range
+    // Normalize to [0.5, 2] range using E constant
     var val = x;
     var adjustment : Float = 0.0;
     
     while (val > 2.0) {
-      val := val / 2.71828182845904523536;  // e
+      val := val / E;
       adjustment += 1.0;
     };
     while (val < 0.5) {
-      val := val * 2.71828182845904523536;
+      val := val * E;
       adjustment -= 1.0;
     };
     
@@ -1549,11 +1551,11 @@ module {
     y - y2 / 2.0 + y3 / 3.0 - y4 / 4.0 + y5 / 5.0 + adjustment
   };
   
-  // Exponential function approximation
+  // Exponential function approximation using Taylor series
   func fexp(x : Float) : Float {
     if (x == 0.0) { return 1.0 };
-    if (x > 20.0) { return 485165195.409790; };  // e^20 approx
-    if (x < -20.0) { return 0.0 };
+    if (x > 20.0) { return E_20; };  // e^20 — prevents overflow
+    if (x < -20.0) { return 0.0 };   // e^(-20) ≈ 0
     
     // Taylor series: e^x = 1 + x + x²/2! + x³/3! + x⁴/4! + ...
     var result : Float = 1.0;
