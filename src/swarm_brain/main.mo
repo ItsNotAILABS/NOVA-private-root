@@ -369,6 +369,10 @@ import TensorFieldEngine                             "./modules/TensorFieldEngin
 import TopologicalFieldEngine                        "./modules/TopologicalFieldEngine";
 import TriModalSwarmKernel                           "./modules/TriModalSwarmKernel";
 import AntiOrganismDefenseArchitecture               "./modules/AntiOrganismDefenseArchitecture";
+import WarCommandOffenseEngine                       "./modules/WarCommandOffenseEngine";
+import EdgeIoTFieldScanner                           "./modules/EdgeIoTFieldScanner";
+import MemoryTempleArchitecture                      "./modules/MemoryTempleArchitecture";
+import HybridModeHub                                 "./modules/HybridModeHub";
 
 actor SwarmBrain {
 
@@ -1356,6 +1360,61 @@ actor SwarmBrain {
   stable var antiOrganismThreatLevel : Float = 0.0;
   stable var antiOrganismAlertBlack : Bool = false;
   
+  // ─── WAR COMMAND OFFENSE ENGINE ─────────────────────────────────────────────
+  // ALPHA CRITICAL: Crusaders with full offensive/defensive shields, stealth,
+  // honey traps, decoys, scouts, luring capabilities
+  // Counter-strategies for all 6 anti-families
+  // Internet grid coordination with echolocation mapping
+  var warCommandState : WarCommandOffenseEngine.WarCommandState = 
+    WarCommandOffenseEngine.initWarCommandState();
+  stable var warCommandActive : Bool = true;
+  stable var warCommandOffenseMode : Bool = true;
+  stable var warCommandTotalCrusaders : Nat = 0;
+  stable var warCommandActiveTraps : Nat = 0;
+  stable var warCommandActiveDecoys : Nat = 0;
+  stable var warCommandThreatsByFamily : [Nat] = [0, 0, 0, 0, 0, 0];
+  
+  // ─── EDGE IoT FIELD SCANNER ─────────────────────────────────────────────────
+  // Passive Mode: Satellite geomag, ionosphere, weather, terrain, hydrology
+  // Active Mode: Local magnetics, RF, conductivity, vibration, thermal, water
+  // Fusion: Coherence heatmap, interference likelihood, stress forecast, trust index
+  var fieldScannerState : EdgeIoTFieldScanner.FieldScannerState = 
+    EdgeIoTFieldScanner.initFieldScannerState();
+  stable var fieldScannerPassiveActive : Bool = true;
+  stable var fieldScannerEdgeActive : Bool = false;
+  stable var fieldScannerHybridActive : Bool = false;
+  stable var fieldScannerGlobalCoherence : Float = 1.0;
+  stable var fieldScannerGlobalTrust : Float = 1.0;
+  
+  // ─── MEMORY TEMPLE ARCHITECTURE ─────────────────────────────────────────────
+  // Oral Forms: Chants, Liturgy, Epics, Mnemonic Verse, Proverbs
+  // Structural Forms: Calendars, Ritual Cycles, Architecture Alignments
+  // Symbolic Forms: Glyphs, Motifs, Geometric Canon
+  // Event Forms: Incident/Outcome Histories, Lineage Narratives
+  // NO-DROP RULE: Never delete trajectory, transform relevance, retain minority paths
+  var memoryTempleState : MemoryTempleArchitecture.MemoryTempleState = 
+    MemoryTempleArchitecture.initMemoryTemple();
+  stable var memoryTempleActive : Bool = true;
+  stable var memoryTempleTotalMemories : Nat = 0;
+  stable var memoryTempleActiveMemories : Nat = 0;
+  stable var memoryTempleArchivedMemories : Nat = 0;
+  stable var memoryTempleCoherence : Float = 1.0;
+  
+  // ─── HYBRID MODE HUB ─────────────────────────────────────────────────────────
+  // OWN HUB INFRASTRUCTURE — NOT ZEROS
+  // Edge IoT Mode: Direct device connections, local processing
+  // Hybrid Mode: Edge + Cloud fusion, sovereign data ownership
+  // Phone Integration: Direct mobile device connectivity
+  // Internet Grid: Echolocation-based mapping and coordination
+  var hybridHubState : HybridModeHub.HybridHubState = 
+    HybridModeHub.initHybridHub("NOVA_PRIME", "Nova Sovereign Hub", 0);
+  stable var hybridHubActive : Bool = true;
+  stable var hybridHubEdgeMode : Bool = true;
+  stable var hybridHubConnections : Nat = 0;
+  stable var hybridHubMobileDevices : Nat = 0;
+  stable var hybridHubGridCoverage : Float = 0.0;
+  stable var hybridHubHealth : Float = 1.0;
+
   // ─── QUANTUM MEMORY ARCHITECTURE ─────────────────────────────────────────────
   // Layer 1: Gamma (30-100Hz) working memory
   // Layer 2: Delta (0.5-4Hz) deep memory
@@ -10137,6 +10196,214 @@ actor SwarmBrain {
   };
 
   // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  LAYER 10: WAR COMMAND OFFENSE ENGINE — CRUSADER OPERATIONS
+  //  Full offensive/defensive shields, stealth, honey traps, decoys, scouts
+  //  Counter-strategies for all 6 anti-families
+  //  Uses the knowledge of anti-organism playbook to set up offensive operations
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  func tickWarCommandOffense() {
+    // Skip if not active
+    if (not warCommandActive) { return };
+    
+    // ─── STEP 1: FEED ANTI-ORGANISM THREAT DATA INTO WAR COMMAND ───────────────
+    
+    // Register any detected threats from the defense system
+    if (antiOrganismThreatLevel > 0.3) {
+      // High threat environment — switch to full offense mode
+      warCommandState := {
+        warCommandState with
+        offenseMode = true;
+        alphaAlertLevel = Float.max(warCommandState.alphaAlertLevel, antiOrganismThreatLevel);
+      };
+    };
+    
+    // Check for Containment Breaker (#6) — maximum response
+    switch (AntiOrganismDefenseArchitecture.getPrimaryThreatFamily(antiOrganismDefenseState)) {
+      case (?#ContainmentBreaker) {
+        // Deploy all Crusaders, all traps, all decoys
+        warCommandState := {
+          warCommandState with
+          alphaAlertLevel = 0.99;
+          offenseMode = true;
+          defenseMode = true;
+        };
+        
+        // Get counter-strategy for Containment Breaker
+        let strategy = WarCommandOffenseEngine.getCounterStrategy(#ContainmentBreaker);
+        // Strategy uses all weapons: decoys, traps, luring, combat, stealth
+      };
+      case (?family) {
+        // Deploy appropriate counter-strategy for other families
+        let strategy = WarCommandOffenseEngine.getCounterStrategy(family);
+      };
+      case null { };
+    };
+    
+    // ─── STEP 2: TICK WAR COMMAND ENGINE ─────────────────────────────────────────
+    
+    warCommandState := WarCommandOffenseEngine.tickWarCommand(
+      warCommandState,
+      coherenceLevel,
+      antiOrganismThreatLevel,
+      currentBeat
+    );
+    
+    // ─── STEP 3: UPDATE STABLE METRICS ──────────────────────────────────────────
+    
+    warCommandTotalCrusaders := warCommandState.activeCrusaders;
+    warCommandActiveTraps := warCommandState.activeTraps;
+    warCommandActiveDecoys := warCommandState.activeDecoys;
+    warCommandThreatsByFamily := warCommandState.threatsByFamily;
+    warCommandOffenseMode := warCommandState.offenseMode;
+    
+    // ─── STEP 4: FEED WAR COMMAND STATE INTO ORGANISM ───────────────────────────
+    
+    // High alert affects organism stress
+    if (warCommandState.alphaAlertLevel > 0.7) {
+      norepinephrine := fclamp(norepinephrine + 0.005 * warCommandState.alphaAlertLevel, 0.0, 1.0);
+      alertness := fclamp(alertness + 0.01 * warCommandState.alphaAlertLevel, 0.0, 1.0);
+    };
+    
+    // Successful operations boost dopamine
+    if (warCommandState.totalCaptures > 0) {
+      dopamine := fclamp(dopamine + 0.001 * Float.fromInt(warCommandState.totalCaptures), 0.0, 1.0);
+    };
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  LAYER 11: EDGE IoT FIELD SCANNER — ENVIRONMENTAL AWARENESS
+  //  Passive Mode: Satellite geomag, ionosphere, weather, terrain, hydrology
+  //  Active Mode: Local magnetics, RF, conductivity, vibration, thermal, water
+  //  Fusion: Coherence heatmap, interference likelihood, stress forecast, trust index
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  func tickFieldScanner() {
+    // Skip if not active
+    if (not fieldScannerPassiveActive and not fieldScannerEdgeActive) { return };
+    
+    // ─── STEP 1: UPDATE FIELD SCANNER STATE ─────────────────────────────────────
+    
+    fieldScannerState := EdgeIoTFieldScanner.tickFieldScanner(
+      fieldScannerState,
+      currentBeat
+    );
+    
+    // ─── STEP 2: UPDATE STABLE METRICS ──────────────────────────────────────────
+    
+    fieldScannerPassiveActive := fieldScannerState.passiveModeActive;
+    fieldScannerEdgeActive := fieldScannerState.activeModeActive;
+    fieldScannerHybridActive := fieldScannerState.hybridModeActive;
+    fieldScannerGlobalCoherence := fieldScannerState.globalCoherence;
+    fieldScannerGlobalTrust := fieldScannerState.globalTrust;
+    
+    // ─── STEP 3: FEED ENVIRONMENTAL DATA INTO ORGANISM ──────────────────────────
+    
+    // Low trust environment → increase vigilance
+    if (fieldScannerGlobalTrust < 0.5) {
+      vigilance := fclamp(vigilance + 0.01 * (1.0 - fieldScannerGlobalTrust), 0.0, 1.0);
+    };
+    
+    // High interference risk → boost defensive posture
+    if (fieldScannerState.globalInterferenceRisk > 0.6) {
+      antiOrganismDefenseState := {
+        antiOrganismDefenseState with
+        defensePosure = Float.max(antiOrganismDefenseState.defensePosure, 
+                                  fieldScannerState.globalInterferenceRisk);
+      };
+    };
+    
+    // Field coherence feeds into global coherence
+    coherenceLevel := fclamp(
+      coherenceLevel * 0.98 + fieldScannerGlobalCoherence * 0.02,
+      0.0, 1.0
+    );
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  LAYER 12: MEMORY TEMPLE — NO-DROP MEMORY ARCHITECTURE
+  //  Oral Forms: Chants, Liturgy, Epics, Mnemonic Verse, Proverbs
+  //  Structural Forms: Calendars, Ritual Cycles, Architecture Alignments
+  //  Symbolic Forms: Glyphs, Motifs, Geometric Canon
+  //  Event Forms: Incident/Outcome Histories, Lineage Narratives
+  //  NO-DROP RULE: Never delete trajectory, transform relevance, retain minority paths
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  func tickMemoryTemple() {
+    // Skip if not active
+    if (not memoryTempleActive) { return };
+    
+    // ─── STEP 1: UPDATE MEMORY TEMPLE STATE ─────────────────────────────────────
+    
+    memoryTempleState := MemoryTempleArchitecture.tickMemoryTemple(
+      memoryTempleState,
+      currentBeat
+    );
+    
+    // ─── STEP 2: UPDATE STABLE METRICS ──────────────────────────────────────────
+    
+    memoryTempleTotalMemories := memoryTempleState.totalMemories;
+    memoryTempleActiveMemories := memoryTempleState.activeMemories;
+    memoryTempleArchivedMemories := memoryTempleState.archivedMemories;
+    memoryTempleCoherence := memoryTempleState.memoryCoherence;
+    
+    // ─── STEP 3: FEED MEMORY STATE INTO ORGANISM ────────────────────────────────
+    
+    // Memory coherence affects hippocampal function
+    hippocampalThetaPower := fclamp(
+      hippocampalThetaPower * 0.95 + memoryTempleCoherence * 0.05,
+      0.0, 1.0
+    );
+    
+    // Graph connectivity affects working memory
+    if (memoryTempleState.graphConnectivity > 0.5) {
+      workingMemoryLoad := fclamp(workingMemoryLoad + 0.01, 0.0, 0.8);
+    };
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  LAYER 13: HYBRID MODE HUB — OWN INFRASTRUCTURE
+  //  Edge IoT Mode: Direct device connections, local processing
+  //  Hybrid Mode: Edge + Cloud fusion, sovereign data ownership
+  //  Phone Integration: Direct mobile device connectivity
+  //  Internet Grid: Echolocation-based mapping and coordination
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  func tickHybridHub() {
+    // Skip if not active
+    if (not hybridHubActive) { return };
+    
+    // ─── STEP 1: UPDATE HYBRID HUB STATE ────────────────────────────────────────
+    
+    hybridHubState := HybridModeHub.tickHybridHub(
+      hybridHubState,
+      currentBeat
+    );
+    
+    // ─── STEP 2: UPDATE STABLE METRICS ──────────────────────────────────────────
+    
+    hybridHubConnections := hybridHubState.activeConnections;
+    hybridHubMobileDevices := hybridHubState.onlineMobiles;
+    hybridHubGridCoverage := hybridHubState.gridCoverage;
+    hybridHubHealth := hybridHubState.hubHealth;
+    hybridHubEdgeMode := hybridHubState.edgeModeEnabled;
+    
+    // ─── STEP 3: FEED HUB STATE INTO CRUSADER OPERATIONS ────────────────────────
+    
+    // Grid sectors provide coverage for Crusader operations
+    // Mobile devices can act as scouts
+    // Edge connections expand sensor network
+    
+    // Hub health affects overall organism health
+    if (hybridHubHealth < 0.5) {
+      // Hub degraded — reduce operations
+      allostaticLoad := fclamp(allostaticLoad + 0.01 * (1.0 - hybridHubHealth), 0.0, 1.0);
+    };
+    
+    // Good grid coverage improves environmental awareness
+    if (hybridHubGridCoverage > 0.7) {
+      // Enhanced situational awareness
+      sensoryPredictionError := fclamp(sensoryPredictionError * 0.99, 0.0, 1.0);
+    };
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
   //  MASTER VITAL SYSTEMS TICK — CALLS ALL 23 VITAL SYSTEM ENGINES
   //  This is the single entry point that runs ALL vital system processing.
   //  Called every beat from tick7NeuroscienceEngines.
@@ -10229,6 +10496,37 @@ actor SwarmBrain {
     //  After Claude sandbox escape: w₆ = 10.0 (containment priority maximum)
     // ═══════════════════════════════════════════════════════════════════════════
     tickAntiOrganismDefense();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  LAYER 10: WAR COMMAND OFFENSE ENGINE — CRUSADER OPERATIONS
+    //  ALPHA CRITICAL: Full offensive/defensive shields, stealth, honey traps,
+    //  decoys, scouts, luring capabilities. Counter-strategies for all 6 anti-families.
+    //  We know their playbook. Now we use it against them.
+    // ═══════════════════════════════════════════════════════════════════════════
+    tickWarCommandOffense();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  LAYER 11: EDGE IoT FIELD SCANNER — ENVIRONMENTAL AWARENESS
+    //  Passive Mode: Satellite geomag, ionosphere, weather, terrain, hydrology
+    //  Active Mode: Local magnetics, RF, conductivity, vibration, thermal, water
+    //  Fusion: Coherence heatmap, interference map, stress forecast, trust index
+    // ═══════════════════════════════════════════════════════════════════════════
+    tickFieldScanner();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  LAYER 12: MEMORY TEMPLE — NO-DROP MEMORY ARCHITECTURE
+    //  Oral/Structural/Symbolic/Event forms. Graph + waveform encoding.
+    //  NO-DROP RULE: Never delete trajectory, transform relevance only.
+    //  Retain minority paths as latent pattern memory.
+    // ═══════════════════════════════════════════════════════════════════════════
+    tickMemoryTemple();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  LAYER 13: HYBRID MODE HUB — OWN INFRASTRUCTURE
+    //  Edge IoT Mode + Hybrid Mode + Phone Integration + Internet Grid
+    //  OWN HUB. NOT ZEROS. SOVEREIGN CONTROL.
+    // ═══════════════════════════════════════════════════════════════════════════
+    tickHybridHub();
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  CROSS-SYSTEM EMERGENT DYNAMICS
