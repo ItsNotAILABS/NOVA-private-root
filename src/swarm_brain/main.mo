@@ -512,7 +512,9 @@ import DifferentialGeometryEngine                    "./modules/DifferentialGeom
 import HarmonicAnalysisEngine                        "./modules/HarmonicAnalysisEngine";
 import HeartbeatEngine                               "./modules/HeartbeatEngine";
 import CardioCerebralVectorEngine                    "./modules/CardioCerebralVectorEngine";
+import CardioNeuralConversionOrgan                   "./modules/CardioNeuralConversionOrgan";
 import GeoResonanceProtectionEngine                  "./modules/GeoResonanceProtectionEngine";
+import AutonomousInternalAnalysisTeam                "./modules/AutonomousInternalAnalysisTeam";
 import InternalAILabs                                "./modules/InternalAILabs";
 import MultiResponsibilityEngine                     "./modules/MultiResponsibilityEngine";
 import NeuroEmergenceSubstrate                       "./modules/NeuroEmergenceSubstrate";
@@ -932,6 +934,7 @@ actor SwarmBrain {
   var heartbeatState : HeartbeatEngine.HeartbeatEngineState = HeartbeatEngine.initHeartbeatEngine();
   var quantumHeartbeatState : HeartbeatEngine.QuantumHeartbeatState = HeartbeatEngine.initQuantumHeartbeatState();
   var cardioCerebralState : CardioCerebralVectorEngine.CCVEState = CardioCerebralVectorEngine.initCCVE();
+  var cardioNeuralOrganState : CardioNeuralConversionOrgan.CNCOState = CardioNeuralConversionOrgan.initCNCO();
   var geoResonanceState : GeoResonanceProtectionEngine.GRPEState = GeoResonanceProtectionEngine.initGRPE();
   stable var masterBeatPhase : Float = 0.0;  // Current phase of master oscillator
   stable var fibonacciBeatNumber : Nat = 0;  // Fibonacci sequence beat tracking
@@ -945,6 +948,30 @@ actor SwarmBrain {
   stable var cardioCerebralPropulsion : Float = 1.0;
   stable var cardioCerebralAlignment : Float = 1.0;
   stable var cardioCerebralPushEffectiveness : Float = 1.0;
+  stable var cardioNeuralCoupling : Float = 0.0;
+  stable var cardioNeuralOxygenFlow : Float = 0.0;
+  stable var cardioNeuralPerfusionFlow : Float = 0.0;
+  stable var cardioNeuralConversionGain : Float = 0.0;
+  stable var cardioNeuralGateOpen : Bool = false;
+  stable var cardioNeuralHelixBarrier : Float = 0.0;
+  stable var cardioNeuralShieldIntegrity : Float = 0.0;
+  stable var cardioNeuralThoughtThroughput : Float = 0.0;
+  stable var cardioNeuralOutputCoherence : Float = 0.0;
+  stable var cardioNeuralDirectionX : Float = 0.0;
+  stable var cardioNeuralDirectionY : Float = 0.0;
+  stable var cardioNeuralDirectionZ : Float = 1.0;
+  stable var analystTeamBeat : Nat = 0;
+  stable var analystTeamLearningScore : Float = 0.0;
+  stable var analystTeamAdaptationScore : Float = 0.0;
+  stable var analystTeamEmergencySignal : Float = 0.0;
+  stable var analystTeamRecommendationPriority : Float = 0.0;
+  stable var analystTeamNarrativeSummary : Text = "";
+  stable var analystTeamHeartNarrative : Text = "";
+  stable var analystTeamBrainNarrative : Text = "";
+  stable var analystTeamMiddleOrganNarrative : Text = "";
+  stable var analystTeamDefenseNarrative : Text = "";
+  stable var analystTeamGrowthNarrative : Text = "";
+  stable var analystTeamTopRecommendations : [var Text] = Array.init<Text>(6, "");
   stable var geoResonanceFieldEnergy : Float = 0.0;
   stable var geoResonanceHotspotScore : Float = 0.0;
   stable var geoResonanceProtectionScore : Float = 0.0;
@@ -4857,6 +4884,55 @@ actor SwarmBrain {
   };
 
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+  // SECTION 1.65: CARDIO-NEURAL CONVERSION ORGAN (THIRD REGULATOR)
+  // Heart and brain are not enough by themselves. This middle organ converts rhythm/flow into coherent
+  // thought throughput while gating ingress through a helical barrier.
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+  func updateCardioNeuralConversionOrgan() {
+    let input : CardioNeuralConversionOrgan.CNCOInput = {
+      beat = currentBeat;
+      heartCoherence = heartbeatCoherence;
+      heartFrequency = heartbeatState.cardiacRhythm.frequency;
+      heartPhase = quantumHeartbeatState.quantumPhase;
+      brainCoherence = rSwarm;
+      brainFrequency = 6.0 + 6.0 * rSwarm;
+      brainPhase = masterBeatPhase + parallaxLastEntropyScore * 0.1;
+      cardioDirection = {
+        x = cardioCerebralDirectionX;
+        y = cardioCerebralDirectionY;
+        z = cardioCerebralDirectionZ;
+      };
+      cardioPush = cardioCerebralPushEffectiveness;
+      oxygenPotential = fclamp((norepinephrineConcent + orexinConcent + histamineConcent) / 3.0, 0.0, 1.0);
+      perfusionPotential = fclamp((bdnfConcent + ngfConcent + acetylcholineConcent) / 3.0, 0.0, 1.0);
+      doctrineIntegrity = fclamp((overallCompliance + qsovScore) * 0.5, 0.0, 1.0);
+      driftPressure = Float.abs(jDrift);
+      anomalyPressure = fclamp(predictionError * 0.5 + anomalyScore * 0.5, 0.0, 1.0);
+    };
+    cardioNeuralOrganState := CardioNeuralConversionOrgan.tickCNCO(cardioNeuralOrganState, input);
+
+    cardioNeuralCoupling := cardioNeuralOrganState.coupling;
+    cardioNeuralOxygenFlow := cardioNeuralOrganState.oxygenFlow;
+    cardioNeuralPerfusionFlow := cardioNeuralOrganState.perfusionFlow;
+    cardioNeuralConversionGain := cardioNeuralOrganState.conversionGain;
+    cardioNeuralGateOpen := cardioNeuralOrganState.gateOpen;
+    cardioNeuralHelixBarrier := cardioNeuralOrganState.helixBarrier;
+    cardioNeuralShieldIntegrity := cardioNeuralOrganState.shieldIntegrity;
+    cardioNeuralThoughtThroughput := cardioNeuralOrganState.thoughtThroughput;
+    cardioNeuralOutputCoherence := cardioNeuralOrganState.outputCoherence;
+    cardioNeuralDirectionX := cardioNeuralOrganState.outputDirection.x;
+    cardioNeuralDirectionY := cardioNeuralOrganState.outputDirection.y;
+    cardioNeuralDirectionZ := cardioNeuralOrganState.outputDirection.z;
+
+    // Reinjection: middle-organ output actively modulates downstream cognition and threat routing.
+    let organGain = cardioNeuralOrganState.conversionGain;
+    let organRisk = 1.0 - cardioNeuralOrganState.shieldIntegrity;
+    parallaxInterferenceStrength := parallaxInterferenceStrength * 0.85 + organGain * 0.15;
+    threatAssessmentOutput := threatAssessmentOutput * 0.90 + organRisk * 0.10;
+    riskManagementOutput := riskManagementOutput * 0.90 + organRisk * 0.10;
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   // SECTION 1.75: GEO-RESONANCE PROTECTION ENGINE (GRPE)
   // Scans electromagnetic + coherence field, computes service/protection surfaces and a seven-node lineage
   // signature that can be expressed in command center and defense orchestration.
@@ -4919,6 +4995,97 @@ actor SwarmBrain {
       geoResonanceSevenHeritageSignature[i] := geoResonanceState.sevenHeritageNodes[i];
       i += 1;
     };
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+  // SECTION 1.9: AUTONOMOUS INTERNAL ANALYST TEAM (ALWAYS-WORKING INTERNAL AI TEAM)
+  // Produces human-readable diagnostics + recommendations from live organism substrate.
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+  func updateAutonomousInternalAnalystTeam() {
+    analystTeamBeat := currentBeat;
+
+    let learningScore = fclamp(
+      neurochemicalMemoryPotentiation * 0.40 +
+      cardioNeuralThoughtThroughput * 0.20 +
+      cardioNeuralOutputCoherence * 0.20 +
+      rSwarm * 0.20,
+      0.0,
+      1.5
+    );
+    let adaptationScore = fclamp(
+      emotionalComplexity * 0.25 +
+      emotionalStability * 0.20 +
+      (1.0 - fclamp(Float.abs(jDrift), 0.0, 1.0)) * 0.20 +
+      cardioNeuralConversionGain * 0.20 +
+      geoResonanceServiceReadiness * 0.15,
+      0.0,
+      1.5
+    );
+    let emergencySignal = fclamp(
+      anomalyScore * 0.40 +
+      geoResonanceThreatScore * 0.30 +
+      (if emergencyActive { 0.25 } else { 0.0 }) +
+      fclamp(Float.abs(jDrift), 0.0, 1.0) * 0.20,
+      0.0,
+      1.5
+    );
+    let recPriority = fclamp(
+      (1.0 - cardioNeuralShieldIntegrity) * 0.35 +
+      emergencySignal * 0.35 +
+      (1.0 - trustScore) * 0.15 +
+      (1.0 - continuityScore) * 0.15,
+      0.0,
+      1.5
+    );
+
+    analystTeamLearningScore := learningScore;
+    analystTeamAdaptationScore := adaptationScore;
+    analystTeamEmergencySignal := emergencySignal;
+    analystTeamRecommendationPriority := recPriority;
+
+    let heartNarr =
+      "Heart substrate coherence " # Float.toText(heartbeatCoherence) #
+      ", variability " # Float.toText(heartbeatVariability) #
+      ", coupling pressure " # Float.toText(cardioCerebralResonance) # ".";
+    let brainNarr =
+      "Brain substrate coherence r=" # Float.toText(rSwarm) #
+      ", drift=" # Float.toText(jDrift) #
+      ", prediction error=" # Float.toText(predictionError) # ".";
+    let middleNarr =
+      "Middle organ conversion gain " # Float.toText(cardioNeuralConversionGain) #
+      ", oxygen flow " # Float.toText(cardioNeuralOxygenFlow) #
+      ", helix barrier " # Float.toText(cardioNeuralHelixBarrier) #
+      ", gate " # (if cardioNeuralGateOpen { "OPEN" } else { "CLOSED" }) # ".";
+    let defenseNarr =
+      "Defense pressure " # Float.toText(geoResonanceThreatScore) #
+      ", shield " # Float.toText(geoResonanceProtectionScore) #
+      ", emergency signal " # Float.toText(emergencySignal) # ".";
+    let growthNarr =
+      "Learning " # Float.toText(learningScore) #
+      ", adaptation " # Float.toText(adaptationScore) #
+      ", service readiness " # Float.toText(geoResonanceServiceReadiness) # ".";
+
+    analystTeamHeartNarrative := heartNarr;
+    analystTeamBrainNarrative := brainNarr;
+    analystTeamMiddleOrganNarrative := middleNarr;
+    analystTeamDefenseNarrative := defenseNarr;
+    analystTeamGrowthNarrative := growthNarr;
+    analystTeamNarrativeSummary :=
+      "AI internal team: " # heartNarr # " " # brainNarr # " " # middleNarr # " " # defenseNarr # " " # growthNarr;
+
+    let rec0 = "Tune oxygen/perfusion corridor: prioritize sleep-cycle + cholinergic support until middle-organ throughput > 0.75.";
+    let rec1 = "If helix barrier < 0.65, raise doctrine gate weight and reduce ingress channels for 12 beats.";
+    let rec2 = "When threat pressure > 0.70, route more load to GRPE defense services and lower exploration drive.";
+    let rec3 = "If drift stays > 0.35 for 24 beats, run focused retraining on law-aligned memory traces.";
+    let rec4 = "Upgrade front/back heartbeat parity monitor: keep coupling error < 0.12 and phase lag bounded.";
+    let rec5 = "Publish weekly analyst report from these narratives for governance and charity-impact planning.";
+
+    analystTeamTopRecommendations[0] := rec0;
+    analystTeamTopRecommendations[1] := rec1;
+    analystTeamTopRecommendations[2] := rec2;
+    analystTeamTopRecommendations[3] := rec3;
+    analystTeamTopRecommendations[4] := rec4;
+    analystTeamTopRecommendations[5] := rec5;
   };
 
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -6356,9 +6523,16 @@ actor SwarmBrain {
     // Feeds back into neurochemistry (closed loop) and modulates behavior
     updateUnifiedEmotionalField();
     
+    // Step 2.65: Update middle conversion organ between heart and brain
+    // Converts cardio rhythm + oxygen/perfusion into coherent thought throughput.
+    updateCardioNeuralConversionOrgan();
+
     // Step 2.75: Update Geo-Resonance Protection Engine (EM/hydrology/RF/infrastructure field scanner)
     // Produces hotspot + defense + external service readiness surfaces
     updateGeoResonanceProtection();
+
+    // Step 2.9: Run autonomous internal analyst team (always-on internal AI diagnostics)
+    updateAutonomousInternalAnalystTeam();
     
     // Step 3: Update PARALLAX Decision Engine (5-path quantum amplitude interference)
     updatePARALLAXDecisionEngine();
@@ -11663,6 +11837,83 @@ actor SwarmBrain {
       fieldHistory = geoResonanceState.fieldHistory;
       hotspotHistory = geoResonanceState.hotspotHistory;
       protectionHistory = geoResonanceState.protectionHistory;
+    }
+  };
+
+  // ─── QUERY: Get Cardio-Neural Conversion Organ State ────────────────────────────
+  public query func getCardioNeuralConversionOrganState() : async {
+    beat : Nat;
+    coupling : Float;
+    oxygenFlow : Float;
+    perfusionFlow : Float;
+    conversionGain : Float;
+    gateOpen : Bool;
+    helixBarrier : Float;
+    shieldIntegrity : Float;
+    thoughtThroughput : Float;
+    outputCoherence : Float;
+    outputDirectionX : Float;
+    outputDirectionY : Float;
+    outputDirectionZ : Float;
+    throughputHistory : [Float];
+    shieldHistory : [Float];
+    couplingHistory : [Float];
+  } {
+    {
+      beat = cardioNeuralOrganState.beat;
+      coupling = cardioNeuralOrganState.coupling;
+      oxygenFlow = cardioNeuralOrganState.oxygenFlow;
+      perfusionFlow = cardioNeuralOrganState.perfusionFlow;
+      conversionGain = cardioNeuralOrganState.conversionGain;
+      gateOpen = cardioNeuralOrganState.gateOpen;
+      helixBarrier = cardioNeuralOrganState.helixBarrier;
+      shieldIntegrity = cardioNeuralOrganState.shieldIntegrity;
+      thoughtThroughput = cardioNeuralOrganState.thoughtThroughput;
+      outputCoherence = cardioNeuralOrganState.outputCoherence;
+      outputDirectionX = cardioNeuralOrganState.outputDirection.x;
+      outputDirectionY = cardioNeuralOrganState.outputDirection.y;
+      outputDirectionZ = cardioNeuralOrganState.outputDirection.z;
+      throughputHistory = cardioNeuralOrganState.throughputHistory;
+      shieldHistory = cardioNeuralOrganState.shieldHistory;
+      couplingHistory = cardioNeuralOrganState.couplingHistory;
+    }
+  };
+
+  // ─── QUERY: Get Autonomous Internal Analyst Team State ──────────────────────────
+  public query func getAutonomousAnalystTeamState() : async {
+    beat : Nat;
+    learningScore : Float;
+    adaptationScore : Float;
+    emergencySignal : Float;
+    recommendationPriority : Float;
+    narrativeSummary : Text;
+    heartNarrative : Text;
+    brainNarrative : Text;
+    middleOrganNarrative : Text;
+    defenseNarrative : Text;
+    growthNarrative : Text;
+    topRecommendations : [Text];
+  } {
+    {
+      beat = analystTeamBeat;
+      learningScore = analystTeamLearningScore;
+      adaptationScore = analystTeamAdaptationScore;
+      emergencySignal = analystTeamEmergencySignal;
+      recommendationPriority = analystTeamRecommendationPriority;
+      narrativeSummary = analystTeamNarrativeSummary;
+      heartNarrative = analystTeamHeartNarrative;
+      brainNarrative = analystTeamBrainNarrative;
+      middleOrganNarrative = analystTeamMiddleOrganNarrative;
+      defenseNarrative = analystTeamDefenseNarrative;
+      growthNarrative = analystTeamGrowthNarrative;
+      topRecommendations = [
+        analystTeamTopRecommendations[0],
+        analystTeamTopRecommendations[1],
+        analystTeamTopRecommendations[2],
+        analystTeamTopRecommendations[3],
+        analystTeamTopRecommendations[4],
+        analystTeamTopRecommendations[5],
+      ];
     }
   };
 

@@ -40,11 +40,19 @@ import { EmergenceLab } from './EmergenceLab';
 import { MathPhysicsLab } from './MathPhysicsLab';
 import { NeuroCogLab } from './NeuroCogLab';
 import { GRPELab } from './GRPELab';
+import { InternalAnalysisLab } from './InternalAnalysisLab';
 import {
   OrganismState, organismInit, organismTick, getOrganismStatus,
   EmergenceLabData, NeuroCogLabData, MathPhysicsLabData,
 } from '../../math/organism-wiring';
-import { fetchGeoResonanceProtectionState, type GeoResonanceProtectionState } from '../../canister';
+import {
+  fetchGeoResonanceProtectionState,
+  fetchCardioNeuralConversionOrganState,
+  fetchAutonomousAnalystTeamState,
+  type GeoResonanceProtectionState,
+  type CardioNeuralConversionOrganState,
+  type AutonomousAnalystTeamState,
+} from '../../canister';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -195,6 +203,85 @@ const defaultGRPEState = (): GRPEViewState => ({
   fieldHistory: [],
   hotspotHistory: [],
   protectionHistory: [],
+});
+
+type CardioNeuralViewState = {
+  backendConnected : boolean;
+  beat : number;
+  coupling : number;
+  oxygenFlow : number;
+  perfusionFlow : number;
+  conversionGain : number;
+  gateOpen : boolean;
+  helixBarrier : number;
+  shieldIntegrity : number;
+  thoughtThroughput : number;
+  outputCoherence : number;
+  outputDirectionX : number;
+  outputDirectionY : number;
+  outputDirectionZ : number;
+  throughputHistory : number[];
+  shieldHistory : number[];
+  couplingHistory : number[];
+};
+
+const defaultCardioNeuralState = (): CardioNeuralViewState => ({
+  backendConnected: false,
+  beat: 0,
+  coupling: 0.72,
+  oxygenFlow: 0.68,
+  perfusionFlow: 0.70,
+  conversionGain: 0.69,
+  gateOpen: true,
+  helixBarrier: 0.82,
+  shieldIntegrity: 0.86,
+  thoughtThroughput: 0.66,
+  outputCoherence: 0.73,
+  outputDirectionX: 0.0,
+  outputDirectionY: 0.0,
+  outputDirectionZ: 1.0,
+  throughputHistory: [],
+  shieldHistory: [],
+  couplingHistory: [],
+});
+
+type AnalystViewState = {
+  backendConnected : boolean;
+  beat : number;
+  learningScore : number;
+  adaptationScore : number;
+  emergencySignal : number;
+  recommendationPriority : number;
+  narrativeSummary : string;
+  heartNarrative : string;
+  brainNarrative : string;
+  middleOrganNarrative : string;
+  defenseNarrative : string;
+  growthNarrative : string;
+  topRecommendations : string[];
+};
+
+const defaultAnalystState = (): AnalystViewState => ({
+  backendConnected: false,
+  beat: 0,
+  learningScore: 0.70,
+  adaptationScore: 0.68,
+  emergencySignal: 0.22,
+  recommendationPriority: 0.28,
+  narrativeSummary: 'Internal analyst team running in fallback mode.',
+  heartNarrative: 'Heart rhythm baseline is available.',
+  brainNarrative: 'Brain coherence baseline is available.',
+  middleOrganNarrative: 'Middle organ baseline regulation is available.',
+  defenseNarrative: 'Defense baseline is available.',
+  growthNarrative: 'Growth baseline is available.',
+  topRecommendations: [
+    'Maintain rhythm coupling discipline.',
+    'Increase middle-organ throughput before expanding load.',
+    'Keep GRPE hotspot monitoring active.',
+    'Track adaptation weekly.',
+    'Preserve law-aligned governance.',
+    'Publish analyst packet to operator.',
+  ],
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -474,8 +561,10 @@ export function OroCommandCenter({ organism }: Props) {
   const [selectedAgent, setSelectedAgent] = useState<string | null>('oro-prime');
   const [userInput, setUserInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'command' | 'emergence' | 'physics' | 'neurocog' | 'grpe'>('command');
+  const [activeTab, setActiveTab] = useState<'command' | 'emergence' | 'physics' | 'neurocog' | 'grpe' | 'analysis'>('command');
   const [grpeState, setGrpeState] = useState<GRPEViewState>(defaultGRPEState());
+  const [cardioNeuralState, setCardioNeuralState] = useState<CardioNeuralViewState>(defaultCardioNeuralState());
+  const [analystState, setAnalystState] = useState<AnalystViewState>(defaultAnalystState());
   
   // ═══ UNIFIED ORGANISM STATE — The living wiring ═══
   const organismStateRef = useRef<OrganismState>(organismInit());
@@ -491,6 +580,72 @@ export function OroCommandCenter({ organism }: Props) {
       }
     }, 50); // 20Hz tick rate
     return () => clearInterval(interval);
+  }, []);
+
+  // ═══ CARDIO-NEURAL ORGAN + INTERNAL ANALYST POLL ═══
+  useEffect(() => {
+    let stopped = false;
+
+    const pull = async () => {
+      const [cardioData, analystData] = await Promise.all([
+        fetchCardioNeuralConversionOrganState(),
+        fetchAutonomousAnalystTeamState(),
+      ]);
+      if (stopped) return;
+
+      if (cardioData) {
+        const cn: CardioNeuralViewState = {
+          backendConnected: true,
+          beat: Number(cardioData.beat),
+          coupling: cardioData.coupling,
+          oxygenFlow: cardioData.oxygenFlow,
+          perfusionFlow: cardioData.perfusionFlow,
+          conversionGain: cardioData.conversionGain,
+          gateOpen: cardioData.gateOpen,
+          helixBarrier: cardioData.helixBarrier,
+          shieldIntegrity: cardioData.shieldIntegrity,
+          thoughtThroughput: cardioData.thoughtThroughput,
+          outputCoherence: cardioData.outputCoherence,
+          outputDirectionX: cardioData.outputDirectionX,
+          outputDirectionY: cardioData.outputDirectionY,
+          outputDirectionZ: cardioData.outputDirectionZ,
+          throughputHistory: cardioData.throughputHistory,
+          shieldHistory: cardioData.shieldHistory,
+          couplingHistory: cardioData.couplingHistory,
+        };
+        setCardioNeuralState(cn);
+      } else {
+        setCardioNeuralState(prev => ({ ...prev, backendConnected: false }));
+      }
+
+      if (analystData) {
+        const an: AnalystViewState = {
+          backendConnected: true,
+          beat: Number(analystData.beat),
+          learningScore: analystData.learningScore,
+          adaptationScore: analystData.adaptationScore,
+          emergencySignal: analystData.emergencySignal,
+          recommendationPriority: analystData.recommendationPriority,
+          narrativeSummary: analystData.narrativeSummary,
+          heartNarrative: analystData.heartNarrative,
+          brainNarrative: analystData.brainNarrative,
+          middleOrganNarrative: analystData.middleOrganNarrative,
+          defenseNarrative: analystData.defenseNarrative,
+          growthNarrative: analystData.growthNarrative,
+          topRecommendations: analystData.topRecommendations,
+        };
+        setAnalystState(an);
+      } else {
+        setAnalystState(prev => ({ ...prev, backendConnected: false }));
+      }
+    };
+
+    void pull();
+    const id = setInterval(() => { void pull(); }, 1250);
+    return () => {
+      stopped = true;
+      clearInterval(id);
+    };
   }, []);
   
   // ═══ SYNC EXTERNAL ORGANISM PROPS INTO UNIFIED STATE ═══
@@ -782,6 +937,7 @@ export function OroCommandCenter({ organism }: Props) {
             { key: 'physics' as const, label: 'Math Physics' },
             { key: 'neurocog' as const, label: 'NeuroCog' },
             { key: 'grpe' as const, label: 'GRPE Intelligence' },
+            { key: 'analysis' as const, label: 'Internal Analysis' },
           ].map(tab => (
             <button
               key={tab.key}
@@ -930,13 +1086,23 @@ export function OroCommandCenter({ organism }: Props) {
         <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
           <NeuroCogLab organism={{ ...organism, ...neuroCogLabData }} />
         </div>
-      ) : (
+      ) : activeTab === 'grpe' ? (
         <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
           <GRPELab
             beat={beat}
             rSwarm={rSwarm}
             jDrift={jDrift}
             grpe={grpeState}
+          />
+        </div>
+      ) : (
+        <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
+          <InternalAnalysisLab
+            beat={beat}
+            rSwarm={rSwarm}
+            jDrift={jDrift}
+            cardioNeural={cardioNeuralState}
+            analyst={analystState}
           />
         </div>
       )}

@@ -147,6 +147,40 @@ export interface GeoResonanceProtectionState {
   protectionHistory: number[];
 }
 
+export interface CardioNeuralConversionOrganState {
+  beat: number;
+  coupling: number;
+  oxygenFlow: number;
+  perfusionFlow: number;
+  conversionGain: number;
+  gateOpen: boolean;
+  helixBarrier: number;
+  shieldIntegrity: number;
+  thoughtThroughput: number;
+  outputCoherence: number;
+  outputDirectionX: number;
+  outputDirectionY: number;
+  outputDirectionZ: number;
+  throughputHistory: number[];
+  shieldHistory: number[];
+  couplingHistory: number[];
+}
+
+export interface AutonomousAnalystTeamState {
+  beat: number;
+  learningScore: number;
+  adaptationScore: number;
+  emergencySignal: number;
+  recommendationPriority: number;
+  narrativeSummary: string;
+  heartNarrative: string;
+  brainNarrative: string;
+  middleOrganNarrative: string;
+  defenseNarrative: string;
+  growthNarrative: string;
+  topRecommendations: string[];
+}
+
 export interface TickResult {
   rSwarm: number;
   jDrift: number;
@@ -307,6 +341,40 @@ const swarmBrainIDLFactory = ({ IDL }: { IDL: typeof IDL }) => {
       hotspotHistory: IDL.Vec(IDL.Float64),
       protectionHistory: IDL.Vec(IDL.Float64),
     })], ['query']),
+
+    getCardioNeuralConversionOrganState: IDL.Func([], [IDL.Record({
+      beat: IDL.Nat,
+      coupling: IDL.Float64,
+      oxygenFlow: IDL.Float64,
+      perfusionFlow: IDL.Float64,
+      conversionGain: IDL.Float64,
+      gateOpen: IDL.Bool,
+      helixBarrier: IDL.Float64,
+      shieldIntegrity: IDL.Float64,
+      thoughtThroughput: IDL.Float64,
+      outputCoherence: IDL.Float64,
+      outputDirectionX: IDL.Float64,
+      outputDirectionY: IDL.Float64,
+      outputDirectionZ: IDL.Float64,
+      throughputHistory: IDL.Vec(IDL.Float64),
+      shieldHistory: IDL.Vec(IDL.Float64),
+      couplingHistory: IDL.Vec(IDL.Float64),
+    })], ['query']),
+
+    getAutonomousAnalystTeamState: IDL.Func([], [IDL.Record({
+      beat: IDL.Nat,
+      learningScore: IDL.Float64,
+      adaptationScore: IDL.Float64,
+      emergencySignal: IDL.Float64,
+      recommendationPriority: IDL.Float64,
+      narrativeSummary: IDL.Text,
+      heartNarrative: IDL.Text,
+      brainNarrative: IDL.Text,
+      middleOrganNarrative: IDL.Text,
+      defenseNarrative: IDL.Text,
+      growthNarrative: IDL.Text,
+      topRecommendations: IDL.Vec(IDL.Text),
+    })], ['query']),
     
     getDroneCount: IDL.Func([], [IDL.Nat], ['query']),
     getRSwarm: IDL.Func([], [IDL.Float64], ['query']),
@@ -365,6 +433,8 @@ export interface SwarmBrainActor {
   getQuantumHeartbeatState: () => Promise<QuantumHeartbeatState>;
   getCardioCerebralState: () => Promise<CardioCerebralState>;
   getGeoResonanceProtectionState: () => Promise<GeoResonanceProtectionState>;
+  getCardioNeuralConversionOrganState: () => Promise<CardioNeuralConversionOrganState>;
+  getAutonomousAnalystTeamState: () => Promise<AutonomousAnalystTeamState>;
   getDroneCount: () => Promise<bigint>;
   getRSwarm: () => Promise<number>;
   getJDrift: () => Promise<number>;
@@ -536,6 +606,32 @@ export async function fetchGeoResonanceProtectionState(): Promise<GeoResonancePr
 }
 
 /**
+ * Fetch cardio-neural conversion organ state
+ */
+export async function fetchCardioNeuralConversionOrganState(): Promise<CardioNeuralConversionOrganState | null> {
+  try {
+    const actor = await connectSwarmBrain();
+    return await actor.getCardioNeuralConversionOrganState();
+  } catch (error) {
+    console.error('[SwarmBrainActor] fetchCardioNeuralConversionOrganState failed:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetch autonomous analyst team state
+ */
+export async function fetchAutonomousAnalystTeamState(): Promise<AutonomousAnalystTeamState | null> {
+  try {
+    const actor = await connectSwarmBrain();
+    return await actor.getAutonomousAnalystTeamState();
+  } catch (error) {
+    console.error('[SwarmBrainActor] fetchAutonomousAnalystTeamState failed:', error);
+    return null;
+  }
+}
+
+/**
  * Trigger a backend tick
  */
 export async function triggerTick(): Promise<TickResult | null> {
@@ -585,6 +681,8 @@ export default {
   fetchExtendedSnapshot,
   fetchOrganismState,
   fetchGeoResonanceProtectionState,
+  fetchCardioNeuralConversionOrganState,
+  fetchAutonomousAnalystTeamState,
   triggerTick,
   triggerHeartbeat,
   setArchitectSignal,
