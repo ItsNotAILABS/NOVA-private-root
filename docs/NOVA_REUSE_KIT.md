@@ -164,3 +164,24 @@ exposure_policy:
 
 Never start from zero:
 Reuse the same fundamentals, laws, model language, and twin-core gates; only change domain rings and product projections.
+
+---
+
+## 8) Resonance Artifact Add-On (Doctrine Encoding Layer)
+
+Use these companion templates to encode high-density doctrine meaning without exposing internals:
+
+- `docs/templates/NOVA_RESONANCE_LEXICON.yaml`
+- `docs/templates/NOVA_DOCTRINE_PACK.yaml`
+- `docs/templates/NOVA_RESONANCE_CLAUSE.md`
+
+Purpose:
+
+- Keep sacred/value-level language in structured doctrine artifacts.
+- Map compressed phrases/symbols to explicit machine-facing effects.
+- Preserve Zero-Exposure externally while keeping full internal meaning.
+
+Rule:
+
+- Every resonance clause must resolve to concrete law/model/gate references.
+- If a clause cannot be operationalized, it remains commentary and cannot gate runtime behavior.
