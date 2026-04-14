@@ -96,6 +96,345 @@ module {
 
   // ── Constants ─────────────────────────────────────────────────
   let PI : Float = 3.14159265358979323846;
+  let PHI : Float = 1.6180339887498948;
+  let PHI_INV : Float = 0.6180339887498948;
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // 444 SACRED COGNITIVE GEOMETRY — 4×4×4 = 64 ATTRACTOR BASINS
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // 444 = The Builder's Number in angel numerology = foundation + structure
+  // 4 × 4 × 4 = 64 = 2^6 = perfect power of 2 = cognitive cell count
+  //
+  // DIMENSION 1: 4 DOMAINS (what aspect of reality)
+  //   0 = SELF (internal state, coherence, health)
+  //   1 = MARKET (external financial state)
+  //   2 = SOCIAL (relationships, trust, network)
+  //   3 = TEMPORAL (time, urgency, deadlines)
+  //
+  // DIMENSION 2: 4 STATES (cognitive mode)
+  //   0 = SCANNING (exploration, opportunity detection)
+  //   1 = FOCUSING (attention narrowing, analysis)
+  //   2 = EXECUTING (action, trade execution)
+  //   3 = CONSOLIDATING (learning, memory formation)
+  //
+  // DIMENSION 3: 4 FORCES (motivational vector)
+  //   0 = FEAR (loss aversion, risk avoidance)
+  //   1 = GREED (gain seeking, opportunity pursuit)
+  //   2 = HOPE (future projection, positive expectation)
+  //   3 = DISCIPLINE (rule following, process adherence)
+  //
+  // Each combination (d, s, f) = one of 64 attractor basins
+  // The organism navigates this 64-cell cognitive landscape
+  // ══════════════════════════════════════════════════════════════════════════
+
+  public type CognitiveDomain = {
+    #Self;
+    #Market;
+    #Social;
+    #Temporal;
+  };
+
+  public type CognitiveState = {
+    #Scanning;
+    #Focusing;
+    #Executing;
+    #Consolidating;
+  };
+
+  public type CognitiveForce = {
+    #Fear;
+    #Greed;
+    #Hope;
+    #Discipline;
+  };
+
+  // 444 Cell = one attractor basin in 64-cell landscape
+  public type Cell444 = {
+    domain      : CognitiveDomain;
+    state       : CognitiveState;
+    force       : CognitiveForce;
+    cellIndex   : Nat;              // 0-63
+    position    : [Float];          // 4D position in state space
+    strength    : Float;            // Basin depth
+    stability   : Float;            // How stable is this cell
+    resonance   : Float;            // φ-resonance with neighboring cells
+    visits      : Nat;              // How often organism visits this cell
+    lastVisit   : Nat;              // Beat of last visit
+  };
+
+  // Full 444 landscape
+  public type Landscape444 = {
+    cells           : [Cell444];    // 64 cells
+    currentCell     : Nat;          // Which cell is organism in (0-63)
+    transitionMatrix: [Float];      // 64×64 = 4096 transition probabilities
+    cellEnergies    : [Float];      // Energy at each cell
+    sacredAlignment : Float;        // How aligned is landscape with φ-ratios
+    coherenceByCell : [Float];      // Coherence contribution per cell
+  };
+
+  // Get cell index from domain, state, force
+  public func cell444Index(domain: Nat, state: Nat, force: Nat) : Nat {
+    // Index = domain * 16 + state * 4 + force
+    // This gives 0-63 for all combinations
+    domain * 16 + state * 4 + force
+  };
+
+  // Decode cell index back to domain, state, force
+  public func cell444Decode(index: Nat) : (Nat, Nat, Nat) {
+    let domain = index / 16;
+    let remainder = index % 16;
+    let state = remainder / 4;
+    let force = remainder % 4;
+    (domain, state, force)
+  };
+
+  // Create position in 4D state space from domain/state/force
+  // Uses φ-based coordinates for sacred geometry alignment
+  func cell444Position(domain: Nat, state: Nat, force: Nat) : [Float] {
+    // Each dimension maps to [0, φ] range
+    // Position = (domain/3 × φ, state/3 × φ, force/3 × φ, alignment)
+    let d = Float.fromInt(domain) / 3.0 * PHI;
+    let s = Float.fromInt(state) / 3.0 * PHI;
+    let f = Float.fromInt(force) / 3.0 * PHI;
+    // 4th dimension = φ-alignment (golden ratio of first 3)
+    let alignment = (d + s * PHI_INV + f * PHI_INV * PHI_INV) / 3.0;
+    [d, s, f, alignment]
+  };
+
+  // Calculate cell strength (basin depth) based on sacred geometry
+  // Cells at φ-proportional positions have deeper basins
+  func cell444Strength(domain: Nat, state: Nat, force: Nat) : Float {
+    // Strength peaks at φ-proportional combinations
+    // (1, 2, 3) ≈ φ ratios, so cells near these have higher strength
+    let idealD = 1.0;  // φ^0
+    let idealS = 2.0;  // near φ
+    let idealF = 3.0;  // near φ²
+    
+    let devD = Float.abs(Float.fromInt(domain) - idealD) / 3.0;
+    let devS = Float.abs(Float.fromInt(state) - idealS) / 3.0;
+    let devF = Float.abs(Float.fromInt(force) - idealF) / 3.0;
+    
+    // Strength = 1 - deviation from ideal
+    let deviation = (devD + devS + devF) / 3.0;
+    _clamp(1.0 - deviation * 0.5, 0.3, 1.0)
+  };
+
+  // Calculate φ-resonance between two cells
+  func cell444Resonance(cell1: Nat, cell2: Nat) : Float {
+    let (d1, s1, f1) = cell444Decode(cell1);
+    let (d2, s2, f2) = cell444Decode(cell2);
+    
+    // Resonance is high when cells differ by φ-proportional amounts
+    // Adjacent cells (diff = 1) have resonance φ^(-1) = 0.618
+    // Same cell has resonance 1.0
+    // Opposite cells (diff = 3) have resonance φ^(-3) = 0.236
+    
+    let diffD = Float.abs(Float.fromInt(d1) - Float.fromInt(d2));
+    let diffS = Float.abs(Float.fromInt(s1) - Float.fromInt(s2));
+    let diffF = Float.abs(Float.fromInt(f1) - Float.fromInt(f2));
+    
+    let totalDiff = diffD + diffS + diffF;
+    if (totalDiff < 0.001) { return 1.0 };  // Same cell
+    
+    // φ^(-totalDiff) for sacred resonance
+    Float.pow(PHI_INV, totalDiff)
+  };
+
+  // Initialize 64-cell 444 landscape
+  public func init444Landscape() : Landscape444 {
+    var cells : [Cell444] = [];
+    var energies : [Float] = [];
+    var coherences : [Float] = [];
+    
+    // Create all 64 cells
+    var idx : Nat = 0;
+    var d = 0;
+    while (d < 4) {
+      var s = 0;
+      while (s < 4) {
+        var f = 0;
+        while (f < 4) {
+          let cell : Cell444 = {
+            domain = switch (d) {
+              case (0) { #Self };
+              case (1) { #Market };
+              case (2) { #Social };
+              case (_) { #Temporal };
+            };
+            state = switch (s) {
+              case (0) { #Scanning };
+              case (1) { #Focusing };
+              case (2) { #Executing };
+              case (_) { #Consolidating };
+            };
+            force = switch (f) {
+              case (0) { #Fear };
+              case (1) { #Greed };
+              case (2) { #Hope };
+              case (_) { #Discipline };
+            };
+            cellIndex = idx;
+            position = cell444Position(d, s, f);
+            strength = cell444Strength(d, s, f);
+            stability = 0.5;
+            resonance = 1.0;
+            visits = 0;
+            lastVisit = 0;
+          };
+          cells := Array.append(cells, [cell]);
+          energies := Array.append(energies, [0.0]);
+          coherences := Array.append(coherences, [0.0]);
+          idx += 1;
+          f += 1;
+        };
+        s += 1;
+      };
+      d += 1;
+    };
+    
+    // Build 64×64 transition matrix (initialized to uniform)
+    let transitionMatrix = Array.tabulate<Float>(64 * 64, func(i) {
+      let from = i / 64;
+      let to = i % 64;
+      cell444Resonance(from, to) / 64.0  // Normalized resonance
+    });
+    
+    // Calculate sacred alignment (how φ-aligned is the whole landscape)
+    var totalResonance : Float = 0.0;
+    var pairs : Nat = 0;
+    var i = 0;
+    while (i < 64) {
+      var j = i + 1;
+      while (j < 64) {
+        totalResonance += cell444Resonance(i, j);
+        pairs += 1;
+        j += 1;
+      };
+      i += 1;
+    };
+    let sacredAlign = totalResonance / Float.fromInt(pairs);
+    
+    {
+      cells = cells;
+      currentCell = 0;
+      transitionMatrix = transitionMatrix;
+      cellEnergies = energies;
+      sacredAlignment = sacredAlign;
+      coherenceByCell = coherences;
+    }
+  };
+
+  // Determine which 444 cell organism should be in based on current state
+  public func determine444Cell(
+    selfCoherence: Float,       // Internal coherence
+    marketVolatility: Float,    // External market state
+    socialTrust: Float,         // Network state
+    temporalUrgency: Float,     // Time pressure
+    fearLevel: Float,           // From FearArchitecture
+    greedLevel: Float,          // From reward signals
+    hopeLevel: Float,           // From prediction confidence
+    disciplineLevel: Float      // From law compliance
+  ) : Nat {
+    // Determine domain (which aspect dominates attention)
+    let domains = [selfCoherence, marketVolatility, socialTrust, temporalUrgency];
+    var maxDomain : Nat = 0;
+    var maxDomainVal : Float = domains[0];
+    var d = 1;
+    while (d < 4) {
+      if (domains[d] > maxDomainVal) {
+        maxDomainVal := domains[d];
+        maxDomain := d;
+      };
+      d += 1;
+    };
+    
+    // Determine state (cognitive mode)
+    // Scanning: low focus, exploring
+    // Focusing: high attention, analyzing
+    // Executing: taking action
+    // Consolidating: learning, resting
+    let state = if (selfCoherence < 0.4) {
+      0  // Scanning (low coherence = exploring)
+    } else if (fearLevel > 0.6 or greedLevel > 0.6) {
+      2  // Executing (high emotion = action)
+    } else if (disciplineLevel > 0.7) {
+      3  // Consolidating (high discipline = learning)
+    } else {
+      1  // Focusing (default analytical mode)
+    };
+    
+    // Determine force (dominant motivation)
+    let forces = [fearLevel, greedLevel, hopeLevel, disciplineLevel];
+    var maxForce : Nat = 0;
+    var maxForceVal : Float = forces[0];
+    var f = 1;
+    while (f < 4) {
+      if (forces[f] > maxForceVal) {
+        maxForceVal := forces[f];
+        maxForce := f;
+      };
+      f += 1;
+    };
+    
+    cell444Index(maxDomain, state, maxForce)
+  };
+
+  // Update 444 landscape based on organism state
+  public func tick444Landscape(
+    landscape: Landscape444,
+    newCell: Nat,
+    beat: Nat
+  ) : Landscape444 {
+    // Update current cell
+    var updatedCells = Array.tabulate<Cell444>(64, func(i) {
+      if (i == newCell) {
+        {
+          domain = landscape.cells[i].domain;
+          state = landscape.cells[i].state;
+          force = landscape.cells[i].force;
+          cellIndex = i;
+          position = landscape.cells[i].position;
+          strength = landscape.cells[i].strength;
+          stability = _clamp(landscape.cells[i].stability + 0.01, 0.0, 1.0);
+          resonance = landscape.cells[i].resonance;
+          visits = landscape.cells[i].visits + 1;
+          lastVisit = beat;
+        }
+      } else {
+        // Decay stability of unvisited cells
+        {
+          domain = landscape.cells[i].domain;
+          state = landscape.cells[i].state;
+          force = landscape.cells[i].force;
+          cellIndex = i;
+          position = landscape.cells[i].position;
+          strength = landscape.cells[i].strength;
+          stability = _clamp(landscape.cells[i].stability - 0.001, 0.1, 1.0);
+          resonance = landscape.cells[i].resonance;
+          visits = landscape.cells[i].visits;
+          lastVisit = landscape.cells[i].lastVisit;
+        }
+      }
+    });
+    
+    // Update transition probabilities (Hebbian: strengthen used transitions)
+    let oldCell = landscape.currentCell;
+    var updatedTransitions = Array.thaw<Float>(landscape.transitionMatrix);
+    let transIdx = oldCell * 64 + newCell;
+    if (transIdx < updatedTransitions.size()) {
+      updatedTransitions[transIdx] += 0.01;  // Strengthen used transition
+    };
+    
+    {
+      cells = updatedCells;
+      currentCell = newCell;
+      transitionMatrix = Array.freeze(updatedTransitions);
+      cellEnergies = landscape.cellEnergies;
+      sacredAlignment = landscape.sacredAlignment;
+      coherenceByCell = landscape.coherenceByCell;
+    }
+  };
 
   // ── Helpers ───────────────────────────────────────────────────
   func _clamp(x: Float, lo: Float, hi: Float) : Float {

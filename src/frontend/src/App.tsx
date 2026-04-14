@@ -32,6 +32,11 @@ import { NeuroCogLab }        from './components/labs/NeuroCogLab';
 import { OroCommandCenter }     from './components/CommandCenter/OroCommandCenter';
 import { DroneSimulationWorld } from './components/CommandCenter/DroneSimulationWorld';
 
+// ── Emergence · Math/Physics · NeuroCog Labs ────────────────────────────────
+import { EmergenceLab }   from './components/CommandCenter/EmergenceLab';
+import { MathPhysicsLab } from './components/CommandCenter/MathPhysicsLab';
+import { NeuroCogLab }    from './components/CommandCenter/NeuroCogLab';
+
 // ── Navigation ────────────────────────────────────────────────────────────────
 type NavView =
   | 'SWARM'          // original tactical swarm view
@@ -42,9 +47,12 @@ type NavView =
   | 'ARTIFACTS'      // artifact studio
   | 'PRESENCE'       // presence board
   | 'SIMULATION'     // world simulation chamber
+
+
   | 'LAB_EMERGENCE'  // emergence lab: Kuramoto, Ising, Lorenz, Turing, Sandpile
   | 'LAB_MATH'       // math/physics lab: Lyapunov, quantum, 60 laws
   | 'LAB_NEURO';     // neuro-cognitive lab: neurochemistry, Hz substrate
+
 
 const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
   { id: 'COMMAND',    label: 'Command',    icon: '◉' },
@@ -55,9 +63,12 @@ const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
   { id: 'ARTIFACTS',  label: 'Artifacts',  icon: '▣' },
   { id: 'PRESENCE',   label: 'Presence',   icon: '●' },
   { id: 'SIMULATION', label: 'World Sim',  icon: '✦' },
+
+
   { id: 'LAB_EMERGENCE',label: 'Emergence',   icon: '∿' },
   { id: 'LAB_MATH',     label: 'Math/Physics',icon: '∂' },
   { id: 'LAB_NEURO',   label: 'NeuroCog',    icon: '⊛' },
+
 ];
 
 // ── Styles ────────────────────────────────────────────────────────────────────
@@ -311,6 +322,12 @@ export default function App() {
           </div>
         )}
 
+
+        {/* ── EMERGENCE LAB — Kuramoto Phase Sync Observatory ─────────── */}
+
+        {/* ── MATH & PHYSICS LAB — All Governing Equations Live ────────── */}
+
+        {/* ── NEUROSCIENCE & COGNITIVE LAB — Brain Architecture Observer ─ */}
         {/* ── SCIENCE LABS ─────────────────────────────────────────────── */}
         {view === 'LAB_EMERGENCE' && (
           <div style={{ width: '100%', height: '100%' }}>
@@ -328,6 +345,7 @@ export default function App() {
           <div style={{ width: '100%', height: '100%' }}>
             <NeuroCogLab />
           </div>
+
         )}
       </div>
     </div>

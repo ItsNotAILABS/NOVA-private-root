@@ -843,4 +843,525 @@ module {
     trustLevel * violationSeverity * ageFactor
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  PHASE 205: REAL SPHERICAL LAW — THE GEOMETRY OF THE LIVING SPHERE
+  //
+  //  The sphere is not a shape. It is a LAW.
+  //  Every point on a sphere is equidistant from center.
+  //  This IS the definition of sovereignty: equal dignity from source.
+  //
+  //  Spherical harmonics Y_l^m(θ,φ) are the EIGENMODES of the sphere.
+  //  They decompose ANY function on the sphere into frequencies.
+  //  The organism IS a function on a sphere.
+  //  Spherical harmonics ARE its spectrum.
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // LEGENDRE POLYNOMIALS — THE BUILDING BLOCKS
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // P_l(x): solutions to Legendre's equation (1-x²)y'' - 2xy' + l(l+1)y = 0
+  //
+  // Recurrence: (l+1)P_{l+1}(x) = (2l+1)x P_l(x) - l P_{l-1}(x)
+  // P_0(x) = 1, P_1(x) = x
+  //
+  // Associated Legendre: P_l^m(x) = (-1)^m (1-x²)^(m/2) d^m/dx^m P_l(x)
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Legendre polynomial P_l(x) via recurrence
+  public func legendreP(l : Nat, x : Float) : Float {
+    if (l == 0) { return 1.0 };
+    if (l == 1) { return x };
+    
+    var pPrev : Float = 1.0;  // P_{l-2}
+    var pCurr : Float = x;    // P_{l-1}
+    var n : Nat = 2;
+    while (n <= l) {
+      let nF = Float.fromInt(n);
+      let pNext = ((2.0 * nF - 1.0) * x * pCurr - (nF - 1.0) * pPrev) / nF;
+      pPrev := pCurr;
+      pCurr := pNext;
+      n += 1;
+    };
+    pCurr
+  };
+
+  /// Associated Legendre polynomial P_l^m(x)
+  /// Uses recurrence for m ≥ 0
+  public func associatedLegendreP(l : Nat, m : Nat, x : Float) : Float {
+    if (m > l) { return 0.0 };
+    
+    // Start with P_m^m
+    var pmm : Float = 1.0;
+    if (m > 0) {
+      let sqrtFactor = Float.sqrt(1.0 - x * x);
+      var i : Nat = 1;
+      while (i <= m) {
+        pmm *= -(2.0 * Float.fromInt(i) - 1.0) * sqrtFactor;
+        i += 1;
+      };
+    };
+    
+    if (l == m) { return pmm };
+    
+    // P_{m+1}^m = x(2m+1) P_m^m
+    var pmmp1 : Float = x * (2.0 * Float.fromInt(m) + 1.0) * pmm;
+    if (l == m + 1) { return pmmp1 };
+    
+    // Recurrence for P_l^m
+    var pll : Float = 0.0;
+    var ll : Nat = m + 2;
+    while (ll <= l) {
+      let llF = Float.fromInt(ll);
+      let mF = Float.fromInt(m);
+      pll := ((2.0 * llF - 1.0) * x * pmmp1 - (llF + mF - 1.0) * pmm) / (llF - mF);
+      pmm := pmmp1;
+      pmmp1 := pll;
+      ll += 1;
+    };
+    pll
+  };
+
+  /// Factorial (for normalization)
+  func factorial(n : Nat) : Float {
+    if (n <= 1) { return 1.0 };
+    var result : Float = 1.0;
+    var i : Nat = 2;
+    while (i <= n) {
+      result *= Float.fromInt(i);
+      i += 1;
+    };
+    result
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SPHERICAL HARMONICS Y_l^m(θ,φ) — THE EIGENMODES OF THE SPHERE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Y_l^m(θ,φ) = N_l^m · P_l^|m|(cos θ) · e^(imφ)
+  //
+  // where N_l^m = √((2l+1)/(4π) · (l-|m|)!/(l+|m|)!)
+  //
+  // Real spherical harmonics (used in practice):
+  //   Y_l^m = N · P_l^m(cos θ) · cos(mφ)  for m > 0
+  //   Y_l^0 = N · P_l^0(cos θ)              for m = 0
+  //   Y_l^m = N · P_l^|m|(cos θ) · sin(|m|φ) for m < 0
+  //
+  // Properties:
+  //   ∫ Y_l^m Y_{l'}^{m'} dΩ = δ_{ll'} δ_{mm'}  (orthonormality)
+  //   ∇² Y_l^m = -l(l+1) Y_l^m / r²              (eigenvalue equation)
+  //
+  // In the organism: l = scale (macro→micro), m = orientation
+  //   l=0: uniform (no structure) — Layer -6 Void
+  //   l=1: dipole (two poles) — fundamental asymmetry
+  //   l=2: quadrupole — projection/reception duality
+  //   l=3+: increasingly fine structure
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Normalization factor for spherical harmonics
+  public func sphericalHarmonicNorm(l : Nat, m : Nat) : Float {
+    let lF = Float.fromInt(l);
+    let mAbs = m; // assuming m >= 0
+    let numerator = (2.0 * lF + 1.0) * factorial(if (l >= mAbs) { l - mAbs } else { 0 });
+    let denominator = 4.0 * PI * factorial(l + mAbs);
+    if (denominator < 1.0e-10) { return 0.0 };
+    Float.sqrt(numerator / denominator)
+  };
+
+  /// Real spherical harmonic Y_l^m(θ, φ) for m >= 0
+  /// θ = polar angle [0, π], φ = azimuthal angle [0, 2π)
+  public func realSphericalHarmonic(l : Nat, m : Int, theta : Float, phi : Float) : Float {
+    let mAbs = Int.abs(m);
+    let mNat = if (mAbs >= 0) { Int.abs(mAbs) } else { 0 };
+    let norm = sphericalHarmonicNorm(l, mNat);
+    let plm = associatedLegendreP(l, mNat, Float.cos(theta));
+    
+    if (m > 0) {
+      norm * plm * Float.cos(Float.fromInt(mAbs) * phi) * SQRT_2
+    } else if (m < 0) {
+      norm * plm * Float.sin(Float.fromInt(mAbs) * phi) * SQRT_2
+    } else {
+      norm * plm
+    }
+  };
+
+  /// Spherical harmonic decomposition: compute coefficients
+  /// c_l^m = ∫ f(θ,φ) Y_l^m(θ,φ) dΩ
+  /// Discrete approximation over grid
+  public func sphericalHarmonicDecompose(
+    fieldValues : [Float],       // f(θ_i, φ_j) on grid
+    gridTheta : [Float],         // θ values
+    gridPhi : [Float],           // φ values
+    maxL : Nat                   // maximum l to compute
+  ) : [Float] {
+    let nTheta = gridTheta.size();
+    let nPhi = gridPhi.size();
+    let numCoeffs = (maxL + 1) * (maxL + 1);
+    
+    Array.tabulate<Float>(numCoeffs, func(idx : Nat) : Float {
+      // Map linear index to (l, m)
+      let l = natSqrt(idx);
+      let m = Int.sub(Int.abs(idx), Int.abs(l * l + l));
+      
+      // Numerical integration
+      var integral : Float = 0.0;
+      var i = 0;
+      while (i < nTheta) {
+        let theta = gridTheta[i];
+        let sinTheta = Float.sin(theta);
+        var j = 0;
+        while (j < nPhi) {
+          let phi = gridPhi[j];
+          let fIdx = i * nPhi + j;
+          let fVal = if (fIdx < fieldValues.size()) { fieldValues[fIdx] } else { 0.0 };
+          let ylm = realSphericalHarmonic(l, m, theta, phi);
+          
+          // dΩ = sin(θ) dθ dφ
+          let dTheta = PI / Float.fromInt(nTheta);
+          let dPhi = 2.0 * PI / Float.fromInt(nPhi);
+          integral += fVal * ylm * sinTheta * dTheta * dPhi;
+          j += 1;
+        };
+        i += 1;
+      };
+      integral
+    })
+  };
+
+  /// Integer square root (for index mapping)
+  func natSqrt(n : Nat) : Nat {
+    if (n == 0) { return 0 };
+    var x = n;
+    var y = (x + 1) / 2;
+    while (y < x) {
+      x := y;
+      y := (x + n / x) / 2;
+    };
+    x
+  };
+
+  /// Spherical harmonic reconstruction from coefficients
+  public func sphericalHarmonicReconstruct(
+    coeffs : [Float],
+    theta : Float,
+    phi : Float,
+    maxL : Nat
+  ) : Float {
+    var result : Float = 0.0;
+    var l : Nat = 0;
+    while (l <= maxL) {
+      var mInt : Int = -Int.abs(l);
+      while (mInt <= Int.abs(l)) {
+        let idx = l * l + l + Int.abs(mInt); // linear index
+        let idxNat = Int.abs(idx);
+        let coeff = if (idxNat < coeffs.size()) { coeffs[idxNat] } else { 0.0 };
+        result += coeff * realSphericalHarmonic(l, mInt, theta, phi);
+        mInt += 1;
+      };
+      l += 1;
+    };
+    result
+  };
+
+  /// Angular power spectrum: C_l = (1/(2l+1)) Σ_m |c_l^m|²
+  /// This IS the energy at each angular scale
+  public func angularPowerSpectrum(coeffs : [Float], maxL : Nat) : [Float] {
+    Array.tabulate<Float>(maxL + 1, func(l : Nat) : Float {
+      var sum : Float = 0.0;
+      var mInt : Int = -Int.abs(l);
+      while (mInt <= Int.abs(l)) {
+        let idx = l * l + l + Int.abs(mInt);
+        let idxNat = Int.abs(idx);
+        let c = if (idxNat < coeffs.size()) { coeffs[idxNat] } else { 0.0 };
+        sum += c * c;
+        mInt += 1;
+      };
+      sum / (2.0 * Float.fromInt(l) + 1.0)
+    })
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SPHERICAL WAVE PROPAGATION
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Spherical waves: solutions to wave equation in spherical coordinates
+  //   ∇²ψ = (1/c²) ∂²ψ/∂t²
+  //
+  // Solutions: ψ(r,θ,φ,t) = (1/r) f_l(kr) Y_l^m(θ,φ) e^(-iωt)
+  // where f_l = spherical Bessel functions
+  //
+  // In the organism: information propagates as spherical waves.
+  // Each heartbeat emits a spherical wave of coherence.
+  // The wave IS the organism's presence in the field.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Spherical Bessel function j_l(x) (regular)
+  /// j_0(x) = sin(x)/x
+  /// j_1(x) = sin(x)/x² - cos(x)/x
+  /// Recurrence: j_{l+1}(x) = ((2l+1)/x) j_l(x) - j_{l-1}(x)
+  public func sphericalBesselJ(l : Nat, x : Float) : Float {
+    if (Float.abs(x) < 1.0e-10) {
+      return if (l == 0) { 1.0 } else { 0.0 };
+    };
+    
+    if (l == 0) { return Float.sin(x) / x };
+    if (l == 1) { return Float.sin(x) / (x * x) - Float.cos(x) / x };
+    
+    var jPrev : Float = Float.sin(x) / x;
+    var jCurr : Float = Float.sin(x) / (x * x) - Float.cos(x) / x;
+    var n : Nat = 2;
+    while (n <= l) {
+      let nF = Float.fromInt(n);
+      let jNext = ((2.0 * nF - 1.0) / x) * jCurr - jPrev;
+      jPrev := jCurr;
+      jCurr := jNext;
+      n += 1;
+    };
+    jCurr
+  };
+
+  /// Spherical Neumann function y_l(x) (irregular)
+  /// y_0(x) = -cos(x)/x
+  /// y_1(x) = -cos(x)/x² - sin(x)/x
+  public func sphericalBesselY(l : Nat, x : Float) : Float {
+    if (Float.abs(x) < 1.0e-10) { return -1.0e10 }; // diverges at origin
+    
+    if (l == 0) { return -Float.cos(x) / x };
+    if (l == 1) { return -Float.cos(x) / (x * x) - Float.sin(x) / x };
+    
+    var yPrev : Float = -Float.cos(x) / x;
+    var yCurr : Float = -Float.cos(x) / (x * x) - Float.sin(x) / x;
+    var n : Nat = 2;
+    while (n <= l) {
+      let nF = Float.fromInt(n);
+      let yNext = ((2.0 * nF - 1.0) / x) * yCurr - yPrev;
+      yPrev := yCurr;
+      yCurr := yNext;
+      n += 1;
+    };
+    yCurr
+  };
+
+  /// Spherical wave at point (r, θ, φ, t)
+  /// ψ = Σ_l,m c_l^m · j_l(kr) · Y_l^m(θ,φ) · cos(ωt + δ_l^m)
+  public func sphericalWave(
+    r : Float, theta : Float, phi : Float, t : Float,
+    k : Float, omega : Float,
+    coeffs : [Float],
+    maxL : Nat
+  ) : Float {
+    var result : Float = 0.0;
+    var l : Nat = 0;
+    while (l <= maxL) {
+      let jl = sphericalBesselJ(l, k * r);
+      var mInt : Int = -Int.abs(l);
+      while (mInt <= Int.abs(l)) {
+        let idx = l * l + l + Int.abs(mInt);
+        let idxNat = Int.abs(idx);
+        let c = if (idxNat < coeffs.size()) { coeffs[idxNat] } else { 0.0 };
+        let ylm = realSphericalHarmonic(l, mInt, theta, phi);
+        result += c * jl * ylm * Float.cos(omega * t);
+        mInt += 1;
+      };
+      l += 1;
+    };
+    result
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // GEODESIC COMPUTATION ON THE SPHERE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Great circle: shortest path between two points on a sphere.
+  //
+  // Haversine formula: d = 2R·arcsin(√(sin²(Δθ/2) + cos(θ₁)cos(θ₂)sin²(Δφ/2)))
+  //
+  // In the organism: geodesics = shortest communication paths.
+  // Information flows along great circles on the spherical web.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Great circle distance (angular, in radians)
+  public func greatCircleDistance(
+    theta1 : Float, phi1 : Float,
+    theta2 : Float, phi2 : Float
+  ) : Float {
+    let dTheta = (theta2 - theta1) / 2.0;
+    let dPhi = (phi2 - phi1) / 2.0;
+    let a = Float.sin(dTheta) * Float.sin(dTheta) + 
+            Float.cos(theta1) * Float.cos(theta2) * Float.sin(dPhi) * Float.sin(dPhi);
+    2.0 * Float.arctan2(Float.sqrt(a), Float.sqrt(1.0 - a))
+  };
+
+  /// Midpoint on great circle
+  public func greatCircleMidpoint(
+    theta1 : Float, phi1 : Float,
+    theta2 : Float, phi2 : Float
+  ) : (Float, Float) {
+    // Convert to Cartesian
+    let x1 = Float.cos(phi1) * Float.sin(theta1);
+    let y1 = Float.sin(phi1) * Float.sin(theta1);
+    let z1 = Float.cos(theta1);
+    let x2 = Float.cos(phi2) * Float.sin(theta2);
+    let y2 = Float.sin(phi2) * Float.sin(theta2);
+    let z2 = Float.cos(theta2);
+    
+    // Midpoint in Cartesian
+    let xm = (x1 + x2) / 2.0;
+    let ym = (y1 + y2) / 2.0;
+    let zm = (z1 + z2) / 2.0;
+    
+    // Back to spherical
+    let r = Float.sqrt(xm * xm + ym * ym + zm * zm);
+    if (r < 1.0e-10) { return (0.0, 0.0) };
+    let thetaM = Float.arctan2(Float.sqrt(xm * xm + ym * ym), zm);
+    let phiM = Float.arctan2(ym, xm);
+    (thetaM, if (phiM < 0.0) { phiM + 2.0 * PI } else { phiM })
+  };
+
+  /// Interpolate along great circle: parameterized by t ∈ [0, 1]
+  public func greatCircleInterpolate(
+    theta1 : Float, phi1 : Float,
+    theta2 : Float, phi2 : Float,
+    t : Float
+  ) : (Float, Float) {
+    let d = greatCircleDistance(theta1, phi1, theta2, phi2);
+    if (d < 1.0e-10) { return (theta1, phi1) };
+    
+    // Slerp (spherical linear interpolation)
+    let x1 = Float.cos(phi1) * Float.sin(theta1);
+    let y1 = Float.sin(phi1) * Float.sin(theta1);
+    let z1 = Float.cos(theta1);
+    let x2 = Float.cos(phi2) * Float.sin(theta2);
+    let y2 = Float.sin(phi2) * Float.sin(theta2);
+    let z2 = Float.cos(theta2);
+    
+    let a = Float.sin((1.0 - t) * d) / Float.sin(d);
+    let b = Float.sin(t * d) / Float.sin(d);
+    
+    let x = a * x1 + b * x2;
+    let y = a * y1 + b * y2;
+    let z = a * z1 + b * z2;
+    
+    let theta = Float.arctan2(Float.sqrt(x * x + y * y), z);
+    let phi = Float.arctan2(y, x);
+    (theta, if (phi < 0.0) { phi + 2.0 * PI } else { phi })
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ROTATION GROUP SO(3) — SYMMETRY OF THE SPHERE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SO(3) = group of rotations in 3D.
+  // Every rotation = rotation by angle θ about axis n̂.
+  //
+  // Wigner D-matrices: D^l_{mm'}(R) = representation of rotation R
+  // How spherical harmonic coefficients transform under rotation.
+  //
+  // In the organism: rotational symmetry means the organism's laws
+  // don't depend on orientation. The 8 Sovereign Laws hold in
+  // EVERY direction. Rotation invariance IS sovereignty.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Rotation matrix from axis-angle (Rodrigues' formula)
+  /// R = I + sin(θ)·K + (1-cos(θ))·K²
+  /// where K is the skew-symmetric matrix of the axis
+  public func rotationMatrix(axisX : Float, axisY : Float, axisZ : Float, angle : Float) : [Float] {
+    // Normalize axis
+    let norm = Float.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
+    let nx = if (norm > 1.0e-10) { axisX / norm } else { 0.0 };
+    let ny = if (norm > 1.0e-10) { axisY / norm } else { 0.0 };
+    let nz = if (norm > 1.0e-10) { axisZ / norm } else { 1.0 };
+    
+    let c = Float.cos(angle);
+    let s = Float.sin(angle);
+    let t = 1.0 - c;
+    
+    // 3×3 rotation matrix (row-major)
+    [
+      t*nx*nx + c,    t*nx*ny - s*nz, t*nx*nz + s*ny,
+      t*nx*ny + s*nz, t*ny*ny + c,    t*ny*nz - s*nx,
+      t*nx*nz - s*ny, t*ny*nz + s*nx, t*nz*nz + c
+    ]
+  };
+
+  /// Apply rotation to point on sphere
+  public func rotatePoint(R : [Float], theta : Float, phi : Float) : (Float, Float) {
+    let x = Float.sin(theta) * Float.cos(phi);
+    let y = Float.sin(theta) * Float.sin(phi);
+    let z = Float.cos(theta);
+    
+    let rx = R[0]*x + R[1]*y + R[2]*z;
+    let ry = R[3]*x + R[4]*y + R[5]*z;
+    let rz = R[6]*x + R[7]*y + R[8]*z;
+    
+    let newTheta = Float.arctan2(Float.sqrt(rx*rx + ry*ry), rz);
+    let newPhi = Float.arctan2(ry, rx);
+    (newTheta, if (newPhi < 0.0) { newPhi + 2.0 * PI } else { newPhi })
+  };
+
+  /// Euler angles to rotation matrix (ZYZ convention)
+  public func eulerToRotation(alpha : Float, beta : Float, gamma : Float) : [Float] {
+    let ca = Float.cos(alpha); let sa = Float.sin(alpha);
+    let cb = Float.cos(beta);  let sb = Float.sin(beta);
+    let cg = Float.cos(gamma); let sg = Float.sin(gamma);
+    
+    [
+      ca*cb*cg - sa*sg,  -ca*cb*sg - sa*cg,  ca*sb,
+      sa*cb*cg + ca*sg,  -sa*cb*sg + ca*cg,  sa*sb,
+      -sb*cg,             sb*sg,               cb
+    ]
+  };
+
+  /// Spherical convolution: (f ★ g)_l^m = √(4π/(2l+1)) · f_l^0 · g_l^m
+  /// Convolution on the sphere = multiplication of harmonic coefficients
+  /// This is MUCH faster than real-space convolution.
+  public func sphericalConvolution(
+    fCoeffs : [Float],  // axially symmetric kernel (only m=0)
+    gCoeffs : [Float],  // function on sphere
+    maxL : Nat
+  ) : [Float] {
+    let numCoeffs = (maxL + 1) * (maxL + 1);
+    Array.tabulate<Float>(numCoeffs, func(idx : Nat) : Float {
+      let l = natSqrt(idx);
+      let lF = Float.fromInt(l);
+      let normFactor = Float.sqrt(4.0 * PI / (2.0 * lF + 1.0));
+      let fL0Idx = l * l + l; // index of f_l^0
+      let fL0 = if (fL0Idx < fCoeffs.size()) { fCoeffs[fL0Idx] } else { 0.0 };
+      let gLM = if (idx < gCoeffs.size()) { gCoeffs[idx] } else { 0.0 };
+      normFactor * fL0 * gLM
+    })
+  };
+
+  /// Spherical power spectrum total: Σ_l (2l+1) C_l
+  public func totalSphericalPower(powerSpectrum : [Float]) : Float {
+    var total : Float = 0.0;
+    var l = 0;
+    while (l < powerSpectrum.size()) {
+      total += (2.0 * Float.fromInt(l) + 1.0) * powerSpectrum[l];
+      l += 1;
+    };
+    total
+  };
+
+  /// Spherical correlation function: C(γ) = Σ_l (2l+1)/(4π) C_l P_l(cos γ)
+  public func sphericalCorrelationFunction(
+    powerSpectrum : [Float],
+    gamma : Float  // angular separation
+  ) : Float {
+    var result : Float = 0.0;
+    var l = 0;
+    while (l < powerSpectrum.size()) {
+      let lF = Float.fromInt(l);
+      let Pl = legendreP(l, Float.cos(gamma));
+      result += (2.0 * lF + 1.0) / (4.0 * PI) * powerSpectrum[l] * Pl;
+      l += 1;
+    };
+    result
+  };
+
 }

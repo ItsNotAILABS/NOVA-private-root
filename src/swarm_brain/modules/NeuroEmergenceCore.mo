@@ -2925,4 +2925,1430 @@ module NeuroEmergenceCore {
     (newState, output)
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 15: MULTI-SCALE EMERGENCE DYNAMICS
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Emergence operates across multiple scales simultaneously
+  // Each scale has its own dynamics that influence adjacent scales
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Multi-scale emergence level
+  public type EmergenceLevel = {
+    scale           : Nat;          // 0 = micro, higher = macro
+    localEmergence  : Float;        // Emergence at this scale
+    localComplexity : Float;        // Complexity at this scale
+    localCoherence  : Float;        // Coherence at this scale
+    upwardCausation : Float;        // Influence from lower scales
+    downwardCausation : Float;      // Influence from higher scales
+    crossScaleCoupling : Float;     // Coupling strength between scales
+    temporalScale   : Float;        // Time constant for this scale
+    spatialExtent   : Float;        // Spatial range for this scale
+    emergentProperties : [Float];   // Properties that emerge at this scale
+  };
+
+  /// Multi-scale emergence hierarchy
+  public type MultiScaleEmergence = {
+    levels          : [EmergenceLevel];
+    numLevels       : Nat;
+    globalEmergence : Float;        // System-wide emergence measure
+    scaleInvariance : Float;        // How self-similar across scales
+    hierarchicalIntegration : Float; // Integration across hierarchy
+    causalFlow      : Float;        // Net causal flow direction (+ve = upward)
+    criticality     : Float;        // Distance from critical point
+    beatNum         : Nat;
+  };
+
+  /// Initialize multi-scale emergence
+  public func initMultiScaleEmergence(numLevels: Nat) : MultiScaleEmergence {
+    let levels = Array.tabulate<EmergenceLevel>(numLevels, func(i) {
+      let scale = Float.fromInt(i);
+      {
+        scale = i;
+        localEmergence = 0.5;
+        localComplexity = 0.5;
+        localCoherence = 0.5;
+        upwardCausation = 0.0;
+        downwardCausation = 0.0;
+        crossScaleCoupling = PHI / (1.0 + scale);  // Decreases with scale
+        temporalScale = Float.exp(scale * 0.5);    // Exponential time scaling
+        spatialExtent = Float.exp(scale * 0.7);    // Exponential spatial scaling
+        emergentProperties = Array.tabulate<Float>(5, func(_) { 0.5 });
+      }
+    });
+    
+    {
+      levels = levels;
+      numLevels = numLevels;
+      globalEmergence = 0.5;
+      scaleInvariance = 0.8;
+      hierarchicalIntegration = 0.5;
+      causalFlow = 0.0;
+      criticality = 0.5;
+      beatNum = 0;
+    }
+  };
+
+  /// Compute upward causation (micro → macro)
+  public func computeUpwardCausation(
+    lowerLevel: EmergenceLevel,
+    currentLevel: EmergenceLevel
+  ) : Float {
+    // Upward causation depends on:
+    // 1. Lower level emergence (more emergence = more causation)
+    // 2. Coherence at lower level (organized = stronger causation)
+    // 3. Cross-scale coupling
+    
+    let emergenceContrib = lowerLevel.localEmergence * 0.4;
+    let coherenceContrib = lowerLevel.localCoherence * 0.3;
+    let couplingContrib = currentLevel.crossScaleCoupling * 0.3;
+    
+    // Nonlinear combination (emergence is nonlinear!)
+    let raw = emergenceContrib + coherenceContrib * couplingContrib;
+    
+    // Sigmoid to bound
+    1.0 / (1.0 + Float.exp(-5.0 * (raw - 0.5)))
+  };
+
+  /// Compute downward causation (macro → micro)
+  public func computeDownwardCausation(
+    higherLevel: EmergenceLevel,
+    currentLevel: EmergenceLevel
+  ) : Float {
+    // Downward causation depends on:
+    // 1. Higher level complexity (more complex = more constraints)
+    // 2. Higher level coherence (organized = stronger constraints)
+    // 3. Temporal scale ratio (slower scales constrain faster)
+    
+    let complexityContrib = higherLevel.localComplexity * 0.35;
+    let coherenceContrib = higherLevel.localCoherence * 0.35;
+    let temporalRatio = higherLevel.temporalScale / currentLevel.temporalScale;
+    let temporalContrib = Float.min(temporalRatio * 0.1, 0.3);
+    
+    complexityContrib + coherenceContrib + temporalContrib
+  };
+
+  /// Update multi-scale emergence
+  public func updateMultiScaleEmergence(
+    state: MultiScaleEmergence,
+    externalInput: Float,
+    dt: Float
+  ) : MultiScaleEmergence {
+    var newLevels : [EmergenceLevel] = [];
+    var totalEmergence : Float = 0.0;
+    var upwardTotal : Float = 0.0;
+    var downwardTotal : Float = 0.0;
+    
+    // First pass: compute causation between levels
+    for (i in Iter.range(0, Int.abs(state.numLevels - 1))) {
+      let level = state.levels[i];
+      
+      // Compute upward causation from lower level
+      let upward = if (i > 0) {
+        computeUpwardCausation(state.levels[i - 1], level)
+      } else {
+        externalInput  // External input enters at lowest level
+      };
+      
+      // Compute downward causation from higher level
+      let downward = if (i < state.numLevels - 1) {
+        computeDownwardCausation(state.levels[i + 1], level)
+      } else { 0.0 };
+      
+      upwardTotal += upward;
+      downwardTotal += downward;
+      
+      // Update emergence at this level
+      let emergenceUpdate = (upward - downward * 0.5) * level.crossScaleCoupling;
+      let decayRate = 1.0 / level.temporalScale;
+      
+      let newEmergence = _clamp(
+        level.localEmergence + (emergenceUpdate - decayRate * (level.localEmergence - 0.5)) * dt,
+        0.0, 1.0
+      );
+      
+      // Complexity increases with emergence but is constrained by coherence
+      let newComplexity = _clamp(
+        level.localComplexity + (newEmergence - level.localCoherence * 0.3) * dt * 0.1,
+        0.0, 1.0
+      );
+      
+      // Coherence follows emergence with a delay
+      let coherenceTarget = newEmergence * 0.8;
+      let newCoherence = level.localCoherence + (coherenceTarget - level.localCoherence) * dt / level.temporalScale;
+      
+      // Update emergent properties
+      let newProps = Array.tabulate<Float>(level.emergentProperties.size(), func(j) {
+        let prop = level.emergentProperties[j];
+        let influence = newEmergence * Float.sin(Float.fromInt(j) * PHI);
+        _clamp(prop + influence * dt * 0.05, 0.0, 1.0)
+      });
+      
+      totalEmergence += newEmergence;
+      
+      newLevels := Array.append(newLevels, [{
+        scale = level.scale;
+        localEmergence = newEmergence;
+        localComplexity = newComplexity;
+        localCoherence = newCoherence;
+        upwardCausation = upward;
+        downwardCausation = downward;
+        crossScaleCoupling = level.crossScaleCoupling;
+        temporalScale = level.temporalScale;
+        spatialExtent = level.spatialExtent;
+        emergentProperties = newProps;
+      }]);
+    };
+    
+    // Compute global measures
+    let globalEmergence = totalEmergence / Float.fromInt(state.numLevels);
+    let causalFlow = (upwardTotal - downwardTotal) / Float.fromInt(state.numLevels);
+    
+    // Scale invariance: how similar are emergence values across scales
+    var scaleVariance : Float = 0.0;
+    for (level in newLevels.vals()) {
+      scaleVariance += (level.localEmergence - globalEmergence) ** 2.0;
+    };
+    let scaleInvariance = 1.0 - Float.sqrt(scaleVariance / Float.fromInt(state.numLevels));
+    
+    // Criticality: system is critical when emergence is balanced across scales
+    let criticality = scaleInvariance * globalEmergence;
+    
+    {
+      levels = newLevels;
+      numLevels = state.numLevels;
+      globalEmergence = globalEmergence;
+      scaleInvariance = scaleInvariance;
+      hierarchicalIntegration = globalEmergence * scaleInvariance;
+      causalFlow = causalFlow;
+      criticality = criticality;
+      beatNum = state.beatNum + 1;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 16: EMERGENCE PHASE TRANSITIONS
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Phase transitions in emergence — order/disorder, integration/segregation
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Phase state for emergence
+  public type EmergencePhase = {
+    #Disordered;      // Low emergence, high entropy
+    #Critical;        // At critical point, maximum complexity
+    #Ordered;         // High emergence, low entropy
+    #Oscillating;     // Cycling between states
+    #Chimera;         // Mixed states coexisting
+  };
+
+  /// Phase transition state
+  public type PhaseTransitionState = {
+    currentPhase    : EmergencePhase;
+    orderParameter  : Float;        // 0 = disordered, 1 = ordered
+    controlParameter : Float;       // Drives transition
+    susceptibility  : Float;        // Response to perturbations (peaks at critical)
+    correlationLength : Float;      // Spatial correlations (diverges at critical)
+    criticalExponent : Float;       // Scaling behavior near critical point
+    hysteresis      : Float;        // Memory of previous states
+    fluctuations    : Float;        // Variance of order parameter
+    transitionHistory : [EmergencePhase];  // Record of phase changes
+    timeSinceTransition : Nat;
+  };
+
+  /// Initialize phase transition tracking
+  public func initPhaseTransition() : PhaseTransitionState {
+    {
+      currentPhase = #Disordered;
+      orderParameter = 0.3;
+      controlParameter = 0.5;
+      susceptibility = 1.0;
+      correlationLength = 1.0;
+      criticalExponent = 0.5;  // Mean-field value
+      hysteresis = 0.0;
+      fluctuations = 0.1;
+      transitionHistory = [];
+      timeSinceTransition = 0;
+    }
+  };
+
+  /// Detect current phase
+  public func detectPhase(
+    orderParameter: Float,
+    fluctuations: Float,
+    susceptibility: Float
+  ) : EmergencePhase {
+    // Critical point: high susceptibility and fluctuations
+    if (susceptibility > 2.0 and fluctuations > 0.3) {
+      return #Critical;
+    };
+    
+    // Chimera: intermediate order with high fluctuations
+    if (orderParameter > 0.3 and orderParameter < 0.7 and fluctuations > 0.25) {
+      return #Chimera;
+    };
+    
+    // Ordered: high order parameter, low fluctuations
+    if (orderParameter > 0.7 and fluctuations < 0.2) {
+      return #Ordered;
+    };
+    
+    // Disordered: low order parameter
+    if (orderParameter < 0.3) {
+      return #Disordered;
+    };
+    
+    // Oscillating: moderate order with high fluctuations
+    #Oscillating
+  };
+
+  /// Compute susceptibility (diverges at critical point)
+  public func computeSusceptibility(
+    orderParameter: Float,
+    controlParameter: Float,
+    criticalPoint: Float
+  ) : Float {
+    let distance = Float.abs(controlParameter - criticalPoint);
+    let epsilon = 0.01;
+    
+    // χ ∝ |T - Tc|^(-γ) where γ ≈ 1 for mean-field
+    1.0 / (distance + epsilon)
+  };
+
+  /// Update phase transition state
+  public func updatePhaseTransition(
+    state: PhaseTransitionState,
+    emergenceState: EmergenceState,
+    dt: Float
+  ) : PhaseTransitionState {
+    // Order parameter from emergence metrics
+    let newOrderParam = emergenceState.emergence * emergenceState.coherence;
+    
+    // Control parameter from complexity
+    let newControlParam = emergenceState.complexity;
+    
+    // Fluctuations from differentiation
+    let newFluctuations = _clamp(
+      state.fluctuations * 0.95 + 0.05 * Float.abs(newOrderParam - state.orderParameter) / (dt + 0.01),
+      0.0, 1.0
+    );
+    
+    // Susceptibility peaks near critical point (assumed at controlParam = 0.5)
+    let newSusceptibility = computeSusceptibility(newOrderParam, newControlParam, 0.5);
+    
+    // Correlation length also diverges at critical
+    let newCorrelationLength = 1.0 + newSusceptibility * 0.5;
+    
+    // Detect phase
+    let newPhase = detectPhase(newOrderParam, newFluctuations, newSusceptibility);
+    
+    // Track transitions
+    var newHistory = state.transitionHistory;
+    var newTimeSince = state.timeSinceTransition + 1;
+    
+    let phaseChanged = switch (state.currentPhase, newPhase) {
+      case (#Disordered, #Disordered) { false };
+      case (#Critical, #Critical) { false };
+      case (#Ordered, #Ordered) { false };
+      case (#Oscillating, #Oscillating) { false };
+      case (#Chimera, #Chimera) { false };
+      case _ { true };
+    };
+    
+    if (phaseChanged) {
+      newHistory := Array.append(newHistory, [newPhase]);
+      if (newHistory.size() > 20) {
+        newHistory := Array.tabulate<EmergencePhase>(20, func(i) { newHistory[newHistory.size() - 20 + i] });
+      };
+      newTimeSince := 0;
+    };
+    
+    // Hysteresis: system remembers recent states
+    let newHysteresis = state.hysteresis * 0.99 + (if (phaseChanged) { 0.1 } else { 0.0 });
+    
+    {
+      currentPhase = newPhase;
+      orderParameter = newOrderParam;
+      controlParameter = newControlParam;
+      susceptibility = newSusceptibility;
+      correlationLength = newCorrelationLength;
+      criticalExponent = state.criticalExponent;
+      hysteresis = newHysteresis;
+      fluctuations = newFluctuations;
+      transitionHistory = newHistory;
+      timeSinceTransition = newTimeSince;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 17: INFORMATION GEOMETRY OF EMERGENCE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Emergence as movement through a statistical manifold
+  // Fisher information metric on space of probability distributions
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Information geometry state
+  public type InfoGeometryState = {
+    // Position in probability space (sufficient statistics)
+    position        : [Float];
+    
+    // Fisher information metric (curvature)
+    fisherMetric    : [[Float]];
+    
+    // Natural gradient (steepest descent in info space)
+    naturalGradient : [Float];
+    
+    // Geodesic information (shortest path)
+    geodesicVelocity : [Float];
+    
+    // Curvature measures
+    scalarCurvature : Float;
+    ricciCurvature  : [Float];
+    
+    // Divergence measures
+    klDivergence    : Float;        // From reference distribution
+    fisherRaoDistance : Float;      // Geodesic distance
+    
+    // Emergence in info-geometric terms
+    informationFlow : Float;
+    statisticalComplexity : Float;
+  };
+
+  /// Initialize information geometry
+  public func initInfoGeometry(dim: Nat) : InfoGeometryState {
+    let pos = Array.tabulate<Float>(dim, func(_) { 0.5 });
+    let metric = Array.tabulate<[Float]>(dim, func(i) {
+      Array.tabulate<Float>(dim, func(j) {
+        if (i == j) { 1.0 } else { 0.0 }  // Start with identity (flat)
+      })
+    });
+    
+    {
+      position = pos;
+      fisherMetric = metric;
+      naturalGradient = Array.tabulate<Float>(dim, func(_) { 0.0 });
+      geodesicVelocity = Array.tabulate<Float>(dim, func(_) { 0.0 });
+      scalarCurvature = 0.0;
+      ricciCurvature = Array.tabulate<Float>(dim, func(_) { 0.0 });
+      klDivergence = 0.0;
+      fisherRaoDistance = 0.0;
+      informationFlow = 0.0;
+      statisticalComplexity = 0.0;
+    }
+  };
+
+  /// Compute Fisher information metric element
+  public func computeFisherMetricElement(
+    distribution: [Float],
+    i: Nat,
+    j: Nat,
+    epsilon: Float
+  ) : Float {
+    // Fisher metric: g_ij = E[(∂log p / ∂θ_i)(∂log p / ∂θ_j)]
+    // Approximated numerically
+    
+    var sum : Float = 0.0;
+    let n = distribution.size();
+    
+    for (k in Iter.range(0, n - 1)) {
+      let p = distribution[k];
+      if (p > epsilon) {
+        // Score functions
+        let score_i = (Float.fromInt(k == i : Int) - p) / p;
+        let score_j = (Float.fromInt(k == j : Int) - p) / p;
+        sum += p * score_i * score_j;
+      };
+    };
+    
+    Float.max(sum, epsilon)  // Ensure positive definite
+  };
+
+  /// Update Fisher metric from current distribution
+  public func updateFisherMetric(
+    distribution: [Float],
+    currentMetric: [[Float]]
+  ) : [[Float]] {
+    let dim = distribution.size();
+    let epsilon = 1e-8;
+    
+    Array.tabulate<[Float]>(dim, func(i) {
+      Array.tabulate<Float>(dim, func(j) {
+        let newVal = computeFisherMetricElement(distribution, i, j, epsilon);
+        // Smooth update
+        let oldVal = if (i < currentMetric.size() and j < currentMetric[i].size()) {
+          currentMetric[i][j]
+        } else { 0.0 };
+        0.9 * oldVal + 0.1 * newVal
+      })
+    })
+  };
+
+  /// Compute natural gradient (Fisher metric inverse times Euclidean gradient)
+  public func computeNaturalGradient(
+    euclideanGradient: [Float],
+    fisherMetric: [[Float]]
+  ) : [Float] {
+    // Natural gradient = g^(-1) * ∇
+    // For simplicity, use diagonal approximation
+    let dim = euclideanGradient.size();
+    
+    Array.tabulate<Float>(dim, func(i) {
+      if (i < fisherMetric.size() and i < fisherMetric[i].size()) {
+        let g_ii = fisherMetric[i][i];
+        if (g_ii > 1e-8) {
+          euclideanGradient[i] / g_ii
+        } else { euclideanGradient[i] }
+      } else { euclideanGradient[i] }
+    })
+  };
+
+  /// Compute scalar curvature (measure of manifold curvature)
+  public func computeScalarCurvature(fisherMetric: [[Float]]) : Float {
+    // Scalar curvature R = g^ij R_ij
+    // For probability simplex, use known formula
+    let dim = fisherMetric.size();
+    if (dim < 2) { return 0.0 };
+    
+    // Simplified: use trace of metric deviation from flat
+    var trace : Float = 0.0;
+    var offDiag : Float = 0.0;
+    
+    for (i in Iter.range(0, dim - 1)) {
+      if (i < fisherMetric.size() and i < fisherMetric[i].size()) {
+        trace += fisherMetric[i][i] - 1.0;
+      };
+      for (j in Iter.range(i + 1, dim - 1)) {
+        if (i < fisherMetric.size() and j < fisherMetric[i].size()) {
+          offDiag += Float.abs(fisherMetric[i][j]);
+        };
+      };
+    };
+    
+    trace + offDiag * 2.0
+  };
+
+  /// Update information geometry state
+  public func updateInfoGeometry(
+    state: InfoGeometryState,
+    newDistribution: [Float],
+    gradient: [Float],
+    dt: Float
+  ) : InfoGeometryState {
+    // Update Fisher metric
+    let newMetric = updateFisherMetric(newDistribution, state.fisherMetric);
+    
+    // Compute natural gradient
+    let natGrad = computeNaturalGradient(gradient, newMetric);
+    
+    // Update position along geodesic
+    let newPosition = Array.tabulate<Float>(state.position.size(), func(i) {
+      let pos = if (i < state.position.size()) { state.position[i] } else { 0.5 };
+      let vel = if (i < natGrad.size()) { natGrad[i] } else { 0.0 };
+      _clamp(pos + vel * dt, 0.01, 0.99)
+    });
+    
+    // Compute curvature
+    let scalarCurv = computeScalarCurvature(newMetric);
+    
+    // KL divergence from uniform
+    var kl : Float = 0.0;
+    let uniform = 1.0 / Float.fromInt(newDistribution.size());
+    for (p in newDistribution.vals()) {
+      if (p > 1e-8) {
+        kl += p * Float.log(p / uniform);
+      };
+    };
+    
+    // Fisher-Rao distance (approximate)
+    var dist : Float = 0.0;
+    for (i in Iter.range(0, Int.abs(state.position.size() - 1))) {
+      if (i < newPosition.size()) {
+        let dp = newPosition[i] - state.position[i];
+        let g = if (i < newMetric.size() and i < newMetric[i].size()) { newMetric[i][i] } else { 1.0 };
+        dist += g * dp * dp;
+      };
+    };
+    let frDist = Float.sqrt(dist);
+    
+    // Information flow
+    let infoFlow = frDist / (dt + 0.001);
+    
+    // Statistical complexity
+    let statComplex = kl * scalarCurv;
+    
+    {
+      position = newPosition;
+      fisherMetric = newMetric;
+      naturalGradient = natGrad;
+      geodesicVelocity = natGrad;
+      scalarCurvature = scalarCurv;
+      ricciCurvature = Array.tabulate<Float>(newPosition.size(), func(i) {
+        if (i < newMetric.size() and i < newMetric[i].size()) {
+          newMetric[i][i] - 1.0
+        } else { 0.0 }
+      });
+      klDivergence = kl;
+      fisherRaoDistance = state.fisherRaoDistance + frDist;
+      informationFlow = infoFlow;
+      statisticalComplexity = statComplex;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 18: CAUSAL EMERGENCE QUANTIFICATION
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Measuring when macro-scale descriptions are more causally efficacious
+  // than micro-scale descriptions (Hoel et al.)
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Causal emergence metrics
+  public type CausalEmergenceMetrics = {
+    // Effective information at each scale
+    microEffectiveInfo  : Float;
+    macroEffectiveInfo  : Float;
+    
+    // Causal emergence = macro EI - micro EI
+    causalEmergence     : Float;
+    
+    // Determinism: how predictable is the next state?
+    microDeterminism    : Float;
+    macroDeterminism    : Float;
+    
+    // Degeneracy: how many states lead to same outcome?
+    microDegeneracy     : Float;
+    macroDegeneracy     : Float;
+    
+    // Coarse-graining quality
+    coarseGrainError    : Float;
+    optimalGrainSize    : Nat;
+    
+    // Causal architecture
+    causalDensity       : Float;
+    causalDepth         : Nat;
+  };
+
+  /// Compute effective information
+  public func computeEffectiveInfo(
+    transitionMatrix: [[Float]],
+    stateDistribution: [Float]
+  ) : Float {
+    // EI = mutual information of intervention distribution and effect distribution
+    let n = transitionMatrix.size();
+    if (n == 0) { return 0.0 };
+    
+    // Intervention distribution is uniform
+    let intervention = 1.0 / Float.fromInt(n);
+    
+    // Compute average effect distribution
+    var avgEffect : [Float] = Array.tabulate<Float>(n, func(_) { 0.0 });
+    let avgEffectMut = Array.thaw<Float>(avgEffect);
+    
+    for (i in Iter.range(0, n - 1)) {
+      for (j in Iter.range(0, n - 1)) {
+        if (i < transitionMatrix.size() and j < transitionMatrix[i].size()) {
+          avgEffectMut[j] += intervention * transitionMatrix[i][j];
+        };
+      };
+    };
+    avgEffect := Array.freeze(avgEffectMut);
+    
+    // Compute mutual information
+    var mi : Float = 0.0;
+    for (i in Iter.range(0, n - 1)) {
+      for (j in Iter.range(0, n - 1)) {
+        if (i < transitionMatrix.size() and j < transitionMatrix[i].size()) {
+          let p_ij = intervention * transitionMatrix[i][j];
+          let p_j = avgEffect[j];
+          if (p_ij > 1e-10 and p_j > 1e-10) {
+            mi += p_ij * Float.log(p_ij / (intervention * p_j));
+          };
+        };
+      };
+    };
+    
+    mi / Float.log(2.0)  // Convert to bits
+  };
+
+  /// Compute determinism (average certainty of outcomes)
+  public func computeDeterminism(transitionMatrix: [[Float]]) : Float {
+    let n = transitionMatrix.size();
+    if (n == 0) { return 0.0 };
+    
+    var totalEntropy : Float = 0.0;
+    
+    for (row in transitionMatrix.vals()) {
+      var rowEntropy : Float = 0.0;
+      for (p in row.vals()) {
+        if (p > 1e-10) {
+          rowEntropy -= p * Float.log(p);
+        };
+      };
+      totalEntropy += rowEntropy;
+    };
+    
+    let avgEntropy = totalEntropy / Float.fromInt(n);
+    let maxEntropy = Float.log(Float.fromInt(n));
+    
+    1.0 - avgEntropy / maxEntropy
+  };
+
+  /// Compute degeneracy (how many paths lead to same outcome)
+  public func computeDegeneracy(transitionMatrix: [[Float]]) : Float {
+    let n = transitionMatrix.size();
+    if (n == 0) { return 0.0 };
+    
+    // Compute column sums (how many states can reach each state)
+    var colSums : [Float] = Array.tabulate<Float>(n, func(_) { 0.0 });
+    let colMut = Array.thaw<Float>(colSums);
+    
+    for (i in Iter.range(0, n - 1)) {
+      for (j in Iter.range(0, n - 1)) {
+        if (i < transitionMatrix.size() and j < transitionMatrix[i].size()) {
+          colMut[j] += transitionMatrix[i][j];
+        };
+      };
+    };
+    colSums := Array.freeze(colMut);
+    
+    // Entropy of column sums
+    var total : Float = 0.0;
+    for (s in colSums.vals()) { total += s };
+    
+    var entropy : Float = 0.0;
+    for (s in colSums.vals()) {
+      let p = s / total;
+      if (p > 1e-10) {
+        entropy -= p * Float.log(p);
+      };
+    };
+    
+    entropy / Float.log(Float.fromInt(n))
+  };
+
+  /// Coarse-grain transition matrix
+  public func coarseGrainMatrix(
+    microMatrix: [[Float]],
+    grainSize: Nat
+  ) : [[Float]] {
+    let microN = microMatrix.size();
+    if (microN == 0 or grainSize == 0) { return [[]] };
+    
+    let macroN = (microN + grainSize - 1) / grainSize;  // Ceiling division
+    
+    Array.tabulate<[Float]>(macroN, func(i) {
+      Array.tabulate<Float>(macroN, func(j) {
+        var sum : Float = 0.0;
+        var count : Nat = 0;
+        
+        // Average over micro-states in this macro-state
+        for (mi in Iter.range(i * grainSize, Int.min((i + 1) * grainSize - 1, microN - 1))) {
+          for (mj in Iter.range(j * grainSize, Int.min((j + 1) * grainSize - 1, microN - 1))) {
+            if (mi < microMatrix.size() and mj < microMatrix[mi].size()) {
+              sum += microMatrix[mi][mj];
+              count += 1;
+            };
+          };
+        };
+        
+        if (count > 0) { sum / Float.fromInt(count) } else { 0.0 }
+      })
+    })
+  };
+
+  /// Compute causal emergence metrics
+  public func computeCausalEmergence(
+    microTransition: [[Float]],
+    microState: [Float]
+  ) : CausalEmergenceMetrics {
+    // Micro-scale metrics
+    let microEI = computeEffectiveInfo(microTransition, microState);
+    let microDet = computeDeterminism(microTransition);
+    let microDeg = computeDegeneracy(microTransition);
+    
+    // Try different coarse-graining sizes
+    var bestMacroEI : Float = microEI;
+    var bestGrainSize : Nat = 1;
+    var bestError : Float = 1.0;
+    
+    for (gs in Iter.range(2, Int.min(microTransition.size() / 2, 10))) {
+      let macroMatrix = coarseGrainMatrix(microTransition, gs);
+      let macroEI = computeEffectiveInfo(macroMatrix, []);
+      
+      // Coarse-graining error
+      let error = 1.0 - macroEI / (microEI + 0.01);
+      
+      if (macroEI > bestMacroEI) {
+        bestMacroEI := macroEI;
+        bestGrainSize := gs;
+        bestError := error;
+      };
+    };
+    
+    // Macro-scale metrics at optimal grain
+    let optimalMacro = coarseGrainMatrix(microTransition, bestGrainSize);
+    let macroDet = computeDeterminism(optimalMacro);
+    let macroDeg = computeDegeneracy(optimalMacro);
+    
+    // Causal emergence
+    let ce = bestMacroEI - microEI;
+    
+    // Causal density (fraction of possible causal links that exist)
+    let n = microTransition.size();
+    var links : Nat = 0;
+    for (i in Iter.range(0, n - 1)) {
+      for (j in Iter.range(0, n - 1)) {
+        if (i < microTransition.size() and j < microTransition[i].size()) {
+          if (microTransition[i][j] > 0.01) { links += 1 };
+        };
+      };
+    };
+    let density = Float.fromInt(links) / Float.fromInt(n * n);
+    
+    {
+      microEffectiveInfo = microEI;
+      macroEffectiveInfo = bestMacroEI;
+      causalEmergence = ce;
+      microDeterminism = microDet;
+      macroDeterminism = macroDet;
+      microDegeneracy = microDeg;
+      macroDegeneracy = macroDeg;
+      coarseGrainError = bestError;
+      optimalGrainSize = bestGrainSize;
+      causalDensity = density;
+      causalDepth = bestGrainSize;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 19: INTEGRATED INFORMATION (Φ) — CONSCIOUSNESS MEASURE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // IIT-inspired measure of integrated information
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Integrated information state
+  public type IntegratedInfoState = {
+    // Phi (integrated information)
+    phi             : Float;
+    
+    // Cause information
+    causeInfo       : Float;
+    
+    // Effect information
+    effectInfo      : Float;
+    
+    // Minimum information partition (MIP)
+    mipValue        : Float;
+    mipPartition    : (Nat, Nat);  // Split point
+    
+    // System composition
+    numElements     : Nat;
+    connectionMatrix : [[Bool]];
+    
+    // Conceptual structure
+    conceptualInfo  : Float;
+    complexes       : [Nat];       // Indices of irreducible complexes
+    
+    // History
+    phiHistory      : [Float];
+    beatNum         : Nat;
+  };
+
+  /// Initialize integrated information tracking
+  public func initIntegratedInfo(numElements: Nat) : IntegratedInfoState {
+    let connections = Array.tabulate<[Bool]>(numElements, func(i) {
+      Array.tabulate<Bool>(numElements, func(j) {
+        i != j  // Initially fully connected except self-loops
+      })
+    });
+    
+    {
+      phi = 0.0;
+      causeInfo = 0.0;
+      effectInfo = 0.0;
+      mipValue = 0.0;
+      mipPartition = (0, 0);
+      numElements = numElements;
+      connectionMatrix = connections;
+      conceptualInfo = 0.0;
+      complexes = [];
+      phiHistory = [];
+      beatNum = 0;
+    }
+  };
+
+  /// Compute cause information for a partition
+  public func computeCauseInfo(
+    transition: [[Float]],
+    partition: (Nat, Nat)
+  ) : Float {
+    // Simplified: information about causes given partition
+    let (split, _) = partition;
+    let n = transition.size();
+    if (split == 0 or split >= n) { return 0.0 };
+    
+    // Mutual information between partition halves
+    var mi : Float = 0.0;
+    
+    for (i in Iter.range(0, split - 1)) {
+      for (j in Iter.range(split, n - 1)) {
+        if (i < transition.size() and j < transition[i].size()) {
+          let p = transition[i][j];
+          if (p > 1e-10) {
+            mi += p * Float.log(p * Float.fromInt(n));
+          };
+        };
+      };
+    };
+    
+    mi / Float.log(2.0)
+  };
+
+  /// Compute effect information for a partition
+  public func computeEffectInfo(
+    transition: [[Float]],
+    partition: (Nat, Nat)
+  ) : Float {
+    // Simplified: information about effects given partition
+    let (split, _) = partition;
+    let n = transition.size();
+    if (split == 0 or split >= n) { return 0.0 };
+    
+    var mi : Float = 0.0;
+    
+    for (i in Iter.range(split, n - 1)) {
+      for (j in Iter.range(0, split - 1)) {
+        if (i < transition.size() and j < transition[i].size()) {
+          let p = transition[i][j];
+          if (p > 1e-10) {
+            mi += p * Float.log(p * Float.fromInt(n));
+          };
+        };
+      };
+    };
+    
+    mi / Float.log(2.0)
+  };
+
+  /// Find minimum information partition
+  public func findMIP(
+    transition: [[Float]]
+  ) : (Float, (Nat, Nat)) {
+    let n = transition.size();
+    if (n < 2) { return (0.0, (0, 0)) };
+    
+    var minInfo : Float = 1e10;
+    var minPartition : (Nat, Nat) = (0, 0);
+    
+    // Try all bipartitions
+    for (split in Iter.range(1, n - 1)) {
+      let partition = (split, n - split);
+      let causeI = computeCauseInfo(transition, partition);
+      let effectI = computeEffectInfo(transition, partition);
+      let totalInfo = causeI + effectI;
+      
+      if (totalInfo < minInfo) {
+        minInfo := totalInfo;
+        minPartition := partition;
+      };
+    };
+    
+    (minInfo, minPartition)
+  };
+
+  /// Compute integrated information (Φ)
+  public func computePhi(
+    transition: [[Float]],
+    wholeSystemInfo: Float
+  ) : Float {
+    // Φ = information of whole - information of MIP
+    let (mipInfo, _) = findMIP(transition);
+    Float.max(wholeSystemInfo - mipInfo, 0.0)
+  };
+
+  /// Update integrated information state
+  public func updateIntegratedInfo(
+    state: IntegratedInfoState,
+    transition: [[Float]]
+  ) : IntegratedInfoState {
+    // Compute whole system information
+    let wholeInfo = computeEffectiveInfo(transition, []);
+    
+    // Find MIP
+    let (mipValue, mipPartition) = findMIP(transition);
+    
+    // Compute Phi
+    let newPhi = Float.max(wholeInfo - mipValue, 0.0);
+    
+    // Cause and effect information
+    let causeI = computeCauseInfo(transition, mipPartition);
+    let effectI = computeEffectInfo(transition, mipPartition);
+    
+    // Update history
+    var newHistory = Array.append(state.phiHistory, [newPhi]);
+    if (newHistory.size() > 100) {
+      newHistory := Array.tabulate<Float>(100, func(i) { newHistory[newHistory.size() - 100 + i] });
+    };
+    
+    // Find complexes (simplified: just mark as one complex if phi > 0)
+    let complexes = if (newPhi > 0.01) { [0] } else { [] };
+    
+    {
+      phi = newPhi;
+      causeInfo = causeI;
+      effectInfo = effectI;
+      mipValue = mipValue;
+      mipPartition = mipPartition;
+      numElements = state.numElements;
+      connectionMatrix = state.connectionMatrix;
+      conceptualInfo = wholeInfo;
+      complexes = complexes;
+      phiHistory = newHistory;
+      beatNum = state.beatNum + 1;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 20: EMERGENCE FIELD THEORY
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Treating emergence as a continuous field over the organism
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Emergence field state
+  public type EmergenceFieldState = {
+    // Field values on grid
+    fieldValues     : [[Float]];
+    gridSizeX       : Nat;
+    gridSizeY       : Nat;
+    
+    // Field derivatives
+    gradientX       : [[Float]];
+    gradientY       : [[Float]];
+    laplacian       : [[Float]];
+    
+    // Field dynamics
+    fieldVelocity   : [[Float]];
+    fieldEnergy     : Float;
+    fieldMomentum   : Float;
+    
+    // Topological features
+    sources         : [(Nat, Nat)];  // Where emergence flows out
+    sinks           : [(Nat, Nat)];  // Where emergence flows in
+    vortices        : [(Nat, Nat)];  // Rotational features
+    
+    // Conservation
+    totalEmergence  : Float;
+    emergenceFlux   : Float;
+    
+    beatNum         : Nat;
+  };
+
+  /// Initialize emergence field
+  public func initEmergenceField(sizeX: Nat, sizeY: Nat) : EmergenceFieldState {
+    let initVal = 0.5;
+    let zeros = Array.tabulate<[Float]>(sizeY, func(_) {
+      Array.tabulate<Float>(sizeX, func(_) { 0.0 })
+    });
+    
+    {
+      fieldValues = Array.tabulate<[Float]>(sizeY, func(_) {
+        Array.tabulate<Float>(sizeX, func(_) { initVal })
+      });
+      gridSizeX = sizeX;
+      gridSizeY = sizeY;
+      gradientX = zeros;
+      gradientY = zeros;
+      laplacian = zeros;
+      fieldVelocity = zeros;
+      fieldEnergy = 0.0;
+      fieldMomentum = 0.0;
+      sources = [];
+      sinks = [];
+      vortices = [];
+      totalEmergence = initVal * Float.fromInt(sizeX * sizeY);
+      emergenceFlux = 0.0;
+      beatNum = 0;
+    }
+  };
+
+  /// Compute field gradient
+  public func computeFieldGradient(field: [[Float]]) : ([[Float]], [[Float]]) {
+    let ny = field.size();
+    if (ny == 0) { return ([[]], [[]]) };
+    let nx = field[0].size();
+    
+    let gradX = Array.tabulate<[Float]>(ny, func(j) {
+      Array.tabulate<Float>(nx, func(i) {
+        if (i == 0) {
+          field[j][1] - field[j][0]
+        } else if (i == nx - 1) {
+          field[j][nx - 1] - field[j][nx - 2]
+        } else {
+          (field[j][i + 1] - field[j][i - 1]) / 2.0
+        }
+      })
+    });
+    
+    let gradY = Array.tabulate<[Float]>(ny, func(j) {
+      Array.tabulate<Float>(nx, func(i) {
+        if (j == 0) {
+          field[1][i] - field[0][i]
+        } else if (j == ny - 1) {
+          field[ny - 1][i] - field[ny - 2][i]
+        } else {
+          (field[j + 1][i] - field[j - 1][i]) / 2.0
+        }
+      })
+    });
+    
+    (gradX, gradY)
+  };
+
+  /// Compute Laplacian (second derivative)
+  public func computeFieldLaplacian(field: [[Float]]) : [[Float]] {
+    let ny = field.size();
+    if (ny == 0) { return [[]] };
+    let nx = field[0].size();
+    
+    Array.tabulate<[Float]>(ny, func(j) {
+      Array.tabulate<Float>(nx, func(i) {
+        let center = field[j][i];
+        
+        let left = if (i > 0) { field[j][i - 1] } else { center };
+        let right = if (i < nx - 1) { field[j][i + 1] } else { center };
+        let up = if (j > 0) { field[j - 1][i] } else { center };
+        let down = if (j < ny - 1) { field[j + 1][i] } else { center };
+        
+        left + right + up + down - 4.0 * center
+      })
+    })
+  };
+
+  /// Detect topological features
+  public func detectTopologicalFeatures(
+    gradX: [[Float]],
+    gradY: [[Float]],
+    laplacian: [[Float]],
+    threshold: Float
+  ) : ([(Nat, Nat)], [(Nat, Nat)], [(Nat, Nat)]) {
+    var sources : [(Nat, Nat)] = [];
+    var sinks : [(Nat, Nat)] = [];
+    var vortices : [(Nat, Nat)] = [];
+    
+    let ny = laplacian.size();
+    if (ny == 0) { return (sources, sinks, vortices) };
+    let nx = laplacian[0].size();
+    
+    for (j in Iter.range(1, ny - 2)) {
+      for (i in Iter.range(1, nx - 2)) {
+        let lap = laplacian[j][i];
+        
+        // Source: positive divergence (lap > threshold)
+        if (lap > threshold) {
+          sources := Array.append(sources, [(i, j)]);
+        };
+        
+        // Sink: negative divergence (lap < -threshold)
+        if (lap < -threshold) {
+          sinks := Array.append(sinks, [(i, j)]);
+        };
+        
+        // Vortex: curl is non-zero
+        let curl = (gradY[j][i + 1] - gradY[j][i - 1]) - (gradX[j + 1][i] - gradX[j - 1][i]);
+        if (Float.abs(curl) > threshold) {
+          vortices := Array.append(vortices, [(i, j)]);
+        };
+      };
+    };
+    
+    (sources, sinks, vortices)
+  };
+
+  /// Update emergence field (diffusion + reaction dynamics)
+  public func updateEmergenceField(
+    state: EmergenceFieldState,
+    externalInput: [[Float]],
+    diffusionCoeff: Float,
+    reactionRate: Float,
+    dt: Float
+  ) : EmergenceFieldState {
+    let ny = state.gridSizeY;
+    let nx = state.gridSizeX;
+    
+    // Compute derivatives
+    let (gradX, gradY) = computeFieldGradient(state.fieldValues);
+    let laplacian = computeFieldLaplacian(state.fieldValues);
+    
+    // Update field values (reaction-diffusion equation)
+    let newField = Array.tabulate<[Float]>(ny, func(j) {
+      Array.tabulate<Float>(nx, func(i) {
+        let current = state.fieldValues[j][i];
+        let lap = laplacian[j][i];
+        let input = if (j < externalInput.size() and i < externalInput[j].size()) {
+          externalInput[j][i]
+        } else { 0.0 };
+        
+        // Diffusion + reaction + external input
+        let diffusion = diffusionCoeff * lap;
+        let reaction = reactionRate * current * (1.0 - current);  // Logistic
+        
+        _clamp(current + (diffusion + reaction + input * 0.1) * dt, 0.0, 1.0)
+      })
+    });
+    
+    // Detect topological features
+    let (sources, sinks, vortices) = detectTopologicalFeatures(gradX, gradY, laplacian, 0.1);
+    
+    // Compute totals
+    var totalEmergence : Float = 0.0;
+    for (row in newField.vals()) {
+      for (val in row.vals()) {
+        totalEmergence += val;
+      };
+    };
+    
+    // Field energy (kinetic + potential)
+    var energy : Float = 0.0;
+    for (j in Iter.range(0, ny - 1)) {
+      for (i in Iter.range(0, nx - 1)) {
+        let gx = gradX[j][i];
+        let gy = gradY[j][i];
+        let vel = state.fieldVelocity[j][i];
+        energy += 0.5 * (gx * gx + gy * gy) + 0.5 * vel * vel;
+      };
+    };
+    
+    // Flux through boundary
+    var flux : Float = 0.0;
+    for (i in Iter.range(0, nx - 1)) {
+      flux += gradY[0][i] - gradY[ny - 1][i];
+    };
+    for (j in Iter.range(0, ny - 1)) {
+      flux += gradX[j][0] - gradX[j][nx - 1];
+    };
+    
+    {
+      fieldValues = newField;
+      gridSizeX = nx;
+      gridSizeY = ny;
+      gradientX = gradX;
+      gradientY = gradY;
+      laplacian = laplacian;
+      fieldVelocity = state.fieldVelocity;  // Would need separate update
+      fieldEnergy = energy;
+      fieldMomentum = state.fieldMomentum;
+      sources = sources;
+      sinks = sinks;
+      vortices = vortices;
+      totalEmergence = totalEmergence;
+      emergenceFlux = flux;
+      beatNum = state.beatNum + 1;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 21: COMPLETE EMERGENCE ORCHESTRATOR
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // Master integration of all emergence components
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Complete emergence state
+  public type CompleteEmergenceState = {
+    // Core emergence
+    core            : EmergenceState;
+    
+    // Multi-scale
+    multiScale      : MultiScaleEmergence;
+    
+    // Phase transitions
+    phaseTransition : PhaseTransitionState;
+    
+    // Information geometry
+    infoGeometry    : InfoGeometryState;
+    
+    // Causal emergence
+    causalEmergence : CausalEmergenceMetrics;
+    
+    // Integrated information
+    integratedInfo  : IntegratedInfoState;
+    
+    // Field theory
+    emergenceField  : EmergenceFieldState;
+    
+    // Global metrics
+    totalEmergence  : Float;
+    systemComplexity : Float;
+    systemCoherence : Float;
+    
+    beatNum         : Nat;
+  };
+
+  /// Initialize complete emergence system
+  public func initCompleteEmergence(
+    numLevels: Nat,
+    infoDim: Nat,
+    numElements: Nat,
+    fieldSizeX: Nat,
+    fieldSizeY: Nat
+  ) : CompleteEmergenceState {
+    {
+      core = initEmergence();
+      multiScale = initMultiScaleEmergence(numLevels);
+      phaseTransition = initPhaseTransition();
+      infoGeometry = initInfoGeometry(infoDim);
+      causalEmergence = {
+        microEffectiveInfo = 0.0;
+        macroEffectiveInfo = 0.0;
+        causalEmergence = 0.0;
+        microDeterminism = 0.5;
+        macroDeterminism = 0.5;
+        microDegeneracy = 0.5;
+        macroDegeneracy = 0.5;
+        coarseGrainError = 0.0;
+        optimalGrainSize = 1;
+        causalDensity = 0.5;
+        causalDepth = 1;
+      };
+      integratedInfo = initIntegratedInfo(numElements);
+      emergenceField = initEmergenceField(fieldSizeX, fieldSizeY);
+      totalEmergence = 0.5;
+      systemComplexity = 0.5;
+      systemCoherence = 0.5;
+      beatNum = 0;
+    }
+  };
+
+  /// Execute complete emergence tick
+  public func tickCompleteEmergence(
+    state: CompleteEmergenceState,
+    externalInput: Float,
+    transitionMatrix: [[Float]],
+    fieldInput: [[Float]],
+    dt: Float
+  ) : CompleteEmergenceState {
+    // 1. Update core emergence
+    let newCore = evolveEmergence(state.core, dt);
+    
+    // 2. Update multi-scale emergence
+    let newMultiScale = updateMultiScaleEmergence(state.multiScale, externalInput, dt);
+    
+    // 3. Update phase transition tracking
+    let newPhaseTransition = updatePhaseTransition(state.phaseTransition, newCore, dt);
+    
+    // 4. Update information geometry
+    let distribution = Array.tabulate<Float>(10, func(i) {
+      _clamp(newCore.emergence + Float.sin(Float.fromInt(i) * PHI) * 0.1, 0.01, 0.99)
+    });
+    var sumD : Float = 0.0;
+    for (d in distribution.vals()) { sumD += d };
+    let normDist = Array.map<Float, Float>(distribution, func(d) { d / sumD });
+    
+    let gradient = Array.tabulate<Float>(10, func(i) {
+      newCore.complexity * Float.cos(Float.fromInt(i) * 0.5)
+    });
+    let newInfoGeometry = updateInfoGeometry(state.infoGeometry, normDist, gradient, dt);
+    
+    // 5. Update causal emergence
+    let newCausalEmergence = if (transitionMatrix.size() > 0) {
+      computeCausalEmergence(transitionMatrix, [])
+    } else { state.causalEmergence };
+    
+    // 6. Update integrated information
+    let newIntegratedInfo = if (transitionMatrix.size() > 0) {
+      updateIntegratedInfo(state.integratedInfo, transitionMatrix)
+    } else { state.integratedInfo };
+    
+    // 7. Update emergence field
+    let newField = updateEmergenceField(state.emergenceField, fieldInput, 0.1, 0.05, dt);
+    
+    // 8. Compute global metrics
+    let totalEmergence = newCore.emergence * 0.3 + 
+                         newMultiScale.globalEmergence * 0.3 +
+                         newField.totalEmergence / Float.fromInt(state.emergenceField.gridSizeX * state.emergenceField.gridSizeY) * 0.4;
+    
+    let systemComplexity = newCore.complexity * 0.25 +
+                           newInfoGeometry.statisticalComplexity * 0.25 +
+                           newCausalEmergence.causalEmergence * 0.25 +
+                           newIntegratedInfo.phi * 0.25;
+    
+    let systemCoherence = newCore.coherence * 0.5 +
+                          newMultiScale.scaleInvariance * 0.5;
+    
+    {
+      core = newCore;
+      multiScale = newMultiScale;
+      phaseTransition = newPhaseTransition;
+      infoGeometry = newInfoGeometry;
+      causalEmergence = newCausalEmergence;
+      integratedInfo = newIntegratedInfo;
+      emergenceField = newField;
+      totalEmergence = totalEmergence;
+      systemComplexity = systemComplexity;
+      systemCoherence = systemCoherence;
+      beatNum = state.beatNum + 1;
+    }
+  };
+
+  /// Generate comprehensive emergence output
+  public type CompleteEmergenceOutput = {
+    // Core metrics
+    emergence       : Float;
+    complexity      : Float;
+    coherence       : Float;
+    
+    // Multi-scale
+    globalEmergence : Float;
+    scaleInvariance : Float;
+    causalFlow      : Float;
+    criticality     : Float;
+    
+    // Phase
+    currentPhase    : EmergencePhase;
+    orderParameter  : Float;
+    susceptibility  : Float;
+    
+    // Information geometry
+    scalarCurvature : Float;
+    fisherRaoDistance : Float;
+    informationFlow : Float;
+    
+    // Causal
+    causalEmergence : Float;
+    effectiveInfo   : Float;
+    
+    // IIT
+    phi             : Float;
+    
+    // Field
+    fieldEnergy     : Float;
+    numSources      : Nat;
+    numSinks        : Nat;
+    numVortices     : Nat;
+    
+    beatNum         : Nat;
+  };
+
+  public func generateCompleteEmergenceOutput(state: CompleteEmergenceState) : CompleteEmergenceOutput {
+    {
+      emergence = state.core.emergence;
+      complexity = state.core.complexity;
+      coherence = state.core.coherence;
+      globalEmergence = state.multiScale.globalEmergence;
+      scaleInvariance = state.multiScale.scaleInvariance;
+      causalFlow = state.multiScale.causalFlow;
+      criticality = state.multiScale.criticality;
+      currentPhase = state.phaseTransition.currentPhase;
+      orderParameter = state.phaseTransition.orderParameter;
+      susceptibility = state.phaseTransition.susceptibility;
+      scalarCurvature = state.infoGeometry.scalarCurvature;
+      fisherRaoDistance = state.infoGeometry.fisherRaoDistance;
+      informationFlow = state.infoGeometry.informationFlow;
+      causalEmergence = state.causalEmergence.causalEmergence;
+      effectiveInfo = state.causalEmergence.macroEffectiveInfo;
+      phi = state.integratedInfo.phi;
+      fieldEnergy = state.emergenceField.fieldEnergy;
+      numSources = state.emergenceField.sources.size();
+      numSinks = state.emergenceField.sinks.size();
+      numVortices = state.emergenceField.vortices.size();
+      beatNum = state.beatNum;
+    }
+  };
+
 }

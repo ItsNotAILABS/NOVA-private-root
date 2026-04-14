@@ -36,6 +36,13 @@ import { TaskManager } from './TaskManager';
 import { ComputeTerminal } from './ComputeTerminal';
 import { AgentRoster } from './AgentRoster';
 import { MissionBriefing } from './MissionBriefing';
+import { EmergenceLab } from './EmergenceLab';
+import { MathPhysicsLab } from './MathPhysicsLab';
+import { NeuroCogLab } from './NeuroCogLab';
+import {
+  OrganismState, organismInit, organismTick, getOrganismStatus,
+  EmergenceLabData, NeuroCogLabData, MathPhysicsLabData,
+} from '../../math/organism-wiring';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -423,6 +430,75 @@ export function OroCommandCenter({ organism }: Props) {
   const [selectedAgent, setSelectedAgent] = useState<string | null>('oro-prime');
   const [userInput, setUserInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [activeTab, setActiveTab] = useState<'command' | 'emergence' | 'physics' | 'neurocog'>('command');
+  
+  // ═══ UNIFIED ORGANISM STATE — The living wiring ═══
+  const organismStateRef = useRef<OrganismState>(organismInit());
+  const [organismSnapshot, setOrganismSnapshot] = useState<OrganismState>(organismStateRef.current);
+  
+  // ═══ ORGANISM TICK LOOP — The heartbeat ═══
+  useEffect(() => {
+    const interval = setInterval(() => {
+      organismStateRef.current = organismTick(organismStateRef.current);
+      // Update snapshot every 8 ticks for performance
+      if (organismStateRef.current.beat % 8 === 0) {
+        setOrganismSnapshot({ ...organismStateRef.current });
+      }
+    }, 50); // 20Hz tick rate
+    return () => clearInterval(interval);
+  }, []);
+  
+  // ═══ SYNC EXTERNAL ORGANISM PROPS INTO UNIFIED STATE ═══
+  useEffect(() => {
+    if (organism) {
+      // External r modulates internal r
+      if (organism.r !== undefined) {
+        organismStateRef.current.r = organismStateRef.current.r * 0.7 + organism.r * 0.3;
+      }
+      // External beat syncs
+      if (organism.beat !== undefined) {
+        // Keep our own beat but acknowledge external
+      }
+    }
+  }, [organism?.r, organism?.beat]);
+  
+  // ═══ PREPARE LAB DATA ═══
+  const emergenceLabData: EmergenceLabData = useMemo(() => ({
+    r: organismSnapshot.r,
+    kf: organismSnapshot.kf,
+    emergence: organismSnapshot.emergence,
+    genesis: organismSnapshot.genesis,
+    kuramoto: organismSnapshot.kuramoto,
+    lyapunov: organismSnapshot.lyapunov,
+    quantum: organismSnapshot.quantum,
+    hz: organismSnapshot.hz,
+    beat: organismSnapshot.beat,
+    neuro: organismSnapshot.neuro,
+  }), [organismSnapshot]);
+  
+  const neuroCogLabData: NeuroCogLabData = useMemo(() => ({
+    neuro: organismSnapshot.neuro,
+    metals: organismSnapshot.metals,
+    drives: organismSnapshot.drives,
+    immune: organismSnapshot.immune,
+    olfactory: organismSnapshot.olfactory,
+    circadian: organismSnapshot.circadian,
+    beat: organismSnapshot.beat,
+    r: organismSnapshot.r,
+  }), [organismSnapshot]);
+  
+  const mathPhysicsLabData: MathPhysicsLabData = useMemo(() => ({
+    r: organismSnapshot.r,
+    kf: organismSnapshot.kf,
+    kuramoto: organismSnapshot.kuramoto,
+    lyapunov: organismSnapshot.lyapunov,
+    quantum: organismSnapshot.quantum,
+    beat: organismSnapshot.beat,
+    neuro: organismSnapshot.neuro,
+  }), [organismSnapshot]);
+  
+  // Get status for display
+  const organismStatus = useMemo(() => getOrganismStatus(organismSnapshot), [organismSnapshot]);
   
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -611,6 +687,34 @@ export function OroCommandCenter({ organism }: Props) {
           <span>ORO COMMAND CENTER</span>
         </div>
         
+        {/* TAB NAVIGATION */}
+        <div style={{ display: 'flex', gap: 8, marginLeft: 20 }}>
+          {[
+            { key: 'command' as const, label: 'Command' },
+            { key: 'emergence' as const, label: 'Emergence Lab' },
+            { key: 'physics' as const, label: 'Math Physics' },
+            { key: 'neurocog' as const, label: 'NeuroCog' },
+          ].map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              style={{
+                padding: '6px 12px',
+                fontSize: 11,
+                fontWeight: 'bold',
+                background: activeTab === tab.key ? 'rgba(0,212,255,0.15)' : 'rgba(20,60,100,0.1)',
+                border: activeTab === tab.key ? '1px solid #00D4FF' : '1px solid #1a3a5c',
+                borderRadius: 4,
+                color: activeTab === tab.key ? '#00D4FF' : '#4a6a8a',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        
         <div style={S.headerStats}>
           <div style={S.stat}>
             <span style={S.statLabel}>Active Agents</span>
@@ -640,60 +744,105 @@ export function OroCommandCenter({ organism }: Props) {
               {rSwarm.toFixed(3)}
             </span>
           </div>
+          <div style={S.stat}>
+            <span style={S.statLabel}>Org r</span>
+            <span style={S.statValue(organismStatus.r > 0.7 ? '#4f8' : '#f44')}>
+              {organismStatus.r.toFixed(3)}
+            </span>
+          </div>
+          <div style={S.stat}>
+            <span style={S.statLabel}>kf</span>
+            <span style={S.statValue(organismStatus.kf > 0.6 ? '#4f8' : '#fa4')}>
+              {organismStatus.kf.toFixed(3)}
+            </span>
+          </div>
+          <div style={S.stat}>
+            <span style={S.statLabel}>Emerge</span>
+            <span style={S.statValue(organismStatus.emergence > 0.5 ? '#D4AF37' : '#4af')}>
+              {(organismStatus.emergence * 100).toFixed(0)}%
+            </span>
+          </div>
+          <div style={S.stat}>
+            <span style={S.statLabel}>Vitality</span>
+            <span style={S.statValue(organismStatus.vitality > 0.6 ? '#4f8' : '#f44')}>
+              {(organismStatus.vitality * 100).toFixed(0)}%
+            </span>
+          </div>
+          <div style={S.stat}>
+            <span style={S.statLabel}>Mode</span>
+            <span style={S.statValue('#4af')}>{organismStatus.hzMode}</span>
+          </div>
         </div>
       </header>
       
-      {/* ═══ LEFT SIDEBAR — AGENTS ═══ */}
-      <aside style={S.sidebar}>
-        <div style={S.sectionTitle}>
-          <span>👥</span> Agent Roster
+      {/* ═══ CONDITIONAL RENDERING BASED ON ACTIVE TAB ═══ */}
+      {activeTab === 'command' ? (
+        <>
+          {/* ═══ LEFT SIDEBAR — AGENTS ═══ */}
+          <aside style={S.sidebar}>
+            <div style={S.sectionTitle}>
+              <span>👥</span> Agent Roster
+            </div>
+            <AgentRoster
+              agents={agents}
+              selectedAgent={selectedAgent}
+              onSelectAgent={setSelectedAgent}
+            />
+          </aside>
+          
+          {/* ═══ MAIN AREA — WORKSPACE ═══ */}
+          <main style={S.main}>
+            {selectedAgent ? (
+              <AgentWorkspace
+                agent={agents.find(a => a.id === selectedAgent)!}
+                tasks={tasks.filter(t => t.assignedAgent === selectedAgent)}
+                messages={messages.filter(m => m.from === selectedAgent || m.to === selectedAgent || m.to === 'broadcast')}
+              />
+            ) : (
+              <MissionBriefing
+                agents={agents}
+                tasks={tasks}
+                messages={messages}
+              />
+            )}
+          </main>
+          
+          {/* ═══ RIGHT PANEL — TASKS ═══ */}
+          <aside style={S.rightPanel}>
+            <div style={S.sectionTitle}>
+              <span>📋</span> Task Queue
+            </div>
+            <button
+              style={S.newTaskBtn}
+              onClick={() => setShowTaskModal(true)}
+            >
+              <span>+</span> Create Task
+            </button>
+            <TaskManager
+              tasks={tasks}
+              agents={agents}
+              onTaskSelect={(taskId) => {
+                const task = tasks.find(t => t.id === taskId);
+                if (task?.assignedAgent) {
+                  setSelectedAgent(task.assignedAgent);
+                }
+              }}
+            />
+          </aside>
+        </>
+      ) : activeTab === 'emergence' ? (
+        <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
+          <EmergenceLab organism={{ ...organism, ...emergenceLabData }} />
         </div>
-        <AgentRoster
-          agents={agents}
-          selectedAgent={selectedAgent}
-          onSelectAgent={setSelectedAgent}
-        />
-      </aside>
-      
-      {/* ═══ MAIN AREA — WORKSPACE ═══ */}
-      <main style={S.main}>
-        {selectedAgent ? (
-          <AgentWorkspace
-            agent={agents.find(a => a.id === selectedAgent)!}
-            tasks={tasks.filter(t => t.assignedAgent === selectedAgent)}
-            messages={messages.filter(m => m.from === selectedAgent || m.to === selectedAgent || m.to === 'broadcast')}
-          />
-        ) : (
-          <MissionBriefing
-            agents={agents}
-            tasks={tasks}
-            messages={messages}
-          />
-        )}
-      </main>
-      
-      {/* ═══ RIGHT PANEL — TASKS ═══ */}
-      <aside style={S.rightPanel}>
-        <div style={S.sectionTitle}>
-          <span>📋</span> Task Queue
+      ) : activeTab === 'physics' ? (
+        <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
+          <MathPhysicsLab organism={{ ...organism, ...mathPhysicsLabData }} />
         </div>
-        <button
-          style={S.newTaskBtn}
-          onClick={() => setShowTaskModal(true)}
-        >
-          <span>+</span> Create Task
-        </button>
-        <TaskManager
-          tasks={tasks}
-          agents={agents}
-          onTaskSelect={(taskId) => {
-            const task = tasks.find(t => t.id === taskId);
-            if (task?.assignedAgent) {
-              setSelectedAgent(task.assignedAgent);
-            }
-          }}
-        />
-      </aside>
+      ) : (
+        <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
+          <NeuroCogLab organism={{ ...organism, ...neuroCogLabData }} />
+        </div>
+      )}
       
       {/* ═══ BOTTOM — COMPUTE TERMINAL ═══ */}
       <footer style={S.bottom}>

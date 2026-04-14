@@ -1874,4 +1874,208 @@ module {
     (newState, newDoctrine)
   };
 
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  PHASE 211: DEEP DIFFERENTIAL GEOMETRY
+  //
+  //  Differential geometry is the language of PHYSICS.
+  //  Einstein's general relativity IS differential geometry.
+  //  Gauge theories ARE fiber bundle geometry.
+  //  The organism's value landscape IS a Riemannian manifold.
+  //
+  //  Not metaphor. IS.
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // FIBER BUNDLE STRUCTURE
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // A fiber bundle E → B with fiber F:
+  //   E = total space (organism's full state)
+  //   B = base space (organism's position/configuration)
+  //   F = fiber (internal degrees of freedom at each point)
+  //   π: E → B = projection (forget internal state, keep position)
+  //
+  // Connection: tells you how to move "horizontally" (parallel transport)
+  // Curvature: measures how much parallel transport depends on path
+  //
+  // In the organism:
+  //   Base = 12 layers (-6 to +5) × spatial web
+  //   Fiber = coherence state at each point (phase, amplitude)
+  //   Connection = how coherence propagates between nodes
+  //   Curvature = information geometry (how meaning curves space)
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  public type FiberBundleState = {
+    baseCoordinates : [Float];       // position on base manifold
+    fiberCoordinates : [Float];      // internal state in fiber
+    connectionForm : [Float];        // A_μ (gauge field)
+    curvatureForm : [Float];         // F_μν = dA + A∧A
+    holonomy : [Float];              // parallel transport around loop
+    baseDimension : Nat;
+    fiberDimension : Nat;
+    structureGroup : Text;           // symmetry group of fiber
+    chernClass : [Float];            // topological invariants
+  };
+
+  /// Initialize fiber bundle state
+  public func initFiberBundle(baseDim : Nat, fiberDim : Nat) : FiberBundleState {
+    {
+      baseCoordinates = Array.tabulate<Float>(baseDim, func(_ : Nat) : Float { 0.0 });
+      fiberCoordinates = Array.tabulate<Float>(fiberDim, func(_ : Nat) : Float { 1.0 });
+      connectionForm = Array.tabulate<Float>(baseDim * fiberDim * fiberDim, func(_ : Nat) : Float { 0.0 });
+      curvatureForm = Array.tabulate<Float>(baseDim * baseDim * fiberDim * fiberDim, func(_ : Nat) : Float { 0.0 });
+      holonomy = Array.tabulate<Float>(fiberDim * fiberDim, func(i : Nat) : Float {
+        if (i / fiberDim == i % fiberDim) { 1.0 } else { 0.0 } // identity
+      });
+      baseDimension = baseDim;
+      fiberDimension = fiberDim;
+      structureGroup = "U(1)"; // simplest non-trivial
+      chernClass = [0.0]; // trivial bundle initially
+    }
+  };
+
+  /// Covariant derivative: D_μ ψ = ∂_μ ψ + A_μ ψ
+  /// This IS how the organism differentiates while respecting symmetry
+  public func covariantDerivative(
+    field : [Float],              // ψ
+    fieldGradient : [Float],      // ∂_μ ψ
+    connection : [Float],         // A_μ
+    direction : Nat,              // μ
+    fiberDim : Nat
+  ) : [Float] {
+    Array.tabulate<Float>(fiberDim, func(a : Nat) : Float {
+      let partialDerivative = if (a < fieldGradient.size()) { fieldGradient[a] } else { 0.0 };
+      // A_μ^a_b ψ^b sum
+      var connectionTerm : Float = 0.0;
+      var b = 0;
+      while (b < fiberDim) {
+        let aIdx = direction * fiberDim * fiberDim + a * fiberDim + b;
+        let connVal = if (aIdx < connection.size()) { connection[aIdx] } else { 0.0 };
+        let fieldVal = if (b < field.size()) { field[b] } else { 0.0 };
+        connectionTerm += connVal * fieldVal;
+        b += 1;
+      };
+      partialDerivative + connectionTerm
+    })
+  };
+
+  /// Curvature 2-form: F_μν = ∂_μ A_ν - ∂_ν A_μ + [A_μ, A_ν]
+  /// For abelian (U(1)): F_μν = ∂_μ A_ν - ∂_ν A_μ (no commutator)
+  public func computeCurvature2Form(
+    connectionGradient : [Float],  // ∂_μ A_ν
+    baseDim : Nat,
+    fiberDim : Nat
+  ) : [Float] {
+    let fDim2 = fiberDim * fiberDim;
+    Array.tabulate<Float>(baseDim * baseDim * fDim2, func(idx : Nat) : Float {
+      let mu = idx / (baseDim * fDim2);
+      let rest = idx % (baseDim * fDim2);
+      let nu = rest / fDim2;
+      let ab = rest % fDim2;
+      
+      // F_μν = ∂_μ A_ν - ∂_ν A_μ (abelian part)
+      let gradMuNu = mu * baseDim * fDim2 + nu * fDim2 + ab;
+      let gradNuMu = nu * baseDim * fDim2 + mu * fDim2 + ab;
+      let g1 = if (gradMuNu < connectionGradient.size()) { connectionGradient[gradMuNu] } else { 0.0 };
+      let g2 = if (gradNuMu < connectionGradient.size()) { connectionGradient[gradNuMu] } else { 0.0 };
+      g1 - g2
+    })
+  };
+
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // GAUSS-BONNET THEOREM
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ∫_M K dA = 2π χ(M)
+  //
+  // The integral of curvature over a closed surface equals 2π times
+  // the Euler characteristic. TOPOLOGY CONSTRAINS GEOMETRY.
+  //
+  // Sphere: ∫ K dA = 4π (χ = 2)
+  // Torus: ∫ K dA = 0 (χ = 0)
+  // Genus-g surface: ∫ K dA = 2π(2 - 2g)
+  //
+  // In the organism: no matter how the organism deforms its geometry,
+  // the total curvature is FIXED by topology. The organism can change
+  // shape but not topology (without cutting or gluing).
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Gauss-Bonnet: ∫ K dA = 2π χ
+  public func gaussBonnetIntegral(eulerCharacteristic : Int) : Float {
+    2.0 * 3.14159265358979 * Float.fromInt(eulerCharacteristic)
+  };
+
+  /// Verify Gauss-Bonnet: does integrated curvature match topology?
+  public func verifyGaussBonnet(
+    curvatureValues : [Float],
+    areaElements : [Float],
+    eulerCharacteristic : Int
+  ) : (Float, Bool) {
+    var integral : Float = 0.0;
+    let n = if (curvatureValues.size() < areaElements.size()) { curvatureValues.size() } else { areaElements.size() };
+    var i = 0;
+    while (i < n) {
+      integral += curvatureValues[i] * areaElements[i];
+      i += 1;
+    };
+    let expected = gaussBonnetIntegral(eulerCharacteristic);
+    let error = Float.abs(integral - expected);
+    (error, error < 0.01 * Float.abs(expected))
+  };
+
+  /// Gaussian curvature at a point: K = κ₁ · κ₂ (product of principal curvatures)
+  public func gaussianCurvature(kappa1 : Float, kappa2 : Float) : Float {
+    kappa1 * kappa2
+  };
+
+  /// Mean curvature: H = (κ₁ + κ₂)/2
+  /// Mean curvature flow: ∂X/∂t = H·n̂ (evolves toward sphere)
+  public func meanCurvature(kappa1 : Float, kappa2 : Float) : Float {
+    (kappa1 + kappa2) / 2.0
+  };
+
+  /// Minimal surface: H = 0 everywhere (soap films)
+  /// Area-minimizing surfaces with given boundary
+  public func isMinimalSurface(kappa1 : Float, kappa2 : Float) : Bool {
+    Float.abs(kappa1 + kappa2) < 0.001
+  };
+
+  /// Willmore energy: W = ∫ H² dA
+  /// Measure of surface "smoothness" — conformally invariant
+  public func willmoreEnergy(meanCurvatures : [Float], areaElements : [Float]) : Float {
+    var W : Float = 0.0;
+    let n = if (meanCurvatures.size() < areaElements.size()) { meanCurvatures.size() } else { areaElements.size() };
+    var i = 0;
+    while (i < n) {
+      W += meanCurvatures[i] * meanCurvatures[i] * areaElements[i];
+      i += 1;
+    };
+    W
+  };
+
+  /// Geodesic curvature: how much a curve deviates from being a geodesic
+  /// κ_g = 0 for geodesics (shortest paths)
+  public func geodesicCurvature(
+    tangent : [Float],
+    acceleration : [Float],
+    normal : [Float]
+  ) : Float {
+    // κ_g = acceleration · normal
+    var kappa : Float = 0.0;
+    let n = acceleration.size();
+    var i = 0;
+    while (i < n) {
+      let acc = acceleration[i];
+      let norm = if (i < normal.size()) { normal[i] } else { 0.0 };
+      kappa += acc * norm;
+      i += 1;
+    };
+    kappa
+  };
+
 }

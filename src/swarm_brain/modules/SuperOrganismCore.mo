@@ -1153,14 +1153,14 @@ module SuperOrganismCore {
     variance := variance / Float.fromInt(activations.size());
     let consensusLevel = 1.0 / (1.0 + sqrt(variance));  // Higher consensus = lower variance
     
-    // Update Hebbian weights
+    // Update Hebbian weights — MAXIMIZED TO 64 (4×4×4 = 444 RESONANCE)
     let newWeights = hebbianUpdate(
       council.weights,
       activations,
       0.0001,  // eta
       0.00001, // lambda
       0.1,     // wMin
-      3.0      // wMax
+      64.0     // wMax — MAXIMIZED: 4×4×4 = 64 (444 sacred number)
     );
     
     // Update doctrine alignment (simplified: coherence with global metrics)
