@@ -22,7 +22,9 @@ export const PI = 3.1415926535897932385;
 export const SCHUMANN_HZ = 7.83;
 export const SOVEREIGN_FLOOR = 1.0;
 export const KURAMOTO_K = 0.618;
-export const HEARTBEAT_MS = 875.28; // φ⁴ × Schumann period
+// HEARTBEAT_MS: φ⁴ × Schumann_period_ms where Schumann_period = 1000/7.83 ≈ 127.7ms
+// φ⁴ ≈ 6.854, so 6.854 × 127.7 ≈ 875.28ms = 68.5 BPM (resting human heart rate)
+export const HEARTBEAT_MS = 875.28;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SECTION 2: ORGANISM IDENTITY MODELS
@@ -791,12 +793,11 @@ export function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-/** Wrap phase to [-π, π] */
+/** Wrap phase to [-π, π] using proper modulo arithmetic for negative values */
 export function wrapPhase(theta: number): number {
-  let t = theta % TAU;
-  if (t > PI) t -= TAU;
-  if (t < -PI) t += TAU;
-  return t;
+  // Handle negative modulo properly in JavaScript
+  const t = ((theta % TAU) + TAU) % TAU;
+  return t > PI ? t - TAU : t;
 }
 
 /** Calculate phase difference */

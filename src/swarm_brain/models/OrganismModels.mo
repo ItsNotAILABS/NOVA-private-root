@@ -41,7 +41,9 @@ module OrganismModels {
   public let SCHUMANN_HZ : Float = 7.83;
   public let SOVEREIGN_FLOOR : Float = 1.0;
   public let KURAMOTO_K : Float = 0.618;
-  public let HEARTBEAT_MS : Float = 875.28; // φ⁴ × Schumann period
+  // HEARTBEAT_MS: φ⁴ × Schumann_period_ms where Schumann_period = 1000/7.83 ≈ 127.7ms
+  // φ⁴ ≈ 6.854, so 6.854 × 127.7 ≈ 875.28ms = 68.5 BPM (resting human heart rate)
+  public let HEARTBEAT_MS : Float = 875.28;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // SECTION 2: ORGANISM IDENTITY MODELS
@@ -852,11 +854,10 @@ module OrganismModels {
     else { value }
   };
 
-  /// Wrap phase to [-π, π]
+  /// Wrap phase to [-π, π] using efficient modulo arithmetic
   public func wrapPhase(theta : Float) : Float {
-    var t = theta;
-    while (t > PI) { t -= TAU };
-    while (t < -PI) { t += TAU };
+    // Use modulo arithmetic for O(1) performance
+    var t = theta - TAU * Float.floor((theta + PI) / TAU);
     t
   };
 
