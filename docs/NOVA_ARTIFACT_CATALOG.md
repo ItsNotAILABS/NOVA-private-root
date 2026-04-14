@@ -80,6 +80,10 @@ An artifact is considered high-value only if it satisfies all:
 
 4. `NOVA_GATES_SCORECARD.yaml` (recommended)
    - Gate A/B/C criteria with measurable pass/fail fields.
+5. `NOVA_MACRO_PROCESS_AND_MODEL_DIRECTORIES.md`
+   - Names the full macro process and defines permanent model directory taxonomy for internal and external reuse.
+6. `templates/NOVA_MODEL_DIRECTORY_INDEX.yaml`
+   - Machine-readable index of model directories, ownership, authority, and API/product projection readiness.
 
 ---
 

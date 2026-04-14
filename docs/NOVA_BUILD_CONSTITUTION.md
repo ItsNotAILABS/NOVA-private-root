@@ -149,6 +149,20 @@ M2 Instance: runtime beat-level record.
 
 A structure is not a constitutional model unless at least two independent systems consume it.
 
+### Model family naming (forever naming standard)
+
+Use these family names instead of generic "models":
+
+- **Anchor Models (A-MODEL)**: Absolutes and encoded constants that anchor every build.
+- **Constitution Models (C-MODEL)**: Law and doctrine control records.
+- **Language Models (L-MODEL)**: Canonical typed contracts shared across systems.
+- **Flow Models (F-MODEL)**: Orchestration and transfer route contracts.
+- **Runtime Models (R-MODEL)**: Live beat-level organism state instances.
+- **Lab Models (X-MODEL)**: Intrinsic self-improvement state and experiment records.
+- **Workforce Models (W-MODEL)**: Build/release industrial orchestration records.
+- **Projection Models (P-MODEL)**: External product and API-safe projection records.
+- **Evidence Models (E-MODEL)**: Replay, proof, audit, and parity evidence records.
+
 ---
 
 ## 9) Resonance Clause Constitution
