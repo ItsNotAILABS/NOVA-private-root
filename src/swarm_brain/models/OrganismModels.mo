@@ -856,9 +856,7 @@ module OrganismModels {
 
   /// Wrap phase to [-π, π] using efficient modulo arithmetic
   public func wrapPhase(theta : Float) : Float {
-    // Use modulo arithmetic for O(1) performance
-    var t = theta - TAU * Float.floor((theta + PI) / TAU);
-    t
+    theta - TAU * Float.floor((theta + PI) / TAU)
   };
 
   /// Calculate phase difference
