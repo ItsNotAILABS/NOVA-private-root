@@ -1,0 +1,86 @@
+phrase_expansion:
+  version: "1.0"
+  classification: "SOVEREIGN_PRIVATE"
+  purpose: "Expand high-density doctrine phrases into explicit executable directives"
+
+  entries:
+    - phrase_id: "PX-LOOP-NEVER-CLOSES"
+      source_phrase: "LOOP NEVER CLOSES"
+      doctrine_meaning: "Every output stream reinjects into subsequent state evolution."
+      expansion:
+        required_runtime_effects:
+          - "persist continuity delta per beat"
+          - "write replay pointer for transformed state"
+          - "attach causal lineage references"
+        required_laws:
+          - "LAW-NO-DROP-CONTINUITY"
+          - "LAW-REPLAY-TRACEABILITY"
+        required_models:
+          - "R-MODEL-MEMORY-TEMPLE-STATE"
+          - "E-MODEL-REPLAY-BUNDLE"
+        required_gate_checks:
+          - "gate_a.no_drop_reinjection"
+      exposure:
+        default_classification: "SOVEREIGN_PRIVATE"
+        projection_form: "aggregate continuity score only"
+
+    - phrase_id: "PX-LAW-BEFORE-ACTUATION"
+      source_phrase: "LAW BEFORE ACTUATION"
+      doctrine_meaning: "No command or update executes before constitutional checks pass."
+      expansion:
+        required_runtime_effects:
+          - "evaluate law gate set before write path"
+          - "reject write with deterministic reason codes on failure"
+          - "emit law enforcement record"
+        required_laws:
+          - "LAW-LAW-BEFORE-ACTUATION"
+        required_models:
+          - "C-MODEL-LAW-ENFORCEMENT-RECORD"
+          - "E-MODEL-LAW-REPORT"
+        required_gate_checks:
+          - "gate_a.law_before_actuation"
+          - "gate_b.contract_compatibility"
+      exposure:
+        default_classification: "BUILDER_CONFIDENTIAL"
+        projection_form: "law pass/fail numeric status"
+
+    - phrase_id: "PX-ZERO-EXPOSURE"
+      source_phrase: "ZERO EXPOSURE"
+      doctrine_meaning: "External surfaces must not reveal sovereign internals."
+      expansion:
+        required_runtime_effects:
+          - "apply projection sanitizer to all external payloads"
+          - "block doctrine labels and law names from projection"
+          - "publish only bounded numeric/proof-safe outputs"
+        required_laws:
+          - "LAW-ZERO-EXPOSURE"
+        required_models:
+          - "P-MODEL-PROJECTION-CONTRACT"
+          - "E-MODEL-EXPOSURE-AUDIT"
+        required_gate_checks:
+          - "gate_c.zero_exposure_pass"
+      exposure:
+        default_classification: "BUILDER_CONFIDENTIAL"
+        projection_form: "public policy status and sanitized payload schema"
+
+    - phrase_id: "PX-THIRD-BRAIN"
+      source_phrase: "THIRD BRAIN TRANSLATES HEART TO THOUGHT"
+      doctrine_meaning: "CNCO converts cardiac drive into regulated cognition throughput."
+      expansion:
+        required_runtime_effects:
+          - "compute resonanceBridge, entrainmentGain, conversionCoherence"
+          - "derive thoughtReleasePressure under regulation bounds"
+        required_laws:
+          - "LAW-THIRD-BRAIN-STABILITY"
+        required_models:
+          - "R-MODEL-CNCO-STATE"
+        required_gate_checks:
+          - "gate_a.bounded_coherence_drift"
+      exposure:
+        default_classification: "RUNTIME_RESTRICTED"
+        projection_form: "bounded conversion telemetry only"
+
+  validation_rules:
+    - "every phrase_id must be unique"
+    - "every expansion must reference at least one law and one model"
+    - "every projection_form must be compatible with zero-exposure policy"

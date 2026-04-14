@@ -1,0 +1,21 @@
+models:
+  version: "1.0"
+  family_id: "MOD-STATE-FABRIC"
+  classification: "RUNTIME_RESTRICTED"
+  owner: "core-a-runtime"
+  gates_touched: ["GATE-A", "GATE-B"]
+  entries:
+    - model_id: "R-MODEL-ORGANISM-STATE"
+      class: "M1"
+      purpose: "Global runtime state fabric for coherence, drift, cognition, and continuity."
+      consumers: ["core-a-runtime", "intrinsic-labs", "core-b-governance"]
+      parity_refs:
+        backend: "src/swarm_brain/modules/types.mo"
+        frontend: "src/frontend/src/canister/swarmBrainActor.ts"
+    - model_id: "R-MODEL-COHERENCE-DRIFT"
+      class: "M2"
+      purpose: "Beat-level coherence and drift record."
+      consumers: ["core-a-runtime", "assurance-office"]
+      parity_refs:
+        backend: "src/swarm_brain/main.mo"
+        frontend: "src/frontend/src/components/CommandCenter/OroCommandCenter.tsx"

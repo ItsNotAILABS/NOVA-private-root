@@ -82,9 +82,16 @@ You can keep deep doctrine encoded while still making multi-AI teams execute con
 Use these templates as baseline:
 
 - `templates/NOVA_OPERATING_ORDERS.yaml`
-- `templates/NOVA_SYMBOL_LEXICON.yaml`
+- `templates/NOVA_RESONANCE_LEXICON.yaml`
 - `templates/NOVA_PHRASE_EXPANSION.yaml`
 - `templates/NOVA_RING_FLOW.yaml`
 - `templates/NOVA_MEMORY_RESIDENCY.yaml`
+
+Enterprise extension set:
+
+- `templates/NOVA_SPHERICAL_RING_SCHEMA.yaml`
+- `templates/NOVA_RING_TRANSFER_GRAPH.yaml`
+- `templates/NOVA_GATES_SCORECARD.yaml`
+- `templates/NOVA_EQUATION_REGISTRY.yaml`
 
 With these five artifacts, any new build can inherit doctrine and execute without category collapse.

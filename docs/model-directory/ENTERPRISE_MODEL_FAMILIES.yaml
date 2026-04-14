@@ -1,0 +1,168 @@
+enterprise_model_families:
+  version: "1.0"
+  classification: "BUILDER_CONFIDENTIAL"
+  process_name: "Sovereign Macro Orchestration Fabric"
+  minimum_families_required: 12
+
+  families:
+    - family_id: "MOD-CONSTITUTION"
+      family_name: "Constitution Models"
+      class_prefix: "C-MODEL"
+      directory: "docs/model-directory/constitution/"
+      owner: "doctrine-authority"
+      primary_consumers: ["core-a-runtime", "core-b-governance", "assurance-office"]
+      core_bindings: ["core-a", "core-b"]
+      gates_touched: ["GATE-A", "GATE-B", "GATE-C"]
+      examples:
+        - "C-MODEL-CONSTITUTION-STATE"
+        - "C-MODEL-AXIOM-SET"
+      exposure_class: "SOVEREIGN_PRIVATE"
+
+    - family_id: "MOD-IDENTITY-AUTHORITY"
+      family_name: "Identity and Authority Models"
+      class_prefix: "I-MODEL"
+      directory: "docs/model-directory/identity-authority/"
+      owner: "sovereign-access-office"
+      primary_consumers: ["core-a-runtime", "core-b-governance", "product-authority"]
+      core_bindings: ["core-a", "core-b"]
+      gates_touched: ["GATE-A", "GATE-B", "GATE-C"]
+      examples:
+        - "I-MODEL-ACTOR-SCOPE"
+        - "I-MODEL-SIGNER-GRANT"
+      exposure_class: "BUILDER_CONFIDENTIAL"
+
+    - family_id: "MOD-STATE-FABRIC"
+      family_name: "State Fabric Models"
+      class_prefix: "R-MODEL"
+      directory: "docs/model-directory/state-fabric/"
+      owner: "core-a-runtime"
+      primary_consumers: ["core-a-runtime", "intrinsic-labs", "core-b-governance"]
+      core_bindings: ["core-a"]
+      gates_touched: ["GATE-A", "GATE-B"]
+      examples:
+        - "R-MODEL-ORGANISM-STATE"
+        - "R-MODEL-COHERENCE-DRIFT"
+      exposure_class: "RUNTIME_RESTRICTED"
+
+    - family_id: "MOD-BEAT-TIME"
+      family_name: "Beat and Time Models"
+      class_prefix: "T-MODEL"
+      directory: "docs/model-directory/beat-time/"
+      owner: "core-a-runtime"
+      primary_consumers: ["core-a-runtime", "assurance-office"]
+      core_bindings: ["core-a"]
+      gates_touched: ["GATE-A"]
+      examples:
+        - "T-MODEL-BEAT-EVENT"
+        - "T-MODEL-TIMESTAMP4D"
+      exposure_class: "RUNTIME_RESTRICTED"
+
+    - family_id: "MOD-COUPLING-TRANSFER"
+      family_name: "Coupling and Transfer Models"
+      class_prefix: "F-MODEL"
+      directory: "docs/model-directory/coupling-transfer/"
+      owner: "architecture-office"
+      primary_consumers: ["core-a-runtime", "core-b-governance", "product-authority"]
+      core_bindings: ["core-a", "core-b"]
+      gates_touched: ["GATE-A", "GATE-B", "GATE-C"]
+      examples:
+        - "F-MODEL-RING-TRANSFER-EDGE"
+        - "F-MODEL-COUPLING-TOPOLOGY"
+      exposure_class: "BUILDER_CONFIDENTIAL"
+
+    - family_id: "MOD-ARBITRATION"
+      family_name: "Arbitration Models"
+      class_prefix: "A-MODEL"
+      directory: "docs/model-directory/arbitration/"
+      owner: "core-a-runtime"
+      primary_consumers: ["core-a-runtime", "intrinsic-labs", "core-b-governance"]
+      core_bindings: ["core-a"]
+      gates_touched: ["GATE-A", "GATE-B"]
+      examples:
+        - "A-MODEL-CANDIDATE-SCORE"
+        - "A-MODEL-VERDICT-LINEAGE"
+      exposure_class: "RUNTIME_RESTRICTED"
+
+    - family_id: "MOD-MEMORY-CONTINUITY"
+      family_name: "Memory and Continuity Models"
+      class_prefix: "M-MODEL"
+      directory: "docs/model-directory/memory-continuity/"
+      owner: "memory-governance"
+      primary_consumers: ["core-a-runtime", "intrinsic-labs", "assurance-office"]
+      core_bindings: ["core-a"]
+      gates_touched: ["GATE-A", "GATE-B"]
+      examples:
+        - "M-MODEL-CONTINUITY-WEAVE"
+        - "M-MODEL-REINJECTION-TRACE"
+      exposure_class: "SOVEREIGN_PRIVATE"
+
+    - family_id: "MOD-PROOF-REPLAY"
+      family_name: "Proof and Replay Models"
+      class_prefix: "E-MODEL"
+      directory: "docs/model-directory/proof-replay/"
+      owner: "assurance-office"
+      primary_consumers: ["core-a-runtime", "core-b-governance", "product-authority"]
+      core_bindings: ["core-a", "core-b"]
+      gates_touched: ["GATE-A", "GATE-B", "GATE-C"]
+      examples:
+        - "E-MODEL-REPLAY-BUNDLE"
+        - "E-MODEL-LAW-ENFORCEMENT-REPORT"
+      exposure_class: "BUILDER_CONFIDENTIAL"
+
+    - family_id: "MOD-ECONOMIC"
+      family_name: "Economic Models"
+      class_prefix: "K-MODEL"
+      directory: "docs/model-directory/economic/"
+      owner: "economy-governance"
+      primary_consumers: ["core-a-runtime", "core-b-governance", "product-authority"]
+      core_bindings: ["core-a", "core-b"]
+      gates_touched: ["GATE-B", "GATE-C"]
+      examples:
+        - "K-MODEL-TREASURY-FLOW"
+        - "K-MODEL-RESERVE-LOCK"
+      exposure_class: "BUILDER_CONFIDENTIAL"
+
+    - family_id: "MOD-DEFENSE-SAFETY"
+      family_name: "Defense and Safety Models"
+      class_prefix: "D-MODEL"
+      directory: "docs/model-directory/defense-safety/"
+      owner: "defense-governance"
+      primary_consumers: ["core-a-runtime", "core-b-governance", "product-authority"]
+      core_bindings: ["core-a", "core-b"]
+      gates_touched: ["GATE-A", "GATE-B", "GATE-C"]
+      examples:
+        - "D-MODEL-THREAT-VECTOR"
+        - "D-MODEL-CONTAINMENT-STATUS"
+      exposure_class: "RUNTIME_RESTRICTED"
+
+    - family_id: "MOD-WORKFORCE-BUILD"
+      family_name: "Workforce and Build Models"
+      class_prefix: "W-MODEL"
+      directory: "docs/model-directory/workforce-build/"
+      owner: "core-b-governance"
+      primary_consumers: ["core-b-governance", "assurance-office", "product-authority"]
+      core_bindings: ["core-b"]
+      gates_touched: ["GATE-B", "GATE-C"]
+      examples:
+        - "W-MODEL-TASK-PACKET"
+        - "W-MODEL-RELEASE-ARTIFACT"
+      exposure_class: "BUILDER_CONFIDENTIAL"
+
+    - family_id: "MOD-PROJECTION"
+      family_name: "Projection Models"
+      class_prefix: "P-MODEL"
+      directory: "docs/model-directory/projection/"
+      owner: "product-authority"
+      primary_consumers: ["product-authority", "external-operator-stack"]
+      core_bindings: ["core-b"]
+      gates_touched: ["GATE-C"]
+      examples:
+        - "P-MODEL-PUBLIC-NUMERIC-SCHEMA"
+        - "P-MODEL-API-PROJECTION-CONTRACT"
+      exposure_class: "PUBLIC_SAFE"
+
+  governance_rules:
+    - "every family must define owner, consumers, and gates_touched"
+    - "every family must map to a persistent directory"
+    - "no PUBLIC_SAFE family may reference sovereign-private fields directly"
+    - "all runtime-derived projection models require replay evidence pointers"

@@ -22,6 +22,14 @@ Every build MUST include these files:
 12. `NOVA_ARTIFACT_CATALOG.md` (artifact library index and usage map)
 13. `docs/templates/NOVA_LAW_REGISTRY.yaml` (compressed law registry machine template)
 14. `docs/templates/NOVA_TRANSFER_PROTOCOL.yaml` (T01-T70 transfer contract template)
+15. `docs/templates/NOVA_SPHERICAL_RING_SCHEMA.yaml` (full spherical ring authority schema)
+16. `docs/templates/NOVA_RING_TRANSFER_GRAPH.yaml` (allowed/forbidden ring transfer graph)
+17. `docs/templates/NOVA_GATES_SCORECARD.yaml` (Gate A/B/C pass/fail and evidence contract)
+18. `docs/templates/NOVA_OPERATING_ORDERS.yaml` (execution-plane authority and route controls)
+19. `docs/templates/NOVA_RING_FLOW.yaml` (compact ring ingress/egress and illegal path map)
+20. `docs/templates/NOVA_MEMORY_RESIDENCY.yaml` (no-drop memory residency and replay classes)
+21. `docs/templates/NOVA_EQUATION_REGISTRY.yaml` (machine equation canon with law/gate bindings)
+22. `docs/templates/NOVA_PHRASE_EXPANSION.yaml` (resonance phrase-to-execution expansion map)
 
 ---
 
@@ -208,9 +216,26 @@ For long-horizon reuse (family, future builders, multi-build programs), treat th
 - `docs/NOVA_RESONANCE_ARTIFACT_SYSTEM.md`
 - `docs/NOVA_ACCESS_TIERS_AND_READING_POLICY.md`
 - `docs/NOVA_PLAIN_LANGUAGE_GLOSSARY.md`
+- `docs/INDEX.md`
+- `docs/consciousness-core/README_CONSCIOUSNESS_CORE.md`
+- `docs/consciousness-core/NOVA_CONSCIOUSNESS_EQUATION_CANON.md`
+- `docs/internal-ai-teams/README_INTERNAL_AI_TEAMS.md`
+- `docs/internal-ai-teams/NOVA_INTERNAL_WORKFORCE_ORCHESTRATION.md`
+- `docs/external-products/README_EXTERNAL_PRODUCTS.md`
+- `docs/external-products/NOVA_EXTERNAL_PROJECTION_CONTRACT.md`
+- `docs/model-directory/README.md`
+- `docs/model-directory/ENTERPRISE_MODEL_FAMILIES.yaml`
 - `docs/templates/NOVA_DOCTRINE_PACK.yaml`
 - `docs/templates/NOVA_LAW_REGISTRY.yaml`
 - `docs/templates/NOVA_TRANSFER_PROTOCOL.yaml`
 - `docs/templates/NOVA_BUILD_INSTANCE_TEMPLATE.yaml`
+- `docs/templates/NOVA_SPHERICAL_RING_SCHEMA.yaml`
+- `docs/templates/NOVA_RING_TRANSFER_GRAPH.yaml`
+- `docs/templates/NOVA_GATES_SCORECARD.yaml`
+- `docs/templates/NOVA_OPERATING_ORDERS.yaml`
+- `docs/templates/NOVA_RING_FLOW.yaml`
+- `docs/templates/NOVA_MEMORY_RESIDENCY.yaml`
+- `docs/templates/NOVA_EQUATION_REGISTRY.yaml`
+- `docs/templates/NOVA_PHRASE_EXPANSION.yaml`
 
 This pack is designed to carry high-density architectural meaning while remaining operationally executable.

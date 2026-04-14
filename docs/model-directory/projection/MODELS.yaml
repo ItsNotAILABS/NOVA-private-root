@@ -1,0 +1,25 @@
+family:
+  id: "MOD-PROJECTION"
+  name: "Projection Models"
+  classification: "OPERATOR_INTERNAL"
+  owner: "product-authority"
+  consumers:
+    - "product-authority"
+    - "external-operator-stack"
+  gates_touched: ["GATE-C"]
+
+models:
+  - model_id: "P-MODEL-PUBLIC-NUMERIC-SCHEMA"
+    class: "M1"
+    description: "Public-safe numeric/status projection schema contract."
+    parity_refs:
+      - "docs/external-products/NOVA_EXTERNAL_PROJECTION_CONTRACT.md"
+      - "docs/templates/NOVA_GATES_SCORECARD.yaml"
+    exposure_class: "PUBLIC_SAFE"
+  - model_id: "P-MODEL-API-PROJECTION-CONTRACT"
+    class: "M1"
+    description: "API contract for enterprise projection surfaces."
+    parity_refs:
+      - "docs/external-products/NOVA_EXTERNAL_PROJECTION_CONTRACT.md"
+      - "docs/templates/NOVA_RING_TRANSFER_GRAPH.yaml"
+    exposure_class: "OPERATOR_INTERNAL"

@@ -75,8 +75,15 @@ These are long-lived, build-governing orchestration models:
 - `NOVA_LAW_REGISTRY.yaml`
 - `NOVA_TRANSFER_PROTOCOL.yaml`
 - `NOVA_BUILD_INSTANCE_TEMPLATE.yaml`
-- (recommended) `NOVA_MODEL_DIRECTORY.yaml`
-- (recommended) `NOVA_GATES_SCORECARD.yaml`
+- `NOVA_MODEL_DIRECTORY_INDEX.yaml`
+- `NOVA_SPHERICAL_RING_SCHEMA.yaml`
+- `NOVA_RING_TRANSFER_GRAPH.yaml`
+- `NOVA_GATES_SCORECARD.yaml`
+- `NOVA_OPERATING_ORDERS.yaml`
+- `NOVA_RING_FLOW.yaml`
+- `NOVA_MEMORY_RESIDENCY.yaml`
+- `NOVA_EQUATION_REGISTRY.yaml`
+- `NOVA_PHRASE_EXPANSION.yaml`
 
 Purpose:
 - tells AI builders what must exist, what can move, and what gates must pass.
@@ -202,4 +209,18 @@ For enterprise-grade execution in your architecture:
 ## 8) One-line operating principle
 
 Use macro orchestration models to govern the system, micro execution models to run cycles, and model-family directories to preserve long-term reuse across organism, workforce, and product projection.
+
+---
+
+## 9) Instantiated enterprise model directory registry
+
+This repository's canonical instantiated registry is:
+
+- `docs/model-directory/ENTERPRISE_MODEL_FAMILIES.yaml`
+
+And the machine index used by orchestration tooling is:
+
+- `docs/templates/NOVA_MODEL_DIRECTORY_INDEX.yaml`
+
+Both artifacts are required to keep model ownership, gate bindings, and exposure classes synchronized.
 

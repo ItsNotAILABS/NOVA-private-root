@@ -1,0 +1,26 @@
+family:
+  id: "MOD-PROOF-REPLAY"
+  name: "Proof and Replay Models"
+  classification: "BUILDER_CONFIDENTIAL"
+  owner: "assurance-office"
+  consumers:
+    - "core-a-runtime"
+    - "core-b-governance"
+    - "product-authority"
+  gates_touched: ["GATE-A", "GATE-B", "GATE-C"]
+
+models:
+  - model_id: "E-MODEL-REPLAY-BUNDLE"
+    class: "M2"
+    description: "Release-cycle replay package across rings and gates."
+    parity_refs:
+      - "docs/templates/NOVA_MEMORY_RESIDENCY.yaml"
+      - "docs/templates/NOVA_TRANSFER_PROTOCOL.yaml"
+    exposure_class: "BUILDER_CONFIDENTIAL"
+  - model_id: "E-MODEL-LAW-ENFORCEMENT-REPORT"
+    class: "M2"
+    description: "Per-change law gate enforcement evidence."
+    parity_refs:
+      - "docs/templates/NOVA_LAW_REGISTRY.yaml"
+      - "docs/templates/NOVA_GATES_SCORECARD.yaml"
+    exposure_class: "BUILDER_CONFIDENTIAL"
