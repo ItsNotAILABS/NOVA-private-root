@@ -1,0 +1,288 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║          QUICK REFERENCE: LINE-BY-LINE CONSTANT REPLACEMENTS                 ║
+║                    main.mo Sacred Geometry Update Plan                        ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════════════════════════
+  COUPLING CONSTANTS - Lines 537, 2215-2216, 4101-4102
+═══════════════════════════════════════════════════════════════════════════════
+
+Line 537:  let KURAMOTO_K = 0.618;
+  STATUS: ✓ ALREADY CORRECT (PHI_INVERSE)
+  
+Line 2215: let KP : Float = 0.55;
+  CURRENT: 0.55 (arbitrary)
+  REPLACE: PHI_INVERSE (0.618033988749895)
+  REASON: Proportional gain should follow golden ratio
+  
+Line 2216: let KD : Float = 0.275;
+  CURRENT: 0.275
+  REPLACE: PHI_INVERSE / 2.236 or PHI_NEG_2 (0.381966011250105)
+  REASON: Derivative gain needs phi derivation
+  
+Line 4101: let K_ATT : Float = 0.02;
+  CURRENT: 0.02
+  REPLACE: PHI_NEG_3 (0.236067977499789) × 0.085 ≈ 0.02 or use exact φ⁻⁵ (0.0902)
+  REASON: Attraction coupling should scale with phi
+  
+Line 4102: let K_REP : Float = 0.5;
+  CURRENT: 0.5
+  REPLACE: PHI_INVERSE (0.618033988749895)
+  REASON: Repulsion coupling follows golden ratio
+
+═══════════════════════════════════════════════════════════════════════════════
+  SWARM COHERENCE INITIALIZATION - Lines 627, 638
+═══════════════════════════════════════════════════════════════════════════════
+
+Line 627:  stable var rSwarm : Float = 0.88;
+  CURRENT: 0.88
+  REPLACE: PHI_INVERSE + 0.262 = 0.88 or use direct φ segment
+  REASON: Initial coherence should be golden ratio derived
+  NOTE: This is used throughout for synchrony calculations
+  
+Line 638:  stable var preCorrectionRSwarm : Float = 0.88;
+  CURRENT: 0.88
+  REPLACE: Same as Line 627 (linked to rSwarm initialization)
+
+═══════════════════════════════════════════════════════════════════════════════
+  FREQUENCY CONSTANTS - Lines 708, 1044-1047
+═══════════════════════════════════════════════════════════════════════════════
+
+Line 708:  stable var breathFrequencyHz = 0.15625 / 6.283185307;
+  CURRENT: 0.15625 / TWO_PI ≈ 0.02485 Hz
+  REPLACE: SCHUMANN_BASE / (2π) = 7.83 / 6.283185307 ≈ 1.245 Hz
+  REASON: Should align with Earth's Schumann resonance (7.83 Hz base frequency)
+  
+Line 1044: stable var hzKoreFrequency : Float = 500000.0;
+  CURRENT: 500,000 Hz (500 kHz)
+  REPLACE: SCHUMANN_BASE * PHI_CUBED * PHI_NEG_3 × scale factor
+  REASON: Should use Schumann harmonic series mathematically
+  ALTERNATIVE: 7.83 * 63893 ≈ 500,000 (Fibonacci/phi scaling?)
+  
+Line 1045: stable var hzThalamicFrequency : Float = 60000000.0;
+  CURRENT: 60,000,000 Hz (60 MHz)
+  REPLACE: Scale from Schumann base using phi multipliers
+  CALC: 7.83 × φ⁵ ≈ 7.83 × 11.09 ≈ 86.8 kHz (need verification)
+  
+Line 1046: stable var hzRASLocusFrequency : Float = 120000000.0;
+  CURRENT: 120,000,000 Hz (120 MHz)
+  REPLACE: 2 × previous phi-scaled frequency or use Schumann harmonic
+  
+Line 1047: stable var hzVaelFrequency : Float = 800000000.0;
+  CURRENT: 800,000,000 Hz (800 MHz)
+  REPLACE: Schumann base × large phi exponent or Fibonacci ratio
+
+═══════════════════════════════════════════════════════════════════════════════
+  ACCURACY & EFFICIENCY THRESHOLDS - Lines 1194, 1244, 1247, 1251, 1257
+═══════════════════════════════════════════════════════════════════════════════
+
+Line 1194: stable var lumenWorldModelAccuracy : Float = 0.8;
+  CURRENT: 0.8
+  REPLACE: PHI - 1.0 = 0.618033988749895 or keep as natural 4/5 ratio
+  
+Line 1244: stable var temporalPredictionAccuracy : Float = 0.8;
+  CURRENT: 0.8
+  REPLACE: PHI segment or PHI_NEG_2 + 0.382 ≈ 0.764 or use 0.618
+  
+Line 1247: stable var patternRecognitionStrength : Float = 0.8;
+  CURRENT: 0.8
+  REPLACE: PHI_INVERSE + 0.182 ≈ 0.8 or direct phi value
+  
+Line 1251: stable var survivorshipBiasCorrection : Float = 0.8;
+  CURRENT: 0.8
+  REPLACE: Phi-derived accuracy threshold
+  
+Line 1257: stable var internalMarketEfficiency : Float = 0.8;
+  CURRENT: 0.8
+  REPLACE: Golden ratio efficiency metric
+
+═══════════════════════════════════════════════════════════════════════════════
+  LEARNING & DECAY RATES - Lines 1490-1491, 1794, 2077, 2143
+═══════════════════════════════════════════════════════════════════════════════
+
+Line 1490: let STDP_ALPHA : Float = 0.005;
+  CURRENT: 0.005
+  REPLACE: PHI_NEG_5 (0.090169943749474) × 0.0554 or use φ⁻⁷ ≈ 0.0339
+  REASON: Spike-timing dependent plasticity should use phi decay
+  
+Line 1491: let DECAY : Float = 0.001;
+  CURRENT: 0.001
+  REPLACE: PHI_NEG_7 (0.055728620451596) × 0.0179 or exact φ⁻⁸ ≈ 0.0344
+  REASON: Weight decay follows exponential phi law
+  
+Line 1794: stableQChannels[qcBase] := 0.5; // ALPHA: spatial
+  CURRENT: 0.5
+  REPLACE: PHI_INVERSE (0.618033988749895)
+  REASON: Should initialize to golden ratio, not arbitrary 0.5
+  
+Line 2077: let ALPHA : Float = 0.275; // silver anchor rate
+  CURRENT: 0.275 (already good)
+  VERIFY: This appears to be 0.618 / 2.25 ≈ 0.275 (acceptable)
+  OPTION: Could be PHI_NEG_2 (0.381966011250105) instead?
+  
+Line 2143: w - ALPHA * 0.001 * jasmineJ[3] * ...
+  CURRENT: 0.001 multiplier (arbitrary)
+  REPLACE: Use phi-derived decay constant, not 0.001
+
+═══════════════════════════════════════════════════════════════════════════════
+  DRIVE INITIALIZATIONS - Lines 819-823, 8212-8216
+═══════════════════════════════════════════════════════════════════════════════
+
+Line 819:  stable var driveHunger : Float = 0.5;
+  CURRENT: 0.5
+  REPLACE: PHI_INVERSE (0.618033988749895) or PHI_NEG_2 (0.381966011250105)
+  REASON: Survival drive should start at golden ratio baseline
+  
+Line 820:  stable var driveCuriosity : Float = 0.5;
+  CURRENT: 0.5
+  REPLACE: PHI_INVERSE (0.618)
+  REASON: Exploration drive uses phi
+  
+Line 821:  stable var driveSafety : Float = 0.5;
+  CURRENT: 0.5
+  REPLACE: PHI_NEG_2 (0.382) - lower than exploration (safety is cautious)
+  REASON: Protection hierarchy uses phi segments
+  
+Line 822:  stable var driveSocial : Float = 0.5;
+  CURRENT: 0.5
+  REPLACE: PHI_INVERSE (0.618)
+  REASON: Social bonding follows golden ratio
+  
+Line 823:  stable var driveReproduction : Float = 0.5;
+  CURRENT: 0.5
+  REPLACE: PHI_INVERSE (0.618)
+  REASON: Continuation drive at golden ratio
+  
+Line 8212-8216: Reset locations (same replacements during reset)
+
+═══════════════════════════════════════════════════════════════════════════════
+  NEUROCHEMICAL CONCENTRATIONS - Lines 802-1001
+═══════════════════════════════════════════════════════════════════════════════
+
+BLOCK 1 (Lines 802-1001): ALL neurochemicals initialized to 1.0
+  dopamineLevel, serotoninLevel, norepinephrineConcent, acetylcholineConcent, etc.
+  
+  CURRENT: 1.0 (unity baseline)
+  REPLACE OPTIONS:
+    A) PHI_INVERSE (0.618) - universal golden baseline
+    B) PHI_SQUARED (2.618) - elevated baseline
+    C) Keep at 1.0 (unity is natural reference)
+    D) Use different phi values per neurotransmitter type
+  
+  RECOMMENDATION: Analyze module context first (likely PHI_INVERSE)
+
+Line 1005: stable var neurochemicalStressLevel : Float = 0.5;
+  CURRENT: 0.5
+  REPLACE: PHI_NEG_2 (0.382) - indicates low baseline stress
+  
+Line 1006: stable var neurochemicalRewardLevel : Float = 0.5;
+  CURRENT: 0.5
+  REPLACE: PHI_INVERSE (0.618) - baseline positive state
+  
+Line 1008: stable var neurochemicalArousalLevel : Float = 0.5;
+  CURRENT: 0.5
+  REPLACE: PHI_INVERSE (0.618) - baseline alertness
+
+═══════════════════════════════════════════════════════════════════════════════
+  VELOCITY DAMPING FACTORS - Lines 1579-1580, 4362-4363, 4383-4384
+═══════════════════════════════════════════════════════════════════════════════
+
+Line 1579:  var newVX = stableVelX[id] * 0.85 + forceX * 0.05;
+  CURRENT: 0.85 (momentum retention), 0.05 (force contribution)
+  REPLACE: 0.85 → (PHI_INVERSE + 0.232), 0.05 → 1 - 0.85 (consistent)
+  
+Line 1580:  var newVZ = stableVelZ[id] * 0.85 + forceZ * 0.05;
+  CURRENT: 0.85
+  REPLACE: Same as Line 1579
+  
+Line 4362:  stableVelX[id] := stableVelX[id] * 0.9 + fx * 0.3;
+  CURRENT: 0.9 (momentum), 0.3 (force)
+  REPLACE: 0.9 → Fibonacci ratio, 0.3 → 1 - 0.9 + adjustment
+  OPTION: 0.9 → 0.854 (PHI_INVERSE + 0.236) but check behavior
+  
+Line 4363:  stableVelZ[id] := stableVelZ[id] * 0.9 + fz * 0.3;
+  CURRENT: 0.9
+  REPLACE: Same as Line 4362
+  
+Line 4383:  stableVelX[id] := stableVelX[id] * 0.8 + fx;
+  CURRENT: 0.8
+  REPLACE: PHI segment or PHI_INVERSE + 0.182 ≈ 0.8
+  
+Line 4384:  stableVelZ[id] := stableVelZ[id] * 0.8 + fz;
+  CURRENT: 0.8
+  REPLACE: Same as Line 4383
+
+═══════════════════════════════════════════════════════════════════════════════
+  EMOTIONAL STATE CONSTANTS - Lines 4185, 4221, 4242, 4250
+═══════════════════════════════════════════════════════════════════════════════
+
+Line 4185: let emotionalRadius = 40.0 + emotionalDominance * 10.0 - ...
+  CURRENT: 40.0 base, 10.0 scale, 5.0 scale
+  REPLACE: 40.0 → 2π × φ² ≈ 41.3 or Fibonacci-derived radius
+           10.0 → Fibonacci number F5 or φ × 6.18 ≈ 10
+           5.0 → Fibonacci number F5 / 2
+  
+Line 4221: let aggressionGain = 1.5 + emotionalRiskTolerance * 0.5 + ...
+  CURRENT: 1.5 base, 0.5 scale
+  REPLACE: 1.5 → F5/F4 = 5/3 ≈ 1.667 (good Fibonacci ratio)
+           0.5 → PHI_INVERSE
+  
+Line 4242: let flightGain = 1.0 + emotionalArousal * 0.2 - emotionalValence * 0.1;
+  CURRENT: 1.0 base (good), 0.2, 0.1 scales
+  REPLACE: 0.2 → 1/5 (Fibonacci), 0.1 → PHI_NEG_3 ÷ 2.36 ≈ 0.1
+  
+Line 4250: let recoveryRate = 1.0 + emotionalValence * 0.3 + ...
+  CURRENT: 1.0 base (good), 0.3, 0.2 scales
+  REPLACE: 0.3 → 3/10 or phi-derived, 0.2 → phi segment
+
+═══════════════════════════════════════════════════════════════════════════════
+  OTHER SIGNIFICANT CONSTANTS TO CHECK
+═══════════════════════════════════════════════════════════════════════════════
+
+Line 1431:  let dCor = (0.8 * jDrift - 0.20 * oxy * corExcess - 0.10 * ...);
+  COEFFICIENTS: 0.8, 0.20, 0.10 → all need phi-derivation
+  
+Line 1539:  let W_ALI : Float = 0.8;
+  CURRENT: 0.8
+  REPLACE: PHI segment
+  
+Line 5554:  stable var infoDigestionEfficiency : Float = 0.8;
+  CURRENT: 0.8
+  REPLACE: PHI_INVERSE + 0.182
+  
+Line 5559:  stable var awakennessLevel : Float = 0.8;
+  CURRENT: 0.8
+  REPLACE: PHI-derived consciousness level
+  
+Line 6182:  * (0.99 + daMod * 0.01)
+  CURRENT: 0.99, 0.01 multipliers
+  REPLACE: 0.99 → Schumann harmonic fraction, 0.01 → φ⁻⁵
+
+═══════════════════════════════════════════════════════════════════════════════
+  TIME/PHASE CONSTANTS (Scattered throughout)
+═══════════════════════════════════════════════════════════════════════════════
+
+Line 693:   Float.fromInt(k) * 0.5235987756  // k × (2π/12)
+  CURRENT: 0.5235987756 (hardcoded 2π/12)
+  REPLACE: Use constant definition or verify Fibonacci-spacing is preferable
+  
+Line 960:   stable var sacesiTargetIncrement : Float = 0.000001;
+  CURRENT: 0.000001 (arbitrary tiny increment)
+  REPLACE: φ⁻⁸ or φ⁻⁹ for slower asymptotic approach (verify convergence)
+  
+Multiple:   3.14159265358979323846 hardcoded ~40+ times
+  CURRENT: Hardcoded PI values
+  REPLACE: Use defined PI constant or relate to sacred geometry (2πφ², etc.)
+
+═══════════════════════════════════════════════════════════════════════════════
+  CONSTANTS ALREADY OPTIMAL (No change needed)
+═══════════════════════════════════════════════════════════════════════════════
+
+Line 534:  let SOVEREIGN_FLOOR : Float = 1.0;     ✓ Base reference
+Line 536:  let W_CEIL : Float = 2.0;               ✓ Natural doubling
+Line 535:  let HELIX_ALPHA : Float = 0.01;         ✓ Intentional learning rate
+Line 537:  let KURAMOTO_K : Float = 0.618;         ✓ Already PHI_INVERSE
+Line 547:  let OMNIS_THRESHOLD : Float = 0.98;     ✓ Optimal synchrony threshold
+Line 2077: let ALPHA : Float = 0.275;              ~ Check if needs adjustment
+Line 2489: let TWO_PI : Float = 6.283185307;       ✓ Standard constant
+
