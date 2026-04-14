@@ -4,6 +4,25 @@ doctrine_pack:
   doctrine_fingerprint: "replace_with_hash"
   owner: "architect"
   status: "draft"
+  classification: "SOVEREIGN_PRIVATE"
+
+  lineage:
+    source_epoch: "nova-foundation"
+    inheritance_mode: "family-locked"
+    inheritable_assets:
+      - "phi_constants"
+      - "law_registry"
+      - "model_contracts"
+      - "ring_governance"
+
+  parity_controls:
+    backend_phi_file: "src/swarm_brain/modules/phi.mo"
+    frontend_phi_file: "src/frontend/src/substrate/phi.ts"
+    backend_types_file: "src/swarm_brain/modules/types.mo"
+    frontend_types_file: "src/frontend/src/substrate/types.ts"
+    required:
+      - "phi_parity_hash"
+      - "types_parity_hash"
 
   invariants:
     - id: "INV-001"
@@ -59,6 +78,23 @@ doctrine_pack:
       - "law_names"
       - "internal_coupling_topology"
       - "creator_only_surfaces"
+
+  access_tiers:
+    public:
+      read: ["numeric_metrics", "bounded_status", "proof_references"]
+      write: []
+    operator:
+      read: ["runbooks", "safe_replay_summaries", "safe_state_summaries"]
+      write: ["approved_ops_commands"]
+    runtime:
+      read: ["runtime_contracts", "runtime_state_required"]
+      write: ["runtime_outputs_via_core_a"]
+    builder:
+      read: ["full_architecture", "law_registry", "templates", "source"]
+      write: ["proposals", "implementation", "tests", "release_artifacts"]
+    sovereign:
+      read: ["full_doctrine", "all_resonance_clauses", "full_replay"]
+      write: ["law_registry", "doctrine_policy", "tier_policy"]
 
   activation_gates:
     gate_a:

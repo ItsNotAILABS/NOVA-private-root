@@ -1,0 +1,54 @@
+transfer_protocol:
+  version: "1.0"
+  protocol_id: "nova-transfer-t01-t70"
+  rules:
+    - id: "T01"
+      from: "absolutes"
+      to: "doctrine"
+      purpose: "encode discovered truths into enforceable principles"
+      required_checks: ["classification_pass", "non-collapse_pass"]
+    - id: "T12"
+      from: "doctrine"
+      to: "model_language"
+      purpose: "bind laws to model contracts and gate identifiers"
+      required_checks: ["type_contract_defined", "gate_binding_defined"]
+    - id: "T23"
+      from: "model_language"
+      to: "runtime_core_a"
+      purpose: "accept only contract-valid runtime packets"
+      required_checks: ["schema_parity_pass", "validation_pass"]
+    - id: "T34"
+      from: "runtime_core_a"
+      to: "intrinsic_labs"
+      purpose: "emit organism self-improvement work items"
+      required_checks: ["telemetry_bundle_present"]
+    - id: "T43"
+      from: "intrinsic_labs"
+      to: "runtime_core_a"
+      purpose: "return self-improvement proposals through sovereign gates"
+      required_checks: ["law_pass", "arbitration_pass", "replay_safe"]
+    - id: "T35"
+      from: "runtime_core_a"
+      to: "core_b_workforce"
+      purpose: "publish governed runtime truth priorities for industrial execution"
+      required_checks: ["snapshot_signed"]
+    - id: "T53"
+      from: "core_b_workforce"
+      to: "runtime_core_a"
+      purpose: "submit implementation candidates for runtime acceptance"
+      required_checks: ["contract_valid", "law_pass", "rollback_ready"]
+    - id: "T56"
+      from: "core_b_workforce"
+      to: "product_projection"
+      purpose: "industrialize approved capabilities into product surfaces"
+      required_checks: ["gate_b_pass", "exposure_policy_attached"]
+    - id: "T67"
+      from: "product_projection"
+      to: "ecosystem"
+      purpose: "operate in partner/customer/field environments"
+      required_checks: ["gate_c_pass", "incident_controls_ready"]
+    - id: "T70"
+      from: "ecosystem"
+      to: "doctrine_review"
+      purpose: "feed replay evidence into controlled doctrine evolution"
+      required_checks: ["replay_evidence_complete", "governance_quorum"]

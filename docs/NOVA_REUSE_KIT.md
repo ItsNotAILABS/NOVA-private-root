@@ -14,6 +14,14 @@ Every build MUST include these files:
 4. `TWIN_CORE_MANIFEST.*` (Core A / Core B boundaries and gates)
 5. `RING_MAP.*` (full sphere composition for this build)
 6. `EXPOSURE_POLICY.*` (zero-exposure routing and public surface controls)
+7. `NOVA_PLAIN_LANGUAGE_GLOSSARY.md` (shared language for non-engineers and AI agents)
+8. `NOVA_ACCESS_TIERS_AND_READING_POLICY.md` (who can read/write which artifacts)
+9. `NOVA_NON_ENGINEER_AND_AI_READING_GUIDE.md` (execution order for humans + AI teams)
+10. `NOVA_BUILD_INSTANCE_TEMPLATE.yaml` (single-file instantiation for new builds)
+11. `NOVA_BUILD_CONSTITUTION.md` (master constitutional build contract)
+12. `NOVA_ARTIFACT_CATALOG.md` (artifact library index and usage map)
+13. `docs/templates/NOVA_LAW_REGISTRY.yaml` (compressed law registry machine template)
+14. `docs/templates/NOVA_TRANSFER_PROTOCOL.yaml` (T01-T70 transfer contract template)
 
 ---
 
@@ -157,6 +165,8 @@ exposure_policy:
 6. Enable Core B (Gate B).
 7. Expose products only after Gate C.
 8. Archive replay bundle for first production cycle.
+9. Configure access tiers before enabling any external AI agent workflow.
+10. Verify inner-organism/agent views are routed to safe-summary docs only.
 
 ---
 
@@ -185,3 +195,22 @@ Rule:
 
 - Every resonance clause must resolve to concrete law/model/gate references.
 - If a clause cannot be operationalized, it remains commentary and cannot gate runtime behavior.
+
+---
+
+## 9) Constitutional Pack (High-Value Artifact Set)
+
+For long-horizon reuse (family, future builders, multi-build programs), treat this as the mandatory constitutional pack:
+
+- `docs/NOVA_BUILD_CONSTITUTION.md`
+- `docs/NOVA_ARTIFACT_CATALOG.md`
+- `docs/NOVA_FULL_SPHERE_ARCHITECTURE.md`
+- `docs/NOVA_RESONANCE_ARTIFACT_SYSTEM.md`
+- `docs/NOVA_ACCESS_TIERS_AND_READING_POLICY.md`
+- `docs/NOVA_PLAIN_LANGUAGE_GLOSSARY.md`
+- `docs/templates/NOVA_DOCTRINE_PACK.yaml`
+- `docs/templates/NOVA_LAW_REGISTRY.yaml`
+- `docs/templates/NOVA_TRANSFER_PROTOCOL.yaml`
+- `docs/templates/NOVA_BUILD_INSTANCE_TEMPLATE.yaml`
+
+This pack is designed to carry high-density architectural meaning while remaining operationally executable.

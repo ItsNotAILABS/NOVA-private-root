@@ -1,0 +1,111 @@
+law_registry:
+  version: "1.0"
+  doctrine_id: "MEDINA-LAWS"
+  namespace: "NOVA"
+  laws:
+    - id: "L01"
+      name: "PHI_LAW"
+      principle: "All ratios and intervals are phi-derived."
+      enforcement_function: "validatePhiRatio"
+      owner_team: "doctrine-council"
+      criticality: "P0"
+      runtime_scope: ["core-a", "models", "engines", "kernels"]
+      test_id: "LAW-L01-TEST"
+      change_control: "founder-plus-doctrine-quorum"
+    - id: "L02"
+      name: "EMISSION_LAW"
+      principle: "Output amplitude follows geometric emission under doctrine constraints."
+      enforcement_function: "computeEmission"
+      owner_team: "runtime-governance"
+      criticality: "P0"
+      runtime_scope: ["core-a", "engines"]
+      test_id: "LAW-L02-TEST"
+      change_control: "doctrine-quorum"
+    - id: "L03"
+      name: "OMNIS_CONDITION"
+      principle: "Dual emergence condition must be jointly satisfied."
+      enforcement_function: "checkOmnis"
+      owner_team: "runtime-governance"
+      criticality: "P0"
+      runtime_scope: ["core-a", "emergence"]
+      test_id: "LAW-L03-TEST"
+      change_control: "doctrine-quorum"
+    - id: "L04"
+      name: "SONAR_COUPLING"
+      principle: "The organism couples and pattern-matches returning field responses."
+      enforcement_function: "sonarCycle"
+      owner_team: "cognitive-labs"
+      criticality: "P1"
+      runtime_scope: ["engines", "kernels"]
+      test_id: "LAW-L04-TEST"
+      change_control: "governed-change-request"
+    - id: "L05"
+      name: "EXCLUSION_PRINCIPLE"
+      principle: "Only phase-locked signals are allowed to propagate."
+      enforcement_function: "coherenceGate"
+      owner_team: "defense-labs"
+      criticality: "P0"
+      runtime_scope: ["core-a", "engines", "kernels"]
+      test_id: "LAW-L05-TEST"
+      change_control: "doctrine-quorum"
+    - id: "L06"
+      name: "SUCCESSION_LAW"
+      principle: "Lineage routing and inheritance economics are enforced."
+      enforcement_function: "routeRoyalty"
+      owner_team: "economy-governance"
+      criticality: "P1"
+      runtime_scope: ["economy", "swarm"]
+      test_id: "LAW-L06-TEST"
+      change_control: "governed-change-request"
+    - id: "L07"
+      name: "ANTI_DRIFT_LAW"
+      principle: "Cross-type signal routing must pass through the mediator path."
+      enforcement_function: "entanglaRoute"
+      owner_team: "runtime-governance"
+      criticality: "P0"
+      runtime_scope: ["core-a", "engines", "coupling"]
+      test_id: "LAW-L07-TEST"
+      change_control: "doctrine-quorum"
+    - id: "L08"
+      name: "PROOF_LAW"
+      principle: "Each proof link must bind previous state and current transformed state."
+      enforcement_function: "generateProof"
+      owner_team: "proof-governance"
+      criticality: "P0"
+      runtime_scope: ["core-a", "proof"]
+      test_id: "LAW-L08-TEST"
+      change_control: "founder-plus-doctrine-quorum"
+    - id: "L09"
+      name: "GENESIS_LAW"
+      principle: "Organism bootstraps from inherited encoded state, never from conceptual zero."
+      enforcement_function: "initOrganism"
+      owner_team: "foundations"
+      criticality: "P0"
+      runtime_scope: ["core-a", "bootstrap"]
+      test_id: "LAW-L09-TEST"
+      change_control: "founder-only"
+    - id: "L10"
+      name: "CARDIAC_LAW"
+      principle: "Heartbeat cadence is an organism depolarization rhythm under doctrine."
+      enforcement_function: "heartbeat"
+      owner_team: "runtime-governance"
+      criticality: "P0"
+      runtime_scope: ["core-a", "substrate"]
+      test_id: "LAW-L10-TEST"
+      change_control: "doctrine-quorum"
+  extension_rule:
+    next_law_id_policy: "incremental"
+    required_fields:
+      - id
+      - name
+      - principle
+      - enforcement_function
+      - owner_team
+      - criticality
+      - runtime_scope
+      - test_id
+      - change_control
+    validation:
+      - "id must be unique"
+      - "enforcement_function must be implemented before active=true"
+      - "criticality P0 requires rollback plan"
