@@ -12,6 +12,14 @@ type ConstantFeedbackView = {
   arbitrationReadiness: number;
   governanceStability: number;
   recommendationPriority: number;
+  lawContinuityScore: number;
+  defensePostureScore: number;
+  economicResilienceScore: number;
+  workforceCoherenceScore: number;
+  memoryIntegrityScore: number;
+  meshResonanceScore: number;
+  sovereignAlignmentScore: number;
+  riskContainmentScore: number;
   narrativeSummary: string;
   topActions: string[];
   pressureHistory: number[];
@@ -19,6 +27,12 @@ type ConstantFeedbackView = {
   reinjectionHistory: number[];
   multiGroupHistory: number[];
   multiOrganismHistory: number[];
+  lawHistory: number[];
+  defenseHistory: number[];
+  economyHistory: number[];
+  workforceHistory: number[];
+  meshHistory: number[];
+  sovereignHistory: number[];
 };
 
 type Props = {
@@ -208,6 +222,52 @@ export function ConstantFeedbackLab({ beat, rSwarm, jDrift, feedback }: Props) {
         </div>
       </div>
 
+      <div style={S.grid}>
+        <div style={S.card}>
+          <div style={S.label}>Law Continuity</div>
+          <div style={S.value}>{fmt(feedback.lawContinuityScore)}</div>
+          <div style={S.barWrap}><div style={S.bar(feedback.lawContinuityScore, '#72e1ff')} /></div>
+        </div>
+        <div style={S.card}>
+          <div style={S.label}>Defense Posture</div>
+          <div style={S.value}>{fmt(feedback.defensePostureScore)}</div>
+          <div style={S.barWrap}><div style={S.bar(feedback.defensePostureScore, '#ff8d8d')} /></div>
+        </div>
+        <div style={S.card}>
+          <div style={S.label}>Economic Resilience</div>
+          <div style={S.value}>{fmt(feedback.economicResilienceScore)}</div>
+          <div style={S.barWrap}><div style={S.bar(feedback.economicResilienceScore, '#8effb0')} /></div>
+        </div>
+        <div style={S.card}>
+          <div style={S.label}>Workforce Coherence</div>
+          <div style={S.value}>{fmt(feedback.workforceCoherenceScore)}</div>
+          <div style={S.barWrap}><div style={S.bar(feedback.workforceCoherenceScore, '#ffd37a')} /></div>
+        </div>
+      </div>
+
+      <div style={S.grid}>
+        <div style={S.card}>
+          <div style={S.label}>Memory Integrity</div>
+          <div style={S.value}>{fmt(feedback.memoryIntegrityScore)}</div>
+          <div style={S.barWrap}><div style={S.bar(feedback.memoryIntegrityScore, '#9bc2ff')} /></div>
+        </div>
+        <div style={S.card}>
+          <div style={S.label}>Mesh Resonance</div>
+          <div style={S.value}>{fmt(feedback.meshResonanceScore)}</div>
+          <div style={S.barWrap}><div style={S.bar(feedback.meshResonanceScore, '#8fffe3')} /></div>
+        </div>
+        <div style={S.card}>
+          <div style={S.label}>Sovereign Alignment</div>
+          <div style={S.value}>{fmt(feedback.sovereignAlignmentScore)}</div>
+          <div style={S.barWrap}><div style={S.bar(feedback.sovereignAlignmentScore, '#f0d27a')} /></div>
+        </div>
+        <div style={S.card}>
+          <div style={S.label}>Risk Containment</div>
+          <div style={S.value}>{fmt(feedback.riskContainmentScore)}</div>
+          <div style={S.barWrap}><div style={S.bar(feedback.riskContainmentScore, '#ffb98a')} /></div>
+        </div>
+      </div>
+
       <div style={S.sectionTitle}>Narrative</div>
       <div style={S.narrative}>{feedback.narrativeSummary || '(pending)'}</div>
 
@@ -226,6 +286,12 @@ export function ConstantFeedbackLab({ beat, rSwarm, jDrift, feedback }: Props) {
           {'\n'}reinjection: {miniSeries(feedback.reinjectionHistory)}
           {'\n'}groups: {miniSeries(feedback.multiGroupHistory)}
           {'\n'}organisms: {miniSeries(feedback.multiOrganismHistory)}
+          {'\n'}law: {miniSeries(feedback.lawHistory)}
+          {'\n'}defense: {miniSeries(feedback.defenseHistory)}
+          {'\n'}economy: {miniSeries(feedback.economyHistory)}
+          {'\n'}workforce: {miniSeries(feedback.workforceHistory)}
+          {'\n'}mesh: {miniSeries(feedback.meshHistory)}
+          {'\n'}sovereign: {miniSeries(feedback.sovereignHistory)}
         </div>
       </div>
     </div>

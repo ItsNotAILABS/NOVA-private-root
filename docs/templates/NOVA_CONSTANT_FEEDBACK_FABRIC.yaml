@@ -1,0 +1,127 @@
+schema_id: NOVA-CFF-1
+classification: BUILDER_CONFIDENTIAL
+title: Constant Feedback Fabric Canonical Schema
+purpose: >
+  Defines the deep, multi-domain constant feedback fabric that must run every beat
+  and reinject into law, defense, economy, workforce, memory, and mesh strata.
+
+runtime_contract:
+  engine:
+    name: ConstantFeedbackCognitionEngine
+    module_path: src/swarm_brain/modules/ConstantFeedbackCognitionEngine.mo
+    beat_integration_point: masterSphericalIntegration.step_2_99
+  query_surface:
+    name: getConstantFeedbackCognitionState
+    exposure_class: INTERNAL_NUMERIC_AND_NARRATIVE
+
+domains:
+  - id: D1
+    name: cognitive-pressure-closure
+    outputs:
+      - cognitivePressure
+      - loopClosureScore
+      - reinjectionIntegrity
+      - cognitionReadiness
+    mandatory_reinjection_targets:
+      - memoryResponseWeights
+      - adaptationFactor
+      - awakennessLevel
+  - id: D2
+    name: law-continuity
+    outputs:
+      - lawContinuityScore
+      - governanceStability
+      - arbitrationReadiness
+    mandatory_reinjection_targets:
+      - overallCompliance
+      - doctrine gates
+      - governance arbitration buffers
+  - id: D3
+    name: defense-containment
+    outputs:
+      - defensePostureScore
+      - riskContainmentScore
+    mandatory_reinjection_targets:
+      - threatAssessmentOutput
+      - riskManagementOutput
+      - re-entrainment counters
+  - id: D4
+    name: economic-resilience
+    outputs:
+      - economicResilienceScore
+      - sovereignAlignmentScore
+    mandatory_reinjection_targets:
+      - hunger and drive regulators
+      - reserve accumulation channels
+  - id: D5
+    name: workforce-and-artifact-flow
+    outputs:
+      - workforceCoherenceScore
+      - recommendationPriority
+    mandatory_reinjection_targets:
+      - workforce load/focus loops
+      - artifact readiness routes
+  - id: D6
+    name: memory-integrity
+    outputs:
+      - memoryIntegrityScore
+      - reinjectionIntegrity
+    mandatory_reinjection_targets:
+      - no-drop memory continuity planes
+      - replay reliability envelopes
+  - id: D7
+    name: multi-organism-mesh
+    outputs:
+      - multiGroupCoherence
+      - multiOrganismCoherence
+      - meshResonanceScore
+    mandatory_reinjection_targets:
+      - swarm coherence activation flags
+      - inter-organism coupling paths
+
+histories_required:
+  - pressureHistory
+  - closureHistory
+  - reinjectionHistory
+  - multiGroupHistory
+  - multiOrganismHistory
+  - lawHistory
+  - defenseHistory
+  - economyHistory
+  - workforceHistory
+  - meshHistory
+  - sovereignHistory
+
+gates:
+  gate_a:
+    description: Numerical coherence and bounded-domain validity
+    requirements:
+      - all_scores_within_0_to_1_5
+      - history_append_on_every_beat
+  gate_b:
+    description: Reinjection closure
+    requirements:
+      - updates_affect_at_least_8_runtime_targets
+      - law_defense_memory_targets_present
+  gate_c:
+    description: Operator visibility and actionability
+    requirements:
+      - query_surface_exposes_all_domain_scores
+      - command_center_panel_exposes_domains_and_histories
+
+failure_policy:
+  on_cognitive_pressure_spike:
+    threshold: 1.10
+    actions:
+      - increase_re_entrainment_counter
+      - force_protection_first_routing
+  on_reinjection_drop:
+    threshold: 0.72
+    actions:
+      - elevate_replay_audit_frequency
+      - increase_memory_continuity_weight
+  on_mesh_decoherence:
+    threshold: 0.70
+    actions:
+      - raise_interorganism_arbitration_priority
+      - hold_external_projection_paths

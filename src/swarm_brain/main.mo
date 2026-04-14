@@ -1015,6 +1015,14 @@ actor SwarmBrain {
   stable var cognitionRecommendationPriority : Float = 0.30;
   stable var cognitionNarrativeSummary : Text = "";
   stable var cognitionTopActions : [var Text] = Array.init<Text>(6, "");
+  stable var cognitionLawContinuityScore : Float = 0.76;
+  stable var cognitionDefensePostureScore : Float = 0.74;
+  stable var cognitionEconomicResilienceScore : Float = 0.72;
+  stable var cognitionWorkforceCoherenceScore : Float = 0.73;
+  stable var cognitionMemoryIntegrityScore : Float = 0.76;
+  stable var cognitionMeshResonanceScore : Float = 0.70;
+  stable var cognitionSovereignAlignmentScore : Float = 0.75;
+  stable var cognitionRiskContainmentScore : Float = 0.74;
   
   // ─── NEUROCHEMICAL CROSSTALK MATRIX STATE ────────────────────────────────────
   // 21 neurochemicals × 21 interactions = 441 coupled differential equations
@@ -5236,6 +5244,29 @@ actor SwarmBrain {
       0.0,
       1.5
     );
+    let beatDen = Float.max(1.0, Float.fromInt(currentBeat));
+    let lawViolationRate = fclamp(Float.fromInt(totalLawViolations) / beatDen, 0.0, 1.5);
+    let lawReEntrainmentRate = fclamp(Float.fromInt(totalReEntrainments) / beatDen, 0.0, 1.5);
+    let defenseReadinessProxy = fclamp(
+      ((if (vaelDefenseActive) { 1.0 } else { 0.35 }) + geoResonanceProtectionScore + cardioNeuralShieldIntegrity) / 3.0,
+      0.0,
+      1.5
+    );
+    let defenseThreatProxy = fclamp(geoResonanceThreatScore * 0.6 + threatAssessmentOutput * 0.4, 0.0, 1.5);
+    let economicBalanceProxy = fclamp(
+      formaBalance * 0.30 + mrcBalance * 0.25 + kntBalance * 0.20 + overallCompliance * 0.25,
+      0.0,
+      1.5
+    );
+    let reserveDen = Float.max(1.0, masterAccumulator + 1000.0);
+    let economicReserveProxy = fclamp(masterAccumulator / reserveDen, 0.0, 1.5);
+    let hungerProxy = fclamp((infoHunger + driveHunger + driveCuriosity) / 3.0, 0.0, 1.5);
+    let workforceLoadProxy = fclamp((driveSafety + threatAssessmentOutput + riskManagementOutput) / 3.0, 0.0, 1.5);
+    let workforceFocusProxy = fclamp((driveCuriosity + analystTeamLearningScore + cardioNeuralThoughtThroughput) / 3.0, 0.0, 1.5);
+    let artifactReadinessProxy = fclamp((memoryTempleArtifactReadiness + memoryTempleAgentWorkCapacity) / 2.0, 0.0, 1.5);
+    let meshResonanceProxy = fclamp((cognitionMultiOrganismCoherence + rSwarm + qsovScore) / 3.0, 0.0, 1.5);
+    let meshNodeCountProxy = if (swarmOrganismCount > 0) { swarmOrganismCount } else { Nat.max(1, stableDroneCount / 2) };
+    let emergencyProxy = analystTeamEmergencySignal > 0.82 or geoResonanceThreatScore > 0.85;
     let input : ConstantFeedbackCognitionEngine.ConstantFeedbackInput = {
       beat = currentBeat;
       rSwarm = rSwarm;
@@ -5262,6 +5293,21 @@ actor SwarmBrain {
       multiGroupCount = 7;
       multiOrganismCount = if (swarmOrganismCount > 0) { swarmOrganismCount } else { 1 };
       feedbackSignalCount = signalCount;
+      lawViolationRate = lawViolationRate;
+      lawReEntrainmentRate = lawReEntrainmentRate;
+      defenseReadiness = defenseReadinessProxy;
+      defenseThreatLoad = defenseThreatProxy;
+      economicBalance = economicBalanceProxy;
+      economicReserve = economicReserveProxy;
+      entropyLoad = fclamp(infoEntropy, 0.0, 1.5);
+      hungerDrive = hungerProxy;
+      workforceLoad = workforceLoadProxy;
+      workforceFocus = workforceFocusProxy;
+      artifactReadiness = artifactReadinessProxy;
+      meshResonance = meshResonanceProxy;
+      meshActive = swarmCoherenceActive;
+      meshNodeCount = meshNodeCountProxy;
+      emergencyActive = emergencyProxy;
     };
 
     cognitionFeedbackState := ConstantFeedbackCognitionEngine.tickConstantFeedback(cognitionFeedbackState, input);
@@ -5276,6 +5322,14 @@ actor SwarmBrain {
     cognitionArbitrationReadiness := cognitionFeedbackState.arbitrationReadiness;
     cognitionGovernanceStability := cognitionFeedbackState.governanceStability;
     cognitionRecommendationPriority := cognitionFeedbackState.recommendationPriority;
+    cognitionLawContinuityScore := cognitionFeedbackState.lawContinuityScore;
+    cognitionDefensePostureScore := cognitionFeedbackState.defensePostureScore;
+    cognitionEconomicResilienceScore := cognitionFeedbackState.economicResilienceScore;
+    cognitionWorkforceCoherenceScore := cognitionFeedbackState.workforceCoherenceScore;
+    cognitionMemoryIntegrityScore := cognitionFeedbackState.memoryIntegrityScore;
+    cognitionMeshResonanceScore := cognitionFeedbackState.meshResonanceScore;
+    cognitionSovereignAlignmentScore := cognitionFeedbackState.sovereignAlignmentScore;
+    cognitionRiskContainmentScore := cognitionFeedbackState.riskContainmentScore;
     cognitionNarrativeSummary := cognitionFeedbackState.narrativeSummary;
 
     var i : Nat = 0;
@@ -5290,6 +5344,15 @@ actor SwarmBrain {
     adaptationFactor := adaptationFactor * 0.90 + cognitionReadiness * 0.10;
     threatAssessmentOutput := threatAssessmentOutput * 0.90 + cognitionCognitivePressure * 0.10;
     riskManagementOutput := riskManagementOutput * 0.90 + (1.0 - cognitionGovernanceStability) * 0.10;
+    overallCompliance := overallCompliance * 0.93 + cognitionLawContinuityScore * 0.07;
+    infoHunger := infoHunger * 0.92 + (1.0 - cognitionEconomicResilienceScore) * 0.08;
+    driveCuriosity := fclamp(driveCuriosity * 0.90 + cognitionWorkforceCoherenceScore * 0.10, 0.0, 1.0);
+    driveSafety := fclamp(driveSafety * 0.90 + (1.0 - cognitionRiskContainmentScore) * 0.10, 0.0, 1.0);
+    driveSocial := fclamp(driveSocial * 0.92 + cognitionMultiGroupCoherence * 0.08, 0.0, 1.0);
+    driveReproduction := fclamp(driveReproduction * 0.94 + cognitionSovereignAlignmentScore * 0.06, 0.0, 1.0);
+    if (cognitionMeshResonanceScore > 0.72) { swarmCoherenceActive := true };
+    if (cognitionCognitivePressure > 1.10) { totalReEntrainments += 1 };
+    masterAccumulator += cognitionSovereignAlignmentScore * 0.0001;
     awakennessLevel := awakennessLevel * 0.90 + cognitionReadiness * 0.10;
   };
 
@@ -12191,6 +12254,14 @@ actor SwarmBrain {
     arbitrationReadiness : Float;
     governanceStability : Float;
     recommendationPriority : Float;
+    lawContinuityScore : Float;
+    defensePostureScore : Float;
+    economicResilienceScore : Float;
+    workforceCoherenceScore : Float;
+    memoryIntegrityScore : Float;
+    meshResonanceScore : Float;
+    sovereignAlignmentScore : Float;
+    riskContainmentScore : Float;
     narrativeSummary : Text;
     topActions : [Text];
     pressureHistory : [Float];
@@ -12198,6 +12269,12 @@ actor SwarmBrain {
     reinjectionHistory : [Float];
     multiGroupHistory : [Float];
     multiOrganismHistory : [Float];
+    lawHistory : [Float];
+    defenseHistory : [Float];
+    economyHistory : [Float];
+    workforceHistory : [Float];
+    meshHistory : [Float];
+    sovereignHistory : [Float];
   } {
     {
       beat = cognitionFeedbackState.beat;
@@ -12210,6 +12287,14 @@ actor SwarmBrain {
       arbitrationReadiness = cognitionFeedbackState.arbitrationReadiness;
       governanceStability = cognitionFeedbackState.governanceStability;
       recommendationPriority = cognitionFeedbackState.recommendationPriority;
+      lawContinuityScore = cognitionFeedbackState.lawContinuityScore;
+      defensePostureScore = cognitionFeedbackState.defensePostureScore;
+      economicResilienceScore = cognitionFeedbackState.economicResilienceScore;
+      workforceCoherenceScore = cognitionFeedbackState.workforceCoherenceScore;
+      memoryIntegrityScore = cognitionFeedbackState.memoryIntegrityScore;
+      meshResonanceScore = cognitionFeedbackState.meshResonanceScore;
+      sovereignAlignmentScore = cognitionFeedbackState.sovereignAlignmentScore;
+      riskContainmentScore = cognitionFeedbackState.riskContainmentScore;
       narrativeSummary = cognitionFeedbackState.narrativeSummary;
       topActions = cognitionFeedbackState.topActions;
       pressureHistory = cognitionFeedbackState.pressureHistory;
@@ -12217,6 +12302,12 @@ actor SwarmBrain {
       reinjectionHistory = cognitionFeedbackState.reinjectionHistory;
       multiGroupHistory = cognitionFeedbackState.multiGroupHistory;
       multiOrganismHistory = cognitionFeedbackState.multiOrganismHistory;
+      lawHistory = cognitionFeedbackState.lawHistory;
+      defenseHistory = cognitionFeedbackState.defenseHistory;
+      economyHistory = cognitionFeedbackState.economyHistory;
+      workforceHistory = cognitionFeedbackState.workforceHistory;
+      meshHistory = cognitionFeedbackState.meshHistory;
+      sovereignHistory = cognitionFeedbackState.sovereignHistory;
     }
   };
 

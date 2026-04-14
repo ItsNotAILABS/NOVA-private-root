@@ -217,6 +217,14 @@ export interface ConstantFeedbackCognitionState {
   arbitrationReadiness: number;
   governanceStability: number;
   recommendationPriority: number;
+  lawContinuityScore: number;
+  defensePostureScore: number;
+  economicResilienceScore: number;
+  workforceCoherenceScore: number;
+  memoryIntegrityScore: number;
+  meshResonanceScore: number;
+  sovereignAlignmentScore: number;
+  riskContainmentScore: number;
   narrativeSummary: string;
   topActions: string[];
   pressureHistory: number[];
@@ -224,6 +232,12 @@ export interface ConstantFeedbackCognitionState {
   reinjectionHistory: number[];
   multiGroupHistory: number[];
   multiOrganismHistory: number[];
+  lawHistory: number[];
+  defenseHistory: number[];
+  economyHistory: number[];
+  workforceHistory: number[];
+  meshHistory: number[];
+  sovereignHistory: number[];
 }
 
 export interface TickResult {
@@ -457,6 +471,14 @@ const swarmBrainIDLFactory = ({ IDL }: { IDL: typeof IDL }) => {
       arbitrationReadiness: IDL.Float64,
       governanceStability: IDL.Float64,
       recommendationPriority: IDL.Float64,
+      lawContinuityScore: IDL.Float64,
+      defensePostureScore: IDL.Float64,
+      economicResilienceScore: IDL.Float64,
+      workforceCoherenceScore: IDL.Float64,
+      memoryIntegrityScore: IDL.Float64,
+      meshResonanceScore: IDL.Float64,
+      sovereignAlignmentScore: IDL.Float64,
+      riskContainmentScore: IDL.Float64,
       narrativeSummary: IDL.Text,
       topActions: IDL.Vec(IDL.Text),
       pressureHistory: IDL.Vec(IDL.Float64),
@@ -464,6 +486,12 @@ const swarmBrainIDLFactory = ({ IDL }: { IDL: typeof IDL }) => {
       reinjectionHistory: IDL.Vec(IDL.Float64),
       multiGroupHistory: IDL.Vec(IDL.Float64),
       multiOrganismHistory: IDL.Vec(IDL.Float64),
+      lawHistory: IDL.Vec(IDL.Float64),
+      defenseHistory: IDL.Vec(IDL.Float64),
+      economyHistory: IDL.Vec(IDL.Float64),
+      workforceHistory: IDL.Vec(IDL.Float64),
+      meshHistory: IDL.Vec(IDL.Float64),
+      sovereignHistory: IDL.Vec(IDL.Float64),
     })], ['query']),
     
     getDroneCount: IDL.Func([], [IDL.Nat], ['query']),

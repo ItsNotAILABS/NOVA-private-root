@@ -300,6 +300,14 @@ type ConstantFeedbackViewState = {
   arbitrationReadiness : number;
   governanceStability : number;
   recommendationPriority : number;
+  lawContinuityScore : number;
+  defensePostureScore : number;
+  economicResilienceScore : number;
+  workforceCoherenceScore : number;
+  memoryIntegrityScore : number;
+  meshResonanceScore : number;
+  sovereignAlignmentScore : number;
+  riskContainmentScore : number;
   narrativeSummary : string;
   topActions : string[];
   pressureHistory : number[];
@@ -307,6 +315,12 @@ type ConstantFeedbackViewState = {
   reinjectionHistory : number[];
   multiGroupHistory : number[];
   multiOrganismHistory : number[];
+  lawHistory : number[];
+  defenseHistory : number[];
+  economyHistory : number[];
+  workforceHistory : number[];
+  meshHistory : number[];
+  sovereignHistory : number[];
 };
 
 const defaultAnalystState = (): AnalystViewState => ({
@@ -377,6 +391,14 @@ const defaultConstantFeedbackState = (): ConstantFeedbackViewState => ({
   arbitrationReadiness: 0.71,
   governanceStability: 0.74,
   recommendationPriority: 0.30,
+  lawContinuityScore: 0.76,
+  defensePostureScore: 0.74,
+  economicResilienceScore: 0.72,
+  workforceCoherenceScore: 0.73,
+  memoryIntegrityScore: 0.76,
+  meshResonanceScore: 0.70,
+  sovereignAlignmentScore: 0.75,
+  riskContainmentScore: 0.74,
   narrativeSummary: 'Constant feedback cognition running in fallback mode.',
   topActions: [
     'Raise protection-first routing for all active groups until pressure normalizes.',
@@ -391,6 +413,12 @@ const defaultConstantFeedbackState = (): ConstantFeedbackViewState => ({
   reinjectionHistory: [],
   multiGroupHistory: [],
   multiOrganismHistory: [],
+  lawHistory: [],
+  defenseHistory: [],
+  economyHistory: [],
+  workforceHistory: [],
+  meshHistory: [],
+  sovereignHistory: [],
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -830,6 +858,14 @@ export function OroCommandCenter({ organism }: Props) {
         arbitrationReadiness: data.arbitrationReadiness,
         governanceStability: data.governanceStability,
         recommendationPriority: data.recommendationPriority,
+        lawContinuityScore: data.lawContinuityScore,
+        defensePostureScore: data.defensePostureScore,
+        economicResilienceScore: data.economicResilienceScore,
+        workforceCoherenceScore: data.workforceCoherenceScore,
+        memoryIntegrityScore: data.memoryIntegrityScore,
+        meshResonanceScore: data.meshResonanceScore,
+        sovereignAlignmentScore: data.sovereignAlignmentScore,
+        riskContainmentScore: data.riskContainmentScore,
         narrativeSummary: data.narrativeSummary,
         topActions: data.topActions,
         pressureHistory: data.pressureHistory,
@@ -837,6 +873,12 @@ export function OroCommandCenter({ organism }: Props) {
         reinjectionHistory: data.reinjectionHistory,
         multiGroupHistory: data.multiGroupHistory,
         multiOrganismHistory: data.multiOrganismHistory,
+        lawHistory: data.lawHistory,
+        defenseHistory: data.defenseHistory,
+        economyHistory: data.economyHistory,
+        workforceHistory: data.workforceHistory,
+        meshHistory: data.meshHistory,
+        sovereignHistory: data.sovereignHistory,
       };
       setConstantFeedbackState(next);
     };

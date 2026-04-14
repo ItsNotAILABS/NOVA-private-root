@@ -30,6 +30,21 @@ module {
     multiGroupCount : Nat;
     multiOrganismCount : Nat;
     feedbackSignalCount : Nat;
+    lawViolationRate : Float;
+    lawReEntrainmentRate : Float;
+    defenseReadiness : Float;
+    defenseThreatLoad : Float;
+    economicBalance : Float;
+    economicReserve : Float;
+    entropyLoad : Float;
+    hungerDrive : Float;
+    workforceLoad : Float;
+    workforceFocus : Float;
+    artifactReadiness : Float;
+    meshResonance : Float;
+    meshActive : Bool;
+    meshNodeCount : Nat;
+    emergencyActive : Bool;
   };
 
   public type ConstantFeedbackState = {
@@ -43,6 +58,14 @@ module {
     arbitrationReadiness : Float;
     governanceStability : Float;
     recommendationPriority : Float;
+    lawContinuityScore : Float;
+    defensePostureScore : Float;
+    economicResilienceScore : Float;
+    workforceCoherenceScore : Float;
+    memoryIntegrityScore : Float;
+    meshResonanceScore : Float;
+    sovereignAlignmentScore : Float;
+    riskContainmentScore : Float;
     narrativeSummary : Text;
     topActions : [Text];
     pressureHistory : [Float];
@@ -50,6 +73,12 @@ module {
     reinjectionHistory : [Float];
     multiGroupHistory : [Float];
     multiOrganismHistory : [Float];
+    lawHistory : [Float];
+    defenseHistory : [Float];
+    economyHistory : [Float];
+    workforceHistory : [Float];
+    meshHistory : [Float];
+    sovereignHistory : [Float];
   };
 
   let HISTORY_LIMIT : Nat = 192;
@@ -84,6 +113,14 @@ module {
       arbitrationReadiness = 0.71;
       governanceStability = 0.74;
       recommendationPriority = 0.30;
+      lawContinuityScore = 0.76;
+      defensePostureScore = 0.74;
+      economicResilienceScore = 0.72;
+      workforceCoherenceScore = 0.73;
+      memoryIntegrityScore = 0.76;
+      meshResonanceScore = 0.70;
+      sovereignAlignmentScore = 0.75;
+      riskContainmentScore = 0.74;
       narrativeSummary = "Constant feedback cognition initialized.";
       topActions = Array.init<Text>(ACTION_COUNT, "");
       pressureHistory = [];
@@ -91,6 +128,12 @@ module {
       reinjectionHistory = [];
       multiGroupHistory = [];
       multiOrganismHistory = [];
+      lawHistory = [];
+      defenseHistory = [];
+      economyHistory = [];
+      workforceHistory = [];
+      meshHistory = [];
+      sovereignHistory = [];
     }
   };
 
@@ -99,14 +142,18 @@ module {
     let groupDensity = clamp(Float.fromInt(input.multiGroupCount) / 24.0, 0.0, 1.5);
     let organismDensity = clamp(Float.fromInt(input.multiOrganismCount) / 12.0, 0.0, 1.5);
     let signalDensity = clamp(Float.fromInt(input.feedbackSignalCount) / 4096.0, 0.0, 1.5);
+    let meshDensity = clamp(Float.fromInt(input.meshNodeCount) / 64.0, 0.0, 1.5);
 
     let cognitivePressureRaw = clamp(
       0.24 * input.anomalyScore +
       0.18 * input.predictionError +
       0.16 * input.analystEmergencySignal +
       0.14 * input.geoThreatScore +
-      0.14 * driftAbs +
-      0.14 * (1.0 - input.trustScore),
+      0.08 * input.defenseThreatLoad +
+      0.06 * input.entropyLoad +
+      0.08 * driftAbs +
+      0.06 * (1.0 - input.trustScore) +
+      (if (input.emergencyActive) { 0.08 } else { 0.0 }),
       0.0,
       1.5
     );
@@ -199,11 +246,110 @@ module {
     );
     let governanceStability = clamp(state.governanceStability * 0.84 + governanceRaw * 0.16, 0.0, 1.5);
 
+    let lawContinuityRaw = clamp(
+      0.30 * input.doctrineCompliance +
+      0.18 * loopClosureScore +
+      0.16 * (1.0 - input.lawViolationRate) +
+      0.16 * (1.0 - input.lawReEntrainmentRate) +
+      0.10 * governanceStability +
+      0.10 * input.qsovScore,
+      0.0,
+      1.5
+    );
+    let lawContinuityScore = clamp(state.lawContinuityScore * 0.84 + lawContinuityRaw * 0.16, 0.0, 1.5);
+
+    let defensePostureRaw = clamp(
+      0.24 * input.defenseReadiness +
+      0.20 * input.geoProtectionScore +
+      0.18 * (1.0 - input.defenseThreatLoad) +
+      0.12 * riskContainment(input.geoThreatScore, cognitivePressure, governanceStability) +
+      0.14 * governanceStability +
+      0.12 * lawContinuityScore,
+      0.0,
+      1.5
+    );
+    let defensePostureScore = clamp(state.defensePostureScore * 0.84 + defensePostureRaw * 0.16, 0.0, 1.5);
+
+    let economicResilienceRaw = clamp(
+      0.26 * input.economicBalance +
+      0.20 * input.economicReserve +
+      0.14 * (1.0 - input.entropyLoad) +
+      0.12 * (1.0 - input.hungerDrive * 0.6) +
+      0.14 * governanceStability +
+      0.14 * lawContinuityScore,
+      0.0,
+      1.5
+    );
+    let economicResilienceScore = clamp(state.economicResilienceScore * 0.84 + economicResilienceRaw * 0.16, 0.0, 1.5);
+
+    let workforceCoherenceRaw = clamp(
+      0.24 * multiGroupCoherence +
+      0.20 * input.workforceFocus +
+      0.16 * (1.0 - input.workforceLoad) +
+      0.14 * input.analystAdaptationScore +
+      0.14 * input.artifactReadiness +
+      0.12 * cognitionReadiness,
+      0.0,
+      1.5
+    );
+    let workforceCoherenceScore = clamp(state.workforceCoherenceScore * 0.84 + workforceCoherenceRaw * 0.16, 0.0, 1.5);
+
+    let memoryIntegrityRaw = clamp(
+      0.32 * reinjectionIntegrity +
+      0.22 * input.memoryTempleContinuity +
+      0.16 * input.memoryTempleCoupling +
+      0.16 * loopClosureScore +
+      0.14 * lawContinuityScore,
+      0.0,
+      1.5
+    );
+    let memoryIntegrityScore = clamp(state.memoryIntegrityScore * 0.84 + memoryIntegrityRaw * 0.16, 0.0, 1.5);
+
+    let meshResonanceRaw = clamp(
+      0.30 * multiOrganismCoherence +
+      0.20 * input.meshResonance +
+      0.14 * meshDensity +
+      0.12 * organismDensity +
+      0.12 * input.qsovScore +
+      0.12 * (if (input.meshActive) { 1.0 } else { 0.45 }),
+      0.0,
+      1.5
+    );
+    let meshResonanceScore = clamp(state.meshResonanceScore * 0.84 + meshResonanceRaw * 0.16, 0.0, 1.5);
+
+    let riskContainmentScore = clamp(
+      0.28 * defensePostureScore +
+      0.20 * (1.0 - cognitivePressure) +
+      0.16 * governanceStability +
+      0.14 * lawContinuityScore +
+      0.12 * memoryIntegrityScore +
+      0.10 * (1.0 - input.geoThreatScore),
+      0.0,
+      1.5
+    );
+
+    let sovereignAlignmentRaw = clamp(
+      0.18 * lawContinuityScore +
+      0.16 * defensePostureScore +
+      0.14 * economicResilienceScore +
+      0.12 * workforceCoherenceScore +
+      0.12 * memoryIntegrityScore +
+      0.12 * meshResonanceScore +
+      0.08 * governanceStability +
+      0.08 * input.qsovScore,
+      0.0,
+      1.5
+    );
+    let sovereignAlignmentScore = clamp(state.sovereignAlignmentScore * 0.84 + sovereignAlignmentRaw * 0.16, 0.0, 1.5);
+
     let recommendationPriority = clamp(
-      0.34 * cognitivePressure +
-      0.24 * (1.0 - reinjectionIntegrity) +
-      0.22 * (1.0 - governanceStability) +
-      0.20 * input.analystEmergencySignal,
+      0.28 * cognitivePressure +
+      0.18 * (1.0 - reinjectionIntegrity) +
+      0.16 * (1.0 - governanceStability) +
+      0.12 * input.analystEmergencySignal +
+      0.10 * (1.0 - defensePostureScore) +
+      0.08 * (1.0 - lawContinuityScore) +
+      0.08 * (if (input.emergencyActive) { 1.0 } else { 0.0 }),
       0.0,
       1.5
     );
@@ -215,7 +361,11 @@ module {
       ", reinjection=" # Float.toText(reinjectionIntegrity) #
       ", groups=" # Float.toText(multiGroupCoherence) #
       ", organisms=" # Float.toText(multiOrganismCoherence) #
-      ", readiness=" # Float.toText(cognitionReadiness) # ".";
+      ", law=" # Float.toText(lawContinuityScore) #
+      ", defense=" # Float.toText(defensePostureScore) #
+      ", economy=" # Float.toText(economicResilienceScore) #
+      ", workforce=" # Float.toText(workforceCoherenceScore) #
+      ", sovereign=" # Float.toText(sovereignAlignmentScore) # ".";
 
     let action0 =
       if (cognitivePressure > 0.75)
@@ -256,6 +406,14 @@ module {
       arbitrationReadiness = arbitrationReadiness;
       governanceStability = governanceStability;
       recommendationPriority = recommendationPriority;
+      lawContinuityScore = lawContinuityScore;
+      defensePostureScore = defensePostureScore;
+      economicResilienceScore = economicResilienceScore;
+      workforceCoherenceScore = workforceCoherenceScore;
+      memoryIntegrityScore = memoryIntegrityScore;
+      meshResonanceScore = meshResonanceScore;
+      sovereignAlignmentScore = sovereignAlignmentScore;
+      riskContainmentScore = riskContainmentScore;
       narrativeSummary = narrativeSummary;
       topActions = [action0, action1, action2, action3, action4, action5];
       pressureHistory = appendBounded(state.pressureHistory, cognitivePressure);
@@ -263,6 +421,16 @@ module {
       reinjectionHistory = appendBounded(state.reinjectionHistory, reinjectionIntegrity);
       multiGroupHistory = appendBounded(state.multiGroupHistory, multiGroupCoherence);
       multiOrganismHistory = appendBounded(state.multiOrganismHistory, multiOrganismCoherence);
+      lawHistory = appendBounded(state.lawHistory, lawContinuityScore);
+      defenseHistory = appendBounded(state.defenseHistory, defensePostureScore);
+      economyHistory = appendBounded(state.economyHistory, economicResilienceScore);
+      workforceHistory = appendBounded(state.workforceHistory, workforceCoherenceScore);
+      meshHistory = appendBounded(state.meshHistory, meshResonanceScore);
+      sovereignHistory = appendBounded(state.sovereignHistory, sovereignAlignmentScore);
     }
+  };
+
+  func riskContainment(threat : Float, pressure : Float, governance : Float) : Float {
+    clamp((1.0 - threat) * 0.40 + (1.0 - pressure) * 0.35 + governance * 0.25, 0.0, 1.5)
   };
 }

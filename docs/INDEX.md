@@ -59,6 +59,7 @@
  - `docs/templates/NOVA_PHRASE_EXPANSION.yaml`
  - `docs/templates/NOVA_BUILD_INSTANCE_TEMPLATE.yaml`
  - `docs/templates/NOVA_TRANSFER_PROTOCOL.yaml`
+- `docs/templates/NOVA_CONSTANT_FEEDBACK_FABRIC.yaml`
 
  ---
 
@@ -80,6 +81,7 @@
 
 - Family: `docs/family-library/README_FAMILY_LIBRARY.md`
 - Consciousness Core: `docs/consciousness-core/README_CONSCIOUSNESS_CORE.md`
+- Consciousness Core Constant Feedback Canon: `docs/consciousness-core/NOVA_CONSTANT_FEEDBACK_FABRIC_CANON.md`
 - Internal AI Teams: `docs/internal-ai-teams/README_INTERNAL_AI_TEAMS.md`
 - External Products: `docs/external-products/README_EXTERNAL_PRODUCTS.md`
 
