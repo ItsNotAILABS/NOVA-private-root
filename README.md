@@ -19,4 +19,4 @@ Primary internal docs:
 - `docs/NOVA_ACCESS_TIERS_AND_READING_POLICY.md`
 
 Family workspace library:
-- `docs/family-library/README.md`
+- `docs/family-library/README_FAMILY_LIBRARY.md`

@@ -86,7 +86,7 @@ If output is missing any of these, change is incomplete.
 ## 6) Family workspace pointer
 
 Family-facing reading workspace:
-- `docs/family/README_FAMILY_LIBRARY.md`
+- `docs/family-library/README_FAMILY_LIBRARY.md`
 
 That folder is the compact human memory library.
 All other docs are AI-builder-targeted by default.
