@@ -7,6 +7,10 @@ This runbook gets a local AURO companion online quickly:
 - optional local computer command bridge,
 - optional DFX bootstrap for canister path.
 
+For a one-command fast launch (phone-ready), use:
+- `docs/AURO_ONE_HOUR_DEPLOY_TEMPLATE.md`
+- `scripts/auro_one_hour_mobile_bootstrap.sh`
+
 ## 1) Frontend setup
 
 From repo root:
@@ -14,6 +18,9 @@ From repo root:
 ```bash
 cd src/frontend
 npm install
+cp .env.example .env.local
+# set VITE_AURO_API_BASE to your bridge host, for example:
+# VITE_AURO_API_BASE=http://192.168.1.25:8787
 npm run dev
 ```
 
@@ -55,6 +62,12 @@ Configure via env:
 - `AURO_BRIDGE_HOST` (default `127.0.0.1`)
 - `AURO_ALLOW_EXEC` (`1` to execute commands, default dry-run)
 - `AURO_BRIDGE_TOKEN` (optional shared token; pass in `x-auro-token`)
+
+For phone testing on local Wi-Fi, bind host to all interfaces:
+
+```bash
+AURO_BRIDGE_HOST=0.0.0.0 AURO_BRIDGE_PORT=8787 node scripts/auro-companion-bridge.mjs
+```
 
 ## 4) Enable bridge in browser app
 

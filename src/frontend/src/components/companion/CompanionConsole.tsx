@@ -15,6 +15,10 @@ type CommandResult = {
   stdout: string;
   stderr: string;
   code: number;
+  dryRun?: boolean;
+  allowExec?: boolean;
+  resolvedCommand?: string;
+  message?: string;
 };
 
 type BrowserSpeechRecognition = {
@@ -185,8 +189,21 @@ export function CompanionConsole() {
   const apiBase = useMemo(() => {
     if (typeof window === 'undefined') return 'http://127.0.0.1:8787';
     const anyWindow = window as Window & { __AURO_API_BASE__?: string };
-    return (anyWindow.__AURO_API_BASE__ || 'http://127.0.0.1:8787').replace(/\/+$/, '');
+    const runtimeBase = anyWindow.__AURO_API_BASE__ ?? import.meta.env.VITE_AURO_API_BASE ?? 'http://127.0.0.1:8787';
+    return runtimeBase.replace(/\/+$/, '');
   }, []);
+  const bridgeToken = useMemo(() => {
+    if (typeof window === 'undefined') return import.meta.env.VITE_AURO_BRIDGE_TOKEN ?? '';
+    const anyWindow = window as Window & { __AURO_BRIDGE_TOKEN__?: string };
+    return anyWindow.__AURO_BRIDGE_TOKEN__ ?? import.meta.env.VITE_AURO_BRIDGE_TOKEN ?? '';
+  }, []);
+
+  const buildBridgeHeaders = useCallback((): Record<string, string> => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const token = bridgeToken.trim();
+    if (token.length > 0) headers['x-auro-token'] = token;
+    return headers;
+  }, [bridgeToken]);
 
   const push = useCallback((role: Role, text: string) => {
     setMessages(prev => prev.concat({
@@ -269,11 +286,17 @@ export function CompanionConsole() {
     try {
       const res = await fetch(`${apiBase}/command`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: buildBridgeHeaders(),
         body: JSON.stringify({ command }),
       });
       const data = await res.json() as CommandResult;
-      return data;
+      return {
+        command,
+        stdout: '',
+        stderr: '',
+        code: 0,
+        ...data,
+      };
     } catch (e) {
       return {
         ok: false,
@@ -283,7 +306,7 @@ export function CompanionConsole() {
         code: 1,
       };
     }
-  }, [apiBase, shellEnabled]);
+  }, [apiBase, buildBridgeHeaders, shellEnabled]);
 
   const handleCommand = useCallback(async (text: string) => {
     const trimmed = text.trim();
@@ -299,7 +322,7 @@ export function CompanionConsole() {
     if (cmd === '/status') {
       push(
         'assistant',
-        `Voice: ${voiceEnabled ? 'ON' : 'OFF'}\nListening: ${voiceListening ? 'YES' : 'NO'}\nShell bridge: ${shellEnabled ? 'ON' : 'OFF'}\nBridge URL: ${apiBase}`
+        `Voice: ${voiceEnabled ? 'ON' : 'OFF'}\nListening: ${voiceListening ? 'YES' : 'NO'}\nShell bridge: ${shellEnabled ? 'ON' : 'OFF'}\nBridge URL: ${apiBase}\nBridge token: ${bridgeToken ? 'SET' : 'NOT SET'}`
       );
       return true;
     }
@@ -346,7 +369,7 @@ export function CompanionConsole() {
 
     push('assistant', `Unknown command: ${cmd}\nType /help.`);
     return true;
-  }, [apiBase, push, runLocalCommand, shellEnabled, voiceEnabled, voiceListening]);
+  }, [apiBase, bridgeToken, push, runLocalCommand, shellEnabled, voiceEnabled, voiceListening]);
 
   const chatLocalFallback = useCallback((text: string): string => {
     const t = text.toLowerCase();
@@ -373,7 +396,7 @@ export function CompanionConsole() {
     try {
       const res = await fetch(`${apiBase}/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: buildBridgeHeaders(),
         body: JSON.stringify({ message: text }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -386,7 +409,7 @@ export function CompanionConsole() {
       push('assistant', reply);
       speak(reply);
     }
-  }, [apiBase, chatLocalFallback, handleCommand, input, push, speak]);
+  }, [apiBase, buildBridgeHeaders, chatLocalFallback, handleCommand, input, push, speak]);
 
   return (
     <div style={S.root}>
