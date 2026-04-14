@@ -9,6 +9,16 @@
 // Frontend ↔ Backend, Module ↔ Module, Swarm ↔ Brain all speak this protocol.
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
 
+// Import shared types from OrganismModels to avoid duplication
+import type {
+  AlertSeverity,
+  CommandType as OrganismCommandType,
+  Position3D,
+} from './OrganismModels';
+
+// Re-export imported types for convenience
+export type { AlertSeverity, Position3D };
+
 // ═══════════════════════════════════════════════════════════════════════════
 // PROTOCOL VERSION & MAGIC NUMBERS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -111,15 +121,18 @@ export type MessagePayload =
   | { type: 'Raw'; data: Uint8Array }
   | { type: 'Structured'; data: Record<string, PayloadValue> };
 
-/** Value types for structured payloads */
-export type PayloadValue =
-  | null
-  | boolean
-  | number
-  | string
-  | Uint8Array
-  | PayloadValue[]
-  | Record<string, PayloadValue>;
+/** Value types for structured payloads - using interface for recursive support */
+export interface PayloadValueObject {
+  [key: string]: PayloadValue;
+}
+
+export interface PayloadValueArray extends Array<PayloadValue> {}
+
+/** Base payload value (non-recursive) */
+export type PayloadValuePrimitive = null | boolean | number | string | Uint8Array;
+
+/** Full payload value including recursive types */
+export type PayloadValue = PayloadValuePrimitive | PayloadValueArray | PayloadValueObject;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SPECIFIC PAYLOAD TYPES
@@ -179,15 +192,6 @@ export interface AlertData {
   metadata: Record<string, PayloadValue>;
 }
 
-/** Alert severity */
-export type AlertSeverity =
-  | 'Debug'
-  | 'Info'
-  | 'Warning'
-  | 'Error'
-  | 'Critical'
-  | 'Emergency';
-
 /** Alert category */
 export type AlertCategory =
   | 'Health'
@@ -199,16 +203,9 @@ export type AlertCategory =
   | 'External'
   | 'Internal';
 
-/** 3D position for location references */
-export interface Position3D {
-  x: number;
-  y: number;
-  z: number;
-}
-
 /** Command data */
 export interface CommandData {
-  commandType: CommandType;
+  commandType: ProtocolCommandType;
   authority: string;         // Who issued the command
   authorityLevel: number;    // Permission level required
   target?: string;           // Specific target (null = self)
@@ -217,8 +214,8 @@ export interface CommandData {
   mandatory: boolean;        // Can't be declined
 }
 
-/** Command types */
-export type CommandType =
+/** Protocol command types (different from OrganismModels.CommandType) */
+export type ProtocolCommandType =
   | 'Start'                  // Start processing
   | 'Stop'                   // Stop processing
   | 'Pause'                  // Pause processing
@@ -573,7 +570,7 @@ export function createLearningPayload(
 
 /** Create a command payload */
 export function createCommandPayload(
-  commandType: CommandType,
+  commandType: ProtocolCommandType,
   authority: string,
   authorityLevel: number,
   mandatory: boolean = false,
@@ -612,12 +609,10 @@ export function getPriorityClass(priority: number): string {
 /** Get severity weight for sorting */
 export function getSeverityWeight(severity: AlertSeverity): number {
   const weights: Record<AlertSeverity, number> = {
-    Debug: 0,
-    Info: 1,
-    Warning: 2,
-    Error: 3,
-    Critical: 4,
-    Emergency: 5,
+    Info: 0,
+    Warning: 1,
+    Critical: 2,
+    Emergency: 3,
   };
   return weights[severity] ?? 0;
 }
