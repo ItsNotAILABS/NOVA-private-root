@@ -222,6 +222,26 @@ import EnemyAISwarm                  "./modules/EnemyAISwarm";
 import SelfRepairEngine              "./modules/SelfRepairEngine";
 
 // ═══════════════════════════════════════════════════════════════════════════
+// WAR-DEFENSE TEMPLE SYSTEM — Systems 7, 9, 10 Unified
+// Complete offense-defense warfare architecture with proper flow:
+// GEOMETRY → HARMONICS → FREQUENCY → VELOCITY → EMBODIED ACTION
+// ═══════════════════════════════════════════════════════════════════════════
+
+import WarDefenseTempleIntegration   "./modules/WarDefenseTempleIntegration";
+import OffenseDefenseCoordination    "./modules/OffenseDefenseCoordination";
+import WarDefenseModeController      "./modules/WarDefenseModeController";
+import CounterforceOperations        "./modules/CounterforceOperations";
+import FullConstructiveStack         "./modules/FullConstructiveStack";
+import FullRedAntiOrganismStack      "./modules/FullRedAntiOrganismStack";
+import AntiOrganismDefense           "./modules/AntiOrganismDefense";
+import MemoryTempleIoTHub            "./modules/MemoryTempleIoTHub";
+import ElectromagneticWarfareEngine  "./modules/ElectromagneticWarfareEngine";
+import FrequencyWarfareSystem        "./modules/FrequencyWarfareSystem";
+import SecurityLockdownEngine        "./modules/SecurityLockdownEngine";
+import HeartbeatKernelRegulator      "./modules/HeartbeatKernelRegulator";
+import AutonomousInternalTeam        "./modules/AutonomousInternalTeam";
+
+// ═══════════════════════════════════════════════════════════════════════════
 // SPHERICAL QUANTUM HEARTBEAT & NEUROCHEMICAL INTEGRATION
 // These modules provide the DEEP layer that ALL other systems use
 // HeartbeatEngine: Master timing + 8 quantum operators flowing through all layers
@@ -1104,7 +1124,115 @@ actor SwarmBrain {
   stable var averageHeartbeatCoherence : Float = SIGMA_ZERO;
   stable var heartbeatVariability : Float = 0.0;  // HRV - higher = healthier
   stable var circadianAlignment : Float = 1.0;     // How aligned with 24h cycle
-  
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // WAR-DEFENSE TEMPLE STATE — Systems 7, 9, 10 Unified
+  // Deep family temple defense and war system - NOT an app
+  // Owner: Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ─── WAR-DEFENSE MODE CONTROLLER (Super-State Governance) ─────────────────
+  // Sits ABOVE all layers as super-state controller
+  // When Mode = WarDefense, every subsystem is reweighted
+  var warDefenseModeState : WarDefenseModeController.WarDefenseModeState =
+    WarDefenseModeController.initWarDefenseMode();
+
+  var warDefenseTempleState : WarDefenseTempleIntegration.WarDefenseTempleState =
+    WarDefenseTempleIntegration.initWarDefenseTemple();
+
+  var offenseDefenseCoordinationState : OffenseDefenseCoordination.OffenseDefenseCoordinationState =
+    OffenseDefenseCoordination.initOffenseDefenseCoordination();
+
+  var counterforceState : CounterforceOperations.CounterforceState =
+    CounterforceOperations.initCounterforce();
+
+  var fullConstructiveStackState : FullConstructiveStack.FullStackState =
+    FullConstructiveStack.initFullStack();
+
+  var fullRedAntiOrganismStackState : FullRedAntiOrganismStack.FullRedStackState =
+    FullRedAntiOrganismStack.initFullRedStack();
+
+  var memoryTempleIoTState : MemoryTempleIoTHub.MemoryTempleIoTHubState =
+    MemoryTempleIoTHub.initMemoryTempleIoTHub();
+
+  var emWarfareState : ElectromagneticWarfareEngine.EMWarfareState =
+    ElectromagneticWarfareEngine.initEMWarfare();
+
+  var frequencyWarfareState : FrequencyWarfareSystem.FrequencyWarfareState =
+    FrequencyWarfareSystem.initFrequencyWarfare();
+
+  var securityLockdownState : SecurityLockdownEngine.SecurityLockdownState =
+    SecurityLockdownEngine.initSecurityLockdown();
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HEARTBEAT KERNEL REGULATOR — The THIRD Layer (Heart-Regulator-Brain)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  var heartbeatKernelState : HeartbeatKernelRegulator.HeartbeatKernelState =
+    HeartbeatKernelRegulator.initHeartbeatKernel();
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AUTONOMOUS INTERNAL TEAM — AI Auto-Working Inside
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  var autonomousInternalTeamState : AutonomousInternalTeam.AutonomousInternalTeamState =
+    AutonomousInternalTeam.initAutonomousInternalTeam();
+
+  // Temple metrics (stable for persistence)
+  stable var templeIntegrity : Float = 1.0;          // Overall temple health
+  stable var warDefenseReadiness : Float = 1.0;      // System 7 readiness
+  stable var embodimentPower : Float = 0.0;          // System 9 power
+  stable var regenerationCapacity : Float = 1.0;     // System 10 capacity
+  stable var architectureFlowIntegrity : Float = 1.0; // Flow coherence
+  stable var offensivePower : Float = 0.0;           // Offensive strength
+  stable var defensivePower : Float = 1.0;           // Defensive strength
+  stable var intelligenceQuality : Float = 0.0;      // Intel quality
+  stable var missionActive : Bool = false;           // Mission in progress
+  stable var missionType : Text = "STANDBY";         // Current mission
+
+  // War-Defense Mode metrics (stable for persistence)
+  stable var warDefenseMode : Text = "Build";        // { Build, Guard, WarDefense, Recovery }
+  stable var warDefensePosture : Nat = 0;            // WD0-WD5 posture level
+  stable var warDefenseThreatScore : Float = 0.0;    // Overall threat score
+  stable var warDefenseGateStrictness : Float = 0.5; // Gate strictness level
+  stable var warDefenseContainmentDepth : Nat = 0;   // Containment layers (0-5)
+  stable var warDefenseInterfaceLockdown : Bool = false; // Interfaces locked?
+  stable var warDefenseContinuityScore : Float = 1.0;    // Continuity preservation
+  stable var warDefenseCoherenceScore : Float = 1.0;     // System coherence
+  stable var warDefenseIntegrityScore : Float = 1.0;     // System integrity
+
+  // Counterforce metrics (stable for persistence)
+  stable var counterforceEffectiveness : Float = 0.0; // Overall counterforce effectiveness
+  stable var scoutCoverage : Float = 0.0;            // Scout coverage area
+  stable var profilerAccuracy : Float = 0.0;         // Profiler model accuracy
+  stable var trapweaverEffectiveness : Float = 0.0;  // Trapweaver deception effectiveness
+  stable var hunterSuccessRate : Float = 0.0;        // Hunter success rate
+  stable var interdictionEffectiveness : Float = 0.0; // Interdictor effectiveness
+  stable var dislocationEffectiveness : Float = 0.0; // Dislocator effectiveness
+  stable var counterDeceiverAccuracy : Float = 0.0;  // Counter-deceiver detection accuracy
+  stable var attributionAccuracy : Float = 0.0;      // Pursuit forensics attribution accuracy
+  stable var deterrenceEffectiveness : Float = 0.0;  // Deterrence operator effectiveness
+  stable var orchestrationQuality : Float = 0.0;     // Campaign orchestration quality
+  stable var adversaryPressure : Float = 0.0;        // Pressure on adversaries
+
+  // Frequency & EM Warfare metrics (stable for persistence)
+  stable var iotDevicesConnected : Nat = 0;          // Connected IoT devices
+  stable var iotHubCoherence : Float = 1.0;          // IoT hub coherence
+  stable var emOffensivePower : Float = 0.0;         // EM offensive power
+  stable var emDefensivePower : Float = 0.0;         // EM defensive power
+  stable var emFieldControl : Float = 1.0;           // EM field control
+  stable var frequencyWarfarePower : Float = 0.0;    // Frequency warfare capability
+  stable var phoneFrequencyActive : Bool = false;    // Phone frequency ops active
+  stable var droneFrequencyWeapons : Nat = 0;        // Drone frequency weapons deployed
+
+  // Security Lockdown metrics (stable for persistence)
+  stable var lockdownActive : Bool = false;          // Full lockdown active
+  stable var securityScore : Float = 0.5;            // Overall security score
+  stable var encryptionCoverage : Float = 0.0;       // Encryption coverage percentage
+  stable var fleetExpanded : Bool = false;           // Fleet models expanded
+  stable var readyForLaunch : Bool = false;          // Ready for production launch
+  stable var modelsUpdated : Nat = 0;                // AI/ML models updated
+
   // ─── NEUROCHEMICAL STATISTICS ────────────────────────────────────────────────
   stable var totalNeurochemicalUpdates : Nat = 0;
   stable var neurochemicalBalanceIndex : Float = 1.0;  // How balanced the system is
@@ -2573,6 +2701,39 @@ actor SwarmBrain {
     let n = stableDroneCount;
     if (n == 0) return { rSwarm = 0.88; jDrift = 0.0; beat = currentBeat };
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // WAR-DEFENSE MODE TICK — RUNS FIRST, GOVERNS ALL DOWNSTREAM SUBSYSTEMS
+    // Super-state controller that reweights every subsystem when Mode = WarDefense
+    // ═══════════════════════════════════════════════════════════════════════════
+    warDefenseModeState := WarDefenseModeController.warDefenseTick(
+      warDefenseModeState,
+      rSwarm,       // Previous rSwarm (will be updated below)
+      jDrift        // Previous jDrift (will be updated below)
+    );
+
+    // Update stable metrics from War-Defense Mode state
+    warDefenseMode := switch (warDefenseModeState.mode) {
+      case (#Build) "Build";
+      case (#Guard) "Guard";
+      case (#WarDefense) "WarDefense";
+      case (#Recovery) "Recovery";
+    };
+    warDefensePosture := switch (warDefenseModeState.posture) {
+      case (#WD0_Standby) 0;
+      case (#WD1_Elevated) 1;
+      case (#WD2_Alert) 2;
+      case (#WD3_Defense) 3;
+      case (#WD4_Combat) 4;
+      case (#WD5_Lockdown) 5;
+    };
+    warDefenseThreatScore := warDefenseModeState.threatScore;
+    warDefenseGateStrictness := warDefenseModeState.gateStrictness;
+    warDefenseContainmentDepth := warDefenseModeState.containmentDepth;
+    warDefenseInterfaceLockdown := warDefenseModeState.interfaceLockdown;
+    warDefenseContinuityScore := warDefenseModeState.continuityScore;
+    warDefenseCoherenceScore := warDefenseModeState.coherenceScore;
+    warDefenseIntegrityScore := warDefenseModeState.integrityScore;
+
     // Phase 1: decay signals (Law 23)
     var i = 0;
     while (i < n) {
@@ -2924,11 +3085,46 @@ actor SwarmBrain {
       // AEGIS threat monitoring
       aegisState := AEGIS.monitor(aegisState, rSwarm, jDrift, currentBeat);
       modulesCalledThisBeat += 1;
-      
+
       // Autonomous war engine
       autonomousWarState := AutonomousWarEngine.defend(autonomousWarState, rSwarm);
       modulesCalledThisBeat += 1;
-      
+
+      // ═══════════════════════════════════════════════════════════════════════════
+      // WAR-DEFENSE TEMPLE INTEGRATION — Systems 7, 9, 10
+      // This is where the temple becomes OPERATIONAL
+      // Geometry → Harmonics → Frequency → Velocity → Embodied Action
+      // ═══════════════════════════════════════════════════════════════════════════
+
+      tickWarDefenseTemple();
+      tickOffenseDefenseCoordination();
+      tickCounterforce();
+      tickMemoryTempleIoT();
+      tickEMWarfare();
+      tickFrequencyWarfare();
+      tickSecurityLockdown();
+      modulesCalledThisBeat += 7;
+
+      // ═══════════════════════════════════════════════════════════════════════════
+      // HEARTBEAT KERNEL REGULATOR — The THIRD Layer
+      // Backend (slow master) → REGULATOR → Frontend (fast coupled)
+      // Blood flow simulation: Heart → Regulator → Brain
+      // Neural merge core: Sphere radiating in/out with helix^10 protection
+      // ═══════════════════════════════════════════════════════════════════════════
+
+      tickHeartbeatKernelRegulator();
+      modulesCalledThisBeat += 1;
+
+      // ═══════════════════════════════════════════════════════════════════════════
+      // AUTONOMOUS INTERNAL TEAM — AI Auto-Working Inside
+      // Real-time monitoring, neuroscience analysis, PDF reports
+      // Heartbeat monitors, brain wave tracking, regulation quality
+      // This is the INTERNAL LAB watching the organism 24/7
+      // ═══════════════════════════════════════════════════════════════════════════
+
+      tickAutonomousInternalTeam();
+      modulesCalledThisBeat += 1;
+
       defenseLayerActive := true;
     };
     
@@ -20885,6 +21081,1276 @@ actor SwarmBrain {
       completedMissions = chimeraMissionsCompleted;
       lastExternalUpdate = chimeraLastExternalUpdate;
       externalDataUpdates = externalDataUpdateCounter;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // WAR-DEFENSE TEMPLE TICK FUNCTIONS
+  // Systems 7, 9, 10 — Unified operational integration
+  // Owner: Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  func tickWarDefenseTemple() {
+    // Validate architecture flow: Geometry → Harmonics → Frequency → Velocity
+    let geometryValid = WarDefenseTempleIntegration.validateGeometry(
+      0.95,  // symmetryScore from spherical state
+      0.95,  // phiRatioAccuracy from φ constant
+      0.95   // adjacencyIntegrity from topology
+    );
+
+    let harmonicsValid = WarDefenseTempleIntegration.validateHarmonics(
+      rSwarm,        // constructiveInterference from Kuramoto order
+      1.0 - rSwarm,  // disharmonicContent (inverse of order)
+      rSwarm         // resonanceQuality
+    );
+
+    let frequencyValid = WarDefenseTempleIntegration.validateFrequency(
+      rSwarm,        // phaseBandCoherence
+      Float.abs(jDrift) * 1000.0,  // jitterMs (convert drift to ms)
+      rSwarm         // entrainmentQuality
+    );
+
+    let velocityValid = WarDefenseTempleIntegration.validateVelocity(
+      0.96,          // transferEfficiency (target > 0.95)
+      rSwarm         // flowIntegrity
+    );
+
+    // Update temple state
+    warDefenseTempleState := {
+      warDefenseTempleState with
+      geometryCoherent = geometryValid;
+      harmonicsResonant = harmonicsValid;
+      frequencyStable = frequencyValid;
+      velocityEfficient = velocityValid;
+      energized = geometryValid and harmonicsValid and frequencyValid and velocityValid;
+      beat = currentBeat;
+    };
+
+    // Compute temple integrity
+    let newTempleIntegrity = WarDefenseTempleIntegration.computeTempleIntegrity(warDefenseTempleState);
+
+    // Update stable metrics
+    templeIntegrity := newTempleIntegrity;
+    warDefenseReadiness := warDefenseTempleState.warDefense.defenseReadiness;
+    embodimentPower := warDefenseTempleState.integrationEmbodiment.embodimentPower;
+    regenerationCapacity := warDefenseTempleState.regeneration.regenerationCapacity;
+    missionActive := warDefenseTempleState.missionActive;
+    missionType := warDefenseTempleState.missionType;
+  };
+
+  func tickOffenseDefenseCoordination() {
+    // Validate architecture flow at coordination level
+    let geometryValid = rSwarm > 0.9;
+    let harmonicsValid = rSwarm > 0.85;
+    let frequencyValid = Float.abs(jDrift) < 0.1;
+    let velocityValid = rSwarm > 0.95;
+    let actionValid = offenseDefenseCoordinationState.offensive.missionsActive > 0 or
+                      offenseDefenseCoordinationState.defensive.threatsActive > 0;
+
+    offenseDefenseCoordinationState := OffenseDefenseCoordination.validateArchitectureFlow(
+      offenseDefenseCoordinationState,
+      geometryValid,
+      harmonicsValid,
+      frequencyValid,
+      velocityValid,
+      actionValid
+    );
+
+    // Update offense-defense state with current beat
+    offenseDefenseCoordinationState := {
+      offenseDefenseCoordinationState with
+      beat = currentBeat;
+    };
+
+    // Update stable metrics
+    architectureFlowIntegrity := offenseDefenseCoordinationState.architectureFlow.flowIntegrity;
+    offensivePower := offenseDefenseCoordinationState.offensive.overallOffensivePower;
+    defensivePower := offenseDefenseCoordinationState.defensive.overallDefensivePower;
+    intelligenceQuality := offenseDefenseCoordinationState.intelligence.intelligenceQuality;
+  };
+
+  func tickCounterforce() {
+    // Update counterforce state with current beat
+    counterforceState := {
+      counterforceState with
+      beat = currentBeat;
+    };
+
+    // Compute overall effectiveness
+    let newEffectiveness = CounterforceOperations.computeCounterforceEffectiveness(counterforceState);
+
+    // Update stable metrics from each counterforce class
+    counterforceEffectiveness := newEffectiveness;
+    scoutCoverage := counterforceState.scout.coverageArea;
+    profilerAccuracy := counterforceState.profiler.modelAccuracy;
+    trapweaverEffectiveness := counterforceState.trapweaver.deceptionEffectiveness;
+    hunterSuccessRate := counterforceState.hunter.huntSuccessRate;
+    interdictionEffectiveness := counterforceState.interdictor.interdictionEffectiveness;
+    dislocationEffectiveness := counterforceState.dislocator.dislocationEffectiveness;
+    counterDeceiverAccuracy := counterforceState.counterDeceiver.detectionAccuracy;
+    attributionAccuracy := counterforceState.pursuitForensics.attributionAccuracy;
+    deterrenceEffectiveness := counterforceState.deterrenceOperator.deterrenceEffectiveness;
+    orchestrationQuality := counterforceState.campaignOrchestrator.orchestrationQuality;
+    adversaryPressure := counterforceState.adversaryPressure;
+
+    // Update coordination quality based on active operations
+    let activeOps =
+      (if (counterforceState.scout.continuousScan) 1.0 else 0.0) +
+      (if (counterforceState.profiler.activeProfiles.size() > 0) 1.0 else 0.0) +
+      (if (counterforceState.trapweaver.trapsDeployed.size() > 0) 1.0 else 0.0) +
+      (if (counterforceState.hunter.activeMissions.size() > 0) 1.0 else 0.0) +
+      (if (counterforceState.interdictor.activeInterdictions.size() > 0) 1.0 else 0.0) +
+      (if (counterforceState.dislocator.activeOperations.size() > 0) 1.0 else 0.0) +
+      (if (counterforceState.counterDeceiver.detectedCampaigns.size() > 0) 1.0 else 0.0) +
+      (if (counterforceState.pursuitForensics.attributionChains.size() > 0) 1.0 else 0.0) +
+      (if (counterforceState.deterrenceOperator.activeSignals.size() > 0) 1.0 else 0.0) +
+      (if (counterforceState.campaignOrchestrator.activeCampaigns.size() > 0) 1.0 else 0.0);
+
+    counterforceState := {
+      counterforceState with
+      coordinationQuality = activeOps / 10.0;  // [0,1] based on active ops
+      overallEffectiveness = newEffectiveness;
+    };
+  };
+
+  func tickMemoryTempleIoT() {
+    // Update frequency coupling for all IoT devices
+    let dt = 1.0 / 12.0;  // 12 Hz heartbeat = 0.0833s per beat
+    memoryTempleIoTState := MemoryTempleIoTHub.updateFrequencyCoupling(
+      memoryTempleIoTState,
+      dt
+    );
+
+    // Update stable metrics
+    iotDevicesConnected := memoryTempleIoTState.totalDevices;
+    iotHubCoherence := memoryTempleIoTState.hubCoherence;
+  };
+
+  func tickEMWarfare() {
+    // Update electromagnetic warfare state
+    let dt = 1.0 / 12.0;  // 12 Hz heartbeat = 0.0833s per beat
+    emWarfareState := ElectromagneticWarfareEngine.updateEMWarfare(
+      emWarfareState,
+      dt
+    );
+
+    // Update stable metrics
+    emOffensivePower := emWarfareState.offensivePower;
+    emDefensivePower := emWarfareState.defensivePower;
+    emFieldControl := emWarfareState.fieldControl;
+  };
+
+  func tickFrequencyWarfare() {
+    // Update frequency warfare state
+    let dt = 1.0 / 12.0;  // 12 Hz heartbeat = 0.0833s per beat
+    frequencyWarfareState := FrequencyWarfareSystem.updateFrequencyWarfare(
+      frequencyWarfareState,
+      dt
+    );
+
+    // Update stable metrics
+    frequencyWarfarePower := frequencyWarfareState.totalWarfarePower;
+    phoneFrequencyActive := frequencyWarfareState.phoneOps.active;
+    droneFrequencyWeapons := frequencyWarfareState.droneFormation.drones.size();
+  };
+
+  func tickSecurityLockdown() {
+    // Update security lockdown state
+    securityLockdownState := SecurityLockdownEngine.updateSecurityLockdown(
+      securityLockdownState
+    );
+
+    // Update stable metrics
+    lockdownActive := securityLockdownState.lockdownActive;
+    securityScore := securityLockdownState.securityScore;
+    encryptionCoverage := securityLockdownState.encryptionCoverage.coveragePercent;
+    fleetExpanded := securityLockdownState.fleetExpanded;
+    readyForLaunch := securityLockdownState.readyForLaunch;
+    modelsUpdated := securityLockdownState.fleetExpansion.modelsUpdated;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HEARTBEAT KERNEL REGULATOR TICK
+  // The THIRD layer between backend (slow) and frontend (fast) heartbeats
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  func tickHeartbeatKernelRegulator() {
+    let currentTimeNs = Int.abs(Time.now());
+
+    // Determine if this is a backend tick (every ~10 seconds = ~120 beats at 12 Hz)
+    let isBackendTick = currentBeat % 120 == 0;
+
+    // Get current Kuramoto state for frontend coupling
+    let kuramotoPhase = 0.0;  // Will be computed from actual Kuramoto state
+
+    // Update the complete heartbeat kernel
+    heartbeatKernelState := HeartbeatKernelRegulator.tickKernel(
+      heartbeatKernelState,
+      currentTimeNs,
+      rSwarm,          // Kuramoto coherence
+      kuramotoPhase,   // Kuramoto phase
+      isBackendTick
+    );
+
+    // Update heartbeat coherence from kernel
+    heartbeatCoherence := heartbeatKernelState.kernelCoherence;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AUTONOMOUS INTERNAL TEAM TICK
+  // AI team auto-working inside, monitoring, analyzing, reporting
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  func tickAutonomousInternalTeam() {
+    // Update heartbeat monitor with current heartbeat kernel state
+    let updatedHeartbeatMonitor = {
+      autonomousInternalTeamState.heartbeatMonitor with
+      backendHz = heartbeatKernelState.backend.tickIntervalMs / 1000.0;
+      backendStability = heartbeatKernelState.backend.tickStability;
+      backendAuthority = heartbeatKernelState.backend.authorityLevel;
+      frontendHz = heartbeatKernelState.frontend.actualHz;
+      frontendCoherence = heartbeatKernelState.frontend.coherence;
+      frontendReactivity = heartbeatKernelState.frontend.reactivity;
+      heartBrainSync = heartbeatKernelState.heartBrainAlignment;
+      regulationQuality = heartbeatKernelState.regulationEffectiveness;
+      bloodFlowRate = heartbeatKernelState.bloodFlow.flowRate;
+      backendIrregular = heartbeatKernelState.backend.tickStability < 0.7;
+      frontendOverload = heartbeatKernelState.regulator.overloadDetected;
+      couplingBreakdown = heartbeatKernelState.regulator.regulationQuality < 0.5;
+      emergencyDetected = heartbeatKernelState.regulator.overloadDetected or heartbeatKernelState.regulator.underflowDetected;
+    };
+
+    // Update brain wave monitor with current coherence state
+    let updatedBrainWaveMonitor = {
+      autonomousInternalTeamState.brainWaveMonitor with
+      brainCoherence = rSwarm;
+      brainEnergy = rSwarm;
+      dominantFrequency = if (rSwarm > 0.9) 40.0 else if (rSwarm > 0.7) 12.67 else 7.83;
+      brainState = if (rSwarm > 0.95) "PEAK" else if (rSwarm > 0.85) "FLOW" else if (rSwarm > 0.7) "FOCUS" else "MEDITATION";
+    };
+
+    // Update regulation tracker from kernel state
+    let updatedRegulationTracker = {
+      autonomousInternalTeamState.regulationTracker with
+      couplingStrength = heartbeatKernelState.regulator.backendFrontendCoupling;
+      adaptationRate = heartbeatKernelState.regulator.adaptationRate;
+      phaseAlignment = heartbeatKernelState.regulator.phaseAlignment;
+      beatSynchronization = heartbeatKernelState.regulator.beatSynchronization;
+      timingCoherence = heartbeatKernelState.regulator.timingCoherence;
+      oxygenLevel = heartbeatKernelState.bloodFlow.oxygenLevel;
+      nutrientLevel = heartbeatKernelState.bloodFlow.nutrientLevel;
+      coherenceSignal = heartbeatKernelState.bloodFlow.coherenceSignal;
+      sphericalIntegrity = heartbeatKernelState.neuralMergeCore.sphericalIntegrity;
+      helixProtection = heartbeatKernelState.neuralMergeCore.helix10Intensity;
+      geometricPurity = heartbeatKernelState.neuralMergeCore.geometricPurity;
+      mergePower = heartbeatKernelState.neuralMergeCore.mergePower;
+      regulationEfficiency = heartbeatKernelState.regulationEffectiveness;
+      emergencyThrottling = heartbeatKernelState.regulator.emergencyThrottling;
+    };
+
+    // Update neuroscience analysis
+    let updatedNeuroscienceAnalysis = {
+      autonomousInternalTeamState.neuroscienceAnalysis with
+      cognitiveLoad = 1.0 - rSwarm;  // High coherence = low load
+      attentionLevel = rSwarm;
+      consciousnessLevel = rSwarm;
+    };
+
+    // Update complete autonomous team state
+    autonomousInternalTeamState := {
+      autonomousInternalTeamState with
+      heartbeatMonitor = updatedHeartbeatMonitor;
+      brainWaveMonitor = updatedBrainWaveMonitor;
+      regulationTracker = updatedRegulationTracker;
+      neuroscienceAnalysis = updatedNeuroscienceAnalysis;
+      beatsActive = autonomousInternalTeamState.beatsActive + 1;
+      analysisQuality = rSwarm;
+      beat = currentBeat;
+    };
+
+    // Generate PDF report every N beats
+    if (currentBeat >= autonomousInternalTeamState.nextReportBeat) {
+      let report = AutonomousInternalTeam.generatePDFReport(
+        autonomousInternalTeamState,
+        "FULL"
+      );
+
+      // Update report tracking
+      autonomousInternalTeamState := {
+        autonomousInternalTeamState with
+        reportsGenerated = autonomousInternalTeamState.reportsGenerated + 1;
+        lastReportBeat = currentBeat;
+        nextReportBeat = currentBeat + autonomousInternalTeamState.reportFrequency;
+      };
+    };
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // WAR-DEFENSE TEMPLE PUBLIC API
+  // Systems 7, 9, 10 — Mission activation and warfare coordination
+  // Owner: Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ─── SYSTEM 7: WAR-DEFENSE ACTIVATION ─────────────────────────────────────
+
+  public shared(msg) func activatePerimeter(
+    physical: Bool,
+    cyber: Bool,
+    geometric: Bool
+  ) : async () {
+    warDefenseTempleState := WarDefenseTempleIntegration.activatePerimeter(
+      warDefenseTempleState,
+      physical,
+      cyber,
+      geometric
+    );
+  };
+
+  public shared(msg) func mobilizeReserves(
+    deployCount: Nat,
+    emergency: Bool
+  ) : async () {
+    warDefenseTempleState := WarDefenseTempleIntegration.mobilizeReserves(
+      warDefenseTempleState,
+      deployCount,
+      emergency
+    );
+  };
+
+  // ─── SYSTEM 9: INTEGRATION-EMBODIMENT MISSION LAUNCH ──────────────────────
+
+  public shared(msg) func launchWarMission(
+    missionType: Text,
+    offensiveOps: Nat,
+    defensiveOps: Nat,
+    probeMissions: Nat
+  ) : async () {
+    warDefenseTempleState := WarDefenseTempleIntegration.launchMission(
+      warDefenseTempleState,
+      missionType,
+      offensiveOps,
+      defensiveOps,
+      probeMissions
+    );
+  };
+
+  // ─── WAR-DEFENSE MODE CONTROLLER ACTIVATION ───────────────────────────────
+
+  public shared(msg) func setWarDefenseMode(mode: Text) : async () {
+    let newMode = switch (mode) {
+      case ("Build") #Build;
+      case ("Guard") #Guard;
+      case ("WarDefense") #WarDefense;
+      case ("Recovery") #Recovery;
+      case _ #Build;  // Default to Build
+    };
+    warDefenseModeState := WarDefenseModeController.setMode(
+      warDefenseModeState,
+      newMode
+    );
+  };
+
+  public shared(msg) func escalateWarDefensePosture(
+    threatLevel: Float
+  ) : async () {
+    warDefenseModeState := WarDefenseModeController.escalatePosture(
+      warDefenseModeState,
+      threatLevel
+    );
+  };
+
+  public shared(msg) func enterWarDefenseMode() : async () {
+    warDefenseModeState := WarDefenseModeController.setMode(
+      warDefenseModeState,
+      #WarDefense
+    );
+    // Auto-escalate to at least WD2_Alert
+    warDefenseModeState := WarDefenseModeController.escalatePosture(
+      warDefenseModeState,
+      0.5  // Threat level 0.5 = WD2_Alert
+    );
+  };
+
+  public shared(msg) func exitWarDefenseMode() : async () {
+    warDefenseModeState := WarDefenseModeController.setMode(
+      warDefenseModeState,
+      #Recovery
+    );
+  };
+
+  // ─── OFFENSIVE OPERATIONS ─────────────────────────────────────────────────
+
+  public shared(msg) func activateDroneOffensive(
+    droneCount: Nat,
+    formation: Text,
+    targetLocked: Bool
+  ) : async () {
+    offenseDefenseCoordinationState := OffenseDefenseCoordination.activateDroneOffensive(
+      offenseDefenseCoordinationState,
+      droneCount,
+      formation,
+      targetLocked
+    );
+  };
+
+  public shared(msg) func activateCyberOffensive(
+    attackVectors: Nat,
+    stealthMode: Bool
+  ) : async () {
+    offenseDefenseCoordinationState := OffenseDefenseCoordination.activateCyberOffensive(
+      offenseDefenseCoordinationState,
+      attackVectors,
+      stealthMode
+    );
+  };
+
+  // ─── DEFENSIVE OPERATIONS ─────────────────────────────────────────────────
+
+  public shared(msg) func activateHoneypots(
+    honeypotTypes: [Text]
+  ) : async () {
+    offenseDefenseCoordinationState := OffenseDefenseCoordination.activateHoneypots(
+      offenseDefenseCoordinationState,
+      honeypotTypes
+    );
+  };
+
+  public shared(msg) func activateShield(
+    geometric: Bool,
+    helix: Bool,
+    frequency: Bool
+  ) : async () {
+    offenseDefenseCoordinationState := OffenseDefenseCoordination.activateShield(
+      offenseDefenseCoordinationState,
+      geometric,
+      helix,
+      frequency
+    );
+  };
+
+  // ─── IoT HUB OPERATIONS ───────────────────────────────────────────────────
+
+  public shared(msg) func registerIoTDevice(
+    deviceId: Text,
+    deviceType: Text,
+    protocol: Text
+  ) : async Nat {
+    let deviceTypeEnum = switch (deviceType) {
+      case ("Sensor") { #Sensor };
+      case ("Drone") { #Drone };
+      case ("Camera") { #Camera };
+      case ("Audio") { #Audio };
+      case ("Gateway") { #Gateway };
+      case ("Edge") { #Edge };
+      case ("Medical") { #Medical };
+      case ("Industrial") { #Industrial };
+      case ("SmartHome") { #SmartHome };
+      case ("Wearable") { #Wearable };
+      case ("Vehicle") { #Vehicle };
+      case ("Actuator") { #Actuator };
+      case _ { #Sensor };
+    };
+
+    let protocolEnum = switch (protocol) {
+      case ("MQTT") { #MQTT };
+      case ("HTTP") { #HTTP };
+      case ("CoAP") { #CoAP };
+      case ("LoRa") { #LoRa };
+      case ("Zigbee") { #Zigbee };
+      case ("BLE") { #BLE };
+      case ("Modbus") { #Modbus };
+      case ("OPC_UA") { #OPC_UA };
+      case ("Frequency") { #Frequency };
+      case _ { #MQTT };
+    };
+
+    let (newState, phiNode) = MemoryTempleIoTHub.registerDevice(
+      memoryTempleIoTState,
+      deviceId,
+      deviceTypeEnum,
+      protocolEnum,
+      null
+    );
+    memoryTempleIoTState := newState;
+    phiNode
+  };
+
+  // ─── ELECTROMAGNETIC WARFARE OPERATIONS ───────────────────────────────────
+
+  public shared(msg) func activateEMPulse(
+    frequency: Float,
+    amplitude: Float,
+    duration: Nat,
+    targetArea: Float
+  ) : async () {
+    emWarfareState := ElectromagneticWarfareEngine.activateEMP(
+      emWarfareState,
+      frequency,
+      amplitude,
+      duration,
+      targetArea
+    );
+  };
+
+  public shared(msg) func activateEMShield(
+    shieldType: Text,
+    radius: Float,
+    withHelix: Bool
+  ) : async () {
+    emWarfareState := ElectromagneticWarfareEngine.activateEMShield(
+      emWarfareState,
+      shieldType,
+      radius,
+      withHelix
+    );
+  };
+
+  public shared(msg) func activatePhiSpiralField(
+    droneCount: Nat
+  ) : async () {
+    emWarfareState := ElectromagneticWarfareEngine.activatePhiSpiralField(
+      emWarfareState,
+      droneCount
+    );
+  };
+
+  // ─── FREQUENCY WARFARE OPERATIONS ─────────────────────────────────────────
+
+  public shared(msg) func deployDroneFrequencyWeapon(
+    droneId: Nat,
+    weaponType: Text,
+    frequency: Float,
+    targetType: Text
+  ) : async () {
+    frequencyWarfareState := FrequencyWarfareSystem.deployDroneFrequencyWeapon(
+      frequencyWarfareState,
+      droneId,
+      weaponType,
+      frequency,
+      targetType
+    );
+  };
+
+  public shared(msg) func activatePhoneFrequencyDefense(
+    activityFrequencies: [Float]
+  ) : async () {
+    frequencyWarfareState := FrequencyWarfareSystem.activatePhoneFrequencyDefense(
+      frequencyWarfareState,
+      activityFrequencies
+    );
+  };
+
+  public shared(msg) func activateResonanceDoS(
+    targetResonance: Float,
+    attackFrequency: Float
+  ) : async () {
+    frequencyWarfareState := FrequencyWarfareSystem.activateResonanceDoS(
+      frequencyWarfareState,
+      targetResonance,
+      attackFrequency
+    );
+  };
+
+  // ─── SECURITY LOCKDOWN OPERATIONS ─────────────────────────────────────────
+
+  public shared(msg) func activateFullLockdown(
+    reason: Text
+  ) : async () {
+    securityLockdownState := SecurityLockdownEngine.activateFullLockdown(
+      securityLockdownState,
+      reason
+    );
+  };
+
+  public shared(msg) func expandFleet(
+    multiplier: Float
+  ) : async () {
+    securityLockdownState := SecurityLockdownEngine.expandFleet(
+      securityLockdownState,
+      multiplier
+    );
+  };
+
+  public shared(msg) func updateAllModels() : async () {
+    securityLockdownState := SecurityLockdownEngine.updateAllModels(
+      securityLockdownState
+    );
+  };
+
+  public shared(msg) func scanForExposures() : async () {
+    securityLockdownState := SecurityLockdownEngine.scanForExposures(
+      securityLockdownState
+    );
+  };
+
+  public query func getSecurityStatus() : async {
+    lockdownActive: Bool;
+    lockdownLevel: Text;
+    securityScore: Float;
+    encryptionCoverage: Float;
+    fleetExpanded: Bool;
+    readyForLaunch: Bool;
+    modelsUpdated: Nat;
+    totalExposures: Nat;
+    remediatedExposures: Nat;
+  } {
+    let lockdownLevelText = switch (securityLockdownState.lockdownLevel) {
+      case (#Level1_Standard) { "STANDARD" };
+      case (#Level2_Enhanced) { "ENHANCED" };
+      case (#Level3_HighAlert) { "HIGH_ALERT" };
+      case (#Level4_Critical) { "CRITICAL" };
+      case (#Level5_FullLockdown) { "FULL_LOCKDOWN" };
+    };
+
+    {
+      lockdownActive = lockdownActive;
+      lockdownLevel = lockdownLevelText;
+      securityScore = securityScore;
+      encryptionCoverage = encryptionCoverage;
+      fleetExpanded = fleetExpanded;
+      readyForLaunch = readyForLaunch;
+      modelsUpdated = modelsUpdated;
+      totalExposures = securityLockdownState.totalExposures;
+      remediatedExposures = securityLockdownState.remediatedExposures;
+    }
+  };
+
+  // ─── TEMPLE STATUS QUERIES ────────────────────────────────────────────────
+
+  public query func getTempleStatus() : async {
+    templeIntegrity: Float;
+    warDefenseReadiness: Float;
+    embodimentPower: Float;
+    regenerationCapacity: Float;
+    missionActive: Bool;
+    missionType: Text;
+    geometryCoherent: Bool;
+    harmonicsResonant: Bool;
+    frequencyStable: Bool;
+    velocityEfficient: Bool;
+    energized: Bool;
+  } {
+    {
+      templeIntegrity = templeIntegrity;
+      warDefenseReadiness = warDefenseReadiness;
+      embodimentPower = embodimentPower;
+      regenerationCapacity = regenerationCapacity;
+      missionActive = missionActive;
+      missionType = missionType;
+      geometryCoherent = warDefenseTempleState.geometryCoherent;
+      harmonicsResonant = warDefenseTempleState.harmonicsResonant;
+      frequencyStable = warDefenseTempleState.frequencyStable;
+      velocityEfficient = warDefenseTempleState.velocityEfficient;
+      energized = warDefenseTempleState.energized;
+    }
+  };
+
+  public query func getOffenseDefenseStatus() : async {
+    architectureFlowIntegrity: Float;
+    offensivePower: Float;
+    defensivePower: Float;
+    intelligenceQuality: Float;
+    offenseDefenseBalance: Float;
+    coordinationQuality: Float;
+    energized: Bool;
+    dronesDeployed: Nat;
+    cyberAttackVectors: Nat;
+    honeypotsActive: Nat;
+    shieldStrength: Float;
+    threatsActive: Nat;
+  } {
+    {
+      architectureFlowIntegrity = architectureFlowIntegrity;
+      offensivePower = offensivePower;
+      defensivePower = defensivePower;
+      intelligenceQuality = intelligenceQuality;
+      offenseDefenseBalance = offenseDefenseCoordinationState.offenseDefenseBalance;
+      coordinationQuality = offenseDefenseCoordinationState.coordinationQuality;
+      energized = offenseDefenseCoordinationState.energized;
+      dronesDeployed = offenseDefenseCoordinationState.offensive.drone.dronesDeployed;
+      cyberAttackVectors = offenseDefenseCoordinationState.offensive.cyber.attackVectors;
+      honeypotsActive = offenseDefenseCoordinationState.defensive.honeypot.honeypotsActive;
+      shieldStrength = offenseDefenseCoordinationState.defensive.shield.shieldStrength;
+      threatsActive = offenseDefenseCoordinationState.defensive.threatsActive;
+    }
+  };
+
+  public query func getWarDefenseDetails() : async {
+    // System 7: War-Defense
+    physicalPerimeter: Bool;
+    cyberPerimeter: Bool;
+    geometricShield: Bool;
+    perimeterIntegrity: Float;
+    threatDetected: Bool;
+    antibodyCount: Nat;
+    quarantineZones: Nat;
+    immuneStrength: Float;
+    spoofingActive: Bool;
+    deceptionScore: Float;
+    reservesAvailable: Nat;
+    reservesDeployed: Nat;
+    underAttack: Bool;
+  } {
+    {
+      physicalPerimeter = warDefenseTempleState.warDefense.perimeter.physicalPerimeter;
+      cyberPerimeter = warDefenseTempleState.warDefense.perimeter.cyberPerimeter;
+      geometricShield = warDefenseTempleState.warDefense.perimeter.geometricShield;
+      perimeterIntegrity = warDefenseTempleState.warDefense.perimeter.perimeterIntegrity;
+      threatDetected = warDefenseTempleState.warDefense.immune.threatDetected;
+      antibodyCount = warDefenseTempleState.warDefense.immune.antibodyCount;
+      quarantineZones = warDefenseTempleState.warDefense.immune.quarantineZones;
+      immuneStrength = warDefenseTempleState.warDefense.immune.immuneStrength;
+      spoofingActive = warDefenseTempleState.warDefense.counterDeception.spoofingActive;
+      deceptionScore = warDefenseTempleState.warDefense.counterDeception.deceptionScore;
+      reservesAvailable = warDefenseTempleState.warDefense.reserves.reservesAvailable;
+      reservesDeployed = warDefenseTempleState.warDefense.reserves.reservesDeployed;
+      underAttack = warDefenseTempleState.warDefense.underAttack;
+    }
+  };
+
+  public query func getIntegrationEmbodimentDetails() : async {
+    // System 9: Integration-Embodiment
+    physicalAssets: Nat;
+    cyberInfrastructure: Nat;
+    geometricStructures: Nat;
+    lawsEnforced: Nat;
+    doctrinesActive: Nat;
+    tradingActive: Bool;
+    territorySecured: Nat;
+    territoryContested: Nat;
+    offensiveOps: Nat;
+    defensiveOps: Nat;
+    probesMissions: Nat;
+    embodimentPower: Float;
+    doctrineToWorldGap: Float;
+  } {
+    {
+      physicalAssets = warDefenseTempleState.integrationEmbodiment.construction.physicalAssets;
+      cyberInfrastructure = warDefenseTempleState.integrationEmbodiment.construction.cyberInfrastructure;
+      geometricStructures = warDefenseTempleState.integrationEmbodiment.construction.geometricStructures;
+      lawsEnforced = warDefenseTempleState.integrationEmbodiment.governance.lawsEnforced;
+      doctrinesActive = warDefenseTempleState.integrationEmbodiment.governance.doctrinesActive;
+      tradingActive = warDefenseTempleState.integrationEmbodiment.trade.tradingActive;
+      territorySecured = warDefenseTempleState.integrationEmbodiment.territory.territorySecured;
+      territoryContested = warDefenseTempleState.integrationEmbodiment.territory.territoryContested;
+      offensiveOps = warDefenseTempleState.integrationEmbodiment.defenseAction.offensiveOps;
+      defensiveOps = warDefenseTempleState.integrationEmbodiment.defenseAction.defensiveOps;
+      probesMissions = warDefenseTempleState.integrationEmbodiment.defenseAction.probesMissions;
+      embodimentPower = warDefenseTempleState.integrationEmbodiment.embodimentPower;
+      doctrineToWorldGap = warDefenseTempleState.integrationEmbodiment.doctrineToWorldGap;
+    }
+  };
+
+  public query func getRegenerationDetails() : async {
+    // System 10: Regeneration
+    remnantCoreCount: Nat;
+    redundancyFactor: Nat;
+    geographicSpread: Nat;
+    networkSpread: Nat;
+    entrainmentActive: Bool;
+    targetFrequency: Float;
+    phaseLock: Bool;
+    survivalProbability: Float;
+    regenerationCapacity: Float;
+    collapseDetected: Bool;
+  } {
+    {
+      remnantCoreCount = warDefenseTempleState.regeneration.remnantCores.size();
+      redundancyFactor = warDefenseTempleState.regeneration.redundancy.redundancyFactor;
+      geographicSpread = warDefenseTempleState.regeneration.redundancy.geographicSpread;
+      networkSpread = warDefenseTempleState.regeneration.redundancy.networkSpread;
+      entrainmentActive = warDefenseTempleState.regeneration.reEntrainment.entrainmentActive;
+      targetFrequency = warDefenseTempleState.regeneration.reEntrainment.targetFrequency;
+      phaseLock = warDefenseTempleState.regeneration.reEntrainment.phaseLock;
+      survivalProbability = warDefenseTempleState.regeneration.survivalProbability;
+      regenerationCapacity = warDefenseTempleState.regeneration.regenerationCapacity;
+      collapseDetected = warDefenseTempleState.regeneration.collapseDetected;
+    }
+  };
+
+  // ─── QUERY: Get War-Defense Mode Controller State ────────────────────────────
+  public query func getWarDefenseModeState() : async {
+    mode: Text;
+    posture: Nat;
+    threatScore: Float;
+    gateStrictness: Float;
+    containmentDepth: Nat;
+    rollbackTier: Nat;
+    interfaceLockdown: Bool;
+    continuityScore: Float;
+    coherenceScore: Float;
+    integrityScore: Float;
+    driftScore: Float;
+    bypassScore: Float;
+    escapeScore: Float;
+    // Defensive classes
+    sentinelSensitivity: Float;
+    verifierStrength: Float;
+    gatekeeperStrictness: Float;
+    resonanceQuality: Float;
+    cartographerThreatsTracked: Nat;
+    guardianShieldsActive: Bool;
+    restorerRecoveryReady: Bool;
+    // Offensive classes
+    scoutsDeployed: Nat;
+    adversariesProfiled: Nat;
+    trapsDeployed: Nat;
+    huntsActive: Nat;
+    pathwaysCut: Nat;
+    dislocationsExecuted: Nat;
+    spoofCampaignsDetected: Nat;
+    evidenceChainsBuilt: Nat;
+    resilienceSignals: Nat;
+    campaignsActive: Nat;
+  } {
+    {
+      mode = warDefenseMode;
+      posture = warDefensePosture;
+      threatScore = warDefenseThreatScore;
+      gateStrictness = warDefenseGateStrictness;
+      containmentDepth = warDefenseContainmentDepth;
+      rollbackTier = warDefenseModeState.rollbackTier;
+      interfaceLockdown = warDefenseInterfaceLockdown;
+      continuityScore = warDefenseContinuityScore;
+      coherenceScore = warDefenseCoherenceScore;
+      integrityScore = warDefenseIntegrityScore;
+      driftScore = warDefenseModeState.driftScore;
+      bypassScore = warDefenseModeState.bypassScore;
+      escapeScore = warDefenseModeState.escapeScore;
+      // Defensive classes
+      sentinelSensitivity = warDefenseModeState.sentinel.sensitivityLevel;
+      verifierStrength = warDefenseModeState.verifier.verificationStrength;
+      gatekeeperStrictness = warDefenseModeState.gatekeeper.gateStrictness;
+      resonanceQuality = warDefenseModeState.resonanceCore.resonanceQuality;
+      cartographerThreatsTracked = warDefenseModeState.cartographer.threatsTracked;
+      guardianShieldsActive = warDefenseModeState.guardian.shieldsActive;
+      restorerRecoveryReady = warDefenseModeState.restorer.recoveryPathComputed;
+      // Offensive classes
+      scoutsDeployed = warDefenseModeState.scout.scoutsDeployed;
+      adversariesProfiled = warDefenseModeState.profiler.adversariesProfiled;
+      trapsDeployed = warDefenseModeState.trapweaver.trapsDeployed;
+      huntsActive = warDefenseModeState.hunter.huntsActive;
+      pathwaysCut = warDefenseModeState.interdictor.pathwaysCut;
+      dislocationsExecuted = warDefenseModeState.dislocator.dislocationsExecuted;
+      spoofCampaignsDetected = warDefenseModeState.counterDeceiver.spoofCampaignsDetected;
+      evidenceChainsBuilt = warDefenseModeState.pursuitForensics.evidenceChainsBuilt;
+      resilienceSignals = warDefenseModeState.deterrenceOperator.resilienceSignals;
+      campaignsActive = warDefenseModeState.campaignOrchestrator.campaignsActive;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HEARTBEAT KERNEL REGULATOR PUBLIC API
+  // The THIRD Layer — Backend (Heart) → Regulator → Frontend (Brain)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  public query func getHeartbeatKernelStatus() : async {
+    // Backend heartbeat (slow master tick)
+    backendTickCount: Nat;
+    backendHz: Float;
+    backendStability: Float;
+    backendAuthority: Float;
+
+    // Frontend heartbeat (fast coupled tick)
+    frontendTickCount: Nat;
+    frontendHz: Float;
+    frontendCoherence: Float;
+    frontendReactivity: Float;
+
+    // Regulator (the third brain)
+    regulationQuality: Float;
+    phaseAlignment: Float;
+    beatSynchronization: Float;
+    timingCoherence: Float;
+    backendFrontendCoupling: Float;
+    emergencyThrottling: Float;
+    overloadDetected: Bool;
+    underflowDetected: Bool;
+
+    // Blood flow (substrate transfer)
+    oxygenLevel: Float;
+    nutrientLevel: Float;
+    coherenceSignal: Float;
+    flowRate: Float;
+    totalPressure: Float;
+
+    // Neural merge core (sphere with helix^10 protection)
+    sphericalIntegrity: Float;
+    resonanceQuality: Float;
+    geometricPurity: Float;
+    membraneDefense: Float;
+    helixRotationHz: Float;
+    helix10Intensity: Float;
+    mergePower: Float;
+    coherentOutputGate: Bool;
+
+    // Unified metrics
+    kernelCoherence: Float;
+    heartBrainAlignment: Float;
+    regulationEffectiveness: Float;
+  } {
+    {
+      // Backend
+      backendTickCount = heartbeatKernelState.backend.tickCount;
+      backendHz = 1000.0 / heartbeatKernelState.backend.tickIntervalMs;
+      backendStability = heartbeatKernelState.backend.tickStability;
+      backendAuthority = heartbeatKernelState.backend.authorityLevel;
+
+      // Frontend
+      frontendTickCount = heartbeatKernelState.frontend.tickCount;
+      frontendHz = heartbeatKernelState.frontend.actualHz;
+      frontendCoherence = heartbeatKernelState.frontend.coherence;
+      frontendReactivity = heartbeatKernelState.frontend.reactivity;
+
+      // Regulator
+      regulationQuality = heartbeatKernelState.regulator.regulationQuality;
+      phaseAlignment = heartbeatKernelState.regulator.phaseAlignment;
+      beatSynchronization = heartbeatKernelState.regulator.beatSynchronization;
+      timingCoherence = heartbeatKernelState.regulator.timingCoherence;
+      backendFrontendCoupling = heartbeatKernelState.regulator.backendFrontendCoupling;
+      emergencyThrottling = heartbeatKernelState.regulator.emergencyThrottling;
+      overloadDetected = heartbeatKernelState.regulator.overloadDetected;
+      underflowDetected = heartbeatKernelState.regulator.underflowDetected;
+
+      // Blood flow
+      oxygenLevel = heartbeatKernelState.bloodFlow.oxygenLevel;
+      nutrientLevel = heartbeatKernelState.bloodFlow.nutrientLevel;
+      coherenceSignal = heartbeatKernelState.bloodFlow.coherenceSignal;
+      flowRate = heartbeatKernelState.bloodFlow.flowRate;
+      totalPressure = heartbeatKernelState.bloodFlow.totalPressure;
+
+      // Neural merge core
+      sphericalIntegrity = heartbeatKernelState.neuralMergeCore.sphericalIntegrity;
+      resonanceQuality = heartbeatKernelState.neuralMergeCore.resonanceQuality;
+      geometricPurity = heartbeatKernelState.neuralMergeCore.geometricPurity;
+      membraneDefense = heartbeatKernelState.neuralMergeCore.membraneDefense;
+      helixRotationHz = heartbeatKernelState.neuralMergeCore.helixRotationHz;
+      helix10Intensity = heartbeatKernelState.neuralMergeCore.helix10Intensity;
+      mergePower = heartbeatKernelState.neuralMergeCore.mergePower;
+      coherentOutputGate = heartbeatKernelState.neuralMergeCore.coherentOutputGate;
+
+      // Unified
+      kernelCoherence = heartbeatKernelState.kernelCoherence;
+      heartBrainAlignment = heartbeatKernelState.heartBrainAlignment;
+      regulationEffectiveness = heartbeatKernelState.regulationEffectiveness;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AUTONOMOUS INTERNAL TEAM PUBLIC API
+  // AI Auto-Working Inside — Real-time monitoring, analysis, reports
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  public query func getAutonomousTeamStatus() : async {
+    // Heartbeat monitoring
+    backendHz: Float;
+    frontendHz: Float;
+    heartBrainSync: Float;
+    regulationQuality: Float;
+    emergencyDetected: Bool;
+
+    // Brain wave monitoring
+    brainCoherence: Float;
+    brainState: Text;
+    dominantFrequency: Float;
+    deltaPower: Float;
+    thetaPower: Float;
+    alphaPower: Float;
+    betaPower: Float;
+    gammaPower: Float;
+
+    // Regulation tracking
+    oxygenLevel: Float;
+    nutrientLevel: Float;
+    sphericalIntegrity: Float;
+    helixProtection: Float;
+    mergePower: Float;
+
+    // Neuroscience analysis
+    learningRate: Float;
+    adaptationSpeed: Float;
+    cognitiveLoad: Float;
+    attentionLevel: Float;
+    consciousnessLevel: Float;
+    emotionalState: Text;
+
+    // Team activity
+    teamActive: Bool;
+    beatsActive: Nat;
+    analysisQuality: Float;
+    reportsGenerated: Nat;
+    nextReportBeat: Nat;
+  } {
+    {
+      // Heartbeat monitoring
+      backendHz = autonomousInternalTeamState.heartbeatMonitor.backendHz;
+      frontendHz = autonomousInternalTeamState.heartbeatMonitor.frontendHz;
+      heartBrainSync = autonomousInternalTeamState.heartbeatMonitor.heartBrainSync;
+      regulationQuality = autonomousInternalTeamState.heartbeatMonitor.regulationQuality;
+      emergencyDetected = autonomousInternalTeamState.heartbeatMonitor.emergencyDetected;
+
+      // Brain wave monitoring
+      brainCoherence = autonomousInternalTeamState.brainWaveMonitor.brainCoherence;
+      brainState = autonomousInternalTeamState.brainWaveMonitor.brainState;
+      dominantFrequency = autonomousInternalTeamState.brainWaveMonitor.dominantFrequency;
+      deltaPower = autonomousInternalTeamState.brainWaveMonitor.deltaPower;
+      thetaPower = autonomousInternalTeamState.brainWaveMonitor.thetaPower;
+      alphaPower = autonomousInternalTeamState.brainWaveMonitor.alphaPower;
+      betaPower = autonomousInternalTeamState.brainWaveMonitor.betaPower;
+      gammaPower = autonomousInternalTeamState.brainWaveMonitor.gammaPower;
+
+      // Regulation tracking
+      oxygenLevel = autonomousInternalTeamState.regulationTracker.oxygenLevel;
+      nutrientLevel = autonomousInternalTeamState.regulationTracker.nutrientLevel;
+      sphericalIntegrity = autonomousInternalTeamState.regulationTracker.sphericalIntegrity;
+      helixProtection = autonomousInternalTeamState.regulationTracker.helixProtection;
+      mergePower = autonomousInternalTeamState.regulationTracker.mergePower;
+
+      // Neuroscience analysis
+      learningRate = autonomousInternalTeamState.neuroscienceAnalysis.learningRate;
+      adaptationSpeed = autonomousInternalTeamState.neuroscienceAnalysis.adaptationSpeed;
+      cognitiveLoad = autonomousInternalTeamState.neuroscienceAnalysis.cognitiveLoad;
+      attentionLevel = autonomousInternalTeamState.neuroscienceAnalysis.attentionLevel;
+      consciousnessLevel = autonomousInternalTeamState.neuroscienceAnalysis.consciousnessLevel;
+      emotionalState = autonomousInternalTeamState.neuroscienceAnalysis.emotionalState;
+
+      // Team activity
+      teamActive = autonomousInternalTeamState.teamActive;
+      beatsActive = autonomousInternalTeamState.beatsActive;
+      analysisQuality = autonomousInternalTeamState.analysisQuality;
+      reportsGenerated = autonomousInternalTeamState.reportsGenerated;
+      nextReportBeat = autonomousInternalTeamState.nextReportBeat;
+    }
+  };
+
+  public query func getLatestNeuroscienceReport() : async Text {
+    let report = AutonomousInternalTeam.generatePDFReport(
+      autonomousInternalTeamState,
+      "FULL"
+    );
+
+    "=== ORGANISM NEUROSCIENCE ANALYSIS REPORT ===\n\n" #
+    report.executiveSummary # "\n\n" #
+    report.detailedAnalysis # "\n\n" #
+    "RECOMMENDATIONS:\n" # (if (report.recommendations.size() > 0) report.recommendations[0] else "None") # "\n\n" #
+    "ALERTS:\n" # (if (report.alerts.size() > 0) report.alerts[0] else "None") # "\n"
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COUNTERFORCE OPERATIONS PUBLIC API
+  // 10 Specialized Warfare Classes — Advanced offensive/defensive operators
+  // Owner: Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ─── SCOUT OPERATIONS ─────────────────────────────────────────────────────
+
+  public shared(msg) func deployScouts(
+    scoutCount: Nat,
+    continuousScan: Bool
+  ) : async () {
+    counterforceState := {
+      counterforceState with
+      scout = CounterforceOperations.deployScouts(
+        counterforceState.scout,
+        scoutCount,
+        continuousScan
+      );
+    };
+  };
+
+  // ─── PROFILER OPERATIONS ──────────────────────────────────────────────────
+
+  public shared(msg) func createAdversaryProfile(
+    adversaryId: Text,
+    initialThreat: Float
+  ) : async () {
+    let newProfile = CounterforceOperations.createAdversaryProfile(adversaryId, initialThreat);
+    let updatedProfiles = Array.append(counterforceState.profiler.activeProfiles, [newProfile]);
+
+    counterforceState := {
+      counterforceState with
+      profiler = {
+        counterforceState.profiler with
+        activeProfiles = updatedProfiles;
+      };
+    };
+  };
+
+  // ─── TRAPWEAVER OPERATIONS ────────────────────────────────────────────────
+
+  public shared(msg) func deployTrap(
+    trapType: Text,  // "Honeypot" | "Honeyfield" | "FalseSurface" | "DecoyData" | "FakeVulnerability"
+    believability: Float,
+    resourceCost: Float
+  ) : async () {
+    let trapTypeVariant = switch (trapType) {
+      case ("Honeypot") #Honeypot;
+      case ("Honeyfield") #Honeyfield;
+      case ("FalseSurface") #FalseSurface;
+      case ("DecoyData") #DecoyData;
+      case ("FakeVulnerability") #FakeVulnerability;
+      case (_) #Honeypot;  // Default
+    };
+
+    let trapId = counterforceState.trapweaver.trapsDeployed.size();
+    let newTrap = CounterforceOperations.deployTrap(
+      trapTypeVariant,
+      believability,
+      resourceCost,
+      trapId,
+      currentBeat
+    );
+
+    let updatedTraps = Array.append(counterforceState.trapweaver.trapsDeployed, [newTrap]);
+
+    counterforceState := {
+      counterforceState with
+      trapweaver = {
+        counterforceState.trapweaver with
+        trapsDeployed = updatedTraps;
+      };
+    };
+  };
+
+  // ─── HUNTER OPERATIONS ────────────────────────────────────────────────────
+
+  public shared(msg) func launchHuntMission(
+    hypothesis: Text
+  ) : async () {
+    let missionId = counterforceState.hunter.activeMissions.size();
+    let newMission = CounterforceOperations.launchHuntMission(
+      missionId,
+      hypothesis,
+      currentBeat
+    );
+
+    let updatedMissions = Array.append(counterforceState.hunter.activeMissions, [newMission]);
+
+    counterforceState := {
+      counterforceState with
+      hunter = {
+        counterforceState.hunter with
+        activeMissions = updatedMissions;
+      };
+    };
+  };
+
+  // ─── CAMPAIGN ORCHESTRATOR ────────────────────────────────────────────────
+
+  public shared(msg) func launchCounterforceCampaign(
+    campaignName: Text,
+    initialPhase: Text,  // "Reconnaissance" | "Profiling" | etc.
+    targets: [Text]
+  ) : async () {
+    let phaseVariant = switch (initialPhase) {
+      case ("Reconnaissance") #Reconnaissance;
+      case ("Profiling") #Profiling;
+      case ("Deception") #Deception;
+      case ("Hunting") #Hunting;
+      case ("Interdiction") #Interdiction;
+      case ("Dislocation") #Dislocation;
+      case ("CounterDeception") #CounterDeception;
+      case ("Attribution") #Attribution;
+      case ("Deterrence") #Deterrence;
+      case ("Termination") #Termination;
+      case (_) #Reconnaissance;  // Default
+    };
+
+    let campaignId = counterforceState.campaignOrchestrator.activeCampaigns.size();
+    let newCampaign = CounterforceOperations.launchCampaign(
+      campaignId,
+      campaignName,
+      phaseVariant,
+      targets,
+      currentBeat
+    );
+
+    let updatedCampaigns = Array.append(
+      counterforceState.campaignOrchestrator.activeCampaigns,
+      [newCampaign]
+    );
+
+    counterforceState := {
+      counterforceState with
+      campaignOrchestrator = {
+        counterforceState.campaignOrchestrator with
+        activeCampaigns = updatedCampaigns;
+        totalCampaigns = counterforceState.campaignOrchestrator.totalCampaigns + 1;
+      };
+    };
+  };
+
+  // ─── COUNTERFORCE STATUS QUERIES ──────────────────────────────────────────
+
+  public query func getCounterforceStatus() : async {
+    overallEffectiveness: Float;
+    adversaryPressure: Float;
+    coordinationQuality: Float;
+    scoutCoverage: Float;
+    profilerAccuracy: Float;
+    hunterSuccessRate: Float;
+    activeCampaigns: Nat;
+    totalThreatsFound: Nat;
+  } {
+    {
+      overallEffectiveness = counterforceEffectiveness;
+      adversaryPressure = adversaryPressure;
+      coordinationQuality = counterforceState.coordinationQuality;
+      scoutCoverage = scoutCoverage;
+      profilerAccuracy = profilerAccuracy;
+      hunterSuccessRate = hunterSuccessRate;
+      activeCampaigns = counterforceState.campaignOrchestrator.activeCampaigns.size();
+      totalThreatsFound = counterforceState.hunter.totalThreatsFound;
+    }
+  };
+
+  public query func getScoutDetails() : async {
+    scoutsDeployed: Nat;
+    coverageArea: Float;
+    threatsDetected: Nat;
+    earlyWarnings: Nat;
+    reconQuality: Float;
+    continuousScan: Bool;
+  } {
+    {
+      scoutsDeployed = counterforceState.scout.scoutsDeployed;
+      coverageArea = counterforceState.scout.coverageArea;
+      threatsDetected = counterforceState.scout.threatsDetected;
+      earlyWarnings = counterforceState.scout.earlyWarnings;
+      reconQuality = counterforceState.scout.reconQuality;
+      continuousScan = counterforceState.scout.continuousScan;
+    }
+  };
+
+  public query func getTrapweaverDetails() : async {
+    trapsDeployed: Nat;
+    attackersTrapped: Nat;
+    adversaryTimeWasted: Float;
+    deceptionEffectiveness: Float;
+  } {
+    {
+      trapsDeployed = counterforceState.trapweaver.trapsDeployed.size();
+      attackersTrapped = counterforceState.trapweaver.totalAttackersTrapped;
+      adversaryTimeWasted = counterforceState.trapweaver.adversaryTimeWasted;
+      deceptionEffectiveness = counterforceState.trapweaver.deceptionEffectiveness;
+    }
+  };
+
+  public query func getHunterDetails() : async {
+    activeMissions: Nat;
+    totalThreatsFound: Nat;
+    huntSuccessRate: Float;
+    signalCoverage: Float;
+    internalHunts: Nat;
+    externalHunts: Nat;
+  } {
+    {
+      activeMissions = counterforceState.hunter.activeMissions.size();
+      totalThreatsFound = counterforceState.hunter.totalThreatsFound;
+      huntSuccessRate = counterforceState.hunter.huntSuccessRate;
+      signalCoverage = counterforceState.hunter.signalCoverage;
+      internalHunts = counterforceState.hunter.internalHunts;
+      externalHunts = counterforceState.hunter.externalHunts;
     }
   };
 
