@@ -793,11 +793,10 @@ export function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-/** Wrap phase to [-π, π] using proper modulo arithmetic for negative values */
+/** Wrap phase to [-π, π] using efficient modulo arithmetic */
 export function wrapPhase(theta: number): number {
-  // Handle negative modulo properly in JavaScript
-  const t = ((theta % TAU) + TAU) % TAU;
-  return t > PI ? t - TAU : t;
+  // Match the Motoko implementation: theta - TAU * floor((theta + PI) / TAU)
+  return theta - TAU * Math.floor((theta + PI) / TAU);
 }
 
 /** Calculate phase difference */
