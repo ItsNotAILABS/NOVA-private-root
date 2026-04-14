@@ -8865,8 +8865,8 @@ actor SwarmBrain {
     var totalSwarmStress : Float = 0.0;
     var totalSwarmFatigue : Float = 0.0;
 
-    while (droneIdx < activeDrones and droneIdx < 250) {
-      if (stableSacrificed[droneIdx]) { droneIdx += 1; continue };
+    label droneLoop : () while (droneIdx < activeDrones and droneIdx < 250) {
+      if (stableSacrificed[droneIdx]) { droneIdx += 1; continue droneLoop };
 
       let jobType = droneJobAssignments[droneIdx];
       let currentProgress = droneJobProgress[droneIdx];
@@ -9190,8 +9190,8 @@ actor SwarmBrain {
 
     var droneIdx = 0;
     var totalLearning : Float = 0.0;
-    while (droneIdx < activeDrones and droneIdx < 250) {
-      if (stableSacrificed[droneIdx]) { droneIdx += 1; continue };
+    label droneLoop : () while (droneIdx < activeDrones and droneIdx < 250) {
+      if (stableSacrificed[droneIdx]) { droneIdx += 1; continue droneLoop };
 
       let lr = droneLearningRate[droneIdx];
       let fatigue = droneFatigueLevel[droneIdx];
@@ -28451,10 +28451,10 @@ actor SwarmBrain {
       };
       // Test with witnesses 2, 3, 5, 7, 11, 13
       let witnesses = [2, 3, 5, 7, 11, 13];
-      for (a in witnesses.vals()) {
+      label witnessLoop : () for (a in witnesses.vals()) {
         if (a >= n) { return true };
         var x = modPow(a, d, n);
-        if (x == 1 or x == n - 1) { continue };
+        if (x == 1 or x == n - 1) { continue witnessLoop };
         var composite = true;
         var j = 0;
         while (j < r - 1) {
