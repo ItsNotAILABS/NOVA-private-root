@@ -22,6 +22,7 @@ export {
   fetchCardioNeuralConversionOrganState,
   fetchAutonomousAnalystTeamState,
   fetchMemoryTempleState,
+  fetchConstantFeedbackCognitionState,
   triggerTick,
   triggerHeartbeat,
   setArchitectSignal,
@@ -34,6 +35,7 @@ export {
   type CardioNeuralConversionOrganState,
   type AutonomousAnalystTeamState,
   type MemoryTempleState,
+  type ConstantFeedbackCognitionState,
   type SwarmBrainActor,
 } from './swarmBrainActor';
 

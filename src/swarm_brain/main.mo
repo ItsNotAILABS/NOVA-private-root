@@ -515,6 +515,7 @@ import CardioCerebralVectorEngine                    "./modules/CardioCerebralVe
 import CardioNeuralConversionOrgan                   "./modules/CardioNeuralConversionOrgan";
 import GeoResonanceProtectionEngine                  "./modules/GeoResonanceProtectionEngine";
 import MemoryTempleEngine                            "./modules/MemoryTempleEngine";
+import ConstantFeedbackCognitionEngine               "./modules/ConstantFeedbackCognitionEngine";
 import InternalAILabs                                "./modules/InternalAILabs";
 import MultiResponsibilityEngine                     "./modules/MultiResponsibilityEngine";
 import NeuroEmergenceSubstrate                       "./modules/NeuroEmergenceSubstrate";
@@ -1001,6 +1002,19 @@ actor SwarmBrain {
   stable var memoryTemplePedestalCouplings : [var Float] = Array.init<Float>(7, 0.0);
   stable var memoryTempleNarrativeSummary : Text = "";
   stable var memoryTempleRecommendations : [var Text] = Array.init<Text>(6, "");
+  var cognitionFeedbackState : ConstantFeedbackCognitionEngine.ConstantFeedbackState = ConstantFeedbackCognitionEngine.initConstantFeedback();
+  stable var cognitionFeedbackBeat : Nat = 0;
+  stable var cognitionCognitivePressure : Float = 0.30;
+  stable var cognitionLoopClosureScore : Float = 0.74;
+  stable var cognitionReinjectionIntegrity : Float = 0.76;
+  stable var cognitionMultiGroupCoherence : Float = 0.70;
+  stable var cognitionMultiOrganismCoherence : Float = 0.70;
+  stable var cognitionReadiness : Float = 0.72;
+  stable var cognitionArbitrationReadiness : Float = 0.71;
+  stable var cognitionGovernanceStability : Float = 0.74;
+  stable var cognitionRecommendationPriority : Float = 0.30;
+  stable var cognitionNarrativeSummary : Text = "";
+  stable var cognitionTopActions : [var Text] = Array.init<Text>(6, "");
   
   // ─── NEUROCHEMICAL CROSSTALK MATRIX STATE ────────────────────────────────────
   // 21 neurochemicals × 21 interactions = 441 coupled differential equations
@@ -5023,6 +5037,16 @@ actor SwarmBrain {
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   func updateAutonomousInternalAnalystTeam() {
     analystTeamBeat := currentBeat;
+    let trustProxy = fclamp(
+      (overallCompliance + cardioNeuralShieldIntegrity + qsovScore) / 3.0,
+      0.0,
+      1.0
+    );
+    let continuityProxy = fclamp(
+      (memoryTempleContinuityWeave + memoryTempleCoupling + heartbeatCoherence) / 3.0,
+      0.0,
+      1.0
+    );
 
     let learningScore = fclamp(
       neurochemicalMemoryPotentiation * 0.40 +
@@ -5052,8 +5076,8 @@ actor SwarmBrain {
     let recPriority = fclamp(
       (1.0 - cardioNeuralShieldIntegrity) * 0.35 +
       emergencySignal * 0.35 +
-      (1.0 - trustScore) * 0.15 +
-      (1.0 - continuityScore) * 0.15,
+      (1.0 - trustProxy) * 0.15 +
+      (1.0 - continuityProxy) * 0.15,
       0.0,
       1.5
     );
@@ -5187,6 +5211,86 @@ actor SwarmBrain {
     memoryResponseWeights[1] := memoryResponseWeights[1] * 0.85 + memoryTempleMemoryRetention * 0.15;
     memoryResponseWeights[2] := memoryResponseWeights[2] * 0.85 + memoryTempleRecallReadiness * 0.15;
     adaptationFactor := adaptationFactor * 0.90 + memoryTempleContinuityWeave * 0.10;
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+  // SECTION 1.99: CONSTANT FEEDBACK COGNITION ENGINE
+  // Multi-group + multi-organism cognition closure that keeps reinjection always-on across domains.
+  // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+  func updateConstantFeedbackCognition() {
+    let signalCount = stableSignals.size() + kfHzRing.size() + lawComplianceScores.size();
+    let continuityProxy = fclamp(
+      (memoryTempleContinuityWeave + memoryTempleCoupling + heartbeatCoherence) / 3.0,
+      0.0,
+      1.5
+    );
+    let trustProxy = fclamp(
+      (overallCompliance + cardioNeuralShieldIntegrity + qsovScore) / 3.0,
+      0.0,
+      1.5
+    );
+    let anomalyProxy = fclamp(
+      predictionError * 0.55 +
+      Float.abs(jDrift) * 0.30 +
+      geoResonanceThreatScore * 0.15,
+      0.0,
+      1.5
+    );
+    let input : ConstantFeedbackCognitionEngine.ConstantFeedbackInput = {
+      beat = currentBeat;
+      rSwarm = rSwarm;
+      jDrift = jDrift;
+      heartbeatCoherence = heartbeatCoherence;
+      qsovScore = qsovScore;
+      doctrineCompliance = overallCompliance;
+      continuityScore = continuityProxy;
+      trustScore = trustProxy;
+      anomalyScore = anomalyProxy;
+      predictionError = predictionError;
+      cardioCerebralPush = cardioCerebralPushEffectiveness;
+      cardioNeuralCoupling = cardioNeuralCoupling;
+      cardioNeuralThroughput = cardioNeuralThoughtThroughput;
+      memoryTempleCoupling = memoryTempleCoupling;
+      memoryTempleContinuity = memoryTempleContinuityWeave;
+      analystLearningScore = analystTeamLearningScore;
+      analystAdaptationScore = analystTeamAdaptationScore;
+      analystEmergencySignal = analystTeamEmergencySignal;
+      geoProtectionScore = geoResonanceProtectionScore;
+      geoThreatScore = geoResonanceThreatScore;
+      emotionalStability = emotionalStability;
+      emotionalComplexity = emotionalComplexity;
+      multiGroupCount = 7;
+      multiOrganismCount = if (swarmOrganismCount > 0) { swarmOrganismCount } else { 1 };
+      feedbackSignalCount = signalCount;
+    };
+
+    cognitionFeedbackState := ConstantFeedbackCognitionEngine.tickConstantFeedback(cognitionFeedbackState, input);
+
+    cognitionFeedbackBeat := cognitionFeedbackState.beat;
+    cognitionCognitivePressure := cognitionFeedbackState.cognitivePressure;
+    cognitionLoopClosureScore := cognitionFeedbackState.loopClosureScore;
+    cognitionReinjectionIntegrity := cognitionFeedbackState.reinjectionIntegrity;
+    cognitionMultiGroupCoherence := cognitionFeedbackState.multiGroupCoherence;
+    cognitionMultiOrganismCoherence := cognitionFeedbackState.multiOrganismCoherence;
+    cognitionReadiness := cognitionFeedbackState.cognitionReadiness;
+    cognitionArbitrationReadiness := cognitionFeedbackState.arbitrationReadiness;
+    cognitionGovernanceStability := cognitionFeedbackState.governanceStability;
+    cognitionRecommendationPriority := cognitionFeedbackState.recommendationPriority;
+    cognitionNarrativeSummary := cognitionFeedbackState.narrativeSummary;
+
+    var i : Nat = 0;
+    while (i < cognitionTopActions.size() and i < cognitionFeedbackState.topActions.size()) {
+      cognitionTopActions[i] := cognitionFeedbackState.topActions[i];
+      i += 1;
+    };
+
+    // Reinjection into existing substrate channels to keep cognition closure system-wide.
+    memoryResponseWeights[3] := memoryResponseWeights[3] * 0.88 + cognitionLoopClosureScore * 0.12;
+    memoryResponseWeights[4] := memoryResponseWeights[4] * 0.88 + cognitionReinjectionIntegrity * 0.12;
+    adaptationFactor := adaptationFactor * 0.90 + cognitionReadiness * 0.10;
+    threatAssessmentOutput := threatAssessmentOutput * 0.90 + cognitionCognitivePressure * 0.10;
+    riskManagementOutput := riskManagementOutput * 0.90 + (1.0 - cognitionGovernanceStability) * 0.10;
+    awakennessLevel := awakennessLevel * 0.90 + cognitionReadiness * 0.10;
   };
 
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -6637,6 +6741,9 @@ actor SwarmBrain {
 
     // Step 2.95: Run memory temple engine (continuity weave + memory-cognition coupling + IoT coupling)
     updateMemoryTempleEngine();
+
+    // Step 2.99: Constant feedback cognition closure across multi-groups and multi-organisms
+    updateConstantFeedbackCognition();
     
     // Step 3: Update PARALLAX Decision Engine (5-path quantum amplitude interference)
     updatePARALLAXDecisionEngine();
@@ -12069,6 +12176,47 @@ actor SwarmBrain {
       continuityHistory = memoryTempleState.continuityHistory;
       resonanceHistory = memoryTempleState.resonanceHistory;
       couplingHistory = memoryTempleState.couplingHistory;
+    }
+  };
+
+  // ─── QUERY: Get Constant Feedback Cognition State ───────────────────────────────
+  public query func getConstantFeedbackCognitionState() : async {
+    beat : Nat;
+    cognitivePressure : Float;
+    loopClosureScore : Float;
+    reinjectionIntegrity : Float;
+    multiGroupCoherence : Float;
+    multiOrganismCoherence : Float;
+    cognitionReadiness : Float;
+    arbitrationReadiness : Float;
+    governanceStability : Float;
+    recommendationPriority : Float;
+    narrativeSummary : Text;
+    topActions : [Text];
+    pressureHistory : [Float];
+    closureHistory : [Float];
+    reinjectionHistory : [Float];
+    multiGroupHistory : [Float];
+    multiOrganismHistory : [Float];
+  } {
+    {
+      beat = cognitionFeedbackState.beat;
+      cognitivePressure = cognitionFeedbackState.cognitivePressure;
+      loopClosureScore = cognitionFeedbackState.loopClosureScore;
+      reinjectionIntegrity = cognitionFeedbackState.reinjectionIntegrity;
+      multiGroupCoherence = cognitionFeedbackState.multiGroupCoherence;
+      multiOrganismCoherence = cognitionFeedbackState.multiOrganismCoherence;
+      cognitionReadiness = cognitionFeedbackState.cognitionReadiness;
+      arbitrationReadiness = cognitionFeedbackState.arbitrationReadiness;
+      governanceStability = cognitionFeedbackState.governanceStability;
+      recommendationPriority = cognitionFeedbackState.recommendationPriority;
+      narrativeSummary = cognitionFeedbackState.narrativeSummary;
+      topActions = cognitionFeedbackState.topActions;
+      pressureHistory = cognitionFeedbackState.pressureHistory;
+      closureHistory = cognitionFeedbackState.closureHistory;
+      reinjectionHistory = cognitionFeedbackState.reinjectionHistory;
+      multiGroupHistory = cognitionFeedbackState.multiGroupHistory;
+      multiOrganismHistory = cognitionFeedbackState.multiOrganismHistory;
     }
   };
 

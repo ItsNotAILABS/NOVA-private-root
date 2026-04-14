@@ -206,6 +206,26 @@ export interface MemoryTempleState {
   couplingHistory: number[];
 }
 
+export interface ConstantFeedbackCognitionState {
+  beat: number;
+  cognitivePressure: number;
+  loopClosureScore: number;
+  reinjectionIntegrity: number;
+  multiGroupCoherence: number;
+  multiOrganismCoherence: number;
+  cognitionReadiness: number;
+  arbitrationReadiness: number;
+  governanceStability: number;
+  recommendationPriority: number;
+  narrativeSummary: string;
+  topActions: string[];
+  pressureHistory: number[];
+  closureHistory: number[];
+  reinjectionHistory: number[];
+  multiGroupHistory: number[];
+  multiOrganismHistory: number[];
+}
+
 export interface TickResult {
   rSwarm: number;
   jDrift: number;
@@ -425,6 +445,26 @@ const swarmBrainIDLFactory = ({ IDL }: { IDL: typeof IDL }) => {
       resonanceHistory: IDL.Vec(IDL.Float64),
       couplingHistory: IDL.Vec(IDL.Float64),
     })], ['query']),
+
+    getConstantFeedbackCognitionState: IDL.Func([], [IDL.Record({
+      beat: IDL.Nat,
+      cognitivePressure: IDL.Float64,
+      loopClosureScore: IDL.Float64,
+      reinjectionIntegrity: IDL.Float64,
+      multiGroupCoherence: IDL.Float64,
+      multiOrganismCoherence: IDL.Float64,
+      cognitionReadiness: IDL.Float64,
+      arbitrationReadiness: IDL.Float64,
+      governanceStability: IDL.Float64,
+      recommendationPriority: IDL.Float64,
+      narrativeSummary: IDL.Text,
+      topActions: IDL.Vec(IDL.Text),
+      pressureHistory: IDL.Vec(IDL.Float64),
+      closureHistory: IDL.Vec(IDL.Float64),
+      reinjectionHistory: IDL.Vec(IDL.Float64),
+      multiGroupHistory: IDL.Vec(IDL.Float64),
+      multiOrganismHistory: IDL.Vec(IDL.Float64),
+    })], ['query']),
     
     getDroneCount: IDL.Func([], [IDL.Nat], ['query']),
     getRSwarm: IDL.Func([], [IDL.Float64], ['query']),
@@ -486,6 +526,7 @@ export interface SwarmBrainActor {
   getCardioNeuralConversionOrganState: () => Promise<CardioNeuralConversionOrganState>;
   getAutonomousAnalystTeamState: () => Promise<AutonomousAnalystTeamState>;
   getMemoryTempleState: () => Promise<MemoryTempleState>;
+  getConstantFeedbackCognitionState: () => Promise<ConstantFeedbackCognitionState>;
   getDroneCount: () => Promise<bigint>;
   getRSwarm: () => Promise<number>;
   getJDrift: () => Promise<number>;
@@ -696,6 +737,19 @@ export async function fetchMemoryTempleState(): Promise<MemoryTempleState | null
 }
 
 /**
+ * Fetch constant feedback cognition state
+ */
+export async function fetchConstantFeedbackCognitionState(): Promise<ConstantFeedbackCognitionState | null> {
+  try {
+    const actor = await connectSwarmBrain();
+    return await actor.getConstantFeedbackCognitionState();
+  } catch (error) {
+    console.error('[SwarmBrainActor] fetchConstantFeedbackCognitionState failed:', error);
+    return null;
+  }
+}
+
+/**
  * Trigger a backend tick
  */
 export async function triggerTick(): Promise<TickResult | null> {
@@ -748,6 +802,7 @@ export default {
   fetchCardioNeuralConversionOrganState,
   fetchAutonomousAnalystTeamState,
   fetchMemoryTempleState,
+  fetchConstantFeedbackCognitionState,
   triggerTick,
   triggerHeartbeat,
   setArchitectSignal,

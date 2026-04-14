@@ -42,6 +42,7 @@ import { NeuroCogLab } from './NeuroCogLab';
 import { GRPELab } from './GRPELab';
 import { InternalAnalysisLab } from './InternalAnalysisLab';
 import { MemoryTempleLab } from './MemoryTempleLab';
+import { ConstantFeedbackLab } from './ConstantFeedbackLab';
 import {
   OrganismState, organismInit, organismTick, getOrganismStatus,
   EmergenceLabData, NeuroCogLabData, MathPhysicsLabData,
@@ -51,6 +52,7 @@ import {
   fetchCardioNeuralConversionOrganState,
   fetchAutonomousAnalystTeamState,
   fetchMemoryTempleState,
+  fetchConstantFeedbackCognitionState,
 } from '../../canister';
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -286,6 +288,27 @@ type MemoryTempleViewState = {
   couplingHistory : number[];
 };
 
+type ConstantFeedbackViewState = {
+  backendConnected : boolean;
+  beat : number;
+  cognitivePressure : number;
+  loopClosureScore : number;
+  reinjectionIntegrity : number;
+  multiGroupCoherence : number;
+  multiOrganismCoherence : number;
+  cognitionReadiness : number;
+  arbitrationReadiness : number;
+  governanceStability : number;
+  recommendationPriority : number;
+  narrativeSummary : string;
+  topActions : string[];
+  pressureHistory : number[];
+  closureHistory : number[];
+  reinjectionHistory : number[];
+  multiGroupHistory : number[];
+  multiOrganismHistory : number[];
+};
+
 const defaultAnalystState = (): AnalystViewState => ({
   backendConnected: false,
   beat: 0,
@@ -340,6 +363,34 @@ const defaultMemoryTempleState = (): MemoryTempleViewState => ({
   continuityHistory: [],
   resonanceHistory: [],
   couplingHistory: [],
+});
+
+const defaultConstantFeedbackState = (): ConstantFeedbackViewState => ({
+  backendConnected: false,
+  beat: 0,
+  cognitivePressure: 0.30,
+  loopClosureScore: 0.74,
+  reinjectionIntegrity: 0.76,
+  multiGroupCoherence: 0.70,
+  multiOrganismCoherence: 0.70,
+  cognitionReadiness: 0.72,
+  arbitrationReadiness: 0.71,
+  governanceStability: 0.74,
+  recommendationPriority: 0.30,
+  narrativeSummary: 'Constant feedback cognition running in fallback mode.',
+  topActions: [
+    'Raise protection-first routing for all active groups until pressure normalizes.',
+    'Increase loop closure by enforcing reinjection hooks on every beat transition.',
+    'Elevate replay and continuity audits until reinjection integrity stabilizes.',
+    'Stabilize cross-group synchronization using trust and doctrine alignment pulses.',
+    'Strengthen multi-organism arbitration contracts before external projection.',
+    'Keep constant feedback cognition always-on and reinject outputs every beat.',
+  ],
+  pressureHistory: [],
+  closureHistory: [],
+  reinjectionHistory: [],
+  multiGroupHistory: [],
+  multiOrganismHistory: [],
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -619,11 +670,12 @@ export function OroCommandCenter({ organism }: Props) {
   const [selectedAgent, setSelectedAgent] = useState<string | null>('oro-prime');
   const [userInput, setUserInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'command' | 'emergence' | 'physics' | 'neurocog' | 'grpe' | 'analysis' | 'memory'>('command');
+  const [activeTab, setActiveTab] = useState<'command' | 'emergence' | 'physics' | 'neurocog' | 'grpe' | 'analysis' | 'memory' | 'cognition'>('command');
   const [grpeState, setGrpeState] = useState<GRPEViewState>(defaultGRPEState());
   const [cardioNeuralState, setCardioNeuralState] = useState<CardioNeuralViewState>(defaultCardioNeuralState());
   const [analystState, setAnalystState] = useState<AnalystViewState>(defaultAnalystState());
   const [memoryTempleState, setMemoryTempleState] = useState<MemoryTempleViewState>(defaultMemoryTempleState());
+  const [constantFeedbackState, setConstantFeedbackState] = useState<ConstantFeedbackViewState>(defaultConstantFeedbackState());
   
   // ═══ UNIFIED ORGANISM STATE — The living wiring ═══
   const organismStateRef = useRef<OrganismState>(organismInit());
@@ -744,6 +796,49 @@ export function OroCommandCenter({ organism }: Props) {
         couplingHistory: data.couplingHistory,
       };
       setMemoryTempleState(next);
+    };
+
+    void pull();
+    const id = setInterval(() => { void pull(); }, 1250);
+    return () => {
+      stopped = true;
+      clearInterval(id);
+    };
+  }, []);
+
+  // ═══ CONSTANT FEEDBACK COGNITION POLL ═══
+  useEffect(() => {
+    let stopped = false;
+
+    const pull = async () => {
+      const data = await fetchConstantFeedbackCognitionState();
+      if (stopped) return;
+      if (!data) {
+        setConstantFeedbackState(prev => ({ ...prev, backendConnected: false }));
+        return;
+      }
+
+      const next: ConstantFeedbackViewState = {
+        backendConnected: true,
+        beat: Number(data.beat),
+        cognitivePressure: data.cognitivePressure,
+        loopClosureScore: data.loopClosureScore,
+        reinjectionIntegrity: data.reinjectionIntegrity,
+        multiGroupCoherence: data.multiGroupCoherence,
+        multiOrganismCoherence: data.multiOrganismCoherence,
+        cognitionReadiness: data.cognitionReadiness,
+        arbitrationReadiness: data.arbitrationReadiness,
+        governanceStability: data.governanceStability,
+        recommendationPriority: data.recommendationPriority,
+        narrativeSummary: data.narrativeSummary,
+        topActions: data.topActions,
+        pressureHistory: data.pressureHistory,
+        closureHistory: data.closureHistory,
+        reinjectionHistory: data.reinjectionHistory,
+        multiGroupHistory: data.multiGroupHistory,
+        multiOrganismHistory: data.multiOrganismHistory,
+      };
+      setConstantFeedbackState(next);
     };
 
     void pull();
@@ -1043,6 +1138,7 @@ export function OroCommandCenter({ organism }: Props) {
             { key: 'physics' as const, label: 'Math Physics' },
             { key: 'neurocog' as const, label: 'NeuroCog' },
             { key: 'memory' as const, label: 'Memory Temple' },
+            { key: 'cognition' as const, label: 'Constant Feedback' },
             { key: 'grpe' as const, label: 'GRPE Intelligence' },
             { key: 'analysis' as const, label: 'Internal Analysis' },
           ].map(tab => (
@@ -1207,6 +1303,15 @@ export function OroCommandCenter({ organism }: Props) {
             rSwarm={rSwarm}
             jDrift={jDrift}
             memoryTemple={memoryTempleState}
+          />
+        </div>
+      ) : activeTab === 'cognition' ? (
+        <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
+          <ConstantFeedbackLab
+            beat={beat}
+            rSwarm={rSwarm}
+            jDrift={jDrift}
+            feedback={constantFeedbackState}
           />
         </div>
       ) : (
