@@ -12,7 +12,7 @@ It is designed for:
 
 ## 1) The five things in this repository
 
-1. **README**: front door and first orientation.
+1. **INTERNAL_OVERVIEW** (or internal readme equivalent): internal orientation only.
 2. **docs/**: architecture, doctrine, policy, and operating manuals.
 3. **templates/** (inside docs): reusable machine/human scaffolds.
 4. **src/**: live runtime code.
@@ -22,12 +22,11 @@ It is designed for:
 
 ## 2) Reading order by persona
 
-### A) Public user / observer
+### A) External observer (post-release showcase only)
 
 Read:
 
-1. README
-2. Public product docs only
+1. Public showcase material only (not internal architecture docs)
 
 Do not read:
 
@@ -110,8 +109,9 @@ Authority:
 
 ### `README.md`
 
-- The front door.
-- Tells a newcomer what this project is and where to go first.
+- Internal orientation only.
+- Used by family and internal AI teams.
+- Not a public onboarding surface.
 
 ### `docs/*.md`
 

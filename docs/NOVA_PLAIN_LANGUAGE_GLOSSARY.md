@@ -20,6 +20,10 @@ Not invented by us. Not negotiable.
 ### Artifact
 A reusable output (document, template, report, snapshot, policy, schema, release note).
 
+### Internal Orientation File
+An internal onboarding file for AI teams, family, and authorized operators.  
+Not public-facing. Public release uses a separate showcase surface.
+
 ### Arbitration
 How competing engine outputs are scored and one is selected under law gates.
 
