@@ -1,12 +1,11 @@
-# NOVA Non-Engineer and AI Reading Guide
+# NOVA AI Builder Reading Guide
 
-This guide explains how to read the repository in the right order and with the right access level.
+This guide explains how AI builders should read the repository in the right order and with the right access level.
 It is designed for:
 
-- non-engineers,
 - internal AI teams,
 - builder AIs,
-- and family governance roles.
+- and family governance roles supervising AI execution.
 
 ---
 
@@ -34,7 +33,7 @@ Do not read:
 - law registry internals
 - creator-only kernels
 
-### B) Non-engineer operator
+### B) Family operator supervising AI builders
 
 Read:
 
@@ -45,9 +44,9 @@ Read:
 
 Focus on:
 
-- what each ring does
-- what each gate means
-- who can change what
+- what each ring does,
+- what each gate means,
+- which AI roles can change what.
 
 ### C) Inner organism runtime AI
 

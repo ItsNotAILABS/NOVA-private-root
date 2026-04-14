@@ -8,11 +8,10 @@ The purpose is to keep sovereignty, safety, and zero-exposure intact while still
 
 ## 1) Tiered audiences
 
-### Tier P0 — Public Surfaces
+### Tier P0 — Public Surfaces (Projection Only)
 
 Audience:
-- external users
-- public interfaces
+- public-facing product projection only (if/when enabled)
 
 Read:
 - numeric outputs
@@ -31,11 +30,10 @@ Never read:
 
 ---
 
-### Tier P1 — Product Operators
+### Tier P1 — Family Operators
 
 Audience:
-- internal operators of product instances
-- support and operations staff (non-doctrine)
+- family operators and authorized internal AI assistants
 
 Read:
 - operational dashboards
@@ -56,8 +54,7 @@ Never read:
 ### Tier P2 — Inner Organism Runtime Readers
 
 Audience:
-- internal organism runtime processes
-- non-builder runtime AI surfaces
+- internal organism runtime AI processes
 
 Read:
 - runtime model contracts
@@ -80,7 +77,7 @@ Note:
 ### Tier P3 — Builder AI Workforce
 
 Audience:
-- AI agents building/testing/integrating architecture
+- AI agents building/testing/integrating architecture for family scope
 
 Read:
 - full architecture docs
@@ -166,5 +163,5 @@ Before release:
 ## 6) Zero-exposure compatibility
 
 This policy does not replace Zero-Exposure law.
-It operationalizes it across audiences so doctrine and sacred internals remain protected while the system remains buildable.
+It operationalizes it for a family + AI-only operating model so doctrine and sacred internals remain protected while the system remains buildable.
 
