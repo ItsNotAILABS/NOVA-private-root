@@ -222,6 +222,26 @@ import EnemyAISwarm                  "./modules/EnemyAISwarm";
 import SelfRepairEngine              "./modules/SelfRepairEngine";
 
 // ═══════════════════════════════════════════════════════════════════════════
+// WAR-DEFENSE TEMPLE SYSTEM — Systems 7, 9, 10 Unified
+// Complete offense-defense warfare architecture with proper flow:
+// GEOMETRY → HARMONICS → FREQUENCY → VELOCITY → EMBODIED ACTION
+// ═══════════════════════════════════════════════════════════════════════════
+
+import WarDefenseTempleIntegration   "./modules/WarDefenseTempleIntegration";
+import OffenseDefenseCoordination    "./modules/OffenseDefenseCoordination";
+import WarDefenseModeController      "./modules/WarDefenseModeController";
+import CounterforceOperations        "./modules/CounterforceOperations";
+import FullConstructiveStack         "./modules/FullConstructiveStack";
+import FullRedAntiOrganismStack      "./modules/FullRedAntiOrganismStack";
+import AntiOrganismDefense           "./modules/AntiOrganismDefense";
+import MemoryTempleIoTHub            "./modules/MemoryTempleIoTHub";
+import ElectromagneticWarfareEngine  "./modules/ElectromagneticWarfareEngine";
+import FrequencyWarfareSystem        "./modules/FrequencyWarfareSystem";
+import SecurityLockdownEngine        "./modules/SecurityLockdownEngine";
+import HeartbeatKernelRegulator      "./modules/HeartbeatKernelRegulator";
+import AutonomousInternalTeam        "./modules/AutonomousInternalTeam";
+
+// ═══════════════════════════════════════════════════════════════════════════
 // SPHERICAL QUANTUM HEARTBEAT & NEUROCHEMICAL INTEGRATION
 // These modules provide the DEEP layer that ALL other systems use
 // HeartbeatEngine: Master timing + 8 quantum operators flowing through all layers
@@ -1530,7 +1550,115 @@ actor SwarmBrain {
   stable var averageHeartbeatCoherence : Float = SIGMA_ZERO;
   stable var heartbeatVariability : Float = 0.0;  // HRV - higher = healthier
   stable var circadianAlignment : Float = 1.0;     // How aligned with 24h cycle
-  
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // WAR-DEFENSE TEMPLE STATE — Systems 7, 9, 10 Unified
+  // Deep family temple defense and war system - NOT an app
+  // Owner: Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ─── WAR-DEFENSE MODE CONTROLLER (Super-State Governance) ─────────────────
+  // Sits ABOVE all layers as super-state controller
+  // When Mode = WarDefense, every subsystem is reweighted
+  var warDefenseModeState : WarDefenseModeController.WarDefenseModeState =
+    WarDefenseModeController.initWarDefenseMode();
+
+  var warDefenseTempleState : WarDefenseTempleIntegration.WarDefenseTempleState =
+    WarDefenseTempleIntegration.initWarDefenseTemple();
+
+  var offenseDefenseCoordinationState : OffenseDefenseCoordination.OffenseDefenseCoordinationState =
+    OffenseDefenseCoordination.initOffenseDefenseCoordination();
+
+  var counterforceState : CounterforceOperations.CounterforceState =
+    CounterforceOperations.initCounterforce();
+
+  var fullConstructiveStackState : FullConstructiveStack.FullStackState =
+    FullConstructiveStack.initFullStack();
+
+  var fullRedAntiOrganismStackState : FullRedAntiOrganismStack.FullRedStackState =
+    FullRedAntiOrganismStack.initFullRedStack();
+
+  var memoryTempleIoTState : MemoryTempleIoTHub.MemoryTempleIoTHubState =
+    MemoryTempleIoTHub.initMemoryTempleIoTHub();
+
+  var emWarfareState : ElectromagneticWarfareEngine.EMWarfareState =
+    ElectromagneticWarfareEngine.initEMWarfare();
+
+  var frequencyWarfareState : FrequencyWarfareSystem.FrequencyWarfareState =
+    FrequencyWarfareSystem.initFrequencyWarfare();
+
+  var securityLockdownState : SecurityLockdownEngine.SecurityLockdownState =
+    SecurityLockdownEngine.initSecurityLockdown();
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HEARTBEAT KERNEL REGULATOR — The THIRD Layer (Heart-Regulator-Brain)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  var heartbeatKernelState : HeartbeatKernelRegulator.HeartbeatKernelState =
+    HeartbeatKernelRegulator.initHeartbeatKernel();
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AUTONOMOUS INTERNAL TEAM — AI Auto-Working Inside
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  var autonomousInternalTeamState : AutonomousInternalTeam.AutonomousInternalTeamState =
+    AutonomousInternalTeam.initAutonomousInternalTeam();
+
+  // Temple metrics (stable for persistence)
+  stable var templeIntegrity : Float = 1.0;          // Overall temple health
+  stable var warDefenseReadiness : Float = 1.0;      // System 7 readiness
+  stable var embodimentPower : Float = 0.0;          // System 9 power
+  stable var regenerationCapacity : Float = 1.0;     // System 10 capacity
+  stable var architectureFlowIntegrity : Float = 1.0; // Flow coherence
+  stable var offensivePower : Float = 0.0;           // Offensive strength
+  stable var defensivePower : Float = 1.0;           // Defensive strength
+  stable var intelligenceQuality : Float = 0.0;      // Intel quality
+  stable var missionActive : Bool = false;           // Mission in progress
+  stable var missionType : Text = "STANDBY";         // Current mission
+
+  // War-Defense Mode metrics (stable for persistence)
+  stable var warDefenseMode : Text = "Build";        // { Build, Guard, WarDefense, Recovery }
+  stable var warDefensePosture : Nat = 0;            // WD0-WD5 posture level
+  stable var warDefenseThreatScore : Float = 0.0;    // Overall threat score
+  stable var warDefenseGateStrictness : Float = 0.5; // Gate strictness level
+  stable var warDefenseContainmentDepth : Nat = 0;   // Containment layers (0-5)
+  stable var warDefenseInterfaceLockdown : Bool = false; // Interfaces locked?
+  stable var warDefenseContinuityScore : Float = 1.0;    // Continuity preservation
+  stable var warDefenseCoherenceScore : Float = 1.0;     // System coherence
+  stable var warDefenseIntegrityScore : Float = 1.0;     // System integrity
+
+  // Counterforce metrics (stable for persistence)
+  stable var counterforceEffectiveness : Float = 0.0; // Overall counterforce effectiveness
+  stable var scoutCoverage : Float = 0.0;            // Scout coverage area
+  stable var profilerAccuracy : Float = 0.0;         // Profiler model accuracy
+  stable var trapweaverEffectiveness : Float = 0.0;  // Trapweaver deception effectiveness
+  stable var hunterSuccessRate : Float = 0.0;        // Hunter success rate
+  stable var interdictionEffectiveness : Float = 0.0; // Interdictor effectiveness
+  stable var dislocationEffectiveness : Float = 0.0; // Dislocator effectiveness
+  stable var counterDeceiverAccuracy : Float = 0.0;  // Counter-deceiver detection accuracy
+  stable var attributionAccuracy : Float = 0.0;      // Pursuit forensics attribution accuracy
+  stable var deterrenceEffectiveness : Float = 0.0;  // Deterrence operator effectiveness
+  stable var orchestrationQuality : Float = 0.0;     // Campaign orchestration quality
+  stable var adversaryPressure : Float = 0.0;        // Pressure on adversaries
+
+  // Frequency & EM Warfare metrics (stable for persistence)
+  stable var iotDevicesConnected : Nat = 0;          // Connected IoT devices
+  stable var iotHubCoherence : Float = 1.0;          // IoT hub coherence
+  stable var emOffensivePower : Float = 0.0;         // EM offensive power
+  stable var emDefensivePower : Float = 0.0;         // EM defensive power
+  stable var emFieldControl : Float = 1.0;           // EM field control
+  stable var frequencyWarfarePower : Float = 0.0;    // Frequency warfare capability
+  stable var phoneFrequencyActive : Bool = false;    // Phone frequency ops active
+  stable var droneFrequencyWeapons : Nat = 0;        // Drone frequency weapons deployed
+
+  // Security Lockdown metrics (stable for persistence)
+  stable var lockdownActive : Bool = false;          // Full lockdown active
+  stable var securityScore : Float = 0.5;            // Overall security score
+  stable var encryptionCoverage : Float = 0.0;       // Encryption coverage percentage
+  stable var fleetExpanded : Bool = false;           // Fleet models expanded
+  stable var readyForLaunch : Bool = false;          // Ready for production launch
+  stable var modelsUpdated : Nat = 0;                // AI/ML models updated
+
   // ─── NEUROCHEMICAL STATISTICS ────────────────────────────────────────────────
   stable var totalNeurochemicalUpdates : Nat = 0;
   stable var neurochemicalBalanceIndex : Float = 1.0;  // How balanced the system is
@@ -2999,6 +3127,39 @@ actor SwarmBrain {
     let n = stableDroneCount;
     if (n == 0) return { rSwarm = 0.88; jDrift = 0.0; beat = currentBeat };
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // WAR-DEFENSE MODE TICK — RUNS FIRST, GOVERNS ALL DOWNSTREAM SUBSYSTEMS
+    // Super-state controller that reweights every subsystem when Mode = WarDefense
+    // ═══════════════════════════════════════════════════════════════════════════
+    warDefenseModeState := WarDefenseModeController.warDefenseTick(
+      warDefenseModeState,
+      rSwarm,       // Previous rSwarm (will be updated below)
+      jDrift        // Previous jDrift (will be updated below)
+    );
+
+    // Update stable metrics from War-Defense Mode state
+    warDefenseMode := switch (warDefenseModeState.mode) {
+      case (#Build) "Build";
+      case (#Guard) "Guard";
+      case (#WarDefense) "WarDefense";
+      case (#Recovery) "Recovery";
+    };
+    warDefensePosture := switch (warDefenseModeState.posture) {
+      case (#WD0_Standby) 0;
+      case (#WD1_Elevated) 1;
+      case (#WD2_Alert) 2;
+      case (#WD3_Defense) 3;
+      case (#WD4_Combat) 4;
+      case (#WD5_Lockdown) 5;
+    };
+    warDefenseThreatScore := warDefenseModeState.threatScore;
+    warDefenseGateStrictness := warDefenseModeState.gateStrictness;
+    warDefenseContainmentDepth := warDefenseModeState.containmentDepth;
+    warDefenseInterfaceLockdown := warDefenseModeState.interfaceLockdown;
+    warDefenseContinuityScore := warDefenseModeState.continuityScore;
+    warDefenseCoherenceScore := warDefenseModeState.coherenceScore;
+    warDefenseIntegrityScore := warDefenseModeState.integrityScore;
+
     // Phase 1: decay signals (Law 23)
     var i = 0;
     while (i < n) {
@@ -3350,11 +3511,46 @@ actor SwarmBrain {
       // AEGIS threat monitoring
       aegisState := AEGIS.monitor(aegisState, rSwarm, jDrift, currentBeat);
       modulesCalledThisBeat += 1;
-      
+
       // Autonomous war engine
       autonomousWarState := AutonomousWarEngine.defend(autonomousWarState, rSwarm);
       modulesCalledThisBeat += 1;
-      
+
+      // ═══════════════════════════════════════════════════════════════════════════
+      // WAR-DEFENSE TEMPLE INTEGRATION — Systems 7, 9, 10
+      // This is where the temple becomes OPERATIONAL
+      // Geometry → Harmonics → Frequency → Velocity → Embodied Action
+      // ═══════════════════════════════════════════════════════════════════════════
+
+      tickWarDefenseTemple();
+      tickOffenseDefenseCoordination();
+      tickCounterforce();
+      tickMemoryTempleIoT();
+      tickEMWarfare();
+      tickFrequencyWarfare();
+      tickSecurityLockdown();
+      modulesCalledThisBeat += 7;
+
+      // ═══════════════════════════════════════════════════════════════════════════
+      // HEARTBEAT KERNEL REGULATOR — The THIRD Layer
+      // Backend (slow master) → REGULATOR → Frontend (fast coupled)
+      // Blood flow simulation: Heart → Regulator → Brain
+      // Neural merge core: Sphere radiating in/out with helix^10 protection
+      // ═══════════════════════════════════════════════════════════════════════════
+
+      tickHeartbeatKernelRegulator();
+      modulesCalledThisBeat += 1;
+
+      // ═══════════════════════════════════════════════════════════════════════════
+      // AUTONOMOUS INTERNAL TEAM — AI Auto-Working Inside
+      // Real-time monitoring, neuroscience analysis, PDF reports
+      // Heartbeat monitors, brain wave tracking, regulation quality
+      // This is the INTERNAL LAB watching the organism 24/7
+      // ═══════════════════════════════════════════════════════════════════════════
+
+      tickAutonomousInternalTeam();
+      modulesCalledThisBeat += 1;
+
       defenseLayerActive := true;
     };
     

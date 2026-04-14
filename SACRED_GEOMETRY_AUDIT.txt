@@ -1,0 +1,323 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║              COMPREHENSIVE SACRED GEOMETRY CONSTANT AUDIT                     ║
+║                    /home/runner/work/NOVA/NOVA/src/swarm_brain/main.mo        ║
+║                                                                               ║
+║  Task: Identify ALL arbitrary numerical constants to replace with sacred      ║
+║        geometry constants (phi, Fibonacci, Schumann harmonics, etc.)          ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+TOTAL FLOATING POINT CONSTANTS FOUND: 3294
+SIGNIFICANT CANDIDATES FOR REPLACEMENT: ~500+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+CATEGORY 1: COUPLING CONSTANTS
+───────────────────────────────────────────────────────────────────────────────
+
+ALREADY PHI-BASED (Good!):
+  Line 537:  let KURAMOTO_K        : Float = 0.618;  ✓ Already PHI_INVERSE (0.618...)
+  Line 12315: stable var inlineKuramotoGlobalK : Float = 0.618;  ✓ Already PHI_INVERSE
+
+NEEDS REPLACEMENT (Not phi-based):
+  Line 2215:  let KP : Float = 0.55;                      → Replace with PHI_INVERSE × 0.618 * 1.44 ≈ 0.618
+  Line 2216:  let KD : Float = 0.275;                     → Replace with PHI_INVERSE / 2.236 ≈ 0.276
+  Line 4101:  let K_ATT : Float = 0.02;                  → Replace with 1/50 or PHI⁻³ ≈ 0.236
+  Line 4102:  let K_REP : Float = 0.5;                   → Replace with PHI_INVERSE or golden ratio segment
+  Line 14843: let K = shell1Coupling;                     → Needs to be phi-derived
+
+═══════════════════════════════════════════════════════════════════════════════
+
+CATEGORY 2: HARDCODED THRESHOLDS
+───────────────────────────────────────────────────────────────────────────────
+
+ALREADY SENSIBLE:
+  Line 534:  let SOVEREIGN_FLOOR   : Float = 1.0;      ✓ Base reference
+  Line 536:  let W_CEIL            : Float = 2.0;      ✓ Natural scaling limit
+  Line 547:  let OMNIS_THRESHOLD   : Float = 0.98;     ✓ Near-unity synchrony (already optimal)
+
+NEEDS REPLACEMENT (Arbitrary thresholds):
+  Line 627:   stable var rSwarm         : Float = 0.88;  → Replace with PHI_INVERSE + 0.262 or 0.618 * 1.424
+  Line 638:   stable var preCorrectionRSwarm : Float = 0.88;  → Same as above
+  Line 1194:  stable var lumenWorldModelAccuracy : Float = 0.8;  → Replace with 4/5 = 0.8 (keep) or (PHI-1) ≈ 0.618
+  Line 1244:  stable var temporalPredictionAccuracy : Float = 0.8;  → PHI-derived equivalent
+  Line 1247:  stable var patternRecognitionStrength : Float = 0.8;  → PHI-derived equivalent
+  Line 1251:  stable var survivorshipBiasCorrection : Float = 0.8;  → PHI-derived equivalent
+  Line 1257:  stable var internalMarketEfficiency : Float = 0.8;  → PHI-derived equivalent
+  Line 1539:  let W_ALI : Float = 0.8;  → Replace with golden ratio segment
+  Line 1577:  let speedMod  = Float.min(2.0, 0.5 + 0.8 * norExcess);  → 0.8 → φ-equivalent
+  Line 1579:  var newVX = stableVelX[id] * 0.85 + ...  → 0.85 → PHI_INVERSE + 0.232 ≈ 0.85
+  Line 1580:  var newVZ = stableVelZ[id] * 0.85 + ...  → 0.85 → PHI-derived
+  Line 4192:  let emotionalDamping = 0.8 + ...  → 0.8 → PHI segment
+  Line 4362:  stableVelX[id] := stableVelX[id] * 0.9 + ...  → 0.9 → Fibonacci/phi-based
+  Line 4363:  stableVelZ[id] := stableVelZ[id] * 0.9 + ...  → 0.9 → Fibonacci/phi-based
+  Line 4383:  stableVelX[id] := stableVelX[id] * 0.8 + ...  → 0.8 → PHI-derived
+  Line 4384:  stableVelZ[id] := stableVelZ[id] * 0.8 + ...  → 0.8 → PHI-derived
+  Line 5554:  stable var infoDigestionEfficiency : Float = 0.8;  → PHI-derived
+  Line 5559:  stable var awakennessLevel : Float = 0.8;  → PHI-derived
+  Line 6182:  stableNeuroChem[...] * (0.99 + daMod * 0.01);  → 0.99 → Schumann harmonic fraction
+
+═══════════════════════════════════════════════════════════════════════════════
+
+CATEGORY 3: TIME/PHASE CONSTANTS
+───────────────────────────────────────────────────────────────────────────────
+
+NEEDS REPLACEMENT (Non-sacred constants):
+  Line 693:   Float.fromInt(k) * 0.5235987756  // k × (2π/12)
+              → Already 2π/12, but should be Fibonacci-spaced phases
+
+  Line 708:   stable var breathFrequencyHz = 0.15625 / 6.283185307;  // ω₀ / 2π
+              → 0.15625 is 1/6.4, should be replaced with Fibonacci ratio ≈ 0.157 or Schumann harmonic
+
+  Line 960:   stable var sacesiTargetIncrement : Float = 0.000001;
+              → Should be φ^(-n) for some n, currently arbitrary
+
+  Line 2489:  let TWO_PI : Float = 6.283185307;
+              → ✓ Good (standard π constant, but verify against sacred usage)
+
+  Line 3972:  Float.abs((1.0 + num) * Float.sin(3.14159265 * num / 2.0))
+              → π hardcoded, use constant
+
+  Line 5633:  let PI = 3.14159265358979323846;
+              → ✓ Use single PI constant throughout
+
+  Multiple:   3.14159265358979323846 hardcoded throughout (19,000+ lines)
+              → Should all reference ONE PI constant or relate to sacred geometry
+
+═══════════════════════════════════════════════════════════════════════════════
+
+CATEGORY 4: DECAY & STEP CONSTANTS (ALPHA PARAMETERS)
+───────────────────────────────────────────────────────────────────────────────
+
+ALREADY OPTIMAL:
+  Line 535:  let HELIX_ALPHA : Float = 0.01;  ✓ Already appears intentional (learning rate)
+
+NEEDS REPLACEMENT:
+  Line 1490:  let STDP_ALPHA : Float = 0.005;  → Replace with φ^(-5) ≈ 0.0472 or 1/200
+  Line 1491:  let DECAY      : Float = 0.001;  → Replace with φ^(-7) ≈ 0.00543 or 1/1000
+  Line 1502:  dw = STDP_ALPHA * ai * aj - DECAY * w;  → Both need replacement
+  Line 1794:  stableQChannels[qcBase] := 0.5;  // ALPHA: spatial  → 0.5 → PHI_INVERSE
+  Line 1875:  let delta = HELIX_ALPHA * si * sCollective * proximity;  ✓ Uses 0.01
+  Line 1891:  let delta = HELIX_ALPHA * si * sj * (1.0 - wi / W_CEIL) * proximity;  ✓ Uses 0.01
+  Line 2077:  let ALPHA : Float = 0.275;  // silver anchor rate  → Already 0.618/2.25 ≈ 0.275 (good)
+  Line 2143:  w - ALPHA * 0.001 * jasmineJ[3] * ...  → 0.001 → φ-derived
+
+═══════════════════════════════════════════════════════════════════════════════
+
+CATEGORY 5: FREQUENCY CONSTANTS (SCHUMANN HARMONICS)
+───────────────────────────────────────────────────────────────────────────────
+
+CURRENT VALUES (Non-Schumann):
+  Line 1044:  stable var hzKoreFrequency : Float = 500000.0;       // 500 kHz
+              → Should be: 7.83 Hz (Earth Schumann) × 63893 ≈ 500 kHz (already good!)
+
+  Line 1045:  stable var hzThalamicFrequency : Float = 60000000.0;  // 60 MHz
+              → Should relate to 7.83 × Fibonacci ratio
+
+  Line 1046:  stable var hzRASLocusFrequency : Float = 120000000.0; // 120 MHz
+              → Should be 7.83 × Fibonacci or harmonic
+
+  Line 1047:  stable var hzVaelFrequency : Float = 800000000.0;     // 800 MHz
+              → Should be 7.83 Hz × golden ratio scale
+
+These SHOULD be:
+  - Schumann Base: 7.83 Hz (Earth resonance)
+  - Harmonics: 14.3 Hz, 20.8 Hz, 26.4 Hz (Schumann harmonics)
+  - Fibonacci multipliers: 1, 1.618, 2.618, 4.236, 6.854, ...
+
+═══════════════════════════════════════════════════════════════════════════════
+
+CATEGORY 6: DRIVE & MOTIVATION INITIALIZATION
+───────────────────────────────────────────────────────────────────────────────
+
+CURRENT (Arbitrary 0.5):
+  Line 819:   stable var driveHunger : Float = 0.5;
+  Line 820:   stable var driveCuriosity : Float = 0.5;
+  Line 821:   stable var driveSafety : Float = 0.5;
+  Line 822:   stable var driveSocial : Float = 0.5;
+  Line 823:   stable var driveReproduction : Float = 0.5;
+
+REPLACEMENTS:
+  → All should initialize to PHI_INVERSE (0.618) or PHI_INVERSE / φ (0.382)
+  → Or use different Fibonacci ratios for each drive type:
+     - Hunger: 0.618 (PHI_INVERSE) - survival
+     - Curiosity: 0.618 - exploration
+     - Safety: 0.382 (PHI_INVERSE²) - protection
+     - Social: 0.618 - bonding
+     - Reproduction: 0.618 - continuation
+
+  Subsequent modifications (also need review):
+  Line 8212-8216: Reset to 0.5 → Change to appropriate phi-derived values
+  Line 8874:   driveReproduction -= 0.3 → Use PHI segment
+  Line 9954:   driveHunger += 0.0001 * (100 - ATP) → Replace 0.0001 with φ^(-n)
+  Line 9957:   driveCuriosity += 0.01 * predictionError → Replace 0.01 with 1/(100) or φ^(-5)
+  Line 9960:   driveSafety += 0.05 * jDrift → Replace 0.05 with 1/20 or φ^(-3)
+  Line 9963:   driveSocial += 0.02 * (1 - rSwarm) → Replace 0.02 with 1/50 or φ^(-4)
+  Line 9966:   driveReproduction += 0.01 * (rSwarm - 0.9) → Replace 0.01 with φ-segment
+
+═══════════════════════════════════════════════════════════════════════════════
+
+CATEGORY 7: NEUROCHEMICAL INITIALIZATION
+───────────────────────────────────────────────────────────────────────────────
+
+CURRENT (Arbitrary 0.5 or 1.0):
+  Line 802-1001: ALL neurochemical concentrations initialized to 1.0:
+    - dopamineLevel, serotoninLevel, norepinephrineConcent, etc.
+    → 18+ neurochemicals all = 1.0
+
+  Line 1005-1008: Aggregates initialized to 0.5:
+    - neurochemicalStressLevel: 0.5
+    - neurochemicalRewardLevel: 0.5
+    - neurochemicalArousalLevel: 0.5
+
+REPLACEMENTS:
+  → Initialize to PHI_INVERSE (0.618) or baseline Fibonacci ratios
+  → Different neurotransmitters could use different golden ratio segments
+  → Consider Schumann harmonic modulation for baseline states
+
+═══════════════════════════════════════════════════════════════════════════════
+
+CATEGORY 8: EMOTIONAL STATE INITIALIZATION
+───────────────────────────────────────────────────────────────────────────────
+
+CURRENT (All zeros):
+  Line 1015-1023: All emotional dimensions = 0.0:
+    - emotionalValence: 0.0
+    - emotionalArousal: 0.0
+    - emotionalDominance: 0.0
+    - emotionalApproach: 0.0
+    - emotionalSocial: 0.0
+    - emotionalTemporal: 0.0
+    - emotionalCertainty: 0.0
+    - emotionalEmbodiment: 0.0
+    - emotionalIntensity: 0.0
+    - emotionalComplexity: 0.0
+
+REPLACEMENTS:
+  → Could initialize to baseline phi-derived values
+  → Or use Fibonacci sequence for each dimension
+  → Consider using different Schumann harmonics for different emotional modes
+
+  Subsequent usage:
+  Line 4185:  let emotionalRadius = 40.0 + emotionalDominance * 10.0 - emotionalSocial * 5.0;
+              → 40.0 → Consider as 2πφ² ≈ 41.3 or Fibonacci constant
+              → 10.0, 5.0 → Consider as Fibonacci numbers
+
+  Line 4221:  let aggressionGain = 1.5 + emotionalRiskTolerance * 0.5 + ...
+              → 1.5 → Fibonacci (F5=5, F4=3, 5/3≈1.667)
+              → 0.5 → PHI_INVERSE
+
+  Line 4242:  let flightGain = 1.0 + emotionalArousal * 0.2 - emotionalValence * 0.1;
+              → 1.0 ✓, 0.2 → 1/5, 0.1 → 1/10
+
+═══════════════════════════════════════════════════════════════════════════════
+
+CATEGORY 9: MISCELLANEOUS SCALING FACTORS
+───────────────────────────────────────────────────────────────────────────────
+
+NEEDS REPLACEMENT:
+  Line 1431:  let dCor = (0.8 * jDrift - 0.20 * oxy * corExcess - 0.10 * (cor - corBase)) * dt;
+              → 0.8, 0.20, 0.10 → All need phi-derivation
+
+  Line 1577:  Float.min(2.0, 0.5 + 0.8 * norExcess);
+              → 2.0 ✓ (natural), 0.5 → PHI_INVERSE, 0.8 → φ-segment
+
+  Line 4362-4363, 4383-4384: Velocity damping factors
+              → 0.9, 0.8 → All need phi-based replacement
+
+  Line 20161 onwards: Hundreds of mathematical constants in physics functions
+              → Already contain proper PI and constants
+              → But some coefficients (0.5, 0.75, 0.4, etc.) could be phi-optimized
+
+═══════════════════════════════════════════════════════════════════════════════
+
+SUMMARY OF REPLACEMENTS BY PRIORITY
+═══════════════════════════════════════════════════════════════════════════════
+
+PRIORITY 1 (CRITICAL - Core to NOVA philosophy):
+  ✓ Line 537: KURAMOTO_K = 0.618 (already done)
+  • Line 2215-2216: KP, KD coupling constants
+  • Line 4101-4102: K_ATT, K_REP constants
+  • Line 627, 638: rSwarm initialization (0.88)
+  • Line 819-823: Drive initializations (0.5)
+  • Line 802-1001: All neurochemical concentrations (1.0)
+
+PRIORITY 2 (HIGH - Affects behavior):
+  • Line 1044-1047: Frequency constants (Hz)
+  • Line 1194, 1244, 1247, 1251, 1257: Accuracy thresholds (0.8)
+  • Line 1490-1491: STDP_ALPHA, DECAY
+  • Line 1794: Channel initialization (0.5)
+  • Lines with 0.9, 0.8 velocity/decay factors
+
+PRIORITY 3 (MEDIUM - Improves coherence):
+  • All 0.01 step sizes → φ^(-5) or similar
+  • All 0.001 decay rates → φ^(-7) or similar
+  • Emotional dimension initializations
+  • Time/phase constants throughout
+
+PRIORITY 4 (LOW - Optimization):
+  • Mathematical functions (physics) coefficients
+  • Scaling factors that are already reasonable
+  • Comments and documentation references
+
+═══════════════════════════════════════════════════════════════════════════════
+
+RECOMMENDED SACRED CONSTANTS TO USE:
+═══════════════════════════════════════════════════════════════════════════════
+
+Already defined (Line 11636-11637):
+  let PHI : Float = 1.618033988749895;
+  let PHI_INVERSE : Float = 0.618033988749895;
+
+Should add:
+  let PHI_SQUARED : Float = 2.618033988749895;        // φ²
+  let PHI_CUBED : Float = 4.236067977499789;          // φ³
+  let PHI_4TH : Float = 6.854101966246193;            // φ⁴
+  let PHI_NEG_2 : Float = 0.381966011250105;          // φ⁻²
+  let PHI_NEG_3 : Float = 0.236067977499789;          // φ⁻³
+  let PHI_NEG_4 : Float = 0.145898033873053;          // φ⁻⁴
+  let PHI_NEG_5 : Float = 0.090169943749474;          // φ⁻⁵
+  let PHI_NEG_6 : Float = 0.055728620451596;          // φ⁻⁶
+
+  // Fibonacci sequence (normalized)
+  let FIBONACCI_RATIOS : [Float] = [
+    0.0, 1.0, 1.0, 2.0, 3.0, 5.0, 8.0, 13.0, 21.0, 34.0, 55.0, 89.0, 144.0
+  ];
+
+  // Schumann Harmonics (Hz)
+  let SCHUMANN_BASE : Float = 7.83;
+  let SCHUMANN_H1 : Float = 7.83;      // 1× Base
+  let SCHUMANN_H2 : Float = 14.3;      // 2×
+  let SCHUMANN_H3 : Float = 20.8;      // 3×
+  let SCHUMANN_H4 : Float = 26.4;      // 4×
+  let SCHUMANN_H5 : Float = 32.0;      // 5×
+  let SCHUMANN_H6 : Float = 38.6;      // 6×
+
+═══════════════════════════════════════════════════════════════════════════════
+
+KEY FINDINGS:
+═══════════════════════════════════════════════════════════════════════════════
+
+1. PARTIALLY IMPLEMENTED: PHI values are used in some places (line 537, 11636-11637)
+   but not systematically throughout.
+
+2. ARBITRARY INITIALIZATION: Most drives, neurochemicals, and emotional states
+   initialize to arbitrary 0.0, 0.5, or 1.0 instead of phi-derived values.
+
+3. SCATTERED PHYSICS CONSTANTS: Hundreds of hardcoded π values (3.14159265...)
+   instead of using a single constant reference.
+
+4. MISSING SCHUMANN HARMONICS: Frequency constants (lines 1044-1047) don't align
+   with Schumann resonances or natural harmonic series.
+
+5. DECAY/STEP INCONSISTENCY: Learning rates and decay constants (0.001, 0.005,
+   0.01, etc.) are arbitrary, not phi-based.
+
+═══════════════════════════════════════════════════════════════════════════════
+
+ESTIMATED SCOPE OF WORK:
+  - Define ~15 sacred geometry constants (if not already in modules)
+  - Replace ~500+ constants across ~300+ lines
+  - Create constants.mo or enhance PhiResonanceArchitecture
+  - Systematically update all initializations and scalings
+  - Audit mathematical functions for hidden constants
+
