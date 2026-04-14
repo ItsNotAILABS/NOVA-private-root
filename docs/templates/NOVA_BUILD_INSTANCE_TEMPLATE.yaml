@@ -1,0 +1,38 @@
+build_instance:
+  build_id: "NOVA-INSTANCE-001"
+  build_name: "NOVA Runtime Instance"
+  owner: "Field Architect"
+  doctrine_pack_ref: "docs/templates/NOVA_DOCTRINE_PACK.yaml"
+  ring_map_ref: "docs/NOVA_FULL_SPHERE_ARCHITECTURE.md#3-ring-architecture-inside---outside"
+  twin_core_manifest:
+    core_a_enabled: true
+    core_b_enabled: false
+    gate_a_pass: false
+    gate_b_pass: false
+    gate_c_pass: false
+  parity:
+    phi_backend_file: "src/swarm_brain/modules/phi.mo"
+    phi_frontend_file: "src/frontend/src/substrate/phi.ts"
+    types_backend_file: "src/swarm_brain/modules/types.mo"
+    types_frontend_file: "src/frontend/src/substrate/types.ts"
+    parity_hash: "UNSET"
+  exposure_policy_ref: "docs/NOVA_ACCESS_TIERS_AND_READING_POLICY.md"
+  mode:
+    runtime_mode: "core-a-only"
+    workforce_mode: "observe-only"
+    projection_mode: "internal"
+  required_gates:
+    - deterministic_beat
+    - bounded_coherence_drift
+    - law_before_actuation
+    - deterministic_arbitration
+    - no_drop_reinjection
+    - replay_reconstructable
+  artifacts:
+    output_folder: "artifacts/NOVA-INSTANCE-001"
+    replay_bundle_required: true
+    law_report_required: true
+    exposure_audit_required: true
+  notes:
+    - "Set core_b_enabled only after Gate A passes."
+    - "Set projection_mode to public only after Gate C passes."
