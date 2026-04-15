@@ -44,6 +44,12 @@ import { InternalAnalysisLab } from './InternalAnalysisLab';
 import { MemoryTempleLab } from './MemoryTempleLab';
 import { ConstantFeedbackLab } from './ConstantFeedbackLab';
 import {
+  type MemoryTempleNavigationState,
+  initMemoryTempleNavigation,
+  tickMemoryTempleNavigation,
+  navigateMemoryTempleToIndex,
+} from './memoryTempleNavigation';
+import {
   OrganismState, organismInit, organismTick, getOrganismStatus,
   EmergenceLabData, NeuroCogLabData, MathPhysicsLabData,
 } from '../../math/organism-wiring';
@@ -288,6 +294,10 @@ type MemoryTempleViewState = {
   couplingHistory : number[];
 };
 
+type MemoryTempleNavigationViewState = MemoryTempleNavigationState & {
+  backendConnected : boolean;
+};
+
 type ConstantFeedbackViewState = {
   backendConnected : boolean;
   beat : number;
@@ -377,6 +387,11 @@ const defaultMemoryTempleState = (): MemoryTempleViewState => ({
   continuityHistory: [],
   resonanceHistory: [],
   couplingHistory: [],
+});
+
+const defaultMemoryTempleNavigationState = (): MemoryTempleNavigationViewState => ({
+  ...initMemoryTempleNavigation(),
+  backendConnected: false,
 });
 
 const defaultConstantFeedbackState = (): ConstantFeedbackViewState => ({
@@ -698,11 +713,12 @@ export function OroCommandCenter({ organism }: Props) {
   const [selectedAgent, setSelectedAgent] = useState<string | null>('oro-prime');
   const [userInput, setUserInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'command' | 'emergence' | 'physics' | 'neurocog' | 'grpe' | 'analysis' | 'memory' | 'cognition'>('command');
+  const [activeTab, setActiveTab] = useState<'command' | 'emergence' | 'physics' | 'neurocog' | 'grpe' | 'analysis' | 'memory' | 'memory-nav' | 'cognition'>('command');
   const [grpeState, setGrpeState] = useState<GRPEViewState>(defaultGRPEState());
   const [cardioNeuralState, setCardioNeuralState] = useState<CardioNeuralViewState>(defaultCardioNeuralState());
   const [analystState, setAnalystState] = useState<AnalystViewState>(defaultAnalystState());
   const [memoryTempleState, setMemoryTempleState] = useState<MemoryTempleViewState>(defaultMemoryTempleState());
+  const [memoryTempleNavigationState, setMemoryTempleNavigationState] = useState<MemoryTempleNavigationViewState>(defaultMemoryTempleNavigationState());
   const [constantFeedbackState, setConstantFeedbackState] = useState<ConstantFeedbackViewState>(defaultConstantFeedbackState());
   
   // ═══ UNIFIED ORGANISM STATE — The living wiring ═══
@@ -824,6 +840,23 @@ export function OroCommandCenter({ organism }: Props) {
         couplingHistory: data.couplingHistory,
       };
       setMemoryTempleState(next);
+      setMemoryTempleNavigationState(prev => {
+        const navCore = tickMemoryTempleNavigation(prev, {
+          beat: Number(data.beat),
+          continuityWeave: data.continuityWeave,
+          resonanceField: data.resonanceField,
+          doctrineCompliance: Math.max(0, Math.min(1.5, (rSwarm + continuityScore + trustScore) / 3)),
+          continuityHistory: data.continuityHistory,
+          resonanceHistory: data.resonanceHistory,
+          couplingHistory: data.couplingHistory,
+          recallReadiness: data.recallReadiness,
+          memoryRetention: data.memoryRetention,
+          directionX: data.directionX,
+          directionY: data.directionY,
+          directionZ: data.directionZ,
+        });
+        return { ...navCore, backendConnected: true };
+      });
     };
 
     void pull();
@@ -1180,6 +1213,7 @@ export function OroCommandCenter({ organism }: Props) {
             { key: 'physics' as const, label: 'Math Physics' },
             { key: 'neurocog' as const, label: 'NeuroCog' },
             { key: 'memory' as const, label: 'Memory Temple' },
+            { key: 'memory-nav' as const, label: 'Memory Navigation' },
             { key: 'cognition' as const, label: 'Constant Feedback' },
             { key: 'grpe' as const, label: 'GRPE Intelligence' },
             { key: 'analysis' as const, label: 'Internal Analysis' },
@@ -1345,6 +1379,23 @@ export function OroCommandCenter({ organism }: Props) {
             rSwarm={rSwarm}
             jDrift={jDrift}
             memoryTemple={memoryTempleState}
+            navigation={memoryTempleNavigationState}
+          />
+        </div>
+      ) : activeTab === 'memory-nav' ? (
+        <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
+          <MemoryTempleLab
+            beat={beat}
+            rSwarm={rSwarm}
+            jDrift={jDrift}
+            memoryTemple={memoryTempleState}
+            navigation={memoryTempleNavigationState}
+            onNavigateToIndex={(idx) => {
+              setMemoryTempleNavigationState(prev => ({
+                ...navigateMemoryTempleToIndex(prev, idx),
+                backendConnected: prev.backendConnected,
+              }));
+            }}
           />
         </div>
       ) : activeTab === 'cognition' ? (

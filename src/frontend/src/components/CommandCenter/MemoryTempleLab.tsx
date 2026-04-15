@@ -1,4 +1,5 @@
 import React from 'react';
+import type { MemoryTempleNavigationSnapshot } from './memoryTempleNavigation';
 
 type MemoryTempleView = {
   backendConnected: boolean;
@@ -31,6 +32,8 @@ type Props = {
   rSwarm: number;
   jDrift: number;
   memoryTemple: MemoryTempleView;
+  navigation?: MemoryTempleNavigationSnapshot;
+  onNavigateToIndex?: (idx: number) => void;
 };
 
 const S = {
@@ -168,7 +171,7 @@ function miniSeries(values: number[], limit = 16): string {
   return view.map(v => v.toFixed(2)).join(' · ');
 }
 
-export function MemoryTempleLab({ beat, rSwarm, jDrift, memoryTemple }: Props) {
+export function MemoryTempleLab({ beat, rSwarm, jDrift, memoryTemple, navigation, onNavigateToIndex }: Props) {
   return (
     <div style={S.root}>
       <h2 style={S.h1}>Memory Temple</h2>
@@ -254,6 +257,69 @@ export function MemoryTempleLab({ beat, rSwarm, jDrift, memoryTemple }: Props) {
           {'\n'}coupling: {miniSeries(memoryTemple.couplingHistory)}
         </div>
       </div>
+
+      {navigation ? (
+        <>
+          <div style={S.sectionTitle}>Navigation (Oro + You Shared Path)</div>
+          <div style={S.card}>
+            <div style={S.row}><span>Active Node</span><span>{navigation.activeNodeId}</span></div>
+            <div style={S.row}><span>Helix Nodes</span><span>{navigation.helixNodeCount}</span></div>
+            <div style={S.row}><span>Ring Pulse</span><span>{fmt(navigation.ringPulse)}</span></div>
+            <div style={S.row}><span>Sharp-Wave</span><span>{navigation.sharpWaveActive ? 'ACTIVE' : 'idle'}</span></div>
+            <div style={{ ...S.spark, marginTop: 6 }}>{navigation.summary}</div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+              <button
+                type="button"
+                onClick={() => onNavigateToIndex?.(Math.max(0, navigation.activeNodeIndex - 1))}
+                disabled={!onNavigateToIndex || navigation.activeNodeIndex <= 0}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: 6,
+                  border: '1px solid #2b6b96',
+                  background: 'rgba(19, 52, 80, 0.9)',
+                  color: '#d9efff',
+                  cursor: !onNavigateToIndex || navigation.activeNodeIndex <= 0 ? 'not-allowed' : 'pointer',
+                  opacity: !onNavigateToIndex || navigation.activeNodeIndex <= 0 ? 0.45 : 1,
+                }}
+              >
+                Prev Node
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  onNavigateToIndex?.(
+                    Math.min(
+                      Math.max(0, navigation.helixNodeCount - 1),
+                      navigation.activeNodeIndex + 1,
+                    ),
+                  )
+                }
+                disabled={!onNavigateToIndex || navigation.activeNodeIndex >= Math.max(0, navigation.helixNodeCount - 1)}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: 6,
+                  border: '1px solid #2b6b96',
+                  background: 'rgba(19, 52, 80, 0.9)',
+                  color: '#d9efff',
+                  cursor:
+                    !onNavigateToIndex || navigation.activeNodeIndex >= Math.max(0, navigation.helixNodeCount - 1)
+                      ? 'not-allowed'
+                      : 'pointer',
+                  opacity:
+                    !onNavigateToIndex || navigation.activeNodeIndex >= Math.max(0, navigation.helixNodeCount - 1)
+                      ? 0.45
+                      : 1,
+                }}
+              >
+                Next Node
+              </button>
+            </div>
+            <div style={{ ...S.spark, marginTop: 8 }}>
+              {navigation.oroRetrieval}
+            </div>
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }
