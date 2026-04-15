@@ -60,6 +60,13 @@
  - `docs/templates/NOVA_BUILD_INSTANCE_TEMPLATE.yaml`
  - `docs/templates/NOVA_TRANSFER_PROTOCOL.yaml`
 - `docs/templates/NOVA_CONSTANT_FEEDBACK_FABRIC.yaml`
+- `docs/templates/NOVA_ORGANISM_SOVEREIGN_SCHEMA.yaml`
+- `docs/templates/NOVA_RECITAL_PLUS_ONE_SEQUENCE.yaml`
+- `docs/templates/NOVA_LIVING_DOCUMENT_PACKET.yaml`
+- `docs/templates/NOVA_RESONANCE_READER.yaml`
+- `docs/templates/NOVA_REGISTER_TRANSLATION_CONTRACT.yaml`
+- `docs/templates/NOVA_MEMORY_PALACE_COORDINATE_SCHEMA.yaml`
+- `docs/templates/NOVA_MACRO_MICRO_SPHERICAL_COUPLING.yaml`
 
  ---
 
@@ -71,9 +78,10 @@
  4. Access Tiers and Reading Policy
  5. Resonance Artifact System
  6. Consciousness Core Equation Canon
- 7. Templates and schema pack
- 8. Internal team operating artifacts
- 9. External product projection artifacts
+ 7. Organism Sovereign + Living Document Intelligence canon
+ 8. Templates and schema pack
+ 9. Internal team operating artifacts
+ 10. External product projection artifacts
 
  ---
 
@@ -82,6 +90,8 @@
 - Family: `docs/family-library/README_FAMILY_LIBRARY.md`
 - Consciousness Core: `docs/consciousness-core/README_CONSCIOUSNESS_CORE.md`
 - Consciousness Core Constant Feedback Canon: `docs/consciousness-core/NOVA_CONSTANT_FEEDBACK_FABRIC_CANON.md`
+- Consciousness Core Organism Sovereign: `docs/consciousness-core/ORGANISM_SOVEREIGN.md`
+- Consciousness Core Living Document Intelligence Canon: `docs/consciousness-core/NOVA_LIVING_DOCUMENT_INTELLIGENCE_CANON.md`
 - Internal AI Teams: `docs/internal-ai-teams/README_INTERNAL_AI_TEAMS.md`
 - External Products: `docs/external-products/README_EXTERNAL_PRODUCTS.md`
 

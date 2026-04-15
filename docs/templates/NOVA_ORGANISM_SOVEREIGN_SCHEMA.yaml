@@ -1,0 +1,129 @@
+organism_sovereign_schema:
+  version: "1.0"
+  schema_id: "NOVA-ORG-SOVEREIGN-SCHEMA"
+  classification: "SOVEREIGN_PRIVATE"
+  owner: "doctrine-authority"
+  canonical_doc: "docs/consciousness-core/ORGANISM_SOVEREIGN.md"
+  description: "Executable contract for the living social document and its runtime obligations."
+
+  foundational_law:
+    id: "LAW-RECITAL-PLUS-ONE"
+    statement: "Every emitted state is recital(prior_validated_state) + one_lawful_expansion."
+    recurrence:
+      phi_0: 1.0
+      phi_1: 1.6180339887498948
+      rule: "phi_n = phi_(n-1) + phi_(n-2)"
+    required_enforcement:
+      - "lineage_parent_reference_required"
+      - "new_expansion_delta_required"
+      - "gate_evidence_required"
+
+  register_contract:
+    required_registers:
+      - founder
+      - builder
+      - organism
+      - external
+    rule: "single_source_multi_projection"
+    required_fields_per_register:
+      - summary
+      - intent
+      - constraints
+      - evidence_refs
+      - exposure_class
+
+  always_on_reading:
+    modes_required:
+      - semantic_read
+      - resonance_read
+    semantic_read:
+      required_inputs:
+        - "law_bindings"
+        - "model_bindings"
+        - "gate_bindings"
+    resonance_read:
+      required_inputs:
+        - "field_coherence"
+        - "heartbeat_cadence"
+        - "doctrine_fit"
+        - "risk_containment"
+    failure_policy:
+      missing_semantic_read: "degrade_to_observe_only"
+      missing_resonance_read: "degrade_to_observe_only"
+      missing_both: "halt_autonomous_write"
+
+  autonomous_behaviors:
+    required:
+      - self_writing
+      - self_chaining
+      - self_mapping
+      - self_versioning
+      - self_translation
+      - self_reinjection
+    self_writing:
+      triggers:
+        - "cadence_trigger"
+        - "pressure_trigger"
+        - "risk_trigger"
+    self_chaining:
+      required_fields:
+        - parent_hash
+        - chain_hash
+        - beat
+        - recital_index
+    self_mapping:
+      required_fields:
+        - coordinate_theta
+        - coordinate_phi
+        - ring
+        - memory_class
+    self_reinjection:
+      required_targets:
+        - "runtime_state"
+        - "memory_continuity"
+        - "cognition_feedback"
+        - "governance_state"
+
+  gate_bindings:
+    gate_a_runtime:
+      required:
+        - "deterministic_beat"
+        - "law_before_actuation"
+        - "replay_reconstructable"
+    gate_b_workforce:
+      required:
+        - "proposal_contract_valid"
+        - "rollback_ready"
+    gate_c_projection:
+      required:
+        - "zero_exposure_pass"
+        - "safe_projection_shape"
+
+  transfer_bindings:
+    required_protocol: "docs/templates/NOVA_TRANSFER_PROTOCOL.yaml"
+    mandatory_paths:
+      - "T23"
+      - "T34"
+      - "T43"
+      - "T35"
+      - "T53"
+      - "T67"
+      - "T70"
+
+  durability_requirements:
+    single_read_value_fields:
+      - "law_ids"
+      - "model_ids"
+      - "gate_ids"
+      - "lineage_refs"
+      - "memory_coordinates"
+      - "replay_refs"
+    minimum_retention_class: "constitution_immutable"
+    replay_required: true
+
+  validation_rules:
+    - "all four registers must exist on every emitted living document"
+    - "every emitted document must include lineage and replay references"
+    - "external register must pass exposure policy"
+    - "symbolic clauses must map to explicit machine bindings"
+    - "autonomous write is invalid when read modes are incomplete"

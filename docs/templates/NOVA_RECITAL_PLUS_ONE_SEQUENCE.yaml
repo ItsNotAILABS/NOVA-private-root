@@ -1,0 +1,76 @@
+recital_plus_one_sequence:
+  version: "1.0"
+  classification: "SOVEREIGN_PRIVATE"
+  sequence_id: "RECITAL-PLUS-ONE-CANON"
+  purpose: "Governed generative sequence for laws, models, and document emissions."
+
+  constants:
+    phi: 1.6180339887498948
+    fibonacci_seed:
+      - 1
+      - 1
+
+  recurrence:
+    symbolic: "S_n = S_(n-1) + S_(n-2)"
+    constraints:
+      - "n >= 2"
+      - "S_(n-1) and S_(n-2) must be governance-accepted states"
+      - "child state must retain parent references"
+
+  initialization:
+    s0:
+      label: "genesis_unity"
+      value: 1
+      required_artifact: "GENESIS"
+    s1:
+      label: "first_self_similarity"
+      value: 1.6180339887498948
+      required_artifact: "FIRST-RECITAL"
+
+  generation_contract:
+    input_required:
+      - parent_state_hash
+      - grandparent_state_hash
+      - current_beat
+      - doctrine_fingerprint
+      - gate_context
+    output_required:
+      - child_state_hash
+      - sequence_index
+      - chain_link
+      - replay_pointer
+      - register_bundle_id
+
+  derivation_domains:
+    - id: "DOM-LAW"
+      description: "Law weights and continuity lineage"
+    - id: "DOM-MODEL"
+      description: "Model-family expansions and schema updates"
+    - id: "DOM-DOCUMENT"
+      description: "Living social-document emissions"
+    - id: "DOM-CADENCE"
+      description: "Beat, calendar, and harmonic cadence updates"
+    - id: "DOM-MEMORY"
+      description: "Memory palace mapping and retention shaping"
+
+  validation_rules:
+    - "No generated state may omit parent and grandparent linkage"
+    - "No generated state may bypass gate evidence attachment"
+    - "Every generated state must include replay pointer"
+    - "External projection state must derive from internal register source"
+
+  forbidden_patterns:
+    - id: "F-RPO-001"
+      condition: "independent_constant_injection_without_lineage"
+      reason: "Breaks recital sequence sovereignty"
+    - id: "F-RPO-002"
+      condition: "parallel_law_mutation_without_recital"
+      reason: "Collapses generative ordering"
+
+  evidence_requirements:
+    required:
+      - sequence_trace
+      - parent_child_hash_chain
+      - gate_pass_record
+      - replay_bundle_ref
+

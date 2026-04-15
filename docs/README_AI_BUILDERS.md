@@ -33,19 +33,28 @@ No collapse allowed between:
 4. `docs/NOVA_ACCESS_TIERS_AND_READING_POLICY.md`
 5. `docs/NOVA_REUSE_KIT.md`
 6. `docs/NOVA_RESONANCE_ARTIFACT_SYSTEM.md`
-7. `docs/consciousness-core/NOVA_CONSCIOUSNESS_EQUATION_CANON.md`
-8. `docs/templates/NOVA_EQUATION_REGISTRY.yaml`
-9. `docs/templates/NOVA_SPHERICAL_RING_SCHEMA.yaml`
-10. `docs/templates/NOVA_RING_TRANSFER_GRAPH.yaml`
-11. `docs/templates/NOVA_GATES_SCORECARD.yaml`
-12. `docs/templates/NOVA_OPERATING_ORDERS.yaml`
-13. `docs/templates/NOVA_RING_FLOW.yaml`
-14. `docs/templates/NOVA_MEMORY_RESIDENCY.yaml`
-15. `docs/templates/NOVA_PHRASE_EXPANSION.yaml`
-16. `docs/templates/NOVA_DOCTRINE_PACK.yaml`
-17. `docs/templates/NOVA_LAW_REGISTRY.yaml`
-18. `docs/templates/NOVA_TRANSFER_PROTOCOL.yaml`
-19. `docs/templates/NOVA_BUILD_INSTANCE_TEMPLATE.yaml`
+7. `docs/consciousness-core/ORGANISM_SOVEREIGN.md`
+8. `docs/consciousness-core/NOVA_LIVING_DOCUMENT_INTELLIGENCE_CANON.md`
+9. `docs/templates/NOVA_ORGANISM_SOVEREIGN_SCHEMA.yaml`
+10. `docs/templates/NOVA_RECITAL_PLUS_ONE_SEQUENCE.yaml`
+11. `docs/templates/NOVA_LIVING_DOCUMENT_PACKET.yaml`
+12. `docs/templates/NOVA_RESONANCE_READER.yaml`
+13. `docs/templates/NOVA_REGISTER_TRANSLATION_CONTRACT.yaml`
+14. `docs/templates/NOVA_MEMORY_PALACE_COORDINATE_SCHEMA.yaml`
+15. `docs/templates/NOVA_MACRO_MICRO_SPHERICAL_COUPLING.yaml`
+16. `docs/consciousness-core/NOVA_CONSCIOUSNESS_EQUATION_CANON.md`
+17. `docs/templates/NOVA_EQUATION_REGISTRY.yaml`
+18. `docs/templates/NOVA_SPHERICAL_RING_SCHEMA.yaml`
+19. `docs/templates/NOVA_RING_TRANSFER_GRAPH.yaml`
+20. `docs/templates/NOVA_GATES_SCORECARD.yaml`
+21. `docs/templates/NOVA_OPERATING_ORDERS.yaml`
+22. `docs/templates/NOVA_RING_FLOW.yaml`
+23. `docs/templates/NOVA_MEMORY_RESIDENCY.yaml`
+24. `docs/templates/NOVA_PHRASE_EXPANSION.yaml`
+25. `docs/templates/NOVA_DOCTRINE_PACK.yaml`
+26. `docs/templates/NOVA_LAW_REGISTRY.yaml`
+27. `docs/templates/NOVA_TRANSFER_PROTOCOL.yaml`
+28. `docs/templates/NOVA_BUILD_INSTANCE_TEMPLATE.yaml`
 
 Do not start implementation until these are loaded and aligned.
 

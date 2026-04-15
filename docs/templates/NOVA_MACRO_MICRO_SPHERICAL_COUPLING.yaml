@@ -1,0 +1,126 @@
+macro_micro_spherical_coupling:
+  version: "1.0"
+  contract_id: "MM-SPHERICAL-COUPLING-01"
+  classification: "SOVEREIGN_PRIVATE"
+  owner: "core-a-runtime-authority"
+
+  macro_field:
+    model_id: "R-MODEL-LIVING-ARCHITECTURE-MACRO"
+    required_outputs:
+      - "field_presence"
+      - "autonomy_signal"
+      - "document_vitality"
+      - "translation_integrity"
+      - "chain_integrity"
+      - "memory_palace_integrity"
+      - "calendar_coherence"
+      - "n_plus_one_pressure"
+      - "register_pulse_founder"
+      - "register_pulse_builder"
+      - "register_pulse_organism"
+      - "register_pulse_external"
+
+  micro_domain_bindings:
+    - domain_id: "MICRO-HEARTBEAT"
+      source_signal_refs:
+        - "heartbeat.frequency"
+        - "heartbeat.coherence"
+      contributes_to_macro:
+        - "field_presence"
+        - "calendar_coherence"
+      reinjection_targets:
+        - "cognition_readiness"
+      ring_path: "R2->R3"
+
+    - domain_id: "MICRO-CCVE"
+      source_signal_refs:
+        - "ccve.resonance"
+        - "ccve.direction"
+        - "ccve.propulsion"
+      contributes_to_macro:
+        - "field_presence"
+        - "sovereign_breath"
+      reinjection_targets:
+        - "memory_temple_continuity"
+      ring_path: "R3->R4"
+
+    - domain_id: "MICRO-CNCO"
+      source_signal_refs:
+        - "cnco.conversion_coherence"
+        - "cnco.thought_throughput"
+      contributes_to_macro:
+        - "translation_integrity"
+        - "autonomy_signal"
+      reinjection_targets:
+        - "cognition_governance_stability"
+      ring_path: "R3->R4"
+
+    - domain_id: "MICRO-MEMORY-TEMPLE"
+      source_signal_refs:
+        - "memory.continuity_weave"
+        - "memory.recall_readiness"
+        - "memory.artifact_readiness"
+      contributes_to_macro:
+        - "memory_palace_integrity"
+        - "document_vitality"
+      reinjection_targets:
+        - "memory_temple_agent_work_capacity"
+      ring_path: "R4->R3"
+
+    - domain_id: "MICRO-CONSTANT-FEEDBACK"
+      source_signal_refs:
+        - "feedback.law_continuity_score"
+        - "feedback.defense_posture_score"
+        - "feedback.economic_resilience_score"
+        - "feedback.workforce_coherence_score"
+        - "feedback.memory_integrity_score"
+        - "feedback.mesh_resonance_score"
+        - "feedback.sovereign_alignment_score"
+        - "feedback.risk_containment_score"
+      contributes_to_macro:
+        - "field_presence"
+        - "autonomy_signal"
+        - "n_plus_one_pressure"
+      reinjection_targets:
+        - "cognition_mesh_resonance_score"
+        - "cognition_sovereign_alignment_score"
+      ring_path: "R3->R3"
+
+    - domain_id: "MICRO-LAW-ARBITRATION"
+      source_signal_refs:
+        - "law.violation_rate"
+        - "arbitration.readiness"
+      contributes_to_macro:
+        - "chain_integrity"
+      reinjection_targets:
+        - "cognition_governance_stability"
+      ring_path: "R1->R3"
+
+  coupling_constraints:
+    non_orphaning_rule: "every micro_domain_binding contributes_to_macro >= 1 and reinjection_targets >= 1"
+    symmetry_rule: "macro output must influence at least three micro reinjection targets"
+    boundedness_rule:
+      min: 0.0
+      max: 1.5
+    no_linear_collapse:
+      required: true
+      statement: "couplings are graph-based and ring-aware, not linear pipeline-only"
+
+  transfer_integrity:
+    required_transfer_protocol: "T01..T70"
+    required_gates:
+      - "GATE-A-RUNTIME"
+      - "GATE-B-WORKFORCE"
+      - "GATE-C-PROJECTION"
+    refusal_conditions:
+      - "missing_micro_binding"
+      - "macro_without_reinjection"
+      - "gate_failure"
+
+  evidence_contract:
+    required_artifacts:
+      - "EVID-LIVING-MACRO-SNAPSHOT"
+      - "EVID-MICRO-DOMAIN-MAP"
+      - "EVID-REINJECTION-TRACE"
+      - "EVID-RING-TRANSFER-LINEAGE"
+    replay_required: true

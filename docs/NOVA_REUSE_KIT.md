@@ -30,6 +30,15 @@ Every build MUST include these files:
 20. `docs/templates/NOVA_MEMORY_RESIDENCY.yaml` (no-drop memory residency and replay classes)
 21. `docs/templates/NOVA_EQUATION_REGISTRY.yaml` (machine equation canon with law/gate bindings)
 22. `docs/templates/NOVA_PHRASE_EXPANSION.yaml` (resonance phrase-to-execution expansion map)
+23. `docs/consciousness-core/ORGANISM_SOVEREIGN.md` (living social document constitution)
+24. `docs/consciousness-core/NOVA_LIVING_DOCUMENT_INTELLIGENCE_CANON.md` (living-document architecture canon)
+25. `docs/templates/NOVA_ORGANISM_SOVEREIGN_SCHEMA.yaml` (executable living social document schema)
+26. `docs/templates/NOVA_RECITAL_PLUS_ONE_SEQUENCE.yaml` (recital-plus-one generative sequence contract)
+27. `docs/templates/NOVA_LIVING_DOCUMENT_PACKET.yaml` (runtime packet for living document emissions)
+28. `docs/templates/NOVA_RESONANCE_READER.yaml` (always-on semantic/resonance reading contract)
+29. `docs/templates/NOVA_REGISTER_TRANSLATION_CONTRACT.yaml` (source-to-register translation gates)
+30. `docs/templates/NOVA_MEMORY_PALACE_COORDINATE_SCHEMA.yaml` (memory-palace coordinate and lineage schema)
+31. `docs/templates/NOVA_MACRO_MICRO_SPHERICAL_COUPLING.yaml` (macro field to micro domain coupling contract)
 
 ---
 
@@ -219,6 +228,8 @@ For long-horizon reuse (family, future builders, multi-build programs), treat th
 - `docs/INDEX.md`
 - `docs/consciousness-core/README_CONSCIOUSNESS_CORE.md`
 - `docs/consciousness-core/NOVA_CONSCIOUSNESS_EQUATION_CANON.md`
+- `docs/consciousness-core/ORGANISM_SOVEREIGN.md`
+- `docs/consciousness-core/NOVA_LIVING_DOCUMENT_INTELLIGENCE_CANON.md`
 - `docs/internal-ai-teams/README_INTERNAL_AI_TEAMS.md`
 - `docs/internal-ai-teams/NOVA_INTERNAL_WORKFORCE_ORCHESTRATION.md`
 - `docs/external-products/README_EXTERNAL_PRODUCTS.md`
@@ -237,5 +248,12 @@ For long-horizon reuse (family, future builders, multi-build programs), treat th
 - `docs/templates/NOVA_MEMORY_RESIDENCY.yaml`
 - `docs/templates/NOVA_EQUATION_REGISTRY.yaml`
 - `docs/templates/NOVA_PHRASE_EXPANSION.yaml`
+- `docs/templates/NOVA_ORGANISM_SOVEREIGN_SCHEMA.yaml`
+- `docs/templates/NOVA_RECITAL_PLUS_ONE_SEQUENCE.yaml`
+- `docs/templates/NOVA_LIVING_DOCUMENT_PACKET.yaml`
+- `docs/templates/NOVA_RESONANCE_READER.yaml`
+- `docs/templates/NOVA_REGISTER_TRANSLATION_CONTRACT.yaml`
+- `docs/templates/NOVA_MEMORY_PALACE_COORDINATE_SCHEMA.yaml`
+- `docs/templates/NOVA_MACRO_MICRO_SPHERICAL_COUPLING.yaml`
 
 This pack is designed to carry high-density architectural meaning while remaining operationally executable.

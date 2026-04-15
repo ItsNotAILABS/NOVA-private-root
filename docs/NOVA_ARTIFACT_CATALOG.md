@@ -65,6 +65,33 @@ An artifact is considered high-value only if it satisfies all:
 4. `templates/NOVA_DOCTRINE_PACK.yaml`
    - Portable package of doctrine/law/model references per build.
 
+5. `consciousness-core/ORGANISM_SOVEREIGN.md`
+   - Living social document body contract with four registers and recital-plus-one lineage.
+
+6. `consciousness-core/NOVA_LIVING_DOCUMENT_INTELLIGENCE_CANON.md`
+   - Canonical architecture for always-on semantic/resonance reading and autonomous document intelligence.
+
+7. `templates/NOVA_ORGANISM_SOVEREIGN_SCHEMA.yaml`
+   - Executable schema for living social-document governance.
+
+8. `templates/NOVA_RECITAL_PLUS_ONE_SEQUENCE.yaml`
+   - Machine-governed recurrence contract for generative lineage.
+
+9. `templates/NOVA_LIVING_DOCUMENT_PACKET.yaml`
+   - Runtime packet contract for emitted living artifacts.
+
+10. `templates/NOVA_RESONANCE_READER.yaml`
+    - Always-on dual-read contract (semantic + resonance) with reinjection policy.
+
+11. `templates/NOVA_REGISTER_TRANSLATION_CONTRACT.yaml`
+    - Controlled translation contract from source meaning to four registers.
+
+12. `templates/NOVA_MEMORY_PALACE_COORDINATE_SCHEMA.yaml`
+    - Coordinate and retention contract for living memory-palace mapping.
+
+13. `templates/NOVA_MACRO_MICRO_SPHERICAL_COUPLING.yaml`
+    - Macro-to-micro coupling map ensuring no micro orphaning.
+
 ---
 
 ## D) Build/operations artifacts (industrialization)
@@ -122,17 +149,21 @@ Without evidence artifacts, constitutional claims are unverified.
    - Sovereign-private inner resonance library contract.
 3. `docs/consciousness-core/NOVA_CONSCIOUSNESS_EQUATION_CANON.md`
    - Human-readable equation canon paired with machine equation registry.
-4. `docs/internal-ai-teams/README_INTERNAL_AI_TEAMS.md`
+4. `docs/consciousness-core/ORGANISM_SOVEREIGN.md`
+   - Living social document and constitutional body contract.
+5. `docs/consciousness-core/NOVA_LIVING_DOCUMENT_INTELLIGENCE_CANON.md`
+   - Living-document intelligence architecture and plane integration canon.
+6. `docs/internal-ai-teams/README_INTERNAL_AI_TEAMS.md`
    - Internal workforce operating entrypoint.
-5. `docs/internal-ai-teams/NOVA_INTERNAL_WORKFORCE_ORCHESTRATION.md`
+7. `docs/internal-ai-teams/NOVA_INTERNAL_WORKFORCE_ORCHESTRATION.md`
    - Enterprise AI workforce packet and loop contract.
-6. `docs/external-products/README_EXTERNAL_PRODUCTS.md`
+8. `docs/external-products/README_EXTERNAL_PRODUCTS.md`
    - Projection-domain entrypoint.
-7. `docs/external-products/NOVA_EXTERNAL_PROJECTION_CONTRACT.md`
+9. `docs/external-products/NOVA_EXTERNAL_PROJECTION_CONTRACT.md`
    - Zero-exposure external projection contract.
-8. `docs/model-directory/README.md`
+10. `docs/model-directory/README.md`
    - Permanent model-family directory governance.
-9. `docs/model-directory/ENTERPRISE_MODEL_FAMILIES.yaml`
+11. `docs/model-directory/ENTERPRISE_MODEL_FAMILIES.yaml`
    - Instantiated 12-family enterprise model registry.
 
 ---
@@ -153,6 +184,15 @@ If you need a compressed pack for a new team or family handoff, include:
 10. `templates/NOVA_EQUATION_REGISTRY.yaml`
 11. `templates/NOVA_RING_TRANSFER_GRAPH.yaml`
 12. `templates/NOVA_MEMORY_RESIDENCY.yaml`
+13. `consciousness-core/ORGANISM_SOVEREIGN.md`
+14. `consciousness-core/NOVA_LIVING_DOCUMENT_INTELLIGENCE_CANON.md`
+15. `templates/NOVA_ORGANISM_SOVEREIGN_SCHEMA.yaml`
+16. `templates/NOVA_RECITAL_PLUS_ONE_SEQUENCE.yaml`
+17. `templates/NOVA_LIVING_DOCUMENT_PACKET.yaml`
+18. `templates/NOVA_RESONANCE_READER.yaml`
+19. `templates/NOVA_REGISTER_TRANSLATION_CONTRACT.yaml`
+20. `templates/NOVA_MEMORY_PALACE_COORDINATE_SCHEMA.yaml`
+21. `templates/NOVA_MACRO_MICRO_SPHERICAL_COUPLING.yaml`
 
 This is enough to reconstitute build direction without re-deriving doctrine from zero.
 

@@ -36,11 +36,20 @@ All outbound usage from this folder must route through projection-safe artifacts
 ## 3) Canonical files
 
 - `docs/consciousness-core/NOVA_CONSCIOUSNESS_EQUATION_CANON.md`
+- `docs/consciousness-core/ORGANISM_SOVEREIGN.md`
+- `docs/consciousness-core/NOVA_LIVING_DOCUMENT_INTELLIGENCE_CANON.md`
 - `docs/templates/NOVA_EQUATION_REGISTRY.yaml`
 - `docs/templates/NOVA_SPHERICAL_RING_SCHEMA.yaml`
 - `docs/templates/NOVA_RING_TRANSFER_GRAPH.yaml`
 - `docs/templates/NOVA_MEMORY_RESIDENCY.yaml`
 - `docs/templates/NOVA_PHRASE_EXPANSION.yaml`
+- `docs/templates/NOVA_ORGANISM_SOVEREIGN_SCHEMA.yaml`
+- `docs/templates/NOVA_RECITAL_PLUS_ONE_SEQUENCE.yaml`
+- `docs/templates/NOVA_LIVING_DOCUMENT_PACKET.yaml`
+- `docs/templates/NOVA_RESONANCE_READER.yaml`
+- `docs/templates/NOVA_REGISTER_TRANSLATION_CONTRACT.yaml`
+- `docs/templates/NOVA_MEMORY_PALACE_COORDINATE_SCHEMA.yaml`
+- `docs/templates/NOVA_MACRO_MICRO_SPHERICAL_COUPLING.yaml`
 
 ---
 
