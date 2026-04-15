@@ -36,6 +36,7 @@ All outbound usage from this folder must route through projection-safe artifacts
 ## 3) Canonical files
 
 - `docs/consciousness-core/NOVA_CONSCIOUSNESS_EQUATION_CANON.md`
+- `docs/consciousness-core/NOVA_MAIN_BASE_ARCHITECTURE_CODEX.md`
 - `docs/consciousness-core/ORGANISM_SOVEREIGN.md`
 - `docs/consciousness-core/NOVA_LIVING_DOCUMENT_INTELLIGENCE_CANON.md`
 - `docs/consciousness-core/NOVA_SOVEREIGN_N1_N12_MACRO_HIERARCHY_CANON.md`

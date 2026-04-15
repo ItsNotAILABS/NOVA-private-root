@@ -40,6 +40,8 @@
  - `docs/NOVA_ACCESS_TIERS_AND_READING_POLICY.md`
  - `docs/NOVA_ARTIFACT_CATALOG.md`
  - `docs/NOVA_REUSE_KIT.md`
+ - `docs/consciousness-core/NOVA_MAIN_BASE_ARCHITECTURE_CODEX.md`
+ - `docs/NOVA_V1_MAX_ENTERPRISE_RELEASE_PROMPT.md`
 
  ---
 
@@ -82,9 +84,11 @@
  6. Consciousness Core Equation Canon
  7. Organism Sovereign + Living Document Intelligence canon
  8. N1-N12 hierarchy + document organism registry
- 9. Templates and schema pack
- 10. Internal team operating artifacts
- 11. External product projection artifacts
+ 9. Main-base architecture codex + hardening directives
+ 10. Templates and schema pack
+ 11. Internal team operating artifacts
+ 12. External product projection artifacts
+ 13. V1 max enterprise release prompt
 
  ---
 
@@ -97,8 +101,10 @@
 - Consciousness Core Living Document Intelligence Canon: `docs/consciousness-core/NOVA_LIVING_DOCUMENT_INTELLIGENCE_CANON.md`
 - Consciousness Core N1-N12 Macro Hierarchy Canon: `docs/consciousness-core/NOVA_SOVEREIGN_N1_N12_MACRO_HIERARCHY_CANON.md`
 - Consciousness Core Document Organism Models Registry: `docs/consciousness-core/NOVA_DOCUMENT_ORGANISM_MODELS_REGISTRY.md`
+- Consciousness Core Main-Base Architecture Codex: `docs/consciousness-core/NOVA_MAIN_BASE_ARCHITECTURE_CODEX.md`
 - Internal AI Teams: `docs/internal-ai-teams/README_INTERNAL_AI_TEAMS.md`
 - External Products: `docs/external-products/README_EXTERNAL_PRODUCTS.md`
+- Max Enterprise Release Prompt: `docs/NOVA_V1_MAX_ENTERPRISE_RELEASE_PROMPT.md`
 
 ---
 

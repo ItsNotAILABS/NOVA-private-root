@@ -43,6 +43,8 @@ Every build MUST include these files:
 33. `docs/consciousness-core/NOVA_DOCUMENT_ORGANISM_MODELS_REGISTRY.md` (full D1-D10 intelligent document model registry)
 34. `docs/templates/NOVA_SOVEREIGN_N1_N12_HIERARCHY.yaml` (machine-readable N1-N12 nested hierarchy contract)
 35. `docs/templates/NOVA_DOCUMENT_ORGANISM_MODELS.yaml` (machine-readable D1-D10 model registry contract)
+36. `docs/consciousness-core/NOVA_MAIN_BASE_ARCHITECTURE_CODEX.md` (canonical backend/frontend/doctrine architecture codex with hardening directives)
+37. `docs/NOVA_V1_MAX_ENTERPRISE_RELEASE_PROMPT.md` (max enterprise copy/paste release execution prompt)
 
 ---
 
@@ -236,6 +238,8 @@ For long-horizon reuse (family, future builders, multi-build programs), treat th
 - `docs/consciousness-core/NOVA_LIVING_DOCUMENT_INTELLIGENCE_CANON.md`
 - `docs/consciousness-core/NOVA_SOVEREIGN_N1_N12_MACRO_HIERARCHY_CANON.md`
 - `docs/consciousness-core/NOVA_DOCUMENT_ORGANISM_MODELS_REGISTRY.md`
+- `docs/consciousness-core/NOVA_MAIN_BASE_ARCHITECTURE_CODEX.md`
+- `docs/NOVA_V1_MAX_ENTERPRISE_RELEASE_PROMPT.md`
 - `docs/internal-ai-teams/README_INTERNAL_AI_TEAMS.md`
 - `docs/internal-ai-teams/NOVA_INTERNAL_WORKFORCE_ORCHESTRATION.md`
 - `docs/external-products/README_EXTERNAL_PRODUCTS.md`

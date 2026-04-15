@@ -46,19 +46,21 @@ No collapse allowed between:
 17. `docs/consciousness-core/NOVA_DOCUMENT_ORGANISM_MODELS_REGISTRY.md`
 18. `docs/templates/NOVA_SOVEREIGN_N1_N12_HIERARCHY.yaml`
 19. `docs/templates/NOVA_DOCUMENT_ORGANISM_MODELS.yaml`
-20. `docs/consciousness-core/NOVA_CONSCIOUSNESS_EQUATION_CANON.md`
-21. `docs/templates/NOVA_EQUATION_REGISTRY.yaml`
-22. `docs/templates/NOVA_SPHERICAL_RING_SCHEMA.yaml`
-23. `docs/templates/NOVA_RING_TRANSFER_GRAPH.yaml`
-24. `docs/templates/NOVA_GATES_SCORECARD.yaml`
-25. `docs/templates/NOVA_OPERATING_ORDERS.yaml`
-26. `docs/templates/NOVA_RING_FLOW.yaml`
-27. `docs/templates/NOVA_MEMORY_RESIDENCY.yaml`
-28. `docs/templates/NOVA_PHRASE_EXPANSION.yaml`
-29. `docs/templates/NOVA_DOCTRINE_PACK.yaml`
-30. `docs/templates/NOVA_LAW_REGISTRY.yaml`
-31. `docs/templates/NOVA_TRANSFER_PROTOCOL.yaml`
-32. `docs/templates/NOVA_BUILD_INSTANCE_TEMPLATE.yaml`
+20. `docs/consciousness-core/NOVA_MAIN_BASE_ARCHITECTURE_CODEX.md`
+21. `docs/NOVA_V1_MAX_ENTERPRISE_RELEASE_PROMPT.md`
+22. `docs/consciousness-core/NOVA_CONSCIOUSNESS_EQUATION_CANON.md`
+23. `docs/templates/NOVA_EQUATION_REGISTRY.yaml`
+24. `docs/templates/NOVA_SPHERICAL_RING_SCHEMA.yaml`
+25. `docs/templates/NOVA_RING_TRANSFER_GRAPH.yaml`
+26. `docs/templates/NOVA_GATES_SCORECARD.yaml`
+27. `docs/templates/NOVA_OPERATING_ORDERS.yaml`
+28. `docs/templates/NOVA_RING_FLOW.yaml`
+29. `docs/templates/NOVA_MEMORY_RESIDENCY.yaml`
+30. `docs/templates/NOVA_PHRASE_EXPANSION.yaml`
+31. `docs/templates/NOVA_DOCTRINE_PACK.yaml`
+32. `docs/templates/NOVA_LAW_REGISTRY.yaml`
+33. `docs/templates/NOVA_TRANSFER_PROTOCOL.yaml`
+34. `docs/templates/NOVA_BUILD_INSTANCE_TEMPLATE.yaml`
 
 Do not start implementation until these are loaded and aligned.
 

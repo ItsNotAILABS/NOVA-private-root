@@ -169,17 +169,21 @@ Without evidence artifacts, constitutional claims are unverified.
    - Canonical nested N1..N12 sovereign hierarchy contract.
 7. `docs/consciousness-core/NOVA_DOCUMENT_ORGANISM_MODELS_REGISTRY.md`
    - Canonical registry of all D-model document organisms.
-8. `docs/internal-ai-teams/README_INTERNAL_AI_TEAMS.md`
+8. `docs/consciousness-core/NOVA_MAIN_BASE_ARCHITECTURE_CODEX.md`
+   - Canonical backend/frontend/doctrine architecture codex with orchestrator-model-module lattice and hardening directives.
+9. `docs/NOVA_V1_MAX_ENTERPRISE_RELEASE_PROMPT.md`
+   - Max enterprise copy/paste execution prompt for V1 launch posture, benchmark-strength positioning, and full-plane delivery.
+10. `docs/internal-ai-teams/README_INTERNAL_AI_TEAMS.md`
    - Internal workforce operating entrypoint.
-9. `docs/internal-ai-teams/NOVA_INTERNAL_WORKFORCE_ORCHESTRATION.md`
+11. `docs/internal-ai-teams/NOVA_INTERNAL_WORKFORCE_ORCHESTRATION.md`
    - Enterprise AI workforce packet and loop contract.
-10. `docs/external-products/README_EXTERNAL_PRODUCTS.md`
+12. `docs/external-products/README_EXTERNAL_PRODUCTS.md`
    - Projection-domain entrypoint.
-11. `docs/external-products/NOVA_EXTERNAL_PROJECTION_CONTRACT.md`
+13. `docs/external-products/NOVA_EXTERNAL_PROJECTION_CONTRACT.md`
    - Zero-exposure external projection contract.
-12. `docs/model-directory/README.md`
+14. `docs/model-directory/README.md`
    - Permanent model-family directory governance.
-13. `docs/model-directory/ENTERPRISE_MODEL_FAMILIES.yaml`
+15. `docs/model-directory/ENTERPRISE_MODEL_FAMILIES.yaml`
    - Instantiated 12-family enterprise model registry.
 
 ---
@@ -213,6 +217,8 @@ If you need a compressed pack for a new team or family handoff, include:
 23. `consciousness-core/NOVA_DOCUMENT_ORGANISM_MODELS_REGISTRY.md`
 24. `templates/NOVA_SOVEREIGN_N1_N12_HIERARCHY.yaml`
 25. `templates/NOVA_DOCUMENT_ORGANISM_MODELS.yaml`
+26. `consciousness-core/NOVA_MAIN_BASE_ARCHITECTURE_CODEX.md`
+27. `NOVA_V1_MAX_ENTERPRISE_RELEASE_PROMPT.md`
 
 This is enough to reconstitute build direction without re-deriving doctrine from zero.
 
