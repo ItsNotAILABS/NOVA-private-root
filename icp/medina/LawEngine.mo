@@ -26,8 +26,8 @@ module {
     resonanceScore : Float
   ) : T.DualReadResult {
     {
-      semanticScore;
-      resonanceScore;
+      semanticScore  = semanticScore;
+      resonanceScore = resonanceScore;
       ok = semanticScore  >= SEMANTIC_THRESHOLD
         and resonanceScore >= RESONANCE_THRESHOLD;
     }
@@ -62,8 +62,8 @@ module {
   ) : T.LawPass {
     {
       epoch      = epoch + 1;
-      recital;
-      expansion;
+      recital    = recital;
+      expansion  = expansion;
       gateA      = evalGate(#A, gateAScore);
       gateB      = evalGate(#B, gateBScore);
       gateC      = evalGate(#C, gateCScore);

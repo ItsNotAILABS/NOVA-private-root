@@ -84,7 +84,7 @@ module {
       phi   = (primary.coord.phi   + secondary.coord.phi)   / 2.0;
       depth = Float.max(primary.coord.depth, secondary.coord.depth);
       ring  = primary.coord.ring;
-      beat;
+      beat  = beat;
     };
     {
       id       = newId;
@@ -93,7 +93,7 @@ module {
       content  = primary.content # " | " # secondary.content;
       salience = Float.max(primary.salience, secondary.salience);
       pinned   = primary.pinned or secondary.pinned;
-      beat;
+      beat     = beat;
     }
   };
 

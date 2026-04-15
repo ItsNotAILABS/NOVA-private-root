@@ -31,10 +31,10 @@ module {
       case (#hybrid)      "HYBRID";
     };
     #ok({
-      id;
-      name;
-      mode;
-      beat;
+      id       = id;
+      name     = name;
+      mode     = mode;
+      beat     = beat;
       evidence = ["onboard-mode:" # modeLabel # "@beat:" # debug_show(beat)];
       active   = true;
     })

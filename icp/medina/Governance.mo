@@ -21,11 +21,11 @@ module {
     epoch    : Nat
   ) : T.Proposal {
     {
-      id;
-      register;
-      content;
+      id       = id;
+      register = register;
+      content  = content;
       status   = #pending;
-      epoch;
+      epoch    = epoch;
       evidence = [];
     }
   };

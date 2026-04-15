@@ -35,56 +35,56 @@ module {
   public func spec(id : T.OrchId) : OrchSpec {
     switch id {
       case (#ORCH01_SOVEREIGN_TICK) {
-        id;
+        id          = id;
         name        = "SOVEREIGN_TICK_ORCHESTRATOR";
         description = "Authorization lock, lifecycle sync, starts beat-level runtime flow";
         cadence     = #every_beat;
         gateMin     = 0.80;
       };
       case (#ORCH02_SPHERICAL_INTEGRATION) {
-        id;
+        id          = id;
         name        = "SPHERICAL_INTEGRATION_ORCHESTRATOR";
         description = "Cardio-neural-memory-feedback macro spine each beat before tickCore";
         cadence     = #every_beat;
         gateMin     = 0.78;
       };
       case (#ORCH03_SWARM_CORE) {
-        id;
+        id          = id;
         name        = "SWARM_CORE_ORCHESTRATOR";
         description = "Dense swarm physics + cognition + multi-layer module cascade";
         cadence     = #every_beat;
         gateMin     = 0.75;
       };
       case (#ORCH04_FULL_GOVERNANCE) {
-        id;
+        id          = id;
         name        = "FULL_GOVERNANCE_ORCHESTRATOR";
         description = "Full governance/behavior add-ons: SACESI/OMNIS tiering/law pass";
         cadence     = #every_n(4);
         gateMin     = 0.80;
       };
       case (#ORCH05_CONSTITUTIONAL_LAW) {
-        id;
+        id          = id;
         name        = "CONSTITUTIONAL_LAW_ORCHESTRATOR";
         description = "Computes law compliance lattice, updates sovereign legal state";
         cadence     = #every_n(4);
         gateMin     = 0.80;
       };
       case (#ORCH06_NEURAL_CORE_MESH) {
-        id;
+        id          = id;
         name        = "NEURAL_CORE_MESH_ORCHESTRATOR";
         description = "High-dimensional core mesh coherence and wiring";
         cadence     = #every_n(8);
         gateMin     = 0.72;
       };
       case (#ORCH07_LIVING_DOCUMENT_MACRO) {
-        id;
+        id          = id;
         name        = "LIVING_DOCUMENT_MACRO_ORCHESTRATOR";
         description = "Macro field: presence/autonomy/document vitality/chain integrity";
         cadence     = #every_n(52);
         gateMin     = 0.70;
       };
       case (#ORCH08_FRONTEND_COMMAND) {
-        id;
+        id          = id;
         name        = "FRONTEND_COMMAND_ORCHESTRATOR";
         description = "Operational command UI over runtime state, 20 Hz loop";
         cadence     = #event_driven;

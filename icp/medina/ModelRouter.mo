@@ -80,18 +80,18 @@ module {
 
   public func nModelSpec(id : T.NModelId) : NModelSpec {
     switch id {
-      case (#N1_CHRONO)    { id; label = "N1-CHRONO";    freqHz = 0.001  };
-      case (#N2_VERITAS)   { id; label = "N2-VERITAS";   freqHz = 0.1    };
-      case (#N3_BRAIN)     { id; label = "N3-BRAIN";     freqHz = 7.83   };
-      case (#N4_FLUX)      { id; label = "N4-FLUX";      freqHz = 12.67  };
-      case (#N5_RESONEX)   { id; label = "N5-RESONEX";   freqHz = 20.5   };
-      case (#N6_QMEM)      { id; label = "N6-QMEM";      freqHz = 33.1   };
-      case (#N7_AXIS)      { id; label = "N7-AXIS";      freqHz = 40.0   };
-      case (#N8_AEGIS)     { id; label = "N8-AEGIS";     freqHz = 53.6   };
-      case (#N9_ENTANGLA)  { id; label = "N9-ENTANGLA";  freqHz = 86.7   };
-      case (#N10_PARALLAX) { id; label = "N10-PARALLAX"; freqHz = 111.0  };
-      case (#N11_MERIDIAN) { id; label = "N11-MERIDIAN"; freqHz = 179.6  };
-      case (#N12_NOVA)     { id; label = "N12-NOVA";     freqHz = 432.0  };
+      case (#N1_CHRONO)    { id = id; label = "N1-CHRONO";    freqHz = 0.001  };
+      case (#N2_VERITAS)   { id = id; label = "N2-VERITAS";   freqHz = 0.1    };
+      case (#N3_BRAIN)     { id = id; label = "N3-BRAIN";     freqHz = 7.83   };
+      case (#N4_FLUX)      { id = id; label = "N4-FLUX";      freqHz = 12.67  };
+      case (#N5_RESONEX)   { id = id; label = "N5-RESONEX";   freqHz = 20.5   };
+      case (#N6_QMEM)      { id = id; label = "N6-QMEM";      freqHz = 33.1   };
+      case (#N7_AXIS)      { id = id; label = "N7-AXIS";      freqHz = 40.0   };
+      case (#N8_AEGIS)     { id = id; label = "N8-AEGIS";     freqHz = 53.6   };
+      case (#N9_ENTANGLA)  { id = id; label = "N9-ENTANGLA";  freqHz = 86.7   };
+      case (#N10_PARALLAX) { id = id; label = "N10-PARALLAX"; freqHz = 111.0  };
+      case (#N11_MERIDIAN) { id = id; label = "N11-MERIDIAN"; freqHz = 179.6  };
+      case (#N12_NOVA)     { id = id; label = "N12-NOVA";     freqHz = 432.0  };
     }
   };
 
@@ -109,9 +109,9 @@ module {
     let rationale = roleRationale(role);
     {
       modelLabel = label;
-      rationale;
+      rationale  = rationale;
       output     = "ROUTED[" # label # "] payload=" # payload;
-      beat;
+      beat       = beat;
       ok         = true;
     }
   };
@@ -127,7 +127,7 @@ module {
       modelLabel = label;
       rationale  = dModelDescription(id);
       output     = "D-INVOKE[" # label # "] payload=" # payload;
-      beat;
+      beat       = beat;
       ok         = true;
     }
   };
@@ -144,7 +144,7 @@ module {
       rationale  = "Sovereign node " # spec.label
                  # " freq=" # debug_show(spec.freqHz) # " Hz";
       output     = "N-INVOKE[" # spec.label # "] payload=" # payload;
-      beat;
+      beat       = beat;
       ok         = true;
     }
   };

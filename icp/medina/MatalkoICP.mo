@@ -130,7 +130,7 @@ module {
     pinned      : [Bool]
   ) : T.MatalkoSnapshot {
     {
-      beat;
+      beat            = beat;
       macroAbsorption = macroAbsorption(domainScores);
       dualReadEnergy  = dualReadEnergy(semantic, resonance);
       stabilityPot    = stabilityPotential(coherence, lawScore);
