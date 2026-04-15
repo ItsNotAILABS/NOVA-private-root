@@ -92,6 +92,18 @@ An artifact is considered high-value only if it satisfies all:
 13. `templates/NOVA_MACRO_MICRO_SPHERICAL_COUPLING.yaml`
     - Macro-to-micro coupling map ensuring no micro orphaning.
 
+14. `consciousness-core/NOVA_SOVEREIGN_N1_N12_MACRO_HIERARCHY_CANON.md`
+    - Full nested N1..N12 sovereign macro-model hierarchy with node chaining and sub-model clusters.
+
+15. `consciousness-core/NOVA_DOCUMENT_ORGANISM_MODELS_REGISTRY.md`
+    - Registry of all required intelligent document organism models (D1..D10), each with contains/does/layers/execution.
+
+16. `templates/NOVA_SOVEREIGN_N1_N12_HIERARCHY.yaml`
+    - Machine-readable nested macro-node hierarchy contract for sovereign model governance.
+
+17. `templates/NOVA_DOCUMENT_ORGANISM_MODELS.yaml`
+    - Machine-readable registry for all D-model document organisms and execution bindings.
+
 ---
 
 ## D) Build/operations artifacts (industrialization)
@@ -153,17 +165,21 @@ Without evidence artifacts, constitutional claims are unverified.
    - Living social document and constitutional body contract.
 5. `docs/consciousness-core/NOVA_LIVING_DOCUMENT_INTELLIGENCE_CANON.md`
    - Living-document intelligence architecture and plane integration canon.
-6. `docs/internal-ai-teams/README_INTERNAL_AI_TEAMS.md`
+6. `docs/consciousness-core/NOVA_SOVEREIGN_N1_N12_MACRO_HIERARCHY_CANON.md`
+   - Canonical nested N1..N12 sovereign hierarchy contract.
+7. `docs/consciousness-core/NOVA_DOCUMENT_ORGANISM_MODELS_REGISTRY.md`
+   - Canonical registry of all D-model document organisms.
+8. `docs/internal-ai-teams/README_INTERNAL_AI_TEAMS.md`
    - Internal workforce operating entrypoint.
-7. `docs/internal-ai-teams/NOVA_INTERNAL_WORKFORCE_ORCHESTRATION.md`
+9. `docs/internal-ai-teams/NOVA_INTERNAL_WORKFORCE_ORCHESTRATION.md`
    - Enterprise AI workforce packet and loop contract.
-8. `docs/external-products/README_EXTERNAL_PRODUCTS.md`
+10. `docs/external-products/README_EXTERNAL_PRODUCTS.md`
    - Projection-domain entrypoint.
-9. `docs/external-products/NOVA_EXTERNAL_PROJECTION_CONTRACT.md`
+11. `docs/external-products/NOVA_EXTERNAL_PROJECTION_CONTRACT.md`
    - Zero-exposure external projection contract.
-10. `docs/model-directory/README.md`
+12. `docs/model-directory/README.md`
    - Permanent model-family directory governance.
-11. `docs/model-directory/ENTERPRISE_MODEL_FAMILIES.yaml`
+13. `docs/model-directory/ENTERPRISE_MODEL_FAMILIES.yaml`
    - Instantiated 12-family enterprise model registry.
 
 ---
@@ -193,6 +209,10 @@ If you need a compressed pack for a new team or family handoff, include:
 19. `templates/NOVA_REGISTER_TRANSLATION_CONTRACT.yaml`
 20. `templates/NOVA_MEMORY_PALACE_COORDINATE_SCHEMA.yaml`
 21. `templates/NOVA_MACRO_MICRO_SPHERICAL_COUPLING.yaml`
+22. `consciousness-core/NOVA_SOVEREIGN_N1_N12_MACRO_HIERARCHY_CANON.md`
+23. `consciousness-core/NOVA_DOCUMENT_ORGANISM_MODELS_REGISTRY.md`
+24. `templates/NOVA_SOVEREIGN_N1_N12_HIERARCHY.yaml`
+25. `templates/NOVA_DOCUMENT_ORGANISM_MODELS.yaml`
 
 This is enough to reconstitute build direction without re-deriving doctrine from zero.
 

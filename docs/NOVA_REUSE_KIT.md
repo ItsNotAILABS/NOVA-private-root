@@ -39,6 +39,10 @@ Every build MUST include these files:
 29. `docs/templates/NOVA_REGISTER_TRANSLATION_CONTRACT.yaml` (source-to-register translation gates)
 30. `docs/templates/NOVA_MEMORY_PALACE_COORDINATE_SCHEMA.yaml` (memory-palace coordinate and lineage schema)
 31. `docs/templates/NOVA_MACRO_MICRO_SPHERICAL_COUPLING.yaml` (macro field to micro domain coupling contract)
+32. `docs/consciousness-core/NOVA_SOVEREIGN_N1_N12_MACRO_HIERARCHY_CANON.md` (nested sovereign node hierarchy canon)
+33. `docs/consciousness-core/NOVA_DOCUMENT_ORGANISM_MODELS_REGISTRY.md` (full D1-D10 intelligent document model registry)
+34. `docs/templates/NOVA_SOVEREIGN_N1_N12_HIERARCHY.yaml` (machine-readable N1-N12 nested hierarchy contract)
+35. `docs/templates/NOVA_DOCUMENT_ORGANISM_MODELS.yaml` (machine-readable D1-D10 model registry contract)
 
 ---
 
@@ -230,6 +234,8 @@ For long-horizon reuse (family, future builders, multi-build programs), treat th
 - `docs/consciousness-core/NOVA_CONSCIOUSNESS_EQUATION_CANON.md`
 - `docs/consciousness-core/ORGANISM_SOVEREIGN.md`
 - `docs/consciousness-core/NOVA_LIVING_DOCUMENT_INTELLIGENCE_CANON.md`
+- `docs/consciousness-core/NOVA_SOVEREIGN_N1_N12_MACRO_HIERARCHY_CANON.md`
+- `docs/consciousness-core/NOVA_DOCUMENT_ORGANISM_MODELS_REGISTRY.md`
 - `docs/internal-ai-teams/README_INTERNAL_AI_TEAMS.md`
 - `docs/internal-ai-teams/NOVA_INTERNAL_WORKFORCE_ORCHESTRATION.md`
 - `docs/external-products/README_EXTERNAL_PRODUCTS.md`
@@ -255,5 +261,7 @@ For long-horizon reuse (family, future builders, multi-build programs), treat th
 - `docs/templates/NOVA_REGISTER_TRANSLATION_CONTRACT.yaml`
 - `docs/templates/NOVA_MEMORY_PALACE_COORDINATE_SCHEMA.yaml`
 - `docs/templates/NOVA_MACRO_MICRO_SPHERICAL_COUPLING.yaml`
+- `docs/templates/NOVA_SOVEREIGN_N1_N12_HIERARCHY.yaml`
+- `docs/templates/NOVA_DOCUMENT_ORGANISM_MODELS.yaml`
 
 This pack is designed to carry high-density architectural meaning while remaining operationally executable.

@@ -38,6 +38,8 @@ All outbound usage from this folder must route through projection-safe artifacts
 - `docs/consciousness-core/NOVA_CONSCIOUSNESS_EQUATION_CANON.md`
 - `docs/consciousness-core/ORGANISM_SOVEREIGN.md`
 - `docs/consciousness-core/NOVA_LIVING_DOCUMENT_INTELLIGENCE_CANON.md`
+- `docs/consciousness-core/NOVA_SOVEREIGN_N1_N12_MACRO_HIERARCHY_CANON.md`
+- `docs/consciousness-core/NOVA_DOCUMENT_ORGANISM_MODELS_REGISTRY.md`
 - `docs/templates/NOVA_EQUATION_REGISTRY.yaml`
 - `docs/templates/NOVA_SPHERICAL_RING_SCHEMA.yaml`
 - `docs/templates/NOVA_RING_TRANSFER_GRAPH.yaml`
@@ -50,6 +52,8 @@ All outbound usage from this folder must route through projection-safe artifacts
 - `docs/templates/NOVA_REGISTER_TRANSLATION_CONTRACT.yaml`
 - `docs/templates/NOVA_MEMORY_PALACE_COORDINATE_SCHEMA.yaml`
 - `docs/templates/NOVA_MACRO_MICRO_SPHERICAL_COUPLING.yaml`
+- `docs/templates/NOVA_SOVEREIGN_N1_N12_HIERARCHY.yaml`
+- `docs/templates/NOVA_DOCUMENT_ORGANISM_MODELS.yaml`
 
 ---
 

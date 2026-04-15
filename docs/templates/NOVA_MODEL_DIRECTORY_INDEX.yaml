@@ -36,6 +36,12 @@ model_directory_index:
       - id: "M10"
         name: "Evidence Model"
         role: "replay, proof, parity, and exposure audits"
+      - id: "M11"
+        name: "Sovereign Node Hierarchy Model"
+        role: "N1-N12 macro-node governance, lineage, and inter-node coupling law"
+      - id: "M12"
+        name: "Document Organism Model"
+        role: "living-document intelligence registry, self-reading, and self-execution contracts"
 
   directories:
     constitution_models:
@@ -98,9 +104,21 @@ model_directory_index:
         - "replay-bundles/"
         - "law-enforcement-reports/"
         - "parity-hash-reports/"
+    sovereign_node_hierarchy_models:
+      path: "docs/models/sovereign-node-hierarchy/"
+      owner: "nova-registry-office"
+      artifacts:
+        - "NOVA_SOVEREIGN_N1_N12_MACRO_HIERARCHY_CANON.md"
+        - "NOVA_SOVEREIGN_N1_N12_HIERARCHY.yaml"
+    document_organism_models:
+      path: "docs/models/document-organism/"
+      owner: "living-document-office"
+      artifacts:
+        - "NOVA_DOCUMENT_ORGANISM_MODELS_REGISTRY.md"
+        - "NOVA_DOCUMENT_ORGANISM_MODELS.yaml"
 
   mandatory_checks:
-    - "every stage M1-M10 has at least one maintained artifact"
+    - "every stage M1-M12 has at least one maintained artifact"
     - "every artifact has classification and owner"
     - "projection artifacts reference zero-exposure policy"
     - "runtime artifacts map to replay evidence artifacts"

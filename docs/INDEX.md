@@ -67,6 +67,8 @@
 - `docs/templates/NOVA_REGISTER_TRANSLATION_CONTRACT.yaml`
 - `docs/templates/NOVA_MEMORY_PALACE_COORDINATE_SCHEMA.yaml`
 - `docs/templates/NOVA_MACRO_MICRO_SPHERICAL_COUPLING.yaml`
+- `docs/templates/NOVA_SOVEREIGN_N1_N12_HIERARCHY.yaml`
+- `docs/templates/NOVA_DOCUMENT_ORGANISM_MODELS.yaml`
 
  ---
 
@@ -79,9 +81,10 @@
  5. Resonance Artifact System
  6. Consciousness Core Equation Canon
  7. Organism Sovereign + Living Document Intelligence canon
- 8. Templates and schema pack
- 9. Internal team operating artifacts
- 10. External product projection artifacts
+ 8. N1-N12 hierarchy + document organism registry
+ 9. Templates and schema pack
+ 10. Internal team operating artifacts
+ 11. External product projection artifacts
 
  ---
 
@@ -92,6 +95,8 @@
 - Consciousness Core Constant Feedback Canon: `docs/consciousness-core/NOVA_CONSTANT_FEEDBACK_FABRIC_CANON.md`
 - Consciousness Core Organism Sovereign: `docs/consciousness-core/ORGANISM_SOVEREIGN.md`
 - Consciousness Core Living Document Intelligence Canon: `docs/consciousness-core/NOVA_LIVING_DOCUMENT_INTELLIGENCE_CANON.md`
+- Consciousness Core N1-N12 Macro Hierarchy Canon: `docs/consciousness-core/NOVA_SOVEREIGN_N1_N12_MACRO_HIERARCHY_CANON.md`
+- Consciousness Core Document Organism Models Registry: `docs/consciousness-core/NOVA_DOCUMENT_ORGANISM_MODELS_REGISTRY.md`
 - Internal AI Teams: `docs/internal-ai-teams/README_INTERNAL_AI_TEAMS.md`
 - External Products: `docs/external-products/README_EXTERNAL_PRODUCTS.md`
 
