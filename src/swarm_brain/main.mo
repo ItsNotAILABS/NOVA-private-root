@@ -5709,7 +5709,7 @@ actor SwarmBrain {
     parallaxLastWinnerProbability := selection.winnerProbability;
     parallaxLastEntropyScore := entropy;
     parallaxLastCoherenceLevel := coherence;
-    parallaxGlobalPhase := parallaxGlobalPhase + PARALLAXDecisionEngine.π / 100.0;
+    parallaxGlobalPhase := parallaxGlobalPhase + Float.pi / 100.0;
     parallaxTotalDecisions += 1;
     
     // Update path statistics with EMA
@@ -5745,11 +5745,11 @@ actor SwarmBrain {
     
     // Extract council phases (from coherence values)
     let councilPhases : [Float] = [
-      councilCoherence[0] * 2.0 * ENTANGLASocialBinding.π,  // LEXIS
-      councilCoherence[1] * 2.0 * ENTANGLASocialBinding.π,  // PARALLAX-SWARM
-      councilCoherence[2] * 2.0 * ENTANGLASocialBinding.π,  // VETUS
-      councilCoherence[3] * 2.0 * ENTANGLASocialBinding.π,  // AEGIS
-      councilCoherence[4] * 2.0 * ENTANGLASocialBinding.π   // FORMA
+      councilCoherence[0] * 2.0 * Float.pi,  // LEXIS
+      councilCoherence[1] * 2.0 * Float.pi,  // PARALLAX-SWARM
+      councilCoherence[2] * 2.0 * Float.pi,  // VETUS
+      councilCoherence[3] * 2.0 * Float.pi,  // AEGIS
+      councilCoherence[4] * 2.0 * Float.pi   // FORMA
     ];
     
     // Extract shell phases
@@ -5847,8 +5847,8 @@ actor SwarmBrain {
     var sumY : Float = 0.0;
     var countEntries : Float = 0.0;
     for (binding in entanglaCouncilMatrix.vals()) {
-      sumX += Float.cos(binding * ENTANGLASocialBinding.π);
-      sumY += Float.sin(binding * ENTANGLASocialBinding.π);
+      sumX += Float.cos(binding * Float.pi);
+      sumY += Float.sin(binding * Float.pi);
       countEntries += 1.0;
     };
     if (countEntries > 0.0) {
@@ -5893,7 +5893,7 @@ actor SwarmBrain {
     var totalLabCoherence : Float = 0.0;
     while (labIdx < 12) {
       // Lab coherence follows Kuramoto — coupled to master swarm phase
-      let labPhase = Float.fromInt(labIdx) * PARALLAXDecisionEngine.π / 6.0;
+      let labPhase = Float.fromInt(labIdx) * Float.pi / 6.0;
       let coupling = Float.sin(masterBeatPhase - labPhase) * 0.1;
       labCoherence[labIdx] := Float.min(1.0, Float.max(0.1, labCoherence[labIdx] + coupling * dt));
       
@@ -6074,7 +6074,7 @@ actor SwarmBrain {
     var attIdx = 0;
     while (attIdx < 8) {
       // Attention channels compete for focus
-      let channelPhase = Float.fromInt(attIdx) * PARALLAXDecisionEngine.π / 4.0;
+      let channelPhase = Float.fromInt(attIdx) * Float.pi / 4.0;
       let relevance = Float.cos(masterBeatPhase - channelPhase) * 0.5 + 0.5;
       attentionFocus[attIdx] := attentionFocus[attIdx] * 0.9 + relevance * 0.1;
       attIdx += 1;
