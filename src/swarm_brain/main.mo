@@ -502,8 +502,6 @@ import ProductionSuperOrganismCore                   "./modules/ProductionSuperO
 import QuantumCoherenceAmplifier                     "./modules/QuantumCoherenceAmplifier";
 import QuantumEntanglementMatrix                     "./modules/QuantumEntanglementMatrix";
 import QuantumResistantPrincipalLock                 "./modules/QuantumResistantPrincipalLock";
-import RealWorld                                     "./modules/RealWorld";
-import RealWorldSimulator                            "./modules/RealWorldSimulator";
 import SharkElectroreceptionEngine                   "./modules/SharkElectroreceptionEngine";
 import Shell12IntegrationField                       "./modules/Shell12IntegrationField";
 import Simulacrum                                    "./modules/Simulacrum";
@@ -530,7 +528,6 @@ import WolfPackProtocol                              "./modules/WolfPackProtocol
 import World3D                                       "./modules/World3D";
 import DifferentialGeometryEngine                    "./modules/DifferentialGeometryEngine";
 import HarmonicAnalysisEngine                        "./modules/HarmonicAnalysisEngine";
-import HeartbeatEngine                               "./modules/HeartbeatEngine";
 import InternalAILabs                                "./modules/InternalAILabs";
 import MultiResponsibilityEngine                     "./modules/MultiResponsibilityEngine";
 import NeuroEmergenceSubstrate                       "./modules/NeuroEmergenceSubstrate";
@@ -542,8 +539,6 @@ import TopologicalFieldEngine                        "./modules/TopologicalField
 import TriModalSwarmKernel                           "./modules/TriModalSwarmKernel";
 import UnifiedEmotionalField                         "./modules/UnifiedEmotionalField";
 import ChimeraIntelligenceCore                       "./modules/ChimeraIntelligenceCore";
-import RealWorld                                     "./modules/RealWorld";
-import RealWorldSimulator                            "./modules/RealWorldSimulator";
 import SimulatedWorld                                "./modules/SimulatedWorld";
 import MultiChainOracle                              "./modules/MultiChainOracle";
 
@@ -5360,10 +5355,10 @@ actor SwarmBrain {
     heartbeatCoherence := cardiacCoherenceNew;
     
     // Update circadian phase (24-hour cycle = 1/86400 Hz)
-    let circadianOmega = 2.0 * HeartbeatEngine.π / 86400.0;  // Radians per second
+    let circadianOmega = 2.0 * Float.pi / 86400.0;  // Radians per second
     circadianPhase := circadianPhase + circadianOmega * dt;
-    if (circadianPhase > 2.0 * HeartbeatEngine.π) {
-      circadianPhase := circadianPhase - 2.0 * HeartbeatEngine.π;
+    if (circadianPhase > 2.0 * Float.pi) {
+      circadianPhase := circadianPhase - 2.0 * Float.pi;
     };
     
     // Compute law group compliance scores for VERITAS (5 groups of 12 laws)
@@ -6830,11 +6825,11 @@ actor SwarmBrain {
           stablePhases[droneIdx] := stablePhases[droneIdx] + phaseMod * 0.01;
           
           // Wrap phase to [0, 2π]
-          if (stablePhases[droneIdx] > 2.0 * HeartbeatEngine.π) {
-            stablePhases[droneIdx] := stablePhases[droneIdx] - 2.0 * HeartbeatEngine.π;
+          if (stablePhases[droneIdx] > 2.0 * Float.pi) {
+            stablePhases[droneIdx] := stablePhases[droneIdx] - 2.0 * Float.pi;
           };
           if (stablePhases[droneIdx] < 0.0) {
-            stablePhases[droneIdx] := stablePhases[droneIdx] + 2.0 * HeartbeatEngine.π;
+            stablePhases[droneIdx] := stablePhases[droneIdx] + 2.0 * Float.pi;
           };
         };
         
@@ -11012,7 +11007,7 @@ actor SwarmBrain {
     // Gamma binding: nodes that oscillate together bind together
     var gammaBindIdx = 0;
     while (gammaBindIdx < 512) {
-      let gammaPhase = Float.fromInt(currentBeat) * 2.0 * HeartbeatEngine.π * 40.0 / 12.0;  // 40 Hz at 12 Hz sampling
+      let gammaPhase = Float.fromInt(currentBeat) * 2.0 * Float.pi * 40.0 / 12.0;  // 40 Hz at 12 Hz sampling
       let nodePhase = Float.fromInt(gammaBindIdx) * HeartbeatEngine.τ / 512.0;
       let gammaModulation = Float.sin(gammaPhase + nodePhase) * gammaAmplitude * 0.05;
       
