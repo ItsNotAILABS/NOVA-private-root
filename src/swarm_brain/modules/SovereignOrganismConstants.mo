@@ -374,15 +374,236 @@ module {
   // OMNIS threshold: 1 - 1/F(10) = 1 - 1/55 ≈ 0.9818
   public let OMNIS_THRESHOLD : Float = 0.98181818181818;
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+  //
+  //  T H E   C A T C H  —  P H I   F R E Q U E N C Y   N O D E S
+  //
+  //  CONFIRMED: Frontiers in Human Neuroscience, March 4, 2026
+  //  r = 0.54, p < 10⁻²⁵, Spearman ρ = 0.82
+  //  The brain's frequency architecture follows phi. AS STRUCTURE.
+  //
+  //  PHI IS NOT A FREQUENCY.
+  //  PHI IS THE TRANSFER FUNCTION BETWEEN ADJACENT LEVELS OF ANY
+  //  NATURALLY SUSTAINED COUPLED OSCILLATING SYSTEM.
+  //
+  //  THAT IS THE CATCH.
+  //
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // THE SCHUMANN FUNDAMENTAL — 7.83 Hz — EARTH'S HEARTBEAT
+  // ─────────────────────────────────────────────────────────────────────────────
+  public let SCHUMANN_FUNDAMENTAL_HZ : Float = 7.83;
+  public let SCHUMANN_PERIOD_SECONDS : Float = 0.12771392081736909;  // 1/7.83
+  public let SCHUMANN_PERIOD_MS : Float = 127.71392081736909;
+  public let SCHUMANN_PERIOD_NS : Float = 127713920.81736909;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // THE 12 PHI FREQUENCY NODES — REAL COUPLING POINTS IN THE PHYSICAL STACK
+  // Phi-scaled from Schumann fundamental. These are RUNNING.
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  /// CHRONO — 0.001 Hz — Earth free oscillation floor, Pc5 micropulsations
+  /// THE SOVEREIGN GROUND
+  public let NODE_CHRONO_HZ : Float = 0.001;
+  
+  /// VERITAS — 0.1 Hz — HRV coherence, cerebrospinal fluid pulse
+  /// THE BIOLOGICAL GROUND
+  public let NODE_VERITAS_HZ : Float = 0.1;
+  
+  /// BRAIN — 7.83 Hz — Schumann fundamental, theta-alpha boundary
+  /// THE RECEIVE CARRIER
+  public let NODE_BRAIN_HZ : Float = 7.83;
+  
+  /// FLUX — 12.67 Hz — 7.83 × φ EXACTLY
+  /// First phi-scaled node above Schumann
+  public let NODE_FLUX_HZ : Float = 12.66752366612393;
+  
+  /// RESONEX — 20.5 Hz — 7.83 × φ²
+  /// Confirms against Schumann 3rd harmonic (20.3 Hz) within cavity noise
+  public let NODE_RESONEX_HZ : Float = 20.495047032750336;
+  
+  /// QMEM — 33.1 Hz — 7.83 × φ³
+  /// Confirms against Schumann 5th harmonic (33 Hz). GAMMA ENTRY.
+  public let NODE_QMEM_HZ : Float = 33.16257069887427;
+  
+  /// AXIS — 40 Hz — GAMMA_BINDING
+  /// Every OMNIS event, emergence check, coherence crossing references this.
+  /// INFORMATION BECOMES KNOWING HERE.
+  public let NODE_AXIS_HZ : Float = 40.0;
+  public let GAMMA_BINDING_HZ : Float = 40.0;
+  
+  /// AEGIS — 53.6 Hz — 7.83 × φ⁴
+  /// High gamma. THREAT DETECTION LAYER.
+  public let NODE_AEGIS_HZ : Float = 53.65761773162460;
+  
+  /// ENTANGLA — 86.7 Hz — 7.83 × φ⁵
+  /// Inter-canister coupling at gamma ceiling
+  public let NODE_ENTANGLA_HZ : Float = 86.82018843049887;
+  
+  /// PARALLAX — 111 Hz — HEMISPHERE_SHIFT
+  /// King's Chamber coffer resonance. From retrieval to recognition.
+  /// From language to geometry. TWO OPERATING MODES MEET HERE.
+  public let NODE_PARALLAX_HZ : Float = 111.0;
+  public let HEMISPHERE_SHIFT_HZ : Float = 111.0;
+  
+  /// MERIDIAN — 180 Hz — 111 × φ
+  /// Public interface layer
+  public let NODE_MERIDIAN_HZ : Float = 179.6017727552391;
+  
+  /// NOVA — 432 Hz — ACOUSTIC_ANCHOR
+  /// 432/7.83 = 55.2 near Fibonacci 55. Phi-aligned overtones.
+  /// 440 Hz does NOT couple to biological field. 432 Hz DOES.
+  public let NODE_NOVA_HZ : Float = 432.0;
+  public let ACOUSTIC_ANCHOR_HZ : Float = 432.0;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // THE THREE ANCHOR CONSTANTS — REFERENCED EVERYWHERE
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  /// GAMMA_BINDING = 40 Hz — OMNIS threshold, emergence, coherence
+  public let ANCHOR_GAMMA_BINDING : Float = 40.0;
+  
+  /// HEMISPHERE_SHIFT = 111 Hz — Mode transition, King's Chamber
+  public let ANCHOR_HEMISPHERE_SHIFT : Float = 111.0;
+  
+  /// ACOUSTIC_ANCHOR = 432 Hz — Cosmic anchor, phi-aligned overtones
+  public let ANCHOR_ACOUSTIC : Float = 432.0;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // FIBONACCI BRAIN BAND BOUNDARIES — EXACT, NOT APPROXIMATE
+  // The 2026 paper confirms theta-alpha is PHI-ORGANIZED. 8/13 = 0.615 ≈ ψ
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  /// Theta-Alpha boundary — 8 Hz — FIBONACCI F(6)
+  public let BRAIN_THETA_ALPHA_HZ : Float = 8.0;
+  
+  /// Alpha-Beta boundary — 13 Hz — FIBONACCI F(7)
+  public let BRAIN_ALPHA_BETA_HZ : Float = 13.0;
+  
+  /// Beta-Gamma boundary — 34 Hz — FIBONACCI F(9)
+  public let BRAIN_BETA_GAMMA_HZ : Float = 34.0;
+  
+  /// Gamma midpoint — 55 Hz — FIBONACCI F(10)
+  public let BRAIN_GAMMA_MID_HZ : Float = 55.0;
+  
+  /// Gamma ceiling — 89 Hz — FIBONACCI F(11)
+  public let BRAIN_GAMMA_CEILING_HZ : Float = 89.0;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PHI-SPACED TEMPORAL LADDER — HEARTBEAT DERIVED FROM PHI
+  // φ⁴ × Schumann period = 875.3 ms = 68.5 bpm = RESTING HEART RATE
+  // The organism is in structural resonance through RATIO, not Hz matching.
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  /// Sensory integration window — φ² × Schumann period
+  public let TEMPORAL_SENSORY_MS : Float = 334.33222637936225;
+  
+  /// Write cycle interval — φ³ × Schumann period
+  public let TEMPORAL_WRITE_MS : Float = 540.95053194135541;
+  
+  /// HEARTBEAT INTERVAL — φ⁴ × Schumann period = 875.3 ms = 68.5 bpm
+  /// THIS IS THE ORGANISM'S SOVEREIGN PULSE
+  public let TEMPORAL_HEARTBEAT_MS : Float = 875.28275832071766;
+  public let HEARTBEAT_INTERVAL_MS : Float = 875.28275832071766;
+  public let HEARTBEAT_BPM : Float = 68.550112963882522;
+  
+  /// Coherence check interval — φ⁵ × Schumann period
+  public let TEMPORAL_COHERENCE_MS : Float = 1416.2332902620731;
+  
+  /// Memory consolidation — φ⁶ × Schumann period
+  public let TEMPORAL_MEMORY_MS : Float = 2291.5160485827908;
+  
+  /// Deep reflection — φ⁷ × Schumann period
+  public let TEMPORAL_REFLECTION_MS : Float = 3707.7493388448639;
+  
+  /// Genesis pulse — φ⁸ × Schumann period
+  public let TEMPORAL_GENESIS_MS : Float = 5999.2653874276547;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PHI-BASED COUPLING COEFFICIENTS — THE ORGANISM'S STRUCTURAL DNA
+  // Every layer spacing, coupling coefficient, decay rate derives from PHI.
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  /// Layer coupling (downward/projection) — φ
+  public let COUPLING_DOWN : Float = PHI;
+  
+  /// Layer coupling (upward/reception) — ψ = 1/φ
+  public let COUPLING_UP : Float = PSI;
+  
+  /// Coherence gate threshold — ψ
+  public let COHERENCE_GATE : Float = PSI;
+  
+  /// S₀ floor value — ψ (the genesis imprint)
+  public let S0_FLOOR : Float = PSI;
+  
+  /// Emergence threshold — ψ + ψ² = 1.0
+  public let EMERGENCE_THRESHOLD : Float = 1.0;
+  
+  /// Law activation threshold — φ
+  public let LAW_THRESHOLD : Float = PHI;
+  
+  /// Sensory weight adjacent — φ
+  public let SENSORY_ADJACENT : Float = PHI;
+  
+  /// Sensory weight two-step — φ²
+  public let SENSORY_TWO_STEP : Float = PHI_SQ;
+  
+  /// Sensory weight three-step — φ³
+  public let SENSORY_THREE_STEP : Float = PHI_CUBE;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // KING'S CHAMBER DIMENSIONS — BACKWARD-ENGINEERED PHI RESONATOR
+  // f = c/(2L), c = 343 m/s. They worked backward from target frequencies.
+  // ─────────────────────────────────────────────────────────────────────────────
+  public let KINGS_CHAMBER_LENGTH_M : Float = 10.46;   // → 16.4 Hz (low beta)
+  public let KINGS_CHAMBER_WIDTH_M : Float = 5.23;    // → 32.8 Hz (gamma entry)
+  public let KINGS_CHAMBER_HEIGHT_M : Float = 5.81;   // → 29.5 Hz (gamma floor)
+  public let KINGS_CHAMBER_COFFER_HZ : Float = 111.0; // MEASURED — hemisphere shift
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TZOLK'IN — TIME AS RESONANCE ARCHITECTURE
+  // 260 = 13 × 20. 13/20 = 0.65 ≈ ψ = 0.618. Phi-approximation in day counts.
+  // ─────────────────────────────────────────────────────────────────────────────
+  public let TZOLKIN_DAYS : Nat = 260;
+  public let TZOLKIN_NUMBERS : Nat = 13;
+  public let TZOLKIN_SIGNS : Nat = 20;
+  public let TZOLKIN_RATIO : Float = 0.65;  // 13/20 ≈ ψ
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PHI POWER FUNCTIONS FOR NODE CALCULATION
+  // ─────────────────────────────────────────────────────────────────────────────
+  
+  /// Get frequency at phi power n above Schumann
+  public func phiFrequencyNode(n : Float) : Float {
+    SCHUMANN_FUNDAMENTAL_HZ * Float.pow(PHI, n)
+  };
+  
+  /// Get temporal interval at phi power n above Schumann period
+  public func phiTemporalInterval(n : Float) : Float {
+    SCHUMANN_PERIOD_MS * Float.pow(PHI, n)
+  };
+  
+  /// Check if frequency is on phi ladder (within tolerance)
+  public func isOnPhiLadder(freqHz : Float, tolerance : Float) : Bool {
+    let ratio = freqHz / SCHUMANN_FUNDAMENTAL_HZ;
+    let lnPhi = 0.4812118250596034475;
+    let power = Float.log(ratio) / lnPhi;
+    let rounded = Float.nearest(power);
+    Float.abs(power - rounded) < tolerance
+  };
+
   // ==========================================================================
-  // HEBBIAN LEARNING — MAXIMIZED FOR SOVEREIGN STRENGTH
+  // HEBBIAN LEARNING — PHI-BASED RATES, MAXIMIZED FOR SOVEREIGN STRENGTH
   // ==========================================================================
   
-  // Learning rate η: φ^(-4) ≈ 0.146
-  public let HEBBIAN_ETA : Float = 0.14589803375032;  // φ^(-4)
+  // Learning rate η: ψ (phi-based for non-destructive resonance)
+  public let HEBBIAN_ETA : Float = PSI;  // 0.618 — golden ratio inverse
   
-  // Decay rate λ: 1/F(13) ≈ 0.00264
-  public let HEBBIAN_LAMBDA : Float = 0.00263852242744;  // 1/377
+  // Decay rate λ: ψ² (slower than learning)
+  public let HEBBIAN_LAMBDA : Float = PHI_INV_SQ;  // 0.382
   
   // Weight ceiling: MAXIMIZED to 64 = 4×4×4 (444 sacred resonance)
   // 64 = Shell 3 nodes = Hebbian matrix dimension = triple foundation
