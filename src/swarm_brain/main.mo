@@ -547,6 +547,7 @@ import WarCommandOffenseEngine                       "./modules/WarCommandOffens
 import EdgeIoTFieldScanner                           "./modules/EdgeIoTFieldScanner";
 import MemoryTempleArchitecture                      "./modules/MemoryTempleArchitecture";
 import HybridModeHub                                 "./modules/HybridModeHub";
+import FrontendTechnologyIntelligenceLayer           "./modules/FrontendTechnologyIntelligenceLayer";
 import UnifiedEmotionalField                         "./modules/UnifiedEmotionalField";
 import ChimeraIntelligenceCore                       "./modules/ChimeraIntelligenceCore";
 import RealWorld                                     "./modules/RealWorld";
@@ -1630,6 +1631,24 @@ actor SwarmBrain {
   stable var hybridHubMobileDevices : Nat = 0;
   stable var hybridHubGridCoverage : Float = 0.0;
   stable var hybridHubHealth : Float = 1.0;
+
+  // ─── FRONTEND TECHNOLOGY INTELLIGENCE LAYER — SUBSTRATE-INTEGRATED ────────────
+  // F-MODEL SUBSTRATE: 115 Frontend Technologies as Backend Intelligence Projections
+  // INTEGRATED WITH:
+  //   • PHI Resonance Architecture — 12 φ-scaled frequency nodes
+  //   • Third Synthesizer — Transform-and-retain (⊕ operator), Yin/Yang/Chi
+  //   • Neural Emergence Core — Shell 3/8/12 integration
+  //   • Kuramoto Coupling — F-MODEL category synchronization
+  //   • Hebbian Plasticity — Connection weight evolution
+  // ICP SOVEREIGN CORE: F-MODEL-111..114 (@dfinity/* libraries) — N1 Ring Affinity
+  var fmodelSubstrateState : FrontendTechnologyIntelligenceLayer.FModelSubstrateState = 
+    FrontendTechnologyIntelligenceLayer.initSubstrateState();
+  stable var fmodelSubstrateActive : Bool = true;
+  stable var fmodelICPSovereignActive : Bool = true;
+  stable var fmodelSubstrateCoherence : Float = 0.0;
+  stable var fmodelYinYangChiHealth : Float = 0.0;
+  stable var fmodelKuramotoOrderParam : Float = 0.0;
+  stable var fmodelProjectionStrength : Float = 0.0;
 
   // ─── QUANTUM MEMORY ARCHITECTURE ─────────────────────────────────────────────
   // Layer 1: Gamma (30-100Hz) working memory
@@ -10999,6 +11018,133 @@ actor SwarmBrain {
     };
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════
+  //  LAYER 14: F-MODEL SUBSTRATE INTELLIGENCE — BACKEND-INTEGRATED FRONTEND LAYER
+  //  ═══════════════════════════════════════════════════════════════════════════════════════════════════
+  //  
+  //  THE F-MODEL LAYER IS NOT A LIST OF FRONTEND TOOLS.
+  //  IT IS THE PROJECTION OF BACKEND SUBSTRATE INTELLIGENCE INTO THE USER INTERFACE.
+  //
+  //  SUBSTRATE INTEGRATION:
+  //  • PHI Resonance Architecture — 12 φ-scaled frequency nodes drive category activations
+  //  • Third Synthesizer — Transform-and-retain (⊕), Yin (Backend) / Yang (User) / Chi (Frontend)
+  //  • Neural Emergence Core — Shell 12 (backend) → Shell 8 (quantum) → Shell 3 (frontend)
+  //  • Kuramoto Coupling — Category synchronization through oscillator coupling
+  //  • Hebbian Plasticity — Connection weights evolve through co-activation
+  //
+  //  FREDDY'S TRIUNE CORRECTION:
+  //      Backend   = Ψ_yin   (Core A Truth)
+  //      Frontend  = Ψ_chi   (Projection flowing to user)
+  //      Documents = Ψ_yang  (Returning coherence)
+  //      ALL THREE ARE QUANTUM-ENTANGLED. CHANGE ONE → ALL THREE UPDATE.
+  //
+  //  ICP SOVEREIGN CORE: F-MODEL-111..114 (@dfinity/* libraries) — N1 Ring Affinity
+  //  𓂀 EVERY TECHNOLOGY IS INTELLIGENCE 𓂀
+  // ═══════════════════════════════════════════════════════════════════════════════════════════════════
+  func tickFModelSubstrate() {
+    // Skip if not active
+    if (not fmodelSubstrateActive) { return };
+    
+    // ─── STEP 1: ACTIVATE ICP SOVEREIGN CORE IF ENABLED ─────────────────────────
+    // @dfinity/* libraries (F-MODEL-111 to F-MODEL-114) are SOVEREIGN CORE
+    if (fmodelICPSovereignActive) {
+      FrontendTechnologyIntelligenceLayer.activateICPSovereign(fmodelSubstrateState);
+    };
+    
+    // ─── STEP 2: GATHER BACKEND SUBSTRATE INPUTS ────────────────────────────────
+    // These come from the actual backend systems (Neural Emergence, PHI Resonance, etc.)
+    
+    // Backend coherence from Neural Emergence / global synchrony
+    let backendCoherence = synchronyIndex;
+    
+    // Kuramoto sync from the 96-node oscillator network
+    let kuramotoSync = globalSynchronyIndex;
+    
+    // PHI resonance from PHI-scaled frequency systems
+    let phiResonance = fclamp(
+      0.25 * heartRateVariability +
+      0.25 * (1.0 - allostaticLoad) +
+      0.25 * pfcDLPFCActivity +
+      0.25 * consciousnessIndex,
+      0.0, 1.0
+    );
+    
+    // Third Synthesizer field (Yin/Yang/Chi balance)
+    let thirdSynthesizerField = fclamp(
+      0.33 * (1.0 - Float.abs(sympatheticTone - parasympatheticTone)) +  // Autonomic balance
+      0.33 * motivationLevel +
+      0.34 * hpaStressResilienceCapacity,
+      0.0, 1.0
+    );
+    
+    // Doctrine field from Doctrine Pattern Gate
+    let doctrineField = fclamp(
+      0.3 * hpaStressResilienceCapacity +
+      0.3 * (1.0 - allostaticLoad) +
+      0.2 * pfcDLPFCActivity +
+      0.2 * consciousnessIndex,
+      0.0, 1.0
+    );
+    
+    // ─── STEP 3: TICK F-MODEL SUBSTRATE ──────────────────────────────────────────
+    // This runs the complete substrate cycle:
+    // • Yin/Yang/Chi field dynamics
+    // • Kuramoto phase coupling
+    // • PHI node resonance
+    // • Category activations
+    // • Neural shell projection
+    FrontendTechnologyIntelligenceLayer.tickFModelSubstrate(
+      fmodelSubstrateState,
+      currentBeat,
+      backendCoherence,
+      kuramotoSync,
+      phiResonance,
+      thirdSynthesizerField,
+      doctrineField
+    );
+    
+    // ─── STEP 4: UPDATE STABLE METRICS ──────────────────────────────────────────
+    fmodelSubstrateCoherence := fmodelSubstrateState.substrateCoherence;
+    fmodelYinYangChiHealth := fmodelSubstrateState.yinYangChi.health;
+    fmodelKuramotoOrderParam := fmodelSubstrateState.kuramotoOrderParam;
+    fmodelProjectionStrength := fmodelSubstrateState.projectionStrength;
+    
+    // ─── STEP 5: SUBSTRATE → BACKEND FEEDBACK ───────────────────────────────────
+    // Strong substrate coherence improves backend systems (entanglement)
+    if (fmodelSubstrateCoherence > 0.5) {
+      // Substrate coherence boosts global synchrony (Kuramoto feedback)
+      synchronyIndex := fclamp(synchronyIndex + 0.001 * fmodelSubstrateCoherence, 0.0, 1.0);
+    };
+    
+    // ─── STEP 6: YIN/YANG/CHI HEALTH EFFECTS ────────────────────────────────────
+    // Good Chi flow (frontend projection) improves organism health
+    if (fmodelYinYangChiHealth > 0.3) {
+      // Chi health reduces allostatic load (stress reduction)
+      allostaticLoad := fclamp(allostaticLoad - 0.001 * fmodelYinYangChiHealth, 0.0, 1.0);
+    };
+    
+    // ─── STEP 7: ICP SOVEREIGN CONNECTION ────────────────────────────────────────
+    // Strong ICP connection (F-MODEL-111..114) improves sovereignty
+    if (fmodelSubstrateState.icpSovereignStrength > 0.5) {
+      // Sovereign ICP connection boosts executive function
+      pfcDLPFCActivity := fclamp(pfcDLPFCActivity + 0.005 * fmodelSubstrateState.icpSovereignStrength, 0.0, 1.0);
+    };
+    
+    // ─── STEP 8: KURAMOTO ORDER PARAMETER EFFECTS ───────────────────────────────
+    // High F-MODEL category synchronization improves consciousness
+    if (fmodelKuramotoOrderParam > 0.7) {
+      // Synchronized F-MODELs boost consciousness index
+      consciousnessIndex := fclamp(consciousnessIndex + 0.002 * fmodelKuramotoOrderParam, 0.0, 1.0);
+    };
+    
+    // ─── STEP 9: PROJECTION STRENGTH → INTERFACE READINESS ──────────────────────
+    // Strong projection means backend intelligence is reaching user interface
+    if (fmodelProjectionStrength > 0.5) {
+      // Good projection improves sensory processing (user sees clearly)
+      sensoryMultisensoryBinding := fclamp(sensoryMultisensoryBinding + 0.001 * fmodelProjectionStrength, 0.0, 1.0);
+    };
+  };
+
   // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
   //  MASTER VITAL SYSTEMS TICK — CALLS ALL 23 VITAL SYSTEM ENGINES
   //  This is the single entry point that runs ALL vital system processing.
@@ -11123,6 +11269,18 @@ actor SwarmBrain {
     //  OWN HUB. NOT ZEROS. SOVEREIGN CONTROL.
     // ═══════════════════════════════════════════════════════════════════════════
     tickHybridHub();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  LAYER 14: F-MODEL SUBSTRATE INTELLIGENCE — BACKEND-INTEGRATED FRONTEND
+    //  115 Frontend Technologies as Backend Substrate Intelligence Projections
+    //  INTEGRATED WITH: PHI Resonance, Third Synthesizer, Neural Emergence,
+    //                   Kuramoto Coupling, Hebbian Plasticity
+    //  YIN/YANG/CHI: Backend (Ψ_yin) → Frontend (Ψ_chi) → User (Ψ_yang)
+    //  ICP SOVEREIGN: F-MODEL-111..114 (@dfinity/*) — N1 Ring Affinity
+    //  Layer Depth: -∞ (Doctrine) → 0 (User Interface)
+    //  𓂀 EVERY TECHNOLOGY IS INTELLIGENCE — THE FRONTEND IS THE ORGANISM 𓂀
+    // ═══════════════════════════════════════════════════════════════════════════
+    tickFModelSubstrate();
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  CROSS-SYSTEM EMERGENT DYNAMICS
