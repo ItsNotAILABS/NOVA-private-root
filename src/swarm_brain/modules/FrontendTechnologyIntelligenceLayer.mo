@@ -106,6 +106,10 @@ module {
   public let φ⁵ : Float = 11.0901699437494742410;  // φ⁴ + φ³
   public let φ⁶ : Float = 17.9442719099991587856;  // φ⁵ + φ⁴
   
+  // ─── 1.1b CIRCLE CONSTANTS ─────────────────────────────────────────────────
+  public let π : Float = 3.14159265358979323846;
+  public let τ : Float = 6.28318530717958647692;  // 2π
+  
   // ─── 1.2 SCHUMANN RESONANCES — Earth's Electromagnetic Cavity ──────────────
   public let SCHUMANN_1 : Float = 7.83;   // Fundamental — Theta/Alpha boundary
   public let SCHUMANN_2 : Float = 14.3;   // 2nd harmonic — CHRONOS carrier
@@ -394,7 +398,7 @@ module {
       var categoryCoherences = Array.tabulate<Float>(11, func(_) { 0.0 });
       
       var kuramotoPhases = Array.tabulate<Float>(11, func(i) { 
-        Float.fromInt(i) * 2.0 * 3.14159 / 11.0  // Distributed phases
+        Float.fromInt(i) * τ / 11.0  // Distributed phases
       });
       var kuramotoCoupling = 0.1;
       var kuramotoOrderParam = 0.0;
@@ -445,7 +449,7 @@ module {
     // ─── STEP 1: UPDATE YIN (Backend Substrate) ──────────────────────────────
     // Yin receives backend state
     let yinMag = backendCoherence * phiResonance;
-    let yinPhase = Float.fromInt(beat) * 2.0 * 3.14159 / 1000.0;  // Slow rotation
+    let yinPhase = Float.fromInt(beat) * τ / 1000.0;  // Slow rotation
     state.yinYangChi := {
       yin = { magnitude = yinMag; phase = yinPhase; coherence = backendCoherence };
       yang = state.yinYangChi.yang;
@@ -467,7 +471,7 @@ module {
     
     var i = 0;
     while (i < 11) {
-      let omega_i = getCategoryNaturalFreq(i) * 2.0 * 3.14159;  // rad/s
+      let omega_i = getCategoryNaturalFreq(i) * τ;  // rad/s
       var coupling : Float = 0.0;
       
       var j = 0;
@@ -479,11 +483,11 @@ module {
       newPhases[i] := state.kuramotoPhases[i] + dt * (omega_i + (K / N) * coupling);
       
       // Wrap phase to [0, 2π]
-      while (newPhases[i] > 2.0 * 3.14159) {
-        newPhases[i] -= 2.0 * 3.14159;
+      while (newPhases[i] > τ) {
+        newPhases[i] -= τ;
       };
       while (newPhases[i] < 0.0) {
-        newPhases[i] += 2.0 * 3.14159;
+        newPhases[i] += τ;
       };
       
       // Accumulate for order parameter
@@ -544,7 +548,7 @@ module {
       };
       
       // Node activation based on resonance with substrate
-      let resonance = Float.cos(Float.fromInt(beat) * nodeFreq * 2.0 * 3.14159 / 1000.0);
+      let resonance = Float.cos(Float.fromInt(beat) * nodeFreq * τ / 1000.0);
       newPhiNodes[i] := fclamp(
         newPhiNodes[i] * 0.95 + 0.05 * Float.abs(resonance) * state.shell8Transform,
         0.0, 1.0
