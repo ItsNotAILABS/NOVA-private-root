@@ -415,21 +415,45 @@ module UniversalTokenGenesisEngine {
   // The hash-based component provides variation for similar descriptions.
   // ═══════════════════════════════════════════════════════════════════════════
   
-  /// Check if text contains any of the keywords (case-insensitive via hash)
+  /// Simple substring check (Motoko Text iteration)
+  func textContains(text : Text, substr : Text) : Bool {
+    let textChars = Text.toArray(text);
+    let subChars = Text.toArray(substr);
+    let textLen = textChars.size();
+    let subLen = subChars.size();
+    
+    if (subLen == 0) return true;
+    if (subLen > textLen) return false;
+    
+    var i : Nat = 0;
+    label searchLoop while (i + subLen <= textLen) {
+      var match = true;
+      var j : Nat = 0;
+      label matchLoop while (j < subLen) {
+        if (textChars[i + j] != subChars[j]) {
+          match := false;
+          break matchLoop;
+        };
+        j += 1;
+      };
+      if (match) return true;
+      i += 1;
+    };
+    false
+  };
+  
+  /// Check if text contains any of the keywords
   func containsKeyword(text : Text, keywords : [Text]) : Float {
     var matchCount : Float = 0.0;
-    let textLower = text;  // Motoko doesn't have toLower, use hash comparison
     for (keyword in keywords.vals()) {
-      // Check if keyword appears in text via hash collision detection
-      let textHash = hashText(textLower);
-      let keyHash = hashText(keyword);
-      // If keyword hash modulo appears in text hash pattern, count as partial match
-      if ((textHash % 1000) == (keyHash % 1000) or 
-          (textHash / 1000 % 100) == (keyHash % 100)) {
-        matchCount += 0.3;
+      if (textContains(text, keyword)) {
+        matchCount += 0.2;  // Each keyword match adds to score
       };
     };
-    clamp(matchCount, 0.0, 1.0)
+    // Fallback: also use hash-based variation for diversity
+    let textHash = hashText(text);
+    let hashBonus = Float.fromInt(Int.abs(Nat32.toNat(textHash % 50))) / 500.0;
+    clamp(matchCount + hashBonus, 0.0, 1.0)
   };
   
   func detectReceiptPrimitive(desc : Text, behavior : Text) : Float {
@@ -1619,6 +1643,66 @@ module UniversalTokenGenesisEngine {
   // TICK FUNCTION — ORGANISM INTEGRATION
   // ═══════════════════════════════════════════════════════════════════════════
   
+  // Custom math functions (not in Motoko base library)
+  func arctan2(y : Float, x : Float) : Float {
+    // Simplified arctan2 approximation
+    if (x > 0.0) {
+      arctan(y / x)
+    } else if (x < 0.0 and y >= 0.0) {
+      arctan(y / x) + 3.14159265
+    } else if (x < 0.0 and y < 0.0) {
+      arctan(y / x) - 3.14159265
+    } else if (x == 0.0 and y > 0.0) {
+      1.5707963  // π/2
+    } else if (x == 0.0 and y < 0.0) {
+      -1.5707963  // -π/2
+    } else {
+      0.0  // undefined (0, 0)
+    }
+  };
+  
+  func arctan(x : Float) : Float {
+    // Taylor series approximation for arctan (valid for |x| <= 1)
+    let ax = abs(x);
+    if (ax > 1.0) {
+      let sign = if (x > 0.0) 1.0 else -1.0;
+      return sign * (1.5707963 - arctan(1.0 / ax));
+    };
+    let x2 = x * x;
+    let x3 = x2 * x;
+    let x5 = x3 * x2;
+    let x7 = x5 * x2;
+    x - x3 / 3.0 + x5 / 5.0 - x7 / 7.0
+  };
+  
+  func ln(x : Float) : Float {
+    // Natural log approximation using series expansion
+    // ln(x) ≈ 2 * (z + z³/3 + z⁵/5 + ...) where z = (x-1)/(x+1)
+    if (x <= 0.0) return -999.9;  // Error value
+    
+    // Scale x to near 1 for better convergence
+    var scaled = x;
+    var correction : Float = 0.0;
+    
+    // Use ln(x) = ln(x/e^n) + n for large x
+    while (scaled > 2.718281828) {
+      scaled := scaled / 2.718281828;
+      correction += 1.0;
+    };
+    while (scaled < 0.367879441) {  // 1/e
+      scaled := scaled * 2.718281828;
+      correction -= 1.0;
+    };
+    
+    let z = (scaled - 1.0) / (scaled + 1.0);
+    let z2 = z * z;
+    let z3 = z2 * z;
+    let z5 = z3 * z2;
+    let z7 = z5 * z2;
+    
+    2.0 * (z + z3 / 3.0 + z5 / 5.0 + z7 / 7.0) + correction
+  };
+
   /// Tick the token genesis engine as part of organism heartbeat
   public func tickTokenGenesisEngine(state : TokenGenesisEngineState) : () {
     state.currentBeat += 1;
@@ -1657,7 +1741,7 @@ module UniversalTokenGenesisEngine {
     state.globalCoherence := state.orderParameter;
     
     // Calculate mean phase
-    state.meanPhase := Float.arctan2(sumSin, sumCos);
+    state.meanPhase := arctan2(sumSin, sumCos);
     
     // Synchronization index
     state.synchronizationIndex := state.orderParameter;
@@ -1716,8 +1800,8 @@ module UniversalTokenGenesisEngine {
     // Calculate dimensional entropy
     var entropy : Float = 0.0;
     for (u in state.useUtilization.vals()) {
-      if (u > 0.0) {
-        entropy -= u * Float.log(u);
+      if (u > 0.01) {  // Avoid log(0) or very small values
+        entropy -= u * ln(u);
       };
     };
     state.dimensionalEntropy := entropy;

@@ -440,6 +440,31 @@ module SovereignGlyphSystem {
     ]
   };
   
+  // Custom power function for PHI exponents
+  func pow(base : Float, exp : Float) : Float {
+    // Approximation using repeated multiplication for reasonable exponents
+    if (exp == 0.0) return 1.0;
+    if (exp == 1.0) return base;
+    if (exp == 2.0) return base * base;
+    if (exp == 3.0) return base * base * base;
+    if (exp == 4.0) return base * base * base * base;
+    // For fractional exponents, use linear interpolation (rough)
+    let intPart = Float.toInt(exp);
+    let fracPart = exp - Float.fromInt(intPart);
+    var result : Float = 1.0;
+    var i = 0;
+    while (i < Int.abs(intPart)) {
+      result := result * base;
+      i += 1;
+    };
+    if (intPart < 0) { result := 1.0 / result };
+    // Linear interpolation for fractional part
+    if (fracPart > 0.0) {
+      result := result * (1.0 + fracPart * (base - 1.0));
+    };
+    result
+  };
+  
   func generateGoldenSpiral(turns : Nat, scale : Float) : [Point3D] {
     let buf = Buffer.Buffer<Point3D>(turns * 36);
     let steps = turns * 36;
@@ -447,7 +472,7 @@ module SovereignGlyphSystem {
     while (i < steps) {
       let t = Float.fromInt(i) / Float.fromInt(steps);
       let angle = t * Float.fromInt(turns) * TAU;
-      let radius = scale * Float.pow(PHI, t * 4.0 - 2.0);
+      let radius = scale * pow(PHI, t * 4.0 - 2.0);
       buf.add({
         x = cos(angle) * radius;
         y = sin(angle) * radius;
