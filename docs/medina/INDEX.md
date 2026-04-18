@@ -1,5 +1,11 @@
 # MEDINA Documentation Index
 
+## Laws
+
+| Law Index | Name | Documentation |
+|-----------|------|---------------|
+| L-130 | Universal Primitive Law | `laws/L-130-UNIVERSAL-PRIMITIVE-LAW.md` |
+
 ## Architecture Documents
 
 1. System layers spec -> `architecture/system-layers-spec.md`
