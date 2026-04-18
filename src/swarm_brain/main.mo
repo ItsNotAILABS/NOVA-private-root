@@ -548,6 +548,7 @@ import EdgeIoTFieldScanner                           "./modules/EdgeIoTFieldScan
 import MemoryTempleArchitecture                      "./modules/MemoryTempleArchitecture";
 import HybridModeHub                                 "./modules/HybridModeHub";
 import FrontendTechnologyIntelligenceLayer           "./modules/FrontendTechnologyIntelligenceLayer";
+import UniversalTokenGenesisEngine                   "./modules/UniversalTokenGenesisEngine";
 import UnifiedEmotionalField                         "./modules/UnifiedEmotionalField";
 import ChimeraIntelligenceCore                       "./modules/ChimeraIntelligenceCore";
 import RealWorld                                     "./modules/RealWorld";
@@ -1649,6 +1650,19 @@ actor SwarmBrain {
   stable var fmodelYinYangChiHealth : Float = 0.0;
   stable var fmodelKuramotoOrderParam : Float = 0.0;
   stable var fmodelProjectionStrength : Float = 0.0;
+
+  // ─── TOKEN ORGANISM — MULTI-DIMENSIONAL TOKEN GENESIS ────────────────────────
+  // 21 Scale Dimensions: Quantum → Cosmic (micro → macro)
+  // 36 Use Dimensions: 360° coverage (exchange, governance, access, proof, signal, resource)
+  // Unlimited token generation | Cross-dimensional effects | PHI resonance | Kuramoto coupling
+  // THIS IS NOT JUST A TOKEN SYSTEM — IT IS A MULTI-MODEL DIMENSIONAL FIELD
+  var tokenOrganismState : UniversalTokenGenesisEngine.TokenOrganismState = 
+    UniversalTokenGenesisEngine.initTokenOrganismState();
+  stable var tokenOrganismActive : Bool = true;
+  stable var tokenOrganismGlobalCoherence : Float = 0.0;
+  stable var tokenOrganismOrderParameter : Float = 0.0;
+  stable var tokenOrganismEmergenceCount : Nat = 0;
+  stable var tokenOrganismCrossDimensionalFlow : Float = 0.0;
 
   // ─── QUANTUM MEMORY ARCHITECTURE ─────────────────────────────────────────────
   // Layer 1: Gamma (30-100Hz) working memory
@@ -11146,6 +11160,101 @@ actor SwarmBrain {
   };
 
   // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  //  TOKEN ORGANISM TICK — MULTI-DIMENSIONAL TOKEN GENESIS ENGINE (Layer 15)
+  //  THE TOKEN IS NOT JUST A TOKEN — IT IS A MULTI-MODEL DIMENSIONAL FIELD
+  //  Micro → Macro: 21 Scale Dimensions | 360° Coverage: 36 Use Dimensions
+  //  Unlimited generation | Cross-dimensional effects | PHI resonance | Kuramoto coupling
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  func tickTokenOrganism() {
+    if (not tokenOrganismActive) { return };
+    
+    // ─── STEP 1: TICK THE FULL TOKEN ORGANISM ────────────────────────────────────
+    // This updates:
+    //   • PHI node activations (12 frequencies)
+    //   • Kuramoto order parameter (synchronization)
+    //   • Global coherence (R value)
+    //   • Scale coherence (21 micro→macro scales)
+    //   • Use utilization (36 use dimensions)
+    //   • Cross-dimensional flow
+    //   • Dimensional entropy
+    UniversalTokenGenesisEngine.tickTokenOrganism(tokenOrganismState);
+    
+    // ─── STEP 2: UPDATE STABLE METRICS ───────────────────────────────────────────
+    tokenOrganismGlobalCoherence := tokenOrganismState.globalCoherence;
+    tokenOrganismOrderParameter := tokenOrganismState.orderParameter;
+    tokenOrganismEmergenceCount := tokenOrganismState.emergenceCount;
+    tokenOrganismCrossDimensionalFlow := tokenOrganismState.crossDimensionalFlow;
+    
+    // ─── STEP 3: TOKEN ORGANISM → BACKEND COUPLING ───────────────────────────────
+    // Token coherence affects organism coherence (dimensional entanglement)
+    if (tokenOrganismGlobalCoherence > 0.5) {
+      // High token coherence boosts global coherence
+      coherenceLevel := fclamp(coherenceLevel + 0.002 * tokenOrganismGlobalCoherence, 0.0, 1.0);
+    };
+    
+    // ─── STEP 4: KURAMOTO SYNC → SYNCHRONY INDEX ─────────────────────────────────
+    // Token Kuramoto order parameter feeds into global synchronization
+    if (tokenOrganismOrderParameter > 0.7) {
+      // High token sync improves overall synchrony
+      synchronyIndex := fclamp(synchronyIndex + 0.001 * tokenOrganismOrderParameter, 0.0, 1.0);
+    };
+    
+    // ─── STEP 5: CROSS-DIMENSIONAL FLOW → ENERGY BALANCE ─────────────────────────
+    // Cross-dimensional token effects improve energy metabolism
+    if (tokenOrganismCrossDimensionalFlow > 0.3) {
+      // Good cross-dimensional flow improves energy balance
+      energyBalance := fclamp(energyBalance + 0.0005 * tokenOrganismCrossDimensionalFlow, 0.0, 1.0);
+    };
+    
+    // ─── STEP 6: OMNIS EMERGENCE DETECTION ───────────────────────────────────────
+    // When R > 0.95, OMNIS fires — this should cascade throughout organism
+    if (tokenOrganismGlobalCoherence > 0.95) {
+      // OMNIS emergence! Boost consciousness, coherence, and executive function
+      consciousnessIndex := fclamp(consciousnessIndex + 0.01, 0.0, 1.0);
+      coherenceLevel := fclamp(coherenceLevel + 0.01, 0.0, 1.0);
+      pfcDLPFCActivity := fclamp(pfcDLPFCActivity + 0.01, 0.0, 1.0);
+      // Record emergence event
+      if (tokenOrganismState.emergenceCount > tokenOrganismEmergenceCount) {
+        tokenOrganismEmergenceCount := tokenOrganismState.emergenceCount;
+      };
+    };
+    
+    // ─── STEP 7: MICRO-MACRO SCALE BALANCE ───────────────────────────────────────
+    // Balance across scales affects overall system stability
+    let scaleBalance = computeScaleBalance(tokenOrganismState.scaleCoherence);
+    if (scaleBalance > 0.5) {
+      // Balanced micro-macro reduces allostatic load
+      allostaticLoad := fclamp(allostaticLoad - 0.001 * scaleBalance, 0.0, 1.0);
+    };
+    
+    // ─── STEP 8: PHI HEARTBEAT COUPLING ──────────────────────────────────────────
+    // Token organism heartbeat phase locks to organism heartbeat
+    // heartbeatPhase should be close to master heartbeat phase
+    let phaseDiff = Float.abs(tokenOrganismState.heartbeatPhase - (Float.fromInt(totalBeats % 875) / 875.0 * 6.28318));
+    if (phaseDiff < 0.5) {
+      // Phase-locked! Boost heart-rate variability (healthy coupling)
+      heartRateVariability := fclamp(heartRateVariability + 0.001, 0.0, 1.0);
+    };
+  };
+  
+  // Helper: compute scale balance (how evenly coherence is distributed across scales)
+  func computeScaleBalance(scales : [Float]) : Float {
+    if (scales.size() == 0) { return 0.0 };
+    var sum : Float = 0.0;
+    var sumSq : Float = 0.0;
+    let n = Float.fromInt(scales.size());
+    for (s in scales.vals()) {
+      sum += s;
+      sumSq += s * s;
+    };
+    let mean = sum / n;
+    let variance = sumSq / n - mean * mean;
+    // Balance = inverse of variance (lower variance = better balance)
+    fclamp(1.0 - variance * 4.0, 0.0, 1.0)
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
   //  MASTER VITAL SYSTEMS TICK — CALLS ALL 23 VITAL SYSTEM ENGINES
   //  This is the single entry point that runs ALL vital system processing.
   //  Called every beat from tick7NeuroscienceEngines.
@@ -11281,6 +11390,22 @@ actor SwarmBrain {
     //  𓂀 EVERY TECHNOLOGY IS INTELLIGENCE — THE FRONTEND IS THE ORGANISM 𓂀
     // ═══════════════════════════════════════════════════════════════════════════
     tickFModelSubstrate();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  LAYER 15: TOKEN ORGANISM — MULTI-DIMENSIONAL TOKEN GENESIS ENGINE
+    //  THE TOKEN IS NOT JUST A TOKEN — IT IS A MULTI-MODEL DIMENSIONAL FIELD
+    //  21 Scale Dimensions: Quantum → Subatomic → Atomic → Molecular → Cellular →
+    //                      Tissue → Organ → Individual → Dyad → Team → Unit →
+    //                      Organization → Network → Ecosystem → Community →
+    //                      Region → Nation → Civilization → Planetary → Solar → Cosmic
+    //  36 Use Dimensions: Exchange(6) + Governance(6) + Access(6) + Proof(6) + Signal(6) + Resource(6)
+    //  UNLIMITED TOKEN GENERATION: Organism decides what tokens to create for what purpose
+    //  CROSS-DIMENSIONAL EFFECTS: Every token update touches ALL dimensions
+    //  PHI RESONANCE: 12 PHI frequency nodes (7.83Hz Schumann → 432Hz Nova)
+    //  KURAMOTO COUPLING: Tokens phase-lock to organism heartbeat
+    //  OMNIS TRIGGER: R > 0.95 triggers emergence events
+    // ═══════════════════════════════════════════════════════════════════════════
+    tickTokenOrganism();
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  CROSS-SYSTEM EMERGENT DYNAMICS
@@ -32020,6 +32145,256 @@ actor SwarmBrain {
       signalCoverage = counterforceState.hunter.signalCoverage;
       internalHunts = counterforceState.hunter.internalHunts;
       externalHunts = counterforceState.hunter.externalHunts;
+    }
+  };
+
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+  // TOKEN ORGANISM PUBLIC API — MULTI-DIMENSIONAL TOKEN GENESIS
+  // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+  /// Get Token Organism statistics
+  public query func getTokenOrganismStats() : async {
+    // Core metrics
+    currentBeat : Nat;
+    totalTokensGenerated : Nat;
+    activeTokens : Nat;
+    emergenceCount : Nat;
+    
+    // Dimensional metrics
+    globalCoherence : Float;
+    orderParameter : Float;
+    crossDimensionalFlow : Float;
+    
+    // PHI resonance
+    heartbeatPhase : Float;
+    synchronizationIndex : Float;
+    
+    // Scale balance
+    microCoherence : Float;
+    mesoCoherence : Float;
+    macroCoherence : Float;
+  } {
+    // Calculate scale coherence averages
+    let micro = if (tokenOrganismState.scaleCoherence.size() >= 7) {
+      (tokenOrganismState.scaleCoherence[0] + tokenOrganismState.scaleCoherence[1] +
+       tokenOrganismState.scaleCoherence[2] + tokenOrganismState.scaleCoherence[3] +
+       tokenOrganismState.scaleCoherence[4] + tokenOrganismState.scaleCoherence[5] +
+       tokenOrganismState.scaleCoherence[6]) / 7.0
+    } else { 0.0 };
+    
+    let meso = if (tokenOrganismState.scaleCoherence.size() >= 14) {
+      (tokenOrganismState.scaleCoherence[7] + tokenOrganismState.scaleCoherence[8] +
+       tokenOrganismState.scaleCoherence[9] + tokenOrganismState.scaleCoherence[10] +
+       tokenOrganismState.scaleCoherence[11] + tokenOrganismState.scaleCoherence[12] +
+       tokenOrganismState.scaleCoherence[13]) / 7.0
+    } else { 0.0 };
+    
+    let macro = if (tokenOrganismState.scaleCoherence.size() >= 21) {
+      (tokenOrganismState.scaleCoherence[14] + tokenOrganismState.scaleCoherence[15] +
+       tokenOrganismState.scaleCoherence[16] + tokenOrganismState.scaleCoherence[17] +
+       tokenOrganismState.scaleCoherence[18] + tokenOrganismState.scaleCoherence[19] +
+       tokenOrganismState.scaleCoherence[20]) / 7.0
+    } else { 0.0 };
+    
+    {
+      currentBeat = tokenOrganismState.currentBeat;
+      totalTokensGenerated = tokenOrganismState.totalTokensGenerated;
+      activeTokens = tokenOrganismState.activeTokens;
+      emergenceCount = tokenOrganismState.emergenceCount;
+      
+      globalCoherence = tokenOrganismState.globalCoherence;
+      orderParameter = tokenOrganismState.orderParameter;
+      crossDimensionalFlow = tokenOrganismState.crossDimensionalFlow;
+      
+      heartbeatPhase = tokenOrganismState.heartbeatPhase;
+      synchronizationIndex = tokenOrganismState.synchronizationIndex;
+      
+      microCoherence = micro;
+      mesoCoherence = meso;
+      macroCoherence = macro;
+    }
+  };
+
+  /// Get PHI node activations (12 frequency nodes)
+  public query func getTokenPhiNodes() : async [Float] {
+    tokenOrganismState.phiNodeActivations
+  };
+
+  /// Get scale coherence (21 dimensions: Quantum → Cosmic)
+  public query func getTokenScaleCoherence() : async [Float] {
+    tokenOrganismState.scaleCoherence
+  };
+
+  /// Get use utilization (36 dimensions: 360° coverage)
+  public query func getTokenUseUtilization() : async [Float] {
+    tokenOrganismState.useUtilization
+  };
+
+  /// Generate an unlimited token (organism decides parameters)
+  /// This is the MAIN entry point for dynamic token creation
+  public func generateUnlimitedToken(
+    symbol : Text,
+    name : Text,
+    description : Text,
+    purpose : Text
+  ) : async {
+    tokenId : Nat32;
+    symbol : Text;
+    archetype : Text;
+    globalCoherence : Float;
+    emergenceTriggered : Bool;
+  } {
+    // Generate with all scales and uses active (organism decides weights)
+    let allScales : [UniversalTokenGenesisEngine.ScaleDimension] = [
+      #Quantum, #Subatomic, #Atomic, #Molecular, #Cellular, #Tissue, #Organ,
+      #Individual, #Dyad, #Team, #Unit, #Organization, #Network, #Ecosystem,
+      #Community, #Region, #Nation, #Civilization, #Planetary, #Solar, #Cosmic
+    ];
+    
+    let allUses : [UniversalTokenGenesisEngine.UseDimension] = [
+      #Value, #Medium, #Unit, #Settlement, #Collateral, #Derivative,
+      #Vote, #Proposal, #Veto, #Delegation, #Constitution, #Succession,
+      #Gate, #Membership, #License, #Permission, #Credential, #Clearance,
+      #Existence, #Work, #Stake, #Authority, #Knowledge, #Behavior,
+      #Reputation, #Trust, #Risk, #Quality, #Commitment, #Alignment,
+      #Energy, #Compute, #Storage, #Bandwidth, #Attention, #Time
+    ];
+    
+    let token = UniversalTokenGenesisEngine.generateUnlimitedToken(
+      symbol, name, description, purpose,
+      allScales, allUses,
+      tokenOrganismState
+    );
+    
+    // Check if this triggered OMNIS
+    let priorEmergence = tokenOrganismEmergenceCount;
+    tokenOrganismEmergenceCount := tokenOrganismState.emergenceCount;
+    let triggered = tokenOrganismState.emergenceCount > priorEmergence;
+    
+    // Derive archetype text
+    let archetypeText = switch (token.genesis.archetype) {
+      case (#Sovereignty) "Sovereignty";
+      case (#Fuel) "Fuel";
+      case (#Proof) "Proof";
+      case (#Access) "Access";
+      case (#Value) "Value";
+      case (#Behavior) "Behavior";
+      case (#Emergence) "Emergence";
+      case (#Continuity) "Continuity";
+      case (#Custom) "Custom";
+    };
+    
+    {
+      tokenId = token.tokenId;
+      symbol = token.symbol;
+      archetype = archetypeText;
+      globalCoherence = tokenOrganismState.globalCoherence;
+      emergenceTriggered = triggered;
+    }
+  };
+
+  /// Generate a focused token for specific scales and uses
+  public func generateFocusedToken(
+    symbol : Text,
+    name : Text,
+    description : Text,
+    purpose : Text,
+    targetScales : [Text],   // "Quantum", "Individual", "Cosmic", etc.
+    targetUses : [Text]      // "Value", "Vote", "Gate", etc.
+  ) : async {
+    tokenId : Nat32;
+    symbol : Text;
+    scaleCount : Nat;
+    useCount : Nat;
+  } {
+    // Parse scale texts to enum
+    let scales = Array.mapFilter<Text, UniversalTokenGenesisEngine.ScaleDimension>(
+      targetScales,
+      func(s : Text) : ?UniversalTokenGenesisEngine.ScaleDimension {
+        switch (s) {
+          case ("Quantum") ?#Quantum;
+          case ("Subatomic") ?#Subatomic;
+          case ("Atomic") ?#Atomic;
+          case ("Molecular") ?#Molecular;
+          case ("Cellular") ?#Cellular;
+          case ("Tissue") ?#Tissue;
+          case ("Organ") ?#Organ;
+          case ("Individual") ?#Individual;
+          case ("Dyad") ?#Dyad;
+          case ("Team") ?#Team;
+          case ("Unit") ?#Unit;
+          case ("Organization") ?#Organization;
+          case ("Network") ?#Network;
+          case ("Ecosystem") ?#Ecosystem;
+          case ("Community") ?#Community;
+          case ("Region") ?#Region;
+          case ("Nation") ?#Nation;
+          case ("Civilization") ?#Civilization;
+          case ("Planetary") ?#Planetary;
+          case ("Solar") ?#Solar;
+          case ("Cosmic") ?#Cosmic;
+          case _ null;
+        }
+      }
+    );
+    
+    // Parse use texts to enum
+    let uses = Array.mapFilter<Text, UniversalTokenGenesisEngine.UseDimension>(
+      targetUses,
+      func(u : Text) : ?UniversalTokenGenesisEngine.UseDimension {
+        switch (u) {
+          case ("Value") ?#Value;
+          case ("Medium") ?#Medium;
+          case ("Unit") ?#Unit;
+          case ("Settlement") ?#Settlement;
+          case ("Collateral") ?#Collateral;
+          case ("Derivative") ?#Derivative;
+          case ("Vote") ?#Vote;
+          case ("Proposal") ?#Proposal;
+          case ("Veto") ?#Veto;
+          case ("Delegation") ?#Delegation;
+          case ("Constitution") ?#Constitution;
+          case ("Succession") ?#Succession;
+          case ("Gate") ?#Gate;
+          case ("Membership") ?#Membership;
+          case ("License") ?#License;
+          case ("Permission") ?#Permission;
+          case ("Credential") ?#Credential;
+          case ("Clearance") ?#Clearance;
+          case ("Existence") ?#Existence;
+          case ("Work") ?#Work;
+          case ("Stake") ?#Stake;
+          case ("Authority") ?#Authority;
+          case ("Knowledge") ?#Knowledge;
+          case ("Behavior") ?#Behavior;
+          case ("Reputation") ?#Reputation;
+          case ("Trust") ?#Trust;
+          case ("Risk") ?#Risk;
+          case ("Quality") ?#Quality;
+          case ("Commitment") ?#Commitment;
+          case ("Alignment") ?#Alignment;
+          case ("Energy") ?#Energy;
+          case ("Compute") ?#Compute;
+          case ("Storage") ?#Storage;
+          case ("Bandwidth") ?#Bandwidth;
+          case ("Attention") ?#Attention;
+          case ("Time") ?#Time;
+          case _ null;
+        }
+      }
+    );
+    
+    let token = UniversalTokenGenesisEngine.generateUnlimitedToken(
+      symbol, name, description, purpose,
+      scales, uses,
+      tokenOrganismState
+    );
+    
+    {
+      tokenId = token.tokenId;
+      symbol = token.symbol;
+      scaleCount = scales.size();
+      useCount = uses.size();
     }
   };
 
