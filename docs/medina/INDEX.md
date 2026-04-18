@@ -5,6 +5,15 @@
 | Law Index | Name | Documentation |
 |-----------|------|---------------|
 | L-130 | Universal Primitive Law | `laws/L-130-UNIVERSAL-PRIMITIVE-LAW.md` |
+| L-130-A | Applied Examples | `laws/L-130-APPLIED-EXAMPLES.md` |
+
+## Engines & Modules
+
+| Engine | Module | Description |
+|--------|--------|-------------|
+| Universal Primitive Engine | `UniversalPrimitiveEngine.mo` | L-130 implementation — primitive tracing |
+| Universal Token Genesis Engine | `UniversalTokenGenesisEngine.mo` | Token model that generates all tokens |
+| Sovereign Glyph System | `SovereignGlyphSystem.mo` | Geometric symbol/glyph system |
 
 ## Architecture Documents
 
