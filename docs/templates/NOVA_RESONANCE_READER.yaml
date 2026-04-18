@@ -1,0 +1,98 @@
+resonance_reader:
+  version: "1.0"
+  classification: "SOVEREIGN_PRIVATE"
+  reader_id: "NOVA-RESONANCE-READER"
+  purpose: "Always-on semantic and resonance reading contract for living doctrine artifacts."
+
+  operating_modes:
+    semantic_read:
+      enabled: true
+      source_requirements:
+        - "model_bindings_present"
+        - "law_bindings_present"
+        - "gate_bindings_present"
+      parser_contract:
+        strict_schema_validation: true
+        unknown_field_policy: "reject_for_governance"
+    resonance_read:
+      enabled: true
+      source_requirements:
+        - "field_signal_inputs_present"
+        - "continuity_reference_present"
+      coupling_contract:
+        min_resonance_fit: 0.70
+        min_coherence_fit: 0.70
+        drift_bound_required: true
+
+  field_inputs:
+    - id: "FI-HEARTBEAT-COHERENCE"
+      source: "heartbeat_substrate"
+      required: true
+    - id: "FI-DRIFT"
+      source: "runtime_state"
+      required: true
+    - id: "FI-LAW-CONTINUITY"
+      source: "constant_feedback_fabric"
+      required: true
+    - id: "FI-MEMORY-INTEGRITY"
+      source: "memory_temple"
+      required: true
+    - id: "FI-MESH-RESONANCE"
+      source: "federation_state"
+      required: true
+
+  read_outputs:
+    semantic_output:
+      required_fields:
+        - "bound_laws"
+        - "bound_models"
+        - "bound_gates"
+        - "schema_validation_pass"
+    resonance_output:
+      required_fields:
+        - "resonance_score"
+        - "coherence_score"
+        - "drift_score"
+        - "coupling_vector"
+    merged_output:
+      required_fields:
+        - "readiness_score"
+        - "recommended_actions"
+        - "reinjection_targets"
+
+  reinjection_targets:
+    - "cognition_readiness"
+    - "governance_stability"
+    - "memory_continuity_weave"
+    - "mesh_resonance"
+    - "sovereign_alignment"
+
+  access_tier_constraints:
+    runtime_readers:
+      allowed_tiers: ["P2", "P3", "P4"]
+      forbidden:
+        - "raw_founder_private_register"
+        - "creator_only_secret_surfaces"
+    external_surfaces:
+      allowed_tiers: ["P0", "P1"]
+      allowed_shape: "external register only"
+      forbidden:
+        - "internal register payloads"
+        - "full law topology"
+
+  failure_policies:
+    missing_semantic_or_resonance_mode:
+      action: "degrade_to_observe_only"
+      emit_incident: true
+    resonance_fit_below_threshold:
+      action: "block_autonomous_write"
+      emit_incident: true
+    schema_validation_fail:
+      action: "reject_packet"
+      emit_incident: true
+
+  evidence_requirements:
+    - "semantic_validation_report"
+    - "resonance_read_snapshot"
+    - "merged_readiness_trace"
+    - "reinjection_confirmation"

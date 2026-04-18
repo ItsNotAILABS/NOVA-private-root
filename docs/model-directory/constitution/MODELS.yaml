@@ -1,0 +1,19 @@
+models:
+  family_id: "MOD-CONSTITUTION"
+  classification: "SOVEREIGN_PRIVATE"
+  owner: "doctrine-authority"
+  gates_touched: ["GATE-A", "GATE-B", "GATE-C"]
+  parity_refs:
+    - "docs/NOVA_BUILD_CONSTITUTION.md"
+    - "docs/templates/NOVA_LAW_REGISTRY.yaml"
+  entries:
+    - model_id: "C-MODEL-CONSTITUTION-STATE"
+      class: "M1"
+      description: "Constitution state contract and active revision identifiers."
+      consumers: ["core-a-runtime", "core-b-governance", "assurance-office"]
+      exposure_class: "SOVEREIGN_PRIVATE"
+    - model_id: "C-MODEL-AXIOM-SET"
+      class: "M0"
+      description: "Axiom archetype set governing non-collapse and sovereignty."
+      consumers: ["doctrine-authority", "architecture-office"]
+      exposure_class: "SOVEREIGN_PRIVATE"

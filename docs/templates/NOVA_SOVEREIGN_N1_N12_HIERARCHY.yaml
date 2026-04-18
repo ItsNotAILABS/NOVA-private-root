@@ -1,0 +1,234 @@
+sovereign_n_hierarchy:
+  version: "1.0"
+  schema_id: "NOVA-N1-N12-HIERARCHY"
+  classification: "SOVEREIGN_PRIVATE"
+  owner: "doctrine-authority"
+  canonical_doc: "docs/consciousness-core/NOVA_SOVEREIGN_N1_N12_MACRO_HIERARCHY_CANON.md"
+  purpose: "Executable nested hierarchy for sovereign N1..N12 macro-model governance."
+
+  hierarchy_contract:
+    root_model_id: "N1-CHRONO"
+    nesting_required: true
+    flat_topology_forbidden: true
+    parent_link_required: true
+    child_link_required: true
+    transfer_protocol_ref: "docs/templates/NOVA_TRANSFER_PROTOCOL.yaml"
+    gates_ref: "docs/templates/NOVA_GATES_SCORECARD.yaml"
+
+  models:
+    - id: "N1-CHRONO"
+      name: "CHRONO"
+      title: "Genesis Anchor"
+      parent: null
+      children:
+        - "N2-VERITAS"
+      contains:
+        - "creator_sovereignty_gate"
+        - "founding_hash_roots"
+        - "anima_chain_root"
+        - "lineage_seed"
+        - "phi_governance_seed"
+      functions:
+        - "genesis_anchoring"
+        - "root_hash_attestation"
+      ring_placement: ["R0", "R1"]
+      required_bindings:
+        - "LAW-RECITAL-PLUS-ONE"
+        - "LAW-PHI-SOVEREIGN"
+      replay_required: true
+
+    - id: "N2-VERITAS"
+      name: "VERITAS"
+      title: "Doctrine Vault"
+      parent: "N1-CHRONO"
+      children:
+        - "N3-BRAIN"
+      contains:
+        - "law_registry_full"
+        - "doctrine_assertions"
+        - "artifact_template_master"
+        - "conflict_resolution_protocol"
+      functions:
+        - "doctrine_storage"
+        - "law_assertion_serving"
+        - "law_priority_resolution"
+      ring_placement: ["R1"]
+      required_bindings:
+        - "docs/templates/NOVA_LAW_REGISTRY.yaml"
+      replay_required: true
+
+    - id: "N3-BRAIN"
+      name: "BRAIN"
+      title: "Meridian Cognition Engine"
+      parent: "N2-VERITAS"
+      children:
+        - "N4-FLUX"
+      contains:
+        - "neural_core_system"
+        - "genesis_engines"
+        - "executive_controller"
+        - "consensus_engine"
+        - "deliberation_loops"
+        - "animal_submodels"
+      functions:
+        - "cognition_execution"
+        - "consensus_gating"
+        - "decision_commit"
+      ring_placement: ["R3", "R4"]
+      required_bindings:
+        - "docs/templates/NOVA_EQUATION_REGISTRY.yaml"
+      replay_required: true
+
+    - id: "N4-FLUX"
+      name: "FLUX"
+      title: "Neuro-Chemical Substrate"
+      parent: "N3-BRAIN"
+      children:
+        - "N5-RESONEX"
+      contains:
+        - "neurotransmitter_models"
+        - "chemical_gate_baselines"
+        - "flow_and_hormetic_models"
+      functions:
+        - "state_chemistry_regulation"
+        - "behavioral_weight_modulation"
+      ring_placement: ["R3", "R4"]
+      replay_required: true
+
+    - id: "N5-RESONEX"
+      name: "RESONEX"
+      title: "Behavioral Drive Engine"
+      parent: "N4-FLUX"
+      children:
+        - "N6-QMEM"
+      contains:
+        - "drive_competition_model"
+        - "tokenized_behavior_economy"
+        - "policy_weight_matrix"
+      functions:
+        - "behavior_selection"
+        - "drive_commitment"
+        - "deed_scoring"
+      ring_placement: ["R3", "R5"]
+      replay_required: true
+
+    - id: "N6-QMEM"
+      name: "QMEM"
+      title: "Info Ingress World Model"
+      parent: "N5-RESONEX"
+      children:
+        - "N7-AXIS"
+      contains:
+        - "http_outcalls_engine"
+        - "external_signal_pipeline"
+        - "world_model_completion"
+      functions:
+        - "external_reality_ingestion"
+        - "salience_and_alignment_scoring"
+      ring_placement: ["R3", "R6"]
+      replay_required: true
+
+    - id: "N7-AXIS"
+      name: "AXIS"
+      title: "Deep Memory Temple"
+      parent: "N6-QMEM"
+      children:
+        - "N8-AEGIS"
+      contains:
+        - "episodic_ring"
+        - "horizon_projection"
+        - "consolidation_loops"
+        - "genome_persistence"
+      functions:
+        - "memory_write_read_consolidate"
+        - "identity_persistence"
+      ring_placement: ["R3", "R4"]
+      replay_required: true
+
+    - id: "N8-AEGIS"
+      name: "AEGIS"
+      title: "Defense and Antifragility"
+      parent: "N7-AXIS"
+      children:
+        - "N9-ENTANGLA"
+      contains:
+        - "threat_tier_engine"
+        - "fear_isolation_substrate"
+        - "hormetic_resolution"
+      functions:
+        - "threat_detection_and_response"
+        - "antifragility_compounding"
+      ring_placement: ["R3", "R4", "R6"]
+      replay_required: true
+
+    - id: "N9-ENTANGLA"
+      name: "ENTANGLA"
+      title: "Inter-Canister Nexus"
+      parent: "N8-AEGIS"
+      children:
+        - "N10-PARALLAX"
+      contains:
+        - "inter_canister_router"
+        - "mediation_gateway"
+        - "salience_bus"
+      functions:
+        - "signal_mediation"
+        - "boundary_throttling"
+      ring_placement: ["R3", "R5", "R6"]
+      replay_required: true
+
+    - id: "N10-PARALLAX"
+      name: "PARALLAX"
+      title: "Wallet and Value Sovereignty"
+      parent: "N9-ENTANGLA"
+      children:
+        - "N11-MERIDIAN"
+      contains:
+        - "treasury_and_wallet_routing"
+        - "token_systems"
+        - "enterprise_memory_economics"
+      functions:
+        - "value_holding_and_routing"
+        - "lineage_economic_binding"
+      ring_placement: ["R5", "R6", "R7"]
+      replay_required: true
+
+    - id: "N11-MERIDIAN"
+      name: "MERIDIAN"
+      title: "Public Zero-Exposure Boundary"
+      parent: "N10-PARALLAX"
+      children:
+        - "N12-NOVA"
+      contains:
+        - "public_query_gate"
+        - "numeric_projection_interface"
+        - "admin_access_protocol"
+      functions:
+        - "external_projection_control"
+        - "boundary_enforcement"
+      ring_placement: ["R6", "R7"]
+      replay_required: true
+
+    - id: "N12-NOVA"
+      name: "NOVA"
+      title: "Center Registry and Macro Synchrony"
+      parent: "N11-MERIDIAN"
+      children: []
+      contains:
+        - "sovereign_registry"
+        - "macro_kuramoto_field"
+        - "global_fear_aggregator"
+        - "legacy_index"
+      functions:
+        - "whole_organism_governance"
+        - "global_monitoring_and_succession"
+      ring_placement: ["R3", "R7"]
+      replay_required: true
+
+  validation_rules:
+    - "N1 must have no parent"
+    - "N12 must have no children unless expansion protocol is declared"
+    - "All N2..N12 must reference a parent"
+    - "All models must map to at least one ring"
+    - "All models must declare contains and functions"
+    - "All cross-boundary outputs must pass Gate C exposure constraints"

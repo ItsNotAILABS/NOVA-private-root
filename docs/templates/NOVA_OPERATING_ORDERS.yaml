@@ -1,0 +1,81 @@
+operating_orders:
+  version: "1.0"
+  classification: "BUILDER_CONFIDENTIAL"
+  doctrine_fingerprint: "replace_with_hash"
+
+  authorities:
+    core_a:
+      name: "Runtime Intelligence Core"
+      write_scope:
+        - "runtime_truth_state"
+        - "arbitration_verdicts"
+        - "continuity_chain"
+      cannot_write:
+        - "doctrine_registry"
+    core_b:
+      name: "Workforce Orchestration Core"
+      write_scope:
+        - "build_proposals"
+        - "release_artifacts"
+        - "product_projection_packages"
+      cannot_write:
+        - "runtime_truth_state"
+        - "doctrine_registry"
+    doctrine_authority:
+      name: "Doctrine Council"
+      write_scope:
+        - "law_registry"
+        - "constitutional_axioms"
+      cannot_write:
+        - "runtime_live_state"
+
+  command_planes:
+    constitutional_plane:
+      allowed_writers: ["doctrine_authority"]
+      required_gate: "GATE-CONSTITUTION"
+    runtime_plane:
+      allowed_writers: ["core_a"]
+      required_gate: "GATE-A-RUNTIME"
+    workforce_plane:
+      allowed_writers: ["core_b"]
+      required_gate: "GATE-B-WORKFORCE"
+    projection_plane:
+      allowed_writers: ["core_b"]
+      required_gate: "GATE-C-PROJECTION"
+
+  mandatory_route_controls:
+    - id: "ROC-01"
+      description: "all runtime changes must include law check manifest"
+      check: "law_check_manifest_present == true"
+    - id: "ROC-02"
+      description: "all runtime changes must include replay metadata"
+      check: "replay_metadata_present == true"
+    - id: "ROC-03"
+      description: "all projection packages must include exposure report"
+      check: "exposure_report_pass == true"
+
+  arbitration:
+    candidate_sources:
+      - "core_b"
+      - "intrinsic_labs"
+    acceptance_requirements:
+      - "contract_valid"
+      - "law_pass"
+      - "gate_pass"
+      - "rollback_defined"
+    winner_persistence:
+      - "candidate_id"
+      - "winner_score"
+      - "reason_trace"
+      - "replay_link"
+
+  release_controls:
+    freeze_windows:
+      doctrine_registry: "frozen_during_release"
+      runtime_truth: "core_a_only"
+    rollback:
+      required: true
+      max_recovery_beats: 24
+    incident_controls:
+      required: true
+      severity_levels: ["S1", "S2", "S3", "S4"]

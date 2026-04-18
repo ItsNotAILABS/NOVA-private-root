@@ -1,0 +1,83 @@
+version: "1.0"
+doctrine_fingerprint: "UNSET"
+owner: "Alfredo Medina Hernandez"
+classification: "sovereign-internal"
+
+resonance_lexicon:
+  - id: "RX-0001"
+    phrase: "LOOP NEVER CLOSES"
+    symbol: "∞"
+    class: "doctrine"
+    semantic_payload:
+      summary: "Output must be reinjected as next input; no terminal cognition state."
+      affects_layers: ["runtime", "memory", "governance", "workforce"]
+      affects_rings: ["r3_runtime_intelligence", "r4_intrinsic_labs", "r5_industrial_workforce"]
+      required_laws: ["L23"]
+    machine_projection:
+      gates:
+        - id: "G-REINJECT-REQUIRED"
+          condition: "reinjection_claims_count > 0"
+      scoring:
+        continuity_bonus: 0.15
+      observability:
+        - "continuity_history"
+        - "replay_link_count"
+    exposure_policy:
+      public_allowed: false
+      owner_only: true
+    confidence_policy:
+      minimum_doctrine_fit: 0.90
+      minimum_coherence_fit: 0.75
+
+  - id: "RX-0002"
+    phrase: "LAW BEFORE ACTUATION"
+    symbol: "⚖"
+    class: "law_gate"
+    semantic_payload:
+      summary: "Any actuation path must pass law gates before execution."
+      affects_layers: ["governance", "runtime", "product_projection"]
+      affects_rings: ["r1_doctrine", "r3_runtime_intelligence", "r6_product_projection"]
+      required_laws: ["L01", "L24", "L27"]
+    machine_projection:
+      gates:
+        - id: "G-LAW-PASS"
+          condition: "gate_report.law_pass == true"
+      arbitration_rule:
+        reject_if_law_fail: true
+      observability:
+        - "law_pass_rate"
+        - "law_fail_reasons"
+    exposure_policy:
+      public_allowed: true
+      public_shape: "numeric-only status"
+      owner_only: false
+    confidence_policy:
+      minimum_doctrine_fit: 0.95
+      minimum_coherence_fit: 0.70
+
+  - id: "RX-0003"
+    phrase: "NO-DROP CONTINUITY"
+    symbol: "⟲"
+    class: "memory"
+    semantic_payload:
+      summary: "State deformation must retain causal lineage; nothing essential is discarded."
+      affects_layers: ["memory", "runtime", "audit"]
+      affects_rings: ["r3_runtime_intelligence", "r4_intrinsic_labs", "r7_external_ecosystem"]
+      required_laws: ["L08", "L22", "L30"]
+    machine_projection:
+      gates:
+        - id: "G-CONTINUITY"
+          condition: "retain_superset(previous_state, current_state) == true"
+      scoring:
+        continuity_bonus: 0.20
+      observability:
+        - "continuity_weave"
+        - "replay_reconstruction_error"
+        - "proof_link_integrity"
+    exposure_policy:
+      public_allowed: true
+      public_shape: "bounded continuity score"
+      owner_only: false
+    confidence_policy:
+      minimum_doctrine_fit: 0.92
+      minimum_coherence_fit: 0.78

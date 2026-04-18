@@ -1,0 +1,26 @@
+family:
+  id: "MOD-DEFENSE-SAFETY"
+  name: "Defense and Safety Models"
+  classification: "RUNTIME_RESTRICTED"
+  owner: "defense-governance"
+  consumers:
+    - "core-a-runtime"
+    - "core-b-governance"
+    - "product-authority"
+  gates_touched: ["GATE-A", "GATE-B", "GATE-C"]
+
+models:
+  - model_id: "D-MODEL-THREAT-VECTOR"
+    class: "M1"
+    description: "Threat vector and severity contract for containment decisions"
+    parity_refs:
+      - "docs/templates/NOVA_GATES_SCORECARD.yaml"
+      - "docs/templates/NOVA_RING_TRANSFER_GRAPH.yaml"
+    exposure_class: "RUNTIME_RESTRICTED"
+  - model_id: "D-MODEL-CONTAINMENT-STATUS"
+    class: "M2"
+    description: "Runtime containment state and rollback-anchor records"
+    parity_refs:
+      - "docs/NOVA_FULL_SPHERE_ARCHITECTURE.md"
+      - "docs/NOVA_BUILD_CONSTITUTION.md"
+    exposure_class: "RUNTIME_RESTRICTED"

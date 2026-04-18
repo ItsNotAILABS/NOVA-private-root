@@ -1,0 +1,26 @@
+family:
+  id: "MOD-ARBITRATION"
+  name: "Arbitration Models"
+  classification: "RUNTIME_RESTRICTED"
+  owner: "core-a-runtime"
+  consumers:
+    - "core-a-runtime"
+    - "core-b-governance"
+    - "intrinsic-labs"
+  gates_touched: ["GATE-A", "GATE-B"]
+
+models:
+  - model_id: "A-MODEL-CANDIDATE-SCORE"
+    class: "M2"
+    description: "Per-candidate score terms for arbitration windows."
+    parity_refs:
+      - "docs/templates/NOVA_OPERATING_ORDERS.yaml"
+      - "docs/templates/NOVA_GATES_SCORECARD.yaml"
+    exposure_class: "RUNTIME_RESTRICTED"
+  - model_id: "A-MODEL-VERDICT-LINEAGE"
+    class: "M2"
+    description: "Accepted verdict and reason trace lineage."
+    parity_refs:
+      - "docs/templates/NOVA_OPERATING_ORDERS.yaml"
+      - "docs/templates/NOVA_MEMORY_RESIDENCY.yaml"
+    exposure_class: "BUILDER_CONFIDENTIAL"

@@ -1,0 +1,26 @@
+family:
+  id: "MOD-MEMORY-CONTINUITY"
+  name: "Memory and Continuity Models"
+  classification: "SOVEREIGN_PRIVATE"
+  owner: "memory-governance"
+  consumers:
+    - "core-a-runtime"
+    - "intrinsic-labs"
+    - "assurance-office"
+  gates_touched: ["GATE-A", "GATE-B"]
+
+models:
+  - model_id: "M-MODEL-CONTINUITY-WEAVE"
+    class: "M2"
+    description: "Runtime continuity fabric retaining causal lineage across beats."
+    parity_refs:
+      - "src/swarm_brain/modules/MemoryTempleEngine.mo"
+      - "docs/templates/NOVA_MEMORY_RESIDENCY.yaml"
+    exposure_class: "SOVEREIGN_PRIVATE"
+  - model_id: "M-MODEL-REINJECTION-TRACE"
+    class: "M2"
+    description: "No-drop reinjection trail linking outputs into next-beat inputs."
+    parity_refs:
+      - "docs/AURO_CONTINUOUS_FEEDBACK_LOOP.md"
+      - "docs/templates/NOVA_EQUATION_REGISTRY.yaml"
+    exposure_class: "SOVEREIGN_PRIVATE"

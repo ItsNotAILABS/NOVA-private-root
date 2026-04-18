@@ -1,0 +1,157 @@
+equation_registry:
+  version: "1.0"
+  classification: "SOVEREIGN_PRIVATE"
+  purpose: "Machine-governed registry of canonical organism equations"
+  owner: "doctrine-authority"
+  replay_required: true
+
+  families:
+    - id: "EQF-CCVE"
+      name: "Cardio-Cerebral Vector Engine"
+      source_files:
+        - "src/swarm_brain/modules/CardioCerebralVectorEngine.mo"
+      model_bindings:
+        - "R-MODEL-CCVE-STATE"
+      gate_bindings:
+        - "GATE-A-RUNTIME"
+      law_bindings:
+        - "LAW-COHERENCE-LOCK"
+        - "LAW-PHASE-CONTINUITY"
+        - "LAW-DOCTRINE-DIRECTION"
+        - "LAW-DRIFT-BOUND"
+      equations:
+        - id: "EQ-CCVE-RES-01"
+          description: "Resonance from heart-brain phase/frequency locking"
+          expression:
+            - "phaseLag = wrapPi(brainPhase - heartPhase)"
+            - "phaseLock = (cos(phaseLag)+1)/2"
+            - "freqDelta = abs(brainFrequency-heartFrequency) / max(brainFrequency, heartFrequency, EPS)"
+            - "freqMatch = clamp(1 - freqDelta, 0, 1)"
+            - "resonanceRaw = 0.6*phaseLock + 0.4*freqMatch"
+            - "resonance_t = clamp(0.85*resonance_{t-1} + 0.15*resonanceRaw, 0, 1)"
+          symbols:
+            phaseLag: { range: "[-pi, pi]" }
+            phaseLock: { range: "[0, 1]" }
+            freqDelta: { range: "[0, +inf)" }
+            resonance_t: { range: "[0, 1]" }
+        - id: "EQ-CCVE-PROP-02"
+          description: "Propulsion and push effectiveness"
+          expression:
+            - "propulsionRaw = resonance_t*(0.70 + 0.30*heartbeatCoherence) - 0.50*jDrift"
+            - "propulsion_t = clamp(0.85*propulsion_{t-1} + 0.15*propulsionRaw, 0, 2)"
+            - "alignment = clamp((dot(direction, doctrineDir)+1)/2, 0, 1)"
+            - "pushEffectiveness = clamp(propulsion_t*alignment*(0.5 + 0.5*heartbeatCoherence), 0, 2)"
+          symbols:
+            propulsion_t: { range: "[0, 2]" }
+            alignment: { range: "[0, 1]" }
+            pushEffectiveness: { range: "[0, 2]" }
+
+    - id: "EQF-CNCO"
+      name: "Cardio-Neural Conversion Organ"
+      source_files:
+        - "src/swarm_brain/modules/CardioNeuralConversionOrgan.mo"
+      model_bindings:
+        - "R-MODEL-CNCO-STATE"
+      gate_bindings:
+        - "GATE-A-RUNTIME"
+      law_bindings:
+        - "LAW-CONVERSION-INTEGRITY"
+        - "LAW-THIRD-BRAIN-STABILITY"
+      equations:
+        - id: "EQ-CNCO-BRIDGE-03"
+          description: "Resonance bridge update"
+          expression:
+            - "phaseLock = (cos(wrapPi(brainPhase-heartPhase))+1)/2"
+            - "freqMatch = clamp(1 - abs(brainFrequency-heartFrequency)/max(brainFrequency, heartFrequency, EPS), 0, 1)"
+            - "resonanceBridgeRaw = clamp(0.45*phaseLock + 0.25*freqMatch + 0.20*heartCoherence + 0.10*brainCoherence, 0, 1.5)"
+            - "resonanceBridge_t = clamp(0.82*resonanceBridge_{t-1} + 0.18*resonanceBridgeRaw, 0, 1.5)"
+        - id: "EQ-CNCO-CONV-04"
+          description: "Conversion coherence chain"
+          expression:
+            - "perfusionRaw = clamp(0.55*perfusionProxy + 0.20*cardioPropulsion + 0.15*emotionalEmbodiment + 0.10*resonanceBridge_t, 0, 1.5)"
+            - "oxygenRaw = clamp(0.60*oxygenProxy + 0.25*perfusionFlow_t + 0.15*(1 - 0.5*emotionalArousal), 0, 1.5)"
+            - "entrainmentRaw = clamp(0.40*resonanceBridge_t + 0.25*brainCoherence + 0.20*heartCoherence + 0.15*cardioPropulsion, 0, 1.5)"
+            - "conversionRaw = clamp(0.35*entrainmentGain_t + 0.25*oxygenFlow_t + 0.20*perfusionFlow_t + 0.20*resonanceBridge_t, 0, 1.5)"
+            - "conversionCoherence_t = clamp(0.80*conversionCoherence_{t-1} + 0.20*conversionRaw, 0, 1.5)"
+
+    - id: "EQF-GRPE"
+      name: "Geo-Resonance Protection Engine"
+      source_files:
+        - "src/swarm_brain/modules/GeoResonanceProtectionEngine.mo"
+      model_bindings:
+        - "R-MODEL-GRPE-STATE"
+      gate_bindings:
+        - "GATE-A-RUNTIME"
+        - "GATE-C-PROJECTION"
+      law_bindings:
+        - "LAW-GEO-RESONANCE-PROTECTION"
+        - "LAW-THREAT-CONTAINMENT"
+      equations:
+        - id: "EQ-GRPE-FIELD-05"
+          description: "Field and protection scores"
+          expression:
+            - "fieldRaw = clamp(0.22*magneticFlux + 0.14*rfIntensity + 0.10*hydrologyPotential + 0.12*qsovScore + 0.12*rSwarm + 0.10*cardioCerebralPush + 0.10*emotionalCertainty + 0.10*(1-abs(jDrift)), 0, 1.5)"
+            - "fieldEnergy_t = clamp(0.82*fieldEnergy_{t-1} + 0.18*fieldRaw, 0, 1.5)"
+            - "protectionRaw = clamp(0.35*fieldEnergy_t + 0.25*qsovScore + 0.20*cardioCerebralPush + 0.20*(0.5 + 0.5*dot(doctrineDir, emotionalDir)), 0, 1.5)"
+            - "protectionScore_t = clamp(0.80*protectionScore_{t-1} + 0.20*protectionRaw, 0, 1.5)"
+        - id: "EQ-GRPE-THREAT-06"
+          description: "Hotspot, threat, and service readiness"
+          expression:
+            - "hotspotRaw = clamp(0.40*infrastructureLoad + 0.25*anomalyScore + 0.20*rfIntensity + 0.15*(1-protectionScore_t), 0, 2.0)"
+            - "hotspotScore_t = clamp(0.78*hotspotScore_{t-1} + 0.22*hotspotRaw, 0, 2.0)"
+            - "threatRaw = clamp(0.55*hotspotScore_t + 0.25*anomalyScore + 0.20*(1-protectionScore_t), 0, 2.0)"
+            - "threatScore_t = clamp(0.80*threatScore_{t-1} + 0.20*threatRaw, 0, 2.0)"
+            - "readinessRaw = clamp(0.45*protectionScore_t + 0.25*fieldEnergy_t + 0.20*(1-0.5*hotspotScore_t) + 0.10*hydrologyPotential, 0, 1.5)"
+            - "serviceReadiness_t = clamp(0.82*serviceReadiness_{t-1} + 0.18*readinessRaw, 0, 1.5)"
+
+    - id: "EQF-MEMORY-TEMPLE"
+      name: "Memory Temple Engine"
+      source_files:
+        - "src/swarm_brain/modules/MemoryTempleEngine.mo"
+      model_bindings:
+        - "R-MODEL-MEMORY-TEMPLE-STATE"
+      gate_bindings:
+        - "GATE-A-RUNTIME"
+        - "GATE-B-WORKFORCE"
+        - "GATE-C-PROJECTION"
+      law_bindings:
+        - "LAW-NO-DROP-CONTINUITY"
+        - "LAW-MEMORY-TEMPLE"
+        - "LAW-MEMORY-COGNITION-COUPLING"
+        - "LAW-PHANTOM-INTEGRITY"
+      equations:
+        - id: "EQ-MT-CONT-07"
+          description: "Continuity weave"
+          expression:
+            - "driftAbs = clamp(abs(jDrift), 0, 1)"
+            - "continuityRaw = clamp(0.26*rSwarm + 0.20*doctrineCompliance + 0.18*(1-driftAbs) + 0.18*heartbeatCoherence + 0.18*memoryCognitionCoupling_{t-1}, 0, 1.5)"
+            - "continuityWeave_t = clamp(0.82*continuityWeave_{t-1} + 0.18*continuityRaw, 0, 1.5)"
+        - id: "EQ-MT-COUPLE-08"
+          description: "Resonance, retention, and coupling chain"
+          expression:
+            - "resonanceRaw = clamp(0.28*cardioCerebralResonance + 0.24*cardioNeuralCoupling + 0.16*heartbeatCoherence + 0.16*emotionalEmbodiment + 0.16*continuityWeave_t, 0, 1.5)"
+            - "resonanceField_t = clamp(0.80*resonanceField_{t-1} + 0.20*resonanceRaw, 0, 1.5)"
+            - "retentionRaw = clamp(0.32*continuityWeave_t + 0.26*resonanceField_t + 0.18*qsovScore + 0.14*doctrineCompliance + 0.10*analystLearningScore, 0, 1.5)"
+            - "memoryRetention_t = clamp(0.84*memoryRetention_{t-1} + 0.16*retentionRaw, 0, 1.5)"
+            - "couplingRaw = clamp(0.30*resonanceField_t + 0.22*memoryRetention_t + 0.20*cognitiveLoad + 0.15*cardioNeuralCoupling + 0.13*rSwarm, 0, 1.5)"
+            - "memoryCognitionCoupling_t = clamp(0.82*memoryCognitionCoupling_{t-1} + 0.18*couplingRaw, 0, 1.5)"
+        - id: "EQ-MT-IOT-09"
+          description: "IoT coupling and phantom integrity"
+          expression:
+            - "deviceNorm = clamp(connectedDeviceCount/128, 0, 1)"
+            - "iotRaw = clamp(0.34*deviceNorm + 0.20*memoryCognitionCoupling_t + 0.18*continuityWeave_t + 0.16*geoProtectionScore + 0.12*(1-0.5*geoThreatScore), 0, 1.5)"
+            - "iotCouplingScore_t = clamp(0.80*iotCouplingScore_{t-1} + 0.20*iotRaw, 0, 1.5)"
+            - "phantomIntegrity_t = clamp(0.84*phantomIntegrity_{t-1} + 0.16*(0.36*doctrineCompliance + 0.22*geoProtectionScore + 0.20*(1-0.5*geoThreatScore) + 0.12*(1-driftAbs) + 0.10*deviceTwinIntegrity_t), 0, 1.5)"
+
+  constants:
+    PI: 3.141592653589793
+    TAU: 6.283185307179586
+    EPS: 0.0000001
+    PHI: 1.6180339887498948
+
+  validation_rules:
+    - "all equation IDs are unique"
+    - "all equations have source file and gate bindings"
+    - "all gate bindings exist in NOVA_GATES_SCORECARD.yaml"
+    - "all replay-required equations define prior-state smoothing terms or explicit stateless declaration"
+    - "all public projections of equation-derived values pass zero-exposure policy"

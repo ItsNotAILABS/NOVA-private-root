@@ -1,0 +1,119 @@
+doctrine_pack:
+  version: "1.0"
+  pack_id: "nova-core-doctrine-pack"
+  doctrine_fingerprint: "replace_with_hash"
+  owner: "architect"
+  status: "draft"
+  classification: "SOVEREIGN_PRIVATE"
+
+  lineage:
+    source_epoch: "nova-foundation"
+    inheritance_mode: "family-locked"
+    inheritable_assets:
+      - "phi_constants"
+      - "law_registry"
+      - "model_contracts"
+      - "ring_governance"
+
+  parity_controls:
+    backend_phi_file: "src/swarm_brain/modules/phi.mo"
+    frontend_phi_file: "src/frontend/src/substrate/phi.ts"
+    backend_types_file: "src/swarm_brain/modules/types.mo"
+    frontend_types_file: "src/frontend/src/substrate/types.ts"
+    required:
+      - "phi_parity_hash"
+      - "types_parity_hash"
+
+  invariants:
+    - id: "INV-001"
+      name: "no-drop-continuity"
+      statement: "outputs become inputs; continuity retained across beats"
+      enforcement_ref: "LAW-23"
+    - id: "INV-002"
+      name: "law-before-actuation"
+      statement: "no actuation without gate pass"
+      enforcement_ref: "LAW-01..LAW-38"
+    - id: "INV-003"
+      name: "zero-exposure"
+      statement: "doctrine internals never surface publicly"
+      enforcement_ref: "LAW-24,LAW-27"
+
+  resonance_anchors:
+    constants:
+      phi: 1.6180339887498948
+      schumann_base_hz: 7.83
+      golden_angle_deg: 137.50776405003785
+      omnis_hz: 111.0
+    selected_fibonacci:
+      - 34
+      - 55
+      - 89
+      - 144
+
+  ring_bindings:
+    r0: ["absolutes", "encoding-bridge"]
+    r1: ["law-registry", "gate-policies"]
+    r2: ["types-contract", "substrate-coupling"]
+    r3: ["core-a-runtime"]
+    r4: ["intrinsic-labs"]
+    r5: ["core-b-workforce"]
+    r6: ["product-projections"]
+    r7: ["ecosystem-federation"]
+
+  model_contracts_required:
+    - "MEDINA-ORGANISM"
+    - "MEDINA-PROOF"
+    - "MEDINA-ENGINE"
+    - "MEDINA-COUPLING"
+    - "MEDINA-SNAPSHOT"
+    - "MEDINA-HEARTBEAT"
+
+  exposure_policy:
+    public_allow:
+      - "numeric_metrics"
+      - "proof_references"
+      - "bounded_status"
+    public_deny:
+      - "doctrine_labels"
+      - "law_names"
+      - "internal_coupling_topology"
+      - "creator_only_surfaces"
+
+  access_tiers:
+    public:
+      read: ["numeric_metrics", "bounded_status", "proof_references"]
+      write: []
+    operator:
+      read: ["runbooks", "safe_replay_summaries", "safe_state_summaries"]
+      write: ["approved_ops_commands"]
+    runtime:
+      read: ["runtime_contracts", "runtime_state_required"]
+      write: ["runtime_outputs_via_core_a"]
+    builder:
+      read: ["full_architecture", "law_registry", "templates", "source"]
+      write: ["proposals", "implementation", "tests", "release_artifacts"]
+    sovereign:
+      read: ["full_doctrine", "all_resonance_clauses", "full_replay"]
+      write: ["law_registry", "doctrine_policy", "tier_policy"]
+
+  activation_gates:
+    gate_a:
+      description: "core-a-readiness"
+      required:
+        - "deterministic_beat"
+        - "bounded_coherence_drift"
+        - "law_before_actuation"
+        - "deterministic_arbitration"
+        - "replay_reconstructable"
+    gate_b:
+      description: "core-b-activation"
+      required:
+        - "contract_compatibility"
+        - "security_channels_verified"
+        - "rollback_hooks_active"
+    gate_c:
+      description: "public_projection_release"
+      required:
+        - "zero_exposure_pass"
+        - "owner_surface_protection"
+        - "incident_controls_ready"

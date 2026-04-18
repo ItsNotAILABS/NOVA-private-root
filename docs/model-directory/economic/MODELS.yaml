@@ -1,0 +1,26 @@
+family:
+  id: "MOD-ECONOMIC"
+  name: "Economic Models"
+  classification: "BUILDER_CONFIDENTIAL"
+  owner: "economy-governance"
+  consumers:
+    - "core-a-runtime"
+    - "core-b-governance"
+    - "product-authority"
+  gates_touched: ["GATE-B", "GATE-C"]
+
+models:
+  - model_id: "K-MODEL-TREASURY-FLOW"
+    class: "M1"
+    description: "Treasury and value-routing contract for sovereign economy paths."
+    parity_refs:
+      - "docs/NOVA_BUILD_CONSTITUTION.md"
+      - "docs/templates/NOVA_MODEL_DIRECTORY_INDEX.yaml"
+    exposure_class: "BUILDER_CONFIDENTIAL"
+  - model_id: "K-MODEL-RESERVE-LOCK"
+    class: "M2"
+    description: "Runtime reserve lock and release state instance."
+    parity_refs:
+      - "docs/NOVA_BUILD_CONSTITUTION.md"
+      - "docs/templates/NOVA_GATES_SCORECARD.yaml"
+    exposure_class: "RUNTIME_RESTRICTED"

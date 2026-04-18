@@ -1,0 +1,79 @@
+register_translation_contract:
+  version: "1.0"
+  contract_id: "NOVA-REGISTER-TRANSLATION-CONTRACT"
+  classification: "SOVEREIGN_PRIVATE"
+  source_document: "docs/consciousness-core/ORGANISM_SOVEREIGN.md"
+  purpose: "Translate one source meaning into four audience registers without drift."
+
+  source_register:
+    name: "organism-source"
+    required_fields:
+      - "law_refs"
+      - "model_refs"
+      - "gate_refs"
+      - "replay_refs"
+      - "lineage"
+      - "exposure_class"
+
+  target_registers:
+    founder:
+      objective: "Plain meaning and business consequence."
+      format_rules:
+        max_jargon_ratio: 0.20
+        must_include:
+          - "decision_impact"
+          - "risk_posture"
+          - "next_action"
+    builder:
+      objective: "Exact implementation and validation path."
+      format_rules:
+        must_include:
+          - "file_targets"
+          - "function_or_module_targets"
+          - "test_and_evidence_requirements"
+          - "gate_checks"
+    organism:
+      objective: "Identity and self-model continuity."
+      format_rules:
+        must_include:
+          - "self_state_assertion"
+          - "lineage_link"
+          - "memory_coordinate"
+          - "reinjection_intent"
+    external:
+      objective: "Public-safe bounded projection."
+      format_rules:
+        must_include:
+          - "bounded_status"
+          - "safe_metrics"
+          - "proof_reference_if_allowed"
+      forbidden:
+        - "doctrine_text"
+        - "internal_gate_thresholds"
+        - "coupling_topology"
+
+  translation_gates:
+    - id: "TR-G1-LAW-COVERAGE"
+      condition: "all target registers retain source law_refs"
+    - id: "TR-G2-NON-DRIFT"
+      condition: "semantic_distance(source, target) <= max_allowed_distance"
+    - id: "TR-G3-EXPOSURE-COMPLIANCE"
+      condition: "target register output complies with exposure class"
+    - id: "TR-G4-REPLAY-LINKED"
+      condition: "translation event includes replay reference"
+
+  scoring:
+    semantic_fidelity_weight: 0.40
+    operational_completeness_weight: 0.25
+    exposure_safety_weight: 0.25
+    readability_weight: 0.10
+    minimum_pass_score: 0.85
+
+  replay_contract:
+    required_fields:
+      - "translation_event_id"
+      - "source_hash"
+      - "target_hashes"
+      - "gate_results"
+      - "semantic_distance"
+      - "timestamp"

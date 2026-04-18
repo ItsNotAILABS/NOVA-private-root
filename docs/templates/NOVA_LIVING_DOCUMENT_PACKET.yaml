@@ -1,0 +1,114 @@
+living_document_packet:
+  version: "1.0"
+  classification: "SOVEREIGN_PRIVATE"
+  packet_id: "LDP-UNSET"
+  doc_id: "DOC-UNSET"
+  beat: 0
+  recital_index: 0
+  ring: "R3_RUNTIME"
+
+  lineage:
+    parent_hash: "GENESIS"
+    chain_hash: "UNSET"
+    sequence_ref: "RPO-SEQ-01"
+    replay_pointer: "EVID-UNSET"
+
+  document_type:
+    mode: "internal|external|mixed"
+    trigger:
+      trigger_id: "TRIG-UNSET"
+      trigger_reason: "beat_cadence|pressure|risk|manual"
+      trigger_metrics:
+        cognitive_pressure: 0.0
+        reinjection_integrity: 0.0
+        risk_containment: 0.0
+
+  registers:
+    founder:
+      summary: "UNSET"
+      decisions_required: []
+      business_impact: "UNSET"
+    builder:
+      directives: []
+      files_targets: []
+      gate_requirements: []
+      tests_required: []
+    organism:
+      identity_statement: "UNSET"
+      resonance_targets: []
+      self_modulation_intent: "UNSET"
+    external:
+      safe_summary: "UNSET"
+      allowed_metrics: []
+      prohibited_content_assertion: true
+
+  macro_micro_bindings:
+    required_macro_fields:
+      - "field_presence"
+      - "autonomy_signal"
+      - "document_vitality"
+      - "memory_palace_integrity"
+      - "chain_integrity"
+      - "translation_integrity"
+      - "calendar_coherence"
+      - "n_plus_one_pressure"
+    micro_inputs:
+      - domain: "heartbeat"
+        model_ref: "R-MODEL-HEARTBEAT"
+        value_ref: "heartbeat_coherence"
+      - domain: "ccve"
+        model_ref: "R-MODEL-CCVE-STATE"
+        value_ref: "propulsion"
+      - domain: "cnco"
+        model_ref: "R-MODEL-CNCO-STATE"
+        value_ref: "thought_throughput"
+      - domain: "memory"
+        model_ref: "R-MODEL-MEMORY-TEMPLE-STATE"
+        value_ref: "continuity_weave"
+      - domain: "feedback"
+        model_ref: "R-MODEL-CONSTANT-FEEDBACK"
+        value_ref: "sovereign_alignment_score"
+      - domain: "defense"
+        model_ref: "MOD-DEFENSE-SAFETY"
+        value_ref: "defense_posture"
+      - domain: "economy"
+        model_ref: "MOD-ECONOMIC"
+        value_ref: "economic_resilience"
+      - domain: "workforce"
+        model_ref: "MOD-WORKFORCE-BUILD"
+        value_ref: "workforce_coherence"
+      - domain: "mesh"
+        model_ref: "MOD-STATE-FABRIC"
+        value_ref: "mesh_resonance"
+
+  memory_palace_mapping:
+    coordinate_ref: "MPC-UNSET"
+    theta: 0.0
+    phi: 0.0
+    depth: 0.0
+    coherence_stamp: 0.0
+
+  translation:
+    translation_contract_ref: "RTC-01"
+    internal_to_external_passed: false
+    translation_confidence: 0.0
+
+  gates:
+    gate_a_runtime: false
+    gate_b_workforce: false
+    gate_c_projection: false
+    law_pass: false
+
+  observability:
+    classification: "RUNTIME_RESTRICTED"
+    access_tier_minimum: "P2"
+    read_log_required: true
+    replay_required: true
+
+  validation:
+    - "all four registers populated"
+    - "lineage parent and chain hashes are present"
+    - "macro fields reference at least six micro inputs"
+    - "external register passes zero-exposure constraints"
+    - "memory palace coordinates are bounded"
+    - "gate and law outcomes are attached"

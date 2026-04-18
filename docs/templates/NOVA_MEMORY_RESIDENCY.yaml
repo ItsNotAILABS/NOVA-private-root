@@ -1,0 +1,86 @@
+memory_residency:
+  version: "1.0"
+  classification: "SOVEREIGN_PRIVATE"
+  doctrine_binding: "LAW-NO-DROP-CONTINUITY"
+
+  residency_classes:
+    - id: "MR0_EPHEMERAL"
+      ttl_beats: 1
+      required_replay: false
+      description: "Transient compute values used within a single beat."
+    - id: "MR1_SHORT_TRACE"
+      ttl_beats: 128
+      required_replay: true
+      description: "Short history buffers required for smoothing and local replay."
+    - id: "MR2_RELEASE_WINDOW"
+      ttl_beats: 8192
+      required_replay: true
+      description: "Release-cycle reconstruction window for diagnostics and audits."
+    - id: "MR3_LINEAGE"
+      ttl_beats: -1
+      required_replay: true
+      description: "Permanent lineage records retained across generations."
+
+  model_residency_bindings:
+    - model_id: "R-MODEL-CCVE-STATE"
+      residency_class: "MR1_SHORT_TRACE"
+      retained_fields:
+        - "resonanceHistory"
+        - "propulsionHistory"
+        - "phaseLag"
+    - model_id: "R-MODEL-CNCO-STATE"
+      residency_class: "MR1_SHORT_TRACE"
+      retained_fields:
+        - "conversionHistory"
+        - "regulationHistory"
+        - "conversionMode"
+    - model_id: "R-MODEL-GRPE-STATE"
+      residency_class: "MR2_RELEASE_WINDOW"
+      retained_fields:
+        - "fieldHistory"
+        - "hotspotHistory"
+        - "protectionHistory"
+        - "sevenHeritageNodes"
+    - model_id: "R-MODEL-MEMORY-TEMPLE-STATE"
+      residency_class: "MR2_RELEASE_WINDOW"
+      retained_fields:
+        - "continuityHistory"
+        - "resonanceHistory"
+        - "couplingHistory"
+        - "narrativeSummary"
+        - "recommendations"
+    - model_id: "E-MODEL-REPLAY-BUNDLE"
+      residency_class: "MR3_LINEAGE"
+      retained_fields:
+        - "beat_start"
+        - "beat_end"
+        - "artifact_hashes"
+        - "law_bindings"
+        - "gate_reports"
+
+  no_drop_rules:
+    - id: "NDR-001"
+      statement: "Every release must preserve MR2 and MR3 records."
+      verification: "release_audit.missing_records_count == 0"
+    - id: "NDR-002"
+      statement: "Any MR1 truncation must keep the newest HISTORY_LIMIT values."
+      verification: "history_retention_policy == append_bounded_tail"
+    - id: "NDR-003"
+      statement: "Public projection cannot include MR2/MR3 raw internals."
+      verification: "projection_payload.excludes_residency_classes contains [MR2_RELEASE_WINDOW, MR3_LINEAGE]"
+
+  replay_contract:
+    required_fields:
+      - "build_id"
+      - "ring_id"
+      - "model_snapshot_id"
+      - "beat"
+      - "equation_ids_applied"
+      - "law_ids_verified"
+      - "gate_id"
+      - "state_hash_before"
+      - "state_hash_after"
+    required_reports:
+      - "law_enforcement_report"
+      - "gate_scorecard_report"
+      - "exposure_audit_report"

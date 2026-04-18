@@ -1,0 +1,26 @@
+family:
+  id: "MOD-WORKFORCE-BUILD"
+  name: "Workforce and Build Models"
+  classification: "BUILDER_CONFIDENTIAL"
+  owner: "core-b-governance"
+  consumers:
+    - "core-b-governance"
+    - "assurance-office"
+    - "product-authority"
+  gates_touched: ["GATE-B", "GATE-C"]
+
+models:
+  - model_id: "W-MODEL-TASK-PACKET"
+    class: "M1"
+    description: "Task constitution and work packet contract"
+    parity_refs:
+      - "docs/internal-ai-teams/NOVA_INTERNAL_WORKFORCE_ORCHESTRATION.md"
+      - "docs/templates/NOVA_OPERATING_ORDERS.yaml"
+    exposure_class: "BUILDER_CONFIDENTIAL"
+  - model_id: "W-MODEL-RELEASE-ARTIFACT"
+    class: "M2"
+    description: "Release package artifact lineage and controls"
+    parity_refs:
+      - "docs/templates/NOVA_GATES_SCORECARD.yaml"
+      - "docs/templates/NOVA_MEMORY_RESIDENCY.yaml"
+    exposure_class: "BUILDER_CONFIDENTIAL"
