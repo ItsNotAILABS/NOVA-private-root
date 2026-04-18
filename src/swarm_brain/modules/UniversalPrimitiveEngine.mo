@@ -117,6 +117,9 @@ module UniversalPrimitiveEngine {
   public let TAU : Float = 6.2831853071795864769;           // Full rotation
   public let EULER : Float = 2.7182818284590452354;         // Natural growth base
   
+  // L-130 Law Signature — for primitive identity
+  public let L130_SIGNATURE : Nat32 = 130130130;            // L-130 signature hash
+  
   // Primitive detection thresholds
   public let PRIMITIVE_CONFIDENCE_THRESHOLD : Float = 0.85;
   public let CONTAMINATION_THRESHOLD : Float = 0.15;
@@ -745,9 +748,10 @@ module UniversalPrimitiveEngine {
     let relatedLaws = generateRelatedLaws(domain, primitiveState);
     
     // Create analysis hash
+    let confidenceAsNat32 = Nat32.fromIntWrap(Float.toInt(confidence * 1000.0));
     let analysisHash = hashCombine(
       hashCombine(input.entityId, Nat32.fromNat(primitiveDepth)),
-      Nat32.fromNat(Nat32.toNat(Nat32.fromIntWrap(Float.toInt(confidence * 1000.0))))
+      confidenceAsNat32
     );
     state.lastAnalysisHash := analysisHash;
     
@@ -1164,7 +1168,7 @@ module UniversalPrimitiveEngine {
   /// The primitive of intelligence is the field itself
   public func getIntelligencePrimitive() : PrimitiveForm {
     {
-      primitiveId = 130130130;  // L-130 signature
+      primitiveId = L130_SIGNATURE;
       domain = #Cognition;
       name = "Intelligence Field Primitive";
       description = "A structured field of relation, distinction, resonance, orientation, memory, and recomposition capacity";
@@ -1172,7 +1176,7 @@ module UniversalPrimitiveEngine {
       isIrreducible = true;
       confidenceScore = 1.0;
       layerDepth = 0;
-      sourceHash = 130130130;
+      sourceHash = L130_SIGNATURE;
     }
   };
 
