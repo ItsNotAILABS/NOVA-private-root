@@ -747,8 +747,10 @@ module UniversalPrimitiveEngine {
     // Generate related laws
     let relatedLaws = generateRelatedLaws(domain, primitiveState);
     
-    // Create analysis hash
-    let confidenceAsNat32 = Nat32.fromIntWrap(Float.toInt(confidence * 1000.0));
+    // Create analysis hash (clamp confidence to valid range before conversion)
+    let clampedConfidence = clamp(confidence, 0.0, 1.0);
+    let confidenceScaled = Float.toInt(clampedConfidence * 1000.0);
+    let confidenceAsNat32 = Nat32.fromNat(Int.abs(confidenceScaled));
     let analysisHash = hashCombine(
       hashCombine(input.entityId, Nat32.fromNat(primitiveDepth)),
       confidenceAsNat32
