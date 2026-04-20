@@ -239,9 +239,9 @@ module {
       let dw = eta * globalCoherence * newAct[i];
       Float.max(SKILL_FLOOR, Float.min(5.0, org.skillWeights[i] + dw))
     });
-    var ss : Float = 0.0;
-    for (w in newW.vals()) { ss += w };
-    let avgSkill = ss / Float.fromInt(SKILL_COUNT);
+    var skillSum : Float = 0.0;
+    for (w in newW.vals()) { skillSum += w };
+    let avgSkill = skillSum / Float.fromInt(SKILL_COUNT);
     let prod  = if (ns.inWorkPhase) { Float.min(1.0, cog * avgSkill) } else { 0.0 };
     let creat = if (ns.remPower > 0.5) { ns.remPower * PHI_SQ } else { ns.arousalLevel * 0.3 };
     let focus = cog * (1.0 - org.burnout * 0.4);
@@ -413,17 +413,17 @@ module {
       } else { cv.controlScores[i] }
     });
     let newP = Array.tabulate<Bool>(cv.totalControls, func(i) { newS[i] >= 0.70 });
-    var ss : Float = 0.0; var fail : Nat = 0; var risk : Nat = 0;
+    var scoreSum : Float = 0.0; var fail : Nat = 0; var risk : Nat = 0;
     var pass : Nat = 0; var idx = 0;
     while (idx < cv.totalControls) {
-      ss += newS[idx];
+      scoreSum += newS[idx];
       if      (newS[idx] < 0.50) { fail += 1 }
       else if (newS[idx] < 0.70) { risk += 1 }
       else                       { pass += 1 };
       idx += 1;
     };
     let overall = if (cv.totalControls == 0) { 0.0 }
-                  else { ss / Float.fromInt(cv.totalControls) };
+                  else { scoreSum / Float.fromInt(cv.totalControls) };
     let pr      = if (cv.totalControls == 0) { 0.0 }
                   else { Float.fromInt(pass) / Float.fromInt(cv.totalControls) };
     let ready   = pr >= 0.95 and fail == 0;
@@ -681,9 +681,9 @@ module {
                 m5.productivity, c1.productivity, c2.productivity, c3.productivity,
                 d1.productivity, d2.productivity, s1.productivity, s2.productivity,
                 co.productivity];
-    var pSum : Float = 0.0;
-    for (p in pArr.vals()) { pSum += p };
-    let avgProd = pSum / 13.0;
+    var productivitySum : Float = 0.0;
+    for (p in pArr.vals()) { productivitySum += p };
+    let avgProd = productivitySum / 13.0;
 
     // Division coherence: Kuramoto order parameter over circadian phases
     let phArr = [m1.sleep.circadianPhase, m2.sleep.circadianPhase,
@@ -693,9 +693,9 @@ module {
                  d1.sleep.circadianPhase, d2.sleep.circadianPhase,
                  s1.sleep.circadianPhase, s2.sleep.circadianPhase,
                  co.sleep.circadianPhase];
-    var sinS : Float = 0.0; var cosS : Float = 0.0;
-    for (ph in phArr.vals()) { sinS += Float.sin(ph); cosS += Float.cos(ph) };
-    let r = Float.sqrt(sinS * sinS + cosS * cosS) / 13.0;
+    var sinSum : Float = 0.0; var cosSum : Float = 0.0;
+    for (ph in phArr.vals()) { sinSum += Float.sin(ph); cosSum += Float.cos(ph) };
+    let r = Float.sqrt(sinSum * sinSum + cosSum * cosSum) / 13.0;
     let divCoh = Float.min(1.0, r * 0.5 + globalCoherence * 0.5);
 
     // Weighted compliance health (SOC2+FedRAMP most critical)
@@ -743,15 +743,15 @@ module {
       case (#SalesEngineer)        "SALES_ENGINEER";
       case (#ComplianceOfficer)    "COMPLIANCE_OFFICER";
     };
-    var ss : Float = 0.0;
-    for (w in o.skillWeights.vals()) { ss += w };
+    var skillWeightSum : Float = 0.0;
+    for (w in o.skillWeights.vals()) { skillWeightSum += w };
     {
       id = o.id; name = o.name; role = r; generation = o.generation;
       arousal = o.sleep.arousalLevel; productivity = o.productivity;
       focusDepth = o.focusDepth; creativityPulse = o.creativityPulse;
       inWorkPhase = o.sleep.inWorkPhase; inDeepSleep = o.sleep.inDeepSleep;
       sleepDebt = o.sleep.sleepDebt;
-      avgSkillWeight = ss / Float.fromInt(SKILL_COUNT);
+      avgSkillWeight = skillWeightSum / Float.fromInt(SKILL_COUNT);
       tasksCompleted = o.tasksCompleted; burnout = o.burnout; resilience = o.resilience;
       beatNum = o.beatNum;
     }
