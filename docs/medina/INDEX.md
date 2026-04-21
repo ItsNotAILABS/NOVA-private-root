@@ -29,6 +29,24 @@
 10. Replay bundle samples -> `replay/replay-bundle-samples.md`
 11. Launch package artifacts -> `release/launch-package-artifacts.md`
 
+## Research Papers
+
+| Letter | Title | Status |
+|--------|-------|--------|
+| A | Every Fracture Was Part of the Vein (autobiography) | Planned |
+| B | [Module Product Theory](../papers/PAPER-B-MODULE-PRODUCT-THEORY.md) | Filed 2026-04-21 |
+| C | [Sovereign Callable Marketplace & SDK Architecture](../papers/PAPER-C-SOVEREIGN-MARKETPLACE-SDK.md) | Filed 2026-04-21 |
+
+→ Full paper index: [`docs/papers/INDEX.md`](../papers/INDEX.md)
+
+## Marketplace SDK Modules
+
+| Module | File | Description |
+|--------|------|-------------|
+| AI Tool Marketplace | `AIToolMarketplace.mo` | Sovereign callable registry — attribution-locked, PHI-scaled fees, Hebbian discovery |
+| Agent Incentive Service | `AgentIncentiveService.mo` | PHI-field Kuramoto+Hebbian reward engine for AI agents |
+| Incentive Service | `IncentiveService.mo` | Contribution pressure engine — 6 kinds, SovereignTier, compounding |
+
 ## ICP Motoko Implementation
 
 See main codebase: `src/swarm_brain/`
