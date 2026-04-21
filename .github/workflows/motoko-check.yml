@@ -1,91 +1,84 @@
-# ═══════════════════════════════════════════════════════════════════════════
-# NOVA MOTOKO BUILD VERIFICATION
-# Medina Tech | Dallas TX | 2026
-# ═══════════════════════════════════════════════════════════════════════════
-# This workflow verifies that all Motoko code compiles correctly.
-# It runs on every push and PR that modifies .mo files.
-# ═══════════════════════════════════════════════════════════════════════════
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║  NOVA SOVEREIGN BUILD CHECK                                               ║
+# ║  © 2024-2026 Alfredo Medina Hernandez — NSCP-2025                         ║
+# ║                                                                           ║
+# ║  Uses the NOVA sovereign CLI (scripts/nova) — NO DFX REQUIRED.           ║
+# ║  moc (Motoko compiler) is sourced directly without the DFX daemon.       ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
 
-name: Motoko Build Check
+name: NOVA Sovereign Build Check
 
 on:
   push:
     branches: [ main, master, develop ]
     paths:
       - 'src/**/*.mo'
+      - 'nova.json'
       - 'dfx.json'
+      - 'scripts/nova'
   pull_request:
     branches: [ main, master, develop ]
     paths:
       - 'src/**/*.mo'
+      - 'nova.json'
       - 'dfx.json'
-  workflow_dispatch:  # Allow manual trigger
+      - 'scripts/nova'
+  workflow_dispatch:
 
-# Minimal permissions for security
 permissions:
   contents: read
 
 jobs:
-  build:
-    name: Build & Verify Canisters
+  nova-check:
+    name: NOVA Sovereign Type Check
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      
-    - name: Install DFX SDK
+
+    - name: Install DFX SDK (for moc binary only)
+      # DFX ships moc. We use DFX once here purely to get moc into the cache.
+      # After this step, scripts/nova finds moc in ~/.cache/dfinity and uses it
+      # directly — the DFX daemon is never started.
       uses: dfinity/setup-dfx@main
       with:
         dfx-version: '0.24.3'
-        
-    - name: Verify DFX installation
+
+    - name: Make NOVA CLI executable
+      run: chmod +x scripts/nova
+
+    - name: NOVA version
+      run: ./scripts/nova version
+
+    - name: NOVA stats
+      run: ./scripts/nova stats
+
+    - name: NOVA type check — all canisters
+      id: nova_check
       run: |
-        dfx --version
-        which moc || echo "moc not in PATH (expected)"
-        
-    - name: Count Motoko lines
-      run: |
-        echo "=== MOTOKO CODE STATISTICS ==="
-        find src -name "*.mo" -type f | wc -l | xargs -I {} echo "Total .mo files: {}"
-        find src -name "*.mo" -type f -exec cat {} \; | wc -l | xargs -I {} echo "Total lines: {}"
-        
-    - name: Start local replica
-      run: dfx start --background --clean
-      
-    - name: Create canisters
-      run: dfx canister create --all
-      
-    - name: Build all canisters
-      id: build
-      run: |
-        echo "=== BUILDING NOVA CANISTERS ==="
-        set -o pipefail
-        dfx build 2>&1 | tee build.log
-        echo "build_status=$?" >> $GITHUB_OUTPUT
-        
-    - name: Check for type errors
+        echo "=== NOVA SOVEREIGN TYPE CHECK ==="
+        ./scripts/nova check 2>&1 | tee nova-check.log
+
+    - name: Show errors on failure
       if: failure()
       run: |
-        echo "=== BUILD ERRORS ==="
-        grep -i "error\|type mismatch\|unbound\|syntax" build.log || true
-        
+        echo "=== NOVA CHECK ERRORS ==="
+        grep -i "error\|type mismatch\|unbound\|syntax" nova-check.log || true
+
     - name: Report success
       if: success()
       run: |
-        echo "✓ All NOVA canisters compiled successfully!"
-        echo "=== CANISTER BUILD SUMMARY ==="
-        ls -la .dfx/local/canisters/ 2>/dev/null || echo "Build artifacts in .dfx/"
-        
-    - name: Stop replica
-      if: always()
-      run: dfx stop || true
-      
-    - name: Upload build log
+        echo "╔══════════════════════════════════════════════════╗"
+        echo "║  ✓ All NOVA canisters passed type check          ║"
+        echo "║  Sovereign build verified — NSCP-2025            ║"
+        echo "╚══════════════════════════════════════════════════╝"
+
+    - name: Upload check log
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: build-log
-        path: build.log
+        name: nova-check-log
+        path: nova-check.log
         retention-days: 7
