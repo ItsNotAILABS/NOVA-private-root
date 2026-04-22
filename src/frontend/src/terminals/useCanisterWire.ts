@@ -7,19 +7,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   connectSwarmBrain,
-  isConnectedToBackend,
   type SwarmBrainActor,
-  type SwarmSnapshot,
-  type ExtendedSnapshot,
-  type SwarmQMetrics,
-  type QuantumHeartbeatState,
-  type CardioCerebralState,
-  type GeoResonanceProtectionState,
-  type CardioNeuralConversionOrganState,
-  type AutonomousAnalystTeamState,
-  type MemoryTempleState,
-  type ConstantFeedbackCognitionState,
-  type OrganismState,
 } from '../canister/swarmBrainActor';
 
 // ─── Shared types ────────────────────────────────────────────────────────────
@@ -154,22 +142,27 @@ export async function extractDefenseLogs(actor: SwarmBrainActor): Promise<WireLo
   const logs: WireLogEntry[] = [];
   const t = ts();
 
-  const [geo, cardio, feedback] = await Promise.all([
-    actor.getGeoResonanceProtectionState(),
-    actor.getCardioNeuralConversionOrganState(),
-    actor.getConstantFeedbackCognitionState(),
+  const [aegis, war, cf, od] = await Promise.all([
+    actor.getAEGISState(),
+    actor.getWarDefenseModeState(),
+    actor.getCounterforceStatus(),
+    actor.getOffenseDefenseStatus(),
   ]);
 
   logs.push({ id: 0, time: t, source: 'AEGIS', type: 'DATA',
-    message: `Shield integrity: ${pct(cardio.shieldIntegrity)} | Protection: ${pct(geo.protectionScore)} | Threat: ${pct(geo.threatScore)}` });
+    message: `Threat: ${fmt(aegis.threatLevel)} | Active: ${aegis.defenseActive} | Last alert beat: ${aegis.lastAlertBeat}` });
   logs.push({ id: 0, time: t, source: 'WARCOM', type: 'DATA',
-    message: `Defense posture: ${pct(feedback.defensePostureScore)} | Risk containment: ${pct(feedback.riskContainmentScore)} | Beat ${geo.beat}` });
+    message: `Mode: ${war.mode} | Posture: ${war.posture} | Threat: ${pct(war.threatScore)} | Gate: ${pct(war.gateStrictness)}` });
+  logs.push({ id: 0, time: t, source: 'WARCOM', type: 'DATA',
+    message: `Continuity: ${pct(war.continuityScore)} | Coherence: ${pct(war.coherenceScore)} | Integrity: ${pct(war.integrityScore)}` });
   logs.push({ id: 0, time: t, source: 'CFI', type: 'DATA',
-    message: `Field energy: ${fmt(geo.fieldEnergy)} | Hotspot: ${pct(geo.hotspotScore)} | Service: ${pct(geo.serviceReadiness)}` });
+    message: `Effectiveness: ${pct(cf.overallEffectiveness)} | Scouts: ${pct(cf.scoutCoverage)} | Hunter: ${pct(cf.hunterSuccessRate)} | Campaigns: ${cf.activeCampaigns}` });
+  logs.push({ id: 0, time: t, source: 'OFFENSE', type: 'DATA',
+    message: `Off: ${pct(od.offensivePower)} | Def: ${pct(od.defensivePower)} | Balance: ${pct(od.offenseDefenseBalance)} | Drones: ${od.dronesDeployed}` });
 
-  if (geo.threatScore > 0.5) {
+  if (war.threatScore > 0.5) {
     logs.push({ id: 0, time: t, source: 'AEGIS', type: 'ALERT',
-      message: `ELEVATED THREAT — score ${pct(geo.threatScore)} — helix barrier ${pct(cardio.helixBarrier)}` });
+      message: `ELEVATED THREAT — ${pct(war.threatScore)} — lockdown: ${war.interfaceLockdown} — shields: ${od.shieldStrength.toFixed(3)}` });
   }
 
   return logs;
@@ -181,26 +174,30 @@ export async function extractMemoryLogs(actor: SwarmBrainActor): Promise<WireLog
   const logs: WireLogEntry[] = [];
   const t = ts();
 
-  const mem = await actor.getMemoryTempleState();
+  const [temple, sys, mem] = await Promise.all([
+    actor.getMemoryTempleState(),
+    actor.getMemorySystemState(),
+    actor.getMemoryState(),
+  ]);
 
   logs.push({ id: 0, time: t, source: 'TEMPLE', type: 'DATA',
-    message: `Continuity: ${pct(mem.continuityWeave)} | Resonance: ${pct(mem.resonanceField)} | Retention: ${pct(mem.memoryRetention)}` });
+    message: `Continuity: ${pct(temple.continuityWeave)} | Resonance: ${pct(temple.resonanceField)} | Retention: ${pct(temple.memoryRetention)}` });
+  logs.push({ id: 0, time: t, source: 'SYSTEM', type: 'DATA',
+    message: `QMEM fidelity: ${pct(sys.qmemFidelity)} | T2: ${fmt(sys.qmemT2Time)} | Dream: ${sys.dreamCycleActive} | Rest: ${sys.isRestState}` });
+  logs.push({ id: 0, time: t, source: 'PLASTICITY', type: 'DATA',
+    message: `BDNF: ${pct(sys.bdnfLevel)} | NGF: ${pct(sys.ngfLevel)} | Potentiation: ${pct(sys.memoryPotentiation)} | Rate: ${pct(sys.plasticityRate)}` });
+  logs.push({ id: 0, time: t, source: 'SHELL', type: 'DATA',
+    message: `Shell3 nodes: ${sys.shell3ActiveNodes} (avg: ${pct(sys.shell3AverageActivation)}) | Shell12 nodes: ${sys.shell12ActiveNodes} (avg: ${pct(sys.shell12AverageActivation)})` });
   logs.push({ id: 0, time: t, source: 'PALACE', type: 'DATA',
-    message: `Recall: ${pct(mem.recallReadiness)} | Cognition coupling: ${pct(mem.memoryCognitionCoupling)} | Load: ${pct(mem.cognitiveLoad)}` });
+    message: `Traces: ${mem.traceCount} | Transfer: ${pct(sys.shell3ToShell12TransferRate)} | Retrieval: ${pct(sys.shell12ToShell3RetrievalRate)}` });
 
-  if (mem.pedestalNames.length > 0) {
-    const pedestals = mem.pedestalNames.slice(0, 5).join(', ');
+  if (temple.pedestalNames.length > 0) {
     logs.push({ id: 0, time: t, source: 'TEMPLE', type: 'DATA',
-      message: `Active pedestals: ${pedestals} | IoT coupling: ${pct(mem.iotCouplingScore)}` });
+      message: `Pedestals: ${temple.pedestalNames.slice(0, 5).join(', ')}` });
   }
 
-  if (mem.narrativeSummary) {
-    logs.push({ id: 0, time: t, source: 'TEMPLE', type: 'SYS', message: mem.narrativeSummary });
-  }
-
-  if (mem.memoryRetention < 0.5) {
-    logs.push({ id: 0, time: t, source: 'TEMPLE', type: 'ALERT',
-      message: `LOW RETENTION — ${pct(mem.memoryRetention)} — consolidation needed` });
+  if (temple.narrativeSummary) {
+    logs.push({ id: 0, time: t, source: 'TEMPLE', type: 'SYS', message: temple.narrativeSummary });
   }
 
   return logs;
@@ -212,24 +209,24 @@ export async function extractGovernanceLogs(actor: SwarmBrainActor): Promise<Wir
   const logs: WireLogEntry[] = [];
   const t = ts();
 
-  const [feedback, compliance] = await Promise.all([
-    actor.getConstantFeedbackCognitionState(),
-    actor.getComplianceScore(),
+  const [law, snap, sec] = await Promise.all([
+    actor.getLawComplianceState(),
+    actor.getLawsSnapshot(),
+    actor.getSecurityStatus(),
   ]);
 
   logs.push({ id: 0, time: t, source: 'LAW', type: 'DATA',
-    message: `Law continuity: ${pct(feedback.lawContinuityScore)} | Compliance: ${pct(compliance)} | Governance stability: ${pct(feedback.governanceStability)}` });
+    message: `Overall: ${pct(law.overallCompliance)} | G0: ${pct(law.lawGroup0Compliance)} | G1: ${pct(law.lawGroup1Compliance)} | G2: ${pct(law.lawGroup2Compliance)}` });
+  logs.push({ id: 0, time: t, source: 'LAW', type: 'DATA',
+    message: `G3: ${pct(law.lawGroup3Compliance)} | G4: ${pct(law.lawGroup4Compliance)} | Violations: ${law.violationCount} | Re-entrainments: ${law.totalReEntrainments}` });
   logs.push({ id: 0, time: t, source: 'DOCTRINE', type: 'DATA',
-    message: `Sovereign alignment: ${pct(feedback.sovereignAlignmentScore)} | Arbitration: ${pct(feedback.arbitrationReadiness)} | Beat ${feedback.beat}` });
+    message: `Compliance: ${pct(snap.compliance)} | Passing: ${snap.passing} | Fingerprint: ${snap.fingerprint} | Jacob's: L${snap.jacobsRung} ×${fmt(snap.multiplier, 2)}` });
+  logs.push({ id: 0, time: t, source: 'SECURITY', type: 'DATA',
+    message: `Score: ${pct(sec.securityScore)} | Encryption: ${pct(sec.encryptionCoverage)} | Lockdown: ${sec.lockdownActive ? sec.lockdownLevel : 'NONE'}` });
 
-  if (feedback.topActions.length > 0) {
-    logs.push({ id: 0, time: t, source: 'LAW', type: 'SYS',
-      message: `Priority action: ${feedback.topActions[0]}` });
-  }
-
-  if (feedback.lawContinuityScore < 0.7) {
+  if (law.highRiskLaws.length > 0) {
     logs.push({ id: 0, time: t, source: 'LAW', type: 'ALERT',
-      message: `LAW DRIFT — continuity ${pct(feedback.lawContinuityScore)} below threshold` });
+      message: `HIGH RISK LAWS: ${law.highRiskLaws.join(', ')} — ${law.violationCount} violations` });
   }
 
   return logs;
@@ -241,21 +238,28 @@ export async function extractNeuralLogs(actor: SwarmBrainActor): Promise<WireLog
   const logs: WireLogEntry[] = [];
   const t = ts();
 
-  const [cardio, feedback] = await Promise.all([
-    actor.getCardioNeuralConversionOrganState(),
-    actor.getConstantFeedbackCognitionState(),
+  const [core, brain, nt] = await Promise.all([
+    actor.getNeuralCoreState(),
+    actor.getBrainRegionStates(),
+    actor.getNeurotransmitterState(),
   ]);
 
-  logs.push({ id: 0, time: t, source: 'NEURAL', type: 'DATA',
-    message: `Coupling: ${pct(cardio.coupling)} | Throughput: ${pct(cardio.thoughtThroughput)} | Coherence: ${pct(cardio.outputCoherence)}` });
-  logs.push({ id: 0, time: t, source: 'NEURO', type: 'DATA',
-    message: `O₂ flow: ${pct(cardio.oxygenFlow)} | Perfusion: ${pct(cardio.perfusionFlow)} | Gate: ${cardio.gateOpen ? 'OPEN' : 'CLOSED'}` });
-  logs.push({ id: 0, time: t, source: 'MESH', type: 'DATA',
-    message: `Mesh resonance: ${pct(feedback.meshResonanceScore)} | Workforce: ${pct(feedback.workforceCoherenceScore)} | Memory: ${pct(feedback.memoryIntegrityScore)}` });
+  logs.push({ id: 0, time: t, source: 'CORE', type: 'DATA',
+    message: `Synchrony: ${pct(core.globalSynchrony)} | NeuroDyn: ${pct(core.coreNeuroDynamics)} | Animal: ${pct(core.animalIntelligence)} | Status: ${core.neuralStatus}` });
+  logs.push({ id: 0, time: t, source: 'STACKS', type: 'DATA',
+    message: `Emergence: ${pct(core.emergenceStack)} | Cognitive: ${pct(core.cognitiveStack)} | Defense: ${pct(core.defenseStack)} | Production: ${pct(core.productionStack)}` });
+  logs.push({ id: 0, time: t, source: 'BRAIN', type: 'DATA',
+    message: `PFC: ${pct(brain.prefrontalControl)} | Basal: ${pct(brain.basalGangliaSelection)} | Thalamus: ${pct(brain.thalamusRelay)} | Hippocampus: ${pct(brain.hippocampusMemory)}` });
+  logs.push({ id: 0, time: t, source: 'BRAIN', type: 'DATA',
+    message: `Amygdala: ${pct(brain.amygdalaSalience)} | Cerebellum: ${pct(brain.cerebellumTiming)} | Fear: ${pct(brain.fearResponse)} | Reward: ${pct(brain.rewardResponse)}` });
+  logs.push({ id: 0, time: t, source: 'CHEM', type: 'DATA',
+    message: `GABA: ${pct(nt.gaba)} | Glut: ${pct(nt.glutamate)} | E/I: ${fmt(nt.eiRatio)} | Stress: ${pct(nt.stressLevel)} | Reward: ${pct(nt.rewardLevel)}` });
+  logs.push({ id: 0, time: t, source: 'CHEM', type: 'DATA',
+    message: `Cortisol: ${pct(nt.cortisol)} | Oxytocin: ${pct(nt.oxytocin)} | BDNF: ${pct(nt.bdnf)} | Plasticity: ${pct(nt.plasticityRate)}` });
 
-  if (!cardio.gateOpen) {
-    logs.push({ id: 0, time: t, source: 'NEURAL', type: 'ALERT',
-      message: `NEURAL GATE CLOSED — throughput restricted — gain ${fmt(cardio.conversionGain)}` });
+  if (nt.stressLevel > 0.7) {
+    logs.push({ id: 0, time: t, source: 'CHEM', type: 'ALERT',
+      message: `HIGH STRESS — ${pct(nt.stressLevel)} — cortisol ${pct(nt.cortisol)} — adrenaline ${pct(nt.adrenaline)}` });
   }
 
   return logs;
@@ -267,16 +271,24 @@ export async function extractQuantumLogs(actor: SwarmBrainActor): Promise<WireLo
   const logs: WireLogEntry[] = [];
   const t = ts();
 
-  const qhb = await actor.getQuantumHeartbeatState();
+  const [qhb, ops, spherical] = await Promise.all([
+    actor.getQuantumHeartbeatState(),
+    actor.getQuantumOperatorStates(),
+    actor.getSphericalQuantumState(),
+  ]);
 
   logs.push({ id: 0, time: t, source: 'QHB', type: 'DATA',
     message: `Phase: ${fmt(qhb.quantumPhase)} | Coherence: ${pct(qhb.quantumCoherence)} | Cardiac: ${pct(qhb.cardiacCoherence)} | Beat #${qhb.quantumBeatNumber}` });
   logs.push({ id: 0, time: t, source: 'QSOV', type: 'DATA',
     message: `QSov: ${pct(qhb.qsovScore)} | Geometric: ${fmt(qhb.qsovGeometricMean)} | Fibonacci: #${qhb.fibonacciBeatNumber}` });
+  logs.push({ id: 0, time: t, source: 'OPERATORS', type: 'DATA',
+    message: `Super: ${pct(ops.superposition)} | Entangle: ${pct(ops.entanglement)} | Interfere: ${pct(ops.interference)} | Tunnel: ${pct(ops.tunneling)}` });
+  logs.push({ id: 0, time: t, source: 'OPERATORS', type: 'DATA',
+    message: `Decohere: ${pct(ops.decoherence)} | Measure: ${pct(ops.measurement)} | Zeno: ${pct(ops.zeno)} | Walk: ${pct(ops.quantumWalk)} | Bell: ${pct(ops.bellViolation)}` });
+  logs.push({ id: 0, time: t, source: 'SPHERICAL', type: 'DATA',
+    message: `Integrity: ${pct(spherical.sphericalIntegrity)} | Vitality: ${pct(spherical.organismVitality)} | AEGIS sov: ${pct(spherical.aegisSovereignty)}` });
   logs.push({ id: 0, time: t, source: 'PARALLAX', type: 'DATA',
     message: `Winner path: ${qhb.parallaxWinnerPath} | Score: ${pct(qhb.parallaxScore)} | Chrono: ${pct(qhb.chronoScore)}` });
-  logs.push({ id: 0, time: t, source: 'ENTANGLA', type: 'DATA',
-    message: `S-value: ${fmt(qhb.entanglaSValue)} | EMA: ${fmt(qhb.entanglaEMA)} | QMEM fidelity: ${pct(qhb.qmemFidelity)}` });
 
   if (qhb.resonexCascadeActive) {
     logs.push({ id: 0, time: t, source: 'RESONEX', type: 'ALERT',
@@ -292,18 +304,22 @@ export async function extractEconomicLogs(actor: SwarmBrainActor): Promise<WireL
   const logs: WireLogEntry[] = [];
   const t = ts();
 
-  const [ext, org, feedback] = await Promise.all([
-    actor.getExtendedSnapshot(),
-    actor.getOrganismState(),
-    actor.getConstantFeedbackCognitionState(),
+  const [econ, sys, token] = await Promise.all([
+    actor.getEconomicState(),
+    actor.getEconomicSystemState(),
+    actor.getTokenOrganismStats(),
   ]);
 
   logs.push({ id: 0, time: t, source: 'FORMA', type: 'DATA',
-    message: `Compliance: ${pct(ext.complianceScore)} | Hz: ${fmt(ext.hz, 2)} | Tier: ${ext.frequencyTier}` });
+    message: `Balance: ${fmt(sys.formaBalance)} | MRC: ${fmt(sys.mrcBalance)} | KNT: ${fmt(sys.kntBalance)} | Master: ${fmt(sys.masterAccumulator)}` });
   logs.push({ id: 0, time: t, source: 'ECONOMY', type: 'DATA',
-    message: `Economic resilience: ${pct(feedback.economicResilienceScore)} | Energy: ${pct(org.energy)} | Morale: ${pct(org.morale)}` });
+    message: `Mint: ${fmt(econ.totalMinted)} | Multiplier: ${fmt(econ.economicMultiplier)} | Jacob's L${sys.jacobsLevel} ×${fmt(sys.jacobsMultiplier, 2)}` });
+  logs.push({ id: 0, time: t, source: 'MARKET', type: 'DATA',
+    message: `Greed: ${pct(sys.greedIndex)} | Fear: ${pct(sys.fearIndex)} | G/F: ${fmt(sys.greedFearRatio)} | Cascade risk: ${pct(sys.cascadeRisk)}` });
   logs.push({ id: 0, time: t, source: 'TOKEN', type: 'DATA',
-    message: `OMNIS: ${ext.omnisActive ? 'FIRED' : 'STANDBY'} | Count: ${ext.omnisCount} | Architect signal: ${fmt(ext.architectSignal)}` });
+    message: `Tokens: ${token.totalTokensGenerated} total / ${token.activeTokens} active | Coherence: ${pct(token.globalCoherence)} | Order: ${pct(token.orderParameter)}` });
+  logs.push({ id: 0, time: t, source: 'TOKEN', type: 'DATA',
+    message: `Micro: ${pct(token.microCoherence)} | Meso: ${pct(token.mesoCoherence)} | Macro: ${pct(token.macroCoherence)} | Emergence: ${token.emergenceCount}` });
 
   return logs;
 }
@@ -346,20 +362,25 @@ export async function extractCognitiveLogs(actor: SwarmBrainActor): Promise<Wire
   const logs: WireLogEntry[] = [];
   const t = ts();
 
-  const fb = await actor.getConstantFeedbackCognitionState();
+  const [fb, pred, learn] = await Promise.all([
+    actor.getConstantFeedbackCognitionState(),
+    actor.getPredictionSystemState(),
+    actor.getLearningSystemState(),
+  ]);
 
   logs.push({ id: 0, time: t, source: 'COGNITION', type: 'DATA',
     message: `Pressure: ${pct(fb.cognitivePressure)} | Loop closure: ${pct(fb.loopClosureScore)} | Reinjection: ${pct(fb.reinjectionIntegrity)}` });
-  logs.push({ id: 0, time: t, source: 'COHERENCE', type: 'DATA',
-    message: `Multi-group: ${pct(fb.multiGroupCoherence)} | Multi-organism: ${pct(fb.multiOrganismCoherence)} | Readiness: ${pct(fb.cognitionReadiness)}` });
+  logs.push({ id: 0, time: t, source: 'PREDICTION', type: 'DATA',
+    message: `Error: ${fmt(pred.predictionError)} | Accuracy: ${pct(pred.predictionAccuracy)} | Kalman: ${fmt(pred.kalmanGain)} | Free energy: ${fmt(pred.freeEnergy)}` });
+  logs.push({ id: 0, time: t, source: 'PREDICTION', type: 'DATA',
+    message: `Short: ${fmt(pred.shortTermError)} | Medium: ${fmt(pred.mediumTermError)} | Long: ${fmt(pred.longTermError)} | Horizon: ${pred.predictionHorizon}` });
+  logs.push({ id: 0, time: t, source: 'LEARNING', type: 'DATA',
+    message: `TD error: ${fmt(learn.tdError)} | LR: ${fmt(learn.learningRate)} | Hebbian: ${fmt(learn.hebbianRate)} | STDP: ${learn.stdpEnabled}` });
+  logs.push({ id: 0, time: t, source: 'LEARNING', type: 'DATA',
+    message: `Salience: ${pct(learn.salienceLevel)} | Metaplasticity: ${pct(learn.metaplasticityFactor)} | Social boost: ${pct(learn.socialLearningBoost)}` });
 
   if (fb.narrativeSummary) {
     logs.push({ id: 0, time: t, source: 'NARRATIVE', type: 'SYS', message: fb.narrativeSummary });
-  }
-
-  if (fb.cognitivePressure > 0.8) {
-    logs.push({ id: 0, time: t, source: 'COGNITION', type: 'ALERT',
-      message: `HIGH PRESSURE — ${pct(fb.cognitivePressure)} — reinjection integrity ${pct(fb.reinjectionIntegrity)}` });
   }
 
   return logs;
@@ -371,17 +392,24 @@ export async function extractSensorLogs(actor: SwarmBrainActor): Promise<WireLog
   const logs: WireLogEntry[] = [];
   const t = ts();
 
-  const geo = await actor.getGeoResonanceProtectionState();
+  const [eco, health] = await Promise.all([
+    actor.getEcologicalState(),
+    actor.getOrganismHealthReport(),
+  ]);
 
-  logs.push({ id: 0, time: t, source: 'FIELD', type: 'DATA',
-    message: `Field energy: ${fmt(geo.fieldEnergy)} | Direction: (${fmt(geo.fieldDirectionX, 2)}, ${fmt(geo.fieldDirectionY, 2)}, ${fmt(geo.fieldDirectionZ, 2)})` });
-  logs.push({ id: 0, time: t, source: 'GEO', type: 'DATA',
-    message: `Hotspot: ${pct(geo.hotspotScore)} | Protection: ${pct(geo.protectionScore)} | Service: ${pct(geo.serviceReadiness)}` });
+  logs.push({ id: 0, time: t, source: 'ECOLOGY', type: 'DATA',
+    message: `Prey: ${fmt(eco.lvPrey)} | Predator: ${fmt(eco.lvPredator)} | Stress: ${pct(eco.stressLevel)} | Antifragile: ${pct(eco.antifragility)}` });
+  logs.push({ id: 0, time: t, source: 'ECOLOGY', type: 'DATA',
+    message: `Hormetic: ${eco.hormeticZone ? 'YES' : 'NO'} | Victories: ${eco.victories}` });
+  logs.push({ id: 0, time: t, source: 'HEALTH', type: 'DATA',
+    message: `Vitality: ${pct(health.organismVitality)} | Spherical: ${pct(health.sphericalIntegrity)} | Neural: ${pct(health.neuralHealth)} | Quantum: ${pct(health.quantumHealth)}` });
+  logs.push({ id: 0, time: t, source: 'HEALTH', type: 'DATA',
+    message: `Memory: ${pct(health.memoryHealth)} | Learning: ${pct(health.learningHealth)} | Economic: ${pct(health.economicHealth)} | Defense: ${pct(health.defenseHealth)}` });
+  logs.push({ id: 0, time: t, source: 'HEALTH', type: 'DATA',
+    message: `Coherence: ${pct(health.coherenceScore)} | Sovereignty: ${pct(health.sovereigntyScore)} | Entropy: ${pct(health.entropyLevel)} | Beat: ${health.beat}` });
 
-  if (geo.sevenHeritageNodes.length > 0) {
-    const nodes = geo.sevenHeritageNodes.map(n => fmt(n, 2)).join(' | ');
-    logs.push({ id: 0, time: t, source: 'HERITAGE', type: 'DATA',
-      message: `Heritage nodes: ${nodes}` });
+  for (const warning of health.criticalWarnings.slice(0, 3)) {
+    logs.push({ id: 0, time: t, source: 'HEALTH', type: 'ALERT', message: warning });
   }
 
   return logs;
@@ -393,17 +421,27 @@ export async function extractFrequencyLogs(actor: SwarmBrainActor): Promise<Wire
   const logs: WireLogEntry[] = [];
   const t = ts();
 
-  const [freq, qhb] = await Promise.all([
-    actor.getFrequencyTier(),
-    actor.getQuantumHeartbeatState(),
+  const [hz, circ, kur] = await Promise.all([
+    actor.getHzSpectrumState(),
+    actor.getCircadianState(),
+    actor.getKuramotoState(),
   ]);
 
-  logs.push({ id: 0, time: t, source: 'FREQ', type: 'DATA',
-    message: `Tier: ${freq.tier} | Hz: ${fmt(freq.hz, 2)} | Circadian phase: ${fmt(qhb.circadianPhase)}` });
-  logs.push({ id: 0, time: t, source: 'RHYTHM', type: 'DATA',
-    message: `HB variability: ${pct(qhb.heartbeatVariability)} | Circadian alignment: ${pct(qhb.circadianAlignment)} | Total heartbeats: ${qhb.totalHeartbeats}` });
-  logs.push({ id: 0, time: t, source: 'BYPASS', type: 'DATA',
-    message: `Bypass rhythm: ${qhb.bypassSelectedRhythm} | Temperature: ${fmt(qhb.bypassTemperature)} | Score: ${pct(qhb.bypassScore)}` });
+  logs.push({ id: 0, time: t, source: 'SPECTRUM', type: 'DATA',
+    message: `Kore: ${fmt(hz.koreFrequency, 2)}Hz | Thalamic: ${fmt(hz.thalamicFrequency, 2)}Hz | RAS: ${fmt(hz.rasLocusFrequency, 2)}Hz | VAEL: ${fmt(hz.vaelFrequency, 2)}Hz` });
+  logs.push({ id: 0, time: t, source: 'SPECTRUM', type: 'DATA',
+    message: `Peak: ${fmt(hz.spectrumPeakFrequency, 2)}Hz | Avg mod: ${pct(hz.spectrumAverageModulation)} | Variance: ${fmt(hz.spectrumVariance)}` });
+  logs.push({ id: 0, time: t, source: 'CIRCADIAN', type: 'DATA',
+    message: `Phase: ${fmt(circ.circadianPhase)} | Time: ${fmt(circ.timeOfDay, 1)} | ${circ.isDay ? 'DAY' : 'NIGHT'} | Sleep: ${circ.sleepMode ? 'ON' : 'OFF'}` });
+  logs.push({ id: 0, time: t, source: 'CIRCADIAN', type: 'DATA',
+    message: `Melatonin: ${pct(circ.melatoninLevel)} | Cortisol: ${pct(circ.cortisolLevel)} | Orexin: ${pct(circ.orexinLevel)} | Adenosine: ${pct(circ.adenosineLevel)}` });
+  logs.push({ id: 0, time: t, source: 'KURAMOTO', type: 'DATA',
+    message: `Order: ${pct(kur.orderParam)} | Mean phase: ${fmt(kur.meanPhase)} | K: ${fmt(kur.globalK)} | Chimera: ${kur.chimera}` });
+
+  if (circ.sleepPressure > 0.8) {
+    logs.push({ id: 0, time: t, source: 'CIRCADIAN', type: 'ALERT',
+      message: `HIGH SLEEP PRESSURE — ${pct(circ.sleepPressure)} — dream cycle in ${circ.beatsUntilDreamCycle} beats` });
+  }
 
   return logs;
 }
@@ -414,17 +452,21 @@ export async function extractSovereigntyLogs(actor: SwarmBrainActor): Promise<Wi
   const logs: WireLogEntry[] = [];
   const t = ts();
 
-  const [org, compliance, omnis, beat] = await Promise.all([
+  const [sov, cores, fingerprint, org] = await Promise.all([
+    actor.getSovereigntyState(),
+    actor.getCoreStates(),
+    actor.getDoctrineFingerprint(),
     actor.getOrganismState(),
-    actor.getComplianceScore(),
-    actor.getOmnisFired(),
-    actor.getCurrentBeat(),
   ]);
 
   logs.push({ id: 0, time: t, source: 'SOVEREIGN', type: 'DATA',
-    message: `Mode: ${org.mode} | Coherence: ${pct(org.coherence)} | Trust: ${pct(org.trustScore)} | Beat: ${Number(beat)}` });
-  logs.push({ id: 0, time: t, source: 'GENESIS', type: 'DATA',
-    message: `Continuity: ${pct(org.continuityScore)} | Compliance: ${pct(compliance)} | OMNIS: ${omnis ? 'FIRED' : 'STANDBY'}` });
+    message: `Mission: ${sov.missionLock ? 'LOCKED' : 'OPEN'} | Courage: ${pct(sov.courage)} | Grounded: ${pct(sov.grounded)} | Fear: ${pct(sov.fear)}` });
+  logs.push({ id: 0, time: t, source: 'SOVEREIGN', type: 'DATA',
+    message: `Persistence: ${pct(sov.missionPersistence)} | Surrender floor: ${pct(sov.surrenderFloor)} | Permanent: ${pct(sov.permanentFloor)} | Streak: ×${fmt(sov.streakMultiplier, 2)}` });
+  logs.push({ id: 0, time: t, source: 'CORE', type: 'DATA',
+    message: `Cores: ${cores.totalCores} | Mean activation: ${pct(cores.meanActivation)} | Pheromone: ${pct(cores.pheromoneLevel)}` });
+  logs.push({ id: 0, time: t, source: 'DOCTRINE', type: 'DATA',
+    message: `Fingerprint: 0x${fingerprint.toString(16).toUpperCase()} | Mode: ${org.mode} | Coherence: ${pct(org.coherence)} | Trust: ${pct(org.trustScore)}` });
 
   if (org.emergencyActive) {
     logs.push({ id: 0, time: t, source: 'SOVEREIGN', type: 'ALERT',
@@ -440,17 +482,22 @@ export async function extractIntegrationLogs(actor: SwarmBrainActor): Promise<Wi
   const logs: WireLogEntry[] = [];
   const t = ts();
 
-  const [cc, cardio] = await Promise.all([
-    actor.getCardioCerebralState(),
-    actor.getCardioNeuralConversionOrganState(),
+  const [shell, animal, shells] = await Promise.all([
+    actor.getShellIntegrationState(),
+    actor.getAnimalIntelligenceOutputs(),
+    actor.getShellStates(),
   ]);
 
-  logs.push({ id: 0, time: t, source: 'CARDIO', type: 'DATA',
-    message: `Resonance: ${pct(cc.resonance)} | Phase lag: ${fmt(cc.phaseLag)} | Propulsion: ${pct(cc.propulsion)}` });
-  logs.push({ id: 0, time: t, source: 'CEREBRAL', type: 'DATA',
-    message: `Alignment: ${pct(cc.alignment)} | Push effectiveness: ${pct(cc.pushEffectiveness)} | Beat #${cc.beatNum}` });
-  logs.push({ id: 0, time: t, source: 'CONVERT', type: 'DATA',
-    message: `Conversion gain: ${fmt(cardio.conversionGain)} | Direction: (${fmt(cardio.outputDirectionX, 2)}, ${fmt(cardio.outputDirectionY, 2)}, ${fmt(cardio.outputDirectionZ, 2)})` });
+  logs.push({ id: 0, time: t, source: 'SHELL3', type: 'DATA',
+    message: `Nodes: ${shell.shell3ActiveNodes} | Avg: ${pct(shell.shell3AverageActivation)} | Max: ${pct(shell.shell3MaxActivation)} | Q-phase: ${fmt(shell.shell3QuantumPhase)}` });
+  logs.push({ id: 0, time: t, source: 'SHELL12', type: 'DATA',
+    message: `Nodes: ${shell.shell12ActiveNodes} | Avg: ${pct(shell.shell12AverageActivation)} | Max: ${pct(shell.shell12MaxActivation)} | Q-coherence: ${pct(shell.shell12QuantumCoherence)}` });
+  logs.push({ id: 0, time: t, source: 'ANIMAL', type: 'DATA',
+    message: `Crow: ${pct(animal.crow)} | Octopus: ${pct(animal.octopus)} | Elephant: ${pct(animal.elephant)} | Bee: ${pct(animal.bee)} | Dolphin: ${pct(animal.dolphin)}` });
+  logs.push({ id: 0, time: t, source: 'ANIMAL', type: 'DATA',
+    message: `Shark: ${pct(animal.shark)} | Wolf: ${pct(animal.wolf)} | Eagle: ${pct(animal.eagle)} | Orca: ${pct(animal.orca)} | Total: ${pct(animal.totalAnimalContribution)}` });
+  logs.push({ id: 0, time: t, source: 'SHELLS', type: 'DATA',
+    message: `S1: ${pct(shells.shell1Coherence)} | S2: ${pct(shells.shell2BasalTone)} | S4: ${pct(shells.shell4Control)} | S8: ${pct(shells.shell8Quantum)} | S9: ${pct(shells.shell9MatriarchCoherence)}` });
 
   return logs;
 }
@@ -461,15 +508,18 @@ export async function extractPackagingLogs(actor: SwarmBrainActor): Promise<Wire
   const logs: WireLogEntry[] = [];
   const t = ts();
 
-  const [ext, org] = await Promise.all([
+  const [ext, org, sec] = await Promise.all([
     actor.getExtendedSnapshot(),
     actor.getOrganismState(),
+    actor.getSecurityStatus(),
   ]);
 
   logs.push({ id: 0, time: t, source: 'SDK', type: 'DATA',
-    message: `Compliance: ${pct(ext.complianceScore)} | SACE-U: ${fmt(ext.saceU)} | Sim confidence: ${pct(org.simConfidence)}` });
+    message: `Compliance: ${pct(ext.complianceScore)} | SACE-U: ${fmt(ext.saceU)} | Tier: ${ext.frequencyTier} | Hz: ${fmt(ext.hz, 2)}` });
   logs.push({ id: 0, time: t, source: 'DEPLOY', type: 'DATA',
-    message: `Energy: ${pct(org.energy)} | Tier: ${ext.frequencyTier} | Hz: ${fmt(ext.hz, 2)} | Beat: ${ext.beat}` });
+    message: `Energy: ${pct(org.energy)} | Sim confidence: ${pct(org.simConfidence)} | Beat: ${ext.beat}` });
+  logs.push({ id: 0, time: t, source: 'SECURITY', type: 'DATA',
+    message: `Security: ${pct(sec.securityScore)} | Encryption: ${pct(sec.encryptionCoverage)} | Models updated: ${sec.modelsUpdated} | Ready: ${sec.readyForLaunch}` });
 
   return logs;
 }
@@ -480,33 +530,27 @@ export async function extractIntelligenceLogs(actor: SwarmBrainActor): Promise<W
   const logs: WireLogEntry[] = [];
   const t = ts();
 
-  const analyst = await actor.getAutonomousAnalystTeamState();
+  const [team, teams] = await Promise.all([
+    actor.getAutonomousTeamStatus(),
+    actor.getOrganismTeamsState(),
+  ]);
 
-  logs.push({ id: 0, time: t, source: 'ANALYST', type: 'DATA',
-    message: `Learning: ${pct(analyst.learningScore)} | Adaptation: ${pct(analyst.adaptationScore)} | Priority: ${pct(analyst.recommendationPriority)}` });
+  logs.push({ id: 0, time: t, source: 'TEAM', type: 'DATA',
+    message: `Backend: ${fmt(team.backendHz, 2)}Hz | Frontend: ${fmt(team.frontendHz, 2)}Hz | Sync: ${pct(team.heartBrainSync)} | Quality: ${pct(team.regulationQuality)}` });
+  logs.push({ id: 0, time: t, source: 'BRAIN', type: 'DATA',
+    message: `Coherence: ${pct(team.brainCoherence)} | State: ${team.brainState} | Freq: ${fmt(team.dominantFrequency, 2)}Hz | Consciousness: ${pct(team.consciousnessLevel)}` });
+  logs.push({ id: 0, time: t, source: 'BRAIN', type: 'DATA',
+    message: `δ: ${pct(team.deltaPower)} | θ: ${pct(team.thetaPower)} | α: ${pct(team.alphaPower)} | β: ${pct(team.betaPower)} | γ: ${pct(team.gammaPower)}` });
+  logs.push({ id: 0, time: t, source: 'ANALYSIS', type: 'DATA',
+    message: `Learning: ${pct(team.learningRate)} | Adaptation: ${pct(team.adaptationSpeed)} | Cognitive load: ${pct(team.cognitiveLoad)} | Attention: ${pct(team.attentionLevel)}` });
+  logs.push({ id: 0, time: t, source: 'ARCHON', type: 'DATA',
+    message: `Coherence: ${pct(teams.archonCoherence)} | Consensus: ${pct(teams.archonConsensus)} | Vector convergence: ${pct(teams.vectorConvergence)}` });
+  logs.push({ id: 0, time: t, source: 'FORGE', type: 'DATA',
+    message: `Execution: ${pct(teams.forgeExecutionCapacity)} | Lumen accuracy: ${pct(teams.lumenWorldModelAccuracy)} | Vector passing: ${teams.vectorPassing}` });
 
-  if (analyst.narrativeSummary) {
-    logs.push({ id: 0, time: t, source: 'NARRATIVE', type: 'SYS', message: analyst.narrativeSummary });
-  }
-  if (analyst.heartNarrative) {
-    logs.push({ id: 0, time: t, source: 'HEART', type: 'DATA', message: analyst.heartNarrative });
-  }
-  if (analyst.brainNarrative) {
-    logs.push({ id: 0, time: t, source: 'BRAIN', type: 'DATA', message: analyst.brainNarrative });
-  }
-  if (analyst.defenseNarrative) {
-    logs.push({ id: 0, time: t, source: 'DEFENSE', type: 'DATA', message: analyst.defenseNarrative });
-  }
-
-  if (analyst.topRecommendations.length > 0) {
-    for (const rec of analyst.topRecommendations.slice(0, 3)) {
-      logs.push({ id: 0, time: t, source: 'RECOM', type: 'SYS', message: rec });
-    }
-  }
-
-  if (analyst.emergencySignal > 0.5) {
-    logs.push({ id: 0, time: t, source: 'ANALYST', type: 'ALERT',
-      message: `EMERGENCY SIGNAL — level ${pct(analyst.emergencySignal)}` });
+  if (team.emergencyDetected) {
+    logs.push({ id: 0, time: t, source: 'TEAM', type: 'ALERT',
+      message: `EMERGENCY DETECTED — emotional state: ${team.emotionalState} — O₂: ${pct(team.oxygenLevel)}` });
   }
 
   return logs;
@@ -518,15 +562,20 @@ export async function extractMathLogs(actor: SwarmBrainActor): Promise<WireLogEn
   const logs: WireLogEntry[] = [];
   const t = ts();
 
-  const [qhb, qm] = await Promise.all([
+  const [field, qhb, qm] = await Promise.all([
+    actor.getUnifiedFieldState(),
     actor.getQuantumHeartbeatState(),
     actor.getSwarmQMetrics(),
   ]);
 
-  logs.push({ id: 0, time: t, source: 'PHI', type: 'DATA',
-    message: `Veritas parity: ${pct(qhb.veritasParityScore)} | Veritas score: ${pct(qhb.veritasScore)} | Avg coherence: ${pct(qhb.averageCoherence)}` });
-  logs.push({ id: 0, time: t, source: 'QFIELD', type: 'DATA',
-    message: `Resonex amplitude: ${fmt(qhb.resonexAmplitude)} | Participants: ${qhb.resonexParticipants} | Cascade: ${qhb.resonexCascadeActive ? 'YES' : 'NO'}` });
+  logs.push({ id: 0, time: t, source: 'PSI', type: 'DATA',
+    message: `Ψ coherence: ${pct(field.psiCoherence)} | Ψ fear: ${pct(field.psiFear)} | Ψ economy: ${pct(field.psiEconomy)} | Ψ memory: ${pct(field.psiMemory)}` });
+  logs.push({ id: 0, time: t, source: 'PSI', type: 'DATA',
+    message: `Ψ sovereignty: ${pct(field.psiSovereignty)} | Golden ratio: ${fmt(field.goldenRatio)} | Fibonacci: #${field.fibonacciCurrent} | Primes: ${field.primeCount}` });
+  logs.push({ id: 0, time: t, source: 'FIELD', type: 'DATA',
+    message: `Permanent floor: ${pct(field.permanentFloor)} | Ancient law: ${pct(field.ancientLawCompliance)}` });
+  logs.push({ id: 0, time: t, source: 'VERITAS', type: 'DATA',
+    message: `Parity: ${pct(qhb.veritasParityScore)} | Score: ${pct(qhb.veritasScore)} | Avg coherence: ${pct(qhb.averageCoherence)}` });
   logs.push({ id: 0, time: t, source: 'TOPOLOGY', type: 'DATA',
     message: `Swarm Q-coherence: ${pct(qm.swarmQCoherence)} | Convergence: ${pct(qm.swarmConvergence)} | Now-index: ${fmt(qm.swarmNowIndex)}` });
 
