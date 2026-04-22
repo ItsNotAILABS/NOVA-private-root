@@ -4232,6 +4232,10 @@ actor SwarmBrain {
       packagingLabState := PackagingResearchLab.tickPackagingLab(
         packagingLabState, rSwarm, jDrift, currentBeat
       );
+      // Tick the 2,000-node micro-dimensional grid with Third Synthesizer ⊕ coupling
+      packagingNodeGridState := PackagingResearchLab.tickNodeGrid(
+        packagingNodeGridState, packagingLabState, rSwarm, jDrift, currentBeat
+      );
       modulesCalledThisBeat += 1;
     };
 
@@ -23835,6 +23839,13 @@ actor SwarmBrain {
   var packagingLabState : PackagingResearchLab.PackagingLabState =
     PackagingResearchLab.initPackagingLab();
 
+  // ── Packaging Lab 2,000-Node Micro-Dimensional Grid ──
+  // 8 divisions × 250 nodes = 2000 total
+  // 5D field: Temporal, Spatial, Organizational, Causal, Coherence
+  // Third Synthesizer ⊕ coupling (transform-and-retain)
+  var packagingNodeGridState : PackagingResearchLab.NodeGridState =
+    PackagingResearchLab.initNodeGrid();
+
   // ═══════════════════════════════════════════════════════════════════════════════
   // NOVA FREQUENCY NODE GRID — Layer 39 (540 Frequency-Separated Nodes)
   // 12 bands × 45 nodes = 540 total, PHI-exponential frequencies (φ⁰ to φ¹¹ Hz)
@@ -24660,6 +24671,124 @@ actor SwarmBrain {
       testsPassed = packagingLabState.qaMetrics.testsPassed;
       prototypesBuilt = packagingLabState.prototypeMetrics.prototypesBuilt;
       complianceScore = packagingLabState.doctrineMetrics.complianceScore;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PACKAGING LAB — 2,000-NODE MICRO-DIMENSIONAL GRID API
+  // 8 divisions × 250 nodes = 2000 total
+  // 5D field + Third Synthesizer ⊕ coupling
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Get the full 2000-node grid status with 5D field and synthesizer state
+  public query func getPackagingLabGridStatus() : async {
+    totalActiveNodes : Nat;
+    gridCoherence : Float;
+    crossDivisionSync : Float;
+    gridUptime : Nat;
+    synthesizerPsi : Float;
+    synthesizerRetained : Float;
+    synthTransformCount : Nat;
+    fieldTemporal : Float;
+    fieldSpatial : Float;
+    fieldOrganizational : Float;
+    fieldCausal : Float;
+    fieldCoherence : Float;
+    artifactActive : Nat;
+    forgeActive : Nat;
+    qaActive : Nat;
+    prototypeActive : Nat;
+    registryActive : Nat;
+    replicationActive : Nat;
+    cryptoActive : Nat;
+    doctrineActive : Nat;
+    artifactFieldStrength : Float;
+    forgeFieldStrength : Float;
+    qaFieldStrength : Float;
+    prototypeFieldStrength : Float;
+    registryFieldStrength : Float;
+    replicationFieldStrength : Float;
+    cryptoFieldStrength : Float;
+    doctrineFieldStrength : Float;
+  } {
+    let g = packagingNodeGridState;
+    {
+      totalActiveNodes = g.totalActiveNodes;
+      gridCoherence = g.gridCoherence;
+      crossDivisionSync = g.crossDivisionSync;
+      gridUptime = g.gridUptime;
+      synthesizerPsi = g.synthesizerPsi;
+      synthesizerRetained = g.synthesizerRetained;
+      synthTransformCount = g.synthTransformCount;
+      fieldTemporal = g.field.temporal;
+      fieldSpatial = g.field.spatial;
+      fieldOrganizational = g.field.organizational;
+      fieldCausal = g.field.causal;
+      fieldCoherence = g.field.coherence;
+      artifactActive = g.artifactGrid.activeNodes;
+      forgeActive = g.forgeGrid.activeNodes;
+      qaActive = g.qaGrid.activeNodes;
+      prototypeActive = g.prototypeGrid.activeNodes;
+      registryActive = g.registryGrid.activeNodes;
+      replicationActive = g.replicationGrid.activeNodes;
+      cryptoActive = g.cryptoGrid.activeNodes;
+      doctrineActive = g.doctrineGrid.activeNodes;
+      artifactFieldStrength = g.artifactGrid.fieldStrength;
+      forgeFieldStrength = g.forgeGrid.fieldStrength;
+      qaFieldStrength = g.qaGrid.fieldStrength;
+      prototypeFieldStrength = g.prototypeGrid.fieldStrength;
+      registryFieldStrength = g.registryGrid.fieldStrength;
+      replicationFieldStrength = g.replicationGrid.fieldStrength;
+      cryptoFieldStrength = g.cryptoGrid.fieldStrength;
+      doctrineFieldStrength = g.doctrineGrid.fieldStrength;
+    }
+  };
+
+  /// Get full division detail for all 8 divisions
+  public query func getPackagingLabFullDetail() : async {
+    labCoherence : Float;
+    totalExperiments : Nat;
+    totalFindings : Nat;
+    labUptime : Nat;
+    labAwake : Bool;
+    integrityHash : Nat32;
+    divisionCoherences : [Float];
+    divisionExperiments : [Nat];
+    divisionFindings : [Nat];
+    artifactVault : { analyzed : Nat; passed : Nat; failed : Nat };
+    sdkForge : { total : Nat; business : Nat; research : Nat; defense : Nat; iot : Nat; finance : Nat; creative : Nat; governance : Nat; identity : Nat };
+    qa : { run : Nat; passed : Nat; failed : Nat };
+    prototype : { built : Nat; approved : Nat; rejected : Nat };
+    registry : { optimizations : Nat; deduplications : Nat; versioning : Nat; lineages : Nat };
+    replication : { fidelity : Float; verified : Nat; branches : Nat; isolations : Nat };
+    crypto : { generated : Nat; failed : Nat; chainsOpt : Nat; quantumTests : Nat };
+    doctrine : { audits : Nat; passed : Nat; failed : Nat; score : Float };
+  } {
+    let s = packagingLabState;
+    {
+      labCoherence = s.labCoherence;
+      totalExperiments = s.totalExperiments;
+      totalFindings = s.totalFindings;
+      labUptime = s.labUptime;
+      labAwake = s.labAwake;
+      integrityHash = s.lastIntegrityHash;
+      divisionCoherences = PackagingResearchLab.getAllCoherences(s);
+      divisionExperiments = [
+        s.artifactExperiments, s.forgeExperiments, s.qaExperiments, s.prototypeExperiments,
+        s.registryExperiments, s.replicationExperiments, s.cryptoExperiments, s.doctrineExperiments
+      ];
+      divisionFindings = [
+        s.artifactFindings, s.forgeFindings, s.qaFindings, s.prototypeFindings,
+        s.registryFindings, s.replicationFindings, s.cryptoFindings, s.doctrineFindings
+      ];
+      artifactVault = { analyzed = s.artifactVault.artifactsAnalyzed; passed = s.artifactVault.artifactsPassed; failed = s.artifactVault.artifactsFailed };
+      sdkForge = { total = s.sdkForge.forgeOutputCount; business = s.sdkForge.sdkBusinessBuilt; research = s.sdkForge.sdkResearchBuilt; defense = s.sdkForge.sdkDefenseBuilt; iot = s.sdkForge.sdkIoTBuilt; finance = s.sdkForge.sdkFinanceBuilt; creative = s.sdkForge.sdkCreativeBuilt; governance = s.sdkForge.sdkGovernanceBuilt; identity = s.sdkForge.sdkIdentityBuilt };
+      qa = { run = s.qaMetrics.testsRun; passed = s.qaMetrics.testsPassed; failed = s.qaMetrics.testsFailed };
+      prototype = { built = s.prototypeMetrics.prototypesBuilt; approved = s.prototypeMetrics.prototypesApproved; rejected = s.prototypeMetrics.prototypesRejected };
+      registry = { optimizations = s.registryMetrics.optimizationsFound; deduplications = s.registryMetrics.deduplicationsPerformed; versioning = s.registryMetrics.versioningStrategiesEvaluated; lineages = s.registryMetrics.lineagesTracked };
+      replication = { fidelity = s.replicationMetrics.fidelityScore; verified = s.replicationMetrics.replicationsVerified; branches = s.replicationMetrics.branchExpressionsChecked; isolations = s.replicationMetrics.isolationsPassed };
+      crypto = { generated = s.cryptoMetrics.signaturesGenerated; failed = s.cryptoMetrics.signaturesFailed; chainsOpt = s.cryptoMetrics.fnvChainsOptimized; quantumTests = s.cryptoMetrics.quantumResistantTests };
+      doctrine = { audits = s.doctrineMetrics.auditsRun; passed = s.doctrineMetrics.auditsPassed; failed = s.doctrineMetrics.auditsFailed; score = s.doctrineMetrics.complianceScore };
     }
   };
 
