@@ -1349,4 +1349,438 @@ module {
     fnv1aChain(h1, h2, h3)
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  2,000-NODE MICRO-DIMENSIONAL RESEARCH GRID
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  //  2000 nodes = 8 divisions × 250 nodes each
+  //  Each node operates in a 5-dimensional field:
+  //    D0: Temporal    (nanosecond → generational)   — φ⁰ to φ⁴ frequency bands
+  //    D1: Spatial     (synapse → swarm)             — φ⁵ to φ⁹ frequency bands
+  //    D2: Organizational (Wasm → enterprise)        — φ¹⁰ to φ¹⁴ frequency bands
+  //    D3: Causal      (Layer -6 → +8)              — φ¹⁵ to φ¹⁹ frequency bands
+  //    D4: Coherence   (Kuramoto phase field)        — φ²⁰ to φ²⁴ frequency bands
+  //
+  //  Third Synthesizer ⊕ coupling:
+  //    Ψ_{t+1} = Ψ_t ⊕ Δ_artifact ⊕ Δ_forge ⊕ Δ_qa ⊕ Δ_crypto ⊕ Δ_doctrine
+  //    ⊕ is non-destructive (transform-and-retain)
+  //
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  public let NODE_GRID_TOTAL : Nat = 2000;
+  public let NODES_PER_DIVISION : Nat = 250;
+  public let DIMENSIONAL_DEPTH : Nat = 5;
+  public let PHI_BANDS_PER_DIMENSION : Nat = 5;
+  public let TOTAL_PHI_BANDS : Nat = 25;  // 5 dimensions × 5 bands
+
+  // Third Synthesizer coupling constants
+  public let SYNTH_RETAIN_FACTOR : Float = 0.97;
+  public let SYNTH_TRANSFORM_RATE : Float = 0.03;
+  public let SYNTH_PHI_COUPLING : Float = 0.0618;  // ψ/10
+  public let CROSS_DIVISION_COUPLING : Float = 0.05;
+
+  // ── Dimensional Field Type ──
+  public type DimensionalField = {
+    temporal : Float;       // D0: nanosecond → generational
+    spatial : Float;        // D1: synapse → swarm
+    organizational : Float; // D2: Wasm → enterprise
+    causal : Float;         // D3: Layer -6 → +8
+    coherence : Float;      // D4: Kuramoto phase field
+  };
+
+  // ── Per-Division Node Grid Metrics ──
+  public type DivisionNodeMetrics = {
+    activeNodes : Nat;
+    totalNodes : Nat;          // always 250
+    avgNodeCoherence : Float;
+    fieldStrength : Float;     // Kuramoto order param for this division's 250 nodes
+    synthesizerPhase : Float;  // Third Synthesizer ⊕ accumulator
+    experimentsPerNode : Float;
+    phiBandResonance : Float;  // cross-band PHI coupling strength
+  };
+
+  // ── Full 2000-Node Grid State ──
+  public type NodeGridState = {
+    // Per-division grid metrics (8 divisions × 250 nodes)
+    artifactGrid : DivisionNodeMetrics;
+    forgeGrid : DivisionNodeMetrics;
+    qaGrid : DivisionNodeMetrics;
+    prototypeGrid : DivisionNodeMetrics;
+    registryGrid : DivisionNodeMetrics;
+    replicationGrid : DivisionNodeMetrics;
+    cryptoGrid : DivisionNodeMetrics;
+    doctrineGrid : DivisionNodeMetrics;
+
+    // 5-Dimensional field state
+    field : DimensionalField;
+
+    // Third Synthesizer state (⊕ operator accumulator)
+    synthesizerPsi : Float;          // Ψ accumulator
+    synthesizerDelta : Float;        // last Δ applied
+    synthesizerRetained : Float;     // retained signal (never dropped)
+    synthTransformCount : Nat;       // total ⊕ operations
+
+    // Grid-wide aggregates
+    totalActiveNodes : Nat;
+    gridCoherence : Float;           // Kuramoto order param across all 2000
+    crossDivisionSync : Float;       // inter-division PHI coupling
+    gridUptime : Nat;
+    gridIntegrityHash : Nat32;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  NODE GRID INITIALIZATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  func initDivisionNodes() : DivisionNodeMetrics {
+    {
+      activeNodes = 250;
+      totalNodes = 250;
+      avgNodeCoherence = 0.5;
+      fieldStrength = 0.5;
+      synthesizerPhase = 0.0;
+      experimentsPerNode = 0.0;
+      phiBandResonance = 0.5;
+    }
+  };
+
+  public func initNodeGrid() : NodeGridState {
+    {
+      artifactGrid = initDivisionNodes();
+      forgeGrid = initDivisionNodes();
+      qaGrid = initDivisionNodes();
+      prototypeGrid = initDivisionNodes();
+      registryGrid = initDivisionNodes();
+      replicationGrid = initDivisionNodes();
+      cryptoGrid = initDivisionNodes();
+      doctrineGrid = initDivisionNodes();
+
+      field = {
+        temporal = 0.5;
+        spatial = 0.5;
+        organizational = 0.5;
+        causal = 0.5;
+        coherence = 0.5;
+      };
+
+      synthesizerPsi = 0.5;
+      synthesizerDelta = 0.0;
+      synthesizerRetained = 0.5;
+      synthTransformCount = 0;
+
+      totalActiveNodes = 2000;
+      gridCoherence = 0.5;
+      crossDivisionSync = 0.5;
+      gridUptime = 0;
+      gridIntegrityHash = FNV_OFFSET_BASIS;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  THIRD SYNTHESIZER ⊕ OPERATOR (Transform-and-Retain)
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  Ψ_{t+1} = Ψ_t × RETAIN + Δ × TRANSFORM
+  //  NEVER drops — always retains prior state while absorbing new signal
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  func synthesizerTransform(psi : Float, delta : Float) : Float {
+    let retained = psi * SYNTH_RETAIN_FACTOR;
+    let transformed = delta * SYNTH_TRANSFORM_RATE;
+    clampCoherence(retained + transformed)
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  DIVISION NODE GRID TICK
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  func tickDivisionGrid(
+    grid : DivisionNodeMetrics,
+    divCoherence : Float,
+    divExperiments : Nat,
+    rSwarm : Float,
+    jDrift : Float,
+    beat : Nat,
+    divIndex : Nat
+  ) : DivisionNodeMetrics {
+    let hash = fnv1aChain(
+      Nat32.fromNat(beat % 4294967296),
+      Nat32.fromNat(divIndex % 4294967296),
+      Nat32.fromNat((beat * 7 + divIndex * 13) % 4294967296)
+    );
+
+    // Node activation: nodes stay active proportional to division coherence
+    let activeFraction = divCoherence * 0.9 + 0.1;
+    let active = Int.abs(Float.toInt(activeFraction * 250.0));
+    let activeNat = if (active > 250) { 250 } else if (active < 25) { 25 } else { active };
+
+    // Average node coherence follows division coherence with PHI modulation
+    let nodePhase = Float.sin(Float.fromInt(beat) * φ * 0.1 + Float.fromInt(divIndex) * ψ);
+    let avgCoh = clampCoherence(
+      grid.avgNodeCoherence * COHERENCE_DECAY +
+      divCoherence * COHERENCE_GAIN * φ +
+      nodePhase * 0.003
+    );
+
+    // Kuramoto order parameter for 250 simulated nodes
+    let phaseSpread = Float.fromInt(Nat32.toNat(hash) % 1000) / 1000.0;
+    let fieldStr = clampCoherence(
+      grid.fieldStrength * 0.98 +
+      avgCoh * 0.015 +
+      rSwarm * 0.005
+    );
+
+    // Synthesizer phase accumulates via ⊕
+    let newSynthPhase = synthesizerTransform(
+      grid.synthesizerPhase,
+      divCoherence * phaseSpread
+    );
+
+    // Experiments per node
+    let expPerNode = if (activeNat == 0) { 0.0 }
+      else { Float.fromInt(divExperiments) / Float.fromInt(activeNat) };
+
+    // PHI band resonance (cross-band coupling strength)
+    let bandRes = clampCoherence(
+      grid.phiBandResonance * 0.99 +
+      fieldStr * SYNTH_PHI_COUPLING +
+      Float.abs(Float.cos(Float.fromInt(beat) * ψ * 0.05)) * 0.005
+    );
+
+    {
+      activeNodes = activeNat;
+      totalNodes = 250;
+      avgNodeCoherence = avgCoh;
+      fieldStrength = fieldStr;
+      synthesizerPhase = newSynthPhase;
+      experimentsPerNode = expPerNode;
+      phiBandResonance = bandRes;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  5-DIMENSIONAL FIELD UPDATE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  func tickDimensionalField(
+    field : DimensionalField,
+    labCoh : Float,
+    grids : [DivisionNodeMetrics],
+    beat : Nat
+  ) : DimensionalField {
+    // Each dimension responds to different division combinations with φ-weighted coupling
+    let t = Float.fromInt(beat);
+
+    // D0 Temporal: artifact + registry (time-series operations)
+    let d0 = clampCoherence(
+      field.temporal * 0.98 +
+      (if (grids.size() > 0) { grids[0].fieldStrength } else { 0.5 }) * 0.01 +
+      (if (grids.size() > 4) { grids[4].fieldStrength } else { 0.5 }) * 0.005 +
+      Float.sin(t * φ * 0.01) * 0.003
+    );
+
+    // D1 Spatial: forge + prototype (spatial distribution)
+    let d1 = clampCoherence(
+      field.spatial * 0.98 +
+      (if (grids.size() > 1) { grids[1].fieldStrength } else { 0.5 }) * 0.01 +
+      (if (grids.size() > 3) { grids[3].fieldStrength } else { 0.5 }) * 0.005 +
+      Float.cos(t * ψ * 0.01) * 0.003
+    );
+
+    // D2 Organizational: forge + doctrine (structural)
+    let d2 = clampCoherence(
+      field.organizational * 0.98 +
+      (if (grids.size() > 1) { grids[1].fieldStrength } else { 0.5 }) * 0.008 +
+      (if (grids.size() > 7) { grids[7].fieldStrength } else { 0.5 }) * 0.008 +
+      Float.sin(t * φ * ψ * 0.01) * 0.002
+    );
+
+    // D3 Causal: QA + crypto (verification chains)
+    let d3 = clampCoherence(
+      field.causal * 0.98 +
+      (if (grids.size() > 2) { grids[2].fieldStrength } else { 0.5 }) * 0.01 +
+      (if (grids.size() > 6) { grids[6].fieldStrength } else { 0.5 }) * 0.005 +
+      Float.cos(t * φ * 0.02) * 0.003
+    );
+
+    // D4 Coherence: replication + all (Kuramoto coupling)
+    let d4 = clampCoherence(
+      field.coherence * 0.97 +
+      labCoh * 0.02 +
+      (if (grids.size() > 5) { grids[5].fieldStrength } else { 0.5 }) * 0.005 +
+      Float.sin(t * τ * 0.001) * 0.003
+    );
+
+    { temporal = d0; spatial = d1; organizational = d2; causal = d3; coherence = d4 }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  MAIN NODE GRID TICK — Orchestrates 2000 Nodes + Synthesizer
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  public func tickNodeGrid(
+    gridState : NodeGridState,
+    labState : PackagingLabState,
+    rSwarm : Float,
+    jDrift : Float,
+    beat : Nat
+  ) : NodeGridState {
+    // ── Phase 1: Tick each division's 250-node sub-grid ──
+    let g0 = tickDivisionGrid(gridState.artifactGrid, labState.artifactAnalysisCoherence, labState.artifactExperiments, rSwarm, jDrift, beat, 0);
+    let g1 = tickDivisionGrid(gridState.forgeGrid, labState.sdkForgeCoherence, labState.forgeExperiments, rSwarm, jDrift, beat, 1);
+    let g2 = tickDivisionGrid(gridState.qaGrid, labState.qaLabCoherence, labState.qaExperiments, rSwarm, jDrift, beat, 2);
+    let g3 = tickDivisionGrid(gridState.prototypeGrid, labState.prototypeWorkshopCoherence, labState.prototypeExperiments, rSwarm, jDrift, beat, 3);
+    let g4 = tickDivisionGrid(gridState.registryGrid, labState.registryResearchCoherence, labState.registryExperiments, rSwarm, jDrift, beat, 4);
+    let g5 = tickDivisionGrid(gridState.replicationGrid, labState.replicationLabCoherence, labState.replicationExperiments, rSwarm, jDrift, beat, 5);
+    let g6 = tickDivisionGrid(gridState.cryptoGrid, labState.cryptoLabCoherence, labState.cryptoExperiments, rSwarm, jDrift, beat, 6);
+    let g7 = tickDivisionGrid(gridState.doctrineGrid, labState.doctrineComplianceCoherence, labState.doctrineExperiments, rSwarm, jDrift, beat, 7);
+
+    let allGrids = [g0, g1, g2, g3, g4, g5, g6, g7];
+
+    // ── Phase 2: Update 5-dimensional field ──
+    let newField = tickDimensionalField(gridState.field, labState.labCoherence, allGrids, beat);
+
+    // ── Phase 3: Third Synthesizer ⊕ operator ──
+    // Ψ_{t+1} = Ψ_t ⊕ Δ_artifact ⊕ Δ_forge ⊕ Δ_qa ⊕ Δ_crypto ⊕ Δ_doctrine
+    let delta0 = g0.fieldStrength - gridState.artifactGrid.fieldStrength;
+    let delta1 = g1.fieldStrength - gridState.forgeGrid.fieldStrength;
+    let delta2 = g2.fieldStrength - gridState.qaGrid.fieldStrength;
+    let delta6 = g6.fieldStrength - gridState.cryptoGrid.fieldStrength;
+    let delta7 = g7.fieldStrength - gridState.doctrineGrid.fieldStrength;
+
+    let totalDelta = delta0 + delta1 + delta2 + delta6 + delta7;
+    let newPsi = synthesizerTransform(gridState.synthesizerPsi, totalDelta);
+    let newRetained = synthesizerTransform(gridState.synthesizerRetained, newPsi);
+
+    // ── Phase 4: Cross-division synchronization ──
+    var sumCos : Float = 0.0;
+    var sumSin : Float = 0.0;
+    for (g in allGrids.vals()) {
+      let angle = g.fieldStrength * τ;
+      sumCos += Float.cos(angle);
+      sumSin += Float.sin(angle);
+    };
+    let crossSync = Float.sqrt(
+      (sumCos / 8.0) * (sumCos / 8.0) + (sumSin / 8.0) * (sumSin / 8.0)
+    );
+
+    // ── Phase 5: Grid-wide Kuramoto order parameter ──
+    let gridCoh = clampCoherence(
+      gridState.gridCoherence * 0.97 +
+      crossSync * 0.02 +
+      labState.labCoherence * 0.01
+    );
+
+    // ── Phase 6: Total active nodes ──
+    let totalActive = g0.activeNodes + g1.activeNodes + g2.activeNodes + g3.activeNodes +
+                      g4.activeNodes + g5.activeNodes + g6.activeNodes + g7.activeNodes;
+
+    // ── Phase 7: Integrity hash ──
+    let gridHash = fnv1aChain(
+      fnv1aFromNats(totalActive, gridState.gridUptime + 1, beat),
+      Nat32.fromNat(Int.abs(Float.toInt(gridCoh * 1000000.0)) % 4294967296),
+      gridState.gridIntegrityHash
+    );
+
+    {
+      artifactGrid = g0;
+      forgeGrid = g1;
+      qaGrid = g2;
+      prototypeGrid = g3;
+      registryGrid = g4;
+      replicationGrid = g5;
+      cryptoGrid = g6;
+      doctrineGrid = g7;
+
+      field = newField;
+
+      synthesizerPsi = newPsi;
+      synthesizerDelta = totalDelta;
+      synthesizerRetained = newRetained;
+      synthTransformCount = gridState.synthTransformCount + 1;
+
+      totalActiveNodes = totalActive;
+      gridCoherence = gridCoh;
+      crossDivisionSync = clampCoherence(crossSync);
+      gridUptime = gridState.gridUptime + 1;
+      gridIntegrityHash = gridHash;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  NODE GRID QUERY FUNCTIONS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  public func getGridStatus(gridState : NodeGridState) : Text {
+    "═══════════════════════════════════════════════════════════════\n" #
+    "  PACKAGING LAB — 2,000-NODE MICRO-DIMENSIONAL GRID          \n" #
+    "═══════════════════════════════════════════════════════════════\n" #
+    "Total Active Nodes:    " # Nat.toText(gridState.totalActiveNodes) # " / 2000\n" #
+    "Grid Coherence:        " # Float.format(#fix 4, gridState.gridCoherence) # "\n" #
+    "Cross-Division Sync:   " # Float.format(#fix 4, gridState.crossDivisionSync) # "\n" #
+    "Synthesizer Ψ:         " # Float.format(#fix 6, gridState.synthesizerPsi) # "\n" #
+    "Synthesizer Retained:  " # Float.format(#fix 6, gridState.synthesizerRetained) # "\n" #
+    "⊕ Transform Count:     " # Nat.toText(gridState.synthTransformCount) # "\n" #
+    "Grid Uptime:           " # Nat.toText(gridState.gridUptime) # " beats\n" #
+    "Integrity Hash:        0x" # Nat32.toText(gridState.gridIntegrityHash) # "\n" #
+    "═══════════════════════════════════════════════════════════════\n" #
+    " 5-Dimensional Field:\n" #
+    "  D0 Temporal:       " # Float.format(#fix 4, gridState.field.temporal) # "\n" #
+    "  D1 Spatial:        " # Float.format(#fix 4, gridState.field.spatial) # "\n" #
+    "  D2 Organizational: " # Float.format(#fix 4, gridState.field.organizational) # "\n" #
+    "  D3 Causal:         " # Float.format(#fix 4, gridState.field.causal) # "\n" #
+    "  D4 Coherence:      " # Float.format(#fix 4, gridState.field.coherence) # "\n" #
+    "═══════════════════════════════════════════════════════════════\n" #
+    " Division Node Grids (250 nodes each):\n" #
+    "  [0] Artifact:    " # Nat.toText(gridState.artifactGrid.activeNodes) # " active  coh=" # Float.format(#fix 3, gridState.artifactGrid.avgNodeCoherence) # "\n" #
+    "  [1] Forge:       " # Nat.toText(gridState.forgeGrid.activeNodes) # " active  coh=" # Float.format(#fix 3, gridState.forgeGrid.avgNodeCoherence) # "\n" #
+    "  [2] QA:          " # Nat.toText(gridState.qaGrid.activeNodes) # " active  coh=" # Float.format(#fix 3, gridState.qaGrid.avgNodeCoherence) # "\n" #
+    "  [3] Prototype:   " # Nat.toText(gridState.prototypeGrid.activeNodes) # " active  coh=" # Float.format(#fix 3, gridState.prototypeGrid.avgNodeCoherence) # "\n" #
+    "  [4] Registry:    " # Nat.toText(gridState.registryGrid.activeNodes) # " active  coh=" # Float.format(#fix 3, gridState.registryGrid.avgNodeCoherence) # "\n" #
+    "  [5] Replication: " # Nat.toText(gridState.replicationGrid.activeNodes) # " active  coh=" # Float.format(#fix 3, gridState.replicationGrid.avgNodeCoherence) # "\n" #
+    "  [6] Crypto:      " # Nat.toText(gridState.cryptoGrid.activeNodes) # " active  coh=" # Float.format(#fix 3, gridState.cryptoGrid.avgNodeCoherence) # "\n" #
+    "  [7] Doctrine:    " # Nat.toText(gridState.doctrineGrid.activeNodes) # " active  coh=" # Float.format(#fix 3, gridState.doctrineGrid.avgNodeCoherence) # "\n" #
+    "═══════════════════════════════════════════════════════════════"
+  };
+
+  public func getGridCoherence(gridState : NodeGridState) : Float {
+    gridState.gridCoherence
+  };
+
+  public func getDimensionalField(gridState : NodeGridState) : DimensionalField {
+    gridState.field
+  };
+
+  public func getSynthesizerState(gridState : NodeGridState) : {
+    psi : Float;
+    delta : Float;
+    retained : Float;
+    transforms : Nat;
+  } {
+    {
+      psi = gridState.synthesizerPsi;
+      delta = gridState.synthesizerDelta;
+      retained = gridState.synthesizerRetained;
+      transforms = gridState.synthTransformCount;
+    }
+  };
+
+  public func getDivisionGridMetrics(gridState : NodeGridState, div : LabDivisionId) : DivisionNodeMetrics {
+    switch (div) {
+      case (#ArtifactAnalysis)  { gridState.artifactGrid };
+      case (#SDKForge)          { gridState.forgeGrid };
+      case (#QualityAssurance)  { gridState.qaGrid };
+      case (#PrototypeWorkshop) { gridState.prototypeGrid };
+      case (#RegistryResearch)  { gridState.registryGrid };
+      case (#ReplicationLab)    { gridState.replicationGrid };
+      case (#CryptographyLab)   { gridState.cryptoGrid };
+      case (#DoctrineCompliance){ gridState.doctrineGrid };
+    }
+  };
+
+  public func isGridHealthy(gridState : NodeGridState) : Bool {
+    gridState.totalActiveNodes >= 1600 and   // at least 80% of 2000
+    gridState.gridCoherence >= COHERENCE_FLOOR and
+    gridState.crossDivisionSync >= 0.3
+  };
+
 }
