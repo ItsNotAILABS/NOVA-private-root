@@ -545,6 +545,7 @@ import SovereignPackagingOrganism                    "./modules/SovereignPackagi
 import VZOOperatingSystem                            "./modules/VZOOperatingSystem";
 import PackagingResearchLab                          "./modules/PackagingResearchLab";
 import NovaFrequencyNodeGrid                         "./modules/NovaFrequencyNodeGrid";
+import VOISCoreSubstrate                             "./modules/VOISCoreSubstrate";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ICP MANAGEMENT CANISTER — HTTP OUTCALLS FOR REAL WORLD CONNECTION
@@ -4241,6 +4242,19 @@ actor SwarmBrain {
     if (orchestrationActive and currentBeat % 1 == 0) {
       nodeGridState := NovaFrequencyNodeGrid.tickNodeGrid(
         nodeGridState, rSwarm, jDrift, currentBeat
+      );
+      modulesCalledThisBeat += 1;
+    };
+
+    // ─── LAYER 40: VOIS CORE SUBSTRATE (every beat — 24h running) ────────────
+    // Organism Intelligence Naming System. 20 domain extensions (phi-frequency
+    // mapped), 6 custom protocols (vois/cogn/puls/nexu/flux/mens), 40 base
+    // agents across 4 categories, 20 always-running tools, Fibonacci versioning,
+    // SHADOW clone IP protection, 98 brain node distribution.
+    // VOIS makes the organism addressable at every scale.
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      voisState := VOISCoreSubstrate.tickVOIS(
+        voisState, rSwarm, jDrift, currentBeat
       );
       modulesCalledThisBeat += 1;
     };
@@ -23831,6 +23845,14 @@ actor SwarmBrain {
     NovaFrequencyNodeGrid.initNodeGrid();
 
   // ═══════════════════════════════════════════════════════════════════════════════
+  // VOIS CORE SUBSTRATE — Layer 40 (Organism Intelligence Naming System)
+  // 20 domain extensions, 6 custom protocols, 40 base agents, 20 always-running
+  // tools. Fibonacci-versioned (F₅). SHADOW clone IP protection. 98 brain nodes.
+  // ═══════════════════════════════════════════════════════════════════════════════
+  var voisState : VOISCoreSubstrate.VOISState =
+    VOISCoreSubstrate.initVOIS();
+
+  // ═══════════════════════════════════════════════════════════════════════════════
   // SECTION CYBER: HONEYPOT DEPLOYMENT AND MANAGEMENT
   // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -24666,6 +24688,105 @@ actor SwarmBrain {
       crossBandCoupling = nodeGridState.crossBandCoupling;
       meanFrequency = nodeGridState.meanFrequency;
       totalSignalPower = nodeGridState.totalSignalPower;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // VOIS CORE SUBSTRATE — PUBLIC QUERY API
+  // Layer 40: Organism Intelligence Naming System — 20 extensions, 6 protocols,
+  // 40 agents, 20 tools, Fibonacci versioning, SHADOW IP protection
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Get VOIS system status
+  public query func getVOISStatus() : async {
+    version : Nat;
+    nextVersion : Nat;
+    totalCycles : Nat;
+    formationHash : Nat32;
+    fieldCoherence : Float;
+    kuramotoOrder : Float;
+    activeAgentCount : Nat;
+    totalExtensionsActive : Nat;
+    allToolsRunning : Bool;
+    isAwake : Bool;
+    systemUptime : Nat;
+    currentTier : Nat;
+  } {
+    {
+      version = voisState.version;
+      nextVersion = voisState.nextVersion;
+      totalCycles = voisState.totalCycles;
+      formationHash = voisState.formationHash;
+      fieldCoherence = voisState.fieldCoherence;
+      kuramotoOrder = voisState.kuramotoOrder;
+      activeAgentCount = voisState.activeAgentCount;
+      totalExtensionsActive = voisState.totalExtensionsActive;
+      allToolsRunning = voisState.allToolsRunning;
+      isAwake = voisState.isAwake;
+      systemUptime = voisState.systemUptime;
+      currentTier = voisState.currentTier;
+    }
+  };
+
+  /// Process a VOIS protocol request (route through extension + protocol)
+  public shared(msg) func processVOISRequest(protocolIndex : Nat, extensionIndex : Nat) : async {
+    success : Bool;
+    totalProtocolCalls : Nat;
+    extensionCoherence : Float;
+  } {
+    requireAuthorized(msg.caller);
+    voisState := VOISCoreSubstrate.processProtocolRequest(voisState, protocolIndex, extensionIndex);
+    {
+      success = protocolIndex < 6 and extensionIndex < 20;
+      totalProtocolCalls = voisState.totalProtocolCalls;
+      extensionCoherence = if (extensionIndex < 20) { voisState.extensionCoherences[extensionIndex] } else { 0.0 };
+    }
+  };
+
+  /// Get frequency for a VOIS domain extension
+  public query func getVOISDomainFrequency(extensionIndex : Nat) : async Float {
+    VOISCoreSubstrate.getDomainFrequency(extensionIndex)
+  };
+
+  /// Get next Fibonacci version number
+  public query func getNextVOISVersion() : async Nat {
+    VOISCoreSubstrate.nextFibonacci(voisState.version)
+  };
+
+  /// Get agent-to-brain-node distribution mapping
+  public query func getVOISAgentDistribution(agentId : Nat) : async {
+    agentId : Nat;
+    brainNode : Nat;
+    totalBrainNodes : Nat;
+    brainNodeUtilization : Float;
+  } {
+    {
+      agentId = agentId;
+      brainNode = VOISCoreSubstrate.getAgentNodeMapping(agentId);
+      totalBrainNodes = 98;
+      brainNodeUtilization = voisState.brainNodeUtilization;
+    }
+  };
+
+  /// Get IP protection / SHADOW clone configuration
+  public query func getVOISProtectionProfile() : async {
+    phiAnonymization : Bool;
+    lineageTracing : Bool;
+    immutableLogging : Bool;
+    maxCloneDepth : Nat;
+    opacityLevel : Float;
+    shadowClonesActive : Nat;
+    shadowOpacity : Float;
+  } {
+    let profile = VOISCoreSubstrate.getProtectionProfile();
+    {
+      phiAnonymization = profile.phiAnonymization;
+      lineageTracing = profile.lineageTracing;
+      immutableLogging = profile.immutableLogging;
+      maxCloneDepth = profile.maxCloneDepth;
+      opacityLevel = profile.opacityLevel;
+      shadowClonesActive = voisState.shadowClonesActive;
+      shadowOpacity = voisState.shadowOpacity;
     }
   };
 
