@@ -655,10 +655,30 @@ module VOISCoreSubstrate {
     let avgSin = sinSum / n;
     let kuramotoR = Float.sqrt(avgCos * avgCos + avgSin * avgSin);
 
-    // Mean phase
+    // Mean phase (simplified atan2 approximation)
     var meanPhaseCalc : Float = 0.0;
-    if (abs(avgCos) > 0.0001) {
-      meanPhaseCalc := Float.fromInt(Int.abs(Float.toInt(avgSin / avgCos * 1000.0))) / 1000.0;
+    let hyp = Float.sqrt(avgCos * avgCos + avgSin * avgSin);
+    if (hyp > 0.0001) {
+      // Approximation of atan2 using normalized components
+      let normCos = avgCos / hyp;
+      let normSin = avgSin / hyp;
+      // Bhaskara I approximation: atan(y/x) ≈ y*π/(|x|+|y|+√2·max(|x|,|y|)) adjusted
+      if (abs(normCos) > 0.0001) {
+        let ratio = normSin / normCos;
+        // atan Taylor: ratio - ratio³/3 + ratio⁵/5 (valid near 0)
+        let r2 = ratio * ratio;
+        if (r2 < 1.0) {
+          meanPhaseCalc := ratio - (ratio * r2 / 3.0) + (ratio * r2 * r2 / 5.0);
+        } else {
+          // For |ratio| > 1: atan(x) = π/2 - atan(1/x)
+          let inv = 1.0 / ratio;
+          let inv2 = inv * inv;
+          let atanInv = inv - (inv * inv2 / 3.0) + (inv * inv2 * inv2 / 5.0);
+          meanPhaseCalc := (if (ratio > 0.0) { PI / 2.0 - atanInv } else { -(PI / 2.0) - atanInv });
+        };
+      } else {
+        meanPhaseCalc := if (normSin > 0.0) { PI / 2.0 } else { -(PI / 2.0) };
+      };
     };
 
     // ─── Step 6: Field Coherence (5D) ───────────────────────────────────
