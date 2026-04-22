@@ -837,8 +837,8 @@ module {
       };
     };
 
-    // CRITICAL: Verify source integrity (must be 1.0)
-    assert(s.sourceIntegrity == 1.0);
+    // CRITICAL: Verify source integrity (must be ~1.0, float tolerance)
+    assert(s.sourceIntegrity > 0.999);
 
     s
   };
