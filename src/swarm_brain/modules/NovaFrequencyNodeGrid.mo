@@ -102,6 +102,13 @@ module NovaFrequencyNodeGrid {
   public let INTRA_BAND_COUPLING  : Float = 0.35;
   public let SIGNAL_DECAY         : Float = 0.02;
 
+  // Grid awake thresholds
+  public let AWAKE_COHERENCE_THRESHOLD  : Float = 0.1;
+  public let AWAKE_ACTIVE_NODES_RATIO   : Nat   = 4;  // grid awake when active > TOTAL_NODES / 4
+
+  // PHI-resonance tolerance (5%)
+  public let PHI_RESONANCE_TOLERANCE : Float = 0.05;
+
   // ═══════════════════════════════════════════════════════════════════════════
   // BAND CONFIGURATION — PHI-Exponential Frequencies
   // ═══════════════════════════════════════════════════════════════════════════
@@ -861,7 +868,7 @@ module NovaFrequencyNodeGrid {
     let globalCoh = kuramotoR * (1.0 + newCoupling * PHI_INV) / (1.0 + PHI_INV);
 
     // Step 7: Determine grid awake state
-    let awake = globalCoh > 0.1 and newActiveN > TOTAL_NODES / 4;
+    let awake = globalCoh > AWAKE_COHERENCE_THRESHOLD and newActiveN > TOTAL_NODES / AWAKE_ACTIVE_NODES_RATIO;
 
     // Step 8: Build new state (functional immutable pattern)
     let newState : NodeGridState = {
@@ -1072,7 +1079,7 @@ module NovaFrequencyNodeGrid {
     var n = 0;
     while (n < 12) {
       let deviation = abs(ratio - phiPow) / phiPow;
-      if (deviation < 0.05) return true;
+      if (deviation < PHI_RESONANCE_TOLERANCE) return true;
       phiPow *= PHI;
       n += 1;
     };
