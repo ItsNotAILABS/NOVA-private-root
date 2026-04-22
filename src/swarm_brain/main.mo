@@ -541,6 +541,8 @@ import UnifiedEmotionalField                         "./modules/UnifiedEmotional
 import ChimeraIntelligenceCore                       "./modules/ChimeraIntelligenceCore";
 import SimulatedWorld                                "./modules/SimulatedWorld";
 import MultiChainOracle                              "./modules/MultiChainOracle";
+import SovereignPackagingOrganism                    "./modules/SovereignPackagingOrganism";
+import VZOOperatingSystem                            "./modules/VZOOperatingSystem";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ICP MANAGEMENT CANISTER — HTTP OUTCALLS FOR REAL WORLD CONNECTION
@@ -4194,6 +4196,29 @@ actor SwarmBrain {
     // Compute final output metrics after all layers have executed
     let finalCoherence = Float.max(0.0, Float.min(1.0, rSwarm));
     let finalDrift = Float.max(-1.0, Float.min(1.0, jDrift));
+
+    // ─── LAYER 36: SOVEREIGN PACKAGING DEPARTMENT (every beat — 24h running) ────
+    // Full department with 12 organisms: Reader, Classifier, Snapshotter, Copier,
+    // Wrapper, Signer, Registrar, Deployer, SDK Builder, Face Gate, Replicator,
+    // Self-Packager. FACE-GATE LAW: Nothing faces except deployed SDK expressions.
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      packagingDeptState := SovereignPackagingOrganism.tickPackagingOrganism(
+        packagingDeptState, rSwarm, jDrift, currentBeat
+      );
+      modulesCalledThisBeat += 1;
+    };
+
+    // ─── LAYER 37: VZO OPERATING SYSTEM (every beat — 24h running) ──────────────
+    // VZO — Visión Operaciones Inteligentes y Sistema
+    // Nova's IT department. 12 subsystems + 7 IT organisms.
+    // Manages NOVA as Universal SDK, WWW model layer, sovereign internet.
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      vzoState := VZOOperatingSystem.tickVZO(
+        vzoState, rSwarm, jDrift, currentBeat
+      );
+      modulesCalledThisBeat += 1;
+    };
+
     let modulesExecuted = modulesCalledThisBeat;
     
     // Track total module calls
@@ -23745,6 +23770,24 @@ actor SwarmBrain {
   stable var cyberTotalIncidents : Nat = 0;
 
   // ═══════════════════════════════════════════════════════════════════════════════
+  // SOVEREIGN PACKAGING DEPARTMENT — Layer 36 (24-Hour Running, Full Department)
+  // 12 organisms: Reader, Classifier, Snapshotter, Copier, Wrapper, Signer,
+  //   Registrar, Deployer, SDK Builder, Face Gate, Replicator, Self-Packager
+  // FACE-GATE LAW: Nothing faces the outside world except through this dept.
+  // ═══════════════════════════════════════════════════════════════════════════════
+  var packagingDeptState : SovereignPackagingOrganism.PackagingOrganismState =
+    SovereignPackagingOrganism.initPackagingOrganism();
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // VZO OPERATING SYSTEM — Layer 37 (Visión Operaciones Inteligentes y Sistema)
+  // 12 subsystems: Kernel, Model Router, Doctrine DNS, Transport, Identity,
+  //   Registry, Monitor, Lifecycle, Security, Network, Storage, SDK Interface
+  // 7 IT organisms: SysAdmin, NetOps, SecOps, DevOps, DataOps, ModelOps, Compliance
+  // ═══════════════════════════════════════════════════════════════════════════════
+  var vzoState : VZOOperatingSystem.VZOState =
+    VZOOperatingSystem.initVZO();
+
+  // ═══════════════════════════════════════════════════════════════════════════════
   // SECTION CYBER: HONEYPOT DEPLOYMENT AND MANAGEMENT
   // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -24417,6 +24460,95 @@ actor SwarmBrain {
       trackedThreats = cyberKnownAttackers;
       totalIncidents = cyberTotalIncidents;
     }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SOVEREIGN PACKAGING DEPARTMENT — PUBLIC QUERY API
+  // Layer 36: 24-Hour Running Department (12 organisms, SDK deployment, face-gate)
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Get the full packaging department status
+  public query func getPackagingDepartmentStatus() : async {
+    sourceIntegrity : Float;
+    departmentCoherence : Float;
+    totalPackages : Nat;
+    totalSDKsDeployed : Nat;
+    faceGateIntegrity : Float;
+    facesLive : Nat;
+    facesBlocked : Nat;
+    selfPackageVersion : Nat;
+    departmentUptime : Nat;
+    cyclesCompleted : Nat;
+    registrySize : Nat;
+    bridgeHealth : Float;
+  } {
+    {
+      sourceIntegrity = packagingDeptState.sourceIntegrity;
+      departmentCoherence = packagingDeptState.departmentCoherence;
+      totalPackages = packagingDeptState.totalPackages;
+      totalSDKsDeployed = packagingDeptState.totalSDKsDeployed;
+      faceGateIntegrity = packagingDeptState.faceGateIntegrity;
+      facesLive = packagingDeptState.facesLive;
+      facesBlocked = packagingDeptState.facesBlocked;
+      selfPackageVersion = packagingDeptState.selfPackageVersion;
+      departmentUptime = packagingDeptState.departmentUptime;
+      cyclesCompleted = packagingDeptState.cyclesCompleted;
+      registrySize = packagingDeptState.registrySize;
+      bridgeHealth = packagingDeptState.bridgeHealth;
+    }
+  };
+
+  /// Get SDK deployment summary across all 8 target worlds
+  public query func getSDKDeploymentSummary() : async {
+    business : Nat; research : Nat; defense : Nat; iot : Nat;
+    finance : Nat; creative : Nat; governance : Nat; identity : Nat;
+    total : Nat;
+  } {
+    SovereignPackagingOrganism.getSDKDeploymentSummary(packagingDeptState)
+  };
+
+  /// Get face-gate status (NOTHING faces without passing through here)
+  public query func getFaceGateStatus() : async {
+    approved : Nat; live : Nat; blocked : Nat; integrity : Float;
+  } {
+    SovereignPackagingOrganism.getFaceGateSummary(packagingDeptState)
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // VZO OPERATING SYSTEM — PUBLIC QUERY API
+  // Layer 37: Visión Operaciones Inteligentes y Sistema (Nova's IT Department)
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Get VZO system status
+  public query func getVZOStatus() : async {
+    systemUptime : Nat;
+    overallCoherence : Float;
+    sdkReadiness : Float;
+    networkMeshHealth : Float;
+    totalRequestsRouted : Nat;
+    modelsManaged : Nat;
+    totalDNSResolutions : Nat;
+    vzoAwake : Bool;
+  } {
+    {
+      systemUptime = vzoState.systemUptime;
+      overallCoherence = vzoState.overallSystemCoherence;
+      sdkReadiness = vzoState.sdkReadiness;
+      networkMeshHealth = vzoState.networkMeshHealth;
+      totalRequestsRouted = vzoState.totalRequestsRouted;
+      modelsManaged = vzoState.totalModelsManaged;
+      totalDNSResolutions = vzoState.totalDNSResolutions;
+      vzoAwake = vzoState.vzoAwake;
+    }
+  };
+
+  /// Get VZO IT department task summary
+  public query func getVZOITDepartment() : async {
+    sysAdmin : Nat; netOps : Nat; secOps : Nat;
+    devOps : Nat; dataOps : Nat; modelOps : Nat; compliance : Nat;
+    total : Nat;
+  } {
+    VZOOperatingSystem.getITTaskSummary(vzoState)
   };
 
 };
