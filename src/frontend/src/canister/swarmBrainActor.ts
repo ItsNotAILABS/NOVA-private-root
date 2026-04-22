@@ -536,8 +536,1074 @@ const swarmBrainIDLFactory = ({ IDL }: { IDL: typeof IDL }) => {
     updatePosition: IDL.Func([IDL.Nat, IDL.Float64, IDL.Float64, IDL.Float64], [], []),
     
     broadcastNeurochemical: IDL.Func([IDL.Text, IDL.Float64], [], []),
+
+    // ═══ DEFENSE DOMAIN ═══
+    getAEGISState: IDL.Func([], [IDL.Record({
+      threatLevel: IDL.Float64,
+      defenseActive: IDL.Bool,
+      lastAlertBeat: IDL.Nat,
+      protectedValues: IDL.Vec(IDL.Float64),
+    })], ['query']),
+
+    getWarDefenseModeState: IDL.Func([], [IDL.Record({
+      mode: IDL.Text,
+      posture: IDL.Nat,
+      threatScore: IDL.Float64,
+      gateStrictness: IDL.Float64,
+      containmentDepth: IDL.Nat,
+      rollbackTier: IDL.Nat,
+      interfaceLockdown: IDL.Bool,
+      continuityScore: IDL.Float64,
+      coherenceScore: IDL.Float64,
+      integrityScore: IDL.Float64,
+      driftScore: IDL.Float64,
+      bypassScore: IDL.Float64,
+      escapeScore: IDL.Float64,
+      sentinelSensitivity: IDL.Float64,
+      verifierStrength: IDL.Float64,
+      gatekeeperStrictness: IDL.Float64,
+      resonanceQuality: IDL.Float64,
+      cartographerThreatsTracked: IDL.Nat,
+      guardianShieldsActive: IDL.Bool,
+      restorerRecoveryReady: IDL.Bool,
+      scoutsDeployed: IDL.Nat,
+      adversariesProfiled: IDL.Nat,
+      trapsDeployed: IDL.Nat,
+      huntsActive: IDL.Nat,
+      pathwaysCut: IDL.Nat,
+      dislocationsExecuted: IDL.Nat,
+      spoofCampaignsDetected: IDL.Nat,
+      evidenceChainsBuilt: IDL.Nat,
+      resilienceSignals: IDL.Nat,
+      campaignsActive: IDL.Nat,
+    })], ['query']),
+
+    getCounterforceStatus: IDL.Func([], [IDL.Record({
+      overallEffectiveness: IDL.Float64,
+      adversaryPressure: IDL.Float64,
+      coordinationQuality: IDL.Float64,
+      scoutCoverage: IDL.Float64,
+      profilerAccuracy: IDL.Float64,
+      hunterSuccessRate: IDL.Float64,
+      activeCampaigns: IDL.Nat,
+      totalThreatsFound: IDL.Nat,
+    })], ['query']),
+
+    getOffenseDefenseStatus: IDL.Func([], [IDL.Record({
+      architectureFlowIntegrity: IDL.Float64,
+      offensivePower: IDL.Float64,
+      defensivePower: IDL.Float64,
+      intelligenceQuality: IDL.Float64,
+      offenseDefenseBalance: IDL.Float64,
+      coordinationQuality: IDL.Float64,
+      energized: IDL.Bool,
+      dronesDeployed: IDL.Nat,
+      cyberAttackVectors: IDL.Nat,
+      honeypotsActive: IDL.Nat,
+      shieldStrength: IDL.Float64,
+      threatsActive: IDL.Nat,
+    })], ['query']),
+
+    // ═══ MEMORY DOMAIN ═══
+    getMemorySystemState: IDL.Func([], [IDL.Record({
+      qmemFidelity: IDL.Float64,
+      qmemT2Time: IDL.Float64,
+      timeSinceReset: IDL.Nat,
+      dreamCycleActive: IDL.Bool,
+      consolidationThreshold: IDL.Float64,
+      replayFrequency: IDL.Nat,
+      isRestState: IDL.Bool,
+      bdnfLevel: IDL.Float64,
+      ngfLevel: IDL.Float64,
+      memoryPotentiation: IDL.Float64,
+      plasticityRate: IDL.Float64,
+      shell3ActiveNodes: IDL.Nat,
+      shell3AverageActivation: IDL.Float64,
+      shell3MaxActivation: IDL.Float64,
+      shell12ActiveNodes: IDL.Nat,
+      shell12AverageActivation: IDL.Float64,
+      shell12MaxActivation: IDL.Float64,
+      shell3ToShell12TransferRate: IDL.Float64,
+      shell12ToShell3RetrievalRate: IDL.Float64,
+      emotionalMemoryBoost: IDL.Float64,
+    })], ['query']),
+
+    getMemoryState: IDL.Func([], [IDL.Record({
+      traceCount: IDL.Nat,
+      responseWeights: IDL.Vec(IDL.Float64),
+    })], ['query']),
+
+    // ═══ GOVERNANCE DOMAIN ═══
+    getLawComplianceState: IDL.Func([], [IDL.Record({
+      lawGroup0Compliance: IDL.Float64,
+      lawGroup1Compliance: IDL.Float64,
+      lawGroup2Compliance: IDL.Float64,
+      lawGroup3Compliance: IDL.Float64,
+      lawGroup4Compliance: IDL.Float64,
+      overallCompliance: IDL.Float64,
+      veritasStabilizers: IDL.Vec(IDL.Float64),
+      veritasSyndromes: IDL.Vec(IDL.Float64),
+      highRiskLaws: IDL.Vec(IDL.Nat),
+      violationCount: IDL.Nat,
+      totalReEntrainments: IDL.Nat,
+      quantumLawCompliance: IDL.Vec(IDL.Float64),
+      quantumViolationRisks: IDL.Vec(IDL.Float64),
+    })], ['query']),
+
+    getLawsSnapshot: IDL.Func([], [IDL.Record({
+      scores: IDL.Vec(IDL.Float64),
+      compliance: IDL.Float64,
+      passing: IDL.Nat,
+      fingerprint: IDL.Nat32,
+      jacobsRung: IDL.Nat,
+      multiplier: IDL.Float64,
+    })], ['query']),
+
+    getSecurityStatus: IDL.Func([], [IDL.Record({
+      lockdownActive: IDL.Bool,
+      lockdownLevel: IDL.Text,
+      securityScore: IDL.Float64,
+      encryptionCoverage: IDL.Float64,
+      fleetExpanded: IDL.Bool,
+      readyForLaunch: IDL.Bool,
+      modelsUpdated: IDL.Nat,
+      totalExposures: IDL.Nat,
+      remediatedExposures: IDL.Nat,
+    })], ['query']),
+
+    // ═══ NEURAL DOMAIN ═══
+    getNeuralCoreState: IDL.Func([], [IDL.Record({
+      coreActivations: IDL.Vec(IDL.Float64),
+      coreOutputs: IDL.Vec(IDL.Float64),
+      corePhases: IDL.Vec(IDL.Float64),
+      corePlasticity: IDL.Vec(IDL.Float64),
+      globalSynchrony: IDL.Float64,
+      coreNeuroDynamics: IDL.Float64,
+      animalIntelligence: IDL.Float64,
+      emergenceStack: IDL.Float64,
+      cognitiveStack: IDL.Float64,
+      defenseStack: IDL.Float64,
+      productionStack: IDL.Float64,
+      neuralStatus: IDL.Text,
+    })], ['query']),
+
+    getBrainRegionStates: IDL.Func([], [IDL.Record({
+      prefrontalControl: IDL.Float64,
+      basalGangliaSelection: IDL.Float64,
+      thalamusRelay: IDL.Float64,
+      hippocampusMemory: IDL.Float64,
+      amygdalaSalience: IDL.Float64,
+      cerebellumTiming: IDL.Float64,
+      workingMemoryLoad: IDL.Nat,
+      selectedAction: IDL.Nat,
+      fearResponse: IDL.Float64,
+      rewardResponse: IDL.Float64,
+    })], ['query']),
+
+    getNeurotransmitterState: IDL.Func([], [IDL.Record({
+      gaba: IDL.Float64,
+      glutamate: IDL.Float64,
+      endorphin: IDL.Float64,
+      oxytocin: IDL.Float64,
+      cortisol: IDL.Float64,
+      adrenaline: IDL.Float64,
+      melatonin: IDL.Float64,
+      histamine: IDL.Float64,
+      substanceP: IDL.Float64,
+      adenosine: IDL.Float64,
+      anandamide: IDL.Float64,
+      dynorphin: IDL.Float64,
+      vasopressin: IDL.Float64,
+      npy: IDL.Float64,
+      orexin: IDL.Float64,
+      bdnf: IDL.Float64,
+      ngf: IDL.Float64,
+      stressLevel: IDL.Float64,
+      rewardLevel: IDL.Float64,
+      eiRatio: IDL.Float64,
+      arousalLevel: IDL.Float64,
+      memoryPotentiation: IDL.Float64,
+      balanceIndex: IDL.Float64,
+      plasticityRate: IDL.Float64,
+      totalUpdates: IDL.Nat,
+    })], ['query']),
+
+    // ═══ QUANTUM DOMAIN ═══
+    getQuantumOperatorStates: IDL.Func([], [IDL.Record({
+      superposition: IDL.Float64,
+      entanglement: IDL.Float64,
+      interference: IDL.Float64,
+      tunneling: IDL.Float64,
+      decoherence: IDL.Float64,
+      measurement: IDL.Float64,
+      zeno: IDL.Float64,
+      quantumWalk: IDL.Float64,
+      bellViolation: IDL.Float64,
+      purity: IDL.Float64,
+    })], ['query']),
+
+    getSphericalQuantumState: IDL.Func([], [IDL.Record({
+      sphericalIntegrity: IDL.Float64,
+      organismVitality: IDL.Float64,
+      hzKore: IDL.Float64,
+      hzThalamic: IDL.Float64,
+      hzRASLocus: IDL.Float64,
+      hzVael: IDL.Float64,
+      shellPhases: IDL.Vec(IDL.Float64),
+      shellCoherences: IDL.Vec(IDL.Float64),
+      shellEnergies: IDL.Vec(IDL.Float64),
+      animalWeights: IDL.Vec(IDL.Float64),
+      beeSwarmBoost: IDL.Float64,
+      elephantMemoryFidelity: IDL.Float64,
+      sharkPredatorPath: IDL.Float64,
+      crowCognitionDecision: IDL.Float64,
+      lawComplianceScores: IDL.Vec(IDL.Float64),
+      lawViolationRisks: IDL.Vec(IDL.Float64),
+      overallCompliance: IDL.Float64,
+      councilKuramotoR: IDL.Vec(IDL.Float64),
+      councilBellViolations: IDL.Vec(IDL.Float64),
+      councilQSOVContributions: IDL.Vec(IDL.Float64),
+      vetusDefenseBoosts: IDL.Vec(IDL.Float64),
+      vetusEvasionPaths: IDL.Vec(IDL.Nat),
+      vetusResponseTimes: IDL.Vec(IDL.Float64),
+      aegisIntegrities: IDL.Vec(IDL.Float64),
+      aegisSovereignty: IDL.Float64,
+      aegisCoherence: IDL.Float64,
+      aegisMemory: IDL.Float64,
+      formaMintModulation: IDL.Float64,
+      formaBurnModulation: IDL.Float64,
+      formaCompoundModulation: IDL.Float64,
+      formaStabilityIndex: IDL.Float64,
+      formaTreasuryHealth: IDL.Float64,
+      formaCreatorReserveIntegrity: IDL.Float64,
+    })], ['query']),
+
+    // ═══ ECONOMIC DOMAIN ═══
+    getEconomicState: IDL.Func([], [IDL.Record({
+      mintAccumulator: IDL.Float64,
+      totalMinted: IDL.Float64,
+      economicMultiplier: IDL.Float64,
+    })], ['query']),
+
+    getEconomicSystemState: IDL.Func([], [IDL.Record({
+      formaBalance: IDL.Float64,
+      mrcBalance: IDL.Float64,
+      kntBalance: IDL.Float64,
+      masterAccumulator: IDL.Float64,
+      jacobsLevel: IDL.Nat,
+      jacobsMultiplier: IDL.Float64,
+      formaMintMod: IDL.Float64,
+      formaBurnMod: IDL.Float64,
+      formaCompoundMod: IDL.Float64,
+      formaStabilityIdx: IDL.Float64,
+      treasuryHealth: IDL.Float64,
+      creatorReserveIntegrity: IDL.Float64,
+      greedIndex: IDL.Float64,
+      fearIndex: IDL.Float64,
+      greedFearRatio: IDL.Float64,
+      marketCorrelation: IDL.Float64,
+      cascadeRisk: IDL.Float64,
+      liquidityRouting: IDL.Nat,
+      mintConsensus: IDL.Float64,
+      burnConsensus: IDL.Float64,
+      holdConsensus: IDL.Float64,
+      economicLawCompliance: IDL.Float64,
+    })], ['query']),
+
+    getTokenOrganismStats: IDL.Func([], [IDL.Record({
+      currentBeat: IDL.Nat,
+      totalTokensGenerated: IDL.Nat,
+      activeTokens: IDL.Nat,
+      emergenceCount: IDL.Nat,
+      globalCoherence: IDL.Float64,
+      orderParameter: IDL.Float64,
+      crossDimensionalFlow: IDL.Float64,
+      heartbeatPhase: IDL.Float64,
+      synchronizationIndex: IDL.Float64,
+      microCoherence: IDL.Float64,
+      mesoCoherence: IDL.Float64,
+      macroCoherence: IDL.Float64,
+    })], ['query']),
+
+    // ═══ COGNITIVE DOMAIN ═══
+    getPredictionSystemState: IDL.Func([], [IDL.Record({
+      predictionError: IDL.Float64,
+      predictionAccuracy: IDL.Float64,
+      kalmanGain: IDL.Float64,
+      achModulation: IDL.Float64,
+      freeEnergy: IDL.Float64,
+      complexityCost: IDL.Float64,
+      accuracyCost: IDL.Float64,
+      sparsityLevel: IDL.Float64,
+      beeSparsification: IDL.Float64,
+      shortTermError: IDL.Float64,
+      mediumTermError: IDL.Float64,
+      longTermError: IDL.Float64,
+      chronoPrecisionFactor: IDL.Float64,
+      predictionHorizon: IDL.Nat,
+    })], ['query']),
+
+    getLearningSystemState: IDL.Func([], [IDL.Record({
+      tdError: IDL.Float64,
+      valueFunctionV: IDL.Float64,
+      learningRate: IDL.Float64,
+      hebbianRate: IDL.Float64,
+      stdpEnabled: IDL.Bool,
+      bdnfScaling: IDL.Float64,
+      ngfScaling: IDL.Float64,
+      eiRatio: IDL.Float64,
+      eiLearningModulation: IDL.Float64,
+      glutamateLevel: IDL.Float64,
+      gabaLevel: IDL.Float64,
+      metaplasticityFactor: IDL.Float64,
+      predictionErrorVariance: IDL.Float64,
+      salienceLevel: IDL.Float64,
+      achGating: IDL.Float64,
+      neArousalGating: IDL.Float64,
+      consolidationModulation: IDL.Float64,
+      cortisolLevel: IDL.Float64,
+      oxytocinLevel: IDL.Float64,
+      vasopressinLevel: IDL.Float64,
+      socialLearningBoost: IDL.Float64,
+    })], ['query']),
+
+    // ═══ SENSOR DOMAIN ═══
+    getEcologicalState: IDL.Func([], [IDL.Record({
+      lvPrey: IDL.Float64,
+      lvPredator: IDL.Float64,
+      stressLevel: IDL.Float64,
+      hormeticZone: IDL.Bool,
+      antifragility: IDL.Float64,
+      victories: IDL.Nat,
+    })], ['query']),
+
+    getOrganismHealthReport: IDL.Func([], [IDL.Record({
+      organismVitality: IDL.Float64,
+      sphericalIntegrity: IDL.Float64,
+      neuralHealth: IDL.Float64,
+      neurochemicalHealth: IDL.Float64,
+      quantumHealth: IDL.Float64,
+      memoryHealth: IDL.Float64,
+      learningHealth: IDL.Float64,
+      economicHealth: IDL.Float64,
+      socialHealth: IDL.Float64,
+      defenseHealth: IDL.Float64,
+      criticalWarnings: IDL.Vec(IDL.Text),
+      coherenceScore: IDL.Float64,
+      sovereigntyScore: IDL.Float64,
+      jasmineScore: IDL.Float64,
+      entropyLevel: IDL.Float64,
+      beat: IDL.Nat,
+      uptime: IDL.Nat,
+      droneCount: IDL.Nat,
+      sacrificeCount: IDL.Nat,
+    })], ['query']),
+
+    // ═══ FREQUENCY DOMAIN ═══
+    getHzSpectrumState: IDL.Func([], [IDL.Record({
+      hzModulations: IDL.Vec(IDL.Float64),
+      koreFrequency: IDL.Float64,
+      thalamicFrequency: IDL.Float64,
+      rasLocusFrequency: IDL.Float64,
+      vaelFrequency: IDL.Float64,
+      spectrumPeakFrequency: IDL.Float64,
+      spectrumAverageModulation: IDL.Float64,
+      spectrumVariance: IDL.Float64,
+    })], ['query']),
+
+    getCircadianState: IDL.Func([], [IDL.Record({
+      circadianPhase: IDL.Float64,
+      timeOfDay: IDL.Float64,
+      isNight: IDL.Bool,
+      isDay: IDL.Bool,
+      melatoninLevel: IDL.Float64,
+      cortisolLevel: IDL.Float64,
+      orexinLevel: IDL.Float64,
+      adenosineLevel: IDL.Float64,
+      sleepPressure: IDL.Float64,
+      sleepMode: IDL.Bool,
+      alignment: IDL.Float64,
+      melatoninDeviation: IDL.Float64,
+      cortisolDeviation: IDL.Float64,
+      beatsUntilDreamCycle: IDL.Nat,
+    })], ['query']),
+
+    getKuramotoState: IDL.Func([], [IDL.Record({
+      orderParam: IDL.Float64,
+      meanPhase: IDL.Float64,
+      globalK: IDL.Float64,
+      chimera: IDL.Bool,
+      phases: IDL.Vec(IDL.Float64),
+    })], ['query']),
+
+    // ═══ SOVEREIGNTY DOMAIN ═══
+    getSovereigntyState: IDL.Func([], [IDL.Record({
+      missionLock: IDL.Bool,
+      courage: IDL.Float64,
+      grounded: IDL.Float64,
+      fear: IDL.Float64,
+      missionPersistence: IDL.Float64,
+      surrenderFloor: IDL.Float64,
+      permanentFloor: IDL.Float64,
+      streakMultiplier: IDL.Float64,
+    })], ['query']),
+
+    getCoreStates: IDL.Func([], [IDL.Record({
+      totalCores: IDL.Nat,
+      cipherSpikes: IDL.Vec(IDL.Bool),
+      meanActivation: IDL.Float64,
+      pheromoneLevel: IDL.Float64,
+    })], ['query']),
+
+    getDoctrineFingerprint: IDL.Func([], [IDL.Nat32], ['query']),
+
+    // ═══ INTEGRATION DOMAIN ═══
+    getShellIntegrationState: IDL.Func([], [IDL.Record({
+      shell3ActiveNodes: IDL.Nat,
+      shell3AverageActivation: IDL.Float64,
+      shell3MaxActivation: IDL.Float64,
+      shell3TotalWeightSum: IDL.Float64,
+      shell3QuantumPhase: IDL.Float64,
+      shell3QuantumCoherence: IDL.Float64,
+      shell12ActiveNodes: IDL.Nat,
+      shell12AverageActivation: IDL.Float64,
+      shell12MaxActivation: IDL.Float64,
+      shell12QuantumPhase: IDL.Float64,
+      shell12QuantumCoherence: IDL.Float64,
+      allShellPhases: IDL.Vec(IDL.Float64),
+      allShellCoherences: IDL.Vec(IDL.Float64),
+      allShellEnergies: IDL.Vec(IDL.Float64),
+    })], ['query']),
+
+    getAnimalIntelligenceOutputs: IDL.Func([], [IDL.Record({
+      crow: IDL.Float64,
+      octopus: IDL.Float64,
+      elephant: IDL.Float64,
+      bee: IDL.Float64,
+      dolphin: IDL.Float64,
+      mantis: IDL.Float64,
+      spider: IDL.Float64,
+      owl: IDL.Float64,
+      shark: IDL.Float64,
+      orca: IDL.Float64,
+      wolf: IDL.Float64,
+      eagle: IDL.Float64,
+      totalAnimalContribution: IDL.Float64,
+      status: IDL.Text,
+    })], ['query']),
+
+    getShellStates: IDL.Func([], [IDL.Record({
+      shell1Coherence: IDL.Float64,
+      shell2BasalTone: IDL.Float64,
+      shell3MeanActivation: IDL.Float64,
+      shell4Control: IDL.Float64,
+      shell5Decision: IDL.Float64,
+      shell6Yield: IDL.Float64,
+      shell7Entropy: IDL.Float64,
+      shell8Quantum: IDL.Float64,
+      shell9MatriarchCoherence: IDL.Float64,
+      shell10LineageDepth: IDL.Nat,
+      shell11Mood: IDL.Float64,
+    })], ['query']),
+
+    // ═══ INTELLIGENCE DOMAIN ═══
+    getAutonomousTeamStatus: IDL.Func([], [IDL.Record({
+      backendHz: IDL.Float64,
+      frontendHz: IDL.Float64,
+      heartBrainSync: IDL.Float64,
+      regulationQuality: IDL.Float64,
+      emergencyDetected: IDL.Bool,
+      brainCoherence: IDL.Float64,
+      brainState: IDL.Text,
+      dominantFrequency: IDL.Float64,
+      deltaPower: IDL.Float64,
+      thetaPower: IDL.Float64,
+      alphaPower: IDL.Float64,
+      betaPower: IDL.Float64,
+      gammaPower: IDL.Float64,
+      oxygenLevel: IDL.Float64,
+      nutrientLevel: IDL.Float64,
+      sphericalIntegrity: IDL.Float64,
+      helixProtection: IDL.Float64,
+      mergePower: IDL.Float64,
+      learningRate: IDL.Float64,
+      adaptationSpeed: IDL.Float64,
+      cognitiveLoad: IDL.Float64,
+      attentionLevel: IDL.Float64,
+      consciousnessLevel: IDL.Float64,
+      emotionalState: IDL.Text,
+      teamActive: IDL.Bool,
+      beatsActive: IDL.Nat,
+      analysisQuality: IDL.Float64,
+      reportsGenerated: IDL.Nat,
+      nextReportBeat: IDL.Nat,
+    })], ['query']),
+
+    getOrganismTeamsState: IDL.Func([], [IDL.Record({
+      archonCoherence: IDL.Float64,
+      archonConsensus: IDL.Float64,
+      archonVotes: IDL.Vec(IDL.Float64),
+      archonMemberNames: IDL.Vec(IDL.Text),
+      vectorConvergence: IDL.Float64,
+      vectorSignals: IDL.Vec(IDL.Float64),
+      vectorMemberNames: IDL.Vec(IDL.Text),
+      vectorPassing: IDL.Bool,
+      lumenWorldModelAccuracy: IDL.Float64,
+      lumenActivations: IDL.Vec(IDL.Float64),
+      forgeExecutionCapacity: IDL.Float64,
+      forgeLabStates: IDL.Vec(IDL.Float64),
+      forgeLabNames: IDL.Vec(IDL.Text),
+    })], ['query']),
+
+    // ═══ MATH DOMAIN ═══
+    getUnifiedFieldState: IDL.Func([], [IDL.Record({
+      psiCoherence: IDL.Float64,
+      psiFear: IDL.Float64,
+      psiEconomy: IDL.Float64,
+      psiMemory: IDL.Float64,
+      psiSovereignty: IDL.Float64,
+      goldenRatio: IDL.Float64,
+      fibonacciCurrent: IDL.Nat,
+      primeCount: IDL.Nat,
+      permanentFloor: IDL.Float64,
+      ancientLawCompliance: IDL.Float64,
+    })], ['query']),
   });
 };
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DOMAIN TYPE INTERFACES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ═══ DEFENSE TYPES ═══
+export interface AEGISState {
+  threatLevel: number;
+  defenseActive: boolean;
+  lastAlertBeat: number;
+  protectedValues: number[];
+}
+
+export interface WarDefenseModeState {
+  mode: string;
+  posture: number;
+  threatScore: number;
+  gateStrictness: number;
+  containmentDepth: number;
+  rollbackTier: number;
+  interfaceLockdown: boolean;
+  continuityScore: number;
+  coherenceScore: number;
+  integrityScore: number;
+  driftScore: number;
+  bypassScore: number;
+  escapeScore: number;
+  sentinelSensitivity: number;
+  verifierStrength: number;
+  gatekeeperStrictness: number;
+  resonanceQuality: number;
+  cartographerThreatsTracked: number;
+  guardianShieldsActive: boolean;
+  restorerRecoveryReady: boolean;
+  scoutsDeployed: number;
+  adversariesProfiled: number;
+  trapsDeployed: number;
+  huntsActive: number;
+  pathwaysCut: number;
+  dislocationsExecuted: number;
+  spoofCampaignsDetected: number;
+  evidenceChainsBuilt: number;
+  resilienceSignals: number;
+  campaignsActive: number;
+}
+
+export interface CounterforceStatus {
+  overallEffectiveness: number;
+  adversaryPressure: number;
+  coordinationQuality: number;
+  scoutCoverage: number;
+  profilerAccuracy: number;
+  hunterSuccessRate: number;
+  activeCampaigns: number;
+  totalThreatsFound: number;
+}
+
+export interface OffenseDefenseStatus {
+  architectureFlowIntegrity: number;
+  offensivePower: number;
+  defensivePower: number;
+  intelligenceQuality: number;
+  offenseDefenseBalance: number;
+  coordinationQuality: number;
+  energized: boolean;
+  dronesDeployed: number;
+  cyberAttackVectors: number;
+  honeypotsActive: number;
+  shieldStrength: number;
+  threatsActive: number;
+}
+
+// ═══ MEMORY TYPES ═══
+export interface MemorySystemState {
+  qmemFidelity: number;
+  qmemT2Time: number;
+  timeSinceReset: number;
+  dreamCycleActive: boolean;
+  consolidationThreshold: number;
+  replayFrequency: number;
+  isRestState: boolean;
+  bdnfLevel: number;
+  ngfLevel: number;
+  memoryPotentiation: number;
+  plasticityRate: number;
+  shell3ActiveNodes: number;
+  shell3AverageActivation: number;
+  shell3MaxActivation: number;
+  shell12ActiveNodes: number;
+  shell12AverageActivation: number;
+  shell12MaxActivation: number;
+  shell3ToShell12TransferRate: number;
+  shell12ToShell3RetrievalRate: number;
+  emotionalMemoryBoost: number;
+}
+
+export interface MemoryState {
+  traceCount: number;
+  responseWeights: number[];
+}
+
+// ═══ GOVERNANCE TYPES ═══
+export interface LawComplianceState {
+  lawGroup0Compliance: number;
+  lawGroup1Compliance: number;
+  lawGroup2Compliance: number;
+  lawGroup3Compliance: number;
+  lawGroup4Compliance: number;
+  overallCompliance: number;
+  veritasStabilizers: number[];
+  veritasSyndromes: number[];
+  highRiskLaws: number[];
+  violationCount: number;
+  totalReEntrainments: number;
+  quantumLawCompliance: number[];
+  quantumViolationRisks: number[];
+}
+
+export interface LawsSnapshot {
+  scores: number[];
+  compliance: number;
+  passing: number;
+  fingerprint: number;
+  jacobsRung: number;
+  multiplier: number;
+}
+
+export interface SecurityStatus {
+  lockdownActive: boolean;
+  lockdownLevel: string;
+  securityScore: number;
+  encryptionCoverage: number;
+  fleetExpanded: boolean;
+  readyForLaunch: boolean;
+  modelsUpdated: number;
+  totalExposures: number;
+  remediatedExposures: number;
+}
+
+// ═══ NEURAL TYPES ═══
+export interface NeuralCoreState {
+  coreActivations: number[];
+  coreOutputs: number[];
+  corePhases: number[];
+  corePlasticity: number[];
+  globalSynchrony: number;
+  coreNeuroDynamics: number;
+  animalIntelligence: number;
+  emergenceStack: number;
+  cognitiveStack: number;
+  defenseStack: number;
+  productionStack: number;
+  neuralStatus: string;
+}
+
+export interface BrainRegionStates {
+  prefrontalControl: number;
+  basalGangliaSelection: number;
+  thalamusRelay: number;
+  hippocampusMemory: number;
+  amygdalaSalience: number;
+  cerebellumTiming: number;
+  workingMemoryLoad: number;
+  selectedAction: number;
+  fearResponse: number;
+  rewardResponse: number;
+}
+
+export interface NeurotransmitterState {
+  gaba: number;
+  glutamate: number;
+  endorphin: number;
+  oxytocin: number;
+  cortisol: number;
+  adrenaline: number;
+  melatonin: number;
+  histamine: number;
+  substanceP: number;
+  adenosine: number;
+  anandamide: number;
+  dynorphin: number;
+  vasopressin: number;
+  npy: number;
+  orexin: number;
+  bdnf: number;
+  ngf: number;
+  stressLevel: number;
+  rewardLevel: number;
+  eiRatio: number;
+  arousalLevel: number;
+  memoryPotentiation: number;
+  balanceIndex: number;
+  plasticityRate: number;
+  totalUpdates: number;
+}
+
+// ═══ QUANTUM TYPES ═══
+export interface QuantumOperatorStates {
+  superposition: number;
+  entanglement: number;
+  interference: number;
+  tunneling: number;
+  decoherence: number;
+  measurement: number;
+  zeno: number;
+  quantumWalk: number;
+  bellViolation: number;
+  purity: number;
+}
+
+export interface SphericalQuantumState {
+  sphericalIntegrity: number;
+  organismVitality: number;
+  hzKore: number;
+  hzThalamic: number;
+  hzRASLocus: number;
+  hzVael: number;
+  shellPhases: number[];
+  shellCoherences: number[];
+  shellEnergies: number[];
+  animalWeights: number[];
+  beeSwarmBoost: number;
+  elephantMemoryFidelity: number;
+  sharkPredatorPath: number;
+  crowCognitionDecision: number;
+  lawComplianceScores: number[];
+  lawViolationRisks: number[];
+  overallCompliance: number;
+  councilKuramotoR: number[];
+  councilBellViolations: number[];
+  councilQSOVContributions: number[];
+  vetusDefenseBoosts: number[];
+  vetusEvasionPaths: number[];
+  vetusResponseTimes: number[];
+  aegisIntegrities: number[];
+  aegisSovereignty: number;
+  aegisCoherence: number;
+  aegisMemory: number;
+  formaMintModulation: number;
+  formaBurnModulation: number;
+  formaCompoundModulation: number;
+  formaStabilityIndex: number;
+  formaTreasuryHealth: number;
+  formaCreatorReserveIntegrity: number;
+}
+
+// ═══ ECONOMIC TYPES ═══
+export interface EconomicState {
+  mintAccumulator: number;
+  totalMinted: number;
+  economicMultiplier: number;
+}
+
+export interface EconomicSystemState {
+  formaBalance: number;
+  mrcBalance: number;
+  kntBalance: number;
+  masterAccumulator: number;
+  jacobsLevel: number;
+  jacobsMultiplier: number;
+  formaMintMod: number;
+  formaBurnMod: number;
+  formaCompoundMod: number;
+  formaStabilityIdx: number;
+  treasuryHealth: number;
+  creatorReserveIntegrity: number;
+  greedIndex: number;
+  fearIndex: number;
+  greedFearRatio: number;
+  marketCorrelation: number;
+  cascadeRisk: number;
+  liquidityRouting: number;
+  mintConsensus: number;
+  burnConsensus: number;
+  holdConsensus: number;
+  economicLawCompliance: number;
+}
+
+export interface TokenOrganismStats {
+  currentBeat: number;
+  totalTokensGenerated: number;
+  activeTokens: number;
+  emergenceCount: number;
+  globalCoherence: number;
+  orderParameter: number;
+  crossDimensionalFlow: number;
+  heartbeatPhase: number;
+  synchronizationIndex: number;
+  microCoherence: number;
+  mesoCoherence: number;
+  macroCoherence: number;
+}
+
+// ═══ COGNITIVE TYPES ═══
+export interface PredictionSystemState {
+  predictionError: number;
+  predictionAccuracy: number;
+  kalmanGain: number;
+  achModulation: number;
+  freeEnergy: number;
+  complexityCost: number;
+  accuracyCost: number;
+  sparsityLevel: number;
+  beeSparsification: number;
+  shortTermError: number;
+  mediumTermError: number;
+  longTermError: number;
+  chronoPrecisionFactor: number;
+  predictionHorizon: number;
+}
+
+export interface LearningSystemState {
+  tdError: number;
+  valueFunctionV: number;
+  learningRate: number;
+  hebbianRate: number;
+  stdpEnabled: boolean;
+  bdnfScaling: number;
+  ngfScaling: number;
+  eiRatio: number;
+  eiLearningModulation: number;
+  glutamateLevel: number;
+  gabaLevel: number;
+  metaplasticityFactor: number;
+  predictionErrorVariance: number;
+  salienceLevel: number;
+  achGating: number;
+  neArousalGating: number;
+  consolidationModulation: number;
+  cortisolLevel: number;
+  oxytocinLevel: number;
+  vasopressinLevel: number;
+  socialLearningBoost: number;
+}
+
+// ═══ SENSOR TYPES ═══
+export interface EcologicalState {
+  lvPrey: number;
+  lvPredator: number;
+  stressLevel: number;
+  hormeticZone: boolean;
+  antifragility: number;
+  victories: number;
+}
+
+export interface OrganismHealthReport {
+  organismVitality: number;
+  sphericalIntegrity: number;
+  neuralHealth: number;
+  neurochemicalHealth: number;
+  quantumHealth: number;
+  memoryHealth: number;
+  learningHealth: number;
+  economicHealth: number;
+  socialHealth: number;
+  defenseHealth: number;
+  criticalWarnings: string[];
+  coherenceScore: number;
+  sovereigntyScore: number;
+  jasmineScore: number;
+  entropyLevel: number;
+  beat: number;
+  uptime: number;
+  droneCount: number;
+  sacrificeCount: number;
+}
+
+// ═══ FREQUENCY TYPES ═══
+export interface HzSpectrumState {
+  hzModulations: number[];
+  koreFrequency: number;
+  thalamicFrequency: number;
+  rasLocusFrequency: number;
+  vaelFrequency: number;
+  spectrumPeakFrequency: number;
+  spectrumAverageModulation: number;
+  spectrumVariance: number;
+}
+
+export interface CircadianState {
+  circadianPhase: number;
+  timeOfDay: number;
+  isNight: boolean;
+  isDay: boolean;
+  melatoninLevel: number;
+  cortisolLevel: number;
+  orexinLevel: number;
+  adenosineLevel: number;
+  sleepPressure: number;
+  sleepMode: boolean;
+  alignment: number;
+  melatoninDeviation: number;
+  cortisolDeviation: number;
+  beatsUntilDreamCycle: number;
+}
+
+export interface KuramotoState {
+  orderParam: number;
+  meanPhase: number;
+  globalK: number;
+  chimera: boolean;
+  phases: number[];
+}
+
+// ═══ SOVEREIGNTY TYPES ═══
+export interface SovereigntyState {
+  missionLock: boolean;
+  courage: number;
+  grounded: number;
+  fear: number;
+  missionPersistence: number;
+  surrenderFloor: number;
+  permanentFloor: number;
+  streakMultiplier: number;
+}
+
+export interface CoreStates {
+  totalCores: number;
+  cipherSpikes: boolean[];
+  meanActivation: number;
+  pheromoneLevel: number;
+}
+
+// ═══ INTEGRATION TYPES ═══
+export interface ShellIntegrationState {
+  shell3ActiveNodes: number;
+  shell3AverageActivation: number;
+  shell3MaxActivation: number;
+  shell3TotalWeightSum: number;
+  shell3QuantumPhase: number;
+  shell3QuantumCoherence: number;
+  shell12ActiveNodes: number;
+  shell12AverageActivation: number;
+  shell12MaxActivation: number;
+  shell12QuantumPhase: number;
+  shell12QuantumCoherence: number;
+  allShellPhases: number[];
+  allShellCoherences: number[];
+  allShellEnergies: number[];
+}
+
+export interface AnimalIntelligenceOutputs {
+  crow: number;
+  octopus: number;
+  elephant: number;
+  bee: number;
+  dolphin: number;
+  mantis: number;
+  spider: number;
+  owl: number;
+  shark: number;
+  orca: number;
+  wolf: number;
+  eagle: number;
+  totalAnimalContribution: number;
+  status: string;
+}
+
+export interface ShellStates {
+  shell1Coherence: number;
+  shell2BasalTone: number;
+  shell3MeanActivation: number;
+  shell4Control: number;
+  shell5Decision: number;
+  shell6Yield: number;
+  shell7Entropy: number;
+  shell8Quantum: number;
+  shell9MatriarchCoherence: number;
+  shell10LineageDepth: number;
+  shell11Mood: number;
+}
+
+// ═══ INTELLIGENCE TYPES ═══
+export interface AutonomousTeamStatus {
+  backendHz: number;
+  frontendHz: number;
+  heartBrainSync: number;
+  regulationQuality: number;
+  emergencyDetected: boolean;
+  brainCoherence: number;
+  brainState: string;
+  dominantFrequency: number;
+  deltaPower: number;
+  thetaPower: number;
+  alphaPower: number;
+  betaPower: number;
+  gammaPower: number;
+  oxygenLevel: number;
+  nutrientLevel: number;
+  sphericalIntegrity: number;
+  helixProtection: number;
+  mergePower: number;
+  learningRate: number;
+  adaptationSpeed: number;
+  cognitiveLoad: number;
+  attentionLevel: number;
+  consciousnessLevel: number;
+  emotionalState: string;
+  teamActive: boolean;
+  beatsActive: number;
+  analysisQuality: number;
+  reportsGenerated: number;
+  nextReportBeat: number;
+}
+
+export interface OrganismTeamsState {
+  archonCoherence: number;
+  archonConsensus: number;
+  archonVotes: number[];
+  archonMemberNames: string[];
+  vectorConvergence: number;
+  vectorSignals: number[];
+  vectorMemberNames: string[];
+  vectorPassing: boolean;
+  lumenWorldModelAccuracy: number;
+  lumenActivations: number[];
+  forgeExecutionCapacity: number;
+  forgeLabStates: number[];
+  forgeLabNames: string[];
+}
+
+// ═══ MATH TYPES ═══
+export interface UnifiedFieldState {
+  psiCoherence: number;
+  psiFear: number;
+  psiEconomy: number;
+  psiMemory: number;
+  psiSovereignty: number;
+  goldenRatio: number;
+  fibonacciCurrent: number;
+  primeCount: number;
+  permanentFloor: number;
+  ancientLawCompliance: number;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SWARM BRAIN ACTOR INTERFACE
@@ -565,6 +1631,53 @@ export interface SwarmBrainActor {
   getOmnisFired: () => Promise<boolean>;
   getOmnisCount: () => Promise<bigint>;
   getOrganismState: () => Promise<OrganismState>;
+  
+  // ═══ DEFENSE ═══
+  getAEGISState: () => Promise<AEGISState>;
+  getWarDefenseModeState: () => Promise<WarDefenseModeState>;
+  getCounterforceStatus: () => Promise<CounterforceStatus>;
+  getOffenseDefenseStatus: () => Promise<OffenseDefenseStatus>;
+  // ═══ MEMORY ═══
+  getMemorySystemState: () => Promise<MemorySystemState>;
+  getMemoryState: () => Promise<MemoryState>;
+  // ═══ GOVERNANCE ═══
+  getLawComplianceState: () => Promise<LawComplianceState>;
+  getLawsSnapshot: () => Promise<LawsSnapshot>;
+  getSecurityStatus: () => Promise<SecurityStatus>;
+  // ═══ NEURAL ═══
+  getNeuralCoreState: () => Promise<NeuralCoreState>;
+  getBrainRegionStates: () => Promise<BrainRegionStates>;
+  getNeurotransmitterState: () => Promise<NeurotransmitterState>;
+  // ═══ QUANTUM ═══
+  getQuantumOperatorStates: () => Promise<QuantumOperatorStates>;
+  getSphericalQuantumState: () => Promise<SphericalQuantumState>;
+  // ═══ ECONOMIC ═══
+  getEconomicState: () => Promise<EconomicState>;
+  getEconomicSystemState: () => Promise<EconomicSystemState>;
+  getTokenOrganismStats: () => Promise<TokenOrganismStats>;
+  // ═══ COGNITIVE ═══
+  getPredictionSystemState: () => Promise<PredictionSystemState>;
+  getLearningSystemState: () => Promise<LearningSystemState>;
+  // ═══ SENSOR ═══
+  getEcologicalState: () => Promise<EcologicalState>;
+  getOrganismHealthReport: () => Promise<OrganismHealthReport>;
+  // ═══ FREQUENCY ═══
+  getHzSpectrumState: () => Promise<HzSpectrumState>;
+  getCircadianState: () => Promise<CircadianState>;
+  getKuramotoState: () => Promise<KuramotoState>;
+  // ═══ SOVEREIGNTY ═══
+  getSovereigntyState: () => Promise<SovereigntyState>;
+  getCoreStates: () => Promise<CoreStates>;
+  getDoctrineFingerprint: () => Promise<number>;
+  // ═══ INTEGRATION ═══
+  getShellIntegrationState: () => Promise<ShellIntegrationState>;
+  getAnimalIntelligenceOutputs: () => Promise<AnimalIntelligenceOutputs>;
+  getShellStates: () => Promise<ShellStates>;
+  // ═══ INTELLIGENCE ═══
+  getAutonomousTeamStatus: () => Promise<AutonomousTeamStatus>;
+  getOrganismTeamsState: () => Promise<OrganismTeamsState>;
+  // ═══ MATH ═══
+  getUnifiedFieldState: () => Promise<UnifiedFieldState>;
   
   // Control
   tick: () => Promise<TickResult>;
