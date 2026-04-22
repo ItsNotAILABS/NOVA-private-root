@@ -86,9 +86,9 @@ module NovaFrequencyNodeGrid {
   public let NODES_PER_BAND   : Nat = 45;
   public let TOTAL_NODES      : Nat = 540;  // 12 × 45
 
-  // FNV-1a hash constants
-  public let FNV_OFFSET : Nat32 = 2166136261;
-  public let FNV_PRIME  : Nat32 = 16777619;
+  // FNV-1a hash constants (same as rest of codebase)
+  public let FNV_OFFSET : Nat32 = 0x811c9dc5;
+  public let FNV_PRIME  : Nat32 = 0x01000193;
 
   // Coherence thresholds
   public let COHERENCE_MIN      : Float = 0.0;

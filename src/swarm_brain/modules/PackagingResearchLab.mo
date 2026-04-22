@@ -32,7 +32,7 @@
 // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  PACKAGING RESEARCH LAB — Layer 36 Packaging Department Full Research Complex
+//  PACKAGING RESEARCH LAB — Layer 38: Packaging Department Full Research Complex
 // ═══════════════════════════════════════════════════════════════════════════════
 //
 //  8 PHI-aligned research divisions providing the Packaging Department with
