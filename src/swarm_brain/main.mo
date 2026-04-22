@@ -543,6 +543,8 @@ import SimulatedWorld                                "./modules/SimulatedWorld";
 import MultiChainOracle                              "./modules/MultiChainOracle";
 import SovereignPackagingOrganism                    "./modules/SovereignPackagingOrganism";
 import VZOOperatingSystem                            "./modules/VZOOperatingSystem";
+import PackagingResearchLab                          "./modules/PackagingResearchLab";
+import NovaFrequencyNodeGrid                         "./modules/NovaFrequencyNodeGrid";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ICP MANAGEMENT CANISTER — HTTP OUTCALLS FOR REAL WORLD CONNECTION
@@ -4212,9 +4214,33 @@ actor SwarmBrain {
     // VZO — Visión Operaciones Inteligentes y Sistema
     // Nova's IT department. 12 subsystems + 7 IT organisms.
     // Manages NOVA as Universal SDK, WWW model layer, sovereign internet.
+    // Connected to the 540-node frequency grid.
     if (orchestrationActive and currentBeat % 1 == 0) {
       vzoState := VZOOperatingSystem.tickVZO(
         vzoState, rSwarm, jDrift, currentBeat
+      );
+      modulesCalledThisBeat += 1;
+    };
+
+    // ─── LAYER 38: PACKAGING RESEARCH LAB (every beat — 24h running) ────────────
+    // Full research laboratory for the Packaging Department.
+    // 8 divisions: Artifact Analysis, SDK Forge, QA Lab, Prototype Workshop,
+    // Registry Research, Replication Lab, Cryptography Lab, Doctrine Compliance.
+    // Everything the department needs to do research, analysis, testing, forging.
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      packagingLabState := PackagingResearchLab.tickPackagingLab(
+        packagingLabState, rSwarm, jDrift, currentBeat
+      );
+      modulesCalledThisBeat += 1;
+    };
+
+    // ─── LAYER 39: NOVA FREQUENCY NODE GRID (every beat — 24h running) ──────────
+    // 540 frequency-separated nodes across 12 PHI-exponential bands.
+    // Grouped with AI systems. Kuramoto-coupled. VZO-managed.
+    // This is the power grid — the substrate that connects everything.
+    if (orchestrationActive and currentBeat % 1 == 0) {
+      nodeGridState := NovaFrequencyNodeGrid.tickNodeGrid(
+        nodeGridState, rSwarm, jDrift, currentBeat
       );
       modulesCalledThisBeat += 1;
     };
@@ -23788,6 +23814,23 @@ actor SwarmBrain {
     VZOOperatingSystem.initVZO();
 
   // ═══════════════════════════════════════════════════════════════════════════════
+  // PACKAGING RESEARCH LAB — Layer 38 (Full Lab for Packaging Department)
+  // 8 divisions: Artifact Analysis, SDK Forge, QA Lab, Prototype Workshop,
+  //   Registry Research, Replication Lab, Cryptography Lab, Doctrine Compliance
+  // ═══════════════════════════════════════════════════════════════════════════════
+  var packagingLabState : PackagingResearchLab.PackagingLabState =
+    PackagingResearchLab.initPackagingLab();
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // NOVA FREQUENCY NODE GRID — Layer 39 (540 Frequency-Separated Nodes)
+  // 12 bands × 45 nodes = 540 total, PHI-exponential frequencies (φ⁰ to φ¹¹ Hz)
+  // Bands: Alpha, Beta, Gamma, Delta, Epsilon, Zeta, Eta, Theta, Iota, Kappa,
+  //   Lambda, Mu — each grouped with specific AI system affinities
+  // ═══════════════════════════════════════════════════════════════════════════════
+  var nodeGridState : NovaFrequencyNodeGrid.NodeGridState =
+    NovaFrequencyNodeGrid.initNodeGrid();
+
+  // ═══════════════════════════════════════════════════════════════════════════════
   // SECTION CYBER: HONEYPOT DEPLOYMENT AND MANAGEMENT
   // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -24549,6 +24592,81 @@ actor SwarmBrain {
     total : Nat;
   } {
     VZOOperatingSystem.getITTaskSummary(vzoState)
+  };
+
+  /// Get VZO node grid status (540 frequency-separated nodes managed by VZO)
+  public query func getVZONodeGridStatus() : async {
+    connected : Bool;
+    nodesManaged : Nat;
+    gridCoherence : Float;
+    healthChecks : Nat;
+    dispatches : Nat;
+    alerts : Nat;
+    bandSyncOverride : Float;
+  } {
+    VZOOperatingSystem.getNodeGridStatus(vzoState)
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PACKAGING RESEARCH LAB — PUBLIC QUERY API
+  // Layer 38: Full research lab for the Packaging Department (8 divisions)
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Get packaging lab status
+  public query func getPackagingLabStatus() : async {
+    labCoherence : Float;
+    totalExperiments : Nat;
+    labUptime : Nat;
+    labAwake : Bool;
+    artifactsAnalyzed : Nat;
+    artifactsPassed : Nat;
+    forgeOutputCount : Nat;
+    testsRun : Nat;
+    testsPassed : Nat;
+    prototypesBuilt : Nat;
+    complianceScore : Float;
+  } {
+    {
+      labCoherence = packagingLabState.labCoherence;
+      totalExperiments = packagingLabState.totalExperiments;
+      labUptime = packagingLabState.labUptime;
+      labAwake = packagingLabState.labAwake;
+      artifactsAnalyzed = packagingLabState.artifactVault.artifactsAnalyzed;
+      artifactsPassed = packagingLabState.artifactVault.artifactsPassed;
+      forgeOutputCount = packagingLabState.sdkForge.forgeOutputCount;
+      testsRun = packagingLabState.qaMetrics.testsRun;
+      testsPassed = packagingLabState.qaMetrics.testsPassed;
+      prototypesBuilt = packagingLabState.prototypeMetrics.prototypesBuilt;
+      complianceScore = packagingLabState.doctrineMetrics.complianceScore;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // NOVA FREQUENCY NODE GRID — PUBLIC QUERY API
+  // Layer 39: 540 frequency-separated nodes across 12 PHI-exponential bands
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Get node grid status
+  public query func getNodeGridStatus() : async {
+    globalCoherence : Float;
+    totalNodesActive : Nat;
+    kuramotoOrder : Float;
+    gridUptime : Nat;
+    gridAwake : Bool;
+    crossBandCoupling : Float;
+    meanFrequency : Float;
+    totalSignalPower : Float;
+  } {
+    {
+      globalCoherence = nodeGridState.globalGridCoherence;
+      totalNodesActive = nodeGridState.totalNodesActive;
+      kuramotoOrder = nodeGridState.kuramotoOrderParameter;
+      gridUptime = nodeGridState.gridUptime;
+      gridAwake = nodeGridState.gridAwake;
+      crossBandCoupling = nodeGridState.crossBandCoupling;
+      meanFrequency = nodeGridState.meanFrequency;
+      totalSignalPower = nodeGridState.totalSignalPower;
+    }
   };
 
 };

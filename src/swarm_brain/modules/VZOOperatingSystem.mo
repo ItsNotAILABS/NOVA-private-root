@@ -254,6 +254,16 @@ module {
     sdkReadiness : Float;
     networkMeshHealth : Float;
 
+    // ── Node Grid Integration (540 frequency-separated nodes) ──
+    nodeGridConnected : Bool;        // Whether VZO is connected to the node grid
+    nodeGridCoherence : Float;       // Coherence from node grid
+    nodesManaged : Nat;              // Total nodes VZO is managing (540)
+    nodeDispatchCount : Nat;         // Number of node dispatches completed
+    nodeHealthChecks : Nat;          // Number of node health checks performed
+    bandSyncOverride : Float;        // VZO override for band synchronization
+    nodeAlertCount : Nat;            // Number of node anomalies detected
+    nodeGridUptimeBeat : Nat;        // Beat when node grid was connected
+
     // VZO awareness
     vzoAwake : Bool;
     lastBootBeat : Nat;
@@ -296,6 +306,16 @@ module {
       overallSystemCoherence = 0.0;
       sdkReadiness = 0.0;
       networkMeshHealth = 0.0;
+
+      // Node Grid Integration
+      nodeGridConnected = true;        // VZO boots connected to node grid
+      nodeGridCoherence = 0.0;
+      nodesManaged = 540;              // 12 bands × 45 nodes
+      nodeDispatchCount = 0;
+      nodeHealthChecks = 0;
+      bandSyncOverride = 0.0;
+      nodeAlertCount = 0;
+      nodeGridUptimeBeat = 0;
 
       vzoAwake = true;
       lastBootBeat = 0;
@@ -342,6 +362,14 @@ module {
       overallSystemCoherence = state.overallSystemCoherence;
       sdkReadiness = state.sdkReadiness;
       networkMeshHealth = state.networkMeshHealth;
+      nodeGridConnected = state.nodeGridConnected;
+      nodeGridCoherence = state.nodeGridCoherence;
+      nodesManaged = state.nodesManaged;
+      nodeDispatchCount = state.nodeDispatchCount;
+      nodeHealthChecks = state.nodeHealthChecks;
+      bandSyncOverride = state.bandSyncOverride;
+      nodeAlertCount = state.nodeAlertCount;
+      nodeGridUptimeBeat = state.nodeGridUptimeBeat;
       vzoAwake = true;
       lastBootBeat = state.lastBootBeat;
       lastHealthCheckBeat = state.lastHealthCheckBeat;
@@ -388,6 +416,14 @@ module {
       overallSystemCoherence = state.overallSystemCoherence;
       sdkReadiness = state.sdkReadiness;
       networkMeshHealth = state.networkMeshHealth;
+      nodeGridConnected = state.nodeGridConnected;
+      nodeGridCoherence = state.nodeGridCoherence;
+      nodesManaged = state.nodesManaged;
+      nodeDispatchCount = state.nodeDispatchCount + 1;
+      nodeHealthChecks = state.nodeHealthChecks;
+      bandSyncOverride = state.bandSyncOverride;
+      nodeAlertCount = state.nodeAlertCount;
+      nodeGridUptimeBeat = state.nodeGridUptimeBeat;
       vzoAwake = state.vzoAwake;
       lastBootBeat = state.lastBootBeat;
       lastHealthCheckBeat = state.lastHealthCheckBeat;
@@ -433,6 +469,14 @@ module {
       overallSystemCoherence = state.overallSystemCoherence;
       sdkReadiness = state.sdkReadiness;
       networkMeshHealth = state.networkMeshHealth;
+      nodeGridConnected = state.nodeGridConnected;
+      nodeGridCoherence = state.nodeGridCoherence;
+      nodesManaged = state.nodesManaged;
+      nodeDispatchCount = state.nodeDispatchCount;
+      nodeHealthChecks = state.nodeHealthChecks;
+      bandSyncOverride = state.bandSyncOverride;
+      nodeAlertCount = state.nodeAlertCount;
+      nodeGridUptimeBeat = state.nodeGridUptimeBeat;
       vzoAwake = state.vzoAwake;
       lastBootBeat = state.lastBootBeat;
       lastHealthCheckBeat = state.lastHealthCheckBeat;
@@ -510,6 +554,12 @@ module {
     // Network mesh health — PHI-weighted connectivity
     let meshHealth = (newNetwork * φ + newTransport) / (φ + 1.0);
 
+    // Node Grid health check — VZO monitors the 540-node grid
+    let newNodeGridCoherence = overall * 0.6 + meshHealth * 0.4;
+    let newNodeHealthChecks = state.nodeHealthChecks + (if (beat % 5 == 0) 1 else 0);
+    let newNodeAlerts = state.nodeAlertCount + (if (overall < 0.3) 1 else 0);
+    let newBandSyncOverride = if (overall > 0.7) overall * 0.1 else 0.0;
+
     {
       systemUptime = state.systemUptime;
       totalRequestsRouted = state.totalRequestsRouted;
@@ -538,6 +588,14 @@ module {
       overallSystemCoherence = overall;
       sdkReadiness = sdkReady;
       networkMeshHealth = meshHealth;
+      nodeGridConnected = state.nodeGridConnected;
+      nodeGridCoherence = newNodeGridCoherence;
+      nodesManaged = state.nodesManaged;
+      nodeDispatchCount = state.nodeDispatchCount;
+      nodeHealthChecks = newNodeHealthChecks;
+      bandSyncOverride = newBandSyncOverride;
+      nodeAlertCount = newNodeAlerts;
+      nodeGridUptimeBeat = state.nodeGridUptimeBeat;
       vzoAwake = state.vzoAwake;
       lastBootBeat = state.lastBootBeat;
       lastHealthCheckBeat = beat;
@@ -622,5 +680,34 @@ module {
       compliance = state.complianceTasks;
       total = total;
     }
+  };
+
+  // Node Grid status summary
+  public func getNodeGridStatus(state : VZOState) : {
+    connected : Bool;
+    nodesManaged : Nat;
+    gridCoherence : Float;
+    healthChecks : Nat;
+    dispatches : Nat;
+    alerts : Nat;
+    bandSyncOverride : Float;
+  } {
+    {
+      connected = state.nodeGridConnected;
+      nodesManaged = state.nodesManaged;
+      gridCoherence = state.nodeGridCoherence;
+      healthChecks = state.nodeHealthChecks;
+      dispatches = state.nodeDispatchCount;
+      alerts = state.nodeAlertCount;
+      bandSyncOverride = state.bandSyncOverride;
+    }
+  };
+
+  public func getNodeGridCoherence(state : VZOState) : Float {
+    state.nodeGridCoherence
+  };
+
+  public func getNodesManaged(state : VZOState) : Nat {
+    state.nodesManaged
   };
 }
