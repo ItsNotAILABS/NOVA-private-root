@@ -38,12 +38,16 @@ import { EmergenceLab }   from './components/CommandCenter/EmergenceLab';
 import { MathPhysicsLab } from './components/CommandCenter/MathPhysicsLab';
 import { NeuroCogLab }    from './components/CommandCenter/NeuroCogLab';
 
+// ── Terminal Hub — 40 Calls · 30 Packages · 15 Sovereign Terminals ──────────
+import { TerminalHub }    from './terminals/TerminalHub';
+
 // ── Navigation ────────────────────────────────────────────────────────────────
 type NavView =
   | 'SWARM'          // original tactical swarm view
   | 'COMMAND'        // ORO Command Center — multi-agent workspace
   | 'COMPANION'      // AURO companion chat/voice/command bridge
   | 'DRONES'         // Drone simulation — the actual experiment
+  | 'TERMINALS'      // Terminal Hub — 40 calls, 30 packages, 15 terminals
   | 'HOME'           // home/now enterprise view
   | 'WORKERS'        // worker society hub
   | 'ARTIFACTS'      // artifact studio
@@ -58,6 +62,7 @@ type NavView =
 
 const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
   { id: 'COMMAND',    label: 'Command',    icon: '◉' },
+  { id: 'TERMINALS',  label: 'Terminals',  icon: '⊞' },
   { id: 'COMPANION',  label: 'Companion',  icon: '🜁' },
   { id: 'DRONES',     label: 'Drones',     icon: '⬡' },
   { id: 'SWARM',      label: 'Swarm',      icon: '⬢' },
@@ -271,6 +276,11 @@ export default function App() {
         {/* ── ORO COMMAND CENTER — Multi-Agent Workspace ────────────────── */}
         {view === 'COMMAND' && (
           <OroCommandCenter organism={organism} />
+        )}
+
+        {/* ── TERMINAL HUB — 40 Calls · 30 Packages · 15 Terminals ──────── */}
+        {view === 'TERMINALS' && (
+          <TerminalHub />
         )}
 
         {/* ── COMPANION CONSOLE — Chat + Voice + Computer Command Bridge ─────── */}
