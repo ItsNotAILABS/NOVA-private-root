@@ -20,6 +20,10 @@ export { NeuroCogLab } from './NeuroCogLab';
 // The Actual Experiment
 export { DroneSimulationWorld } from './DroneSimulationWorld';
 
+// Terminals — 2,000-Node Grid + Defense Command
+export { PackagingLabTerminal } from './PackagingLabTerminal';
+export { DefenseTerminal } from './DefenseTerminal';
+
 // Types
 export type {
   Agent,
