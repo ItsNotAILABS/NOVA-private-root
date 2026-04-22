@@ -1,0 +1,64 @@
+{
+  "_SOVEREIGN": "NOVA SOVEREIGN BUILD MANIFEST — NSCP-2025",
+  "_OWNER": "Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com",
+  "_NOTICE": "This manifest drives the NOVA sovereign build CLI. No DFX required.",
+  "_EPOCH": "NOVA-EPOCH-2025",
+
+  "version": "1",
+  "name": "NOVA",
+  "description": "NOVA (PARALLAX) — Sovereign Cognitive Swarm Organism",
+
+  "compiler": {
+    "tool": "moc",
+    "version": "0.13.4",
+    "source": "https://github.com/dfinity/motoko/releases/download/0.13.4/moc",
+    "source_linux_aarch64": "https://github.com/dfinity/motoko/releases/download/0.13.4/moc",
+    "cache_dir": ".nova/moc"
+  },
+
+  "canisters": {
+    "swarm_brain": {
+      "type": "motoko",
+      "main": "src/swarm_brain/main.mo",
+      "dependencies": [],
+      "description": "Core organism brain — 17-layer sovereign cognitive system"
+    },
+    "swarm_organism": {
+      "type": "motoko",
+      "main": "src/swarm_organism/main.mo",
+      "dependencies": ["swarm_brain"],
+      "description": "Organism-level orchestration canister"
+    },
+    "medina": {
+      "type": "motoko",
+      "main": "icp/medina/Medina.mo",
+      "dependencies": [],
+      "description": "Medina doctrine canister"
+    },
+    "frontend": {
+      "type": "assets",
+      "source": ["src/frontend/dist"],
+      "dependencies": ["swarm_brain", "swarm_organism"],
+      "description": "Sovereign web UI (Vite + React)"
+    }
+  },
+
+  "build": {
+    "output_dir": ".nova/build",
+    "wasm_dir": ".nova/build/canisters",
+    "idl_dir": ".nova/build/idl",
+    "flags": ["--package", "base", ".nova/moc-packages/base"]
+  },
+
+  "check": {
+    "type_check_only": true,
+    "flags": ["--check"]
+  },
+
+  "networks": {
+    "local": {
+      "bind": "127.0.0.1:8000",
+      "type": "persistent"
+    }
+  }
+}
