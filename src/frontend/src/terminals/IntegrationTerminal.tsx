@@ -1,8 +1,12 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // MEDINA TECH — Integration Terminal
+// REAL CANISTER WIRE — No simulation, no Math.random()
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
+import { useCanisterWire, extractIntegrationLogs } from './useCanisterWire';
+import { getPackagesByDomain } from './packages';
+import { getCallsByDomain } from './calls';
 
 const DOMAIN_COLOR = '#8af';
 
@@ -128,147 +132,39 @@ const S = {
   },
 };
 
-interface Package {
-  id: string;
-  name: string;
-  model: string;
-  capabilities: string[];
-  coherence: number;
-}
-
-interface LogEntry {
-  id: number;
-  time: string;
-  source: string;
-  type: string;
-  message: string;
-}
-
-const PACKAGES: Package[] = [
-  {
-    id: 'PKG-27',
-    name: 'Shell Integration Organism',
-    model: 'R-MODEL-SHELL-INTEGRATION',
-    capabilities: [
-      'Shell coupling',
-      'Projection management',
-      'Integration coherence',
-      'Hierarchy enforcement',
-    ],
-    coherence: 0.92,
-  },
-  {
-    id: 'PKG-28',
-    name: 'Animal Intelligence Organism',
-    model: 'R-MODEL-ANIMAL-COGNITION-SWARM',
-    capabilities: [
-      'Bio-inspired cognition',
-      'Multi-species intelligence',
-      'Swarm contribution',
-      'Cognition fusion',
-    ],
-    coherence: 0.89,
-  },
-];
-
-const CALLS = [
-  { id: 'C-35', name: 'Shell Integration', endpoint: 'get_shell_integration()' },
-  { id: 'C-36', name: 'Animal Intelligence Outputs', endpoint: 'get_animal_intelligence_outputs()' },
-  { id: 'C-37', name: 'Shell States', endpoint: 'get_shell_states()' },
-];
-
-function ts(): string {
-  return new Date().toLocaleTimeString('en-US', { hour12: false });
-}
-
-function buildBootMessages(): LogEntry[] {
-  const t = ts();
-  return [
-    { id: 1, time: t, source: 'BOOT', type: 'SYS', message: 'Integration Terminal v1.0.0 initialized' },
-    { id: 2, time: t, source: 'BOOT', type: 'SYS', message: 'Shell Integration Organism linked — Shell 3→8→12 cascade ONLINE' },
-    { id: 3, time: t, source: 'BOOT', type: 'SYS', message: 'Animal Intelligence Organism linked — 9 species engines loaded' },
-    { id: 4, time: t, source: 'SHELL', type: 'DATA', message: 'Shell cascade: 3→8→12 | Cross-shell coupling: STABLE' },
-    { id: 5, time: t, source: 'ANIMAL', type: 'DATA', message: 'Crow engine: ACTIVE | Octopus engine: ACTIVE | Elephant engine: ACTIVE' },
-    { id: 6, time: t, source: 'ANIMAL', type: 'DATA', message: 'Bee engine: ACTIVE | Dolphin engine: ACTIVE | Wolf engine: ACTIVE' },
-    { id: 7, time: t, source: 'ANIMAL', type: 'DATA', message: 'Orca engine: ACTIVE | Eagle engine: ACTIVE | Shark engine: ACTIVE' },
-    { id: 8, time: t, source: 'SHELL', type: 'ALERT', message: 'Cross-shell coupling integrity verified — all projections synchronized' },
-  ];
-}
-
-function generateLogEntry(id: number): LogEntry {
-  const sources = ['SHELL', 'ANIMAL', 'COUPLING', 'SYSTEM'];
-  const source = sources[Math.floor(Math.random() * sources.length)];
-  const animals = ['Crow', 'Octopus', 'Elephant', 'Bee', 'Dolphin', 'Wolf', 'Orca', 'Eagle', 'Shark'];
-  const entries: Record<string, string[]> = {
-    SHELL: [
-      `Shell ${Math.floor(Math.random() * 12) + 1} projection cycle #${(id * 17) % 999} — coherence ${(90 + Math.random() * 9).toFixed(1)}%`,
-      `Cascade relay 3→8→12 — propagation latency ${(Math.random() * 3 + 0.5).toFixed(1)}ms`,
-      `Hierarchy enforcement — ${Math.floor(Math.random() * 12) + 1} shell layers validated`,
-    ],
-    ANIMAL: [
-      `${animals[Math.floor(Math.random() * animals.length)]} engine output — cognition score ${(0.8 + Math.random() * 0.19).toFixed(3)}`,
-      `Multi-species fusion cycle — ${Math.floor(Math.random() * 5 + 3)} species contributing`,
-      `Swarm contribution index: ${(Math.random() * 0.3 + 0.7).toFixed(3)} — bio-pattern ${Math.random() > 0.5 ? 'CONVERGENT' : 'EXPLORING'}`,
-    ],
-    COUPLING: [
-      `Cross-shell coupling check — divergence: ${(Math.random() * 0.02).toFixed(4)} — ${Math.random() > 0.1 ? 'NOMINAL' : 'ADJUSTING'}`,
-      `Integration coherence pulse — strength ${(94 + Math.random() * 5).toFixed(1)}%`,
-      `Projection sync — ${Math.floor(Math.random() * 12) + 1} shells aligned`,
-    ],
-    SYSTEM: [
-      `Heartbeat OK — latency ${(Math.random() * 5 + 1).toFixed(1)}ms`,
-      `Integration subsystem coherence: ${(0.88 + Math.random() * 0.1).toFixed(3)}`,
-    ],
-  };
-  const pool = entries[source];
-  const message = pool[Math.floor(Math.random() * pool.length)];
-  const type = source === 'SYSTEM' ? 'SYS' : Math.random() > 0.9 ? 'ALERT' : 'DATA';
-  return { id, time: ts(), source, type, message };
-}
-
 export function IntegrationTerminal() {
   const terminalRef = useRef<HTMLDivElement>(null);
-  const [logs, setLogs] = useState<LogEntry[]>(buildBootMessages);
-  const nextId = useRef(100);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLogs(prev => {
-        const entry = generateLogEntry(nextId.current++);
-        const next = [...prev, entry];
-        return next.length > 200 ? next.slice(-200) : next;
-      });
-    }, 2200);
-    return () => clearInterval(interval);
-  }, []);
+  const wire = useCanisterWire('INTEGRATION', 3000, extractIntegrationLogs);
+  const packages = getPackagesByDomain('INTEGRATION');
+  const calls = getCallsByDomain('INTEGRATION');
 
   useEffect(() => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
-  }, [logs]);
+  }, [wire.logs]);
 
   return (
     <div style={S.root}>
       {/* Left Panel — Packages */}
       <div style={S.panel}>
         <div style={S.header}>
-          <span style={{ fontSize: 14 }}>⊕</span> Integration Packages
+          <span style={{ fontSize: 14 }}>{'⊕'}</span> Integration Packages
         </div>
 
-        {PACKAGES.map(pkg => (
+        {packages.map(pkg => (
           <div key={pkg.id} style={S.packageCard}>
             <div style={S.packageName}>{pkg.name}</div>
-            <div style={S.packageModel}>{pkg.id} — {pkg.model}</div>
+            <div style={S.packageModel}>{pkg.id} — {pkg.aiModel}</div>
             <ul style={S.capList}>
               {pkg.capabilities.map((cap, i) => (
                 <li key={i} style={S.capItem}>▸ {cap}</li>
               ))}
             </ul>
             <div style={S.metric}>
-              <span style={S.metricLabel}>Coherence</span>
+              <span style={S.metricLabel}>Calls</span>
               <div style={S.metricBar}>
-                <div style={S.metricFill(pkg.coherence)} />
+                <div style={S.metricFill(pkg.calls.length / 4)} />
               </div>
             </div>
           </div>
@@ -278,7 +174,7 @@ export function IntegrationTerminal() {
         <div style={{ ...S.header, marginTop: 12 }}>
           <span style={{ fontSize: 14 }}>⚡</span> Active Calls
         </div>
-        {CALLS.map(c => (
+        {calls.map(c => (
           <div key={c.id} style={S.callCard}>
             <span style={S.callName}>{c.id} {c.name}</span>
             <div style={S.callEndpoint}>{c.endpoint}</div>
@@ -289,10 +185,12 @@ export function IntegrationTerminal() {
       {/* Right Panel — Terminal Stream */}
       <div style={S.terminal} ref={terminalRef}>
         <div style={S.header}>
-          <span style={{ fontSize: 14 }}>⊕</span> Integration Terminal Stream
+          <span style={{ fontSize: 14 }}>{'⊕'}</span> Integration Terminal Stream
+          {wire.connected && <span style={{ marginLeft: 'auto', fontSize: 9, color: '#4f4' }}>● LIVE</span>}
+          {wire.error && <span style={{ marginLeft: 'auto', fontSize: 9, color: '#f44' }}>● ERROR</span>}
         </div>
 
-        {logs.map(entry => (
+        {wire.logs.map(entry => (
           <div key={entry.id} style={S.line(entry.type)}>
             <span style={S.ts}>[{entry.time}]</span>
             <span style={S.src}>{entry.source}:</span>

@@ -1,8 +1,12 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // MEDINA TECH — Quantum Terminal
+// REAL CANISTER WIRE — No simulation, no Math.random()
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
+import { useCanisterWire, extractQuantumLogs } from './useCanisterWire';
+import { getPackagesByDomain } from './packages';
+import { getCallsByDomain } from './calls';
 
 const DOMAIN_COLOR = '#4af';
 
@@ -128,146 +132,39 @@ const S = {
   },
 };
 
-interface Package {
-  id: string;
-  name: string;
-  model: string;
-  capabilities: string[];
-  coherence: number;
-}
-
-interface LogEntry {
-  id: number;
-  time: string;
-  source: string;
-  type: string;
-  message: string;
-}
-
-const FIB = [1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144];
-
-const PACKAGES: Package[] = [
-  {
-    id: 'PKG-11',
-    name: 'Quantum Heartbeat Organism',
-    model: 'nova-qheart-v2.1',
-    capabilities: [
-      'Quantum phase tracking',
-      'Coherence field monitoring',
-      'Cardiac coupling synchronization',
-      'Fibonacci beat sequencing',
-    ],
-    coherence: 0.97,
-  },
-  {
-    id: 'PKG-12',
-    name: 'Quantum Shell Operator',
-    model: 'nova-qshell-v1.8',
-    capabilities: [
-      'Shell eigenstate computation',
-      'Spherical harmonic decomposition',
-      'Operator algebra evaluation',
-      'Quantum number indexing',
-    ],
-    coherence: 0.91,
-  },
-];
-
-const CALLS = [
-  { id: 'C-15', name: 'Quantum Heartbeat', endpoint: 'get_quantum_heartbeat()' },
-  { id: 'C-16', name: 'Quantum Operators', endpoint: 'get_quantum_operators()' },
-  { id: 'C-17', name: 'Spherical Quantum', endpoint: 'get_spherical_quantum_state()' },
-];
-
-function ts(): string {
-  return new Date().toLocaleTimeString('en-US', { hour12: false });
-}
-
-function buildBootMessages(): LogEntry[] {
-  const t = ts();
-  return [
-    { id: 1, time: t, source: 'BOOT', type: 'SYS', message: 'Quantum Terminal v1.0.0 initialized' },
-    { id: 2, time: t, source: 'BOOT', type: 'SYS', message: 'Quantum Heartbeat Organism linked — phase lock acquired' },
-    { id: 3, time: t, source: 'BOOT', type: 'SYS', message: 'Quantum Shell Operator linked — eigenstates loaded' },
-    { id: 4, time: t, source: 'QHEART', type: 'DATA', message: 'Quantum phase: 0.618 | Coherence: 0.971 | Cardiac coupling: SYNCED' },
-    { id: 5, time: t, source: 'QHEART', type: 'DATA', message: 'Fibonacci beat: [1,1,2,3,5,8,13,21,34,55,89,144] — cycle 1 active' },
-    { id: 6, time: t, source: 'QSHELL', type: 'DATA', message: 'Shell eigenstates: n=4 l=3 m=[-3..3] — 7 states loaded' },
-    { id: 7, time: t, source: 'QSHELL', type: 'DATA', message: 'Spherical harmonics: Y_l^m computed for l=0..6 — 49 terms' },
-    { id: 8, time: t, source: 'SYSTEM', type: 'SYS', message: 'All quantum subsystems nominal — decoherence suppressed' },
-  ];
-}
-
-function generateLogEntry(id: number): LogEntry {
-  const sources = ['QHEART', 'QSHELL', 'SYSTEM'];
-  const source = sources[Math.floor(Math.random() * sources.length)];
-  const fibIdx = id % FIB.length;
-  const entries: Record<string, string[]> = {
-    QHEART: [
-      `Phase update: ${(Math.random() * 2 * Math.PI).toFixed(4)} rad | coherence: ${(0.93 + Math.random() * 0.06).toFixed(3)}`,
-      `Cardiac coupling Δ: ${(Math.random() * 0.01).toFixed(5)} — sync status: ${Math.random() > 0.1 ? 'LOCKED' : 'DRIFTING'}`,
-      `Fibonacci beat F(${fibIdx}) = ${FIB[fibIdx]} — interval ${(FIB[fibIdx] * 10 + Math.random() * 5).toFixed(1)}ms`,
-      `Heartbeat cycle #${(id * 19) % 999} — amplitude ${(0.8 + Math.random() * 0.19).toFixed(3)} — phase jitter ${(Math.random() * 0.005).toFixed(4)}`,
-    ],
-    QSHELL: [
-      `Eigenstate |n=${Math.floor(Math.random() * 6 + 1)}, l=${Math.floor(Math.random() * 4)}, m=${Math.floor(Math.random() * 7 - 3)}⟩ — energy ${(-(13.6 / Math.pow(Math.floor(Math.random() * 5) + 1, 2))).toFixed(3)} eV`,
-      `Shell operator Ĥ applied — eigenvalue ${(Math.random() * 10).toFixed(4)} — residual ${(Math.random() * 0.001).toFixed(5)}`,
-      `Spherical harmonic Y_${Math.floor(Math.random() * 7)}^${Math.floor(Math.random() * 5)} evaluated — max amplitude ${(Math.random() * 0.8 + 0.1).toFixed(3)}`,
-      `Quantum number index updated — ${Math.floor(Math.random() * 50 + 10)} states in active shell`,
-    ],
-    SYSTEM: [
-      `Heartbeat OK — quantum subsystem latency ${(Math.random() * 2 + 0.2).toFixed(1)}ms`,
-      `Quantum coherence index: ${(0.92 + Math.random() * 0.07).toFixed(3)} — decoherence rate: ${(Math.random() * 0.003).toFixed(4)}/s`,
-    ],
-  };
-  const pool = entries[source];
-  const message = pool[Math.floor(Math.random() * pool.length)];
-  const type = source === 'SYSTEM' ? 'SYS' : Math.random() > 0.94 ? 'ALERT' : 'DATA';
-  return { id, time: ts(), source, type, message };
-}
-
 export function QuantumTerminal() {
   const terminalRef = useRef<HTMLDivElement>(null);
-  const [logs, setLogs] = useState<LogEntry[]>(buildBootMessages);
-  const nextId = useRef(100);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLogs(prev => {
-        const entry = generateLogEntry(nextId.current++);
-        const next = [...prev, entry];
-        return next.length > 200 ? next.slice(-200) : next;
-      });
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
+  const wire = useCanisterWire('QUANTUM', 3000, extractQuantumLogs);
+  const packages = getPackagesByDomain('QUANTUM');
+  const calls = getCallsByDomain('QUANTUM');
 
   useEffect(() => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
-  }, [logs]);
+  }, [wire.logs]);
 
   return (
     <div style={S.root}>
       {/* Left Panel — Packages */}
       <div style={S.panel}>
         <div style={S.header}>
-          <span style={{ fontSize: 14 }}>⟁</span> Quantum Packages
+          <span style={{ fontSize: 14 }}>{'⟁'}</span> Quantum Packages
         </div>
 
-        {PACKAGES.map(pkg => (
+        {packages.map(pkg => (
           <div key={pkg.id} style={S.packageCard}>
             <div style={S.packageName}>{pkg.name}</div>
-            <div style={S.packageModel}>{pkg.id} — {pkg.model}</div>
+            <div style={S.packageModel}>{pkg.id} — {pkg.aiModel}</div>
             <ul style={S.capList}>
               {pkg.capabilities.map((cap, i) => (
                 <li key={i} style={S.capItem}>▸ {cap}</li>
               ))}
             </ul>
             <div style={S.metric}>
-              <span style={S.metricLabel}>Coherence</span>
+              <span style={S.metricLabel}>Calls</span>
               <div style={S.metricBar}>
-                <div style={S.metricFill(pkg.coherence)} />
+                <div style={S.metricFill(pkg.calls.length / 4)} />
               </div>
             </div>
           </div>
@@ -277,7 +174,7 @@ export function QuantumTerminal() {
         <div style={{ ...S.header, marginTop: 12 }}>
           <span style={{ fontSize: 14 }}>⚡</span> Active Calls
         </div>
-        {CALLS.map(c => (
+        {calls.map(c => (
           <div key={c.id} style={S.callCard}>
             <span style={S.callName}>{c.id} {c.name}</span>
             <div style={S.callEndpoint}>{c.endpoint}</div>
@@ -288,10 +185,12 @@ export function QuantumTerminal() {
       {/* Right Panel — Terminal Stream */}
       <div style={S.terminal} ref={terminalRef}>
         <div style={S.header}>
-          <span style={{ fontSize: 14 }}>⟁</span> Quantum Terminal Stream
+          <span style={{ fontSize: 14 }}>{'⟁'}</span> Quantum Terminal Stream
+          {wire.connected && <span style={{ marginLeft: 'auto', fontSize: 9, color: '#4f4' }}>● LIVE</span>}
+          {wire.error && <span style={{ marginLeft: 'auto', fontSize: 9, color: '#f44' }}>● ERROR</span>}
         </div>
 
-        {logs.map(entry => (
+        {wire.logs.map(entry => (
           <div key={entry.id} style={S.line(entry.type)}>
             <span style={S.ts}>[{entry.time}]</span>
             <span style={S.src}>{entry.source}:</span>

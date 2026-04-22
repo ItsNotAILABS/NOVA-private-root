@@ -1,8 +1,12 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // MEDINA TECH — Cognitive Terminal
+// REAL CANISTER WIRE — No simulation, no Math.random()
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
+import { useCanisterWire, extractCognitiveLogs } from './useCanisterWire';
+import { getPackagesByDomain } from './packages';
+import { getCallsByDomain } from './calls';
 
 const DOMAIN_COLOR = '#f4a';
 
@@ -128,158 +132,39 @@ const S = {
   },
 };
 
-interface Package {
-  id: string;
-  name: string;
-  model: string;
-  capabilities: string[];
-  coherence: number;
-}
-
-interface LogEntry {
-  id: number;
-  time: string;
-  source: string;
-  type: string;
-  message: string;
-}
-
-const PACKAGES: Package[] = [
-  {
-    id: 'PKG-18',
-    name: 'Feedback Cognition Organism',
-    model: 'R-MODEL-CONSTANT-FEEDBACK',
-    capabilities: [
-      'feedback-closure',
-      'pattern-mining',
-      'fabric-weaving',
-      'loop-optimization',
-    ],
-    coherence: 0.90,
-  },
-  {
-    id: 'PKG-19',
-    name: 'Predictive Coding Organism',
-    model: 'R-MODEL-PREDICTIVE-CODING',
-    capabilities: [
-      'prediction-error-tracking',
-      'free-energy-minimization',
-      'model-updating',
-      'precision-weighting',
-    ],
-    coherence: 0.87,
-  },
-  {
-    id: 'PKG-20',
-    name: 'Learning Foundation Organism',
-    model: 'R-MODEL-LEARNING-FOUNDATION',
-    capabilities: [
-      'hebbian-learning',
-      'adaptation-tracking',
-      'skill-acquisition',
-      'plasticity-management',
-    ],
-    coherence: 0.92,
-  },
-];
-
-const CALLS = [
-  { id: 'C-24', name: 'Constant Feedback', endpoint: 'get_constant_feedback()' },
-  { id: 'C-25', name: 'Prediction System', endpoint: 'get_prediction_system()' },
-  { id: 'C-26', name: 'Learning System', endpoint: 'get_learning_system()' },
-];
-
-function ts(): string {
-  return new Date().toLocaleTimeString('en-US', { hour12: false });
-}
-
-function buildBootMessages(): LogEntry[] {
-  const t = ts();
-  return [
-    { id: 1, time: t, source: 'BOOT', type: 'SYS', message: 'Cognitive Terminal v1.0.0 initialized' },
-    { id: 2, time: t, source: 'BOOT', type: 'SYS', message: 'Feedback cognition loops online — pattern mining active' },
-    { id: 3, time: t, source: 'BOOT', type: 'SYS', message: 'Predictive coding engine linked — free energy minimization ready' },
-    { id: 4, time: t, source: 'BOOT', type: 'SYS', message: 'Hebbian learning foundation calibrated — plasticity management armed' },
-    { id: 5, time: t, source: 'FBACK', type: 'DATA', message: 'Feedback loops: 24 active | Closure rate: 98.1% | Fabric: WOVEN' },
-    { id: 6, time: t, source: 'PRED', type: 'DATA', message: 'Prediction error: 0.0031 | Free energy: 2.417 | Model: CONVERGED' },
-    { id: 7, time: t, source: 'LEARN', type: 'DATA', message: 'Hebbian synapses: 1024 | Adaptation rate: 0.94 | Skills: 47 tracked' },
-    { id: 8, time: t, source: 'COG', type: 'DATA', message: 'Cognitive coherence: 0.912 — free energy gradient stable' },
-  ];
-}
-
-function generateLogEntry(id: number): LogEntry {
-  const sources = ['FBACK', 'PRED', 'LEARN', 'SYSTEM'];
-  const source = sources[Math.floor(Math.random() * sources.length)];
-  const entries: Record<string, string[]> = {
-    FBACK: [
-      `Feedback closure cycle #${(id * 17) % 999} — ${Math.floor(Math.random() * 5) + 1} patterns mined`,
-      `Loop optimization pass — efficiency ${(95 + Math.random() * 4).toFixed(1)}% — fabric integrity nominal`,
-      `Pattern mining scan — ${Math.floor(Math.random() * 12) + 1} new correlations detected`,
-    ],
-    PRED: [
-      `Prediction error update: ${(Math.random() * 0.008 + 0.001).toFixed(4)} — precision weight ${(0.9 + Math.random() * 0.09).toFixed(3)}`,
-      `Free energy minimization step — ΔF: ${(Math.random() * 0.05).toFixed(4)} — model ${Math.random() > 0.2 ? 'STABLE' : 'UPDATING'}`,
-      `Model update #${(id * 31) % 500} — prediction horizon expanded to ${Math.floor(Math.random() * 50 + 10)} steps`,
-    ],
-    LEARN: [
-      `Hebbian learning pulse — ${Math.floor(Math.random() * 100 + 20)} synapses strengthened`,
-      `Skill acquisition checkpoint — ${Math.floor(Math.random() * 5) + 1} new competencies registered`,
-      `Plasticity index: ${(0.85 + Math.random() * 0.12).toFixed(3)} — adaptation ${Math.random() > 0.3 ? 'GREEN' : 'AMBER'}`,
-    ],
-    SYSTEM: [
-      `Heartbeat OK — latency ${(Math.random() * 5 + 1).toFixed(1)}ms`,
-      `Cognitive subsystem coherence: ${(0.88 + Math.random() * 0.1).toFixed(3)}`,
-    ],
-  };
-  const pool = entries[source];
-  const message = pool[Math.floor(Math.random() * pool.length)];
-  const type = source === 'SYSTEM' ? 'SYS' : Math.random() > 0.9 ? 'ALERT' : 'DATA';
-  return { id, time: ts(), source, type, message };
-}
-
 export function CognitiveTerminal() {
   const terminalRef = useRef<HTMLDivElement>(null);
-  const [logs, setLogs] = useState<LogEntry[]>(buildBootMessages);
-  const nextId = useRef(100);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLogs(prev => {
-        const entry = generateLogEntry(nextId.current++);
-        const next = [...prev, entry];
-        return next.length > 200 ? next.slice(-200) : next;
-      });
-    }, 2200);
-    return () => clearInterval(interval);
-  }, []);
+  const wire = useCanisterWire('COGNITIVE', 3000, extractCognitiveLogs);
+  const packages = getPackagesByDomain('COGNITIVE');
+  const calls = getCallsByDomain('COGNITIVE');
 
   useEffect(() => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
-  }, [logs]);
+  }, [wire.logs]);
 
   return (
     <div style={S.root}>
       {/* Left Panel — Packages */}
       <div style={S.panel}>
         <div style={S.header}>
-          <span style={{ fontSize: 14 }}>∿</span> Cognitive Packages
+          <span style={{ fontSize: 14 }}>{'∿'}</span> Cognitive Packages
         </div>
 
-        {PACKAGES.map(pkg => (
+        {packages.map(pkg => (
           <div key={pkg.id} style={S.packageCard}>
             <div style={S.packageName}>{pkg.name}</div>
-            <div style={S.packageModel}>{pkg.id} — {pkg.model}</div>
+            <div style={S.packageModel}>{pkg.id} — {pkg.aiModel}</div>
             <ul style={S.capList}>
               {pkg.capabilities.map((cap, i) => (
                 <li key={i} style={S.capItem}>▸ {cap}</li>
               ))}
             </ul>
             <div style={S.metric}>
-              <span style={S.metricLabel}>Coherence</span>
+              <span style={S.metricLabel}>Calls</span>
               <div style={S.metricBar}>
-                <div style={S.metricFill(pkg.coherence)} />
+                <div style={S.metricFill(pkg.calls.length / 4)} />
               </div>
             </div>
           </div>
@@ -289,7 +174,7 @@ export function CognitiveTerminal() {
         <div style={{ ...S.header, marginTop: 12 }}>
           <span style={{ fontSize: 14 }}>⚡</span> Active Calls
         </div>
-        {CALLS.map(c => (
+        {calls.map(c => (
           <div key={c.id} style={S.callCard}>
             <span style={S.callName}>{c.id} {c.name}</span>
             <div style={S.callEndpoint}>{c.endpoint}</div>
@@ -300,10 +185,12 @@ export function CognitiveTerminal() {
       {/* Right Panel — Terminal Stream */}
       <div style={S.terminal} ref={terminalRef}>
         <div style={S.header}>
-          <span style={{ fontSize: 14 }}>∿</span> Cognitive Terminal Stream
+          <span style={{ fontSize: 14 }}>{'∿'}</span> Cognitive Terminal Stream
+          {wire.connected && <span style={{ marginLeft: 'auto', fontSize: 9, color: '#4f4' }}>● LIVE</span>}
+          {wire.error && <span style={{ marginLeft: 'auto', fontSize: 9, color: '#f44' }}>● ERROR</span>}
         </div>
 
-        {logs.map(entry => (
+        {wire.logs.map(entry => (
           <div key={entry.id} style={S.line(entry.type)}>
             <span style={S.ts}>[{entry.time}]</span>
             <span style={S.src}>{entry.source}:</span>

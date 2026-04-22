@@ -1,8 +1,12 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // MEDINA TECH — Intelligence Terminal
+// REAL CANISTER WIRE — No simulation, no Math.random()
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
+import { useCanisterWire, extractIntelligenceLogs } from './useCanisterWire';
+import { getPackagesByDomain } from './packages';
+import { getCallsByDomain } from './calls';
 
 const DOMAIN_COLOR = '#4ff';
 
@@ -128,134 +132,39 @@ const S = {
   },
 };
 
-interface Package {
-  id: string;
-  name: string;
-  model: string;
-  capabilities: string[];
-  coherence: number;
-}
-
-interface LogEntry {
-  id: number;
-  time: string;
-  source: string;
-  type: string;
-  message: string;
-}
-
-const PACKAGES: Package[] = [
-  {
-    id: 'PKG-29',
-    name: 'Internal AI Workforce Organism',
-    model: 'R-MODEL-AUTONOMOUS-ANALYST',
-    capabilities: [
-      'Team orchestration',
-      'Task management',
-      'Output quality control',
-      'Workforce health monitoring',
-    ],
-    coherence: 0.93,
-  },
-];
-
-const CALLS = [
-  { id: 'C-38', name: 'Autonomous Team Status', endpoint: 'get_autonomous_team_status()' },
-  { id: 'C-39', name: 'Organism Teams State', endpoint: 'get_organism_teams_state()' },
-];
-
-function ts(): string {
-  return new Date().toLocaleTimeString('en-US', { hour12: false });
-}
-
-function buildBootMessages(): LogEntry[] {
-  const t = ts();
-  return [
-    { id: 1, time: t, source: 'BOOT', type: 'SYS', message: 'Intelligence Terminal v1.0.0 initialized' },
-    { id: 2, time: t, source: 'BOOT', type: 'SYS', message: 'Internal AI Workforce Organism linked — analyst teams DEPLOYED' },
-    { id: 3, time: t, source: 'WORKFORCE', type: 'DATA', message: 'Internal AI analyst teams: ACTIVE | Task queues: PROCESSING' },
-    { id: 4, time: t, source: 'WORKFORCE', type: 'DATA', message: 'Workforce health: NOMINAL | Active agents: 24 | Idle: 4' },
-    { id: 5, time: t, source: 'ANALYST', type: 'DATA', message: 'Output confidence: 94.7% | Quality gate: PASSING' },
-    { id: 6, time: t, source: 'ANALYST', type: 'DATA', message: 'Team roster: Alpha, Beta, Gamma, Delta, Epsilon — all reporting' },
-    { id: 7, time: t, source: 'WORKFORCE', type: 'DATA', message: 'Task queue depth: 17 pending | 342 completed today | 0 failed' },
-    { id: 8, time: t, source: 'ANALYST', type: 'ALERT', message: 'Workforce health check complete — all teams operational' },
-  ];
-}
-
-function generateLogEntry(id: number): LogEntry {
-  const sources = ['WORKFORCE', 'ANALYST', 'TASKQ', 'SYSTEM'];
-  const source = sources[Math.floor(Math.random() * sources.length)];
-  const teams = ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon'];
-  const entries: Record<string, string[]> = {
-    WORKFORCE: [
-      `Workforce pulse — ${Math.floor(Math.random() * 6 + 22)}/28 agents active — health ${(92 + Math.random() * 7).toFixed(1)}%`,
-      `Agent rotation cycle #${(id * 17) % 999} — ${Math.floor(Math.random() * 3)} agents recycled`,
-      `Workforce capacity: ${(Math.random() * 20 + 75).toFixed(0)}% utilized — scaling ${Math.random() > 0.7 ? 'UP' : 'STABLE'}`,
-    ],
-    ANALYST: [
-      `Team ${teams[Math.floor(Math.random() * teams.length)]} — output confidence ${(0.88 + Math.random() * 0.11).toFixed(3)}`,
-      `Quality control pass #${(id * 31) % 500} — ${Math.random() > 0.15 ? 'APPROVED' : 'UNDER REVIEW'}`,
-      `Team roster check — ${Math.floor(Math.random() * 5 + 1)} teams reporting — all healthy`,
-    ],
-    TASKQ: [
-      `Task queue: ${Math.floor(Math.random() * 25 + 5)} pending | ${Math.floor(Math.random() * 100 + 300)} completed | ${Math.floor(Math.random() * 2)} failed`,
-      `Priority dispatch — task #${Math.floor(Math.random() * 9000 + 1000)} assigned to Team ${teams[Math.floor(Math.random() * teams.length)]}`,
-      `Queue throughput: ${(Math.random() * 5 + 8).toFixed(1)} tasks/min — avg latency ${(Math.random() * 200 + 50).toFixed(0)}ms`,
-    ],
-    SYSTEM: [
-      `Heartbeat OK — latency ${(Math.random() * 5 + 1).toFixed(1)}ms`,
-      `Intelligence subsystem coherence: ${(0.90 + Math.random() * 0.08).toFixed(3)}`,
-    ],
-  };
-  const pool = entries[source];
-  const message = pool[Math.floor(Math.random() * pool.length)];
-  const type = source === 'SYSTEM' ? 'SYS' : Math.random() > 0.9 ? 'ALERT' : 'DATA';
-  return { id, time: ts(), source, type, message };
-}
-
 export function IntelligenceTerminal() {
   const terminalRef = useRef<HTMLDivElement>(null);
-  const [logs, setLogs] = useState<LogEntry[]>(buildBootMessages);
-  const nextId = useRef(100);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLogs(prev => {
-        const entry = generateLogEntry(nextId.current++);
-        const next = [...prev, entry];
-        return next.length > 200 ? next.slice(-200) : next;
-      });
-    }, 2200);
-    return () => clearInterval(interval);
-  }, []);
+  const wire = useCanisterWire('INTELLIGENCE', 3000, extractIntelligenceLogs);
+  const packages = getPackagesByDomain('INTELLIGENCE');
+  const calls = getCallsByDomain('INTELLIGENCE');
 
   useEffect(() => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
-  }, [logs]);
+  }, [wire.logs]);
 
   return (
     <div style={S.root}>
       {/* Left Panel — Packages */}
       <div style={S.panel}>
         <div style={S.header}>
-          <span style={{ fontSize: 14 }}>◉</span> Intelligence Packages
+          <span style={{ fontSize: 14 }}>{'◉'}</span> Intelligence Packages
         </div>
 
-        {PACKAGES.map(pkg => (
+        {packages.map(pkg => (
           <div key={pkg.id} style={S.packageCard}>
             <div style={S.packageName}>{pkg.name}</div>
-            <div style={S.packageModel}>{pkg.id} — {pkg.model}</div>
+            <div style={S.packageModel}>{pkg.id} — {pkg.aiModel}</div>
             <ul style={S.capList}>
               {pkg.capabilities.map((cap, i) => (
                 <li key={i} style={S.capItem}>▸ {cap}</li>
               ))}
             </ul>
             <div style={S.metric}>
-              <span style={S.metricLabel}>Coherence</span>
+              <span style={S.metricLabel}>Calls</span>
               <div style={S.metricBar}>
-                <div style={S.metricFill(pkg.coherence)} />
+                <div style={S.metricFill(pkg.calls.length / 4)} />
               </div>
             </div>
           </div>
@@ -265,7 +174,7 @@ export function IntelligenceTerminal() {
         <div style={{ ...S.header, marginTop: 12 }}>
           <span style={{ fontSize: 14 }}>⚡</span> Active Calls
         </div>
-        {CALLS.map(c => (
+        {calls.map(c => (
           <div key={c.id} style={S.callCard}>
             <span style={S.callName}>{c.id} {c.name}</span>
             <div style={S.callEndpoint}>{c.endpoint}</div>
@@ -276,10 +185,12 @@ export function IntelligenceTerminal() {
       {/* Right Panel — Terminal Stream */}
       <div style={S.terminal} ref={terminalRef}>
         <div style={S.header}>
-          <span style={{ fontSize: 14 }}>◉</span> Intelligence Terminal Stream
+          <span style={{ fontSize: 14 }}>{'◉'}</span> Intelligence Terminal Stream
+          {wire.connected && <span style={{ marginLeft: 'auto', fontSize: 9, color: '#4f4' }}>● LIVE</span>}
+          {wire.error && <span style={{ marginLeft: 'auto', fontSize: 9, color: '#f44' }}>● ERROR</span>}
         </div>
 
-        {logs.map(entry => (
+        {wire.logs.map(entry => (
           <div key={entry.id} style={S.line(entry.type)}>
             <span style={S.ts}>[{entry.time}]</span>
             <span style={S.src}>{entry.source}:</span>

@@ -1,8 +1,12 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // MEDINA TECH — Governance Terminal
+// REAL CANISTER WIRE — No simulation, no Math.random()
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
+import { useCanisterWire, extractGovernanceLogs } from './useCanisterWire';
+import { getPackagesByDomain } from './packages';
+import { getCallsByDomain } from './calls';
 
 const DOMAIN_COLOR = '#fa4';
 
@@ -128,143 +132,39 @@ const S = {
   },
 };
 
-interface Package {
-  id: string;
-  name: string;
-  model: string;
-  capabilities: string[];
-  coherence: number;
-}
-
-interface LogEntry {
-  id: number;
-  time: string;
-  source: string;
-  type: string;
-  message: string;
-}
-
-const PACKAGES: Package[] = [
-  {
-    id: 'PKG-06',
-    name: 'Law Enforcement Organism',
-    model: 'nova-lawenf-v2.4',
-    capabilities: [
-      'Law compliance scoring',
-      'Compliance vector computation',
-      'Gate status enforcement',
-      'Violation detection & response',
-    ],
-    coherence: 0.92,
-  },
-  {
-    id: 'PKG-07',
-    name: 'Security Audit Organism',
-    model: 'nova-secaudit-v1.9',
-    capabilities: [
-      'Exposure surface audit',
-      'Incident counting & triage',
-      'Continuous security scoring',
-      'Regulatory alignment check',
-    ],
-    coherence: 0.88,
-  },
-];
-
-const CALLS = [
-  { id: 'C-08', name: 'Law Compliance', endpoint: 'get_law_compliance()' },
-  { id: 'C-09', name: 'Laws Snapshot', endpoint: 'get_laws_snapshot()' },
-  { id: 'C-10', name: 'Security Status', endpoint: 'get_security_status()' },
-];
-
-function ts(): string {
-  return new Date().toLocaleTimeString('en-US', { hour12: false });
-}
-
-function buildBootMessages(): LogEntry[] {
-  const t = ts();
-  return [
-    { id: 1, time: t, source: 'BOOT', type: 'SYS', message: 'Governance Terminal v1.0.0 initialized' },
-    { id: 2, time: t, source: 'BOOT', type: 'SYS', message: 'Law Enforcement Organism linked — compliance engine online' },
-    { id: 3, time: t, source: 'BOOT', type: 'SYS', message: 'Security Audit Organism linked — audit loop active' },
-    { id: 4, time: t, source: 'LAWENF', type: 'DATA', message: 'Law scores: [L1: 0.98, L2: 0.95, L3: 0.97, L4: 0.93, L5: 0.99]' },
-    { id: 5, time: t, source: 'LAWENF', type: 'DATA', message: 'Compliance vector: <0.97, 0.94, 0.96> — gate status: ALL OPEN' },
-    { id: 6, time: t, source: 'SECAUD', type: 'DATA', message: 'Exposure audit: 0 critical | 2 medium | 5 low findings' },
-    { id: 7, time: t, source: 'SECAUD', type: 'DATA', message: 'Incident count: 0 active | 14 resolved (last 24h)' },
-    { id: 8, time: t, source: 'SYSTEM', type: 'SYS', message: 'Governance subsystems nominal — all gates enforced' },
-  ];
-}
-
-function generateLogEntry(id: number): LogEntry {
-  const sources = ['LAWENF', 'SECAUD', 'SYSTEM'];
-  const source = sources[Math.floor(Math.random() * sources.length)];
-  const entries: Record<string, string[]> = {
-    LAWENF: [
-      `Law compliance scan #${(id * 11) % 999} — aggregate score: ${(0.92 + Math.random() * 0.07).toFixed(3)}`,
-      `Gate G-${Math.floor(Math.random() * 8) + 1} status: ${Math.random() > 0.1 ? 'OPEN' : 'RESTRICTED'} — throughput nominal`,
-      `Compliance vector update: <${(0.90 + Math.random() * 0.09).toFixed(2)}, ${(0.90 + Math.random() * 0.09).toFixed(2)}, ${(0.90 + Math.random() * 0.09).toFixed(2)}>`,
-      `Violation check — ${Math.random() > 0.85 ? '1 minor infraction flagged' : 'no violations detected'}`,
-    ],
-    SECAUD: [
-      `Exposure surface scan — ${Math.floor(Math.random() * 3)} new findings | total: ${Math.floor(Math.random() * 20 + 5)}`,
-      `Incident #${(id * 23) % 999} — severity: ${Math.random() > 0.7 ? 'MEDIUM' : 'LOW'} — ${Math.random() > 0.5 ? 'resolved' : 'triaging'}`,
-      `Security score: ${(0.88 + Math.random() * 0.11).toFixed(3)} — trend: ${Math.random() > 0.3 ? 'STABLE' : 'IMPROVING'}`,
-      `Regulatory alignment: ${(95 + Math.random() * 4.9).toFixed(1)}% — next audit in ${Math.floor(Math.random() * 48 + 1)}h`,
-    ],
-    SYSTEM: [
-      `Heartbeat OK — governance latency ${(Math.random() * 4 + 0.5).toFixed(1)}ms`,
-      `Governance coherence: ${(0.89 + Math.random() * 0.1).toFixed(3)}`,
-    ],
-  };
-  const pool = entries[source];
-  const message = pool[Math.floor(Math.random() * pool.length)];
-  const type = source === 'SYSTEM' ? 'SYS' : Math.random() > 0.92 ? 'ALERT' : 'DATA';
-  return { id, time: ts(), source, type, message };
-}
-
 export function GovernanceTerminal() {
   const terminalRef = useRef<HTMLDivElement>(null);
-  const [logs, setLogs] = useState<LogEntry[]>(buildBootMessages);
-  const nextId = useRef(100);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLogs(prev => {
-        const entry = generateLogEntry(nextId.current++);
-        const next = [...prev, entry];
-        return next.length > 200 ? next.slice(-200) : next;
-      });
-    }, 2600);
-    return () => clearInterval(interval);
-  }, []);
+  const wire = useCanisterWire('GOVERNANCE', 3000, extractGovernanceLogs);
+  const packages = getPackagesByDomain('GOVERNANCE');
+  const calls = getCallsByDomain('GOVERNANCE');
 
   useEffect(() => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
-  }, [logs]);
+  }, [wire.logs]);
 
   return (
     <div style={S.root}>
       {/* Left Panel — Packages */}
       <div style={S.panel}>
         <div style={S.header}>
-          <span style={{ fontSize: 14 }}>⚖</span> Governance Packages
+          <span style={{ fontSize: 14 }}>{'⚖'}</span> Governance Packages
         </div>
 
-        {PACKAGES.map(pkg => (
+        {packages.map(pkg => (
           <div key={pkg.id} style={S.packageCard}>
             <div style={S.packageName}>{pkg.name}</div>
-            <div style={S.packageModel}>{pkg.id} — {pkg.model}</div>
+            <div style={S.packageModel}>{pkg.id} — {pkg.aiModel}</div>
             <ul style={S.capList}>
               {pkg.capabilities.map((cap, i) => (
                 <li key={i} style={S.capItem}>▸ {cap}</li>
               ))}
             </ul>
             <div style={S.metric}>
-              <span style={S.metricLabel}>Coherence</span>
+              <span style={S.metricLabel}>Calls</span>
               <div style={S.metricBar}>
-                <div style={S.metricFill(pkg.coherence)} />
+                <div style={S.metricFill(pkg.calls.length / 4)} />
               </div>
             </div>
           </div>
@@ -274,7 +174,7 @@ export function GovernanceTerminal() {
         <div style={{ ...S.header, marginTop: 12 }}>
           <span style={{ fontSize: 14 }}>⚡</span> Active Calls
         </div>
-        {CALLS.map(c => (
+        {calls.map(c => (
           <div key={c.id} style={S.callCard}>
             <span style={S.callName}>{c.id} {c.name}</span>
             <div style={S.callEndpoint}>{c.endpoint}</div>
@@ -285,10 +185,12 @@ export function GovernanceTerminal() {
       {/* Right Panel — Terminal Stream */}
       <div style={S.terminal} ref={terminalRef}>
         <div style={S.header}>
-          <span style={{ fontSize: 14 }}>⚖</span> Governance Terminal Stream
+          <span style={{ fontSize: 14 }}>{'⚖'}</span> Governance Terminal Stream
+          {wire.connected && <span style={{ marginLeft: 'auto', fontSize: 9, color: '#4f4' }}>● LIVE</span>}
+          {wire.error && <span style={{ marginLeft: 'auto', fontSize: 9, color: '#f44' }}>● ERROR</span>}
         </div>
 
-        {logs.map(entry => (
+        {wire.logs.map(entry => (
           <div key={entry.id} style={S.line(entry.type)}>
             <span style={S.ts}>[{entry.time}]</span>
             <span style={S.src}>{entry.source}:</span>

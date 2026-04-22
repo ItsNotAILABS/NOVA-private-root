@@ -1,8 +1,12 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // MEDINA TECH — Defense Terminal
+// REAL CANISTER WIRE — No simulation, no Math.random()
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
+import { useCanisterWire, extractDefenseLogs } from './useCanisterWire';
+import { getPackagesByDomain } from './packages';
+import { getCallsByDomain } from './calls';
 
 const DOMAIN_COLOR = '#f44';
 
@@ -128,159 +132,39 @@ const S = {
   },
 };
 
-interface Package {
-  id: string;
-  name: string;
-  model: string;
-  capabilities: string[];
-  coherence: number;
-}
-
-interface LogEntry {
-  id: number;
-  time: string;
-  source: string;
-  type: string;
-  message: string;
-}
-
-const PACKAGES: Package[] = [
-  {
-    id: 'PKG-01',
-    name: 'AEGIS Shield Organism',
-    model: 'nova-defense-v3.1',
-    capabilities: [
-      'Perimeter shield modulation',
-      'Threat vector analysis',
-      'Adaptive barrier generation',
-      'Energy redistribution',
-    ],
-    coherence: 0.94,
-  },
-  {
-    id: 'PKG-02',
-    name: 'War Command Organism',
-    model: 'nova-warcom-v2.8',
-    capabilities: [
-      'Mission orchestration',
-      'Tactical offense/defense switching',
-      'Resource allocation under fire',
-      'Multi-front coordination',
-    ],
-    coherence: 0.87,
-  },
-  {
-    id: 'PKG-03',
-    name: 'Counterforce Intelligence Organism',
-    model: 'nova-cfi-v1.5',
-    capabilities: [
-      'Scout deployment & tracking',
-      'Trap network management',
-      'Hunter unit dispatch',
-      'Intelligence synthesis',
-    ],
-    coherence: 0.91,
-  },
-];
-
-const CALLS = [
-  { id: 'C-01', name: 'AEGIS State', endpoint: 'get_aegis_state()' },
-  { id: 'C-02', name: 'War Defense Mode', endpoint: 'get_war_defense_mode()' },
-  { id: 'C-03', name: 'Counterforce Status', endpoint: 'get_counterforce_status()' },
-  { id: 'C-04', name: 'Offense Defense Status', endpoint: 'get_offense_defense_status()' },
-];
-
-function ts(): string {
-  return new Date().toLocaleTimeString('en-US', { hour12: false });
-}
-
-function buildBootMessages(): LogEntry[] {
-  const t = ts();
-  return [
-    { id: 1, time: t, source: 'BOOT', type: 'SYS', message: 'Defense Terminal v1.0.0 initialized' },
-    { id: 2, time: t, source: 'BOOT', type: 'SYS', message: 'AEGIS Shield Organism linked — perimeter online' },
-    { id: 3, time: t, source: 'BOOT', type: 'SYS', message: 'War Command Organism linked — defense posture ACTIVE' },
-    { id: 4, time: t, source: 'BOOT', type: 'SYS', message: 'Counterforce Intelligence Organism linked — scouts deployed' },
-    { id: 5, time: t, source: 'AEGIS', type: 'DATA', message: 'Shield status: NOMINAL | Barrier strength: 97.3%' },
-    { id: 6, time: t, source: 'WARCOM', type: 'DATA', message: 'Defense posture: ELEVATED | Threat level: AMBER' },
-    { id: 7, time: t, source: 'CFI', type: 'DATA', message: 'Active missions: 4 | Scouts: 12 | Traps: 8 | Hunters: 3' },
-    { id: 8, time: t, source: 'AEGIS', type: 'ALERT', message: 'Perimeter breach attempt — sector 7G — REPELLED' },
-  ];
-}
-
-function generateLogEntry(id: number): LogEntry {
-  const sources = ['AEGIS', 'WARCOM', 'CFI', 'SYSTEM'];
-  const source = sources[Math.floor(Math.random() * sources.length)];
-  const entries: Record<string, string[]> = {
-    AEGIS: [
-      `Shield modulation cycle #${(id * 17) % 999} complete — efficiency ${(92 + Math.random() * 7).toFixed(1)}%`,
-      `Barrier sector ${Math.floor(Math.random() * 12) + 1} reinforced — energy draw ${(Math.random() * 40 + 10).toFixed(0)} TW`,
-      `Threat vector scan — ${Math.floor(Math.random() * 3)} anomalies detected`,
-    ],
-    WARCOM: [
-      `Offense/defense ratio: ${(Math.random() * 0.4 + 0.3).toFixed(2)} — posture stable`,
-      `Mission #${(id * 31) % 500} status: ${Math.random() > 0.3 ? 'GREEN' : 'AMBER'}`,
-      `Resource reallocation — ${Math.floor(Math.random() * 20 + 5)} units repositioned`,
-    ],
-    CFI: [
-      `Scout unit S-${String(Math.floor(Math.random() * 99) + 1).padStart(2, '0')} reporting — sector clear`,
-      `Trap network integrity: ${(95 + Math.random() * 4).toFixed(1)}% — ${Math.floor(Math.random() * 3)} triggers armed`,
-      `Hunter pack H-${Math.floor(Math.random() * 5) + 1} — pursuit vector locked`,
-    ],
-    SYSTEM: [
-      `Heartbeat OK — latency ${(Math.random() * 5 + 1).toFixed(1)}ms`,
-      `Defense subsystem coherence: ${(0.88 + Math.random() * 0.1).toFixed(3)}`,
-    ],
-  };
-  const pool = entries[source];
-  const message = pool[Math.floor(Math.random() * pool.length)];
-  const type = source === 'SYSTEM' ? 'SYS' : Math.random() > 0.9 ? 'ALERT' : 'DATA';
-  return { id, time: ts(), source, type, message };
-}
-
 export function DefenseTerminal() {
   const terminalRef = useRef<HTMLDivElement>(null);
-  const [logs, setLogs] = useState<LogEntry[]>(buildBootMessages);
-  const nextId = useRef(100);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLogs(prev => {
-        const entry = generateLogEntry(nextId.current++);
-        const next = [...prev, entry];
-        return next.length > 200 ? next.slice(-200) : next;
-      });
-    }, 2200);
-    return () => clearInterval(interval);
-  }, []);
+  const wire = useCanisterWire('DEFENSE', 3000, extractDefenseLogs);
+  const packages = getPackagesByDomain('DEFENSE');
+  const calls = getCallsByDomain('DEFENSE');
 
   useEffect(() => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
-  }, [logs]);
+  }, [wire.logs]);
 
   return (
     <div style={S.root}>
       {/* Left Panel — Packages */}
       <div style={S.panel}>
         <div style={S.header}>
-          <span style={{ fontSize: 14 }}>⛊</span> Defense Packages
+          <span style={{ fontSize: 14 }}>{'⛊'}</span> Defense Packages
         </div>
 
-        {PACKAGES.map(pkg => (
+        {packages.map(pkg => (
           <div key={pkg.id} style={S.packageCard}>
             <div style={S.packageName}>{pkg.name}</div>
-            <div style={S.packageModel}>{pkg.id} — {pkg.model}</div>
+            <div style={S.packageModel}>{pkg.id} — {pkg.aiModel}</div>
             <ul style={S.capList}>
               {pkg.capabilities.map((cap, i) => (
                 <li key={i} style={S.capItem}>▸ {cap}</li>
               ))}
             </ul>
             <div style={S.metric}>
-              <span style={S.metricLabel}>Coherence</span>
+              <span style={S.metricLabel}>Calls</span>
               <div style={S.metricBar}>
-                <div style={S.metricFill(pkg.coherence)} />
+                <div style={S.metricFill(pkg.calls.length / 4)} />
               </div>
             </div>
           </div>
@@ -290,7 +174,7 @@ export function DefenseTerminal() {
         <div style={{ ...S.header, marginTop: 12 }}>
           <span style={{ fontSize: 14 }}>⚡</span> Active Calls
         </div>
-        {CALLS.map(c => (
+        {calls.map(c => (
           <div key={c.id} style={S.callCard}>
             <span style={S.callName}>{c.id} {c.name}</span>
             <div style={S.callEndpoint}>{c.endpoint}</div>
@@ -301,10 +185,12 @@ export function DefenseTerminal() {
       {/* Right Panel — Terminal Stream */}
       <div style={S.terminal} ref={terminalRef}>
         <div style={S.header}>
-          <span style={{ fontSize: 14 }}>⛊</span> Defense Terminal Stream
+          <span style={{ fontSize: 14 }}>{'⛊'}</span> Defense Terminal Stream
+          {wire.connected && <span style={{ marginLeft: 'auto', fontSize: 9, color: '#4f4' }}>● LIVE</span>}
+          {wire.error && <span style={{ marginLeft: 'auto', fontSize: 9, color: '#f44' }}>● ERROR</span>}
         </div>
 
-        {logs.map(entry => (
+        {wire.logs.map(entry => (
           <div key={entry.id} style={S.line(entry.type)}>
             <span style={S.ts}>[{entry.time}]</span>
             <span style={S.src}>{entry.source}:</span>

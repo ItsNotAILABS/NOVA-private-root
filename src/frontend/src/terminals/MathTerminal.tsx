@@ -1,8 +1,12 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // MEDINA TECH — Math Terminal
+// REAL CANISTER WIRE — No simulation, no Math.random()
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
+import { useCanisterWire, extractMathLogs } from './useCanisterWire';
+import { getPackagesByDomain } from './packages';
+import { getCallsByDomain } from './calls';
 
 const DOMAIN_COLOR = '#f8a';
 
@@ -128,137 +132,39 @@ const S = {
   },
 };
 
-interface Package {
-  id: string;
-  name: string;
-  model: string;
-  capabilities: string[];
-  coherence: number;
-}
-
-interface LogEntry {
-  id: number;
-  time: string;
-  source: string;
-  type: string;
-  message: string;
-}
-
-const PACKAGES: Package[] = [
-  {
-    id: 'PKG-30',
-    name: 'Sacred Mathematics Organism',
-    model: 'R-MODEL-SACRED-MATHEMATICS',
-    capabilities: [
-      'Field equation solving',
-      'Physics certification',
-      'Fibonacci resonance',
-      'Unified field theory',
-    ],
-    coherence: 0.96,
-  },
-];
-
-const CALLS = [
-  { id: 'C-40', name: 'Unified Field State', endpoint: 'get_unified_field_state()' },
-];
-
-function ts(): string {
-  return new Date().toLocaleTimeString('en-US', { hour12: false });
-}
-
-function buildBootMessages(): LogEntry[] {
-  const t = ts();
-  return [
-    { id: 1, time: t, source: 'BOOT', type: 'SYS', message: 'Math Terminal v1.0.0 initialized' },
-    { id: 2, time: t, source: 'BOOT', type: 'SYS', message: 'Sacred Mathematics Organism linked — sacred geometry ACTIVE' },
-    { id: 3, time: t, source: 'GEOMETRY', type: 'DATA', message: 'Sacred geometry engine: ONLINE | Certified physics constants loaded' },
-    { id: 4, time: t, source: 'FIBONACCI', type: 'DATA', message: 'Fibonacci resonance: LOCKED | PHI = 1.6180339887 — golden ratio VERIFIED' },
-    { id: 5, time: t, source: 'FIELD', type: 'DATA', message: 'Unified field equations: CONVERGING | Differential geometry: ACTIVE' },
-    { id: 6, time: t, source: 'FIELD', type: 'DATA', message: 'Tensor fields: 4D manifold mapped | Curvature tensor: NOMINAL' },
-    { id: 7, time: t, source: 'PHYSICS', type: 'DATA', message: 'Physics constants certified — c, h, G, k_B, e — all within tolerance' },
-    { id: 8, time: t, source: 'GEOMETRY', type: 'ALERT', message: 'Sacred geometry alignment complete — all field equations synchronized' },
-  ];
-}
-
-function generateLogEntry(id: number): LogEntry {
-  const sources = ['GEOMETRY', 'FIBONACCI', 'FIELD', 'PHYSICS', 'SYSTEM'];
-  const source = sources[Math.floor(Math.random() * sources.length)];
-  const entries: Record<string, string[]> = {
-    GEOMETRY: [
-      `Sacred geometry cycle #${(id * 17) % 999} — pattern coherence ${(94 + Math.random() * 5).toFixed(1)}%`,
-      `Platonic solid mapping — ${Math.floor(Math.random() * 5) + 1}/5 forms resonating`,
-      `Flower of Life projection — ${Math.floor(Math.random() * 19) + 1} petals aligned — symmetry ${(98 + Math.random() * 2).toFixed(2)}%`,
-    ],
-    FIBONACCI: [
-      `Fibonacci sequence verification — F(${Math.floor(Math.random() * 50 + 10)}) computed — PHI convergence ${(1.618 + (Math.random() - 0.5) * 0.0001).toFixed(10)}`,
-      `Golden ratio resonance pulse — deviation ${(Math.random() * 0.0001).toFixed(6)} — WITHIN TOLERANCE`,
-      `Spiral projection #${(id * 31) % 500} — growth factor ${(1.618 + (Math.random() - 0.5) * 0.001).toFixed(6)}`,
-    ],
-    FIELD: [
-      `Unified field equation iteration #${Math.floor(Math.random() * 9000 + 1000)} — convergence ${(0.99 + Math.random() * 0.009).toFixed(4)}`,
-      `Differential geometry — Ricci tensor component R_${Math.floor(Math.random() * 4)}${Math.floor(Math.random() * 4)} = ${(Math.random() * 0.01).toFixed(6)}`,
-      `Tensor field update — 4D manifold curvature: ${(Math.random() * 0.001).toFixed(6)} — ${Math.random() > 0.2 ? 'FLAT' : 'CURVED'}`,
-    ],
-    PHYSICS: [
-      `Constant certification — c = 299792458 m/s — drift ${(Math.random() * 0.0001).toFixed(6)} — CERTIFIED`,
-      `Planck constant check — h = 6.62607015e-34 J·s — variance ${(Math.random() * 1e-10).toExponential(4)}`,
-      `Gravitational constant — G = 6.67430e-11 — measurement ${Math.random() > 0.3 ? 'STABLE' : 'REFINING'}`,
-    ],
-    SYSTEM: [
-      `Heartbeat OK — latency ${(Math.random() * 5 + 1).toFixed(1)}ms`,
-      `Math subsystem coherence: ${(0.93 + Math.random() * 0.06).toFixed(3)}`,
-    ],
-  };
-  const pool = entries[source];
-  const message = pool[Math.floor(Math.random() * pool.length)];
-  const type = source === 'SYSTEM' ? 'SYS' : Math.random() > 0.9 ? 'ALERT' : 'DATA';
-  return { id, time: ts(), source, type, message };
-}
-
 export function MathTerminal() {
   const terminalRef = useRef<HTMLDivElement>(null);
-  const [logs, setLogs] = useState<LogEntry[]>(buildBootMessages);
-  const nextId = useRef(100);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLogs(prev => {
-        const entry = generateLogEntry(nextId.current++);
-        const next = [...prev, entry];
-        return next.length > 200 ? next.slice(-200) : next;
-      });
-    }, 2200);
-    return () => clearInterval(interval);
-  }, []);
+  const wire = useCanisterWire('MATH', 3000, extractMathLogs);
+  const packages = getPackagesByDomain('MATH');
+  const calls = getCallsByDomain('MATH');
 
   useEffect(() => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
-  }, [logs]);
+  }, [wire.logs]);
 
   return (
     <div style={S.root}>
       {/* Left Panel — Packages */}
       <div style={S.panel}>
         <div style={S.header}>
-          <span style={{ fontSize: 14 }}>∂</span> Math Packages
+          <span style={{ fontSize: 14 }}>{'∂'}</span> Math Packages
         </div>
 
-        {PACKAGES.map(pkg => (
+        {packages.map(pkg => (
           <div key={pkg.id} style={S.packageCard}>
             <div style={S.packageName}>{pkg.name}</div>
-            <div style={S.packageModel}>{pkg.id} — {pkg.model}</div>
+            <div style={S.packageModel}>{pkg.id} — {pkg.aiModel}</div>
             <ul style={S.capList}>
               {pkg.capabilities.map((cap, i) => (
                 <li key={i} style={S.capItem}>▸ {cap}</li>
               ))}
             </ul>
             <div style={S.metric}>
-              <span style={S.metricLabel}>Coherence</span>
+              <span style={S.metricLabel}>Calls</span>
               <div style={S.metricBar}>
-                <div style={S.metricFill(pkg.coherence)} />
+                <div style={S.metricFill(pkg.calls.length / 4)} />
               </div>
             </div>
           </div>
@@ -268,7 +174,7 @@ export function MathTerminal() {
         <div style={{ ...S.header, marginTop: 12 }}>
           <span style={{ fontSize: 14 }}>⚡</span> Active Calls
         </div>
-        {CALLS.map(c => (
+        {calls.map(c => (
           <div key={c.id} style={S.callCard}>
             <span style={S.callName}>{c.id} {c.name}</span>
             <div style={S.callEndpoint}>{c.endpoint}</div>
@@ -279,10 +185,12 @@ export function MathTerminal() {
       {/* Right Panel — Terminal Stream */}
       <div style={S.terminal} ref={terminalRef}>
         <div style={S.header}>
-          <span style={{ fontSize: 14 }}>∂</span> Math Terminal Stream
+          <span style={{ fontSize: 14 }}>{'∂'}</span> Math Terminal Stream
+          {wire.connected && <span style={{ marginLeft: 'auto', fontSize: 9, color: '#4f4' }}>● LIVE</span>}
+          {wire.error && <span style={{ marginLeft: 'auto', fontSize: 9, color: '#f44' }}>● ERROR</span>}
         </div>
 
-        {logs.map(entry => (
+        {wire.logs.map(entry => (
           <div key={entry.id} style={S.line(entry.type)}>
             <span style={S.ts}>[{entry.time}]</span>
             <span style={S.src}>{entry.source}:</span>
