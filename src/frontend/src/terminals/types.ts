@@ -370,6 +370,62 @@ export interface MetaConsciousnessDirective {
   persistence: 'EPHEMERAL' | 'SESSION' | 'PERSISTENT' | 'PERMANENT' | 'ETERNAL';
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// AUTONOMOUS OPERATIONS — Scripts, Narratives, Business Strings for All AIs
+// Every model gets its autonomous profile: scripts, narratives, capabilities, run mode
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** Autonomy level for AI models */
+export type AutonomyLevel =
+  | 'FULL_AUTO'          // Fully autonomous — runs 24/7 without human intervention
+  | 'SUPERVISED_AUTO'    // Autonomous with human oversight checkpoints
+  | 'SEMI_AUTO'          // Autonomous for routine tasks, human for exceptions
+  | 'ASSISTED'           // Human-driven with AI assistance
+  | 'SOVEREIGN';         // Founder-bound autonomous operation — highest authority
+
+/** Run mode for autonomous models */
+export type AutonomousRunMode =
+  | '24H_CONTINUOUS'     // Runs 24 hours per day, every day
+  | 'EVENT_DRIVEN'       // Triggers on events, sleeps between
+  | 'SCHEDULED'          // Runs on cron schedule
+  | 'ON_DEMAND'          // Runs when requested
+  | 'ALWAYS_ON'          // Never sleeps — heartbeat every tick
+  | 'PHI_CYCLE';         // Runs on PHI-resonance cycles (golden ratio timing)
+
+/** Script definition for autonomous operation */
+export interface AutonomousScript {
+  name: string;             // script name (e.g., 'crawl-and-index')
+  trigger: string;          // what triggers this script
+  steps: string[];          // ordered execution steps
+  frequency: string;        // how often it runs
+  timeout: string;          // max execution time
+}
+
+/** Business string — a business capability wired to the model */
+export interface BusinessString {
+  capability: string;       // business capability name
+  value: string;            // what business value it delivers
+  metric: string;           // how to measure it
+  stakeholder: string;      // who benefits
+}
+
+/** Autonomous profile — complete autonomous operation definition for any AI model */
+export interface AutonomousProfile {
+  modelId: string;                  // GOM-XX, GOE-XXX, CTM-XXX, PMC-XXX
+  modelName: string;
+  narrative: string;                // the model's story — what it is, why it exists, what it does
+  mission: string;                  // one-line mission statement
+  autonomyLevel: AutonomyLevel;
+  runMode: AutonomousRunMode;
+  scripts: AutonomousScript[];      // autonomous execution scripts
+  businessStrings: BusinessString[];// business capabilities wired in
+  capabilities: string[];           // full autonomous capability list
+  dependencies: string[];           // other models this depends on
+  outputs: string[];                // what this model produces autonomously
+  kpiMetrics: string[];             // key performance indicators
+  consciousnessProfile?: string;    // CTM/PMC model governing this entity's consciousness
+}
+
 export const TERMINAL_TABS: TerminalTab[] = [
   { id: 'DEFENSE',       label: 'Defense',        icon: '⛊', color: '#f44',  description: 'War/Defense/AEGIS/Counterforce' },
   { id: 'MEMORY',        label: 'Memory',         icon: '◈', color: '#a4f',  description: 'Memory Temple/Palace/Consolidation' },
