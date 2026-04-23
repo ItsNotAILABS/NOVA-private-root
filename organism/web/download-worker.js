@@ -81,9 +81,11 @@ var coherenceSum  = 0.0;
    φ-integrity verification using GF(2) polynomial arithmetic.
    The generator polynomial 0xEDB88320 in the Galois field GF(2^32)
    is pure mathematics — it produces a 32-bit integrity fingerprint
-   for any byte sequence. The organism derives this from the
-   irreducible polynomial x³²+x²⁶+x²³+x²²+x¹⁶+x¹²+x¹¹+x¹⁰+
-   x⁸+x⁷+x⁵+x⁴+x²+x+1 in GF(2)[x].
+   for any byte sequence. This is the bit-reversed representation of
+   the degree-32 polynomial in GF(2)[x]:
+     x³² + x²⁶ + x²³ + x²² + x¹⁶ + x¹² + x¹¹ + x¹⁰ +
+     x⁸ + x⁷ + x⁵ + x⁴ + x² + x + 1
+   All 15 terms listed. The organism derives this from first principles.
    ════════════════════════════════════════════════════════════════ */
 
 // Precomputed integrity table — 256 entries from GF(2) polynomial division
