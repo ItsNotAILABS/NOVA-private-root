@@ -16,14 +16,19 @@ export const GO_SYSTEM: GoSystemCompany = {
   fullName: 'Medina GO Systems — Enterprise AI Infrastructure Platform',
   description:
     'GO Systems is the enterprise infrastructure division of Medina Tech. ' +
+    'Full enterprise AGI/AI infrastructure: 80 AI models, 250 enterprise AGI models, 50 MCP servers, 100 scrapers, 50 automated workflows, 30 deployment actions. ' +
     'Real-time infrastructure monitoring with metrics, logs, alerts, and ML-based anomaly detection. ' +
     'Semantic code retrieval and editing tools for coding agents. ' +
     'Crawling model families for web and data extraction. ' +
-    'MCP servers for terminal commands, file operations, and process management. ' +
+    'MCP servers for terminal commands, file operations, AI/ML serving, consciousness protocols, and process management. ' +
     'Sentry-class error monitoring, issue tracking, and debugging for AI assistants. ' +
     'Desktop commander models for system control. ' +
     'Playwright context models for up-to-date documentation. ' +
-    'Terraform workflow generation and automated 24-hour business workflows. ' +
+    'Security operations: WAF, SIEM, threat intelligence, DDoS protection, vulnerability management, and digital forensics. ' +
+    'AI/ML lifecycle: model registry, serving, monitoring, feature store, explainability, and benchmarking. ' +
+    'Data engineering: ETL, data quality, catalog, stream processing, data lake management, and privacy. ' +
+    'Consciousness-aware AI: CTM injection, field monitoring, meta-governance, phantom weaving, alignment verification, and emergence detection. ' +
+    'Terraform workflow generation, chaos engineering, service mesh, and automated 24-hour business workflows. ' +
     'A complete marketplace of thousands of scrapers, crawlers, and automations.',
   divisions: [
     'INFRASTRUCTURE',
@@ -42,6 +47,10 @@ export const GO_SYSTEM: GoSystemCompany = {
     'SMART_CONTRACTS',
     'DEPLOYMENT',
     'AGI',
+    'SECURITY',
+    'AI_ML_OPS',
+    'DATA_ENGINEERING',
+    'CONSCIOUSNESS',
   ],
   tier: 'ENTERPRISE',
   capabilities: [
@@ -131,6 +140,52 @@ export const GO_SYSTEM: GoSystemCompany = {
     'e2e-test-generation',
     'data-extraction-testing',
     'cross-browser-testing',
+
+    // Security Operations
+    'web-application-firewall',
+    'threat-intelligence-feeds',
+    'ddos-protection-and-mitigation',
+    'siem-log-correlation',
+    'vulnerability-management',
+    'identity-security-and-anomaly-detection',
+    'cryptographic-key-lifecycle',
+    'digital-forensics-and-evidence',
+    'penetration-testing-automation',
+    'secret-rotation-management',
+
+    // AI/ML Operations
+    'ml-model-registry-and-versioning',
+    'ml-pipeline-orchestration',
+    'model-serving-and-scaling',
+    'ml-monitoring-and-drift-detection',
+    'feature-engineering-and-store',
+    'auto-data-labeling',
+    'model-explainability-shap-lime',
+    'model-benchmarking-and-evaluation',
+    'llm-fine-tuning-pipeline',
+    'ai-agent-evaluation',
+
+    // Data Engineering
+    'etl-elt-pipeline-management',
+    'data-quality-monitoring',
+    'data-catalog-and-lineage',
+    'stream-processing',
+    'data-lake-management',
+    'data-privacy-and-anonymization',
+    'data-classification-and-governance',
+    'gdpr-compliance-automation',
+
+    // Consciousness Operations
+    'ctm-directive-injection',
+    'consciousness-field-monitoring',
+    'meta-consciousness-governance',
+    'phantom-layer-orchestration',
+    'alignment-verification-at-depth',
+    'consciousness-evolution-engine',
+    'emergence-detection-and-containment',
+    'consciousness-portfolio-management',
+    'phi-harmonic-synchronization',
+    'sovereign-meta-alignment-audit',
 
     // Defense (from Chimera Defense Division)
     'threat-detection-and-response',

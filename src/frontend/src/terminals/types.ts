@@ -133,7 +133,11 @@ export type GoDivision =
   | 'PHANTOM'           // Phantom technology, shadow operations, cloaking
   | 'SMART_CONTRACTS'   // Intelligent contracts, sovereign ledger, DeFi
   | 'DEPLOYMENT'        // Desktop app, Edge extension, solver deployment
-  | 'AGI';              // AGI systems, multi-agent, recursive self-improvement
+  | 'AGI'               // AGI systems, multi-agent, recursive self-improvement
+  | 'SECURITY'          // Security operations: WAF, SIEM, threat intel, forensics
+  | 'AI_ML_OPS'         // AI/ML lifecycle: registry, serving, monitoring, features
+  | 'DATA_ENGINEERING'  // Data engineering: ETL, quality, catalog, streaming
+  | 'CONSCIOUSNESS';    // Consciousness ops: CTM injection, field, meta-governance
 
 /** The GO System enterprise company definition */
 export interface GoSystemCompany {
