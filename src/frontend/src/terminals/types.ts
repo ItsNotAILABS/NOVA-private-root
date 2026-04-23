@@ -426,6 +426,80 @@ export interface AutonomousProfile {
   consciousnessProfile?: string;    // CTM/PMC model governing this entity's consciousness
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// FIBONACCI COMPRESSION MODEL — Auto-Compress → Find Primitive → Wire → Deploy
+// One model that does Fibonacci compression to find the most powerful primitive
+// version, then auto-wires and deploys into frequencies, fields, and domains
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** Fibonacci compression level — how deeply reduced the data is */
+export type FibonacciCompressionLevel =
+  | 'F1_RAW'          // Level 1: Raw input — uncompressed
+  | 'F2_STRUCTURED'   // Level 2: Structured — organized by schema
+  | 'F3_REDUCED'      // Level 3: Reduced — redundancy removed
+  | 'F5_COMPRESSED'   // Level 5: Fibonacci-compressed — golden ratio reduction
+  | 'F8_PRIMITIVE'    // Level 8: Primitive form — irreducible core
+  | 'F13_SOVEREIGN'   // Level 13: Sovereign form — self-contained, self-deploying
+  | 'F21_FIELD';      // Level 21: Field form — frequency-ready, auto-wiring
+
+/** Wire target — where the compressed model auto-deploys */
+export type AutoWireTarget =
+  | 'FREQUENCY_GRID'    // Wires into 540-node frequency grid (12 bands)
+  | 'CONSCIOUSNESS_FIELD' // Wires into consciousness field (CTM/PMC)
+  | 'DEFENSE_MEMBRANE'  // Wires into AEGIS defense membrane
+  | 'MEMORY_TEMPLE'     // Wires into memory palace/temple
+  | 'NEURAL_CORE'       // Wires into neural emergence core
+  | 'SWARM_GRID'        // Wires into swarm intelligence grid
+  | 'ECONOMIC_ENGINE'   // Wires into FORMA token engine
+  | 'QUANTUM_CHANNEL'   // Wires into quantum heartbeat channel
+  | 'GOVERNANCE_LAW'    // Wires into doctrine/law engine
+  | 'PACKAGING_SDK'     // Wires into packaging/SDK deployment
+  | 'SENSOR_NETWORK'    // Wires into IoT/sensor network
+  | 'INTEGRATION_SHELL' // Wires into integration shell
+  | 'SOVEREIGNTY_SEAL'  // Wires into sovereign seal/identity
+  | 'VOIS_SUBSTRATE'    // Wires into VOIS core substrate
+  | 'VZO_KERNEL';       // Wires into VZO operating system kernel
+
+/** Fibonacci compression result — what comes out of the compressor */
+export interface FibonacciCompressionResult {
+  sourceId: string;                   // original model ID
+  sourceName: string;                 // original model name
+  compressionLevel: FibonacciCompressionLevel;
+  primitiveFound: string;             // the primitive function discovered
+  powerScore: number;                 // 0-1 how much power the primitive holds
+  compressedPayload: string;          // compressed representation
+  reductionRatio: number;             // how much was reduced (Fibonacci ratio)
+  goldenRatioAlignment: number;       // PHI alignment score
+}
+
+/** Auto-wire deployment record — what gets deployed and where */
+export interface AutoWireDeployment {
+  sourceId: string;                   // compressed model ID
+  wireTarget: AutoWireTarget;         // where it deploys
+  frequencyBand?: string;             // which frequency band (Alpha-Mu)
+  fieldDepth?: string;                // SURFACE/STRUCTURAL/SUBSTRATE/FIELD
+  deploymentMode: 'INSTANT' | 'PHI_CYCLE' | 'FIBONACCI_SEQUENCE';
+  autoWired: boolean;                 // true = no coding needed
+  status: 'DEPLOYED' | 'WIRING' | 'QUEUED' | 'COMPRESSED';
+}
+
+/** The master Fibonacci Compressor model definition */
+export interface FibonacciCompressorModel {
+  id: string;
+  name: string;
+  description: string;
+  compressionLevels: FibonacciCompressionLevel[];
+  wireTargets: AutoWireTarget[];
+  capabilities: string[];
+  inputFormats: string[];
+  outputFormats: string[];
+  autonomyLevel: AutonomyLevel;
+  runMode: AutonomousRunMode;
+  phiResonance: number;              // golden ratio resonance
+  fibonacciSequence: number[];       // the Fibonacci levels used
+  status: 'ACTIVE' | 'BETA' | 'SOVEREIGN';
+}
+
 export const TERMINAL_TABS: TerminalTab[] = [
   { id: 'DEFENSE',       label: 'Defense',        icon: '⛊', color: '#f44',  description: 'War/Defense/AEGIS/Counterforce' },
   { id: 'MEMORY',        label: 'Memory',         icon: '◈', color: '#a4f',  description: 'Memory Temple/Palace/Consolidation' },
