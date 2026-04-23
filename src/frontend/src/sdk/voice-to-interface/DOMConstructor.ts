@@ -449,9 +449,12 @@ export class DOMConstructor {
     });
 
     const barCount = desc.dataBinding.fields.length || 5;
+    const BAR_BASE_HEIGHT = 30;
+    const BAR_OSCILLATION = 40;
+    const BAR_OFFSET = 40;
     for (let i = 0; i < barCount; i++) {
       const bar = document.createElement('div');
-      const height = 30 + Math.floor(Math.sin(i * PHI_INV) * 40 + 40); // PHI-distributed heights
+      const height = BAR_BASE_HEIGHT + Math.floor(Math.sin(i * PHI_INV) * BAR_OSCILLATION + BAR_OFFSET);
       Object.assign(bar.style, {
         flex: '1',
         height: `${height}%`,

@@ -270,7 +270,7 @@ export class VoiceToInterfaceSDK {
     this.config.callbacks?.onComponentCreated?.(descriptor);
 
     // Speak confirmation
-    this.speak(`Created ${intent.title}`);
+    this.speak(`Created ${intent.componentKind.toLowerCase()}: ${intent.title}`);
 
     return descriptor;
   }

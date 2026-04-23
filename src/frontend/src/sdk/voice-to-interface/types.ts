@@ -36,8 +36,8 @@ export const SOVEREIGN_FLOOR = 1.0;
 /** Minimum confidence to accept a voice recognition result */
 export const VOICE_CONFIDENCE_THRESHOLD = PHI_INV; // 0.618 — golden ratio inverse
 
-/** Animation duration base in ms — PHI-scaled */
-export const ANIMATION_DURATION_MS = 618; // φ × 382 ≈ 618ms
+/** Animation duration base in ms — φ × 382ms ≈ 618ms (Fibonacci number) */
+export const ANIMATION_DURATION_MS = 618;
 
 /** Grid gap in pixels — PHI-scaled */
 export const GRID_GAP_PX = 13; // Fibonacci number

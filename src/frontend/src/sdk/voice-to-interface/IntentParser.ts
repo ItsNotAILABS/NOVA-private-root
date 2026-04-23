@@ -316,15 +316,19 @@ export class IntentParser {
     return undefined;
   }
 
+  private toTitleCase(text: string): string {
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  }
+
   private generateTitle(
     kind: UIComponentKind,
     domain: DataDomain,
     chartKind?: ChartKind,
   ): string {
-    const domainLabel = domain === 'CUSTOM' ? 'Data' : domain.charAt(0) + domain.slice(1).toLowerCase();
-    const kindLabel = kind.charAt(0) + kind.slice(1).toLowerCase().replace('_', ' ');
+    const domainLabel = domain === 'CUSTOM' ? 'Data' : this.toTitleCase(domain);
+    const kindLabel = this.toTitleCase(kind).replace('_', ' ');
     if (chartKind) {
-      const chartLabel = chartKind.charAt(0) + chartKind.slice(1).toLowerCase();
+      const chartLabel = this.toTitleCase(chartKind);
       return `${domainLabel} ${chartLabel} Chart`;
     }
     return `${domainLabel} ${kindLabel}`;
