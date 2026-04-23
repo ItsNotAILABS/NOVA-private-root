@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // MEDINA TECH — NOVA Terminal System Index
-// 40 multimodal calls · 30 AI organism packages · 15 sovereign terminals
+// 100 multimodal calls · 80 AI organism packages · 50 SDKs · 50 tools · 3 repos
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // Master hub
@@ -26,6 +26,9 @@ export { MathTerminal } from './MathTerminal';
 // Registries
 export { MULTIMODAL_CALLS, getCallsByDomain, getCallById } from './calls';
 export { MULTIMODAL_PACKAGES, getPackagesByDomain, getPackageById } from './packages';
+export { SOVEREIGN_SDKS, getSDKById, getSDKsByDomain } from './sdks';
+export { DEVELOPER_TOOLS, getToolById, getToolsByCategory, TOOL_CATEGORIES } from './tools';
+export { PUBLIC_REPOS, getRepoByName } from './repos';
 
 // Types
 export type {
@@ -35,5 +38,8 @@ export type {
   TerminalMessage,
   TerminalTab,
   OrganismStatus,
+  SovereignSDK,
+  DeveloperTool,
+  PublicRepo,
 } from './types';
 export { TERMINAL_TABS } from './types';

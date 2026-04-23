@@ -73,6 +73,44 @@ export interface OrganismStatus {
   alerts: string[];
 }
 
+/** A sovereign SDK — deployable intelligence package for external developers */
+export interface SovereignSDK {
+  id: string;
+  name: string;
+  description: string;
+  domain: TerminalDomain;
+  packages: string[];          // package IDs composing this SDK
+  targetAudience: string;
+  capabilities: string[];
+  apiSurface: string[];        // exposed API endpoints
+  deploymentTarget: string;    // ICP canister / npm / standalone
+  license: string;
+}
+
+/** A developer tool — self-contained utility for the NOVA ecosystem */
+export interface DeveloperTool {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  capabilities: string[];
+  inputFormat: string;
+  outputFormat: string;
+  integration: string;         // how it connects to the organism
+}
+
+/** A public GitHub repository definition */
+export interface PublicRepo {
+  name: string;
+  description: string;
+  sdks: string[];              // SDK IDs included
+  tools: string[];             // Tool IDs included
+  packages: string[];          // Package IDs included
+  language: string;
+  license: string;
+  topics: string[];
+}
+
 export const TERMINAL_TABS: TerminalTab[] = [
   { id: 'DEFENSE',       label: 'Defense',        icon: '⛊', color: '#f44',  description: 'War/Defense/AEGIS/Counterforce' },
   { id: 'MEMORY',        label: 'Memory',         icon: '◈', color: '#a4f',  description: 'Memory Temple/Palace/Consolidation' },
