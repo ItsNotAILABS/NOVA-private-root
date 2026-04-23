@@ -16,7 +16,7 @@
 // NEURAL EMERGENCE CORE (NEC) — Full Expansion
 // 100-region biophysical brain model with:
 //   • Leaky Integrate-and-Fire (LIF) dynamics per region
-//   • 50+ neurochemical state
+//   • 47 neurochemical state
 //   • 10 white-matter fiber tracts
 //   • Hebbian coupling, LFP, frequency-band power
 //   • Purely functional tick pipeline
@@ -609,7 +609,7 @@ module {
 
         // ── Activation (maps spike_rate → 0–1) ────────────
         let targetAct    = newLif.spike_rate / 200.0;
-        // Serotonin stabilises: reduces rate of change toward target
+        // Serotonin stabilizes: reduces rate of change toward target
         let stabFactor   = 0.30 - 0.15 * chem.serotonin;
         let newAct       = clampF(r.activation + (targetAct - r.activation) * stabFactor, 0.0, 1.0);
 
