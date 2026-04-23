@@ -127,7 +127,13 @@ export type GoDivision =
   | 'CONTEXT_DOCS'      // Playwright context model, up-to-date docs
   | 'WORKFLOWS'         // Terraform, automated 24h workflows
   | 'SCRAPING'          // Scrapers, crawlers, automations marketplace
-  | 'TESTING';          // Accessibility trees, data extraction, testing
+  | 'TESTING'           // Accessibility trees, data extraction, testing
+  | 'DEFENSE'           // Defense systems, threat detection, counterforce
+  | 'ENCRYPTION'        // Encryption, cryptography, phantom protocols
+  | 'PHANTOM'           // Phantom technology, shadow operations, cloaking
+  | 'SMART_CONTRACTS'   // Intelligent contracts, sovereign ledger, DeFi
+  | 'DEPLOYMENT'        // Desktop app, Edge extension, solver deployment
+  | 'AGI';              // AGI systems, multi-agent, recursive self-improvement
 
 /** The GO System enterprise company definition */
 export interface GoSystemCompany {
@@ -190,6 +196,70 @@ export interface GoWorkflow {
   schedule: string;            // cron or 24h-continuous
   steps: string[];
   integrations: string[];
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ENTERPRISE AI/AGI TYPES — Medina GO System Full Enterprise Expansion
+// 250 AI/AGI intelligence models + deployment system + solver models
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** Enterprise AI family categories */
+export type GoEnterpriseFamily =
+  | 'DEFENSE_AI'           // Threat detection, counterforce, AEGIS shield
+  | 'ENCRYPTION_AI'        // Cryptographic engines, quantum-resistant, phantom protocols
+  | 'PHANTOM_AI'           // Shadow operations, cloaking, stealth intelligence
+  | 'SMART_CONTRACT_AI'    // Intelligent contracts, sovereign ledger, DeFi protocols
+  | 'AGI_CORE'             // General intelligence, recursive self-improvement
+  | 'AGI_REASONING'        // Multi-step reasoning, theorem proving, causal inference
+  | 'AGI_PLANNING'         // Long-horizon planning, world-model simulation
+  | 'AGI_MEMORY'           // Persistent memory, episodic recall, knowledge synthesis
+  | 'AGI_MULTI_AGENT'      // Multi-agent coordination, swarm intelligence
+  | 'SOLVER'               // Instruction solvers, system deployers, action models
+  | 'DEPLOYMENT_ACTION'    // Package, compile, deploy, distribute action models
+  | 'FIBONACCI_KERNEL'     // Fibonacci C kernel compilation, data structure models
+  | 'DESKTOP_PACKAGER'     // Desktop app, Edge extension, system deployer models
+  | 'NEURAL_ARCHITECT'     // Neural architecture search, model design
+  | 'KNOWLEDGE_GRAPH'      // Knowledge extraction, graph reasoning, ontology
+  | 'LANGUAGE_CORE'        // NLP foundation, multilingual, semantic understanding
+  | 'VISION_CORE'          // Computer vision, scene understanding, OCR
+  | 'AUDIO_CORE'           // Speech, audio analysis, music understanding
+  | 'MULTIMODAL'           // Cross-modal reasoning, image+text+audio fusion
+  | 'SAFETY_ALIGNMENT';    // AI safety, alignment verification, guardrails
+
+/** A GO Enterprise AI/AGI model */
+export interface GoEnterpriseAI {
+  id: string;
+  name: string;
+  family: GoEnterpriseFamily;
+  division: GoDivision;
+  description: string;
+  capabilities: string[];
+  tier: 'AI' | 'AGI' | 'SUPER_AI';  // intelligence tier
+  status: 'ACTIVE' | 'BETA' | 'ALPHA' | 'CLASSIFIED';
+}
+
+/** GO Deployment target */
+export type GoDeploymentTarget =
+  | 'DESKTOP_APP'         // Electron/Tauri intelligent desktop application
+  | 'EDGE_EXTENSION'      // Microsoft Edge AI extension
+  | 'SOLVER_SYSTEM'       // Full solver & deployment system
+  | 'FIBONACCI_C_KERNEL'  // Compiled to Fibonacci C kernel data structures
+  | 'ICP_CANISTER'        // Internet Computer canister deployment
+  | 'WASM_MODULE'         // WebAssembly module for browser/edge
+  | 'DOCKER_IMAGE'        // Containerized deployment
+  | 'NPM_PACKAGE'         // npm package distribution
+  | 'STANDALONE_BINARY';  // Native binary for all platforms
+
+/** GO Deployment action model */
+export interface GoDeploymentAction {
+  id: string;
+  name: string;
+  description: string;
+  target: GoDeploymentTarget;
+  capabilities: string[];
+  inputs: string[];
+  outputs: string[];
+  fibonacciKernel: boolean;  // compiled to Fibonacci C kernels
 }
 
 export const TERMINAL_TABS: TerminalTab[] = [

@@ -2,6 +2,7 @@
 // MEDINA TECH — NOVA Terminal System Index
 // 100 multimodal calls · 80 AI organism packages · 50 SDKs · 50 tools · 3 repos
 // GO SYSTEM: 50 models · 30 MCP servers · 100 scrapers · 20 workflows
+// GO ENTERPRISE: 250 AI/AGI models · 30 deployment actions · Fibonacci C kernels
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // Master hub
@@ -37,6 +38,10 @@ export { GO_MODELS, getGoModelById, getGoModelsByFamily, getGoModelsByDivision, 
 export { GO_MCP_SERVERS, getMcpServerById, getMcpServersByDivision } from './goMcpServers';
 export { GO_SCRAPERS, GO_WORKFLOWS, SCRAPER_CATEGORIES, getScraperById, getScrapersByCategory, getWorkflowById, getWorkflowsByType } from './goMarketplace';
 
+// GO ENTERPRISE — 250 AI/AGI Intelligence Models + Deployment Actions
+export { GO_ENTERPRISE_AI, getEnterpriseAIById, getEnterpriseAIByFamily, getEnterpriseAIByTier, GO_ENTERPRISE_FAMILIES } from './goEnterprise';
+export { GO_DEPLOYMENT_ACTIONS, getDeploymentActionById, getDeploymentActionsByTarget, getFibonacciKernelActions, GO_DEPLOYMENT_TARGETS } from './goDeployment';
+
 // Types
 export type {
   TerminalDomain,
@@ -54,5 +59,9 @@ export type {
   GoMcpServer,
   GoMarketplaceItem,
   GoWorkflow,
+  GoEnterpriseFamily,
+  GoEnterpriseAI,
+  GoDeploymentTarget,
+  GoDeploymentAction,
 } from './types';
 export { TERMINAL_TABS } from './types';
