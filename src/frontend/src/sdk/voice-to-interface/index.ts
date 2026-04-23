@@ -90,6 +90,76 @@ export type {
   MultimodalSDKRegistryState,
 } from './MultimodalSDKRegistry';
 
+// ─── Native Nova AIs (100 Species × 3 Engines = 300 Engines, 10 Houses) ───────
+export {
+  NOVA_HOUSES,
+  ALL_NATIVE_NOVA_AIS,
+  ALL_NOVA_ENGINES,
+  ALL_HOUSE_CHANNELS,
+  getNativeNovaRegistryState,
+  getHouse,
+  getAIsByHouse,
+  getAIByCodename,
+  getAIById,
+  getAIsByTier,
+  getAIsByDepth,
+  getAlwaysRunningAIs,
+  getChannelsBetween,
+  getAIsByProtocol,
+  getNovaEngineSummary,
+} from './NativeNovaAIs';
+export type {
+  NovaHouse,
+  NovaEngineKind,
+  NovaEngineStatus,
+  NovaIntelligenceTier,
+  ConsciousnessDepth,
+  HouseChannel,
+  NovaEngine,
+  NativeNovaAI,
+  NovaHouseSpec,
+  NativeNovaRegistryState,
+} from './NativeNovaAIs';
+
+// ─── Organism Marketplace (20 Tools, 12 Orchestrators, 7 Protocols, 3 Surfaces)
+export {
+  SOVEREIGN_PROTOCOLS,
+  MARKET_SURFACES,
+  ORCHESTRATORS,
+  CALLABLE_TOOLS,
+  getMarketplaceState,
+  getToolByCodename,
+  getToolById,
+  getToolsByHouse,
+  getToolsBySurface,
+  getToolsByTrustTier,
+  getToolsByProtocol,
+  getToolsByBillingClass,
+  getOrchestrator,
+  getOrchestratorsByHouse,
+  getProtocol,
+  getMarketSurface,
+  searchToolsByCapability,
+  getToolDependencyGraph,
+  getOrchestratorGraph,
+} from './OrganismMarketplace';
+export type {
+  TrustTier,
+  MarketSurface,
+  SovereignProtocol,
+  OrchestratorDivision,
+  PermissionClass,
+  BillingClass,
+  CallResultStatus,
+  SchemaDefinition,
+  SchemaField,
+  CallableTool,
+  Orchestrator,
+  MarketSurfaceSpec,
+  ProtocolSpec,
+  MarketplaceState,
+} from './OrganismMarketplace';
+
 // ─── Types ─────────────────────────────────────────────────────────────────────
 export type {
   // Voice types
