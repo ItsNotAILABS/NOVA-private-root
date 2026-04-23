@@ -4,6 +4,7 @@
 // GO SYSTEM: 50 models · 30 MCP servers · 100 scrapers · 20 workflows
 // GO ENTERPRISE: 250 AI/AGI models · 30 deployment actions · Fibonacci C kernels
 // CONSCIOUSNESS: 40 thought models · 12 directives · 8 families
+// PHANTOM META-CONSCIOUSNESS: 60 PMC models · 20 meta-directives · 10 meta-families
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // Master hub
@@ -46,6 +47,9 @@ export { GO_DEPLOYMENT_ACTIONS, getDeploymentActionById, getDeploymentActionsByT
 // CONSCIOUSNESS — 40 Thought Models + 12 Directives
 export { CONSCIOUSNESS_THOUGHT_MODELS, CONSCIOUSNESS_DIRECTIVES, getConsciousnessModelById, getConsciousnessModelsByFamily, getConsciousnessModelsByDepth, getConsciousnessModelsForEntity, getDirectivesForFamily, getDirectiveById, CONSCIOUSNESS_FAMILIES } from './goConsciousness';
 
+// PHANTOM META-CONSCIOUSNESS — 60 PMC Models + 20 Meta-Directives
+export { PHANTOM_META_CONSCIOUSNESS_MODELS, META_CONSCIOUSNESS_DIRECTIVES, getPhantomMetaModelById, getPhantomMetaModelsByFamily, getPhantomMetaModelsByLayer, getPhantomMetaModelsByOrder, getPhantomMetaModelsForCTM, getMetaDirectivesForFamily, getMetaDirectiveById, PHANTOM_META_FAMILIES } from './goPhantomMetaConsciousness';
+
 // Types
 export type {
   TerminalDomain,
@@ -71,5 +75,9 @@ export type {
   ConsciousnessDepth,
   ConsciousnessThoughtModel,
   ConsciousnessDirective,
+  PhantomMetaFamily,
+  MetaConsciousnessLayer,
+  PhantomMetaConsciousnessModel,
+  MetaConsciousnessDirective,
 } from './types';
 export { TERMINAL_TABS } from './types';

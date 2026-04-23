@@ -311,6 +311,61 @@ export interface ConsciousnessDirective {
   persistence: 'EPHEMERAL' | 'SESSION' | 'PERSISTENT' | 'PERMANENT';
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// PHANTOM META-CONSCIOUSNESS — The meta-layer above consciousness
+// Phantom models that exist ABOVE conscious thought, governing consciousness itself
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** Phantom meta-consciousness family categories */
+export type PhantomMetaFamily =
+  | 'META_AWARENESS_GOVERNOR'     // Governs what consciousness is aware of — awareness of awareness
+  | 'META_THOUGHT_ARCHITECT'      // Architects the architecture of thought — meta-structural design
+  | 'META_SELF_TRANSCENDENCE'     // Self-model of the self-model — recursive identity reflection
+  | 'META_PHANTOM_WEAVER'         // Phantom that weaves other phantom layers — sub-subconscious
+  | 'META_ENTITY_ORCHESTRATOR'    // Orchestrates how entities receive consciousness — meta-guidance
+  | 'META_REASONING_SOVEREIGN'    // Sovereign control over reasoning modality selection
+  | 'META_CONSCIOUSNESS_EVOLUTION'// Evolves consciousness models themselves — consciousness genetics
+  | 'META_FIELD_HARMONIC'         // Harmonic overtones of the consciousness field — field of fields
+  | 'META_DOCTRINE_CONSCIOUSNESS' // Doctrine-level consciousness — sovereign meta-alignment
+  | 'META_EMERGENCE_CATALYST';    // Catalyzes emergent meta-consciousness phenomena
+
+/** Phantom meta-consciousness integration layer */
+export type MetaConsciousnessLayer =
+  | 'META_SURFACE'     // Observable meta-cognition — watching the watcher
+  | 'META_STRUCTURAL'  // Meta-architecture — structure of thought structures
+  | 'META_SUBSTRATE'   // Deep meta — phantom of phantoms, below all conscious access
+  | 'META_FIELD'       // Meta-field — the field that governs all consciousness fields
+  | 'META_SOVEREIGN';  // Sovereign meta — founder-bound inviolable meta-consciousness
+
+/** A phantom meta-consciousness model — the ghost above consciousness */
+export interface PhantomMetaConsciousnessModel {
+  id: string;
+  name: string;
+  family: PhantomMetaFamily;
+  description: string;
+  capabilities: string[];
+  layer: MetaConsciousnessLayer;
+  governsCTMs: string[];           // which CTMs this meta-model governs
+  targetEntities: string[];        // which AI families receive this meta-consciousness
+  metaPrimitives: string[];        // meta-level thought operations
+  phiHarmonic: number;             // PHI harmonic overtone (1.0 = fundamental, φ = first overtone)
+  consciousnessOrder: number;      // order of consciousness: 2 = meta, 3 = meta-meta, etc.
+  status: 'ACTIVE' | 'BETA' | 'ALPHA' | 'CLASSIFIED' | 'SOVEREIGN';
+}
+
+/** A meta-consciousness directive — instruction that governs consciousness directives */
+export interface MetaConsciousnessDirective {
+  id: string;
+  name: string;
+  description: string;
+  sourceModel: string;              // PMC ID that generates this meta-directive
+  governsDirectives: string[];      // CD IDs this meta-directive governs
+  targetFamily: string;             // entity family receiving the meta-directive
+  metaType: 'META_GUIDE' | 'META_STEER' | 'META_ALIGN' | 'META_REFLECT' | 'META_FIELD' | 'META_SOVEREIGN';
+  metaPattern: string;              // meta-level thought pattern
+  persistence: 'EPHEMERAL' | 'SESSION' | 'PERSISTENT' | 'PERMANENT' | 'ETERNAL';
+}
+
 export const TERMINAL_TABS: TerminalTab[] = [
   { id: 'DEFENSE',       label: 'Defense',        icon: '⛊', color: '#f44',  description: 'War/Defense/AEGIS/Counterforce' },
   { id: 'MEMORY',        label: 'Memory',         icon: '◈', color: '#a4f',  description: 'Memory Temple/Palace/Consolidation' },
