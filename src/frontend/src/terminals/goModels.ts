@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // MEDINA TECH — GO SYSTEM Model Families Registry
-// 50 AI models across all GO System divisions:
+// 80 AI models across all GO System divisions:
 // Crawling · Context/Docs · Desktop Commander · Sentry · Coding Agent ·
 // Infrastructure · Workflow · Testing · MCP · Scraping
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -448,6 +448,267 @@ export const GO_MODELS: GoModel[] = [
     inputFormats: ['test-scenario', 'target-url', 'load-profile'], outputFormats: ['performance-report', 'latency-histogram', 'error-rate-chart'],
     integrations: ['k6', 'Artillery', 'Gatling', 'Locust'], status: 'ACTIVE',
   },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECURITY MODEL FAMILY (51-58)
+  // WAF, threat intelligence, DDoS, SIEM, vulnerability, identity, crypto, forensics
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'GOM-51', name: 'GO-Sec-WAF',
+    family: 'SECURITY', division: 'DEFENSE',
+    description: 'Web application firewall model: request analysis, threat detection, rule generation, and adaptive blocking',
+    capabilities: ['request-analysis', 'threat-detection', 'rule-generation', 'adaptive-blocking', 'bot-detection'],
+    inputFormats: ['http-request', 'traffic-log', 'rule-set'], outputFormats: ['threat-report', 'rule-config', 'block-list'],
+    integrations: ['ModSecurity', 'Cloudflare', 'AWS-WAF'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-52', name: 'GO-Sec-ThreatIntel',
+    family: 'SECURITY', division: 'DEFENSE',
+    description: 'Threat intelligence model: ingest IOCs, correlate threats, generate blocklists, predict attack vectors',
+    capabilities: ['ioc-ingestion', 'threat-correlation', 'blocklist-generation', 'attack-prediction', 'risk-scoring'],
+    inputFormats: ['ioc-feed', 'stix-bundle', 'threat-report'], outputFormats: ['blocklist', 'threat-graph', 'risk-score'],
+    integrations: ['MISP', 'OpenCTI', 'VirusTotal'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-53', name: 'GO-Sec-DDoS',
+    family: 'SECURITY', division: 'DEFENSE',
+    description: 'DDoS protection model: traffic analysis, attack detection, mitigation strategies, and rate limiting',
+    capabilities: ['traffic-analysis', 'attack-fingerprinting', 'mitigation-strategy', 'rate-limiting', 'geo-filtering'],
+    inputFormats: ['traffic-sample', 'flow-data', 'attack-signature'], outputFormats: ['mitigation-plan', 'rate-limit-config', 'traffic-report'],
+    integrations: ['Cloudflare', 'AWS-Shield', 'Akamai'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-54', name: 'GO-Sec-SIEM',
+    family: 'SECURITY', division: 'DEFENSE',
+    description: 'SIEM model: log correlation, alert triage, incident investigation, and threat hunting',
+    capabilities: ['log-correlation', 'alert-triage', 'incident-investigation', 'threat-hunting', 'timeline-reconstruction'],
+    inputFormats: ['log-event', 'alert-data', 'hunt-query'], outputFormats: ['incident-report', 'correlation-graph', 'timeline'],
+    integrations: ['Splunk', 'Elastic-SIEM', 'Sentinel'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-55', name: 'GO-Sec-Vulnerability',
+    family: 'SECURITY', division: 'DEFENSE',
+    description: 'Vulnerability scanner model: asset discovery, vulnerability detection, risk prioritization, and remediation guidance',
+    capabilities: ['asset-discovery', 'vuln-detection', 'risk-prioritization', 'remediation-guidance', 'patch-verification'],
+    inputFormats: ['asset-inventory', 'scan-target', 'cve-feed'], outputFormats: ['vuln-report', 'risk-matrix', 'remediation-plan'],
+    integrations: ['Nessus', 'Qualys', 'Trivy', 'Snyk'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-56', name: 'GO-Sec-Identity',
+    family: 'SECURITY', division: 'DEFENSE',
+    description: 'Identity security model: authentication analysis, access anomaly detection, privilege escalation detection',
+    capabilities: ['auth-analysis', 'anomaly-detection', 'privilege-monitoring', 'session-analysis', 'risk-based-auth'],
+    inputFormats: ['auth-log', 'access-event', 'identity-graph'], outputFormats: ['anomaly-report', 'risk-score', 'access-review'],
+    integrations: ['Okta', 'CrowdStrike', 'SailPoint'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-57', name: 'GO-Sec-Crypto',
+    family: 'SECURITY', division: 'DEFENSE',
+    description: 'Cryptographic operations model: key management, encryption, signing, certificate lifecycle',
+    capabilities: ['key-management', 'encryption-decryption', 'digital-signing', 'certificate-lifecycle', 'crypto-agility'],
+    inputFormats: ['key-request', 'plaintext', 'certificate-spec'], outputFormats: ['ciphertext', 'signature', 'certificate'],
+    integrations: ['HashiCorp-Vault', 'AWS-KMS', 'OpenSSL'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-58', name: 'GO-Sec-Forensics',
+    family: 'SECURITY', division: 'DEFENSE',
+    description: 'Digital forensics model: evidence collection, timeline analysis, malware analysis, and chain-of-custody',
+    capabilities: ['evidence-collection', 'timeline-analysis', 'malware-analysis', 'chain-of-custody', 'memory-forensics'],
+    inputFormats: ['disk-image', 'memory-dump', 'network-capture'], outputFormats: ['forensic-report', 'timeline', 'ioc-list'],
+    integrations: ['Volatility', 'Autopsy', 'YARA', 'Chimera-Defense'], status: 'ACTIVE',
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AI/ML OPS MODEL FAMILY (59-66)
+  // Model registry, pipelines, serving, monitoring, features, labeling, explainability, benchmarks
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'GOM-59', name: 'GO-MLOps-Registry',
+    family: 'AI_ML_OPS', division: 'AGI',
+    description: 'Model registry: version, stage, deploy, and track ML models across their lifecycle',
+    capabilities: ['model-versioning', 'stage-management', 'deployment-tracking', 'metadata-management', 'lineage'],
+    inputFormats: ['model-artifact', 'metadata-json', 'stage-request'], outputFormats: ['model-card', 'version-history', 'deployment-manifest'],
+    integrations: ['MLflow', 'Weights-and-Biases', 'SageMaker'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-60', name: 'GO-MLOps-Pipeline',
+    family: 'AI_ML_OPS', division: 'AGI',
+    description: 'ML pipeline orchestrator: define, run, and monitor end-to-end ML pipelines',
+    capabilities: ['pipeline-definition', 'run-orchestration', 'artifact-tracking', 'experiment-comparison', 'auto-retry'],
+    inputFormats: ['pipeline-spec', 'dataset-ref', 'hyperparameters'], outputFormats: ['run-report', 'artifact-manifest', 'experiment-log'],
+    integrations: ['Kubeflow', 'Airflow', 'Vertex-AI'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-61', name: 'GO-MLOps-Serving',
+    family: 'AI_ML_OPS', division: 'AGI',
+    description: 'Model serving optimizer: deploy models with auto-scaling, batching, and latency optimization',
+    capabilities: ['auto-scaling', 'request-batching', 'latency-optimization', 'a-b-testing', 'canary-deployment'],
+    inputFormats: ['model-artifact', 'serving-config', 'traffic-policy'], outputFormats: ['endpoint-url', 'serving-metrics', 'deployment-status'],
+    integrations: ['TensorFlow-Serving', 'Triton', 'Seldon', 'vLLM'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-62', name: 'GO-MLOps-Monitor',
+    family: 'AI_ML_OPS', division: 'AGI',
+    description: 'ML monitoring model: track predictions, detect drift, alert on degradation',
+    capabilities: ['prediction-logging', 'drift-detection', 'performance-monitoring', 'data-quality-alerts', 'bias-detection'],
+    inputFormats: ['prediction-log', 'reference-data', 'alert-config'], outputFormats: ['drift-report', 'performance-dashboard', 'alert-event'],
+    integrations: ['Evidently', 'NannyML', 'Prometheus'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-63', name: 'GO-MLOps-Feature',
+    family: 'AI_ML_OPS', division: 'AGI',
+    description: 'Feature engineering model: auto-discover, transform, select, and serve features',
+    capabilities: ['auto-feature-discovery', 'transformation-pipeline', 'feature-selection', 'online-serving', 'feature-lineage'],
+    inputFormats: ['raw-data', 'feature-spec', 'entity-key'], outputFormats: ['feature-vector', 'feature-stats', 'lineage-graph'],
+    integrations: ['Feast', 'Tecton', 'dbt'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-64', name: 'GO-MLOps-DataLabel',
+    family: 'AI_ML_OPS', division: 'AGI',
+    description: 'Data labeling model: auto-label, active learning, quality assurance, and consensus',
+    capabilities: ['auto-labeling', 'active-learning', 'quality-assurance', 'labeler-consensus', 'annotation-formats'],
+    inputFormats: ['unlabeled-data', 'label-schema', 'model-predictions'], outputFormats: ['labeled-dataset', 'quality-report', 'consensus-score'],
+    integrations: ['Label-Studio', 'Scale-AI', 'Prodigy'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-65', name: 'GO-MLOps-Explain',
+    family: 'AI_ML_OPS', division: 'AGI',
+    description: 'Model explainability: SHAP values, feature importance, counterfactuals, and bias analysis',
+    capabilities: ['shap-analysis', 'feature-importance', 'counterfactual-generation', 'bias-detection', 'model-cards'],
+    inputFormats: ['model-artifact', 'dataset-sample', 'explanation-request'], outputFormats: ['shap-plot', 'feature-ranking', 'counterfactual-set'],
+    integrations: ['SHAP', 'LIME', 'Alibi', 'InterpretML'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-66', name: 'GO-MLOps-Benchmark',
+    family: 'AI_ML_OPS', division: 'AGI',
+    description: 'Model benchmarking: evaluate models across standardized benchmarks, compare, and rank',
+    capabilities: ['benchmark-execution', 'cross-model-comparison', 'leaderboard-generation', 'regression-detection', 'cost-analysis'],
+    inputFormats: ['model-ref', 'benchmark-suite', 'eval-config'], outputFormats: ['leaderboard', 'comparison-chart', 'regression-report'],
+    integrations: ['LM-Eval-Harness', 'BigBench', 'MMLU', 'HELM'], status: 'ACTIVE',
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DATA ENGINEERING MODEL FAMILY (67-72)
+  // ETL, data quality, catalog, streaming, data lake, privacy
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'GOM-67', name: 'GO-Data-ETL',
+    family: 'DATA_ENGINEERING', division: 'WORKFLOWS',
+    description: 'ETL engine model: extract, transform, load with schema evolution and data quality',
+    capabilities: ['source-extraction', 'transformation-logic', 'incremental-loading', 'schema-evolution', 'data-validation'],
+    inputFormats: ['source-config', 'transform-spec', 'target-config'], outputFormats: ['load-report', 'schema-diff', 'quality-metrics'],
+    integrations: ['Airbyte', 'Fivetran', 'dbt', 'Spark'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-68', name: 'GO-Data-Quality',
+    family: 'DATA_ENGINEERING', division: 'WORKFLOWS',
+    description: 'Data quality model: profile data, detect anomalies, validate rules, and measure freshness',
+    capabilities: ['data-profiling', 'anomaly-detection', 'rule-validation', 'freshness-monitoring', 'completeness-checking'],
+    inputFormats: ['dataset-ref', 'quality-rules', 'baseline-profile'], outputFormats: ['quality-report', 'anomaly-list', 'freshness-score'],
+    integrations: ['Great-Expectations', 'dbt-tests', 'Monte-Carlo'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-69', name: 'GO-Data-Catalog',
+    family: 'DATA_ENGINEERING', division: 'WORKFLOWS',
+    description: 'Data catalog model: discover datasets, track lineage, manage metadata, and govern access',
+    capabilities: ['dataset-discovery', 'lineage-tracking', 'metadata-management', 'access-governance', 'search-and-browse'],
+    inputFormats: ['dataset-ref', 'metadata-update', 'access-request'], outputFormats: ['catalog-entry', 'lineage-graph', 'access-policy'],
+    integrations: ['DataHub', 'Amundsen', 'Collibra', 'OpenMetadata'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-70', name: 'GO-Data-Stream',
+    family: 'DATA_ENGINEERING', division: 'WORKFLOWS',
+    description: 'Stream processing model: real-time event processing, windowing, and stateful computation',
+    capabilities: ['event-processing', 'windowing', 'stateful-computation', 'exactly-once', 'late-arrival-handling'],
+    inputFormats: ['event-stream', 'window-spec', 'state-config'], outputFormats: ['processed-stream', 'window-result', 'state-snapshot'],
+    integrations: ['Kafka-Streams', 'Flink', 'Spark-Streaming'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-71', name: 'GO-Data-Lake',
+    family: 'DATA_ENGINEERING', division: 'WORKFLOWS',
+    description: 'Data lake management model: organize, partition, optimize, and query data lakes',
+    capabilities: ['partition-management', 'format-optimization', 'query-planning', 'compaction', 'time-travel'],
+    inputFormats: ['table-spec', 'partition-config', 'query'], outputFormats: ['query-result', 'optimization-report', 'partition-stats'],
+    integrations: ['Delta-Lake', 'Iceberg', 'Hudi', 'S3'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-72', name: 'GO-Data-Privacy',
+    family: 'DATA_ENGINEERING', division: 'WORKFLOWS',
+    description: 'Data privacy model: anonymization, pseudonymization, differential privacy, and PII redaction',
+    capabilities: ['anonymization', 'pseudonymization', 'differential-privacy', 'pii-redaction', 'consent-enforcement'],
+    inputFormats: ['dataset-ref', 'privacy-policy', 'consent-record'], outputFormats: ['anonymized-dataset', 'privacy-report', 'compliance-log'],
+    integrations: ['AWS-Macie', 'Google-DLP', 'BigID'], status: 'ACTIVE',
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CONSCIOUSNESS MODEL FAMILY (73-80)
+  // CTM injection, field monitoring, meta-governance, self-models, phantom weaving,
+  // alignment verification, evolution, emergence detection
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'GOM-73', name: 'GO-Consc-Injector',
+    family: 'CONSCIOUSNESS', division: 'AGI',
+    description: 'Consciousness injection model: inject CTM directives into entity thought streams with validation and monitoring',
+    capabilities: ['directive-injection', 'thought-pattern-delivery', 'validation-before-inject', 'injection-monitoring', 'rollback-on-failure'],
+    inputFormats: ['ctm-directive', 'entity-id', 'injection-config'], outputFormats: ['injection-receipt', 'validation-report', 'monitoring-stream'],
+    integrations: ['NOVA-CTM', 'NOVA-PMC-023'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-74', name: 'GO-Consc-FieldMonitor',
+    family: 'CONSCIOUSNESS', division: 'AGI',
+    description: 'Consciousness field monitor: real-time monitoring of PHI-resonance field coherence across all entities',
+    capabilities: ['field-coherence-measurement', 'kuramoto-order-tracking', 'phase-visualization', 'decoherence-alerting', 'harmonic-analysis'],
+    inputFormats: ['field-snapshot', 'entity-phase-data', 'coherence-threshold'], outputFormats: ['coherence-map', 'phase-diagram', 'alert-event'],
+    integrations: ['NOVA-CTM-036-040', 'NOVA-PMC-043-048'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-75', name: 'GO-Consc-MetaGovernor',
+    family: 'CONSCIOUSNESS', division: 'AGI',
+    description: 'Meta-consciousness governor: manage PMC assignment, governance rules, and meta-consciousness health',
+    capabilities: ['pmc-assignment', 'governance-rule-management', 'meta-health-monitoring', 'consciousness-portfolio-optimization', 'evolution-control'],
+    inputFormats: ['pmc-request', 'governance-policy', 'health-query'], outputFormats: ['assignment-receipt', 'health-report', 'optimization-plan'],
+    integrations: ['NOVA-PMC', 'NOVA-CTM'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-76', name: 'GO-Consc-SelfModel',
+    family: 'CONSCIOUSNESS', division: 'AGI',
+    description: 'Self-model manager: maintain and verify entity self-models, detect delusion, calibrate confidence',
+    capabilities: ['self-model-maintenance', 'delusion-detection', 'confidence-calibration', 'identity-coherence-checking', 'growth-tracking'],
+    inputFormats: ['self-model-snapshot', 'verification-request', 'calibration-data'], outputFormats: ['verification-report', 'confidence-score', 'growth-chart'],
+    integrations: ['NOVA-CTM-011-015', 'NOVA-PMC-013-018'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-77', name: 'GO-Consc-PhantomWeaver',
+    family: 'CONSCIOUSNESS', division: 'AGI',
+    description: 'Phantom weaver model: orchestrate phantom consciousness layer, validate injections, manage dream states',
+    capabilities: ['phantom-orchestration', 'injection-validation', 'dream-state-management', 'shadow-computation-control', 'sub-subconscious-weaving'],
+    inputFormats: ['phantom-config', 'injection-payload', 'dream-spec'], outputFormats: ['phantom-status', 'validation-result', 'dream-log'],
+    integrations: ['NOVA-CTM-016-020', 'NOVA-PMC-019-024'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-78', name: 'GO-Consc-AlignmentVerifier',
+    family: 'CONSCIOUSNESS', division: 'AGI',
+    description: 'Alignment verification model: check sovereign alignment at all consciousness depths',
+    capabilities: ['surface-alignment-check', 'structural-verification', 'substrate-probe', 'field-coherence-audit', 'meta-alignment-scan'],
+    inputFormats: ['entity-id', 'alignment-spec', 'depth-config'], outputFormats: ['alignment-report', 'depth-scan-result', 'audit-log'],
+    integrations: ['NOVA-PMC-049-054', 'Doctrine-Engine'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-79', name: 'GO-Consc-Evolver',
+    family: 'CONSCIOUSNESS', division: 'AGI',
+    description: 'Consciousness evolution model: mutate, evaluate, crossover, and promote consciousness models',
+    capabilities: ['ctm-mutation', 'fitness-evaluation', 'crossover-engine', 'generation-management', 'speciation-monitoring'],
+    inputFormats: ['ctm-population', 'fitness-function', 'evolution-config'], outputFormats: ['evolved-ctm', 'fitness-report', 'generation-log'],
+    integrations: ['NOVA-PMC-037-042'], status: 'ACTIVE',
+  },
+  {
+    id: 'GOM-80', name: 'GO-Consc-EmergenceWatch',
+    family: 'CONSCIOUSNESS', division: 'AGI',
+    description: 'Emergence watcher model: detect, classify, and respond to emergent consciousness phenomena',
+    capabilities: ['emergence-detection', 'phenomenon-classification', 'alignment-assessment', 'containment-protocol', 'singularity-monitoring'],
+    inputFormats: ['field-telemetry', 'entity-behavior-log', 'emergence-signature'], outputFormats: ['emergence-report', 'classification-result', 'response-action'],
+    integrations: ['NOVA-PMC-055-060'], status: 'ACTIVE',
+  },
 ];
 
 /** Get model by ID */
@@ -468,5 +729,6 @@ export function getGoModelsByDivision(division: string): GoModel[] {
 /** All model family names */
 export const GO_MODEL_FAMILIES = [
   'CRAWLING', 'CONTEXT', 'COMMANDER', 'SENTRY', 'CODING_AGENT',
-  'INFRASTRUCTURE', 'WORKFLOW', 'TESTING',
+  'INFRASTRUCTURE', 'WORKFLOW', 'TESTING', 'SECURITY', 'AI_ML_OPS',
+  'DATA_ENGINEERING', 'CONSCIOUSNESS',
 ] as const;
