@@ -25,22 +25,29 @@ export { IntentParser } from './IntentParser';
 export { DOMConstructor } from './DOMConstructor';
 export { RuntimeWire } from './RuntimeWire';
 
-// ─── Language AI Workers (50 AIs × 3 Engines = 150 Engines) ────────────────────
+// ─── Language AI Workers (50 AIs × 3 Engines = 150 Engines, 10 Divisions) ─────
 export {
   LANGUAGE_AI_GROUPS,
   ALL_LANGUAGE_AIS,
   ALL_LANGUAGE_ENGINES,
+  ALL_SUB_MODELS,
   getLanguageWorkforceState,
   getLanguageAI,
   getLanguageAIByName,
   getGroupAIs,
   getEnginesByKind,
   getEngineSummary,
+  getSubModelsByTier,
+  getSubModelsByHouse,
 } from './LanguageAIWorkers';
 export type {
   LanguageGroup,
   EngineKind,
   EngineStatus,
+  IntelligenceTier,
+  HousePlacement,
+  SubModel,
+  DivisionSpec,
   LanguageEngine,
   LanguageAI,
   LanguageAIGroup,
