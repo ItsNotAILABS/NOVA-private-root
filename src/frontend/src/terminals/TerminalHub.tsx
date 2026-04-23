@@ -26,6 +26,10 @@ import { IntegrationTerminal } from './IntegrationTerminal';
 import { PackagingTerminal } from './PackagingTerminal';
 import { IntelligenceTerminal } from './IntelligenceTerminal';
 import { MathTerminal } from './MathTerminal';
+import { GoSystemTerminal } from './GoSystemTerminal';
+import { AGITerminal } from './AGITerminal';
+import { ConsciousnessTerminal } from './ConsciousnessTerminal';
+import { AutonomousTerminal } from './AutonomousTerminal';
 
 const TERMINAL_MAP: Record<TerminalDomain, React.FC> = {
   DEFENSE: DefenseTerminal,
@@ -43,6 +47,10 @@ const TERMINAL_MAP: Record<TerminalDomain, React.FC> = {
   PACKAGING: PackagingTerminal,
   INTELLIGENCE: IntelligenceTerminal,
   MATH: MathTerminal,
+  GO_SYSTEM: GoSystemTerminal,
+  AGI: AGITerminal,
+  CONSCIOUSNESS: ConsciousnessTerminal,
+  AUTONOMOUS: AutonomousTerminal,
 };
 
 const S = {

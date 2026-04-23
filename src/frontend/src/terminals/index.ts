@@ -28,6 +28,10 @@ export { IntegrationTerminal } from './IntegrationTerminal';
 export { PackagingTerminal } from './PackagingTerminal';
 export { IntelligenceTerminal } from './IntelligenceTerminal';
 export { MathTerminal } from './MathTerminal';
+export { GoSystemTerminal } from './GoSystemTerminal';
+export { AGITerminal } from './AGITerminal';
+export { ConsciousnessTerminal } from './ConsciousnessTerminal';
+export { AutonomousTerminal } from './AutonomousTerminal';
 
 // Registries
 export { MULTIMODAL_CALLS, getCallsByDomain, getCallById } from './calls';

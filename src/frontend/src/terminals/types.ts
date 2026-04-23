@@ -19,7 +19,11 @@ export type TerminalDomain =
   | 'INTEGRATION'
   | 'PACKAGING'
   | 'INTELLIGENCE'
-  | 'MATH';
+  | 'MATH'
+  | 'GO_SYSTEM'
+  | 'AGI'
+  | 'CONSCIOUSNESS'
+  | 'AUTONOMOUS';
 
 /** A multimodal call — one API surface that retrieves organism state */
 export interface MultimodalCall {
@@ -516,4 +520,8 @@ export const TERMINAL_TABS: TerminalTab[] = [
   { id: 'PACKAGING',     label: 'Packaging',        icon: '▣', color: '#a8f',  description: 'Packaging Lab/SDK/VZO/VOIS' },
   { id: 'INTELLIGENCE',  label: 'Intelligence',     icon: '◉', color: '#4ff',  description: 'Analyst Team/Internal Labs/Organism' },
   { id: 'MATH',          label: 'Mathematics',      icon: '∂', color: '#f8a',  description: 'Sacred Math/Physics/Unified Field' },
+  { id: 'GO_SYSTEM',     label: 'GO System',        icon: '⚡', color: '#0af',  description: '80 AI Models/50 MCP/100 Scrapers/50 Workflows' },
+  { id: 'AGI',           label: 'AGI',              icon: '⧫', color: '#f0a',  description: '250 Enterprise AI/AGI/30 Deployment Actions' },
+  { id: 'CONSCIOUSNESS', label: 'Consciousness',    icon: '☉', color: '#a4f',  description: '40 CTMs/60 PMCs/32 Directives/PHI-Coupled' },
+  { id: 'AUTONOMOUS',    label: 'Autonomous',       icon: '⟐', color: '#4f8',  description: '430 Profiles/Scripts/Business Strings/Fibonacci' },
 ];
