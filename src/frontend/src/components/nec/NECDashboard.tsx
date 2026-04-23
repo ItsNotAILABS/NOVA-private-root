@@ -254,7 +254,7 @@ export function NECDashboard() {
             </span>
           ))}
           <span style={{ marginLeft: 'auto', color: '#3a6080' }}>
-            {hoveredRegion !== null ? necState.regions[hoveredRegion]?.name : 'Hover for details'}
+            {hoveredRegion !== null ? necState.regions.find(r => r.id === hoveredRegion)?.name : 'Hover for details'}
           </span>
         </div>
       </div>
@@ -351,11 +351,14 @@ export function NECDashboard() {
             </svg>
 
             {/* Hovered tract label */}
-            {hoveredTract !== null && (
-              <div style={{ fontSize: 8, color: ACCENT, marginTop: 4 }}>
-                {necState.tracts[hoveredTract]?.name} — {(necState.tracts[hoveredTract]?.signalStrength ?? 0).toFixed(3)} signal
-              </div>
-            )}
+            {hoveredTract !== null && (() => {
+              const t = necState.tracts.find(tr => tr.id === hoveredTract);
+              return t ? (
+                <div style={{ fontSize: 8, color: ACCENT, marginTop: 4 }}>
+                  {t.name} — {t.signalStrength.toFixed(3)} signal
+                </div>
+              ) : null;
+            })()}
 
             {/* Tract list */}
             <div style={{ marginTop: 6 }}>
