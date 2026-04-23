@@ -25,6 +25,64 @@ export { IntentParser } from './IntentParser';
 export { DOMConstructor } from './DOMConstructor';
 export { RuntimeWire } from './RuntimeWire';
 
+// ─── Language AI Workers (50 AIs × 3 Engines = 150 Engines) ────────────────────
+export {
+  LANGUAGE_AI_GROUPS,
+  ALL_LANGUAGE_AIS,
+  ALL_LANGUAGE_ENGINES,
+  getLanguageWorkforceState,
+  getLanguageAI,
+  getLanguageAIByName,
+  getGroupAIs,
+  getEnginesByKind,
+  getEngineSummary,
+} from './LanguageAIWorkers';
+export type {
+  LanguageGroup,
+  EngineKind,
+  EngineStatus,
+  LanguageEngine,
+  LanguageAI,
+  LanguageAIGroup,
+  LanguageWorkforceState,
+} from './LanguageAIWorkers';
+
+// ─── AI Workforce Orchestrator (AGI Build Platform) ────────────────────────────
+export {
+  BuildOrchestrator,
+  PipelineManager,
+  TaskRouter,
+  GroupCoordinator,
+  MemoryBank,
+} from './AIWorkforceOrchestrator';
+export type {
+  PipelineStage,
+  AITask,
+  TaskResult,
+  BuildPipeline,
+  PipelineStageEntry,
+  MemoryEntry,
+  OrchestratorState,
+} from './AIWorkforceOrchestrator';
+
+// ─── Multimodal SDK Registry (40 Sovereign SDKs) ──────────────────────────────
+export {
+  MULTIMODAL_SDKS,
+  getSDKsByCategory,
+  getSDKById,
+  getSDKByPackage,
+  getSDKsByInputModality,
+  getSDKsByOutputModality,
+  getAllModalities,
+  getMultimodalSDKRegistryState,
+} from './MultimodalSDKRegistry';
+export type {
+  SDKCategory,
+  Modality,
+  MultimodalSDK,
+  MultimodalSDKRegistryState,
+} from './MultimodalSDKRegistry';
+
 // ─── Types ─────────────────────────────────────────────────────────────────────
 export type {
   // Voice types
