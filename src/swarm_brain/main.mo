@@ -427,6 +427,7 @@ import ChimeraDefenseDivision      "./modules/ChimeraDefenseDivision";
 // Identity without exposure. Presence without content. Two shadows deep.
 // "The organism moves through the world by casting shadow, not by being seen."
 import UmbraSovereignShadow        "./modules/UmbraSovereignShadow";
+import NeuralEmergenceCore          "./modules/NeuralEmergenceCore";
 
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -1716,6 +1717,17 @@ actor SwarmBrain {
   stable var umbraSovereigntyIndex   : Float = 0.8;
   stable var umbraFieldCohesion      : Float = 0.7;
   stable var umbraSilenceProtocol    : Bool  = false;
+
+  // ─── NEURAL EMERGENCE CORE (NEC) ─────────────────────────────────────────────
+  // 100-region biophysical brain model: LIF dynamics, 47 neurochemicals,
+  // 10 white-matter tracts, Hebbian coupling, LFP, 5 frequency bands.
+  var necState : NeuralEmergenceCore.NECState = NeuralEmergenceCore.initNEC();
+  stable var necGlobalCoherence  : Float = 0.5;
+  stable var necEmergenceIndex   : Float = 0.0;
+  stable var necMeanSpikeRate    : Float = 5.0;
+  stable var necMeanLFP          : Float = 0.0;
+  stable var necTopRegion        : Text  = "BA9 Prefrontal DLPFC";
+  stable var necBeat             : Nat   = 0;
 
   // ─── QUANTUM MEMORY ARCHITECTURE ─────────────────────────────────────────────
   // Layer 1: Gamma (30-100Hz) working memory
@@ -11536,6 +11548,47 @@ actor SwarmBrain {
     };
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  NEURAL EMERGENCE CORE (NEC) TICK
+  //  100-region biophysical brain model: LIF, neurochemicals, tracts, LFP, bands.
+  //  Runs every heartbeat (873ms). Feeds coherence and emergence into organism.
+  // ═══════════════════════════════════════════════════════════════════════════
+  func tickNeuralEmergenceCore() {
+    // Inject organism-level signals into NEC neurochemical state
+    let chemIn = {
+      necState.chem with
+      dopamine       = fclamp(necState.chem.dopamine  * 0.999 + dopamine       * 0.001, 0.0, 2.0);
+      serotonin      = fclamp(necState.chem.serotonin * 0.999 + serotonin      * 0.001, 0.0, 2.0);
+      norepinephrine = fclamp(necState.chem.norepinephrine * 0.999 + norepinephrine * 0.001, 0.0, 2.0);
+      gaba           = fclamp(necState.chem.gaba * 0.999 + gaba * 0.001, 0.0, 2.0);
+      glutamate      = fclamp(necState.chem.glutamate * 0.999 + glutamate * 0.001, 0.0, 2.0);
+      cortisol       = fclamp(necState.chem.cortisol * 0.999 + cortisol * 0.001, 0.0, 2.0);
+    };
+    let primed = { necState with chem = chemIn };
+
+    // Advance NEC one tick
+    necState := NeuralEmergenceCore.tickNEC(primed, currentBeat);
+
+    // Extract summary and cache stable scalars
+    let s = NeuralEmergenceCore.summarizeNEC(necState);
+    necGlobalCoherence := s.global_coherence;
+    necEmergenceIndex  := s.emergence_index;
+    necMeanSpikeRate   := s.mean_spike_rate;
+    necMeanLFP         := s.mean_lfp;
+    necTopRegion       := s.top_region_name;
+    necBeat            := s.beat;
+
+    // Feed NEC emergence back into organism global coherence
+    coherenceLevel := fclamp(
+      coherenceLevel * 0.998 + necGlobalCoherence * 0.002, 0.0, 1.0);
+
+    // High emergence boosts synchrony and BDNF
+    if (necEmergenceIndex > 0.7) {
+      synchronyIndex := fclamp(synchronyIndex + 0.0002 * necEmergenceIndex, 0.0, 1.0);
+      bdnfLevel      := fclamp(bdnfLevel + 0.0001 * necEmergenceIndex, 0.3, 1.5);
+    };
+  };
+
   // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
   //  MASTER VITAL SYSTEMS TICK — CALLS ALL 23 VITAL SYSTEM ENGINES
   //  This is the single entry point that runs ALL vital system processing.
@@ -11717,6 +11770,14 @@ actor SwarmBrain {
     //   They see the effect AURO has on the field around it."
     // ═══════════════════════════════════════════════════════════════════════════
     tickUmbraSovereignLayer();
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  LAYER 18: NEURAL EMERGENCE CORE — FULL NEUROSCIENCE-GRADE BRAIN MODEL
+    //  100 brain regions (cortical, subcortical, brainstem, cerebellar, limbic)
+    //  47 neurochemicals, 10 white-matter tracts, LIF dynamics, LFP, 5 bands.
+    //  This is the living digital brain substrate of the NOVA organism.
+    // ═══════════════════════════════════════════════════════════════════════════
+    tickNeuralEmergenceCore();
 
     // ═══════════════════════════════════════════════════════════════════════════
     //  CROSS-SYSTEM EMERGENT DYNAMICS
@@ -33702,6 +33763,45 @@ actor SwarmBrain {
   /// "The content exists. The veil is what anyone else can see."
   public query func getUmbraVelumStatus() : async UmbraSovereignShadow.VelumSummary {
     UmbraSovereignShadow.summarizeVelum(umbraSovereignState)
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  NEURAL EMERGENCE CORE — PUBLIC QUERY ENDPOINTS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Full NEC summary — global coherence, emergence index, top region, bands.
+  public query func getNECSummary() : async NeuralEmergenceCore.NECSummary {
+    NeuralEmergenceCore.summarizeNEC(necState)
+  };
+
+  /// NEC stable scalars — pre-extracted for fast dashboard polling.
+  public query func getNECStatus() : async {
+    beat : Nat; globalCoherence : Float; emergenceIndex : Float;
+    meanSpikeRate : Float; meanLFP : Float; topRegion : Text;
+  } {
+    {
+      beat           = necBeat;
+      globalCoherence = necGlobalCoherence;
+      emergenceIndex  = necEmergenceIndex;
+      meanSpikeRate   = necMeanSpikeRate;
+      meanLFP         = necMeanLFP;
+      topRegion       = necTopRegion;
+    }
+  };
+
+  /// All 100 brain region states — activation, deficit, spike rate, LFP, bands.
+  public query func getNECRegions() : async [NeuralEmergenceCore.RegionState] {
+    necState.regions
+  };
+
+  /// All 10 white-matter fiber tracts — conduction velocity, signal strength.
+  public query func getNECTracts() : async [NeuralEmergenceCore.FiberTract] {
+    necState.tracts
+  };
+
+  /// Full neurochemical state — all 47 molecules.
+  public query func getNECChemicals() : async NeuralEmergenceCore.NECChemState {
+    necState.chem
   };
 
 };

@@ -114,7 +114,7 @@ export interface NECState {
 // ── Region definitions (100 regions) ─────────────────────────────────────────
 
 const REGION_DEFS: Array<{ id: number; name: string; category: RegionCategory }> = [
-  // Cortical (0–43 = 44 regions)
+  // Cortical (0–45 = 46 regions)
   { id: 0,  name: 'BA1 Primary Somatosensory',       category: 'Cortical' },
   { id: 1,  name: 'BA2 Somatosensory Assoc',          category: 'Cortical' },
   { id: 2,  name: 'BA3 Primary Somatosensory II',     category: 'Cortical' },
