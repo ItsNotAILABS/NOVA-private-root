@@ -1,6 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // MEDINA TECH — NOVA Terminal System Index
 // 100 multimodal calls · 80 AI organism packages · 50 SDKs · 50 tools · 3 repos
+// GO SYSTEM: 50 models · 30 MCP servers · 100 scrapers · 20 workflows
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // Master hub
@@ -30,6 +31,12 @@ export { SOVEREIGN_SDKS, getSDKById, getSDKsByDomain } from './sdks';
 export { DEVELOPER_TOOLS, getToolById, getToolsByCategory, TOOL_CATEGORIES } from './tools';
 export { PUBLIC_REPOS, getRepoByName } from './repos';
 
+// GO SYSTEM — Enterprise AI Infrastructure Platform
+export { GO_SYSTEM, getGoSystem } from './goSystem';
+export { GO_MODELS, getGoModelById, getGoModelsByFamily, getGoModelsByDivision, GO_MODEL_FAMILIES } from './goModels';
+export { GO_MCP_SERVERS, getMcpServerById, getMcpServersByDivision } from './goMcpServers';
+export { GO_SCRAPERS, GO_WORKFLOWS, SCRAPER_CATEGORIES, getScraperById, getScrapersByCategory, getWorkflowById, getWorkflowsByType } from './goMarketplace';
+
 // Types
 export type {
   TerminalDomain,
@@ -41,5 +48,11 @@ export type {
   SovereignSDK,
   DeveloperTool,
   PublicRepo,
+  GoDivision,
+  GoSystemCompany,
+  GoModel,
+  GoMcpServer,
+  GoMarketplaceItem,
+  GoWorkflow,
 } from './types';
 export { TERMINAL_TABS } from './types';

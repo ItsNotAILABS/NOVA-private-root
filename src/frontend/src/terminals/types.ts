@@ -111,6 +111,87 @@ export interface PublicRepo {
   topics: string[];
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// GO SYSTEM — Enterprise Platform Types
+// Company: Medina GO Systems · Real-time infrastructure monitoring & AI tools
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** GO System division categories */
+export type GoDivision =
+  | 'INFRASTRUCTURE'    // Real-time monitoring, metrics, logs, alerts
+  | 'CODING_AGENTS'     // Semantic code retrieval & editing tools marketplace
+  | 'CRAWLING'          // Crawling model families, web data extraction
+  | 'MCP_SERVERS'       // MCP servers: terminal, file, process, transport
+  | 'ERROR_MONITORING'  // Sentry model, error tracking, debugging
+  | 'DESKTOP_COMMAND'   // Desktop commander models, terminal, file ops
+  | 'CONTEXT_DOCS'      // Playwright context model, up-to-date docs
+  | 'WORKFLOWS'         // Terraform, automated 24h workflows
+  | 'SCRAPING'          // Scrapers, crawlers, automations marketplace
+  | 'TESTING';          // Accessibility trees, data extraction, testing
+
+/** The GO System enterprise company definition */
+export interface GoSystemCompany {
+  name: string;
+  fullName: string;
+  description: string;
+  divisions: GoDivision[];
+  tier: string;                 // ENTERPRISE
+  capabilities: string[];
+  infrastructure: string[];
+  targetMarket: string[];
+}
+
+/** A GO System model — intelligence engine within the GO platform */
+export interface GoModel {
+  id: string;
+  name: string;
+  family: string;              // model family (crawling, context, commander, etc.)
+  division: GoDivision;
+  description: string;
+  capabilities: string[];
+  inputFormats: string[];
+  outputFormats: string[];
+  integrations: string[];
+  status: 'ACTIVE' | 'BETA' | 'ALPHA' | 'PLANNED';
+}
+
+/** A GO MCP Server — Model Context Protocol server for AI assistants */
+export interface GoMcpServer {
+  id: string;
+  name: string;
+  division: GoDivision;
+  description: string;
+  transport: string;           // stdio / sse / websocket / http
+  capabilities: string[];
+  commands: string[];
+  integrations: string[];
+}
+
+/** A GO Marketplace item — scraper, crawler, or automation */
+export interface GoMarketplaceItem {
+  id: string;
+  name: string;
+  category: string;
+  division: GoDivision;
+  description: string;
+  capabilities: string[];
+  targetSources: string[];
+  outputFormats: string[];
+  automation: boolean;
+}
+
+/** GO Workflow — automated 24h business/work workflow */
+export interface GoWorkflow {
+  id: string;
+  name: string;
+  description: string;
+  division: GoDivision;
+  type: 'TERRAFORM' | 'CI_CD' | 'DATA_PIPELINE' | 'MONITORING' | 'DEPLOYMENT' | 'BUSINESS';
+  schedule: string;            // cron or 24h-continuous
+  steps: string[];
+  integrations: string[];
+}
+
 export const TERMINAL_TABS: TerminalTab[] = [
   { id: 'DEFENSE',       label: 'Defense',        icon: '⛊', color: '#f44',  description: 'War/Defense/AEGIS/Counterforce' },
   { id: 'MEMORY',        label: 'Memory',         icon: '◈', color: '#a4f',  description: 'Memory Temple/Palace/Consolidation' },
