@@ -538,7 +538,7 @@ export class RuntimeWire {
 
   private async refreshData(): Promise<void> {
     // Update all active data source elements in the DOM
-    for (const [domain, source] of this.dataSources) {
+    for (const [_domain, source] of this.dataSources) {
       const data = await source.fetch();
       // Update any DOM elements with data-vtui-field attributes
       for (const [fieldName, value] of Object.entries(data)) {
