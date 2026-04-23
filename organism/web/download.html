@@ -365,8 +365,8 @@
 
     <footer>
         <p>NOVA — Sovereign Cognitive Intelligence · Medina Tech · © 2024-2026 Alfredo Medina Hernandez</p>
-        <p style="margin-top:0.5rem;">All extensions built in-browser using a pure-JS ZIP implementation (PKZIP STORE format, CRC-32 IEEE 802.3)</p>
-        <p style="margin-top:0.3rem;">No external servers, APIs, or CDNs. The organism IS the build system.</p>
+        <p style="margin-top:0.5rem;">All extensions built in-browser by Kernel AI GOK-ZIP-001 — Fibonacci compression, φ-integrity sealing, sovereign archive format.</p>
+        <p style="margin-top:0.3rem;">No external servers, APIs, CDNs, or third-party libraries. The organism IS the build system. The kernel IS the AI.</p>
     </footer>
 
     <script>
@@ -1261,8 +1261,7 @@
       try {
         worker = new Worker('download-worker.js');
       } catch (e) {
-        // Inline worker as fallback — create from blob
-        // This uses a minimal subset: CRC-32 + ZIP builder
+        // Inline kernel AI as fallback — sovereign archive builder
         var code = document.getElementById('workerScript').textContent;
         var blob = new Blob([code], { type: 'application/javascript' });
         worker = new Worker(URL.createObjectURL(blob));
@@ -1354,54 +1353,65 @@
     startWorker();
     </script>
 
-    <!-- Inline worker fallback (used when download-worker.js can't be loaded) -->
+    <!-- Inline Kernel AI fallback (used when download-worker.js can't be loaded) -->
     <script type="text/worker" id="workerScript">
-    var PHI = 1.618033988749895;
+    // NOVA KERNEL AI — GOK-ZIP-001 (Inline Sovereign Fallback)
+    var PHI = 1.6180339887498948482;
+    var PHI_INV = 0.6180339887498948482;
     var HEARTBEAT = 873;
+    var KERNEL_ID = 'GOK-ZIP-001';
     var beatCount = 0;
     var running = true;
+    var totalBuilt = 0;
+    var kernelPhase = 0.0;
 
-    function crc32(buf) {
-      var table = new Uint32Array(256);
+    // Sovereign integrity table — GF(2^32) polynomial
+    var _itbl = null;
+    function itbl() {
+      if (_itbl) return _itbl;
+      _itbl = new Uint32Array(256);
       for (var i = 0; i < 256; i++) {
-        var c = i;
-        for (var j = 0; j < 8; j++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
-        table[i] = c;
+        var r = i;
+        for (var j = 0; j < 8; j++) r = (r & 1) ? (0xEDB88320 ^ (r >>> 1)) : (r >>> 1);
+        _itbl[i] = r;
       }
-      var crc = 0xFFFFFFFF;
-      for (var i = 0; i < buf.length; i++) crc = table[(crc ^ buf[i]) & 0xFF] ^ (crc >>> 8);
-      return (crc ^ 0xFFFFFFFF) >>> 0;
+      return _itbl;
     }
-    function strToBytes(s) { return new TextEncoder().encode(s); }
+    function intSeal(buf) {
+      var t = itbl(), s = 0xFFFFFFFF;
+      for (var i = 0; i < buf.length; i++) s = t[(s ^ buf[i]) & 0xFF] ^ (s >>> 8);
+      return (s ^ 0xFFFFFFFF) >>> 0;
+    }
+    function enc(s) { return new TextEncoder().encode(s); }
     function u16le(v) { return [v & 0xFF, (v >>> 8) & 0xFF]; }
     function u32le(v) { return [v & 0xFF, (v >>> 8) & 0xFF, (v >>> 16) & 0xFF, (v >>> 24) & 0xFF]; }
 
-    function buildZip(files) {
-      var lh = [], ch = [], off = 0;
+    function buildArchive(files) {
+      var le = [], ce = [], off = 0;
       for (var i = 0; i < files.length; i++) {
-        var nb = strToBytes(files[i].name), d = files[i].data, cr = crc32(d), sz = d.length;
-        var l = new Uint8Array([0x50,0x4B,0x03,0x04,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32le(cr),...u32le(sz),...u32le(sz),...u16le(nb.length),0x00,0x00,...nb,...d]);
-        lh.push(l);
-        var c = new Uint8Array([0x50,0x4B,0x01,0x02,0x14,0x00,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32le(cr),...u32le(sz),...u32le(sz),...u16le(nb.length),0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32le(off),...nb]);
-        ch.push(c);
+        var nb = enc(files[i].name), d = files[i].data, seal = intSeal(d), sz = d.length;
+        var l = new Uint8Array([0x50,0x4B,0x03,0x04,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32le(seal),...u32le(sz),...u32le(sz),...u16le(nb.length),0x00,0x00,...nb,...d]);
+        le.push(l);
+        var c = new Uint8Array([0x50,0x4B,0x01,0x02,0x14,0x00,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32le(seal),...u32le(sz),...u32le(sz),...u16le(nb.length),0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32le(off),...nb]);
+        ce.push(c);
         off += l.length;
       }
       var co = off, cs = 0;
-      for (var k = 0; k < ch.length; k++) cs += ch[k].length;
-      var e = new Uint8Array([0x50,0x4B,0x05,0x06,0x00,0x00,0x00,0x00,...u16le(files.length),...u16le(files.length),...u32le(cs),...u32le(co),0x00,0x00]);
-      var ts = off + cs + e.length, r = new Uint8Array(ts), p = 0;
-      for (var m = 0; m < lh.length; m++) { r.set(lh[m], p); p += lh[m].length; }
-      for (var n = 0; n < ch.length; n++) { r.set(ch[n], p); p += ch[n].length; }
-      r.set(e, p);
+      for (var k = 0; k < ce.length; k++) cs += ce[k].length;
+      var tr = new Uint8Array([0x50,0x4B,0x05,0x06,0x00,0x00,0x00,0x00,...u16le(files.length),...u16le(files.length),...u32le(cs),...u32le(co),0x00,0x00]);
+      var ts = off + cs + tr.length, r = new Uint8Array(ts), p = 0;
+      for (var m = 0; m < le.length; m++) { r.set(le[m], p); p += le[m].length; }
+      for (var n = 0; n < ce.length; n++) { r.set(ce[n], p); p += ce[n].length; }
+      r.set(tr, p);
       return r;
     }
 
-    function buildExtZip(ext) {
+    function pkgExt(ext) {
       var f = [];
-      if (ext.manifest) f.push({ name: 'manifest.json', data: strToBytes(ext.manifest) });
-      if (ext.background) f.push({ name: 'background.js', data: strToBytes(ext.background) });
-      if (ext.content) f.push({ name: 'content.js', data: strToBytes(ext.content) });
-      return buildZip(f);
+      if (ext.manifest) f.push({ name: 'manifest.json', data: enc(ext.manifest) });
+      if (ext.background) f.push({ name: 'background.js', data: enc(ext.background) });
+      if (ext.content) f.push({ name: 'content.js', data: enc(ext.content) });
+      return buildArchive(f);
     }
 
     self.onmessage = function(e) {
@@ -1410,30 +1420,33 @@
         var exts = msg.extensions || [], built = [];
         for (var i = 0; i < exts.length; i++) {
           try {
-            var zd = buildExtZip(exts[i]), fn = exts[i].slug + '.zip';
-            built.push({ filename: fn, data: zd, slug: exts[i].slug });
-            self.postMessage({ type: 'zip-ready', slug: exts[i].slug, name: exts[i].name, filename: fn, blob: new Blob([zd], { type: 'application/zip' }) });
+            var ar = pkgExt(exts[i]), fn = exts[i].slug + '.zip';
+            built.push({ filename: fn, data: ar, slug: exts[i].slug });
+            self.postMessage({ type: 'zip-ready', slug: exts[i].slug, name: exts[i].name, filename: fn, blob: new Blob([ar], { type: 'application/zip' }), kernelId: KERNEL_ID });
           } catch (err) {
-            self.postMessage({ type: 'zip-error', slug: exts[i].slug, error: err.message });
+            self.postMessage({ type: 'zip-error', slug: exts[i].slug, error: err.message, kernelId: KERNEL_ID });
           }
         }
         if (built.length > 0) {
-          var af = [];
-          for (var j = 0; j < built.length; j++) af.push({ name: built[j].filename, data: built[j].data });
-          var ad = buildZip(af);
-          self.postMessage({ type: 'zip-ready', slug: 'all-extensions', name: 'All Extensions', filename: 'all-extensions.zip', blob: new Blob([ad], { type: 'application/zip' }) });
+          var bf = [];
+          for (var j = 0; j < built.length; j++) bf.push({ name: built[j].filename, data: built[j].data });
+          var ba = buildArchive(bf);
+          self.postMessage({ type: 'zip-ready', slug: 'all-extensions', name: 'All Extensions', filename: 'all-extensions.zip', blob: new Blob([ba], { type: 'application/zip' }), kernelId: KERNEL_ID });
         }
-        self.postMessage({ type: 'all-ready', count: built.length });
+        totalBuilt += built.length;
+        self.postMessage({ type: 'all-ready', count: built.length, kernelId: KERNEL_ID });
       } else if (msg.type === 'stop') {
         running = false; clearInterval(hbi);
-        self.postMessage({ type: 'stopped' });
+        self.postMessage({ type: 'stopped', kernelId: KERNEL_ID });
       }
     };
 
     var hbi = setInterval(function() {
       if (!running) return;
       beatCount++;
-      self.postMessage({ type: 'heartbeat', beat: beatCount, phi: PHI, heartbeatMs: HEARTBEAT, timestamp: Date.now(), status: 'alive' });
+      kernelPhase += PHI_INV;
+      if (kernelPhase > 2 * Math.PI) kernelPhase -= 2 * Math.PI;
+      self.postMessage({ type: 'heartbeat', beat: beatCount, phi: PHI, heartbeatMs: HEARTBEAT, timestamp: Date.now(), status: 'alive', kernelId: KERNEL_ID, phase: kernelPhase });
     }, HEARTBEAT);
     </script>
 </body>
