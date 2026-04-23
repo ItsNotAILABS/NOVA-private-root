@@ -1,0 +1,90 @@
+memory_palace_coordinate_schema:
+  version: "1.0"
+  schema_id: "NOVA-MPCS-001"
+  classification: "SOVEREIGN_PRIVATE"
+  purpose: "Governed coordinate placement for living document memory-palace mapping."
+  owner: "consciousness-core"
+
+  coordinate_system:
+    geometry: "clifford-torus-inspired"
+    units:
+      theta: "radians"
+      phi: "radians"
+      depth: "normalized [0,1]"
+      coherence_stamp: "normalized [0,1.5]"
+    bounds:
+      theta_min: 0.0
+      theta_max: 6.283185307179586
+      phi_min: 0.0
+      phi_max: 6.283185307179586
+      depth_min: 0.0
+      depth_max: 1.0
+      coherence_min: 0.0
+      coherence_max: 1.5
+
+  coordinate_record:
+    required:
+      - doc_id
+      - beat
+      - ring
+      - parent_hash
+      - chain_hash
+      - theta
+      - phi
+      - depth
+      - coherence_stamp
+      - origin_field
+      - replay_pointer
+    fields:
+      doc_id: "text"
+      beat: "nat"
+      ring: "nat"
+      parent_hash: "text"
+      chain_hash: "text"
+      theta: "float"
+      phi: "float"
+      depth: "float"
+      coherence_stamp: "float"
+      origin_field:
+        enum:
+          - "runtime"
+          - "law"
+          - "memory"
+          - "defense"
+          - "economic"
+          - "workforce"
+          - "mesh"
+          - "projection"
+      replay_pointer: "text"
+
+  generation_rules:
+    theta_rule: "wrap01(calendar_phase + field_presence * 0.17) * tau"
+    phi_rule: "wrap01((1.0 - presence_pulse) + mesh_resonance * 0.11) * tau"
+    depth_rule: "clamp((ring % 34) / 34.0, 0.0, 1.0)"
+    coherence_rule: "clamp(field_presence_or_pulse, 0.0, 1.5)"
+    lineage_rule: "parent_hash and chain_hash must match living document packet lineage."
+
+  validation:
+    required_checks:
+      - "coordinates_in_bounds"
+      - "lineage_links_present"
+      - "replay_pointer_present"
+      - "ring_and_beat_monotonic_for_same_chain"
+    fail_policy:
+      on_bounds_failure: "clamp_and_flag"
+      on_lineage_failure: "reject_record"
+      on_replay_pointer_missing: "reject_record"
+
+  retention:
+    max_live_nodes: 1024
+    max_hot_window: 128
+    compaction:
+      strategy: "tail-preserve + replay-index"
+      preserve:
+        - "first_record"
+        - "latest_record"
+        - "all_gate_fail_records"
+        - "all_external_projection_records"
+    replay_requirements:
+      - "coordinate lineage reconstructable per chain"
+      - "coordinate history queryable by beat range"

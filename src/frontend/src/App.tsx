@@ -23,6 +23,7 @@ import { WorkerHub }          from './components/habitat/WorkerHub';
 import { ArtifactStudio }     from './components/habitat/ArtifactStudio';
 import { PresenceBoard }      from './components/habitat/PresenceBoard';
 import { SimulationChamber }  from './components/simulation/SimulationChamber';
+import { CompanionConsole } from './components/companion/CompanionConsole';
 
 // ── Science Labs ──────────────────────────────────────────────────────────────
 import { EmergenceLab }       from './components/labs/EmergenceLab';
@@ -41,6 +42,7 @@ import { NeuroCogLab }    from './components/CommandCenter/NeuroCogLab';
 type NavView =
   | 'SWARM'          // original tactical swarm view
   | 'COMMAND'        // ORO Command Center — multi-agent workspace
+  | 'COMPANION'      // AURO companion chat/voice/command bridge
   | 'DRONES'         // Drone simulation — the actual experiment
   | 'HOME'           // home/now enterprise view
   | 'WORKERS'        // worker society hub
@@ -56,6 +58,7 @@ type NavView =
 
 const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
   { id: 'COMMAND',    label: 'Command',    icon: '◉' },
+  { id: 'COMPANION',  label: 'Companion',  icon: '🜁' },
   { id: 'DRONES',     label: 'Drones',     icon: '⬡' },
   { id: 'SWARM',      label: 'Swarm',      icon: '⬢' },
   { id: 'HOME',       label: 'Home/Now',   icon: '⌂' },
@@ -268,6 +271,11 @@ export default function App() {
         {/* ── ORO COMMAND CENTER — Multi-Agent Workspace ────────────────── */}
         {view === 'COMMAND' && (
           <OroCommandCenter organism={organism} />
+        )}
+
+        {/* ── COMPANION CONSOLE — Chat + Voice + Computer Command Bridge ─────── */}
+        {view === 'COMPANION' && (
+          <CompanionConsole />
         )}
 
         {/* ── DRONE SIMULATION — The Actual Experiment ────────────────────── */}

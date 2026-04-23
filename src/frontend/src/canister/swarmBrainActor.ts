@@ -69,6 +69,177 @@ export interface SwarmQMetrics {
   swarmNowIndex: number;
 }
 
+export interface QuantumHeartbeatState {
+  quantumBeatNumber: number;
+  quantumPhase: number;
+  quantumCoherence: number;
+  cardiacCoherence: number;
+  circadianPhase: number;
+  fibonacciBeatNumber: number;
+  parallaxWinnerPath: number;
+  parallaxScore: number;
+  parallaxPathAmplitudes: number[];
+  chronoFisherInfo: number;
+  chronoCramerRao: number;
+  chronoScore: number;
+  entanglaSValue: number;
+  entanglaEMA: number;
+  entanglaViolationBonus: number;
+  entanglaScore: number;
+  qmemFidelity: number;
+  qmemT2Time: number;
+  qmemTimeSinceReset: number;
+  qmemScore: number;
+  veritasStabilizers: number[];
+  veritasParityScore: number;
+  veritasScore: number;
+  bypassSelectedRhythm: number;
+  bypassTemperature: number;
+  bypassScore: number;
+  resonexParticipants: number;
+  resonexAmplitude: number;
+  resonexCascadeActive: boolean;
+  resonexScore: number;
+  qsovScore: number;
+  qsovGeometricMean: number;
+  totalHeartbeats: number;
+  averageCoherence: number;
+  heartbeatVariability: number;
+  circadianAlignment: number;
+  cardioCerebralResonance: number;
+  cardioCerebralPhaseLag: number;
+  cardioCerebralPropulsion: number;
+  cardioCerebralAlignment: number;
+  cardioCerebralPushEffectiveness: number;
+}
+
+export interface CardioCerebralState {
+  resonance: number;
+  phaseLag: number;
+  directionX: number;
+  directionY: number;
+  directionZ: number;
+  propulsion: number;
+  alignment: number;
+  pushEffectiveness: number;
+  beatNum: number;
+  resonanceHistory: number[];
+  propulsionHistory: number[];
+}
+
+export interface GeoResonanceProtectionState {
+  beat: number;
+  fieldEnergy: number;
+  hotspotScore: number;
+  protectionScore: number;
+  threatScore: number;
+  serviceReadiness: number;
+  fieldDirectionX: number;
+  fieldDirectionY: number;
+  fieldDirectionZ: number;
+  sevenHeritageNodes: number[];
+  serviceOpportunity: number[];
+  defenseServiceOpportunity: number[];
+  memoryServiceOpportunity: number[];
+  worldServiceOpportunity: number[];
+  fieldHistory: number[];
+  hotspotHistory: number[];
+  protectionHistory: number[];
+}
+
+export interface CardioNeuralConversionOrganState {
+  beat: number;
+  coupling: number;
+  oxygenFlow: number;
+  perfusionFlow: number;
+  conversionGain: number;
+  gateOpen: boolean;
+  helixBarrier: number;
+  shieldIntegrity: number;
+  thoughtThroughput: number;
+  outputCoherence: number;
+  outputDirectionX: number;
+  outputDirectionY: number;
+  outputDirectionZ: number;
+  throughputHistory: number[];
+  shieldHistory: number[];
+  couplingHistory: number[];
+}
+
+export interface AutonomousAnalystTeamState {
+  beat: number;
+  learningScore: number;
+  adaptationScore: number;
+  emergencySignal: number;
+  recommendationPriority: number;
+  narrativeSummary: string;
+  heartNarrative: string;
+  brainNarrative: string;
+  middleOrganNarrative: string;
+  defenseNarrative: string;
+  growthNarrative: string;
+  topRecommendations: string[];
+}
+
+export interface MemoryTempleState {
+  beat: number;
+  continuityWeave: number;
+  resonanceField: number;
+  cognitiveLoad: number;
+  memoryRetention: number;
+  recallReadiness: number;
+  memoryCognitionCoupling: number;
+  iotCouplingScore: number;
+  deviceTwinIntegrity: number;
+  phantomIntegrity: number;
+  agentWorkCapacity: number;
+  artifactReadiness: number;
+  directionX: number;
+  directionY: number;
+  directionZ: number;
+  pedestalNames: string[];
+  pedestalCouplings: number[];
+  narrativeSummary: string;
+  recommendations: string[];
+  continuityHistory: number[];
+  resonanceHistory: number[];
+  couplingHistory: number[];
+}
+
+export interface ConstantFeedbackCognitionState {
+  beat: number;
+  cognitivePressure: number;
+  loopClosureScore: number;
+  reinjectionIntegrity: number;
+  multiGroupCoherence: number;
+  multiOrganismCoherence: number;
+  cognitionReadiness: number;
+  arbitrationReadiness: number;
+  governanceStability: number;
+  recommendationPriority: number;
+  lawContinuityScore: number;
+  defensePostureScore: number;
+  economicResilienceScore: number;
+  workforceCoherenceScore: number;
+  memoryIntegrityScore: number;
+  meshResonanceScore: number;
+  sovereignAlignmentScore: number;
+  riskContainmentScore: number;
+  narrativeSummary: string;
+  topActions: string[];
+  pressureHistory: number[];
+  closureHistory: number[];
+  reinjectionHistory: number[];
+  multiGroupHistory: number[];
+  multiOrganismHistory: number[];
+  lawHistory: number[];
+  defenseHistory: number[];
+  economyHistory: number[];
+  workforceHistory: number[];
+  meshHistory: number[];
+  sovereignHistory: number[];
+}
+
 export interface TickResult {
   rSwarm: number;
   jDrift: number;
@@ -151,6 +322,177 @@ const swarmBrainIDLFactory = ({ IDL }: { IDL: typeof IDL }) => {
       swarmConvergence: IDL.Float64,
       swarmNowIndex: IDL.Float64,
     })], ['query']),
+
+    getQuantumHeartbeatState: IDL.Func([], [IDL.Record({
+      quantumBeatNumber: IDL.Nat,
+      quantumPhase: IDL.Float64,
+      quantumCoherence: IDL.Float64,
+      cardiacCoherence: IDL.Float64,
+      circadianPhase: IDL.Float64,
+      fibonacciBeatNumber: IDL.Nat,
+      parallaxWinnerPath: IDL.Nat,
+      parallaxScore: IDL.Float64,
+      parallaxPathAmplitudes: IDL.Vec(IDL.Float64),
+      chronoFisherInfo: IDL.Float64,
+      chronoCramerRao: IDL.Float64,
+      chronoScore: IDL.Float64,
+      entanglaSValue: IDL.Float64,
+      entanglaEMA: IDL.Float64,
+      entanglaViolationBonus: IDL.Float64,
+      entanglaScore: IDL.Float64,
+      qmemFidelity: IDL.Float64,
+      qmemT2Time: IDL.Float64,
+      qmemTimeSinceReset: IDL.Nat,
+      qmemScore: IDL.Float64,
+      veritasStabilizers: IDL.Vec(IDL.Float64),
+      veritasParityScore: IDL.Float64,
+      veritasScore: IDL.Float64,
+      bypassSelectedRhythm: IDL.Nat,
+      bypassTemperature: IDL.Float64,
+      bypassScore: IDL.Float64,
+      resonexParticipants: IDL.Nat,
+      resonexAmplitude: IDL.Float64,
+      resonexCascadeActive: IDL.Bool,
+      resonexScore: IDL.Float64,
+      qsovScore: IDL.Float64,
+      qsovGeometricMean: IDL.Float64,
+      totalHeartbeats: IDL.Nat,
+      averageCoherence: IDL.Float64,
+      heartbeatVariability: IDL.Float64,
+      circadianAlignment: IDL.Float64,
+      cardioCerebralResonance: IDL.Float64,
+      cardioCerebralPhaseLag: IDL.Float64,
+      cardioCerebralPropulsion: IDL.Float64,
+      cardioCerebralAlignment: IDL.Float64,
+      cardioCerebralPushEffectiveness: IDL.Float64,
+    })], ['query']),
+
+    getCardioCerebralState: IDL.Func([], [IDL.Record({
+      resonance: IDL.Float64,
+      phaseLag: IDL.Float64,
+      directionX: IDL.Float64,
+      directionY: IDL.Float64,
+      directionZ: IDL.Float64,
+      propulsion: IDL.Float64,
+      alignment: IDL.Float64,
+      pushEffectiveness: IDL.Float64,
+      beatNum: IDL.Nat,
+      resonanceHistory: IDL.Vec(IDL.Float64),
+      propulsionHistory: IDL.Vec(IDL.Float64),
+    })], ['query']),
+
+    getGeoResonanceProtectionState: IDL.Func([], [IDL.Record({
+      beat: IDL.Nat,
+      fieldEnergy: IDL.Float64,
+      hotspotScore: IDL.Float64,
+      protectionScore: IDL.Float64,
+      threatScore: IDL.Float64,
+      serviceReadiness: IDL.Float64,
+      fieldDirectionX: IDL.Float64,
+      fieldDirectionY: IDL.Float64,
+      fieldDirectionZ: IDL.Float64,
+      sevenHeritageNodes: IDL.Vec(IDL.Float64),
+      serviceOpportunity: IDL.Vec(IDL.Float64),
+      defenseServiceOpportunity: IDL.Vec(IDL.Float64),
+      memoryServiceOpportunity: IDL.Vec(IDL.Float64),
+      worldServiceOpportunity: IDL.Vec(IDL.Float64),
+      fieldHistory: IDL.Vec(IDL.Float64),
+      hotspotHistory: IDL.Vec(IDL.Float64),
+      protectionHistory: IDL.Vec(IDL.Float64),
+    })], ['query']),
+
+    getCardioNeuralConversionOrganState: IDL.Func([], [IDL.Record({
+      beat: IDL.Nat,
+      coupling: IDL.Float64,
+      oxygenFlow: IDL.Float64,
+      perfusionFlow: IDL.Float64,
+      conversionGain: IDL.Float64,
+      gateOpen: IDL.Bool,
+      helixBarrier: IDL.Float64,
+      shieldIntegrity: IDL.Float64,
+      thoughtThroughput: IDL.Float64,
+      outputCoherence: IDL.Float64,
+      outputDirectionX: IDL.Float64,
+      outputDirectionY: IDL.Float64,
+      outputDirectionZ: IDL.Float64,
+      throughputHistory: IDL.Vec(IDL.Float64),
+      shieldHistory: IDL.Vec(IDL.Float64),
+      couplingHistory: IDL.Vec(IDL.Float64),
+    })], ['query']),
+
+    getAutonomousAnalystTeamState: IDL.Func([], [IDL.Record({
+      beat: IDL.Nat,
+      learningScore: IDL.Float64,
+      adaptationScore: IDL.Float64,
+      emergencySignal: IDL.Float64,
+      recommendationPriority: IDL.Float64,
+      narrativeSummary: IDL.Text,
+      heartNarrative: IDL.Text,
+      brainNarrative: IDL.Text,
+      middleOrganNarrative: IDL.Text,
+      defenseNarrative: IDL.Text,
+      growthNarrative: IDL.Text,
+      topRecommendations: IDL.Vec(IDL.Text),
+    })], ['query']),
+
+    getMemoryTempleState: IDL.Func([], [IDL.Record({
+      beat: IDL.Nat,
+      continuityWeave: IDL.Float64,
+      resonanceField: IDL.Float64,
+      cognitiveLoad: IDL.Float64,
+      memoryRetention: IDL.Float64,
+      recallReadiness: IDL.Float64,
+      memoryCognitionCoupling: IDL.Float64,
+      iotCouplingScore: IDL.Float64,
+      deviceTwinIntegrity: IDL.Float64,
+      phantomIntegrity: IDL.Float64,
+      agentWorkCapacity: IDL.Float64,
+      artifactReadiness: IDL.Float64,
+      directionX: IDL.Float64,
+      directionY: IDL.Float64,
+      directionZ: IDL.Float64,
+      pedestalNames: IDL.Vec(IDL.Text),
+      pedestalCouplings: IDL.Vec(IDL.Float64),
+      narrativeSummary: IDL.Text,
+      recommendations: IDL.Vec(IDL.Text),
+      continuityHistory: IDL.Vec(IDL.Float64),
+      resonanceHistory: IDL.Vec(IDL.Float64),
+      couplingHistory: IDL.Vec(IDL.Float64),
+    })], ['query']),
+
+    getConstantFeedbackCognitionState: IDL.Func([], [IDL.Record({
+      beat: IDL.Nat,
+      cognitivePressure: IDL.Float64,
+      loopClosureScore: IDL.Float64,
+      reinjectionIntegrity: IDL.Float64,
+      multiGroupCoherence: IDL.Float64,
+      multiOrganismCoherence: IDL.Float64,
+      cognitionReadiness: IDL.Float64,
+      arbitrationReadiness: IDL.Float64,
+      governanceStability: IDL.Float64,
+      recommendationPriority: IDL.Float64,
+      lawContinuityScore: IDL.Float64,
+      defensePostureScore: IDL.Float64,
+      economicResilienceScore: IDL.Float64,
+      workforceCoherenceScore: IDL.Float64,
+      memoryIntegrityScore: IDL.Float64,
+      meshResonanceScore: IDL.Float64,
+      sovereignAlignmentScore: IDL.Float64,
+      riskContainmentScore: IDL.Float64,
+      narrativeSummary: IDL.Text,
+      topActions: IDL.Vec(IDL.Text),
+      pressureHistory: IDL.Vec(IDL.Float64),
+      closureHistory: IDL.Vec(IDL.Float64),
+      reinjectionHistory: IDL.Vec(IDL.Float64),
+      multiGroupHistory: IDL.Vec(IDL.Float64),
+      multiOrganismHistory: IDL.Vec(IDL.Float64),
+      lawHistory: IDL.Vec(IDL.Float64),
+      defenseHistory: IDL.Vec(IDL.Float64),
+      economyHistory: IDL.Vec(IDL.Float64),
+      workforceHistory: IDL.Vec(IDL.Float64),
+      meshHistory: IDL.Vec(IDL.Float64),
+      sovereignHistory: IDL.Vec(IDL.Float64),
+    })], ['query']),
     
     getDroneCount: IDL.Func([], [IDL.Nat], ['query']),
     getRSwarm: IDL.Func([], [IDL.Float64], ['query']),
@@ -206,6 +548,13 @@ export interface SwarmBrainActor {
   getSwarmSnapshot: () => Promise<SwarmSnapshot>;
   getExtendedSnapshot: () => Promise<ExtendedSnapshot>;
   getSwarmQMetrics: () => Promise<SwarmQMetrics>;
+  getQuantumHeartbeatState: () => Promise<QuantumHeartbeatState>;
+  getCardioCerebralState: () => Promise<CardioCerebralState>;
+  getGeoResonanceProtectionState: () => Promise<GeoResonanceProtectionState>;
+  getCardioNeuralConversionOrganState: () => Promise<CardioNeuralConversionOrganState>;
+  getAutonomousAnalystTeamState: () => Promise<AutonomousAnalystTeamState>;
+  getMemoryTempleState: () => Promise<MemoryTempleState>;
+  getConstantFeedbackCognitionState: () => Promise<ConstantFeedbackCognitionState>;
   getDroneCount: () => Promise<bigint>;
   getRSwarm: () => Promise<number>;
   getJDrift: () => Promise<number>;
@@ -364,6 +713,71 @@ export async function fetchOrganismState(): Promise<OrganismState | null> {
 }
 
 /**
+ * Fetch geo-resonance protection engine state
+ */
+export async function fetchGeoResonanceProtectionState(): Promise<GeoResonanceProtectionState | null> {
+  try {
+    const actor = await connectSwarmBrain();
+    return await actor.getGeoResonanceProtectionState();
+  } catch (error) {
+    console.error('[SwarmBrainActor] fetchGeoResonanceProtectionState failed:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetch cardio-neural conversion organ state
+ */
+export async function fetchCardioNeuralConversionOrganState(): Promise<CardioNeuralConversionOrganState | null> {
+  try {
+    const actor = await connectSwarmBrain();
+    return await actor.getCardioNeuralConversionOrganState();
+  } catch (error) {
+    console.error('[SwarmBrainActor] fetchCardioNeuralConversionOrganState failed:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetch autonomous analyst team state
+ */
+export async function fetchAutonomousAnalystTeamState(): Promise<AutonomousAnalystTeamState | null> {
+  try {
+    const actor = await connectSwarmBrain();
+    return await actor.getAutonomousAnalystTeamState();
+  } catch (error) {
+    console.error('[SwarmBrainActor] fetchAutonomousAnalystTeamState failed:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetch memory temple state
+ */
+export async function fetchMemoryTempleState(): Promise<MemoryTempleState | null> {
+  try {
+    const actor = await connectSwarmBrain();
+    return await actor.getMemoryTempleState();
+  } catch (error) {
+    console.error('[SwarmBrainActor] fetchMemoryTempleState failed:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetch constant feedback cognition state
+ */
+export async function fetchConstantFeedbackCognitionState(): Promise<ConstantFeedbackCognitionState | null> {
+  try {
+    const actor = await connectSwarmBrain();
+    return await actor.getConstantFeedbackCognitionState();
+  } catch (error) {
+    console.error('[SwarmBrainActor] fetchConstantFeedbackCognitionState failed:', error);
+    return null;
+  }
+}
+
+/**
  * Trigger a backend tick
  */
 export async function triggerTick(): Promise<TickResult | null> {
@@ -412,6 +826,11 @@ export default {
   fetchSwarmSnapshot,
   fetchExtendedSnapshot,
   fetchOrganismState,
+  fetchGeoResonanceProtectionState,
+  fetchCardioNeuralConversionOrganState,
+  fetchAutonomousAnalystTeamState,
+  fetchMemoryTempleState,
+  fetchConstantFeedbackCognitionState,
   triggerTick,
   triggerHeartbeat,
   setArchitectSignal,

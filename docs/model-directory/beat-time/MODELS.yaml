@@ -1,0 +1,22 @@
+family:
+  id: "MOD-BEAT-TIME"
+  class_prefix: "T-MODEL"
+  owner: "core-a-runtime"
+  exposure_class: "RUNTIME_RESTRICTED"
+  gates_touched: ["GATE-A"]
+
+models:
+  - model_id: "T-MODEL-BEAT-EVENT"
+    class: "M1"
+    purpose: "Canonical beat event record"
+    consumers: ["core-a-runtime", "assurance-office"]
+    parity_refs:
+      backend: "src/swarm_brain/main.mo"
+      frontend: "src/frontend/src/canister/swarmBrainActor.ts"
+  - model_id: "T-MODEL-TIMESTAMP4D"
+    class: "M1"
+    purpose: "4D temporal index for replay"
+    consumers: ["core-a-runtime", "assurance-office"]
+    parity_refs:
+      backend: "src/swarm_brain/main.mo"
+      frontend: "src/frontend/src/canister/swarmBrainActor.ts"

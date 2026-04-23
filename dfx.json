@@ -14,6 +14,11 @@
       "main": "src/swarm_organism/main.mo",
       "dependencies": ["swarm_brain"]
     },
+    "medina": {
+      "type": "motoko",
+      "main": "icp/medina/Medina.mo",
+      "dependencies": []
+    },
     "frontend": {
       "type": "assets",
       "source": ["src/frontend/dist"],

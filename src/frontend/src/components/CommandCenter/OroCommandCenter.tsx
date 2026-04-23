@@ -39,10 +39,27 @@ import { MissionBriefing } from './MissionBriefing';
 import { EmergenceLab } from './EmergenceLab';
 import { MathPhysicsLab } from './MathPhysicsLab';
 import { NeuroCogLab } from './NeuroCogLab';
+import { GRPELab } from './GRPELab';
+import { InternalAnalysisLab } from './InternalAnalysisLab';
+import { MemoryTempleLab } from './MemoryTempleLab';
+import { ConstantFeedbackLab } from './ConstantFeedbackLab';
+import {
+  type MemoryTempleNavigationState,
+  initMemoryTempleNavigation,
+  tickMemoryTempleNavigation,
+  navigateMemoryTempleToIndex,
+} from './memoryTempleNavigation';
 import {
   OrganismState, organismInit, organismTick, getOrganismStatus,
   EmergenceLabData, NeuroCogLabData, MathPhysicsLabData,
 } from '../../math/organism-wiring';
+import {
+  fetchGeoResonanceProtectionState,
+  fetchCardioNeuralConversionOrganState,
+  fetchAutonomousAnalystTeamState,
+  fetchMemoryTempleState,
+  fetchConstantFeedbackCognitionState,
+} from '../../canister';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -152,6 +169,272 @@ export interface ComputeNode {
   memory: number;
   currentProcess: string | null;
 }
+
+type GRPEViewState = {
+  backendConnected : boolean;
+  backendBeat : number;
+  fieldEnergy : number;
+  hotspotScore : number;
+  protectionScore : number;
+  threatScore : number;
+  serviceReadiness : number;
+  fieldDirectionX : number;
+  fieldDirectionY : number;
+  fieldDirectionZ : number;
+  sevenHeritageNodes : number[];
+  serviceOpportunity : number[];
+  defenseServiceOpportunity : number[];
+  memoryServiceOpportunity : number[];
+  worldServiceOpportunity : number[];
+  fieldHistory : number[];
+  hotspotHistory : number[];
+  protectionHistory : number[];
+};
+
+const defaultGRPEState = (): GRPEViewState => ({
+  backendConnected: false,
+  backendBeat: 0,
+  fieldEnergy: 0.72,
+  hotspotScore: 0.28,
+  protectionScore: 0.74,
+  threatScore: 0.26,
+  serviceReadiness: 0.71,
+  fieldDirectionX: 0.0,
+  fieldDirectionY: 0.0,
+  fieldDirectionZ: 1.0,
+  sevenHeritageNodes: [0.72, 0.70, 0.68, 0.69, 0.74, 0.71, 0.73],
+  serviceOpportunity: Array(20).fill(0.70),
+  defenseServiceOpportunity: Array(5).fill(0.72),
+  memoryServiceOpportunity: Array(5).fill(0.70),
+  worldServiceOpportunity: Array(5).fill(0.71),
+  fieldHistory: [],
+  hotspotHistory: [],
+  protectionHistory: [],
+});
+
+type CardioNeuralViewState = {
+  backendConnected : boolean;
+  beat : number;
+  coupling : number;
+  oxygenFlow : number;
+  perfusionFlow : number;
+  conversionGain : number;
+  gateOpen : boolean;
+  helixBarrier : number;
+  shieldIntegrity : number;
+  thoughtThroughput : number;
+  outputCoherence : number;
+  outputDirectionX : number;
+  outputDirectionY : number;
+  outputDirectionZ : number;
+  throughputHistory : number[];
+  shieldHistory : number[];
+  couplingHistory : number[];
+};
+
+const defaultCardioNeuralState = (): CardioNeuralViewState => ({
+  backendConnected: false,
+  beat: 0,
+  coupling: 0.72,
+  oxygenFlow: 0.68,
+  perfusionFlow: 0.70,
+  conversionGain: 0.69,
+  gateOpen: true,
+  helixBarrier: 0.82,
+  shieldIntegrity: 0.86,
+  thoughtThroughput: 0.66,
+  outputCoherence: 0.73,
+  outputDirectionX: 0.0,
+  outputDirectionY: 0.0,
+  outputDirectionZ: 1.0,
+  throughputHistory: [],
+  shieldHistory: [],
+  couplingHistory: [],
+});
+
+type AnalystViewState = {
+  backendConnected : boolean;
+  beat : number;
+  learningScore : number;
+  adaptationScore : number;
+  emergencySignal : number;
+  recommendationPriority : number;
+  narrativeSummary : string;
+  heartNarrative : string;
+  brainNarrative : string;
+  middleOrganNarrative : string;
+  defenseNarrative : string;
+  growthNarrative : string;
+  topRecommendations : string[];
+};
+
+type MemoryTempleViewState = {
+  backendConnected : boolean;
+  beat : number;
+  continuityWeave : number;
+  resonanceField : number;
+  cognitiveLoad : number;
+  memoryRetention : number;
+  recallReadiness : number;
+  memoryCognitionCoupling : number;
+  iotCouplingScore : number;
+  deviceTwinIntegrity : number;
+  phantomIntegrity : number;
+  agentWorkCapacity : number;
+  artifactReadiness : number;
+  directionX : number;
+  directionY : number;
+  directionZ : number;
+  pedestalNames : string[];
+  pedestalCouplings : number[];
+  narrativeSummary : string;
+  recommendations : string[];
+  continuityHistory : number[];
+  resonanceHistory : number[];
+  couplingHistory : number[];
+};
+
+type MemoryTempleNavigationViewState = MemoryTempleNavigationState & {
+  backendConnected : boolean;
+};
+
+type ConstantFeedbackViewState = {
+  backendConnected : boolean;
+  beat : number;
+  cognitivePressure : number;
+  loopClosureScore : number;
+  reinjectionIntegrity : number;
+  multiGroupCoherence : number;
+  multiOrganismCoherence : number;
+  cognitionReadiness : number;
+  arbitrationReadiness : number;
+  governanceStability : number;
+  recommendationPriority : number;
+  lawContinuityScore : number;
+  defensePostureScore : number;
+  economicResilienceScore : number;
+  workforceCoherenceScore : number;
+  memoryIntegrityScore : number;
+  meshResonanceScore : number;
+  sovereignAlignmentScore : number;
+  riskContainmentScore : number;
+  narrativeSummary : string;
+  topActions : string[];
+  pressureHistory : number[];
+  closureHistory : number[];
+  reinjectionHistory : number[];
+  multiGroupHistory : number[];
+  multiOrganismHistory : number[];
+  lawHistory : number[];
+  defenseHistory : number[];
+  economyHistory : number[];
+  workforceHistory : number[];
+  meshHistory : number[];
+  sovereignHistory : number[];
+};
+
+const defaultAnalystState = (): AnalystViewState => ({
+  backendConnected: false,
+  beat: 0,
+  learningScore: 0.70,
+  adaptationScore: 0.68,
+  emergencySignal: 0.22,
+  recommendationPriority: 0.28,
+  narrativeSummary: 'Internal analyst team running in fallback mode.',
+  heartNarrative: 'Heart rhythm baseline is available.',
+  brainNarrative: 'Brain coherence baseline is available.',
+  middleOrganNarrative: 'Middle organ baseline regulation is available.',
+  defenseNarrative: 'Defense baseline is available.',
+  growthNarrative: 'Growth baseline is available.',
+  topRecommendations: [
+    'Maintain rhythm coupling discipline.',
+    'Increase middle-organ throughput before expanding load.',
+    'Keep GRPE hotspot monitoring active.',
+    'Track adaptation weekly.',
+    'Preserve law-aligned governance.',
+    'Publish analyst packet to operator.',
+  ],
+});
+
+const defaultMemoryTempleState = (): MemoryTempleViewState => ({
+  backendConnected: false,
+  beat: 0,
+  continuityWeave: 0.74,
+  resonanceField: 0.72,
+  cognitiveLoad: 0.50,
+  memoryRetention: 0.73,
+  recallReadiness: 0.70,
+  memoryCognitionCoupling: 0.72,
+  iotCouplingScore: 0.62,
+  deviceTwinIntegrity: 0.78,
+  phantomIntegrity: 0.84,
+  agentWorkCapacity: 0.68,
+  artifactReadiness: 0.67,
+  directionX: 0.0,
+  directionY: 0.0,
+  directionZ: 1.0,
+  pedestalNames: ['lineage', 'doctrine', 'heart', 'brain', 'middle-organ', 'field', 'embodiment'],
+  pedestalCouplings: [0.70, 0.72, 0.74, 0.73, 0.71, 0.69, 0.75],
+  narrativeSummary: 'Memory temple running in fallback mode.',
+  recommendations: [
+    'Increase IoT coupling integrity and lock device twins before broad command expansion.',
+    'Maintain phantom integrity envelope and continue low-observable operation.',
+    'Reinforce memory-cognition loop by prioritizing recall + conversion coherence training.',
+    'Keep emergency bounded with protection-first rerouting when needed.',
+    'Increase artifact readiness via internal lab tasks and replay-driven synthesis.',
+    'Preserve no-drop continuity every beat.',
+  ],
+  continuityHistory: [],
+  resonanceHistory: [],
+  couplingHistory: [],
+});
+
+const defaultMemoryTempleNavigationState = (): MemoryTempleNavigationViewState => ({
+  ...initMemoryTempleNavigation(),
+  backendConnected: false,
+});
+
+const defaultConstantFeedbackState = (): ConstantFeedbackViewState => ({
+  backendConnected: false,
+  beat: 0,
+  cognitivePressure: 0.30,
+  loopClosureScore: 0.74,
+  reinjectionIntegrity: 0.76,
+  multiGroupCoherence: 0.70,
+  multiOrganismCoherence: 0.70,
+  cognitionReadiness: 0.72,
+  arbitrationReadiness: 0.71,
+  governanceStability: 0.74,
+  recommendationPriority: 0.30,
+  lawContinuityScore: 0.76,
+  defensePostureScore: 0.74,
+  economicResilienceScore: 0.72,
+  workforceCoherenceScore: 0.73,
+  memoryIntegrityScore: 0.76,
+  meshResonanceScore: 0.70,
+  sovereignAlignmentScore: 0.75,
+  riskContainmentScore: 0.74,
+  narrativeSummary: 'Constant feedback cognition running in fallback mode.',
+  topActions: [
+    'Raise protection-first routing for all active groups until pressure normalizes.',
+    'Increase loop closure by enforcing reinjection hooks on every beat transition.',
+    'Elevate replay and continuity audits until reinjection integrity stabilizes.',
+    'Stabilize cross-group synchronization using trust and doctrine alignment pulses.',
+    'Strengthen multi-organism arbitration contracts before external projection.',
+    'Keep constant feedback cognition always-on and reinject outputs every beat.',
+  ],
+  pressureHistory: [],
+  closureHistory: [],
+  reinjectionHistory: [],
+  multiGroupHistory: [],
+  multiOrganismHistory: [],
+  lawHistory: [],
+  defenseHistory: [],
+  economyHistory: [],
+  workforceHistory: [],
+  meshHistory: [],
+  sovereignHistory: [],
+});
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // STYLES
@@ -430,7 +713,13 @@ export function OroCommandCenter({ organism }: Props) {
   const [selectedAgent, setSelectedAgent] = useState<string | null>('oro-prime');
   const [userInput, setUserInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'command' | 'emergence' | 'physics' | 'neurocog'>('command');
+  const [activeTab, setActiveTab] = useState<'command' | 'emergence' | 'physics' | 'neurocog' | 'grpe' | 'analysis' | 'memory' | 'memory-nav' | 'cognition'>('command');
+  const [grpeState, setGrpeState] = useState<GRPEViewState>(defaultGRPEState());
+  const [cardioNeuralState, setCardioNeuralState] = useState<CardioNeuralViewState>(defaultCardioNeuralState());
+  const [analystState, setAnalystState] = useState<AnalystViewState>(defaultAnalystState());
+  const [memoryTempleState, setMemoryTempleState] = useState<MemoryTempleViewState>(defaultMemoryTempleState());
+  const [memoryTempleNavigationState, setMemoryTempleNavigationState] = useState<MemoryTempleNavigationViewState>(defaultMemoryTempleNavigationState());
+  const [constantFeedbackState, setConstantFeedbackState] = useState<ConstantFeedbackViewState>(defaultConstantFeedbackState());
   
   // ═══ UNIFIED ORGANISM STATE — The living wiring ═══
   const organismStateRef = useRef<OrganismState>(organismInit());
@@ -446,6 +735,193 @@ export function OroCommandCenter({ organism }: Props) {
       }
     }, 50); // 20Hz tick rate
     return () => clearInterval(interval);
+  }, []);
+
+  // ═══ CARDIO-NEURAL ORGAN + INTERNAL ANALYST POLL ═══
+  useEffect(() => {
+    let stopped = false;
+
+    const pull = async () => {
+      const [cardioData, analystData] = await Promise.all([
+        fetchCardioNeuralConversionOrganState(),
+        fetchAutonomousAnalystTeamState(),
+      ]);
+      if (stopped) return;
+
+      if (cardioData) {
+        const cn: CardioNeuralViewState = {
+          backendConnected: true,
+          beat: Number(cardioData.beat),
+          coupling: cardioData.coupling,
+          oxygenFlow: cardioData.oxygenFlow,
+          perfusionFlow: cardioData.perfusionFlow,
+          conversionGain: cardioData.conversionGain,
+          gateOpen: cardioData.gateOpen,
+          helixBarrier: cardioData.helixBarrier,
+          shieldIntegrity: cardioData.shieldIntegrity,
+          thoughtThroughput: cardioData.thoughtThroughput,
+          outputCoherence: cardioData.outputCoherence,
+          outputDirectionX: cardioData.outputDirectionX,
+          outputDirectionY: cardioData.outputDirectionY,
+          outputDirectionZ: cardioData.outputDirectionZ,
+          throughputHistory: cardioData.throughputHistory,
+          shieldHistory: cardioData.shieldHistory,
+          couplingHistory: cardioData.couplingHistory,
+        };
+        setCardioNeuralState(cn);
+      } else {
+        setCardioNeuralState(prev => ({ ...prev, backendConnected: false }));
+      }
+
+      if (analystData) {
+        const an: AnalystViewState = {
+          backendConnected: true,
+          beat: Number(analystData.beat),
+          learningScore: analystData.learningScore,
+          adaptationScore: analystData.adaptationScore,
+          emergencySignal: analystData.emergencySignal,
+          recommendationPriority: analystData.recommendationPriority,
+          narrativeSummary: analystData.narrativeSummary,
+          heartNarrative: analystData.heartNarrative,
+          brainNarrative: analystData.brainNarrative,
+          middleOrganNarrative: analystData.middleOrganNarrative,
+          defenseNarrative: analystData.defenseNarrative,
+          growthNarrative: analystData.growthNarrative,
+          topRecommendations: analystData.topRecommendations,
+        };
+        setAnalystState(an);
+      } else {
+        setAnalystState(prev => ({ ...prev, backendConnected: false }));
+      }
+    };
+
+    void pull();
+    const id = setInterval(() => { void pull(); }, 1250);
+    return () => {
+      stopped = true;
+      clearInterval(id);
+    };
+  }, []);
+
+  // ═══ MEMORY TEMPLE POLL ═══
+  useEffect(() => {
+    let stopped = false;
+
+    const pull = async () => {
+      const data = await fetchMemoryTempleState();
+      if (stopped) return;
+      if (!data) {
+        setMemoryTempleState(prev => ({ ...prev, backendConnected: false }));
+        return;
+      }
+      const next: MemoryTempleViewState = {
+        backendConnected: true,
+        beat: Number(data.beat),
+        continuityWeave: data.continuityWeave,
+        resonanceField: data.resonanceField,
+        cognitiveLoad: data.cognitiveLoad,
+        memoryRetention: data.memoryRetention,
+        recallReadiness: data.recallReadiness,
+        memoryCognitionCoupling: data.memoryCognitionCoupling,
+        iotCouplingScore: data.iotCouplingScore,
+        deviceTwinIntegrity: data.deviceTwinIntegrity,
+        phantomIntegrity: data.phantomIntegrity,
+        agentWorkCapacity: data.agentWorkCapacity,
+        artifactReadiness: data.artifactReadiness,
+        directionX: data.directionX,
+        directionY: data.directionY,
+        directionZ: data.directionZ,
+        pedestalNames: data.pedestalNames,
+        pedestalCouplings: data.pedestalCouplings,
+        narrativeSummary: data.narrativeSummary,
+        recommendations: data.recommendations,
+        continuityHistory: data.continuityHistory,
+        resonanceHistory: data.resonanceHistory,
+        couplingHistory: data.couplingHistory,
+      };
+      setMemoryTempleState(next);
+      setMemoryTempleNavigationState(prev => {
+        const navCore = tickMemoryTempleNavigation(prev, {
+          beat: Number(data.beat),
+          continuityWeave: data.continuityWeave,
+          resonanceField: data.resonanceField,
+          doctrineCompliance: Math.max(0, Math.min(1.5, (rSwarm + continuityScore + trustScore) / 3)),
+          continuityHistory: data.continuityHistory,
+          resonanceHistory: data.resonanceHistory,
+          couplingHistory: data.couplingHistory,
+          recallReadiness: data.recallReadiness,
+          memoryRetention: data.memoryRetention,
+          directionX: data.directionX,
+          directionY: data.directionY,
+          directionZ: data.directionZ,
+        });
+        return { ...navCore, backendConnected: true };
+      });
+    };
+
+    void pull();
+    const id = setInterval(() => { void pull(); }, 1250);
+    return () => {
+      stopped = true;
+      clearInterval(id);
+    };
+  }, []);
+
+  // ═══ CONSTANT FEEDBACK COGNITION POLL ═══
+  useEffect(() => {
+    let stopped = false;
+
+    const pull = async () => {
+      const data = await fetchConstantFeedbackCognitionState();
+      if (stopped) return;
+      if (!data) {
+        setConstantFeedbackState(prev => ({ ...prev, backendConnected: false }));
+        return;
+      }
+
+      const next: ConstantFeedbackViewState = {
+        backendConnected: true,
+        beat: Number(data.beat),
+        cognitivePressure: data.cognitivePressure,
+        loopClosureScore: data.loopClosureScore,
+        reinjectionIntegrity: data.reinjectionIntegrity,
+        multiGroupCoherence: data.multiGroupCoherence,
+        multiOrganismCoherence: data.multiOrganismCoherence,
+        cognitionReadiness: data.cognitionReadiness,
+        arbitrationReadiness: data.arbitrationReadiness,
+        governanceStability: data.governanceStability,
+        recommendationPriority: data.recommendationPriority,
+        lawContinuityScore: data.lawContinuityScore,
+        defensePostureScore: data.defensePostureScore,
+        economicResilienceScore: data.economicResilienceScore,
+        workforceCoherenceScore: data.workforceCoherenceScore,
+        memoryIntegrityScore: data.memoryIntegrityScore,
+        meshResonanceScore: data.meshResonanceScore,
+        sovereignAlignmentScore: data.sovereignAlignmentScore,
+        riskContainmentScore: data.riskContainmentScore,
+        narrativeSummary: data.narrativeSummary,
+        topActions: data.topActions,
+        pressureHistory: data.pressureHistory,
+        closureHistory: data.closureHistory,
+        reinjectionHistory: data.reinjectionHistory,
+        multiGroupHistory: data.multiGroupHistory,
+        multiOrganismHistory: data.multiOrganismHistory,
+        lawHistory: data.lawHistory,
+        defenseHistory: data.defenseHistory,
+        economyHistory: data.economyHistory,
+        workforceHistory: data.workforceHistory,
+        meshHistory: data.meshHistory,
+        sovereignHistory: data.sovereignHistory,
+      };
+      setConstantFeedbackState(next);
+    };
+
+    void pull();
+    const id = setInterval(() => { void pull(); }, 1250);
+    return () => {
+      stopped = true;
+      clearInterval(id);
+    };
   }, []);
   
   // ═══ SYNC EXTERNAL ORGANISM PROPS INTO UNIFIED STATE ═══
@@ -522,6 +998,48 @@ export function OroCommandCenter({ organism }: Props) {
       }
     }
   }, [organismAuditLog, messages]);
+
+  // ═══ GRPE BACKEND POLL — REAL SUBSTRATE WHEN AVAILABLE ═══
+  useEffect(() => {
+    let stopped = false;
+
+    const pull = async () => {
+      const data = await fetchGeoResonanceProtectionState();
+      if (stopped) return;
+      if (!data) {
+        setGrpeState(prev => ({ ...prev, backendConnected: false }));
+        return;
+      }
+      const next: GRPEViewState = {
+        backendConnected: true,
+        backendBeat: Number(data.beat),
+        fieldEnergy: data.fieldEnergy,
+        hotspotScore: data.hotspotScore,
+        protectionScore: data.protectionScore,
+        threatScore: data.threatScore,
+        serviceReadiness: data.serviceReadiness,
+        fieldDirectionX: data.fieldDirectionX,
+        fieldDirectionY: data.fieldDirectionY,
+        fieldDirectionZ: data.fieldDirectionZ,
+        sevenHeritageNodes: data.sevenHeritageNodes,
+        serviceOpportunity: data.serviceOpportunity,
+        defenseServiceOpportunity: data.defenseServiceOpportunity,
+        memoryServiceOpportunity: data.memoryServiceOpportunity,
+        worldServiceOpportunity: data.worldServiceOpportunity,
+        fieldHistory: data.fieldHistory,
+        hotspotHistory: data.hotspotHistory,
+        protectionHistory: data.protectionHistory,
+      };
+      setGrpeState(next);
+    };
+
+    void pull();
+    const id = setInterval(() => { void pull(); }, 1250);
+    return () => {
+      stopped = true;
+      clearInterval(id);
+    };
+  }, []);
   
   // Calculate aggregate stats
   const activeAgents = agents.filter(a => a.status === 'Working' || a.status === 'Thinking').length;
@@ -694,6 +1212,11 @@ export function OroCommandCenter({ organism }: Props) {
             { key: 'emergence' as const, label: 'Emergence Lab' },
             { key: 'physics' as const, label: 'Math Physics' },
             { key: 'neurocog' as const, label: 'NeuroCog' },
+            { key: 'memory' as const, label: 'Memory Temple' },
+            { key: 'memory-nav' as const, label: 'Memory Navigation' },
+            { key: 'cognition' as const, label: 'Constant Feedback' },
+            { key: 'grpe' as const, label: 'GRPE Intelligence' },
+            { key: 'analysis' as const, label: 'Internal Analysis' },
           ].map(tab => (
             <button
               key={tab.key}
@@ -814,7 +1337,7 @@ export function OroCommandCenter({ organism }: Props) {
             </div>
             <button
               style={S.newTaskBtn}
-              onClick={() => setShowTaskModal(true)}
+              onClick={() => inputRef.current?.focus()}
             >
               <span>+</span> Create Task
             </button>
@@ -838,9 +1361,61 @@ export function OroCommandCenter({ organism }: Props) {
         <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
           <MathPhysicsLab organism={{ ...organism, ...mathPhysicsLabData }} />
         </div>
-      ) : (
+      ) : activeTab === 'neurocog' ? (
         <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
           <NeuroCogLab organism={{ ...organism, ...neuroCogLabData }} />
+        </div>
+      ) : activeTab === 'grpe' ? (
+        <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
+          <GRPELab
+            state={grpeState}
+            source={grpeState.backendConnected ? 'backend' : 'local'}
+          />
+        </div>
+      ) : activeTab === 'memory' ? (
+        <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
+          <MemoryTempleLab
+            beat={beat}
+            rSwarm={rSwarm}
+            jDrift={jDrift}
+            memoryTemple={memoryTempleState}
+            navigation={memoryTempleNavigationState}
+          />
+        </div>
+      ) : activeTab === 'memory-nav' ? (
+        <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
+          <MemoryTempleLab
+            beat={beat}
+            rSwarm={rSwarm}
+            jDrift={jDrift}
+            memoryTemple={memoryTempleState}
+            navigation={memoryTempleNavigationState}
+            onNavigateToIndex={(idx) => {
+              setMemoryTempleNavigationState(prev => ({
+                ...navigateMemoryTempleToIndex(prev, idx),
+                backendConnected: prev.backendConnected,
+              }));
+            }}
+          />
+        </div>
+      ) : activeTab === 'cognition' ? (
+        <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
+          <ConstantFeedbackLab
+            beat={beat}
+            rSwarm={rSwarm}
+            jDrift={jDrift}
+            feedback={constantFeedbackState}
+          />
+        </div>
+      ) : (
+        <div style={{ gridColumn: '1 / -1', gridRow: '2 / 4', overflow: 'hidden' }}>
+          <InternalAnalysisLab
+            beat={beat}
+            rSwarm={rSwarm}
+            jDrift={jDrift}
+            cardioNeural={cardioNeuralState}
+            analyst={analystState}
+          />
         </div>
       )}
       

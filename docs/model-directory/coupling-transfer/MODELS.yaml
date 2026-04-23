@@ -1,0 +1,26 @@
+family:
+  id: "MOD-COUPLING-TRANSFER"
+  name: "Coupling and Transfer Models"
+  classification: "BUILDER_CONFIDENTIAL"
+  owner: "architecture-office"
+  consumers:
+    - "core-a-runtime"
+    - "core-b-governance"
+    - "product-authority"
+  gates_touched: ["GATE-A", "GATE-B", "GATE-C"]
+
+models:
+  - model_id: "F-MODEL-RING-TRANSFER-EDGE"
+    class: "M1"
+    description: "Edge contract for permitted inter-ring transfer"
+    parity_refs:
+      - "docs/templates/NOVA_RING_TRANSFER_GRAPH.yaml"
+      - "docs/templates/NOVA_TRANSFER_PROTOCOL.yaml"
+    exposure_class: "BUILDER_CONFIDENTIAL"
+  - model_id: "F-MODEL-COUPLING-TOPOLOGY"
+    class: "M1"
+    description: "Internal coupling topology mapping"
+    parity_refs:
+      - "docs/templates/NOVA_RING_FLOW.yaml"
+      - "docs/templates/NOVA_SPHERICAL_RING_SCHEMA.yaml"
+    exposure_class: "SOVEREIGN_PRIVATE"

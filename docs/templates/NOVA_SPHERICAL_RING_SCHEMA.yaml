@@ -1,0 +1,114 @@
+spherical_ring_schema:
+  version: "1.0"
+  schema_id: "NOVA-RING-SCHEMA-R0-R7"
+  classification: "BUILDER_CONFIDENTIAL"
+  doctrine_fingerprint: "UNSET"
+
+  rings:
+    - id: "R0"
+      name: "Crown Fundamentals"
+      ontology_tiers: ["T0", "T0.5"]
+      primary_authority: "doctrine-authority"
+      contains:
+        - "absolutes"
+        - "encoded-constants"
+      cannot_directly_write_to: ["R3", "R5", "R6"]
+      allowed_outbound_transfers: ["T01"]
+
+    - id: "R1"
+      name: "Doctrine and Law"
+      ontology_tiers: ["T1"]
+      primary_authority: "doctrine-authority"
+      contains:
+        - "law-registry"
+        - "invariants"
+        - "constitutional-gates"
+      allowed_outbound_transfers: ["T12"]
+      inbound_transfers: ["T01", "T70"]
+
+    - id: "R2"
+      name: "Substrate Language"
+      ontology_tiers: ["T2A", "T2B", "T5"]
+      primary_authority: "platform-model-office"
+      contains:
+        - "backend-substrate"
+        - "frontend-substrate"
+        - "canonical-type-contracts"
+      allowed_outbound_transfers: ["T23"]
+      inbound_transfers: ["T12"]
+
+    - id: "R3"
+      name: "Runtime Intelligence (Core A Domain)"
+      ontology_tiers: ["T3", "T4A", "T4B", "T6", "T7A", "T7B", "T8"]
+      primary_authority: "core-a-runtime"
+      contains:
+        - "beat-loop"
+        - "law-gated-actuation"
+        - "deterministic-arbitration"
+        - "no-drop-reinjection"
+      allowed_outbound_transfers: ["T34", "T35"]
+      inbound_transfers: ["T23", "T43", "T53"]
+
+    - id: "R4"
+      name: "Intrinsic Labs (Inside Organism)"
+      ontology_tiers: ["T4A", "T4B"]
+      primary_authority: "intrinsic-labs"
+      contains:
+        - "coherence-lab"
+        - "drift-lab"
+        - "memory-lab"
+        - "defense-adaptation-lab"
+      allowed_outbound_transfers: ["T43"]
+      inbound_transfers: ["T34"]
+
+    - id: "R5"
+      name: "Industrial Workforce (Core B Domain)"
+      ontology_tiers: ["T3", "T6", "T8"]
+      primary_authority: "core-b-workforce"
+      contains:
+        - "planning"
+        - "implementation"
+        - "verification"
+        - "release-orchestration"
+      allowed_outbound_transfers: ["T53", "T56"]
+      inbound_transfers: ["T35"]
+
+    - id: "R6"
+      name: "Product Projection"
+      ontology_tiers: ["T8", "T9"]
+      primary_authority: "product-authority"
+      contains:
+        - "public-surfaces"
+        - "enterprise-surfaces"
+        - "api-projection-contracts"
+      allowed_outbound_transfers: ["T67"]
+      inbound_transfers: ["T56"]
+
+    - id: "R7"
+      name: "External Ecosystem"
+      ontology_tiers: ["T9"]
+      primary_authority: "ecosystem-governance"
+      contains:
+        - "customers"
+        - "partners"
+        - "device-federation"
+        - "field-operations"
+      allowed_outbound_transfers: ["T70"]
+      inbound_transfers: ["T67"]
+
+  non_collapse_constraints:
+    - "absolute != law"
+    - "law != model"
+    - "model != engine"
+    - "engine != core"
+    - "core != module"
+    - "intrinsic-lab != industrial-workforce"
+    - "runtime-truth != product-projection"
+
+  gate_bindings:
+    gate_a_runtime_readiness:
+      applies_to_rings: ["R2", "R3", "R4"]
+    gate_b_workforce_activation:
+      applies_to_rings: ["R3", "R5"]
+    gate_c_public_projection:
+      applies_to_rings: ["R3", "R5", "R6", "R7"]

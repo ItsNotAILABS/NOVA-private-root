@@ -1,0 +1,125 @@
+model_directory_index:
+  version: "1.0"
+  classification: "BUILDER_CONFIDENTIAL"
+  purpose: "Canonical macro model map for enterprise execution"
+
+  macro_process:
+    name: "Sovereign Model Continuum"
+    stages:
+      - id: "M1"
+        name: "Constitution Model"
+        role: "truth boundary and doctrine authority"
+      - id: "M2"
+        name: "Ontology Model"
+        role: "category integrity and anti-collapse typing"
+      - id: "M3"
+        name: "Language Model"
+        role: "canonical model contracts and parity"
+      - id: "M4"
+        name: "Orchestration Model"
+        role: "macro execution control via YAML manifest stack"
+      - id: "M5"
+        name: "Execution Model"
+        role: "micro run/job controls and gate-specific directives"
+      - id: "M6"
+        name: "Runtime Cognition Model"
+        role: "beat, coherence, arbitration, reinjection truth"
+      - id: "M7"
+        name: "Evolution Model"
+        role: "intrinsic lab adaptation and quality uplift"
+      - id: "M8"
+        name: "Industrial Model"
+        role: "workforce build/release/output production"
+      - id: "M9"
+        name: "Projection Model"
+        role: "product/API/service projection under zero-exposure"
+      - id: "M10"
+        name: "Evidence Model"
+        role: "replay, proof, parity, and exposure audits"
+      - id: "M11"
+        name: "Sovereign Node Hierarchy Model"
+        role: "N1-N12 macro-node governance, lineage, and inter-node coupling law"
+      - id: "M12"
+        name: "Document Organism Model"
+        role: "living-document intelligence registry, self-reading, and self-execution contracts"
+
+  directories:
+    constitution_models:
+      path: "docs/models/constitution/"
+      owner: "doctrine-authority"
+      artifacts:
+        - "NOVA_BUILD_CONSTITUTION.md"
+        - "NOVA_LAW_REGISTRY.yaml"
+    ontology_models:
+      path: "docs/models/ontology/"
+      owner: "architecture-office"
+      artifacts:
+        - "NOVA_FULL_SPHERE_ARCHITECTURE.md"
+        - "NOVA_PLAIN_LANGUAGE_GLOSSARY.md"
+    language_models:
+      path: "docs/models/language/"
+      owner: "platform-model-office"
+      artifacts:
+        - "types.mo"
+        - "types.ts"
+        - "NOVA_DOCTRINE_PACK.yaml"
+        - "NOVA_RESONANCE_LEXICON.yaml"
+    orchestration_models:
+      path: "docs/models/orchestration/"
+      owner: "core-b-governance"
+      artifacts:
+        - "NOVA_BUILD_INSTANCE_TEMPLATE.yaml"
+        - "NOVA_TRANSFER_PROTOCOL.yaml"
+        - "NOVA_GATES_SCORECARD.yaml"
+    runtime_models:
+      path: "docs/models/runtime/"
+      owner: "core-a-runtime"
+      artifacts:
+        - "MEDINA-ORGANISM"
+        - "MEDINA-ENGINE"
+        - "MEDINA-COUPLING"
+        - "MEDINA-SNAPSHOT"
+    evolution_models:
+      path: "docs/models/evolution/"
+      owner: "intrinsic-labs"
+      artifacts:
+        - "lab-hypotheses.yaml"
+        - "adaptation-reports/"
+    industrial_models:
+      path: "docs/models/industrial/"
+      owner: "core-b-workforce"
+      artifacts:
+        - "release-manifests/"
+        - "workforce-output-ledger.yaml"
+    projection_models:
+      path: "docs/models/projection/"
+      owner: "product-authority"
+      artifacts:
+        - "api-projection-map.yaml"
+        - "exposure-policy.yaml"
+    evidence_models:
+      path: "docs/models/evidence/"
+      owner: "assurance-office"
+      artifacts:
+        - "replay-bundles/"
+        - "law-enforcement-reports/"
+        - "parity-hash-reports/"
+    sovereign_node_hierarchy_models:
+      path: "docs/models/sovereign-node-hierarchy/"
+      owner: "nova-registry-office"
+      artifacts:
+        - "NOVA_SOVEREIGN_N1_N12_MACRO_HIERARCHY_CANON.md"
+        - "NOVA_SOVEREIGN_N1_N12_HIERARCHY.yaml"
+    document_organism_models:
+      path: "docs/models/document-organism/"
+      owner: "living-document-office"
+      artifacts:
+        - "NOVA_DOCUMENT_ORGANISM_MODELS_REGISTRY.md"
+        - "NOVA_DOCUMENT_ORGANISM_MODELS.yaml"
+
+  mandatory_checks:
+    - "every stage M1-M12 has at least one maintained artifact"
+    - "every artifact has classification and owner"
+    - "projection artifacts reference zero-exposure policy"
+    - "runtime artifacts map to replay evidence artifacts"
+

@@ -1,0 +1,24 @@
+models:
+  family_id: "MOD-IDENTITY-AUTHORITY"
+  family_name: "Identity and Authority Models"
+  classification: "BUILDER_CONFIDENTIAL"
+  owner: "sovereign-access-office"
+  consumers:
+    - "core-a-runtime"
+    - "core-b-governance"
+    - "product-authority"
+  gates_touched:
+    - "GATE-A"
+    - "GATE-B"
+    - "GATE-C"
+  exposure_class: "BUILDER_CONFIDENTIAL"
+  parity_hash_refs:
+    - "types.mo"
+    - "types.ts"
+  entries:
+    - model_id: "I-MODEL-ACTOR-SCOPE"
+      class: "M1"
+      description: "Scoped actor identity and permitted action envelope."
+    - model_id: "I-MODEL-SIGNER-GRANT"
+      class: "M1"
+      description: "Signer grants and authority boundaries."

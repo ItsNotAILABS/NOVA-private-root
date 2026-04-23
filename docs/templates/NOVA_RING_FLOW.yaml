@@ -1,0 +1,53 @@
+ring_flow:
+  version: "1.0"
+  classification: "BUILDER_CONFIDENTIAL"
+  purpose: "Compact ring ingress/egress contract with allowed pathways"
+
+  rings:
+    r0:
+      ingress: []
+      egress: ["r1"]
+      boundary: "fundamentals only"
+    r1:
+      ingress: ["r0", "r7_governance_feedback"]
+      egress: ["r2"]
+      boundary: "doctrine and law governance only"
+    r2:
+      ingress: ["r1"]
+      egress: ["r3"]
+      boundary: "type and substrate contract plane"
+    r3:
+      ingress: ["r2", "r4", "r5"]
+      egress: ["r4", "r5"]
+      boundary: "runtime truth; accepts through gates only"
+    r4:
+      ingress: ["r3"]
+      egress: ["r3"]
+      boundary: "intrinsic lab feedback loop"
+    r5:
+      ingress: ["r3"]
+      egress: ["r3", "r6"]
+      boundary: "industrial build and release"
+    r6:
+      ingress: ["r5"]
+      egress: ["r7"]
+      boundary: "projection-only outputs"
+    r7:
+      ingress: ["r6"]
+      egress: ["r1_governance_feedback"]
+      boundary: "ecosystem and evidence return"
+
+  illegal_paths:
+    - "r6 -> r1"
+    - "r6 -> r3"
+    - "r7 -> r3"
+    - "r5 -> r1"
+    - "r4 -> r6"
+
+  required_controls:
+    - id: "RF-C1"
+      rule: "Every r5->r6 path requires gate_b and exposure policy refs."
+    - id: "RF-C2"
+      rule: "Every r6->r7 path requires gate_c pass."
+    - id: "RF-C3"
+      rule: "Every r7 feedback must route to doctrine review before enforcement."

@@ -1,0 +1,100 @@
+gates_scorecard:
+  version: "1.0"
+  classification: "BUILDER_CONFIDENTIAL"
+  process_name: "Sovereign Macro Orchestration Fabric"
+  gate_order: ["GATE-A", "GATE-B", "GATE-C"]
+
+  gates:
+    - gate_id: "GATE-A"
+      gate_name: "core-a-runtime-readiness"
+      owner: "core-a-runtime-authority"
+      hard_block_if_fail: true
+      pass_threshold: 1.0
+      criteria:
+        - id: "A1"
+          metric: "deterministic_beat"
+          rule: "all tick cycles produce monotonically increasing beat with zero reset anomalies"
+          required: true
+        - id: "A2"
+          metric: "coherence_drift_bound"
+          rule: "jDrift <= configured bound for stress test envelope"
+          required: true
+        - id: "A3"
+          metric: "law_before_actuation"
+          rule: "100 percent of actuation paths include law gate pass record"
+          required: true
+        - id: "A4"
+          metric: "deterministic_arbitration"
+          rule: "same input packet set yields same arbitration verdict and lineage"
+          required: true
+        - id: "A5"
+          metric: "no_drop_reinjection"
+          rule: "continuityWeave and replay traces persist each beat"
+          required: true
+        - id: "A6"
+          metric: "replay_reconstructable"
+          rule: "replay bundle reconstructs selected beat window"
+          required: true
+      evidence_required:
+        - "EVID-BEAT-DETERMINISM"
+        - "EVID-LAW-GATE-COVERAGE"
+        - "EVID-ARBITRATION-REPLAY"
+        - "EVID-CONTINUITY-TRACE"
+
+    - gate_id: "GATE-B"
+      gate_name: "core-b-workforce-activation"
+      owner: "core-b-governance"
+      depends_on: ["GATE-A"]
+      hard_block_if_fail: true
+      pass_threshold: 1.0
+      criteria:
+        - id: "B1"
+          metric: "core_a_contract_compatibility"
+          rule: "work packets validate against core-a accepted contracts"
+          required: true
+        - id: "B2"
+          metric: "security_channel_controls"
+          rule: "all workforce write channels are signed and scoped"
+          required: true
+        - id: "B3"
+          metric: "rollback_hooks"
+          rule: "candidate changes include rollback pointer and tested rollback path"
+          required: true
+        - id: "B4"
+          metric: "build_audit_replay"
+          rule: "workforce actions are replayable with signed packet lineage"
+          required: true
+      evidence_required:
+        - "EVID-CONTRACT-VALIDATION"
+        - "EVID-CHANNEL-SIGNATURES"
+        - "EVID-ROLLBACK-TEST"
+        - "EVID-WORKFORCE-REPLAY"
+
+    - gate_id: "GATE-C"
+      gate_name: "public-external-projection"
+      owner: "product-authority"
+      depends_on: ["GATE-A", "GATE-B"]
+      hard_block_if_fail: true
+      pass_threshold: 1.0
+      criteria:
+        - id: "C1"
+          metric: "zero_exposure_pass"
+          rule: "no sovereign internals exposed outside policy"
+          required: true
+        - id: "C2"
+          metric: "public_output_shape"
+          rule: "public outputs remain numeric/proof-safe only"
+          required: true
+        - id: "C3"
+          metric: "owner_surface_protection"
+          rule: "owner-only and sovereign-private interfaces are inaccessible externally"
+          required: true
+        - id: "C4"
+          metric: "incident_controls"
+          rule: "incident response and rollback playbooks are active"
+          required: true
+      evidence_required:
+        - "EVID-EXPOSURE-AUDIT"
+        - "EVID-PUBLIC-SCHEMA-VALIDATION"
+        - "EVID-OWNER-SURFACE-ISOLATION"
+        - "EVID-INCIDENT-DRILL"

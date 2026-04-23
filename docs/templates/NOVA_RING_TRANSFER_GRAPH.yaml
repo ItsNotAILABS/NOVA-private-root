@@ -1,0 +1,149 @@
+ring_transfer_graph:
+  version: "1.0"
+  classification: "BUILDER_CONFIDENTIAL"
+  graph_id: "NOVA-RING-TRANSFER-T01-T70"
+  protocol_ref: "docs/templates/NOVA_TRANSFER_PROTOCOL.yaml"
+
+  nodes:
+    - id: "r0"
+      name: "fundamentals"
+      label: "R0 Fundamentals"
+    - id: "r1"
+      name: "doctrine"
+      label: "R1 Doctrine"
+    - id: "r2"
+      name: "substrate_language"
+      label: "R2 Substrate Language"
+    - id: "r3"
+      name: "runtime_intelligence"
+      label: "R3 Runtime Intelligence"
+    - id: "r4"
+      name: "intrinsic_labs"
+      label: "R4 Intrinsic Labs"
+    - id: "r5"
+      name: "industrial_workforce"
+      label: "R5 Industrial Workforce"
+    - id: "r6"
+      name: "product_projection"
+      label: "R6 Product Projection"
+    - id: "r7"
+      name: "ecosystem"
+      label: "R7 Ecosystem"
+
+  edges:
+    - id: "T01"
+      from: "r0"
+      to: "r1"
+      allowed: true
+      purpose: "encode discovered truths into enforceable doctrine"
+      gate_dependencies: []
+      evidence_required:
+        - "classification_pass"
+        - "non_collapse_pass"
+    - id: "T12"
+      from: "r1"
+      to: "r2"
+      allowed: true
+      purpose: "bind laws to contracts and gate identifiers"
+      gate_dependencies: []
+      evidence_required:
+        - "type_contract_defined"
+        - "gate_binding_defined"
+    - id: "T23"
+      from: "r2"
+      to: "r3"
+      allowed: true
+      purpose: "activate runtime using contract-valid packets"
+      gate_dependencies:
+        - "gate_a"
+      evidence_required:
+        - "schema_parity_pass"
+        - "validation_pass"
+    - id: "T34"
+      from: "r3"
+      to: "r4"
+      allowed: true
+      purpose: "emit improvement deficits and lab work items"
+      gate_dependencies:
+        - "gate_a"
+      evidence_required:
+        - "runtime_telemetry_bundle"
+    - id: "T43"
+      from: "r4"
+      to: "r3"
+      allowed: true
+      purpose: "return intrinsic proposals for sovereign acceptance"
+      gate_dependencies:
+        - "gate_a"
+      evidence_required:
+        - "law_pass"
+        - "arbitration_pass"
+        - "replay_safe"
+    - id: "T35"
+      from: "r3"
+      to: "r5"
+      allowed: true
+      purpose: "publish governed snapshots for industrial work"
+      gate_dependencies:
+        - "gate_a"
+      evidence_required:
+        - "snapshot_signed"
+    - id: "T53"
+      from: "r5"
+      to: "r3"
+      allowed: true
+      purpose: "submit implementation candidates for runtime acceptance"
+      gate_dependencies:
+        - "gate_b"
+      evidence_required:
+        - "contract_valid"
+        - "law_pass"
+        - "rollback_ready"
+    - id: "T56"
+      from: "r5"
+      to: "r6"
+      allowed: true
+      purpose: "industrialize approved capabilities into product surfaces"
+      gate_dependencies:
+        - "gate_b"
+      evidence_required:
+        - "exposure_policy_attached"
+        - "projection_contract_valid"
+    - id: "T67"
+      from: "r6"
+      to: "r7"
+      allowed: true
+      purpose: "deploy products into partner and field environments"
+      gate_dependencies:
+        - "gate_c"
+      evidence_required:
+        - "incident_controls_ready"
+        - "public_bundle_policy_pass"
+    - id: "T70"
+      from: "r7"
+      to: "r1"
+      allowed: true
+      purpose: "feed replay evidence into doctrine review"
+      gate_dependencies: []
+      evidence_required:
+        - "replay_evidence_complete"
+        - "governance_quorum"
+
+  forbidden_paths:
+    - id: "F-R6-R1"
+      from: "r6"
+      to: "r1"
+      reason: "product projection cannot rewrite doctrine directly"
+    - id: "F-R5-R1"
+      from: "r5"
+      to: "r1"
+      reason: "workforce cannot change law registry directly"
+    - id: "F-R7-R3"
+      from: "r7"
+      to: "r3"
+      reason: "ecosystem cannot write runtime truth directly"
+
+  invariants:
+    - "all edge writes must be attributable by actor and beat"
+    - "all gate-dependent edges must include gate evidence"
+    - "forbidden_paths violations are release blockers"
