@@ -340,6 +340,12 @@
 
         <!-- Individual extensions -->
         <div class="section-title">Individual Extensions</div>
+        <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);border-radius:8px;padding:1rem 1.2rem;margin-bottom:1rem;font-size:0.8rem;line-height:1.6;">
+            <strong style="color:#10B981;">⚡ One-Click Install:</strong>
+            <span style="color:rgba(255,255,255,0.6);">Click the green button → pick an empty folder → files are written directly to disk. Then open
+            <code style="color:#D4AF37;background:rgba(212,175,55,0.08);padding:0.1rem 0.3rem;border-radius:3px;">chrome://extensions</code>
+            → enable <strong style="color:#fff;">Developer Mode</strong> → <strong style="color:#fff;">Load unpacked</strong> → select that folder. Done.</span>
+        </div>
         <div class="ext-grid" id="extGrid">
             <!-- Populated by JS -->
         </div>
@@ -497,11 +503,154 @@
           run_at: 'document_idle'
         }];
       }
+      m.action = { default_title: name };
       m.background = { service_worker: 'background.js' };
       return JSON.stringify(m, null, 2);
     }
 
     var EXTENSIONS = [
+      {
+        slug: 'nova-sovereign-panel',
+        name: 'NOVA Sovereign Panel',
+        desc: 'Side panel command center — like Copilot but sovereign. Opens on the right side of your browser with tools, notes, and φ-intelligence.',
+        manifest: JSON.stringify({
+          manifest_version: 3,
+          name: 'NOVA Sovereign Panel',
+          version: '1.0.0',
+          description: 'NOVA sovereign intelligence — side panel command center',
+          permissions: ['sidePanel', 'activeTab', 'tabs', 'storage', 'scripting'],
+          host_permissions: ['<all_urls>'],
+          side_panel: { default_path: 'panel.html' },
+          action: { default_title: 'Open NOVA Panel' },
+          background: { service_worker: 'background.js' },
+          icons: { '16': 'icon-16.png', '48': 'icon-48.png', '128': 'icon-128.png' },
+        }, null, 2),
+        background: [
+          '// NOVA Sovereign Panel — Background Service Worker',
+          '// Opens side panel on action click (Chrome 116+)',
+          'chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })',
+          '  .catch(function() {});',
+          '',
+          '// Fallback: manual open',
+          'chrome.action.onClicked.addListener(function(tab) {',
+          '  chrome.sidePanel.open({ tabId: tab.id }).catch(function() {});',
+          '});',
+          '',
+          'chrome.runtime.onInstalled.addListener(function() {',
+          '  console.log("[NOVA] Sovereign Panel installed. φ = 1.618033988749895");',
+          '});',
+        ].join('\n'),
+        content: null,
+        extraFiles: [
+          {
+            name: 'panel.html',
+            content: [
+              '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>NOVA</title>',
+              '<style>',
+              '*{margin:0;padding:0;box-sizing:border-box}',
+              ':root{--g:#D4AF37;--gl:#F4E4BC;--dk:#050508;--m:monospace}',
+              'body{font-family:Inter,system-ui,sans-serif;background:var(--dk);color:#e0e0e0;font-size:13px;min-height:100vh}',
+              '.hdr{padding:16px;border-bottom:1px solid rgba(212,175,55,.2);display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.3)}',
+              '.hdr h1{font-size:18px;font-weight:800;background:linear-gradient(135deg,#D4AF37,#F4E4BC);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.04em}',
+              '.dot{width:8px;height:8px;border-radius:50%;background:#10B981;animation:p 2s infinite}',
+              '@keyframes p{50%{opacity:.3}}',
+              '.ver{font-size:10px;color:rgba(255,255,255,.2);margin-left:auto;font-family:var(--m)}',
+              '.greeting{padding:20px 16px;font-size:15px;font-weight:600;color:rgba(255,255,255,.85);line-height:1.5}',
+              '.greeting span{color:var(--g)}',
+              '.s{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04)}',
+              '.st{font-size:10px;font-weight:700;color:var(--g);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}',
+              '.sg{display:grid;grid-template-columns:1fr 1fr;gap:6px}',
+              '.si{background:rgba(255,255,255,.02);border-radius:6px;padding:8px 10px}',
+              '.si .l{font-size:10px;color:rgba(255,255,255,.4);margin-bottom:1px}',
+              '.si .v{font-size:13px;font-weight:600;color:var(--g);font-family:var(--m)}',
+              '.ab{display:block;width:100%;padding:12px 14px;background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.12);border-radius:8px;cursor:pointer;text-align:left;color:#e0e0e0;font-size:13px;margin-bottom:6px;transition:all .15s;font-family:inherit}',
+              '.ab:hover{background:rgba(212,175,55,.12);border-color:rgba(212,175,55,.3);transform:translateX(2px)}',
+              '.ab .ai{color:var(--g);margin-right:8px}',
+              '.tg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}',
+              '.tb{background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.1);border-radius:6px;padding:8px 4px;cursor:pointer;text-align:center;color:#e0e0e0;font-size:10px;transition:all .15s;font-family:inherit}',
+              '.tb:hover{background:rgba(212,175,55,.15)}',
+              '.tb .i{font-size:16px;display:block;margin-bottom:2px}',
+              '.ti{font-family:var(--m);font-size:11px;color:rgba(255,255,255,.5);word-break:break-all;line-height:1.5}',
+              '.ti b{color:#fff}',
+              'textarea{width:100%;min-height:80px;background:rgba(0,0,0,.3);border:1px solid rgba(212,175,55,.1);border-radius:6px;padding:10px;color:#e0e0e0;font-family:var(--m);font-size:12px;resize:vertical;outline:none}',
+              'textarea:focus{border-color:rgba(212,175,55,.3)}',
+              '.chat-input{display:flex;gap:8px;padding:12px 16px;border-top:1px solid rgba(212,175,55,.1);background:rgba(0,0,0,.2);position:sticky;bottom:0}',
+              '.chat-input input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;color:#e0e0e0;font-size:13px;outline:none;font-family:inherit}',
+              '.chat-input input:focus{border-color:rgba(212,175,55,.3)}',
+              '.chat-input button{background:var(--g);color:#000;border:none;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;font-size:13px}',
+              '.chat-input button:hover{background:var(--gl)}',
+              '.cr{display:flex;justify-content:space-between;padding:3px 0;font-family:var(--m);font-size:11px;border-bottom:1px solid rgba(255,255,255,.03)}',
+              '.ck{color:var(--g)}.cv{color:rgba(255,255,255,.5)}',
+              '.f{padding:12px;text-align:center;color:rgba(255,255,255,.12);font-size:10px}',
+              '</style></head><body>',
+              '<div class="hdr"><div class="dot"></div><h1>NOVA</h1><span class="ver">v1.0.0 · φ-coupled</span></div>',
+              '<div class="greeting">Hey, what\'s on your mind today?<br><span>Sovereign intelligence at your service.</span></div>',
+              '<div class="s">',
+              '  <button class="ab" onclick="run(\'summary\')"><span class="ai">⊕</span>Analyze this page</button>',
+              '  <button class="ab" onclick="run(\'focus\')"><span class="ai">◉</span>Focus mode — dim distractions</button>',
+              '  <button class="ab" onclick="run(\'dark\')"><span class="ai">◐</span>Toggle sovereign dark mode</button>',
+              '</div>',
+              '<div class="s"><div class="st">Quick Tools</div><div class="tg">',
+              '  <div class="tb" onclick="run(\'grid\')"><span class="i">⊞</span>Grid</div>',
+              '  <div class="tb" onclick="run(\'perf\')"><span class="i">⚡</span>FPS</div>',
+              '  <div class="tb" onclick="run(\'ss\')"><span class="i">📷</span>Capture</div>',
+              '  <div class="tb" onclick="run(\'fonts\')"><span class="i">Aa</span>Fonts</div>',
+              '  <div class="tb" onclick="run(\'dom\')"><span class="i">⬡</span>DOM</div>',
+              '  <div class="tb" onclick="run(\'colors\')"><span class="i">🎨</span>Colors</div>',
+              '</div></div>',
+              '<div class="s"><div class="st">Current Tab</div><div class="ti" id="ti">Loading...</div></div>',
+              '<div class="s"><div class="st">Status</div><div class="sg">',
+              '  <div class="si"><div class="l">φ (golden ratio)</div><div class="v">1.618034</div></div>',
+              '  <div class="si"><div class="l">Tabs</div><div class="v" id="tc">—</div></div>',
+              '  <div class="si"><div class="l">φ⁻¹</div><div class="v">0.618034</div></div>',
+              '  <div class="si"><div class="l">Uptime</div><div class="v" id="ut">0s</div></div>',
+              '</div></div>',
+              '<div class="s"><div class="st">Notes</div><textarea id="n" placeholder="NOVA notes..."></textarea></div>',
+              '<div class="s"><div class="st">Constants</div>',
+              '  <div class="cr"><span class="ck">φ² = φ+1</span><span class="cv">2.618033988749895</span></div>',
+              '  <div class="cr"><span class="ck">φ³</span><span class="cv">4.236067977499790</span></div>',
+              '  <div class="cr"><span class="ck">√5</span><span class="cv">2.236067977499790</span></div>',
+              '  <div class="cr"><span class="ck">k_B</span><span class="cv">1.380649e-23 J/K</span></div>',
+              '  <div class="cr"><span class="ck">c</span><span class="cv">299,792,458 m/s</span></div>',
+              '</div>',
+              '<div class="chat-input">',
+              '  <input type="text" id="ci" placeholder="Message NOVA..." />',
+              '  <button onclick="sendMsg()">▶</button>',
+              '</div>',
+              '<div class="f">NOVA · Sovereign Intelligence · Medina Tech<br>© 2024-2026 Alfredo Medina Hernandez</div>',
+              '<script>',
+              'var st=Date.now(),PHI=1.618033988749895;',
+              'function uTabs(){chrome.tabs.query({},function(t){var o=Math.round(PHI*10);document.getElementById("tc").textContent=t.length+" (φ:"+( t.length/o).toFixed(2)+")"})}',
+              'function uTab(){chrome.tabs.query({active:true,currentWindow:true},function(t){if(t[0]){var ti=t[0];document.getElementById("ti").innerHTML="<b>"+(ti.title||"—").substring(0,55)+"</b><br>"+(ti.url||"—").substring(0,75)}})}',
+              'setInterval(function(){var e=Math.floor((Date.now()-st)/1000),m=Math.floor(e/60);document.getElementById("ut").textContent=(m>0?m+"m ":"")+(e%60)+"s"},1000);',
+              'var n=document.getElementById("n");',
+              'chrome.storage.local.get("nova-notes",function(d){if(d["nova-notes"])n.value=d["nova-notes"]});',
+              'n.addEventListener("input",function(){chrome.storage.local.set({"nova-notes":n.value})});',
+              'function run(t){chrome.tabs.query({active:true,currentWindow:true},function(tabs){if(!tabs[0])return;var id=tabs[0].id;',
+              '  if(t==="ss"){chrome.tabs.captureVisibleTab(null,{format:"png"},function(u){chrome.tabs.create({url:u})});return}',
+              '  var fns={',
+              '    summary:function(){var t=document.body.innerText,w=t.split(/\\s+/).filter(Boolean).length,s=t.split(/[.!?]+/).filter(Boolean).length,r=Math.ceil(w/238);var d=document.createElement("div");d.style.cssText="position:fixed;top:16px;right:16px;width:320px;padding:16px;background:#0a0a0f;border:1px solid #D4AF37;border-radius:10px;z-index:999999;font:13px/1.5 system-ui;color:#e0e0e0;box-shadow:0 8px 32px rgba(0,0,0,.5)";d.innerHTML="<div style=\\"color:#D4AF37;font-weight:800;margin-bottom:8px\\">⊕ NOVA Page Analysis</div><div style=\\"font-size:12px\\"><b>"+w+"</b> words · <b>"+s+"</b> sentences · <b>"+r+" min</b> read<br>Title: "+document.title.substring(0,60)+"<br>Links: "+document.querySelectorAll("a").length+" · Images: "+document.querySelectorAll("img").length+"<br>Scripts: "+document.scripts.length+" · Styles: "+document.styleSheets.length+"</div><button onclick=\\"this.parentElement.remove()\\" style=\\"margin-top:8px;padding:4px 12px;background:rgba(212,175,55,.15);color:#D4AF37;border:1px solid rgba(212,175,55,.3);border-radius:4px;cursor:pointer;font-size:11px\\">Close</button>";document.body.appendChild(d)},',
+              '    focus:function(){document.querySelectorAll("aside,[role=complementary],.sidebar,.ad,[class*=ad-]").forEach(function(e){e.style.opacity=e.style.opacity==="0.618"?"1":"0.618";e.style.transition="opacity .3s"})},',
+              '    dark:function(){var i="nova-dk",e=document.getElementById(i);if(e)e.remove();else{e=document.createElement("style");e.id=i;e.textContent="html{filter:invert(.92) hue-rotate(180deg)!important}img,video,canvas{filter:invert(1) hue-rotate(180deg)!important}";document.head.appendChild(e)}},',
+              '    grid:function(){var g=document.getElementById("nova-gg");if(g){g.remove();return}g=document.createElement("div");g.id="nova-gg";g.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999999";var w=innerWidth,h=innerHeight,p=1.618033988749895;[w/p,w-w/p].forEach(function(x){var l=document.createElement("div");l.style.cssText="position:absolute;top:0;width:1px;height:100%;background:rgba(212,175,55,.4)";l.style.left=x+"px";g.appendChild(l)});[h/p,h-h/p].forEach(function(y){var l=document.createElement("div");l.style.cssText="position:absolute;left:0;height:1px;width:100%;background:rgba(212,175,55,.4)";l.style.top=y+"px";g.appendChild(l)});document.body.appendChild(g)},',
+              '    perf:function(){var p=document.getElementById("nova-fps");if(p){p.remove();return}p=document.createElement("div");p.id="nova-fps";p.style.cssText="position:fixed;top:8px;right:8px;padding:4px 10px;background:rgba(0,0,0,.85);color:#D4AF37;font:bold 14px monospace;z-index:999999;border-radius:4px";document.body.appendChild(p);var fc=0,lt=performance.now();(function t(){fc++;var n=performance.now();if(n-lt>=1000){p.textContent=fc+" FPS";fc=0;lt=n}requestAnimationFrame(t)})()},',
+              '    fonts:function(){var fonts=new Set();document.querySelectorAll("*").forEach(function(el){fonts.add(getComputedStyle(el).fontFamily)});console.log("[NOVA Fonts]",[...fonts])},',
+              '    dom:function(){var all=document.querySelectorAll("*");console.log("[NOVA DOM]",{elements:all.length,scripts:document.scripts.length,styles:document.styleSheets.length})},',
+              '    colors:function(){document.body.style.cursor="crosshair";document.addEventListener("click",function pick(e){var c=getComputedStyle(e.target).backgroundColor;navigator.clipboard.writeText(c);console.log("[NOVA Color]",c);document.body.style.cursor=""},{ once:true})}',
+              '  };',
+              '  if(fns[t])chrome.scripting.executeScript({target:{tabId:id},func:fns[t]});',
+              '})}',
+              'function sendMsg(){var ci=document.getElementById("ci");if(ci.value.trim()){console.log("[NOVA Message]",ci.value);ci.value=""}}',
+              'document.getElementById("ci").addEventListener("keydown",function(e){if(e.key==="Enter")sendMsg()});',
+              'uTabs();uTab();',
+              'chrome.tabs.onCreated.addListener(uTabs);chrome.tabs.onRemoved.addListener(uTabs);',
+              'chrome.tabs.onActivated.addListener(uTab);',
+              'chrome.tabs.onUpdated.addListener(function(tid,info){if(info.status==="complete")uTab()});',
+              '<\/script></body></html>',
+            ].join('\n'),
+          },
+        ],
+      },
       {
         slug: 'nova-tab-guard',
         name: 'NOVA Tab Guard',
@@ -1241,7 +1390,10 @@
         '<div class="ext-desc">' + ext.desc + '</div>' +
         '<div class="ext-meta">' +
           '<span class="ext-size" id="size-' + ext.slug + '">—</span>' +
-          '<a class="btn-ext-dl" id="dl-' + ext.slug + '" disabled>⬇ Download</a>' +
+          '<span style="display:flex;gap:0.4rem;">' +
+            '<a class="btn-ext-dl" id="dl-' + ext.slug + '" disabled>⬇ ZIP</a>' +
+            '<button class="btn-ext-dl" id="install-' + ext.slug + '" style="background:rgba(16,185,129,0.15);color:#10B981;border-color:rgba(16,185,129,0.3);" onclick="oneClickInstall(\'' + ext.slug + '\')">⚡ Install</button>' +
+          '</span>' +
         '</div>';
       grid.appendChild(card);
     }
@@ -1349,6 +1501,132 @@
       return (bytes / 1048576).toFixed(1) + ' MB';
     }
 
+    // ── One-Click Install — File System Access API ─────────────────
+    // Sovereign one-click technology: writes extension files directly
+    // to a folder on the user's machine. No zipping. No unzipping.
+    // The kernel writes code straight to the filesystem.
+
+    function findExtension(slug) {
+      for (var i = 0; i < EXTENSIONS.length; i++) {
+        if (EXTENSIONS[i].slug === slug) return EXTENSIONS[i];
+      }
+      return null;
+    }
+
+    function generateIconCanvas(size) {
+      return new Promise(function(resolve) {
+        var c = document.createElement('canvas');
+        c.width = size; c.height = size;
+        var ctx = c.getContext('2d');
+        ctx.fillStyle = '#D4AF37';
+        ctx.fillRect(0, 0, size, size);
+        ctx.strokeStyle = '#B8960C';
+        ctx.lineWidth = size <= 16 ? 1 : 2;
+        ctx.strokeRect(0, 0, size, size);
+        c.toBlob(function(blob) { resolve(blob); }, 'image/png');
+      });
+    }
+
+    async function oneClickInstall(slug) {
+      var ext = findExtension(slug);
+      if (!ext) { alert('Extension not found: ' + slug); return; }
+
+      if (!window.showDirectoryPicker) {
+        var url = workerBlobURLs[slug];
+        if (url) {
+          triggerDownload(url, slug + '.zip');
+          showInstallGuide(slug, false);
+        } else {
+          alert('Extension still building. Try the ZIP download in a moment.');
+        }
+        return;
+      }
+
+      try {
+        var dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+
+        var mf = await dirHandle.getFileHandle('manifest.json', { create: true });
+        var mw = await mf.createWritable();
+        await mw.write(ext.manifest);
+        await mw.close();
+
+        if (ext.background) {
+          var bf = await dirHandle.getFileHandle('background.js', { create: true });
+          var bw = await bf.createWritable();
+          await bw.write(ext.background);
+          await bw.close();
+        }
+
+        if (ext.content) {
+          var cf = await dirHandle.getFileHandle('content.js', { create: true });
+          var cw = await cf.createWritable();
+          await cw.write(ext.content);
+          await cw.close();
+        }
+
+        if (ext.extraFiles) {
+          for (var ei = 0; ei < ext.extraFiles.length; ei++) {
+            var ef = ext.extraFiles[ei];
+            var efh = await dirHandle.getFileHandle(ef.name, { create: true });
+            var efw = await efh.createWritable();
+            await efw.write(ef.content);
+            await efw.close();
+          }
+        }
+
+        var iconSizes = [16, 48, 128];
+        for (var ii = 0; ii < iconSizes.length; ii++) {
+          var iconBlob = await generateIconCanvas(iconSizes[ii]);
+          var ih = await dirHandle.getFileHandle('icon-' + iconSizes[ii] + '.png', { create: true });
+          var iw = await ih.createWritable();
+          await iw.write(iconBlob);
+          await iw.close();
+        }
+
+        var badge = document.getElementById('badge-' + slug);
+        if (badge) {
+          badge.className = 'ext-badge ready';
+          badge.textContent = 'INSTALLED';
+          badge.style.background = 'rgba(16,185,129,0.25)';
+        }
+
+        showInstallGuide(slug, true);
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        console.error('[NOVA] Install error:', err);
+        var url = workerBlobURLs[slug];
+        if (url) triggerDownload(url, slug + '.zip');
+        showInstallGuide(slug, false);
+      }
+    }
+
+    function showInstallGuide(slug, filesWritten) {
+      var existing = document.getElementById('install-guide');
+      if (existing) existing.remove();
+
+      var guide = document.createElement('div');
+      guide.id = 'install-guide';
+      guide.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:10000;display:flex;align-items:center;justify-content:center;';
+      guide.innerHTML =
+        '<div style="background:#0a0a0f;border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:2.5rem;max-width:500px;width:90%;">' +
+          '<h3 style="color:#D4AF37;margin-bottom:1rem;font-size:1.2rem;">⚡ Install ' + slug + '</h3>' +
+          (filesWritten
+            ? '<p style="color:#10B981;margin-bottom:1rem;font-size:0.9rem;">✓ Extension files saved to your folder!</p>'
+            : '<p style="color:rgba(255,255,255,0.5);margin-bottom:1rem;font-size:0.85rem;">ZIP downloaded. Extract it to a folder first.</p>'
+          ) +
+          '<ol style="color:rgba(255,255,255,0.7);font-size:0.85rem;line-height:1.8;padding-left:1.2rem;">' +
+            '<li>Open Chrome → type <code style="color:#D4AF37;background:rgba(212,175,55,0.1);padding:0.1rem 0.4rem;border-radius:3px;">chrome://extensions</code></li>' +
+            '<li>Enable <strong style="color:#fff;">Developer Mode</strong> (top-right toggle)</li>' +
+            '<li>Click <strong style="color:#fff;">Load unpacked</strong></li>' +
+            '<li>Select the ' + (filesWritten ? 'folder you just chose' : 'extracted folder') + '</li>' +
+          '</ol>' +
+          '<p style="color:rgba(255,255,255,0.3);font-size:0.75rem;margin-top:1rem;">The extension will appear in your toolbar. Click the puzzle icon → pin it.</p>' +
+          '<button onclick="document.getElementById(\'install-guide\').remove()" style="margin-top:1.5rem;padding:0.5rem 1.5rem;background:rgba(212,175,55,0.15);color:#D4AF37;border:1px solid rgba(212,175,55,0.3);border-radius:6px;cursor:pointer;font-weight:600;">Got it</button>' +
+        '</div>';
+      guide.addEventListener('click', function(ev) { if (ev.target === guide) guide.remove(); });
+      document.body.appendChild(guide);
+    }
+
     // Start worker on load
     startWorker();
     </script>
@@ -1406,11 +1684,41 @@
       return r;
     }
 
+    // Adler-32 for zlib
+    function adl32(buf) {
+      var a = 1, b = 0;
+      for (var i = 0; i < buf.length; i++) { a = (a + buf[i]) % 65521; b = (b + a) % 65521; }
+      return ((b << 16) | a) >>> 0;
+    }
+    function mkIcon(sz) {
+      var sl = 1+sz*3, rl = sz*sl, raw = new Uint8Array(rl), p = 0;
+      for (var y = 0; y < sz; y++) { raw[p++]=0; for (var x = 0; x < sz; x++) { raw[p++]=212; raw[p++]=175; raw[p++]=55; } }
+      var nb = Math.ceil(rl/65535), dl = 0, rm = rl;
+      for (var bi = 0; bi < nb; bi++) { dl += 5+Math.min(rm,65535); rm -= 65535; }
+      var zl = new Uint8Array(2+dl+4); zl[0]=0x78; zl[1]=0x01;
+      var zp=2; rm=rl; var ro=0;
+      while(rm>0){var bs=Math.min(rm,65535);zl[zp++]=(rm<=65535)?1:0;zl[zp++]=bs&0xFF;zl[zp++]=(bs>>8)&0xFF;var ns=(~bs)&0xFFFF;zl[zp++]=ns&0xFF;zl[zp++]=(ns>>8)&0xFF;zl.set(raw.subarray(ro,ro+bs),zp);zp+=bs;ro+=bs;rm-=bs;}
+      var ad=adl32(raw);zl[zp++]=(ad>>>24)&0xFF;zl[zp++]=(ad>>>16)&0xFF;zl[zp++]=(ad>>>8)&0xFF;zl[zp++]=ad&0xFF;
+      var sig=new Uint8Array([0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A]);
+      var ihdr=new Uint8Array(13),wb=[(sz>>>24)&0xFF,(sz>>>16)&0xFF,(sz>>>8)&0xFF,sz&0xFF];
+      ihdr.set(wb,0);ihdr.set(wb,4);ihdr[8]=8;ihdr[9]=2;
+      function pc(t,d){var tb=enc(t),cb=new Uint8Array(4+d.length);cb.set(tb,0);if(d.length>0)cb.set(d,4);var cr=intSeal(cb),ch=new Uint8Array(12+d.length),lb=[(d.length>>>24)&0xFF,(d.length>>>16)&0xFF,(d.length>>>8)&0xFF,d.length&0xFF];ch[0]=lb[0];ch[1]=lb[1];ch[2]=lb[2];ch[3]=lb[3];ch[4]=tb[0];ch[5]=tb[1];ch[6]=tb[2];ch[7]=tb[3];if(d.length>0)ch.set(d,8);var crb=[(cr>>>24)&0xFF,(cr>>>16)&0xFF,(cr>>>8)&0xFF,cr&0xFF],cp=8+d.length;ch[cp]=crb[0];ch[cp+1]=crb[1];ch[cp+2]=crb[2];ch[cp+3]=crb[3];return ch;}
+      var c1=pc('IHDR',ihdr),c2=pc('IDAT',zl),c3=pc('IEND',new Uint8Array(0));
+      var png=new Uint8Array(sig.length+c1.length+c2.length+c3.length),pp=0;
+      png.set(sig,pp);pp+=sig.length;png.set(c1,pp);pp+=c1.length;png.set(c2,pp);pp+=c2.length;png.set(c3,pp);
+      return png;
+    }
+    var _ic={};
+    function getIcon(sz){if(!_ic[sz])_ic[sz]=mkIcon(sz);return _ic[sz];}
+
     function pkgExt(ext) {
       var f = [];
       if (ext.manifest) f.push({ name: 'manifest.json', data: enc(ext.manifest) });
       if (ext.background) f.push({ name: 'background.js', data: enc(ext.background) });
       if (ext.content) f.push({ name: 'content.js', data: enc(ext.content) });
+      if (ext.extraFiles) { for (var ei = 0; ei < ext.extraFiles.length; ei++) f.push({ name: ext.extraFiles[ei].name, data: enc(ext.extraFiles[ei].content) }); }
+      var sizes = [16, 48, 128];
+      for (var si = 0; si < sizes.length; si++) f.push({ name: 'icon-' + sizes[si] + '.png', data: getIcon(sizes[si]) });
       return buildArchive(f);
     }
 

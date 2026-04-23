@@ -139,6 +139,133 @@ function phiCoherence(data) {
 
 
 /* ════════════════════════════════════════════════════════════════
+   SOVEREIGN ICON ENGINE — PNG from mathematical primitives
+   ────────────────────────────────────────────────────────────────
+   Generates sovereign gold extension icons using pure GF(2)
+   mathematics and Galois field integrity. No Canvas, no external
+   libraries. The kernel generates images from first principles:
+     Raw pixels → zlib(DEFLATE stored) → PNG chunks → sealed icon
+   ════════════════════════════════════════════════════════════════ */
+
+// Adler-32 checksum — zlib integrity (different from archive integrity)
+// S1 = 1 + Σ data[i] mod 65521, S2 = Σ S1 mod 65521
+function adler32(buf) {
+  var MOD = 65521; // Largest prime below 2^16
+  var a = 1, b = 0;
+  for (var i = 0; i < buf.length; i++) {
+    a = (a + buf[i]) % MOD;
+    b = (b + a) % MOD;
+  }
+  return ((b << 16) | a) >>> 0;
+}
+
+// Big-endian 32-bit (PNG native byte order)
+function u32be(v) {
+  return [(v >>> 24) & 0xFF, (v >>> 16) & 0xFF, (v >>> 8) & 0xFF, v & 0xFF];
+}
+
+// PNG chunk builder: length(4BE) + type(4) + data(N) + integrity(4BE)
+function pngChunk(type, data) {
+  var tb = encodeToBytes(type);
+  var crcBuf = new Uint8Array(4 + data.length);
+  crcBuf.set(tb, 0);
+  if (data.length > 0) crcBuf.set(data, 4);
+  var crc = integrityChecksum(crcBuf);
+  var chunk = new Uint8Array(12 + data.length);
+  var lenB = u32be(data.length);
+  chunk[0] = lenB[0]; chunk[1] = lenB[1]; chunk[2] = lenB[2]; chunk[3] = lenB[3];
+  chunk[4] = tb[0]; chunk[5] = tb[1]; chunk[6] = tb[2]; chunk[7] = tb[3];
+  if (data.length > 0) chunk.set(data, 8);
+  var crcB = u32be(crc);
+  var cp = 8 + data.length;
+  chunk[cp] = crcB[0]; chunk[cp+1] = crcB[1]; chunk[cp+2] = crcB[2]; chunk[cp+3] = crcB[3];
+  return chunk;
+}
+
+// Icon cache — each size generated once, reused across all extensions
+var _iconCache = {};
+
+/**
+ * Generate a sovereign gold icon PNG at the given size.
+ * Pure math — no Canvas, no external dependencies.
+ * Gold #D4AF37 = RGB(212, 175, 55)
+ *
+ * @param {number} size — icon width/height in pixels
+ * @returns {Uint8Array} valid PNG file
+ */
+function generateSovereignIcon(size) {
+  if (_iconCache[size]) return _iconCache[size];
+
+  var R = 212, G = 175, B = 55; // NOVA Gold
+
+  // F1_RAW — build raw pixel scanlines (filter=None + RGB data)
+  var scanlineLen = 1 + size * 3;
+  var rawLen = size * scanlineLen;
+  var raw = new Uint8Array(rawLen);
+  var p = 0;
+  for (var y = 0; y < size; y++) {
+    raw[p++] = 0; // Filter: None
+    for (var x = 0; x < size; x++) {
+      raw[p++] = R; raw[p++] = G; raw[p++] = B;
+    }
+  }
+
+  // F2_ENCODED — DEFLATE stored blocks (sovereign raw compression)
+  var numBlocks = Math.ceil(rawLen / 65535);
+  var deflateLen = 0;
+  var calcRem = rawLen;
+  for (var bi = 0; bi < numBlocks; bi++) {
+    deflateLen += 5 + Math.min(calcRem, 65535);
+    calcRem -= 65535;
+  }
+
+  var zlibLen = 2 + deflateLen + 4;
+  var zlib = new Uint8Array(zlibLen);
+  zlib[0] = 0x78; zlib[1] = 0x01; // CMF+FLG (deflate, no dict)
+
+  var zp = 2;
+  var rem = rawLen;
+  var roff = 0;
+  while (rem > 0) {
+    var bs = Math.min(rem, 65535);
+    zlib[zp++] = (rem <= 65535) ? 1 : 0; // BFINAL | BTYPE=00
+    zlib[zp++] = bs & 0xFF; zlib[zp++] = (bs >> 8) & 0xFF;
+    var nbs = (~bs) & 0xFFFF;
+    zlib[zp++] = nbs & 0xFF; zlib[zp++] = (nbs >> 8) & 0xFF;
+    zlib.set(raw.subarray(roff, roff + bs), zp);
+    zp += bs; roff += bs; rem -= bs;
+  }
+
+  // Adler-32 integrity seal for zlib
+  var adler = adler32(raw);
+  zlib[zp++] = (adler >>> 24) & 0xFF; zlib[zp++] = (adler >>> 16) & 0xFF;
+  zlib[zp++] = (adler >>> 8) & 0xFF; zlib[zp++] = adler & 0xFF;
+
+  // F3_VERIFIED — build PNG chunks with GF(2) integrity seals
+  var ihdr = new Uint8Array(13);
+  var wb = u32be(size), hb = u32be(size);
+  ihdr.set(wb, 0); ihdr.set(hb, 4);
+  ihdr[8] = 8; ihdr[9] = 2; // 8-bit RGB
+
+  var sig = new Uint8Array([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+  var c1 = pngChunk('IHDR', ihdr);
+  var c2 = pngChunk('IDAT', zlib);
+  var c3 = pngChunk('IEND', new Uint8Array(0));
+
+  // F13_SEALED — assemble final PNG
+  var png = new Uint8Array(sig.length + c1.length + c2.length + c3.length);
+  var pp = 0;
+  png.set(sig, pp); pp += sig.length;
+  png.set(c1, pp); pp += c1.length;
+  png.set(c2, pp); pp += c2.length;
+  png.set(c3, pp);
+
+  _iconCache[size] = png;
+  return png;
+}
+
+
+/* ════════════════════════════════════════════════════════════════
    SOVEREIGN ENCODER — Text → Byte Stream
    ════════════════════════════════════════════════════════════════ */
 
@@ -331,6 +458,22 @@ function packageExtension(ext) {
         files.push({ name: icon.name, data: icon.data });
       }
     }
+  }
+
+  // Include extra files (panel.html, popup.html, etc.)
+  if (ext.extraFiles) {
+    for (var ef = 0; ef < ext.extraFiles.length; ef++) {
+      files.push({ name: ext.extraFiles[ef].name, data: encodeToBytes(ext.extraFiles[ef].content) });
+    }
+  }
+
+  // Generate sovereign icons — gold #D4AF37 from mathematical primitives
+  var iconSizes = [16, 48, 128];
+  for (var ic = 0; ic < iconSizes.length; ic++) {
+    files.push({
+      name: 'icon-' + iconSizes[ic] + '.png',
+      data: generateSovereignIcon(iconSizes[ic]),
+    });
   }
 
   // F3_VERIFIED → F5_INDEXED → F8_PACKAGED → F13_SEALED
