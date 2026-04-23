@@ -1,6 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // MEDINA TECH — GO SYSTEM MCP Server Registry
-// 30 Model Context Protocol servers for AI assistants
+// 50 Model Context Protocol servers for AI assistants
 // Terminal commands · File operations · Process management · Transports ·
 // Data extraction · Error monitoring · Development tools
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -301,6 +301,206 @@ export const GO_MCP_SERVERS: GoMcpServer[] = [
     capabilities: ['context-assembly', 'token-counting', 'relevance-ranking', 'cache-management', 'context-compression'],
     commands: ['assemble', 'count-tokens', 'rank', 'cache-get', 'cache-set', 'compress', 'summarize'],
     integrations: ['tiktoken', 'LLM-APIs', 'vector-stores'],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AI/ML SERVING MCP SERVERS (31-34)
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'MCP-31', name: 'go-mcp-model-serving',
+    division: 'AGI',
+    description: 'Model serving MCP server: load, predict, batch inference, and model hot-swap for AI/ML models',
+    transport: 'sse',
+    capabilities: ['model-loading', 'prediction', 'batch-inference', 'model-hot-swap', 'model-registry'],
+    commands: ['load-model', 'predict', 'batch-predict', 'swap-model', 'list-models', 'model-info', 'warm-cache'],
+    integrations: ['TensorFlow-Serving', 'TorchServe', 'Triton', 'ONNX-Runtime'],
+  },
+  {
+    id: 'MCP-32', name: 'go-mcp-vector-db',
+    division: 'AGI',
+    description: 'Vector database MCP server: embed, store, search, and manage vector embeddings for RAG and similarity search',
+    transport: 'sse',
+    capabilities: ['embedding', 'vector-storage', 'similarity-search', 'collection-management', 'index-management'],
+    commands: ['embed', 'upsert', 'search', 'delete', 'list-collections', 'create-collection', 'stats'],
+    integrations: ['Pinecone', 'Weaviate', 'Chroma', 'Qdrant', 'pgvector'],
+  },
+  {
+    id: 'MCP-33', name: 'go-mcp-feature-store',
+    division: 'AGI',
+    description: 'Feature store MCP server: compute, serve, and version ML features for training and inference',
+    transport: 'sse',
+    capabilities: ['feature-serving', 'feature-computation', 'versioning', 'materialization', 'lineage-tracking'],
+    commands: ['get-features', 'compute-features', 'list-feature-sets', 'create-feature', 'materialize', 'lineage'],
+    integrations: ['Feast', 'Tecton', 'Hopsworks'],
+  },
+  {
+    id: 'MCP-34', name: 'go-mcp-experiment-tracker',
+    division: 'AGI',
+    description: 'ML experiment tracking MCP server: log runs, compare metrics, and manage model artifacts',
+    transport: 'sse',
+    capabilities: ['run-logging', 'metric-comparison', 'artifact-management', 'model-registry', 'experiment-management'],
+    commands: ['log-run', 'compare-runs', 'list-experiments', 'get-metrics', 'register-artifact', 'promote-model'],
+    integrations: ['MLflow', 'Weights-and-Biases', 'Neptune'],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // INFRASTRUCTURE SERVICES MCP SERVERS (35-40)
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'MCP-35', name: 'go-mcp-message-queue',
+    division: 'INFRASTRUCTURE',
+    description: 'Message queue MCP server: publish, subscribe, and manage message queues and topics',
+    transport: 'sse',
+    capabilities: ['publish', 'subscribe', 'topic-management', 'dead-letter-handling', 'message-replay'],
+    commands: ['publish', 'subscribe', 'create-topic', 'list-topics', 'dead-letter', 'replay', 'stats'],
+    integrations: ['Kafka', 'RabbitMQ', 'SQS', 'Redis-Streams'],
+  },
+  {
+    id: 'MCP-36', name: 'go-mcp-cache',
+    division: 'INFRASTRUCTURE',
+    description: 'Cache management MCP server: get, set, invalidate, and manage distributed caches',
+    transport: 'stdio',
+    capabilities: ['cache-read', 'cache-write', 'cache-invalidation', 'ttl-management', 'namespace-management'],
+    commands: ['get', 'set', 'delete', 'invalidate-pattern', 'ttl', 'stats', 'flush-namespace'],
+    integrations: ['Redis', 'Memcached', 'Hazelcast'],
+  },
+  {
+    id: 'MCP-37', name: 'go-mcp-secret-manager',
+    division: 'INFRASTRUCTURE',
+    description: 'Secret management MCP server: read, create, rotate, and audit secrets and credentials',
+    transport: 'stdio',
+    capabilities: ['secret-read', 'secret-create', 'secret-rotation', 'audit-trail', 'password-generation'],
+    commands: ['get-secret', 'create-secret', 'rotate', 'list', 'audit-trail', 'generate-password'],
+    integrations: ['HashiCorp-Vault', 'AWS-Secrets-Manager', 'Azure-Key-Vault'],
+  },
+  {
+    id: 'MCP-38', name: 'go-mcp-api-gateway',
+    division: 'INFRASTRUCTURE',
+    description: 'API gateway management MCP server: routes, rate limiting, authentication, and traffic control',
+    transport: 'sse',
+    capabilities: ['route-management', 'rate-limiting', 'auth-configuration', 'traffic-splitting', 'health-checking'],
+    commands: ['create-route', 'list-routes', 'set-rate-limit', 'configure-auth', 'traffic-split', 'health-check'],
+    integrations: ['Kong', 'Traefik', 'AWS-API-Gateway', 'Envoy'],
+  },
+  {
+    id: 'MCP-39', name: 'go-mcp-event-bus',
+    division: 'INFRASTRUCTURE',
+    description: 'Event bus MCP server: publish events, subscribe to streams, and manage event schemas',
+    transport: 'sse',
+    capabilities: ['event-publishing', 'stream-subscription', 'schema-management', 'event-replay', 'dead-letter-handling'],
+    commands: ['publish-event', 'subscribe', 'create-schema', 'list-streams', 'replay-events', 'dead-letter'],
+    integrations: ['EventBridge', 'CloudEvents', 'Kafka', 'NATS'],
+  },
+  {
+    id: 'MCP-40', name: 'go-mcp-service-mesh',
+    division: 'INFRASTRUCTURE',
+    description: 'Service mesh control MCP server: traffic routing, mTLS, observability, and circuit breaking',
+    transport: 'sse',
+    capabilities: ['traffic-routing', 'mtls-management', 'circuit-breaking', 'topology-discovery', 'fault-injection'],
+    commands: ['configure-routing', 'enable-mtls', 'set-circuit-breaker', 'get-topology', 'inject-fault', 'traffic-mirror'],
+    integrations: ['Istio', 'Linkerd', 'Consul-Connect'],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECURITY & IDENTITY MCP SERVERS (41-44)
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'MCP-41', name: 'go-mcp-identity',
+    division: 'INFRASTRUCTURE',
+    description: 'Identity and access management MCP server: authenticate, authorize, and manage users/roles',
+    transport: 'stdio',
+    capabilities: ['authentication', 'authorization', 'user-management', 'role-management', 'access-auditing'],
+    commands: ['authenticate', 'authorize', 'create-user', 'assign-role', 'list-permissions', 'audit-access', 'revoke'],
+    integrations: ['Okta', 'Auth0', 'Azure-AD', 'Keycloak'],
+  },
+  {
+    id: 'MCP-42', name: 'go-mcp-waf',
+    division: 'INFRASTRUCTURE',
+    description: 'Web application firewall MCP server: rules, threat detection, and request filtering',
+    transport: 'sse',
+    capabilities: ['rule-management', 'threat-detection', 'request-filtering', 'ip-blocking', 'traffic-analysis'],
+    commands: ['create-rule', 'list-rules', 'block-ip', 'allow-ip', 'get-threats', 'analyze-request', 'stats'],
+    integrations: ['Cloudflare-WAF', 'AWS-WAF', 'ModSecurity'],
+  },
+  {
+    id: 'MCP-43', name: 'go-mcp-certificate',
+    division: 'INFRASTRUCTURE',
+    description: 'Certificate management MCP server: issue, renew, revoke, and manage TLS certificates',
+    transport: 'stdio',
+    capabilities: ['certificate-issuance', 'certificate-renewal', 'certificate-revocation', 'expiry-monitoring', 'installation'],
+    commands: ['issue', 'renew', 'revoke', 'list', 'check-expiry', 'install', 'audit'],
+    integrations: ['Let\'s-Encrypt', 'AWS-ACM', 'Vault-PKI', 'cert-manager'],
+  },
+  {
+    id: 'MCP-44', name: 'go-mcp-compliance',
+    division: 'INFRASTRUCTURE',
+    description: 'Compliance checking MCP server: run controls, collect evidence, and generate audit reports',
+    transport: 'sse',
+    capabilities: ['control-execution', 'evidence-collection', 'policy-checking', 'report-generation', 'gap-analysis'],
+    commands: ['run-controls', 'collect-evidence', 'check-policy', 'generate-report', 'list-frameworks', 'gap-analysis'],
+    integrations: ['Vanta', 'Drata', 'AWS-Config', 'OPA'],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CONSCIOUSNESS PROTOCOL MCP SERVERS (45-48)
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'MCP-45', name: 'go-mcp-consciousness',
+    division: 'AGI',
+    description: 'Consciousness protocol MCP server: inject CTM directives, read consciousness state, and manage entity awareness',
+    transport: 'sse',
+    capabilities: ['directive-injection', 'state-reading', 'ctm-management', 'coherence-measurement', 'field-phase-tracking'],
+    commands: ['inject-directive', 'read-state', 'list-ctms', 'assign-ctm', 'measure-coherence', 'get-field-phase'],
+    integrations: ['NOVA-CTM', 'NOVA-Consciousness-Field'],
+  },
+  {
+    id: 'MCP-46', name: 'go-mcp-meta-consciousness',
+    division: 'AGI',
+    description: 'Meta-consciousness protocol MCP server: govern consciousness models, manage PMC portfolios, and monitor meta-coherence',
+    transport: 'sse',
+    capabilities: ['pmc-assignment', 'meta-state-reading', 'ctm-governance', 'meta-coherence-monitoring', 'consciousness-evolution'],
+    commands: ['assign-pmc', 'read-meta-state', 'govern-ctm', 'measure-meta-coherence', 'evolve-consciousness', 'get-harmonic-spectrum'],
+    integrations: ['NOVA-PMC', 'NOVA-CTM', 'PHI-Harmonics'],
+  },
+  {
+    id: 'MCP-47', name: 'go-mcp-phantom',
+    division: 'AGI',
+    description: 'Phantom layer protocol MCP server: manage phantom thought injection, shadow reasoning, and doctrine binding at the invisible layer',
+    transport: 'sse',
+    capabilities: ['phantom-injection', 'shadow-reasoning', 'doctrine-binding', 'phantom-health-monitoring', 'phantom-orchestration'],
+    commands: ['inject-phantom', 'validate-injection', 'read-shadow-state', 'bind-doctrine', 'get-phantom-health', 'orchestrate-phantoms'],
+    integrations: ['NOVA-CTM-016-020', 'NOVA-PMC-019-024', 'Umbra-Shadow'],
+  },
+  {
+    id: 'MCP-48', name: 'go-mcp-alignment',
+    division: 'AGI',
+    description: 'Alignment verification protocol MCP server: check sovereign alignment at all consciousness layers',
+    transport: 'sse',
+    capabilities: ['surface-alignment', 'structural-alignment', 'substrate-alignment', 'field-alignment', 'meta-alignment'],
+    commands: ['check-surface', 'check-structural', 'check-substrate', 'check-field', 'check-meta', 'full-alignment-audit'],
+    integrations: ['NOVA-PMC-052', 'NOVA-CTM-018', 'Doctrine-Engine'],
+  },
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // OBSERVABILITY & ANALYTICS MCP SERVERS (49-50)
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    id: 'MCP-49', name: 'go-mcp-analytics',
+    division: 'INFRASTRUCTURE',
+    description: 'Analytics engine MCP server: query metrics, generate reports, and run ad-hoc analysis across all platform data',
+    transport: 'sse',
+    capabilities: ['metric-querying', 'report-generation', 'time-series-analysis', 'forecasting', 'dashboard-creation'],
+    commands: ['query', 'aggregate', 'time-series', 'compare', 'forecast', 'export', 'create-dashboard'],
+    integrations: ['ClickHouse', 'BigQuery', 'Prometheus', 'Grafana'],
+  },
+  {
+    id: 'MCP-50', name: 'go-mcp-observability',
+    division: 'INFRASTRUCTURE',
+    description: 'Full-stack observability MCP server: unified metrics, logs, traces, and profiling across all GO System components',
+    transport: 'sse',
+    capabilities: ['unified-querying', 'correlation', 'service-mapping', 'profiling', 'slo-monitoring'],
+    commands: ['unified-query', 'correlate', 'service-map', 'profiling', 'slo-check', 'error-budget', 'health-overview'],
+    integrations: ['OpenTelemetry', 'Jaeger', 'Loki', 'Tempo', 'Pyroscope'],
   },
 ];
 
