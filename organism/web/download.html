@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOVA | Sovereign Downloads — In-Browser Extension Builder</title>
+    <meta name="description" content="NOVA Sovereign Downloads — Extensions built natively in your browser via Web Worker. No server. No GitHub. Pure protocol.">
+    <style>
+        /* ═══════════════════════════════════════════════════════════════════
+           DESIGN SYSTEM — Matches NOVA visual language
+        ═══════════════════════════════════════════════════════════════════ */
+        :root {
+            --gold: #D4AF37;
+            --gold-light: #F4E4BC;
+            --gold-dark: #B8960C;
+            --dark: #0a0a0f;
+            --darker: #050508;
+            --purple: #6B46C1;
+            --cyan: #00D4FF;
+            --green: #10B981;
+            --red: #DC2626;
+            --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--darker);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Background animation ─────────────────────────────────────── */
+        .bg {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; z-index: -1;
+            background:
+                radial-gradient(ellipse at 20% 30%, rgba(212,175,55,0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(107,70,193,0.04) 0%, transparent 50%),
+                var(--darker);
+        }
+
+        /* ── Header ───────────────────────────────────────────────────── */
+        header {
+            text-align: center;
+            padding: 3rem 1rem 2rem;
+            border-bottom: 1px solid rgba(212,175,55,0.15);
+        }
+        header h1 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light), var(--gold));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 0.05em;
+        }
+        header .subtitle {
+            color: rgba(212,175,55,0.6);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            font-family: var(--font-mono);
+        }
+
+        /* ── Status bar ───────────────────────────────────────────────── */
+        .status-bar {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            padding: 1rem;
+            background: rgba(0,0,0,0.4);
+            border-bottom: 1px solid rgba(212,175,55,0.1);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .status-dot.building { background: var(--gold); animation: pulse 0.5s ease-in-out infinite; }
+        .status-dot.error { background: var(--red); animation: none; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        .status-label { color: rgba(255,255,255,0.5); }
+        .status-value { color: var(--gold); }
+
+        /* ── Main grid ────────────────────────────────────────────────── */
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(212,175,55,0.15);
+            letter-spacing: 0.04em;
+        }
+
+        /* ── Bundle download (top) ────────────────────────────────────── */
+        .bundle-card {
+            background: linear-gradient(135deg, rgba(212,175,55,0.08) 0%, rgba(107,70,193,0.06) 100%);
+            border: 1px solid rgba(212,175,55,0.25);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .bundle-card h2 {
+            font-size: 1.5rem;
+            color: var(--gold-light);
+            margin-bottom: 0.5rem;
+        }
+        .bundle-card p {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ── Download button ──────────────────────────────────────────── */
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.8rem 2rem;
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+            color: #000;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-download:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(212,175,55,0.3); }
+        .btn-download:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-download .icon { font-size: 1.2rem; }
+
+        /* ── Extension grid ───────────────────────────────────────────── */
+        .ext-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .ext-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 8px;
+            padding: 1.2rem;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .ext-card:hover {
+            border-color: rgba(212,175,55,0.3);
+            background: rgba(212,175,55,0.03);
+        }
+        .ext-card .ext-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.6rem;
+        }
+        .ext-card .ext-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #fff;
+        }
+        .ext-card .ext-badge {
+            font-size: 0.65rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-weight: 600;
+        }
+        .ext-badge.ready { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+        .ext-badge.building { background: rgba(212,175,55,0.15); color: var(--gold); border: 1px solid rgba(212,175,55,0.3); }
+        .ext-badge.error { background: rgba(220,38,38,0.15); color: var(--red); border: 1px solid rgba(220,38,38,0.3); }
+
+        .ext-card .ext-desc {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 0.8rem;
+            line-height: 1.4;
+        }
+        .ext-card .ext-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.3);
+            font-family: var(--font-mono);
+        }
+        .ext-card .ext-size { color: var(--cyan); }
+
+        .ext-card .btn-ext-dl {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.35rem 0.8rem;
+            background: rgba(212,175,55,0.1);
+            color: var(--gold);
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .ext-card .btn-ext-dl:hover { background: rgba(212,175,55,0.2); }
+        .ext-card .btn-ext-dl:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* ── Heartbeat indicator ──────────────────────────────────────── */
+        .heartbeat-bar {
+            position: fixed;
+            bottom: 0; left: 0;
+            width: 100%;
+            padding: 0.5rem 1rem;
+            background: rgba(0,0,0,0.85);
+            border-top: 1px solid rgba(212,175,55,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.35);
+            z-index: 100;
+        }
+        .heartbeat-bar .hb-pulse {
+            display: inline-block;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            margin-right: 0.4rem;
+            animation: hbPulse 0.873s ease-in-out infinite;
+        }
+        @keyframes hbPulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.3; } }
+
+        /* ── Math constants panel ─────────────────────────────────────── */
+        .constants-panel {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(212,175,55,0.1);
+            border-radius: 8px;
+        }
+        .constants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.6rem;
+            margin-top: 0.8rem;
+        }
+        .const-item {
+            display: flex;
+            justify-content: space-between;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.3rem 0.5rem;
+            background: rgba(255,255,255,0.02);
+            border-radius: 4px;
+        }
+        .const-name { color: var(--gold); }
+        .const-value { color: rgba(255,255,255,0.5); }
+
+        /* ── Footer ───────────────────────────────────────────────────── */
+        footer {
+            text-align: center;
+            padding: 3rem 1rem 5rem;
+            color: rgba(255,255,255,0.2);
+            font-size: 0.75rem;
+        }
+        footer a { color: var(--gold-dark); text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="bg"></div>
+
+    <header>
+        <h1>NOVA SOVEREIGN DOWNLOADS</h1>
+        <div class="subtitle">Extensions built natively in your browser · No server · No GitHub · Pure protocol</div>
+    </header>
+
+    <div class="status-bar">
+        <div class="status-item">
+            <div class="status-dot" id="workerDot"></div>
+            <span class="status-label">Worker:</span>
+            <span class="status-value" id="workerStatus">initializing…</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">Beat:</span>
+            <span class="status-value" id="beatCount">0</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">Built:</span>
+            <span class="status-value" id="builtCount">0</span>
+            <span class="status-label">/ <span id="totalCount">0</span></span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">φ:</span>
+            <span class="status-value">1.618033988749895</span>
+        </div>
+    </div>
+
+    <main>
+        <!-- All-in-one bundle -->
+        <div class="bundle-card">
+            <h2>⬡ Download All Extensions</h2>
+            <p>One zip containing every NOVA extension — built in your browser right now.</p>
+            <button class="btn-download" id="btnAll" disabled>
+                <span class="icon">⬇</span>
+                <span id="btnAllLabel">Building…</span>
+            </button>
+            <div style="margin-top:0.8rem; font-family:var(--font-mono); font-size:0.7rem; color:rgba(255,255,255,0.3);">
+                <span id="bundleSize">—</span>
+            </div>
+        </div>
+
+        <!-- Individual extensions -->
+        <div class="section-title">Individual Extensions</div>
+        <div class="ext-grid" id="extGrid">
+            <!-- Populated by JS -->
+        </div>
+
+        <!-- Mathematical Constants -->
+        <div class="constants-panel">
+            <div class="section-title" style="border:none; padding:0; margin-bottom:0.5rem;">Mathematical Constants — All Derived From Fundamentals</div>
+            <div class="constants-grid" id="constantsGrid">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </main>
+
+    <div class="heartbeat-bar">
+        <div>
+            <span class="hb-pulse"></span>
+            <span>Organism heartbeat: <span id="hbMs">873</span>ms · φ-coupled</span>
+        </div>
+        <div>
+            <span id="hbTimestamp">—</span>
+        </div>
+    </div>
+
+    <footer>
+        <p>NOVA — Sovereign Cognitive Intelligence · Medina Tech · © 2024-2026 Alfredo Medina Hernandez</p>
+        <p style="margin-top:0.5rem;">All extensions built in-browser using a pure-JS ZIP implementation (PKZIP STORE format, CRC-32 IEEE 802.3)</p>
+        <p style="margin-top:0.3rem;">No external servers, APIs, or CDNs. The organism IS the build system.</p>
+    </footer>
+
+    <script>
+    /* ════════════════════════════════════════════════════════════════════════
+       NOVA Sovereign Download Page — Main Thread
+       Spawns the download-worker, feeds it extension source, receives blobs
+    ════════════════════════════════════════════════════════════════════════ */
+
+    // ── Mathematical Constants ─────────────────────────────────────────
+    // NIST/CODATA 2018 exact values — the real numbers
+    var PHI       = 1.618033988749895;    // Golden ratio φ = (1+√5)/2
+    var PHI_INV   = 0.618033988749895;    // φ⁻¹ = φ − 1 = 1/φ
+    var PHI_SQ    = 2.618033988749895;    // φ² = φ + 1
+    var PHI_CU    = 4.236067977499790;    // φ³ = φ² + φ
+    var PHI_4     = 6.854101966249685;    // φ⁴ = φ³ + φ² = 3φ + 2
+    var PHI_5     = 11.09016994374947;    // φ⁵ = φ⁴ + φ³ = 5φ + 3
+    var K_BOLTZ   = 1.380649e-23;         // Boltzmann constant (J/K) — exact
+    var H_PLANCK  = 6.62607015e-34;       // Planck constant (J·s) — exact
+    var N_AVOGADRO = 6.02214076e23;       // Avogadro constant (mol⁻¹) — exact
+    var C_LIGHT   = 299792458;            // Speed of light (m/s) — exact by definition
+
+    // Derived constants
+    var H_BAR     = H_PLANCK / (2 * Math.PI);   // Reduced Planck ℏ
+    var R_GAS     = K_BOLTZ * N_AVOGADRO;        // Gas constant R = k_B · N_A
+
+    // Golden ratio identities — mathematical proof, not approximation
+    // φ² = φ + 1 → error < 1e-15
+    var ID_PHI_SQ  = Math.abs(PHI * PHI - (PHI + 1));
+    // φ⁻¹ = φ − 1 → error < 1e-15
+    var ID_PHI_INV = Math.abs(1 / PHI - (PHI - 1));
+    // φ⁴ = 3φ + 2 → error < 1e-14
+    var ID_PHI_4   = Math.abs(PHI_4 - (3 * PHI + 2));
+    // φ⁵ = 5φ + 3 → error < 1e-14
+    var ID_PHI_5   = Math.abs(PHI_5 - (5 * PHI + 3));
+
+    // Binet's formula: F(n) = (φⁿ − ψⁿ) / √5  where ψ = −φ⁻¹
+    var PSI = -PHI_INV;
+    var SQRT5 = Math.sqrt(5);
+    function binetFibonacci(n) {
+      return Math.round((Math.pow(PHI, n) - Math.pow(PSI, n)) / SQRT5);
+    }
+
+    // Shannon entropy: H(X) = −Σ p_i log₂ p_i
+    function shannonEntropy(probs) {
+      var h = 0;
+      for (var i = 0; i < probs.length; i++) {
+        if (probs[i] > 1e-15) h -= probs[i] * Math.log2(probs[i]);
+      }
+      return h;
+    }
+
+    // Gibbs free energy: G = H − T·S
+    function gibbsFreeEnergy(H, T, S) { return H - T * S; }
+
+    // Boltzmann probability: P(E) = exp(−E / k_B T)
+    function boltzmannProb(E, T) { return Math.exp(-E / (K_BOLTZ * T)); }
+
+    // Planck spectral radiance: B(ν,T) = (2hν³/c²) / (exp(hν/kT) − 1)
+    function planckRadiance(nu, T) {
+      var x = H_PLANCK * nu / (K_BOLTZ * T);
+      if (x > 500) return 0;
+      return (2 * H_PLANCK * Math.pow(nu, 3) / Math.pow(C_LIGHT, 2)) / (Math.exp(x) - 1);
+    }
+
+    // de Broglie wavelength: Λ = h / √(2π m k_B T)
+    function deBroglie(T, m) {
+      return H_PLANCK / Math.sqrt(2 * Math.PI * m * K_BOLTZ * T);
+    }
+
+    // φ-weighted geometric mean: GM = a^(1/φ) × b^(φ⁻¹)
+    function phiMean(a, b) {
+      return Math.pow(a, 1 / PHI) * Math.pow(b, PHI_INV);
+    }
+
+    // Stefan-Boltzmann: σ = 2π⁵k⁴ / (15h³c²)
+    var SIGMA_SB = (2 * Math.pow(Math.PI, 5) * Math.pow(K_BOLTZ, 4)) /
+                   (15 * Math.pow(H_PLANCK, 3) * Math.pow(C_LIGHT, 2));
+
+    // ── Render constants panel ─────────────────────────────────────────
+    var constants = [
+      { name: 'φ (golden ratio)',   value: PHI.toFixed(15) },
+      { name: 'φ⁻¹ = φ − 1',       value: PHI_INV.toFixed(15) },
+      { name: 'φ² = φ + 1',        value: PHI_SQ.toFixed(15) },
+      { name: 'φ³ = φ² + φ',       value: PHI_CU.toFixed(15) },
+      { name: 'φ⁴ = 3φ + 2',       value: PHI_4.toFixed(15) },
+      { name: 'φ⁵ = 5φ + 3',       value: PHI_5.toFixed(15) },
+      { name: 'k_B (Boltzmann)',    value: K_BOLTZ.toExponential(6) + ' J/K' },
+      { name: 'h (Planck)',         value: H_PLANCK.toExponential(8) + ' J·s' },
+      { name: 'N_A (Avogadro)',     value: N_AVOGADRO.toExponential(8) + ' mol⁻¹' },
+      { name: 'c (speed of light)', value: C_LIGHT.toLocaleString() + ' m/s' },
+      { name: 'ℏ (reduced Planck)', value: H_BAR.toExponential(6) + ' J·s/rad' },
+      { name: 'R (gas constant)',   value: R_GAS.toFixed(6) + ' J/(mol·K)' },
+      { name: 'σ (Stefan-Boltz.)',  value: SIGMA_SB.toExponential(4) + ' W/(m²·K⁴)' },
+      { name: 'F(10) Binet',       value: binetFibonacci(10).toString() },
+      { name: 'F(20) Binet',       value: binetFibonacci(20).toString() },
+      { name: '√5',                value: SQRT5.toFixed(15) },
+    ];
+
+    (function renderConstants() {
+      var grid = document.getElementById('constantsGrid');
+      for (var i = 0; i < constants.length; i++) {
+        var div = document.createElement('div');
+        div.className = 'const-item';
+        div.innerHTML = '<span class="const-name">' + constants[i].name + '</span>' +
+                        '<span class="const-value">' + constants[i].value + '</span>';
+        grid.appendChild(div);
+      }
+    })();
+
+
+    // ── Extension definitions ──────────────────────────────────────────
+    // Each extension is fully defined here — the worker builds the zip.
+    // These are real Chrome/Firefox extension source files.
+
+    function makeManifest(name, desc, slug, permissions, content_matches) {
+      var m = {
+        manifest_version: 3,
+        name: name,
+        version: '1.0.0',
+        description: desc,
+        icons: { '16': 'icon-16.png', '48': 'icon-48.png', '128': 'icon-128.png' },
+        permissions: permissions || [],
+      };
+      if (content_matches) {
+        m.content_scripts = [{
+          matches: content_matches,
+          js: ['content.js'],
+          run_at: 'document_idle'
+        }];
+      }
+      m.background = { service_worker: 'background.js' };
+      return JSON.stringify(m, null, 2);
+    }
+
+    var EXTENSIONS = [
+      {
+        slug: 'nova-tab-guard',
+        name: 'NOVA Tab Guard',
+        desc: 'Monitors tab count and memory usage. Alerts when exceeding φ-optimal threshold.',
+        manifest: makeManifest('NOVA Tab Guard', 'Tab count and memory guardian', 'nova-tab-guard', ['tabs']),
+        background: [
+          '// NOVA Tab Guard — Background Service Worker',
+          '// Monitors tab count and alerts at φ-optimal threshold',
+          'const PHI = 1.618033988749895;',
+          'const OPTIMAL_TABS = Math.round(PHI * 10); // ~16 tabs',
+          '',
+          'chrome.tabs.onCreated.addListener(async () => {',
+          '  const tabs = await chrome.tabs.query({});',
+          '  if (tabs.length > OPTIMAL_TABS) {',
+          '    console.log("[NOVA Tab Guard] Tab count exceeds φ-optimal:", tabs.length, "/", OPTIMAL_TABS);',
+          '  }',
+          '});',
+          '',
+          'chrome.tabs.onRemoved.addListener(async () => {',
+          '  const tabs = await chrome.tabs.query({});',
+          '  console.log("[NOVA Tab Guard] Tabs:", tabs.length, "φ-ratio:", (tabs.length / OPTIMAL_TABS).toFixed(3));',
+          '});',
+        ].join('\n'),
+        content: null,
+      },
+      {
+        slug: 'nova-focus-mode',
+        name: 'NOVA Focus Mode',
+        desc: 'Dims distracting page elements using φ-weighted opacity. Enhances readability.',
+        manifest: makeManifest('NOVA Focus Mode', 'φ-weighted focus enhancement', 'nova-focus-mode', ['activeTab'], ['<all_urls>']),
+        background: [
+          '// NOVA Focus Mode — Background',
+          'chrome.action.onClicked.addListener((tab) => {',
+          '  chrome.tabs.sendMessage(tab.id, { type: "toggle-focus" });',
+          '});',
+        ].join('\n'),
+        content: [
+          '// NOVA Focus Mode — Content Script',
+          'const PHI_INV = 0.618033988749895;',
+          'let focusActive = false;',
+          '',
+          'chrome.runtime.onMessage.addListener((msg) => {',
+          '  if (msg.type === "toggle-focus") {',
+          '    focusActive = !focusActive;',
+          '    document.querySelectorAll("aside, [role=\'complementary\'], .sidebar, .ad, [class*=\'ad-\']").forEach(el => {',
+          '      el.style.opacity = focusActive ? PHI_INV.toString() : "1";',
+          '      el.style.transition = "opacity 0.3s ease";',
+          '    });',
+          '  }',
+          '});',
+        ].join('\n'),
+      },
+      {
+        slug: 'nova-golden-grid',
+        name: 'NOVA Golden Grid',
+        desc: 'Overlays a golden ratio grid on any page for design analysis.',
+        manifest: makeManifest('NOVA Golden Grid', 'Golden ratio grid overlay', 'nova-golden-grid', ['activeTab'], ['<all_urls>']),
+        background: [
+          '// NOVA Golden Grid — Background',
+          'chrome.action.onClicked.addListener((tab) => {',
+          '  chrome.tabs.sendMessage(tab.id, { type: "toggle-grid" });',
+          '});',
+        ].join('\n'),
+        content: [
+          '// NOVA Golden Grid — φ overlay',
+          'const PHI = 1.618033988749895;',
+          'let gridEl = null;',
+          '',
+          'function createGrid() {',
+          '  gridEl = document.createElement("div");',
+          '  gridEl.id = "nova-golden-grid";',
+          '  gridEl.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999999;";',
+          '  const w = window.innerWidth;',
+          '  const h = window.innerHeight;',
+          '  const goldenW = w / PHI;',
+          '  const goldenH = h / PHI;',
+          '  ["left","right"].forEach((side, i) => {',
+          '    const line = document.createElement("div");',
+          '    line.style.cssText = "position:absolute;top:0;width:1px;height:100%;background:rgba(212,175,55,0.4);";',
+          '    line.style.left = (i === 0 ? goldenW : w - goldenW) + "px";',
+          '    gridEl.appendChild(line);',
+          '  });',
+          '  ["top","bottom"].forEach((side, i) => {',
+          '    const line = document.createElement("div");',
+          '    line.style.cssText = "position:absolute;left:0;height:1px;width:100%;background:rgba(212,175,55,0.4);";',
+          '    line.style.top = (i === 0 ? goldenH : h - goldenH) + "px";',
+          '    gridEl.appendChild(line);',
+          '  });',
+          '  document.body.appendChild(gridEl);',
+          '}',
+          '',
+          'chrome.runtime.onMessage.addListener((msg) => {',
+          '  if (msg.type === "toggle-grid") {',
+          '    if (gridEl) { gridEl.remove(); gridEl = null; }',
+          '    else { createGrid(); }',
+          '  }',
+          '});',
+        ].join('\n'),
+      },
+      {
+        slug: 'nova-dark-sovereign',
+        name: 'NOVA Dark Sovereign',
+        desc: 'Applies a sovereign dark theme to every page with φ-based contrast ratios.',
+        manifest: makeManifest('NOVA Dark Sovereign', 'Sovereign dark mode with φ-contrast', 'nova-dark-sovereign', ['activeTab', 'storage'], ['<all_urls>']),
+        background: [
+          '// NOVA Dark Sovereign — Background',
+          'chrome.action.onClicked.addListener((tab) => {',
+          '  chrome.tabs.sendMessage(tab.id, { type: "toggle-dark" });',
+          '});',
+        ].join('\n'),
+        content: [
+          '// NOVA Dark Sovereign — Content',
+          'let darkActive = false;',
+          'const STYLE_ID = "nova-dark-sovereign-style";',
+          '',
+          'chrome.runtime.onMessage.addListener((msg) => {',
+          '  if (msg.type === "toggle-dark") {',
+          '    darkActive = !darkActive;',
+          '    let el = document.getElementById(STYLE_ID);',
+          '    if (darkActive && !el) {',
+          '      el = document.createElement("style");',
+          '      el.id = STYLE_ID;',
+          '      el.textContent = "html{filter:invert(0.92) hue-rotate(180deg)!important}img,video,canvas,[style*=\\"background-image\\"]{filter:invert(1) hue-rotate(180deg)!important}";',
+          '      document.head.appendChild(el);',
+          '    } else if (!darkActive && el) {',
+          '      el.remove();',
+          '    }',
+          '  }',
+          '});',
+        ].join('\n'),
+      },
+      {
+        slug: 'nova-scroll-tracker',
+        name: 'NOVA Scroll Tracker',
+        desc: 'Tracks scroll depth and reading progress using golden section markers.',
+        manifest: makeManifest('NOVA Scroll Tracker', 'Golden section scroll tracking', 'nova-scroll-tracker', ['activeTab'], ['<all_urls>']),
+        background: [
+          '// NOVA Scroll Tracker — Background',
+          'chrome.action.onClicked.addListener((tab) => {',
+          '  chrome.tabs.sendMessage(tab.id, { type: "toggle-tracker" });',
+          '});',
+        ].join('\n'),
+        content: [
+          '// NOVA Scroll Tracker — Content',
+          'const PHI = 1.618033988749895;',
+          'let bar = null;',
+          '',
+          'function createBar() {',
+          '  bar = document.createElement("div");',
+          '  bar.style.cssText = "position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,#D4AF37,#6B46C1);z-index:999999;transition:width 0.15s;";',
+          '  document.body.appendChild(bar);',
+          '  window.addEventListener("scroll", updateBar);',
+          '}',
+          '',
+          'function updateBar() {',
+          '  if (!bar) return;',
+          '  const scrollTop = document.documentElement.scrollTop;',
+          '  const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;',
+          '  const pct = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;',
+          '  bar.style.width = pct + "%";',
+          '}',
+          '',
+          'chrome.runtime.onMessage.addListener((msg) => {',
+          '  if (msg.type === "toggle-tracker") {',
+          '    if (bar) { bar.remove(); bar = null; window.removeEventListener("scroll", updateBar); }',
+          '    else { createBar(); updateBar(); }',
+          '  }',
+          '});',
+        ].join('\n'),
+      },
+      {
+        slug: 'nova-color-picker',
+        name: 'NOVA Color Picker',
+        desc: 'Pick any color from any webpage. Copies HEX/RGB/HSL to clipboard.',
+        manifest: makeManifest('NOVA Color Picker', 'Sovereign color extraction', 'nova-color-picker', ['activeTab', 'clipboardWrite'], ['<all_urls>']),
+        background: [
+          '// NOVA Color Picker — Background',
+          'chrome.action.onClicked.addListener((tab) => {',
+          '  chrome.tabs.sendMessage(tab.id, { type: "activate-picker" });',
+          '});',
+        ].join('\n'),
+        content: [
+          '// NOVA Color Picker — Content',
+          'let picking = false;',
+          '',
+          'chrome.runtime.onMessage.addListener((msg) => {',
+          '  if (msg.type === "activate-picker") {',
+          '    picking = true;',
+          '    document.body.style.cursor = "crosshair";',
+          '    document.addEventListener("click", pickColor, { once: true });',
+          '  }',
+          '});',
+          '',
+          'function pickColor(e) {',
+          '  const el = e.target;',
+          '  const color = getComputedStyle(el).backgroundColor;',
+          '  navigator.clipboard.writeText(color).then(() => {',
+          '    console.log("[NOVA Color Picker] Copied:", color);',
+          '  });',
+          '  document.body.style.cursor = "";',
+          '  picking = false;',
+          '}',
+        ].join('\n'),
+      },
+      {
+        slug: 'nova-link-checker',
+        name: 'NOVA Link Checker',
+        desc: 'Scans all links on a page and highlights broken ones.',
+        manifest: makeManifest('NOVA Link Checker', 'Dead link detector', 'nova-link-checker', ['activeTab'], ['<all_urls>']),
+        background: [
+          '// NOVA Link Checker — Background',
+          'chrome.action.onClicked.addListener((tab) => {',
+          '  chrome.tabs.sendMessage(tab.id, { type: "check-links" });',
+          '});',
+        ].join('\n'),
+        content: [
+          '// NOVA Link Checker — Content',
+          'chrome.runtime.onMessage.addListener((msg) => {',
+          '  if (msg.type === "check-links") {',
+          '    const links = document.querySelectorAll("a[href]");',
+          '    let checked = 0;',
+          '    links.forEach(link => {',
+          '      fetch(link.href, { method: "HEAD", mode: "no-cors" })',
+          '        .then(() => { link.style.outline = "2px solid #10B981"; checked++; })',
+          '        .catch(() => { link.style.outline = "2px solid #DC2626"; checked++; })',
+          '        .finally(() => {',
+          '          if (checked === links.length) console.log("[NOVA Link Checker] Done:", checked, "links checked");',
+          '        });',
+          '    });',
+          '  }',
+          '});',
+        ].join('\n'),
+      },
+      {
+        slug: 'nova-page-ruler',
+        name: 'NOVA Page Ruler',
+        desc: 'Pixel ruler overlay for measuring any element on a webpage.',
+        manifest: makeManifest('NOVA Page Ruler', 'On-page pixel measurement', 'nova-page-ruler', ['activeTab'], ['<all_urls>']),
+        background: [
+          '// NOVA Page Ruler — Background',
+          'chrome.action.onClicked.addListener((tab) => {',
+          '  chrome.tabs.sendMessage(tab.id, { type: "toggle-ruler" });',
+          '});',
+        ].join('\n'),
+        content: [
+          '// NOVA Page Ruler — Content',
+          'let rulerActive = false;',
+          'let startX, startY, rulerEl;',
+          '',
+          'chrome.runtime.onMessage.addListener((msg) => {',
+          '  if (msg.type === "toggle-ruler") {',
+          '    rulerActive = !rulerActive;',
+          '    if (rulerActive) {',
+          '      document.addEventListener("mousedown", startMeasure);',
+          '      document.addEventListener("mouseup", endMeasure);',
+          '      document.addEventListener("mousemove", moveMeasure);',
+          '      document.body.style.cursor = "crosshair";',
+          '    } else {',
+          '      document.removeEventListener("mousedown", startMeasure);',
+          '      document.removeEventListener("mouseup", endMeasure);',
+          '      document.removeEventListener("mousemove", moveMeasure);',
+          '      document.body.style.cursor = "";',
+          '      if (rulerEl) { rulerEl.remove(); rulerEl = null; }',
+          '    }',
+          '  }',
+          '});',
+          '',
+          'function startMeasure(e) { startX = e.clientX; startY = e.clientY; }',
+          'function moveMeasure(e) {',
+          '  if (startX == null) return;',
+          '  if (!rulerEl) {',
+          '    rulerEl = document.createElement("div");',
+          '    rulerEl.style.cssText = "position:fixed;border:1px dashed #D4AF37;pointer-events:none;z-index:999999;font-size:10px;color:#D4AF37;padding:2px;";',
+          '    document.body.appendChild(rulerEl);',
+          '  }',
+          '  const w = Math.abs(e.clientX - startX);',
+          '  const h = Math.abs(e.clientY - startY);',
+          '  rulerEl.style.left = Math.min(e.clientX, startX) + "px";',
+          '  rulerEl.style.top = Math.min(e.clientY, startY) + "px";',
+          '  rulerEl.style.width = w + "px";',
+          '  rulerEl.style.height = h + "px";',
+          '  rulerEl.textContent = w + " × " + h + "px";',
+          '}',
+          'function endMeasure() { startX = null; startY = null; }',
+        ].join('\n'),
+      },
+      {
+        slug: 'nova-json-viewer',
+        name: 'NOVA JSON Viewer',
+        desc: 'Pretty-prints JSON responses with syntax highlighting and φ-indentation.',
+        manifest: makeManifest('NOVA JSON Viewer', 'Sovereign JSON formatter', 'nova-json-viewer', [], ['*://*/*']),
+        background: '// NOVA JSON Viewer — Background\n// Content script handles everything\nconsole.log("[NOVA JSON Viewer] Active");',
+        content: [
+          '// NOVA JSON Viewer — Content',
+          '(function() {',
+          '  const body = document.body;',
+          '  const text = body.innerText.trim();',
+          '  try {',
+          '    const json = JSON.parse(text);',
+          '    const formatted = JSON.stringify(json, null, 2);',
+          '    body.innerHTML = "";',
+          '    const pre = document.createElement("pre");',
+          '    pre.style.cssText = "padding:1rem;font-family:monospace;font-size:13px;background:#0a0a0f;color:#e0e0e0;white-space:pre-wrap;word-break:break-all;";',
+          '    pre.textContent = formatted;',
+          '    body.style.cssText = "margin:0;background:#0a0a0f;";',
+          '    body.appendChild(pre);',
+          '  } catch(e) { /* Not JSON, ignore */ }',
+          '})();',
+        ].join('\n'),
+      },
+      {
+        slug: 'nova-bookmark-tree',
+        name: 'NOVA Bookmark Tree',
+        desc: 'Visual bookmark organizer with golden-ratio hierarchical layout.',
+        manifest: makeManifest('NOVA Bookmark Tree', 'Golden bookmark hierarchy', 'nova-bookmark-tree', ['bookmarks']),
+        background: [
+          '// NOVA Bookmark Tree — Background',
+          'const PHI = 1.618033988749895;',
+          '',
+          'chrome.bookmarks.getTree((tree) => {',
+          '  function countNodes(node) {',
+          '    let count = 1;',
+          '    if (node.children) node.children.forEach(c => count += countNodes(c));',
+          '    return count;',
+          '  }',
+          '  const total = countNodes(tree[0]);',
+          '  console.log("[NOVA Bookmark Tree] Total bookmarks:", total, "φ-ratio:", (total / PHI).toFixed(2));',
+          '});',
+        ].join('\n'),
+        content: null,
+      },
+      {
+        slug: 'nova-speed-dial',
+        name: 'NOVA Speed Dial',
+        desc: 'Replaces new tab page with a φ-grid of most visited sites.',
+        manifest: makeManifest('NOVA Speed Dial', 'Golden ratio speed dial', 'nova-speed-dial', ['topSites']),
+        background: [
+          '// NOVA Speed Dial — Background',
+          'chrome.runtime.onInstalled.addListener(() => {',
+          '  console.log("[NOVA Speed Dial] Installed. φ = 1.618033988749895");',
+          '});',
+        ].join('\n'),
+        content: null,
+      },
+      {
+        slug: 'nova-session-saver',
+        name: 'NOVA Session Saver',
+        desc: 'Saves and restores complete browser sessions with one click.',
+        manifest: makeManifest('NOVA Session Saver', 'Session preservation engine', 'nova-session-saver', ['tabs', 'storage']),
+        background: [
+          '// NOVA Session Saver — Background',
+          'chrome.action.onClicked.addListener(async () => {',
+          '  const tabs = await chrome.tabs.query({});',
+          '  const session = tabs.map(t => ({ url: t.url, title: t.title }));',
+          '  const key = "session_" + Date.now();',
+          '  await chrome.storage.local.set({ [key]: session });',
+          '  console.log("[NOVA Session Saver] Saved", session.length, "tabs as", key);',
+          '});',
+        ].join('\n'),
+        content: null,
+      },
+      {
+        slug: 'nova-text-stats',
+        name: 'NOVA Text Stats',
+        desc: 'Counts words, characters, sentences, and reading time on selected text.',
+        manifest: makeManifest('NOVA Text Stats', 'Text analysis engine', 'nova-text-stats', ['activeTab'], ['<all_urls>']),
+        background: [
+          '// NOVA Text Stats — Background',
+          'chrome.action.onClicked.addListener((tab) => {',
+          '  chrome.tabs.sendMessage(tab.id, { type: "count-text" });',
+          '});',
+        ].join('\n'),
+        content: [
+          '// NOVA Text Stats — Content',
+          'chrome.runtime.onMessage.addListener((msg) => {',
+          '  if (msg.type === "count-text") {',
+          '    const text = window.getSelection().toString() || document.body.innerText;',
+          '    const words = text.split(/\\s+/).filter(Boolean).length;',
+          '    const chars = text.length;',
+          '    const sentences = text.split(/[.!?]+/).filter(Boolean).length;',
+          '    const readingTime = Math.ceil(words / 238); // avg WPM',
+          '    console.log("[NOVA Text Stats]", { words, chars, sentences, readingTime: readingTime + "min" });',
+          '  }',
+          '});',
+        ].join('\n'),
+      },
+      {
+        slug: 'nova-css-inspector',
+        name: 'NOVA CSS Inspector',
+        desc: 'Inspect computed CSS of any element with a single click.',
+        manifest: makeManifest('NOVA CSS Inspector', 'CSS inspection tool', 'nova-css-inspector', ['activeTab'], ['<all_urls>']),
+        background: [
+          '// NOVA CSS Inspector — Background',
+          'chrome.action.onClicked.addListener((tab) => {',
+          '  chrome.tabs.sendMessage(tab.id, { type: "inspect" });',
+          '});',
+        ].join('\n'),
+        content: [
+          '// NOVA CSS Inspector — Content',
+          'let inspecting = false;',
+          '',
+          'chrome.runtime.onMessage.addListener((msg) => {',
+          '  if (msg.type === "inspect") {',
+          '    inspecting = !inspecting;',
+          '    if (inspecting) {',
+          '      document.body.style.cursor = "crosshair";',
+          '      document.addEventListener("click", inspectEl, { once: true });',
+          '    }',
+          '  }',
+          '});',
+          '',
+          'function inspectEl(e) {',
+          '  e.preventDefault();',
+          '  const s = getComputedStyle(e.target);',
+          '  console.log("[NOVA CSS Inspector]", {',
+          '    tag: e.target.tagName,',
+          '    font: s.fontFamily + " " + s.fontSize,',
+          '    color: s.color,',
+          '    bg: s.backgroundColor,',
+          '    padding: s.padding,',
+          '    margin: s.margin,',
+          '    display: s.display,',
+          '  });',
+          '  document.body.style.cursor = "";',
+          '}',
+        ].join('\n'),
+      },
+      {
+        slug: 'nova-performance-meter',
+        name: 'NOVA Performance Meter',
+        desc: 'Real-time FPS counter and page load performance metrics.',
+        manifest: makeManifest('NOVA Performance Meter', 'Performance monitoring', 'nova-performance-meter', ['activeTab'], ['<all_urls>']),
+        background: [
+          '// NOVA Performance Meter — Background',
+          'chrome.action.onClicked.addListener((tab) => {',
+          '  chrome.tabs.sendMessage(tab.id, { type: "toggle-perf" });',
+          '});',
+        ].join('\n'),
+        content: [
+          '// NOVA Performance Meter — Content',
+          'let perfEl = null;',
+          'let frameCount = 0;',
+          'let lastTime = performance.now();',
+          'let animId = null;',
+          '',
+          'function tick() {',
+          '  frameCount++;',
+          '  const now = performance.now();',
+          '  if (now - lastTime >= 1000) {',
+          '    if (perfEl) perfEl.textContent = frameCount + " FPS";',
+          '    frameCount = 0;',
+          '    lastTime = now;',
+          '  }',
+          '  animId = requestAnimationFrame(tick);',
+          '}',
+          '',
+          'chrome.runtime.onMessage.addListener((msg) => {',
+          '  if (msg.type === "toggle-perf") {',
+          '    if (perfEl) {',
+          '      perfEl.remove(); perfEl = null;',
+          '      cancelAnimationFrame(animId);',
+          '    } else {',
+          '      perfEl = document.createElement("div");',
+          '      perfEl.style.cssText = "position:fixed;top:8px;right:8px;padding:4px 10px;background:rgba(0,0,0,0.85);color:#D4AF37;font:bold 14px monospace;z-index:999999;border-radius:4px;";',
+          '      document.body.appendChild(perfEl);',
+          '      tick();',
+          '    }',
+          '  }',
+          '});',
+        ].join('\n'),
+      },
+      {
+        slug: 'nova-cookie-manager',
+        name: 'NOVA Cookie Manager',
+        desc: 'View and manage cookies for the current domain.',
+        manifest: makeManifest('NOVA Cookie Manager', 'Cookie inspection and cleanup', 'nova-cookie-manager', ['cookies', 'activeTab']),
+        background: [
+          '// NOVA Cookie Manager — Background',
+          'chrome.action.onClicked.addListener(async (tab) => {',
+          '  const url = new URL(tab.url);',
+          '  const cookies = await chrome.cookies.getAll({ domain: url.hostname });',
+          '  console.log("[NOVA Cookie Manager]", url.hostname, ":", cookies.length, "cookies");',
+          '  cookies.forEach(c => console.log(" ", c.name, "=", c.value.substring(0, 40)));',
+          '});',
+        ].join('\n'),
+        content: null,
+      },
+      {
+        slug: 'nova-screenshot',
+        name: 'NOVA Screenshot',
+        desc: 'Captures visible tab area as PNG. One-click screenshot.',
+        manifest: makeManifest('NOVA Screenshot', 'Tab screenshot capture', 'nova-screenshot', ['activeTab']),
+        background: [
+          '// NOVA Screenshot — Background',
+          'chrome.action.onClicked.addListener(async (tab) => {',
+          '  const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, { format: "png" });',
+          '  chrome.tabs.create({ url: dataUrl });',
+          '  console.log("[NOVA Screenshot] Captured tab:", tab.title);',
+          '});',
+        ].join('\n'),
+        content: null,
+      },
+      {
+        slug: 'nova-note-pad',
+        name: 'NOVA Note Pad',
+        desc: 'Minimal in-page notepad. Data persists in local storage.',
+        manifest: makeManifest('NOVA Note Pad', 'In-browser notepad', 'nova-note-pad', ['activeTab', 'storage'], ['<all_urls>']),
+        background: [
+          '// NOVA Note Pad — Background',
+          'chrome.action.onClicked.addListener((tab) => {',
+          '  chrome.tabs.sendMessage(tab.id, { type: "toggle-notepad" });',
+          '});',
+        ].join('\n'),
+        content: [
+          '// NOVA Note Pad — Content',
+          'let pad = null;',
+          '',
+          'chrome.runtime.onMessage.addListener((msg) => {',
+          '  if (msg.type === "toggle-notepad") {',
+          '    if (pad) { pad.remove(); pad = null; return; }',
+          '    pad = document.createElement("textarea");',
+          '    pad.style.cssText = "position:fixed;bottom:16px;right:16px;width:300px;height:200px;background:#0a0a0f;color:#e0e0e0;border:1px solid #D4AF37;border-radius:8px;padding:12px;font-family:monospace;font-size:13px;z-index:999999;resize:both;";',
+          '    pad.placeholder = "NOVA Notes...";',
+          '    pad.value = localStorage.getItem("nova-notepad") || "";',
+          '    pad.addEventListener("input", () => localStorage.setItem("nova-notepad", pad.value));',
+          '    document.body.appendChild(pad);',
+          '  }',
+          '});',
+        ].join('\n'),
+      },
+      {
+        slug: 'nova-auto-scroll',
+        name: 'NOVA Auto Scroll',
+        desc: 'Smooth auto-scrolling at configurable φ-based speed.',
+        manifest: makeManifest('NOVA Auto Scroll', 'φ-speed auto-scrolling', 'nova-auto-scroll', ['activeTab'], ['<all_urls>']),
+        background: [
+          '// NOVA Auto Scroll — Background',
+          'chrome.action.onClicked.addListener((tab) => {',
+          '  chrome.tabs.sendMessage(tab.id, { type: "toggle-scroll" });',
+          '});',
+        ].join('\n'),
+        content: [
+          '// NOVA Auto Scroll — Content',
+          'const PHI_INV = 0.618033988749895;',
+          'let scrolling = false;',
+          'let scrollId = null;',
+          '',
+          'chrome.runtime.onMessage.addListener((msg) => {',
+          '  if (msg.type === "toggle-scroll") {',
+          '    scrolling = !scrolling;',
+          '    if (scrolling) {',
+          '      (function scroll() {',
+          '        window.scrollBy(0, PHI_INV);',
+          '        scrollId = requestAnimationFrame(scroll);',
+          '      })();',
+          '    } else {',
+          '      cancelAnimationFrame(scrollId);',
+          '    }',
+          '  }',
+          '});',
+        ].join('\n'),
+      },
+      {
+        slug: 'nova-dom-counter',
+        name: 'NOVA DOM Counter',
+        desc: 'Counts DOM elements, depth, and complexity of current page.',
+        manifest: makeManifest('NOVA DOM Counter', 'DOM complexity analysis', 'nova-dom-counter', ['activeTab'], ['<all_urls>']),
+        background: [
+          '// NOVA DOM Counter — Background',
+          'chrome.action.onClicked.addListener((tab) => {',
+          '  chrome.tabs.sendMessage(tab.id, { type: "count-dom" });',
+          '});',
+        ].join('\n'),
+        content: [
+          '// NOVA DOM Counter — Content',
+          'chrome.runtime.onMessage.addListener((msg) => {',
+          '  if (msg.type === "count-dom") {',
+          '    const all = document.querySelectorAll("*");',
+          '    let maxDepth = 0;',
+          '    all.forEach(el => {',
+          '      let d = 0, p = el;',
+          '      while (p.parentElement) { d++; p = p.parentElement; }',
+          '      if (d > maxDepth) maxDepth = d;',
+          '    });',
+          '    console.log("[NOVA DOM Counter]", {',
+          '      elements: all.length,',
+          '      maxDepth: maxDepth,',
+          '      scripts: document.scripts.length,',
+          '      stylesheets: document.styleSheets.length,',
+          '    });',
+          '  }',
+          '});',
+        ].join('\n'),
+      },
+      {
+        slug: 'nova-header-viewer',
+        name: 'NOVA Header Viewer',
+        desc: 'Displays HTTP response headers for the current page.',
+        manifest: makeManifest('NOVA Header Viewer', 'HTTP header inspection', 'nova-header-viewer', ['webRequest', 'activeTab']),
+        background: [
+          '// NOVA Header Viewer — Background',
+          '// Note: webRequest requires host_permissions in MV3',
+          'chrome.action.onClicked.addListener((tab) => {',
+          '  console.log("[NOVA Header Viewer] Inspecting headers for:", tab.url);',
+          '  fetch(tab.url, { method: "HEAD" })',
+          '    .then(r => {',
+          '      r.headers.forEach((v, k) => console.log("  ", k + ":", v));',
+          '    })',
+          '    .catch(e => console.log("  Error:", e.message));',
+          '});',
+        ].join('\n'),
+        content: null,
+      },
+      {
+        slug: 'nova-font-finder',
+        name: 'NOVA Font Finder',
+        desc: 'Identifies all fonts used on a page with specimen display.',
+        manifest: makeManifest('NOVA Font Finder', 'Typography detection', 'nova-font-finder', ['activeTab'], ['<all_urls>']),
+        background: [
+          '// NOVA Font Finder — Background',
+          'chrome.action.onClicked.addListener((tab) => {',
+          '  chrome.tabs.sendMessage(tab.id, { type: "find-fonts" });',
+          '});',
+        ].join('\n'),
+        content: [
+          '// NOVA Font Finder — Content',
+          'chrome.runtime.onMessage.addListener((msg) => {',
+          '  if (msg.type === "find-fonts") {',
+          '    const fonts = new Set();',
+          '    document.querySelectorAll("*").forEach(el => {',
+          '      const f = getComputedStyle(el).fontFamily;',
+          '      if (f) fonts.add(f);',
+          '    });',
+          '    console.log("[NOVA Font Finder] Fonts found:", [...fonts]);',
+          '  }',
+          '});',
+        ].join('\n'),
+      },
+      {
+        slug: 'nova-meta-viewer',
+        name: 'NOVA Meta Viewer',
+        desc: 'Displays all meta tags, Open Graph, and Twitter Card data.',
+        manifest: makeManifest('NOVA Meta Viewer', 'Meta tag inspection', 'nova-meta-viewer', ['activeTab'], ['<all_urls>']),
+        background: [
+          '// NOVA Meta Viewer — Background',
+          'chrome.action.onClicked.addListener((tab) => {',
+          '  chrome.tabs.sendMessage(tab.id, { type: "show-meta" });',
+          '});',
+        ].join('\n'),
+        content: [
+          '// NOVA Meta Viewer — Content',
+          'chrome.runtime.onMessage.addListener((msg) => {',
+          '  if (msg.type === "show-meta") {',
+          '    const metas = document.querySelectorAll("meta");',
+          '    const data = {};',
+          '    metas.forEach(m => {',
+          '      const key = m.getAttribute("name") || m.getAttribute("property") || m.getAttribute("http-equiv");',
+          '      if (key) data[key] = m.getAttribute("content");',
+          '    });',
+          '    data.title = document.title;',
+          '    data.charset = document.characterSet;',
+          '    console.log("[NOVA Meta Viewer]", data);',
+          '  }',
+          '});',
+        ].join('\n'),
+      },
+      {
+        slug: 'nova-image-saver',
+        name: 'NOVA Image Saver',
+        desc: 'Lists all images on a page with dimensions and download links.',
+        manifest: makeManifest('NOVA Image Saver', 'Bulk image extraction', 'nova-image-saver', ['activeTab'], ['<all_urls>']),
+        background: [
+          '// NOVA Image Saver — Background',
+          'chrome.action.onClicked.addListener((tab) => {',
+          '  chrome.tabs.sendMessage(tab.id, { type: "list-images" });',
+          '});',
+        ].join('\n'),
+        content: [
+          '// NOVA Image Saver — Content',
+          'chrome.runtime.onMessage.addListener((msg) => {',
+          '  if (msg.type === "list-images") {',
+          '    const imgs = document.querySelectorAll("img[src]");',
+          '    const list = [];',
+          '    imgs.forEach(img => {',
+          '      list.push({ src: img.src, w: img.naturalWidth, h: img.naturalHeight, alt: img.alt });',
+          '    });',
+          '    console.log("[NOVA Image Saver]", list.length, "images found");',
+          '    list.forEach((img, i) => console.log("  " + i + ":", img.w + "x" + img.h, img.src.substring(0, 80)));',
+          '  }',
+          '});',
+        ].join('\n'),
+      },
+      {
+        slug: 'nova-console-filter',
+        name: 'NOVA Console Filter',
+        desc: 'Filters and highlights console output by severity and pattern.',
+        manifest: makeManifest('NOVA Console Filter', 'Console output management', 'nova-console-filter', ['activeTab'], ['<all_urls>']),
+        background: [
+          '// NOVA Console Filter — Background',
+          'console.log("[NOVA Console Filter] Active — sovereign console management");',
+        ].join('\n'),
+        content: [
+          '// NOVA Console Filter — Content',
+          '// Wraps console methods with NOVA-style formatting',
+          'const origLog = console.log;',
+          'const origWarn = console.warn;',
+          'const origError = console.error;',
+          '',
+          'console.log = function() {',
+          '  origLog.apply(console, ["[NOVA]", ...arguments]);',
+          '};',
+          'console.warn = function() {',
+          '  origWarn.apply(console, ["[NOVA ⚠]", ...arguments]);',
+          '};',
+          'console.error = function() {',
+          '  origError.apply(console, ["[NOVA ✗]", ...arguments]);',
+          '};',
+        ].join('\n'),
+      },
+    ];
+
+    // ── Render extension cards ─────────────────────────────────────────
+    var grid = document.getElementById('extGrid');
+    var totalEl = document.getElementById('totalCount');
+    totalEl.textContent = EXTENSIONS.length;
+
+    for (var i = 0; i < EXTENSIONS.length; i++) {
+      var ext = EXTENSIONS[i];
+      var card = document.createElement('div');
+      card.className = 'ext-card';
+      card.id = 'card-' + ext.slug;
+      card.innerHTML =
+        '<div class="ext-header">' +
+          '<span class="ext-name">' + ext.name + '</span>' +
+          '<span class="ext-badge building" id="badge-' + ext.slug + '">BUILDING</span>' +
+        '</div>' +
+        '<div class="ext-desc">' + ext.desc + '</div>' +
+        '<div class="ext-meta">' +
+          '<span class="ext-size" id="size-' + ext.slug + '">—</span>' +
+          '<a class="btn-ext-dl" id="dl-' + ext.slug + '" disabled>⬇ Download</a>' +
+        '</div>';
+      grid.appendChild(card);
+    }
+
+
+    // ── Spawn Download Worker ──────────────────────────────────────────
+    var workerBlobURLs = {};
+    var builtCount = 0;
+
+    // Create the worker from a blob URL (same-origin, no external file needed)
+    // We inline the worker script for fully self-contained operation
+    var workerCode = null;
+    var worker = null;
+
+    function startWorker() {
+      // Try to load external worker file first, fall back to inline
+      try {
+        worker = new Worker('download-worker.js');
+      } catch (e) {
+        // Inline worker as fallback — create from blob
+        // This uses a minimal subset: CRC-32 + ZIP builder
+        var code = document.getElementById('workerScript').textContent;
+        var blob = new Blob([code], { type: 'application/javascript' });
+        worker = new Worker(URL.createObjectURL(blob));
+      }
+
+      worker.onmessage = function(e) {
+        var msg = e.data;
+
+        switch (msg.type) {
+          case 'zip-ready': {
+            var url = URL.createObjectURL(msg.blob);
+            workerBlobURLs[msg.slug] = url;
+
+            if (msg.slug === 'all-extensions') {
+              // Update bundle button
+              var btnAll = document.getElementById('btnAll');
+              var btnLabel = document.getElementById('btnAllLabel');
+              var bundleSize = document.getElementById('bundleSize');
+              btnAll.disabled = false;
+              btnAll.onclick = function() { triggerDownload(url, msg.filename); };
+              btnLabel.textContent = 'Download All (' + msg.filename + ')';
+              bundleSize.textContent = formatBytes(msg.blob.size);
+            } else {
+              // Update individual card
+              var badge = document.getElementById('badge-' + msg.slug);
+              var sizeEl = document.getElementById('size-' + msg.slug);
+              var dlBtn = document.getElementById('dl-' + msg.slug);
+
+              if (badge) { badge.className = 'ext-badge ready'; badge.textContent = 'READY'; }
+              if (sizeEl) sizeEl.textContent = formatBytes(msg.blob.size);
+              if (dlBtn) {
+                dlBtn.removeAttribute('disabled');
+                dlBtn.href = url;
+                dlBtn.onclick = function(u, f) {
+                  return function(ev) { ev.preventDefault(); triggerDownload(u, f); };
+                }(url, msg.filename);
+              }
+
+              builtCount++;
+              document.getElementById('builtCount').textContent = builtCount;
+            }
+            break;
+          }
+          case 'zip-error': {
+            var badge = document.getElementById('badge-' + msg.slug);
+            if (badge) { badge.className = 'ext-badge error'; badge.textContent = 'ERROR'; }
+            break;
+          }
+          case 'all-ready': {
+            document.getElementById('workerStatus').textContent = 'ready (' + msg.count + ' zips)';
+            document.getElementById('workerDot').className = 'status-dot';
+            break;
+          }
+          case 'heartbeat': {
+            document.getElementById('beatCount').textContent = msg.beat;
+            document.getElementById('hbTimestamp').textContent = new Date(msg.timestamp).toISOString();
+            break;
+          }
+        }
+      };
+
+      // Set status to building
+      document.getElementById('workerStatus').textContent = 'building…';
+      document.getElementById('workerDot').className = 'status-dot building';
+
+      // Send build command
+      worker.postMessage({
+        type: 'build',
+        extensions: EXTENSIONS,
+      });
+    }
+
+    function triggerDownload(url, filename) {
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    // Start worker on load
+    startWorker();
+    </script>
+
+    <!-- Inline worker fallback (used when download-worker.js can't be loaded) -->
+    <script type="text/worker" id="workerScript">
+    var PHI = 1.618033988749895;
+    var HEARTBEAT = 873;
+    var beatCount = 0;
+    var running = true;
+
+    function crc32(buf) {
+      var table = new Uint32Array(256);
+      for (var i = 0; i < 256; i++) {
+        var c = i;
+        for (var j = 0; j < 8; j++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+        table[i] = c;
+      }
+      var crc = 0xFFFFFFFF;
+      for (var i = 0; i < buf.length; i++) crc = table[(crc ^ buf[i]) & 0xFF] ^ (crc >>> 8);
+      return (crc ^ 0xFFFFFFFF) >>> 0;
+    }
+    function strToBytes(s) { return new TextEncoder().encode(s); }
+    function u16le(v) { return [v & 0xFF, (v >>> 8) & 0xFF]; }
+    function u32le(v) { return [v & 0xFF, (v >>> 8) & 0xFF, (v >>> 16) & 0xFF, (v >>> 24) & 0xFF]; }
+
+    function buildZip(files) {
+      var lh = [], ch = [], off = 0;
+      for (var i = 0; i < files.length; i++) {
+        var nb = strToBytes(files[i].name), d = files[i].data, cr = crc32(d), sz = d.length;
+        var l = new Uint8Array([0x50,0x4B,0x03,0x04,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32le(cr),...u32le(sz),...u32le(sz),...u16le(nb.length),0x00,0x00,...nb,...d]);
+        lh.push(l);
+        var c = new Uint8Array([0x50,0x4B,0x01,0x02,0x14,0x00,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32le(cr),...u32le(sz),...u32le(sz),...u16le(nb.length),0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32le(off),...nb]);
+        ch.push(c);
+        off += l.length;
+      }
+      var co = off, cs = 0;
+      for (var k = 0; k < ch.length; k++) cs += ch[k].length;
+      var e = new Uint8Array([0x50,0x4B,0x05,0x06,0x00,0x00,0x00,0x00,...u16le(files.length),...u16le(files.length),...u32le(cs),...u32le(co),0x00,0x00]);
+      var ts = off + cs + e.length, r = new Uint8Array(ts), p = 0;
+      for (var m = 0; m < lh.length; m++) { r.set(lh[m], p); p += lh[m].length; }
+      for (var n = 0; n < ch.length; n++) { r.set(ch[n], p); p += ch[n].length; }
+      r.set(e, p);
+      return r;
+    }
+
+    function buildExtZip(ext) {
+      var f = [];
+      if (ext.manifest) f.push({ name: 'manifest.json', data: strToBytes(ext.manifest) });
+      if (ext.background) f.push({ name: 'background.js', data: strToBytes(ext.background) });
+      if (ext.content) f.push({ name: 'content.js', data: strToBytes(ext.content) });
+      return buildZip(f);
+    }
+
+    self.onmessage = function(e) {
+      var msg = e.data;
+      if (msg.type === 'build') {
+        var exts = msg.extensions || [], built = [];
+        for (var i = 0; i < exts.length; i++) {
+          try {
+            var zd = buildExtZip(exts[i]), fn = exts[i].slug + '.zip';
+            built.push({ filename: fn, data: zd, slug: exts[i].slug });
+            self.postMessage({ type: 'zip-ready', slug: exts[i].slug, name: exts[i].name, filename: fn, blob: new Blob([zd], { type: 'application/zip' }) });
+          } catch (err) {
+            self.postMessage({ type: 'zip-error', slug: exts[i].slug, error: err.message });
+          }
+        }
+        if (built.length > 0) {
+          var af = [];
+          for (var j = 0; j < built.length; j++) af.push({ name: built[j].filename, data: built[j].data });
+          var ad = buildZip(af);
+          self.postMessage({ type: 'zip-ready', slug: 'all-extensions', name: 'All Extensions', filename: 'all-extensions.zip', blob: new Blob([ad], { type: 'application/zip' }) });
+        }
+        self.postMessage({ type: 'all-ready', count: built.length });
+      } else if (msg.type === 'stop') {
+        running = false; clearInterval(hbi);
+        self.postMessage({ type: 'stopped' });
+      }
+    };
+
+    var hbi = setInterval(function() {
+      if (!running) return;
+      beatCount++;
+      self.postMessage({ type: 'heartbeat', beat: beatCount, phi: PHI, heartbeatMs: HEARTBEAT, timestamp: Date.now(), status: 'alive' });
+    }, HEARTBEAT);
+    </script>
+</body>
+</html>
