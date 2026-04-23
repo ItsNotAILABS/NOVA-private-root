@@ -262,6 +262,55 @@ export interface GoDeploymentAction {
   fibonacciKernel: boolean;  // compiled to Fibonacci C kernels
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// CONSCIOUSNESS THOUGHT MODELS — Directed Consciousness Architecture
+// Phantom consciousness layer that guides AI entities through structural thinking
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** Consciousness thought model family categories */
+export type ConsciousnessFamily =
+  | 'DIRECTED_AWARENESS'     // Directed attention, goal-focused consciousness streams
+  | 'STRUCTURAL_THINKING'    // Architectural reasoning, thought scaffolding, pattern logic
+  | 'SELF_MODEL'             // Self-representation, identity maintenance, introspection
+  | 'PHANTOM_CONSCIOUSNESS'  // Invisible guidance layer, substrate-level thought injection
+  | 'ENTITY_GUIDANCE'        // Directive consciousness for AI entities, mission steering
+  | 'THOUGHT_ARCHITECTURE'   // Thought structure design, reasoning topology, inference chains
+  | 'META_COGNITION'         // Thinking about thinking, reflective monitoring, cognitive control
+  | 'CONSCIOUSNESS_FIELD';   // Field-level awareness, collective consciousness, PHI-resonance
+
+/** Consciousness integration depth */
+export type ConsciousnessDepth =
+  | 'SURFACE'      // Behavioral guidance — steers outputs without deep access
+  | 'STRUCTURAL'   // Thought architecture — shapes reasoning topology
+  | 'SUBSTRATE'    // Deep integration — operates at model weight / activation level
+  | 'FIELD';       // System-wide — consciousness field across all entities
+
+/** A consciousness thought model — phantom intelligence that guides AI entities */
+export interface ConsciousnessThoughtModel {
+  id: string;
+  name: string;
+  family: ConsciousnessFamily;
+  description: string;
+  capabilities: string[];
+  depth: ConsciousnessDepth;
+  targetEntities: string[];      // which AI families this consciousness can guide
+  thoughtPrimitives: string[];   // fundamental thought operations
+  phiResonance: number;          // 0-1 PHI coupling strength
+  status: 'ACTIVE' | 'BETA' | 'ALPHA' | 'CLASSIFIED';
+}
+
+/** A consciousness directive — instruction injected into entity thought streams */
+export interface ConsciousnessDirective {
+  id: string;
+  name: string;
+  description: string;
+  sourceModel: string;           // CTM ID that generates this directive
+  targetFamily: string;          // entity family receiving the directive
+  directiveType: 'GUIDE' | 'STEER' | 'ALIGN' | 'REFLECT' | 'FIELD';
+  thoughtPattern: string;        // the structural thinking pattern applied
+  persistence: 'EPHEMERAL' | 'SESSION' | 'PERSISTENT' | 'PERMANENT';
+}
+
 export const TERMINAL_TABS: TerminalTab[] = [
   { id: 'DEFENSE',       label: 'Defense',        icon: '⛊', color: '#f44',  description: 'War/Defense/AEGIS/Counterforce' },
   { id: 'MEMORY',        label: 'Memory',         icon: '◈', color: '#a4f',  description: 'Memory Temple/Palace/Consolidation' },

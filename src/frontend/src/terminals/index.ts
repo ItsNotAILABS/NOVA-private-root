@@ -3,6 +3,7 @@
 // 100 multimodal calls · 80 AI organism packages · 50 SDKs · 50 tools · 3 repos
 // GO SYSTEM: 50 models · 30 MCP servers · 100 scrapers · 20 workflows
 // GO ENTERPRISE: 250 AI/AGI models · 30 deployment actions · Fibonacci C kernels
+// CONSCIOUSNESS: 40 thought models · 12 directives · 8 families
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // Master hub
@@ -42,6 +43,9 @@ export { GO_SCRAPERS, GO_WORKFLOWS, SCRAPER_CATEGORIES, getScraperById, getScrap
 export { GO_ENTERPRISE_AI, getEnterpriseAIById, getEnterpriseAIByFamily, getEnterpriseAIByTier, GO_ENTERPRISE_FAMILIES } from './goEnterprise';
 export { GO_DEPLOYMENT_ACTIONS, getDeploymentActionById, getDeploymentActionsByTarget, getFibonacciKernelActions, GO_DEPLOYMENT_TARGETS } from './goDeployment';
 
+// CONSCIOUSNESS — 40 Thought Models + 12 Directives
+export { CONSCIOUSNESS_THOUGHT_MODELS, CONSCIOUSNESS_DIRECTIVES, getConsciousnessModelById, getConsciousnessModelsByFamily, getConsciousnessModelsByDepth, getConsciousnessModelsForEntity, getDirectivesForFamily, getDirectiveById, CONSCIOUSNESS_FAMILIES } from './goConsciousness';
+
 // Types
 export type {
   TerminalDomain,
@@ -63,5 +67,9 @@ export type {
   GoEnterpriseAI,
   GoDeploymentTarget,
   GoDeploymentAction,
+  ConsciousnessFamily,
+  ConsciousnessDepth,
+  ConsciousnessThoughtModel,
+  ConsciousnessDirective,
 } from './types';
 export { TERMINAL_TABS } from './types';
