@@ -37,6 +37,8 @@ import { DroneSimulationWorld } from './components/CommandCenter/DroneSimulation
 import { EmergenceLab }   from './components/CommandCenter/EmergenceLab';
 import { MathPhysicsLab } from './components/CommandCenter/MathPhysicsLab';
 import { NeuroCogLab }    from './components/CommandCenter/NeuroCogLab';
+// ── Neural Emergence Core ─────────────────────────────────────────────────────
+import { NECDashboard }   from './components/nec/NECDashboard';
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 type NavView =
@@ -53,7 +55,8 @@ type NavView =
 
   | 'LAB_EMERGENCE'  // emergence lab: Kuramoto, Ising, Lorenz, Turing, Sandpile
   | 'LAB_MATH'       // math/physics lab: Lyapunov, quantum, 60 laws
-  | 'LAB_NEURO';     // neuro-cognitive lab: neurochemistry, Hz substrate
+  | 'LAB_NEURO'      // neuro-cognitive lab: neurochemistry, Hz substrate
+  | 'NEC';           // neural emergence core: 100-region brain simulation
 
 
 const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
@@ -71,6 +74,7 @@ const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
   { id: 'LAB_EMERGENCE',label: 'Emergence',   icon: '∿' },
   { id: 'LAB_MATH',     label: 'Math/Physics',icon: '∂' },
   { id: 'LAB_NEURO',   label: 'NeuroCog',    icon: '⊛' },
+  { id: 'NEC',          label: 'NEC Brain',   icon: '⊕' },
 
 ];
 
@@ -354,6 +358,12 @@ export default function App() {
             <NeuroCogLab />
           </div>
 
+        )}
+
+        {view === 'NEC' && (
+          <div style={{ width: '100%', height: '100%', overflowY: 'auto' }}>
+            <NECDashboard />
+          </div>
         )}
       </div>
     </div>
