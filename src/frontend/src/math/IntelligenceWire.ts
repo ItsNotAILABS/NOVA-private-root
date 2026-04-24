@@ -3,20 +3,27 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Module: IntelligenceWire.ts — Auto-Generate Calls Engine Intelligence Wire
 // MOTOR AUTO-GENERATIONIS VOCATIONUM
-// 36 Web Worker Builder AIs × 3 Engines = 108 Engines = 2,088+ Auto-Generated Calls
+// 72 Web Worker Builder AIs × 3 Engines = 216 Engines = 5,200+ Auto-Generated Calls
 //
-// Seven Cohorts:
-//   I.   Original 12 (PROTOCOLLUM → DEFENSOR)         — 776 calls
-//   II.  CEREBRUM (Brain/Memory/Cognition)              — 260 calls
-//   III. TELEMATICUS (Routing/Telemetry/Signals)        — 177 calls
-//   IV.  CRYPTOGRAPHICUS (Crypto/Contracts/Security)    — 163 calls
-//   V.   INFRASTRUCTOR (Infrastructure/24-Hour/Uptime)  — 185 calls
-//   VI.  PRODUCTORUM (Products/Micro/Commerce)          — 211 calls
-//   VII. INTELLIGENTIA (AI/AGI Workforce)               — 170 calls
+// Thirteen Cohorts:
+//   I.    Original 12 (PROTOCOLLUM → DEFENSOR)           — 776 calls
+//   II.   CEREBRUM (Brain/Memory/Cognition)               — 260 calls
+//   III.  TELEMATICUS (Routing/Telemetry/Signals)         — 177 calls
+//   IV.   CRYPTOGRAPHICUS (Crypto/Contracts/Security)     — 163 calls
+//   V.    INFRASTRUCTOR (Infrastructure/24-Hour/Uptime)   — 185 calls
+//   VI.   PRODUCTORUM (Products/Micro/Commerce)           — 211 calls
+//   VII.  INTELLIGENTIA (AI/AGI Workforce)                — 170 calls
+//   VIII. OBSERVATOR (Observers/Watchers/Sentinels)       — 329 calls
+//   IX.   PROTOCOLARIUS (Protocol Workers)                — 394 calls
+//   X.    PRODUCTOR MAXIMUS (Product Factory)             — 360 calls
+//   XI.   DEVOPS PERPETUUS (DevOps/SRE)                   — 325 calls
+//   XII.  ANALYTICUS (Analytics/ML/Data)                   — 317 calls
+//   XIII. UNIVERSALIS (Cross-Cutting/Meta)                 — 300 calls
 //
-// Two public endpoints:
+// Three public endpoints:
 //   getAutoCallsSummary() — returns the summary of all workers, engines, and calls
 //   getAutoCallsRouting() — returns the routing table for all auto-generated calls
+//   getWorkerVitals()     — returns heart + brain vitals for all workers
 //
 // Copyright © 2024-2026 Alfredo Medina Hernandez
 // Medina Tech | Dallas, Texas, USA
@@ -170,6 +177,54 @@ const WORKER_SPECS: Array<{ id: number; name: string; latinName: string; domain:
   { id: 34, name: 'CURATORIS',     latinName: 'OPERARIUS CURATIONIS',           domain: 'Curation/Quality/Standards',   callCount: 36 },
   { id: 35, name: 'INNOVATOR',     latinName: 'OPERARIUS INNOVATIONIS',         domain: 'Innovation/RnD/Experimentation', callCount: 42 },
   { id: 36, name: 'GUBERNATOR',    latinName: 'OPERARIUS GUBERNATIONIS',        domain: 'Governance/Policy/Regulation', callCount: 34 },
+
+  // ─── COHORT VIII: OBSERVATOR — Observers/Watchers/Sentinels ────────
+  { id: 37, name: 'OBSERVATOR',    latinName: 'OPERARIUS OBSERVATIONIS',        domain: 'Observers/Watchers/Sentinels', callCount: 82 },
+  { id: 38, name: 'VIGILANS',      latinName: 'OPERARIUS VIGILANTIAE',          domain: 'Alerting/Thresholds/Alarms',   callCount: 55 },
+  { id: 39, name: 'INSPECTOR',     latinName: 'OPERARIUS INSPECTIONIS',         domain: 'Inspection/DeepScan/Analysis', callCount: 47 },
+  { id: 40, name: 'SPECULARIS',    latinName: 'OPERARIUS SPECULARIS',           domain: 'Mirroring/Shadow/Reflection',  callCount: 38 },
+  { id: 41, name: 'SENTINELLA',    latinName: 'OPERARIUS SENTINELLAE',          domain: 'Perimeter/Boundary/Edge',      callCount: 64 },
+  { id: 42, name: 'EXPLORATOR',    latinName: 'OPERARIUS EXPLORATIONIS',        domain: 'Exploration/Discovery/Probing', callCount: 43 },
+
+  // ─── COHORT IX: PROTOCOLARIUS — Protocol Workers ───────────────────
+  { id: 43, name: 'PROTOCOLARIUS', latinName: 'OPERARIUS PROTOCOLORUM NOVORUM', domain: 'ProtocolMesh/Handshake/Sync',  callCount: 96 },
+  { id: 44, name: 'CONSENSITOR',   latinName: 'OPERARIUS CONSENSUS',            domain: 'Consensus/BFT/Raft/Paxos',    callCount: 78 },
+  { id: 45, name: 'NEGOTIATOR',    latinName: 'OPERARIUS NEGOTIATIONIS',        domain: 'Negotiation/Arbitration/SLA',  callCount: 52 },
+  { id: 46, name: 'MEDIATOR',      latinName: 'OPERARIUS MEDIATIONIS',          domain: 'Mediation/Bridging/Relay',     callCount: 44 },
+  { id: 47, name: 'TRANSLATOR',    latinName: 'OPERARIUS TRANSLATIONIS',        domain: 'Translation/Codec/Transform',  callCount: 58 },
+  { id: 48, name: 'FEDERATOR',     latinName: 'OPERARIUS FOEDERATIONIS',        domain: 'Federation/CrossChain/Inter-Op', callCount: 66 },
+
+  // ─── COHORT X: PRODUCTOR MAXIMUS — Product Factory Workers ─────────
+  { id: 49, name: 'FABRICANS',     latinName: 'OPERARIUS FABRICATIONIS',        domain: 'ProductBuild/Assembly/Pipeline', callCount: 88 },
+  { id: 50, name: 'TESTATOR',      latinName: 'OPERARIUS TESTATIONIS',          domain: 'Testing/QA/Verification',      callCount: 72 },
+  { id: 51, name: 'DEPLORATOR',    latinName: 'OPERARIUS DEPLOYMENTIS',         domain: 'Deployment/Release/Rollout',   callCount: 55 },
+  { id: 52, name: 'VERSIONATOR',   latinName: 'OPERARIUS VERSIONIS',            domain: 'Versioning/Changelog/Semver',  callCount: 38 },
+  { id: 53, name: 'DOCUMENTATOR',  latinName: 'OPERARIUS DOCUMENTATIONIS',      domain: 'Documentation/API-Docs/Specs', callCount: 45 },
+  { id: 54, name: 'PACKAGER',      latinName: 'OPERARIUS PACKAGERUM',           domain: 'Packaging/Bundling/Distribution', callCount: 62 },
+
+  // ─── COHORT XI: DEVOPS PERPETUUS — DevOps/SRE Workers ─────────────
+  { id: 55, name: 'AUTOMATOR',     latinName: 'OPERARIUS AUTOMATIONIS',         domain: 'CI-CD/Automation/Pipelines',   callCount: 84 },
+  { id: 56, name: 'CONTAINERIUS',  latinName: 'OPERARIUS CONTAINERUM',          domain: 'Containers/Docker/K8s/Pods',   callCount: 68 },
+  { id: 57, name: 'TERRAFORMIS',   latinName: 'OPERARIUS TERRAFORMIONIS',       domain: 'IaC/Terraform/Provisioning',   callCount: 52 },
+  { id: 58, name: 'RELIABILITOR',  latinName: 'OPERARIUS RELIABILITATIS',       domain: 'SRE/Reliability/Chaos-Eng',    callCount: 46 },
+  { id: 59, name: 'SECRETARIUS',   latinName: 'OPERARIUS SECRETORUM',           domain: 'Secrets/Vault/KeyManagement',  callCount: 40 },
+  { id: 60, name: 'BACKUPIATOR',   latinName: 'OPERARIUS BACKUPII',             domain: 'Backup/Restore/DR/Snapshots',  callCount: 35 },
+
+  // ─── COHORT XII: ANALYTICUS — Analytics/ML/Data Workers ────────────
+  { id: 61, name: 'ANALYTICUS',    latinName: 'OPERARIUS ANALYTICORUM',         domain: 'Analytics/BI/Dashboards',      callCount: 76 },
+  { id: 62, name: 'PREDICTOR',     latinName: 'OPERARIUS PREDICTIONIS',         domain: 'Prediction/Forecasting/ML',    callCount: 58 },
+  { id: 63, name: 'CLASSIFICATOR', latinName: 'OPERARIUS CLASSIFICATIONIS',     domain: 'Classification/Labeling/NLP',  callCount: 48 },
+  { id: 64, name: 'AGGREGATOR',    latinName: 'OPERARIUS AGGREGATIONIS',        domain: 'Aggregation/ETL/DataLake',     callCount: 55 },
+  { id: 65, name: 'RECOMMENDER',   latinName: 'OPERARIUS RECOMMENDATIONIS',     domain: 'Recommendation/Personalization', callCount: 42 },
+  { id: 66, name: 'ANOMALITOR',    latinName: 'OPERARIUS ANOMALIAE',            domain: 'AnomalyDetection/Outlier/Drift', callCount: 38 },
+
+  // ─── COHORT XIII: UNIVERSALIS — Cross-Cutting/Meta Workers ─────────
+  { id: 67, name: 'HARMONITOR',    latinName: 'OPERARIUS HARMONIAE',            domain: 'Harmony/Sync/Coordination',    callCount: 50 },
+  { id: 68, name: 'CATALOGATOR',   latinName: 'OPERARIUS CATALOGI',             domain: 'Catalog/Registry/ServiceMesh', callCount: 44 },
+  { id: 69, name: 'MIGRATOR',      latinName: 'OPERARIUS MIGRATIONIS',          domain: 'Migration/DataMove/SchemaEvo', callCount: 36 },
+  { id: 70, name: 'RECYCLATOR',    latinName: 'OPERARIUS RECYCLATIONIS',        domain: 'GC/Cleanup/ResourceReclaim',   callCount: 32 },
+  { id: 71, name: 'PRIORITATOR',   latinName: 'OPERARIUS PRIORITATIS',          domain: 'Priority/Scheduling/QoS',      callCount: 48 },
+  { id: 72, name: 'SOVEREIGN',     latinName: 'OPERARIUS SUPREMUS SOVEREIGNITATIS', domain: 'Sovereignty/RootAuthority/Meta', callCount: 90 },
 ];
 
 const TOTAL_CALLS = WORKER_SPECS.reduce((sum, w) => sum + w.callCount, 0); // 776
@@ -177,7 +232,7 @@ const TOTAL_CALLS = WORKER_SPECS.reduce((sum, w) => sum + w.callCount, 0); // 77
 // ─── Heart Factory ────────────────────────────────────────────────────────────
 
 function makeMiniHeart(workerId: number): MiniHeart {
-  const baseFreq = PHI * workerId / 36;
+  const baseFreq = PHI * workerId / 72;
   return {
     phase: 0,
     frequency: baseFreq * 0.1,
@@ -192,7 +247,7 @@ function makeMiniHeart(workerId: number): MiniHeart {
 // ─── Brain Factory ───────────────────────────────────────────────────────────
 
 function makeMiniBrain(workerId: number): MiniBrain {
-  const activationBase = PHI * workerId / 36 * 0.1;
+  const activationBase = PHI * workerId / 72 * 0.1;
   return {
     regions: [
       { name: 'Sensory',     activation: 0.5 + activationBase, plasticity: PHI * 0.1 },
@@ -216,9 +271,9 @@ function makeMiniBrain(workerId: number): MiniBrain {
 
 function makeEngines(workerId: number): EngineState[] {
   return [
-    { kind: 'Generator', callsProcessed: 0, coherence: PHI * INV_PHI * (workerId / 36), isActive: true },
-    { kind: 'Router',    callsProcessed: 0, coherence: PHI * 0.5 * (workerId / 36),     isActive: true },
-    { kind: 'Builder',   callsProcessed: 0, coherence: INV_PHI * (workerId / 36),        isActive: true },
+    { kind: 'Generator', callsProcessed: 0, coherence: PHI * INV_PHI * (workerId / 72), isActive: true },
+    { kind: 'Router',    callsProcessed: 0, coherence: PHI * 0.5 * (workerId / 72),     isActive: true },
+    { kind: 'Builder',   callsProcessed: 0, coherence: INV_PHI * (workerId / 72),        isActive: true },
   ];
 }
 
@@ -231,7 +286,7 @@ function initWorkers(): WorkerDefinition[] {
     totalCallsGenerated: spec.callCount,
     totalCallsRouted: spec.callCount,
     totalCallsBuilt: spec.callCount,
-    phiResonance: PHI * spec.id / 36,
+    phiResonance: PHI * spec.id / 72,
     status: 'Active' as WorkerStatus,
     heart: makeMiniHeart(spec.id),
     brain: makeMiniBrain(spec.id),
@@ -262,13 +317,13 @@ function generateSampleRoutes(workers: WorkerDefinition[]): RoutingEntry[] {
 
 /**
  * Endpoint 1: getAutoCallsSummary
- * Returns summary of all 36 workers, 108 engines, and 2,088+ auto-generated calls
+ * Returns summary of all 72 workers, 216 engines, and 5,200+ auto-generated calls
  */
 export function getAutoCallsSummary(): AutoCallsSummary {
   const workers = initWorkers();
   return {
-    totalWorkers: 36,
-    totalEngines: 108,
+    totalWorkers: 72,
+    totalEngines: 216,
     totalCalls: TOTAL_CALLS,
     workerNames: workers.map(w => w.name),
     callsByDomain: workers.map(w => ({ domain: w.domain, calls: w.callCount })),
@@ -303,7 +358,7 @@ export interface WorkerVitals {
 
 /**
  * Endpoint 3: getWorkerVitals
- * Returns heart + brain vitals for all 36 workers
+ * Returns heart + brain vitals for all 72 workers
  * COR PARVUM (mini heart) + CEREBRUM PARVUM (mini brain)
  */
 export function getWorkerVitals(): WorkerVitals[] {
@@ -317,8 +372,8 @@ export function getWorkerVitals(): WorkerVitals[] {
 
 export const WORKER_DEFINITIONS = WORKER_SPECS;
 export const AUTO_CALLS_TOTAL = TOTAL_CALLS;
-export const ENGINE_COUNT = 108;
-export const WORKER_COUNT = 36;
+export const ENGINE_COUNT = 216;
+export const WORKER_COUNT = 72;
 
 export default {
   getAutoCallsSummary,
