@@ -1674,15 +1674,16 @@
     function enc(s) { return new TextEncoder().encode(s); }
     function u16le(v) { return [v & 0xFF, (v >>> 8) & 0xFF]; }
     function u32le(v) { return [v & 0xFF, (v >>> 8) & 0xFF, (v >>> 16) & 0xFF, (v >>> 24) & 0xFF]; }
-    function dosdt() { var d = new Date(), t = (d.getSeconds() >>> 1) | (d.getMinutes() << 5) | (d.getHours() << 11), dt = d.getDate() | ((d.getMonth() + 1) << 5) | ((d.getFullYear() - 1980) << 9); return { t: u16le(t), d: u16le(dt) }; }
+    // DOS date/time for ZIP entries — Edge Add-ons rejects all-zero timestamps
+    function dosDateTime() { var d = new Date(), t = (d.getSeconds() >>> 1) | (d.getMinutes() << 5) | (d.getHours() << 11), dt = d.getDate() | ((d.getMonth() + 1) << 5) | ((d.getFullYear() - 1980) << 9); return { time: u16le(t), date: u16le(dt) }; }
 
     function buildArchive(files) {
-      var le = [], ce = [], off = 0, dd = dosdt();
+      var le = [], ce = [], off = 0, dd = dosDateTime();
       for (var i = 0; i < files.length; i++) {
         var nb = enc(files[i].name), d = files[i].data, seal = intSeal(d), sz = d.length;
-        var l = new Uint8Array([0x50,0x4B,0x03,0x04,0x14,0x00,0x00,0x00,0x00,0x00,...dd.t,...dd.d,...u32le(seal),...u32le(sz),...u32le(sz),...u16le(nb.length),0x00,0x00,...nb,...d]);
+        var l = new Uint8Array([0x50,0x4B,0x03,0x04,0x14,0x00,0x00,0x00,0x00,0x00,...dd.time,...dd.date,...u32le(seal),...u32le(sz),...u32le(sz),...u16le(nb.length),0x00,0x00,...nb,...d]);
         le.push(l);
-        var c = new Uint8Array([0x50,0x4B,0x01,0x02,0x14,0x00,0x14,0x00,0x00,0x00,0x00,0x00,...dd.t,...dd.d,...u32le(seal),...u32le(sz),...u32le(sz),...u16le(nb.length),0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32le(off),...nb]);
+        var c = new Uint8Array([0x50,0x4B,0x01,0x02,0x14,0x00,0x14,0x00,0x00,0x00,0x00,0x00,...dd.time,...dd.date,...u32le(seal),...u32le(sz),...u32le(sz),...u16le(nb.length),0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32le(off),...nb]);
         ce.push(c);
         off += l.length;
       }
