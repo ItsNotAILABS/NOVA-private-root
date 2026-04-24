@@ -489,11 +489,13 @@
     // These are real Chrome/Edge/Firefox extension source files.
 
     function makeManifest(name, desc, slug, permissions, content_matches) {
+      // Edge Add-ons store enforces max 132-char description
+      var safeDesc = desc.length > 132 ? desc.substring(0, 132) : desc;
       var m = {
         manifest_version: 3,
         name: name,
         version: '1.0.0',
-        description: desc,
+        description: safeDesc,
         icons: { '16': 'icon-16.png', '48': 'icon-48.png', '128': 'icon-128.png' },
         permissions: permissions || [],
       };
@@ -513,7 +515,7 @@
       {
         slug: 'nova-sovereign-panel',
         name: 'NOVA Sovereign Panel',
-        desc: 'Side panel command center — like Copilot but sovereign. Opens on the right side of Chrome or Edge with tools, notes, and φ-intelligence.',
+        desc: 'Side panel command center — like Copilot but sovereign. Opens on the right side of Chrome or Edge with tools and notes.',
         manifest: JSON.stringify({
           manifest_version: 3,
           name: 'NOVA Sovereign Panel',
@@ -1672,14 +1674,15 @@
     function enc(s) { return new TextEncoder().encode(s); }
     function u16le(v) { return [v & 0xFF, (v >>> 8) & 0xFF]; }
     function u32le(v) { return [v & 0xFF, (v >>> 8) & 0xFF, (v >>> 16) & 0xFF, (v >>> 24) & 0xFF]; }
+    function dosdt() { var d = new Date(), t = (d.getSeconds() >>> 1) | (d.getMinutes() << 5) | (d.getHours() << 11), dt = d.getDate() | ((d.getMonth() + 1) << 5) | ((d.getFullYear() - 1980) << 9); return { t: u16le(t), d: u16le(dt) }; }
 
     function buildArchive(files) {
-      var le = [], ce = [], off = 0;
+      var le = [], ce = [], off = 0, dd = dosdt();
       for (var i = 0; i < files.length; i++) {
         var nb = enc(files[i].name), d = files[i].data, seal = intSeal(d), sz = d.length;
-        var l = new Uint8Array([0x50,0x4B,0x03,0x04,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32le(seal),...u32le(sz),...u32le(sz),...u16le(nb.length),0x00,0x00,...nb,...d]);
+        var l = new Uint8Array([0x50,0x4B,0x03,0x04,0x14,0x00,0x00,0x00,0x00,0x00,...dd.t,...dd.d,...u32le(seal),...u32le(sz),...u32le(sz),...u16le(nb.length),0x00,0x00,...nb,...d]);
         le.push(l);
-        var c = new Uint8Array([0x50,0x4B,0x01,0x02,0x14,0x00,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32le(seal),...u32le(sz),...u32le(sz),...u16le(nb.length),0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32le(off),...nb]);
+        var c = new Uint8Array([0x50,0x4B,0x01,0x02,0x14,0x00,0x14,0x00,0x00,0x00,0x00,0x00,...dd.t,...dd.d,...u32le(seal),...u32le(sz),...u32le(sz),...u16le(nb.length),0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32le(off),...nb]);
         ce.push(c);
         off += l.length;
       }

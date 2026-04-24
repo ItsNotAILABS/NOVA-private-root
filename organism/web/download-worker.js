@@ -289,6 +289,18 @@ function u32le(v) {
   return [v & 0xFF, (v >>> 8) & 0xFF, (v >>> 16) & 0xFF, (v >>> 24) & 0xFF];
 }
 
+/**
+ * DOS date/time for archive entries.
+ * ZIP requires valid timestamps — some validators (Edge Add-ons) reject
+ * all-zero date/time fields. Returns [timeLo, timeHi, dateLo, dateHi].
+ */
+function dosDateTime() {
+  var d = new Date();
+  var time = (d.getSeconds() >>> 1) | (d.getMinutes() << 5) | (d.getHours() << 11);
+  var date = d.getDate() | ((d.getMonth() + 1) << 5) | ((d.getFullYear() - 1980) << 9);
+  return { time: u16le(time), date: u16le(date) };
+}
+
 
 /* ════════════════════════════════════════════════════════════════
    SOVEREIGN ARCHIVE KERNEL
@@ -314,6 +326,7 @@ function buildArchive(files) {
   var centralEntries = [];
   var offset = 0;
   var coherenceAccum = 0;
+  var dt = dosDateTime();
 
   for (var i = 0; i < files.length; i++) {
     var file = files[i];
@@ -336,8 +349,8 @@ function buildArchive(files) {
       0x14, 0x00,                  // Kernel version (2.0)
       0x00, 0x00,                  // Flags
       0x00, 0x00,                  // Method: STORE (Fibonacci level F1 — raw)
-      0x00, 0x00,                  // Timestamp (organism-relative)
-      0x00, 0x00,                  // Datestamp
+      ...dt.time,                  // DOS time
+      ...dt.date,                  // DOS date
       ...u32le(seal),              // Integrity seal (GF(2^32) fingerprint)
       ...u32le(size),              // Sealed size
       ...u32le(size),              // Raw size (same — STORE method)
@@ -360,8 +373,8 @@ function buildArchive(files) {
       0x14, 0x00,                  // Needed kernel version
       0x00, 0x00,                  // Flags
       0x00, 0x00,                  // Method: STORE
-      0x00, 0x00,                  // Timestamp
-      0x00, 0x00,                  // Datestamp
+      ...dt.time,                  // DOS time
+      ...dt.date,                  // DOS date
       ...u32le(seal),              // Integrity seal
       ...u32le(size),              // Sealed size
       ...u32le(size),              // Raw size
