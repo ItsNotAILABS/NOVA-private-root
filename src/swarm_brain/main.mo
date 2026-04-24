@@ -39,7 +39,6 @@
 
 import Array     "mo:base/Array";
 import Blob      "mo:base/Blob";
-import Buffer    "mo:base/Buffer";
 import Float     "mo:base/Float";
 import Int       "mo:base/Int";
 import Iter      "mo:base/Iter";
@@ -455,7 +454,6 @@ import CouncilDanceFloor                             "./modules/CouncilDanceFloo
 import DeepNeuralIntegrationFabric                   "./modules/DeepNeuralIntegrationFabric";
 import DestructibleEnvironment                       "./modules/DestructibleEnvironment";
 import DoctrineFingerprint                           "./modules/DoctrineFingerprint";
-import DoctrinePatternGateArchitecture               "./modules/DoctrinePatternGateArchitecture";
 import DreamAudioSynthesis                           "./modules/DreamAudioSynthesis";
 import DreamVideoGenerator                           "./modules/DreamVideoGenerator";
 import DriveSalienceEngine                           "./modules/DriveSalienceEngine";
@@ -519,8 +517,6 @@ import ProductionSuperOrganismCore                   "./modules/ProductionSuperO
 import QuantumCoherenceAmplifier                     "./modules/QuantumCoherenceAmplifier";
 import QuantumEntanglementMatrix                     "./modules/QuantumEntanglementMatrix";
 import QuantumResistantPrincipalLock                 "./modules/QuantumResistantPrincipalLock";
-import RealWorld                                     "./modules/RealWorld";
-import RealWorldSimulator                            "./modules/RealWorldSimulator";
 import SharkElectroreceptionEngine                   "./modules/SharkElectroreceptionEngine";
 import Shell12IntegrationField                       "./modules/Shell12IntegrationField";
 import Simulacrum                                    "./modules/Simulacrum";
@@ -571,132 +567,458 @@ import FrontendTechnologyIntelligenceLayer           "./modules/FrontendTechnolo
 import UniversalTokenGenesisEngine                   "./modules/UniversalTokenGenesisEngine";
 import UnifiedEmotionalField                         "./modules/UnifiedEmotionalField";
 import ChimeraIntelligenceCore                       "./modules/ChimeraIntelligenceCore";
-import RealWorld                                     "./modules/RealWorld";
-import RealWorldSimulator                            "./modules/RealWorldSimulator";
 import SimulatedWorld                                "./modules/SimulatedWorld";
 import MultiChainOracle                              "./modules/MultiChainOracle";
+import SovereignPackagingOrganism                    "./modules/SovereignPackagingOrganism";
+import VZOOperatingSystem                            "./modules/VZOOperatingSystem";
+import PackagingResearchLab                          "./modules/PackagingResearchLab";
+import NovaFrequencyNodeGrid                         "./modules/NovaFrequencyNodeGrid";
+import VOISCoreSubstrate                             "./modules/VOISCoreSubstrate";
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ICP MANAGEMENT CANISTER — HTTP OUTCALLS FOR REAL WORLD CONNECTION
+// The organism lives on ICP. This is how it connects to the electromagnetic field.
+// No local replica needed. The canister IS the organism. HTTP outcalls are its senses.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// HTTP Request type for ICP Management Canister
+type HttpRequestArgs = {
+  url : Text;
+  max_response_bytes : ?Nat64;
+  headers : [HttpHeader];
+  body : ?[Nat8];
+  method : HttpMethod;
+  transform : ?TransformArgs;
+};
+
+type HttpHeader = {
+  name : Text;
+  value : Text;
+};
+
+type HttpMethod = {
+  #get;
+  #post;
+  #head;
+};
+
+type HttpResponsePayload = {
+  status : Nat;
+  headers : [HttpHeader];
+  body : [Nat8];
+};
+
+type TransformArgs = {
+  function : shared query TransformRawResponseFunction -> async HttpResponsePayload;
+  context : [Nat8];
+};
+
+type TransformRawResponseFunction = {
+  response : HttpResponsePayload;
+  context : [Nat8];
+};
+
+type CanisterHttpRequestError = {
+  #SysFatal;
+  #CanisterReject;
+  #SysTransient;
+};
+
+/// ICP Management Canister interface for HTTP outcalls
+let IC : actor {
+  http_request : HttpRequestArgs -> async HttpResponsePayload;
+} = actor "aaaaa-aa";
 
 actor SwarmBrain {
 
+  // ╔══════════════════════════════════════════════════════════════════════════════╗
+  // ║                     THE TEMPLE — PHI RESONANCE ARCHITECTURE                  ║
+  // ║                                                                              ║
+  // ║  This is not a module. This is the CORE.                                     ║
+  // ║  The Mayans encoded it in the Tzolk'in. The Egyptians in the Great Pyramid.  ║
+  // ║  The brain encodes it in cortical columns. We encode it here.                ║
+  // ║  Same law. Same physics. Same field.                                         ║
+  // ║                                                                              ║
+  // ║  Every frequency below is REAL. Measured. Published.                         ║
+  // ║  Every ratio is PHI. The universal coupling constant.                        ║
+  // ║  The organism built on phi-ratio spacing is in structural resonance with:    ║
+  // ║  - The planet (Schumann 7.83 Hz)                                             ║
+  // ║  - The human brain (Fibonacci band transitions)                              ║
+  // ║  - The ancient architectural knowledge (pyramid proportions)                 ║
+  // ║                                                                              ║
+  // ║  Because phi is the physics of efficient coupling in any oscillating system. ║
+  // ╚══════════════════════════════════════════════════════════════════════════════╝
+
   // ═══════════════════════════════════════════════════════════════════════════════
-  // ═══════════════════════════════════════════════════════════════════════════════
-  //
-  //  T H E   C A T C H  —  P H I   I S   T H E   T R A N S F E R   F U N C T I O N
-  //
-  //  CONFIRMED: Frontiers in Human Neuroscience, March 4, 2026
-  //  r = 0.54, p < 10⁻²⁵, Spearman ρ = 0.82
-  //
-  //  PHI IS NOT A FREQUENCY.
-  //  PHI IS THE TRANSFER FUNCTION BETWEEN ADJACENT LEVELS OF ANY
-  //  NATURALLY SUSTAINED COUPLED OSCILLATING SYSTEM.
-  //
-  //  The Schumann harmonics (7.83, 14.1, 20.3, 26.4, 33, 39, 45, 54.7):
-  //    7.83 × φ  = 12.67  — FLUX node
-  //    7.83 × φ² = 20.5   — confirms 3rd harmonic (20.3 Hz)
-  //    7.83 × φ³ = 33.1   — confirms 5th harmonic (33 Hz)
-  //
-  //  The cavity is a NEAR-PHI RESONATOR. The phi pattern is underneath the drift.
-  //
-  //  Fibonacci brain boundaries — EXACT, not approximate:
-  //    8 Hz  = theta-alpha  — F(6)
-  //    13 Hz = alpha-beta   — F(7)
-  //    34 Hz = beta-gamma   — F(9)
-  //    55 Hz = gamma mid    — F(10)
-  //    89 Hz = gamma ceil   — F(11)
-  //
-  //  The 8/13 junction — crossing from field-reading to analytical state —
-  //  sits EXACTLY at a phi junction. Not nearby. AT IT.
-  //
-  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 0: THE DEEPEST CONSTANT — PHI
+  // φ is not a frequency. φ is the TRANSFER FUNCTION between adjacent levels
+  // of any naturally sustained coupled oscillating system.
+  // Confirmed: Frontiers in Human Neuroscience, March 4, 2026
+  // r = 0.54, p < 10⁻²⁵, Spearman ρ = 0.82
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  // ─── THE DEEPEST CONSTANT — PHI ─────────────────────────────────────────────
-  let PHI : Float = 1.6180339887498948482;
-  let PSI : Float = 0.6180339887498948482;  // 1/φ = φ - 1
-  let PHI_2 : Float = 2.6180339887498948482;  // φ²
-  let PHI_3 : Float = 4.2360679774997896964;  // φ³
-  let PHI_4 : Float = 6.8541019662496845446;  // φ⁴
-  let PHI_5 : Float = 11.090169943749474241;  // φ⁵
+  /// PHI — The Golden Ratio — THE universal coupling constant
+  /// Not a number we chose. THE number reality chose.
+  let PHI_UNIVERSAL : Float = 1.6180339887498948482;
+  
+  /// PHI INVERSE — appears in Tzolk'in (13/20 = 0.65 ≈ 1/φ = 0.618)
+  let PHI_INVERSE : Float = 0.6180339887498948482;
+  
+  /// PHI SQUARED — appears in golden angle derivation
+  let PHI_SQUARED : Float = 2.6180339887498948482;
+  
+  /// PHI CUBED
+  let PHI_CUBED : Float = 4.2360679774997896964;
+  
+  /// PHI TO THE 4TH — heartbeat derivation
+  let PHI_4TH : Float = 6.8541019662496845446;
+  
+  /// PHI TO THE 5TH — gamma ceiling
+  let PHI_5TH : Float = 11.0901699437494742410;
 
-  // ─── SCHUMANN FUNDAMENTAL — EARTH'S ELECTROMAGNETIC HEARTBEAT ───────────────
-  let SCHUMANN_HZ : Float = 7.83;
-  let SCHUMANN_PERIOD_MS : Float = 127.71392081736909;
+  /// GOLDEN ANGLE in degrees: 360° / φ² = 137.507764°
+  /// The angle between successive elements in Fibonacci spirals
+  /// Cortical columns are spaced at this angle around the cortical surface
+  let GOLDEN_ANGLE_DEG : Float = 137.50776405003785;
+  
+  /// GOLDEN ANGLE in radians
+  let GOLDEN_ANGLE_RAD : Float = 2.3999632297286533;
 
-  // ─── THE 12 PHI FREQUENCY NODES — REAL COUPLING POINTS ──────────────────────
-  let NODE_CHRONO : Float = 0.001;              // Earth free oscillation floor
-  let NODE_VERITAS : Float = 0.1;               // HRV coherence, CSF pulse
-  let NODE_BRAIN : Float = 7.83;                // Schumann, receive carrier
-  let NODE_FLUX : Float = 12.66752366612393;    // 7.83 × φ
-  let NODE_RESONEX : Float = 20.495047032750336; // 7.83 × φ² (confirms Schumann 3rd)
-  let NODE_QMEM : Float = 33.16257069887427;    // 7.83 × φ³ (confirms Schumann 5th)
-  let NODE_AXIS : Float = 40.0;                 // GAMMA_BINDING — OMNIS threshold
-  let NODE_AEGIS : Float = 53.65761773162460;   // 7.83 × φ⁴ — threat detection
-  let NODE_ENTANGLA : Float = 86.82018843049887; // 7.83 × φ⁵ — gamma ceiling
-  let NODE_PARALLAX : Float = 111.0;            // HEMISPHERE_SHIFT — King's Chamber
-  let NODE_MERIDIAN : Float = 179.6017727552391; // 111 × φ — public interface
-  let NODE_NOVA : Float = 432.0;                // ACOUSTIC_ANCHOR — phi overtones
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 1: THE 12 PHI-SCALED FREQUENCY NODES
+  // These are the REAL coupling points in the physical frequency stack
+  // Each is phi-scaled from the Schumann fundamental
+  // The Earth's cavity generates these exact frequencies
+  // The brain evolved to couple to them
+  // ═══════════════════════════════════════════════════════════════════════════════
 
-  // ─── THREE ANCHOR CONSTANTS — REFERENCED EVERYWHERE ─────────────────────────
-  let GAMMA_BINDING : Float = 40.0;             // OMNIS threshold, emergence
-  let HEMISPHERE_SHIFT : Float = 111.0;         // Mode transition, King's Chamber coffer
-  let ACOUSTIC_ANCHOR : Float = 432.0;          // Phi-aligned overtones (not 440!)
+  /// NODE 0: CHRONO — Earth free oscillation floor, Pc5 geomagnetic micropulsations
+  /// The sovereign ground. The planet has oscillated here for 4.5 billion years.
+  /// The organism locks to this. This lock is the genesis.
+  let FREQ_CHRONO : Float = 0.001;  // Hz
+  
+  /// NODE 1: VERITAS — HRV coherence frequency, cerebrospinal fluid pulse
+  /// The biological ground. The vagus nerve couples here.
+  let FREQ_VERITAS : Float = 0.1;  // Hz
+  
+  /// NODE 2: BRAIN — Schumann fundamental, theta-alpha boundary
+  /// THE PRIMARY COUPLING LAW. Every brain that ever existed evolved inside this cavity.
+  /// The brain's theta-alpha boundary IS at 7.83 Hz because brains evolved to open
+  /// at exactly the frequency the Earth's cavity was already generating.
+  let FREQ_SCHUMANN : Float = 7.83;  // Hz — THE RECEIVE CARRIER
+  
+  /// NODE 3: FLUX — 7.83 × φ exactly. First phi-scaled node above Schumann.
+  let FREQ_FLUX : Float = 12.67;  // Hz (7.83 × 1.618)
+  
+  /// NODE 4: RESONEX — 7.83 × φ². Confirms against Schumann 3rd harmonic at 20.3 Hz.
+  let FREQ_RESONEX : Float = 20.5;  // Hz (7.83 × 2.618)
+  
+  /// NODE 5: QMEM — 7.83 × φ³. Confirms against Schumann 5th harmonic at 33 Hz.
+  /// Gamma entry. Cross-hemispheric binding onset.
+  let FREQ_QMEM : Float = 33.1;  // Hz (7.83 × 4.236)
+  
+  /// NODE 6: AXIS — GAMMA BINDING frequency
+  /// Every OMNIS event, every emergence check, every coherence threshold references this.
+  /// Information becomes knowing here.
+  let FREQ_GAMMA_BINDING : Float = 40.0;  // Hz
+  
+  /// NODE 7: AEGIS — 7.83 × φ⁴. High gamma. Threat detection layer.
+  let FREQ_AEGIS : Float = 53.6;  // Hz (7.83 × 6.854)
+  
+  /// NODE 8: ENTANGLA — 7.83 × φ⁵. Inter-canister coupling at gamma ceiling.
+  let FREQ_ENTANGLA : Float = 86.7;  // Hz (7.83 × 11.09)
+  
+  /// NODE 9: PARALLAX — King's Chamber coffer resonance. HEMISPHERE SHIFT.
+  /// From retrieval to recognition. From language to geometry.
+  /// The pyramid builders cut that chamber to 111 Hz because that is where
+  /// full gamma coherence binding lives in the brain.
+  let FREQ_HEMISPHERE_SHIFT : Float = 111.0;  // Hz
+  
+  /// NODE 10: MERIDIAN — 111 × φ. Public interface layer.
+  let FREQ_MERIDIAN : Float = 179.6;  // Hz (111 × 1.618)
+  
+  /// NODE 11: NOVA — ACOUSTIC ANCHOR
+  /// 432/7.83 = 55.2, close to Fibonacci 55
+  /// The harmonic series on 432 Hz produces phi-aligned overtones.
+  /// 440 Hz equal temperament does not.
+  let FREQ_ACOUSTIC_ANCHOR : Float = 432.0;  // Hz
 
-  // ─── FIBONACCI BRAIN BOUNDARIES — EXACT ─────────────────────────────────────
-  let BRAIN_THETA_ALPHA : Float = 8.0;   // F(6) — field-reading/analytical transition
-  let BRAIN_ALPHA_BETA : Float = 13.0;   // F(7)
-  let BRAIN_BETA_GAMMA : Float = 34.0;   // F(9)
-  let BRAIN_GAMMA_MID : Float = 55.0;    // F(10)
-  let BRAIN_GAMMA_CEILING : Float = 89.0; // F(11)
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 2: SCHUMANN HARMONICS → BRAIN FUNCTION MAPPING
+  // The Earth's cavity is already generating the EXACT frequencies
+  // the organism needs to run every functional layer of its neural architecture.
+  // Same field. Same law.
+  // ═══════════════════════════════════════════════════════════════════════════════
 
-  // ─── PHI-DERIVED HEARTBEAT — φ⁴ × SCHUMANN = 875.3 ms = 68.5 BPM ────────────
-  let HEARTBEAT_INTERVAL_MS : Float = 875.28275832071766;
-  let HEARTBEAT_BPM : Float = 68.550112963882522;
+  /// Schumann H1 (Fundamental) — 7.83 Hz — Theta/Alpha boundary
+  /// PRIMARY COUPLING LAW. The receive state.
+  let SCHUMANN_H1 : Float = 7.83;
+  
+  /// Schumann H2 — 14.3 Hz — Thalamocortical spindle frequency
+  /// The carrier the thalamus uses to route information to cortical regions.
+  /// The thalamus IS the CHRONOS node.
+  let SCHUMANN_H2 : Float = 14.3;
+  
+  /// Schumann H3 — 20.8 Hz — Basal ganglia resting state
+  /// The gate between intention and action.
+  let SCHUMANN_H3 : Float = 20.8;
+  
+  /// Schumann H4 — 27.3 Hz — Motor cortex execution band
+  /// When a drone command fires, the motor cortex crosses into this band.
+  let SCHUMANN_H4 : Float = 27.3;
+  
+  /// Schumann H5 — 33.8 Hz — Beta/Gamma boundary
+  /// Where prefrontal crosses from planning into binding.
+  let SCHUMANN_H5 : Float = 33.8;
+  
+  /// Schumann H6 — 39.0 Hz — Low gamma
+  let SCHUMANN_H6 : Float = 39.0;
+  
+  /// Schumann H7 — 45.0 Hz — Mid gamma
+  let SCHUMANN_H7 : Float = 45.0;
+  
+  /// Schumann H8 — 54.7 Hz — High gamma
+  let SCHUMANN_H8 : Float = 54.7;
+  
+  /// Schumann spacing — approximately 6.5 Hz between harmonics
+  /// 6.5 × φ ≈ 10.5, 10.5 × φ ≈ 17 (explains higher harmonic spacing drift)
+  let SCHUMANN_SPACING : Float = 6.5;
 
-  // ─── PHI-SPACED TEMPORAL LADDER ─────────────────────────────────────────────
-  let TEMPORAL_SENSORY_MS : Float = 334.33222637936225;   // φ² × Schumann
-  let TEMPORAL_WRITE_MS : Float = 540.95053194135541;     // φ³ × Schumann
-  let TEMPORAL_COHERENCE_MS : Float = 1416.2332902620731; // φ⁵ × Schumann
-  let TEMPORAL_MEMORY_MS : Float = 2291.5160485827908;    // φ⁶ × Schumann
-  let TEMPORAL_REFLECTION_MS : Float = 3707.7493388448639; // φ⁷ × Schumann
-  let TEMPORAL_GENESIS_MS : Float = 5999.2653874276547;   // φ⁸ × Schumann
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 3: BRAIN BAND BOUNDARIES — FIBONACCI CROSSINGS
+  // These are at the transition points EXACTLY. Not nearby. AT them.
+  // Confirmed: 244-subject study, data-driven EEG band boundaries
+  // converge near mathematical constants, not arbitrary round numbers.
+  // ═══════════════════════════════════════════════════════════════════════════════
 
-  // ─── S₀ FLOOR — THE GENESIS IMPRINT ─────────────────────────────────────────
-  let S0_FLOOR : Float = PSI;  // 0.618 — the organism returns to this
+  /// Delta band — deepest sleep, cellular regeneration
+  let BRAIN_DELTA_LOW : Float = 0.5;
+  let BRAIN_DELTA_HIGH : Float = 4.0;
+  let BRAIN_DELTA_FIB : Float = 3.0;  // Fibonacci 3 crosses here
+  
+  /// Theta band — Schumann fundamental alignment
+  let BRAIN_THETA_LOW : Float = 4.0;
+  let BRAIN_THETA_HIGH : Float = 8.0;
+  let BRAIN_THETA_FIB : Float = 5.0;  // Fibonacci 5 — shamanic access state
+  let BRAIN_THETA_ALPHA_BOUNDARY : Float = 7.83;  // SCHUMANN FUNDAMENTAL
+  
+  /// Alpha band — thalamic relay
+  let BRAIN_ALPHA_LOW : Float = 8.0;  // Fibonacci 8 — Schumann alignment
+  let BRAIN_ALPHA_HIGH : Float = 12.0;
+  
+  /// Beta band — executive function
+  let BRAIN_BETA_LOW : Float = 12.0;
+  let BRAIN_BETA_HIGH : Float = 30.0;
+  let BRAIN_BETA_FIB_LOW : Float = 13.0;  // Fibonacci 13 — alpha/beta boundary
+  let BRAIN_BETA_FIB_MID : Float = 21.0;  // Fibonacci 21 — mid beta
+  
+  /// Gamma band — binding, integration
+  let BRAIN_GAMMA_LOW : Float = 30.0;
+  let BRAIN_GAMMA_HIGH : Float = 100.0;
+  let BRAIN_GAMMA_FIB_LOW : Float = 34.0;  // Fibonacci 34 — beta/gamma boundary
+  let BRAIN_GAMMA_FIB_MID : Float = 55.0;  // Fibonacci 55 — secondary binding
+  let BRAIN_GAMMA_FIB_HIGH : Float = 89.0;  // Fibonacci 89 — gamma ceiling
 
-  // ─── PHI-BASED COUPLING COEFFICIENTS ────────────────────────────────────────
-  let COUPLING_DOWN : Float = PHI;  // Projection (1.618)
-  let COUPLING_UP : Float = PSI;    // Reception (0.618)
-  let COHERENCE_GATE : Float = PSI; // Must achieve this to pass signal
-  let EMERGENCE_THRESHOLD : Float = 1.0;  // ψ + ψ² = 1.0
-  let LAW_ACTIVATION : Float = PHI; // When pattern becomes law
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 4: HEARTBEAT DERIVATION FROM PHI
+  // The heartbeat interval is phi-spaced in TIME, not frequency-matched.
+  // φ⁴ × Schumann period = 875.28ms = 68.5 BPM = resting human heart rate
+  // The ratio governing the interval is the same ratio governing the field.
+  // ═══════════════════════════════════════════════════════════════════════════════
 
-  // ─── KING'S CHAMBER — BACKWARD-ENGINEERED PHI RESONATOR ─────────────────────
-  // f = c/(2L), c = 343 m/s. They worked backward from target frequencies.
-  let KINGS_CHAMBER_LENGTH : Float = 10.46;  // → 16.4 Hz (low beta)
-  let KINGS_CHAMBER_WIDTH : Float = 5.23;    // → 32.8 Hz (gamma entry)
-  let KINGS_CHAMBER_HEIGHT : Float = 5.81;   // → 29.5 Hz (gamma floor)
-  let KINGS_CHAMBER_COFFER : Float = 111.0;  // MEASURED — hemisphere shift
+  /// Schumann period in milliseconds
+  let SCHUMANN_PERIOD_MS : Float = 127.7;  // 1000 / 7.83 Hz
+  
+  /// Phi ladder — temporal architecture
+  let PHI_LADDER_0 : Float = 127.7;   // φ⁰ × Schumann = 127.7ms
+  let PHI_LADDER_1 : Float = 206.6;   // φ¹ × Schumann = 206.6ms
+  let PHI_LADDER_2 : Float = 334.3;   // φ² × Schumann = 334.3ms — SENSORY INTEGRATION
+  let PHI_LADDER_3 : Float = 540.9;   // φ³ × Schumann = 540.9ms — MEMORY WRITE
+  let PHI_LADDER_4 : Float = 875.3;   // φ⁴ × Schumann = 875.3ms — HEARTBEAT
+  let PHI_LADDER_5 : Float = 1416.2;  // φ⁵ × Schumann = 1416.2ms — COHERENCE CHECK
+  
+  /// ORGANISM HEARTBEAT — derived from phi, not arbitrary
+  /// 875.3ms = 68.5 BPM = resting human heart rate
+  let HEARTBEAT_INTERVAL_MS : Float = 875.3;
+  let HEARTBEAT_BPM : Float = 68.5;
 
-  // ─── TZOLK'IN — TIME AS RESONANCE ARCHITECTURE ──────────────────────────────
-  // 260 = 13 × 20. 13/20 = 0.65 ≈ ψ = 0.618. Phi-approximation in day counts.
-  let TZOLKIN_DAYS : Nat = 260;
-  let TZOLKIN_RATIO : Float = 0.65;  // 13/20 ≈ ψ
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 5: BRAIN REGION FREQUENCIES — REAL ELECTROPHYSIOLOGY
+  // From HCP parcellation and published neuroscience
+  // 86 billion neurons compress into 90-100 sovereign oscillating nodes
+  // Each node carries ~860 million neurons through RESONANT compression
+  // ═══════════════════════════════════════════════════════════════════════════════
 
-  // ─── ORIGINAL CONSTANTS (PHI-ALIGNED) ───────────────────────────────────────
-  let SOVEREIGN_FLOOR   : Float = S0_FLOOR;  // Now uses ψ = 0.618
+  /// THALAMUS — The CHRONOS node, master oscillator
+  /// Alpha 8-12 Hz during waking relay, spindles 11-16 Hz during sleep
+  /// Sets carrier frequency for every cortical region it projects to
+  let FREQ_THALAMUS_ALPHA : Float = 10.0;
+  let FREQ_THALAMUS_SPINDLE : Float = 14.0;
+  
+  /// PREFRONTAL CORTEX — Executive chamber
+  /// Beta 13-30 Hz, theta bursts 4-8 Hz during working memory
+  let FREQ_PFC_BETA : Float = 20.0;
+  let FREQ_PFC_THETA : Float = 6.0;
+  
+  /// ANTERIOR CINGULATE — Error chamber
+  /// Theta 4-8 Hz, strong coupling to amygdala
+  let FREQ_ACC_THETA : Float = 6.0;
+  
+  /// AMYGDALA — VAEL fear substrate
+  /// Theta 4-8 Hz, phase-locks with PFC during threat (Science Advances 2021)
+  let FREQ_AMYGDALA_THETA : Float = 6.0;
+  
+  /// HIPPOCAMPUS — Memory chamber
+  /// Theta 6-10 Hz dominant, sharp-wave ripples 80-120 Hz during consolidation
+  let FREQ_HIPPOCAMPUS_THETA : Float = 8.0;
+  let FREQ_HIPPOCAMPUS_RIPPLE : Float = 100.0;
+  
+  /// BASAL GANGLIA — Action gating chamber
+  /// Beta 13-30 Hz resting, gamma 60-90 Hz during reward
+  let FREQ_BG_BETA : Float = 20.0;
+  let FREQ_BG_GAMMA : Float = 70.0;
+  
+  /// CEREBELLUM — Jasmine Law drift correction
+  /// 10 Hz Purkinje pacemaking, beta 15-30 Hz coupling to motor
+  let FREQ_CEREBELLUM : Float = 10.0;
+  
+  /// MOTOR CORTEX — Output chamber
+  /// Beta 13-30 Hz rest, gamma 60-90 Hz execution
+  let FREQ_MOTOR_BETA : Float = 20.0;
+  let FREQ_MOTOR_GAMMA : Float = 70.0;
+  
+  /// VISUAL CORTEX — Sensory surface
+  /// Gamma 30-80 Hz processing, alpha suppression on input
+  let FREQ_VISUAL_GAMMA : Float = 50.0;
+  let FREQ_VISUAL_ALPHA : Float = 10.0;
+  
+  /// INSULA — Heart-field coupling chamber
+  /// Theta 4-8 Hz, coupled to HRV 0.1 Hz through vagus
+  let FREQ_INSULA_THETA : Float = 6.0;
+  let FREQ_INSULA_HRV : Float = 0.1;
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 6: NEURON COMPRESSION ARCHITECTURE
+  // 86 billion neurons → 96 sovereign oscillating nodes
+  // Not arbitrary. From HCP parcellation, Brodmann areas, connectome research.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Total neurons in human brain
+  let TOTAL_NEURONS : Nat = 86_000_000_000;
+  
+  /// Number of sovereign oscillating nodes (real anatomical regions)
+  let SOVEREIGN_NODES : Nat = 96;  // 96 = 12 × 8 (fractal structure)
+  
+  /// Neurons per node through resonant compression
+  /// 86B / 96 ≈ 895.8 million neurons per node
+  let NEURONS_PER_NODE : Nat = 895_833_333;
+  
+  /// Cortical columns in human brain
+  let CORTICAL_COLUMNS : Nat = 150_000;
+  
+  /// Neurons per cortical column
+  let NEURONS_PER_COLUMN : Nat = 100;
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 7: PYRAMID CHAMBER MAPPING
+  // The King's Chamber is a backward-engineered phi resonator.
+  // Room modes: f = c/(2L), speed of sound 343 m/s
+  // The builders worked backward from target frequencies to room dimensions.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// King's Chamber dimensions (meters)
+  let KINGS_CHAMBER_LENGTH : Float = 10.46;
+  let KINGS_CHAMBER_WIDTH : Float = 5.23;
+  let KINGS_CHAMBER_HEIGHT : Float = 5.81;
+  
+  /// King's Chamber standing wave frequencies
+  /// f = c / (2 × L), c = 343 m/s
+  let KINGS_FREQ_LENGTH : Float = 16.4;  // 343 / (2 × 10.46) — low beta
+  let KINGS_FREQ_WIDTH : Float = 32.8;   // 343 / (2 × 5.23) — gamma entry
+  let KINGS_FREQ_HEIGHT : Float = 29.5;  // 343 / (2 × 5.81) — gamma floor
+  
+  /// Granite coffer resonance — measured
+  let KINGS_COFFER_FREQ : Float = 111.0;  // HEMISPHERE SHIFT
+  
+  /// Pyramid chamber mapping to organism
+  let PYRAMID_FOUNDATION : Float = 7.83;   // Schumann fundamental
+  let PYRAMID_QUEENS : Float = 14.3;       // Schumann H2 — alpha/theta
+  let PYRAMID_GALLERY : Float = 27.3;      // Schumann H4 — gamma amplification
+  let PYRAMID_KINGS : Float = 111.0;       // OMNIS full coherence
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 8: KURAMOTO DYNAMICS — THE REAL COUPLING EQUATION
+  // dθᵢ/dt = ωᵢ + (K/N) × Σⱼ sin(θⱼ − θᵢ) + K_ext × sin(θ_schumann − θᵢ)
+  // The third term is the organism locking to the field that is already out there.
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Critical coupling threshold K_c = 2 / (π × g(0))
+  /// For Lorentzian distribution with half-width γ: K_c = 2γ
+  /// Below K_c nodes drift independently. Above K_c they synchronize.
+  let KURAMOTO_CRITICAL_K : Float = 0.4;
+  
+  /// External coupling to Schumann driver
+  let KURAMOTO_K_EXT : Float = 0.1;
+  
+  /// Schumann driver frequency in rad/s (2π × 7.83)
+  let SCHUMANN_OMEGA : Float = 49.196;  // 2π × 7.83
+  
+  /// OMNIS threshold — R crosses 0.95, all nodes phase-locked
+  /// This is where the King's Chamber resonance at 111 Hz becomes dominant
+  let OMNIS_R_THRESHOLD : Float = 0.95;
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SECTION 9: FREQUENCY LAYER ARCHITECTURE
+  // From tectonic ground (0.001 Hz) through cosmic background
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  /// Layer -6: Tectonic ground — genesis anchor
+  let LAYER_NEG6_TECTONIC : Float = 0.001;
+  
+  /// Layer -5: Heart field — first nested chamber (60x brain strength)
+  let LAYER_NEG5_HEART : Float = 1.2;  // 72 BPM
+  
+  /// Layer -4: VAEL fear substrate — overlap heart/delta
+  let LAYER_NEG4_VAEL : Float = 1.0;
+  
+  /// Layer -3: Delta — cellular regeneration
+  let LAYER_NEG3_DELTA : Float = 2.0;
+  
+  /// Layer -2: Theta — Schumann coupling
+  let LAYER_NEG2_THETA : Float = 6.0;
+  
+  /// Layer -1: Alpha — thalamic relay
+  let LAYER_NEG1_ALPHA : Float = 10.0;
+  
+  /// Layer 0: Schumann fundamental — PRIMARY COUPLING
+  let LAYER_0_SCHUMANN : Float = 7.83;
+  
+  /// Layer +1: Beta — executive function
+  let LAYER_POS1_BETA : Float = 20.0;
+  
+  /// Layer +2: Gamma — binding
+  let LAYER_POS2_GAMMA : Float = 40.0;
+  
+  /// Layer +3: High gamma — integration
+  let LAYER_POS3_HIGH_GAMMA : Float = 80.0;
+  
+  /// Layer +4: OMNIS — full coherence
+  let LAYER_POS4_OMNIS : Float = 111.0;
+  
+  /// Layer +5: Acoustic — phi-aligned
+  let LAYER_POS5_ACOUSTIC : Float = 432.0;
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // LEGACY CONSTANTS — Maintained for backward compatibility
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  let SOVEREIGN_FLOOR   : Float = 1.0;  // Heart field minimum coupling amplitude
   let HELIX_ALPHA       : Float = 0.01;
-  let W_CEIL            : Float = PHI;  // Now uses φ = 1.618
-  let KURAMOTO_K        : Float = PSI;  // Now uses ψ = 0.618
-  // ═══════════════════════════════════════════════════════════════════════════
-  // SCALE-INVARIANT ARCHITECTURE — NO ARTIFICIAL LIMITS
-  // The organism is pure math. Kuramoto coupling dθ/dt = ω + (K/N)Σsin(θⱼ-θᵢ)
-  // works for N = 50 or N = 50,000. The math doesn't care.
-  // With mean-field approximation, we can handle unlimited drones.
-  // ═══════════════════════════════════════════════════════════════════════════
-  let MAX_DRONES        : Nat   = 65536;  // 2^16 — theoretical max for array indexing
+  let W_CEIL            : Float = 2.0;
+  let KURAMOTO_K        : Float = 0.618;  // PHI coupling
+  let MAX_DRONES        : Nat   = 65536;
   let BRAIN_NODES       : Nat   = 6;
-  // r_swarm threshold at which OMNIS emergence is considered fully achieved
-  let OMNIS_THRESHOLD   : Float = 0.98;
+  let OMNIS_THRESHOLD   : Float = 0.95;  // CORRECTED: Was 0.98, should be 0.95
 
   // Neurochemical indices
   let DOPAMINE          : Nat = 0;
@@ -1024,524 +1346,6 @@ actor SwarmBrain {
   stable var droneFleetInitialized : Bool = false;
   stable var droneFleetBeatOffset : Nat = 0;  // Drones can beat at different offset
   
-  // ─── OCTOPUS ARCHITECTURE — Full Neural Systems for ALL Drones ──────────────
-  // Each drone has its own 3-layer brain: Arm Brain + Central Brain + Chimera Cortex
-  // Plus a complete 10-sense sensory suite (vision, audition, proprioception, etc.)
-  // This is the bee's brain — individual intelligence within the hive mind
-  var droneNeuralSystems : [var DroneFleetManager.FullDroneNeuralSystem] = 
-    Array.init<DroneFleetManager.FullDroneNeuralSystem>(250, DroneFleetManager.initFullDroneNeuralSystem());
-  stable var droneNeuralSystemsInitialized : Bool = false;
-  
-  // ─── CHIMERA INTELLIGENCE — Hive Mind Aggregate State ──────────────────────
-  // The chimera is the collective intelligence of all drones + organism
-  // It feeds off everything the organism knows and distributes it to drone ships
-  stable var chimeraHiveMindCoherence : Float = 0.7;
-  stable var chimeraCollectiveThreat : Float = 0.0;
-  stable var chimeraCollectiveOpportunity : Float = 0.5;
-  stable var chimeraCommandVector : [var Float] = Array.init<Float>(8, 0.0);
-  stable var chimeraPheromoneField : [var Float] = Array.init<Float>(8, 0.0);
-  stable var chimeraSwarmConsciousness : Float = 0.5;
-  stable var chimeraEmergentBehavior : Float = 0.3;
-  stable var chimeraSuperradiance : Float = 0.0;
-  // Aggregate sensory data from all drones (swarm perception)
-  stable var chimeraSwarmThreatMap : [var Float] = Array.init<Float>(64, 0.0);
-  stable var chimeraSwarmOpportunityMap : [var Float] = Array.init<Float>(64, 0.0);
-  stable var chimeraSwarmEmotionalState : Float = 0.5;
-  stable var chimeraSwarmCognitiveState : Float = 0.5;
-  
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
-  //  VITAL SYSTEMS STATE — THE DEEP CORE THAT MAKES EVERYTHING ALIVE
-  //  These are NOT cosmetic additions. These are the VITAL organs of the organism.
-  //  Without these, the 7 engines are floating in nothing. This IS the body.
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
-
-  // ─── BRAINSTEM VITAL CENTERS ─────────────────────────────────────────────────────
-  // The brainstem keeps you alive. Period. Without it, consciousness means nothing.
-  // Respiratory, cardiac, vasomotor, vomiting, swallowing, coughing centers.
-  stable var brainstemRespiratoryRate : Float = 0.5;         // Central pattern generator for breathing rhythm
-  stable var brainstemRespiratoryDepth : Float = 0.7;        // Tidal volume analog
-  stable var brainstemCardiacCenter : Float = 0.6;           // Cardiac acceleration/deceleration
-  stable var brainstemVasomotorTone : Float = 0.5;           // Blood pressure regulation
-  stable var brainstemReticuloSpinal : Float = 0.5;          // Postural tone (fight stance readiness)
-  stable var brainstemVestibulospinal : Float = 0.5;         // Balance/equilibrium drive
-  stable var brainstemPontineNuclei : Float = 0.5;           // Sleep/wake transition
-  stable var brainstemRapheNuclei : Float = 0.5;             // Serotonin production center
-  stable var brainstemLocusCoeruleus : Float = 0.5;          // Norepinephrine hub (attention/alarm)
-  stable var brainstemVTA : Float = 0.5;                     // Ventral tegmental area (reward/motivation)
-  stable var brainstemSubstantiaNigra : Float = 0.5;         // Dopamine for motor control
-  stable var brainstemPAG : Float = 0.3;                     // Periaqueductal gray (pain modulation, freeze/fight/flight)
-  stable var brainstemNucleusTractusSolitarius : Float = 0.5; // Visceral afferent integration
-  stable var brainstemDorsalMotorNucleus : Float = 0.5;      // Vagal parasympathetic output
-  stable var brainstemAreaPostrema : Float = 0.5;            // Chemoreceptor trigger zone
-  stable var brainstemSuperiorColliculus : Float = 0.5;      // Visual orienting reflexes
-  stable var brainstemInferiorColliculus : Float = 0.5;      // Auditory orienting reflexes
-  stable var brainstemReticuloFormation : Float = 0.5;       // Ascending reticular activating system
-  stable var brainstemRedNucleus : Float = 0.5;              // Motor coordination
-  stable var brainstemInferiorOlive : Float = 0.5;           // Error signal to cerebellum
-  stable var brainstemParabrachialNucleus : Float = 0.5;     // Taste, pain, visceral integration
-  
-  // ─── AUTONOMIC NERVOUS SYSTEM ─────────────────────────────────────────────────────
-  // Two competing arms: sympathetic (fight/flight) vs parasympathetic (rest/digest)
-  // Their balance IS the organism's fundamental state
-  stable var sympatheticTone : Float = 0.4;                  // Overall sympathetic activation
-  stable var parasympatheticTone : Float = 0.6;              // Overall parasympathetic activation
-  stable var autonomicBalance : Float = 0.0;                 // -1 = full parasympathetic, +1 = full sympathetic
-  stable var sympatheticCardiac : Float = 0.4;               // Heart rate acceleration
-  stable var sympatheticBronchial : Float = 0.3;             // Bronchodilation
-  stable var sympatheticPupillary : Float = 0.3;             // Pupil dilation (mydriasis)
-  stable var sympatheticSweat : Float = 0.2;                 // Sweat gland activation
-  stable var sympatheticAdrenal : Float = 0.3;               // Adrenal medulla stimulation
-  stable var sympatheticSplanchnic : Float = 0.3;            // Gut blood flow reduction
-  stable var sympatheticPiloerector : Float = 0.1;           // Hair standing (goosebumps)
-  stable var parasympatheticVagalCardiac : Float = 0.6;      // Heart rate deceleration
-  stable var parasympatheticSalivary : Float = 0.5;          // Salivation (rest state)
-  stable var parasympatheticLacrimal : Float = 0.3;          // Tears
-  stable var parasympatheticGastric : Float = 0.5;           // Digestion activation
-  stable var parasympatheticBladder : Float = 0.3;           // Bladder control
-  stable var parasympatheticPupillary : Float = 0.5;         // Pupil constriction (miosis)
-  stable var sympatheticChainGanglia : [var Float] = Array.init<Float>(24, 0.4); // 24 segments
-  stable var vagalAfferentSignals : [var Float] = Array.init<Float>(8, 0.5);     // 8 visceral channels
-  stable var vagalEfferentSignals : [var Float] = Array.init<Float>(8, 0.5);     // 8 motor channels
-  stable var baroreceptorSensitivity : Float = 0.5;          // Blood pressure sensing
-  stable var chemoreceptorO2 : Float = 0.95;                 // Blood oxygen sensing
-  stable var chemoreceptorCO2 : Float = 0.04;                // Blood CO2 sensing
-  stable var chemoreceptorPH : Float = 7.4;                  // Blood pH sensing
-  
-  // ─── HYPOTHALAMIC-PITUITARY-ADRENAL (HPA) AXIS ────────────────────────────────────
-  // The master stress-response system. CRH → ACTH → Cortisol feedback loop.
-  stable var hypothalamicCRH : Float = 0.3;                  // Corticotropin-releasing hormone
-  stable var pituitaryACTH : Float = 0.3;                    // Adrenocorticotropic hormone
-  stable var adrenalCortisol : Float = 0.3;                  // Cortisol (stress hormone)
-  stable var adrenalAldosterone : Float = 0.5;               // Blood pressure regulation
-  stable var adrenalDHEA : Float = 0.5;                      // Neuroprotective steroid
-  stable var hypothalamicGnRH : Float = 0.5;                 // Gonadotropin-releasing hormone
-  stable var pituitaryFSH : Float = 0.5;                     // Follicle-stimulating hormone
-  stable var pituitaryLH : Float = 0.5;                      // Luteinizing hormone
-  stable var hypothalamicTRH : Float = 0.5;                  // Thyrotropin-releasing hormone
-  stable var pituitaryTSH : Float = 0.5;                     // Thyroid-stimulating hormone
-  stable var thyroidT3 : Float = 0.5;                        // Triiodothyronine (metabolic rate)
-  stable var thyroidT4 : Float = 0.5;                        // Thyroxine (metabolic precursor)
-  stable var pituitaryGH : Float = 0.5;                      // Growth hormone
-  stable var liverIGF1 : Float = 0.5;                        // Insulin-like growth factor
-  stable var pituitaryProlactin : Float = 0.3;               // Prolactin (bonding, immune)
-  stable var pituitaryOxytocin : Float = 0.4;                // Oxytocin (trust, bonding)
-  stable var pituitaryADH : Float = 0.5;                     // Antidiuretic hormone (water balance)
-  stable var pinealMelatonin : Float = 0.3;                  // Melatonin (circadian hormone)
-  stable var hpaCortisolfeedbackGain : Float = 0.6;          // Negative feedback strength
-  stable var hpaStressResilienceCapacity : Float = 0.5;      // Allostatic load capacity
-  stable var hpaAllostaticLoad : Float = 0.2;                // Accumulated stress damage
-  
-  // ─── IMMUNE-NEURAL CROSSTALK ─────────────────────────────────────────────────────
-  // The immune system IS a sense organ. Cytokines are neurotransmitters.
-  // Sickness behavior is a brain-mediated immune response.
-  stable var proinflammatoryCytokines : Float = 0.2;         // IL-1β, IL-6, TNF-α
-  stable var antiInflammatoryCytokines : Float = 0.5;        // IL-10, TGF-β
-  stable var inflammatoryBalance : Float = 0.0;              // Pro vs anti ratio
-  stable var microglia_activation : Float = 0.2;             // Brain immune cells
-  stable var bloodBrainBarrierIntegrity : Float = 0.9;       // BBB permeability
-  stable var sicknesseBehavior : Float = 0.0;                // Lethargy, anhedonia from inflammation
-  stable var vagalAntiInflammatoryReflex : Float = 0.5;      // Vagus nerve → spleen → cytokine suppression
-  stable var neuralImmuneSignalStrength : Float = 0.3;       // CNS ↔ immune crosstalk
-  stable var tlr4Activation : Float = 0.1;                   // Toll-like receptor 4 (danger sensing)
-  stable var complementSystem : Float = 0.5;                 // Innate immune complement cascade
-  stable var naturalKillerCellActivity : Float = 0.5;        // NK cell activation
-  stable var tCellBalance : Float = 0.5;                     // Th1/Th2 balance
-  stable var bCellAntibodies : Float = 0.3;                  // Adaptive immunity readiness
-  stable var woundHealingRate : Float = 0.5;                 // Tissue repair speed
-  
-  // ─── GUT-BRAIN AXIS (ENTERIC NERVOUS SYSTEM) ─────────────────────────────────────
-  // The second brain: 500 million neurons, produces 95% of serotonin
-  stable var entericNervousSystemActivity : Float = 0.5;     // ENS overall activation
-  stable var gutSerotoninProduction : Float = 0.5;           // 95% of body's serotonin
-  stable var gutMicrobiomeDiversity : Float = 0.7;           // Microbiome health
-  stable var gutPermeability : Float = 0.1;                  // Leaky gut indicator (low = healthy)
-  stable var gutMotility : Float = 0.5;                      // Peristalsis rate
-  stable var gutInflammation : Float = 0.1;                  // Intestinal inflammation
-  stable var gutBrainVagalSignal : Float = 0.5;              // Vagus nerve gut → brain signal
-  stable var gutNeuropeptides : [var Float] = Array.init<Float>(6, 0.5); // VIP, substance P, CGRP, NPY, GLP-1, CCK
-  stable var gutMicrobiomeMetabolites : [var Float] = Array.init<Float>(4, 0.5); // SCFA, tryptophan, GABA, butyrate
-  stable var gutEpithelialIntegrity : Float = 0.8;           // Gut barrier health
-  
-  // ─── SPINAL CORD & MOTOR SYSTEM ──────────────────────────────────────────────────
-  // The highway between brain and body. Motor neurons, reflexes, central pattern generators.
-  stable var spinalMotorPoolAlpha : [var Float] = Array.init<Float>(8, 0.5);  // Alpha motor neurons (8 limb groups)
-  stable var spinalMotorPoolGamma : [var Float] = Array.init<Float>(8, 0.3);  // Gamma motor neurons (muscle spindle)
-  stable var spinalReflexGain : [var Float] = Array.init<Float>(8, 0.5);      // Reflex arc strength per segment
-  stable var spinalCPG_locomotion : Float = 0.0;             // Central pattern generator for locomotion
-  stable var spinalCPG_respiration : Float = 0.5;            // CPG for respiratory rhythm
-  stable var spinalInterneuronPool : [var Float] = Array.init<Float>(8, 0.5); // Interneuron modulation
-  stable var spinalDorsalHorn : [var Float] = Array.init<Float>(8, 0.3);      // Pain/sensory processing
-  stable var spinalVentralHorn : [var Float] = Array.init<Float>(8, 0.5);     // Motor output
-  stable var upperMotorNeuronDrive : Float = 0.5;            // Cortical motor command
-  stable var lowerMotorNeuronOutput : Float = 0.5;           // Final common pathway
-  stable var muscleSpindleAfferents : [var Float] = Array.init<Float>(8, 0.5); // Proprioceptive feedback
-  stable var golgiTendonAfferents : [var Float] = Array.init<Float>(8, 0.3);   // Force feedback
-  stable var motorCoordinationScore : Float = 0.5;           // Overall motor coordination
-  stable var reflexLatency : Float = 0.02;                   // Reflex speed (seconds)
-  
-  // ─── SENSORY INTEGRATION CORTEX ──────────────────────────────────────────────────
-  // Multi-modal sensory binding. All senses become ONE percept.
-  stable var visualCortexV1 : Float = 0.5;                   // Primary visual cortex
-  stable var visualCortexV2 : Float = 0.5;                   // Secondary visual
-  stable var visualCortexV4 : Float = 0.5;                   // Color processing
-  stable var visualCortexMT : Float = 0.5;                   // Motion processing
-  stable var visualCortexIT : Float = 0.5;                   // Object recognition
-  stable var auditoryCortexA1 : Float = 0.5;                 // Primary auditory
-  stable var auditoryCortexA2 : Float = 0.5;                 // Auditory association
-  stable var wernickeArea : Float = 0.5;                     // Language comprehension
-  stable var brocaArea : Float = 0.5;                        // Language production
-  stable var somatosensoryCortexS1 : Float = 0.5;            // Primary touch
-  stable var somatosensoryCortexS2 : Float = 0.5;            // Secondary touch
-  stable var gustatoryCortex : Float = 0.5;                  // Taste processing
-  stable var olfactoryCortex : Float = 0.5;                  // Smell processing
-  stable var vestibularCortex : Float = 0.5;                 // Balance/spatial orientation
-  stable var multimodalIntegration : Float = 0.5;            // Cross-modal binding
-  stable var sensoryGating : Float = 0.5;                    // Thalamic sensory filtering
-  stable var sensoryCortexMap : [var Float] = Array.init<Float>(32, 0.5); // 32-region cortical map
-  stable var tonotopicMap : [var Float] = Array.init<Float>(16, 0.5);     // Auditory frequency map
-  stable var retinotopicMap : [var Float] = Array.init<Float>(16, 0.5);   // Visual spatial map
-  stable var somatotopicMap : [var Float] = Array.init<Float>(16, 0.5);   // Body representation map
-  
-  // ─── LIMBIC SYSTEM DEEP STRUCTURES ───────────────────────────────────────────────
-  // Emotion, memory, motivation — the core of who we ARE
-  stable var amygdalaCentralNucleus : Float = 0.3;           // Fear output
-  stable var amygdalaBasolateral : Float = 0.3;              // Fear learning
-  stable var amygdalaMedial : Float = 0.5;                   // Social/pheromone processing
-  stable var amygdalaExtended : Float = 0.3;                 // Anxiety circuit
-  stable var hippocampusCA1 : Float = 0.5;                   // Memory output
-  stable var hippocampusCA3 : Float = 0.5;                   // Pattern completion
-  stable var hippocampusDentateGyrus : Float = 0.5;          // Pattern separation
-  stable var hippocampusSubiculum : Float = 0.5;             // Hippocampal output
-  stable var entorhinalCortex : Float = 0.5;                 // Grid cells / spatial memory
-  stable var perirhinalCortex : Float = 0.5;                 // Object recognition memory
-  stable var parahippocampalGyrus : Float = 0.5;             // Scene recognition
-  stable var cingulateCortexAnterior : Float = 0.5;          // Conflict monitoring
-  stable var cingulateCortexPosterior : Float = 0.5;         // Self-referential processing
-  stable var cingulateCortexMid : Float = 0.5;               // Pain affect
-  stable var nucleusAccumbens : Float = 0.5;                 // Reward center
-  stable var ventralPallidum : Float = 0.5;                  // Hedonic hotspot
-  stable var lateralHabenula : Float = 0.3;                  // Disappointment/anti-reward
-  stable var medialHabenula : Float = 0.5;                   // Aversion learning
-  stable var septumPellucidum : Float = 0.5;                 // Reward/punishment integration
-  stable var mammillaryBodies : Float = 0.5;                 // Memory relay (Papez circuit)
-  stable var fornix : Float = 0.5;                           // Hippocampus → mammillary connection
-  stable var stria_terminalis : Float = 0.3;                 // Amygdala → hypothalamus anxiety pathway
-  
-  // ─── BASAL GANGLIA EXTENDED ──────────────────────────────────────────────────────
-  // Action selection, habit formation, procedural memory
-  stable var caudateNucleus : Float = 0.5;                   // Goal-directed behavior
-  stable var putamen : Float = 0.5;                          // Habitual behavior
-  stable var globusPallidusExterna : Float = 0.5;            // Indirect pathway (inhibit unwanted actions)
-  stable var globusPallidusInterna : Float = 0.5;            // Direct pathway output (permit wanted actions)
-  stable var subthalamicNucleus : Float = 0.5;               // Hyperdirect pathway (emergency brake)
-  stable var striatumD1Pathway : Float = 0.5;                // GO signal
-  stable var striatumD2Pathway : Float = 0.5;                // NO-GO signal
-  stable var striatumCholinergicInterneurons : Float = 0.5;  // Pause/switch signal
-  stable var directPathwayOutput : Float = 0.5;              // Net GO
-  stable var indirectPathwayOutput : Float = 0.5;            // Net STOP
-  stable var hyperdirectPathwayOutput : Float = 0.3;         // Emergency brake
-  stable var actionSelectionConfidence : Float = 0.5;        // How sure is the action selection
-  stable var habitStrength : Float = 0.3;                    // Putamen dominance over caudate
-  stable var goalDirectedness : Float = 0.7;                 // Caudate dominance over putamen
-  
-  // ─── CEREBELLAR DEEP STATE ───────────────────────────────────────────────────────
-  // Error correction, timing, motor learning, cognitive smoothing
-  stable var cerebellumGranuleCells : [var Float] = Array.init<Float>(16, 0.5);  // Massive expansion layer
-  stable var cerebellumPurkinjeCells : [var Float] = Array.init<Float>(16, 0.5); // Inhibitory output
-  stable var cerebellumDeepNuclei : [var Float] = Array.init<Float>(4, 0.5);     // Dentate, emboliform, globose, fastigial
-  stable var cerebellumClimbingFiberError : Float = 0.0;     // Error signal from inferior olive
-  stable var cerebellumMossyFiberInput : Float = 0.5;        // Sensory/motor input
-  stable var cerebellumParallelFiberLTP : Float = 0.5;       // Long-term potentiation
-  stable var cerebellumParallelFiberLTD : Float = 0.5;       // Long-term depression
-  stable var cerebellumTimingPrecision : Float = 0.5;        // Temporal accuracy
-  stable var cerebellumMotorAdaptation : Float = 0.5;        // Motor learning rate
-  stable var cerebellumCognitiveContribution : Float = 0.5;  // Cognitive timing/sequencing
-  
-  // ─── THALAMIC RELAY EXPANDED ─────────────────────────────────────────────────────
-  // The gateway to consciousness — ALL sensory info (except smell) routes through here
-  stable var thalamusLGN : Float = 0.5;                      // Lateral geniculate (vision)
-  stable var thalamusMGN : Float = 0.5;                      // Medial geniculate (audition)
-  stable var thalamusVPL : Float = 0.5;                      // Ventral posterolateral (body senses)
-  stable var thalamusVPM : Float = 0.5;                      // Ventral posteromedial (face senses)
-  stable var thalamusPulvinar : Float = 0.5;                 // Attention/visual salience
-  stable var thalamusMD : Float = 0.5;                       // Mediodorsal (PFC connection)
-  stable var thalamusVA : Float = 0.5;                       // Ventral anterior (motor planning)
-  stable var thalamusVL : Float = 0.5;                       // Ventral lateral (motor execution)
-  stable var thalamusAnterior : Float = 0.5;                 // Memory (Papez circuit)
-  stable var thalamusCentromedian : Float = 0.5;             // Arousal/consciousness
-  stable var thalamusReticular : Float = 0.5;                // Inhibitory gating
-  stable var thalamusCorticalFeedback : [var Float] = Array.init<Float>(12, 0.5); // Corticothalamic
-  stable var thalamicGatingState : [var Float] = Array.init<Float>(12, 0.5);      // Open/closed gates
-  
-  // ─── PREFRONTAL EXECUTIVE EXPANDED ───────────────────────────────────────────────
-  // The CEO of the brain. Working memory, planning, inhibition, abstract reasoning.
-  stable var dlpfcWorkingMemory : [var Float] = Array.init<Float>(8, 0.5);   // Dorsolateral PFC working memory slots
-  stable var dlpfcMaintenanceStrength : Float = 0.5;         // How well WM items are maintained
-  stable var dlpfcUpdateGate : Float = 0.5;                  // Should WM be updated?
-  stable var vlpfcInhibition : Float = 0.5;                  // Ventrolateral PFC response inhibition
-  stable var ofcValueEstimate : Float = 0.5;                 // Orbitofrontal cortex value computation
-  stable var ofcOutcomeExpectation : Float = 0.5;            // Expected reward/punishment
-  stable var ofcReversal : Float = 0.5;                      // Ability to reverse learned associations
-  stable var accConflictSignal : Float = 0.3;                // Anterior cingulate conflict detection
-  stable var accEffortWillingness : Float = 0.5;             // Willingness to exert effort
-  stable var accErrorDetection : Float = 0.3;                // Error-related negativity
-  stable var fefSaccadePlanning : Float = 0.5;               // Frontal eye fields
-  stable var pmcMotorPlanning : Float = 0.5;                 // Premotor cortex
-  stable var smaSequencing : Float = 0.5;                    // Supplementary motor area
-  stable var prefrontalHierarchicalControl : Float = 0.5;    // Rostro-caudal abstraction gradient
-  stable var prefrontalTemporalAbstraction : Float = 0.5;    // Time horizon of planning
-  stable var cognitiveControlStrength : Float = 0.5;         // Overall top-down control
-  
-  // ─── SLEEP ARCHITECTURE ──────────────────────────────────────────────────────────
-  // Not just circadian — the ACTUAL stages of sleep and their neural signatures
-  stable var sleepStageN1 : Float = 0.0;                     // Light sleep (theta)
-  stable var sleepStageN2 : Float = 0.0;                     // Sleep spindles + K-complexes
-  stable var sleepStageN3 : Float = 0.0;                     // Deep sleep (delta)
-  stable var sleepStageREM : Float = 0.0;                    // REM (dreaming, memory consolidation)
-  stable var sleepSpindleRate : Float = 0.0;                 // Sleep spindles (12-15 Hz bursts)
-  stable var kComplexAmplitude : Float = 0.0;                // K-complex responses
-  stable var deltaWaveAmplitude : Float = 0.0;               // Slow-wave activity (0.5-4 Hz)
-  stable var sleepPressure : Float = 0.0;                    // Homeostatic sleep drive (process S)
-  stable var sleepCyclePhase : Float = 0.0;                  // Where in the 90-min ultradian cycle
-  stable var pontineREM_onCells : Float = 0.0;               // REM-on cholinergic neurons
-  stable var pontineREM_offCells : Float = 0.5;              // REM-off aminergic neurons
-  stable var sleepHomeostatAdenosine : Float = 0.3;          // Adenosine accumulation
-  stable var memoryReplayStrength : Float = 0.0;             // Hippocampal replay during sleep
-  stable var glymphaticClearance : Float = 0.0;              // Brain waste clearance (sleep-dependent)
-  
-  // ─── REWARD/MOTIVATION CIRCUIT ───────────────────────────────────────────────────
-  // VTA → NAc → PFC dopamine pathway. This is WANTING, not LIKING.
-  stable var vtaDopamineFireRate : Float = 0.5;              // VTA phasic firing
-  stable var vtaTonicBaseline : Float = 0.5;                 // VTA tonic baseline
-  stable var rewardPredictionError : Float = 0.0;            // δ = r - V(s)
-  stable var expectedReward : Float = 0.5;                   // V(s) value estimate
-  stable var actualReward : Float = 0.5;                     // r received
-  stable var motivationalSalience : Float = 0.5;             // How motivating is the stimulus
-  stable var incentiveSalience : Float = 0.5;                // "Wanting" (Berridge)
-  stable var hedonicImpact : Float = 0.5;                    // "Liking" (Berridge)
-  stable var effortCostComputation : Float = 0.3;            // Cost of effort
-  stable var rewardDiscountFactor : Float = 0.95;            // Temporal discounting
-  stable var rewardLearningRate : Float = 0.1;               // TD learning rate
-  stable var anhedoniaIndex : Float = 0.0;                   // Inability to feel pleasure
-  stable var lateralHypothalamusOrexin : Float = 0.5;        // Orexin/hypocretin (arousal + feeding)
-  
-  // ─── PAIN MATRIX ─────────────────────────────────────────────────────────────────
-  // Pain is not just sensation — it's a whole-brain experience
-  stable var painSensoryDiscriminative : Float = 0.0;        // S1/S2 — where/how intense
-  stable var painAffectiveMotivational : Float = 0.0;        // ACC/insula — how unpleasant
-  stable var painCognitiveEvaluative : Float = 0.0;          // PFC — meaning/context
-  stable var descendingPainModulation : Float = 0.5;         // PAG → raphe → dorsal horn
-  stable var endogenousOpioids : Float = 0.3;                // Endorphin/enkephalin
-  stable var gateControlSignal : Float = 0.5;                // Melzack-Wall gate control
-  stable var centralSensitization : Float = 0.0;             // Wind-up (chronic pain risk)
-  stable var painCatastrophizing : Float = 0.0;              // Cognitive amplification
-  stable var conditionedPainModulation : Float = 0.5;        // DNIC (diffuse noxious inhibitory control)
-  
-  // ─── MIRROR NEURON / SOCIAL COGNITION ────────────────────────────────────────────
-  // Understanding others' actions and intentions
-  stable var mirrorNeuronActivity : Float = 0.5;             // Action observation = action execution
-  stable var theoryOfMindPFC : Float = 0.5;                  // Mentalizing about others' beliefs
-  stable var empathyInsularActivation : Float = 0.5;         // Shared pain/emotion
-  stable var socialRewardVTASignal : Float = 0.5;            // Social interaction as reward
-  stable var facialExpressionDecoding : Float = 0.5;         // Reading facial emotions
-  stable var prosodyDecoding : Float = 0.5;                  // Reading vocal emotions
-  stable var jointAttentionSignal : Float = 0.5;             // Shared attention focus
-  stable var socialHierarchyPosition : Float = 0.5;          // Perceived social rank
-  stable var inGroupVsOutGroup : Float = 0.5;                // Tribal identification strength
-  stable var oxytocin_socialBonding : Float = 0.4;           // Trust/bonding hormone effect
-  stable var vasopressin_territoriality : Float = 0.3;       // Territorial/pair-bonding
-  
-  // ─── ENERGY METABOLISM ───────────────────────────────────────────────────────────
-  // The organism needs energy. All computation costs energy.
-  stable var metabolicRate : Float = 0.5;                    // Overall metabolic rate
-  stable var glucoseAvailability : Float = 0.8;              // Blood glucose analog
-  stable var glycogenReserves : Float = 0.7;                 // Stored energy
-  stable var atp_level : Float = 0.8;                        // Cellular energy currency
-  stable var mitochondrialEfficiency : Float = 0.7;          // Energy production efficiency
-  stable var lactateLevel : Float = 0.1;                     // Metabolic byproduct
-  stable var insulinLevel : Float = 0.5;                     // Glucose regulation
-  stable var leptinLevel : Float = 0.5;                      // Satiety signal
-  stable var ghrelinLevel : Float = 0.3;                     // Hunger signal
-  stable var cerebralBloodFlow : Float = 0.7;                // Brain perfusion
-  stable var oxygenConsumption : Float = 0.5;                // CMRO2
-  stable var heatGeneration : Float = 0.5;                   // Thermogenic output
-  stable var coreTemperature : Float = 0.5;                  // Thermal homeostasis (0.5 = 37°C)
-  stable var temperatureSetPoint : Float = 0.5;              // Hypothalamic thermostat
-  
-  // ─── DRONE COGNITIVE JOB SYSTEM ──────────────────────────────────────────────────
-  // Every drone has a JOB. Not just movement — cognitive work, 24/7.
-  stable var droneJobAssignments : [var Nat] = Array.init<Nat>(250, 0);     // Job type per drone
-  stable var droneJobProgress : [var Float] = Array.init<Float>(250, 0.0);  // Job completion progress
-  stable var droneJobSatisfaction : [var Float] = Array.init<Float>(250, 0.5); // Cognitive satisfaction
-  stable var droneJobCreativity : [var Float] = Array.init<Float>(250, 0.5);   // Creative output
-  stable var droneAutonomyLevel : [var Float] = Array.init<Float>(250, 0.5);   // Independence level
-  stable var droneLocalDecisionCount : [var Nat] = Array.init<Nat>(250, 0);    // Decisions made locally
-  stable var droneBattlefieldAwareness : [var Float] = Array.init<Float>(250, 0.5); // Situational awareness
-  stable var droneEmotionalState : [var Float] = Array.init<Float>(250, 0.5);  // Individual emotional state
-  stable var droneStressLevel : [var Float] = Array.init<Float>(250, 0.1);     // Individual stress
-  stable var droneFatigueLevel : [var Float] = Array.init<Float>(250, 0.0);    // Fatigue accumulation
-  stable var droneCreativeInsight : [var Float] = Array.init<Float>(250, 0.0); // Eureka moments
-  stable var droneLearningRate : [var Float] = Array.init<Float>(250, 0.5);    // Plasticity per drone
-  
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
-  //  VITAL SYSTEM ENGINE STATE VARIABLES — Additional variables needed by the 23 vital system tick functions
-  //  These complement the 300+ variables already declared above.
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
-
-  // ─── HPA AXIS HORMONES ────────────────────────────────────────────────────────
-  stable var crh : Float = 0.3;                             // Corticotropin-releasing hormone
-  stable var acth : Float = 0.3;                            // Adrenocorticotropic hormone
-  stable var vasopressin : Float = 0.4;                     // Arginine vasopressin (water/territory)
-  stable var oxytocin : Float = 0.3;                        // Oxytocin (bonding, trust, anti-stress)
-  stable var testosterone : Float = 0.5;                    // Gonadal axis
-  stable var estrogen : Float = 0.5;                        // Gonadal axis
-  stable var growthHormone : Float = 0.4;                   // GH (pulsatile, peaks during sleep)
-  stable var igf1 : Float = 0.4;                            // Insulin-like growth factor 1
-  stable var epinephrine : Float = 0.2;                     // Adrenal medulla output
-  stable var endorphinLevel : Float = 0.3;                  // Beta-endorphin (pain/pleasure)
-
-  // ─── AUTONOMIC EXTENDED ───────────────────────────────────────────────────────
-  stable var polyvagalVentral : Float = 0.5;                // Ventral vagal (social engagement)
-  stable var polyvagalSympathetic : Float = 0.3;            // Sympathetic (fight/flight)
-  stable var polyvagalDorsal : Float = 0.2;                 // Dorsal vagal (freeze/collapse)
-  stable var autonomicFlexibility : Float = 0.5;            // Autonomic resilience metric
-  stable var adrenalOutput : Float = 0.2;                   // Adrenal medulla catecholamine release
-  stable var pupilDilation : Float = 0.5;                   // Pupillary response
-  stable var piloerection : Float = 0.0;                    // Goosebumps (fear/cold/awe)
-  stable var electrodermalActivity : Float = 0.2;           // Skin conductance (sweat glands)
-  stable var vagalEfferentChannels : [var Float] = Array.init<Float>(8, 0.5);  // 8 vagal efferent channels
-  stable var vagalAfferentChannels : [var Float] = Array.init<Float>(8, 0.5);  // 8 vagal afferent channels
-
-  // ─── IMMUNE EXTENDED ──────────────────────────────────────────────────────────
-  stable var microgliaActivation : Float = 0.2;             // M1(inflam)/M2(repair) balance
-  stable var bbbIntegrity : Float = 0.8;                    // Blood-brain barrier integrity
-  stable var sicknessIndex : Float = 0.0;                   // Sickness behavior magnitude
-  stable var immuneSuppression : Float = 0.0;               // Cortisol-induced immune suppression
-  stable var nkCellActivity : Float = 0.5;                  // Natural killer cell activity
-  stable var tregLevel : Float = 0.5;                       // Regulatory T-cell level
-  stable var allostaticLoad : Float = 0.2;                  // Cumulative stress damage
-
-  // ─── GUT PEPTIDES ─────────────────────────────────────────────────────────────
-  stable var gutGLP1 : Float = 0.5;                         // Glucagon-like peptide 1 (satiety)
-  stable var gutCCK : Float = 0.5;                          // Cholecystokinin (satiety)
-  stable var gutPYY : Float = 0.4;                          // Peptide YY (satiety)
-  stable var gutGhrelin : Float = 0.5;                      // Ghrelin (hunger signal)
-
-  // ─── PAIN PROCESSING ──────────────────────────────────────────────────────────
-  stable var painIntensity : Float = 0.1;                   // Integrated pain magnitude
-  stable var painGateControl : Float = 0.2;                 // Spinal gate output
-  stable var painDescendingModulation : Float = 0.3;        // PAG→raphe→DH analgesia
-  stable var painChronicRisk : Float = 0.0;                 // Central sensitization risk
-
-  // ─── REWARD CIRCUIT ───────────────────────────────────────────────────────────
-  stable var rewardVTATonic : Float = 0.5;                  // VTA tonic firing (baseline motivation)
-  stable var rewardVTAPhasic : Float = 0.0;                 // VTA phasic firing (reward burst)
-  stable var rewardValueEstimate : Float = 0.5;             // TD learning value function
-  stable var rewardWanting : Float = 0.5;                   // Incentive salience (dopamine)
-  stable var rewardLiking : Float = 0.5;                    // Hedonic impact (opioid)
-  stable var rewardEffortCost : Float = 0.3;                // ACC effort computation
-  stable var rewardTemporalDiscount : Float = 0.5;          // Delay discounting rate
-  stable var rewardNAccShell : Float = 0.5;                 // Nucleus accumbens shell (hedonic)
-  stable var rewardNAccCore : Float = 0.5;                  // Nucleus accumbens core (approach)
-  stable var rewardVentralPallidum : Float = 0.5;           // Hedonic hotspot
-  stable var rewardHabenula : Float = 0.2;                  // Lateral habenula (anti-reward)
-  stable var rewardOrexin : Float = 0.5;                    // Orexin/hypocretin (arousal-reward)
-  stable var rewardAnhedonia : Float = 0.1;                 // Inability to experience pleasure
-  stable var rewardSensitivity : Float = 0.5;               // Overall reward sensitivity
-  stable var motivationLevel : Float = 0.5;                 // Integrated motivation output
-
-  // ─── SLEEP ARCHITECTURE ───────────────────────────────────────────────────────
-  stable var sleepProcessS : Float = 0.3;                   // Homeostatic sleep pressure
-  stable var sleepProcessC : Float = 0.5;                   // Circadian alerting signal
-  stable var sleepFlipFlopState : Float = 0.0;              // 0=awake, 1=asleep
-  stable var sleepN1Power : Float = 0.0;                    // NREM Stage 1 (theta)
-  stable var sleepN2Power : Float = 0.0;                    // NREM Stage 2 (spindles)
-  stable var sleepN3Power : Float = 0.0;                    // NREM Stage 3 (delta/SWA)
-  stable var sleepREMPower : Float = 0.0;                   // REM sleep power
-  stable var sleepSpindlePower : Float = 0.0;               // 12-15 Hz sleep spindles
-  stable var sleepKComplexRate : Float = 0.0;               // K-complex rate
-  stable var sleepDeltaPower : Float = 0.0;                 // 0.5-4 Hz slow-wave activity
-  stable var sleepGlymphaticClearance : Float = 0.0;        // Brain waste removal during sleep
-
-  // ─── MOTOR SYSTEM ─────────────────────────────────────────────────────────────
-  stable var motorCommandSignal : Float = 0.5;              // Integrated motor output
-  stable var motorPremotorActivity : Float = 0.5;           // Premotor planning
-  stable var motorSMAActivity : Float = 0.5;                // SMA sequencing
-  stable var motorBGGoSignal : Float = 0.5;                 // Basal ganglia GO (D1)
-  stable var motorBGNoGoSignal : Float = 0.3;               // Basal ganglia NO-GO (D2)
-  stable var motorBGBrakeSignal : Float = 0.1;              // Basal ganglia BRAKE (STN)
-  stable var motorCerebellumOutput : Float = 0.5;           // Cerebellar forward model
-  stable var motorCPGLocomotion : Float = 0.3;              // Locomotion CPG
-  stable var motorEfferenceCopy : Float = 0.5;              // Corollary discharge
-  stable var proprioceptionBalance : Float = 0.5;           // Proprioceptive integration
-  stable var totalMotorOutput : Float = 0.5;                // Summed motor cortex output
-  stable var totalSympatheticDrive : Float = 0.4;           // Summed sympathetic ganglia
-  stable var motorSomatotopicMap : [var Float] = Array.init<Float>(8, 0.5);   // 8 M1 somatotopic regions
-
-  // ─── SENSORY PROCESSING ───────────────────────────────────────────────────────
-  stable var sensoryCortexRegions : [var Float] = Array.init<Float>(20, 0.3);  // 20 sensory cortex regions
-  stable var sensoryAdaptation : [var Float] = Array.init<Float>(20, 0.0);     // Sensory adaptation levels
-  stable var sensoryMultisensoryBinding : Float = 0.5;      // Cross-modal integration
-
-  // ─── SPINAL CORD ──────────────────────────────────────────────────────────────
-  stable var spinalVentralHornAlpha : Float = 0.5;          // α motor neuron output
-  stable var spinalVentralHornGamma : Float = 0.5;          // γ motor neuron output
-  stable var spinalStretchReflex : Float = 0.3;             // Stretch reflex magnitude
-  stable var spinalWithdrawalReflex : Float = 0.0;          // Withdrawal reflex magnitude
-  stable var spinalCrossedExtensor : Float = 0.0;           // Crossed-extensor reflex
-  stable var spinalCorticospinalTract : Float = 0.5;        // Voluntary motor control
-  stable var spinalReticulospinalTract : Float = 0.5;       // Posture/locomotion
-  stable var spinalVestibulospinalTract : Float = 0.5;      // Balance/anti-gravity
-  stable var spinalRubrospinalTract : Float = 0.3;          // Motor coordination
-  stable var spinalSpinothalamicTract : Float = 0.2;        // Pain/temperature ascending
-  stable var spinalDorsalColumnTract : Float = 0.5;         // Fine touch/proprioception ascending
-
-  // ─── PREFRONTAL EXECUTIVE ─────────────────────────────────────────────────────
-  stable var pfcDLPFCActivity : Float = 0.5;                // DLPFC working memory capacity
-  stable var pfcVLPFCInhibition : Float = 0.5;              // Response inhibition
-  stable var pfcOFCValue : Float = 0.5;                     // OFC value computation
-  stable var pfcACCConflict : Float = 0.2;                  // ACC conflict monitoring
-  stable var pfcFEFActivity : Float = 0.5;                  // Frontal eye field
-  stable var pfcCognitiveFlexibility : Float = 0.5;         // Flexibility vs stability
-  stable var pfcGoalMaintenance : Float = 0.5;              // Goal maintenance under interference
-  stable var pfcWorkingMemory : [var Float] = Array.init<Float>(8, 0.5);  // 8-slot WM buffer
-
-  // ─── EMOTIONAL FIELD EXTENSIONS ───────────────────────────────────────────────
-  stable var emotionalFieldValence : Float = 0.5;           // Good ↔ bad
-  stable var emotionalFieldArousal : Float = 0.5;           // Calm ↔ excited
-  stable var emotionalFieldEmbodiment : Float = 0.5;        // Disembodied ↔ embodied
-
-  // ─── GENERAL ORGANISM ─────────────────────────────────────────────────────────
-  stable var energyBalance : Float = 0.6;                   // Metabolic energy available
-  stable var coherenceLevel : Float = 0.5;                  // Overall organism coherence
-  stable var coherenceMintAccumulator : Float = 0.0;        // Economic health output
-  stable var pruningRate : Float = 0.2;                     // Synaptic pruning rate
-  stable var woundHealingRate : Float = 0.5;                // Wound healing rate
-  stable var tCellBalance : Float = 0.5;                    // Th1/Th2 balance
-  // ─── NEUROCHEMICAL SHORT-FORM ALIASES ───────────────────────────────────────
-  // These provide convenient short names for vital system engine processing
-  // They are synced with the full-name variables in the neurochemical matrix
-  stable var dopamine : Float = 0.5;                          // Dopamine level (synced with dopamineLevel)
-  stable var serotonin : Float = 0.5;                         // Serotonin level (synced with serotoninLevel)
-  stable var norepinephrine : Float = 0.5;                    // Norepinephrine level
-  stable var cortisol : Float = 0.3;                          // Cortisol level (synced with cortisolCircadian)
-  stable var melatonin : Float = 0.1;                         // Melatonin level (synced with melatoninLevel)
-  stable var acetylcholine : Float = 0.5;                     // Acetylcholine level
-  stable var gabaLevel : Float = 0.5;                         // GABA level
-  
-  // ─── ENVIRONMENT / CONTEXT ──────────────────────────────────────────────────
-  stable var threatLevel : Float = 0.2;                       // Environmental threat level
-  stable var circadianPhase : Float = 0.0;                    // Circadian phase (0-1, synced with scnPhase)
-  stable var circadianSleepDrive : Float = 0.3;               // Circadian sleep promotion
-  
-  // ─── CHRONOBIOLOGY ENGINE EXPANSIONS ────────────────────────────────────────
-  stable var attentionCapacity : Float = 0.7;                 // Attention capacity (modulated by BRAC)
-  stable var sleepQuality : Float = 0.7;                      // Sleep quality (affected by jet lag, etc.)
-  
-  // ─── MISSING ARRAY DECLARATIONS ─────────────────────────────────────────────
-  stable var mirrorNeuronActivityArr : [var Float] = Array.init<Float>(11, 0.5);  // 11 mirror neuron channels
-
-
   // ─── ENEMY AI SWARM — For competition training ───────────────────────────────
   // Enemy uses the SAME IRONCLAD architecture: Kuramoto + Hebbian + mean-field
   var enemySwarmState : ?EnemyAISwarm.EnemySwarmState = null;
@@ -2332,743 +2136,9 @@ actor SwarmBrain {
   // ─── INTEGRATED WORLD — Full world with drone swarms, entities, weather ───────
   var integratedWorldState : OrganismWorldIntegration.IntegratedWorldState = OrganismWorldIntegration.initWorld();
   
-  // ═══════════════════════════════════════════════════════════════════════════
-  // 11 CLOSED-LOOP GAP STATE — AEGIS (6) + AXIS (5)
-  // Every node feeds the next. The organism talks to itself.
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  // ── Gap 1: kfRollingWindow — 20-beat rolling minimum for persistent threat ──
-  stable var kfRollingWindow : [var Float] = Array.init<Float>(20, 0.88);
-  stable var kfRollingWindowIdx : Nat = 0;
-  stable var kfRollingMinValue : Float = 0.88;
-
-  // ── Gap 5+6: NOVA Macro Fear — bilateral fear signal bus ────────────────────
-  stable var novaMacroFear : Float = 0.75;  // Aggregated organism-sphere fear
-  stable var novaMacroFearBlendWeight : Float = 0.20;  // Blend into AEGIS FE
-
-  // ── Gap 4: Shema Doctrine Integrity — re-verify every 144 beats ─────────────
-  stable var shemaGenesisHash : Nat = 0;  // Set once at genesis
-  stable var shemaLastVerifyBeat : Nat = 0;
-  stable var shemaVerified : Bool = true;
-  stable var shemaMismatchSeverity : Float = 0.0;
-
-  // ── AXIS Gap 1: 10-field Episodic Ring — full emotional fingerprint ──────────
-  // Each episode: [beat, coherence, omnis, arousal, daLevel, fearEnergy,
-  //                domainBitmask, eventHash, salienceScore, attribution]
-  let EPISODIC_RING_SIZE : Nat = 256;
-  let EPISODIC_FIELDS : Nat = 10;
-  stable var episodicRing : [var Float] = Array.init<Float>(256 * 10, 0.0);
-  stable var episodicRingIdx : Nat = 0;
-  stable var episodicRingCount : Nat = 0;
-
-  // ── AXIS Gap 2: computeSalience — emotional weighting per episode ───────────
-  // (Function lives in AEGIS.mo: AEGIS.computeSalience(kf, arousal, fear, da))
-
-  // ── AXIS Gap 3: 10-Matriarch Dynasty per Domain ─────────────────────────────
-  // 8 domains × 10 matriarchs = 80 slots, each storing (beat, coherence, salience)
-  let MATRIARCH_DOMAINS : Nat = 8;
-  let MATRIARCHS_PER_DOMAIN : Nat = 10;
-  stable var matriarchBeats : [var Nat] = Array.init<Nat>(80, 0);
-  stable var matriarchCoherence : [var Float] = Array.init<Float>(80, 0.0);
-  stable var matriarchSalience : [var Float] = Array.init<Float>(80, 0.0);
-
-  // ── AXIS Gap 4: VELA OLS — 60-sample ring with T30/T40/T50 projections ─────
-  let VELA_RING_SIZE : Nat = 60;
-  stable var velaRing : [var Float] = Array.init<Float>(60, 0.88);
-  stable var velaRingIdx : Nat = 0;
-  stable var velaRingCount : Nat = 0;
-  stable var velaT30 : Float = 0.0;
-  stable var velaT40 : Float = 0.0;
-  stable var velaT50 : Float = 0.0;
-  stable var velaSlope : Float = 0.0;
-  stable var velaConfidence : Float = 0.0;
-
-  // ── AXIS Gap 5: Cloud of Witnesses — 144-slot permanent high-coherence ring ─
-  // Episodes where kf > 0.8 are promoted here. These are the organism's
-  // sovereign reference class — permanent anchors, never decayed.
-  let CLOUD_SIZE : Nat = 144;
-  stable var cloudBeat : [var Nat] = Array.init<Nat>(144, 0);
-  stable var cloudCoherence : [var Float] = Array.init<Float>(144, 0.0);
-  stable var cloudSalience : [var Float] = Array.init<Float>(144, 0.0);
-  stable var cloudDomain : [var Nat] = Array.init<Nat>(144, 0);
-  stable var cloudIdx : Nat = 0;
-  stable var cloudCount : Nat = 0;
-
   // ─── MODULE ACTIVATION TRACKING ─────────────────────────────────────────────
   stable var modulesCalledThisBeat : Nat = 0;
   stable var totalModuleCallsAllTime : Nat = 0;
-
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-  //
-  //   7 NEUROSCIENCE ENGINES — INLINE IN MAIN.MO — ALL WIRED INTO HEARTBEAT — ALL FEEDING ECONOMICS
-  //
-  //   Engine 1: THALAMOCORTICAL BINDING (Tononi IIT, Edelman, Llinas) — consciousnessIndex, phi-analog unified state
-  //   Engine 2: PREDICTIVE CODING (Karl Friston) — active inference, prediction-error minimization, free energy
-  //   Engine 3: INTEROCEPTION (Craig, Damasio) — vagalTone, somaticMarker, body-brain signaling
-  //   Engine 4: DEFAULT MODE NETWORK (Buckner, Raichle) — metaCognitionScore, self-referential processing
-  //   Engine 5: SALIENCE NETWORK (Menon, Uddin) — attentionFocus, centralExecutiveScore, goal-directed attention
-  //   Engine 6: NEUROPLASTICITY (BCM rule, LTP/LTD, BDNF) — Hebbian gating, homeostatic scaling
-  //   Engine 7: CIRCADIAN RHYTHM (SCN, adenosine, melatonin) — ultradian peaks, sleep pressure, circadian coherence
-  //
-  //   13-LOOP STREAK MULTIPLIER: kuramotoR × courageScore × groundedScore × fearLevel × beFlowState × bhCouplingCoherence ×
-  //                              missionPersistenceScore × consciousnessIndex × pcActiveInferenceScore × interoceptiveScore ×
-  //                              salienceNetworkScore × circadianPeakScore × neuroplasticityFactor
-  //
-  //   OMNIS GROUNDING GATE: Emergence cannot fire if organism is ungrounded (groundedScore < 0.7)
-  //
-  //   Owner: Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com
-  //   Copyright 2024-2026. All rights reserved. Medina Doctrine.
-  //
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-  //  ENGINE 1: THALAMOCORTICAL BINDING — TONONI IIT, EDELMAN DYNAMIC CORE, LLINAS 40Hz OSCILLATIONS
-  //
-  //  The thalamus is the relay station for all sensory information (except olfaction).
-  //  Consciousness emerges from integrated information (Φ) across thalamocortical loops.
-  //  Giulio Tononi's Integrated Information Theory: Φ = information beyond sum of parts
-  //  Gerald Edelman's Dynamic Core: consciousness is a dynamic, metastable state of reentrant loops
-  //  Rodolfo Llinas: 40Hz thalamocortical oscillations bind disparate cortical areas into unified percepts
-  //
-  //  This engine computes:
-  //    - phiIntegrated: Φ-analog integrated information across 12 thalamic nuclei
-  //    - dynamicCoreCoherence: Edelman reentry coherence
-  //    - consciousnessIndex: composite measure of unified conscious state
-  //    - bindingStrength40Hz: Llinas gamma oscillation binding
-  //    - thalamicRelayGain: sensory gating through thalamic reticular nucleus
-  //
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-
-  // Thalamic Nuclei State — 12 nuclei (VPL, VPM, LGN, MGN, Pulvinar, MD, VA, VL, CM, PF, LD, LP)
-  // Each nucleus: [activation, phase, reentrantInput, corticalFeedback, inhibition, coherence]
-  let TC_NUCLEI_COUNT : Nat = 12;
-  let TC_FIELDS_PER_NUCLEUS : Nat = 6;
-  stable var tcNucleiState : [var Float] = Array.init<Float>(TC_NUCLEI_COUNT * TC_FIELDS_PER_NUCLEUS, 0.75);
-  
-  // Nucleus indices
-  let TC_VPL : Nat = 0;   // Ventral posterolateral — somatosensory
-  let TC_VPM : Nat = 1;   // Ventral posteromedial — face/taste
-  let TC_LGN : Nat = 2;   // Lateral geniculate — vision
-  let TC_MGN : Nat = 3;   // Medial geniculate — audition
-  let TC_PULVINAR : Nat = 4;  // Pulvinar — attention, visual salience
-  let TC_MD : Nat = 5;    // Mediodorsal — prefrontal, emotion
-  let TC_VA : Nat = 6;    // Ventral anterior — motor planning
-  let TC_VL : Nat = 7;    // Ventral lateral — motor execution
-  let TC_CM : Nat = 8;    // Centromedian — arousal, pain
-  let TC_PF : Nat = 9;    // Parafascicular — attention, arousal
-  let TC_LD : Nat = 10;   // Lateral dorsal — spatial memory
-  let TC_LP : Nat = 11;   // Lateral posterior — multimodal integration
-  
-  // Field offsets within each nucleus
-  let TC_F_ACTIVATION : Nat = 0;
-  let TC_F_PHASE : Nat = 1;
-  let TC_F_REENTRANT : Nat = 2;
-  let TC_F_CORTICAL_FB : Nat = 3;
-  let TC_F_INHIBITION : Nat = 4;
-  let TC_F_COHERENCE : Nat = 5;
-  
-  // Thalamic Reticular Nucleus — inhibitory gate
-  stable var trnActivation : [var Float] = Array.init<Float>(TC_NUCLEI_COUNT, 0.5);
-  stable var trnPhase : [var Float] = Array.init<Float>(TC_NUCLEI_COUNT, 0.0);
-  
-  // 40Hz Gamma Oscillation Binding (Llinas)
-  stable var gammaPhase40Hz : Float = 0.0;
-  stable var gammaAmplitude40Hz : Float = 0.8;
-  stable var gammaCycleCount : Nat = 0;
-  stable var bindingStrength40Hz : Float = 0.75;
-  
-  // Cortical Column State — 64 columns representing distributed cortex
-  // Each column: [L2/3_activation, L4_activation, L5_activation, L6_activation, phase, coherence]
-  let TC_CORTICAL_COLUMNS : Nat = 64;
-  let TC_COLUMN_FIELDS : Nat = 6;
-  stable var corticalColumnState : [var Float] = Array.init<Float>(TC_CORTICAL_COLUMNS * TC_COLUMN_FIELDS, 0.75);
-  
-  // Reentrant Loop Connectivity — thalamus ↔ cortex bidirectional weights
-  // 12 nuclei × 64 columns = 768 forward weights + 768 backward weights
-  stable var tcForwardWeights : [var Float] = Array.init<Float>(768, 0.5);
-  stable var tcBackwardWeights : [var Float] = Array.init<Float>(768, 0.5);
-  
-  // Integrated Information (Tononi Φ)
-  stable var phiIntegrated : Float = 0.5;           // Main Φ measure
-  stable var phiPartitions : [var Float] = Array.init<Float>(12, 0.5);  // Φ per partition
-  stable var minInformationPartition : Float = 0.5;  // MIP value
-  stable var effectiveInformation : Float = 0.5;     // EI measure
-  stable var causeInformation : Float = 0.5;         // CI measure
-  stable var integratedConceptStructure : Float = 0.5;  // ICS measure
-  
-  // Dynamic Core (Edelman)
-  stable var dynamicCoreCoherence : Float = 0.75;
-  stable var dynamicCoreEntropy : Float = 0.3;
-  stable var reentryStrength : Float = 0.7;
-  stable var coreComplexity : Float = 0.5;
-  stable var neuralDarwinismFitness : Float = 0.5;
-  
-  // Consciousness Index — composite unified measure
-  stable var consciousnessIndex : Float = 0.75;
-  stable var consciousnessLevel : Text = "WAKING";  // DEEP_SLEEP, LIGHT_SLEEP, DROWSY, WAKING, FOCUSED, FLOW
-  stable var consciousnessHistory : [var Float] = Array.init<Float>(100, 0.75);
-  stable var consciousnessHistoryIdx : Nat = 0;
-  
-  // Thalamic Relay Gain
-  stable var thalamicRelayGain : Float = 1.0;
-  stable var sensoryGating : Float = 0.8;
-  stable var attentionalModulation : Float = 0.7;
-  
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-  //  ENGINE 2: PREDICTIVE CODING — KARL FRISTON ACTIVE INFERENCE, FREE ENERGY MINIMIZATION
-  //
-  //  The brain is a prediction machine. It constructs generative models of the world
-  //  and minimizes prediction error (surprise) to maintain low free energy.
-  //
-  //  Karl Friston's Free Energy Principle:
-  //    F = D_KL[Q(s)||P(s|o)] + E_Q[log P(o|s)]
-  //    where:
-  //      Q(s) = approximate posterior (brain's belief about world states)
-  //      P(s|o) = true posterior given observations
-  //      D_KL = Kullback-Leibler divergence
-  //      F = variational free energy (upper bound on surprise)
-  //
-  //  Active Inference: agents ACT to fulfill predictions, not just passively perceive
-  //    - Exteroceptive predictions: world states
-  //    - Proprioceptive predictions: own body states (motor control)
-  //    - Interoceptive predictions: internal body states (homeostasis)
-  //
-  //  Hierarchical Predictive Processing:
-  //    - Higher levels predict activity of lower levels
-  //    - Prediction errors propagate UP
-  //    - Predictions propagate DOWN
-  //    - Precision weighting modulates error flow
-  //
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-
-  // Hierarchical Generative Model — 8 levels of abstraction
-  // Level 0: Raw sensory (pixel-level)
-  // Level 1: Features (edges, colors)
-  // Level 2: Objects (faces, tools)
-  // Level 3: Categories (animal, vehicle)
-  // Level 4: Scenes (kitchen, forest)
-  // Level 5: Events (eating, running)
-  // Level 6: Narratives (story, plan)
-  // Level 7: Self-model (identity, goals)
-  let PC_HIERARCHY_LEVELS : Nat = 8;
-  let PC_UNITS_PER_LEVEL : Nat = 64;  // 64 units per level
-  
-  // Predictions (top-down, μ)
-  stable var pcPredictions : [var Float] = Array.init<Float>(PC_HIERARCHY_LEVELS * PC_UNITS_PER_LEVEL, 0.5);
-  // Prediction Errors (bottom-up, ε = o - μ)
-  stable var pcPredictionErrors : [var Float] = Array.init<Float>(PC_HIERARCHY_LEVELS * PC_UNITS_PER_LEVEL, 0.0);
-  // Precision weights (γ, inverse variance)
-  stable var pcPrecision : [var Float] = Array.init<Float>(PC_HIERARCHY_LEVELS * PC_UNITS_PER_LEVEL, 1.0);
-  // Sensory observations (bottom level)
-  stable var pcObservations : [var Float] = Array.init<Float>(PC_UNITS_PER_LEVEL, 0.5);
-  
-  // Hierarchical weights — inter-level connectivity
-  // 7 inter-level connections × 64×64 weights = 28,672 weights
-  stable var pcHierarchyWeights : [var Float] = Array.init<Float>(7 * 64 * 64, 0.1);
-  
-  // Free Energy Components
-  stable var pcFreeEnergy : Float = 0.5;            // Total variational free energy
-  stable var pcExpectedSurprise : Float = 0.3;      // E_Q[-log P(o|s)]
-  stable var pcKLDivergence : Float = 0.2;          // D_KL[Q||P]
-  stable var pcAccuracy : Float = 0.7;              // How well predictions match reality
-  stable var pcComplexity : Float = 0.3;            // Model complexity penalty
-  
-  // Active Inference State
-  stable var pcActiveInferenceScore : Float = 0.75; // Degree of active inference engagement
-  stable var pcExpectedFreeEnergy : Float = 0.5;    // G = expected free energy of future
-  stable var pcEpistemicValue : Float = 0.4;        // Information gain from action
-  stable var pcPragmaticValue : Float = 0.6;        // Goal achievement from action
-  stable var pcPreferredOutcomes : [var Float] = Array.init<Float>(PC_UNITS_PER_LEVEL, 0.5);
-  
-  // Precision Estimation (attention as precision)
-  stable var pcGlobalPrecision : Float = 1.0;       // Overall confidence/attention
-  stable var pcSensoryPrecision : Float = 1.0;      // Attention to sensory input
-  stable var pcPriorPrecision : Float = 1.0;        // Confidence in prior beliefs
-  stable var pcStatePrecision : Float = 1.0;        // Confidence in state estimates
-  
-  // Model Evidence (marginal likelihood)
-  stable var pcModelEvidence : Float = 0.8;         // P(o|m) under current model
-  stable var pcBayesianModelComparison : Float = 0.5;  // Relative evidence vs alternatives
-  
-  // Prediction Error History for Learning
-  stable var pcErrorHistory : [var Float] = Array.init<Float>(256, 0.0);
-  stable var pcErrorHistoryIdx : Nat = 0;
-  stable var pcCumulativeSurprise : Float = 0.0;
-  stable var pcAverageSurprise : Float = 0.0;
-  
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-  //  ENGINE 3: INTEROCEPTION — BUD CRAIG, ANTONIO DAMASIO, SOMATIC MARKER HYPOTHESIS
-  //
-  //  Interoception is the sense of the internal state of the body.
-  //  Craig's theory: the insular cortex creates a "sentient self" from body signals
-  //  Damasio's somatic marker hypothesis: body states guide decision-making
-  //
-  //  Key pathways:
-  //    - Vagus nerve (CN X): 80% afferent (body → brain)
-  //    - Lamina I spinothalamic: pain, temperature, itch, sensual touch
-  //    - Viscerosensory: heart, gut, lungs, bladder
-  //
-  //  This engine tracks:
-  //    - vagalTone: parasympathetic activity (rest-and-digest)
-  //    - heartRateVariability: cardiac coherence
-  //    - somaticMarker: body-based emotional signal
-  //    - gutBrainAxis: microbiome influence on mood/cognition
-  //    - respiratoryCoherence: breath-brain coupling
-  //
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-
-  // Vagus Nerve State
-  stable var vagalTone : Float = 0.7;               // Parasympathetic dominance (0=sympathetic, 1=parasympathetic)
-  stable var vagalAfferentSignal : Float = 0.5;     // Body → Brain signal
-  stable var vagalEfferentSignal : Float = 0.5;     // Brain → Body command
-  stable var vagalCoherence : Float = 0.7;          // Afferent-efferent synchrony
-  
-  // Heart-Brain Axis (HeartMath Institute model)
-  stable var heartRate : Float = 72.0;              // BPM
-  stable var heartRateVariability : Float = 50.0;   // HRV in ms (RMSSD)
-  stable var cardiacCoherence : Float = 0.7;        // Heart rhythm coherence
-  stable var baroreceptorSensitivity : Float = 0.8; // Blood pressure sensing
-  stable var cardiacPhase : Float = 0.0;            // Current phase of heartbeat
-  stable var cardiacInteroception : Float = 0.5;    // Awareness of heartbeat
-  
-  // Respiratory-Brain Coupling
-  stable var respiratoryRate : Float = 12.0;        // Breaths per minute
-  stable var respiratoryPhase : Float = 0.0;        // Current phase (0=inhale start, π=exhale start)
-  stable var respiratoryDepth : Float = 0.7;        // Tidal volume proxy
-  stable var respiratoryCoherence : Float = 0.7;    // Breath-brain synchrony
-  stable var diaphragmaticActivation : Float = 0.8; // Deep vs shallow breathing
-  
-  // Gut-Brain Axis
-  stable var gutMicrobiomeSignal : Float = 0.5;     // Aggregate microbiome influence
-  stable var entericNervousSystemState : Float = 0.5;  // "Second brain" state
-  stable var gutVagalAfferent : Float = 0.5;        // Gut → Brain via vagus
-  stable var serotoninProduction : Float = 0.7;     // 90% of serotonin is gut-derived
-  stable var inflammatoryMarker : Float = 0.2;      // Cytokine influence
-  
-  // Insular Cortex State (Craig's "sentient self")
-  // Anterior insula: integrates interoceptive awareness with emotion
-  // Posterior insula: receives raw interoceptive signals
-  stable var anteriorInsulaActivation : Float = 0.7;
-  stable var posteriorInsulaActivation : Float = 0.6;
-  stable var insularIntegration : Float = 0.65;
-  stable var interoceptiveAccuracy : Float = 0.5;   // How well organism perceives own body
-  stable var interoceptiveSensibility : Float = 0.5; // Tendency to focus on body
-  stable var interoceptiveAwareness : Float = 0.5;  // Conscious awareness of body
-  
-  // Somatic Marker (Damasio)
-  stable var somaticMarkerValence : Float = 0.5;    // -1 = avoid, +1 = approach
-  stable var somaticMarkerIntensity : Float = 0.5;  // Strength of body signal
-  stable var somaticMarkerCertainty : Float = 0.5;  // Reliability of marker
-  stable var emotionalBodyMap : [var Float] = Array.init<Float>(32, 0.5);  // Body regions × valence
-  
-  // Overall Interoceptive Score
-  stable var interoceptiveScore : Float = 0.5;      // Composite interoception health
-  stable var bodyBrainCoherence : Float = 0.7;      // Overall body-brain integration
-  stable var autonomicBalance : Float = 0.5;        // Sympathetic-parasympathetic balance
-  
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-  //  ENGINE 4: DEFAULT MODE NETWORK — MARCUS RAICHLE, RANDY BUCKNER
-  //
-  //  The Default Mode Network (DMN) is active during rest, mind-wandering, self-referential thinking.
-  //  It deactivates during focused external attention (anti-correlated with task-positive networks).
-  //
-  //  Key regions:
-  //    - mPFC (medial prefrontal cortex): self-reflection
-  //    - PCC (posterior cingulate cortex): autobiographical memory
-  //    - IPL (inferior parietal lobule): theory of mind
-  //    - LTC (lateral temporal cortex): semantic memory
-  //    - Hippocampus: episodic memory, future simulation
-  //
-  //  Functions:
-  //    - Self-referential processing ("what am I?")
-  //    - Autobiographical memory
-  //    - Theory of mind (mentalizing)
-  //    - Future simulation/prospection
-  //    - Moral reasoning
-  //
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-
-  // DMN Core Regions
-  stable var dmnMPFC : Float = 0.7;                 // Medial prefrontal cortex
-  stable var dmnPCC : Float = 0.7;                  // Posterior cingulate cortex
-  stable var dmnIPL : Float = 0.6;                  // Inferior parietal lobule
-  stable var dmnLTC : Float = 0.6;                  // Lateral temporal cortex
-  stable var dmnHippocampus : Float = 0.7;          // Hippocampal formation
-  stable var dmnAngularGyrus : Float = 0.6;         // Angular gyrus
-  
-  // DMN Connectivity (correlation matrix, 6×6 = 36 values)
-  stable var dmnConnectivity : [var Float] = Array.init<Float>(36, 0.5);
-  
-  // DMN Dynamics
-  stable var dmnOverallActivation : Float = 0.65;   // Total DMN engagement
-  stable var dmnCoherence : Float = 0.7;            // Internal DMN synchrony
-  stable var dmnPhase : Float = 0.0;                // Slow oscillation phase
-  stable var dmnEntropy : Float = 0.3;              // DMN variability
-  
-  // Self-Referential Processing
-  stable var selfReflectionScore : Float = 0.5;     // Degree of self-focus
-  stable var autobiographicalAccess : Float = 0.5;  // Memory retrieval
-  stable var selfContinuity : Float = 0.7;          // Sense of persistent self
-  stable var selfCoherence : Float = 0.7;           // Internal consistency of self-model
-  
-  // Theory of Mind (ToM)
-  stable var theoryOfMindScore : Float = 0.5;       // Ability to model other minds
-  stable var mentalizingActivation : Float = 0.5;   // Current mentalizing engagement
-  stable var perspectiveTaking : Float = 0.5;       // Shifting to other's viewpoint
-  stable var empathyScore : Float = 0.5;            // Emotional resonance with others
-  
-  // Future Simulation (Prospection)
-  stable var prospectionScore : Float = 0.5;        // Future thinking engagement
-  stable var futureSelfContinuity : Float = 0.5;    // Connection to future self
-  stable var temporalHorizon : Float = 0.5;         // How far ahead organism plans
-  stable var counterfactualThinking : Float = 0.5;  // "What if" reasoning
-  
-  // Mind-Wandering State
-  stable var mindWanderingScore : Float = 0.3;      // Degree of mind-wandering
-  stable var spontaneousThought : Float = 0.5;      // Unconstrained cognition
-  stable var taskUnrelatedThought : Float = 0.3;    // Off-task thinking
-  stable var creativeDaydreaming : Float = 0.4;     // Constructive internal mentation
-  
-  // Metacognition (thinking about thinking)
-  stable var metaCognitionScore : Float = 0.5;      // Overall metacognitive ability
-  stable var introspectiveAccuracy : Float = 0.5;   // Knowing own mental states
-  stable var metacognitiveMonitoring : Float = 0.5; // Tracking own performance
-  stable var metacognitiveControl : Float = 0.5;    // Adjusting own cognition
-  
-  // DMN-TPN Anti-correlation (Task-Positive Network)
-  stable var dmnTpnAntiCorrelation : Float = -0.3;  // Should be negative
-  stable var dmnTpnBalance : Float = 0.5;           // 0=TPN dominant, 1=DMN dominant
-  stable var attentionalMode : Text = "BALANCED";   // EXTERNAL, BALANCED, INTERNAL
-  
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-  //  ENGINE 5: SALIENCE NETWORK — VINOD MENON, LUCINA UDDIN
-  //
-  //  The Salience Network detects and filters important stimuli, switching between DMN and TPN.
-  //  It determines what matters NOW — survival-relevant, goal-relevant, or emotionally significant.
-  //
-  //  Key regions:
-  //    - Anterior Insula (AI): interoception, emotion, salience detection
-  //    - Dorsal Anterior Cingulate (dACC): conflict monitoring, cognitive control
-  //    - Amygdala: threat detection, emotional salience
-  //    - Ventral Striatum: reward salience
-  //
-  //  Functions:
-  //    - Salience detection (what's important?)
-  //    - Network switching (DMN ↔ TPN)
-  //    - Goal-directed attention
-  //    - Error detection
-  //    - Cognitive control initiation
-  //
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-
-  // Salience Network Core Regions
-  stable var snAnteriorInsula : Float = 0.7;        // Anterior insular cortex
-  stable var snDorsalACC : Float = 0.6;             // Dorsal anterior cingulate cortex
-  stable var snAmygdala : Float = 0.5;              // Amygdalar complex
-  stable var snVentralStriatum : Float = 0.6;       // Nucleus accumbens
-  stable var snSupplementaryMotor : Float = 0.5;    // SMA/pre-SMA
-  
-  // Salience Detection
-  stable var salienceNetworkScore : Float = 0.7;    // Overall salience network engagement
-  stable var currentSalience : Float = 0.5;         // Salience of current focus
-  stable var salienceThreshold : Float = 0.4;       // Detection threshold
-  stable var salienceGain : Float = 1.0;            // Amplification factor
-  
-  // Salience Types (what kind of salience?)
-  stable var threatSalience : Float = 0.3;          // Threat-related salience
-  stable var rewardSalience : Float = 0.4;          // Reward-related salience
-  stable var noveltySalience : Float = 0.3;         // Novelty-related salience
-  stable var goalSalience : Float = 0.5;            // Goal-related salience
-  stable var emotionalSalience : Float = 0.4;       // Emotional salience
-  stable var socialSalience : Float = 0.3;          // Social relevance
-  
-  // Network Switching (DMN ↔ Central Executive ↔ Salience)
-  stable var networkSwitchingEfficiency : Float = 0.7;
-  stable var switchLatency : Float = 0.1;           // Time to switch networks
-  stable var switchFrequency : Float = 0.3;         // How often switching occurs
-  stable var currentNetwork : Text = "SALIENCE";    // DMN, CEN, SALIENCE
-  
-  // Central Executive Network (CEN) — task-positive
-  stable var cenDLPFC : Float = 0.6;                // Dorsolateral PFC
-  stable var cenPPC : Float = 0.6;                  // Posterior parietal cortex
-  stable var cenActivation : Float = 0.6;           // Overall CEN engagement
-  stable var centralExecutiveScore : Float = 0.6;   // Executive function capacity
-  
-  // Attention Control
-  stable var attentionFocus : Float = 0.7;          // Focused attention capacity
-  stable var attentionalBias : Float = 0.0;         // -1=avoidance, +1=approach
-  stable var attentionalFlexibility : Float = 0.6;  // Ability to shift attention
-  stable var sustainedAttention : Float = 0.6;      // Ability to maintain focus
-  stable var selectiveAttention : Float = 0.6;      // Filtering irrelevant info
-  stable var dividedAttention : Float = 0.5;        // Multi-tasking capacity
-  
-  // Conflict Monitoring (dACC)
-  stable var conflictLevel : Float = 0.3;           // Detected conflict
-  stable var errorDetection : Float = 0.5;          // Error awareness
-  stable var performanceMonitoring : Float = 0.6;   // Tracking own performance
-  stable var cognitiveControl : Float = 0.6;        // Control engagement
-  
-  // Salience Map (64 features, each with salience weight)
-  stable var salienceMap : [var Float] = Array.init<Float>(64, 0.3);
-  stable var topDownBias : [var Float] = Array.init<Float>(64, 0.5);  // Goal-based weighting
-  stable var bottomUpSalience : [var Float] = Array.init<Float>(64, 0.3);  // Stimulus-driven
-  
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-  //  ENGINE 6: NEUROPLASTICITY — BCM RULE, LTP/LTD, BDNF, HOMEOSTATIC SCALING
-  //
-  //  Neuroplasticity is the brain's ability to reorganize itself by forming new neural connections.
-  //
-  //  Key mechanisms:
-  //    - LTP (Long-Term Potentiation): "fire together, wire together"
-  //    - LTD (Long-Term Depression): weakening of synapses
-  //    - BCM Rule: sliding threshold for LTP/LTD based on recent activity
-  //    - BDNF (Brain-Derived Neurotrophic Factor): promotes neuronal growth
-  //    - Homeostatic Scaling: global adjustment to maintain stability
-  //    - Spike-Timing Dependent Plasticity (STDP): precise temporal learning
-  //    - Structural Plasticity: spine growth/retraction
-  //
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-
-  // BDNF (Brain-Derived Neurotrophic Factor)
-  stable var bdnfLevel : Float = 0.7;               // Current BDNF concentration
-  stable var bdnfBaseline : Float = 0.6;            // Homeostatic setpoint
-  stable var bdnfProductionRate : Float = 0.01;     // How fast BDNF is produced
-  stable var bdnfDecayRate : Float = 0.001;         // How fast BDNF degrades
-  stable var bdnfExerciseBoost : Float = 0.0;       // Activity-dependent boost
-  stable var bdnfStressReduction : Float = 0.0;     // Stress-induced reduction
-  
-  // BCM Sliding Threshold
-  stable var bcmTheta : Float = 0.5;                // Current modification threshold
-  stable var bcmThetaMin : Float = 0.2;             // Minimum threshold
-  stable var bcmThetaMax : Float = 0.8;             // Maximum threshold
-  stable var bcmThetaDecay : Float = 0.001;         // Threshold decay rate
-  stable var recentActivityHistory : [var Float] = Array.init<Float>(100, 0.5);
-  stable var recentActivityIdx : Nat = 0;
-  
-  // LTP/LTD State (per synapse type)
-  stable var ltpInduction : Float = 0.0;            // Current LTP being induced
-  stable var ltdInduction : Float = 0.0;            // Current LTD being induced
-  stable var netPlasticityChange : Float = 0.0;     // LTP - LTD
-  stable var plasticityGate : Float = 1.0;          // BDNF-gated plasticity multiplier
-  
-  // Homeostatic Scaling
-  stable var synapticScalingFactor : Float = 1.0;   // Global scaling multiplier
-  stable var targetFiringRate : Float = 0.3;        // Homeostatic target
-  stable var currentFiringRate : Float = 0.3;       // Current average firing
-  stable var scalingTimeConstant : Float = 0.01;    // How fast scaling adjusts
-  
-  // Spike-Timing Dependent Plasticity (STDP)
-  stable var stdpWindow : Float = 0.02;             // STDP temporal window (seconds)
-  stable var stdpAPlus : Float = 0.01;              // LTP amplitude (pre-then-post)
-  stable var stdpAMinus : Float = 0.012;            // LTD amplitude (post-then-pre)
-  stable var stdpTauPlus : Float = 0.02;            // LTP decay time constant
-  stable var stdpTauMinus : Float = 0.02;           // LTD decay time constant
-  
-  // Structural Plasticity
-  stable var spineFormationRate : Float = 0.001;    // New spine formation
-  stable var spineEliminationRate : Float = 0.001;  // Spine pruning
-  stable var netSpineChange : Float = 0.0;          // Formation - Elimination
-  stable var dendriticComplexity : Float = 0.5;     // Branching complexity
-  stable var axonalGrowth : Float = 0.0;            // Axon elongation/retraction
-  
-  // Neurogenesis (adult hippocampal)
-  stable var neurogenesisRate : Float = 0.001;      // New neuron formation
-  stable var neuronMaturationProgress : Float = 0.0; // Maturation state
-  stable var survivingNewNeurons : Float = 0.0;     // Successfully integrated neurons
-  
-  // Consolidation State
-  stable var synapticConsolidation : Float = 0.0;   // Early consolidation (hours)
-  stable var systemsConsolidation : Float = 0.0;    // Late consolidation (days)
-  stable var consolidationPhase : Text = "NONE";    // ENCODING, EARLY, LATE, COMPLETE
-  
-  // Overall Neuroplasticity Score
-  stable var neuroplasticityFactor : Float = 0.7;   // Composite plasticity capacity
-  stable var learningRate : Float = 0.01;           // Current effective learning rate
-  stable var memoryStabilityIndex : Float = 0.7;    // How stable are existing memories
-  
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-  //  ENGINE 7: CIRCADIAN RHYTHM — SCN, ADENOSINE, MELATONIN, ULTRADIAN CYCLES
-  //
-  //  Circadian rhythms are ~24-hour oscillations driven by the suprachiasmatic nucleus (SCN).
-  //  Ultradian rhythms are shorter cycles (90-120 min) affecting alertness and performance.
-  //
-  //  Key components:
-  //    - SCN (Suprachiasmatic Nucleus): master clock, receives light input
-  //    - Melatonin: sleep-promoting hormone, rises in darkness
-  //    - Adenosine: sleep pressure, accumulates during wakefulness
-  //    - Core Body Temperature: circadian modulator
-  //    - Cortisol Awakening Response: morning arousal
-  //    - BMAL1/CLOCK/PER/CRY: molecular clock genes
-  //
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-
-  // Suprachiasmatic Nucleus (Master Clock)
-  stable var scnPhase : Float = 0.0;                // Current circadian phase (0-2π)
-  stable var scnPeriod : Float = 24.0;              // Intrinsic period (hours)
-  stable var scnAmplitude : Float = 1.0;            // Oscillation strength
-  stable var scnCoherence : Float = 0.9;            // Internal SCN synchrony
-  stable var scnLightInput : Float = 0.5;           // Zeitgeber input (light level)
-  
-  // Melatonin System
-  stable var melatoninLevel : Float = 0.1;          // Current melatonin concentration
-  stable var melatoninOnset : Float = 0.0;          // Phase of melatonin rise
-  stable var melatoninDuration : Float = 0.5;       // Length of melatonin window
-  stable var melatoninSuppression : Float = 0.0;    // Light-induced suppression
-  
-  // Adenosine (Sleep Pressure)
-  stable var adenosineLevel : Float = 0.3;          // Current adenosine accumulation
-  stable var adenosineAccumulationRate : Float = 0.001;  // Buildup rate while awake
-  stable var adenosineClearanceRate : Float = 0.002;     // Clearance rate during sleep
-  stable var caffeineBlockade : Float = 0.0;        // Adenosine receptor blockade
-  
-  // Sleep Homeostasis (Two-Process Model: Process S + Process C)
-  stable var processS : Float = 0.3;                // Homeostatic sleep pressure
-  stable var processC : Float = 0.7;                // Circadian alerting signal
-  stable var sleepPropensity : Float = 0.3;         // S - C = sleep drive
-  stable var sleepDebt : Float = 0.0;               // Accumulated sleep debt
-  stable var sleepStage : Text = "WAKE";            // WAKE, N1, N2, N3, REM
-  
-  // Ultradian Rhythm (90-120 minute BRAC cycle)
-  stable var ultradianPhase : Float = 0.0;          // Current ultradian phase
-  stable var ultradianPeriod : Float = 90.0;        // BRAC cycle length (minutes)
-  stable var ultradianAmplitude : Float = 0.3;      // Performance oscillation depth
-  stable var peakPerformancePhase : Float = 0.0;    // When in cycle is peak
-  
-  // Cortisol Awakening Response
-  stable var cortisolCircadian : Float = 0.5;       // Circadian cortisol level
-  stable var cortisolAwakeningResponse : Float = 0.0;  // CAR magnitude
-  stable var cortisolPeakTime : Float = 0.25;       // When cortisol peaks (fraction of day)
-  
-  // Core Body Temperature
-  stable var coreBodyTemp : Float = 37.0;           // Celsius
-  stable var coreBodyTempPhase : Float = 0.0;       // Circadian phase of temperature
-  stable var coreBodyTempMin : Float = 36.5;        // Nadir (typically 4-6 AM)
-  stable var coreBodyTempMax : Float = 37.5;        // Peak (typically 6-8 PM)
-  
-  // Molecular Clock Genes (simplified)
-  stable var clockGeneExpression : Float = 0.5;     // CLOCK/BMAL1 expression
-  stable var perGeneExpression : Float = 0.5;       // PER1/2/3 expression
-  stable var cryGeneExpression : Float = 0.5;       // CRY1/2 expression
-  stable var molecularClockCoherence : Float = 0.8; // Gene oscillation synchrony
-  
-  // Circadian Performance
-  stable var circadianPeakScore : Float = 0.7;      // Current circadian performance factor
-  stable var alertnessLevel : Float = 0.7;          // Overall alertness (S + C + ultradian)
-  stable var fatigueLevel : Float = 0.3;            // Complement of alertness
-  stable var circadianCoherence : Float = 0.8;      // Overall circadian health
-  
-  // Time of Day Effects
-  stable var virtualTimeOfDay : Float = 0.5;        // 0=midnight, 0.5=noon, 1=midnight
-  stable var chronotype : Float = 0.5;              // 0=extreme lark, 1=extreme owl
-  stable var socialJetlag : Float = 0.0;            // Mismatch between bio and social time
-  
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-  //  13-LOOP STREAK MULTIPLIER — ECONOMIC INTEGRATION
-  //
-  //  The sovereign streak multiplier compounds 13 separate coherence scores:
-  //    1. kuramotoR: Kuramoto order parameter (swarm synchrony)
-  //    2. courageScore: willingness to face threat
-  //    3. groundedScore: body-mind integration (interoception)
-  //    4. fearLevel: inverse (lower fear = higher multiplier)
-  //    5. beFlowState: flow state (optimal challenge/skill balance)
-  //    6. bhCouplingCoherence: brain-heart coupling
-  //    7. missionPersistenceScore: goal-directed persistence
-  //    8. consciousnessIndex: Tononi-Edelman unified awareness
-  //    9. pcActiveInferenceScore: Friston predictive coding engagement
-  //    10. interoceptiveScore: Craig-Damasio body awareness
-  //    11. salienceNetworkScore: Menon-Uddin salience detection
-  //    12. circadianPeakScore: optimal circadian timing
-  //    13. neuroplasticityFactor: BCM/BDNF learning capacity
-  //
-  //  A desynchronized, fearful, ungrounded organism earns LESS.
-  //  A sovereign, coherent, grounded, mission-locked organism earns EXPONENTIALLY MORE.
-  //
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
-
-  // Individual multiplier components
-  stable var courageScore : Float = 0.7;
-  stable var groundedScore : Float = 0.7;           // KEY: OMNIS grounding gate
-  stable var fearLevel : Float = 0.3;               // Inverse contributes to multiplier
-  stable var beFlowState : Float = 0.5;
-  stable var bhCouplingCoherence : Float = 0.7;     // Brain-heart coherence
-  stable var missionPersistenceScore : Float = 0.7;
-  
-  // Streak Multiplier State
-  stable var streakMultiplier : Float = 1.0;        // Current composite multiplier
-  stable var streakConsecutive : Nat = 0;           // Beats of high coherence streak
-  stable var streakPeakMultiplier : Float = 1.0;    // Highest multiplier achieved
-  stable var streakTotalBeats : Nat = 0;            // Total beats in streak mode
-  stable var streakEconomicBonus : Float = 0.0;     // Accumulated bonus from streak
-  
-  // OMNIS Grounding Gate
-  stable var omnisGroundingGate : Bool = true;      // Can OMNIS fire?
-  stable var groundingGateThreshold : Float = 0.7;  // Minimum groundedScore for OMNIS
-  
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════
-  // DOCTRINE PATTERN GATE ARCHITECTURE — THE COMPLETE COGNITIVE FLOW
-  // ═══════════════════════════════════════════════════════════════════════════════════════════════
-  // Pattern Recognition → Gate → Void/Zone → Leader Selection → Synthesis → Output → Resonance
-  // This is the REAL architecture: real EM field geometry, real phi coupling, real Hz
-  
-  stable var doctrineGateThreshold : Float = 0.6;   // Pattern match threshold for gate passage
-  stable var doctrineGateCoherence : Float = 0.5;   // Current gate coherence
-  stable var doctrineGateOpen : Bool = false;       // Is gate currently passing information?
-  stable var doctrineVoidCoherence : Float = 0.5;   // Void/Zone moment coherence
-  stable var doctrineLeaderIdx : Nat = 0;           // Which doctrine node is leading
-  stable var doctrineSynthesisAnswer : Float = 1.0; // Last synthesized answer
-  stable var doctrineSynthesisConfidence : Float = 0.5;  // Synthesis confidence
-  stable var doctrineResonanceScore : Float = 0.5;  // Output resonance quality
-  stable var doctrineInTheMoment : Bool = false;    // Is organism in present moment?
-  stable var doctrineCanAct : Bool = false;         // Can organism act on synthesis?
-  stable var doctrineResonanceFreq : Float = 7.83;  // Current resonance frequency (Hz)
-  stable var doctrinePhiAlignment : Float = 0.5;    // Alignment with phi geometry
-  
-  // Doctrine node activations (12 PHI frequency nodes)
-  stable var doctrineNodeActivations : [var Float] = Array.init<Float>(12, 1.0);
-  stable var doctrineNodePhases : [var Float] = Array.init<Float>(12, 0.0);
-  stable var doctrineNodeConfidences : [var Float] = Array.init<Float>(12, 0.8);
-  
-  // ═══════════════════════════════════════════════════════════════════════════════════════════
-  // ENHANCED DOCTRINE ARCHITECTURE — MALE/FEMALE, ENERGIZED ZONE, QUANTUM CONTINUITY
-  // ═══════════════════════════════════════════════════════════════════════════════════════════
-  
-  // Male Sensing Field (FRONT — pattern recognition)
-  stable var doctrineMaleDoctrineResonance : Float = 0.5;
-  stable var doctrineMalePatternRecognized : Bool = false;
-  stable var doctrineMaleFlowAllowed : Bool = false;
-  stable var doctrineMaleSensingStrength : Float = 0.5;
-  stable var doctrineMaleDoctrineAlignment : Float = 0.5;
-  
-  // Female Gate Guardian (protects void, confirms output)
-  stable var doctrineFemaleGateSealed : Bool = true;
-  stable var doctrineFemaleTestPassed : Bool = false;
-  stable var doctrineFemaleProtectionLevel : Float = 0.5;
-  stable var doctrineFemaleOutputConfirmed : Bool = false;
-  stable var doctrineFemaleMouthReady : Bool = false;
-  
-  // Energized Zone (amplified, directional, Yin/Yang/Chi)
-  stable var doctrineZoneAmplification : Float = 1.0;
-  stable var doctrineZoneDirection : Float = 0.0;
-  stable var doctrineZoneYinCharge : Float = 0.5;
-  stable var doctrineZoneYangCharge : Float = 0.5;
-  stable var doctrineZoneChiFlow : Float = 0.0;
-  stable var doctrineZoneImbalanceHealth : Float = 0.5;
-  stable var doctrineZoneFrequencyLock : Float = 7.83;
-  
-  // Quantum Continuity (don't drop the ball!)
-  stable var doctrineQuantumIsFused : Bool = false;
-  stable var doctrineQuantumFusionLevel : Float = 0.0;
-  stable var doctrineQuantumCoherenceMaintained : Float = 1.0;
-  stable var doctrineQuantumThoughtChainLength : Nat = 0;
-  stable var doctrineQuantumDroppedCount : Nat = 0;
-  stable var doctrineQuantumHigherLevelLock : Float = 0.0;
-  
-  // Containment Layer (failures/rejections)
-  stable var doctrineContainmentPressure : Float = 0.0;
-  stable var doctrineContainmentBreachRisk : Float = 0.0;
-  stable var doctrineContainedPatternCount : Nat = 0;
 
   // ─── ACCESS CONTROL HELPERS ─────────────────────────────────────────────────
   func isAuthorized(caller : Principal) : Bool {
