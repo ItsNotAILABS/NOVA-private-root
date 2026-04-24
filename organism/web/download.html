@@ -341,9 +341,10 @@
         <!-- Individual extensions -->
         <div class="section-title">Individual Extensions</div>
         <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);border-radius:8px;padding:1rem 1.2rem;margin-bottom:1rem;font-size:0.8rem;line-height:1.6;">
-            <strong style="color:#10B981;">⚡ One-Click Install:</strong>
+            <strong style="color:#10B981;">⚡ One-Click Install (Chrome &amp; Edge):</strong>
             <span style="color:rgba(255,255,255,0.6);">Click the green button → pick an empty folder → files are written directly to disk. Then open
-            <code style="color:#D4AF37;background:rgba(212,175,55,0.08);padding:0.1rem 0.3rem;border-radius:3px;">chrome://extensions</code>
+            <code style="color:#D4AF37;background:rgba(212,175,55,0.08);padding:0.1rem 0.3rem;border-radius:3px;">chrome://extensions</code> or
+            <code style="color:#D4AF37;background:rgba(212,175,55,0.08);padding:0.1rem 0.3rem;border-radius:3px;">edge://extensions</code>
             → enable <strong style="color:#fff;">Developer Mode</strong> → <strong style="color:#fff;">Load unpacked</strong> → select that folder. Done.</span>
         </div>
         <div class="ext-grid" id="extGrid">
@@ -485,7 +486,7 @@
 
     // ── Extension definitions ──────────────────────────────────────────
     // Each extension is fully defined here — the worker builds the zip.
-    // These are real Chrome/Firefox extension source files.
+    // These are real Chrome/Edge/Firefox extension source files.
 
     function makeManifest(name, desc, slug, permissions, content_matches) {
       var m = {
@@ -512,7 +513,7 @@
       {
         slug: 'nova-sovereign-panel',
         name: 'NOVA Sovereign Panel',
-        desc: 'Side panel command center — like Copilot but sovereign. Opens on the right side of your browser with tools, notes, and φ-intelligence.',
+        desc: 'Side panel command center — like Copilot but sovereign. Opens on the right side of Chrome or Edge with tools, notes, and φ-intelligence.',
         manifest: JSON.stringify({
           manifest_version: 3,
           name: 'NOVA Sovereign Panel',
@@ -527,7 +528,7 @@
         }, null, 2),
         background: [
           '// NOVA Sovereign Panel — Background Service Worker',
-          '// Opens side panel on action click (Chrome 116+)',
+          '// Opens side panel on action click (Chrome 116+ / Edge 117+)',
           'chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })',
           '  .catch(function() {});',
           '',
@@ -1604,6 +1605,14 @@
       var existing = document.getElementById('install-guide');
       if (existing) existing.remove();
 
+      // Detect browser — Edge UA contains "Edg/" while Chrome contains "Chrome/"
+      var isEdge = /Edg\//i.test(navigator.userAgent);
+      var browserName = isEdge ? 'Edge' : 'Chrome';
+      var extUrl = isEdge ? 'edge://extensions' : 'chrome://extensions';
+      var puzzleHint = isEdge
+        ? 'The extension will appear in your toolbar. Click the puzzle icon (🧩) → toggle it on.'
+        : 'The extension will appear in your toolbar. Click the puzzle icon → pin it.';
+
       var guide = document.createElement('div');
       guide.id = 'install-guide';
       guide.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:10000;display:flex;align-items:center;justify-content:center;';
@@ -1615,12 +1624,12 @@
             : '<p style="color:rgba(255,255,255,0.5);margin-bottom:1rem;font-size:0.85rem;">ZIP downloaded. Extract it to a folder first.</p>'
           ) +
           '<ol style="color:rgba(255,255,255,0.7);font-size:0.85rem;line-height:1.8;padding-left:1.2rem;">' +
-            '<li>Open Chrome → type <code style="color:#D4AF37;background:rgba(212,175,55,0.1);padding:0.1rem 0.4rem;border-radius:3px;">chrome://extensions</code></li>' +
-            '<li>Enable <strong style="color:#fff;">Developer Mode</strong> (top-right toggle)</li>' +
+            '<li>Open ' + browserName + ' → type <code style="color:#D4AF37;background:rgba(212,175,55,0.1);padding:0.1rem 0.4rem;border-radius:3px;">' + extUrl + '</code></li>' +
+            '<li>Enable <strong style="color:#fff;">Developer Mode</strong> (' + (isEdge ? 'bottom-left toggle' : 'top-right toggle') + ')</li>' +
             '<li>Click <strong style="color:#fff;">Load unpacked</strong></li>' +
             '<li>Select the ' + (filesWritten ? 'folder you just chose' : 'extracted folder') + '</li>' +
           '</ol>' +
-          '<p style="color:rgba(255,255,255,0.3);font-size:0.75rem;margin-top:1rem;">The extension will appear in your toolbar. Click the puzzle icon → pin it.</p>' +
+          '<p style="color:rgba(255,255,255,0.3);font-size:0.75rem;margin-top:1rem;">' + puzzleHint + '</p>' +
           '<button onclick="document.getElementById(\'install-guide\').remove()" style="margin-top:1.5rem;padding:0.5rem 1.5rem;background:rgba(212,175,55,0.15);color:#D4AF37;border:1px solid rgba(212,175,55,0.3);border-radius:6px;cursor:pointer;font-weight:600;">Got it</button>' +
         '</div>';
       guide.addEventListener('click', function(ev) { if (ev.target === guide) guide.remove(); });
