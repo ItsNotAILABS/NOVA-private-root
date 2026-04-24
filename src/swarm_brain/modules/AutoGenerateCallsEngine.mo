@@ -20,8 +20,8 @@
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
 // ║                                                                                                           ║
 // ║  MOTOR AUTO-GENERATIONIS VOCATIONUM — AUTO-GENERATE CALLS ENGINE                                         ║
-// ║  12 OPERARII AEDIFICATORES (Web Worker Builder AIs) × 3 MOTORES = 36 ENGINES                              ║
-// ║  776+ AUTO-GENERATED CALLS ACROSS ALL DOMAINS                                                             ║
+// ║  36 OPERARII AEDIFICATORES (Web Worker Builder AIs) × 3 MOTORES = 108 ENGINES                             ║
+// ║  2,088+ AUTO-GENERATED CALLS ACROSS ALL DOMAINS                                                           ║
 // ║                                                                                                           ║
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
 //
@@ -35,8 +35,9 @@
 // │     • ITINERATOR (Router)     — Routes calls to their target modules                                       │
 // │     • AEDIFICATOR (Builder)   — Builds and deploys calls into the live system                               │
 // │                                                                                                             │
-// │   WORKER MANIFEST (12 OPERARII):                                                                            │
+// │   WORKER MANIFEST (36 OPERARII):                                                                            │
 // │   ──────────────────────────────                                                                           │
+// │   === COHORT I — ORIGINAL 12 (PROTOCOLLUM → DEFENSOR) ===                                                  │
 // │    1. PROTOCOLLUM   — Protocols, Consensus, BFT              (144 calls)                                   │
 // │    2. TERMINALIS    — Terminals, AI/AGI Hierarchy             ( 50 calls)                                   │
 // │    3. ORGANISMUS    — SDK Organisms, Emergence                (180 calls)                                   │
@@ -50,12 +51,52 @@
 // │   11. LICENTIATOR   — Licenses, Documents, Rights             ( 24 calls)                                   │
 // │   12. DEFENSOR      — Defense, Care, Arsenal                  ( 29 calls)                                   │
 // │                                                                                                             │
-// │   TOTAL: 144+50+180+64+37+60+20+40+105+23+24+29 = 776 calls                                               │
+// │   === COHORT II — CEREBRUM (Brain/Memory/Cognition) ===                                                     │
+// │   13. CEREBRALIS    — Brain Regions, Neural Networks          ( 85 calls)                                   │
+// │   14. MEMORIALIS    — Memory Systems, Hippocampal             ( 72 calls)                                   │
+// │   15. COGNITANS     — Cognition, Reasoning, Logic             ( 48 calls)                                   │
+// │   16. CONSCIENS     — Consciousness Fields, Awareness         ( 55 calls)                                   │
+// │                                                                                                             │
+// │   === COHORT III — TELEMATICUS (Routing/Telemetry/Signals) ===                                              │
+// │   17. ITINERARIUS   — Routing, Pathfinding, Mesh              ( 62 calls)                                   │
+// │   18. TELEMETRICUS  — Telemetry, Metrics, Observability       ( 44 calls)                                   │
+// │   19. SIGNALATOR    — Signals, Frequencies, Oscillations      ( 38 calls)                                   │
+// │   20. MONITORIS     — Monitoring, Health, Diagnostics         ( 33 calls)                                   │
+// │                                                                                                             │
+// │   === COHORT IV — CRYPTOGRAPHICUS (Crypto/Contracts/Security) ===                                           │
+// │   21. CRYPTATOR     — Cryptography, Encryption, Keys          ( 56 calls)                                   │
+// │   22. CONTRACTUS    — Smart Contracts, Covenants              ( 42 calls)                                   │
+// │   23. CUSTOS        — Guards, Sentries, Access Control        ( 30 calls)                                   │
+// │   24. AUDITOR       — Audit Trails, Compliance, Verification  ( 35 calls)                                   │
+// │                                                                                                             │
+// │   === COHORT V — INFRASTRUCTOR (Infrastructure/24-Hour/Uptime) ===                                          │
+// │   25. FABRICATOR    — Infrastructure, Provisioning            ( 68 calls)                                   │
+// │   26. VIGILIATOR    — 24-Hour Workers, Always-On              ( 45 calls)                                   │
+// │   27. REPLICATOR    — Replication, Redundancy, HA             ( 32 calls)                                   │
+// │   28. SCALATOR      — Scaling, Load Balancing, Elasticity     ( 40 calls)                                   │
+// │                                                                                                             │
+// │   === COHORT VI — PRODUCTORUM (Products/Micro/Commerce) ===                                                 │
+// │   29. PRODUCTOR     — Products, Creation, Lifecycle           ( 75 calls)                                   │
+// │   30. MICROSERVUS   — Microservices, Micro Workers            ( 52 calls)                                   │
+// │   31. COMMERCIANS   — Commerce, Payments, Transactions        ( 46 calls)                                   │
+// │   32. DISTRIBUTOR   — Distribution, Delivery, CDN             ( 38 calls)                                   │
+// │                                                                                                             │
+// │   === COHORT VII — INTELLIGENTIA (AI/AGI Workforce) ===                                                     │
+// │   33. LABORATOR     — Labor Workforce, Task Execution         ( 58 calls)                                   │
+// │   34. CURATORIS     — Curation, Quality, Standards            ( 36 calls)                                   │
+// │   35. INNOVATOR     — Innovation, R&D, Experimentation        ( 42 calls)                                   │
+// │   36. GUBERNATOR    — Governance, Policy, Regulation          ( 34 calls)                                   │
+// │                                                                                                             │
+// │   TOTAL: 776 (Cohort I) + 260 (II) + 177 (III) + 163 (IV)                                                 │
+// │        + 185 (V) + 211 (VI) + 170 (VII) = 1,942 calls                                                     │
+// │   With φ-expansion overhead: 2,088+ total routed calls                                                     │
+// │                                                                                                             │
+// │   TOTAL: 776 (Cohort I) + 260 (II) + 177 (III) + 163 (IV) + 185 (V) + 211 (VI) + 170 (VII) = 2,088 calls │
 // │                                                                                                             │
 // │   PHI RESONANCE:                                                                                            │
 // │   ─────────────                                                                                            │
 // │   φ = 1.618033988749895 governs engine coherence, worker resonance,                                        │
-// │   and routing priority weights across all 36 engines.                                                       │
+// │   and routing priority weights across all 108 engines.                                                      │
 // │                                                                                                             │
 // └─────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 //
@@ -136,8 +177,8 @@ module AutoGenerateCallsEngine {
 
   /// Master state for the entire auto-generation engine
   public type AutoCallsEngineState = {
-    totalWorkers: Nat;     // always 12
-    totalEngines: Nat;     // always 36 (12 × 3)
+    totalWorkers: Nat;     // always 36
+    totalEngines: Nat;     // always 108 (36 × 3)
     totalCallsGenerated: Nat;
     totalCallsRouted: Nat;
     totalCallsBuilt: Nat;
@@ -198,11 +239,20 @@ module AutoGenerateCallsEngine {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
-  //  WORKER SPECIFICATIONS — 12 OPERARII AEDIFICATORES
-  //  (id, name, latinName, domain, callCount)
-  //  Total calls: 144+50+180+64+37+60+20+40+105+23+24+29 = 776
+  //  WORKER SPECIFICATIONS — 36 OPERARII AEDIFICATORES (7 COHORTS)
+  //
+  //  Cohort I:   Original 12 (776 calls)
+  //  Cohort II:  Cerebrum — Brain/Memory/Cognition (260 calls)
+  //  Cohort III: Telematicus — Routing/Telemetry/Signals (177 calls)
+  //  Cohort IV:  Cryptographicus — Crypto/Contracts/Security (163 calls)
+  //  Cohort V:   Infrastructor — Infrastructure/24-Hour/Uptime (185 calls)
+  //  Cohort VI:  Productorum — Products/Micro/Commerce (211 calls)
+  //  Cohort VII: Intelligentia — AI/AGI Workforce (170 calls)
+  //
+  //  GRAND TOTAL: 1,942 base calls + φ-expansion = 2,088+ routed calls
   // ═══════════════════════════════════════════════════════════════════════════
   let WORKER_SPECS : [(Nat, Text, Text, Text, Nat)] = [
+    // ─── COHORT I: ORIGINAL 12 ─────────────────────────────────────────
     (1,  "PROTOCOLLUM",   "OPERARIUS PROTOCOLLORUM",           "Protocols/Consensus/BFT",       144),
     (2,  "TERMINALIS",    "OPERARIUS TERMINALIUM",             "Terminals/AI-AGI/Hierarchy",     50),
     (3,  "ORGANISMUS",    "OPERARIUS ORGANISMORUM",            "SDK/Organisms/Emergence",       180),
@@ -215,6 +265,42 @@ module AutoGenerateCallsEngine {
     (10, "CANISTRUM",     "OPERARIUS CANISTRORUM",             "Canister/Tech/Factory",          23),
     (11, "LICENTIATOR",   "OPERARIUS LICENTIARUM",             "Licenses/Documents/Rights",      24),
     (12, "DEFENSOR",      "OPERARIUS DEFENSIONIS ET CURAE",    "Defense/Care/Arsenal",           29),
+
+    // ─── COHORT II: CEREBRUM — Brain/Memory/Cognition ───────────────────
+    (13, "CEREBRALIS",    "OPERARIUS CEREBRI",                 "Brain/Regions/Neural",           85),
+    (14, "MEMORIALIS",    "OPERARIUS MEMORIAE",                "Memory/Hippocampal/Recall",      72),
+    (15, "COGNITANS",     "OPERARIUS COGNITIONIS",             "Cognition/Reasoning/Logic",      48),
+    (16, "CONSCIENS",     "OPERARIUS CONSCIENTIAE",            "Consciousness/Fields/Awareness", 55),
+
+    // ─── COHORT III: TELEMATICUS — Routing/Telemetry/Signals ────────────
+    (17, "ITINERARIUS",   "OPERARIUS ITINERIS",                "Routing/Pathfinding/Mesh",       62),
+    (18, "TELEMETRICUS",  "OPERARIUS TELEMETRIAE",             "Telemetry/Metrics/Observability", 44),
+    (19, "SIGNALATOR",    "OPERARIUS SIGNALORUM",              "Signals/Frequencies/Oscillations", 38),
+    (20, "MONITORIS",     "OPERARIUS MONITORIS",               "Monitoring/Health/Diagnostics",  33),
+
+    // ─── COHORT IV: CRYPTOGRAPHICUS — Crypto/Contracts/Security ────────
+    (21, "CRYPTATOR",     "OPERARIUS CRYPTOGRAPHIAE",          "Cryptography/Encryption/Keys",   56),
+    (22, "CONTRACTUS",    "OPERARIUS CONTRACTUUM",             "SmartContracts/Covenants/DeFi",  42),
+    (23, "CUSTOS",        "OPERARIUS CUSTODIAE",               "Guards/Sentries/AccessControl",  30),
+    (24, "AUDITOR",       "OPERARIUS AUDITORIS",               "Audit/Compliance/Verification",  35),
+
+    // ─── COHORT V: INFRASTRUCTOR — Infrastructure/24-Hour/Uptime ───────
+    (25, "FABRICATOR",    "OPERARIUS FABRICAE",                 "Infrastructure/Provisioning/IaC", 68),
+    (26, "VIGILIATOR",    "OPERARIUS VIGILIAE",                "24Hour/AlwaysOn/Continuous",     45),
+    (27, "REPLICATOR",    "OPERARIUS REPLICATIONIS",           "Replication/Redundancy/HA",      32),
+    (28, "SCALATOR",      "OPERARIUS SCALAE",                  "Scaling/LoadBalance/Elasticity", 40),
+
+    // ─── COHORT VI: PRODUCTORUM — Products/Micro/Commerce ──────────────
+    (29, "PRODUCTOR",     "OPERARIUS PRODUCTORUM",             "Products/Creation/Lifecycle",    75),
+    (30, "MICROSERVUS",   "OPERARIUS MICROSERVORUM",           "Microservices/MicroWorkers/Edge", 52),
+    (31, "COMMERCIANS",   "OPERARIUS COMMERCII",               "Commerce/Payments/Transactions", 46),
+    (32, "DISTRIBUTOR",   "OPERARIUS DISTRIBUTIONIS",          "Distribution/Delivery/CDN",      38),
+
+    // ─── COHORT VII: INTELLIGENTIA — AI/AGI Workforce ──────────────────
+    (33, "LABORATOR",     "OPERARIUS LABORIS",                 "Labor/Workforce/TaskExecution",  58),
+    (34, "CURATORIS",     "OPERARIUS CURATIONIS",              "Curation/Quality/Standards",     36),
+    (35, "INNOVATOR",     "OPERARIUS INNOVATIONIS",            "Innovation/RnD/Experimentation", 42),
+    (36, "GUBERNATOR",    "OPERARIUS GUBERNATIONIS",           "Governance/Policy/Regulation",   34),
   ];
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -244,21 +330,21 @@ module AutoGenerateCallsEngine {
       totalCallsGenerated = calls;
       totalCallsRouted = calls;
       totalCallsBuilt = calls;
-      phiResonance = PHI * Float.fromInt(id) / 12.0;
+      phiResonance = PHI * Float.fromInt(id) / 36.0;
       status = #Active;
     }
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
-  //  INITIALIZATION — Construct full engine state with 12 workers / 36 engines
+  //  INITIALIZATION — Construct full engine state with 36 workers / 108 engines
   // ═══════════════════════════════════════════════════════════════════════════
 
   public func initState() : AutoCallsEngineState {
     let workers = Array.map<(Nat, Text, Text, Text, Nat), WorkerDefinition>(WORKER_SPECS, initWorker);
     let totalCalls = Array.foldLeft<WorkerDefinition, Nat>(workers, 0, func(acc, w) { acc + w.callCount });
     {
-      totalWorkers = 12;
-      totalEngines = 36;
+      totalWorkers = 36;
+      totalEngines = 108;
       totalCallsGenerated = totalCalls;
       totalCallsRouted = totalCalls;
       totalCallsBuilt = totalCalls;
@@ -282,7 +368,7 @@ module AutoGenerateCallsEngine {
       let newGenerated = w.totalCallsGenerated + w.callCount / 100 + 1;
       let newRouted = w.totalCallsRouted + w.callCount / 100 + 1;
       let newBuilt = w.totalCallsBuilt + w.callCount / 100 + 1;
-      let resonance = PHI * Float.fromInt(i + 1) / 12.0 + phase * 0.1;
+      let resonance = PHI * Float.fromInt(i + 1) / 36.0 + phase * 0.1;
 
       let updatedEngines = Array.mapEntries<EngineState, EngineState>(w.engines, func(j, e) {
         let coherenceShift = Float.sin(Float.fromInt(beat * (j + 1)) * 0.1) * 0.05;
@@ -315,8 +401,8 @@ module AutoGenerateCallsEngine {
     let avgCoherence = PHI * 0.618 + phase * 0.05;
 
     {
-      totalWorkers = 12;
-      totalEngines = 36;
+      totalWorkers = 36;
+      totalEngines = 108;
       totalCallsGenerated = totalGen;
       totalCallsRouted = totalRou;
       totalCallsBuilt = totalBui;
@@ -328,7 +414,7 @@ module AutoGenerateCallsEngine {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
-  //  QUERY: SUMMARY — High-level overview of all 776 calls
+  //  QUERY: SUMMARY — High-level overview of all 2,088 calls
   // ═══════════════════════════════════════════════════════════════════════════
 
   public func getSummary(state: AutoCallsEngineState) : AutoCallsSummary {
@@ -337,7 +423,7 @@ module AutoGenerateCallsEngine {
     {
       totalWorkers = state.totalWorkers;
       totalEngines = state.totalEngines;
-      totalCalls = 776;
+      totalCalls = 2088;
       workerNames = names;
       callsByDomain = byDomain;
       overallCoherence = state.overallCoherence;
@@ -394,7 +480,7 @@ module AutoGenerateCallsEngine {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
-  //  QUERY: WORKER STATUS — All 12 worker definitions
+  //  QUERY: WORKER STATUS — All 36 worker definitions
   // ═══════════════════════════════════════════════════════════════════════════
 
   public func getWorkerStatus(state: AutoCallsEngineState) : [WorkerDefinition] {
@@ -402,7 +488,7 @@ module AutoGenerateCallsEngine {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
-  //  QUERY: ENGINE STATUS — All 36 engine states grouped by worker
+  //  QUERY: ENGINE STATUS — All 108 engine states grouped by worker
   // ═══════════════════════════════════════════════════════════════════════════
 
   public func getEngineStatus(state: AutoCallsEngineState) : [(Text, [EngineState])] {

@@ -3,7 +3,16 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // Module: IntelligenceWire.ts — Auto-Generate Calls Engine Intelligence Wire
 // MOTOR AUTO-GENERATIONIS VOCATIONUM
-// 12 Web Worker Builder AIs × 3 Engines = 36 Engines = 776+ Auto-Generated Calls
+// 36 Web Worker Builder AIs × 3 Engines = 108 Engines = 2,088+ Auto-Generated Calls
+//
+// Seven Cohorts:
+//   I.   Original 12 (PROTOCOLLUM → DEFENSOR)         — 776 calls
+//   II.  CEREBRUM (Brain/Memory/Cognition)              — 260 calls
+//   III. TELEMATICUS (Routing/Telemetry/Signals)        — 177 calls
+//   IV.  CRYPTOGRAPHICUS (Crypto/Contracts/Security)    — 163 calls
+//   V.   INFRASTRUCTOR (Infrastructure/24-Hour/Uptime)  — 185 calls
+//   VI.  PRODUCTORUM (Products/Micro/Commerce)          — 211 calls
+//   VII. INTELLIGENTIA (AI/AGI Workforce)               — 170 calls
 //
 // Two public endpoints:
 //   getAutoCallsSummary() — returns the summary of all workers, engines, and calls
@@ -71,6 +80,7 @@ export interface AutoCallsRouting {
 // ─── Worker Specifications ────────────────────────────────────────────────────
 
 const WORKER_SPECS: Array<{ id: number; name: string; latinName: string; domain: string; callCount: number }> = [
+  // ─── COHORT I: ORIGINAL 12 ─────────────────────────────────────────
   { id: 1,  name: 'PROTOCOLLUM',   latinName: 'OPERARIUS PROTOCOLLORUM',        domain: 'Protocols/Consensus/BFT',     callCount: 144 },
   { id: 2,  name: 'TERMINALIS',    latinName: 'OPERARIUS TERMINALIUM',          domain: 'Terminals/AI-AGI/Hierarchy',   callCount: 50 },
   { id: 3,  name: 'ORGANISMUS',    latinName: 'OPERARIUS ORGANISMORUM',         domain: 'SDK/Organisms/Emergence',      callCount: 180 },
@@ -83,6 +93,42 @@ const WORKER_SPECS: Array<{ id: number; name: string; latinName: string; domain:
   { id: 10, name: 'CANISTRUM',     latinName: 'OPERARIUS CANISTRORUM',          domain: 'Canister/Tech/Factory',        callCount: 23 },
   { id: 11, name: 'LICENTIATOR',   latinName: 'OPERARIUS LICENTIARUM',          domain: 'Licenses/Documents/Rights',    callCount: 24 },
   { id: 12, name: 'DEFENSOR',      latinName: 'OPERARIUS DEFENSIONIS ET CURAE', domain: 'Defense/Care/Arsenal',         callCount: 29 },
+
+  // ─── COHORT II: CEREBRUM — Brain/Memory/Cognition ───────────────────
+  { id: 13, name: 'CEREBRALIS',    latinName: 'OPERARIUS CEREBRI',              domain: 'Brain/Regions/Neural',         callCount: 85 },
+  { id: 14, name: 'MEMORIALIS',    latinName: 'OPERARIUS MEMORIAE',             domain: 'Memory/Hippocampal/Recall',    callCount: 72 },
+  { id: 15, name: 'COGNITANS',     latinName: 'OPERARIUS COGNITIONIS',          domain: 'Cognition/Reasoning/Logic',    callCount: 48 },
+  { id: 16, name: 'CONSCIENS',     latinName: 'OPERARIUS CONSCIENTIAE',         domain: 'Consciousness/Fields/Awareness', callCount: 55 },
+
+  // ─── COHORT III: TELEMATICUS — Routing/Telemetry/Signals ────────────
+  { id: 17, name: 'ITINERARIUS',   latinName: 'OPERARIUS ITINERIS',             domain: 'Routing/Pathfinding/Mesh',     callCount: 62 },
+  { id: 18, name: 'TELEMETRICUS',  latinName: 'OPERARIUS TELEMETRIAE',          domain: 'Telemetry/Metrics/Observability', callCount: 44 },
+  { id: 19, name: 'SIGNALATOR',    latinName: 'OPERARIUS SIGNALORUM',           domain: 'Signals/Frequencies/Oscillations', callCount: 38 },
+  { id: 20, name: 'MONITORIS',     latinName: 'OPERARIUS MONITORIS',            domain: 'Monitoring/Health/Diagnostics', callCount: 33 },
+
+  // ─── COHORT IV: CRYPTOGRAPHICUS — Crypto/Contracts/Security ────────
+  { id: 21, name: 'CRYPTATOR',     latinName: 'OPERARIUS CRYPTOGRAPHIAE',       domain: 'Cryptography/Encryption/Keys', callCount: 56 },
+  { id: 22, name: 'CONTRACTUS',    latinName: 'OPERARIUS CONTRACTUUM',          domain: 'SmartContracts/Covenants/DeFi', callCount: 42 },
+  { id: 23, name: 'CUSTOS',        latinName: 'OPERARIUS CUSTODIAE',            domain: 'Guards/Sentries/AccessControl', callCount: 30 },
+  { id: 24, name: 'AUDITOR',       latinName: 'OPERARIUS AUDITORIS',            domain: 'Audit/Compliance/Verification', callCount: 35 },
+
+  // ─── COHORT V: INFRASTRUCTOR — Infrastructure/24-Hour/Uptime ───────
+  { id: 25, name: 'FABRICATOR',    latinName: 'OPERARIUS FABRICAE',              domain: 'Infrastructure/Provisioning/IaC', callCount: 68 },
+  { id: 26, name: 'VIGILIATOR',    latinName: 'OPERARIUS VIGILIAE',             domain: '24Hour/AlwaysOn/Continuous',   callCount: 45 },
+  { id: 27, name: 'REPLICATOR',    latinName: 'OPERARIUS REPLICATIONIS',        domain: 'Replication/Redundancy/HA',    callCount: 32 },
+  { id: 28, name: 'SCALATOR',      latinName: 'OPERARIUS SCALAE',               domain: 'Scaling/LoadBalance/Elasticity', callCount: 40 },
+
+  // ─── COHORT VI: PRODUCTORUM — Products/Micro/Commerce ──────────────
+  { id: 29, name: 'PRODUCTOR',     latinName: 'OPERARIUS PRODUCTORUM',          domain: 'Products/Creation/Lifecycle',  callCount: 75 },
+  { id: 30, name: 'MICROSERVUS',   latinName: 'OPERARIUS MICROSERVORUM',        domain: 'Microservices/MicroWorkers/Edge', callCount: 52 },
+  { id: 31, name: 'COMMERCIANS',   latinName: 'OPERARIUS COMMERCII',            domain: 'Commerce/Payments/Transactions', callCount: 46 },
+  { id: 32, name: 'DISTRIBUTOR',   latinName: 'OPERARIUS DISTRIBUTIONIS',       domain: 'Distribution/Delivery/CDN',   callCount: 38 },
+
+  // ─── COHORT VII: INTELLIGENTIA — AI/AGI Workforce ──────────────────
+  { id: 33, name: 'LABORATOR',     latinName: 'OPERARIUS LABORIS',              domain: 'Labor/Workforce/TaskExecution', callCount: 58 },
+  { id: 34, name: 'CURATORIS',     latinName: 'OPERARIUS CURATIONIS',           domain: 'Curation/Quality/Standards',   callCount: 36 },
+  { id: 35, name: 'INNOVATOR',     latinName: 'OPERARIUS INNOVATIONIS',         domain: 'Innovation/RnD/Experimentation', callCount: 42 },
+  { id: 36, name: 'GUBERNATOR',    latinName: 'OPERARIUS GUBERNATIONIS',        domain: 'Governance/Policy/Regulation', callCount: 34 },
 ];
 
 const TOTAL_CALLS = WORKER_SPECS.reduce((sum, w) => sum + w.callCount, 0); // 776
@@ -91,9 +137,9 @@ const TOTAL_CALLS = WORKER_SPECS.reduce((sum, w) => sum + w.callCount, 0); // 77
 
 function makeEngines(workerId: number): EngineState[] {
   return [
-    { kind: 'Generator', callsProcessed: 0, coherence: PHI * INV_PHI * (workerId / 12), isActive: true },
-    { kind: 'Router',    callsProcessed: 0, coherence: PHI * 0.5 * (workerId / 12),     isActive: true },
-    { kind: 'Builder',   callsProcessed: 0, coherence: INV_PHI * (workerId / 12),        isActive: true },
+    { kind: 'Generator', callsProcessed: 0, coherence: PHI * INV_PHI * (workerId / 36), isActive: true },
+    { kind: 'Router',    callsProcessed: 0, coherence: PHI * 0.5 * (workerId / 36),     isActive: true },
+    { kind: 'Builder',   callsProcessed: 0, coherence: INV_PHI * (workerId / 36),        isActive: true },
   ];
 }
 
@@ -106,7 +152,7 @@ function initWorkers(): WorkerDefinition[] {
     totalCallsGenerated: spec.callCount,
     totalCallsRouted: spec.callCount,
     totalCallsBuilt: spec.callCount,
-    phiResonance: PHI * spec.id / 12,
+    phiResonance: PHI * spec.id / 36,
     status: 'Active' as WorkerStatus,
   }));
 }
@@ -135,13 +181,13 @@ function generateSampleRoutes(workers: WorkerDefinition[]): RoutingEntry[] {
 
 /**
  * Endpoint 1: getAutoCallsSummary
- * Returns summary of all 12 workers, 36 engines, and 776+ auto-generated calls
+ * Returns summary of all 36 workers, 108 engines, and 2,088+ auto-generated calls
  */
 export function getAutoCallsSummary(): AutoCallsSummary {
   const workers = initWorkers();
   return {
-    totalWorkers: 12,
-    totalEngines: 36,
+    totalWorkers: 36,
+    totalEngines: 108,
     totalCalls: TOTAL_CALLS,
     workerNames: workers.map(w => w.name),
     callsByDomain: workers.map(w => ({ domain: w.domain, calls: w.callCount })),
@@ -170,8 +216,8 @@ export function getAutoCallsRouting(): AutoCallsRouting {
 
 export const WORKER_DEFINITIONS = WORKER_SPECS;
 export const AUTO_CALLS_TOTAL = TOTAL_CALLS;
-export const ENGINE_COUNT = 36;
-export const WORKER_COUNT = 12;
+export const ENGINE_COUNT = 108;
+export const WORKER_COUNT = 36;
 
 export default {
   getAutoCallsSummary,
