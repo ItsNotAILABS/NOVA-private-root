@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOVA SDK MARKETPLACE — PARALLAX</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:#050a14;color:#e0f0ff;font-family:'Courier New',Courier,monospace;line-height:1.6;min-height:100vh}
+
+  /* ── Status Bar ── */
+  .status-bar{position:sticky;top:0;z-index:100;background:linear-gradient(180deg,#0a1428,#050a14);border-bottom:1px solid #1a3050;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .status-title{font-size:1.1rem;font-weight:bold;display:flex;align-items:center;gap:10px}
+  .pulse-dot{width:10px;height:10px;border-radius:50%;background:#00ff88;display:inline-block;animation:pulse 0.618s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 6px #00ff88}50%{opacity:.3;box-shadow:0 0 18px #00ff88}}
+  .status-metrics{display:flex;gap:20px;font-size:.85rem;color:#88aacc;flex-wrap:wrap}
+  .status-metrics span{white-space:nowrap}
+  .metric-val{color:#00ddff}
+
+  /* ── Layout ── */
+  .container{max-width:1280px;margin:0 auto;padding:24px}
+  h1{text-align:center;font-size:1.6rem;margin-bottom:8px;color:#88ccff}
+  h2{font-size:1.2rem;color:#66bbff;margin-bottom:16px;border-bottom:1px solid #1a3050;padding-bottom:8px}
+  .subtitle{text-align:center;color:#667788;font-size:.85rem;margin-bottom:32px}
+  .section{margin-bottom:40px}
+
+  /* ── Category Filter ── */
+  .category-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;justify-content:center}
+  .cat-btn{background:#0c1a2e;border:1px solid #1a3050;color:#88aacc;font-family:inherit;font-size:.78rem;padding:5px 14px;border-radius:14px;cursor:pointer;transition:all .2s}
+  .cat-btn:hover,.cat-btn.active{background:#1a3050;color:#66bbff;border-color:#2a5080}
+
+  /* ── Product Grid ── */
+  .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;margin-bottom:40px}
+  @media(max-width:740px){.product-grid{grid-template-columns:1fr}}
+  .product-card{background:#0c1a2e;border:1px solid #1a3050;border-radius:8px;padding:20px;transition:border-color .3s,transform .2s}
+  .product-card:hover{border-color:#2a5080;transform:translateY(-2px)}
+  .product-card.hidden{display:none}
+  .product-header{display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap}
+  .product-name{font-size:1.05rem;font-weight:bold;color:#66bbff}
+  .version-badge{font-size:.68rem;background:#1a3050;color:#00ddaa;padding:2px 8px;border-radius:10px}
+  .cat-badge{font-size:.66rem;background:#0e2240;color:#4488cc;padding:2px 8px;border-radius:10px;border:1px solid #1a3050}
+  .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .status-dot.deployed{background:#00ff88}
+  .status-dot.active{background:#00ddff}
+  .product-pkg{font-size:.72rem;color:#556677;font-style:italic;margin-bottom:8px}
+  .product-desc{font-size:.82rem;color:#99aabb;margin-bottom:12px;line-height:1.5}
+  .install-box{display:flex;gap:6px;margin-bottom:10px}
+  .install-cmd{flex:1;background:#050a14;border:1px solid #1a3050;color:#00ddaa;font-family:inherit;font-size:.76rem;padding:7px 10px;border-radius:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .copy-btn{background:#1a3050;color:#88ccff;border:1px solid #2a5080;font-family:inherit;font-size:.72rem;padding:4px 10px;border-radius:4px;cursor:pointer;transition:background .2s;white-space:nowrap}
+  .copy-btn:hover{background:#2a5080}
+  .try-btn{background:linear-gradient(135deg,#1a3050,#0e2240);color:#66bbff;border:1px solid #2a5080;font-family:inherit;font-size:.8rem;padding:7px 18px;border-radius:4px;cursor:pointer;transition:all .2s;width:100%;margin-bottom:8px}
+  .try-btn:hover{background:linear-gradient(135deg,#2a5080,#1a3050);color:#88ddff}
+  .product-result{padding:10px;background:#060e1c;border:1px solid #12253a;border-radius:4px;font-size:.78rem;color:#77aacc;min-height:36px;max-height:150px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;display:none}
+  .product-result.visible{display:block}
+  .worker-tag{display:inline-block;font-size:.68rem;color:#00cc66;border:1px solid #00cc66;padding:2px 6px;border-radius:3px;margin-top:6px}
+
+  /* ── Collapsible Sections ── */
+  .collapsible{margin-bottom:20px}
+  .collapsible-toggle{background:#0c1a2e;border:1px solid #1a3050;color:#88ccff;font-family:inherit;font-size:.9rem;padding:12px 18px;width:100%;text-align:left;cursor:pointer;border-radius:6px;display:flex;justify-content:space-between;align-items:center}
+  .collapsible-toggle:hover{background:#10223a}
+  .collapsible-toggle .arrow{transition:transform .2s}
+  .collapsible-toggle.open .arrow{transform:rotate(90deg)}
+  .collapsible-body{display:none;background:#0a1525;border:1px solid #1a3050;border-top:none;border-radius:0 0 6px 6px;padding:18px;font-size:.82rem;color:#99aabb;line-height:1.7}
+  .collapsible-body.open{display:block}
+
+  /* ── Enterprise Grid ── */
+  .enterprise-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+  .enterprise-card{background:#0c1a2e;border:1px solid #1a3050;border-radius:6px;padding:16px}
+  .enterprise-card h4{color:#66bbff;font-size:.9rem;margin-bottom:6px}
+  .enterprise-card p{font-size:.78rem;color:#88aacc;margin-bottom:10px}
+  .pricing-row{display:flex;gap:8px;flex-wrap:wrap}
+  .price-tier{font-size:.7rem;padding:3px 10px;border-radius:10px;border:1px solid #1a3050}
+  .price-tier.starter{color:#00ddaa;border-color:#00ddaa33}
+  .price-tier.professional{color:#66bbff;border-color:#66bbff33}
+  .price-tier.enterprise{color:#cc88ff;border-color:#cc88ff33}
+
+  /* ── Blueprint Grid ── */
+  .blueprint-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+  .blueprint-card{background:#0c1a2e;border:1px solid #1a3050;border-radius:6px;padding:14px}
+  .blueprint-card h4{color:#66bbff;font-size:.85rem;margin-bottom:4px}
+  .blueprint-meta{font-size:.72rem;color:#556677;margin-bottom:6px;display:flex;gap:12px}
+  .blueprint-card p{font-size:.78rem;color:#88aacc}
+  .stars{color:#ffcc00}
+
+  /* ── Papers ── */
+  .paper-list{display:grid;gap:12px}
+  .paper-item{padding:12px;border-left:2px solid #1a3050;padding-left:16px}
+  .paper-item h4{color:#66bbff;font-size:.85rem;font-style:italic;margin-bottom:4px}
+  .paper-item p{font-size:.76rem;color:#88aacc;margin-bottom:4px}
+  .paper-item .citations{font-size:.7rem;color:#556677}
+
+  /* ── Constants ── */
+  .constants-section{background:#0a1525;border:1px solid #1a3050;border-radius:8px;padding:20px;margin-bottom:32px}
+  .constants-title{font-size:.95rem;color:#66bbff;margin-bottom:14px}
+  .constants-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px 24px}
+  .const-item{font-size:.82rem;color:#88aacc}
+  .const-item .sym{color:#66bbff}
+  .const-item .val{color:#00ddaa}
+
+  /* ── Telemetry ── */
+  .telemetry-section{background:#0a1525;border:1px solid #1a3050;border-radius:8px;padding:20px;margin-bottom:32px}
+  .telemetry-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+  .telem-card{background:#0c1a2e;border:1px solid #1a3050;border-radius:6px;padding:14px}
+  .telem-card h4{color:#66bbff;font-size:.82rem;margin-bottom:8px}
+  .telem-row{font-size:.78rem;color:#88aacc;margin-bottom:4px}
+  .telem-row .tv{color:#00ddaa}
+  .heartbeat-bar{height:4px;background:#1a3050;border-radius:2px;overflow:hidden;margin-top:8px}
+  .heartbeat-fill{height:100%;background:linear-gradient(90deg,#00ff88,#00ddff);width:0%;transition:width .3s ease-out;border-radius:2px}
+
+  /* ── Footer ── */
+  .copyright{text-align:center;padding:24px;font-size:.75rem;color:#334455;border-top:1px solid #0e1e30;margin-top:40px}
+  .copyright strong{color:#445566}
+  .sovereignty{font-size:.68rem;color:#2a3a4a;margin-top:6px}
+
+  /* ── Search Bar ── */
+  .search-bar{display:flex;justify-content:center;margin-bottom:20px}
+  .search-input{width:100%;max-width:600px;background:#0c1a2e;border:1px solid #1a3050;color:#e0f0ff;font-family:inherit;font-size:.9rem;padding:10px 16px;border-radius:6px;outline:none;transition:border-color .3s}
+  .search-input:focus{border-color:#66bbff}
+  .search-input::placeholder{color:#445566}
+
+  /* ── Stats Banner ── */
+  .stats-banner{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:32px}
+  .stat-card{background:#0c1a2e;border:1px solid #1a3050;border-radius:6px;padding:14px;text-align:center}
+  .stat-card .stat-number{font-size:1.4rem;color:#00ddaa;font-weight:bold}
+  .stat-card .stat-label{font-size:.72rem;color:#667788;margin-top:4px}
+
+  /* ── Heartbeat Canvas ── */
+  .heartbeat-canvas-wrap{text-align:center;margin-bottom:24px}
+  .heartbeat-canvas-wrap canvas{border:1px solid #1a3050;border-radius:6px;background:#060e1c}
+
+  /* ── Scroll Animations ── */
+  @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .fade-in{animation:fadeInUp .6s ease-out both}
+
+  /* ── Glow Effects ── */
+  @keyframes glowPulse{0%,100%{box-shadow:0 0 4px #66bbff22}50%{box-shadow:0 0 16px #66bbff44}}
+  .product-card:hover{animation:glowPulse 2s ease-in-out infinite}
+
+  /* ── Toast Notification ── */
+  .toast{position:fixed;bottom:24px;right:24px;background:#0c1a2e;border:1px solid #00ff88;color:#00ff88;font-family:inherit;font-size:.8rem;padding:10px 20px;border-radius:6px;opacity:0;transform:translateY(20px);transition:all .3s;z-index:200;pointer-events:none}
+  .toast.show{opacity:1;transform:translateY(0)}
+
+  /* ── Worker Status Indicators ── */
+  .worker-indicators{display:flex;gap:8px;justify-content:center;margin-bottom:24px}
+  .worker-ind{display:flex;align-items:center;gap:6px;font-size:.75rem;color:#88aacc;padding:4px 12px;background:#0c1a2e;border:1px solid #1a3050;border-radius:12px}
+  .worker-ind .w-dot{width:6px;height:6px;border-radius:50%;background:#334455;transition:background .3s}
+  .worker-ind .w-dot.alive{background:#00ff88;box-shadow:0 0 4px #00ff88}
+
+  /* ── Tab Navigation for Blueprints ── */
+  .tab-row{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
+  .tab-btn{background:#0c1a2e;border:1px solid #1a3050;color:#667788;font-family:inherit;font-size:.72rem;padding:4px 12px;border-radius:4px 4px 0 0;cursor:pointer;transition:all .2s}
+  .tab-btn:hover,.tab-btn.active{background:#1a3050;color:#66bbff;border-color:#2a5080}
+
+  /* ── Responsive Breakpoints ── */
+  @media(max-width:500px){
+    .status-bar{padding:8px 12px}
+    .status-title{font-size:.9rem}
+    .container{padding:12px}
+    h1{font-size:1.2rem}
+    .stats-banner{grid-template-columns:repeat(2,1fr)}
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ STATUS BAR ═══════════════════════ -->
+<div class="status-bar">
+  <div class="status-title">
+    <span class="pulse-dot"></span>
+    <span>NOVA SDK MARKETPLACE — PARALLAX</span>
+  </div>
+  <div class="status-metrics">
+    <span>SDKs: <span class="metric-val" id="m-sdks">40</span></span>
+    <span>Downloads: <span class="metric-val" id="m-downloads">0</span></span>
+    <span>Workers: <span class="metric-val" id="m-workers">0/3</span></span>
+    <span>Heartbeat: <span class="metric-val" id="m-heartbeat">0</span></span>
+    <span>Kuramoto R: <span class="metric-val" id="m-kuramoto">0.000</span></span>
+    <span>phi-Coherence: <span class="metric-val" id="m-coherence">0.000</span></span>
+  </div>
+</div>
+
+<!-- ═══════════════════════ MAIN CONTENT ═══════════════════════ -->
+<div class="container">
+
+  <h1>PARALLAX — SDK Marketplace</h1>
+  <p class="subtitle">40 sovereign SDK modules across 8 categories &middot; Zero external dependencies &middot; phi-coherent</p>
+
+  <!-- ── Stats Banner ── -->
+  <div class="stats-banner">
+    <div class="stat-card">
+      <div class="stat-number" id="stat-total-sdks">40</div>
+      <div class="stat-label">TOTAL SDKs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="stat-categories">8</div>
+      <div class="stat-label">CATEGORIES</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="stat-blueprints">25</div>
+      <div class="stat-label">BLUEPRINTS</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="stat-papers">20</div>
+      <div class="stat-label">PAPERS</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="stat-enterprise">12</div>
+      <div class="stat-label">ENTERPRISE</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number" id="stat-workers-active">0</div>
+      <div class="stat-label">ACTIVE WORKERS</div>
+    </div>
+  </div>
+
+  <!-- ── Worker Status Indicators ── -->
+  <div class="worker-indicators">
+    <div class="worker-ind"><span class="w-dot" id="wind-build"></span> build-worker</div>
+    <div class="worker-ind"><span class="w-dot" id="wind-wiring"></span> wiring-worker</div>
+    <div class="worker-ind"><span class="w-dot" id="wind-solver"></span> solver-worker</div>
+  </div>
+
+  <!-- ── Heartbeat Canvas ── -->
+  <div class="heartbeat-canvas-wrap">
+    <canvas id="heartbeat-canvas" width="800" height="100"></canvas>
+  </div>
+
+  <!-- ── Search Bar ── -->
+  <div class="search-bar">
+    <input class="search-input" id="sdk-search" type="text" placeholder="Search SDKs by name, category, or description..." oninput="searchSDKs(this.value)">
+  </div>
+
+  <!-- ── Category Filter ── -->
+  <div class="section">
+    <div class="category-bar" id="category-bar">
+      <!-- Rendered dynamically by renderCategoryBar() -->
+    </div>
+  </div>
+
+  <!-- ═══════════════════════ SDK PRODUCTS GRID ═══════════════════════ -->
+  <div class="section">
+    <h2>SDK Products</h2>
+    <div class="product-grid" id="product-grid"></div>
+  </div>
+
+  <!-- ═══════════════════════ ENTERPRISE SOLUTIONS ═══════════════════════ -->
+  <div class="section">
+    <div class="collapsible">
+      <button class="collapsible-toggle" onclick="toggleCollapsible(this)">
+        <span>Enterprise Solutions (12)</span>
+        <span class="arrow">&#9654;</span>
+      </button>
+      <div class="collapsible-body">
+        <div class="enterprise-grid" id="enterprise-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════ BLUEPRINTS GALLERY ═══════════════════════ -->
+  <div class="section">
+    <div class="collapsible">
+      <button class="collapsible-toggle" onclick="toggleCollapsible(this)">
+        <span>Architecture Blueprints Gallery (25)</span>
+        <span class="arrow">&#9654;</span>
+      </button>
+      <div class="collapsible-body">
+        <div class="blueprint-grid" id="blueprint-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════ RESEARCH PAPERS ═══════════════════════ -->
+  <div class="section">
+    <div class="collapsible">
+      <button class="collapsible-toggle" onclick="toggleCollapsible(this)">
+        <span>Research Papers (20)</span>
+        <span class="arrow">&#9654;</span>
+      </button>
+      <div class="collapsible-body">
+        <div class="paper-list" id="paper-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════ CONSTANTS DISPLAY ═══════════════════════ -->
+  <div class="section">
+    <div class="constants-section">
+      <div class="constants-title">Mathematical &amp; Physical Constants</div>
+      <div class="constants-grid" id="constants-grid"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════ LIVE TELEMETRY ═══════════════════════ -->
+  <div class="section">
+    <div class="telemetry-section">
+      <div class="constants-title">Live Telemetry &mdash; Worker Vitals</div>
+      <div class="telemetry-grid" id="telemetry-grid">
+        <div class="telem-card" id="telem-build">
+          <h4>BUILD-WORKER</h4>
+          <div class="telem-row">Status: <span class="tv" id="tw-build-status">initializing</span></div>
+          <div class="telem-row">Heart BPM: <span class="tv" id="tw-build-bpm">0</span></div>
+          <div class="telem-row">Heart Phase: <span class="tv" id="tw-build-phase">0.000</span></div>
+          <div class="telem-row">Heart Health: <span class="tv" id="tw-build-health">0.00</span></div>
+          <div class="telem-row">Brain Regions: <span class="tv" id="tw-build-regions">3</span></div>
+          <div class="telem-row">Brain Chemicals: <span class="tv" id="tw-build-chems">3</span></div>
+          <div class="telem-row">Membrane V: <span class="tv" id="tw-build-membrane">-65.0</span> mV</div>
+          <div class="telem-row">Coherence: <span class="tv" id="tw-build-coherence">0.000</span></div>
+          <div class="heartbeat-bar"><div class="heartbeat-fill" id="hb-build"></div></div>
+        </div>
+        <div class="telem-card" id="telem-wiring">
+          <h4>WIRING-WORKER</h4>
+          <div class="telem-row">Status: <span class="tv" id="tw-wiring-status">initializing</span></div>
+          <div class="telem-row">Heart BPM: <span class="tv" id="tw-wiring-bpm">0</span></div>
+          <div class="telem-row">Heart Phase: <span class="tv" id="tw-wiring-phase">0.000</span></div>
+          <div class="telem-row">Heart Health: <span class="tv" id="tw-wiring-health">0.00</span></div>
+          <div class="telem-row">Brain Regions: <span class="tv" id="tw-wiring-regions">3</span></div>
+          <div class="telem-row">Brain Chemicals: <span class="tv" id="tw-wiring-chems">3</span></div>
+          <div class="telem-row">Membrane V: <span class="tv" id="tw-wiring-membrane">-65.0</span> mV</div>
+          <div class="telem-row">Coherence: <span class="tv" id="tw-wiring-coherence">0.000</span></div>
+          <div class="heartbeat-bar"><div class="heartbeat-fill" id="hb-wiring"></div></div>
+        </div>
+        <div class="telem-card" id="telem-solver">
+          <h4>SOLVER-WORKER</h4>
+          <div class="telem-row">Status: <span class="tv" id="tw-solver-status">initializing</span></div>
+          <div class="telem-row">Heart BPM: <span class="tv" id="tw-solver-bpm">0</span></div>
+          <div class="telem-row">Heart Phase: <span class="tv" id="tw-solver-phase">0.000</span></div>
+          <div class="telem-row">Heart Health: <span class="tv" id="tw-solver-health">0.00</span></div>
+          <div class="telem-row">Brain Regions: <span class="tv" id="tw-solver-regions">3</span></div>
+          <div class="telem-row">Brain Chemicals: <span class="tv" id="tw-solver-chems">3</span></div>
+          <div class="telem-row">Membrane V: <span class="tv" id="tw-solver-membrane">-65.0</span> mV</div>
+          <div class="telem-row">Coherence: <span class="tv" id="tw-solver-coherence">0.000</span></div>
+          <div class="heartbeat-bar"><div class="heartbeat-fill" id="hb-solver"></div></div>
+        </div>
+        <div class="telem-card">
+          <h4>COLLECTIVE METRICS</h4>
+          <div class="telem-row">Kuramoto Order R: <span class="tv" id="tw-global-kuramoto">0.000</span></div>
+          <div class="telem-row">Mean BPM: <span class="tv" id="tw-global-bpm">0</span></div>
+          <div class="telem-row">Mean Health: <span class="tv" id="tw-global-health">0.00</span></div>
+          <div class="telem-row">Brain Coherence: <span class="tv" id="tw-global-coherence">0.000</span></div>
+          <div class="telem-row">Total Heartbeats: <span class="tv" id="tw-global-beats">0</span></div>
+          <div class="telem-row">Active Workers: <span class="tv" id="tw-global-active">0</span>/3</div>
+          <div class="telem-row">phi-Sync: <span class="tv" id="tw-global-phi">0.000</span></div>
+          <div class="telem-row">Uptime: <span class="tv" id="tw-global-uptime">0s</span></div>
+          <div class="heartbeat-bar"><div class="heartbeat-fill" id="hb-global"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+<div class="copyright">
+  <strong>&copy; MEDINA (PARALLAX)</strong> &mdash; NOVA SDK Marketplace v1.0.0<br>
+  <div class="sovereignty">
+    All sovereign intelligence modules are self-contained, zero-dependency, phi-coherent autonomous systems.<br>
+    No external telemetry. No third-party data egress. Sovereignty preserved at every layer.<br>
+    Built on Internet Computer Protocol (ICP) &middot; DFX 0.24.3 &middot; Motoko &middot; Vite + React + TypeScript<br>
+    Golden Ratio (phi = 1.618033988749895) coherence verified &middot; NIST constants aligned &middot; Kuramoto-synchronized
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════ JAVASCRIPT ═══════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<script>
+/* ═══════════════════════════════════════════════════════════
+   CONSTANTS — PHI & NIST
+   ═══════════════════════════════════════════════════════════ */
+const PHI           = 1.618033988749895;
+const PHI_SQ        = PHI * PHI;                    // 2.618033988749895
+const PHI_INV       = 1 / PHI;                      // 0.618033988749895
+const PI            = Math.PI;                       // 3.141592653589793
+const E             = Math.E;                        // 2.718281828459045
+const PLANCK        = 6.62607015e-34;                // J*s
+const BOLTZMANN     = 1.380649e-23;                  // J/K
+const SPEED_OF_LIGHT = 299792458;                    // m/s
+const AVOGADRO      = 6.02214076e23;                 // 1/mol
+const FINE_STRUCTURE = 7.2973525693e-3;              // dimensionless
+
+const CONSTANTS_LIST = [
+  { sym: 'phi',              label: 'Golden Ratio',        val: PHI },
+  { sym: 'phi^2',            label: 'Golden Ratio Squared',val: PHI_SQ },
+  { sym: '1/phi',            label: 'Inverse Golden Ratio',val: PHI_INV },
+  { sym: 'pi',               label: 'Pi',                  val: PI },
+  { sym: 'e',                label: "Euler's Number",      val: E },
+  { sym: 'h',                label: "Planck's Constant",   val: PLANCK },
+  { sym: 'k_B',              label: 'Boltzmann Constant',  val: BOLTZMANN },
+  { sym: 'c',                label: 'Speed of Light',      val: SPEED_OF_LIGHT },
+  { sym: 'N_A',              label: 'Avogadro Number',     val: AVOGADRO },
+  { sym: 'alpha',            label: 'Fine-Structure Const',val: FINE_STRUCTURE }
+];
+
+/* ═══════════════════════════════════════════════════════════
+   SDK PRODUCT DATA — 40 products, 8 categories, 5 each
+   ═══════════════════════════════════════════════════════════ */
+const SDK_PRODUCTS = [
+  // ── Voice & Audio ──
+  { id:'voice-to-interface',    name:'VOICE-TO-INTERFACE',    cat:'voice-audio',      pkg:'@medina/voice-to-interface-sdk',    ver:'1.0.0', desc:'Transform voice commands into UI actions. Real-time speech recognition with intent classification and command routing.', worker:'build-worker' },
+  { id:'audio-intelligence',    name:'AUDIO-INTELLIGENCE',    cat:'voice-audio',      pkg:'@medina/audio-intelligence-sdk',    ver:'1.2.0', desc:'Audio classification, speaker diarization, and acoustic feature extraction for sound-aware applications.', worker:'wiring-worker' },
+  { id:'voice-synthesis',       name:'VOICE-SYNTHESIS',       cat:'voice-audio',      pkg:'@medina/voice-synthesis-sdk',       ver:'1.1.0', desc:'Neural text-to-speech with prosody control, multi-language support, and emotional tone modulation.', worker:'solver-worker' },
+  { id:'sonic-canvas',          name:'SONIC-CANVAS',          cat:'voice-audio',      pkg:'@medina/sonic-canvas-sdk',          ver:'1.0.0', desc:'Procedural audio generation engine. Create soundscapes, ambient textures, and generative audio compositions.', worker:'build-worker' },
+  { id:'music-generation',      name:'MUSIC-GENERATION',      cat:'voice-audio',      pkg:'@medina/music-generation-sdk',      ver:'0.9.0', desc:'AI-powered music composition using phi-harmonic intervals, Fibonacci rhythms, and Kuramoto-synced beats.', worker:'wiring-worker' },
+  // ── Vision & Image ──
+  { id:'vision-recognition',    name:'VISION-RECOGNITION',    cat:'vision-image',     pkg:'@medina/vision-recognition-sdk',    ver:'2.0.0', desc:'Object detection, scene classification, and visual feature extraction with phi-optimized neural layers.', worker:'solver-worker' },
+  { id:'image-generation',      name:'IMAGE-GENERATION',      cat:'vision-image',     pkg:'@medina/image-generation-sdk',      ver:'1.5.0', desc:'Latent diffusion image synthesis with golden-ratio composition guides and sovereign model weights.', worker:'build-worker' },
+  { id:'video-intelligence',    name:'VIDEO-INTELLIGENCE',    cat:'vision-image',     pkg:'@medina/video-intelligence-sdk',    ver:'1.3.0', desc:'Frame-level video analysis, action recognition, temporal segmentation, and highlight extraction.', worker:'wiring-worker' },
+  { id:'document-vision',       name:'DOCUMENT-VISION',       cat:'vision-image',     pkg:'@medina/document-vision-sdk',       ver:'1.1.0', desc:'OCR, layout analysis, table extraction, and form recognition for structured document understanding.', worker:'solver-worker' },
+  { id:'ar-overlay',            name:'AR-OVERLAY',            cat:'vision-image',     pkg:'@medina/ar-overlay-sdk',            ver:'1.0.0', desc:'Augmented reality overlay engine with marker tracking, surface detection, and spatial anchoring.', worker:'build-worker' },
+  // ── 3D & Spatial ──
+  { id:'spatial-canvas',        name:'SPATIAL-CANVAS',        cat:'3d-spatial',       pkg:'@medina/spatial-canvas-sdk',        ver:'1.4.0', desc:'3D scene graph engine with phi-proportioned layouts, procedural geometry, and WebGPU rendering pipeline.', worker:'wiring-worker' },
+  { id:'holographic-ui',        name:'HOLOGRAPHIC-UI',        cat:'3d-spatial',       pkg:'@medina/holographic-ui-sdk',        ver:'1.0.0', desc:'Volumetric UI framework for spatial computing. Render holographic panels, menus, and data visualizations.', worker:'solver-worker' },
+  { id:'physics-simulation',    name:'PHYSICS-SIMULATION',    cat:'3d-spatial',       pkg:'@medina/physics-simulation-sdk',    ver:'2.1.0', desc:'Rigid-body dynamics, soft-body simulation, fluid mechanics, and particle systems with NIST-accurate constants.', worker:'build-worker' },
+  { id:'terrain-generation',    name:'TERRAIN-GENERATION',    cat:'3d-spatial',       pkg:'@medina/terrain-generation-sdk',    ver:'1.2.0', desc:'Procedural terrain synthesis using fractal noise, erosion simulation, and biome-aware vegetation placement.', worker:'wiring-worker' },
+  { id:'vr-immersion',          name:'VR-IMMERSION',          cat:'3d-spatial',       pkg:'@medina/vr-immersion-sdk',          ver:'0.8.0', desc:'Full VR toolkit with head tracking, hand interaction, haptic feedback mapping, and locomotion systems.', worker:'solver-worker' },
+  // ── Data & Analytics ──
+  { id:'data-visualization',    name:'DATA-VISUALIZATION',    cat:'data-analytics',   pkg:'@medina/data-visualization-sdk',    ver:'2.3.0', desc:'Chart library with 30+ visualization types, phi-golden layouts, real-time streaming, and dark-theme defaults.', worker:'build-worker' },
+  { id:'stream-analytics',      name:'STREAM-ANALYTICS',      cat:'data-analytics',   pkg:'@medina/stream-analytics-sdk',      ver:'1.6.0', desc:'Real-time event stream processing with windowed aggregation, pattern detection, and anomaly alerting.', worker:'wiring-worker' },
+  { id:'knowledge-graph',       name:'KNOWLEDGE-GRAPH',       cat:'data-analytics',   pkg:'@medina/knowledge-graph-sdk',       ver:'1.4.0', desc:'Graph database SDK for building, querying, and traversing knowledge graphs with inference capabilities.', worker:'solver-worker' },
+  { id:'time-series',           name:'TIME-SERIES',           cat:'data-analytics',   pkg:'@medina/time-series-sdk',           ver:'1.2.0', desc:'Time-series storage, compression, downsampling, and forecasting with Fibonacci-period seasonality detection.', worker:'build-worker' },
+  { id:'etl-pipeline',          name:'ETL-PIPELINE',          cat:'data-analytics',   pkg:'@medina/etl-pipeline-sdk',          ver:'1.0.0', desc:'Extract-Transform-Load pipeline builder with schema inference, validation, and sovereign data processing.', worker:'wiring-worker' },
+  // ── Communication ──
+  { id:'realtime-collab',       name:'REALTIME-COLLAB',       cat:'communication',    pkg:'@medina/realtime-collab-sdk',       ver:'1.8.0', desc:'Conflict-free replicated data types (CRDTs) for real-time collaborative editing and state synchronization.', worker:'solver-worker' },
+  { id:'p2p-mesh',              name:'P2P-MESH',              cat:'communication',    pkg:'@medina/p2p-mesh-sdk',              ver:'1.3.0', desc:'Peer-to-peer mesh networking with NAT traversal, relay fallback, and encrypted channel establishment.', worker:'build-worker' },
+  { id:'video-conferencing',    name:'VIDEO-CONFERENCING',    cat:'communication',    pkg:'@medina/video-conferencing-sdk',    ver:'1.1.0', desc:'WebRTC video conferencing with SFU/MCU modes, screen sharing, recording, and bandwidth adaptation.', worker:'wiring-worker' },
+  { id:'notification-engine',   name:'NOTIFICATION-ENGINE',   cat:'communication',    pkg:'@medina/notification-engine-sdk',   ver:'1.5.0', desc:'Multi-channel notification delivery: push, email, SMS, webhook. Priority queuing and delivery tracking.', worker:'solver-worker' },
+  { id:'chat-protocol',         name:'CHAT-PROTOCOL',         cat:'communication',    pkg:'@medina/chat-protocol-sdk',         ver:'1.0.0', desc:'Extensible chat protocol with threading, reactions, rich embeds, presence indicators, and E2E encryption.', worker:'build-worker' },
+  // ── Security & Identity ──
+  { id:'biometric-auth',        name:'BIOMETRIC-AUTH',        cat:'security-identity',pkg:'@medina/biometric-auth-sdk',        ver:'2.0.0', desc:'Multi-modal biometric authentication: fingerprint, face, voice, and behavioral pattern analysis.', worker:'wiring-worker' },
+  { id:'sovereign-identity',    name:'SOVEREIGN-IDENTITY',    cat:'security-identity',pkg:'@medina/sovereign-identity-sdk',    ver:'1.7.0', desc:'Decentralized identity (DID) framework with verifiable credentials, selective disclosure, and key rotation.', worker:'solver-worker' },
+  { id:'encryption-vault',      name:'ENCRYPTION-VAULT',      cat:'security-identity',pkg:'@medina/encryption-vault-sdk',      ver:'1.4.0', desc:'Client-side encryption vault with AES-256-GCM, key derivation (Argon2), and secure secret sharing.', worker:'build-worker' },
+  { id:'threat-detection',      name:'THREAT-DETECTION',      cat:'security-identity',pkg:'@medina/threat-detection-sdk',      ver:'1.2.0', desc:'Real-time threat detection with Shannon entropy analysis, pattern matching, and FNV-1a integrity hashing.', worker:'wiring-worker' },
+  { id:'audit-trail',           name:'AUDIT-TRAIL',           cat:'security-identity',pkg:'@medina/audit-trail-sdk',           ver:'1.0.0', desc:'Immutable audit logging with Merkle-tree verification, tamper detection, and compliance report generation.', worker:'solver-worker' },
+  // ── AI & Intelligence ──
+  { id:'nlp-understanding',     name:'NLP-UNDERSTANDING',     cat:'ai-intelligence',  pkg:'@medina/nlp-understanding-sdk',     ver:'2.2.0', desc:'Deep NLP pipeline: tokenization, POS tagging, dependency parsing, semantic similarity, and text classification.', worker:'build-worker' },
+  { id:'agent-framework',       name:'AGENT-FRAMEWORK',       cat:'ai-intelligence',  pkg:'@medina/agent-framework-sdk',       ver:'1.6.0', desc:'Autonomous agent construction kit with goal trees, tool use, memory management, and multi-agent coordination.', worker:'wiring-worker' },
+  { id:'recommendation-engine', name:'RECOMMENDATION-ENGINE', cat:'ai-intelligence',  pkg:'@medina/recommendation-engine-sdk', ver:'1.3.0', desc:'Collaborative and content-based recommendation with real-time personalization and A/B experiment support.', worker:'solver-worker' },
+  { id:'anomaly-detection',     name:'ANOMALY-DETECTION',     cat:'ai-intelligence',  pkg:'@medina/anomaly-detection-sdk',     ver:'1.1.0', desc:'Statistical and ML-based anomaly detection for time-series, logs, and multi-dimensional feature spaces.', worker:'build-worker' },
+  { id:'model-serving',         name:'MODEL-SERVING',         cat:'ai-intelligence',  pkg:'@medina/model-serving-sdk',         ver:'1.0.0', desc:'Model inference server with batching, versioning, canary deployments, and phi-optimized request routing.', worker:'wiring-worker' },
+  // ── Infrastructure ──
+  { id:'edge-compute',          name:'EDGE-COMPUTE',          cat:'infrastructure',   pkg:'@medina/edge-compute-sdk',          ver:'1.5.0', desc:'Edge computing runtime with WASM isolation, resource quotas, and automatic workload distribution.', worker:'solver-worker' },
+  { id:'offline-first',         name:'OFFLINE-FIRST',         cat:'infrastructure',   pkg:'@medina/offline-first-sdk',         ver:'1.2.0', desc:'Offline-first data layer with IndexedDB sync, conflict resolution, and background synchronization queue.', worker:'build-worker' },
+  { id:'observability',         name:'OBSERVABILITY',         cat:'infrastructure',   pkg:'@medina/observability-sdk',         ver:'2.0.0', desc:'Distributed tracing, structured logging, metrics collection, and health-check endpoints in one package.', worker:'wiring-worker' },
+  { id:'deployment-orchestrator',name:'DEPLOYMENT-ORCHESTRATOR',cat:'infrastructure', pkg:'@medina/deployment-orchestrator-sdk',ver:'1.1.0', desc:'Blue-green and canary deployment orchestration with rollback, health gates, and multi-environment support.', worker:'solver-worker' },
+  { id:'sovereign-runtime',     name:'SOVEREIGN-RUNTIME',     cat:'infrastructure',   pkg:'@medina/sovereign-runtime-sdk',     ver:'1.0.0', desc:'Self-sovereign execution runtime. No external dependencies, no telemetry egress, full data sovereignty.', worker:'build-worker' }
+];
+
+const CATEGORY_LABELS = {
+  'voice-audio':      'Voice & Audio',
+  'vision-image':     'Vision & Image',
+  '3d-spatial':       '3D & Spatial',
+  'data-analytics':   'Data & Analytics',
+  'communication':    'Communication',
+  'security-identity':'Security & Identity',
+  'ai-intelligence':  'AI & Intelligence',
+  'infrastructure':   'Infrastructure'
+};
+
+/* ═══════════════════════════════════════════════════════════
+   ENTERPRISE SOLUTIONS DATA
+   ═══════════════════════════════════════════════════════════ */
+const ENTERPRISE_SOLUTIONS = [
+  { name:'Sovereign Cloud Suite',       desc:'Complete private cloud deployment with phi-coherent orchestration, zero-trust networking, and autonomous scaling.',                        starter:'$2,400/mo',professional:'$8,900/mo',enterprise:'Custom' },
+  { name:'Organism Intelligence Hub',   desc:'Full NOVA organism integration: brain modules, heart sync, Kuramoto coupling, and multi-canister topology.',                                starter:'$1,800/mo',professional:'$6,500/mo',enterprise:'Custom' },
+  { name:'Defense Grid Platform',       desc:'Military-grade threat detection, biometric perimeter, encrypted mesh, and audit-trail compliance in one platform.',                          starter:'$3,200/mo',professional:'$12,000/mo',enterprise:'Custom' },
+  { name:'Healthcare AI Suite',         desc:'HIPAA-compliant NLP, medical image analysis, patient data sovereignty, and phi-optimized clinical decision support.',                        starter:'$2,800/mo',professional:'$9,500/mo',enterprise:'Custom' },
+  { name:'Financial Intelligence Pack', desc:'Real-time market analytics, anomaly detection, risk scoring, and regulatory reporting with immutable audit trails.',                         starter:'$3,600/mo',professional:'$14,000/mo',enterprise:'Custom' },
+  { name:'Edge Fleet Manager',          desc:'Deploy and manage thousands of edge nodes with WASM isolation, OTA updates, and centralized observability.',                                 starter:'$1,500/mo',professional:'$5,800/mo',enterprise:'Custom' },
+  { name:'Agent Swarm Platform',        desc:'Orchestrate autonomous agent fleets with goal-tree coordination, shared memory, and Kuramoto-synced decision cycles.',                       starter:'$2,200/mo',professional:'$7,200/mo',enterprise:'Custom' },
+  { name:'Creative Studio Suite',       desc:'Integrated voice synthesis, image generation, music composition, and 3D scene building for creative professionals.',                         starter:'$1,200/mo',professional:'$4,500/mo',enterprise:'Custom' },
+  { name:'Data Sovereignty Vault',      desc:'End-to-end encrypted data management: storage, processing, sharing, and compliance — all within sovereign boundaries.',                      starter:'$2,000/mo',professional:'$7,800/mo',enterprise:'Custom' },
+  { name:'Collaboration Platform',      desc:'Real-time CRDT editing, video conferencing, chat protocol, and notification engine bundled for enterprise teams.',                            starter:'$900/mo', professional:'$3,200/mo',enterprise:'Custom' },
+  { name:'Observability Mesh',          desc:'Distributed tracing across microservices, log aggregation, alerting, SLO dashboards, and incident response automation.',                     starter:'$1,400/mo',professional:'$5,400/mo',enterprise:'Custom' },
+  { name:'Identity Governance Suite',   desc:'Decentralized identity, biometric MFA, role-based access, credential lifecycle management, and compliance reporting.',                       starter:'$1,600/mo',professional:'$6,200/mo',enterprise:'Custom' }
+];
+
+/* ═══════════════════════════════════════════════════════════
+   BLUEPRINTS DATA — 25 architecture blueprints
+   ═══════════════════════════════════════════════════════════ */
+const BLUEPRINTS = [
+  { title:'Three Hearts Architecture',           desc:'Tri-cardiac oscillator pattern using Kuramoto phase coupling for resilient heartbeat synchronization across organism layers.',               complexity:5, components:12 },
+  { title:'Agent Fleet Orchestration',            desc:'Autonomous agent swarm management with goal-tree routing, shared memory pools, and Fibonacci-timed coordination cycles.',                    complexity:5, components:18 },
+  { title:'57-Model Router',                      desc:'Intelligent request routing across 57 specialized AI models with load balancing, fallback chains, and phi-weighted scoring.',                complexity:5, components:57 },
+  { title:'7-Domain Universe',                    desc:'Seven sovereign processing domains with cross-domain message passing, isolation boundaries, and unified governance layer.',                  complexity:4, components:14 },
+  { title:'Synapse Mesh Network',                 desc:'Fully connected neural mesh topology with Hebbian learning rules, LIF dynamics, and adaptive weight adjustment.',                           complexity:5, components:24 },
+  { title:'Quantum Meta-Layer',                   desc:'Quantum-inspired optimization layer using superposition states, entanglement graphs, and decoherence-aware scheduling.',                    complexity:5, components:8 },
+  { title:'Care + Defense Grid',                  desc:'Dual-purpose infrastructure combining healthcare data sovereignty with military-grade perimeter security and threat response.',             complexity:4, components:16 },
+  { title:'10-House Governance',                  desc:'Ten autonomous governance domains with voting protocols, constitutional rules, amendment procedures, and sovereignty preservation.',        complexity:4, components:10 },
+  { title:'Kuramoto Collective Brain',            desc:'Phase-coupled oscillator network implementing collective intelligence through synchronized brain regions and chemical signaling.',           complexity:5, components:21 },
+  { title:'Neural Emergence Cascade',             desc:'Multi-scale emergence pattern: from individual neurons to cortical columns to global brain states through cascading activation.',            complexity:5, components:15 },
+  { title:'Sovereign Identity Mesh',              desc:'Decentralized identity graph with verifiable credential exchange, zero-knowledge proofs, and cross-chain attestation bridges.',             complexity:4, components:11 },
+  { title:'Edge-Cloud Hybrid',                    desc:'Seamless workload distribution between edge nodes and cloud canisters with latency-aware routing and data residency compliance.',           complexity:3, components:9 },
+  { title:'Multi-Canister Topology',              desc:'Internet Computer multi-canister architecture with inter-canister messaging, state partitioning, and upgrade coordination.',                complexity:4, components:13 },
+  { title:'Fibonacci Compression Pipeline',       desc:'Data compression using Fibonacci coding, golden-ratio quantization, and phi-optimized Huffman trees for efficient storage.',                complexity:3, components:7 },
+  { title:'phi-Coherence Scoring',                desc:'Quality metric framework using golden-ratio proportions to evaluate system health, code quality, and architectural balance.',                complexity:3, components:5 },
+  { title:'GF(2^32) Integrity Engine',            desc:'Galois Field arithmetic for error detection, CRC computation, and data integrity verification across distributed systems.',                 complexity:4, components:6 },
+  { title:'LIF Neural Dynamics',                  desc:'Leaky Integrate-and-Fire neuron simulation with refractory periods, synaptic currents, and spike-timing dependent plasticity.',             complexity:4, components:8 },
+  { title:'Hebbian Synapse Network',              desc:'Self-organizing network with Hebbian learning, lateral inhibition, homeostatic plasticity, and competitive learning dynamics.',              complexity:4, components:10 },
+  { title:'Autonomous Division Architecture',     desc:'Self-replicating organizational units with autonomous resource allocation, budgeting, and inter-division trade protocols.',                 complexity:3, components:12 },
+  { title:'Protocol Universe Map',                desc:'Comprehensive protocol registry mapping all internal and external communication channels, versioning, and compatibility matrices.',          complexity:3, components:20 },
+  { title:'Cross-Scale Coupling Matrix',          desc:'Multi-scale interaction framework linking microscopic neural dynamics to macroscopic organism behavior through phi-harmonic coupling.',      complexity:5, components:16 },
+  { title:'Organism Component Registry',          desc:'Central registry of all organism components with dependency graphs, health monitoring, and hot-swap capability.',                            complexity:3, components:14 },
+  { title:'Production Pipeline Architecture',     desc:'End-to-end production deployment: CI/CD, canary releases, rollback gates, monitoring, and automated incident response.',                    complexity:4, components:11 },
+  { title:'SDK Distribution Network',             desc:'Global SDK distribution with versioned package hosting, integrity verification, changelog generation, and license compliance.',              complexity:3, components:9 },
+  { title:'Download Kernel Architecture',         desc:'High-throughput download system with parallel chunking, integrity hashing, resume capability, and CDN-aware routing.',                      complexity:3, components:7 }
+];
+
+/* ═══════════════════════════════════════════════════════════
+   RESEARCH PAPERS DATA — 20 papers
+   ═══════════════════════════════════════════════════════════ */
+const PAPERS = [
+  { title:'De Architectura Organica Computationis',             abstract:'A foundational treatise on organic computational architecture, establishing the theoretical basis for self-organizing multi-agent systems.',                  citations:342, link:'docs/architecture-organica.md' },
+  { title:'Principia Kuramoti: Oscillatorum Cohaerentia',       abstract:'Mathematical framework for Kuramoto oscillator coupling in distributed computing systems, proving convergence under phi-harmonic frequencies.',               citations:287, link:'docs/kuramoto-principia.md' },
+  { title:'De Synapsibus Hebbianis in Silico',                  abstract:'Implementation and analysis of Hebbian learning rules in silicon neural networks with spike-timing dependent plasticity.',                                   citations:198, link:'docs/hebbian-synapses.md' },
+  { title:'Tractatus Autonomiae Digitalis',                     abstract:'Philosophical and technical exploration of digital sovereignty, establishing axioms for autonomous system governance.',                                       citations:256, link:'docs/autonomy-tractatus.md' },
+  { title:'De Proportione Aurea in Architectura Systematis',    abstract:'Application of the golden ratio to system architecture design, demonstrating improved coherence and aesthetic balance.',                                      citations:312, link:'docs/golden-ratio-arch.md' },
+  { title:'Neuronalis Dynamica: Integratio et Ignitio',         abstract:'Comprehensive study of Leaky Integrate-and-Fire neuron models applied to computational decision-making systems.',                                            citations:175, link:'docs/lif-dynamics.md' },
+  { title:'Fibonaccii Codificatio et Compressio',               abstract:'Novel data compression algorithms based on Fibonacci number sequences with provable optimality bounds.',                                                     citations:143, link:'docs/fibonacci-compression.md' },
+  { title:'De Identitate Sovrana in Retibus Distributis',       abstract:'Decentralized identity protocols for distributed networks with zero-knowledge credential verification.',                                                      citations:221, link:'docs/sovereign-identity.md' },
+  { title:'Carmina Algorithmorum: De Musica Computata',         abstract:'Algorithmic music composition using phi-harmonic intervals and Kuramoto-synchronized rhythmic patterns.',                                                     citations:89,  link:'docs/algorithmic-music.md' },
+  { title:'De Tribus Cordibus: Architectura Resilienti',        abstract:'Three-heart redundancy pattern for fault-tolerant distributed systems with phase-locked recovery mechanisms.',                                                citations:267, link:'docs/three-hearts.md' },
+  { title:'Topologia Canistri Multiplicis',                     abstract:'Optimal multi-canister topology design for Internet Computer deployments with inter-canister state consistency.',                                             citations:134, link:'docs/multi-canister.md' },
+  { title:'Observatio Distributionis: Vestigia et Metrici',     abstract:'Distributed observability framework combining structured logging, distributed tracing, and metric correlation.',                                              citations:156, link:'docs/observability.md' },
+  { title:'De Campo Galoisi in Securitate Datorum',             abstract:'Application of Galois Field arithmetic (GF(2^32)) to data integrity verification in distributed storage systems.',                                           citations:98,  link:'docs/galois-security.md' },
+  { title:'Emergentia Neuralis: A Micro ad Macro',              abstract:'Multi-scale emergence patterns from individual neural units to collective intelligence through cascading activation dynamics.',                                citations:203, link:'docs/neural-emergence.md' },
+  { title:'De Agentibus Autonomis et Gubernatione',             abstract:'Governance models for autonomous agent swarms including voting protocols, resource allocation, and conflict resolution.',                                     citations:178, link:'docs/agent-governance.md' },
+  { title:'Visio Computata: Recognitio et Generatio',           abstract:'Unified framework for computational vision combining recognition, generation, and augmented reality overlay systems.',                                       citations:245, link:'docs/computational-vision.md' },
+  { title:'De Reticulis Parium: Communicatio Securita',         abstract:'Secure peer-to-peer mesh networking protocols with NAT traversal, relay optimization, and encrypted channel establishment.',                                 citations:112, link:'docs/p2p-networks.md' },
+  { title:'Analytice Temporalis: Series et Praedictio',         abstract:'Time-series analysis methods with Fibonacci-period seasonality detection and phi-weighted forecasting models.',                                               citations:167, link:'docs/time-series-analysis.md' },
+  { title:'De Computatione in Margine: Runtime Sovrana',        abstract:'Edge computing paradigms for sovereign runtime environments with WASM isolation and resource-constrained optimization.',                                      citations:131, link:'docs/edge-computing.md' },
+  { title:'Universum Protocollorum: Cartographia Totalis',      abstract:'Complete mapping of inter-system communication protocols with versioning, compatibility matrices, and migration strategies.',                                 citations:94,  link:'docs/protocol-universe.md' }
+];
+
+/* ═══════════════════════════════════════════════════════════
+   RENDER FUNCTIONS
+   ═══════════════════════════════════════════════════════════ */
+
+/** Render the 40 SDK product cards */
+function renderProducts() {
+  const grid = document.getElementById('product-grid');
+  grid.innerHTML = SDK_PRODUCTS.map(p => `
+    <div class="product-card" data-cat="${p.cat}" id="card-${p.id}">
+      <div class="product-header">
+        <span class="status-dot deployed"></span>
+        <span class="product-name">${p.name}</span>
+        <span class="version-badge">v${p.ver}</span>
+        <span class="cat-badge">${CATEGORY_LABELS[p.cat]}</span>
+      </div>
+      <div class="product-pkg">${p.pkg}@${p.ver}</div>
+      <div class="product-desc">${p.desc}</div>
+      <div class="install-box">
+        <div class="install-cmd" id="cmd-${p.id}">npm install ${p.pkg}</div>
+        <button class="copy-btn" onclick="copyInstall('${p.id}')">COPY</button>
+      </div>
+      <button class="try-btn" onclick="trySDK('${p.id}')">Try SDK</button>
+      <div class="product-result" id="result-${p.id}">Awaiting request...</div>
+      <span class="worker-tag">${p.worker}</span>
+    </div>
+  `).join('');
+}
+
+/** Render enterprise solutions */
+function renderEnterprise() {
+  const grid = document.getElementById('enterprise-grid');
+  grid.innerHTML = ENTERPRISE_SOLUTIONS.map(s => `
+    <div class="enterprise-card">
+      <h4>${s.name}</h4>
+      <p>${s.desc}</p>
+      <div class="pricing-row">
+        <span class="price-tier starter">Starter: ${s.starter}</span>
+        <span class="price-tier professional">Pro: ${s.professional}</span>
+        <span class="price-tier enterprise">Enterprise: ${s.enterprise}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+/** Render blueprints */
+function renderBlueprints() {
+  const grid = document.getElementById('blueprint-grid');
+  grid.innerHTML = BLUEPRINTS.map(b => {
+    const stars = '&#9733;'.repeat(b.complexity) + '&#9734;'.repeat(5 - b.complexity);
+    return `
+      <div class="blueprint-card">
+        <h4>${b.title}</h4>
+        <div class="blueprint-meta">
+          <span class="stars">${stars}</span>
+          <span>${b.components} components</span>
+        </div>
+        <p>${b.desc}</p>
+      </div>
+    `;
+  }).join('');
+}
+
+/** Render research papers */
+function renderPapers() {
+  const list = document.getElementById('paper-list');
+  list.innerHTML = PAPERS.map((p, i) => `
+    <div class="paper-item">
+      <h4>${i + 1}. ${p.title}</h4>
+      <p>${p.abstract}</p>
+      <div class="citations">Citations: ${p.citations} &middot; <a href="${p.link}" style="color:#4488cc;text-decoration:none">${p.link}</a></div>
+    </div>
+  `).join('');
+}
+
+/** Render constants display */
+function renderConstants() {
+  const grid = document.getElementById('constants-grid');
+  grid.innerHTML = CONSTANTS_LIST.map(c => {
+    const formatted = typeof c.val === 'number' && Math.abs(c.val) < 0.01
+      ? c.val.toExponential(10)
+      : (typeof c.val === 'number' && c.val > 1e6 ? c.val.toExponential(10) : c.val.toString());
+    return `<div class="const-item"><span class="sym">${c.sym}</span> (${c.label}): <span class="val">${formatted}</span></div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INTERACTION HANDLERS
+   ═══════════════════════════════════════════════════════════ */
+
+/** Category filter */
+function filterCat(cat) {
+  const btns = document.querySelectorAll('.cat-btn');
+  btns.forEach(b => b.classList.remove('active'));
+  if (event && event.target) event.target.classList.add('active');
+
+  currentFilter = cat;
+  const searchVal = document.getElementById('sdk-search').value.toLowerCase();
+  applyFilters(cat, searchVal);
+}
+
+let currentFilter = 'all';
+
+/** Search SDKs */
+function searchSDKs(query) {
+  const q = query.toLowerCase();
+  applyFilters(currentFilter, q);
+}
+
+/** Apply both category and search filters */
+function applyFilters(cat, query) {
+  const cards = document.querySelectorAll('.product-card');
+  let visible = 0;
+  cards.forEach(c => {
+    const matchCat = (cat === 'all' || c.dataset.cat === cat);
+    const text = c.textContent.toLowerCase();
+    const matchSearch = !query || text.indexOf(query) !== -1;
+    if (matchCat && matchSearch) {
+      c.classList.remove('hidden');
+      visible++;
+    } else {
+      c.classList.add('hidden');
+    }
+  });
+  // Update visible count in subtitle
+  const sub = document.querySelector('.subtitle');
+  if (sub && query) {
+    sub.textContent = visible + ' SDK' + (visible !== 1 ? 's' : '') + ' matching "' + query + '"';
+  } else if (sub) {
+    sub.textContent = '40 sovereign SDK modules across 8 categories \u00B7 Zero external dependencies \u00B7 phi-coherent';
+  }
+}
+
+/** Show toast notification */
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  if (!toast) return;
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => { toast.classList.remove('show'); }, 2500);
+}
+
+/** Collapsible toggle */
+function toggleCollapsible(btn) {
+  btn.classList.toggle('open');
+  const body = btn.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+/** Copy install command */
+function copyInstall(id) {
+  const cmd = document.getElementById('cmd-' + id);
+  if (cmd) {
+    const text = cmd.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = cmd.nextElementSibling;
+      btn.textContent = 'COPIED!';
+      showToast('Copied: ' + text);
+      setTimeout(() => { btn.textContent = 'COPY'; }, 1500);
+    }).catch(() => {
+      /* clipboard fallback: select text */
+      const range = document.createRange();
+      range.selectNodeContents(cmd);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      showToast('Select and copy manually');
+    });
+  }
+}
+
+/** Generate category-specific simulated response data */
+function generateCategoryResponse(product) {
+  const cat = product.cat;
+  const base = {
+    sdk: product.pkg,
+    version: product.ver,
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    worker: product.worker,
+    phiCoherence: parseFloat((PHI_INV + Math.random() * 0.2).toFixed(4)),
+    latencyMs: parseFloat((Math.random() * 40 + 5).toFixed(1))
+  };
+
+  switch (cat) {
+    case 'voice-audio':
+      return Object.assign(base, {
+        response: {
+          type: 'audio_analysis',
+          sampleRate: 44100,
+          channels: 2,
+          duration: (Math.random() * 10 + 1).toFixed(2) + 's',
+          detectedFeatures: ['speech', 'melody', 'rhythm'],
+          confidenceScore: (0.85 + Math.random() * 0.14).toFixed(3),
+          phiHarmonics: [PHI, PHI_SQ, PHI * 3].map(v => v.toFixed(3)),
+          message: 'Audio pipeline initialized. Voice features extracted successfully.'
+        }
+      });
+
+    case 'vision-image':
+      return Object.assign(base, {
+        response: {
+          type: 'vision_result',
+          resolution: '1920x1080',
+          objectsDetected: Math.floor(Math.random() * 12 + 3),
+          sceneType: ['indoor', 'outdoor', 'abstract', 'document'][Math.floor(Math.random() * 4)],
+          colorDepth: '24-bit',
+          processingTime: (Math.random() * 80 + 20).toFixed(1) + 'ms',
+          message: 'Vision model loaded. Object detection pipeline active.'
+        }
+      });
+
+    case '3d-spatial':
+      return Object.assign(base, {
+        response: {
+          type: 'spatial_render',
+          vertexCount: Math.floor(Math.random() * 50000 + 10000),
+          triangleCount: Math.floor(Math.random() * 30000 + 5000),
+          fps: Math.floor(Math.random() * 30 + 30),
+          renderBackend: 'WebGPU',
+          phiProportions: { width: PHI, height: 1, depth: PHI_INV },
+          message: 'Spatial canvas initialized. Scene graph ready for rendering.'
+        }
+      });
+
+    case 'data-analytics':
+      return Object.assign(base, {
+        response: {
+          type: 'analytics_result',
+          dataPoints: Math.floor(Math.random() * 100000 + 10000),
+          aggregations: ['sum', 'mean', 'p95', 'p99'],
+          windowSize: '5m',
+          anomaliesDetected: Math.floor(Math.random() * 5),
+          fibonacciPeriods: [1, 1, 2, 3, 5, 8, 13, 21],
+          message: 'Analytics stream connected. Real-time aggregation active.'
+        }
+      });
+
+    case 'communication':
+      return Object.assign(base, {
+        response: {
+          type: 'comm_channel',
+          protocol: 'WebRTC/CRDT',
+          peers: Math.floor(Math.random() * 50 + 2),
+          latency: (Math.random() * 30 + 5).toFixed(1) + 'ms',
+          encryption: 'AES-256-GCM',
+          bandwidth: (Math.random() * 100 + 10).toFixed(0) + 'Mbps',
+          message: 'Communication channel established. E2E encryption active.'
+        }
+      });
+
+    case 'security-identity':
+      return Object.assign(base, {
+        response: {
+          type: 'security_scan',
+          threatLevel: 'CLEAR',
+          entropyScore: (Math.random() * 3 + 4).toFixed(4),
+          hashAlgorithm: 'FNV-1a + SHA-256',
+          integrityCheck: 'PASSED',
+          credentialStatus: 'VERIFIED',
+          auditEntries: Math.floor(Math.random() * 1000 + 100),
+          message: 'Security scan complete. No threats detected. Identity verified.'
+        }
+      });
+
+    case 'ai-intelligence':
+      return Object.assign(base, {
+        response: {
+          type: 'ai_inference',
+          modelSize: (Math.random() * 7 + 0.5).toFixed(1) + 'B params',
+          tokensProcessed: Math.floor(Math.random() * 5000 + 500),
+          inferenceTime: (Math.random() * 200 + 30).toFixed(1) + 'ms',
+          accuracy: (0.88 + Math.random() * 0.11).toFixed(3),
+          agentCount: Math.floor(Math.random() * 10 + 1),
+          message: 'AI model loaded. Inference pipeline ready for requests.'
+        }
+      });
+
+    case 'infrastructure':
+      return Object.assign(base, {
+        response: {
+          type: 'infra_status',
+          nodes: Math.floor(Math.random() * 100 + 10),
+          uptime: '99.' + Math.floor(Math.random() * 9 + 1) + '%',
+          containers: Math.floor(Math.random() * 50 + 5),
+          deploymentMode: 'canary',
+          wasmIsolation: true,
+          sovereignRuntime: true,
+          message: 'Infrastructure provisioned. All nodes healthy and sovereign.'
+        }
+      });
+
+    default:
+      return Object.assign(base, {
+        response: { message: 'SDK initialized. Module ready for integration.' }
+      });
+  }
+}
+
+/** Simulate SDK try */
+function trySDK(id) {
+  const result = document.getElementById('result-' + id);
+  if (!result) return;
+  result.classList.add('visible');
+  result.textContent = 'Initializing SDK module...';
+
+  const product = SDK_PRODUCTS.find(p => p.id === id);
+  if (!product) return;
+
+  // Animate loading dots
+  let dots = 0;
+  const loadingInterval = setInterval(() => {
+    dots = (dots + 1) % 4;
+    result.textContent = 'Initializing SDK module' + '.'.repeat(dots);
+  }, 200);
+
+  setTimeout(() => {
+    clearInterval(loadingInterval);
+    const resp = generateCategoryResponse(product);
+    result.textContent = JSON.stringify(resp, null, 2);
+    downloadCount++;
+    showToast(product.name + ' SDK response received');
+  }, 600 + Math.random() * 800);
+}
+
+let downloadCount = 0;
+
+/* ═══════════════════════════════════════════════════════════
+   INLINE WEB WORKERS — build-worker, wiring-worker, solver-worker
+   Each worker has:
+     - MiniHeart: Kuramoto phase oscillator, BPM, health
+     - MiniBrain: 3 regions, 3 chemicals, LIF membrane
+   ═══════════════════════════════════════════════════════════ */
+
+function createWorkerCode(workerName) {
+  return `
+    // ── ${workerName} ──
+    const PHI = 1.618033988749895;
+    const PHI_INV = 1 / PHI;  // 0.618033988749895
+    const PHI_INTERVAL = 618; // ms, phi-derived heartbeat
+
+    // ── MiniHeart: Kuramoto Phase Oscillator ──
+    const heart = {
+      phase: Math.random() * 2 * Math.PI,
+      naturalFreq: 1.0 + Math.random() * 0.5,  // rad/s
+      couplingK: 0.5,
+      bpm: 60 + Math.floor(Math.random() * 20),
+      health: 0.85 + Math.random() * 0.15,
+      beatCount: 0
+    };
+
+    function stepHeart(dt) {
+      // Kuramoto: d(phase)/dt = omega + K * sin(target - phase)
+      const target = (Date.now() / 1000.0) * heart.naturalFreq * 2 * Math.PI;
+      const dPhase = heart.naturalFreq + heart.couplingK * Math.sin(target - heart.phase);
+      heart.phase += dPhase * dt;
+      heart.phase = heart.phase % (2 * Math.PI);
+
+      // BPM fluctuates around base
+      heart.bpm = Math.round(60 + 12 * Math.sin(heart.phase));
+
+      // Health decays slowly, recovers on sync
+      const sync = Math.abs(Math.cos(heart.phase - target));
+      heart.health = heart.health * 0.995 + sync * 0.005;
+      heart.health = Math.min(1.0, Math.max(0.0, heart.health));
+
+      heart.beatCount++;
+    }
+
+    // ── MiniBrain: 3 regions, 3 chemicals, LIF membrane ──
+    const brain = {
+      regions: [
+        { name: 'cortex',    activation: 0.5, threshold: 0.7 },
+        { name: 'limbic',    activation: 0.4, threshold: 0.6 },
+        { name: 'brainstem', activation: 0.6, threshold: 0.5 }
+      ],
+      chemicals: {
+        dopamine:     0.5,
+        serotonin:    0.5,
+        norepinephrine: 0.5
+      },
+      membrane: {
+        voltage: -65.0,    // mV, resting potential
+        threshold: -55.0,  // mV, spike threshold
+        reset: -70.0,      // mV, post-spike reset
+        tau: 20.0,         // ms, membrane time constant
+        resistance: 10.0,  // MOhm
+        spiking: false
+      }
+    };
+
+    function stepBrain(dt) {
+      // LIF membrane dynamics: tau * dV/dt = -(V - V_rest) + R * I
+      const I_ext = 0.8 + 0.4 * Math.sin(heart.phase); // current from heart
+      const dV = (-(brain.membrane.voltage + 65.0) + brain.membrane.resistance * I_ext) / brain.membrane.tau;
+      brain.membrane.voltage += dV * dt * 1000; // dt in seconds, need ms
+
+      // Spike check
+      if (brain.membrane.voltage >= brain.membrane.threshold) {
+        brain.membrane.spiking = true;
+        brain.membrane.voltage = brain.membrane.reset;
+      } else {
+        brain.membrane.spiking = false;
+      }
+
+      // Clamp voltage
+      brain.membrane.voltage = Math.max(-80.0, Math.min(-40.0, brain.membrane.voltage));
+
+      // Update regions
+      brain.regions.forEach(r => {
+        const noise = (Math.random() - 0.5) * 0.05;
+        r.activation += noise + (brain.membrane.spiking ? 0.15 : -0.02);
+        r.activation = Math.max(0, Math.min(1, r.activation));
+      });
+
+      // Update chemicals
+      const phiFactor = Math.abs(Math.cos(heart.phase * PHI_INV));
+      brain.chemicals.dopamine     = brain.chemicals.dopamine * 0.98 + phiFactor * 0.02;
+      brain.chemicals.serotonin    = brain.chemicals.serotonin * 0.97 + heart.health * 0.03;
+      brain.chemicals.norepinephrine = brain.chemicals.norepinephrine * 0.96 + (brain.membrane.spiking ? 0.08 : 0.0);
+    }
+
+    function getCoherence() {
+      const acts = brain.regions.map(r => r.activation);
+      const mean = acts.reduce((a, b) => a + b, 0) / acts.length;
+      const variance = acts.reduce((a, v) => a + (v - mean) * (v - mean), 0) / acts.length;
+      return Math.max(0, 1.0 - Math.sqrt(variance) * 2);
+    }
+
+    // ── Main Loop: phi-interval heartbeat ──
+    let lastTick = Date.now();
+
+    setInterval(() => {
+      const now = Date.now();
+      const dt = (now - lastTick) / 1000.0;
+      lastTick = now;
+
+      stepHeart(dt);
+      stepBrain(dt);
+
+      const coherence = getCoherence();
+
+      self.postMessage({
+        worker: '${workerName}',
+        timestamp: now,
+        heart: {
+          phase: heart.phase,
+          bpm: heart.bpm,
+          health: heart.health,
+          beatCount: heart.beatCount
+        },
+        brain: {
+          regions: brain.regions.length,
+          chemicals: Object.keys(brain.chemicals).length,
+          membraneV: brain.membrane.voltage,
+          spiking: brain.membrane.spiking,
+          coherence: coherence,
+          dopamine: brain.chemicals.dopamine,
+          serotonin: brain.chemicals.serotonin,
+          norepinephrine: brain.chemicals.norepinephrine
+        }
+      });
+    }, PHI_INTERVAL);
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HEARTBEAT CANVAS — Real-time oscilloscope
+   ═══════════════════════════════════════════════════════════ */
+const heartbeatHistory = { build: [], wiring: [], solver: [] };
+const CANVAS_MAX_POINTS = 200;
+
+function drawHeartbeatCanvas() {
+  const canvas = document.getElementById('heartbeat-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+
+  // Clear
+  ctx.fillStyle = '#060e1c';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid lines
+  ctx.strokeStyle = '#1a305033';
+  ctx.lineWidth = 0.5;
+  for (let y = 0; y < H; y += 20) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+  for (let x = 0; x < W; x += 40) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, H);
+    ctx.stroke();
+  }
+
+  // Center line
+  ctx.strokeStyle = '#1a305066';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, H / 2);
+  ctx.lineTo(W, H / 2);
+  ctx.stroke();
+
+  // Draw each worker's heartbeat trace
+  const colors = { build: '#00ff88', wiring: '#00ddff', solver: '#cc88ff' };
+  const offsets = { build: 0, wiring: 8, solver: -8 };
+
+  Object.keys(heartbeatHistory).forEach(key => {
+    const data = heartbeatHistory[key];
+    if (data.length < 2) return;
+
+    ctx.strokeStyle = colors[key];
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+
+    for (let i = 0; i < data.length; i++) {
+      const x = (i / CANVAS_MAX_POINTS) * W;
+      const y = H / 2 + offsets[key] - data[i] * (H * 0.35);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  });
+
+  // Labels
+  ctx.font = '10px Courier New';
+  ctx.fillStyle = '#00ff88';
+  ctx.fillText('BUILD', 8, 14);
+  ctx.fillStyle = '#00ddff';
+  ctx.fillText('WIRING', 70, 14);
+  ctx.fillStyle = '#cc88ff';
+  ctx.fillText('SOLVER', 140, 14);
+
+  // Phi marker
+  ctx.fillStyle = '#66bbff44';
+  ctx.font = '9px Courier New';
+  ctx.fillText('phi=' + PHI.toFixed(6), W - 120, 14);
+}
+
+function pushHeartbeatData(workerKey, value) {
+  if (!heartbeatHistory[workerKey]) return;
+  heartbeatHistory[workerKey].push(value);
+  if (heartbeatHistory[workerKey].length > CANVAS_MAX_POINTS) {
+    heartbeatHistory[workerKey].shift();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SPAWN WORKERS & TELEMETRY
+   ═══════════════════════════════════════════════════════════ */
+const workerNames = ['build-worker', 'wiring-worker', 'solver-worker'];
+const workerState = {};
+const workers = [];
+
+function spawnWorkers() {
+  workerNames.forEach(name => {
+    const code = createWorkerCode(name);
+    const blob = new Blob([code], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    const w = new Worker(url);
+    URL.revokeObjectURL(url);
+
+    const key = name.split('-')[0]; // build, wiring, solver
+    workerState[key] = { status: 'running', heart: {}, brain: {} };
+
+    w.onmessage = function(e) {
+      const d = e.data;
+      const k = d.worker.split('-')[0];
+      workerState[k] = {
+        status: 'running',
+        heart: d.heart,
+        brain: d.brain
+      };
+
+      // Push heartbeat data for canvas visualization
+      const sinPhase = Math.sin(d.heart.phase || 0);
+      pushHeartbeatData(k, sinPhase * (d.heart.health || 0.5));
+
+      // Update worker indicator dot
+      const dot = document.getElementById('wind-' + k);
+      if (dot) dot.classList.add('alive');
+
+      updateTelemetry();
+    };
+
+    w.onerror = function(err) {
+      const k = name.split('-')[0];
+      workerState[k].status = 'error';
+    };
+
+    workers.push(w);
+  });
+}
+
+let totalBeats = 0;
+const startTime = Date.now();
+
+function updateTelemetry() {
+  const keys = ['build', 'wiring', 'solver'];
+  let activeCount = 0;
+  let totalBPM = 0;
+  let totalHealth = 0;
+  let totalCoherence = 0;
+  let phases = [];
+
+  keys.forEach(k => {
+    const s = workerState[k];
+    if (!s || !s.heart.bpm) return;
+
+    const prefix = 'tw-' + k;
+    activeCount++;
+
+    // Update individual worker telemetry
+    setTelem(prefix + '-status', s.status);
+    setTelem(prefix + '-bpm', s.heart.bpm);
+    setTelem(prefix + '-phase', s.heart.phase != null ? s.heart.phase.toFixed(3) : '0.000');
+    setTelem(prefix + '-health', s.heart.health != null ? s.heart.health.toFixed(3) : '0.000');
+    setTelem(prefix + '-regions', s.brain.regions || 3);
+    setTelem(prefix + '-chems', s.brain.chemicals || 3);
+    setTelem(prefix + '-membrane', s.brain.membraneV != null ? s.brain.membraneV.toFixed(1) : '-65.0');
+    setTelem(prefix + '-coherence', s.brain.coherence != null ? s.brain.coherence.toFixed(3) : '0.000');
+
+    // Heartbeat bar animation
+    const hb = document.getElementById('hb-' + k);
+    if (hb) {
+      const pct = ((s.heart.health || 0) * 100).toFixed(0);
+      hb.style.width = pct + '%';
+    }
+
+    totalBPM += s.heart.bpm || 0;
+    totalHealth += s.heart.health || 0;
+    totalCoherence += s.brain.coherence || 0;
+    if (s.heart.phase != null) phases.push(s.heart.phase);
+    totalBeats = Math.max(totalBeats, s.heart.beatCount || 0);
+  });
+
+  // Kuramoto order parameter: R = |1/N * sum(e^(i*phase))|
+  let kuramotoR = 0;
+  if (phases.length > 0) {
+    let sumCos = 0, sumSin = 0;
+    phases.forEach(p => { sumCos += Math.cos(p); sumSin += Math.sin(p); });
+    kuramotoR = Math.sqrt(sumCos * sumCos + sumSin * sumSin) / phases.length;
+  }
+
+  // Update collective metrics
+  const n = Math.max(activeCount, 1);
+  setTelem('tw-global-kuramoto', kuramotoR.toFixed(3));
+  setTelem('tw-global-bpm', Math.round(totalBPM / n));
+  setTelem('tw-global-health', (totalHealth / n).toFixed(3));
+  setTelem('tw-global-coherence', (totalCoherence / n).toFixed(3));
+  setTelem('tw-global-beats', totalBeats);
+  setTelem('tw-global-active', activeCount);
+  setTelem('tw-global-phi', (kuramotoR * PHI_INV).toFixed(3));
+  setTelem('tw-global-uptime', formatUptime(Date.now() - startTime));
+
+  // Global heartbeat bar
+  const hbg = document.getElementById('hb-global');
+  if (hbg) hbg.style.width = (kuramotoR * 100).toFixed(0) + '%';
+
+  // Status bar metrics
+  setTelem('m-workers', activeCount + '/3');
+  setTelem('m-heartbeat', totalBeats);
+  setTelem('m-kuramoto', kuramotoR.toFixed(3));
+  setTelem('m-coherence', (totalCoherence / n * PHI_INV).toFixed(3));
+  setTelem('m-downloads', downloadCount);
+
+  // Stats banner
+  setTelem('stat-workers-active', activeCount);
+
+  // Draw heartbeat canvas
+  drawHeartbeatCanvas();
+}
+
+function setTelem(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function formatUptime(ms) {
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return s + 's';
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + 'm ' + (s % 60) + 's';
+  const h = Math.floor(m / 60);
+  return h + 'h ' + (m % 60) + 'm';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INITIALIZATION
+   ═══════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', function() {
+  renderProducts();
+  renderEnterprise();
+  renderBlueprints();
+  renderPapers();
+  renderConstants();
+  renderCategoryBar();
+  spawnWorkers();
+
+  // Initial canvas draw
+  drawHeartbeatCanvas();
+
+  // Periodic status bar update
+  setInterval(() => {
+    setTelem('m-sdks', SDK_PRODUCTS.length);
+    setTelem('m-downloads', downloadCount);
+  }, 2000);
+});
+
+/** Render category bar with counts */
+function renderCategoryBar() {
+  const bar = document.getElementById('category-bar');
+  if (!bar) return;
+
+  const catCounts = {};
+  SDK_PRODUCTS.forEach(p => {
+    catCounts[p.cat] = (catCounts[p.cat] || 0) + 1;
+  });
+
+  let html = '<button class="cat-btn active" onclick="filterCat(\'all\')">ALL (' + SDK_PRODUCTS.length + ')</button>';
+  Object.keys(CATEGORY_LABELS).forEach(cat => {
+    const count = catCounts[cat] || 0;
+    html += '<button class="cat-btn" onclick="filterCat(\'' + cat + '\')">' + CATEGORY_LABELS[cat].toUpperCase() + ' (' + count + ')</button>';
+  });
+  bar.innerHTML = html;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   KEYBOARD SHORTCUTS
+   ═══════════════════════════════════════════════════════════ */
+document.addEventListener('keydown', function(e) {
+  // Ctrl+K or / to focus search
+  if ((e.ctrlKey && e.key === 'k') || (e.key === '/' && document.activeElement.tagName !== 'INPUT')) {
+    e.preventDefault();
+    const searchInput = document.getElementById('sdk-search');
+    if (searchInput) searchInput.focus();
+  }
+  // Escape to clear search
+  if (e.key === 'Escape') {
+    const searchInput = document.getElementById('sdk-search');
+    if (searchInput && document.activeElement === searchInput) {
+      searchInput.value = '';
+      searchSDKs('');
+      searchInput.blur();
+    }
+  }
+});
+</script>
+</body>
+</html>
