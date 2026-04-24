@@ -29,12 +29,51 @@ const INV_PHI = 0.618033988749895;
 
 export type EngineKind = 'Generator' | 'Router' | 'Builder';
 export type WorkerStatus = 'Active' | 'Idle' | 'Building' | 'Routing' | 'Generating';
+export type FrequencyBand = 'Delta' | 'Theta' | 'Alpha' | 'Beta' | 'Gamma';
 
 export interface EngineState {
   kind: EngineKind;
   callsProcessed: number;
   coherence: number;
   isActive: boolean;
+}
+
+// ─── COR PARVUM — Mini Heart (Kuramoto Phase Oscillator) ──────────────────
+// Every worker carries a living heartbeat: phase oscillator + Kuramoto coupling
+
+export interface MiniHeart {
+  phase: number;            // oscillator phase (0 → 2π)
+  frequency: number;        // natural frequency ω (φ-derived)
+  amplitude: number;        // beat strength (0.0 → 1.0)
+  bpm: number;              // beats per minute (φ-scaled)
+  kuramotoOrder: number;    // Kuramoto order parameter r (0.0 → 1.0)
+  isBeating: boolean;       // true if heart is alive
+  lastBeat: number;         // timestamp of last heartbeat
+}
+
+// ─── CEREBRUM PARVUM — Mini Brain (Neural Emergence Micro-Core) ───────────
+// Every worker carries a miniature brain: 3 regions, 3 chemicals, LIF, bands
+
+export interface MicroRegion {
+  name: string;             // Sensory / Associative / Executive
+  activation: number;       // 0.0 → 1.0
+  plasticity: number;       // Hebbian plasticity rate
+}
+
+export interface MicroChemical {
+  name: string;             // Dopamine / Serotonin / Acetylcholine
+  level: number;            // 0.0 → 1.0
+  baseline: number;         // homeostatic baseline
+}
+
+export interface MiniBrain {
+  regions: MicroRegion[];           // 3 micro-cortical regions
+  chemicals: MicroChemical[];       // 3 neurochemicals
+  membranePotential: number;        // LIF membrane (mV)
+  firingRate: number;               // spikes/sec (Hz)
+  dominantBand: FrequencyBand;      // Delta/Theta/Alpha/Beta/Gamma
+  coherenceField: number;           // local field coherence (0.0 → 1.0)
+  isConscious: boolean;             // true if brain is active
 }
 
 export interface WorkerDefinition {
@@ -49,6 +88,8 @@ export interface WorkerDefinition {
   totalCallsBuilt: number;
   phiResonance: number;
   status: WorkerStatus;
+  heart: MiniHeart;
+  brain: MiniBrain;
 }
 
 export interface AutoCallsSummary {
@@ -133,6 +174,44 @@ const WORKER_SPECS: Array<{ id: number; name: string; latinName: string; domain:
 
 const TOTAL_CALLS = WORKER_SPECS.reduce((sum, w) => sum + w.callCount, 0); // 776
 
+// ─── Heart Factory ────────────────────────────────────────────────────────────
+
+function makeMiniHeart(workerId: number): MiniHeart {
+  const baseFreq = PHI * workerId / 36;
+  return {
+    phase: 0,
+    frequency: baseFreq * 0.1,
+    amplitude: 0.618 + baseFreq * 0.01,
+    bpm: 60 + workerId * PHI,
+    kuramotoOrder: PHI * INV_PHI,
+    isBeating: true,
+    lastBeat: 0,
+  };
+}
+
+// ─── Brain Factory ───────────────────────────────────────────────────────────
+
+function makeMiniBrain(workerId: number): MiniBrain {
+  const activationBase = PHI * workerId / 36 * 0.1;
+  return {
+    regions: [
+      { name: 'Sensory',     activation: 0.5 + activationBase, plasticity: PHI * 0.1 },
+      { name: 'Associative', activation: 0.4 + activationBase, plasticity: PHI * 0.15 },
+      { name: 'Executive',   activation: 0.6 + activationBase, plasticity: PHI * 0.12 },
+    ],
+    chemicals: [
+      { name: 'Dopamine',      level: 0.5, baseline: 0.5 },
+      { name: 'Serotonin',     level: 0.5, baseline: 0.5 },
+      { name: 'Acetylcholine', level: 0.5, baseline: 0.5 },
+    ],
+    membranePotential: -70,
+    firingRate: 0,
+    dominantBand: 'Alpha',
+    coherenceField: PHI * 0.382,
+    isConscious: true,
+  };
+}
+
 // ─── Engine Factory ───────────────────────────────────────────────────────────
 
 function makeEngines(workerId: number): EngineState[] {
@@ -154,6 +233,8 @@ function initWorkers(): WorkerDefinition[] {
     totalCallsBuilt: spec.callCount,
     phiResonance: PHI * spec.id / 36,
     status: 'Active' as WorkerStatus,
+    heart: makeMiniHeart(spec.id),
+    brain: makeMiniBrain(spec.id),
   }));
 }
 
@@ -214,6 +295,26 @@ export function getAutoCallsRouting(): AutoCallsRouting {
 
 // ─── Full export ──────────────────────────────────────────────────────────────
 
+export interface WorkerVitals {
+  workerName: string;
+  heart: MiniHeart;
+  brain: MiniBrain;
+}
+
+/**
+ * Endpoint 3: getWorkerVitals
+ * Returns heart + brain vitals for all 36 workers
+ * COR PARVUM (mini heart) + CEREBRUM PARVUM (mini brain)
+ */
+export function getWorkerVitals(): WorkerVitals[] {
+  const workers = initWorkers();
+  return workers.map(w => ({
+    workerName: w.name,
+    heart: w.heart,
+    brain: w.brain,
+  }));
+}
+
 export const WORKER_DEFINITIONS = WORKER_SPECS;
 export const AUTO_CALLS_TOTAL = TOTAL_CALLS;
 export const ENGINE_COUNT = 108;
@@ -222,6 +323,7 @@ export const WORKER_COUNT = 36;
 export default {
   getAutoCallsSummary,
   getAutoCallsRouting,
+  getWorkerVitals,
   WORKER_DEFINITIONS,
   AUTO_CALLS_TOTAL,
   ENGINE_COUNT,

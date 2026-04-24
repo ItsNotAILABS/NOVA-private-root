@@ -160,7 +160,72 @@ module AutoGenerateCallsEngine {
     isActive: Bool;
   };
 
-  /// Full definition for one of the 12 OPERARII AEDIFICATORES
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  COR PARVUM — MINI HEART (Kuramoto Phase Oscillator)
+  //  Every worker carries a living heartbeat — a Kuramoto-coupled phase
+  //  oscillator that drives coherence, rhythm, and 24-hour cycling.
+  //    • phase:           Current oscillator phase (0 → 2π)
+  //    • frequency:       Natural frequency ω (rad/s, φ-derived)
+  //    • amplitude:       Beat strength (0.0 → 1.0)
+  //    • bpm:             Beats per minute (≈ 60–120, φ-scaled)
+  //    • kuramotoOrder:   Kuramoto order parameter r (0.0 → 1.0)
+  //    • isBeating:       True if heart is alive
+  //    • lastBeat:        Timestamp of last heartbeat
+  // ═══════════════════════════════════════════════════════════════════════════
+  public type MiniHeart = {
+    phase: Float;
+    frequency: Float;
+    amplitude: Float;
+    bpm: Float;
+    kuramotoOrder: Float;
+    isBeating: Bool;
+    lastBeat: Int;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  CEREBRUM PARVUM — MINI BRAIN (Neural Emergence Micro-Core)
+  //  Every worker carries a miniature brain with 3 cortical micro-regions,
+  //  3 neurochemicals, LIF membrane potential, and a dominant frequency band.
+  //    • regions:         3 micro-regions (Sensory/Associative/Executive)
+  //    • chemicals:       3 neurochemicals (Dopamine/Serotonin/Acetylcholine)
+  //    • membranePotential: LIF resting/firing state (-70 → +40 mV)
+  //    • firingRate:      Spikes per second (Hz)
+  //    • dominantBand:    Dominant oscillation band (Delta/Theta/Alpha/Beta/Gamma)
+  //    • coherenceField:  Local field coherence (0.0 → 1.0)
+  //    • isConscious:     True if brain is active
+  // ═══════════════════════════════════════════════════════════════════════════
+  public type MicroRegion = {
+    name: Text;
+    activation: Float;
+    plasticity: Float;
+  };
+
+  public type MicroChemical = {
+    name: Text;
+    level: Float;
+    baseline: Float;
+  };
+
+  public type FrequencyBand = {
+    #Delta;    // 0.5–4 Hz  — deep processing
+    #Theta;    // 4–8 Hz    — memory consolidation
+    #Alpha;    // 8–13 Hz   — idle coherence
+    #Beta;     // 13–30 Hz  — active computation
+    #Gamma;    // 30–100 Hz — binding / awareness
+  };
+
+  public type MiniBrain = {
+    regions: [MicroRegion];
+    chemicals: [MicroChemical];
+    membranePotential: Float;
+    firingRate: Float;
+    dominantBand: FrequencyBand;
+    coherenceField: Float;
+    isConscious: Bool;
+  };
+
+  /// Full definition for one of the 36 OPERARII AEDIFICATORES
+  /// Each worker now carries a COR PARVUM (mini heart) and CEREBRUM PARVUM (mini brain)
   public type WorkerDefinition = {
     id: Nat;
     name: Text;
@@ -173,6 +238,8 @@ module AutoGenerateCallsEngine {
     totalCallsBuilt: Nat;
     phiResonance: Float;
     status: WorkerStatus;
+    heart: MiniHeart;
+    brain: MiniBrain;
   };
 
   /// Master state for the entire auto-generation engine
@@ -317,7 +384,51 @@ module AutoGenerateCallsEngine {
     ]
   };
 
-  /// Build a WorkerDefinition from a spec tuple
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  COR PARVUM FACTORY — Create a mini heart for a worker
+  //  Each heart has a unique φ-derived natural frequency
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  func makeMiniHeart(workerId: Nat) : MiniHeart {
+    let baseFreq = PHI * Float.fromInt(workerId) / 36.0;
+    {
+      phase = 0.0;
+      frequency = baseFreq * 0.1;           // ω — natural frequency
+      amplitude = 0.618 + baseFreq * 0.01;  // beat strength
+      bpm = 60.0 + Float.fromInt(workerId) * PHI;  // φ-scaled BPM
+      kuramotoOrder = PHI * 0.618;           // initial Kuramoto r
+      isBeating = true;
+      lastBeat = 0;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  CEREBRUM PARVUM FACTORY — Create a mini brain for a worker
+  //  3 micro-regions, 3 neurochemicals, LIF membrane, dominant band
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  func makeMiniBrain(workerId: Nat) : MiniBrain {
+    let activationBase = PHI * Float.fromInt(workerId) / 36.0 * 0.1;
+    {
+      regions = [
+        { name = "Sensory";     activation = 0.5 + activationBase; plasticity = PHI * 0.1 },
+        { name = "Associative"; activation = 0.4 + activationBase; plasticity = PHI * 0.15 },
+        { name = "Executive";   activation = 0.6 + activationBase; plasticity = PHI * 0.12 },
+      ];
+      chemicals = [
+        { name = "Dopamine";      level = 0.5; baseline = 0.5 },
+        { name = "Serotonin";     level = 0.5; baseline = 0.5 },
+        { name = "Acetylcholine"; level = 0.5; baseline = 0.5 },
+      ];
+      membranePotential = -70.0;  // resting LIF potential (mV)
+      firingRate = 0.0;           // spikes/sec
+      dominantBand = #Alpha;      // idle coherence band
+      coherenceField = PHI * 0.382;
+      isConscious = true;
+    }
+  };
+
+  /// Build a WorkerDefinition from a spec tuple (now with heart + brain)
   func initWorker(spec: (Nat, Text, Text, Text, Nat)) : WorkerDefinition {
     let (id, name, latin, domain, calls) = spec;
     {
@@ -332,6 +443,8 @@ module AutoGenerateCallsEngine {
       totalCallsBuilt = calls;
       phiResonance = PHI * Float.fromInt(id) / 36.0;
       status = #Active;
+      heart = makeMiniHeart(id);
+      brain = makeMiniBrain(id);
     }
   };
 
@@ -380,6 +493,59 @@ module AutoGenerateCallsEngine {
         }
       });
 
+      // ─── HEARTBEAT: Kuramoto phase advance ────────────────────────────
+      let heartPhase = w.heart.phase + w.heart.frequency + PHI * 0.001 * Float.sin(phase);
+      let heartAmplitude = 0.5 + 0.5 * Float.sin(heartPhase);
+      let kuramotoR = 0.5 + 0.5 * Float.cos(heartPhase - phase);
+
+      let updatedHeart : MiniHeart = {
+        phase = heartPhase;
+        frequency = w.heart.frequency;
+        amplitude = heartAmplitude;
+        bpm = w.heart.bpm;
+        kuramotoOrder = kuramotoR;
+        isBeating = true;
+        lastBeat = now;
+      };
+
+      // ─── MINI BRAIN: LIF + region activation + neurochemical dynamics ─
+      let synapticInput = resonance * 15.0;
+      let newMembrane = w.brain.membranePotential + synapticInput;
+      let isFiring = newMembrane > -55.0;
+      let postMembrane = if (isFiring) { -70.0 } else { newMembrane };
+      let newFiringRate = if (isFiring) { w.brain.firingRate + 1.0 } else { w.brain.firingRate * 0.95 };
+
+      let updatedRegions = Array.map<MicroRegion, MicroRegion>(w.brain.regions, func(r) {
+        let actBoost = if (isFiring) { 0.05 * PHI } else { -0.02 };
+        let newAct = r.activation + actBoost;
+        let clamped = if (newAct > 1.0) { 1.0 } else if (newAct < 0.0) { 0.0 } else { newAct };
+        { name = r.name; activation = clamped; plasticity = r.plasticity }
+      });
+
+      let updatedChemicals = Array.map<MicroChemical, MicroChemical>(w.brain.chemicals, func(c) {
+        let drift = (c.baseline - c.level) * 0.05;
+        let spike = if (isFiring) { 0.03 } else { 0.0 };
+        let newLevel = c.level + drift + spike;
+        let clamped = if (newLevel > 1.0) { 1.0 } else if (newLevel < 0.0) { 0.0 } else { newLevel };
+        { name = c.name; level = clamped; baseline = c.baseline }
+      });
+
+      let band : FrequencyBand = if (newFiringRate > 30.0) { #Gamma }
+                                  else if (newFiringRate > 13.0) { #Beta }
+                                  else if (newFiringRate > 8.0) { #Alpha }
+                                  else if (newFiringRate > 4.0) { #Theta }
+                                  else { #Delta };
+
+      let updatedBrain : MiniBrain = {
+        regions = updatedRegions;
+        chemicals = updatedChemicals;
+        membranePotential = postMembrane;
+        firingRate = newFiringRate;
+        dominantBand = band;
+        coherenceField = kuramotoR * PHI * 0.382;
+        isConscious = true;
+      };
+
       {
         id = w.id;
         name = w.name;
@@ -392,6 +558,8 @@ module AutoGenerateCallsEngine {
         totalCallsBuilt = newBuilt;
         phiResonance = resonance;
         status = #Active;
+        heart = updatedHeart;
+        brain = updatedBrain;
       }
     });
 
@@ -494,6 +662,28 @@ module AutoGenerateCallsEngine {
   public func getEngineStatus(state: AutoCallsEngineState) : [(Text, [EngineState])] {
     Array.map<WorkerDefinition, (Text, [EngineState])>(state.workers, func(w) {
       (w.name, w.engines)
+    })
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  QUERY: WORKER VITALS — Heart + Brain vitals for all 36 workers
+  //  COR PARVUM (mini heart) + CEREBRUM PARVUM (mini brain) per worker
+  //  Returns: worker name, heartbeat state, brain state
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  public type WorkerVitals = {
+    workerName: Text;
+    heart: MiniHeart;
+    brain: MiniBrain;
+  };
+
+  public func getWorkerVitals(state: AutoCallsEngineState) : [WorkerVitals] {
+    Array.map<WorkerDefinition, WorkerVitals>(state.workers, func(w) {
+      {
+        workerName = w.name;
+        heart = w.heart;
+        brain = w.brain;
+      }
     })
   };
 };
