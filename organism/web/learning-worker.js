@@ -189,6 +189,13 @@ function normalizeToken(item) {
    ════════════════════════════════════════════════════════════════ */
 
 /**
+ * Guard against prototype pollution — reject dangerous keys.
+ */
+function isSafeKey(key) {
+  return key !== '__proto__' && key !== 'constructor' && key !== 'prototype';
+}
+
+/**
  * Merge knowledge from multiple sources, detecting conflicts and
  * computing consensus values with φ-weighted confidence.
  */
@@ -208,6 +215,7 @@ function synthesizeKnowledge(sources) {
     if (typeof data !== 'object') continue;
     var keys = Object.keys(data);
     for (var k = 0; k < keys.length; k++) {
+      if (!isSafeKey(keys[k])) continue;
       if (!allKeys[keys[k]]) allKeys[keys[k]] = [];
       allKeys[keys[k]].push({
         sourceIndex: s,
