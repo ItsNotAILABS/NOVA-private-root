@@ -4,7 +4,7 @@
  *  Kernel AI GOK-CERT-001  ·  Family: CERTIFICATION_ORGANISM
  * ============================================================================
  *
- *  Formal skill / certification ladder  ·  Fibonacci cert levels F1→F13
+ *  Formal skill / certification ladder  ·  Fibonacci cert levels F1→F377
  *  Structured capability progression  ·  Skill assessment engine
  *
  *  Fibonacci Certification Levels:
@@ -150,7 +150,7 @@ function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
 /* ── §6  CERTIFICATION ENGINE ───────────────────────────────────────────── */
 
 var certStore   = [];
-var entityIndex = {};  /* entityId → [ certId, ... ] */
+var entityIndex = Object.create(null);  /* entityId → [ certId, ... ] */
 
 function assessLevel(skillScore) {
   var level = FIB_LEVELS[0];

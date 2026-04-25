@@ -225,7 +225,7 @@ var SCRIPTS = [
 ];
 
 /* runtime state for scripts */
-var scriptState = {};
+var scriptState = Object.create(null);
 (function() {
   for (var i = 0; i < SCRIPTS.length; i++) {
     scriptState[SCRIPTS[i].id] = { runCount: 0, lastRun: 0, status: 'IDLE', nextRun: SCRIPTS[i].interval };

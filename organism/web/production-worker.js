@@ -156,7 +156,7 @@ var ENVIRONMENTS = [
   { id: 'EDGE',       name: 'Edge',         tier: 6 }
 ];
 
-var pipelines     = {};  /* productId → pipeline state */
+var pipelines     = Object.create(null);  /* productId → pipeline state */
 var buildHistory  = [];
 var deployHistory = [];
 
