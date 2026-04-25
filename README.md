@@ -20,3 +20,28 @@ Primary internal docs:
 
 Family workspace library:
 - `docs/family-library/README_FAMILY_LIBRARY.md`
+
+---
+
+## 📱 NOVA Phone (Installable PWA)
+
+Open on your phone browser — tap **Add to Home Screen** to install:
+
+**▶ [Open NOVA Phone](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/copilot/add-canonical-architecture-codex/organism/web/nova-phone.html)**
+
+_(After merge: [main branch link](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/copilot/add-canonical-architecture-codex/organism/web/nova-phone.html))_
+
+> Self-contained installable PWA · 7 tabs · 30 sovereign AI products · φ-heartbeat telemetry · Zero external dependencies
+>
+> File: [`organism/web/nova-phone.html`](organism/web/nova-phone.html)
+
+### Other Web Apps
+
+| App | Link | Description |
+|-----|------|-------------|
+| SDK Marketplace | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/copilot/add-canonical-architecture-codex/organism/web/sdk-marketplace.html) | 40 SDK products, 8 categories, live telemetry |
+| Deployment Factory | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/copilot/add-canonical-architecture-codex/organism/web/deployment-factory.html) | 30 products × 6 envs × 12 pipeline stages |
+| Edge Deploy | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/copilot/add-canonical-architecture-codex/organism/web/edge-deploy.html) | Edge deployment PWA, 12 frequency bands |
+| Blueprint Gallery | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/copilot/add-canonical-architecture-codex/organism/web/blueprints.html) | 25 architecture blueprints |
+| Products Catalog | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/copilot/add-canonical-architecture-codex/organism/web/products.html) | Product catalog |
+| ANIMA Micro | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/copilot/add-canonical-architecture-codex/organism/web/index.html) | 5 AI products, 7 autonomous workers |
