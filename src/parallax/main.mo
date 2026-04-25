@@ -37,16 +37,9 @@
 //   ONESICANS are minted by the sovereign (owner) and consumed by canisters.
 
 import Array     "mo:base/Array";
-import Blob      "mo:base/Blob";
 import Float     "mo:base/Float";
-import Hash      "mo:base/Hash";
 import Int       "mo:base/Int";
-import Iter      "mo:base/Iter";
 import Nat       "mo:base/Nat";
-import Nat8      "mo:base/Nat8";
-import Nat32     "mo:base/Nat32";
-import Nat64     "mo:base/Nat64";
-import Option    "mo:base/Option";
 import Principal "mo:base/Principal";
 import Text      "mo:base/Text";
 import Time      "mo:base/Time";
@@ -148,7 +141,9 @@ actor Parallax {
     switch (_icpIdx(p)) {
       case (?i) i;
       case null {
-        if (icpAccountCount >= LEDGER_CAP) return 0;  // ledger full — safe fallback
+        // Callers must check icpAccountCount < LEDGER_CAP before calling this;
+        // this assert ensures a ledger-full condition is never silently swallowed.
+        assert(icpAccountCount < LEDGER_CAP);
         let i = icpAccountCount;
         icpPrincipals[i] := p;
         icpBalances[i]   := 0;
@@ -172,7 +167,7 @@ actor Parallax {
     switch (_onesIdx(p)) {
       case (?i) i;
       case null {
-        if (onesAccountCount >= LEDGER_CAP) return 0;
+        assert(onesAccountCount < LEDGER_CAP);
         let i = onesAccountCount;
         onesPrincipals[i] := p;
         onesBalances[i]   := 0;
@@ -226,15 +221,7 @@ actor Parallax {
   stable var vaultHashes   : [var Text] = Array.init<Text>(VAULT_CAP, "");  // sha256 of plaintext (for integrity)
   stable var vaultTimes    : [var Int]  = Array.init<Int>(VAULT_CAP,  0);
 
-  // Simple FNV-1a hash for internal key deduplication (not cryptographic)
-  func _fnvHash(t : Text) : Text {
-    var h : Nat32 = 2166136261;
-    for (c in t.chars()) {
-      h := h ^ Nat32.fromNat(Nat8.toNat(Nat8.fromNat(Nat32.toNat(Nat32.fromIntWrap(Int32.toInt(Int32.fromNat32(Nat32.fromNat(Nat.rem(Char.toNat32(c) % 256, 256)))))))));
-      h := h *% 16777619;
-    };
-    Nat32.toText(h)
-  };
+  // Simple key-based deduplication helper (used internally for vault entries)
 
   // Store an encrypted vault entry
   public shared(msg) func vaultStore(key : Text, ciphertext : Text, hashHex : Text) : async {
@@ -300,8 +287,9 @@ actor Parallax {
   } {
     requireSovereign(msg.caller);
     if (amount == 0) return { success = false; balance = 0 };
+    if (_icpIdx(recipient) == null and icpAccountCount >= LEDGER_CAP) return { success = false; balance = 0 };
     let i = _icpIdxOrCreate(recipient);
-    icpBalances[i]   := icpBalances[i] + amount;
+    icpBalances[i]    := icpBalances[i] + amount;
     totalIcpDeposited := totalIcpDeposited + amount;
     _audit("ICP_DEPOSIT", Principal.toText(msg.caller), recipient, amount, 0, "ICP");
     { success = true; balance = icpBalances[i] }
@@ -315,9 +303,12 @@ actor Parallax {
   } {
     let from = Principal.toText(msg.caller);
     if (amount == 0) return { success = false; fee = 0; balance = 0 };
-    let fee  = _goldFee(amount);
-    let total = amount + fee;
-    let fromIdx = _icpIdxOrCreate(from);
+    // Guard: both from and to accounts must fit in the ledger
+    if (_icpIdx(from) == null and icpAccountCount >= LEDGER_CAP) return { success = false; fee = 0; balance = 0 };
+    if (_icpIdx(to) == null and icpAccountCount >= LEDGER_CAP)   return { success = false; fee = 0; balance = 0 };
+    let fee      = _goldFee(amount);
+    let total    = amount + fee;
+    let fromIdx  = _icpIdxOrCreate(from);
     if (icpBalances[fromIdx] < total) return { success = false; fee; balance = icpBalances[fromIdx] };
     let toIdx = _icpIdxOrCreate(to);
     icpBalances[fromIdx] := icpBalances[fromIdx] - total;
@@ -358,6 +349,7 @@ actor Parallax {
   } {
     requireSovereign(msg.caller);
     if (amount == 0) return { success = false; totalSupply = totalOnesSupply; balance = 0 };
+    if (_onesIdx(recipient) == null and onesAccountCount >= LEDGER_CAP) return { success = false; totalSupply = totalOnesSupply; balance = 0 };
     let i = _onesIdxOrCreate(recipient);
     onesBalances[i]  := onesBalances[i] + amount;
     totalOnesSupply  := totalOnesSupply + amount;
@@ -374,6 +366,7 @@ actor Parallax {
   } {
     let p = Principal.toText(msg.caller);
     if (amount == 0) return { success = false; burned = 0; totalBurned = totalOnesBurned; balance = 0 };
+    if (_onesIdx(p) == null and onesAccountCount >= LEDGER_CAP) return { success = false; burned = 0; totalBurned = totalOnesBurned; balance = 0 };
     let i = _onesIdxOrCreate(p);
     if (onesBalances[i] < amount) return {
       success = false; burned = 0; totalBurned = totalOnesBurned; balance = onesBalances[i]
