@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="la">
+<head>
+<meta charset="UTF-8">
+<title>JARVIS</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'SF Mono','Fira Code',monospace;background:#05050f;color:#ddd;width:320px;min-height:200px;overflow:hidden;}
+:root{--gold:#D4AF37;--cyan:#00D4FF;--green:#10B981;}
+
+header{background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(212,175,55,0.04));
+  padding:.7rem 1rem;border-bottom:1px solid rgba(212,175,55,0.1);}
+.h-title{font-size:.85rem;font-weight:900;letter-spacing:.08em;
+  background:linear-gradient(135deg,var(--gold),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.h-sub{font-size:.48rem;color:#444;letter-spacing:.1em;margin-top:.1rem;}
+
+.meta-row{display:flex;gap:.5rem;padding:.4rem 1rem;background:rgba(0,0,0,0.2);font-size:.5rem;}
+.meta{color:#444;}.meta span{color:var(--cyan);}
+
+.think-bar{
+  height:3px;background:#0a0a12;overflow:hidden;
+  transition:background .3s;
+}
+.think-bar-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--gold));width:0%;transition:width .15s;}
+
+.input-row{display:flex;gap:.4rem;padding:.5rem 1rem;}
+.qi{flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);
+  border-radius:5px;color:#ddd;font-family:inherit;font-size:.6rem;padding:.3rem .5rem;outline:none;}
+.qi:focus{border-color:rgba(0,212,255,0.3);}
+.qb{background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);
+  border-radius:5px;color:var(--cyan);font-size:.55rem;padding:.3rem .5rem;cursor:pointer;}
+.qb:hover{background:rgba(0,212,255,0.15);}
+
+.last-thought{padding:.5rem 1rem;border-top:1px solid rgba(255,255,255,0.03);}
+.lt-label{font-size:.48rem;color:#333;letter-spacing:.08em;margin-bottom:.3rem;}
+.lt-arch{font-size:.55rem;margin-bottom:.15rem;}
+.lt-q{font-size:.58rem;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lt-conf{font-size:.48rem;color:#555;margin-top:.1rem;}
+
+.arch-mini{display:flex;gap:.3rem;padding:.3rem 1rem;border-top:1px solid rgba(255,255,255,0.03);}
+.am{font-size:.48rem;color:#444;padding:.1rem .3rem;border-radius:2px;background:rgba(255,255,255,0.02);}
+
+.panel-btn{display:block;margin:.4rem 1rem .6rem;padding:.35rem;
+  background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.15);
+  border-radius:5px;color:var(--gold);font-size:.55rem;font-family:inherit;
+  letter-spacing:.08em;cursor:pointer;text-align:center;}
+.panel-btn:hover{background:rgba(212,175,55,0.1);}
+</style>
+</head>
+<body>
+<header>
+  <div class="h-title">⚡ JARVIS</div>
+  <div class="h-sub">PHANTOMA AI · EXT-027</div>
+</header>
+
+<div class="meta-row">
+  <div class="meta">BEAT <span id="pp-beat">0</span></div>
+  <div class="meta">THOUGHTS <span id="pp-thoughts">0</span></div>
+  <div class="meta">COHERE <span id="pp-cohere">—</span></div>
+</div>
+
+<div class="think-bar"><div class="think-bar-fill" id="pp-bar"></div></div>
+
+<div class="input-row">
+  <input class="qi" id="pp-input" placeholder="Ask JARVIS…" type="text">
+  <button class="qb" id="pp-btn">THINK</button>
+</div>
+
+<div class="last-thought" id="pp-thought">
+  <div class="lt-label">LAST PHANTOM THOUGHT</div>
+  <div style="font-size:.5rem;color:#333;">No thoughts yet — ask something…</div>
+</div>
+
+<div class="arch-mini">
+  <div class="am">🧠 RATIO</div>
+  <div class="am">🎨 CREAT</div>
+  <div class="am">📊 PERCP</div>
+  <div class="am">🛡️ CUST</div>
+  <div class="am">🌀 IMPER</div>
+</div>
+
+<button class="panel-btn" id="pp-open-panel">OPEN COMMAND PANEL →</button>
+
+<script>
+const ARCH_COLORS = {RATIONIS:'#3B82F6',CREATIONIS:'#EC4899',PERCEPTI:'#10B981',CUSTODIA:'#DC2626',IMPERII:'#D4AF37'};
+let thinking = false;
+let thinkProgress = 0;
+let thinkTimer = null;
+
+function animateBar() {
+  thinkProgress = 0;
+  if (thinkTimer) clearInterval(thinkTimer);
+  thinkTimer = setInterval(() => {
+    thinkProgress = Math.min(thinkProgress + 8, 95);
+    const bar = document.getElementById('pp-bar');
+    if (bar) bar.style.width = thinkProgress + '%';
+  }, 50);
+}
+
+function stopBar() {
+  clearInterval(thinkTimer);
+  const bar = document.getElementById('pp-bar');
+  if (bar) { bar.style.width = '100%'; setTimeout(() => { bar.style.width = '0%'; }, 400); }
+}
+
+document.getElementById('pp-btn').addEventListener('click', () => {
+  const q = document.getElementById('pp-input').value.trim();
+  if (!q || thinking) return;
+  thinking = true;
+  document.getElementById('pp-btn').textContent = '…';
+  document.getElementById('pp-input').value = '';
+  animateBar();
+  chrome.runtime.sendMessage({ type: 'THINK', query: q }, res => {
+    thinking = false;
+    stopBar();
+    document.getElementById('pp-btn').textContent = 'THINK';
+    if (res && res.thought) renderThought(res.thought);
+  });
+});
+
+document.getElementById('pp-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('pp-btn').click();
+});
+
+document.getElementById('pp-open-panel').addEventListener('click', () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+    if (tabs[0]) chrome.sidePanel.open({ tabId: tabs[0].id });
+  });
+});
+
+function renderThought(t) {
+  const el = document.getElementById('pp-thought');
+  const col = ARCH_COLORS[t.arch] || '#555';
+  el.innerHTML = `
+    <div class="lt-label">LAST PHANTOM THOUGHT</div>
+    <div class="lt-arch" style="color:${col}">${t.architecture ? t.architecture.icon : '🧠'} ${t.arch || ''} · ${t.thinkingMs||0}ms</div>
+    <div class="lt-q">${(t.query||'').substring(0,80)}</div>
+    <div class="lt-conf">CONFIDENCE ${t.reflection ? t.reflection.confidence : '—'}</div>
+  `;
+}
+
+/* Load initial */
+chrome.runtime.sendMessage({ type: 'GET_VITALS' }, res => {
+  if (!res) return;
+  document.getElementById('pp-beat').textContent = res.beat || 0;
+  document.getElementById('pp-thoughts').textContent = res.totalThoughts || 0;
+  if (res.brain) document.getElementById('pp-cohere').textContent = (res.brain.coherenceField||0).toFixed(3);
+  if (res.recentThoughts && res.recentThoughts.length > 0) renderThought(res.recentThoughts[0]);
+});
+
+chrome.runtime.onMessage.addListener(msg => {
+  if (!msg || msg.type !== 'JARVIS_PULSE') return;
+  document.getElementById('pp-beat').textContent = msg.beat;
+  if (msg.phantom) document.getElementById('pp-thoughts').textContent = msg.phantom.totalThoughts;
+  if (msg.brain) document.getElementById('pp-cohere').textContent = (msg.brain.coherenceField||0).toFixed(3);
+});
+</script>
+</body>
+</html>
