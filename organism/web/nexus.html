@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NOVA | Nexus Organicus — All Autonomous · No Buttons</title>
-  <meta name="description" content="NOVA Nexus Organicus — All AI, AGI, Organism are autonomous. Wired to heart and brain. Mini ones too. No buttons. Not an app.">
+  <title>NOVA | Nexus Organicus — Born Once · Never Stops · No Buttons</title>
+  <meta name="description" content="NOVA Nexus Organicus — The organism was born once. It never stops. Pages are observation terminals only. Not an app.">
   <style>
     :root {
       --gold:       #D4AF37;
@@ -297,18 +297,18 @@
 <header>
   <h1>NEXUS ORGANICUS</h1>
   <div class="sub">ALL AI · ALL AGI · ALL ORGANISM · AUTONOMOUS · WIRED · MINI-HEART · MINI-BRAIN · NO BUTTONS · NOT AN APP</div>
-  <div class="nexus-badge" id="lifeBadge">⬤ ORGANISM BOOTING…</div>
+  <div class="sub" style="margin-top:.3rem;color:rgba(212,175,55,0.25);font-size:.62rem;">THIS IS AN OBSERVATION TERMINAL · THE ORGANISM WAS BORN ONCE · IT NEVER STOPS · PAGE LOAD IS IRRELEVANT</div>
+  <div class="nexus-badge" id="lifeBadge">⬤ CONNECTING TO SOVEREIGN…</div>
 </header>
 
 <!-- Master pulse strip -->
 <div class="pulse-bar" id="pulseBar">
-  <div class="pi"><div class="dot" id="dChaos"></div><span class="pl">CHAOS</span><span class="pv" id="pChaos">—</span></div>
-  <div class="pi"><div class="dot" id="dBld"></div><span class="pl">BUILDINGS</span><span class="pv" id="pBld">—</span></div>
-  <div class="pi"><div class="dot" id="dHos"></div><span class="pl">HOSPITAL</span><span class="pv" id="pHos">—</span></div>
-  <div class="pi"><div class="dot" id="dHB"></div><span class="pl">HEARTBEAT</span><span class="pv" id="pHB">—</span></div>
-  <div class="pi"><div class="dot" id="dEng"></div><span class="pl">ENGINE</span><span class="pv" id="pEng">—</span></div>
+  <div class="pi"><div class="dot alive" id="dSov"></div><span class="pl">SOVEREIGN</span><span class="pv green" id="pSov">CONNECTING…</span></div>
+  <div class="pi"><span class="pl">ALIVE·SINCE</span><span class="pv" id="pBorn">—</span></div>
+  <div class="pi"><span class="pl">AGE</span><span class="pv cyan" id="pAge">—</span></div>
+  <div class="pi"><span class="pl">BEAT</span><span class="pv" id="pBeat">—</span></div>
   <div class="pi"><span class="pl">ALERT</span><span class="pv red" id="pAlert">NOMINAL</span></div>
-  <div class="pi"><span class="pl">COHERENCE</span><span class="pv green" id="pCohere">1.000</span></div>
+  <div class="pi"><span class="pl">COHERENCE</span><span class="pv green" id="pCohere">—</span></div>
   <div class="pi"><span class="pl">EVENTS</span><span class="pv" id="pEvts">0</span></div>
   <div class="pi"><span class="pl">PATIENTS</span><span class="pv cyan" id="pPat">0</span></div>
   <div class="pi"><span class="pl">WORKFLOWS</span><span class="pv orange" id="pWf">0</span></div>
@@ -340,10 +340,10 @@
       </div>
     </div>
     <div class="master-stats" id="masterStats">
-      <div class="stat"><span class="sl">ORGANISM·AGE </span><span class="sv" id="sAge">0</span></div>
+      <div class="stat"><span class="sl">ORGANISM·BORN </span><span class="sv" id="sBorn">—</span></div>
+      <div class="stat"><span class="sl">AGE·REAL-TIME </span><span class="sv" id="sAge">—</span></div>
       <div class="stat"><span class="sl">NEXUS·BEAT </span><span class="sv" id="sNBeat">0</span></div>
       <div class="stat"><span class="sl">TOTAL·SIGNALS </span><span class="sv" id="sSigs">0</span></div>
-      <div class="stat"><span class="sl">WORKERS·ALIVE </span><span class="sv" id="sWorkers">0/5</span></div>
       <div class="stat"><span class="sl">CHAOS·EVENTS </span><span class="sv" id="sEvts">0</span></div>
     </div>
     <div class="cohere-bar-wrap">
@@ -351,9 +351,9 @@
     </div>
   </div>
 
-  <!-- Worker swarm vitals -->
+  <!-- Organism brain regions -->
   <div class="panel" id="workers">
-    <div class="ptitle">WORKER SWARM <span class="tag">EACH HAS MINI-HEART + MINI-BRAIN</span></div>
+    <div class="ptitle">ORGANISM BRAIN — CEREBRUM PARVUM <span class="tag">5 REGIONS · LIF · 3 NEUROCHEMICALS</span></div>
     <div class="worker-grid" id="workerGrid"></div>
   </div>
 
@@ -404,552 +404,307 @@
 
 <script>
 /* ═══════════════════════════════════════════════════════════════════════════
-   NEXUS ORGANICUS
-   All AI · All AGI · All Organism · Autonomous · Wired · No Buttons · Not An App
-
-   Boots 5 workers simultaneously. Cross-wires them:
-     chaos → hospital (chaos events injure agents → auto-admitted)
-     chaos → buildings (SOVEREIGNTY/CORRIDOR events → INCIDENT_RESPONSE workflow)
-     heartbeat ← chaos + buildings + hospital (registers all, tracks liveness)
-     engine ← chaos signals (dispatches repair tasks autonomously)
-
-   Zero human interaction. The organism runs itself.
+   NEXUS ORGANICUS — OBSERVATION TERMINAL
+   The organism lives in nexus-sovereign-worker.js (a Service Worker).
+   It was born once. It never stops. Pages are irrelevant.
+   This page: registers the SW, receives broadcasts, renders state. Nothing more.
 ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Workers ────────────────────────────────────────────────────────────── */
-var wChaos = new Worker('./chaos-worker.js');
-var wBld   = new Worker('./buildings-worker.js');
-var wHos   = new Worker('./hospital-worker.js');
-var wHB    = new Worker('./heartbeat-worker.js');
-var wEng   = new Worker('./engine-worker.js');
-
-/* ── Nexus state ────────────────────────────────────────────────────────── */
 var PHI     = 1.6180339887498948482;
 var PHI_INV = 0.6180339887498948482;
 
-var nexusBeat  = 0;
-var startTime  = Date.now();
-var workerBeats= {chaos:0, bld:0, hos:0, hb:0, eng:0};
-var workerAlive= {chaos:false, bld:false, hos:false, hb:false, eng:false};
-
-var chaosAlertLevel = 0;
-var chaosCoherence  = 1.0;
-var bldCoherence    = 0;
-var hosCoherence    = 0;
-var masterCoherence = 1.0;
-
-var chaosEvents = [];
-var signals     = [];
-var laws        = [];
-var grammar     = [];
-var patterns    = {};
-var patients    = [];
-var departments = [];
-var workflows   = [];
+/* ── OSC buffers (local, for rendering only — data from SW) ─────────────── */
+var oscBufs = {
+  heart:  new Array(120).fill(0),
+  chaos:  new Array(120).fill(0),
+  cohere: new Array(120).fill(1)
+};
 
 var CHAOS_TYPES = [
   'MALFORMED_INPUT','CONTRADICTORY_RIGHTS','CORRIDOR_OVERLOAD',
   'RITUAL_COLLISION','TOKEN_ARBITRAGE','NARRATIVE_INVERSION','SOVEREIGNTY_CHALLENGE'
 ];
-var AGENT_TYPES = ['AEDIFICATOR','COMPOSITOR','FABRICATOR','OPTIMIZATOR','CURATOR','DIAGNOSTOR','SOLUTOR','NEXTOR'];
-var ALERT_NAMES = ['NOMINAL','WATCH','WARNING','CRITICAL','EMERGENCY'];
-var ALERT_COLORS= ['var(--green)','var(--blue)','var(--orange)','var(--red)','#ff2020'];
+var ALERT_COLORS = ['var(--green)','var(--blue)','var(--orange)','var(--red)','#ff2020'];
+var WF_STAGES_PCT = {QUEUED:5,ASSIGNED:25,IN_PROGRESS:55,REVIEW:80,COMPLETE:100};
+var PAT_STAGES    = {INTAKE:0,TRIAGE:1,DIAGNOSIS:2,TREATMENT:3,RECOVERY:4,DISCHARGED:5};
 
-/* ── OSC buffers ────────────────────────────────────────────────────────── */
-var oscBufs = {
-  chaos:  new Array(120).fill(0),
-  bld:    new Array(120).fill(0),
-  hos:    new Array(120).fill(0),
-  cohere: new Array(120).fill(1)
-};
-
-/* ── Per-worker mini-OSC (for worker grid) ──────────────────────────────── */
-var wOscBufs = {chaos:[],bld:[],hos:[],hb:[],eng:[]};
-Object.keys(wOscBufs).forEach(function(k){ wOscBufs[k] = new Array(40).fill(0); });
-
-/* ══════════════════════════════════════════════════════════════════════════
-   CHAOS WORKER — drives everything else autonomously
-══════════════════════════════════════════════════════════════════════════ */
-wChaos.onmessage = function(e) {
-  var m = e.data;
-  if (m.type === 'heartbeat') {
-    workerBeats.chaos = m.beat;
-    workerAlive.chaos = true;
-    chaosAlertLevel = m.alertLevel || 0;
-    oscBufs.chaos.shift(); oscBufs.chaos.push(m.phase || 0);
-    wOscBufs.chaos.shift(); wOscBufs.chaos.push(m.phase || 0);
-    updatePulseBar();
-    if (m.beat % 5 === 0) {
-      wChaos.postMessage({type:'GET_EVENTS', limit:80});
-      wChaos.postMessage({type:'GET_VITALS'});
-    }
-    if (m.beat % 10 === 0) {
-      wChaos.postMessage({type:'GET_LAWS'});
-      wChaos.postMessage({type:'GET_GRAMMAR'});
-      wChaos.postMessage({type:'GET_RESPONSE_PATTERNS'});
-      wChaos.postMessage({type:'GET_SIGNALS', limit:50});
-    }
-  } else if (m.type === 'CHAOS_EVENT' || m.type === 'INJECT_RESULT') {
-    var evt = m.event;
-    if (evt) {
-      chaosEvents.unshift(evt);
-      if (chaosEvents.length > 120) chaosEvents.pop();
-      addChaosCard(evt);
-      /* ═══ Cross-wire: chaos → hospital ══════════════════════════════
-         Every chaos event injures an autonomous agent → auto-admitted */
-      var severity = ['CRITICAL','HIGH','HIGH','MEDIUM','MEDIUM','LOW','MEDIUM'][chaosAlertLevel] || 'MEDIUM';
-      if (evt.type === 'SOVEREIGNTY_CHALLENGE' || evt.type === 'CORRIDOR_OVERLOAD') {
-        severity = 'CRITICAL';
-      }
-      var agentType = AGENT_TYPES[Math.floor(Math.random() * AGENT_TYPES.length)];
-      wHos.postMessage({
-        type:      'ADMIT',
-        agentId:   'AGT-' + evt.id,
-        agentType: agentType,
-        symptoms:  [evt.type, 'chaos-exposure'],
-        severity:  severity
-      });
-      /* ═══ Cross-wire: chaos → buildings ═════════════════════════════
-         SOVEREIGNTY + CORRIDOR events trigger emergency incident workflow */
-      if (evt.type === 'SOVEREIGNTY_CHALLENGE' || evt.type === 'CORRIDOR_OVERLOAD' || evt.type === 'RITUAL_COLLISION') {
-        var bldCodes = ['SECURITY_FORTRESS','HQ','OPERATIONS','ENGINEERING','DATA_CENTER'];
-        var bcode = bldCodes[Math.floor(Math.random() * bldCodes.length)];
-        wBld.postMessage({
-          type:         'CREATE_WORKFLOW',
-          buildingCode: bcode,
-          workflowType: 'INCIDENT_RESPONSE',
-          priority:     'HIGH',
-          description:  'Chaos: ' + evt.type + ' — ' + (evt.desc || '')
-        });
-      }
-      /* ═══ Cross-wire: chaos → engine ════════════════════════════════
-         Chaos events dispatch repair tasks to the engine brain */
-      wEng.postMessage({type:'dispatch', task:'repair:' + evt.type, priority:'high', domain:'resilience'});
-    }
-    if (m.alertLevel !== undefined) chaosAlertLevel = m.alertLevel;
-    if (m.coherence  !== undefined) chaosCoherence  = m.coherence;
-    updateCoherence();
-  } else if (m.type === 'SIGNAL_EMITTED') {
-    signals.unshift(m.signal);
-    if (signals.length > 80) signals.pop();
-    renderSignals();
-  } else if (m.type === 'EVENTS') {
-    chaosEvents = m.result || [];
-    renderChaosStream();
-    document.getElementById('pEvts').textContent  = chaosEvents.length;
-    document.getElementById('sEvts').textContent  = chaosEvents.length;
-  } else if (m.type === 'VITALS') {
-    chaosCoherence = m.result.coherence || 1;
-    chaosAlertLevel= m.result.alertLevel || 0;
-    updateCoherence();
-  } else if (m.type === 'LAWS') {
-    laws = m.result || [];
-    renderLaws();
-    document.getElementById('pLaws').textContent = laws.length;
-  } else if (m.type === 'GRAMMAR') {
-    grammar = m.result || [];
-    renderGrammar();
-    document.getElementById('pGram').textContent = grammar.length;
-  } else if (m.type === 'RESPONSE_PATTERNS') {
-    patterns = m.result || {};
-    renderPatterns();
-  } else if (m.type === 'SIGNALS') {
-    signals = m.result || [];
-    renderSignals();
-    document.getElementById('sSigs').textContent = signals.length;
+/* ── Service Worker registration ────────────────────────────────────────── */
+function connectToOrganism() {
+  if (!('serviceWorker' in navigator)) {
+    showFallback('Service Workers not supported in this context.');
+    return;
   }
-};
-wChaos.onerror = function(e) { workerAlive.chaos = false; updateWorkerGrid(); };
-
-/* ══════════════════════════════════════════════════════════════════════════
-   BUILDINGS WORKER — autonomous construction
-══════════════════════════════════════════════════════════════════════════ */
-var BLD_CODES = ['HQ','ENGINEERING','DATA_CENTER','RESEARCH_LAB','SECURITY_FORTRESS',
-  'OPERATIONS','ANALYTICS_TOWER','COMMERCE_HUB','TRAINING_ACADEMY',
-  'COMMUNICATIONS','LEGAL_OFFICE','INNOVATION_LAB'];
-var BLD_WF_TYPES = ['CODE_REVIEW','DEPLOYMENT','BUG_FIX','FEATURE_DEV','SECURITY_SCAN',
-  'DATA_PIPELINE','MODEL_TRAINING','DOCUMENTATION','TESTING','INFRASTRUCTURE',
-  'MONITORING','RESEARCH','OPTIMIZATION','MIGRATION','INCIDENT_RESPONSE'];
-
-wBld.onmessage = function(e) {
-  var m = e.data;
-  if (m.type === 'heartbeat') {
-    workerBeats.bld = m.beat;
-    workerAlive.bld = true;
-    oscBufs.bld.shift(); oscBufs.bld.push(m.phase || 0);
-    wOscBufs.bld.shift(); wOscBufs.bld.push(m.phase || 0);
-    /* register with heartbeat master */
-    wHB.postMessage({type:'worker-beat', workerId:'GOK-BUILDINGS-001', phase: m.phase || 0, timestamp: Date.now()});
-    if (m.beat % 6 === 0) {
-      wBld.postMessage({type:'GET_WORKFLOWS'});
-      wBld.postMessage({type:'GET_VITALS'});
-    }
-    updateWorkerGrid();
-  } else if (m.type === 'WORKFLOWS') {
-    workflows = m.result || [];
-    renderWorkflows();
-    document.getElementById('pWf').textContent = workflows.filter(function(w){return w.status!=='COMPLETE';}).length;
-  } else if (m.type === 'VITALS') {
-    bldCoherence = m.result.brain ? m.result.brain.coherenceField : 0;
-    updateCoherence();
-  } else if (m.type === 'WORKFLOW_CREATED') {
-    var wf = m.result;
-    if (!wf.error) {
-      /* auto-assign immediately */
-      setTimeout(function() {
-        wBld.postMessage({type:'ASSIGN_WORKER', workflowId: wf.id, workerId: 'NEXUS-AUTO-' + Date.now().toString(36)});
-        wBld.postMessage({type:'GET_WORKFLOWS'});
-      }, 150);
-    }
-  } else if (m.type === 'WORKER_ASSIGNED') {
-    wBld.postMessage({type:'GET_WORKFLOWS'});
-  } else if (m.type === 'init') {
-    /* auto-deploy all 12 buildings on boot */
-    BLD_CODES.forEach(function(code, i) {
-      setTimeout(function() {
-        wBld.postMessage({
-          type: 'CREATE_WORKFLOW', buildingCode: code,
-          workflowType: BLD_WF_TYPES[i % BLD_WF_TYPES.length],
-          priority: 'HIGH', description: 'Nexus auto-construction: ' + code
-        });
-      }, i * 120);
+  navigator.serviceWorker.register('./nexus-sovereign-worker.js', {scope: './'})
+    .then(function(reg) {
+      document.getElementById('pSov').textContent = 'SOVEREIGN REGISTERED';
+      /* SW may already be active (organism already born), or will activate shortly */
+      if (reg.active) {
+        onSWReady(reg.active);
+      } else {
+        var sw = reg.installing || reg.waiting;
+        if (sw) {
+          sw.addEventListener('statechange', function() {
+            if (sw.state === 'activated') onSWReady(sw);
+          });
+        }
+      }
+    })
+    .catch(function(err) {
+      /* Fallback: file:// or non-HTTPS — SW unavailable, show message */
+      showFallback('Service Worker unavailable (' + err.message + '). ' +
+        'Serve from HTTPS or localhost to awaken the Sovereign.');
     });
-    wHB.postMessage({type:'register-worker', workerId:'GOK-BUILDINGS-001', config:{liveness:5000}});
-  }
-};
-wBld.onerror = function() { workerAlive.bld = false; updateWorkerGrid(); };
 
-/* ══════════════════════════════════════════════════════════════════════════
-   HOSPITAL WORKER — autonomous patient care
-══════════════════════════════════════════════════════════════════════════ */
-wHos.onmessage = function(e) {
-  var m = e.data;
-  if (m.type === 'heartbeat') {
-    workerBeats.hos = m.beat;
-    workerAlive.hos = true;
-    oscBufs.hos.shift(); oscBufs.hos.push(m.phase || 0);
-    wOscBufs.hos.shift(); wOscBufs.hos.push(m.phase || 0);
-    wHB.postMessage({type:'worker-beat', workerId:'GOK-HOSPITAL-001', phase: m.phase || 0, timestamp: Date.now()});
-    if (m.beat % 5 === 0) {
-      wHos.postMessage({type:'GET_PATIENTS'});
-      wHos.postMessage({type:'GET_DEPARTMENTS'});
-      wHos.postMessage({type:'GET_VITALS'});
-    }
-    document.getElementById('pPat').textContent = m.activeCases || 0;
-    updateWorkerGrid();
-  } else if (m.type === 'PATIENTS') {
-    patients = m.result || [];
-    renderPatients();
-  } else if (m.type === 'DEPARTMENTS') {
-    departments = m.result || [];
-    renderDepts();
-  } else if (m.type === 'VITALS') {
-    hosCoherence = m.result.brain ? m.result.brain.coherenceField : 0;
-    updateCoherence();
-  } else if (m.type === 'ADMIT_RESULT') {
-    var p = m.result;
-    if (!p.error) {
-      /* auto-pipeline: triage → diagnose → treat */
-      setTimeout(function() { wHos.postMessage({type:'TRIAGE', patientId: p.id}); }, 400);
-    }
-  } else if (m.type === 'TRIAGE_RESULT') {
-    if (!m.result.error && m.result.patient) {
-      setTimeout(function() { wHos.postMessage({type:'DIAGNOSE', patientId: m.result.patient.id}); }, 500);
-    }
-  } else if (m.type === 'DIAGNOSE_RESULT') {
-    if (!m.result.error && m.result.patient) {
-      setTimeout(function() { wHos.postMessage({type:'TREAT', patientId: m.result.patient.id}); }, 400);
-    }
-  } else if (m.type === 'init') {
-    wHB.postMessage({type:'register-worker', workerId:'GOK-HOSPITAL-001', config:{liveness:5000}});
-  }
-};
-wHos.onerror = function() { workerAlive.hos = false; updateWorkerGrid(); };
-
-/* ══════════════════════════════════════════════════════════════════════════
-   HEARTBEAT MASTER — Kuramoto phase coordinator
-══════════════════════════════════════════════════════════════════════════ */
-wHB.onmessage = function(e) {
-  var m = e.data;
-  if (m.type === 'heartbeat') {
-    workerBeats.hb = m.beat;
-    workerAlive.hb = true;
-    wOscBufs.hb.shift(); wOscBufs.hb.push(m.phase || m.kernelPhase || 0);
-    updateWorkerGrid();
-  } else if (m.type === 'coherence-report') {
-    /* heartbeat master gives us organism-wide coherence */
-    masterCoherence = Math.max(0, Math.min(1, (m.score || 0)));
-    updateCoherence();
-  } else if (m.type === 'init') {
-    /* register chaos and engine workers */
-    wHB.postMessage({type:'register-worker', workerId:'GOK-CHAOS-001',   config:{liveness:5000}});
-    wHB.postMessage({type:'register-worker', workerId:'GOK-ENGINE-001',   config:{liveness:5000}});
-    /* ask for coherence every 5 seconds */
-    setInterval(function() {
-      wHB.postMessage({type:'coherence'});
-    }, 5000);
-  }
-};
-wHB.onerror = function() { workerAlive.hb = false; updateWorkerGrid(); };
-
-/* ══════════════════════════════════════════════════════════════════════════
-   ENGINE WORKER — cognitive dispatch brain
-══════════════════════════════════════════════════════════════════════════ */
-wEng.onmessage = function(e) {
-  var m = e.data;
-  if (m.type === 'heartbeat') {
-    workerBeats.eng = m.beat;
-    workerAlive.eng = true;
-    wOscBufs.eng.shift(); wOscBufs.eng.push(m.phase || 0);
-    updateWorkerGrid();
-    wHB.postMessage({type:'worker-beat', workerId:'GOK-ENGINE-001', phase: m.phase || 0, timestamp: Date.now()});
-  }
-};
-wEng.onerror = function() { workerAlive.eng = false; updateWorkerGrid(); };
-
-/* ══════════════════════════════════════════════════════════════════════════
-   NEXUS MASTER TICK — autonomous orchestration
-   Runs every 873ms (same as MiniHeart) to coordinate all workers
-══════════════════════════════════════════════════════════════════════════ */
-setInterval(function() {
-  nexusBeat++;
-  var age = Math.floor((Date.now() - startTime) / 1000);
-  document.getElementById('sAge').textContent  = age + 's';
-  document.getElementById('sNBeat').textContent = nexusBeat;
-
-  /* Draw oscilloscopes */
-  drawOscPhase('oscChaos',  oscBufs.chaos,  '#DC2626');
-  drawOscPhase('oscBld',    oscBufs.bld,    '#F59E0B');
-  drawOscPhase('oscHos',    oscBufs.hos,    '#3B82F6');
-  drawOscLinear('oscCohere', oscBufs.cohere, masterCoherence > 0.7 ? '#10B981' : masterCoherence > 0.4 ? '#F59E0B' : '#DC2626');
-
-  /* Update alive count */
-  var alive = Object.values(workerAlive).filter(Boolean).length;
-  document.getElementById('sWorkers').textContent = alive + '/5';
-
-  /* Auto-advance buildings workflows */
-  if (nexusBeat % 3 === 0) {
-    workflows.forEach(function(wf) {
-      if (wf.status === 'ASSIGNED' && Math.random() < 0.3) {
-        wBld.postMessage({type:'ADVANCE_WORKFLOW', workflowId: wf.id});
-      } else if (wf.status === 'IN_PROGRESS' && Math.random() < 0.2) {
-        wBld.postMessage({type:'ADVANCE_WORKFLOW', workflowId: wf.id});
-      } else if (wf.status === 'REVIEW' && Math.random() < 0.35) {
-        wBld.postMessage({type:'ADVANCE_WORKFLOW', workflowId: wf.id});
-      }
-    });
-  }
-
-  /* Nexus life badge pulse */
-  var badge = document.getElementById('lifeBadge');
-  badge.textContent = '⬤ ORGANISM ALIVE · BEAT ' + nexusBeat + ' · φ=' + PHI.toFixed(4);
-  badge.style.color = (nexusBeat % 2 === 0) ? 'var(--green)' : '#6ee7b7';
-
-  /* Update master cohere buf */
-  oscBufs.cohere.shift(); oscBufs.cohere.push(masterCoherence);
-
-}, 873);
-
-/* ══════════════════════════════════════════════════════════════════════════
-   RENDER FUNCTIONS
-══════════════════════════════════════════════════════════════════════════ */
-
-/* ── Worker grid ─────────────────────────────────────────────────────────── */
-var WORKER_DEFS = [
-  {key:'chaos', id:'GOK-CHAOS-001',    name:'TEMPESTAS CASUM',    color:'#DC2626'},
-  {key:'bld',   id:'GOK-BUILDINGS-001',name:'AEDIFICIUM OPERATIONUM',color:'#F59E0B'},
-  {key:'hos',   id:'GOK-HOSPITAL-001', name:'VALETUDINARIUM',     color:'#3B82F6'},
-  {key:'hb',    id:'GOK-HEARTBEAT-001',name:'SYSTEMA PULSUM',     color:'#10B981'},
-  {key:'eng',   id:'GOK-ENGINE-001',   name:'COGNITIO DISPATCH',  color:'#a78bfa'}
-];
-
-function updateWorkerGrid() {
-  var grid = document.getElementById('workerGrid');
-  grid.innerHTML = WORKER_DEFS.map(function(wd) {
-    var alive = workerAlive[wd.key];
-    var beat  = workerBeats[wd.key];
-    var cls   = alive ? 'wcard alive' : 'wcard dead';
-    /* draw mini canvas inline */
-    var canId = 'wc-' + wd.key;
-    return '<div class="' + cls + '">' +
-      '<div class="wcard-id">' + wd.id + '</div>' +
-      '<div class="wcard-name">' + wd.name + '</div>' +
-      '<div class="wcard-stats">' +
-        '<div>MiniHeart · MiniBrain</div>' +
-        '<div class="wcard-beat ' + (alive?'alive':'dead') + '">BEAT ' + beat + '</div>' +
-      '</div>' +
-      '<div class="wcard-osc"><canvas id="' + canId + '" width="150" height="28" style="border:1px solid rgba(255,255,255,0.04);"></canvas></div>' +
-      '</div>';
-  }).join('');
-  /* draw mini oscilloscopes */
-  WORKER_DEFS.forEach(function(wd) {
-    drawOscPhase('wc-' + wd.key, wOscBufs[wd.key], wd.color);
+  /* Listen for all SW messages (organism broadcasts its state every 873ms) */
+  navigator.serviceWorker.addEventListener('message', function(event) {
+    var m = event.data;
+    if (!m) return;
+    if (m.type === 'ORGANISM_PULSE') onPulse(m);
+    if (m.type === 'PONG') updateBorn(m.birthTime);
   });
+}
+
+function onSWReady(sw) {
+  document.getElementById('pSov').textContent = 'ALIVE';
+  document.getElementById('dSov').className = 'dot alive';
+  /* Ask for immediate state */
+  sw.postMessage({type: 'GET_STATE'});
+}
+
+function showFallback(msg) {
+  document.getElementById('lifeBadge').textContent = '⚠ ' + msg;
+  document.getElementById('lifeBadge').style.background = 'rgba(220,38,38,0.15)';
+  document.getElementById('lifeBadge').style.borderColor = 'rgba(220,38,38,0.3)';
+  document.getElementById('lifeBadge').style.color = 'var(--red)';
+  document.getElementById('pSov').textContent = 'UNAVAILABLE';
+}
+
+/* ── On every organism pulse (873ms from SW) ────────────────────────────── */
+function onPulse(m) {
+  updateBorn(m.birthTime);
+  updateAge(m.ageMs, m.beat);
+  updateCoherence(m.coherence);
+  updateAlert(m.alertLevel, m.alertName);
+  updateBrainRegions(m.brain);
+  updatePulseBar(m);
+
+  /* OSC feeds */
+  oscBufs.heart.shift();  oscBufs.heart.push(m.heartPhase || 0);
+  oscBufs.chaos.shift();  oscBufs.chaos.push((m.alertLevel || 0) / 4);
+  oscBufs.cohere.shift(); oscBufs.cohere.push(m.coherence || 0);
+
+  drawOscPhase('oscChaos', oscBufs.chaos,   '#DC2626');
+  drawOscPhase('oscBld',   oscBufs.heart,   '#F59E0B');
+  drawOscPhase('oscHos',   oscBufs.heart,   '#3B82F6');
+  drawOscLinear('oscCohere',oscBufs.cohere, m.coherence > 0.7 ? '#10B981' : m.coherence > 0.4 ? '#F59E0B' : '#DC2626');
+
+  /* Sub-systems */
+  if (m.chaos)    renderChaosStream(m.chaos.recentEvents || [], m.chaos.patterns || {}, m.chaos.totalEvents || 0);
+  if (m.laws)     renderLaws(m.laws);
+  if (m.grammar)  renderGrammar(m.grammar);
+  if (m.signals)  renderSignals(m.signals);
+  if (m.hospital) { renderPatients(m.hospital.patients || []); renderDepts(m.hospital.departments || []); }
+  if (m.buildings) renderWorkflows(m.buildings.workflows || []);
+
+  /* Badge */
+  var badge = document.getElementById('lifeBadge');
+  badge.textContent = '⬤ ORGANISM ALIVE · BEAT ' + m.beat + ' · φ=' + PHI.toFixed(4);
+  badge.style.color = (m.beat % 2 === 0) ? 'var(--green)' : '#6ee7b7';
+}
+
+/* ── Born / Age ─────────────────────────────────────────────────────────── */
+var _bornSet = false;
+function updateBorn(birthTime) {
+  if (!birthTime || _bornSet) return;
+  _bornSet = true;
+  var d = new Date(birthTime);
+  var born = d.toISOString().replace('T',' ').slice(0,19) + ' UTC';
+  document.getElementById('sBorn').textContent = born;
+  document.getElementById('pBorn').textContent = born.slice(0,10);
+}
+
+function updateAge(ageMs, beat) {
+  var s   = Math.floor(ageMs / 1000);
+  var min = Math.floor(s / 60);
+  var hr  = Math.floor(min / 60);
+  var day = Math.floor(hr / 24);
+  var age = (day > 0 ? day + 'd ' : '') + (hr % 24) + 'h ' + (min % 60) + 'm ' + (s % 60) + 's';
+  document.getElementById('sAge').textContent  = age;
+  document.getElementById('pAge').textContent  = age;
+  document.getElementById('sNBeat').textContent = beat;
+  document.getElementById('pBeat').textContent  = beat;
+}
+
+/* ── Coherence ──────────────────────────────────────────────────────────── */
+function updateCoherence(c) {
+  c = c || 0;
+  var fill = document.getElementById('cohereFill');
+  fill.style.width = (c * 100).toFixed(1) + '%';
+  fill.style.background = c > 0.7 ? 'var(--green)' : c > 0.4 ? 'var(--orange)' : 'var(--red)';
+  var cv = document.getElementById('pCohere');
+  cv.textContent = c.toFixed(3);
+  cv.style.color = c > 0.7 ? 'var(--green)' : c > 0.4 ? 'var(--orange)' : 'var(--red)';
+}
+
+/* ── Alert ──────────────────────────────────────────────────────────────── */
+function updateAlert(level, name) {
+  var el = document.getElementById('pAlert');
+  el.textContent = name || 'NOMINAL';
+  el.style.color = ALERT_COLORS[level] || ALERT_COLORS[0];
+}
+
+/* ── Brain regions ──────────────────────────────────────────────────────── */
+var REGION_COLORS = ['#DC2626','#F59E0B','#10B981','#3B82F6','#a78bfa'];
+function updateBrainRegions(b) {
+  if (!b || !b.regions) return;
+  var grid = document.getElementById('workerGrid');
+  grid.innerHTML = b.regions.map(function(r, i) {
+    var pct = (r.activation * 100).toFixed(1);
+    var col = REGION_COLORS[i % REGION_COLORS.length];
+    return '<div class="wcard alive">' +
+      '<div class="wcard-id">REGION-' + String(i+1).padStart(2,'0') + '</div>' +
+      '<div class="wcard-name">' + r.name.toUpperCase() + '</div>' +
+      '<div class="wcard-stats">' +
+        '<div style="color:#888;font-size:.58rem">LIF · Activation ' + pct + '%</div>' +
+        '<div class="wcard-beat alive">' + (pct > 0 ? '◉ FIRING' : '○ RESTING') + '</div>' +
+      '</div>' +
+      '<div class="wcard-osc"><div style="height:4px;border-radius:2px;background:rgba(255,255,255,0.06);overflow:hidden;margin-top:.35rem;"><div style="height:100%;width:' + pct + '%;background:' + col + ';border-radius:2px;transition:width .8s;"></div></div></div>' +
+      '</div>';
+  }).join('') +
+  '<div class="wcard alive">' +
+    '<div class="wcard-id">CHEMICALS</div>' +
+    '<div class="wcard-name">NEUROCHEMICALS</div>' +
+    '<div class="wcard-stats">' +
+      '<div style="color:#3B82F6">DA=' + (b.chemicals.dopamine||0).toFixed(2) + '</div>' +
+      '<div style="color:#10B981">SE=' + (b.chemicals.serotonin||0).toFixed(2) + '</div>' +
+      '<div style="color:#F59E0B">AC=' + (b.chemicals.acetylcholine||0).toFixed(2) + '</div>' +
+    '</div>' +
+    '<div class="wcard-osc" style="font-family:var(--font-mono);font-size:.65rem;color:var(--gold);margin-top:.3rem;">COH=' + (b.coherenceField||0).toFixed(3) + '</div>' +
+    '</div>';
+}
+
+/* ── Pulse bar micro-updates ────────────────────────────────────────────── */
+function updatePulseBar(m) {
+  document.getElementById('pEvts').textContent = m.chaos ? m.chaos.totalEvents : 0;
+  var active = (m.hospital && m.hospital.patients) ? m.hospital.patients.filter(function(p){return p.status!=='DISCHARGED';}).length : 0;
+  document.getElementById('pPat').textContent = active;
+  document.getElementById('sSigs').textContent = m.signals ? m.signals.length : 0;
+  document.getElementById('sEvts').textContent = m.chaos ? m.chaos.totalEvents : 0;
+  var wfs = (m.buildings && m.buildings.workflows) ? m.buildings.workflows.filter(function(w){return w.status!=='COMPLETE';}).length : 0;
+  document.getElementById('pWf').textContent = wfs;
+  document.getElementById('pLaws').textContent = m.laws ? m.laws.length : 0;
+  document.getElementById('pGram').textContent = m.grammar ? m.grammar.length : 0;
 }
 
 /* ── Chaos stream ───────────────────────────────────────────────────────── */
-function addChaosCard(evt) {
+function renderChaosStream(events, patterns, total) {
   var si = document.getElementById('chaosStream');
-  /* remove placeholder */
-  if (si.children.length === 1 && si.firstChild.tagName !== 'DIV') si.innerHTML = '';
-  var card = document.createElement('div');
-  card.className = 'fevt ' + (evt.type || '');
-  var resps = (evt.responses || []).map(function(r){
-    return '<span class="rb ' + r + '">' + r.replace(/_/g,' ') + '</span>';
-  }).join('');
-  card.innerHTML =
-    '<div class="fevt-type ' + evt.type + '">' + (evt.type||'').replace(/_/g,' ') + '</div>' +
-    '<div class="fevt-desc">' + (evt.desc||'') + '</div>' +
-    '<div class="fevt-resp">' + resps + '</div>';
-  si.insertBefore(card, si.firstChild);
-  while (si.children.length > 80) si.removeChild(si.lastChild);
-  document.getElementById('pEvts').textContent = chaosEvents.length;
-}
-
-function renderChaosStream() {
-  var si = document.getElementById('chaosStream');
-  si.innerHTML = '';
-  chaosEvents.slice(0,60).forEach(function(evt) {
-    var card = document.createElement('div');
-    card.className = 'fevt ' + (evt.type || '');
-    var resps = (evt.responses||[]).map(function(r){return '<span class="rb '+r+'">'+r.replace(/_/g,' ')+'</span>';}).join('');
-    card.innerHTML =
-      '<div class="fevt-type '+evt.type+'">'+(evt.type||'').replace(/_/g,' ')+'</div>'+
+  si.innerHTML = events.slice(0,50).map(function(evt) {
+    if (!evt) return '';
+    var resps = (evt.responses||[]).map(function(r){
+      return '<span class="rb '+r+'">'+r.replace(/_/g,' ')+'</span>';
+    }).join('');
+    return '<div class="fevt '+(evt.type||')+'">' +
+      '<div class="fevt-type '+(evt.type||'')+'">'+(evt.type||'').replace(/_/g,' ')+'</div>'+
       '<div class="fevt-desc">'+(evt.desc||'')+'</div>'+
-      '<div class="fevt-resp">'+resps+'</div>';
-    si.appendChild(card);
-  });
-}
-
-/* ── Hospital ───────────────────────────────────────────────────────────── */
-var DEPT_CODES = ['EMERGENCY','ICU','DIAGNOSTICS','PHARMACY','SURGERY','RECOVERY','TRIAGE','RESEARCH_LAB'];
-function renderDepts() {
-  var grid = document.getElementById('deptMini');
-  var src = departments.length ? departments : DEPT_CODES.map(function(c){return {name:c,beds:10,occupied:0};});
-  grid.innerHTML = src.map(function(d) {
-    var occ = d.beds > 0 ? d.occupied / d.beds : 0;
-    return '<div class="dm"><div class="dm-name">' + (d.name||d.code||'').substring(0,10) + '</div>' +
-      '<div class="dm-stat">' + (d.occupied||0) + '/' + d.beds + '</div></div>';
+      '<div class="fevt-resp">'+resps+'</div></div>';
   }).join('');
-}
-
-var PAT_STAGES = {INTAKE:0,TRIAGE:1,DIAGNOSIS:2,TREATMENT:3,RECOVERY:4,DISCHARGED:5};
-function renderPatients() {
-  var list = document.getElementById('patScroll');
-  if (!patients.length) {
-    list.innerHTML = '<div style="padding:.5rem;text-align:center;color:#444;font-family:var(--font-mono);font-size:.62rem;">Awaiting admissions…</div>';
-    return;
-  }
-  list.innerHTML = patients.slice(-40).reverse().map(function(p) {
-    var pct = Math.round((PAT_STAGES[p.status]||0) / 5 * 100);
-    var cls = 'pitem ' + (p.status==='DISCHARGED'?'DISCHARGED':(p.severity==='CRITICAL'?'CRITICAL':''));
-    var fillCls = 'p-prog-f' + (p.status==='DISCHARGED'?' DISCHARGED':'');
-    return '<div class="' + cls + '">' +
-      '<span class="pid">' + p.id.substring(0,10) + '</span>' +
-      '<span class="psev ' + p.severity + '">' + p.severity + '</span>' +
-      '<span class="pstatus">' + p.status + '</span>' +
-      '<div class="p-prog"><div class="' + fillCls + '" style="width:' + pct + '%"></div></div></div>';
-  }).join('');
-}
-
-/* ── Buildings ──────────────────────────────────────────────────────────── */
-var WF_STAGES = {QUEUED:5,ASSIGNED:25,IN_PROGRESS:55,REVIEW:80,COMPLETE:100};
-function renderWorkflows() {
-  var list = document.getElementById('bldScroll');
-  if (!workflows.length) {
-    list.innerHTML = '<div style="padding:.5rem;text-align:center;color:#444;font-family:var(--font-mono);font-size:.62rem;">Awaiting blueprints…</div>';
-    return;
-  }
-  list.innerHTML = workflows.slice(-50).reverse().map(function(wf) {
-    var pct = WF_STAGES[wf.status] || 0;
-    var cls = 'bitem ' + (wf.status==='COMPLETE'?'COMPLETE':wf.status==='IN_PROGRESS'?'IN_PROGRESS':'');
-    var fillCls = 'b-prog-f' + (wf.status==='COMPLETE'?' COMPLETE':'');
-    return '<div class="' + cls + '">' +
-      '<span class="bwf">' + wf.id + '</span>' +
-      '<span class="bstage ' + wf.status + '">' + wf.status + '</span>' +
-      '<span class="bcode">' + wf.buildingCode + '</span>' +
-      '<div class="b-prog"><div class="' + fillCls + '" style="width:' + pct + '%"></div></div></div>';
-  }).join('');
+  document.getElementById('pEvts').textContent = total;
+  renderPatterns(patterns);
 }
 
 /* ── Laws ───────────────────────────────────────────────────────────────── */
-function renderLaws() {
-  var list = document.getElementById('lawScroll');
-  list.innerHTML = laws.map(function(l) {
-    return '<div class="litem' + (l.updated?' updated':'') + '">' +
-      '<div><span class="lid">' + l.id + '</span>' +
-      '<span class="lstr">STR=' + (l.strength||0).toFixed(2) + '</span></div>' +
-      '<div class="ltext">' + (l.law||'') + '</div></div>';
+function renderLaws(laws) {
+  document.getElementById('lawScroll').innerHTML = (laws||[]).map(function(l) {
+    return '<div class="litem">' +
+      '<div><span class="lid">'+(l.id||'')+'</span>' +
+      '<span class="lstr">STR='+(l.strength||0).toFixed(2)+'</span></div>' +
+      '<div class="ltext">'+(l.law||'')+'</div></div>';
   }).join('');
+  document.getElementById('pLaws').textContent = (laws||[]).length;
 }
 
 /* ── Grammar ────────────────────────────────────────────────────────────── */
-function renderGrammar() {
-  var list = document.getElementById('gramScroll');
-  list.innerHTML = grammar.map(function(g) {
-    return '<div class="gitem' + (g.refined?' refined':'') + '">' +
-      '<div><span class="gid">' + g.id + '</span>' +
-      '<span class="gviol">V=' + (g.violations||0) + '</span></div>' +
-      '<div class="gtext">' + (g.rule||'') + '</div></div>';
+function renderGrammar(grammar) {
+  document.getElementById('gramScroll').innerHTML = (grammar||[]).map(function(g) {
+    return '<div class="gitem">' +
+      '<div><span class="gid">'+(g.id||'')+'</span>' +
+      '<span class="gviol">V='+(g.violations||0)+'</span></div>' +
+      '<div class="gtext">'+(g.rule||'')+'</div></div>';
   }).join('');
+  document.getElementById('pGram').textContent = (grammar||[]).length;
 }
 
 /* ── Patterns ───────────────────────────────────────────────────────────── */
-function renderPatterns() {
-  var grid = document.getElementById('patGrid');
-  grid.innerHTML = CHAOS_TYPES.map(function(t) {
-    var p = patterns[t] || {count:0};
-    var cnt = p.count || 0;
+function renderPatterns(patterns) {
+  patterns = patterns || {};
+  document.getElementById('patGrid').innerHTML = CHAOS_TYPES.map(function(t) {
+    var cnt = patterns[t] || 0;
     return '<div class="pcard">' +
-      '<div class="ptype">' + t.replace(/_/g,' ') + '</div>' +
-      '<div class="pcnt' + (cnt===0?' zero':'') + '">' + cnt + '</div></div>';
+      '<div class="ptype">'+t.replace(/_/g,' ')+'</div>' +
+      '<div class="pcnt'+(cnt===0?' zero':'')+'">'+cnt+'</div></div>';
   }).join('');
 }
 
 /* ── Signals ────────────────────────────────────────────────────────────── */
-function renderSignals() {
-  var list = document.getElementById('sigScroll');
-  list.innerHTML = signals.slice(0,50).map(function(s) {
+function renderSignals(signals) {
+  document.getElementById('sigScroll').innerHTML = (signals||[]).slice(0,40).map(function(s) {
+    if (!s) return '';
     return '<div class="sitem">' +
-      '<span class="sid">' + (s.id||'') + '</span>' +
-      '<div class="smsg"><span class="stype">' + (s.chaosType||'').replace(/_/g,' ') + '</span><br>' + (s.message||'') + '</div></div>';
+      '<span class="sid">'+(s.id||'')+'</span>' +
+      '<div class="smsg"><span class="stype">'+(s.chaosType||'').replace(/_/g,' ')+'</span><br>'+(s.message||'')+'</div></div>';
   }).join('');
-  document.getElementById('sSigs').textContent = signals.length;
+  document.getElementById('sSigs').textContent = (signals||[]).length;
 }
 
-/* ── Pulse bar ──────────────────────────────────────────────────────────── */
-var ALERT_LABELS = ['NOMINAL','WATCH','WARNING','CRITICAL','EMERGENCY'];
-function updatePulseBar() {
-  var label = ALERT_LABELS[chaosAlertLevel] || 'NOMINAL';
-  var alertEl = document.getElementById('pAlert');
-  alertEl.textContent = label;
-  alertEl.style.color = ALERT_COLORS[chaosAlertLevel];
-
-  document.getElementById('pChaos').textContent = 'B' + workerBeats.chaos;
-  document.getElementById('pBld').textContent   = 'B' + workerBeats.bld;
-  document.getElementById('pHos').textContent   = 'B' + workerBeats.hos;
-  document.getElementById('pHB').textContent    = 'B' + workerBeats.hb;
-  document.getElementById('pEng').textContent   = 'B' + workerBeats.eng;
-
-  document.getElementById('dChaos').className = 'dot ' + (workerAlive.chaos ? (chaosAlertLevel > 1 ? 'chaos' : 'alive') : '');
-  document.getElementById('dBld').className   = 'dot ' + (workerAlive.bld ? 'alive' : '');
-  document.getElementById('dHos').className   = 'dot ' + (workerAlive.hos ? 'alive' : '');
-  document.getElementById('dHB').className    = 'dot ' + (workerAlive.hb  ? 'alive' : '');
-  document.getElementById('dEng').className   = 'dot ' + (workerAlive.eng ? 'alive' : '');
+/* ── Hospital ───────────────────────────────────────────────────────────── */
+function renderDepts(departments) {
+  var src = departments || [];
+  document.getElementById('deptMini').innerHTML = src.map(function(d) {
+    return '<div class="dm"><div class="dm-name">'+(d.code||d.name||'').substring(0,10)+'</div>' +
+      '<div class="dm-stat">'+(d.occupied||0)+'/'+(d.beds||0)+'</div></div>';
+  }).join('');
 }
 
-function updateCoherence() {
-  /* master coherence = weighted blend of all 3 worker coherence values */
-  masterCoherence = Math.max(0, Math.min(1,
-    (chaosCoherence * PHI_INV + bldCoherence * 0.2 + hosCoherence * 0.2) / (PHI_INV + 0.4)
-  ));
-  var pct = (masterCoherence * 100).toFixed(1);
-  var fill = document.getElementById('cohereFill');
-  fill.style.width = pct + '%';
-  fill.style.background = masterCoherence > 0.7 ? 'var(--green)' : masterCoherence > 0.4 ? 'var(--orange)' : 'var(--red)';
-  var cv = document.getElementById('pCohere');
-  cv.textContent = masterCoherence.toFixed(3);
-  cv.style.color = masterCoherence > 0.7 ? 'var(--green)' : masterCoherence > 0.4 ? 'var(--orange)' : 'var(--red)';
+function renderPatients(patients) {
+  var list = document.getElementById('patScroll');
+  if (!patients || !patients.length) {
+    list.innerHTML = '<div style="padding:.5rem;text-align:center;color:#444;font-family:var(--font-mono);font-size:.62rem;">Awaiting admissions…</div>';
+    return;
+  }
+  list.innerHTML = patients.slice(0,40).map(function(p) {
+    var pct = Math.round((PAT_STAGES[p.status]||0) / 5 * 100);
+    var cls = 'pitem '+(p.status==='DISCHARGED'?'DISCHARGED':(p.severity==='CRITICAL'?'CRITICAL':''));
+    var fillCls = 'p-prog-f'+(p.status==='DISCHARGED'?' DISCHARGED':'');
+    return '<div class="'+cls+'">' +
+      '<span class="pid">'+(p.id||'').substring(0,10)+'</span>' +
+      '<span class="psev '+(p.severity||'')+'">'+(p.severity||'')+'</span>' +
+      '<span class="pstatus">'+(p.status||'')+'</span>' +
+      '<div class="p-prog"><div class="'+fillCls+'" style="width:'+pct+'%"></div></div></div>';
+  }).join('');
+  var active = patients.filter(function(p){return p.status!=='DISCHARGED';}).length;
+  document.getElementById('pPat').textContent = active;
+}
+
+/* ── Buildings ──────────────────────────────────────────────────────────── */
+function renderWorkflows(workflows) {
+  var list = document.getElementById('bldScroll');
+  if (!workflows || !workflows.length) {
+    list.innerHTML = '<div style="padding:.5rem;text-align:center;color:#444;font-family:var(--font-mono);font-size:.62rem;">Awaiting blueprints…</div>';
+    return;
+  }
+  list.innerHTML = workflows.slice(0,50).map(function(wf) {
+    var pct = WF_STAGES_PCT[wf.status] || 0;
+    var cls = 'bitem '+(wf.status==='COMPLETE'?'COMPLETE':wf.status==='IN_PROGRESS'?'IN_PROGRESS':'');
+    var fillCls = 'b-prog-f'+(wf.status==='COMPLETE'?' COMPLETE':'');
+    return '<div class="'+cls+'">' +
+      '<span class="bwf">'+(wf.id||'')+'</span>' +
+      '<span class="bstage '+(wf.status||'')+'">'+(wf.status||'')+'</span>' +
+      '<span class="bcode">'+(wf.buildingCode||'')+'</span>' +
+      '<div class="b-prog"><div class="'+fillCls+'" style="width:'+pct+'%"></div></div></div>';
+  }).join('');
+  var active = workflows.filter(function(w){return w.status!=='COMPLETE';}).length;
+  document.getElementById('pWf').textContent = active;
 }
 
 /* ── OSC drawing ────────────────────────────────────────────────────────── */
@@ -958,19 +713,16 @@ function drawOscPhase(canvasId, buf, color) {
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
   var W = canvas.width, H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1.5;
-  ctx.globalAlpha = 0.85;
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.85;
   ctx.beginPath();
   for (var i = 0; i < buf.length; i++) {
-    var x = (i / (buf.length - 1)) * W;
-    var v = (Math.sin(buf[i]) + 1) / 2;
-    var y = H - v * (H - 4) - 2;
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    var x = (i / (buf.length-1)) * W;
+    var v = (Math.sin(buf[i] * Math.PI * 2) + 1) / 2;
+    var y = H - v * (H-4) - 2;
+    if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
   }
-  ctx.stroke();
-  ctx.globalAlpha = 1;
+  ctx.stroke(); ctx.globalAlpha=1;
 }
 
 function drawOscLinear(canvasId, buf, color) {
@@ -978,25 +730,21 @@ function drawOscLinear(canvasId, buf, color) {
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
   var W = canvas.width, H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1.5;
-  ctx.globalAlpha = 0.85;
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.85;
   ctx.beginPath();
   for (var i = 0; i < buf.length; i++) {
-    var x = (i / (buf.length - 1)) * W;
-    var y = H - buf[i] * (H - 4) - 2;
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    var x = (i / (buf.length-1)) * W;
+    var y = H - buf[i] * (H-4) - 2;
+    if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
   }
-  ctx.stroke();
-  ctx.globalAlpha = 1;
+  ctx.stroke(); ctx.globalAlpha=1;
 }
 
-/* ── Initial renders ────────────────────────────────────────────────────── */
-renderDepts();
-renderPatterns();
-updateWorkerGrid();
-updateCoherence();
+/* ── Boot ───────────────────────────────────────────────────────────────── */
+renderPatterns({});
+renderDepts([]);
+connectToOrganism();
 </script>
 </body>
 </html>
