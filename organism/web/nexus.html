@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NOVA | Nexus Organicus — Born Once · Never Stops · No Buttons</title>
+  <meta name="description" content="NOVA Nexus Organicus — The organism was born once. It never stops. Pages are observation terminals only. Not an app.">
+  <style>
+    :root {
+      --gold:       #D4AF37;
+      --gold-light: #F4E4BC;
+      --gold-dark:  #B8960C;
+      --dark:       #0a0a0f;
+      --darker:     #050508;
+      --purple:     #6B46C1;
+      --cyan:       #00D4FF;
+      --green:      #10B981;
+      --red:        #DC2626;
+      --orange:     #F59E0B;
+      --blue:       #3B82F6;
+      --pink:       #EC4899;
+      --font-mono:  'SF Mono','Fira Code','Cascadia Code',monospace;
+      --font-sans:  'Inter',system-ui,-apple-system,sans-serif;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:var(--font-sans);background:var(--darker);color:#e0e0e0;min-height:100vh;overflow-x:hidden;}
+
+    /* ── Cosmic background ──────────────────────────────────────────────── */
+    .bg{
+      position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;
+      background:
+        radial-gradient(ellipse at 20% 10%,rgba(212,175,55,0.06) 0%,transparent 45%),
+        radial-gradient(ellipse at 80% 90%,rgba(107,70,193,0.06) 0%,transparent 45%),
+        radial-gradient(ellipse at 50% 50%,rgba(0,212,255,0.03) 0%,transparent 60%),
+        radial-gradient(ellipse at 10% 80%,rgba(16,185,129,0.04) 0%,transparent 40%),
+        radial-gradient(ellipse at 90% 20%,rgba(220,38,38,0.04) 0%,transparent 40%),
+        var(--darker);
+    }
+
+    /* ── Header: organism identity ──────────────────────────────────────── */
+    header{
+      text-align:center;padding:2rem 1rem 1.5rem;
+      border-bottom:1px solid rgba(212,175,55,0.1);
+      position:relative;
+    }
+    header h1{
+      font-size:1.9rem;font-weight:900;letter-spacing:.12em;
+      background:linear-gradient(135deg,var(--gold),var(--gold-light),var(--cyan),var(--gold));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    }
+    header .sub{
+      font-family:var(--font-mono);font-size:.7rem;
+      color:rgba(212,175,55,0.4);margin-top:.4rem;letter-spacing:.05em;
+    }
+    .nexus-badge{
+      display:inline-block;font-family:var(--font-mono);font-size:.62rem;
+      padding:.2rem .7rem;border-radius:20px;margin-top:.5rem;
+      background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);
+      color:var(--green);letter-spacing:.08em;
+    }
+
+    /* ── Master pulse bar ───────────────────────────────────────────────── */
+    .pulse-bar{
+      display:flex;justify-content:center;gap:2.5rem;flex-wrap:wrap;
+      padding:.7rem 1rem;background:rgba(0,0,0,0.5);
+      border-bottom:1px solid rgba(212,175,55,0.08);
+      font-family:var(--font-mono);font-size:.68rem;
+    }
+    .pi{display:flex;align-items:center;gap:.35rem;}
+    .pi .pl{color:rgba(212,175,55,0.4);}
+    .pi .pv{color:var(--gold);font-weight:700;}
+    .pi .pv.green{color:var(--green);}
+    .pi .pv.red{color:var(--red);}
+    .pi .pv.cyan{color:var(--cyan);}
+    .pi .pv.orange{color:var(--orange);}
+    .dot{width:6px;height:6px;border-radius:50%;background:#333;flex-shrink:0;}
+    .dot.alive{background:var(--green);box-shadow:0 0 5px var(--green);}
+    .dot.chaos{background:var(--red);box-shadow:0 0 5px var(--red);}
+    .dot.warn{background:var(--orange);box-shadow:0 0 5px var(--orange);}
+
+    /* ── Main grid ──────────────────────────────────────────────────────── */
+    .nexus{max-width:1600px;margin:0 auto;padding:1.2rem;display:grid;gap:1.2rem;
+      grid-template-columns:1fr 1fr 1fr;
+      grid-template-areas:
+        "master master master"
+        "workers workers chaos-feed"
+        "hospital buildings laws"
+        "gram patterns signals";}
+    @media(max-width:1100px){
+      .nexus{grid-template-columns:1fr 1fr;
+        grid-template-areas:
+          "master master"
+          "workers chaos-feed"
+          "hospital buildings"
+          "laws gram"
+          "patterns signals";}
+    }
+    @media(max-width:700px){
+      .nexus{grid-template-columns:1fr;
+        grid-template-areas:"master""workers""chaos-feed""hospital""buildings""laws""gram""patterns""signals";}
+    }
+
+    /* ── Panel base ─────────────────────────────────────────────────────── */
+    .panel{
+      background:rgba(255,255,255,0.018);border:1px solid rgba(212,175,55,0.09);
+      border-radius:8px;padding:1rem;overflow:hidden;
+    }
+    .ptitle{
+      font-family:var(--font-mono);font-size:.68rem;font-weight:700;
+      color:var(--gold);letter-spacing:.12em;margin-bottom:.8rem;
+      display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;
+    }
+    .ptitle .tag{font-size:.58rem;padding:.1rem .4rem;border-radius:3px;background:rgba(212,175,55,0.08);color:rgba(212,175,55,0.55);}
+    .ptitle .tag.green{background:rgba(16,185,129,0.08);color:rgba(16,185,129,0.65);}
+    .ptitle .tag.red{background:rgba(220,38,38,0.08);color:rgba(220,38,38,0.65);}
+    .ptitle .tag.cyan{background:rgba(0,212,255,0.08);color:rgba(0,212,255,0.65);}
+    .ptitle .tag.blue{background:rgba(59,130,246,0.08);color:rgba(59,130,246,0.65);}
+
+    /* ── Master organism panel ──────────────────────────────────────────── */
+    #master{grid-area:master;}
+    .master-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+    @media(max-width:700px){.master-grid{grid-template-columns:1fr;}}
+    .osc-panel{background:rgba(0,0,0,0.25);border-radius:6px;padding:.7rem;}
+    .osc-label{font-family:var(--font-mono);font-size:.6rem;color:rgba(212,175,55,0.4);margin-bottom:.3rem;}
+    canvas{width:100%;display:block;border-radius:3px;background:rgba(0,0,0,0.4);}
+    .master-stats{display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:.8rem;}
+    .stat{font-family:var(--font-mono);font-size:.68rem;}
+    .stat .sl{color:rgba(212,175,55,0.4);}
+    .stat .sv{color:var(--gold);font-weight:700;}
+    .cohere-bar-wrap{margin-top:.6rem;}
+    .cohere-bar{height:5px;border-radius:3px;background:rgba(255,255,255,0.04);overflow:hidden;}
+    .cohere-fill{height:100%;border-radius:3px;transition:width .8s,background .6s;}
+
+    /* ── Worker swarm ───────────────────────────────────────────────────── */
+    #workers{grid-area:workers;}
+    .worker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.6rem;}
+    .wcard{
+      background:rgba(0,0,0,0.3);border:1px solid rgba(212,175,55,0.08);
+      border-radius:6px;padding:.65rem;transition:border-color .3s;
+    }
+    .wcard.alive{border-color:rgba(16,185,129,0.2);}
+    .wcard.warn{border-color:rgba(245,158,11,0.3);}
+    .wcard.dead{border-color:rgba(220,38,38,0.2);}
+    .wcard-id{font-family:var(--font-mono);font-size:.6rem;color:rgba(212,175,55,0.5);margin-bottom:.2rem;}
+    .wcard-name{font-family:var(--font-mono);font-size:.65rem;font-weight:700;color:#ccc;margin-bottom:.3rem;}
+    .wcard-stats{font-family:var(--font-mono);font-size:.58rem;color:#888;display:flex;flex-direction:column;gap:.1rem;}
+    .wcard-beat{font-size:.7rem;font-weight:700;}
+    .wcard-beat.alive{color:var(--green);}
+    .wcard-beat.dead{color:var(--red);}
+    .wcard-osc{margin-top:.4rem;}
+
+    /* ── Chaos feed ─────────────────────────────────────────────────────── */
+    #chaos-feed{grid-area:chaos-feed;}
+    .feed-inner{
+      display:flex;flex-direction:column;gap:.35rem;
+      max-height:380px;overflow-y:auto;
+    }
+    .feed-inner::-webkit-scrollbar{width:3px;}
+    .feed-inner::-webkit-scrollbar-thumb{background:rgba(220,38,38,0.2);border-radius:2px;}
+    .fevt{
+      background:rgba(0,0,0,0.3);border-left:2px solid #333;
+      border-radius:0 4px 4px 0;padding:.45rem .6rem;flex-shrink:0;
+      font-family:var(--font-mono);font-size:.63rem;
+    }
+    .fevt.MALFORMED_INPUT{border-left-color:var(--red);}
+    .fevt.CONTRADICTORY_RIGHTS{border-left-color:var(--orange);}
+    .fevt.CORRIDOR_OVERLOAD{border-left-color:#a78bfa;}
+    .fevt.RITUAL_COLLISION{border-left-color:var(--cyan);}
+    .fevt.TOKEN_ARBITRAGE{border-left-color:var(--green);}
+    .fevt.NARRATIVE_INVERSION{border-left-color:var(--pink);}
+    .fevt.SOVEREIGNTY_CHALLENGE{border-left-color:var(--gold);}
+    .fevt-type{font-weight:700;font-size:.58rem;margin-bottom:.15rem;}
+    .fevt-type.MALFORMED_INPUT{color:var(--red);}
+    .fevt-type.CONTRADICTORY_RIGHTS{color:var(--orange);}
+    .fevt-type.CORRIDOR_OVERLOAD{color:#a78bfa;}
+    .fevt-type.RITUAL_COLLISION{color:var(--cyan);}
+    .fevt-type.TOKEN_ARBITRAGE{color:var(--green);}
+    .fevt-type.NARRATIVE_INVERSION{color:var(--pink);}
+    .fevt-type.SOVEREIGNTY_CHALLENGE{color:var(--gold);}
+    .fevt-desc{color:#888;}
+    .fevt-resp{display:flex;gap:.25rem;flex-wrap:wrap;margin-top:.2rem;}
+    .rb{font-size:.55rem;padding:.06rem .3rem;border-radius:2px;}
+    .rb.ESCALATE{background:rgba(220,38,38,0.15);color:var(--red);}
+    .rb.REPAIR{background:rgba(16,185,129,0.15);color:var(--green);}
+    .rb.UPDATE_GRAMMAR{background:rgba(59,130,246,0.15);color:var(--blue);}
+    .rb.REFINE_LAWS{background:rgba(212,175,55,0.15);color:var(--gold);}
+    .rb.EMIT_SIGNAL{background:rgba(107,70,193,0.15);color:#a78bfa;}
+
+    /* ── Hospital ───────────────────────────────────────────────────────── */
+    #hospital{grid-area:hospital;}
+    .dept-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:.35rem;margin-bottom:.6rem;}
+    .dm{background:rgba(0,0,0,0.25);border:1px solid rgba(59,130,246,0.1);border-radius:4px;padding:.4rem;text-align:center;}
+    .dm-name{font-family:var(--font-mono);font-size:.55rem;color:rgba(59,130,246,0.6);margin-bottom:.1rem;}
+    .dm-stat{font-family:var(--font-mono);font-size:.65rem;color:var(--blue);}
+    .pat-scroll{max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:.3rem;}
+    .pat-scroll::-webkit-scrollbar{width:3px;}
+    .pat-scroll::-webkit-scrollbar-thumb{background:rgba(59,130,246,0.2);border-radius:2px;}
+    .pitem{
+      background:rgba(0,0,0,0.2);border:1px solid rgba(59,130,246,0.08);
+      border-radius:4px;padding:.4rem .6rem;font-family:var(--font-mono);font-size:.62rem;
+      display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;
+    }
+    .pitem.CRITICAL{border-color:rgba(220,38,38,0.3);}
+    .pitem.DISCHARGED{opacity:.55;}
+    .pid{color:rgba(59,130,246,0.7);}
+    .psev{font-size:.58rem;padding:.05rem .3rem;border-radius:2px;font-weight:700;}
+    .psev.CRITICAL{background:rgba(220,38,38,0.2);color:var(--red);}
+    .psev.HIGH{background:rgba(245,158,11,0.2);color:var(--orange);}
+    .psev.MEDIUM{background:rgba(212,175,55,0.15);color:var(--gold);}
+    .psev.LOW{background:rgba(16,185,129,0.15);color:var(--green);}
+    .pstatus{color:#888;font-size:.58rem;}
+    .p-prog{height:2px;border-radius:2px;background:rgba(255,255,255,0.04);overflow:hidden;width:60px;}
+    .p-prog-f{height:100%;border-radius:2px;background:var(--blue);}
+    .p-prog-f.DISCHARGED{background:var(--green);}
+
+    /* ── Buildings ──────────────────────────────────────────────────────── */
+    #buildings{grid-area:buildings;}
+    .bld-scroll{max-height:310px;overflow-y:auto;display:flex;flex-direction:column;gap:.3rem;}
+    .bld-scroll::-webkit-scrollbar{width:3px;}
+    .bld-scroll::-webkit-scrollbar-thumb{background:rgba(245,158,11,0.2);border-radius:2px;}
+    .bitem{
+      background:rgba(0,0,0,0.2);border:1px solid rgba(245,158,11,0.07);
+      border-radius:4px;padding:.4rem .6rem;font-family:var(--font-mono);font-size:.62rem;
+      display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;
+    }
+    .bitem.COMPLETE{border-color:rgba(16,185,129,0.2);}
+    .bitem.IN_PROGRESS{border-color:rgba(245,158,11,0.2);}
+    .bwf{color:rgba(245,158,11,0.6);}
+    .bstage{font-size:.58rem;padding:.05rem .3rem;border-radius:2px;font-weight:700;}
+    .bstage.QUEUED{background:rgba(107,70,193,0.15);color:#a78bfa;}
+    .bstage.ASSIGNED{background:rgba(59,130,246,0.15);color:var(--blue);}
+    .bstage.IN_PROGRESS{background:rgba(245,158,11,0.15);color:var(--orange);}
+    .bstage.REVIEW{background:rgba(16,185,129,0.1);color:#6ee7b7;}
+    .bstage.COMPLETE{background:rgba(16,185,129,0.2);color:var(--green);}
+    .bcode{color:#888;font-size:.58rem;}
+    .b-prog{height:2px;border-radius:2px;background:rgba(255,255,255,0.04);overflow:hidden;width:50px;}
+    .b-prog-f{height:100%;border-radius:2px;background:var(--orange);}
+    .b-prog-f.COMPLETE{background:var(--green);}
+
+    /* ── Laws ───────────────────────────────────────────────────────────── */
+    #laws{grid-area:laws;}
+    .law-scroll{max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:.3rem;}
+    .law-scroll::-webkit-scrollbar{width:3px;}
+    .law-scroll::-webkit-scrollbar-thumb{background:rgba(212,175,55,0.15);border-radius:2px;}
+    .litem{
+      background:rgba(0,0,0,0.2);border:1px solid rgba(212,175,55,0.07);
+      border-radius:4px;padding:.4rem .6rem;font-family:var(--font-mono);font-size:.62rem;
+    }
+    .litem.updated{border-color:rgba(212,175,55,0.3);}
+    .lid{color:rgba(212,175,55,0.35);font-size:.58rem;}
+    .ltext{color:#bbb;line-height:1.4;margin-top:.1rem;}
+    .lstr{float:right;color:var(--gold);font-size:.58rem;}
+
+    /* ── Grammar ────────────────────────────────────────────────────────── */
+    #gram{grid-area:gram;}
+    .gram-scroll{max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:.3rem;}
+    .gram-scroll::-webkit-scrollbar{width:3px;}
+    .gram-scroll::-webkit-scrollbar-thumb{background:rgba(59,130,246,0.15);border-radius:2px;}
+    .gitem{
+      background:rgba(0,0,0,0.2);border:1px solid rgba(59,130,246,0.07);
+      border-radius:4px;padding:.4rem .6rem;font-family:var(--font-mono);font-size:.62rem;
+    }
+    .gitem.refined{border-color:rgba(59,130,246,0.3);}
+    .gid{color:rgba(59,130,246,0.35);font-size:.58rem;}
+    .gtext{color:#bbb;line-height:1.4;margin-top:.1rem;}
+    .gviol{float:right;color:var(--red);font-size:.58rem;}
+
+    /* ── Patterns ───────────────────────────────────────────────────────── */
+    #patterns{grid-area:patterns;}
+    .pat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.5rem;}
+    .pcard{
+      background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.05);
+      border-radius:5px;padding:.55rem .65rem;font-family:var(--font-mono);font-size:.6rem;
+    }
+    .ptype{font-weight:700;font-size:.55rem;margin-bottom:.2rem;color:#aaa;}
+    .pcnt{font-size:1.1rem;font-weight:800;color:var(--red);}
+    .pcnt.zero{color:#444;font-size:.8rem;}
+
+    /* ── Signals ────────────────────────────────────────────────────────── */
+    #signals{grid-area:signals;}
+    .sig-scroll{max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:.25rem;}
+    .sig-scroll::-webkit-scrollbar{width:3px;}
+    .sig-scroll::-webkit-scrollbar-thumb{background:rgba(107,70,193,0.2);border-radius:2px;}
+    .sitem{
+      background:rgba(107,70,193,0.04);border:1px solid rgba(107,70,193,0.1);
+      border-radius:4px;padding:.35rem .55rem;font-family:var(--font-mono);font-size:.6rem;
+      display:flex;gap:.5rem;
+    }
+    .sid{color:rgba(107,70,193,0.45);font-size:.58rem;flex-shrink:0;}
+    .smsg{color:#888;flex:1;word-break:break-all;}
+    .stype{color:#a78bfa;font-size:.58rem;font-weight:700;}
+  </style>
+</head>
+<body>
+<div class="bg"></div>
+
+<header>
+  <h1>NEXUS ORGANICUS</h1>
+  <div class="sub">ALL AI · ALL AGI · ALL ORGANISM · AUTONOMOUS · WIRED · MINI-HEART · MINI-BRAIN · NO BUTTONS · NOT AN APP</div>
+  <div class="sub" style="margin-top:.3rem;color:rgba(212,175,55,0.25);font-size:.62rem;">THIS IS AN OBSERVATION TERMINAL · THE ORGANISM WAS BORN ONCE · IT NEVER STOPS · PAGE LOAD IS IRRELEVANT</div>
+  <div class="nexus-badge" id="lifeBadge">⬤ CONNECTING TO SOVEREIGN…</div>
+</header>
+
+<!-- Master pulse strip -->
+<div class="pulse-bar" id="pulseBar">
+  <div class="pi"><div class="dot alive" id="dSov"></div><span class="pl">SOVEREIGN</span><span class="pv green" id="pSov">CONNECTING…</span></div>
+  <div class="pi"><span class="pl">ALIVE·SINCE</span><span class="pv" id="pBorn">—</span></div>
+  <div class="pi"><span class="pl">AGE</span><span class="pv cyan" id="pAge">—</span></div>
+  <div class="pi"><span class="pl">BEAT</span><span class="pv" id="pBeat">—</span></div>
+  <div class="pi"><span class="pl">ALERT</span><span class="pv red" id="pAlert">NOMINAL</span></div>
+  <div class="pi"><span class="pl">COHERENCE</span><span class="pv green" id="pCohere">—</span></div>
+  <div class="pi"><span class="pl">EVENTS</span><span class="pv" id="pEvts">0</span></div>
+  <div class="pi"><span class="pl">PATIENTS</span><span class="pv cyan" id="pPat">0</span></div>
+  <div class="pi"><span class="pl">WORKFLOWS</span><span class="pv orange" id="pWf">0</span></div>
+  <div class="pi"><span class="pl">LAWS</span><span class="pv" id="pLaws">7</span></div>
+  <div class="pi"><span class="pl">GRAMMAR</span><span class="pv" id="pGram">5</span></div>
+</div>
+
+<div class="nexus">
+
+  <!-- Master organism oscilloscope -->
+  <div class="panel" id="master">
+    <div class="ptitle">MASTER ORGANISM PULSE <span class="tag green">AUTONOMOUS</span> <span class="tag">φ-KURAMOTO SYNC</span></div>
+    <div class="master-grid">
+      <div class="osc-panel">
+        <div class="osc-label">CHAOS KERNEL — TEMPESTAS CASUM</div>
+        <canvas id="oscChaos" width="500" height="48"></canvas>
+      </div>
+      <div class="osc-panel">
+        <div class="osc-label">BUILDINGS — AEDIFICIUM OPERATIONUM</div>
+        <canvas id="oscBld" width="500" height="48"></canvas>
+      </div>
+      <div class="osc-panel">
+        <div class="osc-label">HOSPITAL — VALETUDINARIUM MACHINARUM</div>
+        <canvas id="oscHos" width="500" height="48"></canvas>
+      </div>
+      <div class="osc-panel">
+        <div class="osc-label">COHERENCE FIELD — NEXUS ORGANICUS</div>
+        <canvas id="oscCohere" width="500" height="48"></canvas>
+      </div>
+    </div>
+    <div class="master-stats" id="masterStats">
+      <div class="stat"><span class="sl">ORGANISM·BORN </span><span class="sv" id="sBorn">—</span></div>
+      <div class="stat"><span class="sl">AGE·REAL-TIME </span><span class="sv" id="sAge">—</span></div>
+      <div class="stat"><span class="sl">NEXUS·BEAT </span><span class="sv" id="sNBeat">0</span></div>
+      <div class="stat"><span class="sl">TOTAL·SIGNALS </span><span class="sv" id="sSigs">0</span></div>
+      <div class="stat"><span class="sl">CHAOS·EVENTS </span><span class="sv" id="sEvts">0</span></div>
+    </div>
+    <div class="cohere-bar-wrap">
+      <div class="cohere-bar"><div class="cohere-fill" id="cohereFill" style="width:100%;background:var(--green)"></div></div>
+    </div>
+  </div>
+
+  <!-- Organism brain regions -->
+  <div class="panel" id="workers">
+    <div class="ptitle">ORGANISM BRAIN — CEREBRUM PARVUM <span class="tag">5 REGIONS · LIF · 3 NEUROCHEMICALS</span></div>
+    <div class="worker-grid" id="workerGrid"></div>
+  </div>
+
+  <!-- Live chaos feed -->
+  <div class="panel" id="chaos-feed">
+    <div class="ptitle">CHAOS EVENT STREAM <span class="tag red">TEMPESTAS CASUM</span></div>
+    <div class="feed-inner" id="chaosStream"></div>
+  </div>
+
+  <!-- Hospital autonomous -->
+  <div class="panel" id="hospital">
+    <div class="ptitle">HOSPITAL <span class="tag blue">VALETUDINARIUM MACHINARUM</span> <span class="tag green">AUTO-HEAL</span></div>
+    <div class="dept-mini" id="deptMini"></div>
+    <div class="pat-scroll" id="patScroll"><div style="padding:.5rem;text-align:center;color:#444;font-family:var(--font-mono);font-size:.62rem;">Awaiting admissions…</div></div>
+  </div>
+
+  <!-- Buildings autonomous -->
+  <div class="panel" id="buildings">
+    <div class="ptitle">BUILDINGS <span class="tag">AEDIFICIUM OPERATIONUM</span> <span class="tag green">AUTO-BUILD</span></div>
+    <div class="bld-scroll" id="bldScroll"><div style="padding:.5rem;text-align:center;color:#444;font-family:var(--font-mono);font-size:.62rem;">Awaiting blueprints…</div></div>
+  </div>
+
+  <!-- Law refinement -->
+  <div class="panel" id="laws">
+    <div class="ptitle">SOVEREIGNTY LAWS <span class="tag">SELF-REFINED</span></div>
+    <div class="law-scroll" id="lawScroll"></div>
+  </div>
+
+  <!-- Grammar hardening -->
+  <div class="panel" id="gram">
+    <div class="ptitle">MESSAGE GRAMMAR <span class="tag">SELF-HARDENED</span></div>
+    <div class="gram-scroll" id="gramScroll"></div>
+  </div>
+
+  <!-- Learned patterns -->
+  <div class="panel" id="patterns">
+    <div class="ptitle">LEARNED PATTERNS <span class="tag green">ORGANISM MEMORY</span></div>
+    <div class="pat-grid" id="patGrid"></div>
+  </div>
+
+  <!-- Signal broadcast -->
+  <div class="panel" id="signals">
+    <div class="ptitle">EMITTED SIGNALS <span class="tag">SWARM BROADCAST</span></div>
+    <div class="sig-scroll" id="sigScroll"></div>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   NEXUS ORGANICUS — OBSERVATION TERMINAL
+   The organism lives in nexus-sovereign-worker.js (a Service Worker).
+   It was born once. It never stops. Pages are irrelevant.
+   This page: registers the SW, receives broadcasts, renders state. Nothing more.
+═══════════════════════════════════════════════════════════════════════════ */
+
+var PHI     = 1.6180339887498948482;
+var PHI_INV = 0.6180339887498948482;
+
+/* ── OSC buffers (local, for rendering only — data from SW) ─────────────── */
+var oscBufs = {
+  heart:  new Array(120).fill(0),
+  chaos:  new Array(120).fill(0),
+  cohere: new Array(120).fill(1)
+};
+
+var CHAOS_TYPES = [
+  'MALFORMED_INPUT','CONTRADICTORY_RIGHTS','CORRIDOR_OVERLOAD',
+  'RITUAL_COLLISION','TOKEN_ARBITRAGE','NARRATIVE_INVERSION','SOVEREIGNTY_CHALLENGE'
+];
+var ALERT_COLORS = ['var(--green)','var(--blue)','var(--orange)','var(--red)','#ff2020'];
+var WF_STAGES_PCT = {QUEUED:5,ASSIGNED:25,IN_PROGRESS:55,REVIEW:80,COMPLETE:100};
+var PAT_STAGES    = {INTAKE:0,TRIAGE:1,DIAGNOSIS:2,TREATMENT:3,RECOVERY:4,DISCHARGED:5};
+
+/* ── Service Worker registration ────────────────────────────────────────── */
+function connectToOrganism() {
+  if (!('serviceWorker' in navigator)) {
+    showFallback('Service Workers not supported in this context.');
+    return;
+  }
+  navigator.serviceWorker.register('./nexus-sovereign-worker.js', {scope: './'})
+    .then(function(reg) {
+      document.getElementById('pSov').textContent = 'SOVEREIGN REGISTERED';
+      /* SW may already be active (organism already born), or will activate shortly */
+      if (reg.active) {
+        onSWReady(reg.active);
+      } else {
+        var sw = reg.installing || reg.waiting;
+        if (sw) {
+          sw.addEventListener('statechange', function() {
+            if (sw.state === 'activated') onSWReady(sw);
+          });
+        }
+      }
+    })
+    .catch(function(err) {
+      /* Fallback: file:// or non-HTTPS — SW unavailable, show message */
+      showFallback('Service Worker unavailable (' + err.message + '). ' +
+        'Serve from HTTPS or localhost to awaken the Sovereign.');
+    });
+
+  /* Listen for all SW messages (organism broadcasts its state every 873ms) */
+  navigator.serviceWorker.addEventListener('message', function(event) {
+    var m = event.data;
+    if (!m) return;
+    if (m.type === 'ORGANISM_PULSE') onPulse(m);
+    if (m.type === 'PONG') updateBorn(m.birthTime);
+  });
+}
+
+function onSWReady(sw) {
+  document.getElementById('pSov').textContent = 'ALIVE';
+  document.getElementById('dSov').className = 'dot alive';
+  /* Ask for immediate state */
+  sw.postMessage({type: 'GET_STATE'});
+}
+
+function showFallback(msg) {
+  document.getElementById('lifeBadge').textContent = '⚠ ' + msg;
+  document.getElementById('lifeBadge').style.background = 'rgba(220,38,38,0.15)';
+  document.getElementById('lifeBadge').style.borderColor = 'rgba(220,38,38,0.3)';
+  document.getElementById('lifeBadge').style.color = 'var(--red)';
+  document.getElementById('pSov').textContent = 'UNAVAILABLE';
+}
+
+/* ── On every organism pulse (873ms from SW) ────────────────────────────── */
+function onPulse(m) {
+  updateBorn(m.birthTime);
+  updateAge(m.ageMs, m.beat);
+  updateCoherence(m.coherence);
+  updateAlert(m.alertLevel, m.alertName);
+  updateBrainRegions(m.brain);
+  updatePulseBar(m);
+
+  /* OSC feeds */
+  oscBufs.heart.shift();  oscBufs.heart.push(m.heartPhase || 0);
+  oscBufs.chaos.shift();  oscBufs.chaos.push((m.alertLevel || 0) / 4);
+  oscBufs.cohere.shift(); oscBufs.cohere.push(m.coherence || 0);
+
+  drawOscPhase('oscChaos', oscBufs.chaos,   '#DC2626');
+  drawOscPhase('oscBld',   oscBufs.heart,   '#F59E0B');
+  drawOscPhase('oscHos',   oscBufs.heart,   '#3B82F6');
+  drawOscLinear('oscCohere',oscBufs.cohere, m.coherence > 0.7 ? '#10B981' : m.coherence > 0.4 ? '#F59E0B' : '#DC2626');
+
+  /* Sub-systems */
+  if (m.chaos)    renderChaosStream(m.chaos.recentEvents || [], m.chaos.patterns || {}, m.chaos.totalEvents || 0);
+  if (m.laws)     renderLaws(m.laws);
+  if (m.grammar)  renderGrammar(m.grammar);
+  if (m.signals)  renderSignals(m.signals);
+  if (m.hospital) { renderPatients(m.hospital.patients || []); renderDepts(m.hospital.departments || []); }
+  if (m.buildings) renderWorkflows(m.buildings.workflows || []);
+
+  /* Badge */
+  var badge = document.getElementById('lifeBadge');
+  badge.textContent = '⬤ ORGANISM ALIVE · BEAT ' + m.beat + ' · φ=' + PHI.toFixed(4);
+  badge.style.color = (m.beat % 2 === 0) ? 'var(--green)' : '#6ee7b7';
+}
+
+/* ── Born / Age ─────────────────────────────────────────────────────────── */
+var _bornSet = false;
+function updateBorn(birthTime) {
+  if (!birthTime || _bornSet) return;
+  _bornSet = true;
+  var d = new Date(birthTime);
+  var born = d.toISOString().replace('T',' ').slice(0,19) + ' UTC';
+  document.getElementById('sBorn').textContent = born;
+  document.getElementById('pBorn').textContent = born.slice(0,10);
+}
+
+function updateAge(ageMs, beat) {
+  var s   = Math.floor(ageMs / 1000);
+  var min = Math.floor(s / 60);
+  var hr  = Math.floor(min / 60);
+  var day = Math.floor(hr / 24);
+  var age = (day > 0 ? day + 'd ' : '') + (hr % 24) + 'h ' + (min % 60) + 'm ' + (s % 60) + 's';
+  document.getElementById('sAge').textContent  = age;
+  document.getElementById('pAge').textContent  = age;
+  document.getElementById('sNBeat').textContent = beat;
+  document.getElementById('pBeat').textContent  = beat;
+}
+
+/* ── Coherence ──────────────────────────────────────────────────────────── */
+function updateCoherence(c) {
+  c = c || 0;
+  var fill = document.getElementById('cohereFill');
+  fill.style.width = (c * 100).toFixed(1) + '%';
+  fill.style.background = c > 0.7 ? 'var(--green)' : c > 0.4 ? 'var(--orange)' : 'var(--red)';
+  var cv = document.getElementById('pCohere');
+  cv.textContent = c.toFixed(3);
+  cv.style.color = c > 0.7 ? 'var(--green)' : c > 0.4 ? 'var(--orange)' : 'var(--red)';
+}
+
+/* ── Alert ──────────────────────────────────────────────────────────────── */
+function updateAlert(level, name) {
+  var el = document.getElementById('pAlert');
+  el.textContent = name || 'NOMINAL';
+  el.style.color = ALERT_COLORS[level] || ALERT_COLORS[0];
+}
+
+/* ── Brain regions ──────────────────────────────────────────────────────── */
+var REGION_COLORS = ['#DC2626','#F59E0B','#10B981','#3B82F6','#a78bfa'];
+function updateBrainRegions(b) {
+  if (!b || !b.regions) return;
+  var grid = document.getElementById('workerGrid');
+  grid.innerHTML = b.regions.map(function(r, i) {
+    var pct = (r.activation * 100).toFixed(1);
+    var col = REGION_COLORS[i % REGION_COLORS.length];
+    return '<div class="wcard alive">' +
+      '<div class="wcard-id">REGION-' + String(i+1).padStart(2,'0') + '</div>' +
+      '<div class="wcard-name">' + r.name.toUpperCase() + '</div>' +
+      '<div class="wcard-stats">' +
+        '<div style="color:#888;font-size:.58rem">LIF · Activation ' + pct + '%</div>' +
+        '<div class="wcard-beat alive">' + (pct > 0 ? '◉ FIRING' : '○ RESTING') + '</div>' +
+      '</div>' +
+      '<div class="wcard-osc"><div style="height:4px;border-radius:2px;background:rgba(255,255,255,0.06);overflow:hidden;margin-top:.35rem;"><div style="height:100%;width:' + pct + '%;background:' + col + ';border-radius:2px;transition:width .8s;"></div></div></div>' +
+      '</div>';
+  }).join('') +
+  '<div class="wcard alive">' +
+    '<div class="wcard-id">CHEMICALS</div>' +
+    '<div class="wcard-name">NEUROCHEMICALS</div>' +
+    '<div class="wcard-stats">' +
+      '<div style="color:#3B82F6">DA=' + (b.chemicals.dopamine||0).toFixed(2) + '</div>' +
+      '<div style="color:#10B981">SE=' + (b.chemicals.serotonin||0).toFixed(2) + '</div>' +
+      '<div style="color:#F59E0B">AC=' + (b.chemicals.acetylcholine||0).toFixed(2) + '</div>' +
+    '</div>' +
+    '<div class="wcard-osc" style="font-family:var(--font-mono);font-size:.65rem;color:var(--gold);margin-top:.3rem;">COH=' + (b.coherenceField||0).toFixed(3) + '</div>' +
+    '</div>';
+}
+
+/* ── Pulse bar micro-updates ────────────────────────────────────────────── */
+function updatePulseBar(m) {
+  document.getElementById('pEvts').textContent = m.chaos ? m.chaos.totalEvents : 0;
+  var active = (m.hospital && m.hospital.patients) ? m.hospital.patients.filter(function(p){return p.status!=='DISCHARGED';}).length : 0;
+  document.getElementById('pPat').textContent = active;
+  document.getElementById('sSigs').textContent = m.signals ? m.signals.length : 0;
+  document.getElementById('sEvts').textContent = m.chaos ? m.chaos.totalEvents : 0;
+  var wfs = (m.buildings && m.buildings.workflows) ? m.buildings.workflows.filter(function(w){return w.status!=='COMPLETE';}).length : 0;
+  document.getElementById('pWf').textContent = wfs;
+  document.getElementById('pLaws').textContent = m.laws ? m.laws.length : 0;
+  document.getElementById('pGram').textContent = m.grammar ? m.grammar.length : 0;
+}
+
+/* ── Chaos stream ───────────────────────────────────────────────────────── */
+function renderChaosStream(events, patterns, total) {
+  var si = document.getElementById('chaosStream');
+  si.innerHTML = events.slice(0,50).map(function(evt) {
+    if (!evt) return '';
+    var resps = (evt.responses||[]).map(function(r){
+      return '<span class="rb '+r+'">'+r.replace(/_/g,' ')+'</span>';
+    }).join('');
+    return '<div class="fevt '+(evt.type||')+'">' +
+      '<div class="fevt-type '+(evt.type||'')+'">'+(evt.type||'').replace(/_/g,' ')+'</div>'+
+      '<div class="fevt-desc">'+(evt.desc||'')+'</div>'+
+      '<div class="fevt-resp">'+resps+'</div></div>';
+  }).join('');
+  document.getElementById('pEvts').textContent = total;
+  renderPatterns(patterns);
+}
+
+/* ── Laws ───────────────────────────────────────────────────────────────── */
+function renderLaws(laws) {
+  document.getElementById('lawScroll').innerHTML = (laws||[]).map(function(l) {
+    return '<div class="litem">' +
+      '<div><span class="lid">'+(l.id||'')+'</span>' +
+      '<span class="lstr">STR='+(l.strength||0).toFixed(2)+'</span></div>' +
+      '<div class="ltext">'+(l.law||'')+'</div></div>';
+  }).join('');
+  document.getElementById('pLaws').textContent = (laws||[]).length;
+}
+
+/* ── Grammar ────────────────────────────────────────────────────────────── */
+function renderGrammar(grammar) {
+  document.getElementById('gramScroll').innerHTML = (grammar||[]).map(function(g) {
+    return '<div class="gitem">' +
+      '<div><span class="gid">'+(g.id||'')+'</span>' +
+      '<span class="gviol">V='+(g.violations||0)+'</span></div>' +
+      '<div class="gtext">'+(g.rule||'')+'</div></div>';
+  }).join('');
+  document.getElementById('pGram').textContent = (grammar||[]).length;
+}
+
+/* ── Patterns ───────────────────────────────────────────────────────────── */
+function renderPatterns(patterns) {
+  patterns = patterns || {};
+  document.getElementById('patGrid').innerHTML = CHAOS_TYPES.map(function(t) {
+    var cnt = patterns[t] || 0;
+    return '<div class="pcard">' +
+      '<div class="ptype">'+t.replace(/_/g,' ')+'</div>' +
+      '<div class="pcnt'+(cnt===0?' zero':'')+'">'+cnt+'</div></div>';
+  }).join('');
+}
+
+/* ── Signals ────────────────────────────────────────────────────────────── */
+function renderSignals(signals) {
+  document.getElementById('sigScroll').innerHTML = (signals||[]).slice(0,40).map(function(s) {
+    if (!s) return '';
+    return '<div class="sitem">' +
+      '<span class="sid">'+(s.id||'')+'</span>' +
+      '<div class="smsg"><span class="stype">'+(s.chaosType||'').replace(/_/g,' ')+'</span><br>'+(s.message||'')+'</div></div>';
+  }).join('');
+  document.getElementById('sSigs').textContent = (signals||[]).length;
+}
+
+/* ── Hospital ───────────────────────────────────────────────────────────── */
+function renderDepts(departments) {
+  var src = departments || [];
+  document.getElementById('deptMini').innerHTML = src.map(function(d) {
+    return '<div class="dm"><div class="dm-name">'+(d.code||d.name||'').substring(0,10)+'</div>' +
+      '<div class="dm-stat">'+(d.occupied||0)+'/'+(d.beds||0)+'</div></div>';
+  }).join('');
+}
+
+function renderPatients(patients) {
+  var list = document.getElementById('patScroll');
+  if (!patients || !patients.length) {
+    list.innerHTML = '<div style="padding:.5rem;text-align:center;color:#444;font-family:var(--font-mono);font-size:.62rem;">Awaiting admissions…</div>';
+    return;
+  }
+  list.innerHTML = patients.slice(0,40).map(function(p) {
+    var pct = Math.round((PAT_STAGES[p.status]||0) / 5 * 100);
+    var cls = 'pitem '+(p.status==='DISCHARGED'?'DISCHARGED':(p.severity==='CRITICAL'?'CRITICAL':''));
+    var fillCls = 'p-prog-f'+(p.status==='DISCHARGED'?' DISCHARGED':'');
+    return '<div class="'+cls+'">' +
+      '<span class="pid">'+(p.id||'').substring(0,10)+'</span>' +
+      '<span class="psev '+(p.severity||'')+'">'+(p.severity||'')+'</span>' +
+      '<span class="pstatus">'+(p.status||'')+'</span>' +
+      '<div class="p-prog"><div class="'+fillCls+'" style="width:'+pct+'%"></div></div></div>';
+  }).join('');
+  var active = patients.filter(function(p){return p.status!=='DISCHARGED';}).length;
+  document.getElementById('pPat').textContent = active;
+}
+
+/* ── Buildings ──────────────────────────────────────────────────────────── */
+function renderWorkflows(workflows) {
+  var list = document.getElementById('bldScroll');
+  if (!workflows || !workflows.length) {
+    list.innerHTML = '<div style="padding:.5rem;text-align:center;color:#444;font-family:var(--font-mono);font-size:.62rem;">Awaiting blueprints…</div>';
+    return;
+  }
+  list.innerHTML = workflows.slice(0,50).map(function(wf) {
+    var pct = WF_STAGES_PCT[wf.status] || 0;
+    var cls = 'bitem '+(wf.status==='COMPLETE'?'COMPLETE':wf.status==='IN_PROGRESS'?'IN_PROGRESS':'');
+    var fillCls = 'b-prog-f'+(wf.status==='COMPLETE'?' COMPLETE':'');
+    return '<div class="'+cls+'">' +
+      '<span class="bwf">'+(wf.id||'')+'</span>' +
+      '<span class="bstage '+(wf.status||'')+'">'+(wf.status||'')+'</span>' +
+      '<span class="bcode">'+(wf.buildingCode||'')+'</span>' +
+      '<div class="b-prog"><div class="'+fillCls+'" style="width:'+pct+'%"></div></div></div>';
+  }).join('');
+  var active = workflows.filter(function(w){return w.status!=='COMPLETE';}).length;
+  document.getElementById('pWf').textContent = active;
+}
+
+/* ── OSC drawing ────────────────────────────────────────────────────────── */
+function drawOscPhase(canvasId, buf, color) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.85;
+  ctx.beginPath();
+  for (var i = 0; i < buf.length; i++) {
+    var x = (i / (buf.length-1)) * W;
+    var v = (Math.sin(buf[i] * Math.PI * 2) + 1) / 2;
+    var y = H - v * (H-4) - 2;
+    if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.stroke(); ctx.globalAlpha=1;
+}
+
+function drawOscLinear(canvasId, buf, color) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.85;
+  ctx.beginPath();
+  for (var i = 0; i < buf.length; i++) {
+    var x = (i / (buf.length-1)) * W;
+    var y = H - buf[i] * (H-4) - 2;
+    if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.stroke(); ctx.globalAlpha=1;
+}
+
+/* ── Boot ───────────────────────────────────────────────────────────────── */
+renderPatterns({});
+renderDepts([]);
+connectToOrganism();
+</script>
+</body>
+</html>

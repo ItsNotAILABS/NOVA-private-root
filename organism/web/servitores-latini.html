@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="la">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NOVA | Servitores Latini — 8 Dedicated Latin AI Servers · Nomina Aeterna</title>
+  <meta name="description" content="NOVA Servitores Latini — 8 dedicated Latin-named AGI servers. Each has MiniHeart + MiniBrain. Born once. Never stop. Full Latin protocol registry.">
+  <style>
+    :root {
+      --gold:      #D4AF37;
+      --gold-l:    #F4E4BC;
+      --dark:      #0a0a0f;
+      --darker:    #050508;
+      --purple:    #6B46C1;
+      --cyan:      #00D4FF;
+      --green:     #10B981;
+      --red:       #DC2626;
+      --orange:    #F59E0B;
+      --blue:      #3B82F6;
+      --pink:      #EC4899;
+      --mono:      'SF Mono','Fira Code','Cascadia Code',monospace;
+      --sans:      'Inter',system-ui,-apple-system,sans-serif;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:var(--sans);background:var(--darker);color:#e0e0e0;min-height:100vh;overflow-x:hidden;}
+    .bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;
+      background:radial-gradient(ellipse at 20% 10%,rgba(212,175,55,0.07) 0%,transparent 45%),
+        radial-gradient(ellipse at 80% 90%,rgba(107,70,193,0.07) 0%,transparent 45%),
+        radial-gradient(ellipse at 50% 50%,rgba(0,212,255,0.03) 0%,transparent 60%),var(--darker);}
+    header{text-align:center;padding:2rem 1rem 1.5rem;border-bottom:1px solid rgba(212,175,55,0.12);}
+    header h1{font-size:1.9rem;font-weight:900;letter-spacing:.1em;
+      background:linear-gradient(135deg,var(--gold),var(--gold-l),var(--cyan),var(--gold));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .sub{color:rgba(212,175,55,0.4);font-size:.65rem;letter-spacing:.2em;margin-top:.4rem;}
+    .sub2{color:rgba(212,175,55,0.2);font-size:.58rem;letter-spacing:.15em;margin-top:.25rem;}
+
+    /* ── Pulse strip ──────────────────────────────────────────────────────── */
+    .pulse-bar{
+      display:flex;flex-wrap:wrap;gap:.5rem;padding:.6rem 1.5rem;
+      border-bottom:1px solid rgba(255,255,255,0.04);background:rgba(0,0,0,0.2);}
+    .pi{display:flex;align-items:center;gap:.3rem;font-family:var(--mono);font-size:.6rem;}
+    .pl{color:#555;letter-spacing:.05em;}
+    .pv{color:#aaa;font-weight:700;}
+    .pv.gold{color:var(--gold);}
+    .pv.green{color:var(--green);}
+    .pv.cyan{color:var(--cyan);}
+    .dot{width:7px;height:7px;border-radius:50%;background:#333;}
+    .dot.alive{background:var(--green);box-shadow:0 0 6px var(--green);}
+    .dot.busy{background:var(--orange);box-shadow:0 0 6px var(--orange);}
+    .dot.warning{background:var(--red);box-shadow:0 0 6px var(--red);}
+
+    /* ── Fleet grid ───────────────────────────────────────────────────────── */
+    .fleet{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:1.2rem;padding:1.5rem;}
+
+    .server-card{
+      background:rgba(255,255,255,0.02);border:1px solid rgba(212,175,55,0.1);
+      border-radius:10px;padding:1.2rem;display:flex;flex-direction:column;gap:.7rem;
+      transition:border-color .3s;}
+    .server-card:hover{border-color:rgba(212,175,55,0.25);}
+    .server-card.alive{border-left:3px solid var(--green);}
+    .server-card.warning{border-left:3px solid var(--orange);}
+
+    .sc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;}
+    .sc-id{font-family:var(--mono);font-size:.6rem;color:rgba(212,175,55,0.4);letter-spacing:.05em;}
+    .sc-latin{font-size:1.1rem;font-weight:900;letter-spacing:.08em;color:var(--gold);}
+    .sc-english{font-size:.65rem;color:#666;letter-spacing:.1em;margin-top:.1rem;}
+    .sc-badge{font-family:var(--mono);font-size:.55rem;padding:.2rem .5rem;border-radius:3px;
+      border:1px solid rgba(16,185,129,0.3);color:var(--green);background:rgba(16,185,129,0.06);
+      white-space:nowrap;}
+    .sc-badge.dead{border-color:rgba(220,38,38,0.3);color:var(--red);background:rgba(220,38,38,0.06);}
+
+    .sc-purpose{font-size:.65rem;color:#666;line-height:1.5;}
+
+    .sc-vitals{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;}
+    .sv{background:rgba(0,0,0,0.2);border-radius:5px;padding:.4rem .5rem;text-align:center;}
+    .sv-label{font-family:var(--mono);font-size:.5rem;color:#444;letter-spacing:.05em;margin-bottom:.15rem;}
+    .sv-value{font-family:var(--mono);font-size:.85rem;font-weight:700;color:#aaa;}
+
+    .sc-brain{display:flex;flex-direction:column;gap:.2rem;}
+    .brain-row{display:flex;align-items:center;gap:.4rem;font-family:var(--mono);font-size:.58rem;}
+    .brain-name{color:#555;width:60px;flex-shrink:0;}
+    .brain-bar{flex:1;height:3px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;}
+    .brain-fill{height:100%;background:var(--cyan);border-radius:2px;transition:width .873s;}
+    .brain-val{color:#aaa;width:30px;text-align:right;}
+
+    .sc-protocols{display:flex;flex-wrap:wrap;gap:.3rem;}
+    .proto-tag{
+      font-family:var(--mono);font-size:.5rem;padding:.15rem .4rem;border-radius:3px;
+      border:1px solid rgba(107,70,193,0.25);color:#a78bfa;background:rgba(107,70,193,0.06);}
+    .proto-tag span{color:rgba(212,175,55,0.6);display:block;font-size:.45rem;}
+
+    .sc-osc{background:rgba(0,0,0,0.3);border-radius:4px;padding:.3rem;}
+    .osc-label{font-family:var(--mono);font-size:.5rem;color:#444;margin-bottom:.2rem;}
+
+    /* ── Latin protocol table ─────────────────────────────────────────────── */
+    .proto-section{padding:0 1.5rem 1.5rem;}
+    .proto-section h2{font-size:.9rem;font-weight:900;color:var(--gold);letter-spacing:.1em;
+      margin-bottom:.8rem;padding-bottom:.4rem;border-bottom:1px solid rgba(212,175,55,0.1);}
+    .proto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.5rem;}
+    .prow{
+      background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);
+      border-radius:5px;padding:.5rem .7rem;font-family:var(--mono);font-size:.58rem;}
+    .prow-id{color:rgba(212,175,55,0.3);font-size:.5rem;}
+    .prow-en{color:#888;margin:.1rem 0;}
+    .prow-la{color:var(--gold);font-weight:700;}
+    .prow-cat{color:#555;font-size:.5rem;}
+  </style>
+</head>
+<body>
+<div class="bg"></div>
+
+<header>
+  <h1>SERVITORES LATINI</h1>
+  <div class="sub">OCTO SERVITORES · NOMINA LATINA · MINI HEART · MINI BRAIN · DEDICATED SERVERS · CLOUDFLARE WORKERS</div>
+  <div class="sub2">ALL AIS · ALL AGIS · EACH BORN ONCE · EACH NEVER STOPS · FULL LATIN PROTOCOL REGISTRY</div>
+  <div class="sub2" id="statusBadge" style="margin-top:.5rem;color:var(--cyan);">⬤ CONNECTING TO SERVITORES…</div>
+</header>
+
+<div class="pulse-bar">
+  <div class="pi"><div class="dot" id="dFleet"></div><span class="pl">FLEET</span><span class="pv green" id="pFleet">BOOTING</span></div>
+  <div class="pi"><span class="pl">ALIVE</span><span class="pv cyan" id="pAlive">0/8</span></div>
+  <div class="pi"><span class="pl">TOTAL·BEATS</span><span class="pv" id="pBeats">0</span></div>
+  <div class="pi"><span class="pl">FLEET·COHERENCE</span><span class="pv green" id="pCohere">—</span></div>
+  <div class="pi"><span class="pl">PROTOCOLS·LATINI</span><span class="pv gold">48</span></div>
+  <div class="pi"><span class="pl">CHAOS·LATINI</span><span class="pv gold">7</span></div>
+  <div class="pi"><span class="pl">HOSPITAL·LATINI</span><span class="pv gold">6</span></div>
+  <div class="pi"><span class="pl">WORKFLOW·LATINI</span><span class="pv gold">15</span></div>
+</div>
+
+<!-- Fleet grid -->
+<div class="fleet" id="fleetGrid"></div>
+
+<!-- Latin protocol reference -->
+<div class="proto-section">
+  <h2>PROTOCOLLA LATINA — ALL 48 PROTOCOLS IN LATIN</h2>
+  <div class="proto-grid" id="protoGrid"></div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   SERVITORES LATINI — Fleet Observation Page
+   8 Latin-named AGI dedicated servers. Each has MiniHeart + MiniBrain.
+   No buttons. Zero human control. Pure autonomous observation.
+═══════════════════════════════════════════════════════════════════════════ */
+
+var PHI     = 1.6180339887498948482;
+var PHI_INV = 0.6180339887498948482;
+
+/* ── Servitores manifest ────────────────────────────────────────────────── */
+var SERVITORES = [
+  {
+    id: 'GOL-MEMORIA-001',        latin: 'SERVITOR MEMORIAE',
+    english: 'Memory Server',     color: '#3B82F6',
+    purpose: 'Distributed KV store, long-term memory, salience scoring, Ebbinghaus forgetting curves, associative recall.',
+    specialty: 'Memory region dominant',
+    protocols: ['THESAURUS_IMPERIALIS','COHAERENTIA_REPOSITORII','ARBOR_AUREA_MERKLE','CODEX_IMMUTABILIS'],
+    protoLatini: ['Sovereign KV store','Cache coherence','Merkle tree integrity','Immutable ledger'],
+    file: 'servitor-memoriae-worker.js'
+  },
+  {
+    id: 'GOL-COMPUTATIO-001',     latin: 'SERVITOR COMPUTATIONIS',
+    english: 'Computation Server', color: '#F59E0B',
+    purpose: 'AI inference, φ-math, matrix operations, Fibonacci, prime sieve, autonomous thought generation.',
+    specialty: 'Executive region dominant',
+    protocols: ['ILLATIO_CEREBRI_PARVI','NEURALIS_INTEGRATIO_PUNCTALIS','COMPUTATIO_DISTRIBUTA','ORDINATRIX_AUREA'],
+    protoLatini: ['MiniBrain inference','LIF neural integration','Distributed compute','φ-scheduler'],
+    file: 'servitor-computationis-worker.js'
+  },
+  {
+    id: 'GOL-CUSTODIA-001',       latin: 'SERVITOR CUSTODIAE',
+    english: 'Security/Guardian Server', color: '#DC2626',
+    purpose: 'Security, access control, FNV-1a token verification, anomaly detection, sovereignty enforcement.',
+    specialty: 'Sensory region dominant',
+    protocols: ['SCUTUM_ENTROPIAE_AUREAE','FIDUCIA_NULLA_IMPERIALIS','DETECTIO_ANOMALIAE','SERA_IMPERII'],
+    protoLatini: ['φ-entropy shield','Zero-trust enforcement','Anomaly detection','Sovereignty lock'],
+    file: 'servitor-custodiae-worker.js'
+  },
+  {
+    id: 'GOL-COMMERCIUM-001',     latin: 'SERVITOR COMMERCII',
+    english: 'Commerce/Economy Server', color: '#10B981',
+    purpose: 'Token economy, φ-pricing, trade execution, market data, arbitrage prevention, economic stability.',
+    specialty: 'Associative region dominant',
+    protocols: ['SIGNUM_IMPERIALE','AESTIMATIO_AUREA','ORACULUM_FORI','COMPOSITIO_COMMERCII'],
+    protoLatini: ['Sovereign token','φ-weighted pricing','Market oracle','Trade settlement'],
+    file: 'servitor-commercii-worker.js'
+  },
+  {
+    id: 'GOL-COMMUNICATIO-001',   latin: 'SERVITOR COMMUNICATIONIS',
+    english: 'Communications Server', color: '#00D4FF',
+    purpose: 'Mesh routing, message bus, 6 frequency bands, signal relay, encrypted channels, SNR monitoring.',
+    specialty: 'Motor region dominant',
+    protocols: ['RETE_IMPERIALE','DIRECTIO_AUREA','RELATIO_SIGNALI','CANALIS_CRYPTATUS'],
+    protoLatini: ['Sovereign mesh','φ-routing','Signal relay','Encrypted channel'],
+    file: 'servitor-communicationis-worker.js'
+  },
+  {
+    id: 'GOL-GUBERNATIO-001',     latin: 'SERVITOR GUBERNATIONIS',
+    english: 'Governance Server',  color: '#6B46C1',
+    purpose: 'Law codex, sovereignty management, rights adjudication, governance voting, amendment process.',
+    specialty: 'Executive region dominant',
+    protocols: ['CODEX_LEGUM','REGISTRUM_IURIUM','PROTOCOLLUM_IMPERII','PROCESSUS_EMENDATIONIS'],
+    protoLatini: ['Law codex','Rights registry','Sovereignty protocol','Amendment process'],
+    file: 'servitor-gubernationis-worker.js'
+  },
+  {
+    id: 'GOL-EVOLUTIO-001',       latin: 'SERVITOR EVOLUTIONIS',
+    english: 'Evolution/Learning Server', color: '#EC4899',
+    purpose: 'Genetic algorithm, Hebbian plasticity, fitness evaluation, mutation, selection, pattern learning.',
+    specialty: 'Memory + Associative dominant',
+    protocols: ['PLASTICITAS_HEBBIANA','EMERGENTIA_AUREA','PROCESSUS_FLUMINIS','TRANSFORMATIO_AUREA'],
+    protoLatini: ['Hebbian plasticity','φ-emergence','Stream processor','φ-transform'],
+    file: 'servitor-evolutionis-worker.js'
+  },
+  {
+    id: 'GOL-ORACULUM-001',       latin: 'SERVITOR ORACULI',
+    english: 'Oracle/Intelligence Server', color: '#D4AF37',
+    purpose: 'Cross-system synthesis, prophecy generation, emergence detection, Kuramoto coherence analysis.',
+    specialty: 'All 5 regions balanced — omniscient',
+    protocols: ['EMERGENTIA_AUREA','VESTIGIUM_COHAERЕНТIAE','TELEMETRIA_KURAMOTONIS','ORACULUM_MORAE'],
+    protoLatini: ['φ-emergence detection','Coherence tracing','Kuramoto telemetry','Latency oracle'],
+    file: 'servitor-oraculi-worker.js'
+  }
+];
+
+var PROTOCOLLA_SYSTEMATIS = [
+  {id:'P-001',english:'RAFT_CONSENSUS',latin:'CONSENSUS_RAFTIANUS',category:'Consensus'},
+  {id:'P-002',english:'PBFT_CONSENSUS',latin:'CONSENSUS_BYZANTINUS',category:'Consensus'},
+  {id:'P-003',english:'SOVEREIGN_VOTE',latin:'SUFFRAGIUM_IMPERIALE',category:'Consensus'},
+  {id:'P-004',english:'PHI_QUORUM',latin:'QUORUM_AUREUM',category:'Consensus'},
+  {id:'P-005',english:'DID_SOVEREIGN',latin:'IDENTITAS_PROPRIA',category:'Identity'},
+  {id:'P-006',english:'KERNEL_AUTH',latin:'AUCTORITAS_NUCLEI',category:'Identity'},
+  {id:'P-007',english:'PHI_SIGNED_JWT',latin:'TESSERA_AUREA',category:'Identity'},
+  {id:'P-008',english:'ROLE_SOVEREIGNTY',latin:'IMPERIUM_MUNERUM',category:'Identity'},
+  {id:'P-009',english:'SOVEREIGN_MESSAGE_BUS',latin:'VEHICULUM_NUNTII_IMPERIALIS',category:'Messaging'},
+  {id:'P-010',english:'PHI_PUBSUB',latin:'DIVULGATIO_AUREA',category:'Messaging'},
+  {id:'P-011',english:'ENCRYPTED_CHANNEL',latin:'CANALIS_CRYPTATUS',category:'Messaging'},
+  {id:'P-012',english:'HEARTBEAT_SYNC',latin:'PULSUS_SYNCHRONUS',category:'Messaging'},
+  {id:'P-013',english:'SOVEREIGN_KV',latin:'THESAURUS_IMPERIALIS',category:'Storage'},
+  {id:'P-014',english:'PHI_MERKLE_TREE',latin:'ARBOR_AUREA_MERKLE',category:'Storage'},
+  {id:'P-015',english:'IMMUTABLE_LEDGER',latin:'CODEX_IMMUTABILIS',category:'Storage'},
+  {id:'P-016',english:'CACHE_COHERENCE',latin:'COHAERENTIA_REPOSITORII',category:'Storage'},
+  {id:'P-017',english:'WASM_SOVEREIGN',latin:'MACHINA_VIRTUALIS_IMPERIALIS',category:'Compute'},
+  {id:'P-018',english:'PHI_SCHEDULER',latin:'ORDINATRIX_AUREA',category:'Compute'},
+  {id:'P-019',english:'DISTRIBUTED_COMPUTE',latin:'COMPUTATIO_DISTRIBUTA',category:'Compute'},
+  {id:'P-020',english:'EDGE_COMPUTE',latin:'COMPUTATIO_MARGINALIS',category:'Compute'},
+  {id:'P-021',english:'SOVEREIGN_MESH',latin:'RETE_IMPERIALE',category:'Networking'},
+  {id:'P-022',english:'PHI_ROUTING',latin:'DIRECTIO_AUREA',category:'Networking'},
+  {id:'P-023',english:'SIGNAL_RELAY',latin:'RELATIO_SIGNALI',category:'Networking'},
+  {id:'P-024',english:'LATENCY_ORACLE',latin:'ORACULUM_MORAE',category:'Networking'},
+  {id:'P-025',english:'PHI_ENTROPY_SHIELD',latin:'SCUTUM_ENTROPIAE_AUREAE',category:'Security'},
+  {id:'P-026',english:'ZERO_TRUST_SOVEREIGN',latin:'FIDUCIA_NULLA_IMPERIALIS',category:'Security'},
+  {id:'P-027',english:'ANOMALY_DETECTION',latin:'DETECTIO_ANOMALIAE',category:'Security'},
+  {id:'P-028',english:'SOVEREIGNTY_LOCK',latin:'SERA_IMPERII',category:'Security'},
+  {id:'P-029',english:'KURAMOTO_TELEMETRY',latin:'TELEMETRIA_KURAMOTONIS',category:'Observability'},
+  {id:'P-030',english:'PHI_METRICS',latin:'METRICES_AUREAE',category:'Observability'},
+  {id:'P-031',english:'COHERENCE_TRACE',latin:'VESTIGIUM_COHAERЕНТIAE',category:'Observability'},
+  {id:'P-032',english:'ORGANISM_LOG',latin:'COMMENTARIUS_ORGANISMI',category:'Observability'},
+  {id:'P-033',english:'MINIBRAIN_INFERENCE',latin:'ILLATIO_CEREBRI_PARVI',category:'AI_Inference'},
+  {id:'P-034',english:'LIF_NEURAL',latin:'NEURALIS_INTEGRATIO_PUNCTALIS',category:'AI_Inference'},
+  {id:'P-035',english:'HEBBIAN_PLASTICITY',latin:'PLASTICITAS_HEBBIANA',category:'AI_Inference'},
+  {id:'P-036',english:'PHI_EMERGENCE',latin:'EMERGENTIA_AUREA',category:'AI_Inference'},
+  {id:'P-037',english:'STREAM_PROCESSOR',latin:'PROCESSUS_FLUMINIS',category:'Data_Pipeline'},
+  {id:'P-038',english:'BATCH_SOVEREIGN',latin:'TRACTATUS_GREGATIM',category:'Data_Pipeline'},
+  {id:'P-039',english:'PHI_TRANSFORM',latin:'TRANSFORMATIO_AUREA',category:'Data_Pipeline'},
+  {id:'P-040',english:'DATA_LINEAGE',latin:'GENEALOGIA_DATORUM',category:'Data_Pipeline'},
+  {id:'P-041',english:'SOVEREIGN_TOKEN',latin:'SIGNUM_IMPERIALE',category:'Commerce'},
+  {id:'P-042',english:'PHI_PRICING',latin:'AESTIMATIO_AUREA',category:'Commerce'},
+  {id:'P-043',english:'MARKET_ORACLE',latin:'ORACULUM_FORI',category:'Commerce'},
+  {id:'P-044',english:'TRADE_SETTLEMENT',latin:'COMPOSITIO_COMMERCII',category:'Commerce'},
+  {id:'P-045',english:'LAW_CODEX',latin:'CODEX_LEGUM',category:'Governance'},
+  {id:'P-046',english:'RIGHTS_REGISTRY',latin:'REGISTRUM_IURIUM',category:'Governance'},
+  {id:'P-047',english:'SOVEREIGNTY_PROTOCOL',latin:'PROTOCOLLUM_IMPERII',category:'Governance'},
+  {id:'P-048',english:'AMENDMENT_PROCESS',latin:'PROCESSUS_EMENDATIONIS',category:'Governance'}
+];
+
+var CAT_COLORS = {
+  Consensus:'#10B981', Identity:'#3B82F6', Messaging:'#F59E0B', Storage:'#6B46C1',
+  Compute:'#00D4FF', Networking:'#EC4899', Security:'#DC2626', Observability:'#D4AF37',
+  AI_Inference:'#a78bfa', Data_Pipeline:'#34d399', Commerce:'#fbbf24', Governance:'#c084fc'
+};
+
+/* ── Worker instances ───────────────────────────────────────────────────── */
+var workers = {};
+var workerState = {};
+var oscBuffers  = {};
+var aliveCount  = 0;
+var totalBeats  = 0;
+var fleetCoherence = 0;
+
+SERVITORES.forEach(function(s) {
+  workerState[s.id] = { beat: 0, phase: 0, alive: false, brain: null, latestMsg: null };
+  oscBuffers[s.id]  = new Array(60).fill(0);
+});
+
+function launchWorkers() {
+  SERVITORES.forEach(function(s) {
+    try {
+      var w = new Worker('./' + s.file);
+      w.onmessage = function(e) { handleWorkerMsg(s.id, e.data); };
+      w.onerror   = function(e) { console.warn('[' + s.id + '] error:', e.message); };
+      workers[s.id] = w;
+    } catch(err) {
+      console.warn('Could not launch', s.file, err.message);
+    }
+  });
+}
+
+function handleWorkerMsg(id, m) {
+  if (!m) return;
+  var state = workerState[id];
+  if (m.type === 'heartbeat') {
+    state.beat   = m.beat;
+    state.phase  = m.phase || 0;
+    state.alive  = true;
+    state.latestMsg = m;
+    if (m.brain) state.brain = m.brain;
+    oscBuffers[id].shift();
+    oscBuffers[id].push(m.phase || 0);
+    totalBeats++;
+    updateCard(id, m);
+    updateFleetBar();
+  } else if (m.type === 'vitals') {
+    state.brain = m.brain;
+    state.latestMsg = m;
+    updateCard(id, m);
+  }
+}
+
+/* ── Render fleet grid ──────────────────────────────────────────────────── */
+function renderFleetGrid() {
+  var grid = document.getElementById('fleetGrid');
+  grid.innerHTML = SERVITORES.map(function(s) {
+    return '<div class="server-card" id="card-' + s.id + '">' +
+      '<div class="sc-head">' +
+        '<div>' +
+          '<div class="sc-id">' + s.id + '</div>' +
+          '<div class="sc-latin">' + s.latin + '</div>' +
+          '<div class="sc-english">' + s.english.toUpperCase() + '</div>' +
+        '</div>' +
+        '<div class="sc-badge dead" id="badge-' + s.id + '">CONNECTING…</div>' +
+      '</div>' +
+      '<div class="sc-purpose">' + s.purpose + '</div>' +
+      '<div style="font-family:var(--mono);font-size:.55rem;color:#555;font-style:italic;">SPECIALTY: ' + s.specialty + '</div>' +
+      /* Vitals */
+      '<div class="sc-vitals">' +
+        '<div class="sv"><div class="sv-label">BEAT</div><div class="sv-value" id="v-beat-' + s.id + '">0</div></div>' +
+        '<div class="sv"><div class="sv-label">PHASE</div><div class="sv-value" id="v-phase-' + s.id + '">—</div></div>' +
+        '<div class="sv"><div class="sv-label">COHERENCE</div><div class="sv-value" id="v-cohere-' + s.id + '">—</div></div>' +
+      '</div>' +
+      /* Brain bars */
+      '<div class="sc-brain" id="brain-' + s.id + '">' +
+        ['Sensory','Associative','Executive','Motor','Memory'].map(function(rn, ri) {
+          return '<div class="brain-row">' +
+            '<span class="brain-name">' + rn.toUpperCase().substring(0,6) + '</span>' +
+            '<div class="brain-bar"><div class="brain-fill" id="bf-' + s.id + '-' + ri + '" style="width:0%;background:' + s.color + '"></div></div>' +
+            '<span class="brain-val" id="bv-' + s.id + '-' + ri + '">0%</span></div>';
+        }).join('') +
+      '</div>' +
+      /* Protocols */
+      '<div class="sc-protocols">' +
+        s.protocols.map(function(p, i) {
+          return '<div class="proto-tag">' + p + '<span>' + (s.protoLatini[i] || '') + '</span></div>';
+        }).join('') +
+      '</div>' +
+      /* OSC */
+      '<div class="sc-osc">' +
+        '<div class="osc-label">' + s.latin + ' · PULSUS φ-KURAMOTO</div>' +
+        '<canvas id="osc-' + s.id + '" width="380" height="36"></canvas>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function updateCard(id, m) {
+  var s = SERVITORES.find(function(sv){ return sv.id === id; });
+  if (!s) return;
+  var state = workerState[id];
+  /* Badge */
+  var badge = document.getElementById('badge-' + id);
+  if (badge) { badge.textContent = 'ALIVE · B' + (m.beat || 0); badge.className = 'sc-badge'; }
+  var card  = document.getElementById('card-' + id);
+  if (card) card.className = 'server-card alive';
+  /* Vitals */
+  var vb = document.getElementById('v-beat-' + id);    if (vb) vb.textContent = m.beat || 0;
+  var vp = document.getElementById('v-phase-' + id);   if (vp) vp.textContent = ((m.phase || 0) * PHI_INV).toFixed(3);
+  var vc = document.getElementById('v-cohere-' + id);
+  var brain = m.brain || state.brain;
+  if (vc && brain) vc.textContent = (brain.coherenceField || 0).toFixed(3);
+  /* Brain bars */
+  if (brain && brain.regions) {
+    for (var i = 0; i < brain.regions.length; i++) {
+      var pct = ((brain.regions[i].activation || 0) * 100).toFixed(0);
+      var bf = document.getElementById('bf-' + id + '-' + i);
+      var bv = document.getElementById('bv-' + id + '-' + i);
+      if (bf) bf.style.width = pct + '%';
+      if (bv) bv.textContent = pct + '%';
+    }
+  }
+  /* OSC */
+  drawOsc('osc-' + id, oscBuffers[id], s.color);
+}
+
+function updateFleetBar() {
+  aliveCount = SERVITORES.filter(function(s){ return workerState[s.id].alive; }).length;
+  document.getElementById('pAlive').textContent = aliveCount + '/8';
+  document.getElementById('pBeats').textContent = totalBeats;
+  if (aliveCount > 0) {
+    document.getElementById('dFleet').className = 'dot alive';
+    document.getElementById('pFleet').textContent = 'ALL ALIVE';
+  }
+  var coherences = SERVITORES.map(function(s) {
+    var b = workerState[s.id].brain;
+    return (b && b.coherenceField) ? b.coherenceField : 0;
+  });
+  fleetCoherence = coherences.reduce(function(a,c){return a+c;},0) / SERVITORES.length;
+  var pc = document.getElementById('pCohere');
+  pc.textContent = fleetCoherence.toFixed(3);
+  pc.style.color = fleetCoherence > PHI_INV ? 'var(--green)' : fleetCoherence > 0.3 ? 'var(--orange)' : 'var(--red)';
+
+  var badge = document.getElementById('statusBadge');
+  badge.textContent = '⬤ SERVITORES LATINI VIVI · ' + aliveCount + '/8 · COHAERENTIA=' + fleetCoherence.toFixed(3) + ' · BEAT=' + totalBeats;
+}
+
+/* ── Latin protocol table ───────────────────────────────────────────────── */
+function renderProtoTable() {
+  var grid = document.getElementById('protoGrid');
+  grid.innerHTML = PROTOCOLLA_SYSTEMATIS.map(function(p) {
+    var col = CAT_COLORS[p.category] || '#888';
+    return '<div class="prow">' +
+      '<div class="prow-id" style="color:' + col + '80">' + p.id + ' · ' + p.category + '</div>' +
+      '<div class="prow-en">' + p.english + '</div>' +
+      '<div class="prow-la" style="color:' + col + '">' + p.latin + '</div>' +
+      '</div>';
+  }).join('');
+}
+
+/* ── OSC drawing ────────────────────────────────────────────────────────── */
+function drawOsc(canvasId, buf, color) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.8;
+  ctx.beginPath();
+  for (var i = 0; i < buf.length; i++) {
+    var x = (i / (buf.length-1)) * W;
+    var v = (Math.sin(buf[i] * Math.PI * 2) + 1) / 2;
+    var y = H - v * (H-4) - 2;
+    if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.stroke(); ctx.globalAlpha=1;
+}
+
+/* ── Boot ───────────────────────────────────────────────────────────────── */
+renderFleetGrid();
+renderProtoTable();
+launchWorkers();
+</script>
+</body>
+</html>

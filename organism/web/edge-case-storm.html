@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NOVA | Tempestas Casum — Edge Case Storm</title>
+  <meta name="description" content="NOVA Edge Case Storm — Chaos agents hit the organism. It learns, repairs, refines laws, emits signals.">
+  <style>
+    :root {
+      --gold:       #D4AF37;
+      --gold-light: #F4E4BC;
+      --gold-dark:  #B8960C;
+      --dark:       #0a0a0f;
+      --darker:     #050508;
+      --purple:     #6B46C1;
+      --cyan:       #00D4FF;
+      --green:      #10B981;
+      --red:        #DC2626;
+      --orange:     #F59E0B;
+      --blue:       #3B82F6;
+      --pink:       #EC4899;
+      --font-mono:  'SF Mono','Fira Code','Cascadia Code',monospace;
+      --font-sans:  'Inter',system-ui,-apple-system,sans-serif;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:var(--font-sans);background:var(--darker);color:#e0e0e0;min-height:100vh;overflow-x:hidden;}
+
+    .bg{
+      position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;
+      background:
+        radial-gradient(ellipse at 10% 15%,rgba(220,38,38,0.07) 0%,transparent 55%),
+        radial-gradient(ellipse at 90% 80%,rgba(107,70,193,0.06) 0%,transparent 55%),
+        radial-gradient(ellipse at 50% 40%,rgba(236,72,153,0.03) 0%,transparent 70%),
+        var(--darker);
+    }
+
+    header{text-align:center;padding:2.5rem 1rem 1.5rem;border-bottom:1px solid rgba(220,38,38,0.2);}
+    header h1{
+      font-size:2.2rem;font-weight:800;letter-spacing:.06em;
+      background:linear-gradient(135deg,var(--red),#ff6b6b,var(--orange));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    }
+    header .sub{color:rgba(220,38,38,0.5);font-size:.8rem;font-family:var(--font-mono);margin-top:.4rem;}
+
+    /* ── Status bar ─────────────────────────────────────────────────────── */
+    .status-bar{
+      display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;
+      padding:.75rem 1rem;background:rgba(0,0,0,0.45);
+      border-bottom:1px solid rgba(220,38,38,0.1);
+      font-family:var(--font-mono);font-size:.72rem;
+    }
+    .si{display:flex;align-items:center;gap:.4rem;}
+    .si .label{color:rgba(220,38,38,0.5);}
+    .si .val{color:var(--red);}
+    .dot{width:7px;height:7px;border-radius:50%;background:#555;flex-shrink:0;}
+    .dot.alive{background:var(--red);box-shadow:0 0 6px var(--red);}
+    .dot.calm{background:var(--green);box-shadow:0 0 6px var(--green);}
+
+    /* Alert level badge */
+    .alert-badge{
+      padding:.2rem .7rem;border-radius:4px;font-family:var(--font-mono);
+      font-size:.78rem;font-weight:700;letter-spacing:.08em;
+      transition:all .3s;
+    }
+    .alert-NOMINAL{background:rgba(16,185,129,0.15);color:var(--green);border:1px solid rgba(16,185,129,0.3);}
+    .alert-WATCH{background:rgba(59,130,246,0.15);color:var(--blue);border:1px solid rgba(59,130,246,0.3);}
+    .alert-WARNING{background:rgba(245,158,11,0.15);color:var(--orange);border:1px solid rgba(245,158,11,0.3);}
+    .alert-CRITICAL{background:rgba(220,38,38,0.2);color:var(--red);border:1px solid rgba(220,38,38,0.4);}
+    .alert-EMERGENCY{background:rgba(220,38,38,0.35);color:#ff4444;border:1px solid var(--red);animation:pulse-alert .5s infinite alternate;}
+    @keyframes pulse-alert{from{box-shadow:0 0 4px var(--red);}to{box-shadow:0 0 14px var(--red);}}
+
+    /* ── Layout ────────────────────────────────────────────────────────── */
+    .main{max-width:1440px;margin:0 auto;padding:1.5rem 1rem;display:grid;gap:1.5rem;
+      grid-template-columns:1fr 1fr;grid-template-areas:
+        "controls controls"
+        "injector stream"
+        "laws grammar"
+        "patterns signals";}
+    @media(max-width:900px){
+      .main{grid-template-columns:1fr;grid-template-areas:"controls""injector""stream""laws""grammar""patterns""signals";}
+    }
+
+    /* ── Panel ──────────────────────────────────────────────────────────── */
+    .panel{
+      background:rgba(255,255,255,0.02);border:1px solid rgba(220,38,38,0.1);
+      border-radius:8px;padding:1.25rem;
+    }
+    .panel-title{
+      font-family:var(--font-mono);font-size:.75rem;font-weight:700;
+      color:var(--red);letter-spacing:.1em;margin-bottom:1rem;
+      display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;
+    }
+    .panel-title .tag{
+      font-size:.65rem;padding:.15rem .5rem;border-radius:3px;
+      background:rgba(220,38,38,0.1);color:rgba(220,38,38,0.6);
+    }
+    .panel-title .tag.green{background:rgba(16,185,129,0.1);color:rgba(16,185,129,0.7);}
+    .panel-title .tag.gold{background:rgba(212,175,55,0.1);color:rgba(212,175,55,0.7);}
+
+    /* ── Buttons ────────────────────────────────────────────────────────── */
+    .btn{
+      font-family:var(--font-mono);font-size:.75rem;padding:.5rem 1rem;
+      border:1px solid rgba(220,38,38,0.3);border-radius:5px;cursor:pointer;
+      background:rgba(220,38,38,0.07);color:var(--red);transition:all .15s;
+      white-space:nowrap;
+    }
+    .btn:hover{background:rgba(220,38,38,0.18);border-color:var(--red);}
+    .btn.orange{border-color:rgba(245,158,11,0.4);color:var(--orange);background:rgba(245,158,11,0.07);}
+    .btn.orange:hover{background:rgba(245,158,11,0.18);}
+    .btn.green{border-color:rgba(16,185,129,0.4);color:var(--green);background:rgba(16,185,129,0.07);}
+    .btn.green:hover{background:rgba(16,185,129,0.18);}
+    .btn.purple{border-color:rgba(107,70,193,0.4);color:#a78bfa;background:rgba(107,70,193,0.07);}
+    .btn.purple:hover{background:rgba(107,70,193,0.18);}
+    .btn.gold{border-color:rgba(212,175,55,0.4);color:var(--gold);background:rgba(212,175,55,0.07);}
+    .btn.gold:hover{background:rgba(212,175,55,0.18);}
+
+    /* ── Controls ───────────────────────────────────────────────────────── */
+    #controls{grid-area:controls;}
+    .ctrl-row{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;margin-bottom:.8rem;}
+    .meter-row{display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:.8rem;}
+    .meter{font-family:var(--font-mono);font-size:.72rem;}
+    .meter .ml{color:rgba(220,38,38,0.5);}
+    .meter .mv{color:var(--red);font-weight:700;}
+    .meter .mv.green{color:var(--green);}
+    .meter .mv.orange{color:var(--orange);}
+
+    /* Coherence bar */
+    .cohere-bar{height:6px;border-radius:3px;background:rgba(255,255,255,0.05);overflow:hidden;margin:.5rem 0;}
+    .cohere-fill{height:100%;border-radius:3px;transition:width .6s,background .6s;}
+
+    /* OSC */
+    .osc-row{display:flex;gap:.8rem;flex-wrap:wrap;}
+    .osc{flex:1;min-width:180px;}
+    .osc-label{font-family:var(--font-mono);font-size:.65rem;color:rgba(220,38,38,0.4);margin-bottom:.3rem;}
+    canvas{width:100%;height:42px;border-radius:3px;background:rgba(0,0,0,0.4);border:1px solid rgba(220,38,38,0.08);display:block;}
+
+    /* ── Injector ───────────────────────────────────────────────────────── */
+    #injector{grid-area:injector;}
+    .chaos-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.8rem;}
+    .chaos-btn{
+      font-family:var(--font-mono);font-size:.65rem;padding:.6rem .7rem;
+      border:1px solid rgba(220,38,38,0.2);border-radius:5px;cursor:pointer;
+      background:rgba(220,38,38,0.04);color:#aaa;transition:all .15s;text-align:left;
+      line-height:1.3;
+    }
+    .chaos-btn:hover{background:rgba(220,38,38,0.12);border-color:rgba(220,38,38,0.4);color:#eee;}
+    .chaos-btn .cb-type{color:var(--red);font-weight:700;font-size:.62rem;margin-bottom:.15rem;}
+    .chaos-btn .cb-desc{font-size:.6rem;color:#777;}
+    .chaos-btn.CONTRADICTORY_RIGHTS .cb-type{color:var(--orange);}
+    .chaos-btn.CONTRADICTORY_RIGHTS{border-color:rgba(245,158,11,0.2);}
+    .chaos-btn.CONTRADICTORY_RIGHTS:hover{background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.4);}
+    .chaos-btn.CORRIDOR_OVERLOAD .cb-type{color:var(--purple);}
+    .chaos-btn.CORRIDOR_OVERLOAD{border-color:rgba(107,70,193,0.2);}
+    .chaos-btn.CORRIDOR_OVERLOAD:hover{background:rgba(107,70,193,0.1);}
+    .chaos-btn.RITUAL_COLLISION .cb-type{color:var(--cyan);}
+    .chaos-btn.RITUAL_COLLISION{border-color:rgba(0,212,255,0.2);}
+    .chaos-btn.RITUAL_COLLISION:hover{background:rgba(0,212,255,0.08);}
+    .chaos-btn.TOKEN_ARBITRAGE .cb-type{color:var(--green);}
+    .chaos-btn.TOKEN_ARBITRAGE{border-color:rgba(16,185,129,0.2);}
+    .chaos-btn.TOKEN_ARBITRAGE:hover{background:rgba(16,185,129,0.08);}
+    .chaos-btn.NARRATIVE_INVERSION .cb-type{color:var(--pink);}
+    .chaos-btn.NARRATIVE_INVERSION{border-color:rgba(236,72,153,0.2);}
+    .chaos-btn.NARRATIVE_INVERSION:hover{background:rgba(236,72,153,0.08);}
+    .chaos-btn.SOVEREIGNTY_CHALLENGE .cb-type{color:var(--gold);}
+    .chaos-btn.SOVEREIGNTY_CHALLENGE{border-color:rgba(212,175,55,0.25);}
+    .chaos-btn.SOVEREIGNTY_CHALLENGE:hover{background:rgba(212,175,55,0.1);}
+    .chaos-btn.MALFORMED_INPUT .cb-type{color:var(--red);}
+
+    /* ── Event Stream ───────────────────────────────────────────────────── */
+    #stream{grid-area:stream;}
+    .stream-inner{
+      font-family:var(--font-mono);font-size:.67rem;height:400px;overflow-y:auto;
+      display:flex;flex-direction:column;gap:.35rem;
+    }
+    .stream-inner::-webkit-scrollbar{width:4px;}
+    .stream-inner::-webkit-scrollbar-thumb{background:rgba(220,38,38,0.2);border-radius:2px;}
+    .evt-card{
+      background:rgba(0,0,0,0.3);border-left:3px solid #333;
+      border-radius:0 4px 4px 0;padding:.5rem .65rem;flex-shrink:0;
+    }
+    .evt-card.MALFORMED_INPUT{border-left-color:var(--red);}
+    .evt-card.CONTRADICTORY_RIGHTS{border-left-color:var(--orange);}
+    .evt-card.CORRIDOR_OVERLOAD{border-left-color:#a78bfa;}
+    .evt-card.RITUAL_COLLISION{border-left-color:var(--cyan);}
+    .evt-card.TOKEN_ARBITRAGE{border-left-color:var(--green);}
+    .evt-card.NARRATIVE_INVERSION{border-left-color:var(--pink);}
+    .evt-card.SOVEREIGNTY_CHALLENGE{border-left-color:var(--gold);}
+    .evt-header{display:flex;justify-content:space-between;margin-bottom:.2rem;}
+    .evt-type{font-weight:700;font-size:.62rem;}
+    .evt-type.MALFORMED_INPUT{color:var(--red);}
+    .evt-type.CONTRADICTORY_RIGHTS{color:var(--orange);}
+    .evt-type.CORRIDOR_OVERLOAD{color:#a78bfa;}
+    .evt-type.RITUAL_COLLISION{color:var(--cyan);}
+    .evt-type.TOKEN_ARBITRAGE{color:var(--green);}
+    .evt-type.NARRATIVE_INVERSION{color:var(--pink);}
+    .evt-type.SOVEREIGNTY_CHALLENGE{color:var(--gold);}
+    .evt-id{color:#555;font-size:.6rem;}
+    .evt-desc{color:#999;font-size:.64rem;margin-bottom:.25rem;}
+    .evt-resp{display:flex;gap:.3rem;flex-wrap:wrap;}
+    .resp-badge{font-size:.58rem;padding:.08rem .35rem;border-radius:2px;}
+    .resp-badge.ESCALATE{background:rgba(220,38,38,0.2);color:var(--red);}
+    .resp-badge.REPAIR{background:rgba(16,185,129,0.2);color:var(--green);}
+    .resp-badge.UPDATE_GRAMMAR{background:rgba(59,130,246,0.2);color:var(--blue);}
+    .resp-badge.REFINE_LAWS{background:rgba(212,175,55,0.2);color:var(--gold);}
+    .resp-badge.EMIT_SIGNAL{background:rgba(107,70,193,0.2);color:#a78bfa;}
+
+    /* ── Laws ───────────────────────────────────────────────────────────── */
+    #laws{grid-area:laws;}
+    .law-list{display:flex;flex-direction:column;gap:.4rem;max-height:320px;overflow-y:auto;}
+    .law-list::-webkit-scrollbar{width:4px;}
+    .law-list::-webkit-scrollbar-thumb{background:rgba(212,175,55,0.2);border-radius:2px;}
+    .law-item{
+      background:rgba(0,0,0,0.25);border:1px solid rgba(212,175,55,0.1);
+      border-radius:4px;padding:.5rem .7rem;font-family:var(--font-mono);font-size:.67rem;
+      transition:border-color .3s;
+    }
+    .law-item.updated{border-color:rgba(212,175,55,0.4);background:rgba(212,175,55,0.04);}
+    .law-header{display:flex;justify-content:space-between;margin-bottom:.2rem;}
+    .law-id{color:rgba(212,175,55,0.5);font-size:.6rem;}
+    .law-str{color:var(--gold);font-size:.62rem;}
+    .law-text{color:#bbb;line-height:1.4;}
+    .law-challenged{color:var(--orange);font-size:.6rem;margin-top:.15rem;}
+
+    /* ── Grammar ────────────────────────────────────────────────────────── */
+    #grammar{grid-area:grammar;}
+    .gram-list{display:flex;flex-direction:column;gap:.4rem;max-height:320px;overflow-y:auto;}
+    .gram-list::-webkit-scrollbar{width:4px;}
+    .gram-list::-webkit-scrollbar-thumb{background:rgba(59,130,246,0.2);border-radius:2px;}
+    .gram-item{
+      background:rgba(0,0,0,0.25);border:1px solid rgba(59,130,246,0.1);
+      border-radius:4px;padding:.5rem .7rem;font-family:var(--font-mono);font-size:.67rem;
+    }
+    .gram-item.refined{border-color:rgba(59,130,246,0.35);background:rgba(59,130,246,0.04);}
+    .gram-header{display:flex;justify-content:space-between;margin-bottom:.2rem;}
+    .gram-id{color:rgba(59,130,246,0.5);font-size:.6rem;}
+    .gram-viol{color:var(--red);font-size:.6rem;}
+    .gram-text{color:#bbb;line-height:1.4;}
+    .gram-status{font-size:.6rem;margin-top:.15rem;color:#666;}
+    .gram-status.hardened{color:var(--green);}
+
+    /* ── Patterns ───────────────────────────────────────────────────────── */
+    #patterns{grid-area:patterns;}
+    .pat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.6rem;}
+    .pat-card{
+      background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.06);
+      border-radius:5px;padding:.7rem .8rem;font-family:var(--font-mono);font-size:.67rem;
+    }
+    .pat-type{font-weight:700;font-size:.62rem;margin-bottom:.3rem;}
+    .pat-count{font-size:1.2rem;font-weight:800;color:var(--red);margin-bottom:.3rem;}
+    .pat-count.zero{color:#555;font-size:.9rem;}
+    .pat-resp{display:flex;flex-direction:column;gap:.15rem;}
+    .pat-resp-item{color:#888;font-size:.6rem;padding:.05rem 0;}
+
+    /* ── Signals ────────────────────────────────────────────────────────── */
+    #signals{grid-area:signals;}
+    .sig-list{
+      font-family:var(--font-mono);font-size:.67rem;height:240px;overflow-y:auto;
+      display:flex;flex-direction:column;gap:.3rem;
+    }
+    .sig-list::-webkit-scrollbar{width:4px;}
+    .sig-list::-webkit-scrollbar-thumb{background:rgba(107,70,193,0.2);border-radius:2px;}
+    .sig-item{
+      background:rgba(107,70,193,0.05);border:1px solid rgba(107,70,193,0.12);
+      border-radius:4px;padding:.4rem .6rem;flex-shrink:0;display:flex;gap:.6rem;align-items:flex-start;
+    }
+    .sig-id{color:rgba(107,70,193,0.5);flex-shrink:0;font-size:.6rem;}
+    .sig-body{flex:1;}
+    .sig-type{color:#a78bfa;font-size:.62rem;font-weight:700;}
+    .sig-msg{color:#888;font-size:.6rem;word-break:break-all;}
+  </style>
+</head>
+<body>
+<div class="bg"></div>
+
+<header>
+  <h1>TEMPESTAS CASUM</h1>
+  <div class="sub">GOK-CHAOS-001 · Edge Case Storm · The Organism Learns · Escalate · Repair · Refine · Emit</div>
+</header>
+
+<div class="status-bar" id="statusBar">
+  <div class="si"><div class="dot" id="chaosDot"></div><span class="label">CHAOS·KERNEL</span><span class="val" id="chaosStatus">BOOTING</span></div>
+  <div class="si"><span class="label">BEAT</span><span class="val" id="beatV">0</span></div>
+  <div class="si"><span class="label">ALERT</span><span class="val"><span class="alert-badge alert-NOMINAL" id="alertBadge">NOMINAL</span></span></div>
+  <div class="si"><span class="label">EVENTS</span><span class="val" id="evtCount">0</span></div>
+  <div class="si"><span class="label">SIGNALS</span><span class="val" id="sigCount">0</span></div>
+  <div class="si"><span class="label">LAWS</span><span class="val" id="lawCount">7</span></div>
+  <div class="si"><span class="label">GRAMMAR</span><span class="val" id="gramCount">5</span></div>
+</div>
+
+<div class="main">
+
+  <!-- Controls -->
+  <div class="panel" id="controls">
+    <div class="panel-title">STORM COMMAND <span class="tag">TEMPESTAS_CASUM</span> <span class="tag green">GOK-CHAOS-001</span></div>
+    <div class="ctrl-row">
+      <button class="btn" style="border-color:rgba(220,38,38,0.5);background:rgba(220,38,38,0.12);color:var(--red);" onclick="injectStorm()">⚡ INJECT ALL CHAOS TYPES</button>
+      <button class="btn orange" onclick="injectRandom()">⚙ RANDOM EVENT</button>
+      <button class="btn green" onclick="toggleStorm()"><span id="stormTxt">■ PAUSE AUTO-STORM</span></button>
+      <button class="btn purple" onclick="refreshAll()">↺ REFRESH</button>
+      <button class="btn gold" onclick="window.open('./construction-command.html','_blank')">⬡ CONSTRUCTION CMD</button>
+    </div>
+    <div class="meter-row">
+      <div class="meter"><span class="ml">COHERENCE </span><span class="mv green" id="mCohere">1.000</span></div>
+      <div class="meter"><span class="ml">ALERT·LVL </span><span class="mv" id="mAlert">0</span></div>
+      <div class="meter"><span class="ml">BRAIN·COH </span><span class="mv" id="mBrainCoh">0.000</span></div>
+      <div class="meter"><span class="ml">DOPAMINE </span><span class="mv" id="mDopa">0.500</span></div>
+      <div class="meter"><span class="ml">SEROTONIN </span><span class="mv" id="mSero">0.500</span></div>
+    </div>
+    <div class="cohere-bar"><div class="cohere-fill" id="cohereFill" style="width:100%;background:var(--green)"></div></div>
+    <div class="osc-row">
+      <div class="osc">
+        <div class="osc-label">CHAOS KERNEL HEARTBEAT</div>
+        <canvas id="oscChaos" width="400" height="42"></canvas>
+      </div>
+      <div class="osc">
+        <div class="osc-label">COHERENCE FIELD</div>
+        <canvas id="oscCohere" width="400" height="42"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Injector -->
+  <div class="panel" id="injector">
+    <div class="panel-title">CHAOS INJECTION <span class="tag">7 AGENT TYPES</span></div>
+    <div class="chaos-grid" id="chaosGrid"></div>
+  </div>
+
+  <!-- Event Stream -->
+  <div class="panel" id="stream">
+    <div class="panel-title">LIVE EVENT STREAM <span class="tag" id="evtLabel">0 EVENTS</span></div>
+    <div class="stream-inner" id="streamInner"><div style="padding:2rem;text-align:center;color:#555;font-family:var(--font-mono);font-size:.72rem;">Storm inactive. Inject chaos to begin.</div></div>
+  </div>
+
+  <!-- Laws -->
+  <div class="panel" id="laws">
+    <div class="panel-title">SOVEREIGNTY LAWS <span class="tag gold">REFINED ON CHALLENGE</span></div>
+    <div class="law-list" id="lawList"></div>
+  </div>
+
+  <!-- Grammar -->
+  <div class="panel" id="grammar">
+    <div class="panel-title">MESSAGE GRAMMAR <span class="tag">HARDENED ON VIOLATION</span></div>
+    <div class="gram-list" id="gramList"></div>
+  </div>
+
+  <!-- Patterns -->
+  <div class="panel" id="patterns">
+    <div class="panel-title">LEARNED RESPONSE PATTERNS <span class="tag">PER CHAOS TYPE</span></div>
+    <div class="pat-grid" id="patGrid"></div>
+  </div>
+
+  <!-- Signals -->
+  <div class="panel" id="signals">
+    <div class="panel-title">EMITTED SIGNALS <span class="tag">SWARM BROADCAST</span></div>
+    <div class="sig-list" id="sigList"></div>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   TEMPESTAS CASUM — Edge Case Storm UI
+   Drives GOK-CHAOS-001 chaos worker, visualises learning + law refinement
+═══════════════════════════════════════════════════════════════════════════ */
+
+var chaosWorker = new Worker('./chaos-worker.js');
+
+/* ── State ──────────────────────────────────────────────────────────────── */
+var alive      = false;
+var beat       = 0;
+var alertLevel = 0;
+var coherence  = 1.0;
+var stormOn    = true;
+var events     = [];
+var signals    = [];
+var laws       = [];
+var grammar    = [];
+var patterns   = {};
+
+var ALERT_NAMES = ['NOMINAL','WATCH','WARNING','CRITICAL','EMERGENCY'];
+var ALERT_COLORS= ['var(--green)','var(--blue)','var(--orange)','var(--red)','#ff2020'];
+
+var CHAOS_TYPES = [
+  'MALFORMED_INPUT','CONTRADICTORY_RIGHTS','CORRIDOR_OVERLOAD',
+  'RITUAL_COLLISION','TOKEN_ARBITRAGE','NARRATIVE_INVERSION','SOVEREIGNTY_CHALLENGE'
+];
+
+var CHAOS_DESCS = {
+  MALFORMED_INPUT:       'Corrupted / schema-invalid payloads',
+  CONTRADICTORY_RIGHTS:  'Conflicting sovereignty / role claims',
+  CORRIDOR_OVERLOAD:     'Burst traffic overwhelming message queues',
+  RITUAL_COLLISION:      'Simultaneous conflicting ceremonies',
+  TOKEN_ARBITRAGE:       'Economic attack: exploit rate/price deltas',
+  NARRATIVE_INVERSION:   'Protocol flip / identity spoofing',
+  SOVEREIGNTY_CHALLENGE: 'Root authority / governance attack'
+};
+
+/* ── OSC buffers ────────────────────────────────────────────────────────── */
+var oscChaosBuf  = new Array(100).fill(0);
+var oscCohereBuf = new Array(100).fill(1);
+
+/* ── Worker messages ────────────────────────────────────────────────────── */
+chaosWorker.onmessage = function(e) {
+  var m = e.data;
+
+  if (m.type === 'heartbeat') {
+    alive      = true;
+    beat       = m.beat;
+    alertLevel = m.alertLevel || 0;
+    document.getElementById('beatV').textContent   = beat;
+    document.getElementById('evtCount').textContent = m.totalEvents || 0;
+    document.getElementById('sigCount').textContent = m.totalSignals || 0;
+    document.getElementById('lawCount').textContent = m.lawCount || 7;
+    document.getElementById('gramCount').textContent = m.grammarRules || 5;
+    document.getElementById('chaosDot').className  = 'dot ' + (alertLevel > 1 ? 'alive' : 'calm');
+    document.getElementById('chaosStatus').textContent = 'ALIVE·BEAT·' + beat;
+    document.getElementById('mAlert').textContent  = alertLevel;
+    var an = ALERT_NAMES[alertLevel] || 'NOMINAL';
+    var badge = document.getElementById('alertBadge');
+    badge.textContent = an;
+    badge.className   = 'alert-badge alert-' + an;
+    document.getElementById('mAlert').style.color = ALERT_COLORS[alertLevel];
+
+    oscChaosBuf.shift(); oscChaosBuf.push(m.phase || 0);
+    drawOsc('oscChaos', oscChaosBuf, '#DC2626');
+
+    /* periodic refresh */
+    if (beat % 4 === 0) {
+      chaosWorker.postMessage({type:'GET_EVENTS', limit:60});
+      chaosWorker.postMessage({type:'GET_SIGNALS', limit:40});
+      chaosWorker.postMessage({type:'GET_VITALS'});
+    }
+    if (beat % 8 === 0) {
+      chaosWorker.postMessage({type:'GET_LAWS'});
+      chaosWorker.postMessage({type:'GET_GRAMMAR'});
+      chaosWorker.postMessage({type:'GET_RESPONSE_PATTERNS'});
+    }
+
+  } else if (m.type === 'VITALS') {
+    var v = m.result;
+    coherence = v.coherence || 0;
+    document.getElementById('mCohere').textContent   = coherence.toFixed(3);
+    document.getElementById('mBrainCoh').textContent = (v.brain ? v.brain.coherenceField : 0).toFixed(3);
+    document.getElementById('mDopa').textContent     = (v.brain ? v.brain.chemicals.dopamine : 0).toFixed(3);
+    document.getElementById('mSero').textContent     = (v.brain ? v.brain.chemicals.serotonin : 0).toFixed(3);
+    var pct = (coherence * 100).toFixed(1);
+    var fill = document.getElementById('cohereFill');
+    fill.style.width = pct + '%';
+    fill.style.background = coherence > 0.7 ? 'var(--green)' : coherence > 0.4 ? 'var(--orange)' : 'var(--red)';
+    document.getElementById('mCohere').style.color = coherence > 0.7 ? 'var(--green)' : coherence > 0.4 ? 'var(--orange)' : 'var(--red)';
+
+    oscCohereBuf.shift(); oscCohereBuf.push(coherence);
+    drawOscLinear('oscCohere', oscCohereBuf, coherence > 0.7 ? '#10B981' : coherence > 0.4 ? '#F59E0B' : '#DC2626');
+
+    if (v.patternCounts) {
+      CHAOS_TYPES.forEach(function(t) {
+        if (patterns[t]) patterns[t].count = v.patternCounts[t] || 0;
+      });
+      renderPatterns();
+    }
+
+  } else if (m.type === 'CHAOS_EVENT' || m.type === 'INJECT_RESULT') {
+    var evt = m.event || m.event;
+    if (evt) addEventToStream(evt);
+    if (m.alertLevel !== undefined) alertLevel = m.alertLevel;
+    if (m.coherence  !== undefined) coherence  = m.coherence;
+
+  } else if (m.type === 'SIGNAL_EMITTED') {
+    addSignal(m.signal);
+
+  } else if (m.type === 'EVENTS') {
+    events = m.result || [];
+    renderStream();
+
+  } else if (m.type === 'SIGNALS') {
+    signals = m.result || [];
+    renderSignals();
+
+  } else if (m.type === 'LAWS') {
+    laws = m.result || [];
+    renderLaws();
+
+  } else if (m.type === 'GRAMMAR') {
+    grammar = m.result || [];
+    renderGrammar();
+
+  } else if (m.type === 'RESPONSE_PATTERNS') {
+    patterns = m.result || {};
+    renderPatterns();
+
+  } else if (m.type === 'STORM_STATE') {
+    stormOn = m.active;
+    document.getElementById('stormTxt').textContent = stormOn ? '■ PAUSE AUTO-STORM' : '▶ RESUME AUTO-STORM';
+
+  } else if (m.type === 'init') {
+    chaosWorker.postMessage({type:'GET_LAWS'});
+    chaosWorker.postMessage({type:'GET_GRAMMAR'});
+    chaosWorker.postMessage({type:'GET_RESPONSE_PATTERNS'});
+  }
+};
+
+chaosWorker.onerror = function(e) { console.error('CHAOS WORKER ERROR', e.message); };
+
+/* ── Chaos Injector grid ─────────────────────────────────────────────────── */
+function buildInjectorGrid() {
+  var grid = document.getElementById('chaosGrid');
+  grid.innerHTML = CHAOS_TYPES.map(function(t) {
+    return '<button class="chaos-btn ' + t + '" onclick="injectType(\'' + t + '\')">' +
+      '<div class="cb-type">' + t.replace(/_/g,' ') + '</div>' +
+      '<div class="cb-desc">' + (CHAOS_DESCS[t] || '') + '</div></button>';
+  }).join('');
+}
+
+/* ── OSC drawing ────────────────────────────────────────────────────────── */
+function drawOsc(canvasId, buf, color) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.85;
+  ctx.beginPath();
+  for (var i = 0; i < buf.length; i++) {
+    var x = (i / (buf.length - 1)) * W;
+    var v = ((Math.sin(buf[i]) + 1) / 2);
+    var y = H - v * (H - 6) - 3;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+function drawOscLinear(canvasId, buf, color) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.85;
+  ctx.beginPath();
+  for (var i = 0; i < buf.length; i++) {
+    var x = (i / (buf.length - 1)) * W;
+    var y = H - buf[i] * (H - 6) - 3;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+/* ── Render helpers ─────────────────────────────────────────────────────── */
+function addEventToStream(evt) {
+  /* prepend to events array */
+  events.unshift(evt);
+  if (events.length > 100) events.pop();
+  document.getElementById('evtLabel').textContent = events.length + ' EVENTS';
+
+  var si = document.getElementById('streamInner');
+  var first = si.firstChild;
+  if (first && first.textContent && first.textContent.indexOf('inactive') !== -1) si.innerHTML = '';
+
+  var card = document.createElement('div');
+  card.className = 'evt-card ' + (evt.type || '');
+  var resps = (evt.responses || []).map(function(r) {
+    return '<span class="resp-badge ' + r + '">' + r.replace(/_/g,' ') + '</span>';
+  }).join('');
+  card.innerHTML =
+    '<div class="evt-header"><span class="evt-type ' + evt.type + '">' + (evt.type||'').replace(/_/g,' ') + '</span><span class="evt-id">' + (evt.id||'') + ' b=' + (evt.beat||0) + '</span></div>' +
+    '<div class="evt-desc">' + (evt.desc||'') + '</div>' +
+    '<div class="evt-resp">' + resps + '</div>';
+  si.insertBefore(card, si.firstChild);
+  /* trim */
+  while (si.children.length > 60) si.removeChild(si.lastChild);
+}
+
+function renderStream() {
+  var si = document.getElementById('streamInner');
+  si.innerHTML = '';
+  document.getElementById('evtLabel').textContent = events.length + ' EVENTS';
+  events.slice(0,50).forEach(function(evt) {
+    var card = document.createElement('div');
+    card.className = 'evt-card ' + (evt.type || '');
+    var resps = (evt.responses || []).map(function(r) {
+      return '<span class="resp-badge ' + r + '">' + r.replace(/_/g,' ') + '</span>';
+    }).join('');
+    card.innerHTML =
+      '<div class="evt-header"><span class="evt-type ' + evt.type + '">' + (evt.type||'').replace(/_/g,' ') + '</span><span class="evt-id">' + (evt.id||'') + ' b=' + (evt.beat||0) + '</span></div>' +
+      '<div class="evt-desc">' + (evt.desc||'') + '</div>' +
+      '<div class="evt-resp">' + resps + '</div>';
+    si.appendChild(card);
+  });
+}
+
+function addSignal(sig) {
+  signals.unshift(sig);
+  if (signals.length > 100) signals.pop();
+  renderSignals();
+  document.getElementById('sigCount').textContent = signals.length;
+}
+
+function renderSignals() {
+  var list = document.getElementById('sigList');
+  list.innerHTML = signals.slice(0,40).map(function(s) {
+    return '<div class="sig-item">' +
+      '<span class="sig-id">' + (s.id||'') + '</span>' +
+      '<div class="sig-body"><div class="sig-type">' + (s.chaosType||'').replace(/_/g,' ') + ' · ALERT=' + (s.alertLevel||0) + '</div>' +
+      '<div class="sig-msg">' + (s.message||'') + '</div></div></div>';
+  }).join('');
+}
+
+function renderLaws() {
+  var list = document.getElementById('lawList');
+  document.getElementById('lawCount').textContent = laws.length;
+  list.innerHTML = laws.map(function(l) {
+    return '<div class="law-item' + (l.updated ? ' updated' : '') + '">' +
+      '<div class="law-header"><span class="law-id">' + l.id + '</span><span class="law-str">STR=' + (l.strength||0).toFixed(2) + '</span></div>' +
+      '<div class="law-text">' + (l.law||'') + '</div>' +
+      (l.challenged > 0 ? '<div class="law-challenged">⚡ challenged ' + l.challenged + '× ' + (l.updated ? '· REINFORCED' : '') + '</div>' : '') +
+      '</div>';
+  }).join('');
+}
+
+function renderGrammar() {
+  var list = document.getElementById('gramList');
+  document.getElementById('gramCount').textContent = grammar.length;
+  list.innerHTML = grammar.map(function(g) {
+    return '<div class="gram-item' + (g.refined ? ' refined' : '') + '">' +
+      '<div class="gram-header"><span class="gram-id">' + g.id + '</span><span class="gram-viol">VIOLS=' + (g.violations||0) + '</span></div>' +
+      '<div class="gram-text">' + (g.rule||'') + '</div>' +
+      '<div class="gram-status' + (g.refined ? ' hardened' : '') + '">' + (g.refined ? '✓ HARDENED' : '○ MONITORING') + '</div>' +
+      '</div>';
+  }).join('');
+}
+
+function renderPatterns() {
+  var grid = document.getElementById('patGrid');
+  grid.innerHTML = CHAOS_TYPES.map(function(t) {
+    var p = patterns[t] || {count:0, responses:[]};
+    var cnt = p.count || 0;
+    var resps = (p.responses || []).map(function(r){
+      return '<div class="pat-resp-item">→ ' + r.replace(/_/g,' ') + '</div>';
+    }).join('');
+    return '<div class="pat-card">' +
+      '<div class="pat-type">' + t.replace(/_/g,' ') + '</div>' +
+      '<div class="pat-count' + (cnt===0?' zero':'') + '">' + cnt + '</div>' +
+      '<div class="pat-resp">' + (resps || '<div class="pat-resp-item" style="color:#444">—</div>') + '</div>' +
+      '</div>';
+  }).join('');
+}
+
+/* ── Command handlers ───────────────────────────────────────────────────── */
+function injectType(chaosType) {
+  chaosWorker.postMessage({type:'INJECT_CHAOS', chaosType: chaosType});
+}
+
+function injectRandom() {
+  chaosWorker.postMessage({type:'INJECT_CHAOS'});
+}
+
+function injectStorm() {
+  chaosWorker.postMessage({type:'INJECT_STORM'});
+}
+
+function toggleStorm() {
+  stormOn = !stormOn;
+  chaosWorker.postMessage({type:'SET_STORM', active: stormOn});
+}
+
+function refreshAll() {
+  chaosWorker.postMessage({type:'GET_EVENTS', limit:60});
+  chaosWorker.postMessage({type:'GET_SIGNALS', limit:40});
+  chaosWorker.postMessage({type:'GET_LAWS'});
+  chaosWorker.postMessage({type:'GET_GRAMMAR'});
+  chaosWorker.postMessage({type:'GET_RESPONSE_PATTERNS'});
+  chaosWorker.postMessage({type:'GET_VITALS'});
+}
+
+/* ── Boot ───────────────────────────────────────────────────────────────── */
+buildInjectorGrid();
+renderPatterns();
+</script>
+</body>
+</html>

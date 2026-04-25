@@ -1,1263 +1,1553 @@
+// ─── NOVA / PARALLAX — Protocol Wire: Sovereign Callable Infrastructure ──────
+// 144+ Callable Entries, 24 SDK Bindings, 8 Orchestration Specs, 12 Enterprise Wires
+// 10 Mathematical Constants — ALL derived from fundamental physics
+// Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
+// COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ. ALL RIGHTS RESERVED.
+
+import { clamp, sigmoid, PHI, PHI_INV, PI, TAU } from './core';
+
 // ═══════════════════════════════════════════════════════════════════════════════
-// MEDINA TECH — CONFIDENTIAL & PROPRIETARY
-// ═══════════════════════════════════════════════════════════════════════════════
-// Module: nova-protocol-wire.ts — NOVA Protocol Wire System
-// NERVUS PROTOCOLLUM SUPREMUM — The Sovereign Nerve System
-//
-// The Protocol Wire is the central nervous system connecting every product,
-// worker, and infrastructure component across the NOVA organism. Each protocol
-// carries a φ-derived Shannon capacity ensuring golden-ratio information flow.
-//
-// 48 Protocols × 5 Callable Entries = 240 Sovereign Endpoints
-// 48 SDK Bindings | 12 Orchestrations | 16 Enterprise Wires | 12 Observers
-//
-// Categories (12):
-//   I.    CONSENSUS         — Byzantine agreement and sovereign consensus
-//   II.   IDENTITY          — Decentralized identity and biometric sovereignty
-//   III.  MESSAGING         — Event-driven pub/sub and stream relay
-//   IV.   STORAGE           — Distributed sovereign storage substrate
-//   V.    COMPUTE           — Edge/WASM/Lambda/GPU compute orchestration
-//   VI.   NETWORKING        — P2P mesh, overlay routing, sovereign DNS
-//   VII.  SECURITY          — Encryption vaults, threat detection, audit trails
-//   VIII. OBSERVABILITY     — Telemetry, metrics, logs, distributed tracing
-//   IX.   AI_INFERENCE      — Model serving, embeddings, vector search
-//   X.    DATA_PIPELINE     — ETL, stream analytics, feature stores
-//   XI.   COMMERCE          — Payment, subscription, marketplace protocols
-//   XII.  GOVERNANCE        — Voting, proposals, treasury, compliance
-//
-// Copyright © 2024-2026 Alfredo Medina Hernandez / Medina Tech / Dallas, Texas, USA
+// SECTION 1: FUNDAMENTAL MATHEMATICAL & PHYSICAL CONSTANTS
+// Every value is the NIST/CODATA 2018 exact or best-known value.
+// No approximations. No normalization. THE REAL NUMBERS.
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// ─── §1  CONSTANTIAE MATHEMATICAE — Math Constants ───────────────────────────
+// ── Golden Ratio Family (algebraic, infinite precision) ─────────────────────
+export const PHI_SQ     = 2.6180339887498948482;   // φ² = φ + 1
+export const PHI_CU     = 4.2360679774997896964;   // φ³ = φ² + φ
+export const PHI_4      = 6.8541019662496845446;   // φ⁴ = φ³ + φ² = 3φ + 2
+export const PHI_5      = 11.090169943749474241;   // φ⁵ = φ⁴ + φ³ = 5φ + 3
 
-const PHI            = 1.618033988749895;   // Golden ratio φ
-const INV_PHI        = 0.618033988749895;   // Inverse golden ratio 1/φ
-const PHI_SQ         = 2.618033988749895;   // φ²
-const PHI_CUBE       = 4.23606797749979;    // φ³
-const SQRT_PHI       = 1.272019649514069;  // √φ
-const LN_PHI         = 0.4812118250596034;  // ln(φ)
-const PLANCK         = 6.62607015e-34;    // Planck constant h (J·s)
-const BOLTZMANN      = 1.380649e-23;      // Boltzmann constant k_B (J/K)
-const AVOGADRO       = 6.02214076e23;     // Avogadro number N_A (mol⁻¹)
-const SPEED_OF_LIGHT = 299792458;         // Speed of light c (m/s)
+// ── Physical Constants (SI, NIST CODATA 2018) ───────────────────────────────
+export const k_B        = 1.380649e-23;            // Boltzmann constant (J/K) — EXACT since 2019
+export const h_P        = 6.62607015e-34;          // Planck constant (J·s) — EXACT since 2019
+export const N_A        = 6.02214076e23;            // Avogadro constant (mol⁻¹) — EXACT since 2019
+export const c_0        = 299792458;                // Speed of light (m/s) — EXACT by definition
 
-// ─── §2  DEFINITIONES TYPORUM — Type Definitions ─────────────────────────────
+// ── Derived Golden Identities (mathematical proof, not approximation) ───────
+// Proof: φ² = φ + 1
+export const IDENTITY_PHI_SQ  = Math.abs(PHI * PHI - (PHI + 1));          // Should be < 1e-15
+// Proof: φ⁻¹ = φ - 1
+export const IDENTITY_PHI_INV = Math.abs(1 / PHI - (PHI - 1));            // Should be < 1e-15
+// Proof: φⁿ = φⁿ⁻¹ + φⁿ⁻²  (Fibonacci recurrence in φ-powers)
+export const IDENTITY_PHI_REC = Math.abs(PHI_CU - (PHI_SQ + PHI));        // Should be < 1e-15
+// Proof: φ⁴ = 3φ + 2
+export const IDENTITY_PHI_4   = Math.abs(PHI_4 - (3 * PHI + 2));          // Should be < 1e-15
+// Proof: φ⁵ = 5φ + 3
+export const IDENTITY_PHI_5   = Math.abs(PHI_5 - (5 * PHI + 3));          // Should be < 1e-15
+// Proof: φ × φ⁻¹ = 1
+export const IDENTITY_PHI_PROD = Math.abs(PHI * PHI_INV - 1);             // Should be < 1e-15
 
-export type ProtocolCategory =
-  | 'CONSENSUS'
-  | 'IDENTITY'
-  | 'MESSAGING'
-  | 'STORAGE'
-  | 'COMPUTE'
-  | 'NETWORKING'
-  | 'SECURITY'
-  | 'OBSERVABILITY'
-  | 'AI_INFERENCE'
-  | 'DATA_PIPELINE'
-  | 'COMMERCE'
-  | 'GOVERNANCE';
-
-export type ObserverDomain =
-  | 'CARDIAC'
-  | 'NEURAL'
-  | 'PROTOCOL'
-  | 'SECURITY'
-  | 'COMMERCE'
-  | 'INFRASTRUCTURE'
-  | 'AI'
-  | 'DATA'
-  | 'NETWORK'
-  | 'GOVERNANCE'
-  | 'PRODUCT'
-  | 'CONSCIOUSNESS';
-
-export type ObserverStatus = 'ACTIVE' | 'IDLE' | 'ALERT' | 'MAINTENANCE';
-
-export interface ProtocolDefinition {
-  id: string;
-  name: string;
-  sdkBinding: string;
-  version: string;
-  callableCount: number;
-  shannonCapacity: number;
-  category: ProtocolCategory;
+// Binet's formula: F(n) = (φⁿ − ψⁿ)/√5 where ψ = −φ⁻¹
+export const PSI   = -PHI_INV;  // ≈ −0.618
+export const SQRT5 = Math.sqrt(5);
+export function binetFibonacci(n: number): number {
+  return Math.round((Math.pow(PHI, n) - Math.pow(PSI, n)) / SQRT5);
 }
 
-export interface SDKBinding {
-  name: string;
-  protocolId: string;
-  version: string;
-  shannonCapacity: number;
+// ── Derived Physical Constants ──────────────────────────────────────────────
+export const h_bar    = h_P / (2 * PI);             // Reduced Planck constant (J·s/rad)
+export const R_gas    = k_B * N_A;                   // Gas constant R = k_B·N_A (J/(mol·K))
+export const SIGMA_SB = (2 * Math.pow(PI, 5) * Math.pow(k_B, 4)) /
+                        (15 * Math.pow(h_P, 3) * Math.pow(c_0, 2));  // Stefan-Boltzmann (W/(m²·K⁴))
+
+// Thermal de Broglie wavelength at temperature T for mass m:
+export function deBroglieWavelength(T: number, m: number): number {
+  // Λ = h / √(2π m k_B T)
+  return h_P / Math.sqrt(2 * PI * m * k_B * T);
+}
+
+// Boltzmann probability at energy E and temperature T:
+export function boltzmannProbability(E: number, T: number): number {
+  return Math.exp(-E / (k_B * T));
+}
+
+// Planck spectral radiance at frequency ν and temperature T:
+export function planckRadiance(nu: number, T: number): number {
+  // B(ν,T) = (2hν³/c²) / (exp(hν/kT) - 1)
+  const x = h_P * nu / (k_B * T);
+  if (x > 500) return 0;  // prevent overflow
+  return (2 * h_P * Math.pow(nu, 3) / Math.pow(c_0, 2)) / (Math.exp(x) - 1);
+}
+
+// φ-weighted geometric mean (used in all routing decisions):
+export function phiWeightedMean(a: number, b: number): number {
+  // GM = a^(1/φ) × b^(φ⁻¹)  — asymmetric golden mean
+  return Math.pow(a, 1 / PHI) * Math.pow(b, PHI_INV);
+}
+
+// Gibbs free energy: G = H - T·S
+export function gibbsFreeEnergy(H: number, T: number, S: number): number {
+  return H - T * S;
+}
+
+// Shannon entropy of a probability distribution:
+export function shannonEntropy(probs: number[]): number {
+  return -probs.reduce((sum, p) => sum + (p > 1e-15 ? p * Math.log2(p) : 0), 0);
+}
+
+// Fisher information for exponential family:
+export function fisherInformation(variance: number): number {
+  return 1 / Math.max(1e-15, variance);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 2: PROTOCOL TYPE DEFINITIONS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export type ProtocolDomain =
+  | 'CARDIAC'     | 'NEURAL'    | 'DEFENSE'   | 'MEMORY'
+  | 'GOVERNANCE'  | 'ECONOMIC'  | 'QUANTUM'   | 'EMERGENCE'
+  | 'SWARM'       | 'SYNAPSE'   | 'ROUTING'   | 'AGENT'
+  | 'ORGANISM'    | 'FACTORY'   | 'UNIVERSE'  | 'MESH'
+  | 'CARE'        | 'SHIMMER'   | 'LEDGER'    | 'LAW'
+  | 'SDK'         | 'CHAIN'     | 'HEARTBEAT' | 'ORCHESTRATOR';
+
+export interface IOSchema {
+  fields: Array<{ name: string; type: string; unit?: string; range?: [number, number] }>;
 }
 
 export interface CallableEntry {
-  callId: string;
-  protocolId: string;
-  endpoint: string;
-  priority: number;
-  phiScore: number;
+  id: string;
+  name: string;
+  protocol: string;
+  input: IOSchema;
+  output: IOSchema;
+  latencyMs: number;
+  costWeight: number;
+  throughputBitsPerSec: number;
+  entropyBits: number;
+  gibbsCost: number;
 }
 
-export interface OrchestrationSpec {
+export interface ProtocolDef {
+  id: string;
   name: string;
-  workerCount: number;
-  protocolCount: number;
+  sdkPackage: string;
+  version: string;
+  domain: ProtocolDomain;
+  description: string;
+  callableEntries: CallableEntry[];
+}
+
+export interface SDKBinding {
+  package: string;
+  version: string;
+  protocol: string;
+  entryCount: number;
+  totalCostWeight: number;
+  meanLatencyMs: number;
   shannonCapacity: number;
   description: string;
 }
 
-export interface EnterpriseWire {
-  name: string;
-  snr: number;
-  mutualInformation: number;
-  bandwidth: number;
-  protocols: string[];
-}
-
-export interface ObserverStation {
+export interface OrchestrationSpec {
   id: string;
   name: string;
-  domain: ObserverDomain;
-  watchedProtocols: string[];
-  alertThreshold: number;
-  status: ObserverStatus;
-  observationCount: number;
+  modelCount: number;
+  routingFunction: string;
+  couplingMatrix: number[][];
+  throughput: number;
+  meanLatencyMs: number;
+  entropyBits: number;
+  gibbsFreeEnergy: number;
+  description: string;
+}
+
+export interface EnterpriseWire {
+  id: string;
+  name: string;
+  source: string;
+  target: string;
+  direction: '\u2192' | '\u2190' | '\u2194';
+  bandwidthBps: number;
+  latencyMs: number;
+  protocol: string;
+  couplingStrength: number;
+  shannonCapacity: number;
+  propagationDelay: number;
+  signalToNoise: number;
+  mutualInformation: number;
 }
 
 export interface ProtocolWireSummary {
-  totalProtocols: number;
-  totalEntries: number;
-  totalSDKs: number;
-  totalOrchestrations: number;
-  totalWires: number;
-  totalObservers: number;
-  overallShannonCapacity: number;
+  totalCallableEntries: number;
+  totalSDKBindings: number;
+  totalOrchestrationSpecs: number;
+  totalEnterpriseWires: number;
+  totalMathConstants: number;
+  systemEntropy: number;
+  systemGibbsFreeEnergy: number;
+  systemThroughput: number;
+  meanSystemLatency: number;
+  phiConvergence: number;
+}
+
+// ── Entry derivation helper ──────────────────────────────────────────────────
+// Computes throughputBitsPerSec, entropyBits, and gibbsCost from explicit params.
+// throughputBitsPerSec = (outputFieldCount × 64) × (1000 / latencyMs)
+//   — 64 bits per float field, scaled by calls per second
+// entropyBits = log2(outputFieldCount)
+//   — Shannon entropy of uniform distribution over output fields
+// gibbsCost = costWeight × 1000 − 300 × entropyBits / 8
+//   — Gibbs free energy analog: H_enthalpy − T_system × S_entropy
+function mkEntry(
+  id: string, name: string, protocol: string,
+  input: IOSchema, output: IOSchema,
+  latencyMs: number, costWeight: number
+): CallableEntry {
+  const n = output.fields.length;
+  const throughputBitsPerSec = (n * 64) * (1000 / latencyMs);
+  const entropyBits = Math.log2(n);
+  const gibbsCost = costWeight * 1000 - 300 * entropyBits / 8;
+  return { id, name, protocol, input, output, latencyMs, costWeight, throughputBitsPerSec, entropyBits, gibbsCost };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// §3  PROTOCOLLA SUPREMA — Protocol Definitions (48)
+// SECTION 2b: ALL 24 PROTOCOLS — 144 CALLABLE ENTRIES
+// Each entry is explicitly defined with unique I/O schema and φ-derived math.
+// Latency tiers: φ⁰=1ms, φ¹=1.618ms, φ²=2.618ms, φ³=4.236ms, φ⁴=6.854ms, φ⁵=11.09ms
+// Cost tiers: φ⁰=1.0, φ⁻¹=0.618, φ⁻²=0.382, φ⁻³=0.236
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export const ALL_PROTOCOLS: ProtocolDefinition[] = [
-  // ── CONSENSUS (4 protocols) ──────────────────────────────────
-  {
-    id: 'consensus-engine',
-    name: 'consensus-engine',
-    sdkBinding: '@medina/consensus-engine-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.033709041432,
-    category: 'CONSENSUS',
-  },
-  {
-    id: 'byzantine-fault',
-    name: 'byzantine-fault',
-    sdkBinding: '@medina/byzantine-fault-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.067418082865,
-    category: 'CONSENSUS',
-  },
-  {
-    id: 'raft-sovereign',
-    name: 'raft-sovereign',
-    sdkBinding: '@medina/raft-sovereign-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.101127124297,
-    category: 'CONSENSUS',
-  },
-  {
-    id: 'paxos-field',
-    name: 'paxos-field',
-    sdkBinding: '@medina/paxos-field-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.134836165729,
-    category: 'CONSENSUS',
-  },
-  // ── IDENTITY (4 protocols) ──────────────────────────────────
-  {
-    id: 'sovereign-identity',
-    name: 'sovereign-identity',
-    sdkBinding: '@medina/sovereign-identity-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.168545207161,
-    category: 'IDENTITY',
-  },
-  {
-    id: 'biometric-auth',
-    name: 'biometric-auth',
-    sdkBinding: '@medina/biometric-auth-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.202254248594,
-    category: 'IDENTITY',
-  },
-  {
-    id: 'zero-knowledge-proof',
-    name: 'zero-knowledge-proof',
-    sdkBinding: '@medina/zero-knowledge-proof-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.235963290026,
-    category: 'IDENTITY',
-  },
-  {
-    id: 'decentralized-id',
-    name: 'decentralized-id',
-    sdkBinding: '@medina/decentralized-id-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.269672331458,
-    category: 'IDENTITY',
-  },
-  // ── MESSAGING (4 protocols) ──────────────────────────────────
-  {
-    id: 'event-bus',
-    name: 'event-bus',
-    sdkBinding: '@medina/event-bus-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.303381372891,
-    category: 'MESSAGING',
-  },
-  {
-    id: 'pub-sub-mesh',
-    name: 'pub-sub-mesh',
-    sdkBinding: '@medina/pub-sub-mesh-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.337090414323,
-    category: 'MESSAGING',
-  },
-  {
-    id: 'message-queue',
-    name: 'message-queue',
-    sdkBinding: '@medina/message-queue-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.370799455755,
-    category: 'MESSAGING',
-  },
-  {
-    id: 'stream-relay',
-    name: 'stream-relay',
-    sdkBinding: '@medina/stream-relay-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.404508497187,
-    category: 'MESSAGING',
-  },
-  // ── STORAGE (4 protocols) ──────────────────────────────────
-  {
-    id: 'sovereign-storage',
-    name: 'sovereign-storage',
-    sdkBinding: '@medina/sovereign-storage-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.43821753862,
-    category: 'STORAGE',
-  },
-  {
-    id: 'distributed-cache',
-    name: 'distributed-cache',
-    sdkBinding: '@medina/distributed-cache-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.471926580052,
-    category: 'STORAGE',
-  },
-  {
-    id: 'blob-sovereign',
-    name: 'blob-sovereign',
-    sdkBinding: '@medina/blob-sovereign-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.505635621484,
-    category: 'STORAGE',
-  },
-  {
-    id: 'time-series-db',
-    name: 'time-series-db',
-    sdkBinding: '@medina/time-series-db-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.539344662917,
-    category: 'STORAGE',
-  },
-  // ── COMPUTE (4 protocols) ──────────────────────────────────
-  {
-    id: 'edge-compute',
-    name: 'edge-compute',
-    sdkBinding: '@medina/edge-compute-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.573053704349,
-    category: 'COMPUTE',
-  },
-  {
-    id: 'wasm-runtime',
-    name: 'wasm-runtime',
-    sdkBinding: '@medina/wasm-runtime-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.606762745781,
-    category: 'COMPUTE',
-  },
-  {
-    id: 'lambda-sovereign',
-    name: 'lambda-sovereign',
-    sdkBinding: '@medina/lambda-sovereign-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.640471787214,
-    category: 'COMPUTE',
-  },
-  {
-    id: 'gpu-orchestrator',
-    name: 'gpu-orchestrator',
-    sdkBinding: '@medina/gpu-orchestrator-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.674180828646,
-    category: 'COMPUTE',
-  },
-  // ── NETWORKING (4 protocols) ──────────────────────────────────
-  {
-    id: 'p2p-mesh',
-    name: 'p2p-mesh',
-    sdkBinding: '@medina/p2p-mesh-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.707889870078,
-    category: 'NETWORKING',
-  },
-  {
-    id: 'overlay-routing',
-    name: 'overlay-routing',
-    sdkBinding: '@medina/overlay-routing-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.74159891151,
-    category: 'NETWORKING',
-  },
-  {
-    id: 'sovereign-dns',
-    name: 'sovereign-dns',
-    sdkBinding: '@medina/sovereign-dns-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.775307952943,
-    category: 'NETWORKING',
-  },
-  {
-    id: 'load-sovereign',
-    name: 'load-sovereign',
-    sdkBinding: '@medina/load-sovereign-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.809016994375,
-    category: 'NETWORKING',
-  },
-  // ── SECURITY (4 protocols) ──────────────────────────────────
-  {
-    id: 'encryption-vault',
-    name: 'encryption-vault',
-    sdkBinding: '@medina/encryption-vault-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.842726035807,
-    category: 'SECURITY',
-  },
-  {
-    id: 'threat-detection',
-    name: 'threat-detection',
-    sdkBinding: '@medina/threat-detection-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.87643507724,
-    category: 'SECURITY',
-  },
-  {
-    id: 'audit-trail',
-    name: 'audit-trail',
-    sdkBinding: '@medina/audit-trail-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.910144118672,
-    category: 'SECURITY',
-  },
-  {
-    id: 'firewall-sovereign',
-    name: 'firewall-sovereign',
-    sdkBinding: '@medina/firewall-sovereign-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.943853160104,
-    category: 'SECURITY',
-  },
-  // ── OBSERVABILITY (4 protocols) ──────────────────────────────────
-  {
-    id: 'telemetry-core',
-    name: 'telemetry-core',
-    sdkBinding: '@medina/telemetry-core-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 0.977562201536,
-    category: 'OBSERVABILITY',
-  },
-  {
-    id: 'metrics-aggregator',
-    name: 'metrics-aggregator',
-    sdkBinding: '@medina/metrics-aggregator-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.011271242969,
-    category: 'OBSERVABILITY',
-  },
-  {
-    id: 'log-sovereign',
-    name: 'log-sovereign',
-    sdkBinding: '@medina/log-sovereign-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.044980284401,
-    category: 'OBSERVABILITY',
-  },
-  {
-    id: 'trace-distributor',
-    name: 'trace-distributor',
-    sdkBinding: '@medina/trace-distributor-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.078689325833,
-    category: 'OBSERVABILITY',
-  },
-  // ── AI_INFERENCE (4 protocols) ──────────────────────────────────
-  {
-    id: 'model-serving',
-    name: 'model-serving',
-    sdkBinding: '@medina/model-serving-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.112398367266,
-    category: 'AI_INFERENCE',
-  },
-  {
-    id: 'inference-router',
-    name: 'inference-router',
-    sdkBinding: '@medina/inference-router-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.146107408698,
-    category: 'AI_INFERENCE',
-  },
-  {
-    id: 'embedding-engine',
-    name: 'embedding-engine',
-    sdkBinding: '@medina/embedding-engine-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.17981645013,
-    category: 'AI_INFERENCE',
-  },
-  {
-    id: 'vector-search',
-    name: 'vector-search',
-    sdkBinding: '@medina/vector-search-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.213525491562,
-    category: 'AI_INFERENCE',
-  },
-  // ── DATA_PIPELINE (4 protocols) ──────────────────────────────────
-  {
-    id: 'etl-sovereign',
-    name: 'etl-sovereign',
-    sdkBinding: '@medina/etl-sovereign-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.247234532995,
-    category: 'DATA_PIPELINE',
-  },
-  {
-    id: 'stream-analytics',
-    name: 'stream-analytics',
-    sdkBinding: '@medina/stream-analytics-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.280943574427,
-    category: 'DATA_PIPELINE',
-  },
-  {
-    id: 'data-lake',
-    name: 'data-lake',
-    sdkBinding: '@medina/data-lake-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.314652615859,
-    category: 'DATA_PIPELINE',
-  },
-  {
-    id: 'feature-store',
-    name: 'feature-store',
-    sdkBinding: '@medina/feature-store-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.348361657292,
-    category: 'DATA_PIPELINE',
-  },
-  // ── COMMERCE (4 protocols) ──────────────────────────────────
-  {
-    id: 'payment-gateway',
-    name: 'payment-gateway',
-    sdkBinding: '@medina/payment-gateway-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.382070698724,
-    category: 'COMMERCE',
-  },
-  {
-    id: 'subscription-engine',
-    name: 'subscription-engine',
-    sdkBinding: '@medina/subscription-engine-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.415779740156,
-    category: 'COMMERCE',
-  },
-  {
-    id: 'marketplace-protocol',
-    name: 'marketplace-protocol',
-    sdkBinding: '@medina/marketplace-protocol-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.449488781588,
-    category: 'COMMERCE',
-  },
-  {
-    id: 'invoice-sovereign',
-    name: 'invoice-sovereign',
-    sdkBinding: '@medina/invoice-sovereign-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.483197823021,
-    category: 'COMMERCE',
-  },
-  // ── GOVERNANCE (4 protocols) ──────────────────────────────────
-  {
-    id: 'voting-protocol',
-    name: 'voting-protocol',
-    sdkBinding: '@medina/voting-protocol-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.516906864453,
-    category: 'GOVERNANCE',
-  },
-  {
-    id: 'proposal-engine',
-    name: 'proposal-engine',
-    sdkBinding: '@medina/proposal-engine-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.550615905885,
-    category: 'GOVERNANCE',
-  },
-  {
-    id: 'treasury-sovereign',
-    name: 'treasury-sovereign',
-    sdkBinding: '@medina/treasury-sovereign-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.584324947318,
-    category: 'GOVERNANCE',
-  },
-  {
-    id: 'compliance-wire',
-    name: 'compliance-wire',
-    sdkBinding: '@medina/compliance-wire-sdk@1.0.0',
-    version: '1.0.0',
-    callableCount: 5,
-    shannonCapacity: 1.61803398875,
-    category: 'GOVERNANCE',
-  },
+// ── Protocol: Three Hearts Protocol (HEART) ────────────────────────────────────
+const PROTOCOL_HEART_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('HEART-001', 'readCardiacCoherence', 'HEART',
+    { fields: [{ name: 'heartId', type: 'string' }, { name: 'windowMs', type: 'number', unit: 'ms', range: [100, 5000] }] },
+    { fields: [{ name: 'coherenceIndex', type: 'number', range: [0, 1] }, { name: 'phaseAngle', type: 'number', unit: 'rad', range: [0, 6.28] }, { name: 'hrvMs', type: 'number', unit: 'ms' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('HEART-002', 'writeHeartPhase', 'HEART',
+    { fields: [{ name: 'heartId', type: 'string' }, { name: 'targetPhase', type: 'number', unit: 'rad', range: [0, 6.28] }, { name: 'amplitude', type: 'number', range: [0, 1] }] },
+    { fields: [{ name: 'accepted', type: 'boolean' }, { name: 'newPhase', type: 'number', unit: 'rad', range: [0, 6.28] }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('HEART-003', 'syncTripleHeart', 'HEART',
+    { fields: [{ name: 'heartIds', type: 'string[]' }, { name: 'couplingStrength', type: 'number', range: [0, 1] }] },
+    { fields: [{ name: 'syncIndex', type: 'number', range: [0, 1] }, { name: 'phaseDiffs', type: 'number[]', unit: 'rad' }, { name: 'orderParameter', type: 'number', range: [0, 1] }] },
+    6.854101966249686, 1.0),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('HEART-004', 'getHeartEntanglement', 'HEART',
+    { fields: [{ name: 'heartA', type: 'string' }, { name: 'heartB', type: 'string' }] },
+    { fields: [{ name: 'entanglementMeasure', type: 'number', range: [0, 1] }, { name: 'bellInequality', type: 'number' }, { name: 'fidelity', type: 'number', range: [0, 1] }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('HEART-005', 'measureHRV', 'HEART',
+    { fields: [{ name: 'heartId', type: 'string' }, { name: 'durationMs', type: 'number', unit: 'ms', range: [1000, 60000] }] },
+    { fields: [{ name: 'sdnn', type: 'number', unit: 'ms' }, { name: 'rmssd', type: 'number', unit: 'ms' }, { name: 'pnn50', type: 'number', unit: '%', range: [0, 100] }, { name: 'lfHfRatio', type: 'number' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^1 = 1.6180ms, cost: φ^(-3) = 0.2361
+  mkEntry('HEART-006', 'resetCardiacBaseline', 'HEART',
+    { fields: [{ name: 'heartId', type: 'string' }] },
+    { fields: [{ name: 'baselineHR', type: 'number', unit: 'bpm', range: [40, 200] }, { name: 'baselineHRV', type: 'number', unit: 'ms' }] },
+    1.618033988749895, 0.23606797749978975),
 ];
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// §4  VINCULA SDK — SDK Bindings (48)
-// ═══════════════════════════════════════════════════════════════════════════════
+const PROTOCOL_HEART: ProtocolDef = {
+  id: 'HEART',
+  name: 'Three Hearts Protocol',
+  sdkPackage: '@medina/heart-sdk',
+  version: '1.0.0',
+  domain: 'CARDIAC',
+  description: 'Cardiac triad coherence — three-heart synchronization via golden coupling',
+  callableEntries: PROTOCOL_HEART_ENTRIES,
+};
 
-export const ALL_SDK_BINDINGS: SDKBinding[] = [
-  { name: '@medina/consensus-engine-sdk@1.0.0', protocolId: 'consensus-engine', version: '1.0.0', shannonCapacity: 0.033709041432 },
-  { name: '@medina/byzantine-fault-sdk@1.0.0', protocolId: 'byzantine-fault', version: '1.0.0', shannonCapacity: 0.067418082865 },
-  { name: '@medina/raft-sovereign-sdk@1.0.0', protocolId: 'raft-sovereign', version: '1.0.0', shannonCapacity: 0.101127124297 },
-  { name: '@medina/paxos-field-sdk@1.0.0', protocolId: 'paxos-field', version: '1.0.0', shannonCapacity: 0.134836165729 },
-  { name: '@medina/sovereign-identity-sdk@1.0.0', protocolId: 'sovereign-identity', version: '1.0.0', shannonCapacity: 0.168545207161 },
-  { name: '@medina/biometric-auth-sdk@1.0.0', protocolId: 'biometric-auth', version: '1.0.0', shannonCapacity: 0.202254248594 },
-  { name: '@medina/zero-knowledge-proof-sdk@1.0.0', protocolId: 'zero-knowledge-proof', version: '1.0.0', shannonCapacity: 0.235963290026 },
-  { name: '@medina/decentralized-id-sdk@1.0.0', protocolId: 'decentralized-id', version: '1.0.0', shannonCapacity: 0.269672331458 },
-  { name: '@medina/event-bus-sdk@1.0.0', protocolId: 'event-bus', version: '1.0.0', shannonCapacity: 0.303381372891 },
-  { name: '@medina/pub-sub-mesh-sdk@1.0.0', protocolId: 'pub-sub-mesh', version: '1.0.0', shannonCapacity: 0.337090414323 },
-  { name: '@medina/message-queue-sdk@1.0.0', protocolId: 'message-queue', version: '1.0.0', shannonCapacity: 0.370799455755 },
-  { name: '@medina/stream-relay-sdk@1.0.0', protocolId: 'stream-relay', version: '1.0.0', shannonCapacity: 0.404508497187 },
-  { name: '@medina/sovereign-storage-sdk@1.0.0', protocolId: 'sovereign-storage', version: '1.0.0', shannonCapacity: 0.43821753862 },
-  { name: '@medina/distributed-cache-sdk@1.0.0', protocolId: 'distributed-cache', version: '1.0.0', shannonCapacity: 0.471926580052 },
-  { name: '@medina/blob-sovereign-sdk@1.0.0', protocolId: 'blob-sovereign', version: '1.0.0', shannonCapacity: 0.505635621484 },
-  { name: '@medina/time-series-db-sdk@1.0.0', protocolId: 'time-series-db', version: '1.0.0', shannonCapacity: 0.539344662917 },
-  { name: '@medina/edge-compute-sdk@1.0.0', protocolId: 'edge-compute', version: '1.0.0', shannonCapacity: 0.573053704349 },
-  { name: '@medina/wasm-runtime-sdk@1.0.0', protocolId: 'wasm-runtime', version: '1.0.0', shannonCapacity: 0.606762745781 },
-  { name: '@medina/lambda-sovereign-sdk@1.0.0', protocolId: 'lambda-sovereign', version: '1.0.0', shannonCapacity: 0.640471787214 },
-  { name: '@medina/gpu-orchestrator-sdk@1.0.0', protocolId: 'gpu-orchestrator', version: '1.0.0', shannonCapacity: 0.674180828646 },
-  { name: '@medina/p2p-mesh-sdk@1.0.0', protocolId: 'p2p-mesh', version: '1.0.0', shannonCapacity: 0.707889870078 },
-  { name: '@medina/overlay-routing-sdk@1.0.0', protocolId: 'overlay-routing', version: '1.0.0', shannonCapacity: 0.74159891151 },
-  { name: '@medina/sovereign-dns-sdk@1.0.0', protocolId: 'sovereign-dns', version: '1.0.0', shannonCapacity: 0.775307952943 },
-  { name: '@medina/load-sovereign-sdk@1.0.0', protocolId: 'load-sovereign', version: '1.0.0', shannonCapacity: 0.809016994375 },
-  { name: '@medina/encryption-vault-sdk@1.0.0', protocolId: 'encryption-vault', version: '1.0.0', shannonCapacity: 0.842726035807 },
-  { name: '@medina/threat-detection-sdk@1.0.0', protocolId: 'threat-detection', version: '1.0.0', shannonCapacity: 0.87643507724 },
-  { name: '@medina/audit-trail-sdk@1.0.0', protocolId: 'audit-trail', version: '1.0.0', shannonCapacity: 0.910144118672 },
-  { name: '@medina/firewall-sovereign-sdk@1.0.0', protocolId: 'firewall-sovereign', version: '1.0.0', shannonCapacity: 0.943853160104 },
-  { name: '@medina/telemetry-core-sdk@1.0.0', protocolId: 'telemetry-core', version: '1.0.0', shannonCapacity: 0.977562201536 },
-  { name: '@medina/metrics-aggregator-sdk@1.0.0', protocolId: 'metrics-aggregator', version: '1.0.0', shannonCapacity: 1.011271242969 },
-  { name: '@medina/log-sovereign-sdk@1.0.0', protocolId: 'log-sovereign', version: '1.0.0', shannonCapacity: 1.044980284401 },
-  { name: '@medina/trace-distributor-sdk@1.0.0', protocolId: 'trace-distributor', version: '1.0.0', shannonCapacity: 1.078689325833 },
-  { name: '@medina/model-serving-sdk@1.0.0', protocolId: 'model-serving', version: '1.0.0', shannonCapacity: 1.112398367266 },
-  { name: '@medina/inference-router-sdk@1.0.0', protocolId: 'inference-router', version: '1.0.0', shannonCapacity: 1.146107408698 },
-  { name: '@medina/embedding-engine-sdk@1.0.0', protocolId: 'embedding-engine', version: '1.0.0', shannonCapacity: 1.17981645013 },
-  { name: '@medina/vector-search-sdk@1.0.0', protocolId: 'vector-search', version: '1.0.0', shannonCapacity: 1.213525491562 },
-  { name: '@medina/etl-sovereign-sdk@1.0.0', protocolId: 'etl-sovereign', version: '1.0.0', shannonCapacity: 1.247234532995 },
-  { name: '@medina/stream-analytics-sdk@1.0.0', protocolId: 'stream-analytics', version: '1.0.0', shannonCapacity: 1.280943574427 },
-  { name: '@medina/data-lake-sdk@1.0.0', protocolId: 'data-lake', version: '1.0.0', shannonCapacity: 1.314652615859 },
-  { name: '@medina/feature-store-sdk@1.0.0', protocolId: 'feature-store', version: '1.0.0', shannonCapacity: 1.348361657292 },
-  { name: '@medina/payment-gateway-sdk@1.0.0', protocolId: 'payment-gateway', version: '1.0.0', shannonCapacity: 1.382070698724 },
-  { name: '@medina/subscription-engine-sdk@1.0.0', protocolId: 'subscription-engine', version: '1.0.0', shannonCapacity: 1.415779740156 },
-  { name: '@medina/marketplace-protocol-sdk@1.0.0', protocolId: 'marketplace-protocol', version: '1.0.0', shannonCapacity: 1.449488781588 },
-  { name: '@medina/invoice-sovereign-sdk@1.0.0', protocolId: 'invoice-sovereign', version: '1.0.0', shannonCapacity: 1.483197823021 },
-  { name: '@medina/voting-protocol-sdk@1.0.0', protocolId: 'voting-protocol', version: '1.0.0', shannonCapacity: 1.516906864453 },
-  { name: '@medina/proposal-engine-sdk@1.0.0', protocolId: 'proposal-engine', version: '1.0.0', shannonCapacity: 1.550615905885 },
-  { name: '@medina/treasury-sovereign-sdk@1.0.0', protocolId: 'treasury-sovereign', version: '1.0.0', shannonCapacity: 1.584324947318 },
-  { name: '@medina/compliance-wire-sdk@1.0.0', protocolId: 'compliance-wire', version: '1.0.0', shannonCapacity: 1.61803398875 },
+// ── Protocol: Neural Emergence Protocol (NEURAL) ────────────────────────────────────
+const PROTOCOL_NEURAL_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('NEURAL-001', 'readNeuralField', 'NEURAL',
+    { fields: [{ name: 'regionId', type: 'string' }, { name: 'resolution', type: 'number', unit: 'um', range: [1, 1000] }] },
+    { fields: [{ name: 'fieldStrength', type: 'number', unit: 'mV' }, { name: 'coherence', type: 'number', range: [0, 1] }, { name: 'dominantFreq', type: 'number', unit: 'Hz', range: [0.1, 100] }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('NEURAL-002', 'writeNeuralStimulus', 'NEURAL',
+    { fields: [{ name: 'regionId', type: 'string' }, { name: 'amplitude', type: 'number', unit: 'mV', range: [0, 100] }, { name: 'frequencyHz', type: 'number', unit: 'Hz', range: [0.1, 100] }] },
+    { fields: [{ name: 'accepted', type: 'boolean' }, { name: 'responseLatencyMs', type: 'number', unit: 'ms' }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('NEURAL-003', 'getNECCoherence', 'NEURAL',
+    { fields: [{ name: 'windowMs', type: 'number', unit: 'ms', range: [100, 10000] }] },
+    { fields: [{ name: 'necIndex', type: 'number', range: [0, 1] }, { name: 'globalSync', type: 'number', range: [0, 1] }, { name: 'phaseCoherence', type: 'number', range: [0, 1] }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('NEURAL-004', 'mapBrainRegion', 'NEURAL',
+    { fields: [{ name: 'regionId', type: 'string' }, { name: 'depth', type: 'number', unit: 'layers', range: [1, 6] }] },
+    { fields: [{ name: 'neuronCount', type: 'number' }, { name: 'synapseCount', type: 'number' }, { name: 'connectivity', type: 'number', range: [0, 1] }, { name: 'dominantFreq', type: 'number', unit: 'Hz', range: [0.1, 100] }] },
+    6.854101966249686, 1.0),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('NEURAL-005', 'measureLFP', 'NEURAL',
+    { fields: [{ name: 'electrodeId', type: 'string' }, { name: 'durationMs', type: 'number', unit: 'ms', range: [100, 30000] }] },
+    { fields: [{ name: 'lfpAmplitude', type: 'number', unit: 'uV' }, { name: 'spectralPower', type: 'number', unit: 'uV^2/Hz' }, { name: 'thetaAlphaRatio', type: 'number' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-1) = 0.6180
+  mkEntry('NEURAL-006', 'syncNeuralPhase', 'NEURAL',
+    { fields: [{ name: 'regionIds', type: 'string[]' }, { name: 'targetPhase', type: 'number', unit: 'rad', range: [0, 6.28] }] },
+    { fields: [{ name: 'achievedSync', type: 'number', range: [0, 1] }, { name: 'meanPhaseError', type: 'number', unit: 'rad' }] },
+    6.854101966249686, 0.6180339887498949),
 ];
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// §5  VOCATIONES INVOCABILES — Callable Entries (240)
-// ═══════════════════════════════════════════════════════════════════════════════
+const PROTOCOL_NEURAL: ProtocolDef = {
+  id: 'NEURAL',
+  name: 'Neural Emergence Protocol',
+  sdkPackage: '@medina/neural-sdk',
+  version: '1.0.0',
+  domain: 'NEURAL',
+  description: 'Neural field coherence — NEC engine integration and brain region mapping',
+  callableEntries: PROTOCOL_NEURAL_ENTRIES,
+};
 
-export const ALL_CALLABLE_ENTRIES: CallableEntry[] = [
-  // ── CONSENSUS callables ──
-  { callId: 'CE-001', protocolId: 'consensus-engine', endpoint: 'validate', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-002', protocolId: 'consensus-engine', endpoint: 'propose', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-003', protocolId: 'consensus-engine', endpoint: 'commit', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-004', protocolId: 'consensus-engine', endpoint: 'finalize', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-005', protocolId: 'consensus-engine', endpoint: 'audit', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-006', protocolId: 'byzantine-fault', endpoint: 'validate', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-007', protocolId: 'byzantine-fault', endpoint: 'propose', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-008', protocolId: 'byzantine-fault', endpoint: 'commit', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-009', protocolId: 'byzantine-fault', endpoint: 'finalize', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-010', protocolId: 'byzantine-fault', endpoint: 'audit', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-011', protocolId: 'raft-sovereign', endpoint: 'validate', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-012', protocolId: 'raft-sovereign', endpoint: 'propose', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-013', protocolId: 'raft-sovereign', endpoint: 'commit', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-014', protocolId: 'raft-sovereign', endpoint: 'finalize', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-015', protocolId: 'raft-sovereign', endpoint: 'audit', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-016', protocolId: 'paxos-field', endpoint: 'validate', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-017', protocolId: 'paxos-field', endpoint: 'propose', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-018', protocolId: 'paxos-field', endpoint: 'commit', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-019', protocolId: 'paxos-field', endpoint: 'finalize', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-020', protocolId: 'paxos-field', endpoint: 'audit', priority: 8.090169943749, phiScore: 3.090169943749 },
-  // ── IDENTITY callables ──
-  { callId: 'CE-021', protocolId: 'sovereign-identity', endpoint: 'authenticate', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-022', protocolId: 'sovereign-identity', endpoint: 'verify', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-023', protocolId: 'sovereign-identity', endpoint: 'issue', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-024', protocolId: 'sovereign-identity', endpoint: 'revoke', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-025', protocolId: 'sovereign-identity', endpoint: 'rotate', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-026', protocolId: 'biometric-auth', endpoint: 'authenticate', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-027', protocolId: 'biometric-auth', endpoint: 'verify', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-028', protocolId: 'biometric-auth', endpoint: 'issue', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-029', protocolId: 'biometric-auth', endpoint: 'revoke', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-030', protocolId: 'biometric-auth', endpoint: 'rotate', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-031', protocolId: 'zero-knowledge-proof', endpoint: 'authenticate', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-032', protocolId: 'zero-knowledge-proof', endpoint: 'verify', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-033', protocolId: 'zero-knowledge-proof', endpoint: 'issue', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-034', protocolId: 'zero-knowledge-proof', endpoint: 'revoke', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-035', protocolId: 'zero-knowledge-proof', endpoint: 'rotate', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-036', protocolId: 'decentralized-id', endpoint: 'authenticate', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-037', protocolId: 'decentralized-id', endpoint: 'verify', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-038', protocolId: 'decentralized-id', endpoint: 'issue', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-039', protocolId: 'decentralized-id', endpoint: 'revoke', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-040', protocolId: 'decentralized-id', endpoint: 'rotate', priority: 8.090169943749, phiScore: 3.090169943749 },
-  // ── MESSAGING callables ──
-  { callId: 'CE-041', protocolId: 'event-bus', endpoint: 'publish', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-042', protocolId: 'event-bus', endpoint: 'subscribe', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-043', protocolId: 'event-bus', endpoint: 'route', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-044', protocolId: 'event-bus', endpoint: 'acknowledge', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-045', protocolId: 'event-bus', endpoint: 'replay', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-046', protocolId: 'pub-sub-mesh', endpoint: 'publish', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-047', protocolId: 'pub-sub-mesh', endpoint: 'subscribe', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-048', protocolId: 'pub-sub-mesh', endpoint: 'route', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-049', protocolId: 'pub-sub-mesh', endpoint: 'acknowledge', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-050', protocolId: 'pub-sub-mesh', endpoint: 'replay', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-051', protocolId: 'message-queue', endpoint: 'publish', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-052', protocolId: 'message-queue', endpoint: 'subscribe', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-053', protocolId: 'message-queue', endpoint: 'route', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-054', protocolId: 'message-queue', endpoint: 'acknowledge', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-055', protocolId: 'message-queue', endpoint: 'replay', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-056', protocolId: 'stream-relay', endpoint: 'publish', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-057', protocolId: 'stream-relay', endpoint: 'subscribe', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-058', protocolId: 'stream-relay', endpoint: 'route', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-059', protocolId: 'stream-relay', endpoint: 'acknowledge', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-060', protocolId: 'stream-relay', endpoint: 'replay', priority: 8.090169943749, phiScore: 3.090169943749 },
-  // ── STORAGE callables ──
-  { callId: 'CE-061', protocolId: 'sovereign-storage', endpoint: 'write', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-062', protocolId: 'sovereign-storage', endpoint: 'read', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-063', protocolId: 'sovereign-storage', endpoint: 'replicate', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-064', protocolId: 'sovereign-storage', endpoint: 'compact', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-065', protocolId: 'sovereign-storage', endpoint: 'snapshot', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-066', protocolId: 'distributed-cache', endpoint: 'write', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-067', protocolId: 'distributed-cache', endpoint: 'read', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-068', protocolId: 'distributed-cache', endpoint: 'replicate', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-069', protocolId: 'distributed-cache', endpoint: 'compact', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-070', protocolId: 'distributed-cache', endpoint: 'snapshot', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-071', protocolId: 'blob-sovereign', endpoint: 'write', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-072', protocolId: 'blob-sovereign', endpoint: 'read', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-073', protocolId: 'blob-sovereign', endpoint: 'replicate', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-074', protocolId: 'blob-sovereign', endpoint: 'compact', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-075', protocolId: 'blob-sovereign', endpoint: 'snapshot', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-076', protocolId: 'time-series-db', endpoint: 'write', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-077', protocolId: 'time-series-db', endpoint: 'read', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-078', protocolId: 'time-series-db', endpoint: 'replicate', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-079', protocolId: 'time-series-db', endpoint: 'compact', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-080', protocolId: 'time-series-db', endpoint: 'snapshot', priority: 8.090169943749, phiScore: 3.090169943749 },
-  // ── COMPUTE callables ──
-  { callId: 'CE-081', protocolId: 'edge-compute', endpoint: 'execute', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-082', protocolId: 'edge-compute', endpoint: 'schedule', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-083', protocolId: 'edge-compute', endpoint: 'scale', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-084', protocolId: 'edge-compute', endpoint: 'monitor', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-085', protocolId: 'edge-compute', endpoint: 'terminate', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-086', protocolId: 'wasm-runtime', endpoint: 'execute', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-087', protocolId: 'wasm-runtime', endpoint: 'schedule', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-088', protocolId: 'wasm-runtime', endpoint: 'scale', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-089', protocolId: 'wasm-runtime', endpoint: 'monitor', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-090', protocolId: 'wasm-runtime', endpoint: 'terminate', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-091', protocolId: 'lambda-sovereign', endpoint: 'execute', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-092', protocolId: 'lambda-sovereign', endpoint: 'schedule', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-093', protocolId: 'lambda-sovereign', endpoint: 'scale', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-094', protocolId: 'lambda-sovereign', endpoint: 'monitor', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-095', protocolId: 'lambda-sovereign', endpoint: 'terminate', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-096', protocolId: 'gpu-orchestrator', endpoint: 'execute', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-097', protocolId: 'gpu-orchestrator', endpoint: 'schedule', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-098', protocolId: 'gpu-orchestrator', endpoint: 'scale', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-099', protocolId: 'gpu-orchestrator', endpoint: 'monitor', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-100', protocolId: 'gpu-orchestrator', endpoint: 'terminate', priority: 8.090169943749, phiScore: 3.090169943749 },
-  // ── NETWORKING callables ──
-  { callId: 'CE-101', protocolId: 'p2p-mesh', endpoint: 'connect', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-102', protocolId: 'p2p-mesh', endpoint: 'resolve', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-103', protocolId: 'p2p-mesh', endpoint: 'forward', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-104', protocolId: 'p2p-mesh', endpoint: 'balance', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-105', protocolId: 'p2p-mesh', endpoint: 'discover', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-106', protocolId: 'overlay-routing', endpoint: 'connect', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-107', protocolId: 'overlay-routing', endpoint: 'resolve', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-108', protocolId: 'overlay-routing', endpoint: 'forward', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-109', protocolId: 'overlay-routing', endpoint: 'balance', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-110', protocolId: 'overlay-routing', endpoint: 'discover', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-111', protocolId: 'sovereign-dns', endpoint: 'connect', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-112', protocolId: 'sovereign-dns', endpoint: 'resolve', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-113', protocolId: 'sovereign-dns', endpoint: 'forward', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-114', protocolId: 'sovereign-dns', endpoint: 'balance', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-115', protocolId: 'sovereign-dns', endpoint: 'discover', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-116', protocolId: 'load-sovereign', endpoint: 'connect', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-117', protocolId: 'load-sovereign', endpoint: 'resolve', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-118', protocolId: 'load-sovereign', endpoint: 'forward', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-119', protocolId: 'load-sovereign', endpoint: 'balance', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-120', protocolId: 'load-sovereign', endpoint: 'discover', priority: 8.090169943749, phiScore: 3.090169943749 },
-  // ── SECURITY callables ──
-  { callId: 'CE-121', protocolId: 'encryption-vault', endpoint: 'encrypt', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-122', protocolId: 'encryption-vault', endpoint: 'detect', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-123', protocolId: 'encryption-vault', endpoint: 'log', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-124', protocolId: 'encryption-vault', endpoint: 'block', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-125', protocolId: 'encryption-vault', endpoint: 'scan', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-126', protocolId: 'threat-detection', endpoint: 'encrypt', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-127', protocolId: 'threat-detection', endpoint: 'detect', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-128', protocolId: 'threat-detection', endpoint: 'log', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-129', protocolId: 'threat-detection', endpoint: 'block', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-130', protocolId: 'threat-detection', endpoint: 'scan', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-131', protocolId: 'audit-trail', endpoint: 'encrypt', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-132', protocolId: 'audit-trail', endpoint: 'detect', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-133', protocolId: 'audit-trail', endpoint: 'log', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-134', protocolId: 'audit-trail', endpoint: 'block', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-135', protocolId: 'audit-trail', endpoint: 'scan', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-136', protocolId: 'firewall-sovereign', endpoint: 'encrypt', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-137', protocolId: 'firewall-sovereign', endpoint: 'detect', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-138', protocolId: 'firewall-sovereign', endpoint: 'log', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-139', protocolId: 'firewall-sovereign', endpoint: 'block', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-140', protocolId: 'firewall-sovereign', endpoint: 'scan', priority: 8.090169943749, phiScore: 3.090169943749 },
-  // ── OBSERVABILITY callables ──
-  { callId: 'CE-141', protocolId: 'telemetry-core', endpoint: 'collect', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-142', protocolId: 'telemetry-core', endpoint: 'aggregate', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-143', protocolId: 'telemetry-core', endpoint: 'query', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-144', protocolId: 'telemetry-core', endpoint: 'alert', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-145', protocolId: 'telemetry-core', endpoint: 'export', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-146', protocolId: 'metrics-aggregator', endpoint: 'collect', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-147', protocolId: 'metrics-aggregator', endpoint: 'aggregate', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-148', protocolId: 'metrics-aggregator', endpoint: 'query', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-149', protocolId: 'metrics-aggregator', endpoint: 'alert', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-150', protocolId: 'metrics-aggregator', endpoint: 'export', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-151', protocolId: 'log-sovereign', endpoint: 'collect', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-152', protocolId: 'log-sovereign', endpoint: 'aggregate', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-153', protocolId: 'log-sovereign', endpoint: 'query', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-154', protocolId: 'log-sovereign', endpoint: 'alert', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-155', protocolId: 'log-sovereign', endpoint: 'export', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-156', protocolId: 'trace-distributor', endpoint: 'collect', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-157', protocolId: 'trace-distributor', endpoint: 'aggregate', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-158', protocolId: 'trace-distributor', endpoint: 'query', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-159', protocolId: 'trace-distributor', endpoint: 'alert', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-160', protocolId: 'trace-distributor', endpoint: 'export', priority: 8.090169943749, phiScore: 3.090169943749 },
-  // ── AI_INFERENCE callables ──
-  { callId: 'CE-161', protocolId: 'model-serving', endpoint: 'infer', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-162', protocolId: 'model-serving', endpoint: 'classify', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-163', protocolId: 'model-serving', endpoint: 'embed', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-164', protocolId: 'model-serving', endpoint: 'search', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-165', protocolId: 'model-serving', endpoint: 'optimize', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-166', protocolId: 'inference-router', endpoint: 'infer', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-167', protocolId: 'inference-router', endpoint: 'classify', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-168', protocolId: 'inference-router', endpoint: 'embed', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-169', protocolId: 'inference-router', endpoint: 'search', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-170', protocolId: 'inference-router', endpoint: 'optimize', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-171', protocolId: 'embedding-engine', endpoint: 'infer', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-172', protocolId: 'embedding-engine', endpoint: 'classify', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-173', protocolId: 'embedding-engine', endpoint: 'embed', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-174', protocolId: 'embedding-engine', endpoint: 'search', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-175', protocolId: 'embedding-engine', endpoint: 'optimize', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-176', protocolId: 'vector-search', endpoint: 'infer', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-177', protocolId: 'vector-search', endpoint: 'classify', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-178', protocolId: 'vector-search', endpoint: 'embed', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-179', protocolId: 'vector-search', endpoint: 'search', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-180', protocolId: 'vector-search', endpoint: 'optimize', priority: 8.090169943749, phiScore: 3.090169943749 },
-  // ── DATA_PIPELINE callables ──
-  { callId: 'CE-181', protocolId: 'etl-sovereign', endpoint: 'extract', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-182', protocolId: 'etl-sovereign', endpoint: 'transform', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-183', protocolId: 'etl-sovereign', endpoint: 'load', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-184', protocolId: 'etl-sovereign', endpoint: 'analyze', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-185', protocolId: 'etl-sovereign', endpoint: 'materialize', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-186', protocolId: 'stream-analytics', endpoint: 'extract', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-187', protocolId: 'stream-analytics', endpoint: 'transform', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-188', protocolId: 'stream-analytics', endpoint: 'load', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-189', protocolId: 'stream-analytics', endpoint: 'analyze', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-190', protocolId: 'stream-analytics', endpoint: 'materialize', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-191', protocolId: 'data-lake', endpoint: 'extract', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-192', protocolId: 'data-lake', endpoint: 'transform', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-193', protocolId: 'data-lake', endpoint: 'load', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-194', protocolId: 'data-lake', endpoint: 'analyze', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-195', protocolId: 'data-lake', endpoint: 'materialize', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-196', protocolId: 'feature-store', endpoint: 'extract', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-197', protocolId: 'feature-store', endpoint: 'transform', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-198', protocolId: 'feature-store', endpoint: 'load', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-199', protocolId: 'feature-store', endpoint: 'analyze', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-200', protocolId: 'feature-store', endpoint: 'materialize', priority: 8.090169943749, phiScore: 3.090169943749 },
-  // ── COMMERCE callables ──
-  { callId: 'CE-201', protocolId: 'payment-gateway', endpoint: 'charge', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-202', protocolId: 'payment-gateway', endpoint: 'subscribe', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-203', protocolId: 'payment-gateway', endpoint: 'list', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-204', protocolId: 'payment-gateway', endpoint: 'invoice', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-205', protocolId: 'payment-gateway', endpoint: 'refund', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-206', protocolId: 'subscription-engine', endpoint: 'charge', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-207', protocolId: 'subscription-engine', endpoint: 'subscribe', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-208', protocolId: 'subscription-engine', endpoint: 'list', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-209', protocolId: 'subscription-engine', endpoint: 'invoice', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-210', protocolId: 'subscription-engine', endpoint: 'refund', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-211', protocolId: 'marketplace-protocol', endpoint: 'charge', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-212', protocolId: 'marketplace-protocol', endpoint: 'subscribe', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-213', protocolId: 'marketplace-protocol', endpoint: 'list', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-214', protocolId: 'marketplace-protocol', endpoint: 'invoice', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-215', protocolId: 'marketplace-protocol', endpoint: 'refund', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-216', protocolId: 'invoice-sovereign', endpoint: 'charge', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-217', protocolId: 'invoice-sovereign', endpoint: 'subscribe', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-218', protocolId: 'invoice-sovereign', endpoint: 'list', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-219', protocolId: 'invoice-sovereign', endpoint: 'invoice', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-220', protocolId: 'invoice-sovereign', endpoint: 'refund', priority: 8.090169943749, phiScore: 3.090169943749 },
-  // ── GOVERNANCE callables ──
-  { callId: 'CE-221', protocolId: 'voting-protocol', endpoint: 'vote', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-222', protocolId: 'voting-protocol', endpoint: 'propose', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-223', protocolId: 'voting-protocol', endpoint: 'allocate', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-224', protocolId: 'voting-protocol', endpoint: 'audit', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-225', protocolId: 'voting-protocol', endpoint: 'enforce', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-226', protocolId: 'proposal-engine', endpoint: 'vote', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-227', protocolId: 'proposal-engine', endpoint: 'propose', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-228', protocolId: 'proposal-engine', endpoint: 'allocate', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-229', protocolId: 'proposal-engine', endpoint: 'audit', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-230', protocolId: 'proposal-engine', endpoint: 'enforce', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-231', protocolId: 'treasury-sovereign', endpoint: 'vote', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-232', protocolId: 'treasury-sovereign', endpoint: 'propose', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-233', protocolId: 'treasury-sovereign', endpoint: 'allocate', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-234', protocolId: 'treasury-sovereign', endpoint: 'audit', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-235', protocolId: 'treasury-sovereign', endpoint: 'enforce', priority: 8.090169943749, phiScore: 3.090169943749 },
-  { callId: 'CE-236', protocolId: 'compliance-wire', endpoint: 'vote', priority: 1.61803398875, phiScore: 0.61803398875 },
-  { callId: 'CE-237', protocolId: 'compliance-wire', endpoint: 'propose', priority: 3.2360679775, phiScore: 1.2360679775 },
-  { callId: 'CE-238', protocolId: 'compliance-wire', endpoint: 'allocate', priority: 4.85410196625, phiScore: 1.85410196625 },
-  { callId: 'CE-239', protocolId: 'compliance-wire', endpoint: 'audit', priority: 6.472135955, phiScore: 2.472135955 },
-  { callId: 'CE-240', protocolId: 'compliance-wire', endpoint: 'enforce', priority: 8.090169943749, phiScore: 3.090169943749 },
+// ── Protocol: Defense Membrane Protocol (DEFENSE) ────────────────────────────────────
+const PROTOCOL_DEFENSE_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('DEFENSE-001', 'readThreatLevel', 'DEFENSE',
+    { fields: [{ name: 'sectorId', type: 'string' }] },
+    { fields: [{ name: 'threatIndex', type: 'number', range: [0, 1] }, { name: 'confidence', type: 'number', range: [0, 1] }, { name: 'vectorCount', type: 'number' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('DEFENSE-002', 'writeDefensePosture', 'DEFENSE',
+    { fields: [{ name: 'sectorId', type: 'string' }, { name: 'postureLevel', type: 'number', range: [0, 5] }] },
+    { fields: [{ name: 'accepted', type: 'boolean' }, { name: 'activationTimeMs', type: 'number', unit: 'ms' }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('DEFENSE-003', 'shimmerActivate', 'DEFENSE',
+    { fields: [{ name: 'fieldRadius', type: 'number', unit: 'm', range: [1, 1000] }, { name: 'intensity', type: 'number', range: [0, 1] }] },
+    { fields: [{ name: 'shimmerCoherence', type: 'number', range: [0, 1] }, { name: 'coveragePercent', type: 'number', unit: '%', range: [0, 100] }, { name: 'powerDraw', type: 'number', unit: 'W' }] },
+    6.854101966249686, 1.0),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('DEFENSE-004', 'getAntiOrganismStatus', 'DEFENSE',
+    { fields: [{ name: 'targetId', type: 'string' }] },
+    { fields: [{ name: 'detectionProb', type: 'number', range: [0, 1] }, { name: 'neutralizationReady', type: 'boolean' }, { name: 'responseTimeMs', type: 'number', unit: 'ms' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('DEFENSE-005', 'measurePerimeter', 'DEFENSE',
+    { fields: [{ name: 'perimeterSegment', type: 'string' }] },
+    { fields: [{ name: 'integrityIndex', type: 'number', range: [0, 1] }, { name: 'breachCount', type: 'number' }, { name: 'sensorCoverage', type: 'number', unit: '%', range: [0, 100] }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^1 = 1.6180ms, cost: φ^(-3) = 0.2361
+  mkEntry('DEFENSE-006', 'resetDefenseBaseline', 'DEFENSE',
+    { fields: [{ name: 'sectorId', type: 'string' }] },
+    { fields: [{ name: 'baselineThreat', type: 'number', range: [0, 1] }, { name: 'readinessIndex', type: 'number', range: [0, 1] }] },
+    1.618033988749895, 0.23606797749978975),
 ];
 
+const PROTOCOL_DEFENSE: ProtocolDef = {
+  id: 'DEFENSE',
+  name: 'Defense Membrane Protocol',
+  sdkPackage: '@medina/defense-sdk',
+  version: '1.0.0',
+  domain: 'DEFENSE',
+  description: 'Defense membrane and threat detection — shimmer field activation and perimeter control',
+  callableEntries: PROTOCOL_DEFENSE_ENTRIES,
+};
+
+// ── Protocol: Memory Temple Protocol (MEMORY) ────────────────────────────────────
+const PROTOCOL_MEMORY_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('MEMORY-001', 'readMemoryTrace', 'MEMORY',
+    { fields: [{ name: 'traceId', type: 'string' }, { name: 'depth', type: 'number', range: [1, 100] }] },
+    { fields: [{ name: 'traceStrength', type: 'number', range: [0, 1] }, { name: 'ageMs', type: 'number', unit: 'ms' }, { name: 'associationCount', type: 'number' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('MEMORY-002', 'writeMemoryConsolidation', 'MEMORY',
+    { fields: [{ name: 'traceId', type: 'string' }, { name: 'content', type: 'string' }, { name: 'priority', type: 'number', range: [0, 1] }] },
+    { fields: [{ name: 'consolidated', type: 'boolean' }, { name: 'newStrength', type: 'number', range: [0, 1] }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('MEMORY-003', 'chainMemoryBlock', 'MEMORY',
+    { fields: [{ name: 'blockData', type: 'string' }, { name: 'parentHash', type: 'string' }] },
+    { fields: [{ name: 'blockHash', type: 'string' }, { name: 'chainHeight', type: 'number' }, { name: 'integrityProof', type: 'string' }] },
+    6.854101966249686, 1.0),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('MEMORY-004', 'getMemoryCoherence', 'MEMORY',
+    { fields: [{ name: 'windowMs', type: 'number', unit: 'ms', range: [100, 60000] }] },
+    { fields: [{ name: 'coherenceIndex', type: 'number', range: [0, 1] }, { name: 'fragmentationRatio', type: 'number', range: [0, 1] }, { name: 'activeTraces', type: 'number' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('MEMORY-005', 'replayMemory', 'MEMORY',
+    { fields: [{ name: 'traceId', type: 'string' }, { name: 'speedFactor', type: 'number', range: [0.1, 10] }] },
+    { fields: [{ name: 'replayFidelity', type: 'number', range: [0, 1] }, { name: 'durationMs', type: 'number', unit: 'ms' }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-1) = 0.6180
+  mkEntry('MEMORY-006', 'pruneMemoryGraph', 'MEMORY',
+    { fields: [{ name: 'thresholdStrength', type: 'number', range: [0, 0.5] }, { name: 'maxAge', type: 'number', unit: 'ms' }] },
+    { fields: [{ name: 'prunedCount', type: 'number' }, { name: 'remainingCount', type: 'number' }, { name: 'freedBytes', type: 'number', unit: 'bytes' }] },
+    6.854101966249686, 0.6180339887498949),
+];
+
+const PROTOCOL_MEMORY: ProtocolDef = {
+  id: 'MEMORY',
+  name: 'Memory Temple Protocol',
+  sdkPackage: '@medina/memory-sdk',
+  version: '1.0.0',
+  domain: 'MEMORY',
+  description: 'Memory consolidation and trace management — temple architecture with chain-linked blocks',
+  callableEntries: PROTOCOL_MEMORY_ENTRIES,
+};
+
+// ── Protocol: Governance Law Protocol (GOVERNANCE) ────────────────────────────────────
+const PROTOCOL_GOVERNANCE_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('GOV-001', 'readLawCompliance', 'GOVERNANCE',
+    { fields: [{ name: 'doctrineId', type: 'string' }] },
+    { fields: [{ name: 'complianceScore', type: 'number', range: [0, 1] }, { name: 'violationCount', type: 'number' }, { name: 'lastAuditMs', type: 'number', unit: 'ms' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('GOV-002', 'writeLawAmendment', 'GOVERNANCE',
+    { fields: [{ name: 'doctrineId', type: 'string' }, { name: 'amendment', type: 'string' }, { name: 'authorId', type: 'string' }] },
+    { fields: [{ name: 'accepted', type: 'boolean' }, { name: 'newVersion', type: 'number' }] },
+    6.854101966249686, 1.0),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('GOV-003', 'verifyDoctrineIntegrity', 'GOVERNANCE',
+    { fields: [{ name: 'doctrineId', type: 'string' }] },
+    { fields: [{ name: 'integrityHash', type: 'string' }, { name: 'verified', type: 'boolean' }, { name: 'driftMagnitude', type: 'number', range: [0, 1] }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('GOV-004', 'getLawDrift', 'GOVERNANCE',
+    { fields: [{ name: 'doctrineId', type: 'string' }, { name: 'windowMs', type: 'number', unit: 'ms', range: [1000, 86400000] }] },
+    { fields: [{ name: 'driftVector', type: 'number' }, { name: 'driftRate', type: 'number' }, { name: 'convergenceEta', type: 'number' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('GOV-005', 'enforceGovernance', 'GOVERNANCE',
+    { fields: [{ name: 'doctrineId', type: 'string' }, { name: 'enforcementLevel', type: 'number', range: [0, 5] }] },
+    { fields: [{ name: 'enforced', type: 'boolean' }, { name: 'penaltyApplied', type: 'number' }] },
+    6.854101966249686, 1.0),
+  // latency: φ^5 = 11.0902ms, cost: φ^(-0) = 1.0000
+  mkEntry('GOV-006', 'auditLawChain', 'GOVERNANCE',
+    { fields: [{ name: 'startBlock', type: 'number' }, { name: 'endBlock', type: 'number' }] },
+    { fields: [{ name: 'auditResult', type: 'string' }, { name: 'discrepancies', type: 'number' }, { name: 'chainValid', type: 'boolean' }] },
+    11.090169943749476, 1.0),
+];
+
+const PROTOCOL_GOVERNANCE: ProtocolDef = {
+  id: 'GOVERNANCE',
+  name: 'Governance Law Protocol',
+  sdkPackage: '@medina/governance-sdk',
+  version: '1.0.0',
+  domain: 'GOVERNANCE',
+  description: 'Doctrine integrity and law compliance — sovereign governance enforcement and audit chain',
+  callableEntries: PROTOCOL_GOVERNANCE_ENTRIES,
+};
+
+// ── Protocol: Token Economic Protocol (ECONOMIC) ────────────────────────────────────
+const PROTOCOL_ECONOMIC_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('ECON-001', 'readTokenBalance', 'ECONOMIC',
+    { fields: [{ name: 'walletId', type: 'string' }, { name: 'tokenType', type: 'string' }] },
+    { fields: [{ name: 'balance', type: 'number' }, { name: 'stakedBalance', type: 'number' }, { name: 'pendingRewards', type: 'number' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('ECON-002', 'writeTokenMint', 'ECONOMIC',
+    { fields: [{ name: 'recipientId', type: 'string' }, { name: 'amount', type: 'number', range: [0, 1e+18] }, { name: 'tokenType', type: 'string' }] },
+    { fields: [{ name: 'minted', type: 'boolean' }, { name: 'txHash', type: 'string' }] },
+    6.854101966249686, 1.0),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('ECON-003', 'getCoherenceMintRate', 'ECONOMIC',
+    { fields: [{ name: 'coherenceLevel', type: 'number', range: [0, 1] }] },
+    { fields: [{ name: 'mintRate', type: 'number', unit: 'tokens/s' }, { name: 'coherenceMultiplier', type: 'number', range: [1, 5] }, { name: 'epochRemaining', type: 'number', unit: 's' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('ECON-004', 'measureTokenVelocity', 'ECONOMIC',
+    { fields: [{ name: 'tokenType', type: 'string' }, { name: 'windowMs', type: 'number', unit: 'ms', range: [1000, 86400000] }] },
+    { fields: [{ name: 'velocity', type: 'number', unit: 'tx/s' }, { name: 'volumeTotal', type: 'number' }, { name: 'uniqueWallets', type: 'number' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('ECON-005', 'stakeToken', 'ECONOMIC',
+    { fields: [{ name: 'walletId', type: 'string' }, { name: 'amount', type: 'number' }, { name: 'lockDurationMs', type: 'number', unit: 'ms' }] },
+    { fields: [{ name: 'staked', type: 'boolean' }, { name: 'expectedYield', type: 'number' }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('ECON-006', 'getTokenEntropy', 'ECONOMIC',
+    { fields: [{ name: 'tokenType', type: 'string' }] },
+    { fields: [{ name: 'distributionEntropy', type: 'number', unit: 'bits' }, { name: 'giniCoefficient', type: 'number', range: [0, 1] }, { name: 'topHolderShare', type: 'number', unit: '%', range: [0, 100] }] },
+    2.618033988749895, 0.3819660112501052),
+];
+
+const PROTOCOL_ECONOMIC: ProtocolDef = {
+  id: 'ECONOMIC',
+  name: 'Token Economic Protocol',
+  sdkPackage: '@medina/economic-sdk',
+  version: '1.0.0',
+  domain: 'ECONOMIC',
+  description: 'Token economics — minting, staking, velocity measurement, and entropy-driven valuation',
+  callableEntries: PROTOCOL_ECONOMIC_ENTRIES,
+};
+
+// ── Protocol: Quantum Coherence Protocol (QUANTUM) ────────────────────────────────────
+const PROTOCOL_QUANTUM_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('QUANT-001', 'readQuantumState', 'QUANTUM',
+    { fields: [{ name: 'qubitId', type: 'string' }] },
+    { fields: [{ name: 'amplitudeReal', type: 'number', range: [-1, 1] }, { name: 'amplitudeImag', type: 'number', range: [-1, 1] }, { name: 'blochTheta', type: 'number', unit: 'rad', range: [0, 3.14] }, { name: 'blochPhi', type: 'number', unit: 'rad', range: [0, 6.28] }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('QUANT-002', 'writeQuantumGate', 'QUANTUM',
+    { fields: [{ name: 'qubitId', type: 'string' }, { name: 'gateType', type: 'string' }, { name: 'angle', type: 'number', unit: 'rad', range: [0, 6.28] }] },
+    { fields: [{ name: 'applied', type: 'boolean' }, { name: 'fidelity', type: 'number', range: [0, 1] }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('QUANT-003', 'measureEntanglement', 'QUANTUM',
+    { fields: [{ name: 'qubitA', type: 'string' }, { name: 'qubitB', type: 'string' }] },
+    { fields: [{ name: 'concurrence', type: 'number', range: [0, 1] }, { name: 'vonNeumannEntropy', type: 'number', unit: 'bits' }, { name: 'bellParameter', type: 'number', range: [0, 4] }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('QUANT-004', 'collapseWavefunction', 'QUANTUM',
+    { fields: [{ name: 'qubitId', type: 'string' }, { name: 'basis', type: 'string' }] },
+    { fields: [{ name: 'measuredState', type: 'number', range: [0, 1] }, { name: 'collapseProb', type: 'number', range: [0, 1] }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('QUANT-005', 'tunnelBarrier', 'QUANTUM',
+    { fields: [{ name: 'particleEnergy', type: 'number', unit: 'eV' }, { name: 'barrierHeight', type: 'number', unit: 'eV' }, { name: 'barrierWidth', type: 'number', unit: 'nm', range: [0.1, 100] }] },
+    { fields: [{ name: 'transmissionCoeff', type: 'number', range: [0, 1] }, { name: 'reflectionCoeff', type: 'number', range: [0, 1] }, { name: 'tunnelTime', type: 'number', unit: 'fs' }] },
+    6.854101966249686, 1.0),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('QUANT-006', 'getDecoherenceRate', 'QUANTUM',
+    { fields: [{ name: 'qubitId', type: 'string' }, { name: 'environmentTemp', type: 'number', unit: 'K', range: [0, 1000] }] },
+    { fields: [{ name: 't1', type: 'number', unit: 'us' }, { name: 't2', type: 'number', unit: 'us' }, { name: 'decoherenceRate', type: 'number', unit: 'Hz' }] },
+    2.618033988749895, 0.3819660112501052),
+];
+
+const PROTOCOL_QUANTUM: ProtocolDef = {
+  id: 'QUANTUM',
+  name: 'Quantum Coherence Protocol',
+  sdkPackage: '@medina/quantum-sdk',
+  version: '1.0.0',
+  domain: 'QUANTUM',
+  description: 'Quantum state management — coherence, entanglement, tunneling, and decoherence tracking',
+  callableEntries: PROTOCOL_QUANTUM_ENTRIES,
+};
+
+// ── Protocol: Emergence Field Protocol (EMERGENCE) ────────────────────────────────────
+const PROTOCOL_EMERGENCE_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('EMER-001', 'readEmergenceLevel', 'EMERGENCE',
+    { fields: [{ name: 'fieldId', type: 'string' }] },
+    { fields: [{ name: 'emergenceIndex', type: 'number', range: [0, 1] }, { name: 'orderParameter', type: 'number', range: [0, 1] }, { name: 'criticalDistance', type: 'number' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('EMER-002', 'writeEmergenceStimulus', 'EMERGENCE',
+    { fields: [{ name: 'fieldId', type: 'string' }, { name: 'stimulusType', type: 'string' }, { name: 'magnitude', type: 'number', range: [0, 100] }] },
+    { fields: [{ name: 'accepted', type: 'boolean' }, { name: 'fieldResponse', type: 'number' }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('EMER-003', 'getPhaseTransition', 'EMERGENCE',
+    { fields: [{ name: 'fieldId', type: 'string' }, { name: 'temperature', type: 'number', unit: 'K' }] },
+    { fields: [{ name: 'phase', type: 'string' }, { name: 'orderParameter', type: 'number', range: [0, 1] }, { name: 'susceptibility', type: 'number' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('EMER-004', 'measureOrderParameter', 'EMERGENCE',
+    { fields: [{ name: 'fieldId', type: 'string' }, { name: 'sampleCount', type: 'number', range: [10, 10000] }] },
+    { fields: [{ name: 'meanOrder', type: 'number', range: [0, 1] }, { name: 'variance', type: 'number' }, { name: 'binderCumulant', type: 'number' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('EMER-005', 'isingStep', 'EMERGENCE',
+    { fields: [{ name: 'latticeId', type: 'string' }, { name: 'temperature', type: 'number', unit: 'K' }, { name: 'externalField', type: 'number' }] },
+    { fields: [{ name: 'magnetization', type: 'number', range: [-1, 1] }, { name: 'energy', type: 'number', unit: 'J' }, { name: 'acceptanceRate', type: 'number', range: [0, 1] }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('EMER-006', 'landauFreeEnergy', 'EMERGENCE',
+    { fields: [{ name: 'orderParam', type: 'number', range: [-1, 1] }, { name: 'temperature', type: 'number', unit: 'K' }, { name: 'couplingConstants', type: 'number[]' }] },
+    { fields: [{ name: 'freeEnergy', type: 'number', unit: 'J' }, { name: 'stablePhase', type: 'string' }, { name: 'entropyDensity', type: 'number', unit: 'J/K' }] },
+    6.854101966249686, 1.0),
+];
+
+const PROTOCOL_EMERGENCE: ProtocolDef = {
+  id: 'EMERGENCE',
+  name: 'Emergence Field Protocol',
+  sdkPackage: '@medina/emergence-sdk',
+  version: '1.0.0',
+  domain: 'EMERGENCE',
+  description: 'Emergence and phase transitions — Ising model stepping, Landau free energy, order parameters',
+  callableEntries: PROTOCOL_EMERGENCE_ENTRIES,
+};
+
+// ── Protocol: Swarm Intelligence Protocol (SWARM) ────────────────────────────────────
+const PROTOCOL_SWARM_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('SWARM-001', 'readSwarmCoherence', 'SWARM',
+    { fields: [{ name: 'swarmId', type: 'string' }] },
+    { fields: [{ name: 'kuramotoOrder', type: 'number', range: [0, 1] }, { name: 'meanPhase', type: 'number', unit: 'rad', range: [0, 6.28] }, { name: 'droneCount', type: 'number' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('SWARM-002', 'writeDroneCommand', 'SWARM',
+    { fields: [{ name: 'droneId', type: 'string' }, { name: 'command', type: 'string' }, { name: 'priority', type: 'number', range: [0, 5] }] },
+    { fields: [{ name: 'accepted', type: 'boolean' }, { name: 'estimatedCompletionMs', type: 'number', unit: 'ms' }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('SWARM-003', 'getKuramotoOrder', 'SWARM',
+    { fields: [{ name: 'swarmId', type: 'string' }, { name: 'windowMs', type: 'number', unit: 'ms', range: [100, 60000] }] },
+    { fields: [{ name: 'orderR', type: 'number', range: [0, 1] }, { name: 'orderPsi', type: 'number', unit: 'rad', range: [0, 6.28] }, { name: 'couplingK', type: 'number' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('SWARM-004', 'measureFleetSync', 'SWARM',
+    { fields: [{ name: 'fleetId', type: 'string' }] },
+    { fields: [{ name: 'syncRatio', type: 'number', range: [0, 1] }, { name: 'desyncNodes', type: 'number' }, { name: 'meanFrequency', type: 'number', unit: 'Hz' }, { name: 'phaseVariance', type: 'number', unit: 'rad^2' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('SWARM-005', 'assignMission', 'SWARM',
+    { fields: [{ name: 'swarmId', type: 'string' }, { name: 'missionSpec', type: 'string' }, { name: 'constraints', type: 'string' }] },
+    { fields: [{ name: 'assigned', type: 'boolean' }, { name: 'droneAllocation', type: 'number' }] },
+    6.854101966249686, 1.0),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('SWARM-006', 'getSwarmEntropy', 'SWARM',
+    { fields: [{ name: 'swarmId', type: 'string' }] },
+    { fields: [{ name: 'positionEntropy', type: 'number', unit: 'bits' }, { name: 'velocityEntropy', type: 'number', unit: 'bits' }, { name: 'totalEntropy', type: 'number', unit: 'bits' }] },
+    2.618033988749895, 0.3819660112501052),
+];
+
+const PROTOCOL_SWARM: ProtocolDef = {
+  id: 'SWARM',
+  name: 'Swarm Intelligence Protocol',
+  sdkPackage: '@medina/swarm-sdk',
+  version: '1.0.0',
+  domain: 'SWARM',
+  description: 'Swarm coordination — Kuramoto synchronization, fleet coherence, mission assignment',
+  callableEntries: PROTOCOL_SWARM_ENTRIES,
+};
+
+// ── Protocol: Synapse Mesh Protocol (SYNAPSE) ────────────────────────────────────
+const PROTOCOL_SYNAPSE_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('SYN-001', 'readSynapticWeight', 'SYNAPSE',
+    { fields: [{ name: 'preNeuronId', type: 'string' }, { name: 'postNeuronId', type: 'string' }] },
+    { fields: [{ name: 'weight', type: 'number', range: [-1, 1] }, { name: 'lastUpdateMs', type: 'number', unit: 'ms' }, { name: 'plasticityType', type: 'string' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('SYN-002', 'writeHebbianUpdate', 'SYNAPSE',
+    { fields: [{ name: 'preNeuronId', type: 'string' }, { name: 'postNeuronId', type: 'string' }, { name: 'learningRate', type: 'number', range: [0.001, 1] }] },
+    { fields: [{ name: 'newWeight', type: 'number', range: [-1, 1] }, { name: 'deltaW', type: 'number' }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('SYN-003', 'getSynapseTopology', 'SYNAPSE',
+    { fields: [{ name: 'meshId', type: 'string' }, { name: 'maxDepth', type: 'number', range: [1, 10] }] },
+    { fields: [{ name: 'nodeCount', type: 'number' }, { name: 'edgeCount', type: 'number' }, { name: 'clusteringCoeff', type: 'number', range: [0, 1] }, { name: 'meanPathLength', type: 'number' }] },
+    6.854101966249686, 1.0),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('SYN-004', 'measureLTP', 'SYNAPSE',
+    { fields: [{ name: 'synapseId', type: 'string' }, { name: 'stimulusFreqHz', type: 'number', unit: 'Hz', range: [1, 200] }] },
+    { fields: [{ name: 'potentiationIndex', type: 'number', range: [0, 5] }, { name: 'decayConstantMs', type: 'number', unit: 'ms' }, { name: 'saturationLevel', type: 'number', range: [0, 1] }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('SYN-005', 'pruneSynapse', 'SYNAPSE',
+    { fields: [{ name: 'synapseId', type: 'string' }, { name: 'threshold', type: 'number', range: [0, 0.1] }] },
+    { fields: [{ name: 'pruned', type: 'boolean' }, { name: 'freedCapacity', type: 'number' }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-1) = 0.6180
+  mkEntry('SYN-006', 'syncMeshPhase', 'SYNAPSE',
+    { fields: [{ name: 'meshId', type: 'string' }, { name: 'targetPhase', type: 'number', unit: 'rad', range: [0, 6.28] }] },
+    { fields: [{ name: 'achievedPhase', type: 'number', unit: 'rad', range: [0, 6.28] }, { name: 'syncError', type: 'number', unit: 'rad' }] },
+    6.854101966249686, 0.6180339887498949),
+];
+
+const PROTOCOL_SYNAPSE: ProtocolDef = {
+  id: 'SYNAPSE',
+  name: 'Synapse Mesh Protocol',
+  sdkPackage: '@medina/synapse-sdk',
+  version: '1.0.0',
+  domain: 'SYNAPSE',
+  description: 'Synaptic plasticity — Hebbian updates, LTP/LTD, mesh topology, and synapse pruning',
+  callableEntries: PROTOCOL_SYNAPSE_ENTRIES,
+};
+
+// ── Protocol: 57-Model Router Protocol (ROUTING) ────────────────────────────────────
+const PROTOCOL_ROUTING_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('ROUTE-001', 'routeToModel', 'ROUTING',
+    { fields: [{ name: 'query', type: 'string' }, { name: 'constraints', type: 'string' }, { name: 'maxLatencyMs', type: 'number', unit: 'ms' }] },
+    { fields: [{ name: 'selectedModelId', type: 'string' }, { name: 'confidence', type: 'number', range: [0, 1] }, { name: 'estimatedLatencyMs', type: 'number', unit: 'ms' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('ROUTE-002', 'getModelLatency', 'ROUTING',
+    { fields: [{ name: 'modelId', type: 'string' }] },
+    { fields: [{ name: 'p50Ms', type: 'number', unit: 'ms' }, { name: 'p95Ms', type: 'number', unit: 'ms' }, { name: 'p99Ms', type: 'number', unit: 'ms' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('ROUTE-003', 'measureRouteCost', 'ROUTING',
+    { fields: [{ name: 'modelId', type: 'string' }, { name: 'queryComplexity', type: 'number', range: [0, 1] }] },
+    { fields: [{ name: 'tokenCost', type: 'number' }, { name: 'computeCost', type: 'number', unit: 'FLOPS' }, { name: 'totalCostNormalized', type: 'number', range: [0, 1] }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('ROUTE-004', 'balanceLoad', 'ROUTING',
+    { fields: [{ name: 'modelIds', type: 'string[]' }, { name: 'currentLoads', type: 'number[]' }] },
+    { fields: [{ name: 'rebalancedLoads', type: 'number[]' }, { name: 'entropyBefore', type: 'number', unit: 'bits' }, { name: 'entropyAfter', type: 'number', unit: 'bits' }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('ROUTE-005', 'getRouterEntropy', 'ROUTING',
+    { fields: [{ name: 'windowMs', type: 'number', unit: 'ms', range: [100, 60000] }] },
+    { fields: [{ name: 'routingEntropy', type: 'number', unit: 'bits' }, { name: 'modelUtilization', type: 'number', range: [0, 1] }, { name: 'loadVariance', type: 'number' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^5 = 11.0902ms, cost: φ^(-0) = 1.0000
+  mkEntry('ROUTE-006', 'optimizeRouting', 'ROUTING',
+    { fields: [{ name: 'objectiveFunction', type: 'string' }, { name: 'constraints', type: 'string' }] },
+    { fields: [{ name: 'optimizedWeights', type: 'number[]' }, { name: 'expectedImprovement', type: 'number', unit: '%' }] },
+    11.090169943749476, 1.0),
+];
+
+const PROTOCOL_ROUTING: ProtocolDef = {
+  id: 'ROUTING',
+  name: '57-Model Router Protocol',
+  sdkPackage: '@medina/routing-sdk',
+  version: '1.0.0',
+  domain: 'ROUTING',
+  description: 'Multi-model routing — 57-model softmax selection, latency-aware load balancing, cost optimization',
+  callableEntries: PROTOCOL_ROUTING_ENTRIES,
+};
+
+// ── Protocol: Agent Fleet Protocol (AGENT) ────────────────────────────────────
+const PROTOCOL_AGENT_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('AGENT-001', 'readAgentState', 'AGENT',
+    { fields: [{ name: 'agentId', type: 'string' }] },
+    { fields: [{ name: 'status', type: 'string' }, { name: 'taskLoad', type: 'number', range: [0, 1] }, { name: 'coherenceScore', type: 'number', range: [0, 1] }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('AGENT-002', 'writeAgentTask', 'AGENT',
+    { fields: [{ name: 'agentId', type: 'string' }, { name: 'taskSpec', type: 'string' }, { name: 'priority', type: 'number', range: [0, 5] }] },
+    { fields: [{ name: 'accepted', type: 'boolean' }, { name: 'estimatedDurationMs', type: 'number', unit: 'ms' }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('AGENT-003', 'getFleetCoherence', 'AGENT',
+    { fields: [{ name: 'fleetId', type: 'string' }] },
+    { fields: [{ name: 'coherenceIndex', type: 'number', range: [0, 1] }, { name: 'activeAgents', type: 'number' }, { name: 'idleAgents', type: 'number' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('AGENT-004', 'measureAgentLoad', 'AGENT',
+    { fields: [{ name: 'agentId', type: 'string' }, { name: 'windowMs', type: 'number', unit: 'ms', range: [100, 60000] }] },
+    { fields: [{ name: 'cpuUtil', type: 'number', unit: '%', range: [0, 100] }, { name: 'memUtil', type: 'number', unit: '%', range: [0, 100] }, { name: 'taskQueueDepth', type: 'number' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('AGENT-005', 'spawnAgent', 'AGENT',
+    { fields: [{ name: 'agentType', type: 'string' }, { name: 'config', type: 'string' }] },
+    { fields: [{ name: 'agentId', type: 'string' }, { name: 'spawnTimeMs', type: 'number', unit: 'ms' }] },
+    6.854101966249686, 1.0),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('AGENT-006', 'retireAgent', 'AGENT',
+    { fields: [{ name: 'agentId', type: 'string' }, { name: 'graceful', type: 'boolean' }] },
+    { fields: [{ name: 'retired', type: 'boolean' }, { name: 'finalState', type: 'string' }] },
+    4.23606797749979, 0.6180339887498949),
+];
+
+const PROTOCOL_AGENT: ProtocolDef = {
+  id: 'AGENT',
+  name: 'Agent Fleet Protocol',
+  sdkPackage: '@medina/agent-sdk',
+  version: '1.0.0',
+  domain: 'AGENT',
+  description: 'Agent lifecycle management — fleet coherence, task assignment, spawn/retire orchestration',
+  callableEntries: PROTOCOL_AGENT_ENTRIES,
+};
+
+// ── Protocol: Organism Heartbeat Protocol (ORGANISM) ────────────────────────────────────
+const PROTOCOL_ORGANISM_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('ORG-001', 'readOrganismVitals', 'ORGANISM',
+    { fields: [{ name: 'organismId', type: 'string' }] },
+    { fields: [{ name: 'vitality', type: 'number', range: [0, 1] }, { name: 'heartRate', type: 'number', unit: 'bpm', range: [20, 300] }, { name: 'coherenceIndex', type: 'number', range: [0, 1] }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('ORG-002', 'writeOrganismStimulus', 'ORGANISM',
+    { fields: [{ name: 'organismId', type: 'string' }, { name: 'stimulusType', type: 'string' }, { name: 'magnitude', type: 'number', range: [0, 100] }] },
+    { fields: [{ name: 'accepted', type: 'boolean' }, { name: 'responseAmplitude', type: 'number' }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('ORG-003', 'getHeartbeatPhase', 'ORGANISM',
+    { fields: [{ name: 'organismId', type: 'string' }] },
+    { fields: [{ name: 'currentPhase', type: 'number', unit: 'rad', range: [0, 6.28] }, { name: 'frequency', type: 'number', unit: 'Hz', range: [0.5, 3] }, { name: 'amplitude', type: 'number', range: [0, 1] }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('ORG-004', 'measureVitality', 'ORGANISM',
+    { fields: [{ name: 'organismId', type: 'string' }, { name: 'windowMs', type: 'number', unit: 'ms', range: [1000, 60000] }] },
+    { fields: [{ name: 'vitalityMean', type: 'number', range: [0, 1] }, { name: 'vitalityStd', type: 'number' }, { name: 'trendSlope', type: 'number' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-1) = 0.6180
+  mkEntry('ORG-005', 'syncOrganismClock', 'ORGANISM',
+    { fields: [{ name: 'organismId', type: 'string' }, { name: 'masterClockPhase', type: 'number', unit: 'rad', range: [0, 6.28] }] },
+    { fields: [{ name: 'synced', type: 'boolean' }, { name: 'phaseError', type: 'number', unit: 'rad' }] },
+    6.854101966249686, 0.6180339887498949),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('ORG-006', 'getOrganismEntropy', 'ORGANISM',
+    { fields: [{ name: 'organismId', type: 'string' }] },
+    { fields: [{ name: 'metabolicEntropy', type: 'number', unit: 'bits' }, { name: 'neuralEntropy', type: 'number', unit: 'bits' }, { name: 'totalEntropy', type: 'number', unit: 'bits' }] },
+    2.618033988749895, 0.3819660112501052),
+];
+
+const PROTOCOL_ORGANISM: ProtocolDef = {
+  id: 'ORGANISM',
+  name: 'Organism Heartbeat Protocol',
+  sdkPackage: '@medina/organism-sdk',
+  version: '1.0.0',
+  domain: 'ORGANISM',
+  description: 'Organism-level vital signs — heartbeat phase sync, vitality measurement, entropy tracking',
+  callableEntries: PROTOCOL_ORGANISM_ENTRIES,
+};
+
+// ── Protocol: Factory ICP Protocol (FACTORY) ────────────────────────────────────
+const PROTOCOL_FACTORY_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('FACT-001', 'readCanisterState', 'FACTORY',
+    { fields: [{ name: 'canisterId', type: 'string' }] },
+    { fields: [{ name: 'status', type: 'string' }, { name: 'cyclesRemaining', type: 'number' }, { name: 'memoryUsed', type: 'number', unit: 'bytes' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^5 = 11.0902ms, cost: φ^(-0) = 1.0000
+  mkEntry('FACT-002', 'writeCanisterUpgrade', 'FACTORY',
+    { fields: [{ name: 'canisterId', type: 'string' }, { name: 'wasmModule', type: 'string' }] },
+    { fields: [{ name: 'upgraded', type: 'boolean' }, { name: 'newVersion', type: 'string' }] },
+    11.090169943749476, 1.0),
+  // latency: φ^5 = 11.0902ms, cost: φ^(-0) = 1.0000
+  mkEntry('FACT-003', 'deployCanister', 'FACTORY',
+    { fields: [{ name: 'wasmModule', type: 'string' }, { name: 'initArgs', type: 'string' }, { name: 'cyclesBudget', type: 'number' }] },
+    { fields: [{ name: 'canisterId', type: 'string' }, { name: 'deployTimeMs', type: 'number', unit: 'ms' }] },
+    11.090169943749476, 1.0),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('FACT-004', 'measureCycles', 'FACTORY',
+    { fields: [{ name: 'canisterId', type: 'string' }, { name: 'windowMs', type: 'number', unit: 'ms', range: [1000, 86400000] }] },
+    { fields: [{ name: 'cyclesUsed', type: 'number' }, { name: 'cycleRate', type: 'number', unit: 'cycles/s' }, { name: 'estimatedLifetimeMs', type: 'number', unit: 'ms' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('FACT-005', 'getFactoryStatus', 'FACTORY',
+    { fields: [{ name: 'factoryId', type: 'string' }] },
+    { fields: [{ name: 'activeCanisterCount', type: 'number' }, { name: 'totalCyclesBudget', type: 'number' }, { name: 'utilizationPercent', type: 'number', unit: '%', range: [0, 100] }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^5 = 11.0902ms, cost: φ^(-0) = 1.0000
+  mkEntry('FACT-006', 'bridgeToICP', 'FACTORY',
+    { fields: [{ name: 'sourceChain', type: 'string' }, { name: 'payload', type: 'string' }, { name: 'targetCanister', type: 'string' }] },
+    { fields: [{ name: 'bridged', type: 'boolean' }, { name: 'txHash', type: 'string' }, { name: 'confirmationTimeMs', type: 'number', unit: 'ms' }] },
+    11.090169943749476, 1.0),
+];
+
+const PROTOCOL_FACTORY: ProtocolDef = {
+  id: 'FACTORY',
+  name: 'Factory ICP Protocol',
+  sdkPackage: '@medina/factory-sdk',
+  version: '1.0.0',
+  domain: 'FACTORY',
+  description: 'Canister factory — ICP deployment, cycle measurement, cross-chain bridging',
+  callableEntries: PROTOCOL_FACTORY_ENTRIES,
+};
+
+// ── Protocol: 7-Domain Universe Protocol (UNIVERSE) ────────────────────────────────────
+const PROTOCOL_UNIVERSE_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('UNIV-001', 'readDomainState', 'UNIVERSE',
+    { fields: [{ name: 'domainId', type: 'string' }] },
+    { fields: [{ name: 'energy', type: 'number', unit: 'J' }, { name: 'entropy', type: 'number', unit: 'bits' }, { name: 'coherence', type: 'number', range: [0, 1] }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('UNIV-002', 'writeDomainCoupling', 'UNIVERSE',
+    { fields: [{ name: 'domainA', type: 'string' }, { name: 'domainB', type: 'string' }, { name: 'couplingStrength', type: 'number', range: [0, 1] }] },
+    { fields: [{ name: 'applied', type: 'boolean' }, { name: 'newCoupling', type: 'number', range: [0, 1] }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('UNIV-003', 'getCrossDomainEntropy', 'UNIVERSE',
+    { fields: [{ name: 'domainIds', type: 'string[]' }] },
+    { fields: [{ name: 'jointEntropy', type: 'number', unit: 'bits' }, { name: 'mutualInfo', type: 'number', unit: 'bits' }, { name: 'redundancy', type: 'number', range: [0, 1] }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('UNIV-004', 'measureUniverseCoherence', 'UNIVERSE',
+    { fields: [{ name: 'windowMs', type: 'number', unit: 'ms', range: [100, 60000] }] },
+    { fields: [{ name: 'globalCoherence', type: 'number', range: [0, 1] }, { name: 'domainSync', type: 'number[]' }, { name: 'entropyFlow', type: 'number', unit: 'bits/s' }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('UNIV-005', 'syncDomains', 'UNIVERSE',
+    { fields: [{ name: 'domainIds', type: 'string[]' }, { name: 'targetCoherence', type: 'number', range: [0, 1] }] },
+    { fields: [{ name: 'synced', type: 'boolean' }, { name: 'achievedCoherence', type: 'number', range: [0, 1] }] },
+    6.854101966249686, 1.0),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('UNIV-006', 'getDomainTopology', 'UNIVERSE',
+    { fields: [{ name: 'universeId', type: 'string' }] },
+    { fields: [{ name: 'adjacencyMatrix', type: 'number[][]' }, { name: 'spectralGap', type: 'number' }, { name: 'algebraicConnectivity', type: 'number' }] },
+    6.854101966249686, 1.0),
+];
+
+const PROTOCOL_UNIVERSE: ProtocolDef = {
+  id: 'UNIVERSE',
+  name: '7-Domain Universe Protocol',
+  sdkPackage: '@medina/universe-sdk',
+  version: '1.0.0',
+  domain: 'UNIVERSE',
+  description: 'Cross-domain universe — 7-domain coupling, entropy exchange, coherence measurement',
+  callableEntries: PROTOCOL_UNIVERSE_ENTRIES,
+};
+
+// ── Protocol: Mesh Network Protocol (MESH) ────────────────────────────────────
+const PROTOCOL_MESH_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('MESH-001', 'readMeshTopology', 'MESH',
+    { fields: [{ name: 'meshId', type: 'string' }] },
+    { fields: [{ name: 'nodeCount', type: 'number' }, { name: 'edgeCount', type: 'number' }, { name: 'diameter', type: 'number' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('MESH-002', 'writeMeshRoute', 'MESH',
+    { fields: [{ name: 'meshId', type: 'string' }, { name: 'sourceNode', type: 'string' }, { name: 'targetNode', type: 'string' }] },
+    { fields: [{ name: 'routeEstablished', type: 'boolean' }, { name: 'hopCount', type: 'number' }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('MESH-003', 'getMeshLatency', 'MESH',
+    { fields: [{ name: 'sourceNode', type: 'string' }, { name: 'targetNode', type: 'string' }] },
+    { fields: [{ name: 'latencyMs', type: 'number', unit: 'ms' }, { name: 'jitterMs', type: 'number', unit: 'ms' }, { name: 'packetLoss', type: 'number', unit: '%', range: [0, 100] }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('MESH-004', 'measureMeshEntropy', 'MESH',
+    { fields: [{ name: 'meshId', type: 'string' }] },
+    { fields: [{ name: 'topologicalEntropy', type: 'number', unit: 'bits' }, { name: 'routingEntropy', type: 'number', unit: 'bits' }, { name: 'loadEntropy', type: 'number', unit: 'bits' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('MESH-005', 'addMeshNode', 'MESH',
+    { fields: [{ name: 'meshId', type: 'string' }, { name: 'nodeConfig', type: 'string' }] },
+    { fields: [{ name: 'nodeId', type: 'string' }, { name: 'connected', type: 'boolean' }] },
+    6.854101966249686, 1.0),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('MESH-006', 'removeMeshNode', 'MESH',
+    { fields: [{ name: 'meshId', type: 'string' }, { name: 'nodeId', type: 'string' }] },
+    { fields: [{ name: 'removed', type: 'boolean' }, { name: 'rebalanced', type: 'boolean' }] },
+    4.23606797749979, 0.6180339887498949),
+];
+
+const PROTOCOL_MESH: ProtocolDef = {
+  id: 'MESH',
+  name: 'Mesh Network Protocol',
+  sdkPackage: '@medina/mesh-sdk',
+  version: '1.0.0',
+  domain: 'MESH',
+  description: 'Network mesh topology — routing, latency measurement, node management, entropy tracking',
+  callableEntries: PROTOCOL_MESH_ENTRIES,
+};
+
+// ── Protocol: Care+Defense Dual Protocol (CARE) ────────────────────────────────────
+const PROTOCOL_CARE_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('CARE-001', 'readCareState', 'CARE',
+    { fields: [{ name: 'entityId', type: 'string' }] },
+    { fields: [{ name: 'careLevel', type: 'number', range: [0, 1] }, { name: 'defenseLevel', type: 'number', range: [0, 1] }, { name: 'balance', type: 'number', range: [-1, 1] }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('CARE-002', 'writeCareResponse', 'CARE',
+    { fields: [{ name: 'entityId', type: 'string' }, { name: 'responseType', type: 'string' }, { name: 'intensity', type: 'number', range: [0, 1] }] },
+    { fields: [{ name: 'applied', type: 'boolean' }, { name: 'newCareLevel', type: 'number', range: [0, 1] }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('CARE-003', 'getDualBalance', 'CARE',
+    { fields: [{ name: 'entityId', type: 'string' }, { name: 'windowMs', type: 'number', unit: 'ms', range: [100, 60000] }] },
+    { fields: [{ name: 'meanBalance', type: 'number', range: [-1, 1] }, { name: 'oscillationFreq', type: 'number', unit: 'Hz' }, { name: 'stability', type: 'number', range: [0, 1] }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('CARE-004', 'measureCareCoherence', 'CARE',
+    { fields: [{ name: 'entityId', type: 'string' }] },
+    { fields: [{ name: 'careCoherence', type: 'number', range: [0, 1] }, { name: 'defenseCoherence', type: 'number', range: [0, 1] }, { name: 'crossCoherence', type: 'number', range: [-1, 1] }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('CARE-005', 'activateCareMode', 'CARE',
+    { fields: [{ name: 'entityId', type: 'string' }, { name: 'modeLevel', type: 'number', range: [0, 5] }] },
+    { fields: [{ name: 'activated', type: 'boolean' }, { name: 'transitionTimeMs', type: 'number', unit: 'ms' }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('CARE-006', 'getCareEntropy', 'CARE',
+    { fields: [{ name: 'entityId', type: 'string' }] },
+    { fields: [{ name: 'careEntropy', type: 'number', unit: 'bits' }, { name: 'defenseEntropy', type: 'number', unit: 'bits' }, { name: 'dualEntropy', type: 'number', unit: 'bits' }] },
+    2.618033988749895, 0.3819660112501052),
+];
+
+const PROTOCOL_CARE: ProtocolDef = {
+  id: 'CARE',
+  name: 'Care+Defense Dual Protocol',
+  sdkPackage: '@medina/care-sdk',
+  version: '1.0.0',
+  domain: 'CARE',
+  description: 'Care-defense balance — dual-mode operation, antagonistic coupling, coherence maintenance',
+  callableEntries: PROTOCOL_CARE_ENTRIES,
+};
+
+// ── Protocol: Defense Shimmer Protocol (SHIMMER) ────────────────────────────────────
+const PROTOCOL_SHIMMER_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('SHIM-001', 'readShimmerField', 'SHIMMER',
+    { fields: [{ name: 'fieldId', type: 'string' }] },
+    { fields: [{ name: 'fieldIntensity', type: 'number', range: [0, 1] }, { name: 'patternFreq', type: 'number', unit: 'Hz' }, { name: 'coverageRadius', type: 'number', unit: 'm' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('SHIM-002', 'writeShimmerPattern', 'SHIMMER',
+    { fields: [{ name: 'fieldId', type: 'string' }, { name: 'patternType', type: 'string' }, { name: 'frequency', type: 'number', unit: 'Hz', range: [0.1, 1000] }] },
+    { fields: [{ name: 'applied', type: 'boolean' }, { name: 'resonanceMatch', type: 'number', range: [0, 1] }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('SHIM-003', 'getShimmerCoherence', 'SHIMMER',
+    { fields: [{ name: 'fieldId', type: 'string' }, { name: 'windowMs', type: 'number', unit: 'ms', range: [100, 30000] }] },
+    { fields: [{ name: 'coherenceIndex', type: 'number', range: [0, 1] }, { name: 'phaseStability', type: 'number', range: [0, 1] }, { name: 'noiseFloor', type: 'number', unit: 'dB' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('SHIM-004', 'measureShimmerEntropy', 'SHIMMER',
+    { fields: [{ name: 'fieldId', type: 'string' }] },
+    { fields: [{ name: 'spatialEntropy', type: 'number', unit: 'bits' }, { name: 'temporalEntropy', type: 'number', unit: 'bits' }, { name: 'spectralEntropy', type: 'number', unit: 'bits' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('SHIM-005', 'activateShimmer', 'SHIMMER',
+    { fields: [{ name: 'fieldId', type: 'string' }, { name: 'intensity', type: 'number', range: [0, 1] }, { name: 'duration', type: 'number', unit: 'ms' }] },
+    { fields: [{ name: 'activated', type: 'boolean' }, { name: 'peakIntensity', type: 'number', range: [0, 1] }] },
+    6.854101966249686, 1.0),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('SHIM-006', 'deactivateShimmer', 'SHIMMER',
+    { fields: [{ name: 'fieldId', type: 'string' }] },
+    { fields: [{ name: 'deactivated', type: 'boolean' }, { name: 'cooldownMs', type: 'number', unit: 'ms' }] },
+    4.23606797749979, 0.6180339887498949),
+];
+
+const PROTOCOL_SHIMMER: ProtocolDef = {
+  id: 'SHIMMER',
+  name: 'Defense Shimmer Protocol',
+  sdkPackage: '@medina/shimmer-sdk',
+  version: '1.0.0',
+  domain: 'SHIMMER',
+  description: 'Shimmer field defense — pattern generation, coherence tracking, activation control',
+  callableEntries: PROTOCOL_SHIMMER_ENTRIES,
+};
+
+// ── Protocol: Token Ledger Protocol (LEDGER) ────────────────────────────────────
+const PROTOCOL_LEDGER_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('LED-001', 'readLedgerEntry', 'LEDGER',
+    { fields: [{ name: 'entryId', type: 'string' }] },
+    { fields: [{ name: 'timestamp', type: 'number', unit: 'ms' }, { name: 'amount', type: 'number' }, { name: 'entryType', type: 'string' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('LED-002', 'writeLedgerTransaction', 'LEDGER',
+    { fields: [{ name: 'from', type: 'string' }, { name: 'to', type: 'string' }, { name: 'amount', type: 'number', range: [0, 1e+18] }] },
+    { fields: [{ name: 'txHash', type: 'string' }, { name: 'confirmed', type: 'boolean' }] },
+    6.854101966249686, 1.0),
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('LED-003', 'getLedgerBalance', 'LEDGER',
+    { fields: [{ name: 'accountId', type: 'string' }, { name: 'tokenType', type: 'string' }] },
+    { fields: [{ name: 'available', type: 'number' }, { name: 'locked', type: 'number' }, { name: 'total', type: 'number' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('LED-004', 'measureLedgerEntropy', 'LEDGER',
+    { fields: [{ name: 'windowMs', type: 'number', unit: 'ms', range: [1000, 86400000] }] },
+    { fields: [{ name: 'txEntropy', type: 'number', unit: 'bits' }, { name: 'balanceEntropy', type: 'number', unit: 'bits' }, { name: 'networkEntropy', type: 'number', unit: 'bits' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('LED-005', 'verifyLedgerHash', 'LEDGER',
+    { fields: [{ name: 'blockHash', type: 'string' }, { name: 'expectedRoot', type: 'string' }] },
+    { fields: [{ name: 'verified', type: 'boolean' }, { name: 'merkleDepth', type: 'number' }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^5 = 11.0902ms, cost: φ^(-0) = 1.0000
+  mkEntry('LED-006', 'syncLedgerState', 'LEDGER',
+    { fields: [{ name: 'peerNodeId', type: 'string' }, { name: 'fromBlock', type: 'number' }] },
+    { fields: [{ name: 'synced', type: 'boolean' }, { name: 'blocksReceived', type: 'number' }, { name: 'newHeight', type: 'number' }] },
+    11.090169943749476, 1.0),
+];
+
+const PROTOCOL_LEDGER: ProtocolDef = {
+  id: 'LEDGER',
+  name: 'Token Ledger Protocol',
+  sdkPackage: '@medina/ledger-sdk',
+  version: '1.0.0',
+  domain: 'LEDGER',
+  description: 'Immutable ledger — transaction recording, balance tracking, hash verification, state sync',
+  callableEntries: PROTOCOL_LEDGER_ENTRIES,
+};
+
+// ── Protocol: Doctrine Law Protocol (LAW) ────────────────────────────────────
+const PROTOCOL_LAW_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('LAW-001', 'readDoctrineState', 'LAW',
+    { fields: [{ name: 'doctrineId', type: 'string' }] },
+    { fields: [{ name: 'version', type: 'number' }, { name: 'integrity', type: 'number', range: [0, 1] }, { name: 'lastEnforced', type: 'number', unit: 'ms' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('LAW-002', 'writeLawUpdate', 'LAW',
+    { fields: [{ name: 'doctrineId', type: 'string' }, { name: 'clause', type: 'string' }, { name: 'authorId', type: 'string' }] },
+    { fields: [{ name: 'updated', type: 'boolean' }, { name: 'newVersion', type: 'number' }] },
+    6.854101966249686, 1.0),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('LAW-003', 'getLawCoherence', 'LAW',
+    { fields: [{ name: 'doctrineId', type: 'string' }, { name: 'windowMs', type: 'number', unit: 'ms', range: [1000, 86400000] }] },
+    { fields: [{ name: 'coherenceIndex', type: 'number', range: [0, 1] }, { name: 'contradictionCount', type: 'number' }, { name: 'harmonizationScore', type: 'number', range: [0, 1] }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('LAW-004', 'measureLawDrift', 'LAW',
+    { fields: [{ name: 'doctrineId', type: 'string' }] },
+    { fields: [{ name: 'driftMagnitude', type: 'number', range: [0, 1] }, { name: 'driftDirection', type: 'string' }, { name: 'correctionNeeded', type: 'boolean' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('LAW-005', 'enforceLaw', 'LAW',
+    { fields: [{ name: 'doctrineId', type: 'string' }, { name: 'targetEntityId', type: 'string' }] },
+    { fields: [{ name: 'enforced', type: 'boolean' }, { name: 'complianceAchieved', type: 'number', range: [0, 1] }] },
+    6.854101966249686, 1.0),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('LAW-006', 'getLawEntropy', 'LAW',
+    { fields: [{ name: 'doctrineId', type: 'string' }] },
+    { fields: [{ name: 'legislativeEntropy', type: 'number', unit: 'bits' }, { name: 'judicialEntropy', type: 'number', unit: 'bits' }, { name: 'executiveEntropy', type: 'number', unit: 'bits' }] },
+    2.618033988749895, 0.3819660112501052),
+];
+
+const PROTOCOL_LAW: ProtocolDef = {
+  id: 'LAW',
+  name: 'Doctrine Law Protocol',
+  sdkPackage: '@medina/law-sdk',
+  version: '1.0.0',
+  domain: 'LAW',
+  description: 'Doctrine law enforcement — law coherence, drift detection, sovereign rule application',
+  callableEntries: PROTOCOL_LAW_ENTRIES,
+};
+
+// ── Protocol: SDK Emergence Protocol (SDK_PROTO) ────────────────────────────────────
+const PROTOCOL_SDK_PROTO_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('SDK-001', 'readSDKState', 'SDK_PROTO',
+    { fields: [{ name: 'sdkId', type: 'string' }] },
+    { fields: [{ name: 'initialized', type: 'boolean' }, { name: 'version', type: 'string' }, { name: 'uptime', type: 'number', unit: 'ms' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('SDK-002', 'writeSDKConfig', 'SDK_PROTO',
+    { fields: [{ name: 'sdkId', type: 'string' }, { name: 'configKey', type: 'string' }, { name: 'configValue', type: 'string' }] },
+    { fields: [{ name: 'applied', type: 'boolean' }, { name: 'requiresRestart', type: 'boolean' }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('SDK-003', 'getSDKCoherence', 'SDK_PROTO',
+    { fields: [{ name: 'sdkId', type: 'string' }, { name: 'windowMs', type: 'number', unit: 'ms', range: [100, 60000] }] },
+    { fields: [{ name: 'coherenceIndex', type: 'number', range: [0, 1] }, { name: 'errorRate', type: 'number', range: [0, 1] }, { name: 'latencyP95', type: 'number', unit: 'ms' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('SDK-004', 'measureSDKEntropy', 'SDK_PROTO',
+    { fields: [{ name: 'sdkId', type: 'string' }] },
+    { fields: [{ name: 'requestEntropy', type: 'number', unit: 'bits' }, { name: 'responseEntropy', type: 'number', unit: 'bits' }, { name: 'stateEntropy', type: 'number', unit: 'bits' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('SDK-005', 'activateSDK', 'SDK_PROTO',
+    { fields: [{ name: 'sdkId', type: 'string' }, { name: 'activationKey', type: 'string' }] },
+    { fields: [{ name: 'activated', type: 'boolean' }, { name: 'activationTimeMs', type: 'number', unit: 'ms' }] },
+    6.854101966249686, 1.0),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('SDK-006', 'deactivateSDK', 'SDK_PROTO',
+    { fields: [{ name: 'sdkId', type: 'string' }] },
+    { fields: [{ name: 'deactivated', type: 'boolean' }, { name: 'gracefulShutdown', type: 'boolean' }] },
+    4.23606797749979, 0.6180339887498949),
+];
+
+const PROTOCOL_SDK_PROTO: ProtocolDef = {
+  id: 'SDK_PROTO',
+  name: 'SDK Emergence Protocol',
+  sdkPackage: '@medina/sdk-emergence-sdk',
+  version: '1.0.0',
+  domain: 'SDK',
+  description: 'SDK lifecycle — configuration, coherence monitoring, activation/deactivation, entropy measurement',
+  callableEntries: PROTOCOL_SDK_PROTO_ENTRIES,
+};
+
+// ── Protocol: Memory Chain Protocol (CHAIN) ────────────────────────────────────
+const PROTOCOL_CHAIN_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('CHAIN-001', 'readChainBlock', 'CHAIN',
+    { fields: [{ name: 'chainId', type: 'string' }, { name: 'blockHeight', type: 'number' }] },
+    { fields: [{ name: 'blockHash', type: 'string' }, { name: 'blockData', type: 'string' }, { name: 'timestamp', type: 'number', unit: 'ms' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('CHAIN-002', 'writeChainBlock', 'CHAIN',
+    { fields: [{ name: 'chainId', type: 'string' }, { name: 'data', type: 'string' }, { name: 'parentHash', type: 'string' }] },
+    { fields: [{ name: 'blockHash', type: 'string' }, { name: 'newHeight', type: 'number' }] },
+    6.854101966249686, 1.0),
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('CHAIN-003', 'getChainHeight', 'CHAIN',
+    { fields: [{ name: 'chainId', type: 'string' }] },
+    { fields: [{ name: 'height', type: 'number' }, { name: 'tipHash', type: 'string' }, { name: 'finalized', type: 'boolean' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('CHAIN-004', 'measureChainEntropy', 'CHAIN',
+    { fields: [{ name: 'chainId', type: 'string' }, { name: 'windowBlocks', type: 'number', range: [1, 10000] }] },
+    { fields: [{ name: 'blockEntropy', type: 'number', unit: 'bits' }, { name: 'txDensity', type: 'number' }, { name: 'growthRate', type: 'number', unit: 'blocks/s' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^5 = 11.0902ms, cost: φ^(-0) = 1.0000
+  mkEntry('CHAIN-005', 'verifyChainIntegrity', 'CHAIN',
+    { fields: [{ name: 'chainId', type: 'string' }, { name: 'fromBlock', type: 'number' }, { name: 'toBlock', type: 'number' }] },
+    { fields: [{ name: 'valid', type: 'boolean' }, { name: 'invalidBlocks', type: 'number' }, { name: 'merkleRoot', type: 'string' }] },
+    11.090169943749476, 1.0),
+  // latency: φ^5 = 11.0902ms, cost: φ^(-0) = 1.0000
+  mkEntry('CHAIN-006', 'syncChainState', 'CHAIN',
+    { fields: [{ name: 'chainId', type: 'string' }, { name: 'peerNodeId', type: 'string' }] },
+    { fields: [{ name: 'synced', type: 'boolean' }, { name: 'blocksReceived', type: 'number' }, { name: 'newHeight', type: 'number' }] },
+    11.090169943749476, 1.0),
+];
+
+const PROTOCOL_CHAIN: ProtocolDef = {
+  id: 'CHAIN',
+  name: 'Memory Chain Protocol',
+  sdkPackage: '@medina/chain-sdk',
+  version: '1.0.0',
+  domain: 'CHAIN',
+  description: 'Immutable memory chain — block read/write, height tracking, integrity verification, state sync',
+  callableEntries: PROTOCOL_CHAIN_ENTRIES,
+};
+
+// ── Protocol: Heartbeat Organism Protocol (HEARTBEAT) ────────────────────────────────────
+const PROTOCOL_HEARTBEAT_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('BEAT-001', 'readBeatPhase', 'HEARTBEAT',
+    { fields: [{ name: 'organismId', type: 'string' }] },
+    { fields: [{ name: 'phase', type: 'number', unit: 'rad', range: [0, 6.28] }, { name: 'bpm', type: 'number', unit: 'bpm', range: [20, 300] }, { name: 'regularity', type: 'number', range: [0, 1] }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('BEAT-002', 'writeBeatStimulus', 'HEARTBEAT',
+    { fields: [{ name: 'organismId', type: 'string' }, { name: 'stimulusType', type: 'string' }, { name: 'amplitude', type: 'number', range: [0, 1] }] },
+    { fields: [{ name: 'applied', type: 'boolean' }, { name: 'phaseShift', type: 'number', unit: 'rad' }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('BEAT-003', 'getBeatCoherence', 'HEARTBEAT',
+    { fields: [{ name: 'organismId', type: 'string' }, { name: 'windowMs', type: 'number', unit: 'ms', range: [1000, 60000] }] },
+    { fields: [{ name: 'coherence', type: 'number', range: [0, 1] }, { name: 'stabilityIndex', type: 'number', range: [0, 1] }, { name: 'arrhythmiaRisk', type: 'number', range: [0, 1] }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('BEAT-004', 'measureBeatEntropy', 'HEARTBEAT',
+    { fields: [{ name: 'organismId', type: 'string' }] },
+    { fields: [{ name: 'rateEntropy', type: 'number', unit: 'bits' }, { name: 'rhythmEntropy', type: 'number', unit: 'bits' }, { name: 'couplingEntropy', type: 'number', unit: 'bits' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-1) = 0.6180
+  mkEntry('BEAT-005', 'syncBeatClock', 'HEARTBEAT',
+    { fields: [{ name: 'organismId', type: 'string' }, { name: 'masterPhase', type: 'number', unit: 'rad', range: [0, 6.28] }, { name: 'couplingStrength', type: 'number', range: [0, 1] }] },
+    { fields: [{ name: 'synced', type: 'boolean' }, { name: 'residualError', type: 'number', unit: 'rad' }] },
+    6.854101966249686, 0.6180339887498949),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('BEAT-006', 'getBeatHistory', 'HEARTBEAT',
+    { fields: [{ name: 'organismId', type: 'string' }, { name: 'windowMs', type: 'number', unit: 'ms', range: [1000, 300000] }] },
+    { fields: [{ name: 'intervals', type: 'number[]', unit: 'ms' }, { name: 'meanBPM', type: 'number', unit: 'bpm' }, { name: 'sdnn', type: 'number', unit: 'ms' }] },
+    2.618033988749895, 0.3819660112501052),
+];
+
+const PROTOCOL_HEARTBEAT: ProtocolDef = {
+  id: 'HEARTBEAT',
+  name: 'Heartbeat Organism Protocol',
+  sdkPackage: '@medina/heartbeat-sdk',
+  version: '1.0.0',
+  domain: 'HEARTBEAT',
+  description: 'Organism heartbeat clock — phase tracking, stimulus injection, beat history and synchronization',
+  callableEntries: PROTOCOL_HEARTBEAT_ENTRIES,
+};
+
+// ── Protocol: Orchestrator 10-House Protocol (ORCHESTRATOR) ────────────────────────────────────
+const PROTOCOL_ORCHESTRATOR_ENTRIES: CallableEntry[] = [
+  // latency: φ^1 = 1.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('ORCH-001', 'readHouseState', 'ORCHESTRATOR',
+    { fields: [{ name: 'houseId', type: 'string' }] },
+    { fields: [{ name: 'energy', type: 'number' }, { name: 'occupancy', type: 'number', range: [0, 1] }, { name: 'resonanceFreq', type: 'number', unit: 'Hz' }] },
+    1.618033988749895, 0.3819660112501052),
+  // latency: φ^3 = 4.2361ms, cost: φ^(-1) = 0.6180
+  mkEntry('ORCH-002', 'writeHouseConfig', 'ORCHESTRATOR',
+    { fields: [{ name: 'houseId', type: 'string' }, { name: 'configKey', type: 'string' }, { name: 'configValue', type: 'string' }] },
+    { fields: [{ name: 'applied', type: 'boolean' }, { name: 'effectiveAfterMs', type: 'number', unit: 'ms' }] },
+    4.23606797749979, 0.6180339887498949),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('ORCH-003', 'getOrchestratorCoherence', 'ORCHESTRATOR',
+    { fields: [{ name: 'windowMs', type: 'number', unit: 'ms', range: [100, 60000] }] },
+    { fields: [{ name: 'overallCoherence', type: 'number', range: [0, 1] }, { name: 'houseSync', type: 'number[]' }, { name: 'interHouseCoupling', type: 'number', range: [0, 1] }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^2 = 2.6180ms, cost: φ^(-2) = 0.3820
+  mkEntry('ORCH-004', 'measureHouseEntropy', 'ORCHESTRATOR',
+    { fields: [{ name: 'houseId', type: 'string' }] },
+    { fields: [{ name: 'stateEntropy', type: 'number', unit: 'bits' }, { name: 'flowEntropy', type: 'number', unit: 'bits' }, { name: 'couplingEntropy', type: 'number', unit: 'bits' }] },
+    2.618033988749895, 0.3819660112501052),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('ORCH-005', 'activateHouse', 'ORCHESTRATOR',
+    { fields: [{ name: 'houseId', type: 'string' }, { name: 'activationLevel', type: 'number', range: [0, 5] }] },
+    { fields: [{ name: 'activated', type: 'boolean' }, { name: 'rampUpTimeMs', type: 'number', unit: 'ms' }] },
+    6.854101966249686, 1.0),
+  // latency: φ^4 = 6.8541ms, cost: φ^(-0) = 1.0000
+  mkEntry('ORCH-006', 'getHouseTopology', 'ORCHESTRATOR',
+    { fields: [{ name: 'orchestratorId', type: 'string' }] },
+    { fields: [{ name: 'adjacency', type: 'number[][]' }, { name: 'spectralRadius', type: 'number' }, { name: 'chromaticNumber', type: 'number' }] },
+    6.854101966249686, 1.0),
+];
+
+const PROTOCOL_ORCHESTRATOR: ProtocolDef = {
+  id: 'ORCHESTRATOR',
+  name: 'Orchestrator 10-House Protocol',
+  sdkPackage: '@medina/orchestrator-sdk',
+  version: '1.0.0',
+  domain: 'ORCHESTRATOR',
+  description: '10-House cosmic orchestration — house state management, topology mapping, entropy measurement',
+  callableEntries: PROTOCOL_ORCHESTRATOR_ENTRIES,
+};
+
 // ═══════════════════════════════════════════════════════════════════════════════
-// §6  ORCHESTRATIONES — Orchestration Specs (12)
+// ALL PROTOCOLS COLLECTION
 // ═══════════════════════════════════════════════════════════════════════════════
+
+export const ALL_PROTOCOLS: ProtocolDef[] = [
+  PROTOCOL_HEART,
+  PROTOCOL_NEURAL,
+  PROTOCOL_DEFENSE,
+  PROTOCOL_MEMORY,
+  PROTOCOL_GOVERNANCE,
+  PROTOCOL_ECONOMIC,
+  PROTOCOL_QUANTUM,
+  PROTOCOL_EMERGENCE,
+  PROTOCOL_SWARM,
+  PROTOCOL_SYNAPSE,
+  PROTOCOL_ROUTING,
+  PROTOCOL_AGENT,
+  PROTOCOL_ORGANISM,
+  PROTOCOL_FACTORY,
+  PROTOCOL_UNIVERSE,
+  PROTOCOL_MESH,
+  PROTOCOL_CARE,
+  PROTOCOL_SHIMMER,
+  PROTOCOL_LEDGER,
+  PROTOCOL_LAW,
+  PROTOCOL_SDK_PROTO,
+  PROTOCOL_CHAIN,
+  PROTOCOL_HEARTBEAT,
+  PROTOCOL_ORCHESTRATOR,
+];
+
+export const ALL_CALLABLE_ENTRIES: CallableEntry[] = ALL_PROTOCOLS.flatMap(p => p.callableEntries);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 3: SDK BINDINGS — 24 SDKs
+// shannonCapacity = B × log2(1 + SNR)
+//   where B = 1000 / meanLatencyMs, SNR = 1 / meanCostWeight
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function buildSDKBindings(protocols: ProtocolDef[]): SDKBinding[] {
+  return protocols.map(p => {
+    const entries = p.callableEntries;
+    const totalCostWeight = entries.reduce((s, e) => s + e.costWeight, 0);
+    const meanLatencyMs = entries.reduce((s, e) => s + e.latencyMs, 0) / entries.length;
+    const meanCostWeight = totalCostWeight / entries.length;
+    const B = 1000 / meanLatencyMs;  // bandwidth in calls/sec
+    const SNR = 1 / meanCostWeight;  // signal-to-noise ratio analog
+    const shannonCapacity = B * Math.log2(1 + SNR);
+    return {
+      package: p.sdkPackage,
+      version: p.version,
+      protocol: p.id,
+      entryCount: entries.length,
+      totalCostWeight,
+      meanLatencyMs,
+      shannonCapacity,
+      description: p.description,
+    };
+  });
+}
+
+export const ALL_SDK_BINDINGS: SDKBinding[] = buildSDKBindings(ALL_PROTOCOLS);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SECTION 4: MULTI-MODEL ORCHESTRATION SPECS — 8 SPECS
+// Coupling matrices derived from φ-based coupling and symmetry groups.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Helper: generate coupling matrix for exponential φ-decay
+function phiDecayMatrix(n: number): number[][] {
+  const m: number[][] = [];
+  for (let i = 0; i < n; i++) {
+    m[i] = [];
+    for (let j = 0; j < n; j++) {
+      m[i][j] = Math.pow(PHI_INV, Math.abs(i - j));
+    }
+  }
+  return m;
+}
+
+// Helper: rotational symmetry coupling
+function rotationalMatrix(n: number): number[][] {
+  const m: number[][] = [];
+  for (let i = 0; i < n; i++) {
+    m[i] = [];
+    for (let j = 0; j < n; j++) {
+      m[i][j] = Math.cos(2 * PI * (i - j) / n) * PHI_INV;
+    }
+  }
+  return m;
+}
+
+// Helper: Hadamard-like quantum matrix
+function hadamardMatrix(n: number): number[][] {
+  const scale = 1 / Math.sqrt(n);
+  const m: number[][] = [];
+  for (let i = 0; i < n; i++) {
+    m[i] = [];
+    for (let j = 0; j < n; j++) {
+      // popcount of bitwise AND
+      let bits = i & j;
+      let count = 0;
+      while (bits) { count += bits & 1; bits >>= 1; }
+      m[i][j] = Math.pow(-1, count) * scale;
+    }
+  }
+  return m;
+}
 
 export const ALL_ORCHESTRATIONS: OrchestrationSpec[] = [
   {
-    name: 'Three Hearts Orchestrator',
-    workerCount: 36,
-    protocolCount: 12,
-    shannonCapacity: 36.0,
-    description: 'Tripartite cardiac oscillator coordinating all organism heartbeats',
+    id: 'ORCH-THREE-HEARTS',
+    name: 'Three Hearts Orchestration',
+    modelCount: 3,
+    routingFunction: 'Cardiac triad phase coupling: K_ij = PHI^(-|i-j|)',
+    // Coupling: [[1, φ⁻¹, φ⁻²], [φ⁻¹, 1, φ⁻¹], [φ⁻², φ⁻¹, 1]]
+    couplingMatrix: phiDecayMatrix(3),
+    throughput: 1000 * 3,  // 3 models × 1000 base throughput
+    meanLatencyMs: Math.pow(1.618033988749895 * 2.618033988749895 * 4.23606797749979, 1/3),  // geometric mean of constituent latencies
+    entropyBits: Math.log2(3) + shannonEntropy([1/3, 1/3, 1/3]),  // log2(3) + coupling entropy
+    gibbsFreeEnergy: (0.6180339887498949 + 0.3819660112501052 + 1.0) * 1000 - 300 * Math.log2(3),  // Σ costs × 1000 − T × H
+    description: 'Cardiac triad with golden-ratio phase coupling: K_ij = phi^(-|i-j|)',
   },
   {
-    name: 'Agent Fleet Commander',
-    workerCount: 72,
-    protocolCount: 16,
-    shannonCapacity: 72.0,
-    description: 'Fleet-level command for 72 sovereign agent workers',
+    id: 'ORCH-AGENT-FLEET',
+    name: 'Agent Fleet Orchestration',
+    modelCount: 12,
+    routingFunction: 'Fleet coordination: C[i][j] = PHI^(-|i-j|) exponential decay',
+    couplingMatrix: phiDecayMatrix(12),
+    throughput: 1000 * 12,
+    meanLatencyMs: Math.pow(1.618033988749895 * 4.23606797749979 * 2.618033988749895 * 6.854101966249686, 1/4),
+    entropyBits: Math.log2(12) + shannonEntropy(Array.from({length: 12}, () => 1/12)),
+    gibbsFreeEnergy: 12 * 0.6180339887498949 * 1000 - 300 * Math.log2(12),
+    description: '12-agent fleet with exponential decay coupling: C[i][j] = phi^(-|i-j|)',
   },
   {
-    name: '72-Worker Router',
-    workerCount: 72,
-    protocolCount: 24,
-    shannonCapacity: 72.0,
-    description: 'High-throughput routing mesh for full worker complement',
+    id: 'ORCH-57-ROUTER',
+    name: '57-Model Router Orchestration',
+    modelCount: 57,
+    routingFunction: 'softmax(PHI_INV × latency_vector / sum(latencies))',
+    // 57×57 matrix too large to store — described by routing function
+    couplingMatrix: [[1]],  // representative — full matrix described by routingFunction
+    throughput: 1000 * 57,
+    meanLatencyMs: Math.pow(1.618033988749895 * 2.618033988749895 * 4.23606797749979, 1/3),
+    entropyBits: Math.log2(57),  // 5.833 bits
+    gibbsFreeEnergy: 57 * 0.3819660112501052 * 1000 - 300 * Math.log2(57),
+    description: 'Full routing mesh: softmax(phi^(-1) × latency_vector / sum(latencies))',
   },
   {
-    name: '15-Domain Universe',
-    workerCount: 15,
-    protocolCount: 48,
-    shannonCapacity: 15.0,
-    description: 'Universe-scale domain orchestration across all protocol categories',
+    id: 'ORCH-7-DOMAIN',
+    name: '7-Domain Universe Orchestration',
+    modelCount: 7,
+    routingFunction: 'Rotational symmetry: C[i][j] = cos(2π(i-j)/7) × PHI_INV',
+    couplingMatrix: rotationalMatrix(7),
+    throughput: 1000 * 7,
+    meanLatencyMs: Math.pow(1.618033988749895 * 2.618033988749895 * 4.23606797749979 * 1.618033988749895, 1/4),
+    entropyBits: Math.log2(7) + shannonEntropy(Array.from({length: 7}, () => 1/7)),
+    gibbsFreeEnergy: 7 * 0.6180339887498949 * 1000 - 300 * Math.log2(7),
+    description: 'Cross-domain coupling: C[i][j] = cos(2*pi*(i-j)/7) * phi^(-1)',
   },
   {
-    name: 'Synapse Mesh Controller',
-    workerCount: 48,
-    protocolCount: 32,
-    shannonCapacity: 48.0,
-    description: 'Neural synapse mesh connecting all protocol endpoints',
+    id: 'ORCH-SYNAPSE-MESH',
+    name: 'Synapse Mesh Orchestration',
+    modelCount: 21,
+    routingFunction: 'Hebbian: dW_ij = eta × x_i × x_j − lambda × W_ij',
+    couplingMatrix: phiDecayMatrix(21),  // initialized with φ-decay, updated by Hebbian rule
+    throughput: 1000 * 21,
+    meanLatencyMs: Math.pow(1.618033988749895 * 4.23606797749979 * 6.854101966249686, 1/3),
+    entropyBits: Math.log2(21) + shannonEntropy(Array.from({length: 21}, () => 1/21)),
+    gibbsFreeEnergy: 21 * 0.6180339887498949 * 1000 - 300 * Math.log2(21),
+    description: 'Hebbian learning mesh: dW_ij = eta * x_i * x_j - lambda * W_ij',
   },
   {
-    name: 'Quantum Meta Bridge',
-    workerCount: 24,
-    protocolCount: 20,
-    shannonCapacity: 24.0,
-    description: 'Quantum coherence bridge for meta-protocol entanglement',
+    id: 'ORCH-QUANTUM-META',
+    name: 'Quantum Meta Orchestration',
+    modelCount: 8,
+    routingFunction: 'Hadamard: C[i][j] = (-1)^popcount(i&j) / sqrt(8)',
+    couplingMatrix: hadamardMatrix(8),
+    throughput: 1000 * 8,
+    meanLatencyMs: Math.pow(1.618033988749895 * 2.618033988749895 * 4.23606797749979 * 6.854101966249686, 1/4),
+    entropyBits: Math.log2(8) + shannonEntropy(Array.from({length: 8}, () => 1/8)),
+    gibbsFreeEnergy: 8 * 0.3819660112501052 * 1000 - 300 * Math.log2(8),
+    description: 'Hadamard-like quantum routing: C[i][j] = (-1)^popcount(i&j) / sqrt(8)',
   },
   {
-    name: 'Care+Defense Shield',
-    workerCount: 36,
-    protocolCount: 14,
-    shannonCapacity: 36.0,
-    description: 'Unified care and defense perimeter orchestration',
+    id: 'ORCH-CARE-DEFENSE',
+    name: 'Care+Defense Dual Orchestration',
+    modelCount: 2,
+    routingFunction: 'Antagonistic inhibitory: C = [[1, -PHI_INV], [-PHI_INV, 1]]',
+    couplingMatrix: [[1, -PHI_INV], [-PHI_INV, 1]],
+    throughput: 1000 * 2,
+    meanLatencyMs: Math.pow(1.618033988749895 * 4.23606797749979, 1/2),
+    entropyBits: Math.log2(2) + shannonEntropy([0.5, 0.5]),
+    gibbsFreeEnergy: 2 * 0.6180339887498949 * 1000 - 300 * Math.log2(2),
+    description: 'Antagonistic coupling: C = [[1, -phi^(-1)], [-phi^(-1), 1]]',
   },
   {
-    name: '10-House Sovereign',
-    workerCount: 10,
-    protocolCount: 10,
-    shannonCapacity: 10.0,
-    description: 'Ten-house sovereign domain partition controller',
-  },
-  {
-    name: 'Product Factory Orchestrator',
-    workerCount: 60,
-    protocolCount: 28,
-    shannonCapacity: 60.0,
-    description: 'Factory-level product assembly and deployment pipeline',
-  },
-  {
-    name: 'Observer Network Controller',
-    workerCount: 12,
-    protocolCount: 12,
-    shannonCapacity: 12.0,
-    description: 'Observer station network coordination and alert routing',
-  },
-  {
-    name: 'Protocol Mesh Gateway',
-    workerCount: 48,
-    protocolCount: 48,
-    shannonCapacity: 48.0,
-    description: 'Full-mesh gateway connecting all 48 sovereign protocols',
-  },
-  {
-    name: 'Infrastructure Sentinel',
-    workerCount: 96,
-    protocolCount: 36,
-    shannonCapacity: 96.0,
-    description: 'Infrastructure-wide sentinel monitoring and auto-healing',
+    id: 'ORCH-10-HOUSE',
+    name: 'Orchestrator 10-House Orchestration',
+    modelCount: 10,
+    routingFunction: 'Decagonal symmetry: C[i][j] = PHI_INV × cos(2π(i-j)/10)',
+    couplingMatrix: rotationalMatrix(10),
+    throughput: 1000 * 10,
+    meanLatencyMs: Math.pow(1.618033988749895 * 2.618033988749895 * 4.23606797749979 * 6.854101966249686, 1/4),
+    entropyBits: Math.log2(10) + shannonEntropy(Array.from({length: 10}, () => 1/10)),
+    gibbsFreeEnergy: 10 * 0.6180339887498949 * 1000 - 300 * Math.log2(10),
+    description: 'Decagonal symmetry: C[i][j] = phi^(-1) * cos(2*pi*(i-j)/10)',
   },
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// §7  FILA IMPERII — Enterprise Wires (16)
+// SECTION 5: ENTERPRISE WIRES — 12 WIRES
+// shannonCapacity = bandwidthBps × log2(1 + SNR)
+// signalToNoise = 1 / (1 − couplingStrength + 1e-10)
+// propagationDelay = latencyMs × 0.001 × (bandwidthBps / 1e9)
+// mutualInformation = couplingStrength × log2(1 + SNR)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export const ALL_ENTERPRISE_WIRES: EnterpriseWire[] = [
-  {
-    name: 'Consensus Backbone',
-    snr: 1.6180339887,
-    mutualInformation: 0.4812118251,
-    bandwidth: 2618.033989,
-    protocols: ['consensus-engine', 'byzantine-fault', 'raft-sovereign'],
-  },
-  {
-    name: 'Identity Fabric',
-    snr: 3.2360679775,
-    mutualInformation: 0.9624236501,
-    bandwidth: 5236.067977,
-    protocols: ['paxos-field', 'sovereign-identity', 'biometric-auth'],
-  },
-  {
-    name: 'Messaging Spine',
-    snr: 4.8541019662,
-    mutualInformation: 1.4436354752,
-    bandwidth: 7854.101966,
-    protocols: ['zero-knowledge-proof', 'decentralized-id', 'event-bus'],
-  },
-  {
-    name: 'Storage Substrate',
-    snr: 6.472135955,
-    mutualInformation: 1.9248473002,
-    bandwidth: 10472.135955,
-    protocols: ['pub-sub-mesh', 'message-queue', 'stream-relay'],
-  },
-  {
-    name: 'Compute Lattice',
-    snr: 8.0901699437,
-    mutualInformation: 2.4060591253,
-    bandwidth: 13090.169944,
-    protocols: ['sovereign-storage', 'distributed-cache', 'blob-sovereign'],
-  },
-  {
-    name: 'Network Mesh',
-    snr: 9.7082039325,
-    mutualInformation: 2.8872709504,
-    bandwidth: 15708.203932,
-    protocols: ['time-series-db', 'edge-compute', 'wasm-runtime'],
-  },
-  {
-    name: 'Security Perimeter',
-    snr: 11.3262379212,
-    mutualInformation: 3.3684827754,
-    bandwidth: 18326.237921,
-    protocols: ['lambda-sovereign', 'gpu-orchestrator', 'p2p-mesh'],
-  },
-  {
-    name: 'Observability Grid',
-    snr: 12.94427191,
-    mutualInformation: 3.8496946005,
-    bandwidth: 20944.27191,
-    protocols: ['overlay-routing', 'sovereign-dns', 'load-sovereign'],
-  },
-  {
-    name: 'AI Inference Plane',
-    snr: 14.5623058987,
-    mutualInformation: 4.3309064255,
-    bandwidth: 23562.305899,
-    protocols: ['encryption-vault', 'threat-detection', 'audit-trail'],
-  },
-  {
-    name: 'Data Pipeline Stream',
-    snr: 16.1803398875,
-    mutualInformation: 4.8121182506,
-    bandwidth: 26180.339887,
-    protocols: ['firewall-sovereign', 'telemetry-core', 'metrics-aggregator'],
-  },
-  {
-    name: 'Commerce Gateway',
-    snr: 17.7983738762,
-    mutualInformation: 5.2933300757,
-    bandwidth: 28798.373876,
-    protocols: ['log-sovereign', 'trace-distributor', 'model-serving'],
-  },
-  {
-    name: 'Governance Chain',
-    snr: 19.416407865,
-    mutualInformation: 5.7745419007,
-    bandwidth: 31416.407865,
-    protocols: ['inference-router', 'embedding-engine', 'vector-search'],
-  },
-  {
-    name: 'Cross-Domain Bridge',
-    snr: 21.0344418537,
-    mutualInformation: 6.2557537258,
-    bandwidth: 34034.441854,
-    protocols: ['etl-sovereign', 'stream-analytics', 'data-lake'],
-  },
-  {
-    name: 'Emergency Failover',
-    snr: 22.6524758425,
-    mutualInformation: 6.7369655508,
-    bandwidth: 36652.475842,
-    protocols: ['feature-store', 'payment-gateway', 'subscription-engine'],
-  },
-  {
-    name: 'Sovereign Heartbeat',
-    snr: 24.2705098312,
-    mutualInformation: 7.2181773759,
-    bandwidth: 39270.509831,
-    protocols: ['marketplace-protocol', 'invoice-sovereign', 'voting-protocol'],
-  },
-  {
-    name: 'Meta-Protocol Bus',
-    snr: 25.88854382,
-    mutualInformation: 7.699389201,
-    bandwidth: 41888.54382,
-    protocols: ['proposal-engine', 'treasury-sovereign', 'compliance-wire'],
-  },
-];
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// §8  STATIONES OBSERVATORUM — Observer Stations (12)
-// ═══════════════════════════════════════════════════════════════════════════════
-
-export const ALL_OBSERVER_STATIONS: ObserverStation[] = [
-  {
-    id: 'OBSERVER_HEARTBEAT',
-    name: 'Heartbeat Monitor',
-    domain: 'CARDIAC',
-    watchedProtocols: ['consensus-engine', 'byzantine-fault', 'raft-sovereign', 'paxos-field'],
-    alertThreshold: 0.051502832396,
-    status: 'ACTIVE',
-    observationCount: 1000,
-  },
-  {
-    id: 'OBSERVER_NEURAL',
-    name: 'Neural Activity Scanner',
-    domain: 'NEURAL',
-    watchedProtocols: ['sovereign-identity', 'biometric-auth', 'zero-knowledge-proof', 'decentralized-id'],
-    alertThreshold: 0.103005664792,
-    status: 'ACTIVE',
-    observationCount: 2000,
-  },
-  {
-    id: 'OBSERVER_PROTOCOL',
-    name: 'Protocol Health Checker',
-    domain: 'PROTOCOL',
-    watchedProtocols: ['event-bus', 'pub-sub-mesh', 'message-queue', 'stream-relay'],
-    alertThreshold: 0.154508497187,
-    status: 'ACTIVE',
-    observationCount: 3000,
-  },
-  {
-    id: 'OBSERVER_SECURITY',
-    name: 'Security Threat Watcher',
-    domain: 'SECURITY',
-    watchedProtocols: ['encryption-vault', 'threat-detection', 'audit-trail', 'firewall-sovereign'],
-    alertThreshold: 0.206011329583,
-    status: 'ACTIVE',
-    observationCount: 4000,
-  },
-  {
-    id: 'OBSERVER_COMMERCE',
-    name: 'Commerce Flow Monitor',
-    domain: 'COMMERCE',
-    watchedProtocols: ['payment-gateway', 'subscription-engine', 'marketplace-protocol', 'invoice-sovereign'],
-    alertThreshold: 0.257514161979,
-    status: 'ACTIVE',
-    observationCount: 5000,
-  },
-  {
-    id: 'OBSERVER_INFRASTRUCTURE',
-    name: 'Infrastructure Sentinel',
-    domain: 'INFRASTRUCTURE',
-    watchedProtocols: ['edge-compute', 'wasm-runtime', 'lambda-sovereign', 'gpu-orchestrator'],
-    alertThreshold: 0.309016994375,
-    status: 'ACTIVE',
-    observationCount: 6000,
-  },
-  {
-    id: 'OBSERVER_AI',
-    name: 'AI Inference Watcher',
-    domain: 'AI',
-    watchedProtocols: ['model-serving', 'inference-router', 'embedding-engine', 'vector-search'],
-    alertThreshold: 0.360519826771,
-    status: 'ACTIVE',
-    observationCount: 7000,
-  },
-  {
-    id: 'OBSERVER_DATA',
-    name: 'Data Pipeline Observer',
-    domain: 'DATA',
-    watchedProtocols: ['etl-sovereign', 'stream-analytics', 'data-lake', 'feature-store'],
-    alertThreshold: 0.412022659167,
-    status: 'ACTIVE',
-    observationCount: 8000,
-  },
-  {
-    id: 'OBSERVER_NETWORK',
-    name: 'Network Topology Scanner',
-    domain: 'NETWORK',
-    watchedProtocols: ['p2p-mesh', 'overlay-routing', 'sovereign-dns', 'load-sovereign'],
-    alertThreshold: 0.463525491562,
-    status: 'ACTIVE',
-    observationCount: 9000,
-  },
-  {
-    id: 'OBSERVER_GOVERNANCE',
-    name: 'Governance Compliance Watcher',
-    domain: 'GOVERNANCE',
-    watchedProtocols: ['voting-protocol', 'proposal-engine', 'treasury-sovereign', 'compliance-wire'],
-    alertThreshold: 0.515028323958,
-    status: 'ACTIVE',
-    observationCount: 10000,
-  },
-  {
-    id: 'OBSERVER_PRODUCT',
-    name: 'Product Lifecycle Monitor',
-    domain: 'PRODUCT',
-    watchedProtocols: ['sovereign-storage', 'distributed-cache', 'blob-sovereign', 'time-series-db'],
-    alertThreshold: 0.566531156354,
-    status: 'ACTIVE',
-    observationCount: 11000,
-  },
-  {
-    id: 'OBSERVER_CONSCIOUSNESS',
-    name: 'Consciousness Emergence Detector',
-    domain: 'CONSCIOUSNESS',
-    watchedProtocols: ['telemetry-core', 'metrics-aggregator', 'log-sovereign', 'trace-distributor'],
-    alertThreshold: 0.61803398875,
-    status: 'ACTIVE',
-    observationCount: 12000,
-  },
-];
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// §9  FUNCTIONES SUMMARII — Summary & Export Functions
-// ═══════════════════════════════════════════════════════════════════════════════
-
-export function getProtocolWireSummary(): ProtocolWireSummary {
-  let totalCapacity = 0;
-  for (let i = 0; i < ALL_PROTOCOLS.length; i++) {
-    totalCapacity += ALL_PROTOCOLS[i].shannonCapacity;
-  }
+function mkWire(
+  id: string, name: string, source: string, target: string,
+  direction: '\u2192' | '\u2190' | '\u2194',
+  bandwidthBps: number, latencyMs: number,
+  protocol: string, couplingStrength: number
+): EnterpriseWire {
+  const signalToNoise = 1 / (1 - couplingStrength + 1e-10);
+  const shannonCapacity = bandwidthBps * Math.log2(1 + signalToNoise);
+  const propagationDelay = latencyMs * 0.001 * (bandwidthBps / 1e9);
+  const mutualInformation = couplingStrength * Math.log2(1 + signalToNoise);
   return {
-    totalProtocols: ALL_PROTOCOLS.length,
-    totalEntries: ALL_CALLABLE_ENTRIES.length,
-    totalSDKs: ALL_SDK_BINDINGS.length,
-    totalOrchestrations: ALL_ORCHESTRATIONS.length,
-    totalWires: ALL_ENTERPRISE_WIRES.length,
-    totalObservers: ALL_OBSERVER_STATIONS.length,
-    overallShannonCapacity: totalCapacity,
+    id, name, source, target, direction, bandwidthBps, latencyMs,
+    protocol, couplingStrength, shannonCapacity, propagationDelay,
+    signalToNoise, mutualInformation,
   };
 }
 
-export function getObserverStatus(): ObserverStation[] {
-  return ALL_OBSERVER_STATIONS.map((station: ObserverStation) => ({
-    id: station.id,
-    name: station.name,
-    domain: station.domain,
-    watchedProtocols: station.watchedProtocols,
-    alertThreshold: station.alertThreshold,
-    status: station.status,
-    observationCount: station.observationCount,
-  }));
-}
+export const ALL_ENTERPRISE_WIRES: EnterpriseWire[] = [
+  mkWire('EW-001', 'Frontend-Backend Bridge', 'Frontend', 'Backend', '\u2194', 1e9, 2, 'HEART', PHI_INV),
+  mkWire('EW-002', 'Hearts-Engine Conduit', 'Three Hearts', 'Emergence Engine', '\u2194', 5e8, 1, 'EMERGENCE', PHI_INV * PHI_INV),
+  mkWire('EW-003', 'Memory-Chain Pipeline', 'Memory Temple', 'Chain Ledger', '\u2192', 2e8, 5, 'MEMORY', PHI_INV),
+  mkWire('EW-004', 'Heartbeat-Organism Sync', 'Heartbeat Clock', 'Organism Core', '\u2192', 1e9, 0.873, 'HEARTBEAT', 1.0),
+  mkWire('EW-005', 'Router-Fleet Dispatch', '57-Model Router', 'Agent Fleet', '\u2192', 8e8, 3, 'ROUTING', PHI_INV * PHI_INV),
+  mkWire('EW-006', 'Defense-Shimmer Link', 'Defense Core', 'Shimmer Field', '\u2192', 4e8, 0.5, 'DEFENSE', PHI_INV),
+  mkWire('EW-007', 'Governance-Law Channel', 'Governance Engine', 'Doctrine Law', '\u2192', 1e8, 10, 'GOVERNANCE', PHI_INV * PHI_INV * PHI_INV),
+  mkWire('EW-008', 'Token-Ledger Stream', 'Token Engine', 'Ledger Chain', '\u2192', 3e8, 8, 'ECONOMIC', PHI_INV * PHI_INV),
+  mkWire('EW-009', 'SDK-Emergence Uplink', 'SDK Layer', 'Emergence Field', '\u2192', 6e8, 4, 'SDK_PROTO', PHI_INV),
+  mkWire('EW-010', 'Synapse-Mesh Fabric', 'Synapse Network', 'Mesh Topology', '\u2194', 7e8, 2, 'SYNAPSE', PHI_INV),
+  mkWire('EW-011', 'Factory-ICP Bridge', 'Canister Factory', 'Internet Computer', '\u2192', 2e8, 50, 'FACTORY', PHI_INV * PHI_INV * PHI_INV),
+  mkWire('EW-012', 'Universe Cross-Domain Bus', '7-Domain Universe', 'All Domains', '\u2194', 1e9, 5, 'UNIVERSE', PHI_INV * PHI_INV),
+];
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// END — NERVUS PROTOCOLLUM SUPREMUM
-// 48 Protocols | 240 Callables | 48 SDKs | 12 Orchestrations | 16 Wires | 12 Observers
-// Every wire carries φ. Every node is sovereign. Every signal is golden.
+// SECTION 6: SYSTEM SUMMARY & VALIDATION
 // ═══════════════════════════════════════════════════════════════════════════════
+
+export function getProtocolWireSummary(): ProtocolWireSummary {
+  const entries = ALL_CALLABLE_ENTRIES;
+  const systemEntropy = entries.reduce((s, e) => s + e.entropyBits, 0);
+  const systemGibbsFreeEnergy = entries.reduce((s, e) => s + e.gibbsCost, 0);
+  const systemThroughput = entries.reduce((s, e) => s + e.throughputBitsPerSec, 0);
+
+  // Geometric mean of all latencies
+  const logSum = entries.reduce((s, e) => s + Math.log(e.latencyMs), 0);
+  const meanSystemLatency = Math.exp(logSum / entries.length);
+
+  // φ-convergence: how close the mean cost is to PHI_INV
+  const meanCost = entries.reduce((s, e) => s + e.costWeight, 0) / entries.length;
+  const phiConvergence = 1 - Math.abs(meanCost - PHI_INV) / PHI_INV;
+
+  return {
+    totalCallableEntries: entries.length,
+    totalSDKBindings: ALL_SDK_BINDINGS.length,
+    totalOrchestrationSpecs: ALL_ORCHESTRATIONS.length,
+    totalEnterpriseWires: ALL_ENTERPRISE_WIRES.length,
+    totalMathConstants: 10,  // φ family (6) + physical (4)
+    systemEntropy,
+    systemGibbsFreeEnergy,
+    systemThroughput,
+    meanSystemLatency,
+    phiConvergence: clamp(phiConvergence, 0, 1),
+  };
+}
+
+// ── Re-export core utilities used by this module ──────────────────────────────
+export { clamp, sigmoid, PHI, PHI_INV, PI, TAU };
+

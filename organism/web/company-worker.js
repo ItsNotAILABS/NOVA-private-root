@@ -1,322 +1,374 @@
-// ═══════════════════════════════════════════════════════════════════════════════
-// SOCIETAS OPERANS — Internal Company Management Worker
-// STRICT PROTOTYPE / CONFIDENTIAL — Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
-// Self-hosted dfx local only. No IC mainnet. No external deployment.
-//
-// 8 departments, 20 autonomous scripts, 30 company protocols, KPI tracking.
-// Manages the company-as-organism: budgets, staffing, scripts, governance.
-// Pure vanilla JS Web Worker — no DOM, no imports.
-// ═══════════════════════════════════════════════════════════════════════════════
+/**
+ * ============================================================================
+ *  COMPANY WORKER — SOCIETAS AUTONOMA
+ *  Kernel AI GOK-COMPANY-001  ·  Family: COMPANY_ORGANISM
+ * ============================================================================
+ *
+ *  Internal departments · autonomous company scripts · company runtime.
+ *  14 departments, 40 autonomous scripts, department health monitoring.
+ *
+ *  MiniHeart  — 873 ms Kuramoto pulse, φ-phase advance
+ *  MiniBrain  — 5 regions, 3 chemicals, LIF membrane model
+ *
+ *  Commands:
+ *    RUN_SCRIPT       — execute an autonomous company script
+ *    GET_DEPARTMENTS  — list all internal departments
+ *    GET_SCRIPTS      — list all autonomous scripts
+ *    GET_ORG_CHART    — organizational topology
+ *    DEPT_HEALTH      — department health report
+ *    GET_BUDGET       — department budget allocation (φ-weighted)
+ *    HIRE             — add headcount to a department
+ *    GET_VITALS       — MiniHeart + MiniBrain vitals
+ *    status           — kernel status
+ *    stop             — graceful shutdown
+ *
+ *  Zero external dependencies.
+ * ============================================================================
+ */
 
-/* eslint-env worker */
-'use strict';
+/* ── §1  CONSTANTS ──────────────────────────────────────────────────────── */
 
-// ─── MATH CONSTANTS ─────────────────────────────────────────────────────────────
-const PHI            = 1.618033988749895;
-const INV_PHI        = 0.618033988749895;
-const TAU            = 6.283185307179586;
-const SCHUMANN       = 7.83;              // Earth resonance (Hz)
-const HEARTBEAT_MS   = 873;               // ~69 bpm resting heart
-const GOLDEN_PULSE_MS = 618;              // φ-aligned tick interval
-const PLANCK         = 6.62607015e-34;    // Planck constant (J·s)
-const BOLTZMANN      = 1.380649e-23;      // Boltzmann constant (J/K)
+var KERNEL_ID      = 'GOK-COMPANY-001';
+var KERNEL_FAMILY  = 'COMPANY_ORGANISM';
+var KERNEL_VERSION = '1.0.0';
 
-// ─── MINI HEART — Kuramoto Phase Oscillator ─────────────────────────────────────
-const MiniHeart = {
-  phase: Math.random() * TAU,
-  freq: TAU / HEARTBEAT_MS,
-  tick: function () {
-    this.phase = (this.phase + this.freq * HEARTBEAT_MS * 0.001) % TAU;
-    return { phase: this.phase, pulse: Math.sin(this.phase) };
-  }
+var PHI       = 1.6180339887498948482;
+var PHI_INV   = 0.6180339887498948482;
+var PHI_SQ    = 2.6180339887498948482;
+var SQRT5     = 2.2360679774997896964;
+var HEARTBEAT = 873;
+
+/* ── §2  MINI-HEART ─────────────────────────────────────────────────────── */
+
+var beatCount   = 0;
+var kernelPhase = 0.0;
+var running     = true;
+var _hbi        = null;
+
+function tickHeart() {
+  beatCount++;
+  kernelPhase = (kernelPhase + PHI_INV) % (2 * Math.PI);
+  tickBrain();
+  /* auto-tick scripts */
+  tickScripts();
+  self.postMessage({
+    type:        'heartbeat',
+    beat:        beatCount,
+    phi:         PHI,
+    heartbeatMs: HEARTBEAT,
+    timestamp:   Date.now(),
+    status:      'alive',
+    kernelId:    KERNEL_ID,
+    phase:       kernelPhase,
+    departments: departments.length,
+    activeScripts: scripts.filter(function(s) { return s.status === 'RUNNING'; }).length
+  });
+}
+
+/* ── §3  MINI-BRAIN ─────────────────────────────────────────────────────── */
+
+var brain = {
+  regions: [
+    { name: 'Sensory',      activation: 0.0, lif: -70.0 },
+    { name: 'Associative',  activation: 0.0, lif: -70.0 },
+    { name: 'Executive',    activation: 0.0, lif: -70.0 },
+    { name: 'Motor',        activation: 0.0, lif: -70.0 },
+    { name: 'Memory',       activation: 0.0, lif: -70.0 }
+  ],
+  chemicals: {
+    dopamine:      0.5,
+    serotonin:     0.5,
+    acetylcholine: 0.5
+  },
+  coherenceField: 0.0
 };
 
-// ─── STATE ──────────────────────────────────────────────────────────────────────
-let tickCount = 0;
+function tickBrain() {
+  for (var i = 0; i < brain.regions.length; i++) {
+    var r = brain.regions[i];
+    r.lif += ((-70.0 - r.lif) * 0.05) + (Math.random() * 3.0);
+    if (r.lif >= -55.0) {
+      r.activation = Math.min(1.0, r.activation + 0.2);
+      r.lif = -70.0;
+    }
+    r.activation *= 0.95;
+  }
+  brain.chemicals.dopamine      = clamp01(brain.chemicals.dopamine + (Math.random() - 0.5) * 0.02);
+  brain.chemicals.serotonin     = clamp01(brain.chemicals.serotonin + (Math.random() - 0.5) * 0.02);
+  brain.chemicals.acetylcholine = clamp01(brain.chemicals.acetylcholine + (Math.random() - 0.5) * 0.02);
+  var sum = 0;
+  for (var j = 0; j < brain.regions.length; j++) sum += brain.regions[j].activation;
+  brain.coherenceField = sum / brain.regions.length;
+}
 
-// ─── DEPARTMENT REGISTRY ────────────────────────────────────────────────────────
-var DEPT_DEFS = [
-  { name: 'ENGINEERING',  latinName: 'Ingenium',     head: 'Praefectus Ingenium',    staff: 24 },
-  { name: 'RESEARCH',     latinName: 'Investigatio', head: 'Praefectus Investigatio', staff: 16 },
-  { name: 'OPERATIONS',   latinName: 'Operatio',     head: 'Praefectus Operatio',     staff: 12 },
-  { name: 'SECURITY',     latinName: 'Securitas',    head: 'Praefectus Securitas',    staff: 10 },
-  { name: 'PRODUCT',      latinName: 'Productum',    head: 'Praefectus Productum',    staff: 8 },
-  { name: 'MARKETING',    latinName: 'Mercatura',    head: 'Praefectus Mercatura',    staff: 6 },
-  { name: 'FINANCE',      latinName: 'Fiscus',       head: 'Praefectus Fiscus',       staff: 5 },
-  { name: 'GOVERNANCE',   latinName: 'Gubernatio',   head: 'Praefectus Gubernatio',   staff: 4 },
+function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+
+/* ── §4  DEPARTMENTS ────────────────────────────────────────────────────── */
+
+var departments = [
+  { id: 'DEPT-ENG',  name: 'Engineering',         head: 'CTO',    headcount: 42, budget: 0 },
+  { id: 'DEPT-RD',   name: 'Research & Development', head: 'VP R&D', headcount: 18, budget: 0 },
+  { id: 'DEPT-PROD', name: 'Product',              head: 'CPO',    headcount: 12, budget: 0 },
+  { id: 'DEPT-DSGN', name: 'Design',               head: 'CDO',    headcount: 8,  budget: 0 },
+  { id: 'DEPT-DATA', name: 'Data Science',          head: 'Chief Data Officer', headcount: 15, budget: 0 },
+  { id: 'DEPT-SEC',  name: 'Security',              head: 'CISO',   headcount: 10, budget: 0 },
+  { id: 'DEPT-OPS',  name: 'Operations',            head: 'COO',    headcount: 14, budget: 0 },
+  { id: 'DEPT-FIN',  name: 'Finance',               head: 'CFO',    headcount: 8,  budget: 0 },
+  { id: 'DEPT-LEG',  name: 'Legal',                 head: 'CLO',    headcount: 6,  budget: 0 },
+  { id: 'DEPT-HR',   name: 'Human Resources',       head: 'CHRO',   headcount: 7,  budget: 0 },
+  { id: 'DEPT-MKT',  name: 'Marketing',             head: 'CMO',    headcount: 11, budget: 0 },
+  { id: 'DEPT-SALE', name: 'Sales',                 head: 'CRO',    headcount: 20, budget: 0 },
+  { id: 'DEPT-SUP',  name: 'Customer Support',      head: 'VP Support', headcount: 16, budget: 0 },
+  { id: 'DEPT-GOV',  name: 'Governance & Compliance', head: 'CGO', headcount: 5,  budget: 0 }
 ];
 
-function buildDepartments() {
-  var depts = [];
-  for (var i = 0; i < DEPT_DEFS.length; i++) {
-    var d = DEPT_DEFS[i];
-    var phiWeight = Math.pow(PHI, i + 1);
-    depts.push({
-      id: i,
-      name: d.name,
-      latinName: d.latinName,
-      head: d.head,
-      staff: d.staff,
-      budget: Math.round(phiWeight * 50000 * 100) / 100,
-      projects: ['Project-' + d.latinName + '-Alpha', 'Project-' + d.latinName + '-Beta'],
-      kpis: {
-        efficiency: 0.85 + Math.random() * 0.14,
-        delivery: 0.80 + Math.random() * 0.19,
-        quality: 0.88 + Math.random() * 0.11,
-      },
-      status: 'ACTIVE',
-    });
+/* φ-weighted budget allocation: larger depts get proportionally more */
+(function allocateBudgets() {
+  var totalHC = departments.reduce(function(s, d) { return s + d.headcount; }, 0);
+  var baseBudget = 10000000; /* $10M total */
+  for (var i = 0; i < departments.length; i++) {
+    var ratio = departments[i].headcount / totalHC;
+    departments[i].budget = Math.round(baseBudget * ratio * PHI_INV + baseBudget * ratio * (1 - PHI_INV));
   }
-  return depts;
-}
+})();
 
-var departments = buildDepartments();
+/* ── §5  AUTONOMOUS SCRIPTS ─────────────────────────────────────────────── */
 
-// ─── AUTONOMOUS SCRIPTS REGISTRY ────────────────────────────────────────────────
-var SCRIPT_NAMES = [
-  'auto-deploy',   'auto-test',     'auto-monitor',  'auto-backup',   'auto-scale',
-  'auto-heal',     'auto-report',   'auto-audit',    'auto-train',    'auto-optimize',
-  'auto-research', 'auto-document', 'auto-release',  'auto-certify',  'auto-compress',
-  'auto-archive',  'auto-sync',     'auto-notify',   'auto-review',   'auto-plan',
-];
+var scripts = [];
 
-var SCRIPT_TYPES = ['CRON', 'EVENT', 'CONTINUOUS'];
-
-function buildScripts() {
-  var scripts = [];
-  for (var i = 0; i < SCRIPT_NAMES.length; i++) {
-    var typeIdx = i % 3;
-    scripts.push({
-      id: i,
-      name: SCRIPT_NAMES[i],
-      type: SCRIPT_TYPES[typeIdx],
-      status: typeIdx === 2 ? 'RUNNING' : 'IDLE',
-      interval_ms: Math.round(HEARTBEAT_MS * Math.pow(PHI, (i % 5) + 1)),
-      lastRun: 0,
-      runCount: 0,
-      successRate: 1.0,
-    });
-  }
-  return scripts;
-}
-
-var scripts = buildScripts();
-
-// ─── PRNG — Seeded xorshift ─────────────────────────────────────────────────────
-var _seed = Date.now() ^ 0xFACEFEED;
-function rand() {
-  _seed ^= _seed << 13;
-  _seed ^= _seed >> 17;
-  _seed ^= _seed << 5;
-  return ((_seed >>> 0) / 0xFFFFFFFF);
-}
-
-// ─── COMPANY PROTOCOLS ──────────────────────────────────────────────────────────
-var PROTOCOL_CATEGORIES = ['HR', 'Finance', 'Operations', 'Security', 'Engineering', 'Governance'];
-
-function buildProtocols() {
-  var protos = [];
-  var protoNames = [
-    'Hiring Process', 'Onboarding', 'Performance Review', 'Termination', 'Training',
-    'Budget Allocation', 'Expense Approval', 'Revenue Reporting', 'Audit Cycle', 'Tax Compliance',
-    'Incident Response', 'Change Management', 'Capacity Planning', 'SLA Management', 'Disaster Recovery',
-    'Access Control', 'Vulnerability Scan', 'Penetration Test', 'Data Classification', 'Breach Notification',
-    'Code Review', 'Release Process', 'Architecture Review', 'Tech Debt Tracking', 'CI/CD Pipeline',
-    'Board Reporting', 'Compliance Audit', 'Risk Assessment', 'Policy Update', 'Sovereign Oversight',
+(function initScripts() {
+  var defs = [
+    /* Engineering */
+    { name: 'auto-deploy',         dept: 'DEPT-ENG',  interval: 10, desc: 'Continuous deployment pipeline' },
+    { name: 'code-review-bot',     dept: 'DEPT-ENG',  interval: 5,  desc: 'Automated code review and linting' },
+    { name: 'dependency-updater',  dept: 'DEPT-ENG',  interval: 50, desc: 'Auto-update dependencies' },
+    { name: 'perf-profiler',       dept: 'DEPT-ENG',  interval: 20, desc: 'Performance regression detector' },
+    /* R&D */
+    { name: 'experiment-runner',   dept: 'DEPT-RD',   interval: 15, desc: 'A/B experiment orchestration' },
+    { name: 'paper-scanner',       dept: 'DEPT-RD',   interval: 100,desc: 'Research paper discovery' },
+    { name: 'model-trainer',       dept: 'DEPT-RD',   interval: 30, desc: 'ML model training scheduler' },
+    /* Product */
+    { name: 'feature-flagger',     dept: 'DEPT-PROD', interval: 8,  desc: 'Feature flag management' },
+    { name: 'roadmap-sync',        dept: 'DEPT-PROD', interval: 60, desc: 'Roadmap synchronization' },
+    { name: 'user-feedback-ingest',dept: 'DEPT-PROD', interval: 12, desc: 'User feedback aggregation' },
+    /* Data Science */
+    { name: 'etl-pipeline',        dept: 'DEPT-DATA', interval: 10, desc: 'Extract-Transform-Load pipeline' },
+    { name: 'anomaly-detector',    dept: 'DEPT-DATA', interval: 5,  desc: 'Real-time anomaly detection' },
+    { name: 'data-quality-check',  dept: 'DEPT-DATA', interval: 15, desc: 'Data quality validation' },
+    /* Security */
+    { name: 'vuln-scanner',        dept: 'DEPT-SEC',  interval: 20, desc: 'Vulnerability scanning' },
+    { name: 'access-auditor',      dept: 'DEPT-SEC',  interval: 25, desc: 'Access control audit' },
+    { name: 'threat-intel',        dept: 'DEPT-SEC',  interval: 30, desc: 'Threat intelligence feed' },
+    { name: 'secret-rotator',      dept: 'DEPT-SEC',  interval: 100,desc: 'Secret and key rotation' },
+    /* Operations */
+    { name: 'infra-scaler',        dept: 'DEPT-OPS',  interval: 8,  desc: 'Auto-scaling infrastructure' },
+    { name: 'cost-optimizer',      dept: 'DEPT-OPS',  interval: 50, desc: 'Cloud cost optimization' },
+    { name: 'incident-responder',  dept: 'DEPT-OPS',  interval: 3,  desc: 'Automated incident response' },
+    { name: 'backup-verifier',     dept: 'DEPT-OPS',  interval: 60, desc: 'Backup integrity verification' },
+    /* Finance */
+    { name: 'invoice-processor',   dept: 'DEPT-FIN',  interval: 20, desc: 'Automated invoice processing' },
+    { name: 'expense-categorizer', dept: 'DEPT-FIN',  interval: 15, desc: 'Expense auto-categorization' },
+    { name: 'revenue-tracker',     dept: 'DEPT-FIN',  interval: 10, desc: 'Real-time revenue tracking' },
+    /* Legal */
+    { name: 'compliance-checker',  dept: 'DEPT-LEG',  interval: 30, desc: 'Regulatory compliance checking' },
+    { name: 'contract-analyzer',   dept: 'DEPT-LEG',  interval: 25, desc: 'Contract clause analysis' },
+    /* HR */
+    { name: 'onboarding-flow',     dept: 'DEPT-HR',   interval: 40, desc: 'New hire onboarding automation' },
+    { name: 'satisfaction-pulse',  dept: 'DEPT-HR',   interval: 50, desc: 'Employee satisfaction surveys' },
+    { name: 'pto-manager',         dept: 'DEPT-HR',   interval: 20, desc: 'PTO and leave management' },
+    /* Marketing */
+    { name: 'campaign-optimizer',  dept: 'DEPT-MKT',  interval: 10, desc: 'Marketing campaign optimization' },
+    { name: 'social-monitor',      dept: 'DEPT-MKT',  interval: 5,  desc: 'Social media monitoring' },
+    { name: 'content-scheduler',   dept: 'DEPT-MKT',  interval: 15, desc: 'Content publication scheduling' },
+    /* Sales */
+    { name: 'lead-scorer',         dept: 'DEPT-SALE', interval: 8,  desc: 'Lead scoring engine' },
+    { name: 'pipeline-forecast',   dept: 'DEPT-SALE', interval: 20, desc: 'Sales pipeline forecasting' },
+    { name: 'quote-generator',     dept: 'DEPT-SALE', interval: 12, desc: 'Automated quote generation' },
+    { name: 'territory-mapper',    dept: 'DEPT-SALE', interval: 60, desc: 'Sales territory optimization' },
+    /* Support */
+    { name: 'ticket-router',       dept: 'DEPT-SUP',  interval: 3,  desc: 'Support ticket auto-routing' },
+    { name: 'kb-updater',          dept: 'DEPT-SUP',  interval: 30, desc: 'Knowledge base auto-update' },
+    { name: 'sentiment-analyzer',  dept: 'DEPT-SUP',  interval: 5,  desc: 'Customer sentiment analysis' },
+    /* Governance */
+    { name: 'policy-enforcer',     dept: 'DEPT-GOV',  interval: 15, desc: 'Policy enforcement engine' },
+    { name: 'audit-trail-logger',  dept: 'DEPT-GOV',  interval: 5,  desc: 'Audit trail logging' }
   ];
-  for (var i = 0; i < 30; i++) {
-    protos.push({
-      id: i,
-      name: protoNames[i],
-      category: PROTOCOL_CATEGORIES[Math.floor(i / 5)],
-      version: '1.' + Math.floor(i / 5) + '.' + (i % 5),
-      status: 'ACTIVE',
-      lastReview: Date.now() - Math.round(rand() * 86400000 * 30),
-      compliance: 0.85 + rand() * 0.14,
+  for (var i = 0; i < defs.length; i++) {
+    scripts.push({
+      id:       'SCR-' + String(i + 1).padStart(3, '0'),
+      name:     defs[i].name,
+      deptId:   defs[i].dept,
+      interval: defs[i].interval,  /* ticks between runs */
+      desc:     defs[i].desc,
+      status:   'IDLE',
+      lastRun:  0,
+      runCount: 0,
+      nextRun:  defs[i].interval
     });
   }
-  return protos;
-}
-
-var protocols = buildProtocols();
-
-// ─── SCRIPT EXECUTION ───────────────────────────────────────────────────────────
-function runScript(scriptId) {
-  var script = scripts[scriptId];
-  if (!script) return { error: 'Script not found: ' + scriptId };
-
-  var startTime = Date.now();
-  var prevStatus = script.status;
-  script.status = 'RUNNING';
-
-  // Simulate execution
-  var success = rand() > 0.05;
-  var duration = Math.round(GOLDEN_PULSE_MS * rand() * PHI);
-  var output = script.name + ' completed in ' + duration + 'ms';
-
-  script.runCount++;
-  script.lastRun = Date.now();
-  script.successRate = (script.successRate * (script.runCount - 1) + (success ? 1 : 0)) / script.runCount;
-  script.status = success ? (script.type === 'CONTINUOUS' ? 'RUNNING' : 'IDLE') : 'ERROR';
-
-  return {
-    script: snapshotScript(script),
-    result: { duration: duration, output: output, success: success }
-  };
-}
-
-function snapshotScript(s) {
-  return {
-    id: s.id, name: s.name, type: s.type, status: s.status,
-    interval_ms: s.interval_ms, lastRun: s.lastRun,
-    runCount: s.runCount, successRate: Math.round(s.successRate * 10000) / 10000,
-  };
-}
+})();
 
 function tickScripts() {
-  var ticked = 0;
   for (var i = 0; i < scripts.length; i++) {
-    if (scripts[i].type === 'CONTINUOUS' && scripts[i].status === 'RUNNING') {
-      scripts[i].runCount++;
-      scripts[i].lastRun = Date.now();
-      ticked++;
+    var s = scripts[i];
+    if (beatCount >= s.nextRun) {
+      s.status   = 'RUNNING';
+      s.lastRun  = beatCount;
+      s.runCount++;
+      s.nextRun  = beatCount + s.interval;
+      /* simulate completion after 1 tick */
+      s.status = 'IDLE';
     }
   }
-  return { tickedCount: ticked, totalScripts: scripts.length };
 }
 
-// ─── KPI TRACKING ───────────────────────────────────────────────────────────────
-function getKPIs() {
-  var totalRuns = 0;
-  var totalSuccess = 0;
-  for (var i = 0; i < scripts.length; i++) {
-    totalRuns += scripts[i].runCount;
-    totalSuccess += scripts[i].runCount * scripts[i].successRate;
-  }
+function runScript(scriptId) {
+  var s = scripts.find(function(x) { return x.id === scriptId; });
+  if (!s) return { error: 'Script not found: ' + scriptId };
+  s.status   = 'RUNNING';
+  s.lastRun  = beatCount;
+  s.runCount++;
+  s.nextRun  = beatCount + s.interval;
+  s.status   = 'IDLE';
   return {
-    revenueGrowth: Math.round(PHI * tickCount * 0.01 * 100) / 100,
-    deploymentFrequency: totalRuns / (tickCount || 1),
-    meanTimeToRecovery: Math.round(HEARTBEAT_MS * INV_PHI),
-    changeFailureRate: totalRuns > 0 ? 1 - (totalSuccess / totalRuns) : 0,
-    leadTime: Math.round(GOLDEN_PULSE_MS * PHI),
+    scriptId: s.id,
+    name:     s.name,
+    dept:     s.deptId,
+    runCount: s.runCount,
+    result:   'SUCCESS'
   };
 }
 
-// ─── COMPANY STATUS ─────────────────────────────────────────────────────────────
-function getCompanyStatus() {
-  var deptHealth = [];
+/* ── §6  ORG CHART ──────────────────────────────────────────────────────── */
+
+function getOrgChart() {
+  var ceo = { role: 'CEO', reports: [] };
   for (var i = 0; i < departments.length; i++) {
-    var k = departments[i].kpis;
-    deptHealth.push((k.efficiency + k.delivery + k.quality) / 3);
+    var d = departments[i];
+    ceo.reports.push({
+      role:       d.head,
+      department: d.name,
+      deptId:     d.id,
+      headcount:  d.headcount,
+      scripts:    scripts.filter(function(s) { return s.deptId === d.id; }).length
+    });
   }
-  var avgHealth = 0;
-  for (var j = 0; j < deptHealth.length; j++) avgHealth += deptHealth[j];
-  avgHealth = avgHealth / deptHealth.length;
+  return ceo;
+}
 
-  var runningScripts = 0;
-  for (var s = 0; s < scripts.length; s++) {
-    if (scripts[s].status === 'RUNNING') runningScripts++;
-  }
-
-  var complianceSum = 0;
-  for (var p = 0; p < protocols.length; p++) complianceSum += protocols[p].compliance;
-  var avgCompliance = complianceSum / protocols.length;
-
+function getDeptHealth(deptId) {
+  var d = departments.find(function(x) { return x.id === deptId; });
+  if (!d) return { error: 'Department not found: ' + deptId };
+  var deptScripts = scripts.filter(function(s) { return s.deptId === deptId; });
+  var totalRuns = deptScripts.reduce(function(s, x) { return s + x.runCount; }, 0);
+  var activeCount = deptScripts.filter(function(s) { return s.status === 'RUNNING'; }).length;
   return {
-    departments: departments.map(function (d) {
-      return { id: d.id, name: d.name, latinName: d.latinName, head: d.head, staff: d.staff, status: d.status };
-    }),
-    scripts: scripts.map(snapshotScript),
-    kpis: getKPIs(),
-    healthScore: Math.round(avgHealth * 100),
-    runningScripts: runningScripts,
-    protocolCompliance: Math.round(avgCompliance * 10000) / 10000,
+    department:  d.name,
+    deptId:      d.id,
+    head:        d.head,
+    headcount:   d.headcount,
+    budget:      d.budget,
+    scripts:     deptScripts.length,
+    totalRuns:   totalRuns,
+    activeNow:   activeCount,
+    health:      Math.min(1.0, (totalRuns * PHI_INV + d.headcount * 0.01) / (deptScripts.length + 1)),
+    coherence:   brain.coherenceField
   };
 }
 
-// ─── KURAMOTO / PHI COHERENCE ───────────────────────────────────────────────────
-function computePhiCoherence() {
-  var sumCos = 0;
-  var sumSin = 0;
-  for (var i = 0; i < departments.length; i++) {
-    var theta = (i * PHI * TAU + MiniHeart.phase) % TAU;
-    sumCos += Math.cos(theta);
-    sumSin += Math.sin(theta);
-  }
-  return Math.sqrt(sumCos * sumCos + sumSin * sumSin) / departments.length;
-}
+/* ── §7  MESSAGE HANDLER ────────────────────────────────────────────────── */
 
-// ─── MESSAGE HANDLER ────────────────────────────────────────────────────────────
-self.onmessage = function (e) {
-  var data = e.data || {};
-  var cmd = data.cmd;
-  switch (cmd) {
-    case 'GET_DEPARTMENTS':
-      self.postMessage({
-        cmd: cmd,
-        departments: departments.map(function (d) {
-          return { id: d.id, name: d.name, latinName: d.latinName, head: d.head, staff: d.staff, budget: d.budget, projects: d.projects, kpis: d.kpis, status: d.status };
-        })
+self.onmessage = function(e) {
+  var msg = e.data;
+  switch (msg.type) {
+    case 'RUN_SCRIPT': {
+      var result = runScript(msg.scriptId);
+      self.postMessage({ type: 'SCRIPT_RESULT', result: result, kernelId: KERNEL_ID });
+      break;
+    }
+    case 'GET_DEPARTMENTS': {
+      self.postMessage({ type: 'DEPARTMENTS', result: departments, kernelId: KERNEL_ID });
+      break;
+    }
+    case 'GET_SCRIPTS': {
+      self.postMessage({ type: 'SCRIPTS', result: scripts, kernelId: KERNEL_ID });
+      break;
+    }
+    case 'GET_ORG_CHART': {
+      self.postMessage({ type: 'ORG_CHART', result: getOrgChart(), kernelId: KERNEL_ID });
+      break;
+    }
+    case 'DEPT_HEALTH': {
+      var hr = getDeptHealth(msg.deptId);
+      self.postMessage({ type: 'DEPT_HEALTH_RESULT', result: hr, kernelId: KERNEL_ID });
+      break;
+    }
+    case 'GET_BUDGET': {
+      var budgets = departments.map(function(d) {
+        return { deptId: d.id, name: d.name, budget: d.budget, headcount: d.headcount };
       });
+      self.postMessage({ type: 'BUDGET', result: budgets, totalBudget: 10000000, kernelId: KERNEL_ID });
       break;
-    case 'GET_SCRIPTS':
-      self.postMessage({ cmd: cmd, scripts: scripts.map(snapshotScript) });
+    }
+    case 'HIRE': {
+      var dept = departments.find(function(d) { return d.id === msg.deptId; });
+      if (!dept) {
+        self.postMessage({ type: 'HIRE_RESULT', result: { error: 'Dept not found' }, kernelId: KERNEL_ID });
+      } else {
+        dept.headcount += (msg.count || 1);
+        self.postMessage({ type: 'HIRE_RESULT', result: { deptId: dept.id, newHeadcount: dept.headcount }, kernelId: KERNEL_ID });
+      }
       break;
-    case 'RUN_SCRIPT':
-      self.postMessage({ cmd: cmd, result: runScript(data.scriptId) });
-      break;
-    case 'GET_PROTOCOLS':
-      self.postMessage({ cmd: cmd, protocols: protocols });
-      break;
-    case 'GET_COMPANY_STATUS':
-      self.postMessage({ cmd: cmd, status: getCompanyStatus() });
-      break;
-    case 'TICK_SCRIPTS':
-      self.postMessage({ cmd: cmd, result: tickScripts() });
-      break;
-    case 'GET_STATUS': {
-      var heart = MiniHeart.tick();
+    }
+    case 'GET_VITALS': {
       self.postMessage({
-        cmd: cmd, status: {
-          worker: 'SOCIETAS_OPERANS', tickCount: tickCount,
-          heartPhase: heart.phase, departments: departments.length,
-          scripts: scripts.length, protocols: protocols.length,
-        }
+        type: 'VITALS',
+        result: {
+          heart: { beat: beatCount, phase: kernelPhase, bpm: 60000 / HEARTBEAT },
+          brain: brain,
+          departments: departments.length,
+          scripts: scripts.length,
+          totalScriptRuns: scripts.reduce(function(s, x) { return s + x.runCount; }, 0)
+        },
+        kernelId: KERNEL_ID
       });
       break;
     }
-    default:
-      self.postMessage({ cmd: cmd, error: 'Unknown command: ' + cmd });
+    case 'status': {
+      self.postMessage({
+        type:         'status-report',
+        kernelId:     KERNEL_ID,
+        kernelFamily: KERNEL_FAMILY,
+        version:      KERNEL_VERSION,
+        beat:         beatCount,
+        phase:        kernelPhase,
+        departments:  departments.length,
+        scripts:      scripts.length
+      });
+      break;
+    }
+    case 'stop': {
+      running = false;
+      if (_hbi) clearInterval(_hbi);
+      self.postMessage({ type: 'stopped', kernelId: KERNEL_ID });
+      break;
+    }
   }
 };
 
-// ─── HEARTBEAT ──────────────────────────────────────────────────────────────────
-setInterval(function () {
-  tickCount++;
-  tickScripts();
-  var heart = MiniHeart.tick();
+/* ── §8  BOOT ───────────────────────────────────────────────────────────── */
 
-  var deptHealthScores = [];
-  for (var i = 0; i < departments.length; i++) {
-    var k = departments[i].kpis;
-    deptHealthScores.push(Math.round(((k.efficiency + k.delivery + k.quality) / 3) * 100));
-  }
+_hbi = setInterval(function() { if (running) tickHeart(); }, HEARTBEAT);
 
-  var runningCount = 0;
-  for (var s = 0; s < scripts.length; s++) {
-    if (scripts[s].status === 'RUNNING') runningCount++;
-  }
-
-  var complianceSum = 0;
-  for (var p = 0; p < protocols.length; p++) complianceSum += protocols[p].compliance;
-
-  self.postMessage({
-    type: 'HEARTBEAT', worker: 'SOCIETAS_OPERANS',
-    tick: tickCount, heart: heart,
-    deptHealthScores: deptHealthScores,
-    runningScripts: runningCount,
-    protocolCompliance: Math.round((complianceSum / protocols.length) * 10000) / 10000,
-    kuramotoPhase: heart.phase,
-    phiCoherence: computePhiCoherence(),
-  });
-}, HEARTBEAT_MS);
+self.postMessage({
+  type:     'init',
+  kernelId: KERNEL_ID,
+  family:   KERNEL_FAMILY,
+  version:  KERNEL_VERSION,
+  departments: departments.length,
+  scripts: scripts.length,
+  commands: [
+    'RUN_SCRIPT', 'GET_DEPARTMENTS', 'GET_SCRIPTS', 'GET_ORG_CHART',
+    'DEPT_HEALTH', 'GET_BUDGET', 'HIRE', 'GET_VITALS', 'status', 'stop'
+  ]
+});

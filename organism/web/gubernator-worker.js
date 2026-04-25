@@ -1,431 +1,439 @@
-// ═══════════════════════════════════════════════════════════════════════════════
-// GUBERNATOR GREGIS OPERANS — Salesforce-Class CRM Worker
-// STRICT PROTOTYPE / CONFIDENTIAL — Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
-// Self-hosted dfx local only. No IC mainnet. No external deployment.
-//
-// Sovereign Salesforce replacement: 14 ASI agents, 40 sales scripts,
-// 7-stage golden pipeline, φ-weighted lead scoring, Fibonacci compression.
-// Pure vanilla JS Web Worker — no DOM, no imports.
-// ═══════════════════════════════════════════════════════════════════════════════
+/**
+ * ============================================================================
+ *  GUBERNATOR WORKER — GUBERNATOR GREGIS
+ *  Kernel AI GOK-GUBERNATOR-001  ·  Family: GOVERNANCE_CRM
+ * ============================================================================
+ *
+ *  Enterprise maps · Salesforce answer layer · 14 ASIs · 40 scripts · 35 APIs
+ *  Client / governance infrastructure
+ *
+ *  MiniHeart  — 873 ms Kuramoto pulse, φ-phase advance
+ *  MiniBrain  — 5 regions, 3 chemicals, LIF membrane model
+ *
+ *  Commands:
+ *    QUERY_API        — invoke one of 35 governance APIs
+ *    RUN_SCRIPT       — run one of 40 governance scripts
+ *    GET_ASIS         — list 14 ASI controllers
+ *    GET_CLIENTS      — client registry
+ *    ADD_CLIENT       — register a client
+ *    GET_ENTERPRISE_MAP — enterprise topology map
+ *    GET_GOVERNANCE   — governance dashboard
+ *    GET_APIS         — list all 35 APIs
+ *    GET_SCRIPTS      — list all 40 scripts
+ *    GET_VITALS       — MiniHeart + MiniBrain vitals
+ *    status           — kernel status
+ *    stop             — graceful shutdown
+ *
+ *  Zero external dependencies.
+ * ============================================================================
+ */
 
-/* eslint-env worker */
-'use strict';
+/* ── §1  CONSTANTS ──────────────────────────────────────────────────────── */
 
-// ─── MATH CONSTANTS ─────────────────────────────────────────────────────────────
-const PHI             = 1.618033988749895;
-const INV_PHI         = 0.618033988749895;
-const TAU             = 6.283185307179586;
-const SCHUMANN        = 7.83;
-const HEARTBEAT_MS    = 873;
-const GOLDEN_PULSE_MS = 618;
-const PLANCK          = 6.62607015e-34;
-const BOLTZMANN       = 1.380649e-23;
+var KERNEL_ID      = 'GOK-GUBERNATOR-001';
+var KERNEL_FAMILY  = 'GOVERNANCE_CRM';
+var KERNEL_VERSION = '1.0.0';
 
-// ─── ENUMS ──────────────────────────────────────────────────────────────────────
-const LEAD_STATUS = ['NEW','CONTACTED','QUALIFIED','PROPOSAL','NEGOTIATION','CLOSED_WON','CLOSED_LOST'];
-const DEAL_STAGES = ['PROSPECTING','DISCOVERY','SOLUTION','PROPOSAL','NEGOTIATION','COMMITMENT','DEPLOYMENT'];
-const SCRIPT_FAMILIES = ['OUTBOUND','INBOUND','FOLLOW_UP','CLOSING','ONBOARDING','UPSELL','RETENTION','DISCOVERY'];
+var PHI       = 1.6180339887498948482;
+var PHI_INV   = 0.6180339887498948482;
+var PHI_SQ    = 2.6180339887498948482;
+var SQRT5     = 2.2360679774997896964;
+var HEARTBEAT = 873;
 
-// ─── FNV-1a HASH ────────────────────────────────────────────────────────────────
-function fnv1a(str) {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = (h * 0x01000193) >>> 0;
-  }
-  return h.toString(16).padStart(8, '0');
-}
+/* ── §2  MINI-HEART ─────────────────────────────────────────────────────── */
 
-// ─── ID GENERATORS ──────────────────────────────────────────────────────────────
-let leadSeq  = 0;
-let dealSeq  = 0;
-let acctSeq  = 0;
-let actSeq   = 0;
-let artSeq   = 0;
-function nextLeadId()  { return 'LEAD-' + String(++leadSeq).padStart(5, '0'); }
-function nextDealId()  { return 'DEAL-' + String(++dealSeq).padStart(5, '0'); }
-function nextAcctId()  { return 'ACCT-' + String(++acctSeq).padStart(5, '0'); }
-function nextActId()   { return 'ACT-'  + String(++actSeq).padStart(5, '0'); }
-function nextArtId()   { return 'ART-'  + String(++artSeq).padStart(5, '0'); }
+var beatCount   = 0;
+var kernelPhase = 0.0;
+var running     = true;
+var _hbi        = null;
 
-// ─── DATA STORES ────────────────────────────────────────────────────────────────
-const leads      = {};
-const deals      = {};
-const accounts   = {};
-const activities = [];
-const artifacts  = [];
-
-// ─── 14 ASI AGENT FLEET ─────────────────────────────────────────────────────────
-const ASI_DEFS = [
-  { id:'ASI-001', name:'VENATOR',      role:'PROSPECTOR' },
-  { id:'ASI-002', name:'EXAMINATOR',   role:'QUALIFIER' },
-  { id:'ASI-003', name:'CLAUSOR',      role:'CLOSER' },
-  { id:'ASI-004', name:'STRATEGICUS',  role:'STRATEGIST' },
-  { id:'ASI-005', name:'ANALYTICUS',   role:'ANALYST' },
-  { id:'ASI-006', name:'ARCHITECTUS',  role:'ARCHITECT' },
-  { id:'ASI-007', name:'CUSTOS',       role:'GUARDIAN' },
-  { id:'ASI-008', name:'OPTIMIZER',    role:'OPTIMIZER' },
-  { id:'ASI-009', name:'NUNTIUS',      role:'COMMUNICATOR' },
-  { id:'ASI-010', name:'INVESTIGATOR', role:'RESEARCHER' },
-  { id:'ASI-011', name:'DEPLOYER',     role:'DEPLOYER' },
-  { id:'ASI-012', name:'SENTINELLA',   role:'MONITOR' },
-  { id:'ASI-013', name:'GUBERNATOR',   role:'GOVERNOR' },
-  { id:'ASI-014', name:'UNIVERSALIS',  role:'UNIVERSAL' },
-];
-
-const asiFleet = ASI_DEFS.map(function (d) {
-  return {
-    id: d.id, name: d.name, role: d.role,
-    activeDeals: 0, revenue: 0, winRate: 0.5,
-    brain: { phase: Math.random() * TAU, frequency: SCHUMANN, membrane: -70, threshold: -55, fired: false },
-    heart: { phase: Math.random() * TAU, bpm: Math.round(60 * PHI), amplitude: 1, health: 100 },
-  };
-});
-
-// ─── ENTERPRISE MAPPINGS (ASI → Salesforce) ─────────────────────────────────────
-const ENTERPRISE_MAP = [
-  { asi:'ASI-001', sfFeature:'Lead Generation',     module:'Marketing Cloud' },
-  { asi:'ASI-002', sfFeature:'Lead Qualification',   module:'Sales Cloud' },
-  { asi:'ASI-003', sfFeature:'Deal Closing',         module:'CPQ' },
-  { asi:'ASI-004', sfFeature:'Strategic Planning',   module:'Einstein Analytics' },
-  { asi:'ASI-005', sfFeature:'Data Analytics',       module:'Tableau CRM' },
-  { asi:'ASI-006', sfFeature:'Solution Design',      module:'Platform' },
-  { asi:'ASI-007', sfFeature:'Security & Access',    module:'Shield' },
-  { asi:'ASI-008', sfFeature:'Process Optimization', module:'Flow Builder' },
-  { asi:'ASI-009', sfFeature:'Communication',        module:'Marketing Cloud' },
-  { asi:'ASI-010', sfFeature:'Market Research',      module:'Data Cloud' },
-  { asi:'ASI-011', sfFeature:'Deployment',           module:'DevOps Center' },
-  { asi:'ASI-012', sfFeature:'Health Monitoring',    module:'Event Monitoring' },
-  { asi:'ASI-013', sfFeature:'Governance',           module:'Org Management' },
-  { asi:'ASI-014', sfFeature:'Universal Integration',module:'MuleSoft' },
-];
-
-// ─── COMPANY NAMES FOR AUTO-DISCOVERY ───────────────────────────────────────────
-const COMPANY_NAMES = [
-  'Aurum Industries','Nexus Dynamics','Vertex Solutions','Quantum Forge','Stellar Systems',
-  'Praxis Corp','Helios Ventures','Aether Labs','Vanguard Tech','Meridian Group',
-  'Zenith AI','Orbital Sciences','Nova Materials','Pinnacle Data','Radiant Energy',
-  'Flux Robotics','Catalyst Biotech','Helix Genomics','Stratos Aerospace','Tesseract Computing',
-];
-
-const SOURCES = ['WEBSITE','REFERRAL','CONFERENCE','COLD_OUTREACH','PARTNER','SOCIAL_MEDIA'];
-
-// ─── LEAD SCORING (φ-weighted) ──────────────────────────────────────────────────
-function scoreLead(lead) {
-  var companySize  = (lead.company || '').length * 3;
-  var engagement   = (lead.activities || []).length * 15;
-  var sourceQual   = Math.max(0, SOURCES.indexOf(lead.source || 'WEBSITE')) * 10 + 10;
-  var score = (companySize * Math.pow(PHI, -1) + engagement * Math.pow(PHI, -2) + sourceQual * Math.pow(PHI, -3));
-  return Math.min(100, Math.round(score));
-}
-
-// ─── PIPELINE PROBABILITY (φ-based per stage) ──────────────────────────────────
-function stageProbability(stageIndex) {
-  return Math.pow(PHI, stageIndex - DEAL_STAGES.length);
-}
-
-function computePipeline() {
-  var stages = DEAL_STAGES.map(function (name, idx) {
-    return { stage: name, deals: [], count: 0, totalValue: 0, weightedValue: 0, probability: stageProbability(idx) };
+function tickHeart() {
+  beatCount++;
+  kernelPhase = (kernelPhase + PHI_INV) % (2 * Math.PI);
+  tickBrain();
+  self.postMessage({
+    type:        'heartbeat',
+    beat:        beatCount,
+    phi:         PHI,
+    heartbeatMs: HEARTBEAT,
+    timestamp:   Date.now(),
+    status:      'alive',
+    kernelId:    KERNEL_ID,
+    phase:       kernelPhase,
+    asiCount:    ASIS.length,
+    clientCount: clients.length
   });
-  var keys = Object.keys(deals);
-  for (var i = 0; i < keys.length; i++) {
-    var d = deals[keys[i]];
-    var idx = DEAL_STAGES.indexOf(d.stage);
-    if (idx >= 0) {
-      stages[idx].deals.push(d.id);
-      stages[idx].count++;
-      stages[idx].totalValue += d.value;
-      stages[idx].weightedValue += d.value * stages[idx].probability;
+}
+
+/* ── §3  MINI-BRAIN ─────────────────────────────────────────────────────── */
+
+var brain = {
+  regions: [
+    { name: 'Sensory',      activation: 0.0, lif: -70.0 },
+    { name: 'Associative',  activation: 0.0, lif: -70.0 },
+    { name: 'Executive',    activation: 0.0, lif: -70.0 },
+    { name: 'Motor',        activation: 0.0, lif: -70.0 },
+    { name: 'Memory',       activation: 0.0, lif: -70.0 }
+  ],
+  chemicals: {
+    dopamine:      0.5,
+    serotonin:     0.5,
+    acetylcholine: 0.5
+  },
+  coherenceField: 0.0
+};
+
+function tickBrain() {
+  for (var i = 0; i < brain.regions.length; i++) {
+    var r = brain.regions[i];
+    r.lif += ((-70.0 - r.lif) * 0.05) + (Math.random() * 3.0);
+    if (r.lif >= -55.0) {
+      r.activation = Math.min(1.0, r.activation + 0.2);
+      r.lif = -70.0;
     }
+    r.activation *= 0.95;
   }
-  return stages;
+  brain.chemicals.dopamine      = clamp01(brain.chemicals.dopamine + (Math.random() - 0.5) * 0.02);
+  brain.chemicals.serotonin     = clamp01(brain.chemicals.serotonin + (Math.random() - 0.5) * 0.02);
+  brain.chemicals.acetylcholine = clamp01(brain.chemicals.acetylcholine + (Math.random() - 0.5) * 0.02);
+  var sum = 0;
+  for (var j = 0; j < brain.regions.length; j++) sum += brain.regions[j].activation;
+  brain.coherenceField = sum / brain.regions.length;
 }
 
-// ─── REVENUE FORECAST ───────────────────────────────────────────────────────────
-function forecast(period) {
-  var pipe = computePipeline();
-  var total = 0;
-  for (var i = 0; i < pipe.length; i++) total += pipe[i].weightedValue;
-  var multiplier = period === 'quarterly' ? 3 : period === 'annual' ? 12 : 1;
-  return { period: period || 'monthly', pipelineWeighted: total, forecast: Math.round(total * multiplier), stages: pipe };
-}
+function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
 
-// ─── 40 SALES SCRIPTS (8 families × 5 each) ────────────────────────────────────
-var salesScripts = [];
-(function buildScripts() {
-  var seq = 0;
-  for (var f = 0; f < SCRIPT_FAMILIES.length; f++) {
-    for (var s = 0; s < 5; s++) {
-      seq++;
-      var id = 'GGS-' + String(seq).padStart(3, '0');
-      salesScripts.push({
-        id: id,
-        family: SCRIPT_FAMILIES[f],
-        name: SCRIPT_FAMILIES[f] + ' Script ' + (s + 1),
-        steps: generateSteps(SCRIPT_FAMILIES[f], s),
-        successRate: Math.round((0.4 + Math.random() * 0.4) * 100) / 100,
-      });
-    }
+/* ── §4  14 ASI CONTROLLERS ─────────────────────────────────────────────── */
+
+var ASIS = [
+  { id: 'ASI-01', name: 'PRAEFECTUS',    domain: 'Executive Governance',       status: 'ACTIVE' },
+  { id: 'ASI-02', name: 'STRATEGICUS',   domain: 'Strategic Planning',          status: 'ACTIVE' },
+  { id: 'ASI-03', name: 'FISCALIS',      domain: 'Financial Oversight',         status: 'ACTIVE' },
+  { id: 'ASI-04', name: 'SECURITAS',     domain: 'Security & Compliance',       status: 'ACTIVE' },
+  { id: 'ASI-05', name: 'RELATOR',       domain: 'Client Relations',            status: 'ACTIVE' },
+  { id: 'ASI-06', name: 'ANALYTICUS',    domain: 'Data Analytics',              status: 'ACTIVE' },
+  { id: 'ASI-07', name: 'INTEGRATOR',    domain: 'System Integration',          status: 'ACTIVE' },
+  { id: 'ASI-08', name: 'PROVISOR',      domain: 'Resource Provisioning',       status: 'ACTIVE' },
+  { id: 'ASI-09', name: 'REGULARIS',     domain: 'Regulatory Compliance',       status: 'ACTIVE' },
+  { id: 'ASI-10', name: 'MERCATOR',      domain: 'Market Intelligence',         status: 'ACTIVE' },
+  { id: 'ASI-11', name: 'ARBITER',       domain: 'Dispute Resolution',          status: 'ACTIVE' },
+  { id: 'ASI-12', name: 'DOCUMENTOR',    domain: 'Document Management',         status: 'ACTIVE' },
+  { id: 'ASI-13', name: 'COMMUNICATOR',  domain: 'Communications Hub',          status: 'ACTIVE' },
+  { id: 'ASI-14', name: 'AUDITOR',       domain: 'Audit & Accountability',      status: 'ACTIVE' }
+];
+
+/* ── §5  35 GOVERNANCE APIS ─────────────────────────────────────────────── */
+
+var APIS = [
+  /* Client Management */
+  { id: 'API-01', name: 'client.create',         category: 'Client',     method: 'POST' },
+  { id: 'API-02', name: 'client.read',           category: 'Client',     method: 'GET' },
+  { id: 'API-03', name: 'client.update',         category: 'Client',     method: 'PUT' },
+  { id: 'API-04', name: 'client.delete',         category: 'Client',     method: 'DELETE' },
+  { id: 'API-05', name: 'client.search',         category: 'Client',     method: 'GET' },
+  /* Governance */
+  { id: 'API-06', name: 'governance.policies',   category: 'Governance', method: 'GET' },
+  { id: 'API-07', name: 'governance.enforce',     category: 'Governance', method: 'POST' },
+  { id: 'API-08', name: 'governance.audit',       category: 'Governance', method: 'GET' },
+  { id: 'API-09', name: 'governance.compliance',  category: 'Governance', method: 'GET' },
+  { id: 'API-10', name: 'governance.exceptions',  category: 'Governance', method: 'POST' },
+  /* Finance */
+  { id: 'API-11', name: 'finance.invoices',       category: 'Finance',   method: 'GET' },
+  { id: 'API-12', name: 'finance.payments',       category: 'Finance',   method: 'POST' },
+  { id: 'API-13', name: 'finance.revenue',        category: 'Finance',   method: 'GET' },
+  { id: 'API-14', name: 'finance.forecast',       category: 'Finance',   method: 'GET' },
+  { id: 'API-15', name: 'finance.budget',         category: 'Finance',   method: 'GET' },
+  /* Analytics */
+  { id: 'API-16', name: 'analytics.dashboard',    category: 'Analytics', method: 'GET' },
+  { id: 'API-17', name: 'analytics.reports',      category: 'Analytics', method: 'GET' },
+  { id: 'API-18', name: 'analytics.metrics',      category: 'Analytics', method: 'GET' },
+  { id: 'API-19', name: 'analytics.trends',       category: 'Analytics', method: 'GET' },
+  { id: 'API-20', name: 'analytics.predict',      category: 'Analytics', method: 'POST' },
+  /* Security */
+  { id: 'API-21', name: 'security.scan',          category: 'Security',  method: 'POST' },
+  { id: 'API-22', name: 'security.incidents',     category: 'Security',  method: 'GET' },
+  { id: 'API-23', name: 'security.access',        category: 'Security',  method: 'GET' },
+  { id: 'API-24', name: 'security.certificates',  category: 'Security',  method: 'GET' },
+  { id: 'API-25', name: 'security.keys',          category: 'Security',  method: 'GET' },
+  /* Integration */
+  { id: 'API-26', name: 'integration.salesforce',  category: 'Integration', method: 'POST' },
+  { id: 'API-27', name: 'integration.erp',         category: 'Integration', method: 'POST' },
+  { id: 'API-28', name: 'integration.crm',         category: 'Integration', method: 'POST' },
+  { id: 'API-29', name: 'integration.webhook',     category: 'Integration', method: 'POST' },
+  { id: 'API-30', name: 'integration.sync',        category: 'Integration', method: 'POST' },
+  /* Regulatory */
+  { id: 'API-31', name: 'regulatory.gdpr',         category: 'Regulatory', method: 'GET' },
+  { id: 'API-32', name: 'regulatory.sox',          category: 'Regulatory', method: 'GET' },
+  { id: 'API-33', name: 'regulatory.hipaa',        category: 'Regulatory', method: 'GET' },
+  { id: 'API-34', name: 'regulatory.iso27001',     category: 'Regulatory', method: 'GET' },
+  { id: 'API-35', name: 'regulatory.fedramp',      category: 'Regulatory', method: 'GET' }
+];
+
+/* ── §6  40 GOVERNANCE SCRIPTS ──────────────────────────────────────────── */
+
+var SCRIPTS = [
+  /* Policy */
+  { id: 'GS-01', name: 'policy-enforcer',         category: 'Policy',     interval: 10 },
+  { id: 'GS-02', name: 'policy-validator',        category: 'Policy',     interval: 15 },
+  { id: 'GS-03', name: 'policy-propagator',       category: 'Policy',     interval: 20 },
+  { id: 'GS-04', name: 'policy-versioner',        category: 'Policy',     interval: 50 },
+  /* Compliance */
+  { id: 'GS-05', name: 'compliance-scanner',      category: 'Compliance', interval: 10 },
+  { id: 'GS-06', name: 'compliance-reporter',     category: 'Compliance', interval: 30 },
+  { id: 'GS-07', name: 'compliance-remediator',   category: 'Compliance', interval: 20 },
+  { id: 'GS-08', name: 'compliance-certifier',    category: 'Compliance', interval: 60 },
+  /* Audit */
+  { id: 'GS-09', name: 'audit-logger',            category: 'Audit',      interval: 3 },
+  { id: 'GS-10', name: 'audit-analyzer',          category: 'Audit',      interval: 15 },
+  { id: 'GS-11', name: 'audit-reporter',          category: 'Audit',      interval: 30 },
+  { id: 'GS-12', name: 'audit-archiver',          category: 'Audit',      interval: 100 },
+  /* Client Ops */
+  { id: 'GS-13', name: 'client-onboarding',       category: 'ClientOps',  interval: 5 },
+  { id: 'GS-14', name: 'client-health-check',     category: 'ClientOps',  interval: 8 },
+  { id: 'GS-15', name: 'client-engagement',       category: 'ClientOps',  interval: 12 },
+  { id: 'GS-16', name: 'client-renewal',          category: 'ClientOps',  interval: 30 },
+  { id: 'GS-17', name: 'client-escalation',       category: 'ClientOps',  interval: 5 },
+  /* Data */
+  { id: 'GS-18', name: 'data-classifier',         category: 'Data',       interval: 10 },
+  { id: 'GS-19', name: 'data-anonymizer',         category: 'Data',       interval: 20 },
+  { id: 'GS-20', name: 'data-retention',          category: 'Data',       interval: 60 },
+  { id: 'GS-21', name: 'data-lineage',            category: 'Data',       interval: 30 },
+  /* Risk */
+  { id: 'GS-22', name: 'risk-assessor',           category: 'Risk',       interval: 15 },
+  { id: 'GS-23', name: 'risk-mitigator',          category: 'Risk',       interval: 20 },
+  { id: 'GS-24', name: 'risk-monitor',            category: 'Risk',       interval: 8 },
+  { id: 'GS-25', name: 'risk-reporter',           category: 'Risk',       interval: 30 },
+  /* Integration */
+  { id: 'GS-26', name: 'salesforce-sync',         category: 'Integration', interval: 10 },
+  { id: 'GS-27', name: 'erp-bridge',              category: 'Integration', interval: 15 },
+  { id: 'GS-28', name: 'crm-updater',             category: 'Integration', interval: 10 },
+  { id: 'GS-29', name: 'webhook-dispatcher',      category: 'Integration', interval: 3 },
+  { id: 'GS-30', name: 'api-health-check',        category: 'Integration', interval: 5 },
+  /* Finance */
+  { id: 'GS-31', name: 'invoice-generator',       category: 'Finance',    interval: 20 },
+  { id: 'GS-32', name: 'payment-reconciler',      category: 'Finance',    interval: 15 },
+  { id: 'GS-33', name: 'revenue-calculator',      category: 'Finance',    interval: 10 },
+  { id: 'GS-34', name: 'forecast-modeler',        category: 'Finance',    interval: 60 },
+  /* Security */
+  { id: 'GS-35', name: 'access-reviewer',         category: 'Security',   interval: 20 },
+  { id: 'GS-36', name: 'cert-rotator',            category: 'Security',   interval: 100 },
+  { id: 'GS-37', name: 'anomaly-detector',        category: 'Security',   interval: 5 },
+  /* Reporting */
+  { id: 'GS-38', name: 'board-report-gen',        category: 'Reporting',  interval: 200 },
+  { id: 'GS-39', name: 'kpi-tracker',             category: 'Reporting',  interval: 10 },
+  { id: 'GS-40', name: 'dashboard-updater',       category: 'Reporting',  interval: 5 }
+];
+
+/* runtime state for scripts */
+var scriptState = Object.create(null);
+(function() {
+  for (var i = 0; i < SCRIPTS.length; i++) {
+    scriptState[SCRIPTS[i].id] = { runCount: 0, lastRun: 0, status: 'IDLE', nextRun: SCRIPTS[i].interval };
   }
 })();
 
-function generateSteps(family, index) {
-  var base = [
-    { action: 'GREET', duration: 30, note: 'Establish rapport' },
-    { action: 'QUALIFY', duration: 60, note: 'Identify needs' },
-    { action: 'PRESENT', duration: 120, note: 'Present solution' },
-    { action: 'HANDLE_OBJECTION', duration: 90, note: 'Address concerns' },
-    { action: 'CLOSE', duration: 60, note: 'Secure commitment' },
-  ];
-  return base.slice(0, 3 + (index % 3));
-}
+/* ── §7  CLIENT REGISTRY ────────────────────────────────────────────────── */
 
-// ─── FIBONACCI COMPRESSION ─────────────────────────────────────────────────────
-var FIB_LEVELS = ['F1','F2','F3','F5','F8','F13'];
+var clients = [];
 
-function fibonacciCompress() {
-  var snapshot = JSON.stringify({ leads: leads, deals: deals, accounts: accounts, activities: activities.length });
-  var hash = fnv1a(snapshot);
-  var entropy = 0;
-  var freq = {};
-  for (var i = 0; i < snapshot.length; i++) {
-    var c = snapshot[i];
-    freq[c] = (freq[c] || 0) + 1;
-  }
-  var chars = Object.keys(freq);
-  for (var j = 0; j < chars.length; j++) {
-    var p = freq[chars[j]] / snapshot.length;
-    if (p > 0) entropy -= p * Math.log2(p);
-  }
-  var level = FIB_LEVELS[Math.min(FIB_LEVELS.length - 1, Math.floor(entropy))];
-  var art = { id: nextArtId(), hash: hash, entropy: Math.round(entropy * 1000) / 1000, level: level, size: snapshot.length, timestamp: Date.now() };
-  artifacts.push(art);
-  return art;
-}
-
-// ─── AUTO-DISCOVERY ─────────────────────────────────────────────────────────────
-function autoDiscover() {
-  var found = [];
-  if (Math.random() < 0.6) {
-    var company = COMPANY_NAMES[Math.floor(Math.random() * COMPANY_NAMES.length)];
-    var source  = SOURCES[Math.floor(Math.random() * SOURCES.length)];
-    var lead = ingestLead({ name: 'Contact at ' + company, company: company, email: 'info@' + company.toLowerCase().replace(/\s/g, '') + '.com', source: source });
-    found.push(lead);
-  }
-  return found;
-}
-
-// ─── AUTO-REGISTER ──────────────────────────────────────────────────────────────
-var registrySeq = 0;
-var livingRegistry = [];
-
-function autoRegister(item) {
-  registrySeq++;
-  var entry = { id: 'REG-' + String(registrySeq).padStart(5, '0'), type: item.type || 'COMPONENT', ref: item.id || item.name, source: 'GUBERNATOR', certLevel: 'F1_DRAFT', timestamp: Date.now() };
-  livingRegistry.push(entry);
-  return entry;
-}
-
-// ─── CORE OPERATIONS ────────────────────────────────────────────────────────────
-function ingestLead(data) {
-  var id = nextLeadId();
-  var lead = {
-    id: id, name: data.name || 'Unknown', company: data.company || '', email: data.email || '',
-    status: 'NEW', score: 0, value: Math.round(10000 + Math.random() * 90000),
-    assignedASI: asiFleet[Math.floor(Math.random() * asiFleet.length)].id,
-    source: data.source || 'WEBSITE', activities: [], created: Date.now(),
+function addClient(name, tier, industry) {
+  var client = {
+    id:        'CLT-' + Date.now().toString(36),
+    name:      name,
+    tier:      tier || 'STANDARD',
+    industry:  industry || 'Technology',
+    createdAt: Date.now(),
+    status:    'ACTIVE',
+    health:    1.0
   };
-  lead.score = scoreLead(lead);
-  leads[id] = lead;
-  autoRegister({ type: 'LEAD', id: id, name: lead.name });
-  return lead;
+  clients.push(client);
+  return client;
 }
 
-function advanceDeal(dealId) {
-  var deal = deals[dealId];
-  if (!deal) return null;
-  var idx = DEAL_STAGES.indexOf(deal.stage);
-  if (idx < DEAL_STAGES.length - 1) {
-    deal.stage = DEAL_STAGES[idx + 1];
-    deal.probability = stageProbability(idx + 1);
-    activities.push({ id: nextActId(), type: 'STAGE_ADVANCE', dealId: dealId, asiId: deal.owner, timestamp: Date.now(), outcome: deal.stage, notes: 'Advanced to ' + deal.stage });
-  }
-  return deal;
-}
+/* ── §8  ENTERPRISE MAP ─────────────────────────────────────────────────── */
 
-function createDealFromLead(leadId) {
-  var lead = leads[leadId];
-  if (!lead) return null;
-  var id = nextDealId();
-  var deal = {
-    id: id, name: 'Deal: ' + lead.company, leadId: leadId, stage: 'PROSPECTING',
-    value: lead.value, probability: stageProbability(0), owner: lead.assignedASI,
-    products: [], created: Date.now(),
-  };
-  deals[id] = deal;
-  lead.status = 'QUALIFIED';
-  autoRegister({ type: 'DEAL', id: id, name: deal.name });
-  return deal;
-}
-
-// ─── ASI BRAIN + HEART TICK ─────────────────────────────────────────────────────
-function tickASIBrains() {
-  var dt = HEARTBEAT_MS / 1000;
-  var kuramotoSum = 0;
-  for (var i = 0; i < asiFleet.length; i++) {
-    var asi = asiFleet[i];
-    // LIF neuron membrane dynamics at Schumann frequency
-    var b = asi.brain;
-    b.membrane += (-b.membrane + 10 * Math.sin(TAU * b.frequency * dt * (i + 1))) * dt;
-    if (b.membrane >= b.threshold) { b.fired = true; b.membrane = -70; } else { b.fired = false; }
-    b.phase = (b.phase + TAU * b.frequency * dt) % TAU;
-
-    // Kuramoto heart oscillator coupled at φHz
-    var h = asi.heart;
-    var coupling = 0;
-    for (var j = 0; j < asiFleet.length; j++) {
-      if (j !== i) coupling += Math.sin(asiFleet[j].heart.phase - h.phase);
-    }
-    h.phase = (h.phase + TAU * PHI * dt + (0.5 / asiFleet.length) * coupling) % TAU;
-    h.amplitude = 0.8 + 0.2 * Math.abs(Math.sin(h.phase));
-    kuramotoSum += Math.cos(h.phase);
-  }
-  return Math.abs(kuramotoSum / asiFleet.length);
-}
-
-// ─── RUN SCRIPT ─────────────────────────────────────────────────────────────────
-function runScript(scriptId) {
-  var script = null;
-  for (var i = 0; i < salesScripts.length; i++) {
-    if (salesScripts[i].id === scriptId) { script = salesScripts[i]; break; }
-  }
-  if (!script) return { error: 'Script not found' };
-  var success = Math.random() < script.successRate;
-  return { scriptId: script.id, family: script.family, stepsRun: script.steps.length, success: success, timestamp: Date.now() };
-}
-
-// ─── DASHBOARD ──────────────────────────────────────────────────────────────────
-function getDashboard() {
-  var pipe = computePipeline();
-  var fc = forecast('monthly');
+function getEnterpriseMap() {
   return {
-    leads:    Object.keys(leads).length,
-    deals:    Object.keys(deals).length,
-    pipeline: pipe,
-    forecast: fc,
-    asis:     asiFleet.map(function (a) { return { id: a.id, name: a.name, role: a.role, activeDeals: a.activeDeals, revenue: a.revenue }; }),
-    scripts:  salesScripts.length,
-    health:   Math.round(asiFleet.reduce(function (s, a) { return s + a.heart.health; }, 0) / asiFleet.length),
+    asis:       ASIS.length,
+    apis:       APIS.length,
+    scripts:    SCRIPTS.length,
+    clients:    clients.length,
+    categories: {
+      apis:    groupByCategory(APIS),
+      scripts: groupByCategory(SCRIPTS)
+    },
+    asiDomains: ASIS.map(function(a) { return { id: a.id, name: a.name, domain: a.domain }; }),
+    topology: {
+      layers: [
+        { name: 'Presentation', components: ['Dashboard', 'Reports', 'Alerts'] },
+        { name: 'API Gateway',  components: APIS.slice(0, 5).map(function(a) { return a.name; }) },
+        { name: 'ASI Fleet',    components: ASIS.map(function(a) { return a.name; }) },
+        { name: 'Script Engine', components: ['Policy', 'Compliance', 'Audit', 'Data', 'Risk'] },
+        { name: 'Data Layer',   components: ['Client DB', 'Audit Log', 'Policy Store', 'Analytics'] }
+      ]
+    }
   };
 }
 
-// ─── HEARTBEAT ──────────────────────────────────────────────────────────────────
-var tick = 0;
-
-function heartbeat() {
-  tick++;
-  var kuramotoOrder = tickASIBrains();
-  var discovered = autoDiscover();
-
-  // Create deals from high-scoring leads occasionally
-  var leadKeys = Object.keys(leads);
-  for (var i = 0; i < leadKeys.length; i++) {
-    var l = leads[leadKeys[i]];
-    if (l.status === 'NEW' && l.score > 60 && Math.random() < 0.3) {
-      createDealFromLead(l.id);
-    }
+function groupByCategory(items) {
+  var groups = {};
+  for (var i = 0; i < items.length; i++) {
+    var cat = items[i].category;
+    if (!groups[cat]) groups[cat] = 0;
+    groups[cat]++;
   }
-
-  // Advance random deals
-  var dealKeys = Object.keys(deals);
-  if (dealKeys.length > 0 && Math.random() < 0.2) {
-    var rd = deals[dealKeys[Math.floor(Math.random() * dealKeys.length)]];
-    if (rd && DEAL_STAGES.indexOf(rd.stage) < DEAL_STAGES.length - 1) advanceDeal(rd.id);
-  }
-
-  // Compress if activity threshold reached
-  if (tick % 13 === 0) fibonacciCompress();
-
-  var pipe = computePipeline();
-  var pipelineValue = 0;
-  for (var p = 0; p < pipe.length; p++) pipelineValue += pipe[p].weightedValue;
-
-  var phiCoherence = Math.abs(Math.cos(tick * INV_PHI));
-
-  postMessage({
-    type: 'HEARTBEAT',
-    tick: tick,
-    leadCount: Object.keys(leads).length,
-    dealCount: Object.keys(deals).length,
-    pipelineValue: Math.round(pipelineValue),
-    asiHealth: Math.round(asiFleet.reduce(function (s, a) { return s + a.heart.health; }, 0) / asiFleet.length),
-    kuramotoOrder: Math.round(kuramotoOrder * 1000) / 1000,
-    phiCoherence: Math.round(phiCoherence * 1000) / 1000,
-    artifactCount: artifacts.length,
-  });
+  return groups;
 }
 
-// ─── MESSAGE HANDLER ────────────────────────────────────────────────────────────
-self.onmessage = function (e) {
+/* ── §9  GOVERNANCE DASHBOARD ───────────────────────────────────────────── */
+
+function getGovernanceDashboard() {
+  var totalRuns = 0;
+  for (var k in scriptState) totalRuns += scriptState[k].runCount;
+  return {
+    asiStatus:   ASIS.map(function(a) { return { id: a.id, name: a.name, status: a.status }; }),
+    apiCount:    APIS.length,
+    scriptCount: SCRIPTS.length,
+    clientCount: clients.length,
+    totalScriptRuns: totalRuns,
+    coherence:   brain.coherenceField,
+    health:      clamp01((brain.coherenceField * PHI + (totalRuns > 0 ? 0.5 : 0)) / PHI_SQ)
+  };
+}
+
+/* ── §10 SCRIPT RUNNER ──────────────────────────────────────────────────── */
+
+function runGovernanceScript(scriptId) {
+  var s = SCRIPTS.find(function(x) { return x.id === scriptId; });
+  if (!s) return { error: 'Script not found: ' + scriptId };
+  var st = scriptState[scriptId];
+  st.runCount++;
+  st.lastRun = beatCount;
+  st.nextRun = beatCount + s.interval;
+  return {
+    scriptId: s.id,
+    name:     s.name,
+    category: s.category,
+    runCount: st.runCount,
+    result:   'SUCCESS'
+  };
+}
+
+/* ── §11 API QUERY ──────────────────────────────────────────────────────── */
+
+function queryApi(apiId, params) {
+  var api = APIS.find(function(a) { return a.id === apiId; });
+  if (!api) return { error: 'API not found: ' + apiId };
+  return {
+    apiId:    api.id,
+    name:     api.name,
+    method:   api.method,
+    category: api.category,
+    params:   params || {},
+    result:   'OK',
+    latencyMs: Math.floor(Math.random() * 100 * PHI_INV) + 5,
+    timestamp: Date.now()
+  };
+}
+
+/* ── §12 MESSAGE HANDLER ────────────────────────────────────────────────── */
+
+self.onmessage = function(e) {
   var msg = e.data;
-  var type = msg.type;
-  var response = { type: type + '_RESULT', requestId: msg.requestId };
-
-  switch (type) {
-    case 'INGEST_LEAD':
-      response.data = ingestLead(msg.payload || {});
+  switch (msg.type) {
+    case 'QUERY_API': {
+      var result = queryApi(msg.apiId, msg.params);
+      self.postMessage({ type: 'API_RESULT', result: result, kernelId: KERNEL_ID });
       break;
-
-    case 'ADVANCE_DEAL':
-      response.data = advanceDeal((msg.payload || {}).dealId);
+    }
+    case 'RUN_SCRIPT': {
+      var sr = runGovernanceScript(msg.scriptId);
+      self.postMessage({ type: 'SCRIPT_RESULT', result: sr, kernelId: KERNEL_ID });
       break;
-
-    case 'GET_PIPELINE':
-      response.data = computePipeline();
+    }
+    case 'GET_ASIS': {
+      self.postMessage({ type: 'ASIS', result: ASIS, kernelId: KERNEL_ID });
       break;
-
-    case 'FORECAST':
-      response.data = forecast((msg.payload || {}).period);
+    }
+    case 'GET_CLIENTS': {
+      self.postMessage({ type: 'CLIENTS', result: clients, kernelId: KERNEL_ID });
       break;
-
-    case 'GET_ASI_FLEET':
-      response.data = asiFleet.map(function (a) {
-        return { id: a.id, name: a.name, role: a.role, activeDeals: a.activeDeals, revenue: a.revenue, winRate: a.winRate, brainPhase: a.brain.phase, heartPhase: a.heart.phase };
+    }
+    case 'ADD_CLIENT': {
+      var cl = addClient(msg.name, msg.tier, msg.industry);
+      self.postMessage({ type: 'CLIENT_ADDED', result: cl, kernelId: KERNEL_ID });
+      break;
+    }
+    case 'GET_ENTERPRISE_MAP': {
+      self.postMessage({ type: 'ENTERPRISE_MAP', result: getEnterpriseMap(), kernelId: KERNEL_ID });
+      break;
+    }
+    case 'GET_GOVERNANCE': {
+      self.postMessage({ type: 'GOVERNANCE', result: getGovernanceDashboard(), kernelId: KERNEL_ID });
+      break;
+    }
+    case 'GET_APIS': {
+      self.postMessage({ type: 'API_LIST', result: APIS, kernelId: KERNEL_ID });
+      break;
+    }
+    case 'GET_SCRIPTS': {
+      self.postMessage({ type: 'SCRIPT_LIST', result: SCRIPTS, kernelId: KERNEL_ID });
+      break;
+    }
+    case 'GET_VITALS': {
+      self.postMessage({
+        type: 'VITALS',
+        result: {
+          heart: { beat: beatCount, phase: kernelPhase, bpm: 60000 / HEARTBEAT },
+          brain: brain,
+          asis: ASIS.length,
+          apis: APIS.length,
+          scripts: SCRIPTS.length,
+          clients: clients.length
+        },
+        kernelId: KERNEL_ID
       });
       break;
-
-    case 'RUN_SCRIPT':
-      response.data = runScript((msg.payload || {}).scriptId);
+    }
+    case 'status': {
+      self.postMessage({
+        type:         'status-report',
+        kernelId:     KERNEL_ID,
+        kernelFamily: KERNEL_FAMILY,
+        version:      KERNEL_VERSION,
+        beat:         beatCount,
+        phase:        kernelPhase,
+        asis:         ASIS.length,
+        apis:         APIS.length,
+        scripts:      SCRIPTS.length,
+        clients:      clients.length
+      });
       break;
-
-    case 'GET_SCRIPTS':
-      response.data = salesScripts;
+    }
+    case 'stop': {
+      running = false;
+      if (_hbi) clearInterval(_hbi);
+      self.postMessage({ type: 'stopped', kernelId: KERNEL_ID });
       break;
-
-    case 'COMPRESS_DB':
-      response.data = fibonacciCompress();
-      break;
-
-    case 'AUTO_DISCOVER':
-      response.data = autoDiscover();
-      break;
-
-    case 'GET_DASHBOARD':
-      response.data = getDashboard();
-      break;
-
-    case 'GET_ENTERPRISE_MAP':
-      response.data = ENTERPRISE_MAP;
-      break;
-
-    default:
-      response.data = { error: 'Unknown message type: ' + type };
+    }
   }
-
-  postMessage(response);
 };
 
-// ─── START HEARTBEAT ────────────────────────────────────────────────────────────
-setInterval(heartbeat, HEARTBEAT_MS);
-postMessage({ type: 'BOOT', worker: 'GUBERNATOR_GREGIS', asiCount: asiFleet.length, scriptCount: salesScripts.length, timestamp: Date.now() });
+/* ── §13 BOOT ───────────────────────────────────────────────────────────── */
+
+_hbi = setInterval(function() { if (running) tickHeart(); }, HEARTBEAT);
+
+self.postMessage({
+  type:     'init',
+  kernelId: KERNEL_ID,
+  family:   KERNEL_FAMILY,
+  version:  KERNEL_VERSION,
+  asis:     ASIS.length,
+  apis:     APIS.length,
+  scripts:  SCRIPTS.length,
+  commands: [
+    'QUERY_API', 'RUN_SCRIPT', 'GET_ASIS', 'GET_CLIENTS', 'ADD_CLIENT',
+    'GET_ENTERPRISE_MAP', 'GET_GOVERNANCE', 'GET_APIS', 'GET_SCRIPTS',
+    'GET_VITALS', 'status', 'stop'
+  ]
+});

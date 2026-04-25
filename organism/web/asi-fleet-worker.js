@@ -1,485 +1,433 @@
-// ═══════════════════════════════════════════════════════════════════════════════
-// ASI FLEET OPERANS — 14 ASI Autonomous Fleet Worker
-// STRICT PROTOTYPE / CONFIDENTIAL — Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
-// Self-hosted dfx local only. No IC mainnet. No external deployment.
-//
-// 14 Artificial Superintelligence agents: auto-discover, auto-register,
-// auto-compress. 50 AGI protocols, 100 AI calls, 100 AI queries.
-// Pure vanilla JS Web Worker — no DOM, no imports.
-// ═══════════════════════════════════════════════════════════════════════════════
+/**
+ * ============================================================================
+ *  ASI FLEET WORKER — CLASSIS SUPERINTELLIGENTIAE
+ *  Kernel AI GOK-ASI-FLEET-001  ·  Family: ASI_FLEET_ORGANISM
+ * ============================================================================
+ *
+ *  Auto-discovery · auto-registration · auto-compression
+ *  50 AGI protocols · 100 calls · 100 queries
+ *
+ *  MiniHeart  — 873 ms Kuramoto pulse, φ-phase advance
+ *  MiniBrain  — 5 regions, 3 chemicals, LIF membrane model
+ *
+ *  Commands:
+ *    DISCOVER         — auto-discover ASI agents
+ *    REGISTER         — register a new ASI agent
+ *    COMPRESS         — compress agent state (Fibonacci compression)
+ *    INVOKE_PROTOCOL  — invoke one of 50 AGI protocols
+ *    INVOKE_CALL      — invoke one of 100 calls
+ *    INVOKE_QUERY     — invoke one of 100 queries
+ *    GET_FLEET        — list entire ASI fleet
+ *    GET_PROTOCOLS    — list all 50 AGI protocols
+ *    GET_CALLS        — list all 100 calls
+ *    GET_QUERIES      — list all 100 queries
+ *    GET_VITALS       — MiniHeart + MiniBrain vitals
+ *    status           — kernel status
+ *    stop             — graceful shutdown
+ *
+ *  Zero external dependencies.
+ * ============================================================================
+ */
 
-/* eslint-env worker */
-'use strict';
+/* ── §1  CONSTANTS ──────────────────────────────────────────────────────── */
 
-// ─── MATH CONSTANTS ─────────────────────────────────────────────────────────────
-const PHI             = 1.618033988749895;
-const INV_PHI         = 0.618033988749895;
-const TAU             = 6.283185307179586;
-const SCHUMANN        = 7.83;
-const HEARTBEAT_MS    = 873;
-const GOLDEN_PULSE_MS = 618;
-const PLANCK          = 6.62607015e-34;
-const BOLTZMANN       = 1.380649e-23;
+var KERNEL_ID      = 'GOK-ASI-FLEET-001';
+var KERNEL_FAMILY  = 'ASI_FLEET_ORGANISM';
+var KERNEL_VERSION = '1.0.0';
 
-// ─── FNV-1a HASH ────────────────────────────────────────────────────────────────
-function fnv1a(str) {
-  var h = 0x811c9dc5;
-  for (var i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = (h * 0x01000193) >>> 0;
-  }
-  return h.toString(16).padStart(8, '0');
-}
+var PHI       = 1.6180339887498948482;
+var PHI_INV   = 0.6180339887498948482;
+var PHI_SQ    = 2.6180339887498948482;
+var SQRT5     = 2.2360679774997896964;
+var HEARTBEAT = 873;
 
-// ─── ID GENERATORS ──────────────────────────────────────────────────────────────
-var regSeq  = 0;
-var artSeq  = 0;
-var protoSeq = 50;
-function nextRegId()   { return 'REG-' + String(++regSeq).padStart(5, '0'); }
-function nextArtId()   { return 'FART-' + String(++artSeq).padStart(5, '0'); }
-function nextProtoId() { return 'AGI-P-' + String(++protoSeq).padStart(3, '0'); }
+/* ── §2  MINI-HEART ─────────────────────────────────────────────────────── */
 
-// ─── ASI DEFINITIONS ────────────────────────────────────────────────────────────
-var ASI_DEFS = [
-  { id:'ASI-001', name:'VENATOR',      latinName:'Venator Opportunitatum',    role:'PROSPECTOR' },
-  { id:'ASI-002', name:'EXAMINATOR',   latinName:'Examinator Qualitatis',     role:'QUALIFIER' },
-  { id:'ASI-003', name:'CLAUSOR',      latinName:'Clausor Pactorum',          role:'CLOSER' },
-  { id:'ASI-004', name:'STRATEGICUS',  latinName:'Strategicus Bellorum',      role:'STRATEGIST' },
-  { id:'ASI-005', name:'ANALYTICUS',   latinName:'Analyticus Profundus',      role:'ANALYST' },
-  { id:'ASI-006', name:'ARCHITECTUS',  latinName:'Architectus Systematicus',  role:'ARCHITECT' },
-  { id:'ASI-007', name:'CUSTOS',       latinName:'Custos Securitatis',        role:'GUARDIAN' },
-  { id:'ASI-008', name:'OPTIMIZER',    latinName:'Optimizer Processuum',      role:'OPTIMIZER' },
-  { id:'ASI-009', name:'NUNTIUS',      latinName:'Nuntius Communicationis',   role:'COMMUNICATOR' },
-  { id:'ASI-010', name:'INVESTIGATOR', latinName:'Investigator Scientiae',    role:'RESEARCHER' },
-  { id:'ASI-011', name:'DEPLOYER',     latinName:'Deployer Solutionum',       role:'DEPLOYER' },
-  { id:'ASI-012', name:'SENTINELLA',   latinName:'Sentinella Perpetua',       role:'MONITOR' },
-  { id:'ASI-013', name:'GUBERNATOR',   latinName:'Gubernator Gregis',         role:'GOVERNOR' },
-  { id:'ASI-014', name:'UNIVERSALIS',  latinName:'Universalis Omnium',        role:'UNIVERSAL' },
-];
+var beatCount   = 0;
+var kernelPhase = 0.0;
+var running     = true;
+var _hbi        = null;
 
-// ─── DISCOVERY TYPES PER ROLE ───────────────────────────────────────────────────
-var DISCOVERY_TYPES = {
-  PROSPECTOR:   ['lead','opportunity','market_opening','partner_candidate'],
-  QUALIFIER:    ['qualification_signal','budget_indicator','decision_maker','timeline_marker'],
-  CLOSER:       ['closing_signal','contract_template','negotiation_tactic','pricing_model'],
-  STRATEGIST:   ['strategic_insight','competitive_move','market_trend','growth_vector'],
-  ANALYST:      ['data_pattern','anomaly','correlation','regression_model'],
-  ARCHITECT:    ['architecture_pattern','integration_point','scalability_path','tech_debt'],
-  GUARDIAN:     ['security_threat','vulnerability','compliance_gap','access_anomaly'],
-  OPTIMIZER:    ['bottleneck','efficiency_gain','automation_target','cost_reduction'],
-  COMMUNICATOR: ['message_template','campaign_insight','audience_segment','channel_perf'],
-  RESEARCHER:   ['market_research','competitor_intel','innovation_signal','patent_filing'],
-  DEPLOYER:     ['deployment_target','infra_resource','config_drift','release_candidate'],
-  MONITOR:      ['health_alert','perf_degradation','capacity_warning','uptime_event'],
-  GOVERNOR:     ['policy_update','governance_rule','audit_finding','risk_assessment'],
-  UNIVERSAL:    ['universal_pattern','cross_domain_link','emergence_signal','sync_opportunity'],
-};
-
-// ─── BUILD 14 ASI AGENTS ────────────────────────────────────────────────────────
-var fleet = ASI_DEFS.map(function (d) {
-  return {
-    id: d.id, name: d.name, latinName: d.latinName, role: d.role,
-    brain: {
-      phase: Math.random() * TAU, frequency: SCHUMANN, membrane: -70, threshold: -55,
-      fired: false, dopamine: 0.5, serotonin: 0.5, acetylcholine: 0.5,
-      thoughts: [], coherence: 0.5,
-    },
-    heart: {
-      phase: Math.random() * TAU, bpm: Math.round(60 * PHI), amplitude: 1,
-      kuramotoOrder: 0.8, health: 100,
-    },
-    discoveryLog: [],
-    registrationLog: [],
-    compressionArtifacts: [],
-    stats: { discovered: 0, registered: 0, compressed: 0, protocols: 0, queries: 0, calls: 0 },
-  };
-});
-
-// ─── LIVING REGISTRY ────────────────────────────────────────────────────────────
-var registry = [];
-var pendingDiscoveries = [];
-
-// ─── COMPRESSED ARTIFACTS ───────────────────────────────────────────────────────
-var compressedArtifacts = [];
-var FIB_LEVELS = ['F1','F2','F3','F5','F8','F13','F21'];
-
-// ─── 50 AGI PROTOCOLS ──────────────────────────────────────────────────────────
-var AGI_DOMAINS = ['Neural Architecture','Reasoning','Planning','Learning','Memory','Perception','Communication','Creativity','Ethics','Consciousness'];
-
-var agiProtocols = [];
-(function buildProtocols() {
-  var seq = 0;
-  for (var d = 0; d < AGI_DOMAINS.length; d++) {
-    for (var p = 0; p < 5; p++) {
-      seq++;
-      var asiIdx = (seq - 1) % 14;
-      var stepCount = 3 + (seq % 3);
-      var steps = [];
-      for (var s = 0; s < stepCount; s++) {
-        steps.push({ step: s + 1, action: AGI_DOMAINS[d].toUpperCase().replace(/\s/g, '_') + '_STEP_' + (s + 1), duration: Math.round(100 * Math.pow(PHI, s)) });
-      }
-      agiProtocols.push({
-        id: 'AGI-P-' + String(seq).padStart(3, '0'),
-        name: AGI_DOMAINS[d] + ' Protocol ' + (p + 1),
-        domain: AGI_DOMAINS[d],
-        steps: steps,
-        complexity: Math.round((0.3 + (seq / 50) * 0.7) * 100) / 100,
-        generatedBy: fleet[asiIdx].id,
-      });
-    }
-  }
-})();
-
-// ─── 100 AI CALLS (mutations) ───────────────────────────────────────────────────
-var CALL_VERBS = ['ingest','score','advance','assign','create','update','delete','run','deploy','certify'];
-var CALL_DOMAINS = ['lead','deal','account','contact','pipeline','protocol','artifact','script','campaign','report'];
-var aiCalls = [];
-(function buildCalls() {
-  var seq = 0;
-  for (var v = 0; v < CALL_VERBS.length; v++) {
-    for (var d = 0; d < CALL_DOMAINS.length; d++) {
-      seq++;
-      aiCalls.push({
-        id: 'CALL-' + String(seq).padStart(3, '0'),
-        name: CALL_VERBS[v] + '_' + CALL_DOMAINS[d],
-        verb: CALL_VERBS[v],
-        domain: CALL_DOMAINS[d],
-        description: CALL_VERBS[v].charAt(0).toUpperCase() + CALL_VERBS[v].slice(1) + ' a ' + CALL_DOMAINS[d],
-      });
-    }
-  }
-})();
-
-// ─── 100 AI QUERIES (reads) ─────────────────────────────────────────────────────
-var QUERY_VERBS = ['get','list','search','filter','aggregate','forecast','analyze','report','export','visualize'];
-var QUERY_DOMAINS = ['lead','deal','account','pipeline','protocol','artifact','script','campaign','fleet','metric'];
-var aiQueries = [];
-(function buildQueries() {
-  var seq = 0;
-  for (var v = 0; v < QUERY_VERBS.length; v++) {
-    for (var d = 0; d < QUERY_DOMAINS.length; d++) {
-      seq++;
-      aiQueries.push({
-        id: 'QUERY-' + String(seq).padStart(3, '0'),
-        name: QUERY_VERBS[v] + '_' + QUERY_DOMAINS[d],
-        verb: QUERY_VERBS[v],
-        domain: QUERY_DOMAINS[d],
-        description: QUERY_VERBS[v].charAt(0).toUpperCase() + QUERY_VERBS[v].slice(1) + ' ' + QUERY_DOMAINS[d] + ' data',
-      });
-    }
-  }
-})();
-
-// ─── AUTO-DISCOVERY ENGINE ──────────────────────────────────────────────────────
-function runDiscovery() {
-  var findings = [];
-  for (var i = 0; i < fleet.length; i++) {
-    if (Math.random() < 0.25) {
-      var asi = fleet[i];
-      var types = DISCOVERY_TYPES[asi.role] || ['unknown'];
-      var dtype = types[Math.floor(Math.random() * types.length)];
-      var discovery = {
-        type: dtype,
-        name: asi.name + '_' + dtype + '_' + Date.now().toString(36),
-        value: Math.round(1000 + Math.random() * 49000),
-        source: asi.id,
-        timestamp: Date.now(),
-        asiId: asi.id,
-      };
-      asi.discoveryLog.push(discovery);
-      asi.stats.discovered++;
-      pendingDiscoveries.push(discovery);
-      findings.push(discovery);
-    }
-  }
-  return findings;
-}
-
-// ─── AUTO-REGISTRATION ENGINE ───────────────────────────────────────────────────
-function runRegistration() {
-  var registered = [];
-  while (pendingDiscoveries.length > 0) {
-    var disc = pendingDiscoveries.shift();
-    var entry = {
-      id: nextRegId(),
-      sourceASI: disc.asiId,
-      name: disc.name,
-      type: disc.type,
-      value: disc.value,
-      certLevel: 'F1_DRAFT',
-      fibLevel: 0,
-      timestamp: Date.now(),
-    };
-    registry.push(entry);
-    // Update ASI logs
-    for (var i = 0; i < fleet.length; i++) {
-      if (fleet[i].id === disc.asiId) {
-        fleet[i].registrationLog.push(entry.id);
-        fleet[i].stats.registered++;
-        break;
-      }
-    }
-    registered.push(entry);
-  }
-  return registered;
-}
-
-// ─── FIBONACCI COMPRESSION ──────────────────────────────────────────────────────
-function runCompression() {
-  var compressed = [];
-  for (var i = 0; i < registry.length; i++) {
-    var item = registry[i];
-    if (item.fibLevel < FIB_LEVELS.length - 1) {
-      var payload = JSON.stringify(item);
-      var hash = fnv1a(payload);
-
-      // Compute Shannon entropy
-      var freq = {};
-      for (var c = 0; c < payload.length; c++) {
-        var ch = payload[c];
-        freq[ch] = (freq[ch] || 0) + 1;
-      }
-      var entropy = 0;
-      var chars = Object.keys(freq);
-      for (var j = 0; j < chars.length; j++) {
-        var p = freq[chars[j]] / payload.length;
-        if (p > 0) entropy -= p * Math.log2(p);
-      }
-
-      item.fibLevel++;
-      item.certLevel = FIB_LEVELS[item.fibLevel] + '_CERTIFIED';
-      var artifact = {
-        id: nextArtId(),
-        registryId: item.id,
-        hash: hash,
-        entropy: Math.round(entropy * 1000) / 1000,
-        level: FIB_LEVELS[item.fibLevel],
-        size: payload.length,
-        timestamp: Date.now(),
-      };
-      compressedArtifacts.push(artifact);
-
-      // Update source ASI
-      for (var k = 0; k < fleet.length; k++) {
-        if (fleet[k].id === item.sourceASI) {
-          fleet[k].compressionArtifacts.push(artifact.id);
-          fleet[k].stats.compressed++;
-          break;
-        }
-      }
-      compressed.push(artifact);
-    }
-  }
-  return compressed;
-}
-
-// ─── PROTOCOL GENERATION ────────────────────────────────────────────────────────
-function generateProtocol(domain) {
-  var asiIdx = Math.floor(Math.random() * fleet.length);
-  var asi = fleet[asiIdx];
-  var stepCount = 3 + Math.floor(Math.random() * 3);
-  var steps = [];
-  for (var s = 0; s < stepCount; s++) {
-    steps.push({ step: s + 1, action: (domain || 'GENERAL').toUpperCase().replace(/\s/g, '_') + '_STEP_' + (s + 1), duration: Math.round(100 * Math.pow(PHI, s)) });
-  }
-  var proto = {
-    id: nextProtoId(),
-    name: (domain || 'General') + ' Protocol ' + (agiProtocols.length + 1),
-    domain: domain || 'General',
-    steps: steps,
-    complexity: Math.round(Math.random() * 100) / 100,
-    generatedBy: asi.id,
-  };
-  agiProtocols.push(proto);
-  asi.stats.protocols++;
-  return proto;
-}
-
-// ─── ASI BRAIN + HEART TICK ─────────────────────────────────────────────────────
-function tickAllASIs() {
-  var dt = HEARTBEAT_MS / 1000;
-  var kuramotoSin = 0;
-  var kuramotoCos = 0;
-
-  for (var i = 0; i < fleet.length; i++) {
-    var asi = fleet[i];
-
-    // LIF membrane dynamics at Schumann frequency
-    var b = asi.brain;
-    b.membrane += (-b.membrane + 10 * Math.sin(TAU * b.frequency * dt * (i + 1))) * dt;
-    if (b.membrane >= b.threshold) { b.fired = true; b.membrane = -70; } else { b.fired = false; }
-    b.phase = (b.phase + TAU * b.frequency * dt) % TAU;
-
-    // Neurotransmitter dynamics
-    b.dopamine     = 0.3 + 0.4 * Math.abs(Math.sin(b.phase * PHI));
-    b.serotonin    = 0.3 + 0.4 * Math.abs(Math.cos(b.phase * INV_PHI));
-    b.acetylcholine = 0.3 + 0.4 * Math.abs(Math.sin(b.phase * INV_PHI + 1));
-    b.coherence    = (b.dopamine + b.serotonin + b.acetylcholine) / 3;
-
-    // Kuramoto heart oscillator
-    var h = asi.heart;
-    var coupling = 0;
-    for (var j = 0; j < fleet.length; j++) {
-      if (j !== i) coupling += Math.sin(fleet[j].heart.phase - h.phase);
-    }
-    h.phase = (h.phase + TAU * PHI * dt + (0.5 / fleet.length) * coupling) % TAU;
-    h.amplitude = 0.8 + 0.2 * Math.abs(Math.sin(h.phase));
-
-    kuramotoSin += Math.sin(h.phase);
-    kuramotoCos += Math.cos(h.phase);
-  }
-
-  var order = Math.sqrt(kuramotoSin * kuramotoSin + kuramotoCos * kuramotoCos) / fleet.length;
-  for (var m = 0; m < fleet.length; m++) {
-    fleet[m].heart.kuramotoOrder = Math.round(order * 1000) / 1000;
-  }
-  return order;
-}
-
-// ─── FLEET STATS ────────────────────────────────────────────────────────────────
-function getFleetStats() {
-  var totals = { discovered: 0, registered: 0, compressed: 0, protocols: 0, calls: 0, queries: 0 };
-  var healthSum = 0;
-  for (var i = 0; i < fleet.length; i++) {
-    var s = fleet[i].stats;
-    totals.discovered += s.discovered;
-    totals.registered += s.registered;
-    totals.compressed += s.compressed;
-    totals.protocols  += s.protocols;
-    totals.calls      += s.calls;
-    totals.queries    += s.queries;
-    healthSum += fleet[i].heart.health;
-  }
-  return {
-    totalDiscovered:  totals.discovered,
-    totalRegistered:  totals.registered,
-    totalCompressed:  totals.compressed,
-    totalProtocols:   agiProtocols.length,
-    totalCalls:       aiCalls.length,
-    totalQueries:     aiQueries.length,
-    fleetHealth:      Math.round(healthSum / fleet.length),
-    kuramotoOrder:    fleet.length > 0 ? fleet[0].heart.kuramotoOrder : 0,
-    registrySize:     registry.length,
-    artifactCount:    compressedArtifacts.length,
-  };
-}
-
-// ─── HEARTBEAT ──────────────────────────────────────────────────────────────────
-var tick = 0;
-
-function heartbeat() {
-  tick++;
-  var order = tickAllASIs();
-  var discoveries = runDiscovery();
-  var registered = runRegistration();
-
-  // Auto-compress when registry grows past threshold
-  if (registry.length > 0 && tick % 8 === 0) {
-    runCompression();
-  }
-
-  var stats = getFleetStats();
-
-  postMessage({
-    type: 'HEARTBEAT',
-    tick: tick,
-    fleetSize: fleet.length,
-    kuramotoOrder: Math.round(order * 1000) / 1000,
-    discovered: stats.totalDiscovered,
-    registered: stats.totalRegistered,
-    compressed: stats.totalCompressed,
-    protocols: stats.totalProtocols,
-    calls: stats.totalCalls,
-    queries: stats.totalQueries,
-    registrySize: stats.registrySize,
-    artifactCount: stats.artifactCount,
-    fleetHealth: stats.fleetHealth,
-    newDiscoveries: discoveries.length,
-    newRegistrations: registered.length,
+function tickHeart() {
+  beatCount++;
+  kernelPhase = (kernelPhase + PHI_INV) % (2 * Math.PI);
+  tickBrain();
+  /* auto-discovery pulse: every 10 beats, discover new agents */
+  if (beatCount % 10 === 0) autoDiscover();
+  self.postMessage({
+    type:        'heartbeat',
+    beat:        beatCount,
+    phi:         PHI,
+    heartbeatMs: HEARTBEAT,
+    timestamp:   Date.now(),
+    status:      'alive',
+    kernelId:    KERNEL_ID,
+    phase:       kernelPhase,
+    fleetSize:   fleet.length,
+    protocols:   PROTOCOLS.length,
+    calls:       CALLS.length,
+    queries:     QUERIES.length
   });
 }
 
-// ─── MESSAGE HANDLER ────────────────────────────────────────────────────────────
-self.onmessage = function (e) {
-  var msg = e.data;
-  var type = msg.type;
-  var response = { type: type + '_RESULT', requestId: msg.requestId };
+/* ── §3  MINI-BRAIN ─────────────────────────────────────────────────────── */
 
-  switch (type) {
-    case 'GET_FLEET':
-      response.data = fleet.map(function (a) {
-        return {
-          id: a.id, name: a.name, latinName: a.latinName, role: a.role,
-          brain: { phase: a.brain.phase, membrane: a.brain.membrane, fired: a.brain.fired, coherence: a.brain.coherence, dopamine: a.brain.dopamine, serotonin: a.brain.serotonin },
-          heart: { phase: a.heart.phase, bpm: a.heart.bpm, amplitude: a.heart.amplitude, kuramotoOrder: a.heart.kuramotoOrder, health: a.heart.health },
-          stats: a.stats,
-        };
-      });
-      break;
-
-    case 'GET_ASI':
-      var target = null;
-      var asiId = (msg.payload || {}).asiId;
-      for (var i = 0; i < fleet.length; i++) {
-        if (fleet[i].id === asiId) { target = fleet[i]; break; }
-      }
-      response.data = target || { error: 'ASI not found: ' + asiId };
-      break;
-
-    case 'TICK_ALL':
-      var order = tickAllASIs();
-      runDiscovery();
-      runRegistration();
-      response.data = { kuramotoOrder: Math.round(order * 1000) / 1000, fleetSize: fleet.length };
-      break;
-
-    case 'AUTO_DISCOVER':
-      response.data = runDiscovery();
-      break;
-
-    case 'AUTO_REGISTER':
-      response.data = runRegistration();
-      break;
-
-    case 'COMPRESS_ARTIFACTS':
-      response.data = runCompression();
-      break;
-
-    case 'GET_PROTOCOLS':
-      response.data = agiProtocols;
-      break;
-
-    case 'GET_AI_CALLS':
-      response.data = aiCalls;
-      break;
-
-    case 'GET_AI_QUERIES':
-      response.data = aiQueries;
-      break;
-
-    case 'GET_REGISTRY':
-      response.data = registry;
-      break;
-
-    case 'GET_ARTIFACTS':
-      response.data = compressedArtifacts;
-      break;
-
-    case 'GET_STATS':
-      response.data = getFleetStats();
-      break;
-
-    case 'GENERATE_PROTOCOL':
-      response.data = generateProtocol((msg.payload || {}).domain);
-      break;
-
-    default:
-      response.data = { error: 'Unknown message type: ' + type };
-  }
-
-  postMessage(response);
+var brain = {
+  regions: [
+    { name: 'Sensory',      activation: 0.0, lif: -70.0 },
+    { name: 'Associative',  activation: 0.0, lif: -70.0 },
+    { name: 'Executive',    activation: 0.0, lif: -70.0 },
+    { name: 'Motor',        activation: 0.0, lif: -70.0 },
+    { name: 'Memory',       activation: 0.0, lif: -70.0 }
+  ],
+  chemicals: {
+    dopamine:      0.5,
+    serotonin:     0.5,
+    acetylcholine: 0.5
+  },
+  coherenceField: 0.0
 };
 
-// ─── START HEARTBEAT ────────────────────────────────────────────────────────────
-setInterval(heartbeat, HEARTBEAT_MS);
-postMessage({ type: 'BOOT', worker: 'ASI_FLEET_OPERANS', fleetSize: fleet.length, protocols: agiProtocols.length, calls: aiCalls.length, queries: aiQueries.length, timestamp: Date.now() });
+function tickBrain() {
+  for (var i = 0; i < brain.regions.length; i++) {
+    var r = brain.regions[i];
+    r.lif += ((-70.0 - r.lif) * 0.05) + (Math.random() * 3.0);
+    if (r.lif >= -55.0) {
+      r.activation = Math.min(1.0, r.activation + 0.2);
+      r.lif = -70.0;
+    }
+    r.activation *= 0.95;
+  }
+  brain.chemicals.dopamine      = clamp01(brain.chemicals.dopamine + (Math.random() - 0.5) * 0.02);
+  brain.chemicals.serotonin     = clamp01(brain.chemicals.serotonin + (Math.random() - 0.5) * 0.02);
+  brain.chemicals.acetylcholine = clamp01(brain.chemicals.acetylcholine + (Math.random() - 0.5) * 0.02);
+  var sum = 0;
+  for (var j = 0; j < brain.regions.length; j++) sum += brain.regions[j].activation;
+  brain.coherenceField = sum / brain.regions.length;
+}
+
+function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+
+/* ── §4  ASI FLEET ──────────────────────────────────────────────────────── */
+
+var fleet = [];
+var discoveryCount = 0;
+
+function registerAgent(name, capabilities, tier) {
+  var agent = {
+    id:           'ASI-' + Date.now().toString(36) + '-' + fleet.length,
+    name:         name,
+    capabilities: capabilities || [],
+    tier:         tier || 'AGI',
+    status:       'ACTIVE',
+    registeredAt: Date.now(),
+    lastSeen:     Date.now(),
+    compressed:   false,
+    compressionLevel: 'F1_RAW',
+    callCount:    0,
+    queryCount:   0
+  };
+  fleet.push(agent);
+  return agent;
+}
+
+function autoDiscover() {
+  discoveryCount++;
+  /* simulated discovery: occasional new agent */
+  if (fleet.length < 50 && Math.random() < 0.3) {
+    var names = [
+      'LEXIS', 'NUMERUS', 'CUSTOS', 'EVOLUTIO', 'MEMORIA',
+      'NEXTOR', 'SOLUTOR', 'FABRICATOR', 'VIGILIATOR', 'ORCHESTRATOR',
+      'CEREBRALIS', 'MEMORIALIS', 'COGNITANS', 'CONSCIENS', 'STRATEGICUS',
+      'ANALYTICUS', 'PROVISOR', 'INTEGRATOR', 'REGULARIS', 'MERCATOR'
+    ];
+    var caps = [
+      ['reasoning', 'logic'], ['math', 'computation'], ['security', 'defense'],
+      ['evolution', 'adaptation'], ['memory', 'retrieval'], ['wiring', 'integration'],
+      ['optimization', 'search'], ['construction', 'assembly'], ['monitoring', 'alerting'],
+      ['orchestration', 'scheduling']
+    ];
+    var idx = fleet.length % names.length;
+    registerAgent(
+      names[idx] + '-' + discoveryCount,
+      caps[idx % caps.length],
+      Math.random() > 0.7 ? 'ASI' : 'AGI'
+    );
+  }
+}
+
+/* ── §5  FIBONACCI COMPRESSION ──────────────────────────────────────────── */
+
+var COMPRESSION_LEVELS = [
+  'F1_RAW', 'F2_ENCODED', 'F3_VERIFIED', 'F5_INDEXED',
+  'F8_PACKAGED', 'F13_SEALED', 'F21_COMPRESSED', 'F34_OPTIMIZED'
+];
+
+function compressAgent(agentId) {
+  var agent = fleet.find(function(a) { return a.id === agentId; });
+  if (!agent) return { error: 'Agent not found: ' + agentId };
+  var idx = COMPRESSION_LEVELS.indexOf(agent.compressionLevel);
+  if (idx >= COMPRESSION_LEVELS.length - 1) {
+    return { agentId: agentId, level: agent.compressionLevel, message: 'Already at max compression' };
+  }
+  agent.compressionLevel = COMPRESSION_LEVELS[idx + 1];
+  agent.compressed = true;
+  return {
+    agentId:   agentId,
+    name:      agent.name,
+    from:      COMPRESSION_LEVELS[idx],
+    to:        agent.compressionLevel,
+    fibValue:  [1, 1, 2, 3, 5, 8, 13, 21][idx + 1] || 34,
+    ratio:     PHI_INV
+  };
+}
+
+/* ── §6  50 AGI PROTOCOLS ───────────────────────────────────────────────── */
+
+var PROTOCOLS = [];
+
+(function initProtocols() {
+  var defs = [
+    /* Reasoning (10) */
+    'LOGICAL_INFERENCE', 'CAUSAL_REASONING', 'ANALOGICAL_TRANSFER', 'ABDUCTIVE_INFERENCE',
+    'TEMPORAL_REASONING', 'SPATIAL_REASONING', 'COUNTERFACTUAL', 'META_REASONING',
+    'PROBABILISTIC_INFERENCE', 'CONSTRAINT_SATISFACTION',
+    /* Learning (10) */
+    'DEEP_LEARNING', 'REINFORCEMENT_LEARNING', 'TRANSFER_LEARNING', 'FEW_SHOT',
+    'ZERO_SHOT', 'CONTINUAL_LEARNING', 'SELF_SUPERVISED', 'CURRICULUM_LEARNING',
+    'ACTIVE_LEARNING', 'FEDERATED_LEARNING',
+    /* Perception (10) */
+    'VISUAL_RECOGNITION', 'AUDITORY_PROCESSING', 'MULTIMODAL_FUSION', 'SCENE_UNDERSTANDING',
+    'OBJECT_DETECTION', 'SPEECH_RECOGNITION', 'EMOTION_DETECTION', 'GESTURE_INTERPRETATION',
+    'DEPTH_ESTIMATION', 'SEMANTIC_SEGMENTATION',
+    /* Communication (10) */
+    'NATURAL_LANGUAGE', 'DIALOGUE_MANAGEMENT', 'SENTIMENT_ANALYSIS', 'QUESTION_ANSWERING',
+    'SUMMARIZATION', 'TRANSLATION', 'CODE_GENERATION', 'KNOWLEDGE_RETRIEVAL',
+    'INTENT_CLASSIFICATION', 'ENTITY_EXTRACTION',
+    /* Autonomy (10) */
+    'PLANNING', 'GOAL_SETTING', 'SELF_MONITORING', 'RESOURCE_ALLOCATION',
+    'TASK_DECOMPOSITION', 'WORLD_MODELING', 'SAFETY_ALIGNMENT', 'VALUE_LEARNING',
+    'SELF_IMPROVEMENT', 'CONSCIOUSNESS_SIMULATION'
+  ];
+  for (var i = 0; i < defs.length; i++) {
+    PROTOCOLS.push({
+      id:       'PROT-' + String(i + 1).padStart(3, '0'),
+      name:     defs[i],
+      category: ['Reasoning','Learning','Perception','Communication','Autonomy'][Math.floor(i / 10)],
+      version:  '1.0.0',
+      status:   'ACTIVE',
+      callCount: 0
+    });
+  }
+})();
+
+/* ── §7  100 CALLS ──────────────────────────────────────────────────────── */
+
+var CALLS = [];
+
+(function initCalls() {
+  var prefixes = [
+    'invoke', 'execute', 'dispatch', 'schedule', 'queue',
+    'broadcast', 'relay', 'cascade', 'pipeline', 'orchestrate'
+  ];
+  var targets = [
+    'inference', 'training', 'evaluation', 'optimization', 'compression',
+    'indexing', 'retrieval', 'synthesis', 'validation', 'deployment'
+  ];
+  for (var i = 0; i < 100; i++) {
+    var pi = i % prefixes.length;
+    var ti = Math.floor(i / prefixes.length) % targets.length;
+    CALLS.push({
+      id:       'CALL-' + String(i + 1).padStart(3, '0'),
+      name:     prefixes[pi] + '_' + targets[ti],
+      protocol: 'PROT-' + String((i % 50) + 1).padStart(3, '0'),
+      callCount: 0,
+      latencyMs: 0
+    });
+  }
+})();
+
+/* ── §8  100 QUERIES ────────────────────────────────────────────────────── */
+
+var QUERIES = [];
+
+(function initQueries() {
+  var verbs = [
+    'get', 'list', 'search', 'count', 'describe',
+    'analyze', 'compare', 'rank', 'predict', 'summarize'
+  ];
+  var objects = [
+    'agents', 'models', 'protocols', 'capabilities', 'metrics',
+    'states', 'history', 'topology', 'coherence', 'performance'
+  ];
+  for (var i = 0; i < 100; i++) {
+    var vi = i % verbs.length;
+    var oi = Math.floor(i / verbs.length) % objects.length;
+    QUERIES.push({
+      id:        'QRY-' + String(i + 1).padStart(3, '0'),
+      name:      verbs[vi] + '_' + objects[oi],
+      protocol:  'PROT-' + String((i % 50) + 1).padStart(3, '0'),
+      queryCount: 0,
+      latencyMs:  0
+    });
+  }
+})();
+
+/* ── §9  INVOCATIONS ────────────────────────────────────────────────────── */
+
+function invokeProtocol(protocolId, params) {
+  var p = PROTOCOLS.find(function(x) { return x.id === protocolId; });
+  if (!p) return { error: 'Protocol not found: ' + protocolId };
+  p.callCount++;
+  return {
+    protocolId: p.id,
+    name:       p.name,
+    category:   p.category,
+    params:     params || {},
+    result:     'EXECUTED',
+    latencyMs:  Math.floor(Math.random() * 50 * PHI_INV) + 2,
+    timestamp:  Date.now()
+  };
+}
+
+function invokeCall(callId, params) {
+  var c = CALLS.find(function(x) { return x.id === callId; });
+  if (!c) return { error: 'Call not found: ' + callId };
+  c.callCount++;
+  c.latencyMs = Math.floor(Math.random() * 80 * PHI_INV) + 3;
+  return {
+    callId:    c.id,
+    name:      c.name,
+    protocol:  c.protocol,
+    params:    params || {},
+    result:    'OK',
+    latencyMs: c.latencyMs,
+    timestamp: Date.now()
+  };
+}
+
+function invokeQuery(queryId, params) {
+  var q = QUERIES.find(function(x) { return x.id === queryId; });
+  if (!q) return { error: 'Query not found: ' + queryId };
+  q.queryCount++;
+  q.latencyMs = Math.floor(Math.random() * 30 * PHI_INV) + 1;
+  return {
+    queryId:   q.id,
+    name:      q.name,
+    protocol:  q.protocol,
+    params:    params || {},
+    result:    'OK',
+    latencyMs: q.latencyMs,
+    timestamp: Date.now()
+  };
+}
+
+/* ── §10 MESSAGE HANDLER ────────────────────────────────────────────────── */
+
+self.onmessage = function(e) {
+  var msg = e.data;
+  switch (msg.type) {
+    case 'DISCOVER': {
+      autoDiscover();
+      self.postMessage({ type: 'DISCOVER_RESULT', fleetSize: fleet.length, discoveryCount: discoveryCount, kernelId: KERNEL_ID });
+      break;
+    }
+    case 'REGISTER': {
+      var agent = registerAgent(msg.name, msg.capabilities, msg.tier);
+      self.postMessage({ type: 'REGISTER_RESULT', result: agent, kernelId: KERNEL_ID });
+      break;
+    }
+    case 'COMPRESS': {
+      var cr = compressAgent(msg.agentId);
+      self.postMessage({ type: 'COMPRESS_RESULT', result: cr, kernelId: KERNEL_ID });
+      break;
+    }
+    case 'INVOKE_PROTOCOL': {
+      var pr = invokeProtocol(msg.protocolId, msg.params);
+      self.postMessage({ type: 'PROTOCOL_RESULT', result: pr, kernelId: KERNEL_ID });
+      break;
+    }
+    case 'INVOKE_CALL': {
+      var clr = invokeCall(msg.callId, msg.params);
+      self.postMessage({ type: 'CALL_RESULT', result: clr, kernelId: KERNEL_ID });
+      break;
+    }
+    case 'INVOKE_QUERY': {
+      var qr = invokeQuery(msg.queryId, msg.params);
+      self.postMessage({ type: 'QUERY_RESULT', result: qr, kernelId: KERNEL_ID });
+      break;
+    }
+    case 'GET_FLEET': {
+      self.postMessage({ type: 'FLEET', result: fleet, kernelId: KERNEL_ID });
+      break;
+    }
+    case 'GET_PROTOCOLS': {
+      self.postMessage({ type: 'PROTOCOL_LIST', result: PROTOCOLS, kernelId: KERNEL_ID });
+      break;
+    }
+    case 'GET_CALLS': {
+      self.postMessage({ type: 'CALL_LIST', result: CALLS, kernelId: KERNEL_ID });
+      break;
+    }
+    case 'GET_QUERIES': {
+      self.postMessage({ type: 'QUERY_LIST', result: QUERIES, kernelId: KERNEL_ID });
+      break;
+    }
+    case 'GET_VITALS': {
+      self.postMessage({
+        type: 'VITALS',
+        result: {
+          heart: { beat: beatCount, phase: kernelPhase, bpm: 60000 / HEARTBEAT },
+          brain: brain,
+          fleetSize:  fleet.length,
+          protocols:  PROTOCOLS.length,
+          calls:      CALLS.length,
+          queries:    QUERIES.length,
+          discoveries: discoveryCount
+        },
+        kernelId: KERNEL_ID
+      });
+      break;
+    }
+    case 'status': {
+      self.postMessage({
+        type:         'status-report',
+        kernelId:     KERNEL_ID,
+        kernelFamily: KERNEL_FAMILY,
+        version:      KERNEL_VERSION,
+        beat:         beatCount,
+        phase:        kernelPhase,
+        fleetSize:    fleet.length,
+        protocols:    PROTOCOLS.length,
+        calls:        CALLS.length,
+        queries:      QUERIES.length
+      });
+      break;
+    }
+    case 'stop': {
+      running = false;
+      if (_hbi) clearInterval(_hbi);
+      self.postMessage({ type: 'stopped', kernelId: KERNEL_ID });
+      break;
+    }
+  }
+};
+
+/* ── §11 BOOT ───────────────────────────────────────────────────────────── */
+
+_hbi = setInterval(function() { if (running) tickHeart(); }, HEARTBEAT);
+
+self.postMessage({
+  type:     'init',
+  kernelId: KERNEL_ID,
+  family:   KERNEL_FAMILY,
+  version:  KERNEL_VERSION,
+  protocols: PROTOCOLS.length,
+  calls:     CALLS.length,
+  queries:   QUERIES.length,
+  commands: [
+    'DISCOVER', 'REGISTER', 'COMPRESS', 'INVOKE_PROTOCOL',
+    'INVOKE_CALL', 'INVOKE_QUERY', 'GET_FLEET', 'GET_PROTOCOLS',
+    'GET_CALLS', 'GET_QUERIES', 'GET_VITALS', 'status', 'stop'
+  ]
+});

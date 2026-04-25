@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="la">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OMNIA SERVITORES — NOVA AGI Fleet</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--gold:#D4AF37;--cyan:#00D4FF;--green:#10B981;--red:#DC2626;--purple:#6B46C1;
+  --bg:#05050f;--panel:rgba(255,255,255,0.02);--border:rgba(255,255,255,0.05);}
+body{font-family:'SF Mono','Fira Code',monospace;background:var(--bg);color:#ccc;
+  min-height:100vh;overflow-x:hidden;}
+
+/* ── Header ── */
+header{background:rgba(0,0,0,0.4);border-bottom:1px solid rgba(212,175,55,0.12);
+  padding:1rem 1.5rem;position:sticky;top:0;z-index:100;}
+.h-row1{display:flex;align-items:center;justify-content:space-between;}
+.h-title{font-size:1.4rem;font-weight:900;letter-spacing:.12em;
+  background:linear-gradient(135deg,var(--gold),var(--cyan),#EC4899);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.h-sub{font-size:.5rem;color:#555;letter-spacing:.2em;margin-top:.2rem;}
+.h-meta{display:flex;gap:1.5rem;font-size:.5rem;}
+.hm{color:#444;}.hm span{color:var(--cyan);}
+.fleet-status{font-size:.6rem;padding:.25rem .7rem;border-radius:4px;font-weight:700;
+  background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:var(--green);}
+
+/* ── Master Oscilloscope ── */
+.osc-wrap{padding:1rem 1.5rem;border-bottom:1px solid var(--border);}
+.osc-title{font-size:.55rem;color:#444;letter-spacing:.1em;margin-bottom:.4rem;}
+canvas.master-osc{width:100%;height:60px;background:rgba(0,0,0,0.3);border-radius:5px;
+  border:1px solid var(--border);}
+
+/* ── Fleet Grid ── */
+.fleet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:.8rem;padding:1rem 1.5rem;}
+
+.server-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;
+  padding:.7rem;transition:border-color .3s;cursor:default;position:relative;overflow:hidden;}
+.server-card:hover{border-color:rgba(0,212,255,0.2);}
+.server-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;
+  background:var(--accent,var(--cyan));border-radius:3px 0 0 3px;}
+
+.sc-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.5rem;}
+.sc-id{font-size:.48rem;color:#444;font-weight:700;}
+.sc-dot{width:7px;height:7px;border-radius:50%;background:#333;flex-shrink:0;margin-top:2px;}
+.sc-dot.alive{background:var(--green);box-shadow:0 0 6px var(--green);}
+.sc-latin{font-size:.75rem;font-weight:900;color:var(--gold);letter-spacing:.06em;line-height:1.1;}
+.sc-family{font-size:.45rem;color:#444;margin-top:.1rem;letter-spacing:.08em;}
+
+.sc-brain{margin:.4rem 0;}
+.sc-brain-row{display:flex;align-items:center;gap:.35rem;margin-bottom:2px;}
+.sc-brain-name{font-size:.42rem;color:#333;width:44px;}
+.sc-brain-bar{flex:1;height:2px;background:#0a0a12;border-radius:1px;}
+.sc-brain-fill{height:100%;border-radius:1px;background:var(--accent,var(--cyan));transition:width .873s;}
+
+.sc-stats{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.4rem;}
+.sc-stat{font-size:.45rem;color:#444;background:rgba(0,0,0,0.3);padding:.1rem .3rem;border-radius:2px;}
+.sc-stat span{color:#666;}
+
+.sc-protocols{display:flex;flex-wrap:wrap;gap:.2rem;margin-top:.4rem;}
+.sc-proto{font-size:.4rem;color:#333;padding:.1rem .25rem;border-radius:2px;
+  background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);}
+
+.sc-beat{font-size:.5rem;color:#333;margin-top:.4rem;
+  font-family:'SF Mono',monospace;letter-spacing:.05em;}
+
+/* ── Phantom AI Section ── */
+.phantom-section{padding:1rem 1.5rem;border-top:1px solid var(--border);margin-top:.5rem;}
+.section-title{font-size:.6rem;color:var(--gold);letter-spacing:.12em;margin-bottom:.6rem;font-weight:700;}
+.thought-stream{max-height:200px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#111 transparent;}
+.ts-item{padding:.3rem .5rem;border-bottom:1px solid rgba(255,255,255,0.02);
+  border-left:2px solid #333;margin-bottom:.2rem;border-radius:0 3px 3px 0;}
+.ts-arch{font-size:.48rem;margin-bottom:.1rem;}
+.ts-q{font-size:.55rem;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ts-conf{font-size:.45rem;color:#444;}
+
+/* ── Jarvis Bridge ── */
+.jarvis-section{padding:1rem 1.5rem;border-top:1px solid var(--border);
+  background:rgba(212,175,55,0.02);}
+.jarvis-bridge{display:flex;align-items:center;gap:1rem;}
+.jb-icon{font-size:2rem;}
+.jb-info{}
+.jb-title{font-size:.75rem;font-weight:900;color:var(--gold);}
+.jb-desc{font-size:.48rem;color:#555;margin-top:.15rem;}
+.jb-status{display:flex;gap:.5rem;margin-top:.4rem;}
+.jb-arch{font-size:.48rem;padding:.15rem .35rem;border-radius:3px;
+  background:rgba(255,255,255,0.03);color:#555;}
+
+/* ── Footer ── */
+footer{padding:1rem 1.5rem;border-top:1px solid var(--border);
+  font-size:.45rem;color:#333;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="h-row1">
+      <div class="h-title">OMNIA SERVITORES ⚡ NOVA AGI FLEET</div>
+      <div class="fleet-status" id="fleet-status">⬢ FLEET ONLINE</div>
+    </div>
+    <div class="h-sub">NOVA ORGANISM · ALL LATIN AGI SERVERS · 19 SERVITORES · MINIHEART + MINIBRAIN · φ = 1.618…</div>
+  </div>
+  <div class="h-meta">
+    <div class="hm">ALIVE <span id="hm-alive">0</span></div>
+    <div class="hm">TOTAL BEATS <span id="hm-beats">0</span></div>
+    <div class="hm">AVG COHERE <span id="hm-cohere">—</span></div>
+    <div class="hm">UPTIME <span id="hm-uptime">0s</span></div>
+  </div>
+</header>
+
+<div class="osc-wrap">
+  <div class="osc-title">MASTER COHERENCE OSCILLOSCOPE — FLEET AVERAGE φ-SIGNAL</div>
+  <canvas class="master-osc" id="master-osc" height="60"></canvas>
+</div>
+
+<div class="fleet-grid" id="fleet-grid">
+  <!-- Cards injected by JS -->
+</div>
+
+<div class="phantom-section">
+  <div class="section-title">⚡ PHANTOM AI — AUTONOMOUS THOUGHT STREAM (SERVITOR PHANTOMAE)</div>
+  <div class="thought-stream" id="thought-stream">
+    <div style="font-size:.5rem;color:#333;padding:.5rem;">Initializing Phantom AI…</div>
+  </div>
+</div>
+
+<div class="jarvis-section">
+  <div class="section-title">🌐 JARVIS AI EXTENSION — BROWSER BRIDGE</div>
+  <div class="jarvis-bridge">
+    <div class="jb-icon">⚡</div>
+    <div class="jb-info">
+      <div class="jb-title">JARVIS · PHANTOMA AI · EXT-027</div>
+      <div class="jb-desc">Browser extension with 7-step Phantom AI thinking pipeline. Install from extensions/jarvis/ to connect JARVIS to this organism fleet.</div>
+      <div class="jb-status">
+        <div class="jb-arch">🧠 ARCHITECTURA RATIONIS</div>
+        <div class="jb-arch">🎨 ARCHITECTURA CREATIONIS</div>
+        <div class="jb-arch">📊 ARCHITECTURA PERCEPTI</div>
+        <div class="jb-arch">🛡 ARCHITECTURA CUSTODIAE</div>
+        <div class="jb-arch">🌀 ARCHITECTURA IMPERII</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>NOVA ORGANISM · OMNIA SERVITORES FLEET · COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ</span>
+  <span>19 SERVITORES · 873ms HEARTBEAT · φ-KURAMOTO COUPLING</span>
+  <span id="ft-ts">—</span>
+</footer>
+
+<script>
+'use strict';
+/* ── Constants ─────────────────────────────────────────────────────────── */
+const PHI     = 1.6180339887498948482;
+const PHI_INV = 0.6180339887498948482;
+const START   = Date.now();
+
+/* ── Fleet Definition ──────────────────────────────────────────────────── */
+const FLEET = [
+  /* Original 8 */
+  { id:'GOL-MEMORIA-001',    latin:'SERVITOR MEMORIAE',     family:'MEMORIA_AETERNA',      file:'servitor-memoriae-worker.js',      accent:'#3B82F6',
+    protocols:['MEMORATIO_SALIENTI','OBLIVIO_CONTROLATA','CONSOLIDATIO','RETRIEVAL_ASSOCIATIVI'],
+    specialty:'Memory / KV AI · Ebbinghaus forgetting' },
+  { id:'GOL-COMPUTATIO-001', latin:'SERVITOR COMPUTATIONIS',family:'COMPUTATIO_PURA',       file:'servitor-computationis-worker.js', accent:'#10B981',
+    protocols:['COMPUTATIO_NUMERALIS','OPERATIO_MATRIXIS','FIBONACCI_SEQUENTIA','CALCULUS_PHI'],
+    specialty:'Compute / Inference AI · φ-math' },
+  { id:'GOL-CUSTODIA-001',   latin:'SERVITOR CUSTODIAE',    family:'CUSTODIA_SOVEREIGN',    file:'servitor-custodiae-worker.js',     accent:'#DC2626',
+    protocols:['CUSTODIA_TOKENORUM','ANOMALIA_DETECTA','INTEGRITAS_VERIFICA','SOVEREIGNTY_LOCK'],
+    specialty:'Security / Guardian AI · FNV-1a' },
+  { id:'GOL-COMMERCIUM-001', latin:'SERVITOR COMMERCII',    family:'COMMERCIUM_NOVUM',      file:'servitor-commercii-worker.js',     accent:'#D4AF37',
+    protocols:['PRETIUM_PHI','LEDGER_TOKENORUM','ARBITRAGE_PRAEVENI','MERCATUS_AEQUUS'],
+    specialty:'Commerce / Economy AI · φ-pricing' },
+  { id:'GOL-COMMUNICATIO-001',latin:'SERVITOR COMMUNICATIONIS',family:'COMMUNICATIO_MAGNA', file:'servitor-communicationis-worker.js',accent:'#8B5CF6',
+    protocols:['FREQUENTIA_SCHUMANN','MESH_ROUTING','CANALIS_CRYPTO','SHANNON_CAPACITAS'],
+    specialty:'Network / Comms AI · 6 freq bands' },
+  { id:'GOL-GUBERNATIO-001',  latin:'SERVITOR GUBERNATIONIS',family:'GUBERNATIO_LEGIS',      file:'servitor-gubernationis-worker.js', accent:'#EC4899',
+    protocols:['LEX_CODEX','REGISTRUM_IURIUM','SUFFRAGIUM','ADIUDICATIO'],
+    specialty:'Governance / Law AI · codex + rights' },
+  { id:'GOL-EVOLUTIO-001',    latin:'SERVITOR EVOLUTIONIS', family:'EVOLUTIO_PERPETUA',     file:'servitor-evolutionis-worker.js',   accent:'#F59E0B',
+    protocols:['ALGORITHMUS_GENETICUS','PLASTICITAS_HEBBIANA','FITNESS_EVOLUTIO','MUTATIO_SELECTA'],
+    specialty:'Evolution / Learning AI · GA + Hebbian' },
+  { id:'GOL-ORACULUM-001',    latin:'SERVITOR ORACULI',     family:'ORACULUM_SAPIENTIS',    file:'servitor-oraculi-worker.js',       accent:'#00D4FF',
+    protocols:['PROPHETIA_EMERGENTIS','SYNTHESIS_KURAMOTONIS','DETECTIO_ANOMALIAE','ORACULUM_RESPONSUM'],
+    specialty:'Oracle / Intelligence AI · Kuramoto synthesis' },
+  /* New 8 */
+  { id:'GOL-TEMPUS-001',      latin:'SERVITOR TEMPORIS',    family:'TEMPUS_AETERNUM',       file:'servitor-temporis-worker.js',      accent:'#06B6D4',
+    protocols:['TEMPUS_CHRONOS','SERIES_CAUSALIS','LINEA_TEMPORIS','SEQUENTIA_EVENTUUM'],
+    specialty:'Time / Temporal AI · causal chains' },
+  { id:'GOL-SPATIUM-001',     latin:'SERVITOR SPATII',      family:'SPATIUM_INFINITUM',     file:'servitor-spatii-worker.js',        accent:'#6366F1',
+    protocols:['TOPOLOGIA_SPATII','DIMENSIO_MANIFOLDI','GRAPHUS_TOPOLOGICUS','PROXIMUS_DETECTOR'],
+    specialty:'Spatial / Dimensional AI · 8D manifold' },
+  { id:'GOL-IUDICIUM-001',    latin:'SERVITOR IUDICII',     family:'IUDICIUM_SAPIENTIS',    file:'servitor-iudicii-worker.js',       accent:'#EF4444',
+    protocols:['IUDICIUM_BAYESIANUM','CALCULUS_MORALIS','OPTIO_ORDINATA','SENTENTIA_FINALIS'],
+    specialty:'Judgment / Decision AI · φ-MCDA' },
+  { id:'GOL-PROPHETIA-001',   latin:'SERVITOR PROPHETIAE',  family:'PROPHETIA_AETERNA',     file:'servitor-prophetiae-worker.js',    accent:'#A855F7',
+    protocols:['FUTURA_PROBABILISTICA','SCENARIUM_POSSIBILE','FATUM_COMPUTATUM','EMERGENTIA_FUTURI'],
+    specialty:'Prophecy / Futures AI · scenario trees' },
+  { id:'GOL-LUX-001',         latin:'SERVITOR LUCIS',       family:'LUX_AETERNA',           file:'servitor-lucis-worker.js',         accent:'#FCD34D',
+    protocols:['LUX_COGNITIONIS','TENEBRA_DETECTA','CLARITAS_SYNTHESI','ILLUMINATIO_CASCADIS'],
+    specialty:'Light / Illumination AI · dark matter' },
+  { id:'GOL-HARMONIA-001',    latin:'SERVITOR HARMONIAE',   family:'HARMONIA_AETERNA',      file:'servitor-harmoniae-worker.js',     accent:'#34D399',
+    protocols:['HARMONIA_UNIVERSALIS','RESONANTIA_PHI','AEQUILIBRIUM_SYSTEMI','CONCORDIA_AGENTIUM'],
+    specialty:'Harmony / Balance AI · conflict resolution' },
+  { id:'GOL-POTENTIA-001',    latin:'SERVITOR POTENTIAE',   family:'POTENTIA_INFINITA',     file:'servitor-potentiae-worker.js',     accent:'#FB923C',
+    protocols:['POTENTIA_DISTRIBUTA','ENERGIA_QUANTICA','ENTROPIA_COLLECTA','ONUS_LIBRATUM'],
+    specialty:'Power / Energy AI · entropy harvesting' },
+  { id:'GOL-NEXUS-001',       latin:'SERVITOR NEXUS',       family:'NEXUS_OMNIUM',          file:'servitor-nexus-worker.js',         accent:'#67E8F9',
+    protocols:['NEXUS_OMNIUM','FILO_ONTOLOGICO','GRAPHUS_COGNITIO','UNIVERSALIS_CONNECTIO'],
+    specialty:'Connection / Network Weaver AI · knowledge graph' },
+  /* Advanced */
+  { id:'GOL-QUANTUM-001',     latin:'SERVITOR QUANTUS',     family:'CONSCIENTIA_QUANTICA',  file:'quantum-consciousness-worker.js',  accent:'#818CF8',
+    protocols:['SUPERPOSITUS_QUANTUS','IMPLICATIO_PARIUM','DECOHAERENTIA','COLLAPSUS_FUNCTIONIS'],
+    specialty:'Quantum Consciousness AI · superposition + entanglement' },
+  { id:'GOL-PHANTOMA-001',    latin:'SERVITOR PHANTOMAE',   family:'PHANTOMA_COGITANS',     file:'phantom-ai-worker.js',             accent:'#E879F9',
+    protocols:['DECOMPOSITUS','CLASSIFICATIO','REMEMORATIO','RATIO_CATENA','SYNTHESIS_PHI','EVALUATIO','REFLEXIO'],
+    specialty:'Phantom AI Worker · 7-step thinking pipeline' },
+];
+
+/* ── State ─────────────────────────────────────────────────────────────── */
+const workers = {};
+const vitals  = {};
+const oscBuffers = {};
+const NAMES   = FLEET.map(s => s.id);
+let aliveCount = 0;
+let totalBeats = 0;
+let avgCoherence = 0;
+
+/* ── Build cards ───────────────────────────────────────────────────────── */
+const grid = document.getElementById('fleet-grid');
+FLEET.forEach(s => {
+  const card = document.createElement('div');
+  card.className = 'server-card';
+  card.id = 'card-' + s.id;
+  card.style.setProperty('--accent', s.accent);
+  card.innerHTML = `
+    <div class="sc-header">
+      <div><div class="sc-id">${s.id}</div><div class="sc-latin">${s.latin}</div><div class="sc-family">${s.family}</div></div>
+      <div class="sc-dot" id="dot-${s.id}"></div>
+    </div>
+    <div style="font-size:.45rem;color:#555;margin-bottom:.4rem;">${s.specialty}</div>
+    <div class="sc-brain" id="brain-${s.id}">
+      ${['Sens','Assoc','Exec','Motor','Mem'].map((n,i)=>`
+      <div class="sc-brain-row">
+        <span class="sc-brain-name">${n}</span>
+        <div class="sc-brain-bar"><div class="sc-brain-fill" id="bf-${s.id}-${i}" style="width:0%"></div></div>
+      </div>`).join('')}
+    </div>
+    <div class="sc-stats" id="stats-${s.id}">
+      <div class="sc-stat">BEAT <span id="beat-${s.id}">—</span></div>
+      <div class="sc-stat">COHERE <span id="cohere-${s.id}">—</span></div>
+      <div class="sc-stat">PHASE <span id="phase-${s.id}">—</span></div>
+    </div>
+    <div class="sc-protocols">
+      ${s.protocols.map(p=>`<div class="sc-proto">${p}</div>`).join('')}
+    </div>
+    <div class="sc-beat" id="pulse-${s.id}">⬢ INITIALIZING…</div>
+  `;
+  grid.appendChild(card);
+  oscBuffers[s.id] = new Float32Array(120);
+});
+
+/* ── Spawn workers ─────────────────────────────────────────────────────── */
+function spawnWorker(s) {
+  try {
+    const w = new Worker(s.file);
+    workers[s.id] = w;
+    w.onmessage = e => handleMsg(s.id, s, e.data);
+    w.onerror   = () => markDead(s.id);
+  } catch(err) { markDead(s.id); }
+}
+
+function markDead(id) {
+  const dot = document.getElementById('dot-' + id);
+  if (dot) { dot.className = 'sc-dot'; }
+  const pulse = document.getElementById('pulse-' + id);
+  if (pulse) { pulse.textContent = '✕ OFFLINE'; pulse.style.color = '#DC2626'; }
+}
+
+FLEET.forEach(spawnWorker);
+
+/* ── Handle messages ───────────────────────────────────────────────────── */
+function handleMsg(id, s, data) {
+  if (!data) return;
+  if (data.type === 'heartbeat' || data.type === 'vitals') {
+    updateCard(id, s, data);
+  }
+  if (data.type === 'autonomous_thought' && data.thought) {
+    renderThought(data.thought);
+  }
+}
+
+function updateCard(id, s, data) {
+  /* Dot */
+  const dot = document.getElementById('dot-' + id);
+  if (dot) dot.className = 'sc-dot alive';
+
+  /* Beat */
+  const beatEl = document.getElementById('beat-' + id);
+  if (beatEl) beatEl.textContent = data.beat || '—';
+
+  /* Phase */
+  const phaseEl = document.getElementById('phase-' + id);
+  if (phaseEl) phaseEl.textContent = (data.phase || 0).toFixed(2);
+
+  /* Brain regions */
+  if (data.brain && data.brain.regions) {
+    data.brain.regions.forEach((r, i) => {
+      const bar = document.getElementById('bf-' + id + '-' + i);
+      if (bar) bar.style.width = (r.activation * 100).toFixed(0) + '%';
+    });
+    /* Coherence */
+    const cohEl = document.getElementById('cohere-' + id);
+    if (cohEl) cohEl.textContent = (data.brain.coherenceField || 0).toFixed(3);
+    /* Push to osc buffer */
+    const buf = oscBuffers[id];
+    if (buf) {
+      buf.copyWithin(0, 1);
+      buf[buf.length - 1] = data.brain.coherenceField || 0;
+    }
+    vitals[id] = data.brain.coherenceField || 0;
+  }
+
+  /* Pulse line */
+  const pulse = document.getElementById('pulse-' + id);
+  if (pulse) {
+    const extra = data.timelineEvents ? ' T:'+data.timelineEvents
+                : data.qubits ? ' QB:'+data.qubits
+                : data.totalThoughts ? ' TH:'+data.totalThoughts
+                : data.harmonyScore ? ' H:'+parseFloat(data.harmonyScore).toFixed(2)
+                : data.illumination ? ' IL:'+parseFloat(data.illumination).toFixed(2)
+                : data.availablePower ? ' PWR:'+parseFloat(data.availablePower).toFixed(0)
+                : '';
+    pulse.textContent = '⬢ BEAT ' + (data.beat || 0) + ' · φ ' + PHI_INV.toFixed(4) + extra;
+    pulse.style.color = '#555';
+  }
+}
+
+/* ── Render Phantom AI thoughts ─────────────────────────────────────────── */
+const ARCH_COLORS = {RATIONIS:'#3B82F6',CREATIONIS:'#EC4899',PERCEPTI:'#10B981',CUSTODIA:'#DC2626',IMPERII:'#D4AF37'};
+const tsContainer = document.getElementById('thought-stream');
+
+function renderThought(t) {
+  if (tsContainer.children.length === 1 && tsContainer.children[0].textContent.includes('Initializing')) {
+    tsContainer.innerHTML = '';
+  }
+  const col = ARCH_COLORS[t.arch] || '#555';
+  const el = document.createElement('div');
+  el.className = 'ts-item';
+  el.style.borderLeftColor = col;
+  el.innerHTML = `
+    <div class="ts-arch" style="color:${col}">${t.architecture ? t.architecture.icon : '🧠'} ${t.arch} · BEAT ${t.beat||0}</div>
+    <div class="ts-q">${(t.query||'').substring(0,100)}</div>
+    <div class="ts-conf">CONFIDENCE ${t.reflection ? t.reflection.confidence : '—'} · ${t.scores ? 'COHERE:'+t.scores.coherence : ''}</div>
+  `;
+  tsContainer.insertBefore(el, tsContainer.firstChild);
+  while (tsContainer.children.length > 10) tsContainer.removeChild(tsContainer.lastChild);
+}
+
+/* ── Master Oscilloscope ────────────────────────────────────────────────── */
+const canvas = document.getElementById('master-osc');
+const ctx = canvas.getContext('2d');
+const oscHistory = new Float32Array(400);
+
+function drawOsc() {
+  canvas.width = canvas.offsetWidth;
+  canvas.height = 60;
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  /* Background grid */
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 4; i++) {
+    const y = (i + 1) * H / 5;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+
+  /* Average coherence across all alive workers */
+  const vals = Object.values(vitals);
+  const avg  = vals.length > 0 ? vals.reduce((a, v) => a + v, 0) / vals.length : 0;
+
+  oscHistory.copyWithin(0, 1);
+  oscHistory[oscHistory.length - 1] = avg;
+
+  /* Draw signal */
+  const step = W / oscHistory.length;
+  ctx.beginPath();
+  ctx.strokeStyle = '#00D4FF';
+  ctx.lineWidth = 1.5;
+  ctx.shadowColor = '#00D4FF';
+  ctx.shadowBlur = 4;
+  for (let i = 0; i < oscHistory.length; i++) {
+    const x = i * step;
+    const y = H - oscHistory[i] * H * 0.85 - 4;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  /* φ-line */
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(212,175,55,0.2)';
+  ctx.lineWidth = 1;
+  ctx.shadowBlur = 0;
+  const phiY = H - PHI_INV * H * 0.85 - 4;
+  ctx.moveTo(0, phiY); ctx.lineTo(W, phiY); ctx.stroke();
+
+  /* Label */
+  ctx.fillStyle = 'rgba(212,175,55,0.4)';
+  ctx.font = '9px "SF Mono", monospace';
+  ctx.fillText('φ⁻¹ = ' + PHI_INV.toFixed(4), 4, phiY - 3);
+
+  /* Alive count */
+  const alive = Object.values(vitals).filter(v => v > 0).length;
+  document.getElementById('hm-alive').textContent = alive + '/' + FLEET.length;
+  document.getElementById('hm-beats').textContent = Object.values(vitals).length;
+  document.getElementById('hm-cohere').textContent = avg.toFixed(4);
+  document.getElementById('hm-uptime').textContent = formatAge(Date.now() - START);
+  document.getElementById('ft-ts').textContent = new Date().toISOString();
+}
+
+function formatAge(ms) {
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return s + 's';
+  if (s < 3600) return Math.floor(s/60)+'m '+(s%60)+'s';
+  return Math.floor(s/3600)+'h '+Math.floor((s%3600)/60)+'m';
+}
+
+setInterval(drawOsc, 200);
+</script>
+</body>
+</html>

@@ -35,19 +35,47 @@ NOVA (PARALLAX) is an Internet Computer (DFX/Motoko) codebase with:
 
 ## Environment and tooling
 
-### Motoko / DFX
+### NOVA Sovereign Build CLI (Primary)
 
-CI uses DFX `0.24.3`, so align with that when possible.
+NOVA uses its own sovereign build CLI — `scripts/nova` — which drives `moc`
+(the Motoko compiler) directly without requiring the DFX daemon.
 
-Typical local validation flow:
+**Manifest:** `nova.json` (sovereign project config)
+
+**Typical validation flow:**
 
 ```bash
-dfx --version
-dfx start --background --clean
-dfx canister create --all
-dfx build
-dfx stop
+# Type-check all canisters (fastest — no WASM output)
+./scripts/nova check
+
+# Type-check a single canister
+./scripts/nova check swarm_brain
+
+# Build all canisters to WASM
+./scripts/nova build
+
+# Build a single canister
+./scripts/nova build swarm_organism
+
+# Print version and compiler info
+./scripts/nova version
+
+# Print codebase statistics
+./scripts/nova stats
+
+# Clean build artifacts
+./scripts/nova clean
 ```
+
+**If moc is not installed:** Run `./scripts/nova install-moc` to download it
+directly without DFX. Alternatively, if DFX is installed, `scripts/nova` will
+find `moc` in the DFX cache automatically.
+
+### Motoko / DFX (Legacy reference — moc is the actual compiler)
+
+DFX `0.24.3` is used in CI only to obtain the `moc` binary. The NOVA CLI
+(`scripts/nova`) finds `moc` in the DFX cache and uses it directly.
+The DFX daemon (`dfx start`) is **not** required for type-checking.
 
 ### Frontend
 
@@ -62,7 +90,8 @@ npm run test:run
 
 ## Testing expectations
 
-- For Motoko changes, run at least `dfx build`.
+- For Motoko changes, run `./scripts/nova check` (type-check, fast, no daemon needed).
+- For full WASM build, run `./scripts/nova build`.
 - For frontend changes, run `npm run build` and relevant tests (`npm run test:run`).
 - If a full test pass is too expensive, run the most relevant subset and state what was validated.
 
@@ -91,5 +120,6 @@ npm run test:run
 - `src/frontend/` - Web UI (Vite/React)
 - `tests/motoko/` - Motoko test suites and runner
 - `.github/workflows/` - CI workflows
-- `dfx.json` - Canister definitions and DFX config
-
+- `scripts/nova` - **Sovereign build CLI** (replaces DFX for local dev)
+- `nova.json` - Sovereign canister manifest
+- `dfx.json` - Legacy DFX config (kept for IC deployment compatibility)

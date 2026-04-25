@@ -1,0 +1,417 @@
+#!/usr/bin/env bash
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║                                                                               ║
+# ║  NOVA SOVEREIGN BUILD CLI                                                    ║
+# ║  Version 1.0 — NSCP-2025                                                     ║
+# ║                                                                               ║
+# ║  COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ. ALL RIGHTS RESERVED.        ║
+# ║  Owner:   Alfredo Medina Hernandez | Dallas, Texas, USA                       ║
+# ║  Contact: MedinaSITech@outlook.com                                            ║
+# ║  License: NOVA Sovereign Contract Protocol — NSCP-2025                        ║
+# ║                                                                               ║
+# ║  "The sovereign does not ask permission.                                      ║
+# ║   The sovereign's mark is in the mathematics."                                ║
+# ║                                                                               ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+#
+# NOVA CLI — Sovereign replacement for DFX.
+# Does NOT require dfx. Uses moc (Motoko compiler) directly.
+#
+# COMMANDS:
+#   nova version          — Print NOVA CLI version and compiler info
+#   nova check            — Type-check all Motoko canisters (no WASM output)
+#   nova build            — Compile all Motoko canisters to WASM
+#   nova build <canister> — Compile a single named canister
+#   nova clean            — Remove all build artifacts
+#   nova install-moc      — Download moc compiler to .nova/moc/
+#   nova stats            — Print codebase statistics
+#
+# USAGE:
+#   ./scripts/nova check
+#   ./scripts/nova build swarm_brain
+#   ./scripts/nova build
+#
+# ════════════════════════════════════════════════════════════════════════════════
+
+set -euo pipefail
+
+# ── Sovereign constants ──────────────────────────────────────────────────────
+NOVA_VERSION="1.0.0"
+NOVA_EPOCH="NOVA-EPOCH-2025"
+NOVA_SEAL="NSCP-CLI-v1-AMH-φ"
+MOC_VERSION="0.13.4"
+MOC_CACHE_DIR=".nova/moc"
+MOC_BIN="${MOC_CACHE_DIR}/moc"
+BUILD_DIR=".nova/build"
+MANIFEST="nova.json"
+
+# ── Colors (if terminal supports them) ─────────────────────────────────────
+if [ -t 1 ]; then
+  RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
+  CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
+else
+  RED=''; GREEN=''; YELLOW=''; CYAN=''; BOLD=''; RESET=''
+fi
+
+# ── Helpers ──────────────────────────────────────────────────────────────────
+nova_log()  { echo -e "${CYAN}[NOVA]${RESET} $*"; }
+nova_ok()   { echo -e "${GREEN}[  ✓ ]${RESET} $*"; }
+nova_warn() { echo -e "${YELLOW}[ !! ]${RESET} $*"; }
+nova_err()  { echo -e "${RED}[FAIL]${RESET} $*" >&2; }
+nova_head() { echo -e "${BOLD}${CYAN}$*${RESET}"; }
+
+# ── Print sovereign banner ────────────────────────────────────────────────────
+print_banner() {
+  echo ""
+  nova_head "╔══════════════════════════════════════════════════════════╗"
+  nova_head "║  NOVA SOVEREIGN BUILD CLI  v${NOVA_VERSION}                        ║"
+  nova_head "║  ${NOVA_EPOCH}  •  Seal: ${NOVA_SEAL}     ║"
+  nova_head "║  © 2024-2026 Alfredo Medina Hernandez — Dallas TX        ║"
+  nova_head "╚══════════════════════════════════════════════════════════╝"
+  echo ""
+}
+
+# ── Locate project root (directory containing nova.json) ─────────────────────
+find_root() {
+  local dir="$PWD"
+  while [[ "$dir" != "/" ]]; do
+    if [[ -f "${dir}/nova.json" ]]; then
+      echo "$dir"
+      return 0
+    fi
+    dir="$(dirname "$dir")"
+  done
+  nova_err "Cannot find nova.json. Are you inside a NOVA project?"
+  exit 1
+}
+
+# ── Ensure moc is available ───────────────────────────────────────────────────
+ensure_moc() {
+  # 1. Check .nova/moc/moc (our cached sovereign copy)
+  if [[ -x "${MOC_BIN}" ]]; then
+    nova_log "Using cached moc: ${MOC_BIN}"
+    return 0
+  fi
+
+  # 2. Check system PATH (dfx installs moc to ~/.cache/dfinity/versions/*/moc)
+  local system_moc
+  if system_moc="$(command -v moc 2>/dev/null)"; then
+    nova_log "Found moc on PATH: ${system_moc}"
+    # Link it into our cache so we own it
+    mkdir -p "${MOC_CACHE_DIR}"
+    ln -sf "${system_moc}" "${MOC_BIN}" 2>/dev/null || true
+    return 0
+  fi
+
+  # 3. Search DFX cache for moc
+  local dfx_moc
+  dfx_moc="$(find "${HOME}/.cache/dfinity" -name "moc" -type f 2>/dev/null | sort -V | tail -1 || true)"
+  if [[ -n "${dfx_moc}" && -x "${dfx_moc}" ]]; then
+    nova_log "Found moc in DFX cache: ${dfx_moc}"
+    mkdir -p "${MOC_CACHE_DIR}"
+    ln -sf "${dfx_moc}" "${MOC_BIN}" 2>/dev/null || cp "${dfx_moc}" "${MOC_BIN}"
+    chmod +x "${MOC_BIN}"
+    return 0
+  fi
+
+  # 4. Not found — prompt install
+  nova_err "moc (Motoko compiler) not found."
+  nova_warn "Run: ./scripts/nova install-moc"
+  nova_warn "Or install DFX once to populate the moc cache, then nova will use it forever."
+  exit 1
+}
+
+# ── Install moc directly (no DFX required) ───────────────────────────────────
+cmd_install_moc() {
+  nova_log "Installing moc ${MOC_VERSION} into ${MOC_CACHE_DIR}/ ..."
+  mkdir -p "${MOC_CACHE_DIR}"
+
+  local os arch url
+  os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+  arch="$(uname -m)"
+
+  # Motoko releases: https://github.com/dfinity/motoko/releases
+  # The binary is just named "moc" inside a tarball or as a direct download
+  local base_url="https://github.com/dfinity/motoko/releases/download/${MOC_VERSION}"
+
+  if [[ "$os" == "linux" && "$arch" == "x86_64" ]]; then
+    url="${base_url}/motoko-linux64-${MOC_VERSION}.tar.gz"
+  elif [[ "$os" == "linux" && "$arch" == "aarch64" ]]; then
+    url="${base_url}/motoko-linux64-${MOC_VERSION}.tar.gz"
+  elif [[ "$os" == "darwin" ]]; then
+    url="${base_url}/motoko-macos-${MOC_VERSION}.tar.gz"
+  else
+    nova_err "Unsupported platform: ${os}/${arch}"
+    nova_warn "Download moc manually from: https://github.com/dfinity/motoko/releases"
+    exit 1
+  fi
+
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  trap "rm -rf ${tmpdir}" EXIT
+
+  nova_log "Downloading from: ${url}"
+  if command -v curl &>/dev/null; then
+    curl -fsSL "${url}" -o "${tmpdir}/moc.tar.gz"
+  elif command -v wget &>/dev/null; then
+    wget -q "${url}" -O "${tmpdir}/moc.tar.gz"
+  else
+    nova_err "Neither curl nor wget found. Cannot download moc."
+    exit 1
+  fi
+
+  nova_log "Extracting..."
+  tar -xzf "${tmpdir}/moc.tar.gz" -C "${tmpdir}"
+
+  local moc_bin
+  moc_bin="$(find "${tmpdir}" -name "moc" -type f | head -1)"
+  if [[ -z "${moc_bin}" ]]; then
+    nova_err "moc binary not found in downloaded archive."
+    exit 1
+  fi
+
+  cp "${moc_bin}" "${MOC_BIN}"
+  chmod +x "${MOC_BIN}"
+  nova_ok "moc ${MOC_VERSION} installed to ${MOC_BIN}"
+  "${MOC_BIN}" --version
+}
+
+# ── Read canister list from nova.json ─────────────────────────────────────────
+# Returns lines of: name:type:main
+read_canisters() {
+  if ! command -v python3 &>/dev/null; then
+    nova_err "python3 required to parse nova.json"
+    exit 1
+  fi
+  python3 - <<'PYEOF'
+import json, sys
+with open("nova.json") as f:
+    m = json.load(f)
+for name, c in m.get("canisters", {}).items():
+    ctype = c.get("type", "motoko")
+    main  = c.get("main", "")
+    print(f"{name}:{ctype}:{main}")
+PYEOF
+}
+
+# ── Find base library path ────────────────────────────────────────────────────
+find_base_lib() {
+  # Look in DFX cache first
+  local base
+  base="$(find "${HOME}/.cache/dfinity" -path "*/base/Nat.mo" -type f 2>/dev/null | sort -V | tail -1 || true)"
+  if [[ -n "${base}" ]]; then
+    dirname "$(dirname "${base}")"
+    return 0
+  fi
+  # Look in nova moc packages
+  if [[ -d ".nova/moc-packages/base" ]]; then
+    echo ".nova/moc-packages/base"
+    return 0
+  fi
+  echo ""
+}
+
+# ── Type-check a single Motoko file ──────────────────────────────────────────
+check_canister() {
+  local name="$1" main="$2"
+  local base_lib
+  base_lib="$(find_base_lib)"
+
+  local moc_args=("${MOC_BIN}" "--check")
+  if [[ -n "${base_lib}" ]]; then
+    moc_args+=("--package" "base" "${base_lib}")
+  fi
+  moc_args+=("${main}")
+
+  nova_log "Checking ${name} (${main}) ..."
+  if "${moc_args[@]}" 2>&1; then
+    nova_ok "${name} — type check passed"
+    return 0
+  else
+    nova_err "${name} — type check FAILED"
+    return 1
+  fi
+}
+
+# ── Compile a single Motoko file to WASM ─────────────────────────────────────
+build_canister() {
+  local name="$1" main="$2"
+  local out_dir="${BUILD_DIR}/canisters/${name}"
+  mkdir -p "${out_dir}"
+
+  local base_lib
+  base_lib="$(find_base_lib)"
+
+  local moc_args=("${MOC_BIN}" "--compile")
+  if [[ -n "${base_lib}" ]]; then
+    moc_args+=("--package" "base" "${base_lib}")
+  fi
+  moc_args+=("-o" "${out_dir}/${name}.wasm" "${main}")
+
+  nova_log "Building ${name} (${main}) ..."
+  if "${moc_args[@]}" 2>&1; then
+    nova_ok "${name} — compiled to ${out_dir}/${name}.wasm"
+    return 0
+  else
+    nova_err "${name} — compilation FAILED"
+    return 1
+  fi
+}
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# COMMANDS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+cmd_version() {
+  print_banner
+  nova_log "NOVA CLI version : ${NOVA_VERSION}"
+  nova_log "Epoch            : ${NOVA_EPOCH}"
+  nova_log "Sovereign seal   : ${NOVA_SEAL}"
+  if [[ -x "${MOC_BIN}" ]]; then
+    nova_log "Motoko compiler  : $("${MOC_BIN}" --version 2>&1 || echo 'version unknown')"
+  else
+    nova_warn "moc not yet installed. Run: ./scripts/nova install-moc"
+  fi
+  nova_log "Manifest         : ${MANIFEST}"
+}
+
+cmd_check() {
+  local target="${1:-}"
+  print_banner
+  ensure_moc
+  nova_head "═══ NOVA TYPE CHECK ═══"
+  local pass=0 fail=0
+
+  while IFS=: read -r name ctype main; do
+    if [[ "${ctype}" != "motoko" ]]; then
+      nova_log "Skipping ${name} (type=${ctype})"
+      continue
+    fi
+    if [[ -n "${target}" && "${name}" != "${target}" ]]; then
+      continue
+    fi
+    if check_canister "${name}" "${main}"; then
+      ((pass++)) || true
+    else
+      ((fail++)) || true
+    fi
+  done < <(read_canisters)
+
+  echo ""
+  if [[ ${fail} -eq 0 ]]; then
+    nova_ok "All ${pass} canister(s) passed type check. ✓"
+  else
+    nova_err "${fail} canister(s) FAILED type check. ${pass} passed."
+    exit 1
+  fi
+}
+
+cmd_build() {
+  local target="${1:-}"
+  print_banner
+  ensure_moc
+  mkdir -p "${BUILD_DIR}/canisters"
+  nova_head "═══ NOVA BUILD ═══"
+  local pass=0 fail=0
+
+  while IFS=: read -r name ctype main; do
+    if [[ "${ctype}" != "motoko" ]]; then
+      nova_log "Skipping ${name} (type=${ctype})"
+      continue
+    fi
+    if [[ -n "${target}" && "${name}" != "${target}" ]]; then
+      continue
+    fi
+    if build_canister "${name}" "${main}"; then
+      ((pass++)) || true
+    else
+      ((fail++)) || true
+    fi
+  done < <(read_canisters)
+
+  echo ""
+  if [[ ${fail} -eq 0 ]]; then
+    nova_ok "All ${pass} canister(s) built successfully. ✓"
+    nova_log "Artifacts in: ${BUILD_DIR}/canisters/"
+  else
+    nova_err "${fail} canister(s) FAILED to build. ${pass} succeeded."
+    exit 1
+  fi
+}
+
+cmd_clean() {
+  nova_log "Cleaning build artifacts..."
+  rm -rf "${BUILD_DIR}"
+  nova_ok "Cleaned ${BUILD_DIR}"
+}
+
+cmd_stats() {
+  print_banner
+  nova_head "═══ NOVA CODEBASE STATISTICS ═══"
+  local mo_files mo_lines
+  mo_files="$(find src -name "*.mo" -type f 2>/dev/null | wc -l | tr -d ' ')"
+  mo_lines="$(find src -name "*.mo" -type f -exec cat {} \; 2>/dev/null | wc -l | tr -d ' ')"
+  nova_log "Motoko files  : ${mo_files}"
+  nova_log "Motoko lines  : ${mo_lines}"
+  echo ""
+  nova_log "Canisters defined in nova.json:"
+  while IFS=: read -r name ctype main; do
+    nova_log "  ${name} (${ctype}) → ${main}"
+  done < <(read_canisters)
+}
+
+cmd_help() {
+  print_banner
+  cat <<EOF
+${BOLD}USAGE:${RESET}
+  nova <command> [options]
+
+${BOLD}COMMANDS:${RESET}
+  version             Print NOVA CLI version and compiler info
+  check [canister]    Type-check all (or one) Motoko canister(s)
+  build [canister]    Compile all (or one) Motoko canister(s) to WASM
+  clean               Remove build artifacts (.nova/build/)
+  install-moc         Download moc compiler without DFX
+  stats               Print codebase statistics
+  help                Show this message
+
+${BOLD}EXAMPLES:${RESET}
+  ./scripts/nova check
+  ./scripts/nova check swarm_brain
+  ./scripts/nova build
+  ./scripts/nova build swarm_organism
+  ./scripts/nova install-moc
+
+${BOLD}MANIFEST:${RESET}  nova.json (sovereign project config)
+${BOLD}ARTIFACTS:${RESET} .nova/build/canisters/<name>/<name>.wasm
+
+${BOLD}LICENSE:${RESET}
+  NOVA Sovereign Contract Protocol — NSCP-2025
+  © 2024-2026 Alfredo Medina Hernandez. All Rights Reserved.
+EOF
+}
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DISPATCH
+# ═══════════════════════════════════════════════════════════════════════════════
+
+ROOT="$(find_root)"
+cd "${ROOT}"
+
+COMMAND="${1:-help}"
+shift || true
+
+case "${COMMAND}" in
+  version)      cmd_version ;;
+  check)        cmd_check "${1:-}" ;;
+  build)        cmd_build "${1:-}" ;;
+  clean)        cmd_clean ;;
+  install-moc)  cmd_install_moc ;;
+  stats)        cmd_stats ;;
+  help|--help|-h) cmd_help ;;
+  *)
+    nova_err "Unknown command: ${COMMAND}"
+    cmd_help
+    exit 1
+    ;;
+esac

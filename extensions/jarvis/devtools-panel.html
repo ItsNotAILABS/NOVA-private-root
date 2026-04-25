@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="la">
+<head>
+<meta charset="UTF-8">
+<title>JARVIS DevTools Panel</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'SF Mono','Fira Code',monospace;background:#05050f;color:#ddd;height:100vh;overflow-y:auto;}
+:root{--gold:#D4AF37;--cyan:#00D4FF;--green:#10B981;}
+
+header{padding:.6rem 1rem;border-bottom:1px solid rgba(212,175,55,0.1);
+  background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:space-between;}
+.h-title{font-size:.75rem;font-weight:900;color:var(--gold);letter-spacing:.08em;}
+.h-meta{font-size:.5rem;color:#444;}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;padding:.8rem;}
+
+.panel{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);
+  border-radius:7px;padding:.6rem;}
+.panel-title{font-size:.55rem;color:var(--gold);letter-spacing:.08em;margin-bottom:.4rem;}
+
+.arch-chart{display:flex;flex-direction:column;gap:.3rem;}
+.arch-row{display:flex;align-items:center;gap:.4rem;}
+.arch-name{font-size:.5rem;color:#555;width:60px;}
+.arch-bar{flex:1;height:4px;background:#0a0a12;border-radius:2px;}
+.arch-fill{height:100%;border-radius:2px;transition:width .5s;}
+.arch-val{font-size:.48rem;color:#444;width:20px;text-align:right;}
+
+.brain-grid{display:grid;grid-template-columns:1fr 1fr;gap:.3rem;}
+.bg-item{background:rgba(0,0,0,0.2);border-radius:3px;padding:.3rem;text-align:center;}
+.bg-label{font-size:.45rem;color:#333;margin-bottom:.1rem;}
+.bg-val{font-size:.7rem;font-weight:700;color:var(--cyan);}
+
+.thought-list{max-height:200px;overflow-y:auto;scrollbar-width:thin;}
+.tl-item{padding:.3rem;border-bottom:1px solid rgba(255,255,255,0.02);font-size:.5rem;}
+.tl-arch{color:var(--gold);}
+.tl-q{color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+.status-row{display:flex;gap:.3rem;flex-wrap:wrap;padding:0 .8rem .8rem;}
+.st-item{background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.04);
+  border-radius:4px;padding:.2rem .5rem;font-size:.5rem;}
+.st-label{color:#333;margin-right:.2rem;}
+.st-val{color:var(--cyan);}
+</style>
+</head>
+<body>
+<header>
+  <div class="h-title">⚡ JARVIS · PHANTOM AI — DevTools</div>
+  <div class="h-meta" id="dt-meta">EXT-027 · BEAT 0</div>
+</header>
+
+<div class="status-row" id="dt-status">
+  <div class="st-item"><span class="st-label">BEAT</span><span class="st-val" id="dt-beat">0</span></div>
+  <div class="st-item"><span class="st-label">THOUGHTS</span><span class="st-val" id="dt-thoughts">0</span></div>
+  <div class="st-item"><span class="st-label">COHERENCE</span><span class="st-val" id="dt-cohere">—</span></div>
+  <div class="st-item"><span class="st-label">DOPAMINE</span><span class="st-val" id="dt-dopa">—</span></div>
+  <div class="st-item"><span class="st-label">SEROTONIN</span><span class="st-val" id="dt-sero">—</span></div>
+  <div class="st-item"><span class="st-label">ACETYLCHOLINE</span><span class="st-val" id="dt-acch">—</span></div>
+</div>
+
+<div class="grid">
+  <div class="panel">
+    <div class="panel-title">THINKING ARCHITECTURE USAGE</div>
+    <div class="arch-chart" id="dt-arch-chart">
+      ${[['RATIONIS','🧠','#3B82F6'],['CREATIONIS','🎨','#EC4899'],['PERCEPTI','📊','#10B981'],['CUSTODIA','🛡️','#DC2626'],['IMPERII','🌀','#D4AF37']].map(([id,icon,col])=>`
+      <div class="arch-row">
+        <span class="arch-name">${icon} ${id.substring(0,6)}</span>
+        <div class="arch-bar"><div class="arch-fill" id="dtaf-${id}" style="width:0%;background:${col}"></div></div>
+        <span class="arch-val" id="dtav-${id}">0</span>
+      </div>`).join('')}
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">CEREBRUM PARVUM — REGIONS</div>
+    <div class="brain-grid" id="dt-brain">
+      ${['Sensory','Associative','Executive','Motor','Memory'].map((n,i)=>`
+      <div class="bg-item">
+        <div class="bg-label">${n.toUpperCase()}</div>
+        <div class="bg-val" id="dtbr-${i}">0%</div>
+      </div>`).join('')}
+    </div>
+  </div>
+
+  <div class="panel" style="grid-column:1/-1">
+    <div class="panel-title">RECENT PHANTOM THOUGHTS</div>
+    <div class="thought-list" id="dt-thoughts-list">
+      <div style="font-size:.5rem;color:#333;padding:.3rem;">No thoughts yet…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ARCH_IDS = ['RATIONIS','CREATIONIS','PERCEPTI','CUSTODIA','IMPERII'];
+
+function update(vitals) {
+  if (!vitals) return;
+  document.getElementById('dt-beat').textContent = vitals.beat || 0;
+  document.getElementById('dt-thoughts').textContent = vitals.totalThoughts || 0;
+  if (vitals.brain) {
+    document.getElementById('dt-cohere').textContent = (vitals.brain.coherenceField||0).toFixed(3);
+    document.getElementById('dt-dopa').textContent = (vitals.brain.chemicals.dopamine||0).toFixed(3);
+    document.getElementById('dt-sero').textContent = (vitals.brain.chemicals.serotonin||0).toFixed(3);
+    document.getElementById('dt-acch').textContent = (vitals.brain.chemicals.acetylcholine||0).toFixed(3);
+    (vitals.brain.regions||[]).forEach((r,i) => {
+      const el = document.getElementById('dtbr-'+i);
+      if (el) el.textContent = (r.activation*100).toFixed(0) + '%';
+    });
+  }
+  if (vitals.architectureUsage) {
+    const max = Math.max(...Object.values(vitals.architectureUsage), 1);
+    ARCH_IDS.forEach(id => {
+      const v = vitals.architectureUsage[id] || 0;
+      const bar = document.getElementById('dtaf-'+id);
+      const val = document.getElementById('dtav-'+id);
+      if (bar) bar.style.width = (v/max*100).toFixed(0) + '%';
+      if (val) val.textContent = v;
+    });
+  }
+  if (vitals.recentThoughts) {
+    const list = document.getElementById('dt-thoughts-list');
+    list.innerHTML = vitals.recentThoughts.slice(0,8).map(t =>
+      `<div class="tl-item"><span class="tl-arch">[${t.arch||'?'}]</span> <span class="tl-q">${(t.query||'').substring(0,80)}</span></div>`
+    ).join('') || '<div style="font-size:.5rem;color:#333;padding:.3rem;">No thoughts yet…</div>';
+  }
+}
+
+chrome.runtime.sendMessage({ type: 'GET_VITALS' }, update);
+chrome.runtime.onMessage.addListener(msg => {
+  if (msg && msg.type === 'JARVIS_PULSE') {
+    document.getElementById('dt-beat').textContent = msg.beat;
+    if (msg.brain) {
+      document.getElementById('dt-cohere').textContent = (msg.brain.coherenceField||0).toFixed(3);
+      (msg.brain.regions||[]).forEach((r,i) => {
+        const el = document.getElementById('dtbr-'+i);
+        if (el) el.textContent = (r.activation*100).toFixed(0)+'%';
+      });
+    }
+    if (msg.phantom) {
+      document.getElementById('dt-thoughts').textContent = msg.phantom.totalThoughts;
+    }
+  }
+});
+
+setInterval(() => chrome.runtime.sendMessage({ type: 'GET_VITALS' }, update), 3000);
+</script>
+</body>
+</html>
