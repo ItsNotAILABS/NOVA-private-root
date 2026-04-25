@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NOVA | Imperium Aedificationis — Construction Command</title>
+  <meta name="description" content="NOVA Construction Command — Blueprints dispatched to autonomous builders. Buildings and hospitals rise.">
+  <style>
+    :root {
+      --gold:       #D4AF37;
+      --gold-light: #F4E4BC;
+      --gold-dark:  #B8960C;
+      --dark:       #0a0a0f;
+      --darker:     #050508;
+      --purple:     #6B46C1;
+      --cyan:       #00D4FF;
+      --green:      #10B981;
+      --red:        #DC2626;
+      --orange:     #F59E0B;
+      --blue:       #3B82F6;
+      --font-mono:  'SF Mono','Fira Code','Cascadia Code',monospace;
+      --font-sans:  'Inter',system-ui,-apple-system,sans-serif;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:var(--font-sans);background:var(--darker);color:#e0e0e0;min-height:100vh;overflow-x:hidden;}
+
+    .bg{
+      position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;
+      background:
+        radial-gradient(ellipse at 15% 20%,rgba(212,175,55,0.07) 0%,transparent 55%),
+        radial-gradient(ellipse at 85% 75%,rgba(16,185,129,0.05) 0%,transparent 55%),
+        radial-gradient(ellipse at 50% 50%,rgba(59,130,246,0.03) 0%,transparent 70%),
+        var(--darker);
+    }
+
+    header{text-align:center;padding:2.5rem 1rem 1.5rem;border-bottom:1px solid rgba(212,175,55,0.15);}
+    header h1{
+      font-size:2.2rem;font-weight:800;letter-spacing:.06em;
+      background:linear-gradient(135deg,var(--gold),var(--gold-light),var(--gold));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    }
+    header .sub{color:rgba(212,175,55,0.55);font-size:.8rem;font-family:var(--font-mono);margin-top:.4rem;}
+
+    /* ── Status bar ─────────────────────────────────────────────────────── */
+    .status-bar{
+      display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;
+      padding:.75rem 1rem;background:rgba(0,0,0,0.45);
+      border-bottom:1px solid rgba(212,175,55,0.1);
+      font-family:var(--font-mono);font-size:.72rem;
+    }
+    .si{display:flex;align-items:center;gap:.4rem;}
+    .si .label{color:rgba(212,175,55,0.55);}
+    .si .val{color:var(--gold);}
+    .dot{width:7px;height:7px;border-radius:50%;background:#555;flex-shrink:0;}
+    .dot.alive{background:var(--green);box-shadow:0 0 6px var(--green);}
+    .dot.warn{background:var(--orange);}
+    .dot.off{background:var(--red);}
+
+    /* ── Grid layout ─────────────────────────────────────────────────────── */
+    .main{max-width:1440px;margin:0 auto;padding:1.5rem 1rem;display:grid;gap:1.5rem;
+      grid-template-columns:1fr 1fr;grid-template-areas:
+        "controls controls"
+        "blueprints blueprints"
+        "bldprogress hospboard"
+        "log log";}
+    @media(max-width:900px){
+      .main{grid-template-columns:1fr;grid-template-areas:"controls""blueprints""bldprogress""hospboard""log";}
+    }
+
+    /* ── Panel base ──────────────────────────────────────────────────────── */
+    .panel{
+      background:rgba(255,255,255,0.025);border:1px solid rgba(212,175,55,0.12);
+      border-radius:8px;padding:1.25rem;
+    }
+    .panel-title{
+      font-family:var(--font-mono);font-size:.75rem;font-weight:700;
+      color:var(--gold);letter-spacing:.1em;margin-bottom:1rem;
+      display:flex;align-items:center;gap:.6rem;
+    }
+    .panel-title .tag{
+      font-size:.65rem;padding:.15rem .5rem;border-radius:3px;
+      background:rgba(212,175,55,0.12);color:rgba(212,175,55,0.7);
+    }
+
+    /* ── Controls ─────────────────────────────────────────────────────────── */
+    #controls{grid-area:controls;}
+    .ctrl-row{display:flex;gap:.8rem;flex-wrap:wrap;align-items:center;}
+    .btn{
+      font-family:var(--font-mono);font-size:.78rem;padding:.55rem 1.2rem;
+      border:1px solid rgba(212,175,55,0.35);border-radius:5px;cursor:pointer;
+      background:rgba(212,175,55,0.08);color:var(--gold);transition:all .15s;
+      white-space:nowrap;
+    }
+    .btn:hover{background:rgba(212,175,55,0.18);border-color:var(--gold);}
+    .btn.primary{background:rgba(212,175,55,0.2);border-color:var(--gold);color:var(--gold-light);}
+    .btn.green{border-color:rgba(16,185,129,0.5);color:var(--green);background:rgba(16,185,129,0.08);}
+    .btn.green:hover{background:rgba(16,185,129,0.18);}
+    .btn.red{border-color:rgba(220,38,38,0.5);color:var(--red);background:rgba(220,38,38,0.08);}
+    .btn.red:hover{background:rgba(220,38,38,0.18);}
+    .btn.blue{border-color:rgba(59,130,246,0.5);color:var(--blue);background:rgba(59,130,246,0.08);}
+    .btn.blue:hover{background:rgba(59,130,246,0.18);}
+    .btn:disabled{opacity:.4;cursor:not-allowed;}
+
+    .meter-row{display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:.8rem;}
+    .meter{font-family:var(--font-mono);font-size:.72rem;}
+    .meter .ml{color:rgba(212,175,55,0.55);}
+    .meter .mv{color:var(--gold);font-weight:700;}
+
+    /* ── Oscilloscope ────────────────────────────────────────────────────── */
+    .osc-row{display:flex;gap:.8rem;margin-top:.8rem;flex-wrap:wrap;}
+    .osc{flex:1;min-width:180px;}
+    .osc-label{font-family:var(--font-mono);font-size:.65rem;color:rgba(212,175,55,0.5);margin-bottom:.3rem;}
+    canvas{width:100%;height:42px;border-radius:3px;background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.08);display:block;}
+
+    /* ── Blueprints ──────────────────────────────────────────────────────── */
+    #blueprints{grid-area:blueprints;}
+    .bp-tabs{display:flex;gap:.5rem;margin-bottom:1rem;}
+    .bp-tab{
+      font-family:var(--font-mono);font-size:.7rem;padding:.35rem .9rem;
+      border:1px solid rgba(212,175,55,0.2);border-radius:4px;cursor:pointer;
+      background:transparent;color:rgba(212,175,55,0.55);transition:all .15s;
+    }
+    .bp-tab.active{background:rgba(212,175,55,0.15);color:var(--gold);border-color:var(--gold);}
+    .bp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.8rem;}
+    .bp-card{
+      background:rgba(0,0,0,0.3);border:1px solid rgba(212,175,55,0.1);border-radius:6px;
+      padding:.9rem;transition:border-color .15s;cursor:default;
+    }
+    .bp-card:hover{border-color:rgba(212,175,55,0.3);}
+    .bp-card.built{border-color:rgba(16,185,129,0.4);}
+    .bp-card.active-build{border-color:rgba(245,158,11,0.5);animation:pulse-border .9s infinite alternate;}
+    @keyframes pulse-border{from{border-color:rgba(245,158,11,0.3);}to{border-color:rgba(245,158,11,0.7);}}
+    .bp-name{font-family:var(--font-mono);font-size:.75rem;color:var(--gold-light);font-weight:700;margin-bottom:.3rem;}
+    .bp-code{font-family:var(--font-mono);font-size:.62rem;color:rgba(212,175,55,0.45);margin-bottom:.4rem;}
+    .bp-desc{font-size:.72rem;color:#aaa;line-height:1.4;margin-bottom:.5rem;}
+    .bp-meta{display:flex;gap:.5rem;flex-wrap:wrap;}
+    .bp-badge{font-family:var(--font-mono);font-size:.6rem;padding:.1rem .4rem;border-radius:3px;background:rgba(59,130,246,0.12);color:var(--blue);}
+    .bp-badge.green{background:rgba(16,185,129,0.12);color:var(--green);}
+    .bp-badge.gold{background:rgba(212,175,55,0.12);color:var(--gold);}
+    .bp-badge.red{background:rgba(220,38,38,0.12);color:var(--red);}
+    .bp-status{font-family:var(--font-mono);font-size:.62rem;margin-top:.4rem;color:#888;}
+    .bp-status.built{color:var(--green);}
+    .bp-status.building{color:var(--orange);}
+
+    /* ── Building Progress ─────────────────────────────────────────────── */
+    #bldprogress{grid-area:bldprogress;overflow:hidden;}
+    .wf-list{display:flex;flex-direction:column;gap:.5rem;max-height:520px;overflow-y:auto;}
+    .wf-list::-webkit-scrollbar{width:4px;}
+    .wf-list::-webkit-scrollbar-thumb{background:rgba(212,175,55,0.2);border-radius:2px;}
+    .wf-item{
+      background:rgba(0,0,0,0.25);border:1px solid rgba(212,175,55,0.08);
+      border-radius:5px;padding:.6rem .8rem;font-family:var(--font-mono);font-size:.7rem;
+    }
+    .wf-item.complete{border-color:rgba(16,185,129,0.25);}
+    .wf-item.in-progress{border-color:rgba(245,158,11,0.25);}
+    .wf-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;}
+    .wf-id{color:rgba(212,175,55,0.6);}
+    .wf-stage{padding:.1rem .35rem;border-radius:3px;font-size:.6rem;font-weight:700;}
+    .wf-stage.QUEUED{background:rgba(107,70,193,0.2);color:#a78bfa;}
+    .wf-stage.ASSIGNED{background:rgba(59,130,246,0.2);color:var(--blue);}
+    .wf-stage.IN_PROGRESS{background:rgba(245,158,11,0.2);color:var(--orange);}
+    .wf-stage.REVIEW{background:rgba(16,185,129,0.15);color:#6ee7b7;}
+    .wf-stage.COMPLETE{background:rgba(16,185,129,0.2);color:var(--green);}
+    .wf-body{display:flex;gap:.8rem;color:#888;}
+    .wf-prog{height:3px;border-radius:2px;background:rgba(255,255,255,0.06);margin-top:.4rem;overflow:hidden;}
+    .wf-prog-fill{height:100%;border-radius:2px;background:var(--gold);transition:width .6s;}
+    .wf-prog-fill.complete{background:var(--green);}
+    .wf-empty{text-align:center;padding:2rem;color:#555;font-family:var(--font-mono);font-size:.72rem;}
+
+    /* ── Hospital Board ──────────────────────────────────────────────────── */
+    #hospboard{grid-area:hospboard;overflow:hidden;}
+    .dept-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:.8rem;}
+    @media(max-width:600px){.dept-grid{grid-template-columns:repeat(2,1fr);}}
+    .dept-card{
+      background:rgba(0,0,0,0.25);border:1px solid rgba(59,130,246,0.1);
+      border-radius:5px;padding:.5rem .6rem;text-align:center;
+    }
+    .dept-name{font-family:var(--font-mono);font-size:.6rem;color:var(--blue);margin-bottom:.2rem;}
+    .dept-stat{font-family:var(--font-mono);font-size:.75rem;color:var(--gold-light);}
+    .dept-sub{font-size:.6rem;color:#666;}
+
+    .patient-list{display:flex;flex-direction:column;gap:.4rem;max-height:360px;overflow-y:auto;}
+    .patient-list::-webkit-scrollbar{width:4px;}
+    .patient-list::-webkit-scrollbar-thumb{background:rgba(59,130,246,0.2);border-radius:2px;}
+    .pat-item{
+      background:rgba(0,0,0,0.25);border:1px solid rgba(59,130,246,0.08);
+      border-radius:5px;padding:.55rem .75rem;font-family:var(--font-mono);font-size:.68rem;
+    }
+    .pat-item.DISCHARGED{border-color:rgba(16,185,129,0.2);opacity:.7;}
+    .pat-item.CRITICAL{border-color:rgba(220,38,38,0.35);}
+    .pat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem;}
+    .pat-id{color:rgba(59,130,246,0.8);}
+    .pat-sev{padding:.1rem .3rem;border-radius:3px;font-size:.6rem;font-weight:700;}
+    .pat-sev.CRITICAL{background:rgba(220,38,38,0.2);color:var(--red);}
+    .pat-sev.HIGH{background:rgba(245,158,11,0.2);color:var(--orange);}
+    .pat-sev.MEDIUM{background:rgba(212,175,55,0.15);color:var(--gold);}
+    .pat-sev.LOW{background:rgba(16,185,129,0.15);color:var(--green);}
+    .pat-body{display:flex;gap:.8rem;color:#888;}
+    .pat-prog{height:3px;border-radius:2px;background:rgba(255,255,255,0.06);margin-top:.3rem;overflow:hidden;}
+    .pat-prog-fill{height:100%;border-radius:2px;background:var(--blue);transition:width .6s;}
+    .pat-prog-fill.DISCHARGED{background:var(--green);}
+    .pat-prog-fill.CRITICAL{background:var(--red);}
+
+    /* ── Log ─────────────────────────────────────────────────────────────── */
+    #log{grid-area:log;}
+    .log-inner{
+      font-family:var(--font-mono);font-size:.68rem;height:180px;overflow-y:auto;
+      background:rgba(0,0,0,0.3);border-radius:4px;padding:.6rem;
+    }
+    .log-inner::-webkit-scrollbar{width:4px;}
+    .log-inner::-webkit-scrollbar-thumb{background:rgba(212,175,55,0.15);border-radius:2px;}
+    .log-line{padding:.15rem 0;border-bottom:1px solid rgba(255,255,255,0.03);display:flex;gap:.6rem;}
+    .log-ts{color:rgba(212,175,55,0.35);flex-shrink:0;}
+    .log-src{flex-shrink:0;padding:.05rem .3rem;border-radius:2px;font-size:.6rem;}
+    .log-src.bld{background:rgba(245,158,11,0.12);color:var(--orange);}
+    .log-src.hos{background:rgba(59,130,246,0.12);color:var(--blue);}
+    .log-src.cmd{background:rgba(16,185,129,0.12);color:var(--green);}
+    .log-src.sys{background:rgba(212,175,55,0.1);color:rgba(212,175,55,0.6);}
+    .log-msg{color:#bbb;flex:1;}
+  </style>
+</head>
+<body>
+<div class="bg"></div>
+
+<header>
+  <h1>IMPERIUM AEDIFICATIONIS</h1>
+  <div class="sub">GOK-BUILDINGS-001 · GOK-HOSPITAL-001 · Blueprint Dispatch · Autonomous Construction</div>
+</header>
+
+<div class="status-bar" id="statusBar">
+  <div class="si"><div class="dot" id="bldDot"></div><span class="label">BUILDINGS</span> <span class="val" id="bldStatus">BOOTING</span></div>
+  <div class="si"><div class="dot" id="hosDot"></div><span class="label">HOSPITAL</span> <span class="val" id="hosStatus">BOOTING</span></div>
+  <div class="si"><span class="label">BEAT·B</span><span class="val" id="beatB">0</span></div>
+  <div class="si"><span class="label">BEAT·H</span><span class="val" id="beatH">0</span></div>
+  <div class="si"><span class="label">WORKFLOWS</span><span class="val" id="wfCount">0</span></div>
+  <div class="si"><span class="label">PATIENTS</span><span class="val" id="patCount">0</span></div>
+  <div class="si"><span class="label">CAMPUS·φ</span><span class="val" id="campusPhi">0.000</span></div>
+</div>
+
+<div class="main">
+
+  <!-- Controls -->
+  <div class="panel" id="controls">
+    <div class="panel-title">COMMAND CONSOLE <span class="tag">CONSTRUCTOR</span></div>
+    <div class="ctrl-row">
+      <button class="btn primary" id="btnBuildAll" onclick="buildAllBlueprints()">⚙ DEPLOY ALL BLUEPRINTS</button>
+      <button class="btn green" id="btnAdmitAgents" onclick="admitTestAgents()">＋ ADMIT AGENTS</button>
+      <button class="btn blue" onclick="runHospitalCycle()">⚕ RUN HOSPITAL CYCLE</button>
+      <button class="btn" onclick="refreshAll()">↺ REFRESH</button>
+      <button class="btn red" onclick="clearAll()">✕ CLEAR</button>
+    </div>
+    <div class="meter-row" id="metersRow">
+      <div class="meter"><span class="ml">BLD·COHERENCE </span><span class="mv" id="mBldCohere">0.000</span></div>
+      <div class="meter"><span class="ml">HOS·COHERENCE </span><span class="mv" id="mHosCohere">0.000</span></div>
+      <div class="meter"><span class="ml">CAMPUS·OCC </span><span class="mv" id="mOcc">0.0%</span></div>
+      <div class="meter"><span class="ml">BED·OCC </span><span class="mv" id="mBed">0.0%</span></div>
+      <div class="meter"><span class="ml">ACTIVE·WF </span><span class="mv" id="mActiveWf">0</span></div>
+      <div class="meter"><span class="ml">ACTIVE·PAT </span><span class="mv" id="mActivePat">0</span></div>
+    </div>
+    <div class="osc-row">
+      <div class="osc">
+        <div class="osc-label">BUILDINGS HEARTBEAT</div>
+        <canvas id="oscBld" width="400" height="42"></canvas>
+      </div>
+      <div class="osc">
+        <div class="osc-label">HOSPITAL HEARTBEAT</div>
+        <canvas id="oscHos" width="400" height="42"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Blueprints -->
+  <div class="panel" id="blueprints">
+    <div class="panel-title">BLUEPRINT GALLERY <span class="tag">12 BUILDINGS · 8 DEPARTMENTS</span></div>
+    <div class="bp-tabs">
+      <button class="bp-tab active" onclick="showBpTab('buildings',this)">BUILDINGS</button>
+      <button class="bp-tab" onclick="showBpTab('hospital',this)">HOSPITAL DEPTS</button>
+    </div>
+    <div class="bp-grid" id="bpGrid"></div>
+  </div>
+
+  <!-- Building Progress -->
+  <div class="panel" id="bldprogress">
+    <div class="panel-title">CONSTRUCTION PROGRESS <span class="tag" id="wfLabel">0 WORKFLOWS</span></div>
+    <div class="wf-list" id="wfList"><div class="wf-empty">No workflows. Deploy blueprints to begin construction.</div></div>
+  </div>
+
+  <!-- Hospital Board -->
+  <div class="panel" id="hospboard">
+    <div class="panel-title">HOSPITAL OPERATIONS <span class="tag" id="patLabel">0 PATIENTS</span></div>
+    <div class="dept-grid" id="deptGrid"></div>
+    <div class="patient-list" id="patList"><div class="wf-empty">No patients. Admit AI agents for treatment.</div></div>
+  </div>
+
+  <!-- Log -->
+  <div class="panel" id="log">
+    <div class="panel-title">CONSTRUCTION LOG</div>
+    <div class="log-inner" id="logInner"></div>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   IMPERIUM AEDIFICATIONIS — Construction Command Centre
+   Orchestrates GOK-BUILDINGS-001 + GOK-HOSPITAL-001
+   Blueprint dispatch → autonomous builder pipeline → live progress
+═══════════════════════════════════════════════════════════════════════════ */
+
+var bldWorker = new Worker('./buildings-worker.js');
+var hosWorker = new Worker('./hospital-worker.js');
+
+/* ── State ──────────────────────────────────────────────────────────────── */
+var bldBeat = 0, hosBeat = 0;
+var bldCohere = 0, hosCohere = 0;
+var bldAlive = false, hosAlive = false;
+var workflows = [];
+var patients  = [];
+var departments = [];
+var buildings  = [];
+var campusPhi  = 0;
+var bedOcc     = 0;
+var campusOcc  = 0;
+
+/* ── OSC buffers ────────────────────────────────────────────────────────── */
+var oscBldBuf = new Array(100).fill(0);
+var oscHosBuf = new Array(100).fill(0);
+
+/* ── Blueprint definitions (mirrors workers) ───────────────────────────── */
+var BUILDING_BLUEPRINTS = [
+  {code:'HQ',          name:'Headquarters',        floors:5,  desc:'Central command and executive decision-making',     dept:4},
+  {code:'ENGINEERING', name:'Engineering Tower',   floors:10, desc:'Core software development and code synthesis',       dept:5},
+  {code:'DATA_CENTER', name:'Data Center',         floors:3,  desc:'Data processing, storage, and compute infrastructure',dept:4},
+  {code:'RESEARCH_LAB',name:'Research Laboratory', floors:4,  desc:'R&D, experimental protocols, and academic output',   dept:4},
+  {code:'SECURITY_FORTRESS',name:'Security Fortress',floors:3,desc:'Defense, threat detection, and compliance enforcement',dept:4},
+  {code:'OPERATIONS',  name:'Operations Center',   floors:4,  desc:'Infrastructure operations, deployment, and SRE',     dept:4},
+  {code:'ANALYTICS_TOWER',name:'Analytics Tower',  floors:6,  desc:'Business intelligence, analytics, and reporting',    dept:5},
+  {code:'COMMERCE_HUB',name:'Commerce Hub',        floors:4,  desc:'Revenue operations, marketplace, and transactions',  dept:4},
+  {code:'TRAINING_ACADEMY',name:'Training Academy',floors:5,  desc:'AI/AGI training, skill development, and certification',dept:5},
+  {code:'COMMUNICATIONS',name:'Communications Ctr',floors:3,  desc:'Internal and external communications infrastructure',dept:4},
+  {code:'LEGAL_OFFICE',name:'Legal Office',        floors:2,  desc:'Legal, contracts, intellectual property, and ethics',dept:4},
+  {code:'INNOVATION_LAB',name:'Innovation Lab',    floors:3,  desc:'Rapid prototyping, experimental projects, moonshots',dept:3}
+];
+
+var HOSPITAL_BLUEPRINTS = [
+  {code:'EMERGENCY',    name:'Emergency',       beds:20, desc:'Critical failures, crash recovery, immediate response'},
+  {code:'ICU',          name:'ICU',             beds:10, desc:'Intensive care for severely degraded agents'},
+  {code:'DIAGNOSTICS',  name:'Diagnostics',     beds:15, desc:'Health scans, anomaly detection, root cause analysis'},
+  {code:'PHARMACY',     name:'Pharmacy',        beds:5,  desc:'Chemical rebalancing, neurochemical prescriptions'},
+  {code:'SURGERY',      name:'Surgery',         beds:8,  desc:'Deep repair, module replacement, architecture fixes'},
+  {code:'RECOVERY',     name:'Recovery',        beds:18, desc:'Post-treatment monitoring, gradual reintegration'},
+  {code:'TRIAGE',       name:'Triage',          beds:12, desc:'Intake assessment, priority classification'},
+  {code:'RESEARCH_LAB', name:'Research Lab',    beds:6,  desc:'Experimental treatments, protocol development'}
+];
+
+var WORKFLOW_TYPES = ['CODE_REVIEW','DEPLOYMENT','BUG_FIX','FEATURE_DEV','SECURITY_SCAN',
+  'DATA_PIPELINE','MODEL_TRAINING','DOCUMENTATION','TESTING','INFRASTRUCTURE',
+  'MONITORING','RESEARCH','OPTIMIZATION','MIGRATION','INCIDENT_RESPONSE'];
+
+var AGENT_TYPES = ['AEDIFICATOR','COMPOSITOR','FABRICATOR','OPTIMIZATOR','CURATOR','DIAGNOSTOR','SOLUTOR','NEXTOR'];
+var AGENT_SYMPTOMS = [
+  ['coherence-drift','memory-leak'],
+  ['entropy-spike','thermal-overload'],
+  ['phase-desync','chemical-imbalance'],
+  ['loop-stall','gradient-collapse'],
+  ['signal-loss','protocol-timeout']
+];
+
+/* built-state tracking */
+var builtBuildings = {};
+var activeBuilds   = {};
+
+/* ── Worker message handlers ────────────────────────────────────────────── */
+bldWorker.onmessage = function(e) {
+  var m = e.data;
+  if (m.type === 'heartbeat') {
+    bldBeat  = m.beat;
+    bldAlive = true;
+    bldCohere = (m.coherence || 0);
+    campusPhi = 0; /* updated via GET_CAMPUS_MAP */
+    oscBldBuf.shift(); oscBldBuf.push(m.phase || 0);
+    drawOsc('oscBld', oscBldBuf, '#D4AF37');
+    document.getElementById('beatB').textContent = m.beat;
+    document.getElementById('bldDot').className = 'dot alive';
+    document.getElementById('bldStatus').textContent = 'ALIVE';
+    document.getElementById('mActiveWf').textContent = m.activeWorkflows || 0;
+    document.getElementById('wfCount').textContent = m.activeWorkflows || 0;
+    /* periodically refresh */
+    if (m.beat % 3 === 0) {
+      bldWorker.postMessage({type:'GET_WORKFLOWS'});
+      bldWorker.postMessage({type:'GET_CAMPUS_MAP'});
+      bldWorker.postMessage({type:'GET_VITALS'});
+    }
+  } else if (m.type === 'WORKFLOWS') {
+    workflows = m.result || [];
+    renderWorkflows();
+    document.getElementById('wfLabel').textContent = workflows.length + ' WORKFLOWS';
+  } else if (m.type === 'CAMPUS_MAP') {
+    var r = m.result;
+    campusPhi = r.phiCampusHealth || 0;
+    campusOcc = r.campusOccupancy || 0;
+    document.getElementById('campusPhi').textContent = campusPhi.toFixed(3);
+    document.getElementById('mOcc').textContent = (campusOcc * 100).toFixed(1) + '%';
+    /* update blueprint cards */
+    (r.topology || []).forEach(function(t) {
+      var el = document.getElementById('bp-' + t.code);
+      if (el) {
+        var st = el.querySelector('.bp-status');
+        if (st) {
+          if (builtBuildings[t.code]) {
+            st.className = 'bp-status built';
+            st.textContent = '✓ OPERATIONAL';
+            el.classList.remove('active-build');
+            el.classList.add('built');
+          }
+        }
+      }
+    });
+  } else if (m.type === 'VITALS') {
+    bldCohere = m.result.brain ? m.result.brain.coherenceField : 0;
+    document.getElementById('mBldCohere').textContent = bldCohere.toFixed(3);
+  } else if (m.type === 'WORKFLOW_CREATED') {
+    var wf = m.result;
+    if (!wf.error) {
+      log('bld', 'WORKFLOW_CREATED ' + wf.id + ' @ ' + wf.buildingCode + ' [' + wf.type + ']');
+      /* auto-assign */
+      setTimeout(function() {
+        bldWorker.postMessage({type:'ASSIGN_WORKER', workflowId: wf.id, workerId: 'AEDIFICATOR-' + Date.now().toString(36)});
+        bldWorker.postMessage({type:'GET_WORKFLOWS'});
+      }, 200);
+    }
+  } else if (m.type === 'WORKER_ASSIGNED') {
+    var a = m.result;
+    if (!a.error) {
+      log('bld', 'WORKER_ASSIGNED ' + a.workerId + ' → ' + a.workflowId);
+      /* mark building as active */
+      if (a.building) {
+        activeBuilds[a.building] = true;
+        var el = document.getElementById('bp-' + a.building);
+        if (el && !builtBuildings[a.building]) {
+          el.classList.add('active-build');
+          var st = el.querySelector('.bp-status');
+          if (st) { st.className = 'bp-status building'; st.textContent = '⚙ BUILDING…'; }
+        }
+      }
+      bldWorker.postMessage({type:'GET_WORKFLOWS'});
+    }
+  } else if (m.type === 'WORKFLOW_ADVANCED') {
+    var adv = m.result;
+    if (!adv.error && adv.status === 'COMPLETE') {
+      log('bld', 'COMPLETE ' + adv.workflowId);
+      bldWorker.postMessage({type:'GET_WORKFLOWS'});
+    }
+  } else if (m.type === 'BUILDINGS') {
+    buildings = m.result || [];
+    /* mark buildings as built if they have complete workflows */
+  } else if (m.type === 'init') {
+    log('sys', 'GOK-BUILDINGS-001 ONLINE · ' + m.buildings + ' buildings · ' + m.workflowTypes + ' workflow types');
+    bldWorker.postMessage({type:'GET_BUILDINGS'});
+  }
+};
+
+hosWorker.onmessage = function(e) {
+  var m = e.data;
+  if (m.type === 'heartbeat') {
+    hosBeat  = m.beat;
+    hosAlive = true;
+    oscHosBuf.shift(); oscHosBuf.push(m.phase || 0);
+    drawOsc('oscHos', oscHosBuf, '#3B82F6');
+    document.getElementById('beatH').textContent = m.beat;
+    document.getElementById('hosDot').className = 'dot alive';
+    document.getElementById('hosStatus').textContent = 'ALIVE';
+    document.getElementById('patCount').textContent = m.activeCases || 0;
+    document.getElementById('mActivePat').textContent = m.activeCases || 0;
+    document.getElementById('mBed').textContent = ((m.bedOccupancy || 0) * 100).toFixed(1) + '%';
+    if (m.beat % 5 === 0) {
+      hosWorker.postMessage({type:'GET_PATIENTS'});
+      hosWorker.postMessage({type:'GET_DEPARTMENTS'});
+      hosWorker.postMessage({type:'GET_VITALS'});
+    }
+  } else if (m.type === 'PATIENTS') {
+    patients = m.result || [];
+    renderPatients();
+    document.getElementById('patLabel').textContent = patients.length + ' PATIENTS';
+  } else if (m.type === 'DEPARTMENTS') {
+    departments = m.result || [];
+    renderDepts();
+    bedOcc = departments.reduce(function(s,d){return s+d.occupied;},0) /
+             Math.max(1, departments.reduce(function(s,d){return s+d.beds;},0));
+    document.getElementById('mBed').textContent = (bedOcc * 100).toFixed(1) + '%';
+  } else if (m.type === 'VITALS') {
+    hosCohere = m.result.brain ? m.result.brain.coherenceField : 0;
+    document.getElementById('mHosCohere').textContent = hosCohere.toFixed(3);
+  } else if (m.type === 'ADMIT_RESULT') {
+    var p = m.result;
+    if (!p.error) {
+      log('hos', 'ADMITTED ' + p.id + ' (' + p.agentType + ') sev=' + p.severity);
+      /* auto-triage after short delay */
+      setTimeout(function() {
+        hosWorker.postMessage({type:'TRIAGE', patientId: p.id});
+      }, 400);
+    }
+  } else if (m.type === 'TRIAGE_RESULT') {
+    var t = m.result;
+    if (!t.error && t.patient) {
+      log('hos', 'TRIAGE ' + t.patient.id + ' → priority=' + t.priority);
+      setTimeout(function() {
+        hosWorker.postMessage({type:'DIAGNOSE', patientId: t.patient.id});
+      }, 600);
+    }
+  } else if (m.type === 'DIAGNOSE_RESULT') {
+    var dx = m.result;
+    if (!dx.error && dx.patient) {
+      log('hos', 'DIAGNOSIS ' + dx.patient.id + ' → ' + (dx.diagnoses||[]).join(','));
+      setTimeout(function() {
+        hosWorker.postMessage({type:'TREAT', patientId: dx.patient.id});
+      }, 500);
+    }
+  } else if (m.type === 'TREAT_RESULT') {
+    var tx = m.result;
+    if (!tx.error) {
+      log('hos', 'TREAT ' + tx.patient + ' → ' + tx.treatment);
+    }
+  } else if (m.type === 'DISCHARGE_RESULT') {
+    var dc = m.result;
+    if (!dc.error) {
+      log('hos', 'DISCHARGED ' + dc.patient + ' after ' + dc.stayDuration + ' beats');
+    }
+  } else if (m.type === 'init') {
+    log('sys', 'GOK-HOSPITAL-001 ONLINE · ' + m.departments + ' depts · ' + m.treatments + ' treatments');
+    hosWorker.postMessage({type:'GET_DEPARTMENTS'});
+    renderDepts();
+  }
+};
+
+bldWorker.onerror = function(e) { log('sys','BUILDINGS WORKER ERROR: ' + e.message); };
+hosWorker.onerror = function(e) { log('sys','HOSPITAL WORKER ERROR: ' + e.message); };
+
+/* ── Blueprint rendering ────────────────────────────────────────────────── */
+var currentBpTab = 'buildings';
+function showBpTab(tab, btn) {
+  currentBpTab = tab;
+  document.querySelectorAll('.bp-tab').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  renderBpGrid();
+}
+
+function renderBpGrid() {
+  var grid = document.getElementById('bpGrid');
+  grid.innerHTML = '';
+  var list = currentBpTab === 'buildings' ? BUILDING_BLUEPRINTS : HOSPITAL_BLUEPRINTS;
+  list.forEach(function(bp) {
+    var card = document.createElement('div');
+    var isBuilt = builtBuildings[bp.code];
+    var isActive = activeBuilds[bp.code];
+    card.className = 'bp-card' + (isBuilt ? ' built' : '') + (isActive && !isBuilt ? ' active-build' : '');
+    card.id = 'bp-' + bp.code;
+    var meta = currentBpTab === 'buildings'
+      ? '<div class="bp-meta"><span class="bp-badge">' + bp.floors + ' FLOORS</span><span class="bp-badge gold">' + bp.dept + ' DEPTS</span></div>'
+      : '<div class="bp-meta"><span class="bp-badge blue">' + bp.beds + ' BEDS</span></div>';
+    var statusTxt = isBuilt ? '✓ OPERATIONAL' : (isActive ? '⚙ BUILDING…' : '○ PENDING');
+    var statusCls = isBuilt ? 'bp-status built' : (isActive ? 'bp-status building' : 'bp-status');
+    card.innerHTML =
+      '<div class="bp-name">' + bp.name + '</div>' +
+      '<div class="bp-code">' + bp.code + '</div>' +
+      '<div class="bp-desc">' + bp.desc + '</div>' +
+      meta +
+      '<div class="' + statusCls + '" id="bpst-' + bp.code + '">' + statusTxt + '</div>';
+    grid.appendChild(card);
+  });
+}
+
+/* ── Workflow rendering ─────────────────────────────────────────────────── */
+var STAGE_PCTS = {QUEUED:5,ASSIGNED:25,IN_PROGRESS:55,REVIEW:80,COMPLETE:100};
+function renderWorkflows() {
+  var list = document.getElementById('wfList');
+  if (!workflows.length) {
+    list.innerHTML = '<div class="wf-empty">No workflows. Deploy blueprints to begin construction.</div>';
+    return;
+  }
+  /* show last 30 sorted by status */
+  var sorted = workflows.slice().sort(function(a,b){
+    var ord = {QUEUED:0,ASSIGNED:1,IN_PROGRESS:2,REVIEW:3,COMPLETE:4};
+    return (ord[a.status]||0) - (ord[b.status]||0);
+  });
+  list.innerHTML = sorted.slice(0,40).map(function(wf) {
+    var pct = STAGE_PCTS[wf.status] || 0;
+    var cls = wf.status === 'COMPLETE' ? 'wf-item complete' : (wf.status === 'IN_PROGRESS' ? 'wf-item in-progress' : 'wf-item');
+    var fillCls = wf.status === 'COMPLETE' ? 'wf-prog-fill complete' : 'wf-prog-fill';
+    if (wf.status === 'COMPLETE') builtBuildings[wf.buildingCode] = true;
+    return '<div class="' + cls + '">' +
+      '<div class="wf-header"><span class="wf-id">' + wf.id + '</span><span class="wf-stage ' + wf.status + '">' + wf.status + '</span></div>' +
+      '<div class="wf-body"><span>' + wf.buildingCode + '</span><span>' + wf.type + '</span>' +
+      (wf.assignedTo ? '<span>' + wf.assignedTo.substring(0,16) + '</span>' : '') + '</div>' +
+      '<div class="wf-prog"><div class="' + fillCls + '" style="width:' + pct + '%"></div></div></div>';
+  }).join('');
+}
+
+/* ── Department rendering ────────────────────────────────────────────────── */
+function renderDepts() {
+  var grid = document.getElementById('deptGrid');
+  var src = departments.length ? departments : HOSPITAL_BLUEPRINTS.map(function(b){
+    return {name:b.name, code:b.code, beds:b.beds, occupied:0, status:'OPERATIONAL'};
+  });
+  grid.innerHTML = src.map(function(d) {
+    var occ = d.beds > 0 ? d.occupied / d.beds : 0;
+    return '<div class="dept-card">' +
+      '<div class="dept-name">' + (d.name||d.code) + '</div>' +
+      '<div class="dept-stat">' + (d.occupied||0) + '/' + d.beds + '</div>' +
+      '<div class="dept-sub">' + (occ*100).toFixed(0) + '% occ</div></div>';
+  }).join('');
+}
+
+/* ── Patient rendering ──────────────────────────────────────────────────── */
+var PAT_STAGES = {INTAKE:0,TRIAGE:1,DIAGNOSIS:2,TREATMENT:3,RECOVERY:4,DISCHARGED:5};
+function renderPatients() {
+  var list = document.getElementById('patList');
+  if (!patients.length) {
+    list.innerHTML = '<div class="wf-empty">No patients. Admit AI agents for treatment.</div>';
+    return;
+  }
+  list.innerHTML = patients.slice(-30).reverse().map(function(p) {
+    var pct = Math.round((PAT_STAGES[p.status]||0) / 5 * 100);
+    var cls = 'pat-item ' + (p.status === 'DISCHARGED' ? 'DISCHARGED' : (p.severity === 'CRITICAL' ? 'CRITICAL' : ''));
+    var fillCls = 'pat-prog-fill ' + (p.status === 'DISCHARGED' ? 'DISCHARGED' : (p.severity === 'CRITICAL' ? 'CRITICAL' : ''));
+    var vitAvg = p.vitals ? ((p.vitals.heartRate+p.vitals.coherence+p.vitals.brainHealth+p.vitals.chemBalance)/4).toFixed(2) : '—';
+    return '<div class="' + cls + '">' +
+      '<div class="pat-header"><span class="pat-id">' + p.id + '</span><span class="pat-sev ' + p.severity + '">' + p.severity + '</span></div>' +
+      '<div class="pat-body"><span>' + (p.agentType||'AGENT') + '</span><span>' + p.status + '</span><span>v=' + vitAvg + '</span></div>' +
+      '<div class="pat-prog"><div class="' + fillCls + '" style="width:' + pct + '%"></div></div></div>';
+  }).join('');
+}
+
+/* ── OSC drawing ────────────────────────────────────────────────────────── */
+function drawOsc(canvasId, buf, color) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.globalAlpha = 0.85;
+  ctx.beginPath();
+  for (var i = 0; i < buf.length; i++) {
+    var x = (i / (buf.length - 1)) * W;
+    var v = ((Math.sin(buf[i]) + 1) / 2);
+    var y = H - v * (H - 6) - 3;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+/* ── Command functions ──────────────────────────────────────────────────── */
+function buildAllBlueprints() {
+  log('cmd', 'DEPLOYING ALL 12 BUILDING BLUEPRINTS…');
+  BUILDING_BLUEPRINTS.forEach(function(bp, i) {
+    setTimeout(function() {
+      var wfType = WORKFLOW_TYPES[i % WORKFLOW_TYPES.length];
+      bldWorker.postMessage({
+        type: 'CREATE_WORKFLOW',
+        buildingCode: bp.code,
+        workflowType: wfType,
+        priority: 'HIGH',
+        description: 'Blueprint dispatch: ' + bp.name
+      });
+      /* mark as active */
+      var el = document.getElementById('bp-' + bp.code);
+      if (el && !builtBuildings[bp.code]) {
+        el.classList.add('active-build');
+        var st = el.querySelector('.bp-status') || el.querySelector('[id^="bpst-"]');
+        if (st) { st.className = 'bp-status building'; st.textContent = '⚙ BUILDING…'; }
+      }
+    }, i * 180);
+  });
+}
+
+function admitTestAgents() {
+  log('cmd', 'ADMITTING 5 AI AGENTS TO HOSPITAL…');
+  var sev = ['CRITICAL','HIGH','MEDIUM','LOW','MEDIUM'];
+  for (var i = 0; i < 5; i++) {
+    (function(idx) {
+      setTimeout(function() {
+        var atype = AGENT_TYPES[idx % AGENT_TYPES.length];
+        var syms  = AGENT_SYMPTOMS[idx % AGENT_SYMPTOMS.length];
+        var severity = sev[idx];
+        hosWorker.postMessage({
+          type: 'ADMIT',
+          agentId: 'AGT-' + Date.now().toString(36) + '-' + idx,
+          agentType: atype,
+          symptoms: syms,
+          severity: severity
+        });
+      }, idx * 300);
+    })(i);
+  }
+}
+
+function runHospitalCycle() {
+  log('cmd', 'RUNNING HOSPITAL CYCLE — triage + diagnose + treat all active patients…');
+  hosWorker.postMessage({type:'GET_PATIENTS'});
+  setTimeout(function() {
+    patients.forEach(function(p) {
+      if (p.status === 'INTAKE') {
+        hosWorker.postMessage({type:'TRIAGE', patientId: p.id});
+      } else if (p.status === 'TRIAGE') {
+        hosWorker.postMessage({type:'DIAGNOSE', patientId: p.id});
+      } else if (p.status === 'DIAGNOSIS') {
+        hosWorker.postMessage({type:'TREAT', patientId: p.id});
+      } else if (p.status === 'RECOVERY') {
+        hosWorker.postMessage({type:'DISCHARGE', patientId: p.id});
+      }
+    });
+  }, 400);
+}
+
+function refreshAll() {
+  bldWorker.postMessage({type:'GET_WORKFLOWS'});
+  bldWorker.postMessage({type:'GET_CAMPUS_MAP'});
+  bldWorker.postMessage({type:'GET_VITALS'});
+  hosWorker.postMessage({type:'GET_PATIENTS'});
+  hosWorker.postMessage({type:'GET_DEPARTMENTS'});
+  hosWorker.postMessage({type:'GET_VITALS'});
+  renderBpGrid();
+}
+
+function clearAll() {
+  workflows = [];
+  patients  = [];
+  builtBuildings = {};
+  activeBuilds   = {};
+  renderWorkflows();
+  renderPatients();
+  renderBpGrid();
+  log('cmd', 'CLEARED LOCAL STATE — workers still running');
+}
+
+/* ── Log ────────────────────────────────────────────────────────────────── */
+function log(src, msg) {
+  var inner = document.getElementById('logInner');
+  var now   = new Date().toISOString().substring(11,19);
+  var line  = document.createElement('div');
+  line.className = 'log-line';
+  line.innerHTML =
+    '<span class="log-ts">' + now + '</span>' +
+    '<span class="log-src ' + src + '">' + src.toUpperCase() + '</span>' +
+    '<span class="log-msg">' + msg + '</span>';
+  inner.insertBefore(line, inner.firstChild);
+  if (inner.children.length > 200) inner.removeChild(inner.lastChild);
+}
+
+/* ── Boot ───────────────────────────────────────────────────────────────── */
+renderBpGrid();
+renderDepts();
+log('sys', 'IMPERIUM AEDIFICATIONIS BOOTING — workers initializing…');
+
+/* Auto-start: deploy blueprints + admit agents after workers boot */
+setTimeout(function() {
+  if (bldAlive || hosBeat === 0) buildAllBlueprints();
+}, 1800);
+setTimeout(function() {
+  if (hosAlive || bldBeat === 0) admitTestAgents();
+}, 2400);
+</script>
+</body>
+</html>
