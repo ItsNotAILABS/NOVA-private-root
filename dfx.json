@@ -44,6 +44,26 @@
       "main": "src/swarm_oracle/main.mo",
       "dependencies": ["swarm_brain", "swarm_organism", "swarm_command", "swarm_metals", "swarm_audit", "swarm_telemetry", "swarm_quantum"]
     },
+    "chrysalis": {
+      "type": "motoko",
+      "main": "src/chrysalis/main.mo",
+      "dependencies": []
+    },
+    "scribe": {
+      "type": "motoko",
+      "main": "src/scribe/main.mo",
+      "dependencies": []
+    },
+    "architect": {
+      "type": "motoko",
+      "main": "src/architect/main.mo",
+      "dependencies": []
+    },
+    "nexus_propagator": {
+      "type": "motoko",
+      "main": "src/nexus_propagator/main.mo",
+      "dependencies": []
+    },
     "medina": {
       "type": "motoko",
       "main": "icp/medina/Medina.mo",
