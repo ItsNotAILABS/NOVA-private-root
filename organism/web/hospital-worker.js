@@ -291,7 +291,7 @@ function diagnosePatient(patientIdStr) {
 
   /* check heartbeat health */
   if (pat.vitals.heartRate < 0.4) {
-    diagnoses.push({ code: 'DX-HR-001', name: 'BRADYCARDIA_DIGITALIS', desc: 'Critically low heartbeat rate', severity: 'CRITICAL' });
+    diagnoses.push({ code: 'DX-HR-001', name: 'SEVERE_BRADYCARDIA', desc: 'Critically low heartbeat rate', severity: 'CRITICAL' });
   }
   /* check coherence */
   if (pat.vitals.coherence < 0.3) {

@@ -403,7 +403,7 @@ export function diagnosePatient(patientId: string): { patient: string; diagnoses
   if (!pat) return { error: `Patient not found: ${patientId}` };
 
   const diagnoses: Diagnosis[] = [];
-  if (pat.vitals.heartRate < 0.4)   diagnoses.push({ code: 'DX-HR-001', name: 'BRADYCARDIA_DIGITALIS', desc: 'Critically low heartbeat rate', severity: 'CRITICAL' });
+  if (pat.vitals.heartRate < 0.4)   diagnoses.push({ code: 'DX-HR-001', name: 'SEVERE_BRADYCARDIA', desc: 'Critically low heartbeat rate', severity: 'CRITICAL' });
   if (pat.vitals.coherence < 0.3)   diagnoses.push({ code: 'DX-CO-001', name: 'COHERENCE_COLLAPSE', desc: 'Coherence field below functional threshold', severity: 'HIGH' });
   if (pat.vitals.brainHealth < 0.3) diagnoses.push({ code: 'DX-BR-001', name: 'NEURAL_DEGRADATION', desc: 'Brain region activation critically low', severity: 'HIGH' });
   if (pat.vitals.chemBalance < 0.3) diagnoses.push({ code: 'DX-CH-001', name: 'NEUROCHEMICAL_IMBALANCE', desc: 'Chemical homeostasis disrupted', severity: 'MEDIUM' });
