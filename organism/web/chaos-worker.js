@@ -227,7 +227,10 @@ CHAOS_TYPES.forEach(function(t) {
 /* ── §6  CHAOS INJECTION ─────────────────────────────────────────────────── */
 
 function injectChaos(chaosType, params) {
-  var type = chaosType || CHAOS_TYPES[Math.floor(Math.random() * CHAOS_TYPES.length)];
+  /* validate chaosType against known types to prevent prototype pollution */
+  var type = (chaosType && CHAOS_TYPES.indexOf(chaosType) !== -1)
+    ? chaosType
+    : CHAOS_TYPES[Math.floor(Math.random() * CHAOS_TYPES.length)];
   var templates = CHAOS_TEMPLATES[type] || [];
   var template  = params || templates[Math.floor(Math.random() * templates.length)] || {};
 
@@ -495,8 +498,8 @@ self.onmessage = function(e) {
           lawCount:    laws.length,
           grammarRules: grammarRules.length,
           patternCounts: CHAOS_TYPES.reduce(function(acc, t) {
-            acc[t] = responsePatterns[t].count; return acc;
-          }, {})
+            acc[t] = (responsePatterns[t] && responsePatterns[t].count) || 0; return acc;
+          }, Object.create(null))
         },
         kernelId: KERNEL_ID
       });
