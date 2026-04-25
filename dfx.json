@@ -14,6 +14,36 @@
       "main": "src/swarm_organism/main.mo",
       "dependencies": ["swarm_brain"]
     },
+    "swarm_command": {
+      "type": "motoko",
+      "main": "src/swarm_command/main.mo",
+      "dependencies": []
+    },
+    "swarm_metals": {
+      "type": "motoko",
+      "main": "src/swarm_metals/main.mo",
+      "dependencies": []
+    },
+    "swarm_audit": {
+      "type": "motoko",
+      "main": "src/swarm_audit/main.mo",
+      "dependencies": []
+    },
+    "swarm_telemetry": {
+      "type": "motoko",
+      "main": "src/swarm_telemetry/main.mo",
+      "dependencies": []
+    },
+    "swarm_quantum": {
+      "type": "motoko",
+      "main": "src/swarm_quantum/main.mo",
+      "dependencies": []
+    },
+    "swarm_oracle": {
+      "type": "motoko",
+      "main": "src/swarm_oracle/main.mo",
+      "dependencies": ["swarm_brain", "swarm_organism", "swarm_command", "swarm_metals", "swarm_audit", "swarm_telemetry", "swarm_quantum"]
+    },
     "medina": {
       "type": "motoko",
       "main": "icp/medina/Medina.mo",
