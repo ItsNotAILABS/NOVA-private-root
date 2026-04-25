@@ -96,6 +96,59 @@ var PHI_INV   = 0.6180339887498948482;
 var HEARTBEAT = 873;  /* ms — organism pulse interval */
 
 /* ════════════════════════════════════════════════════════════════════════════
+   §2b  PROTOCOLLA LATINA — All organism protocols named in Latin
+════════════════════════════════════════════════════════════════════════════ */
+
+var CHAOS_LATINA = {
+  MALFORMED_INPUT:       'INGRESSUS_DEFORMIS',
+  CONTRADICTORY_RIGHTS:  'IURA_CONTRARIA',
+  CORRIDOR_OVERLOAD:     'CORRIDORIS_SATURATIO',
+  RITUAL_COLLISION:      'RITUS_CONFLICTUS',
+  TOKEN_ARBITRAGE:       'SIGNI_ARBITRIUM',
+  NARRATIVE_INVERSION:   'NARRATIVUS_INVERSUS',
+  SOVEREIGNTY_CHALLENGE: 'PROVOCATIO_IMPERII'
+};
+
+var RESPONSES_LATINA = {
+  ESCALATE:       'ELEVATIO',
+  REPAIR:         'REPARATIO',
+  UPDATE_GRAMMAR: 'GRAMMATICA_RENOVATA',
+  REFINE_LAWS:    'LEGES_PURIFICATAE',
+  EMIT_SIGNAL:    'SIGNUM_EMITTENDUM'
+};
+
+var ALERT_LATINA  = ['NOMINALIS','VIGILIA','MONITUM','CRITICUS','EMERGENTIA'];
+var STAGE_LATINA  = { INTAKE:'RECEPTIO', TRIAGE:'DISCRIMEN', DIAGNOSIS:'DIAGNOSIS',
+                      TREATMENT:'CURATIO', RECOVERY:'RECUPERATIO', DISCHARGED:'DIMISSUS' };
+var WF_STAGE_LATINA = { QUEUED:'IN_ORDINE', ASSIGNED:'ASSIGNATUM', IN_PROGRESS:'IN_PROGRESSU',
+                        REVIEW:'IN_CENSURA', COMPLETE:'PERFECTUM' };
+var BLD_LATINA    = { HQ:'PRAEFECTURA', ENGINEERING:'OFFICINA_MACHINARUM',
+  DATA_CENTER:'CENTRUM_DATORUM', RESEARCH_LAB:'LABORATORIUM_INVESTIGATIONIS',
+  SECURITY_FORTRESS:'ARX_SECURITATIS', OPERATIONS:'AEDES_OPERATIONUM',
+  ANALYTICS_TOWER:'TURRIS_ANALYTICA', COMMERCE_HUB:'FORUM_COMMERCII',
+  TRAINING_ACADEMY:'ACADEMIA_DISCIPLINAE', COMMUNICATIONS:'DOMUS_COMMUNICATIONIS',
+  LEGAL_OFFICE:'OFFICIUM_IURIS', INNOVATION_LAB:'LABORATORIUM_NOVATIONIS' };
+var WF_LATINA     = { CODE_REVIEW:'RECENSIO_CODICIS', DEPLOYMENT:'DEPLOYMENTUM',
+  BUG_FIX:'CORRECTIO_ERRORIS', FEATURE_DEV:'PROGRESSIO_FACULTATIS',
+  SECURITY_SCAN:'SCRUTINIUM_SECURITATIS', DATA_PIPELINE:'CANALIS_DATORUM',
+  MODEL_TRAINING:'DISCIPLINA_MODELLI', DOCUMENTATION:'DOCUMENTATIO',
+  TESTING:'PROBATIO', INFRASTRUCTURE:'INFRASTRUCTURA', MONITORING:'MONITIO',
+  RESEARCH:'INVESTIGATIO', OPTIMIZATION:'OPTIMIZATIO', MIGRATION:'MIGRATIO',
+  INCIDENT_RESPONSE:'RESPONSIO_INCIDENTIS' };
+
+/* 8 dedicated Latin server identities */
+var SERVITORES_LATINI = [
+  { id:'GOL-MEMORIA-001',        latin:'SERVITOR MEMORIAE',          english:'Memory Server' },
+  { id:'GOL-COMPUTATIO-001',     latin:'SERVITOR COMPUTATIONIS',     english:'Computation Server' },
+  { id:'GOL-CUSTODIA-001',       latin:'SERVITOR CUSTODIAE',         english:'Security Server' },
+  { id:'GOL-COMMERCIUM-001',     latin:'SERVITOR COMMERCII',         english:'Commerce Server' },
+  { id:'GOL-COMMUNICATIO-001',   latin:'SERVITOR COMMUNICATIONIS',   english:'Communications Server' },
+  { id:'GOL-GUBERNATIO-001',     latin:'SERVITOR GUBERNATIONIS',     english:'Governance Server' },
+  { id:'GOL-EVOLUTIO-001',       latin:'SERVITOR EVOLUTIONIS',       english:'Evolution Server' },
+  { id:'GOL-ORACULUM-001',       latin:'SERVITOR ORACULI',           english:'Oracle Server' }
+];
+
+/* ════════════════════════════════════════════════════════════════════════════
    §3  COR PARVUM — MiniHeart
 ════════════════════════════════════════════════════════════════════════════ */
 
@@ -428,6 +481,7 @@ function buildSnapshot() {
     heartHealth: heartHealth,
     alertLevel:  alertLevel,
     alertName:   alertNames[alertLevel],
+    alertLatin:  ALERT_LATINA[alertLevel] || 'NOMINALIS',
     coherence:   computeCoherence(),
     brain: {
       regions:        brain.regions.map(function(r){ return {name:r.name, activation:r.activation}; }),
@@ -436,7 +490,9 @@ function buildSnapshot() {
     },
     chaos: {
       totalEvents: chaosEvents.length,
-      recentEvents: chaosEvents.slice(0, 40),
+      recentEvents: chaosEvents.slice(0, 40).map(function(e) {
+        return e ? Object.assign({}, e, { typeLatin: CHAOS_LATINA[e.type] || e.type }) : e;
+      }),
       patterns:    patterns,
       alertLevel:  alertLevel
     },
@@ -444,12 +500,30 @@ function buildSnapshot() {
     grammar: grammar.slice(0, 15),
     signals: signalLog.slice(0, 40),
     hospital: {
-      patients:    patients.slice(0, 50),
+      patients:    patients.slice(0, 50).map(function(p) {
+        return Object.assign({}, p, { statusLatin: STAGE_LATINA[p.status] || p.status });
+      }),
       departments: DEPARTMENTS
     },
     buildings: {
-      workflows: workflows.slice(0, 50)
-    }
+      workflows: workflows.slice(0, 50).map(function(w) {
+        return Object.assign({}, w, {
+          statusLatin:       WF_STAGE_LATINA[w.status] || w.status,
+          workflowTypeLatin: WF_LATINA[w.workflowType] || w.workflowType,
+          buildingLatin:     BLD_LATINA[w.buildingCode] || w.buildingCode
+        });
+      })
+    },
+    latinProtocols: {
+      chaosTypes:    CHAOS_LATINA,
+      responses:     RESPONSES_LATINA,
+      alertLevels:   ALERT_LATINA,
+      hospitalStages:STAGE_LATINA,
+      workflowStages:WF_STAGE_LATINA,
+      buildings:     BLD_LATINA,
+      workflowTypes: WF_LATINA
+    },
+    servitoresLatini: SERVITORES_LATINI
   };
 }
 
