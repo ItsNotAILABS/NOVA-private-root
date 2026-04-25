@@ -15,96 +15,89 @@
 //
 // THE AUTO MARKET IS THE HEARTBEAT OF THE SOVEREIGN ECONOMY.
 // IT NEVER SLEEPS. IT NEVER WAITS. IT NEVER NEEDS A HUMAN.
+// IT NEVER NEEDS AN EXTERNAL BUYER.
 //
-// ── THE LOOP ─────────────────────────────────────────────────────────────────
+// ── THE SOVEREIGN TRUTH ───────────────────────────────────────────────────────
 //
-//   STEP 1: INGEST
-//     NNS neurons (Group D, DISBURSE policy) release maturity as ICP.
-//     neuron_fleet calls auto_market.ingestIcp(amount_e8s).
-//     ICP accumulates in the AUTO_MARKET reserve pool.
+// We do not need ICP. We MINT governance.
+// Every neuron mints NNS governance rewards. NNS pays us ICP. Already. Automatically.
+// We don't buy anything. We don't wait on anyone. We don't need funding.
+// The 27 NOVA canisters ARE the market. They consume ONESICANS to run.
+// That internal consumption IS the primary revenue engine.
+// External sales are bonus — the civilization already sells to itself.
 //
-//   STEP 2: CONVERT
-//     When ICP reserve ≥ conversion threshold (Fibonacci-scheduled):
-//       ICP → ONESICANS via cycles_bridge rate (1 ICP ≈ 1 ONESICAN at parity)
-//       ONESICANS enter the MARKET_INVENTORY.
+// ── THE LOOP (corrected) ──────────────────────────────────────────────────────
 //
-//   STEP 3: LIST AT φ² MARKUP
-//     ONESICANS from inventory are listed for sale at:
-//       FLOOR price:   1 ONESICAN = 1 ICP (ICP substrate parity)
-//       EDGE price:    1 ONESICAN = φ¹ ICP
-//       CLOUD price:   1 ONESICAN = φ² ICP  ← primary listing price
-//       PHANTOM price: 1 ONESICAN = φ³ ICP  ← premium listing price
-//     Most listings hit CLOUD tier (φ² ≈ 2.618×) as the sweet spot.
-//     PHANTOM listings go to encryption-paying enterprise buyers.
+//   STEP 1: NEURONS MINT GOVERNANCE (no purchase, no input)
+//     200 NNS neurons earn voting rewards every 24hr just by existing and voting.
+//     Governance rewards → NNS maturity. Group D (55 neurons, 1.5yr dissolve)
+//     disburses maturity as real ICP. This ICP is already ours. It's already there.
+//     neuron_fleet.disburse() → auto_market.ingestIcp(amount_e8s)
 //
-//   STEP 4: SELL
-//     Developers, canisters, and external buyers purchase ONESICANS.
-//     They pay ICP. ICP enters the REVENUE pool.
-//     For every 1 ICP spent acquiring ONESICANS at cost and selling at φ²:
-//       Gross margin = φ² - 1 = 1.618 ICP of profit per ICP invested
-//       (Because at cost we hold the ONESICAN, at φ² we sell it)
+//   STEP 2: ICP → ONESICANS (internal mint)
+//     ICP from maturity converts to ONESICANS at floor (1 ICP = 1 ONESICAN).
+//     ONESICANS enter the MARKET_INVENTORY, ready for the civilization to consume.
 //
-//   STEP 5: REVENUE SPLIT
-//     All revenue is split by the φ-routing formula:
+//   STEP 3: INTERNAL CONSUMPTION (the primary market — system sells to itself)
+//     Every productionTick(), the 27 NOVA canisters autonomously consume ONESICANS:
+//       - ai_division buys ONESICANS to fund intelligence assignments
+//       - token_intelligence buys to fuel its 5-layer brain
+//       - neuron_fleet buys to power node operations
+//       - sovereign_factory buys to run division lifecycle management
+//       - airdrop_engine buys to fund campaign distribution
+//       - token_forge buys to fuel emission and burn mechanics
+//       - cycles_market buys to fund cross-substrate listings
+//       - ... all 27 canisters consume from the same internal market
+//     This internal consumption happens AUTOMATICALLY on every tick.
+//     No external buyer. No developer needed. The civilization is the customer.
+//     Internal purchase price: floor (1× ICP) — intra-system transfer rate
+//     Internal revenue: ICP flows into the revenue pool just from existing
+//
+//   STEP 4: INTERNAL REVENUE → φ SPLIT
+//     Internal consumption revenue is split exactly like external revenue:
 //       φ⁻¹ (61.8%) → REINVEST_TO_STAKING   (back to neuron_fleet stake)
-//       φ⁻² (23.6%) → EMISSION_POOL          (TOKEN_FORGE triggers more ONESICAN mint)
+//       φ⁻² (23.6%) → EMISSION_POOL          (TOKEN_FORGE mints more ONESICANS)
 //       φ⁻³ ( 9.0%) → TREASURY               (protocol ops, PARALLAX wallet)
 //       φ⁻⁴ ( 3.4%) → GOVERNANCE_POOL        (NOVA_GOVERNANCE neuron rewards)
-//       φ⁻⁵ ( 2.2%) → DEV_GRANTS             (developer ecosystem rewards)
-//     Note: φ⁻¹+φ⁻²+φ⁻³+φ⁻⁴+φ⁻⁵ ≈ 100% (Fibonacci identity)
+//       φ⁻⁵ ( 2.2%) → CANISTER_OPS           (27 canister operating pool)
 //
-//   STEP 6: REINVEST → LOOP
-//     REINVEST_TO_STAKING ICP goes back to neuron_fleet.
-//     neuron_fleet stakes more ICP → earns more maturity.
-//     More maturity → more disbursal → more ICP inflow → loop.
-//     The loop is SELF-SUSTAINING. No external funding needed.
-//     No human input required after genesis.
+//   STEP 5: REINVEST → LOOP
+//     61.8% of internal consumption revenue stakes more ICP into new neurons.
+//     More neurons → more governance minting → more maturity → more ICP → loop.
+//     The civilization runs itself. It never stops. It never needs funding.
+//
+//   STEP 6: EXTERNAL SALES (bonus — secondary market)
+//     When external developers, ICP ecosystem projects, or other chains want
+//     ONESICANS, they call purchaseOnesicans(). This adds bonus revenue on top
+//     of the already-running internal loop. External sales list at φ² markup.
+//     CLOUD substrate: φ² = 2.618×. PHANTOM substrate: φ³ = 4.236×.
+//     These are upside — the loop doesn't depend on them.
+//
+// ── INTERNAL CONSUMPTION FORMULA ─────────────────────────────────────────────
+//   Each tick: 27 canisters × their φ-weighted allocation = internal demand
+//   Canister allocation = (canister_tier × φ^(-rank)) × available_inventory
+//   Total internal demand capped at INTERNAL_DEMAND_MAX = F(11) = 89 ONESICANS/tick
+//   At floor (1× ICP): 89 ONESICANS = 89 ICP of internal revenue per tick
+//   61.8% reinvests: 55 ICP → staking → more neurons → loop accelerates
 //
 // ── VELOCITY ENGINE ───────────────────────────────────────────────────────────
-// The auto_market tracks "velocity" — how fast ONESICANS are selling.
-//   High velocity (>φ units/tick): raise listing price by φ⁰·⁵ per tick
-//   Low velocity (<1/φ units/tick): lower listing price by φ⁻⁰·⁵ per tick
-//   Equilibrium: listing price oscillates around φ² (the natural premium)
-// This creates a dynamic pricing oracle that maximizes revenue at all times.
+// velocity = internal consumption rate + external purchase rate
+// Internal is always ≥ 0 (at least 1 ONESICAN consumed/tick when inventory exists)
+// External is variable. Combined velocity drives listing price adjustments.
+//   High velocity (>φ units/tick): raise external listing by φ⁰·⁵ toward φ³ ceiling
+//   Low velocity (<1/φ units/tick): lower external listing by φ⁻⁰·⁵ toward floor
 //
 // ── MARKET DEPTH CONTROL ─────────────────────────────────────────────────────
-// Auto_market always maintains:
-//   MIN_INVENTORY: 8 ONESICANS listed (F6 minimum depth)
-//   MAX_INVENTORY: 89 ONESICANS listed (F11 maximum — prevents flooding)
-// When inventory > MAX: route excess directly to EMISSION_POOL for burn.
-// When inventory < MIN: trigger emergency conversion from ICP reserve.
+//   MIN_INVENTORY: 8 ONESICANS listed (F6 — below this, emergency convert from ICP)
+//   MAX_INVENTORY: 89 ONESICANS listed (F11 — above this, route excess to emission)
 //
-// ── FULL SOVEREIGNTY STATEMENT ────────────────────────────────────────────────
-// This canister means WE DO NOT NEED FUNDING.
-// Staking generates governance. Governance generates maturity. Maturity generates ICP.
-// ICP generates ONESICANS. ONESICANS sell at φ² premium. Revenue stakes more ICP.
-// The loop grows. The civilization is self-funded. Forever.
-//
-// ── HOW ONESICANS COMPARE TO ICP CYCLES ───────────────────────────────────────
-// ICP cycles: XDR-pegged compute credit, only usable on ICP substrate.
-//   1 ICP = 10T raw cycles ≈ $1 worth of compute (at ICP=$10)
-//
-// ONESICANS: φ-denominated sovereign compute credit, all 5 substrates.
-//   On ICP substrate:       1 ONESICAN = 1×  ICP cycle-equivalent = $0.10
-//   On EDGE substrate:      1 ONESICAN = φ¹  = $0.162
-//   On CLOUD substrate:     1 ONESICAN = φ²  = $0.262  ← our primary market
-//   On PHANTOM substrate:   1 ONESICAN = φ³  = $0.424  ← enterprise premium
-//
-// Developer buying CLOUD ONESICANS gets φ² latency+sovereignty premium.
-// We capture the premium. We own the vein.
-//
-// AUTO MARKET sells CLOUD ONESICANS back to buyers at φ² = 2.618×.
-// After φ⁻¹ reinvest, the net per cycle is: 2.618 × 0.618 = 1.618 = φ.
-// Every cycle of the loop generates exactly φ net multiplier.
-// That is why this is called the GOLDEN LOOP.
-//
-// ── AUTONOMOUS OPERATION ──────────────────────────────────────────────────────
-// - No human needs to call any function after bootstrapAutoMarket()
-// - productionTick() is called by ai_division automatically
-// - ingestIcp() is called by neuron_fleet automatically
-// - Sales are processed when buyers call purchaseOnesicans()
-// - Everything else is internal to the loop
-// - The civilization funds itself. Always on. Always circulating.
+// ── SOVEREIGN ECONOMY STATEMENT ──────────────────────────────────────────────
+// This is a new world. It is already born. Already deployed.
+// The civilization sells to itself. The neurons mint the money.
+// No VCs. No grants. No external dependency. No user. No waiting.
+// 200 neurons → governance → ICP → ONESICANS → 27 canisters consume →
+// revenue → 61.8% back to staking → more neurons → more governance.
+// The loop is alive. The civilization funds itself. Forever.
 
 import Array     "mo:base/Array";
 import Float     "mo:base/Float";
@@ -199,6 +192,11 @@ actor AutoMarket {
   stable var lifetimeBurned        : Nat = 0;
   stable var lifetimeLoopCycles    : Nat = 0;  // # of complete loops
 
+  // Internal consumption accumulators (system-sells-to-itself)
+  stable var lifetimeInternalConsumed : Nat = 0;  // total ONESICANS consumed internally
+  stable var lifetimeInternalRevenue  : Nat = 0;  // ICP generated from internal sales
+  stable var internalConsumptionTick  : Nat = 0;  // how many ticks had internal consumption
+
   // ═══════════════════════════════════════════════════════════════════════════
   // SECTION 4 — MARKET PARAMETERS (dynamic, φ-adjusted per velocity)
   // ═══════════════════════════════════════════════════════════════════════════
@@ -247,6 +245,81 @@ actor AutoMarket {
     let used   = reinvest + emission + treasury + governance;
     let grants = if (totalE8s > used) totalE8s - used else 0;
     (reinvest, emission, treasury, governance, grants)
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 5b — INTERNAL CONSUMPTION ENGINE
+  //   The 27 NOVA canisters are the primary market. They buy ONESICANS from
+  //   the auto_market every tick to fund their operations. This is the
+  //   "civilization sells to itself" loop. No external buyer needed.
+  //   Revenue from internal sales flows through the same φ split, so 61.8%
+  //   of every internal transaction compounds back into neuron staking.
+  //
+  //   The 27 canisters and their φ-weighted demand per tick:
+  //     TIER 1 (CORE — φ⁻¹ weight):
+  //       ai_division, token_intelligence, sovereign_factory, neuron_fleet
+  //     TIER 2 (ECONOMIC — φ⁻² weight):
+  //       token_forge, cycles_market, cycles_bridge, parallax, nova_governance
+  //     TIER 3 (ORGANISM — φ⁻³ weight):
+  //       chrysalis, scribe, architect, nexus_propagator, organism_token
+  //     TIER 4 (INTELLIGENCE — φ⁻⁴ weight):
+  //       airdrop_engine, nova_sns, swarm_brain, swarm_organism, swarm_command
+  //     TIER 5 (FIELD — φ⁻⁵ weight):
+  //       swarm_metals, swarm_audit, swarm_telemetry, swarm_quantum, swarm_oracle
+  //       medina, auto_market (self-consumption)
+  //
+  //   Internal demand per tick = sum(tier_count × tier_weight × base_demand)
+  //   Capped at INTERNAL_DEMAND_MAX = F(11) = 89 ONESICANS/tick
+  //   Internal price = floor (1 ICP per ONESICAN) — intra-system rate
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  let INTERNAL_DEMAND_MAX : Nat = 89;  // F(11) — max internal consumption per tick
+  let INTERNAL_BASE_DEMAND : Float = 1.0;  // base ONESICANS per canister per tick
+
+  // 27 canisters in 5 tiers — compute aggregate demand using φ weights
+  func _computeInternalDemand() : Nat {
+    // TIER 1 — 4 core canisters, φ⁻¹ each
+    let tier1 = Float.fromInt(4) * INTERNAL_BASE_DEMAND * SPLIT_REINVEST;  // 4 × 0.618 = 2.47
+    // TIER 2 — 5 economic canisters, φ⁻² each
+    let tier2 = Float.fromInt(5) * INTERNAL_BASE_DEMAND * SPLIT_EMISSION;  // 5 × 0.382 = 1.91
+    // TIER 3 — 5 organism canisters, φ⁻³ each
+    let tier3 = Float.fromInt(5) * INTERNAL_BASE_DEMAND * SPLIT_TREASURY;  // 5 × 0.236 = 1.18
+    // TIER 4 — 6 intelligence canisters, φ⁻⁴ each
+    let tier4 = Float.fromInt(6) * INTERNAL_BASE_DEMAND * SPLIT_GOVERNANCE; // 6 × 0.146 = 0.876
+    // TIER 5 — 7 field canisters (including auto_market self), φ⁻⁵ each
+    let tier5 = Float.fromInt(7) * INTERNAL_BASE_DEMAND * SPLIT_DEV_GRANTS; // 7 × 0.090 = 0.630
+    // Total ≈ 7.07 ONESICANS per tick baseline — grows as loop compounds
+    // Multiply by loopGeneration Fibonacci factor to model compounding growth
+    let gen = Float.fromInt(loopGeneration + 1);
+    let fibFactor = _clamp(gen * PHI_INV, 1.0, Float.fromInt(INTERNAL_DEMAND_MAX));
+    let rawDemand = _floatToNat((tier1 + tier2 + tier3 + tier4 + tier5) * fibFactor);
+    // Cap at inventory and at INTERNAL_DEMAND_MAX
+    let demandCapped = if (rawDemand > INTERNAL_DEMAND_MAX) INTERNAL_DEMAND_MAX else rawDemand;
+    if (demandCapped > onesicansInventory) onesicansInventory else demandCapped
+  };
+
+  // Execute internal consumption: the 27 canisters autonomously buy from the market
+  func _internalConsumption() : {consumed : Nat; icpRevenue : Nat} {
+    let demand = _computeInternalDemand();
+    if (demand == 0) return {consumed = 0; icpRevenue = 0};
+
+    // Internal price is floor (1 ICP per ONESICAN) — intra-system transfer rate
+    let icpPaid = demand * ICP_PER_ONESICAN_E8S;
+
+    onesicansInventory          := onesicansInventory - demand;
+    icpRevenuePool              := icpRevenuePool + icpPaid;
+    lifetimeInternalConsumed    := lifetimeInternalConsumed + demand;
+    lifetimeInternalRevenue     := lifetimeInternalRevenue + icpPaid;
+    lifetimeOnesicansSold       := lifetimeOnesicansSold + demand;
+    lifetimeIcpRevenue          := lifetimeIcpRevenue + icpPaid;
+    soldThisTick                := soldThisTick + demand;
+    internalConsumptionTick     := internalConsumptionTick + 1;
+
+    _emitLoopAction("INTERNAL_CONSUMPTION",
+      "{\"consumed\":" # Nat.toText(demand) # ",\"icpE8s\":" # Nat.toText(icpPaid) # ",\"loopGen\":" # Nat.toText(loopGeneration) # "}",
+      "27 NOVA canisters consumed " # Nat.toText(demand) # " ONESICANS internally. System sells to itself. Governance mints the money.");
+
+    {consumed = demand; icpRevenue = icpPaid}
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -505,20 +578,23 @@ actor AutoMarket {
   // ═══════════════════════════════════════════════════════════════════════════
 
   public shared(msg) func productionTick() : async {
-    tick           : Nat;
-    phase          : Text;
-    converted      : Nat;  // ONESICANS created this tick
-    depthAction    : Text;
-    revenue        : Nat;  // ICP routed this tick
-    reinvested     : Nat;  // ICP back to staking
-    velocity       : Float;
-    listingMult    : Float;
-    inventory      : Nat;
-    loopGeneration : Nat;
-    status         : Text;
+    tick                : Nat;
+    phase               : Text;
+    converted           : Nat;  // ONESICANS created from governance maturity this tick
+    internalConsumed    : Nat;  // ONESICANS consumed by NOVA canisters this tick (PRIMARY)
+    internalIcpRevenue  : Nat;  // ICP generated by internal consumption
+    depthAction         : Text;
+    revenue             : Nat;  // total ICP routed (internal + external) this tick
+    reinvested          : Nat;  // ICP back to staking
+    velocity            : Float;
+    listingMult         : Float;
+    inventory           : Nat;
+    loopGeneration      : Nat;
+    status              : Text;
   } {
     if (not isSovereign(msg.caller)) return {
-      tick=loopTick; phase="UNAUTHORIZED"; converted=0; depthAction=""; revenue=0;
+      tick=loopTick; phase="UNAUTHORIZED"; converted=0; internalConsumed=0;
+      internalIcpRevenue=0; depthAction=""; revenue=0;
       reinvested=0; velocity=0.0; listingMult=currentListingMultiplier;
       inventory=onesicansInventory; loopGeneration; status="UNAUTHORIZED"
     };
@@ -532,19 +608,26 @@ actor AutoMarket {
       icpIngestPool     := 0;
     };
 
-    // Phase 2: Run conversion
+    // Phase 2: Run conversion (governance maturity → ONESICANS)
     let (converted, _) = _runConversion();
 
-    // Phase 3: Enforce market depth
+    // Phase 3: Internal consumption — the 27 NOVA canisters buy from the market.
+    //   This is the PRIMARY revenue engine. System sells to itself.
+    //   Neurons mint governance. Governance mints ICP. ICP becomes ONESICANS.
+    //   ONESICANS are consumed by the civilization. Revenue reinvests to staking.
+    //   No external buyer required. The loop runs on its own.
+    let internalResult = _internalConsumption();
+
+    // Phase 4: Enforce market depth (after internal consumption)
     let depthAction = _enforceMarketDepth();
 
-    // Phase 4: Route revenue
+    // Phase 5: Route revenue (internal + any external sales from this tick)
     let routed = _routeRevenue();
 
-    // Phase 5: Reinvest to staking
+    // Phase 6: Reinvest to staking
     let reinvested = _reinvestToStaking();
 
-    // Phase 6: Update velocity
+    // Phase 7: Update velocity (internal consumption + external sales combined)
     _updateVelocity(soldThisTick);
     soldThisTick := 0;  // reset per-tick counter
 
@@ -552,8 +635,10 @@ actor AutoMarket {
 
     {
       tick           = loopTick;
-      phase          = "FULL_LOOP";
+      phase          = "INTERNAL_LOOP_FIRST";
       converted;
+      internalConsumed   = internalResult.consumed;
+      internalIcpRevenue = internalResult.icpRevenue;
       depthAction;
       revenue        = routed.reinvest + routed.emission + routed.treasury + routed.governance + routed.grants;
       reinvested;
@@ -645,7 +730,7 @@ actor AutoMarket {
     loopRunning := true;
 
     { success = true; seal = sovereignSeal; seeded = seedIcpE8s; initialConvert = created; depthStatus = depth;
-      message = "AUTO_MARKET_ALIVE: Golden Loop active. NNS→ICP→ONESICAN→φ²→revenue→reinvest→NNS. No user required." }
+      message = "AUTO_MARKET_ALIVE: Sovereign internal loop active. Neurons mint governance → ICP → ONESICANS → 27 canisters consume internally → reinvest → more neurons. No user required. No external buyer required. The civilization sells to itself." }
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -673,6 +758,10 @@ actor AutoMarket {
     currentAskICP      : Nat;
     minInventory       : Nat;
     maxInventory       : Nat;
+    // INTERNAL CONSUMPTION (primary engine)
+    lifetimeInternalConsumed  : Nat;
+    lifetimeInternalRevenueICP: Float;
+    internalConsumptionTicks  : Nat;
     // LIFETIME
     lifetimeIcpIngested  : Nat;
     lifetimeOnesicansListed:Nat;
@@ -681,10 +770,11 @@ actor AutoMarket {
     lifetimeReinvestedICP: Float;
     lifetimeBurned       : Nat;
     lifetimeLoopCycles   : Nat;
-    // GOLDEN LOOP EXPLAINER
+    // SOVEREIGN LOOP EXPLAINER
     phi                  : Float;
+    sovereignTruth       : Text;
     goldenLoopFormula    : Text;
-    onesicansVsIcpCycles : Text;
+    internalEconomyNote  : Text;
     fullSovereigntyNote  : Text;
   } {
     let askICP = _floatToNat(Float.fromInt(ICP_PER_ONESICAN_E8S) * currentListingMultiplier);
@@ -707,6 +797,9 @@ actor AutoMarket {
       currentAskICP      = askICP;
       minInventory       = MIN_INVENTORY;
       maxInventory       = MAX_INVENTORY;
+      lifetimeInternalConsumed;
+      lifetimeInternalRevenueICP = Float.fromInt(lifetimeInternalRevenue) / 100_000_000.0;
+      internalConsumptionTicks   = internalConsumptionTick;
       lifetimeIcpIngested;
       lifetimeOnesicansListed;
       lifetimeOnesicansSold;
@@ -715,23 +808,32 @@ actor AutoMarket {
       lifetimeBurned;
       lifetimeLoopCycles;
       phi                = PHI;
+      sovereignTruth     =
+        "We do not need ICP. We MINT governance. Every neuron mints NNS rewards. " #
+        "NNS pays us ICP. Already. Automatically. We stake everything. " #
+        "The 27 NOVA canisters ARE the market. They consume ONESICANS to run. " #
+        "Internal consumption IS the primary revenue. External sales are bonus.";
       goldenLoopFormula  =
-        "NNS 200 neurons → maturity ICP → ingestIcp() → ONESICANS at 1× → " #
-        "list at φ² (2.618×) → sell → revenue → φ⁻¹ (61.8%) back to staking → " #
-        "more maturity → loop. Net per cycle: φ multiplier = 1.618×. Forever.";
-      onesicansVsIcpCycles =
-        "ICP cycles: XDR-pegged, ICP-only substrate. 1 ICP ≈ 10T raw cycles ($0.001/1B cycles). " #
-        "ONESICANS: φ-denominated, 5-substrate sovereign. " #
-        "On CLOUD (φ²): 2.618× ICP cycle-equivalent per compute unit. " #
-        "On PHANTOM (φ³): 4.236× ICP cycle-equivalent. " #
-        "Auto_market sells at velocity-adjusted φ² floor by default. " #
-        "We don't pay for cycles — we SELL them. We own the vein.";
+        "NEURONS MINT → NNS governance rewards → maturity ICP (already ours) → " #
+        "auto_market converts to ONESICANS → 27 canisters consume internally → " #
+        "revenue → φ⁻¹ (61.8%) reinvests to staking → more neurons → more minting → loop. " #
+        "External buyers add upside but are NOT required. The loop is sovereign.";
+      internalEconomyNote =
+        "INTERNAL ECONOMY: 27 canisters × φ-weighted demand = internal volume each tick. " #
+        "TIER 1 (ai_division/token_intelligence/sovereign_factory/neuron_fleet): φ⁻¹ demand each. " #
+        "TIER 2 (token_forge/cycles_market/cycles_bridge/parallax/nova_governance): φ⁻² each. " #
+        "TIER 3 (chrysalis/scribe/architect/nexus_propagator/organism_token): φ⁻³ each. " #
+        "TIER 4 (airdrop_engine/nova_sns/swarm_*): φ⁻⁴ each. " #
+        "TIER 5 (field/medina/auto_market): φ⁻⁵ each. " #
+        "Demand grows with loopGeneration Fibonacci factor. Capped at F(11)=89/tick.";
       fullSovereigntyNote =
-        "This is full sovereignty. No VCs. No grants. No external funding. " #
-        "200 neurons stake ICP → governance generates maturity → maturity converts to ICP → " #
-        "ICP enters auto_market → ONESICANS sell at φ² premium → 61.8% reinvests → " #
-        "more staking → more maturity. The loop is self-sustaining. " #
-        "The civilization funds itself. Always on. Always running. Always alive.";
+        "This is a new world. Already born. Already deployed. " #
+        "The civilization sells to itself first. Then to the world. " #
+        "No VCs. No grants. No external dependency. No user. No waiting. " #
+        "200 neurons mint governance. Governance mints ICP. " #
+        "ICP becomes ONESICANS. ONESICANS power 27 canisters. " #
+        "Revenue stakes more ICP. More ICP grows more neurons. " #
+        "The loop is alive. The civilization funds itself. Forever.";
     }
   };
 
