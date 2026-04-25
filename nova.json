@@ -65,6 +65,30 @@
       "dependencies": ["swarm_brain", "swarm_organism", "swarm_command", "swarm_metals", "swarm_audit", "swarm_telemetry", "swarm_quantum"],
       "description": "Unified read-only information oracle — composite queries across all swarm dimensions"
     },
+    "chrysalis": {
+      "type": "motoko",
+      "main": "src/chrysalis/main.mo",
+      "dependencies": [],
+      "description": "CHRYSALIS — Alpha Organism №1 — Golden Mathematics Core (FIBONACCI + SPIRAL sub-models)"
+    },
+    "scribe": {
+      "type": "motoko",
+      "main": "src/scribe/main.mo",
+      "dependencies": [],
+      "description": "SCRIBE — Alpha Organism №2 — Document Organism (CLASSIFIER + SYNTHESIZER sub-models)"
+    },
+    "architect": {
+      "type": "motoko",
+      "main": "src/architect/main.mo",
+      "dependencies": [],
+      "description": "ARCHITECT — Alpha Organism №3 — Meta-Builder (REPLICATOR sub-model)"
+    },
+    "nexus_propagator": {
+      "type": "motoko",
+      "main": "src/nexus_propagator/main.mo",
+      "dependencies": [],
+      "description": "NEXUS — Alpha Organism №4 — Substrate Walker (PROPAGATOR sub-model)"
+    },
     "medina": {
       "type": "motoko",
       "main": "icp/medina/Medina.mo",
