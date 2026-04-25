@@ -29,6 +29,42 @@
       "dependencies": ["swarm_brain"],
       "description": "Organism-level orchestration canister"
     },
+    "swarm_command": {
+      "type": "motoko",
+      "main": "src/swarm_command/main.mo",
+      "dependencies": [],
+      "description": "Mission command, HITL approval, waypoint management, MAVLink bridge"
+    },
+    "swarm_metals": {
+      "type": "motoko",
+      "main": "src/swarm_metals/main.mo",
+      "dependencies": [],
+      "description": "Sovereign metals pipeline — 12-metal resonance vector processor"
+    },
+    "swarm_audit": {
+      "type": "motoko",
+      "main": "src/swarm_audit/main.mo",
+      "dependencies": [],
+      "description": "Append-only audit log — immutable swarm event record"
+    },
+    "swarm_telemetry": {
+      "type": "motoko",
+      "main": "src/swarm_telemetry/main.mo",
+      "dependencies": [],
+      "description": "Drone telemetry store — episodic memory, formation patterns, recognition"
+    },
+    "swarm_quantum": {
+      "type": "motoko",
+      "main": "src/swarm_quantum/main.mo",
+      "dependencies": [],
+      "description": "Quantum cognitive state engine — Q-channels, convergence, coherence"
+    },
+    "swarm_oracle": {
+      "type": "motoko",
+      "main": "src/swarm_oracle/main.mo",
+      "dependencies": ["swarm_brain", "swarm_organism", "swarm_command", "swarm_metals", "swarm_audit", "swarm_telemetry", "swarm_quantum"],
+      "description": "Unified read-only information oracle — composite queries across all swarm dimensions"
+    },
     "medina": {
       "type": "motoko",
       "main": "icp/medina/Medina.mo",
