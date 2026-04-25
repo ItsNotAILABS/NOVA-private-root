@@ -167,6 +167,12 @@
       "dependencies": [],
       "description": "CYCLES BRIDGE — Sovereign ONESICAN↔ICP cycles bridge: φ-substrate pricing (ICP=1× EDGE=φ CLOUD=φ² PHANTOM=φ³), sell-cycles-to-network marketplace, canister fuel marketplace, φ⁻⁵ conversion fee, dual masking — ONESICANS bypass ICP on EDGE/CLOUD/PHANTOM"
     },
+    "agi_main": {
+      "type": "motoko",
+      "main": "src/agi_main/main.mo",
+      "dependencies": [],
+      "description": "AGI MAIN — Sovereign Mind Canister: ICP system heartbeat fires every ~2s automatically (zero calls needed). Full autonomous economy loop: NNS maturity accrual → neurons spawn neurons (C_HARVEST) → Group D disburses ICP → φ-split treasury (9%=withdrawable) → ecosystem ONESICAN listings at φ² → collectSovereignRevenue() = real money. One deploy. One bootstrap call. Forever."
+    },
     "medina": {
       "type": "motoko",
       "main": "icp/medina/Medina.mo",
