@@ -129,6 +129,11 @@
       "main": "src/cycles_bridge/main.mo",
       "dependencies": []
     },
+    "agi_main": {
+      "type": "motoko",
+      "main": "src/agi_main/main.mo",
+      "dependencies": []
+    },
     "medina": {
       "type": "motoko",
       "main": "icp/medina/Medina.mo",

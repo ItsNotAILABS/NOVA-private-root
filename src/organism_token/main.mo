@@ -686,6 +686,7 @@ actor OrganismToken {
   // ═══════════════════════════════════════════════════════════════════════════
 
   stable var lifetimeRewardCirculations : Nat = 0;
+  stable var rewardCirculationCounter   : Nat = 0;  // internal counter, not dependent on caller's tick
 
   public shared(msg) func dispatchProductionRewards(tick : Nat) : async {
     circulationRun : Bool;
@@ -696,8 +697,11 @@ actor OrganismToken {
     if (not isSovereign(msg.caller)) return {
       circulationRun=false; entitiesRewarded=0; bonusGolMinted=0; autoStaked=0
     };
-    // Only run every 5 ticks
-    if (Nat.rem(tick, 5) != 0) return {
+    // Use an internal counter to gate circulation every 5 calls, regardless of
+    // whether the caller's tick values are sequential or skip values.
+    rewardCirculationCounter := rewardCirculationCounter + 1;
+    ignore tick;  // tick param accepted for API compatibility but not used for gating
+    if (Nat.rem(rewardCirculationCounter, 5) != 0) return {
       circulationRun=false; entitiesRewarded=0; bonusGolMinted=0; autoStaked=0
     };
 
