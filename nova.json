@@ -119,6 +119,24 @@
       "dependencies": [],
       "description": "CYCLES MARKET — Cross-substrate ONESICAN marketplace: canister listings, φ³-substrate pricing (ICP→PHANTOM), developer seats, compute credit"
     },
+    "token_intelligence": {
+      "type": "motoko",
+      "main": "src/token_intelligence/main.mo",
+      "dependencies": [],
+      "description": "TOKEN INTELLIGENCE — Autonomous AI token flow brain: SENSUM sensor layer, COGITO φ-reasoning, ACTIO decision engine, MEMORIA 128-epoch ledger, VIGILIA canister watchdog"
+    },
+    "airdrop_engine": {
+      "type": "motoko",
+      "main": "src/airdrop_engine/main.mo",
+      "dependencies": [],
+      "description": "AIRDROP ENGINE — Sovereign deep airdrop: multi-wave Fibonacci campaigns, 5-dimension behavioral qualification, anti-sybil (stake+cooldown+voucher), immutable claim proofs, tier escalation BRONZE→DIAMOND"
+    },
+    "sovereign_factory": {
+      "type": "motoko",
+      "main": "src/sovereign_factory/main.mo",
+      "dependencies": [],
+      "description": "SOVEREIGN FACTORY — Canister civilization registry: 6 corps, 21 divisions, lifecycle management (REGISTERED→PRODUCTION), φ revenue routing, division contracts with SLA + upgrade rights"
+    },
     "medina": {
       "type": "motoko",
       "main": "icp/medina/Medina.mo",
