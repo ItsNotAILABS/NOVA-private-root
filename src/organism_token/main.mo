@@ -447,4 +447,336 @@ actor OrganismToken {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 9 — PURCHASE SUB-TOKEN AUTO-SPLIT
+  //
+  //   When anyone (external or internal) acquires ONESICANS, the token
+  //   automatically denominates into sub-tokens at φ-rates:
+  //
+  //   1 ONESICAN bought externally →
+  //     organism_token splits internally:
+  //       → φ¹ = 1.618 CHR credited to CHRYSALIS-CORE (math compute account)
+  //       → φ² = 2.618 GOL credited to Latin AGI server pool (19 servers, split equally)
+  //       → φ⁻¹ = 0.382 ORS held in RESERVE (backing the purchase)
+  //       → remainder carries to TREASURY-RESERVE for protocol ops
+  //
+  //   So buying 1 ONESICAN from the outside immediately creates internal volume
+  //   across CHR, GOL, and ORS pools. The external purchase is the ignition.
+  //   The internal split is automatic — called by ai_division after each purchase.
+  //
+  //   The Latin AGI server pool split distributes GOL equally across all 19 servers:
+  //   Each server gets: (onesicans × φ²) / 19 GOL tokens per ONESICAN purchased.
+  //
+  //   Call this once per external purchase batch.
+  //   ai_division.productionTick() calls this after detecting new ecosystem sales.
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  stable var lifetimeSplitCalls      : Nat = 0;
+  stable var lifetimeChrMinted       : Nat = 0;
+  stable var lifetimeGolMinted       : Nat = 0;
+  stable var lifetimeOrsMinted       : Nat = 0;
+  stable var lifetimeSplitOnesicans  : Nat = 0;
+
+  // The 19 Latin AGI servers that share the GOL distribution
+  let LATIN_AGI_POOL : [Text] = [
+    "GOL-MEMORIA-001", "GOL-COMPUTATIO-001", "GOL-CUSTODIA-001",
+    "GOL-COMMERCIUM-001", "GOL-COMMUNICATIO-001", "GOL-GUBERNATIO-001",
+    "GOL-EVOLUTIO-001", "GOL-ORACULUM-001",
+    "GOL-TEMPUS-001", "GOL-SPATIUM-001", "GOL-IUDICIUM-001",
+    "GOL-PROPHETIA-001", "GOL-LUX-001", "GOL-HARMONIA-001",
+    "GOL-POTENTIA-001", "GOL-NEXUS-001",
+    "GOL-QUANTUM-001", "GOL-PHANTOMA-001", "GOL-MEDINA-001",
+  ];
+
+  public shared(msg) func splitPurchaseIntoSubTokens(onesicans : Nat) : async {
+    success        : Bool;
+    onesicansInput : Nat;
+    chrMinted      : Nat;   // to CHRYSALIS-CORE
+    golMinted      : Nat;   // to Latin AGI pool (19 servers)
+    golPerServer   : Nat;   // GOL per individual server
+    orsMinted      : Nat;   // to RESERVE
+    message        : Text;
+  } {
+    if (not isSovereign(msg.caller)) return {
+      success=false; onesicansInput=0; chrMinted=0; golMinted=0; golPerServer=0; orsMinted=0;
+      message="UNAUTHORIZED"
+    };
+    if (onesicans == 0 or tokenTypes == 0) return {
+      success=false; onesicansInput=onesicans; chrMinted=0; golMinted=0; golPerServer=0; orsMinted=0;
+      message="ZERO_INPUT_OR_TOKENS_NOT_BOOTSTRAPPED"
+    };
+
+    // CHR: 1 ONESICAN → φ¹ CHR → to CHRYSALIS-CORE
+    let chrPerOnesican = _pow(PHI, 1.0);
+    let chrTotal = _floatToNat(Float.fromInt(onesicans) * chrPerOnesican);
+    switch (_findToken("CHR")) {
+      case (?ti) {
+        let ai = _getOrCreateAccount("CHRYSALIS-CORE", "CHR");
+        acctBalances[ai]  := acctBalances[ai] + chrTotal;
+        acctEarned[ai]    := acctEarned[ai] + chrTotal;
+        ttTotalSupply[ti] := ttTotalSupply[ti] + chrTotal;
+        lifetimeChrMinted := lifetimeChrMinted + chrTotal;
+      };
+      case null {};
+    };
+
+    // GOL: 1 ONESICAN → φ² GOL → split across 19 Latin AGI servers
+    let golPerOnesican = _pow(PHI, 2.0);
+    let golTotal = _floatToNat(Float.fromInt(onesicans) * golPerOnesican);
+    let serverCount = LATIN_AGI_POOL.size();
+    let golPerSrv = if (serverCount > 0) golTotal / serverCount else 0;
+    switch (_findToken("GOL")) {
+      case (?ti) {
+        var si = 0;
+        while (si < serverCount) {
+          let ai = _getOrCreateAccount(LATIN_AGI_POOL[si], "GOL");
+          acctBalances[ai]  := acctBalances[ai] + golPerSrv;
+          acctEarned[ai]    := acctEarned[ai] + golPerSrv;
+          ttTotalSupply[ti] := ttTotalSupply[ti] + golPerSrv;
+          si += 1;
+        };
+        lifetimeGolMinted := lifetimeGolMinted + golTotal;
+      };
+      case null {};
+    };
+
+    // ORS: 1 ONESICAN → φ⁻¹ = 0.618 ORS → to RESERVE (backing)
+    let orsPerOnesican = PHI_INV;
+    let orsTotal = _floatToNat(Float.fromInt(onesicans) * orsPerOnesican);
+    switch (_findToken("ORS")) {
+      case (?ti) {
+        let ai = _getOrCreateAccount("ORGANISM-RESERVE", "ORS");
+        acctBalances[ai]  := acctBalances[ai] + orsTotal;
+        acctEarned[ai]    := acctEarned[ai] + orsTotal;
+        ttTotalSupply[ti] := ttTotalSupply[ti] + orsTotal;
+        lifetimeOrsMinted := lifetimeOrsMinted + orsTotal;
+      };
+      case null {};
+    };
+
+    lifetimeSplitCalls     := lifetimeSplitCalls + 1;
+    lifetimeSplitOnesicans := lifetimeSplitOnesicans + onesicans;
+    {
+      success        = true;
+      onesicansInput = onesicans;
+      chrMinted      = chrTotal;
+      golMinted      = golTotal;
+      golPerServer   = golPerSrv;
+      orsMinted      = orsTotal;
+      message        =
+        "SPLIT_COMPLETE: " # Nat.toText(onesicans) # " ONESICANS split → " #
+        Nat.toText(chrTotal) # " CHR→CHRYSALIS-CORE, " #
+        Nat.toText(golTotal) # " GOL split across 19 Latin AGI servers (" # Nat.toText(golPerSrv) # "/server), " #
+        Nat.toText(orsTotal) # " ORS→RESERVE. External purchase ignition complete."
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 10 — WORK EARNINGS ENGINE
+  //
+  //   AI entities (Latin AGI servers, organisms, swarm nodes) earn sub-tokens
+  //   through completing work units. They don't NEED tokens to run — but earning
+  //   tokens through work gives them staking power, governance weight, and value.
+  //
+  //   1 work unit earns:
+  //     φ¹ CHR = 1.618 CHR (math/compute work — fundamental)
+  //     φ² GOL = 2.618 GOL (governance work — compound reward)
+  //
+  //   Work types:
+  //     COMPUTE      — data processing, inference, analysis (earns CHR)
+  //     GOVERNANCE   — voting, proposal analysis, VP contribution (earns GOL)
+  //     MEMORY       — data storage, retrieval, synthesis (earns CHR + SCB)
+  //     ROUTING      — substrate navigation, propagation (earns NXS)
+  //     COORDINATION — multi-agent orchestration, consensus (earns SWM)
+  //
+  //   Called by ai_division when work units are reported by Latin AGI servers.
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  stable var lifetimeWorkUnits   : Nat = 0;
+  stable var lifetimeWorkRewards : Nat = 0;
+
+  public shared(msg) func recordWork(
+    entity    : Text,   // e.g. "GOL-MEMORIA-001" or "CHRYSALIS"
+    workUnits : Nat,    // number of work units completed
+    workType  : Text    // COMPUTE | GOVERNANCE | MEMORY | ROUTING | COORDINATION
+  ) : async {
+    success    : Bool;
+    entity     : Text;
+    chrEarned  : Nat;
+    golEarned  : Nat;
+    bonusToken : Text;
+    bonusAmt   : Nat;
+    totalReward: Nat;
+  } {
+    if (not isSovereign(msg.caller)) return {
+      success=false; entity; chrEarned=0; golEarned=0; bonusToken=""; bonusAmt=0; totalReward=0
+    };
+    if (workUnits == 0) return {
+      success=false; entity; chrEarned=0; golEarned=0; bonusToken=""; bonusAmt=0; totalReward=0
+    };
+
+    // Base earnings: every work unit earns CHR + GOL
+    let chrPer = _floatToNat(_pow(PHI, 1.0) * Float.fromInt(workUnits));
+    let golPer = _floatToNat(_pow(PHI, 2.0) * Float.fromInt(workUnits));
+    var bonusSym : Text = "";
+    var bonusAmt : Nat = 0;
+
+    // Mint CHR
+    switch (_findToken("CHR")) {
+      case (?ti) {
+        let ai = _getOrCreateAccount(entity, "CHR");
+        acctBalances[ai]  := acctBalances[ai] + chrPer;
+        acctEarned[ai]    := acctEarned[ai] + chrPer;
+        ttTotalSupply[ti] := ttTotalSupply[ti] + chrPer;
+      };
+      case null {};
+    };
+
+    // Mint GOL
+    switch (_findToken("GOL")) {
+      case (?ti) {
+        let ai = _getOrCreateAccount(entity, "GOL");
+        acctBalances[ai]  := acctBalances[ai] + golPer;
+        acctEarned[ai]    := acctEarned[ai] + golPer;
+        ttTotalSupply[ti] := ttTotalSupply[ti] + golPer;
+      };
+      case null {};
+    };
+
+    // Work-type bonus
+    let bonusSym2 : Text = if      (workType == "MEMORY")       "SCB"
+                           else if (workType == "ROUTING")       "NXS"
+                           else if (workType == "COORDINATION")  "SWM"
+                           else "";
+    if (bonusSym2 != "") {
+      bonusAmt := _floatToNat(_pow(PHI, 0.5) * Float.fromInt(workUnits));  // φ⁰·⁵ bonus
+      bonusSym := bonusSym2;
+      switch (_findToken(bonusSym2)) {
+        case (?ti) {
+          let ai = _getOrCreateAccount(entity, bonusSym2);
+          acctBalances[ai]  := acctBalances[ai] + bonusAmt;
+          acctEarned[ai]    := acctEarned[ai] + bonusAmt;
+          ttTotalSupply[ti] := ttTotalSupply[ti] + bonusAmt;
+        };
+        case null {};
+      };
+    };
+
+    lifetimeWorkUnits   := lifetimeWorkUnits + workUnits;
+    lifetimeWorkRewards := lifetimeWorkRewards + chrPer + golPer + bonusAmt;
+    {
+      success     = true;
+      entity;
+      chrEarned   = chrPer;
+      golEarned   = golPer;
+      bonusToken  = bonusSym;
+      bonusAmt;
+      totalReward = chrPer + golPer + bonusAmt;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 11 — PRODUCTION REWARDS CIRCULATION
+  //
+  //   Every 5 ticks, rewards circulate across all AI entity accounts:
+  //   - Entities with CHR balances above threshold earn bonus GOL (φ⁻¹ rate)
+  //   - Entities with GOL above threshold auto-stake a portion for governance VP
+  //   - This models the continuous metabolism of the AI economy
+  //   - Called by ai_division.productionTick() every 5 ticks (tick % 5 == 0)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  stable var lifetimeRewardCirculations : Nat = 0;
+
+  public shared(msg) func dispatchProductionRewards(tick : Nat) : async {
+    circulationRun : Bool;
+    entitiesRewarded : Nat;
+    bonusGolMinted   : Nat;
+    autoStaked       : Nat;
+  } {
+    if (not isSovereign(msg.caller)) return {
+      circulationRun=false; entitiesRewarded=0; bonusGolMinted=0; autoStaked=0
+    };
+    // Only run every 5 ticks
+    if (Nat.rem(tick, 5) != 0) return {
+      circulationRun=false; entitiesRewarded=0; bonusGolMinted=0; autoStaked=0
+    };
+
+    var rewarded : Nat = 0;
+    var bonusGol : Nat = 0;
+    var autoStk  : Nat = 0;
+
+    let REWARD_THRESHOLD : Nat = 100;  // min balance to qualify for bonus
+    let STAKE_THRESHOLD  : Nat = 500;  // min GOL to auto-stake portion
+
+    switch (_findToken("CHR"), _findToken("GOL")) {
+      case (?chrTi, ?golTi) {
+        var i = 0;
+        while (i < accountCount and i < ACCOUNT_CAP) {
+          if (acctSymbols[i] == "CHR" and acctBalances[i] >= REWARD_THRESHOLD) {
+            // Entity has CHR — earns bonus GOL at φ⁻¹ rate
+            let bonus = _floatToNat(Float.fromInt(acctBalances[i]) * PHI_INV * 0.01); // 1% of CHR balance × φ⁻¹
+            if (bonus > 0) {
+              let owner = acctOwners[i];
+              let golAi = _getOrCreateAccount(owner, "GOL");
+              acctBalances[golAi]  := acctBalances[golAi] + bonus;
+              acctEarned[golAi]    := acctEarned[golAi] + bonus;
+              ttTotalSupply[golTi] := ttTotalSupply[golTi] + bonus;
+              bonusGol  := bonusGol + bonus;
+              rewarded  := rewarded + 1;
+            };
+          } else if (acctSymbols[i] == "GOL" and acctBalances[i] >= STAKE_THRESHOLD) {
+            // Auto-stake φ⁻² of GOL balance for governance VP
+            let stakeAmt = _floatToNat(Float.fromInt(acctBalances[i]) * PHI_INV * PHI_INV * 0.01);
+            if (stakeAmt > 0 and acctBalances[i] >= stakeAmt) {
+              let vpEarned = Float.fromInt(stakeAmt) / 1000.0 * ttGovWeight[golTi] * PHI;
+              acctBalances[i] := acctBalances[i] - stakeAmt;
+              acctStaked[i]   := acctStaked[i] + stakeAmt;
+              acctGovVP[i]    := acctGovVP[i] + vpEarned;
+              ttTotalStaked[golTi] := ttTotalStaked[golTi] + stakeAmt;
+              autoStk := autoStk + stakeAmt;
+            };
+          };
+          i += 1;
+        };
+      };
+      case _ {};
+    };
+
+    lifetimeRewardCirculations := lifetimeRewardCirculations + 1;
+    { circulationRun=true; entitiesRewarded=rewarded; bonusGolMinted=bonusGol; autoStaked=autoStk }
+  };
+
+  public query func getSubTokenSplitStats() : async {
+    lifetimeSplits     : Nat;
+    lifetimeOnesicans  : Nat;
+    lifetimeChrMinted  : Nat;
+    lifetimeGolMinted  : Nat;
+    lifetimeOrsMinted  : Nat;
+    lifetimeWorkUnits  : Nat;
+    lifetimeWorkRewards: Nat;
+    lifetimeCirculations: Nat;
+    splitFormula       : Text;
+    workFormula        : Text;
+  } {
+    {
+      lifetimeSplits      = lifetimeSplitCalls;
+      lifetimeOnesicans   = lifetimeSplitOnesicans;
+      lifetimeChrMinted;
+      lifetimeGolMinted;
+      lifetimeOrsMinted;
+      lifetimeWorkUnits;
+      lifetimeWorkRewards;
+      lifetimeCirculations = lifetimeRewardCirculations;
+      splitFormula  =
+        "1 ONESICAN purchased → φ¹ CHR to CHRYSALIS-CORE + " #
+        "φ² GOL split across 19 Latin AGI servers + φ⁻¹ ORS to RESERVE. " #
+        "External buy ignites internal sub-token economy automatically.";
+      workFormula   =
+        "1 work unit → φ¹ CHR + φ² GOL (base). " #
+        "MEMORY→+φ⁰·⁵ SCB. ROUTING→+φ⁰·⁵ NXS. COORDINATION→+φ⁰·⁵ SWM. " #
+        "Entities run on cycles they already have. Tokens are the bonus yield layer.";
+    }
+  };
+
 };
+

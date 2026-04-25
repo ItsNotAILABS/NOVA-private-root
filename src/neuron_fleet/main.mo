@@ -423,6 +423,143 @@ actor NeuronFleet {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 6b — DISPATCH MATURITY ACTIONS (BATCH — neurons make neurons)
+  //
+  //   This is the autonomous neurons-make-neurons loop.
+  //   Called by ai_division.productionTick() every tick.
+  //   Processes ALL neurons with pending maturity in a single call:
+  //
+  //   GROUP A/B/E → STAKE_MATURITY  → increases stake, boosts VP, compounds
+  //   GROUP C     → SPAWN_NEURON    → spawns new C_HARVEST neurons (fleet grows)
+  //   GROUP D     → DISBURSE        → returns ICP to auto_market treasury
+  //
+  //   Returns:
+  //     staked      : total ICP (e8s) staked back across A/B/E neurons
+  //     newNeurons  : count of neurons spawned by C group this dispatch
+  //     disbursedE8s: total ICP (e8s) disbursed from D group → auto_market ingestIcp()
+  //     totalProcessed: neurons that had maturity and were processed
+  //
+  //   After this call, auto_market.ingestIcp(disbursedE8s) should be called
+  //   so the ICP enters the Golden Loop and becomes ONESICANS.
+  //   This is wired in ai_division.productionTick() — no human action needed.
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  stable var lifetimeDispatchCalls : Nat = 0;
+  stable var lifetimeAutoStaked    : Nat = 0;   // total e8s auto-staked
+  stable var lifetimeAutoSpawned   : Nat = 0;   // total neurons auto-spawned
+  stable var lifetimeAutoDisbursed : Nat = 0;   // total e8s auto-disbursed to treasury
+
+  public shared(msg) func dispatchMaturityActions() : async {
+    staked           : Nat;   // total ICP e8s staked back (GROUP A/B/E)
+    newNeurons       : Nat;   // neurons spawned (GROUP C)
+    disbursedE8s     : Nat;   // ICP e8s to route to auto_market (GROUP D)
+    totalProcessed   : Nat;   // neurons that had pending maturity
+    fleetSize        : Nat;   // current total neuron count (including spawned)
+    message          : Text;
+  } {
+    if (not isSovereign(msg.caller)) return {
+      staked=0; newNeurons=0; disbursedE8s=0; totalProcessed=0; fleetSize=neuronCount;
+      message="UNAUTHORIZED"
+    };
+    var staked       : Nat = 0;
+    var newNeurons   : Nat = 0;
+    var disbursedE8s : Nat = 0;
+    var processed    : Nat = 0;
+    var i = 0;
+    // Snapshot current count to avoid processing newly-spawned neurons this tick
+    let countSnap = neuronCount;
+    while (i < countSnap and i < NEURON_CAP) {
+      if (neuronStatuses[i] == "ACTIVE" and neuronMaturity[i] > 0) {
+        let amount = neuronMaturity[i];
+        let policy = neuronPolicies[i];
+        neuronMaturity[i] := 0;
+        processed += 1;
+        if (policy == "STAKE_MATURITY") {
+          // Stake back → VP increases → more governance power → more maturity next cycle
+          neuronStakes[i]      := neuronStakes[i] + amount;
+          neuronVotingPower[i] := _computeVP(neuronStakes[i], neuronDissolveYears[i], neuronAgeYears[i]);
+          totalMaturityStaked  := totalMaturityStaked + amount;
+          staked               := staked + amount;
+          lifetimeAutoStaked   := lifetimeAutoStaked + amount;
+        } else if (policy == "SPAWN_NEURON") {
+          // Spawn a new C_HARVEST neuron — fleet grows autonomously
+          totalMaturitySpawned := totalMaturitySpawned + amount;
+          totalNeuronsSpawned  := totalNeuronsSpawned + 1;
+          if (neuronCount < NEURON_CAP) {
+            let ni2 = neuronCount;
+            let id2 = nextNeuronId;
+            let vp2 = _computeVP(amount, 3.0, 0.0);
+            neuronIds[ni2]           := id2;
+            neuronNnsIds[ni2]        := 0;
+            neuronGroups[ni2]        := "C_HARVEST";
+            neuronStakes[ni2]        := amount;
+            neuronDissolveYears[ni2] := 3.0;
+            neuronAgeYears[ni2]      := 0.0;
+            neuronMaturity[ni2]      := 0;
+            neuronTotalHarvest[ni2]  := 0;
+            neuronVotingPower[ni2]   := vp2;
+            neuronPolicies[ni2]      := "SPAWN_NEURON";
+            neuronStatuses[ni2]      := "ACTIVE";
+            neuronFollowsId[ni2]     := 1;
+            neuronSubstrates[ni2]    := "ICP";
+            neuronNodeBindings[ni2]  := 0;
+            neuronCreatedAt[ni2]     := Time.now();
+            neuronLastVoted[ni2]     := 0;
+            neuronVoteCount[ni2]     := 0;
+            neuronCount              := neuronCount + 1;
+            nextNeuronId             := nextNeuronId + 1;
+            newNeurons               := newNeurons + 1;
+            lifetimeAutoSpawned      := lifetimeAutoSpawned + 1;
+          };
+        } else {
+          // DISBURSE: ICP exits the fleet and enters auto_market Golden Loop
+          totalMaturityDisbursed := totalMaturityDisbursed + amount;
+          disbursedE8s           := disbursedE8s + amount;
+          lifetimeAutoDisbursed  := lifetimeAutoDisbursed + amount;
+        };
+      };
+      i += 1;
+    };
+    lifetimeDispatchCalls := lifetimeDispatchCalls + 1;
+    {
+      staked;
+      newNeurons;
+      disbursedE8s;
+      totalProcessed = processed;
+      fleetSize = neuronCount;
+      message =
+        "DISPATCH_COMPLETE: " # Nat.toText(processed) # " neurons processed. " #
+        Nat.toText(staked/100_000_000) # " ICP staked. " #
+        Nat.toText(newNeurons) # " neurons spawned (fleet=" # Nat.toText(neuronCount) # "). " #
+        Nat.toText(disbursedE8s/100_000_000) # " ICP disbursed → auto_market ingestIcp() → Golden Loop."
+    }
+  };
+
+  // Simulate maturity accrual for all neurons (called by ai_division each tick)
+  // In production, maturity is recorded by real NNS events (recordMaturity per neuron).
+  // This simulates the autonomous accrual so the loop runs without manual recording.
+  public shared(msg) func simulateMaturityAccrual(baseMaturityPerNeuronE8s : Nat) : async {
+    accrued : Nat; neurons : Nat;
+  } {
+    if (not isSovereign(msg.caller)) return { accrued = 0; neurons = 0 };
+    var accrued : Nat = 0;
+    var i = 0;
+    while (i < neuronCount and i < NEURON_CAP) {
+      if (neuronStatuses[i] == "ACTIVE") {
+        // Scale by VP weight (more stake = more maturity)
+        let vpFactor = _floatToNat(neuronVotingPower[i] / 10.0 + 1.0);
+        let mat = baseMaturityPerNeuronE8s * vpFactor;
+        neuronMaturity[i]      := neuronMaturity[i] + mat;
+        neuronTotalHarvest[i]  := neuronTotalHarvest[i] + mat;
+        totalMaturityAccrued   := totalMaturityAccrued + mat;
+        accrued                := accrued + mat;
+      };
+      i += 1;
+    };
+    { accrued; neurons = neuronCount }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // SECTION 7 — VOTING ENGINE
   // ═══════════════════════════════════════════════════════════════════════════
 
