@@ -90,13 +90,16 @@ actor NovaGovernance {
     if (x < lo) lo else if (x > hi) hi else x
   };
 
+  // Nanoseconds per year (ICP Time.now() returns nanoseconds)
+  let NANOS_PER_YEAR : Float = 365.0 * 24.0 * 3600.0 * 1_000_000_000.0;
+
   // ── Voting power = stake × φ^(dissolve_years) × age_bonus ───────────────
   // dissolve_years capped at 8 (mirrors ICP NNS maximum dissolve delay)
   // age_bonus = min(φ^(age_years × 0.25), φ²)
   func _votingPower(stakeUnits : Nat, dissolveDays : Nat, ageSeconds : Int) : Float {
     let stake      = Float.fromInt(stakeUnits);
     let dYears     = _clamp(Float.fromInt(dissolveDays) / 365.0, 0.0, 8.0);
-    let ageYears   = _clamp(Float.fromInt(Int.abs(ageSeconds)) / (365.0 * 24.0 * 3600.0 * 1_000_000_000.0), 0.0, 8.0);
+    let ageYears   = _clamp(Float.fromInt(Int.abs(ageSeconds)) / NANOS_PER_YEAR, 0.0, 8.0);
     let dissolveBonus = _pow(PHI, dYears);
     let ageBonus      = _clamp(_pow(PHI, ageYears * 0.25), 1.0, PHI * PHI);
     stake * dissolveBonus * ageBonus

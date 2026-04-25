@@ -89,6 +89,36 @@
       "dependencies": [],
       "description": "NEXUS — Alpha Organism №4 — Substrate Walker (PROPAGATOR sub-model)"
     },
+    "parallax": {
+      "type": "motoko",
+      "main": "src/parallax/main.mo",
+      "dependencies": [],
+      "description": "PARALLAX — Sovereign Encrypted Canister Wallet — ICP + ONESICAN ledger, vault, staking bridge, φ-tiered fees"
+    },
+    "nova_governance": {
+      "type": "motoko",
+      "main": "src/nova_governance/main.mo",
+      "dependencies": [],
+      "description": "NOVA GOVERNANCE — NNS-mirrored neuron staking, φ-scaled voting power, proposals, maturity rewards"
+    },
+    "nova_sns": {
+      "type": "motoko",
+      "main": "src/nova_sns/main.mo",
+      "dependencies": [],
+      "description": "NOVA SNS — Service Nervous System: per-canister governance, developer staking, revenue sharing, service proposals"
+    },
+    "token_forge": {
+      "type": "motoko",
+      "main": "src/token_forge/main.mo",
+      "dependencies": [],
+      "description": "TOKEN FORGE — Sovereign internal + external token generator: 21M ONESICAN cap, φ-partitioned buckets, Fibonacci emission, vesting, airdrop, dev grants, burn"
+    },
+    "cycles_market": {
+      "type": "motoko",
+      "main": "src/cycles_market/main.mo",
+      "dependencies": [],
+      "description": "CYCLES MARKET — Cross-substrate ONESICAN marketplace: canister listings, φ³-substrate pricing (ICP→PHANTOM), developer seats, compute credit"
+    },
     "medina": {
       "type": "motoko",
       "main": "icp/medina/Medina.mo",
