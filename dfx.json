@@ -104,6 +104,11 @@
       "main": "src/sovereign_factory/main.mo",
       "dependencies": []
     },
+    "auto_market": {
+      "type": "motoko",
+      "main": "src/auto_market/main.mo",
+      "dependencies": []
+    },
     "neuron_fleet": {
       "type": "motoko",
       "main": "src/neuron_fleet/main.mo",
