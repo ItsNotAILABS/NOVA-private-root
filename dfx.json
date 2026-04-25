@@ -104,6 +104,26 @@
       "main": "src/sovereign_factory/main.mo",
       "dependencies": []
     },
+    "neuron_fleet": {
+      "type": "motoko",
+      "main": "src/neuron_fleet/main.mo",
+      "dependencies": []
+    },
+    "ai_division": {
+      "type": "motoko",
+      "main": "src/ai_division/main.mo",
+      "dependencies": []
+    },
+    "organism_token": {
+      "type": "motoko",
+      "main": "src/organism_token/main.mo",
+      "dependencies": []
+    },
+    "cycles_bridge": {
+      "type": "motoko",
+      "main": "src/cycles_bridge/main.mo",
+      "dependencies": []
+    },
     "medina": {
       "type": "motoko",
       "main": "icp/medina/Medina.mo",

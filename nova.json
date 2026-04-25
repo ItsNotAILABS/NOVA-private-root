@@ -137,6 +137,30 @@
       "dependencies": [],
       "description": "SOVEREIGN FACTORY — Canister civilization registry: 6 corps, 21 divisions, lifecycle management (REGISTERED→PRODUCTION), φ revenue routing, division contracts with SLA + upgrade rights"
     },
+    "neuron_fleet": {
+      "type": "motoko",
+      "main": "src/neuron_fleet/main.mo",
+      "dependencies": [],
+      "description": "NEURON FLEET — 200 NNS neuron fleet: 5 Fibonacci groups (A_SOVEREIGNTY×8/B_COMPOUNDING×34/C_HARVEST×89/D_LIQUID×55/E_PHANTOM×14), auto-stake-maturity, spawn-neuron policy, fleet-wide voting, 100 field nodes, φ-VP maximization, cycles premium explainer"
+    },
+    "ai_division": {
+      "type": "motoko",
+      "main": "src/ai_division/main.mo",
+      "dependencies": [],
+      "description": "AI DIVISION MANAGER — Autonomous production loop: neuron release scheduler, node health monitor, organism governance seats (CHRYSALIS/SCRIBE/ARCHITECT/NEXUS/SWARM_BRAIN), reward circulation engine, 18 intelligence assignments, Fibonacci-gated tick cycle"
+    },
+    "organism_token": {
+      "type": "motoko",
+      "main": "src/organism_token/main.mo",
+      "dependencies": [],
+      "description": "ORGANISM TOKEN — Sub-token economy: 8 tokens (CHR/SCB/ARC/NXS/SWM/PHT/ORS/GOL), φ-ladder rates (1 ONESICAN = φ¹ CHR = φ² SCB = φ³ ARC...), AI entity accounts for 25 Latin AGI + Alpha Organisms, governance staking bridge (VP = staked/1000 × φ^tier)"
+    },
+    "cycles_bridge": {
+      "type": "motoko",
+      "main": "src/cycles_bridge/main.mo",
+      "dependencies": [],
+      "description": "CYCLES BRIDGE — Sovereign ONESICAN↔ICP cycles bridge: φ-substrate pricing (ICP=1× EDGE=φ CLOUD=φ² PHANTOM=φ³), sell-cycles-to-network marketplace, canister fuel marketplace, φ⁻⁵ conversion fee, dual masking — ONESICANS bypass ICP on EDGE/CLOUD/PHANTOM"
+    },
     "medina": {
       "type": "motoko",
       "main": "icp/medina/Medina.mo",
