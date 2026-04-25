@@ -137,6 +137,12 @@
       "dependencies": [],
       "description": "SOVEREIGN FACTORY — Canister civilization registry: 6 corps, 21 divisions, lifecycle management (REGISTERED→PRODUCTION), φ revenue routing, division contracts with SLA + upgrade rights"
     },
+    "auto_market": {
+      "type": "motoko",
+      "main": "src/auto_market/main.mo",
+      "dependencies": [],
+      "description": "AUTO MARKET — Perpetual Value Engine: autonomous Golden Loop (NNS maturity→ICP→ONESICANS at 1×→list at φ²→sell→φ⁻¹ reinvest to staking→more maturity→loop). Zero user input. Velocity-adjusted pricing, F(6)=8 min depth, F(11)=89 max depth, φ⁻¹/φ⁻²/φ⁻³/φ⁻⁴/φ⁻⁵ revenue split. Full sovereignty: civilization self-funds."
+    },
     "neuron_fleet": {
       "type": "motoko",
       "main": "src/neuron_fleet/main.mo",
