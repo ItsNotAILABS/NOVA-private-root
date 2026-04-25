@@ -89,6 +89,21 @@
       "main": "src/cycles_market/main.mo",
       "dependencies": []
     },
+    "token_intelligence": {
+      "type": "motoko",
+      "main": "src/token_intelligence/main.mo",
+      "dependencies": []
+    },
+    "airdrop_engine": {
+      "type": "motoko",
+      "main": "src/airdrop_engine/main.mo",
+      "dependencies": []
+    },
+    "sovereign_factory": {
+      "type": "motoko",
+      "main": "src/sovereign_factory/main.mo",
+      "dependencies": []
+    },
     "medina": {
       "type": "motoko",
       "main": "icp/medina/Medina.mo",
