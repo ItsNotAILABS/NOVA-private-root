@@ -197,6 +197,48 @@
       "dependencies": [],
       "description": "FRISTON MACHINA — Proactive ICP Canister Archetype: active inference (free energy minimization), SPINOR cross-canister coupling, Kuramoto synchronization, collective active inference. Every sovereign organism canister is a FRISTON MACHINA. The organism as a whole is a network of FRISTON MACHINAs producing collective intelligence."
     },
+    "syntax_synapse": {
+      "type": "motoko",
+      "main": "src/syntax_synapse/main.mo",
+      "dependencies": [],
+      "description": "SYNTAX SYNAPSE ENGINE — AGI-level Motoko syntax intelligence: 37+ canister registry, error pattern classifier (reservedKeyword/paramSeparator/piConstant/missingParens/intFromNat/lambdaType), diagnose/recommendFix API, self-healing audit via heartbeat"
+    },
+    "aegis_shield": {
+      "type": "motoko",
+      "main": "src/aegis_shield/main.mo",
+      "dependencies": [],
+      "description": "AEGIS SHIELD — Infrastructure Defense Canister: 10-tier threat classification (GHOST→EXTINCTION), φ-scaled scoring, autonomous shield integrity regeneration, real-time threat status"
+    },
+    "vael_cyber": {
+      "type": "motoko",
+      "main": "src/vael_cyber/main.mo",
+      "dependencies": [],
+      "description": "VAEL CYBER — Cyber Warfare Canister: dual-mode interior immune defense + exterior attack projection, adversary sealing, sovereign threat memory"
+    },
+    "chimera_swarm": {
+      "type": "motoko",
+      "main": "src/chimera_swarm/main.mo",
+      "dependencies": [],
+      "description": "CHIMERA SWARM — Intelligence + Defense Division Canister: φ⁻¹-driven intelligence scoring, alert escalation, cyber ops activation, autonomous swarm unit deployment"
+    },
+    "drone_fleet": {
+      "type": "motoko",
+      "main": "src/drone_fleet/main.mo",
+      "dependencies": [],
+      "description": "DRONE FLEET — Autonomous Fleet Manager Canister: drone deploy/recall/destroy lifecycle, mission tracking, F(11)=89 Fibonacci coherence oscillation"
+    },
+    "war_engine": {
+      "type": "motoko",
+      "main": "src/war_engine/main.mo",
+      "dependencies": [],
+      "description": "WAR ENGINE — Autonomous War Engine + Command Offense: standby/defensive/offensive/total engagement modes, victory ledger, φ⁻⁵ power compounding per tick"
+    },
+    "medina_defense": {
+      "type": "motoko",
+      "main": "src/medina_defense/main.mo",
+      "dependencies": [],
+      "description": "MEDINA DEFENSE — Biologically-accurate Amygdala fear circuit (LA/BA/CeA nuclei), sensory threat ingestion, prefrontal suppression override, passive decay heartbeat"
+    },
     "frontend": {
       "type": "assets",
       "source": ["src/frontend/dist"],
