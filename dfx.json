@@ -149,6 +149,11 @@
       "main": "icp/medina/Medina.mo",
       "dependencies": []
     },
+    "friston_machina": {
+      "type": "motoko",
+      "main": "src/friston_machina/main.mo",
+      "dependencies": []
+    },
     "frontend": {
       "type": "assets",
       "source": ["src/frontend/dist"],

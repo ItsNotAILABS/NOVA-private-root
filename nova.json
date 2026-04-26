@@ -191,6 +191,12 @@
       "dependencies": [],
       "description": "Medina doctrine canister"
     },
+    "friston_machina": {
+      "type": "motoko",
+      "main": "src/friston_machina/main.mo",
+      "dependencies": [],
+      "description": "FRISTON MACHINA — Proactive ICP Canister Archetype: active inference (free energy minimization), SPINOR cross-canister coupling, Kuramoto synchronization, collective active inference. Every sovereign organism canister is a FRISTON MACHINA. The organism as a whole is a network of FRISTON MACHINAs producing collective intelligence."
+    },
     "frontend": {
       "type": "assets",
       "source": ["src/frontend/dist"],
