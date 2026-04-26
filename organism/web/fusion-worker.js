@@ -105,7 +105,7 @@ var BRAIN_REGIONS = [
 ];
 
 var coherenceField  = 0.0;
-var fleetCoherences = {};  /* Map<id, coherence> from other workers */
+var fleetCoherences = Object.create(null);  /* null-prototype map: nodeId → coherence (safe from prototype pollution) */
 
 function tickBrain(kuramotoR) {
   var total = 0;
@@ -730,7 +730,11 @@ self.onmessage = function(e) {
     }
 
     case 'FLEET_COHERENCE': {
-      if (d.nodeId) fleetCoherences[d.nodeId] = d.coherence || 0;
+      /* Guard against prototype pollution: only accept safe string keys */
+      if (d.nodeId && typeof d.nodeId === 'string' && d.nodeId !== '__proto__' &&
+          d.nodeId !== 'constructor' && d.nodeId !== 'prototype') {
+        fleetCoherences[d.nodeId] = typeof d.coherence === 'number' ? d.coherence : 0;
+      }
       break;
     }
 
