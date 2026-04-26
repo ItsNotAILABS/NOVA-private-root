@@ -569,6 +569,7 @@ import UnifiedEmotionalField                         "./modules/UnifiedEmotional
 import ChimeraIntelligenceCore                       "./modules/ChimeraIntelligenceCore";
 import SimulatedWorld                                "./modules/SimulatedWorld";
 import MultiChainOracle                              "./modules/MultiChainOracle";
+import AutoGenerateCallsEngine                       "./modules/AutoGenerateCallsEngine";
 import SovereignPackagingOrganism                    "./modules/SovereignPackagingOrganism";
 import VZOOperatingSystem                            "./modules/VZOOperatingSystem";
 import PackagingResearchLab                          "./modules/PackagingResearchLab";
@@ -10932,6 +10933,9 @@ actor SwarmBrain {
       coherenceMintAccumulator + healthMultiplier * 0.01,
       0.0, 100.0
     );
+
+    // ─── AUTO-GENERATE CALLS ENGINE — 12 OPERARII × 3 ENGINES = 776+ CALLS ──
+    autoCallsEngineState := AutoGenerateCallsEngine.tick(autoCallsEngineState, heartbeatCount);
   };
 
   // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -29087,6 +29091,10 @@ actor SwarmBrain {
   stable var fibCache : [var Nat] = Array.init<Nat>(1000, 0);
   stable var fibCacheSize : Nat = 0;
 
+  // ═══ AUTO-GENERATE CALLS ENGINE — MOTOR AUTO-GENERATIONIS VOCATIONUM ═══
+  // 12 Web Worker Builder AIs × 3 Engines = 36 Engines = 776+ Auto-Generated Calls
+  stable var autoCallsEngineState : AutoGenerateCallsEngine.AutoCallsEngineState = AutoGenerateCallsEngine.initState();
+
   // Initialize Fibonacci cache
   func initFibonacci() {
     if (fibCacheSize > 0) { return };
@@ -32616,6 +32624,41 @@ actor SwarmBrain {
       useCount = uses.size();
     }
   };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  //  AUTO-GENERATE CALLS ENGINE — MOTOR AUTO-GENERATIONIS VOCATIONUM
+  //  12 Operarii Aedificatores × 3 Engines = 36 Engines = 776+ Calls
+  //  6 Public Query Endpoints
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Get auto-calls summary: workers, engines, total calls, coherence
+  public query func getAutoCallsSummary() : async AutoGenerateCallsEngine.AutoCallsSummary {
+    AutoGenerateCallsEngine.getSummary(autoCallsEngineState)
+  };
+
+  /// Get auto-calls routing table: routes by worker, PHI scores
+  public query func getAutoCallsRouting() : async AutoGenerateCallsEngine.RoutingSummary {
+    AutoGenerateCallsEngine.getRouting(autoCallsEngineState)
+  };
+
+  /// Get domain-level call details for all 12 workers
+  public query func getAutoCallsDomainDetails() : async [AutoGenerateCallsEngine.DomainCallDetail] {
+    AutoGenerateCallsEngine.getDomainDetails(autoCallsEngineState)
+  };
+
+  /// Get full auto-calls status: summary + routing + domains + workers
+  public query func getAutoCallsFullStatus() : async AutoGenerateCallsEngine.AutoCallsFullStatus {
+    AutoGenerateCallsEngine.getFullStatus(autoCallsEngineState)
+  };
+
+  /// Get individual worker statuses (12 workers with 3 engines each)
+  public query func getAutoCallsWorkerStatus() : async [AutoGenerateCallsEngine.WorkerDefinition] {
+    AutoGenerateCallsEngine.getWorkerStatus(autoCallsEngineState)
+  };
+
+  /// Get engine statuses by worker name
+  public query func getAutoCallsEngineStatus() : async [(Text, [AutoGenerateCallsEngine.EngineState])] {
+    AutoGenerateCallsEngine.getEngineStatus(autoCallsEngineState)
 
   // ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
   // CHIMERA DEFENSE SYSTEMS DIVISION PUBLIC API

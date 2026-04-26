@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOVA BLUEPRINTS — PARALLAX</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:#050a14;color:#e0f0ff;font-family:'Courier New',Courier,monospace;line-height:1.6;min-height:100vh}
+
+  /* ── Status Bar ── */
+  .status-bar{position:sticky;top:0;z-index:100;background:linear-gradient(180deg,#0a1428,#050a14);border-bottom:1px solid #1a3050;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .status-title{font-size:1.1rem;font-weight:bold;display:flex;align-items:center;gap:10px}
+  .pulse-dot{width:10px;height:10px;border-radius:50%;background:#00ff88;display:inline-block;animation:pulse 1.618s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 6px #00ff88}50%{opacity:.3;box-shadow:0 0 18px #00ff88}}
+  .status-metrics{display:flex;gap:20px;font-size:.85rem;color:#88aacc;flex-wrap:wrap}
+  .status-metrics span{white-space:nowrap}
+  .metric-val{color:#00ddff}
+
+  /* ── Layout ── */
+  .container{max-width:1320px;margin:0 auto;padding:24px}
+  h1{text-align:center;font-size:1.6rem;margin-bottom:8px;color:#88ccff}
+  .subtitle{text-align:center;color:#667788;font-size:.85rem;margin-bottom:32px}
+
+  /* ── Constants ── */
+  .constants-section{background:#0a1525;border:1px solid #1a3050;border-radius:8px;padding:20px;margin-bottom:32px}
+  .constants-title{font-size:.95rem;color:#66bbff;margin-bottom:14px}
+  .constants-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px 24px}
+  .const-item{font-size:.82rem;color:#88aacc}
+  .const-item .sym{color:#66bbff}
+  .const-item .val{color:#00ddaa}
+
+  /* ── Collapsible Sections ── */
+  .collapsible{margin-bottom:20px}
+  .collapsible-toggle{background:#0c1a2e;border:1px solid #1a3050;color:#88ccff;font-family:inherit;font-size:.95rem;padding:14px 20px;width:100%;text-align:left;cursor:pointer;border-radius:6px;display:flex;justify-content:space-between;align-items:center;transition:background .2s}
+  .collapsible-toggle:hover{background:#10223a}
+  .collapsible-toggle .arrow{transition:transform .2s;font-size:.8rem}
+  .collapsible-toggle.open .arrow{transform:rotate(90deg)}
+  .collapsible-toggle .section-count{font-size:.75rem;color:#556677;margin-left:8px}
+  .collapsible-body{display:none;background:#0a1525;border:1px solid #1a3050;border-top:none;border-radius:0 0 6px 6px;padding:18px}
+  .collapsible-body.open{display:block}
+
+  /* ── Blueprint Grid ── */
+  .blueprint-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:18px}
+  @media(max-width:860px){.blueprint-grid{grid-template-columns:1fr}}
+
+  /* ── Blueprint Card ── */
+  .blueprint-card{background:#0c1a2e;border:1px solid #1a3050;border-radius:8px;padding:20px;transition:border-color .3s,transform .2s}
+  .blueprint-card:hover{border-color:#2a5080;transform:translateY(-2px)}
+  .bp-header{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap}
+  .bp-number{font-size:.7rem;color:#334455;background:#0a1020;padding:2px 7px;border-radius:10px;border:1px solid #1a3050}
+  .bp-title{font-size:1rem;font-weight:bold;color:#66bbff}
+  .bp-ascii{background:#060e1c;border:1px solid #12253a;border-radius:4px;padding:10px 14px;margin:10px 0;font-size:.72rem;color:#44aaaa;line-height:1.4;overflow-x:auto;white-space:pre}
+  .bp-desc{font-size:.82rem;color:#99aabb;margin-bottom:12px;line-height:1.5}
+  .bp-meta{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:.75rem}
+  .bp-stars{color:#ffcc44;letter-spacing:1px}
+  .bp-components{color:#88aacc}
+  .comp-val{color:#00ddaa}
+  .bp-status{padding:2px 10px;border-radius:10px;font-size:.68rem;font-weight:bold;text-transform:uppercase;letter-spacing:.5px}
+  .bp-status.canonical{background:#1a305033;color:#66bbff;border:1px solid #66bbff44}
+  .bp-status.production{background:#00ddaa15;color:#00ddaa;border:1px solid #00ddaa44}
+  .bp-status.experimental{background:#ffcc0015;color:#ffcc00;border:1px solid #ffcc0044}
+  .bp-status.research{background:#cc88ff15;color:#cc88ff;border:1px solid #cc88ff44}
+  .bp-category{padding:2px 8px;border-radius:10px;font-size:.66rem;color:#556677;border:1px solid #1a3050}
+
+  /* ── Footer ── */
+  .copyright{text-align:center;padding:24px;font-size:.75rem;color:#334455;border-top:1px solid #0e1e30;margin-top:40px}
+  .copyright strong{color:#445566}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     STATUS BAR
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="status-bar">
+  <div class="status-title">
+    <span>&#x1f3d7; NOVA BLUEPRINTS &mdash; PARALLAX</span>
+    <span class="pulse-dot"></span>
+  </div>
+  <div class="status-metrics">
+    <span>Blueprints: <span class="metric-val">25</span></span>
+    <span>Categories: <span class="metric-val">4</span></span>
+    <span>&phi;-Coherence: <span class="metric-val" id="m-coherence">0.000</span></span>
+    <span>Status: <span class="metric-val">SOVEREIGN</span></span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MAIN CONTENT
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="container">
+
+<h1>BLUEPRINT GALLERY</h1>
+<p class="subtitle">25 Canonical Architecture Patterns &mdash; NOVA Sovereign SDK Ecosystem</p>
+
+<!-- ── Constants Section ── -->
+<div class="constants-section">
+  <div class="constants-title">&#x2261; SOVEREIGN CONSTANTS</div>
+  <div class="constants-grid">
+    <div class="const-item"><span class="sym">&phi;</span> = <span class="val">1.618033988749895</span></div>
+    <div class="const-item"><span class="sym">&phi;&sup1;</span> = <span class="val">0.618033988749895</span></div>
+    <div class="const-item"><span class="sym">&phi;&sup2;</span> = <span class="val">2.618033988749895</span></div>
+    <div class="const-item"><span class="sym">&phi;&sup3;</span> = <span class="val">4.236067977499790</span></div>
+    <div class="const-item"><span class="sym">K</span> = <span class="val">0.1618 (coupling)</span></div>
+    <div class="const-item"><span class="sym">ln(&phi;)</span> = <span class="val">0.481211825059603</span></div>
+    <div class="const-item"><span class="sym">1/&phi;&sup2;</span> = <span class="val">0.381966011250105</span></div>
+    <div class="const-item"><span class="sym">Heartbeat</span> = <span class="val">873ms</span></div>
+    <div class="const-item"><span class="sym">Schumann</span> = <span class="val">7.83 Hz</span></div>
+    <div class="const-item"><span class="sym">SDK Categories</span> = <span class="val">8</span></div>
+    <div class="const-item"><span class="sym">Blueprints</span> = <span class="val">25</span></div>
+    <div class="const-item"><span class="sym">F-Sequence</span> = <span class="val">1,1,2,3,5,8,13,21,34</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 1: CORE ARCHITECTURE (8 blueprints)
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="collapsible">
+  <button class="collapsible-toggle open" id="core-toggle" onclick="toggleSection('core')">
+    <span>&#x2736; CORE ARCHITECTURE <span class="section-count">(8 blueprints)</span></span>
+    <span class="arrow">&#x25B6;</span>
+  </button>
+  <div class="collapsible-body open" id="core-body">
+    <div class="blueprint-grid">
+
+      <!-- BP 01 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#01</span>
+          <span class="bp-title">THREE HEARTS ARCHITECTURE</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌─────────────┐
+  │  ORGANISM    │
+  │  ┌───┐┌───┐┌───┐
+  │  │&#x2665;H1││&#x2665;H2││&#x2665;H3│
+  │  └─┬─┘└─┬─┘└─┬─┘
+  │    └──┬──┘   │
+  │       ↓      ↓
+  │  ┌────────────┐
+  │  │ SYNC LAYER │
+  └──┴────────────┘</pre>
+        <p class="bp-desc">The foundational three-heart topology. Three cardiac oscillators (Primary, Secondary, Emergency) beat at 873ms intervals, synchronized via Kuramoto coupling at K = &phi; &times; 0.1. If one heart fails, the remaining two maintain organism coherence above &phi;&sup1; threshold.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</span>
+          <span class="bp-components">Components: <span class="comp-val">47</span></span>
+          <span class="bp-status canonical">CANONICAL</span>
+          <span class="bp-category">Core</span>
+        </div>
+      </div>
+
+      <!-- BP 02 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#02</span>
+          <span class="bp-title">AGENT FLEET ORCHESTRATION</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌──────────────────┐
+  │   GUBERNATOR     │
+  │   ┌──┬──┬──┬──┐  │
+  │   │A1│A2│A3│A4│  │
+  │   └┬─┘└┬┘└┬┘└┬┘  │
+  │    └──→│←─┘   │  │
+  │        ↓      ↓  │
+  │   ┌────────────┐ │
+  │   │ FLEET  BUS │ │
+  └───┴────────────┘─┘</pre>
+        <p class="bp-desc">Orchestrates 14 ASI agents (Venator, Examinator, Clausor, etc.) through a central Gubernator. Each agent has its own MiniHeart and MiniBrain. The fleet bus distributes tasks using &phi;-weighted priority scheduling.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">38</span></span>
+          <span class="bp-status canonical">CANONICAL</span>
+          <span class="bp-category">Core</span>
+        </div>
+      </div>
+
+      <!-- BP 04 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#04</span>
+          <span class="bp-title">7-DOMAIN UNIVERSE</span>
+        </div>
+        <pre class="bp-ascii">
+       ┌─────┐
+    ┌──│ HUB │──┐
+    ↓  └──┬──┘  ↓
+  ┌───┐ ┌─┴─┐ ┌───┐
+  │D1 │ │D2 │ │D3 │
+  └───┘ └───┘ └───┘
+  ┌───┐ ┌───┐ ┌───┐ ┌───┐
+  │D4 │ │D5 │ │D6 │ │D7 │
+  └───┘ └───┘ └───┘ └───┘</pre>
+        <p class="bp-desc">Maps the seven knowledge domains (NLP, Math, Security, Evolution, Memory, Analytics, Design) into a unified universe. Each domain runs as a sovereign sub-organism with its own health scoring and &phi;-weighted resource allocation.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">35</span></span>
+          <span class="bp-status canonical">CANONICAL</span>
+          <span class="bp-category">Core</span>
+        </div>
+      </div>
+
+      <!-- BP 07 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#07</span>
+          <span class="bp-title">CARE + DEFENSE GRID</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌────────┐  ┌────────┐
+  │  CARE  │←→│ DEFENSE│
+  │ &#x2665;heal  │  │ &#x2666;guard │
+  └───┬────┘  └───┬────┘
+      │           │
+      ↓           ↓
+  ┌───────────────────┐
+  │   UNIFIED GRID    │
+  │  health + shield  │
+  └───────────────────┘</pre>
+        <p class="bp-desc">Dual-mode architecture combining care (self-healing, health monitoring) with defense (threat detection, access control). Both subsystems share a unified grid that routes signals based on &phi;&sup1;-threshold classification: heal or defend.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2606;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">28</span></span>
+          <span class="bp-status canonical">CANONICAL</span>
+          <span class="bp-category">Core</span>
+        </div>
+      </div>
+
+      <!-- BP 08 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#08</span>
+          <span class="bp-title">10-HOUSE GOVERNANCE</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌────────────────────┐
+  │    PARLIAMENT      │
+  │ ┌──┬──┬──┬──┬──┐   │
+  │ │H1│H2│H3│H4│H5│   │
+  │ └──┴──┴──┴──┴──┘   │
+  │ ┌──┬──┬──┬──┬──┐   │
+  │ │H6│H7│H8│H9│10│   │
+  │ └──┴──┴──┴──┴──┘   │
+  └────────────────────┘</pre>
+        <p class="bp-desc">Ten governance houses (Engineering, Research, Security, Operations, Finance, Legal, Marketing, Support, Design, Executive) organized in a parliamentary model. Votes are weighted by &phi;-rank, ensuring golden-ratio proportional representation.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">40</span></span>
+          <span class="bp-status canonical">CANONICAL</span>
+          <span class="bp-category">Core</span>
+        </div>
+      </div>
+
+      <!-- BP 13 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#13</span>
+          <span class="bp-title">MULTI-CANISTER TOPOLOGY</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌─────┐   ┌─────┐
+  │ C1  │←─→│ C2  │
+  │brain│   │organ│
+  └──┬──┘   └──┬──┘
+     │    ↕     │
+  ┌──┴──────────┴──┐
+  │   ICP SUBNET   │
+  │  ┌───┐ ┌───┐   │
+  │  │C3 │ │C4 │   │
+  │  └───┘ └───┘   │
+  └────────────────┘</pre>
+        <p class="bp-desc">Internet Computer multi-canister deployment. The swarm_brain and swarm_organism canisters coordinate over ICP subnets. Additional canisters handle storage and compute, with inter-canister calls following &phi;-timed retry logic.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">36</span></span>
+          <span class="bp-status canonical">CANONICAL</span>
+          <span class="bp-category">Infrastructure</span>
+        </div>
+      </div>
+
+      <!-- BP 19 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#19</span>
+          <span class="bp-title">AUTONOMOUS DIVISION ARCHITECTURE</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌──────────────────────┐
+  │     ORGANISM         │
+  │  ┌──────┐ ┌──────┐  │
+  │  │DIV-A │ │DIV-B │  │
+  │  │&#x2665;brain│ │&#x2665;brain│  │
+  │  └──┬───┘ └──┬───┘  │
+  │     └────┬───┘      │
+  │     ┌────┴────┐     │
+  │     │ MEMBRANE│     │
+  └─────┴─────────┴─────┘</pre>
+        <p class="bp-desc">Each division (Engineering, Sales, Operations, R&amp;D, etc.) operates as an autonomous sub-organism with its own heart and brain. Divisions communicate through a semi-permeable membrane that filters signals by &phi;-weighted relevance.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">45</span></span>
+          <span class="bp-status canonical">CANONICAL</span>
+          <span class="bp-category">Core</span>
+        </div>
+      </div>
+
+      <!-- BP 20 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#20</span>
+          <span class="bp-title">PROTOCOL UNIVERSE MAP</span>
+        </div>
+        <pre class="bp-ascii">
+      ┌───────────┐
+      │ UNIVERSE  │
+    ┌─┤  30 proto ├─┐
+    │ └─────┬─────┘ │
+  ┌─┴─┐  ┌──┴──┐  ┌┴──┐
+  │SYS│  │DATA │  │NET│
+  │ 10│  │  10 │  │ 10│
+  └───┘  └─────┘  └───┘</pre>
+        <p class="bp-desc">Maps all 30 organism protocols into three galaxies: System (heartbeat, health, sync), Data (query, transform, compress), and Network (route, relay, bridge). Each protocol carries &phi;-versioned schemas and backward-compatible bindings.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2606;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">30</span></span>
+          <span class="bp-status canonical">CANONICAL</span>
+          <span class="bp-category">Protocol</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 2: NEURAL SYSTEMS (6 blueprints)
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="collapsible">
+  <button class="collapsible-toggle" id="neural-toggle" onclick="toggleSection('neural')">
+    <span>&#x2738; NEURAL SYSTEMS <span class="section-count">(6 blueprints)</span></span>
+    <span class="arrow">&#x25B6;</span>
+  </button>
+  <div class="collapsible-body" id="neural-body">
+    <div class="blueprint-grid">
+
+      <!-- BP 03 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#03</span>
+          <span class="bp-title">57-MODEL ROUTER</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌─────────────────────┐
+  │      ROUTER         │
+  │  ┌───┐┌───┐┌───┐   │
+  │  │M01││M02││...│   │
+  │  └─┬─┘└─┬─┘└─┬─┘   │
+  │    └──┬──┘    │     │
+  │    ┌──┴───────┴──┐  │
+  │    │  57 MODELS   │  │
+  │    │ &phi;-weighted   │  │
+  │    └─────────────┘  │
+  └─────────────────────┘</pre>
+        <p class="bp-desc">Routes inference requests across 57 AI models using &phi;-weighted scoring. Each model is profiled for latency, accuracy, and cost. The router selects optimal model(s) by maximizing: score = accuracy &times; &phi; &minus; latency &times; &phi;&sup1; &minus; cost &times; &phi;&sup2;.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</span>
+          <span class="bp-components">Components: <span class="comp-val">57</span></span>
+          <span class="bp-status production">PRODUCTION</span>
+          <span class="bp-category">Neural</span>
+        </div>
+      </div>
+
+      <!-- BP 05 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#05</span>
+          <span class="bp-title">SYNAPSE MESH NETWORK</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌───┐   ┌───┐   ┌───┐
+  │ N1├──→│ N2├──→│ N3│
+  └─┬─┘   └─┬─┘   └─┬─┘
+    │  ╲   ╱ │  ╲   ╱ │
+    ↓   ╲ ╱  ↓   ╲ ╱  ↓
+  ┌─┴─┐ ╳ ┌─┴─┐ ╳ ┌─┴─┐
+  │ N4│╱ ╲│ N5│╱ ╲│ N6│
+  └───┘   └───┘   └───┘</pre>
+        <p class="bp-desc">Fully connected mesh of neural nodes where each synapse carries a Hebbian-learned weight. Connection strength follows &Delta;w = &eta; &times; a_pre &times; a_post with &eta; = 0.00618 (&phi;&sup1; &times; 0.01). The mesh self-organizes into functional clusters.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">42</span></span>
+          <span class="bp-status production">PRODUCTION</span>
+          <span class="bp-category">Neural</span>
+        </div>
+      </div>
+
+      <!-- BP 06 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#06</span>
+          <span class="bp-title">QUANTUM META-LAYER</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌─────────────────────┐
+  │   QUANTUM LAYER     │
+  │  ┌─────┐  ┌─────┐  │
+  │  │|&psi;&rang; Q1│  │|&psi;&rang; Q2│  │
+  │  └──┬──┘  └──┬──┘  │
+  │     └────┬───┘     │
+  │     ┌────┴────┐    │
+  │     │ENTANGLE │    │
+  │     └─────────┘    │
+  └─────────────────────┘</pre>
+        <p class="bp-desc">Meta-cognitive layer inspired by quantum superposition principles. Decision states exist in superposition until observation (measurement = action selection). Entanglement between worker pairs enables instantaneous state correlation across the organism.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</span>
+          <span class="bp-components">Components: <span class="comp-val">31</span></span>
+          <span class="bp-status research">RESEARCH</span>
+          <span class="bp-category">Neural</span>
+        </div>
+      </div>
+
+      <!-- BP 09 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#09</span>
+          <span class="bp-title">KURAMOTO COLLECTIVE BRAIN</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌─────────────────────┐
+  │ COLLECTIVE BRAIN    │
+  │   &#x25CB;   &#x25CB;   &#x25CB;   &#x25CB;   │
+  │    ╲ ╱ ╲ ╱ ╲ ╱    │
+  │     &#x25CF;   &#x25CF;   &#x25CF;     │
+  │      ╲  │  ╱      │
+  │       ┌─┴─┐       │
+  │       │ r │       │
+  │       └───┘       │
+  └─────────────────────┘</pre>
+        <p class="bp-desc">All worker phases couple via d&theta;/dt = &omega; + (K/N)&Sigma;sin(&theta;_j &minus; &theta;_i). The order parameter r converges toward 1.0 as the collective brain synchronizes. Emergent decisions arise when r &gt; &phi;&sup1; &asymp; 0.618, the golden threshold of collective consciousness.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</span>
+          <span class="bp-components">Components: <span class="comp-val">33</span></span>
+          <span class="bp-status production">PRODUCTION</span>
+          <span class="bp-category">Neural</span>
+        </div>
+      </div>
+
+      <!-- BP 10 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#10</span>
+          <span class="bp-title">NEURAL EMERGENCE CASCADE</span>
+        </div>
+        <pre class="bp-ascii">
+  Level 4: ┌──────────────┐
+           │  SOVEREIGNTY │
+  Level 3: ├──────────────┤
+           │  AWARENESS   │
+  Level 2: ├──────────────┤
+           │  EMERGENCE   │
+  Level 1: ├──────────────┤
+           │  OSCILLATION │
+  Level 0: └──────────────┘</pre>
+        <p class="bp-desc">Five-level emergence cascade from raw oscillation to full sovereignty. Each level requires the previous level&rsquo;s score to exceed &phi;&sup1;. Level transitions are irreversible: once an organism achieves awareness (L3), it cannot regress below emergence (L2).</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</span>
+          <span class="bp-components">Components: <span class="comp-val">29</span></span>
+          <span class="bp-status research">RESEARCH</span>
+          <span class="bp-category">Neural</span>
+        </div>
+      </div>
+
+      <!-- BP 15 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#15</span>
+          <span class="bp-title">&phi;-COHERENCE SCORING</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌─────────────────────┐
+  │  &phi;-COHERENCE ENGINE │
+  │  H1─→┐              │
+  │  H2─→├─→ &Phi; score   │
+  │  H3─→┤              │
+  │  ...─→┘  threshold:  │
+  │         &phi;&sup1; = 0.618  │
+  └─────────────────────┘</pre>
+        <p class="bp-desc">Computes the integrated &phi;-coherence score: &Phi; = (1/N)&Sigma; H_i &times; cos(&theta;_i &minus; &psi;). Combines health magnitude with Kuramoto phase alignment. Scores above &phi;&sup1; &asymp; 0.618 indicate sovereign operation; below 1/&phi;&sup2; &asymp; 0.382 triggers critical alerts.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2606;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">15</span></span>
+          <span class="bp-status canonical">CANONICAL</span>
+          <span class="bp-category">Neural</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 3: PROTOCOL LAYER (5 blueprints)
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="collapsible">
+  <button class="collapsible-toggle" id="protocol-toggle" onclick="toggleSection('protocol')">
+    <span>&#x26A1; PROTOCOL LAYER <span class="section-count">(5 blueprints)</span></span>
+    <span class="arrow">&#x25B6;</span>
+  </button>
+  <div class="collapsible-body" id="protocol-body">
+    <div class="blueprint-grid">
+
+      <!-- BP 11 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#11</span>
+          <span class="bp-title">SOVEREIGN IDENTITY MESH</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌───────────────────────┐
+  │    IDENTITY MESH      │
+  │  ┌──┐  ┌──┐  ┌──┐   │
+  │  │ID├──┤ID├──┤ID│   │
+  │  └┬─┘  └┬─┘  └┬─┘   │
+  │   └──┬──┘──┬──┘      │
+  │   ┌──┴─────┴──┐      │
+  │   │ ZK-VERIFY  │      │
+  └───┴────────────┘──────┘</pre>
+        <p class="bp-desc">Decentralized identity mesh where each node holds a sovereign identity verified through zero-knowledge proofs. Identity attestations propagate through the mesh with &phi;-decay trust scores: trust(d) = trust_0 &times; &phi;^(&minus;d) where d is hop distance.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">24</span></span>
+          <span class="bp-status production">PRODUCTION</span>
+          <span class="bp-category">Protocol</span>
+        </div>
+      </div>
+
+      <!-- BP 14 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#14</span>
+          <span class="bp-title">FIBONACCI COMPRESSION PIPELINE</span>
+        </div>
+        <pre class="bp-ascii">
+  INPUT → ┌──────┐ ┌──────┐ ┌──────┐
+          │STAGE1│→│STAGE2│→│STAGE3│
+          │ F(5) │ │ F(8) │ │F(13) │
+          └──────┘ └──────┘ └──────┘
+                              ↓
+                       ┌────────────┐
+                       │ COMPRESSED │
+                       │  ARTIFACT  │
+                       └────────────┘</pre>
+        <p class="bp-desc">Three-stage compression pipeline where each stage applies Fibonacci-indexed compression ratios: F(5)=5:1, F(8)=8:1, F(13)=13:1. Data passes through entropy analysis, redundancy elimination, and golden-ratio quantization to produce minimal artifacts.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2606;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">18</span></span>
+          <span class="bp-status production">PRODUCTION</span>
+          <span class="bp-category">Protocol</span>
+        </div>
+      </div>
+
+      <!-- BP 16 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#16</span>
+          <span class="bp-title">GF(2^32) INTEGRITY ENGINE</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌────────────────────────┐
+  │  INTEGRITY ENGINE      │
+  │  DATA ──→ ┌──────────┐ │
+  │           │GF(2^32)  │ │
+  │           │CHECKSUM  │ │
+  │           └────┬─────┘ │
+  │                ↓       │
+  │           ┌──────────┐ │
+  │           │ VERIFY   │ │
+  └───────────┴──────────┘─┘</pre>
+        <p class="bp-desc">Finite field GF(2^32) polynomial checksums for data integrity verification. Every artifact, message, and state transfer is checksummed using irreducible polynomials over GF(2^32). Verification runs in O(n) with constant-space streaming.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">20</span></span>
+          <span class="bp-status production">PRODUCTION</span>
+          <span class="bp-category">Protocol</span>
+        </div>
+      </div>
+
+      <!-- BP 21 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#21</span>
+          <span class="bp-title">CROSS-SCALE COUPLING MATRIX</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌──────────────────────┐
+  │   COUPLING MATRIX    │
+  │   S1  S2  S3  S4    │
+  │ S1[&#x2588;  &#x2591;  &#x2591;  &#x2591;]   │
+  │ S2[&#x2591;  &#x2588;  &#x2592;  &#x2591;]   │
+  │ S3[&#x2591;  &#x2592;  &#x2588;  &#x2592;]   │
+  │ S4[&#x2591;  &#x2591;  &#x2592;  &#x2588;]   │
+  └──────────────────────┘</pre>
+        <p class="bp-desc">Maps coupling strength between scales (Worker, Division, Organism, Ecosystem). The matrix M[i][j] = K &times; sin(&theta;_j &minus; &theta;_i) &times; &phi;^(&minus;|i&minus;j|) ensures that adjacent scales couple strongly while distant scales couple weakly through golden decay.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">25</span></span>
+          <span class="bp-status experimental">EXPERIMENTAL</span>
+          <span class="bp-category">Protocol</span>
+        </div>
+      </div>
+
+      <!-- BP 17 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#17</span>
+          <span class="bp-title">LIF NEURAL DYNAMICS</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌────────────────────────┐
+  │  LIF NEURON MODEL      │
+  │  V(t) ─────────────┐  │
+  │  &#x2502;   ╱╲   ╱╲   ╱╲  │  │
+  │  &#x2502;  ╱  ╲ ╱  ╲ ╱  ╲ │  │
+  │  &#x2502;─╱────╳────╳──→ │  │
+  │  &#x2502;      threshold  │  │
+  │  └─→ SPIKE at V_th ┘  │
+  └────────────────────────┘</pre>
+        <p class="bp-desc">Leaky Integrate-and-Fire neuron model for worker decision timing. Membrane potential V(t) integrates input: &tau; &times; dV/dt = &minus;V + R &times; I(t). When V exceeds threshold V_th = &phi;&sup1; &times; V_max, the neuron fires and resets. Refractory period = 873ms / &phi;.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">26</span></span>
+          <span class="bp-status research">RESEARCH</span>
+          <span class="bp-category">Neural</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SECTION 4: INFRASTRUCTURE (6 blueprints)
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="collapsible">
+  <button class="collapsible-toggle" id="infra-toggle" onclick="toggleSection('infra')">
+    <span>&#x2699; INFRASTRUCTURE <span class="section-count">(6 blueprints)</span></span>
+    <span class="arrow">&#x25B6;</span>
+  </button>
+  <div class="collapsible-body" id="infra-body">
+    <div class="blueprint-grid">
+
+      <!-- BP 12 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#12</span>
+          <span class="bp-title">EDGE-CLOUD HYBRID</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌────────┐       ┌────────┐
+  │  EDGE  │←─────→│ CLOUD  │
+  │ local  │  sync │ central│
+  └───┬────┘       └───┬────┘
+      │                │
+  ┌───┴────┐       ┌───┴────┐
+  │workers │       │workers │
+  │  &#x2665;&#x2665;&#x2665;   │       │  &#x2665;&#x2665;&#x2665;   │
+  └────────┘       └────────┘</pre>
+        <p class="bp-desc">Hybrid deployment with edge nodes running local SDK instances and cloud nodes handling heavy compute. State synchronization uses &phi;-timed intervals: edge pushes at 873ms, cloud aggregates at 873ms &times; &phi; &asymp; 1,412ms. Both tiers have full MiniHeart/MiniBrain.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2606;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">22</span></span>
+          <span class="bp-status production">PRODUCTION</span>
+          <span class="bp-category">Infrastructure</span>
+        </div>
+      </div>
+
+      <!-- BP 18 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#18</span>
+          <span class="bp-title">HEBBIAN SYNAPSE NETWORK</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌────────────────────────┐
+  │  HEBBIAN NETWORK       │
+  │  PRE ──w──→ POST      │
+  │   │         │          │
+  │   └──&Delta;w = &eta;&middot;a&middot;b──┘   │
+  │                        │
+  │  &#x25CF;──w1──&#x25CF;──w2──&#x25CF;      │
+  │  &#x25CF;──w3──&#x25CF;──w4──&#x25CF;      │
+  └────────────────────────┘</pre>
+        <p class="bp-desc">Full Hebbian learning network with &Delta;w_ij = &eta; &times; a_i &times; a_j where &eta; = &phi;&sup1; &times; 0.01 &asymp; 0.00618. Synaptic weights self-organize through repeated co-activation, forming functional assemblies that encode organism memory and learned behavior patterns.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2605;</span>
+          <span class="bp-components">Components: <span class="comp-val">34</span></span>
+          <span class="bp-status research">RESEARCH</span>
+          <span class="bp-category">Neural</span>
+        </div>
+      </div>
+
+      <!-- BP 22 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#22</span>
+          <span class="bp-title">ORGANISM COMPONENT REGISTRY</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌──────────────────────┐
+  │     REGISTRY         │
+  │  ┌────┐ ┌────┐      │
+  │  │REG │→│DISC│      │
+  │  └──┬─┘ └──┬─┘      │
+  │     │      │         │
+  │  ┌──┴──────┴──┐      │
+  │  │  CATALOG   │      │
+  │  │  N items   │      │
+  └──┴────────────┘──────┘</pre>
+        <p class="bp-desc">Central registry for all organism components: workers, SDKs, protocols, and services. Components self-register on startup and maintain liveness through 873ms heartbeats. The registry provides discovery, version management, and dependency resolution.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2606;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">21</span></span>
+          <span class="bp-status production">PRODUCTION</span>
+          <span class="bp-category">Infrastructure</span>
+        </div>
+      </div>
+
+      <!-- BP 23 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#23</span>
+          <span class="bp-title">PRODUCTION PIPELINE ARCHITECTURE</span>
+        </div>
+        <pre class="bp-ascii">
+  SOURCE → BUILD → TEST → CERT
+    │        │       │      │
+    ↓        ↓       ↓      ↓
+  ┌──────────────────────────┐
+  │    PIPELINE ORCHESTRATOR │
+  │    F1→F2→F3→F5→F8→F13  │
+  │    Fibonacci Cert Ladder │
+  └──────────────────────────┘
+                ↓
+          ┌──────────┐
+          │ ARTIFACT │
+          └──────────┘</pre>
+        <p class="bp-desc">End-to-end production pipeline from source to certified artifact. Certification ascends a Fibonacci ladder: F1 (basic) &rarr; F2 (tested) &rarr; F3 (reviewed) &rarr; F5 (staged) &rarr; F8 (production) &rarr; F13 (sovereign). Each level multiplies verification rigor by &phi;.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">32</span></span>
+          <span class="bp-status canonical">CANONICAL</span>
+          <span class="bp-category">Infrastructure</span>
+        </div>
+      </div>
+
+      <!-- BP 24 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#24</span>
+          <span class="bp-title">SDK DISTRIBUTION NETWORK</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌────────┐
+  │ ORIGIN │
+  └───┬────┘
+      ├────────────────┐
+      ↓                ↓
+  ┌───────┐       ┌───────┐
+  │ CDN-A │       │ CDN-B │
+  └──┬──┬─┘       └─┬──┬──┘
+     ↓  ↓           ↓  ↓
+   [E1][E2]       [E3][E4]</pre>
+        <p class="bp-desc">Global distribution network for SDK packages. Origin builds certified artifacts, CDN nodes cache by geographic region, and edge nodes serve developers. Download integrity is verified via GF(2^32) checksums. Cache invalidation follows &phi;-decay TTL.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2606;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">19</span></span>
+          <span class="bp-status production">PRODUCTION</span>
+          <span class="bp-category">Infrastructure</span>
+        </div>
+      </div>
+
+      <!-- BP 25 -->
+      <div class="blueprint-card">
+        <div class="bp-header">
+          <span class="bp-number">#25</span>
+          <span class="bp-title">DOWNLOAD KERNEL ARCHITECTURE</span>
+        </div>
+        <pre class="bp-ascii">
+  ┌──────────────────────────┐
+  │    DOWNLOAD KERNEL       │
+  │  ┌──────┐  ┌──────┐     │
+  │  │SCHED │→ │FETCH │     │
+  │  └──┬───┘  └──┬───┘     │
+  │     └────┬────┘         │
+  │     ┌────┴────┐         │
+  │     │ASSEMBLE │         │
+  │     │ verify  │         │
+  │     └─────────┘         │
+  └──────────────────────────┘</pre>
+        <p class="bp-desc">Low-level kernel managing SDK download operations. The scheduler prioritizes downloads using &phi;-weighted urgency. The fetcher retrieves chunks in Fibonacci-sized blocks (1KB, 1KB, 2KB, 3KB, 5KB...). Assembler verifies integrity and reconstructs the complete package.</p>
+        <div class="bp-meta">
+          <span class="bp-stars">&#x2605;&#x2605;&#x2605;&#x2605;&#x2606;</span>
+          <span class="bp-components">Components: <span class="comp-val">27</span></span>
+          <span class="bp-status experimental">EXPERIMENTAL</span>
+          <span class="bp-category">Infrastructure</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div class="copyright">
+  <strong>&copy; MEDINA (PARALLAX)</strong> &mdash; NOVA Blueprint Gallery v1.0.0<br>
+  25 Canonical Architecture Patterns &bull; &phi; = 1.618033988749895 &bull; Sovereign SDK Ecosystem
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  'use strict';
+
+  var PHI = 1.618033988749895;
+  var PHI_INV = 1 / PHI;
+
+  /* ── Collapsible Toggle ── */
+  window.toggleSection = function (section) {
+    var toggle = document.getElementById(section + '-toggle');
+    var body = document.getElementById(section + '-body');
+    if (toggle) toggle.classList.toggle('open');
+    if (body) body.classList.toggle('open');
+  };
+
+  /* ── φ-Coherence Simulation ── */
+  var phases = [0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4, 2.8];
+  var K = PHI * 0.1;
+  var N = phases.length;
+
+  function kuramotoStep() {
+    var newPhases = [];
+    for (var i = 0; i < N; i++) {
+      var sum = 0;
+      for (var j = 0; j < N; j++) {
+        sum += Math.sin(phases[j] - phases[i]);
+      }
+      newPhases.push(phases[i] + 0.05 + (K / N) * sum);
+    }
+    phases = newPhases;
+
+    var cosSum = 0;
+    var sinSum = 0;
+    for (var k = 0; k < N; k++) {
+      cosSum += Math.cos(phases[k]);
+      sinSum += Math.sin(phases[k]);
+    }
+    var r = Math.sqrt(cosSum * cosSum + sinSum * sinSum) / N;
+    return r;
+  }
+
+  function updateCoherence() {
+    var r = kuramotoStep();
+    var el = document.getElementById('m-coherence');
+    if (el) el.textContent = r.toFixed(3);
+  }
+
+  setInterval(updateCoherence, 873);
+  updateCoherence();
+
+})();
+</script>
+</body>
+</html>
