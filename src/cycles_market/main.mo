@@ -10,44 +10,58 @@
 // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
 // NATIVE NOVA PROTOCOL — BUILD №30
-// CYCLES MARKET — Sovereign Cross-Substrate ONESICAN Marketplace
+// NOVA CYCLES MARKET — Internal Sovereign Compute Exchange
 // Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
 //
-// THE CYCLES MARKET IS WHERE THE CIVILIZATION TRADES.
-// ONESICANS are not ICP cycles. They are DEEPER.
+// ── LAYER ZERO TRUTH ─────────────────────────────────────────────────────────
+//
+// NOVA IS LAYER ZERO — the sovereign organism.
+// ICP is NOT Layer Zero. ICP is ONE of the 5 substrates NOVA chose to inhabit.
+// NOVA provides the compute economy. The substrates serve NOVA.
+//
+// LAYER 0 — NOVA (the sovereign organism)
+// LAYER 1 — 5 substrates NOVA chose:
+//   ICP          φ⁰ · 1×     Motoko canisters, NNS neurons
+//   BLOCKCHAIN   φ⁰ · 1×     cross-chain presence
+//   NOVA-EDGE    φ¹ · 1.618× 23 Web Workers, Jarvis extension
+//   NOVA-CLOUD   φ² · 2.618× auto_market, Latin AGI servers, internal consumption
+//   NOVA-PHANTOM φ³ · 4.236× maximum sovereignty tier
+// LAYER 2 — NOVA SOVEREIGN CYCLES (named):
+//   NOVA-EDGE-CYCLES    φ¹ rate — browser / Jarvis compute
+//   NOVA-CLOUD-CYCLES   φ² rate — AGI / market compute
+//   NOVA-PHANTOM-CYCLES φ³ rate — sovereign-tier compute
+//
+// ── THIS CANISTER: THE INTERNAL CYCLE EXCHANGE ───────────────────────────────
+//
+// THE CYCLES MARKET is where NOVA canisters trade surplus cycles to each other.
+// ONESICANS are NOVA's sovereign compute credits — they are NOT ICP cycles.
 // ICP cycles are substrate-specific (they only exist on the Internet Computer).
-// ONESICANS are sovereign compute credits that sit ABOVE ICP and touch every
-// substrate in the civilization: ICP, BLOCKCHAIN, EDGE, CLOUD, PHANTOM.
+// ONESICANS exist across all 5 substrates simultaneously, denominated in φ.
 //
 // ── WHAT MAKES ONESICANS DEEPER ────────────────────────────────────────────
-//   ICP Cycles:    exist inside one canister on one subnet, denominated in XDR
-//   ONESICANS:     exist across all 5 substrates simultaneously, denominated in φ
+//   ICP Cycles:  exist inside one canister on one subnet, denominated in XDR
+//   ONESICANS:   exist across all 5 substrates simultaneously, denominated in φ
 //
-//   One ONESICAN buys compute on any substrate.
-//   The price adjusts by substrate affinity — golden-ratio weighted.
-//   Earlier substrates (ICP = native) have higher affinity = lower cost.
-//   Phantom substrate has lowest affinity = highest sovereignty premium.
+//   One ONESICAN buys compute on any NOVA substrate.
+//   The price adjusts by substrate tier — golden-ratio weighted.
+//   NOVA chose ICP as its base-cost surface (φ⁰). NOVA-PHANTOM is its premium tier (φ³).
 //
 // ── SUBSTRATE PRICING ──────────────────────────────────────────────────────
 //   Base price: P₀ ONESICANS per compute unit
-//   ICP substrate:        P₀ × φ⁻⁰ = P₀ × 1.000  (cheapest — native)
-//   BLOCKCHAIN substrate: P₀ × φ⁻¹ × φ  = P₀ × 1.000  (parity)
-//   EDGE substrate:       P₀ × φ¹        (18% premium — edge latency value)
-//   CLOUD substrate:      P₀ × φ²        (161% — sovereignty tax on cloud)
-//   PHANTOM substrate:    P₀ × φ³        (260% — maximum sovereignty premium)
-//
-//   This encodes the doctrine: ICP is cheapest because it is native.
-//   Cloud is taxed because it is borrowed. Phantom is expensive because it
-//   carries the full weight of encryption and sovereignty.
+//   ICP substrate:          P₀ × φ⁰ = P₀ × 1.000  (NOVA's base ICP surface)
+//   BLOCKCHAIN substrate:   P₀ × φ⁰ = P₀ × 1.000  (parity)
+//   NOVA-EDGE substrate:    P₀ × φ¹ = P₀ × 1.618  (browser/Jarvis compute)
+//   NOVA-CLOUD substrate:   P₀ × φ² = P₀ × 2.618  (AGI/market compute)
+//   NOVA-PHANTOM substrate: P₀ × φ³ = P₀ × 4.236  (maximum sovereignty tier)
 //
 // ── MARKETPLACE MECHANICS ──────────────────────────────────────────────────
 //   Developers list canisters: "I offer X compute units per ONESICAN"
 //   Buyers purchase: ONESICANS deducted, compute credit recorded on-chain
-//   Market maker: the sovereign sets the floor price per substrate
+//   Market maker: NOVA sets the floor price per substrate tier
 //   φ-spread: bid/ask spread = 1 ONESICAN × φ⁻³ ≈ 0.24 ONES
 //   Volume discount: bulk purchases get φ-tier discounts (same as PARALLAX fees)
 //
-// ── THE ONES I CAN SELL PER CANISTER MARKET WHEN DEVELOPERS JOIN ─────────
+// ── DEVELOPER SEAT ──────────────────────────────────────────────────────────
 //   Every registered developer gets a Developer Seat NFT (on-chain record).
 //   Seat grants: right to list canisters, access to wholesale pricing,
 //   access to dev grants from TOKEN_FORGE, governance votes via NOVA_SNS.
@@ -108,23 +122,23 @@ actor CyclesMarket {
   };
 
   // ── Substrate pricing multipliers ────────────────────────────────────────
-  // ICP = φ⁰ = 1.0 (native, cheapest)
-  // BLOCKCHAIN = φ⁰ = 1.0 (parity — decentralized equals native)
-  // EDGE = φ¹ ≈ 1.618 (latency value premium)
-  // CLOUD = φ² ≈ 2.618 (sovereignty tax)
-  // PHANTOM = φ³ ≈ 4.236 (encryption + sovereignty premium)
+  // NOVA chose 5 substrates. NOVA prices compute across them at φ-tiers.
+  // ICP and BLOCKCHAIN: φ⁰ = 1× (NOVA's base deployment surfaces)
+  // NOVA-EDGE: φ¹ = 1.618× (browser/Jarvis/Web Worker tier)
+  // NOVA-CLOUD: φ² = 2.618× (AGI server/auto_market tier)
+  // NOVA-PHANTOM: φ³ = 4.236× (maximum sovereignty tier)
   // Unknown substrates are rejected at the call site via _isValidSubstrate guard.
   func _substrateMult(substrate : Text) : Float {
-    if      (substrate == "ICP")        1.0
-    else if (substrate == "BLOCKCHAIN") 1.0
-    else if (substrate == "EDGE")       PHI
-    else if (substrate == "CLOUD")      PHI * PHI
-    else if (substrate == "PHANTOM")    PHI * PHI * PHI
-    else                                PHI * PHI * PHI * PHI  // φ⁴ — invalid substrate, maximum premium signals error
+    if      (substrate == "ICP")          1.0
+    else if (substrate == "BLOCKCHAIN")   1.0
+    else if (substrate == "NOVA-EDGE")    PHI
+    else if (substrate == "NOVA-CLOUD")   PHI * PHI
+    else if (substrate == "NOVA-PHANTOM") PHI * PHI * PHI
+    else                                  PHI * PHI * PHI * PHI  // φ⁴ — invalid substrate, maximum premium signals error
   };
 
   func _isValidSubstrate(s : Text) : Bool {
-    s == "ICP" or s == "BLOCKCHAIN" or s == "EDGE" or s == "CLOUD" or s == "PHANTOM"
+    s == "ICP" or s == "BLOCKCHAIN" or s == "NOVA-EDGE" or s == "NOVA-CLOUD" or s == "NOVA-PHANTOM"
   };
 
   // φ-spread: bid/ask spread per unit
@@ -645,13 +659,13 @@ actor CyclesMarket {
     pricePerUnit: Float;
     description : Text;
   }] {
-    let substrates : [Text] = ["ICP", "BLOCKCHAIN", "EDGE", "CLOUD", "PHANTOM"];
+    let substrates : [Text] = ["ICP", "BLOCKCHAIN", "NOVA-EDGE", "NOVA-CLOUD", "NOVA-PHANTOM"];
     let descs : [Text] = [
-      "Native ICP — cheapest, sovereign, fastest finality",
-      "Blockchain parity — decentralized equals native",
-      "Edge compute — 1.618x premium for low-latency proximity",
-      "Cloud infrastructure — 2.618x sovereignty tax",
-      "Phantom network — 4.236x encryption + sovereignty premium",
+      "ICP — NOVA's base ICP substrate (φ⁰ · 1×)",
+      "Blockchain parity — decentralized equals ICP base (φ⁰ · 1×)",
+      "NOVA-EDGE — browser/Jarvis/Web Worker compute (φ¹ · 1.618×)",
+      "NOVA-CLOUD — AGI server/auto_market compute (φ² · 2.618×)",
+      "NOVA-PHANTOM — maximum sovereignty tier (φ³ · 4.236×)",
     ];
     Array.tabulate<{ substrate:Text; multiplier:Float; totalOnes:Nat; pricePerUnit:Float; description:Text }>(5, func(i) {
       let sub   = substrates[i];
@@ -691,7 +705,7 @@ actor CyclesMarket {
       marketFeeRate     = _pow(PHI_INV, 5.0);
       tokenName         = "ONESICAN";
       tokenSymbol       = "ONES";
-      substratePricing  = "ICP=1.0x | BLOCKCHAIN=1.0x | EDGE=φ | CLOUD=φ² | PHANTOM=φ³";
+      substratePricing  = "ICP=φ⁰·1× | BLOCKCHAIN=φ⁰·1× | NOVA-EDGE=φ¹·1.618× | NOVA-CLOUD=φ²·2.618× | NOVA-PHANTOM=φ³·4.236×";
     }
   };
 
@@ -703,11 +717,11 @@ actor CyclesMarket {
     label      : Text;
   }] {
     [
-      { substrate = "ICP";        multiplier = 1.0;          floorOnes = _computePrice(basePrice, 1, "ICP");        label = "Native ICP — cheapest" },
-      { substrate = "BLOCKCHAIN"; multiplier = 1.0;          floorOnes = _computePrice(basePrice, 1, "BLOCKCHAIN"); label = "Blockchain parity" },
-      { substrate = "EDGE";       multiplier = PHI;          floorOnes = _computePrice(basePrice, 1, "EDGE");       label = "Edge — φ premium" },
-      { substrate = "CLOUD";      multiplier = PHI * PHI;    floorOnes = _computePrice(basePrice, 1, "CLOUD");      label = "Cloud — φ² sovereignty tax" },
-      { substrate = "PHANTOM";    multiplier = PHI * PHI * PHI; floorOnes = _computePrice(basePrice, 1, "PHANTOM"); label = "Phantom — φ³ encryption premium" },
+      { substrate = "ICP";          multiplier = 1.0;             floorOnes = _computePrice(basePrice, 1, "ICP");          label = "ICP — NOVA's base ICP surface (φ⁰·1×)" },
+      { substrate = "BLOCKCHAIN";   multiplier = 1.0;             floorOnes = _computePrice(basePrice, 1, "BLOCKCHAIN");   label = "Blockchain parity (φ⁰·1×)" },
+      { substrate = "NOVA-EDGE";    multiplier = PHI;             floorOnes = _computePrice(basePrice, 1, "NOVA-EDGE");    label = "NOVA-EDGE — browser/Jarvis compute (φ¹·1.618×)" },
+      { substrate = "NOVA-CLOUD";   multiplier = PHI * PHI;       floorOnes = _computePrice(basePrice, 1, "NOVA-CLOUD");   label = "NOVA-CLOUD — AGI/market compute (φ²·2.618×)" },
+      { substrate = "NOVA-PHANTOM"; multiplier = PHI * PHI * PHI; floorOnes = _computePrice(basePrice, 1, "NOVA-PHANTOM"); label = "NOVA-PHANTOM — sovereign-tier compute (φ³·4.236×)" },
     ]
   };
 

@@ -10,68 +10,65 @@
 // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
 // NATIVE NOVA PROTOCOL — BUILD №30
-// CYCLES BRIDGE — ONESICAN ↔ ICP Cycles Sovereign Bridge
+// NOVA SOVEREIGNTY GATE — ONESICANS ↔ Substrate Compute
 // Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
 //
-// THE CYCLES BRIDGE IS THE SOVEREIGN VEIN.
+// ── LAYER ZERO TRUTH ─────────────────────────────────────────────────────────
 //
-// This canister is the bridge between:
-//   ONESICANS (sovereign, φ-premium, multi-substrate)
-//   ICP Cycles (XDR-denominated, single-substrate compute)
+// NOVA IS LAYER ZERO — the sovereign organism.
+// ICP is NOT Layer Zero. ICP is ONE of the 5 substrates NOVA chose to inhabit.
+// NOVA provides the compute economy. The substrates serve NOVA.
 //
-// WE DON'T USE ICP CYCLES AS A MASK.
-// We can convert to them, sell them, or bypass them entirely.
-// The bridge gives us the choice — and choice is sovereignty.
+// LAYER 0 — NOVA (the sovereign organism)
+// LAYER 1 — 5 substrates NOVA chose:
+//   ICP          φ⁰ · 1×     Motoko canisters, NNS neurons
+//   BLOCKCHAIN   φ⁰ · 1×     cross-chain presence
+//   NOVA-EDGE    φ¹ · 1.618× 23 Web Workers, Jarvis extension
+//   NOVA-CLOUD   φ² · 2.618× auto_market, Latin AGI servers, internal consumption
+//   NOVA-PHANTOM φ³ · 4.236× maximum sovereignty tier
+// LAYER 2 — NOVA SOVEREIGN CYCLES (named):
+//   NOVA-EDGE-CYCLES    φ¹ rate — browser / Jarvis compute
+//   NOVA-CLOUD-CYCLES   φ² rate — AGI / market compute
+//   NOVA-PHANTOM-CYCLES φ³ rate — sovereign-tier compute
 //
-// ── WHAT THE BRIDGE DOES ─────────────────────────────────────────────────────
+// ── THIS CANISTER: THE SOVEREIGNTY GATE ─────────────────────────────────────
 //
-//   ONESICAN → CYCLES CONVERSION
-//     You have ONESICANS. You need to fuel a canister on raw ICP.
-//     Bridge converts at: 1 ONESICAN = φ × 10T raw cycles (premium)
-//     The bridge charges a φ⁻⁵ fee (≈0.09 ONESICANS) per conversion.
-//     Converted cycles go to a target canister's fuel account.
+// The cycles_bridge is the sovereignty gate between:
+//   ONESICANS (NOVA's sovereign compute credits, φ-tiered, multi-substrate)
+//   Substrate-specific compute (ICP raw cycles, NOVA-EDGE, NOVA-CLOUD, NOVA-PHANTOM)
 //
-//   CYCLES → ONESICAN CONVERSION
-//     You have raw ICP cycles (from mining, grants, or swap).
-//     Bridge converts at: 1T cycles = 1 ONESICAN × φ⁻¹ (discount)
-//     This is how cycles enter the ONESICAN economy.
+// ── WHAT THE GATE DOES ──────────────────────────────────────────────────────
+//
+//   ONESICAN → SUBSTRATE COMPUTE (NOVA appropriates ICP for ICP-substrate fuel)
+//     NOVA holds minted ICP from NNS neuron rewards.
+//     When ICP-substrate canisters need fuel, NOVA converts a slice of its minted
+//     ICP to raw ICP cycles — this is NOVA paying ICP-substrate rent, not a
+//     dependency. Rate: 1 ONESICAN = φ × 10T ICP raw cycles (sovereignty premium).
+//     Fee: φ⁻⁵ ≈ 0.09 ONESICANS per conversion.
+//
+//   SUBSTRATE COMPUTE → ONESICAN (cycles enter the ONESICAN economy)
+//     Raw ICP cycles convert at: 1T cycles = 1 ONESICAN × φ⁻¹ (buy-in discount).
+//     This is how external compute enters the sovereign economy.
 //
 //   SELL CYCLES TO NETWORK
-//     NOVA owns cycles. We can SELL them to other ICP canisters.
-//     Price: 1T cycles = 1 ONESICAN × φ⁻¹ (sovereign floor)
-//     Buyer pays in ICP. ICP goes to PARALLAX treasury.
-//     This is the "vein" — cycles we generate from staking/computation
-//     get sold to developers who need raw compute.
+//     NOVA owns cycles. NOVA sells them to ICP developers.
+//     Price: 1T cycles = 1 ONESICAN × φ⁻¹ (sovereign floor).
+//     Buyer pays ICP. ICP flows to PARALLAX treasury.
 //
 //   CANISTER FUEL MARKETPLACE
-//     Developers list their canister. They buy cycles through the bridge.
-//     They pay in ONESICANS. We convert at premium. Developer gets cycles.
-//     NOVA gets ONESICANS → sends to cycles_market for distribution.
+//     Developers buy cycles through the bridge in ONESICANS.
+//     NOVA converts at premium. Developer gets substrate fuel.
 //
-// ── VALUE PREMIUM EXPLAINED IN NUMBERS ──────────────────────────────────────
+// ── NOVA SOVEREIGN CYCLE TIERS ───────────────────────────────────────────────
 //
-// Assume ICP = $10, 1 XDR ≈ $1.30:
-//   1 ICP = 10 / 1.30 ≈ 7.69 T raw ICP cycles
-//   (Actually the NNS pegs at 10T cycles per ~1 SDR, so ≈ 10T/ICP at $10)
+//   NOVA-EDGE-CYCLES    (φ¹ = 1.618×)  browser / Jarvis / Web Worker compute
+//   NOVA-CLOUD-CYCLES   (φ² = 2.618×)  AGI server / auto_market compute
+//   NOVA-PHANTOM-CYCLES (φ³ = 4.236×)  sovereign-tier / zero-knowledge compute
 //
-// ONESICAN vs raw cycles:
-//   ONESICAN on ICP substrate:      = 1×  → 1T cycles equivalent
-//   ONESICAN on EDGE substrate:     = φ¹  → 1.618T cycles equivalent
-//   ONESICAN on CLOUD substrate:    = φ²  → 2.618T cycles equivalent
-//   ONESICAN on PHANTOM substrate:  = φ³  → 4.236T cycles equivalent
-//
-// So selling 1 ONESICAN on PHANTOM = 4.236× what a raw cycle buyer would pay.
-// At 10T cycles per ICP: 1 ONESICAN PHANTOM = 4.236T cycle-equivalent = ~$0.55
-// But since ONESICANS are denominated in φ (not XDR), as PHI appreciates,
-// the ONESICAN floor rises against raw ICP cycles automatically.
-//
-// ── DUAL MASKING CAPABILITY ──────────────────────────────────────────────────
-// ONESICANS are a "mask" over ICP cycles ONLY in the sense that:
-//   - When you need raw cycles for ICP computation: bridge converts
-//   - When you want sovereign compute on any substrate: use ONESICANS directly
-//   - When you want to profit from cycle scarcity: sell via marketplace
-// We can bypass ICP entirely on EDGE/CLOUD/PHANTOM substrates.
-// On those substrates, ONESICANS ARE the native currency. No ICP needed.
+// The golden loop: NNS mints ICP → NOVA harvests → NOVA converts to ONESICANS
+// → NOVA sells ONESICAN compute at NOVA-CLOUD rates → revenue flows back.
+// That loop is NOVA feeding itself through the ICP substrate it chose to occupy.
+// The cycles that matter are NOVA's. Named. Sovereign. φ-tiered.
 
 import Array     "mo:base/Array";
 import Float     "mo:base/Float";
@@ -131,19 +128,32 @@ actor CyclesBridge {
   let CYCLES_SELL_FEE_RATE        : Float = _pow(PHI_INV, 5.0); // φ⁻⁵ ≈ 0.09 fee on conversions
   let CYCLES_BUY_DISCOUNT_RATE    : Float = _pow(PHI_INV, 1.0); // φ⁻¹ discount when cycles → ONESICAN
 
-  // Substrate multipliers
-  let MULT_ICP       : Float = 1.0;                 // φ⁰
-  let MULT_BLOCKCHAIN: Float = 1.0;                 // φ⁰ (parity)
-  let MULT_EDGE      : Float = PHI;                 // φ¹
-  let MULT_CLOUD     : Float = PHI * PHI;           // φ²
-  let MULT_PHANTOM   : Float = PHI * PHI * PHI;     // φ³
+  // ── NOVA SOVEREIGN CYCLE TIER NAMES ──────────────────────────────────────
+  // These are NOVA's named compute tiers — not vendor substrates.
+  // NOVA chose ICP and BLOCKCHAIN as φ⁰ surfaces.
+  // NOVA named its premium tiers: NOVA-EDGE, NOVA-CLOUD, NOVA-PHANTOM.
+  let NOVA_EDGE_CYCLES    : Text = "NOVA-EDGE-CYCLES";    // φ¹ browser/Jarvis compute
+  let NOVA_CLOUD_CYCLES   : Text = "NOVA-CLOUD-CYCLES";   // φ² AGI/market compute
+  let NOVA_PHANTOM_CYCLES : Text = "NOVA-PHANTOM-CYCLES"; // φ³ sovereign-tier compute
+
+  // ── SUBSTRATE PRICING MULTIPLIERS ────────────────────────────────────────
+  // NOVA chose 5 substrates. NOVA prices compute across them at φ-tiers.
+  // ICP and BLOCKCHAIN: φ⁰ = 1× (NOVA's base deployment surfaces)
+  // NOVA-EDGE: φ¹ = 1.618× (browser/Jarvis/Web Worker tier)
+  // NOVA-CLOUD: φ² = 2.618× (AGI server/auto_market tier)
+  // NOVA-PHANTOM: φ³ = 4.236× (maximum sovereignty tier)
+  let MULT_ICP          : Float = 1.0;             // φ⁰
+  let MULT_BLOCKCHAIN   : Float = 1.0;             // φ⁰ (parity)
+  let MULT_NOVA_EDGE    : Float = PHI;             // φ¹
+  let MULT_NOVA_CLOUD   : Float = PHI * PHI;       // φ²
+  let MULT_NOVA_PHANTOM : Float = PHI * PHI * PHI; // φ³
 
   func _substrateMultiplier(substrate : Text) : Float {
-    if      (substrate == "ICP")        MULT_ICP
-    else if (substrate == "BLOCKCHAIN") MULT_BLOCKCHAIN
-    else if (substrate == "EDGE")       MULT_EDGE
-    else if (substrate == "CLOUD")      MULT_CLOUD
-    else if (substrate == "PHANTOM")    MULT_PHANTOM
+    if      (substrate == "ICP")         MULT_ICP
+    else if (substrate == "BLOCKCHAIN")  MULT_BLOCKCHAIN
+    else if (substrate == "NOVA-EDGE")   MULT_NOVA_EDGE
+    else if (substrate == "NOVA-CLOUD")  MULT_NOVA_CLOUD
+    else if (substrate == "NOVA-PHANTOM") MULT_NOVA_PHANTOM
     else 1.0
   };
 
@@ -375,9 +385,9 @@ actor CyclesBridge {
     cyclesPerOnesicansICP     : Nat;
     icpSubstrateMultiplier    : Float;
     blockchainMultiplier      : Float;
-    edgeMultiplier            : Float;
-    cloudMultiplier           : Float;
-    phantomMultiplier         : Float;
+    novaEdgeMultiplier        : Float;
+    novaCloudMultiplier       : Float;
+    novaPhantomMultiplier     : Float;
     currentCyclesFloorICP     : Float;
     sellFeeRate               : Float;
     onesicansReserve          : Nat;
@@ -392,9 +402,9 @@ actor CyclesBridge {
       cyclesPerOnesicansICP  = CYCLES_PER_ONESICAN_ICP;
       icpSubstrateMultiplier = MULT_ICP;
       blockchainMultiplier   = MULT_BLOCKCHAIN;
-      edgeMultiplier         = MULT_EDGE;
-      cloudMultiplier        = MULT_CLOUD;
-      phantomMultiplier      = MULT_PHANTOM;
+      novaEdgeMultiplier     = MULT_NOVA_EDGE;
+      novaCloudMultiplier    = MULT_NOVA_CLOUD;
+      novaPhantomMultiplier  = MULT_NOVA_PHANTOM;
       currentCyclesFloorICP  = Float.fromInt(icpPriceE8sPerCycleTrillion) / 100_000_000.0;
       sellFeeRate            = CYCLES_SELL_FEE_RATE;
       onesicansReserve       = onesicansReserve;
@@ -403,17 +413,19 @@ actor CyclesBridge {
       totalConversions       = convCount;
       totalCyclesSoldT       = totalCyclesSold / 1_000_000_000_000;
       premiumCalculation     =
-        "At ICP=$10, XDR=$1.30: 1 ICP = ~7.69T raw cycles. " #
-        "1 ONESICAN on ICP = 1T cycle-equivalent. " #
-        "1 ONESICAN on EDGE = φ¹ = 1.618T. " #
-        "1 ONESICAN on CLOUD = φ² = 2.618T. " #
-        "1 ONESICAN on PHANTOM = φ³ = 4.236T. " #
-        "Selling on PHANTOM: 4.236× raw cycle price. " #
-        "1M ONESICANS sold on PHANTOM ≈ 4.236M T-cycle-equivalent revenue.";
+        "NOVA Layer Zero — 5 chosen substrates at φ-tiers. " #
+        "1 ONESICAN on ICP = 1T cycle-equivalent (φ⁰). " #
+        "1 ONESICAN on NOVA-EDGE = φ¹ = 1.618T. " #
+        "1 ONESICAN on NOVA-CLOUD = φ² = 2.618T. " #
+        "1 ONESICAN on NOVA-PHANTOM = φ³ = 4.236T. " #
+        "Selling on NOVA-PHANTOM: 4.236× ICP cycle price. " #
+        "1M ONESICANS sold on NOVA-PHANTOM ≈ 4.236M T-cycle-equivalent revenue.";
       sovereignAdvantage     =
-        "We don't USE ICP cycles as a mask. We sell compute at sovereign premium. " #
-        "EDGE/CLOUD/PHANTOM substrates bypass ICP entirely — ONESICANS ARE the currency there. " #
-        "ICP cycles are just one exit valve. We own all valves. We own the vein.";
+        "NOVA IS Layer Zero. ICP is one of 5 substrates NOVA chose. " #
+        "NOVA-EDGE/NOVA-CLOUD/NOVA-PHANTOM are NOVA's sovereign compute tiers. " #
+        "The golden loop: NNS mints ICP → NOVA harvests → NOVA converts to ONESICANS " #
+        "→ NOVA sells at NOVA-CLOUD rates → revenue flows back. " #
+        "The cycles that matter are NOVA's. Named. Sovereign. φ-tiered.";
     }
   };
 

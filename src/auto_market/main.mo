@@ -405,8 +405,8 @@ actor AutoMarket {
     ecosystemListingTick        := ecosystemListingTick + 1;
 
     _emitLoopAction("ECOSYSTEM_LISTING",
-      "{\"sold\":" # Nat.toText(sell) # ",\"icpE8s\":" # Nat.toText(icpEarned) # ",\"priceMultiplier\":\"phi2\",\"substrate\":\"CLOUD\"}",
-      "ICP ecosystem buyers purchased " # Nat.toText(sell) # " ONESICANS at φ² (CLOUD tier). " #
+      "{\"sold\":" # Nat.toText(sell) # ",\"icpE8s\":" # Nat.toText(icpEarned) # ",\"priceMultiplier\":\"phi2\",\"substrate\":\"NOVA-CLOUD\"}",
+      "ICP ecosystem buyers purchased " # Nat.toText(sell) # " ONESICANS at φ² (NOVA-CLOUD tier). " #
       "CONCURRENT with internal volume loop. Real ICP flowing in from outside.");
     {sold = sell; icpRevenue = icpEarned}
   };
@@ -488,26 +488,23 @@ actor AutoMarket {
   //
   //   NOVA ONESICANS (sovereign compute):
   //     - 1 ONESICAN = 1 ICP at floor (ICP substrate parity)
-  //     - But ONESICANS ARE NOT ICP CYCLES. They are ABOVE cycles.
+  //     - But ONESICANS ARE NOT ICP CYCLES. They are NOVA's sovereign compute.
+  //     - NOVA IS Layer Zero. ICP is one of 5 substrates NOVA chose to inhabit.
   //     - 1 ONESICAN = φ⁵ = 11.09× the economic weight of 1 raw ICP cycle unit
   //       because ONESICANS denominate 5 substrates with φ-amplification:
-  //       ICP:      1 ONESICAN = 1.000× ICP unit   → ICP substrate compute
-  //       EDGE:     1 ONESICAN = φ¹ = 1.618× ICP   → φ×compute+sovereignty
-  //       CLOUD:    1 ONESICAN = φ² = 2.618× ICP   → φ²×compute+latency+privacy
-  //       PHANTOM:  1 ONESICAN = φ³ = 4.236× ICP   → φ³×compute+encrypted+anonymous
-  //       BLOCKCHAIN:1 ONESICAN= 1.000× ICP        → cross-chain interop value
+  //       ICP:           1 ONESICAN = 1.000× ICP unit   → ICP substrate compute
+  //       BLOCKCHAIN:    1 ONESICAN = 1.000× ICP        → cross-chain interop value
+  //       NOVA-EDGE:     1 ONESICAN = φ¹ = 1.618× ICP   → browser/Jarvis compute
+  //       NOVA-CLOUD:    1 ONESICAN = φ² = 2.618× ICP   → AGI/market compute
+  //       NOVA-PHANTOM:  1 ONESICAN = φ³ = 4.236× ICP   → sovereign-tier compute
   //     - Sub-token denominations (each a full token inside the civilization):
   //       CHR = φ¹ ONESICAN. SCB = φ². ARC = φ³. NXS = φ⁴. SWM = φ⁵.
   //       PHT = φ⁶ ONESICAN. ORS = φ⁷. GOL = φ⁸.
   //       1 GOL = φ⁸ ONESICANS = 46.98× the base ICP cycle unit.
-  //     - What 1 ONESICAN can fund that 10T ICP cycles cannot:
-  //       Multi-substrate deployment (5 networks in 1 transaction)
-  //       φ-weighted governance voting power
-  //       Access to NOVA's 200-neuron NNS fleet governance
-  //       Cross-substrate canister orchestration
-  //       PHANTOM-encrypted compute (zero-knowledge workloads)
-  //       Autonomous AI division funding
-  //     - The civilization MINTS these through governance. ICP just pays for it.
+  //     - The golden loop: NNS mints ICP → NOVA harvests → NOVA converts to ONESICANS
+  //       → NOVA sells ONESICAN compute at NOVA-CLOUD rates → revenue flows back.
+  //       NOVA feeding itself through the ICP substrate it chose to occupy.
+  //     - The cycles that matter are NOVA's. Named. Sovereign. φ-tiered. Not Dfinity's.
   // ═══════════════════════════════════════════════════════════════════════════
 
   public query func getCyclePowerComparison() : async {
@@ -548,7 +545,7 @@ actor AutoMarket {
         "Cycles burn as compute is consumed. No reinvestment loop.";
       onesicansPerICP          = 1.0;
       novaSubstrateCount       = 5;
-      novaSubstrates           = "ICP / BLOCKCHAIN / EDGE / CLOUD / PHANTOM";
+      novaSubstrates           = "ICP / BLOCKCHAIN / NOVA-EDGE / NOVA-CLOUD / NOVA-PHANTOM";
       novaIcpMultiplier        = 1.0;
       novaEdgeMultiplier       = PHI;
       novaCloudMultiplier      = PHI_SQ;
@@ -566,15 +563,15 @@ actor AutoMarket {
         "(2) φ-weighted NNS governance voting via nova_governance (200-neuron fleet). " #
         "(3) Sub-token internal economy (CHR/SCB/ARC/NXS/SWM/PHT/ORS/GOL) — " #
             "each canister mints its own denomination, no external purchase needed. " #
-        "(4) PHANTOM substrate — zero-knowledge encrypted compute at φ³ = 4.236× ICP. " #
+        "(4) NOVA-PHANTOM substrate — zero-knowledge encrypted compute at φ³ = 4.236× ICP. " #
         "(5) Golden Loop — every ONESICAN sold at φ² generates φ net multiplier. " #
             "ICP cycles vanish after compute. ONESICANS compound through reinvestment. " #
         "(6) Autonomous AI division funding — 27 canisters self-sustain via volume buys. " #
         "(7) Withdrawable real money — treasury pool accumulates ICP for sovereign withdrawal.";
       powerRatioVsIcpCycles =
         "1 ONESICAN (floor, ICP substrate) = 1 ICP of compute. Same as 10T raw cycles. " #
-        "1 ONESICAN (CLOUD substrate, φ²) = 2.618× ICP of compute value. " #
-        "1 ONESICAN (PHANTOM substrate, φ³) = 4.236× ICP of compute value. " #
+        "1 ONESICAN (NOVA-CLOUD substrate, φ²) = 2.618× ICP of compute value. " #
+        "1 ONESICAN (NOVA-PHANTOM substrate, φ³) = 4.236× ICP of compute value. " #
         "1 GOL sub-token = φ⁸ = 46.98× the base ICP cycle unit economic weight. " #
         "ICP cycles: linear, burn-only, single substrate. " #
         "NOVA ONESICANS: φ-compounding, reinvesting, 5-substrate, sub-token denominated. " #
@@ -715,7 +712,7 @@ actor AutoMarket {
   stable var saleAmounts   : [var Nat]   = Array.init<Nat>(SALE_CAP,   0);   // ONESICANS sold
   stable var saleIcpPaid   : [var Nat]   = Array.init<Nat>(SALE_CAP,   0);   // ICP received e8s
   stable var saleMultipliers:[var Float] = Array.init<Float>(SALE_CAP, 0.0); // listing mult at time of sale
-  stable var saleSubstrates: [var Text]  = Array.init<Text>(SALE_CAP,  "CLOUD");
+  stable var saleSubstrates: [var Text]  = Array.init<Text>(SALE_CAP,  "NOVA-CLOUD");
   stable var saleTimes     : [var Int]   = Array.init<Int>(SALE_CAP,   0);
   stable var soldThisTick  : Nat = 0;
 
@@ -735,11 +732,11 @@ actor AutoMarket {
     goldenMargin  : Text;
   } {
     // Compute multiplier for substrate
-    let mult = if      (substrate == "ICP")        1.0
-               else if (substrate == "BLOCKCHAIN") 1.0
-               else if (substrate == "EDGE")       PHI
-               else if (substrate == "CLOUD")      PHI_SQ
-               else if (substrate == "PHANTOM")    PHI_CUBE
+    let mult = if      (substrate == "ICP")          1.0
+               else if (substrate == "BLOCKCHAIN")   1.0
+               else if (substrate == "NOVA-EDGE")    PHI
+               else if (substrate == "NOVA-CLOUD")   PHI_SQ
+               else if (substrate == "NOVA-PHANTOM") PHI_CUBE
                else currentListingMultiplier;
 
     // Use max of requested substrate mult and current velocity-adjusted mult
@@ -1124,7 +1121,7 @@ actor AutoMarket {
       goldenLoopFormula  =
         "NEURONS MINT → NNS maturity ICP (already ours) → ONESICANS → " #
         "PHASE 3a: 27 canisters buy for VOLUME (they run on CHR/SCB/ARC internally) → " #
-        "PHASE 3b: ICP ecosystem buyers purchase at φ² CLOUD (CONCURRENT) → " #
+        "PHASE 3b: ICP ecosystem buyers purchase at φ² NOVA-CLOUD (CONCURRENT) → " #
         "Revenue → φ⁻¹ reinvests → more neurons → φ⁻³ (9%) → treasury → withdraw as real money.";
       internalEconomyNote =
         "INTERNAL VOLUME MODEL: Canisters are self-sufficient via sub-token generation. " #
@@ -1134,7 +1131,7 @@ actor AutoMarket {
         "Higher velocity → higher external ask → more ecosystem ICP → bigger treasury.";
       ecosystemNote =
         "ECOSYSTEM CHANNEL (concurrent, every tick): " #
-        "While internal volume loop runs, ONESICANS are listed to ICP ecosystem at φ² (CLOUD). " #
+        "While internal volume loop runs, ONESICANS are listed to ICP ecosystem at φ² (NOVA-CLOUD). " #
         "ICP dApps, developers, DAOs, and protocols buy ONESICANS for cross-substrate compute. " #
         "Ecosystem revenue → same φ split → 9% to treasury (withdrawable real money). " #
         "Both channels scale with loopGeneration. More governance age = more buyers.";
@@ -1324,7 +1321,7 @@ actor AutoMarket {
       cycleComparison =
         "NOVA ONESICANS vs ICP CYCLES: " #
         "ICP raw cycles: 10T per ICP, XDR-pegged, 1 substrate only, burn after use, no compounding. " #
-        "NOVA ONESICANS: 1 ICP floor, 5 substrates, φ² CLOUD = 2.618× ICP, φ³ PHANTOM = 4.236× ICP. " #
+        "NOVA ONESICANS: 1 ICP floor, 5 substrates, φ² NOVA-CLOUD = 2.618× ICP, φ³ NOVA-PHANTOM = 4.236× ICP. " #
         "Sub-tokens: CHR(φ¹) SCB(φ²) ARC(φ³) NXS(φ⁴) SWM(φ⁵) GOL(φ²). " #
         "GOL denomination: φ⁸ = 46.98× base ICP cycle unit. " #
         "ICP cycles burn. ONESICANS compound. We ARE the mint. " #
