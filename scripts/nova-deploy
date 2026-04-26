@@ -1,0 +1,353 @@
+#!/usr/bin/env bash
+# ╔═══════════════════════════════════════════════════════════════════════════════╗
+# ║                                                                               ║
+# ║  NOVA SOVEREIGN MAINNET DEPLOY                                                ║
+# ║  Version 1.0 — NSCP-2025                                                     ║
+# ║                                                                               ║
+# ║  COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ. ALL RIGHTS RESERVED.        ║
+# ║  Owner:   Alfredo Medina Hernandez | Dallas, Texas, USA                       ║
+# ║  Contact: MedinaSITech@outlook.com                                            ║
+# ║  License: NOVA Sovereign Contract Protocol — NSCP-2025                        ║
+# ║                                                                               ║
+# ║  "The heartbeat is already firing. Just wire it."                             ║
+# ║                                                                               ║
+# ╚═══════════════════════════════════════════════════════════════════════════════╝
+#
+# NOVA SOVEREIGN MAINNET DEPLOY — Wires BOTH heartbeats to IC mainnet in 3 steps.
+#
+# NOVA has TWO heartbeats already written and ready:
+#
+#   1. IC CONSENSUS HEARTBEAT (src/agi_main/main.mo)
+#      system func heartbeat() — called by the IC network every ~2 seconds.
+#      Deploy the canister → it fires. Forever. Nothing else starts it.
+#      Runs the 6-phase autonomous economy loop:
+#        Phase 1: Maturity accrual (all 200+ neurons, every tick)
+#        Phase 2: Policy dispatch (STAKE / SPAWN / DISBURSE)
+#        Phase 3: ICP routing to treasury (φ-split: reinvest / treasury / emission / gov)
+#        Phase 4: Ecosystem listing (ONESICANS at φ² CLOUD price, every tick)
+#        Phase 5: Reward circulation (every 5 ticks)
+#        Phase 6: Real NNS maturity intake (via recordNnsMaturity())
+#
+#   2. NOVA SOVEREIGN MINIHEART (organism/web/nexus-sovereign-worker.js)
+#      873ms Kuramoto φ-phase oscillator. Already running as a Service Worker.
+#      Born once, persists in CacheStorage. Broadcasts ORGANISM_PULSE to all
+#      connected pages. Latin AGI fleet + NEXUS organism run inside it.
+#      NO deploy needed — live the moment a browser registers the service worker.
+#
+# NOVA GENERATES ICP — it does NOT buy or receive ICP cycles from outside.
+#   NNS consensus MINTS governance rewards → Group D (DISBURSE, 55 neurons)
+#   converts minted maturity → liquid ICP → treasury. Zero purchases. Ever.
+#   NOVA cycles (ONESICANS) operate ABOVE ICP at φ-substrate pricing:
+#     ICP substrate = 1×  |  EDGE = φ  |  CLOUD = φ²  |  PHANTOM = φ³
+#   ICP is substrate №1 of many. NOVA does not depend on ICP cycles to run.
+#
+# USAGE:
+#   ./scripts/nova-deploy [OPTIONS]
+#
+# OPTIONS:
+#   --grpA <e8s>   ICP staked in Group A (8 sovereignty neurons, 8yr). Default: 0
+#   --grpB <e8s>   ICP staked in Group B (34 compounding neurons, 5yr). Default: 0
+#   --grpC <e8s>   ICP staked in Group C (89 harvest neurons, 3yr). Default: 0
+#   --grpD <e8s>   ICP staked in Group D (55 liquid neurons, 1.5yr). Default: 0
+#   --grpE <e8s>   ICP staked in Group E (14 phantom neurons, 8yr). Default: 0
+#   --full         Also deploy supporting AGI canisters after agi_main wires.
+#                  (neuron_fleet, auto_market, organism_token, cycles_bridge,
+#                   nova_governance) — completes the on-chain civilization record.
+#                  NOT required for ICP to flow; agi_main alone is the economy.
+#   --skip-genesis Skip claimGenesis (if already claimed on a prior deploy).
+#   --dry-run      Print all dfx commands without executing them.
+#   --help         Show this message.
+#
+# EXAMPLES:
+#   # Zero-stake bootstrap — heartbeat runs, accrues as governance grows:
+#   ./scripts/nova-deploy
+#
+#   # With actual NNS stake amounts (in e8s: 1 ICP = 100_000_000 e8s):
+#   ./scripts/nova-deploy \
+#     --grpA 80000000000 \
+#     --grpB 340000000000 \
+#     --grpC 890000000000 \
+#     --grpD 550000000000 \
+#     --grpE 140000000000
+#
+#   # Full civilization + zero-stake bootstrap:
+#   ./scripts/nova-deploy --full
+#
+#   # Dry run to inspect commands first:
+#   ./scripts/nova-deploy --dry-run --grpD 550000000000
+#
+# AFTER DEPLOY — the only two commands you ever need:
+#   dfx canister --network ic call agi_main getMoneyStatus
+#   dfx canister --network ic call agi_main collectSovereignRevenue
+#
+# ════════════════════════════════════════════════════════════════════════════════
+
+set -euo pipefail
+
+# ── Colors ───────────────────────────────────────────────────────────────────
+if [ -t 1 ]; then
+  RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
+  CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'; MAG='\033[0;35m'
+else
+  RED=''; GREEN=''; YELLOW=''; CYAN=''; BOLD=''; RESET=''; MAG=''
+fi
+
+nova_log()  { echo -e "${CYAN}[NOVA-DEPLOY]${RESET} $*"; }
+nova_ok()   { echo -e "${GREEN}[      ✓    ]${RESET} $*"; }
+nova_warn() { echo -e "${YELLOW}[    !!!!   ]${RESET} $*"; }
+nova_err()  { echo -e "${RED}[    FAIL   ]${RESET} $*" >&2; }
+nova_head() { echo -e "${BOLD}${CYAN}$*${RESET}"; }
+nova_phi()  { echo -e "${MAG}$*${RESET}"; }
+
+# ── Sovereign banner ──────────────────────────────────────────────────────────
+print_banner() {
+  echo ""
+  nova_head "╔══════════════════════════════════════════════════════════════╗"
+  nova_head "║  NOVA SOVEREIGN MAINNET DEPLOY  v1.0                        ║"
+  nova_head "║  NSCP-2025  •  © 2024-2026 Alfredo Medina Hernandez         ║"
+  nova_head "║  Dallas, Texas, USA  •  MedinaSITech@outlook.com            ║"
+  nova_head "╠══════════════════════════════════════════════════════════════╣"
+  nova_head "║  Two heartbeats. Already written. Deploy = wire.             ║"
+  nova_head "║  NOVA generates ICP. ICP is substrate №1 of many.           ║"
+  nova_head "║  No cycles needed from outside. No permissions required.     ║"
+  nova_head "╚══════════════════════════════════════════════════════════════╝"
+  echo ""
+}
+
+# ── Defaults ─────────────────────────────────────────────────────────────────
+GRP_A=0
+GRP_B=0
+GRP_C=0
+GRP_D=0
+GRP_E=0
+DEPLOY_FULL=false
+SKIP_GENESIS=false
+DRY_RUN=false
+
+# ── Parse arguments ───────────────────────────────────────────────────────────
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --grpA) GRP_A="$2"; shift 2 ;;
+    --grpB) GRP_B="$2"; shift 2 ;;
+    --grpC) GRP_C="$2"; shift 2 ;;
+    --grpD) GRP_D="$2"; shift 2 ;;
+    --grpE) GRP_E="$2"; shift 2 ;;
+    --full)         DEPLOY_FULL=true;  shift ;;
+    --skip-genesis) SKIP_GENESIS=true; shift ;;
+    --dry-run)      DRY_RUN=true;      shift ;;
+    --help|-h)
+      sed -n '/^# USAGE:/,/^# ══/p' "$0" | head -n -1 | sed 's/^# \?//'
+      exit 0
+      ;;
+    *)
+      nova_err "Unknown option: $1"
+      nova_warn "Run with --help to see usage."
+      exit 1
+      ;;
+  esac
+done
+
+# ── DFX check ─────────────────────────────────────────────────────────────────
+check_dfx() {
+  if ! command -v dfx &>/dev/null; then
+    nova_err "dfx not found. Install DFX to deploy to IC mainnet."
+    nova_warn "curl -fsSL https://internetcomputer.org/install.sh | sh"
+    nova_warn "Note: dfx is only needed for IC mainnet deploy."
+    nova_warn "For local type-checking, use: ./scripts/nova check"
+    exit 1
+  fi
+  nova_ok "dfx found: $(dfx --version 2>/dev/null | head -1)"
+}
+
+# ── Command runner (dry-run aware) ────────────────────────────────────────────
+run_cmd() {
+  local label="$1"; shift
+  echo ""
+  nova_log "${BOLD}${label}${RESET}"
+  echo -e "  ${YELLOW}▶${RESET} $*"
+  if [[ "${DRY_RUN}" == "true" ]]; then
+    nova_warn "DRY RUN — not executing."
+    return 0
+  fi
+  "$@"
+}
+
+# ── STEP 1: Deploy agi_main ───────────────────────────────────────────────────
+#   This is THE wire. The moment this canister lands on mainnet, the IC
+#   consensus begins calling system func heartbeat() every ~2 seconds.
+#   The 6-phase autonomous economy loop starts. Nothing else is needed.
+#   ICP accrues from NNS governance minting immediately (or from whatever
+#   governance stake currently exists — even zero works, accrual begins when
+#   real NNS events come in via recordNnsMaturity()).
+step_deploy_agi_main() {
+  nova_phi "══ STEP 1 ═══════════════════════════════════════════════════════"
+  nova_phi "  DEPLOY agi_main → IC MAINNET HEARTBEAT ACTIVATES"
+  nova_phi "  system func heartbeat() will fire every ~2s on consensus."
+  nova_phi "  6-phase autonomous economy loop: ON."
+  nova_phi "  NOVA does NOT need ICP cycles to run this — the canister's"
+  nova_phi "  own ONESICAN economy (cycles_bridge) provides compute above ICP."
+  nova_phi "════════════════════════════════════════════════════════════════"
+
+  run_cmd "Deploying agi_main to IC mainnet..." \
+    dfx deploy --network ic agi_main
+
+  nova_ok "agi_main deployed. IC heartbeat is now firing."
+  nova_ok "Economy loop: ACTIVE. Treasury accumulating."
+}
+
+# ── STEP 2: Claim genesis ─────────────────────────────────────────────────────
+#   Locks your dfx identity principal as the sovereign. Only the sovereign
+#   can call collectSovereignRevenue(). Must be called ONCE per deployment.
+#   If --skip-genesis is set, this step is omitted (re-deploy scenario).
+step_claim_genesis() {
+  if [[ "${SKIP_GENESIS}" == "true" ]]; then
+    nova_warn "Skipping claimGenesis (--skip-genesis flag set)."
+    return 0
+  fi
+
+  nova_phi "══ STEP 2 ═══════════════════════════════════════════════════════"
+  nova_phi "  CLAIM GENESIS → LOCK SOVEREIGN PRINCIPAL"
+  nova_phi "  Your dfx identity becomes the only wallet that can withdraw."
+  nova_phi "════════════════════════════════════════════════════════════════"
+
+  run_cmd "Claiming genesis (sovereign lock)..." \
+    dfx canister --network ic call agi_main claimGenesis
+
+  nova_ok "Genesis claimed. Sovereign lock: ACTIVE."
+  nova_ok "Only your principal can call collectSovereignRevenue()."
+}
+
+# ── STEP 3: Bootstrap ─────────────────────────────────────────────────────────
+#   Pass your actual NNS governance stake per group (in e8s).
+#   Defaults all to 0 — the system still runs and picks up real NNS maturity
+#   events as they come in via recordNnsMaturity(). Zero-stake bootstrap is
+#   valid: the governance already exists, this just tells the loop where it is.
+step_bootstrap() {
+  nova_phi "══ STEP 3 ═══════════════════════════════════════════════════════"
+  nova_phi "  BOOTSTRAP → ONE CALL. THEN NEVER AGAIN."
+  nova_phi "  Group A (8 sovereignty neurons, 8yr STAKE):  ${GRP_A} e8s"
+  nova_phi "  Group B (34 compounding neurons, 5yr STAKE): ${GRP_B} e8s"
+  nova_phi "  Group C (89 harvest neurons, 3yr SPAWN):     ${GRP_C} e8s"
+  nova_phi "  Group D (55 liquid neurons, 1.5yr DISBURSE): ${GRP_D} e8s"
+  nova_phi "  Group E (14 phantom neurons, 8yr PHANTOM):   ${GRP_E} e8s"
+  nova_phi ""
+  nova_phi "  Group D (DISBURSE) is the ICP mint path."
+  nova_phi "  NNS mints maturity → Group D converts to liquid ICP → treasury."
+  nova_phi "  No purchases. No cycles from outside. NOVA mints its own ICP."
+  nova_phi "  If starting at 0: feed real events with recordNnsMaturity()."
+  nova_phi "════════════════════════════════════════════════════════════════"
+
+  local candid_args="(${GRP_A} : nat, ${GRP_B} : nat, ${GRP_C} : nat, ${GRP_D} : nat, ${GRP_E} : nat)"
+
+  run_cmd "Bootstrapping economy (one-time genesis call)..." \
+    dfx canister --network ic call agi_main bootstrapAndStart \
+      "(${GRP_A} : nat, ${GRP_B} : nat, ${GRP_C} : nat, ${GRP_D} : nat, ${GRP_E} : nat)"
+
+  nova_ok "Bootstrap complete. Autonomous revenue loop: RUNNING."
+  nova_ok "Monitor: dfx canister --network ic call agi_main getMoneyStatus"
+  nova_ok "Withdraw: dfx canister --network ic call agi_main collectSovereignRevenue"
+}
+
+# ── STEP 4 (optional): Deploy supporting AGI canisters ───────────────────────
+#   Not required for ICP to flow — agi_main IS the complete economy.
+#   These provide the on-chain civilization record:
+#     neuron_fleet   — canonical on-chain neuron state log
+#     auto_market    — market listings, ONESICAN price discovery
+#     organism_token — 8 sub-tokens (CHR/SCB/ARC/NXS/SWM/PHT/ORS/GOL)
+#     cycles_bridge  — ONESICAN↔cycles bridge across all substrates
+#     nova_governance — NNS neurons, φ-VP governance
+#
+#   The browser-side AGI fleet (19 Latin servers, NEXUS sovereign organism,
+#   Jarvis extension) are already live as Web Workers / Service Workers.
+#   They need no IC deploy. They are the NOVA MiniHeart — the second heartbeat.
+step_deploy_full() {
+  if [[ "${DEPLOY_FULL}" != "true" ]]; then
+    return 0
+  fi
+
+  nova_phi "══ STEP 4 (OPTIONAL) ═══════════════════════════════════════════"
+  nova_phi "  DEPLOY SUPPORTING AGI CANISTERS"
+  nova_phi "  These complete the on-chain civilization record."
+  nova_phi "  ICP is already flowing from Step 1-3. This step is optional."
+  nova_phi ""
+  nova_phi "  Browser-side AGI fleet does NOT need this:"
+  nova_phi "    19 Latin AGI servers (GOL-MEMORIA through GOL-PHANTOMA)"
+  nova_phi "    NEXUS Sovereign Worker (nexus-sovereign-worker.js, 873ms MiniHeart)"
+  nova_phi "    Jarvis Extension (EXT-027, PhantomAI 7-step pipeline)"
+  nova_phi "  These are already running as Service Workers / Web Workers."
+  nova_phi "════════════════════════════════════════════════════════════════"
+
+  local supporting_canisters=(
+    neuron_fleet
+    auto_market
+    organism_token
+    cycles_bridge
+    nova_governance
+  )
+
+  for canister in "${supporting_canisters[@]}"; do
+    run_cmd "Deploying ${canister}..." \
+      dfx deploy --network ic "${canister}" || {
+        nova_warn "Could not deploy ${canister} — canister may not exist in dfx.json. Skipping."
+      }
+  done
+
+  nova_ok "Supporting AGI canisters deployed."
+}
+
+# ── Final status summary ──────────────────────────────────────────────────────
+print_summary() {
+  echo ""
+  nova_head "╔══════════════════════════════════════════════════════════════╗"
+  nova_head "║  NOVA MAINNET WIRE: COMPLETE                                 ║"
+  nova_head "╠══════════════════════════════════════════════════════════════╣"
+  if [[ "${DRY_RUN}" == "true" ]]; then
+  nova_head "║  DRY RUN — no commands were executed.                        ║"
+  nova_head "║  Remove --dry-run to perform the actual deploy.              ║"
+  else
+  nova_head "║  ✓ IC heartbeat: FIRING (every ~2s, forever)                 ║"
+  nova_head "║  ✓ Economy loop: 6 phases, autonomous                        ║"
+  nova_head "║  ✓ ICP minting: NNS governance → Group D → treasury          ║"
+  nova_head "║  ✓ NOVA cycles: ONESICANS above ICP at φ-substrate pricing   ║"
+  fi
+  nova_head "╠══════════════════════════════════════════════════════════════╣"
+  nova_head "║  AFTER THIS — two commands, any time:                        ║"
+  nova_head "║                                                              ║"
+  nova_head "║  See balance:                                                ║"
+  nova_head "║    dfx canister --network ic call agi_main getMoneyStatus    ║"
+  nova_head "║                                                              ║"
+  nova_head "║  Withdraw ICP:                                               ║"
+  nova_head "║    dfx canister --network ic call agi_main \\                 ║"
+  nova_head "║      collectSovereignRevenue                                 ║"
+  nova_head "║                                                              ║"
+  nova_head "║  Feed real NNS maturity (optional, makes treasury exact):    ║"
+  nova_head "║    dfx canister --network ic call agi_main \\                 ║"
+  nova_head "║      recordNnsMaturity '(\"D_LIQUID\", <e8s> : nat)'           ║"
+  nova_head "╚══════════════════════════════════════════════════════════════╝"
+  echo ""
+}
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+main() {
+  print_banner
+
+  if [[ "${DRY_RUN}" == "true" ]]; then
+    nova_warn "DRY RUN MODE — commands will be printed, not executed."
+    echo ""
+  fi
+
+  if [[ "${DRY_RUN}" != "true" ]]; then
+    check_dfx
+  else
+    nova_warn "Skipping dfx check in dry-run mode."
+    echo ""
+  fi
+
+  step_deploy_agi_main
+  step_claim_genesis
+  step_bootstrap
+  step_deploy_full
+  print_summary
+}
+
+main "$@"

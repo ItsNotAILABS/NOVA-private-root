@@ -29,6 +29,150 @@
       "dependencies": ["swarm_brain"],
       "description": "Organism-level orchestration canister"
     },
+    "swarm_command": {
+      "type": "motoko",
+      "main": "src/swarm_command/main.mo",
+      "dependencies": [],
+      "description": "Mission command, HITL approval, waypoint management, MAVLink bridge"
+    },
+    "swarm_metals": {
+      "type": "motoko",
+      "main": "src/swarm_metals/main.mo",
+      "dependencies": [],
+      "description": "Sovereign metals pipeline — 12-metal resonance vector processor"
+    },
+    "swarm_audit": {
+      "type": "motoko",
+      "main": "src/swarm_audit/main.mo",
+      "dependencies": [],
+      "description": "Append-only audit log — immutable swarm event record"
+    },
+    "swarm_telemetry": {
+      "type": "motoko",
+      "main": "src/swarm_telemetry/main.mo",
+      "dependencies": [],
+      "description": "Drone telemetry store — episodic memory, formation patterns, recognition"
+    },
+    "swarm_quantum": {
+      "type": "motoko",
+      "main": "src/swarm_quantum/main.mo",
+      "dependencies": [],
+      "description": "Quantum cognitive state engine — Q-channels, convergence, coherence"
+    },
+    "swarm_oracle": {
+      "type": "motoko",
+      "main": "src/swarm_oracle/main.mo",
+      "dependencies": ["swarm_brain", "swarm_organism", "swarm_command", "swarm_metals", "swarm_audit", "swarm_telemetry", "swarm_quantum"],
+      "description": "Unified read-only information oracle — composite queries across all swarm dimensions"
+    },
+    "chrysalis": {
+      "type": "motoko",
+      "main": "src/chrysalis/main.mo",
+      "dependencies": [],
+      "description": "CHRYSALIS — Alpha Organism №1 — Golden Mathematics Core (FIBONACCI + SPIRAL sub-models)"
+    },
+    "scribe": {
+      "type": "motoko",
+      "main": "src/scribe/main.mo",
+      "dependencies": [],
+      "description": "SCRIBE — Alpha Organism №2 — Document Organism (CLASSIFIER + SYNTHESIZER sub-models)"
+    },
+    "architect": {
+      "type": "motoko",
+      "main": "src/architect/main.mo",
+      "dependencies": [],
+      "description": "ARCHITECT — Alpha Organism №3 — Meta-Builder (REPLICATOR sub-model)"
+    },
+    "nexus_propagator": {
+      "type": "motoko",
+      "main": "src/nexus_propagator/main.mo",
+      "dependencies": [],
+      "description": "NEXUS — Alpha Organism №4 — Substrate Walker (PROPAGATOR sub-model)"
+    },
+    "parallax": {
+      "type": "motoko",
+      "main": "src/parallax/main.mo",
+      "dependencies": [],
+      "description": "PARALLAX — Sovereign Encrypted Canister Wallet — ICP + ONESICAN ledger, vault, staking bridge, φ-tiered fees"
+    },
+    "nova_governance": {
+      "type": "motoko",
+      "main": "src/nova_governance/main.mo",
+      "dependencies": [],
+      "description": "NOVA GOVERNANCE — NNS-mirrored neuron staking, φ-scaled voting power, proposals, maturity rewards"
+    },
+    "nova_sns": {
+      "type": "motoko",
+      "main": "src/nova_sns/main.mo",
+      "dependencies": [],
+      "description": "NOVA SNS — Service Nervous System: per-canister governance, developer staking, revenue sharing, service proposals"
+    },
+    "token_forge": {
+      "type": "motoko",
+      "main": "src/token_forge/main.mo",
+      "dependencies": [],
+      "description": "TOKEN FORGE — Sovereign internal + external token generator: 21M ONESICAN cap, φ-partitioned buckets, Fibonacci emission, vesting, airdrop, dev grants, burn"
+    },
+    "cycles_market": {
+      "type": "motoko",
+      "main": "src/cycles_market/main.mo",
+      "dependencies": [],
+      "description": "NOVA CYCLES MARKET — Internal Sovereign Compute Exchange: where NOVA canisters trade surplus cycles to each other; NOVA Layer Zero pricing across 5 chosen substrates (ICP/BLOCKCHAIN φ⁰=1×, NOVA-EDGE φ¹=1.618×, NOVA-CLOUD φ²=2.618×, NOVA-PHANTOM φ³=4.236×); developer seats, compute credit, φ-spread bid/ask"
+    },
+    "token_intelligence": {
+      "type": "motoko",
+      "main": "src/token_intelligence/main.mo",
+      "dependencies": [],
+      "description": "TOKEN INTELLIGENCE — Autonomous AI token flow brain: SENSUM sensor layer, COGITO φ-reasoning, ACTIO decision engine, MEMORIA 128-epoch ledger, VIGILIA canister watchdog"
+    },
+    "airdrop_engine": {
+      "type": "motoko",
+      "main": "src/airdrop_engine/main.mo",
+      "dependencies": [],
+      "description": "AIRDROP ENGINE — Sovereign deep airdrop: multi-wave Fibonacci campaigns, 5-dimension behavioral qualification, anti-sybil (stake+cooldown+voucher), immutable claim proofs, tier escalation BRONZE→DIAMOND"
+    },
+    "sovereign_factory": {
+      "type": "motoko",
+      "main": "src/sovereign_factory/main.mo",
+      "dependencies": [],
+      "description": "SOVEREIGN FACTORY — Canister civilization registry: 6 corps, 21 divisions, lifecycle management (REGISTERED→PRODUCTION), φ revenue routing, division contracts with SLA + upgrade rights"
+    },
+    "auto_market": {
+      "type": "motoko",
+      "main": "src/auto_market/main.mo",
+      "dependencies": [],
+      "description": "AUTO MARKET — Perpetual Value Engine: autonomous Golden Loop (NNS maturity→ICP→ONESICANS at 1×→list at φ²→sell→φ⁻¹ reinvest to staking→more maturity→loop). Zero user input. Velocity-adjusted pricing, F(6)=8 min depth, F(11)=89 max depth, φ⁻¹/φ⁻²/φ⁻³/φ⁻⁴/φ⁻⁵ revenue split. Full sovereignty: civilization self-funds."
+    },
+    "neuron_fleet": {
+      "type": "motoko",
+      "main": "src/neuron_fleet/main.mo",
+      "dependencies": [],
+      "description": "NEURON FLEET — 200 NNS neuron fleet: 5 Fibonacci groups (A_SOVEREIGNTY×8/B_COMPOUNDING×34/C_HARVEST×89/D_LIQUID×55/E_PHANTOM×14), auto-stake-maturity, spawn-neuron policy, fleet-wide voting, 100 field nodes, φ-VP maximization, cycles premium explainer"
+    },
+    "ai_division": {
+      "type": "motoko",
+      "main": "src/ai_division/main.mo",
+      "dependencies": [],
+      "description": "AI DIVISION MANAGER — Autonomous production loop: neuron release scheduler, node health monitor, organism governance seats (CHRYSALIS/SCRIBE/ARCHITECT/NEXUS/SWARM_BRAIN), reward circulation engine, 18 intelligence assignments, Fibonacci-gated tick cycle"
+    },
+    "organism_token": {
+      "type": "motoko",
+      "main": "src/organism_token/main.mo",
+      "dependencies": [],
+      "description": "ORGANISM TOKEN — Sub-token economy: 8 tokens (CHR/SCB/ARC/NXS/SWM/PHT/ORS/GOL), φ-ladder rates (1 ONESICAN = φ¹ CHR = φ² SCB = φ³ ARC...), AI entity accounts for 25 Latin AGI + Alpha Organisms, governance staking bridge (VP = staked/1000 × φ^tier)"
+    },
+    "cycles_bridge": {
+      "type": "motoko",
+      "main": "src/cycles_bridge/main.mo",
+      "dependencies": [],
+      "description": "NOVA SOVEREIGNTY GATE — ONESICANS ↔ Substrate Compute: NOVA Layer Zero appropriates minted ICP to fuel ICP-substrate canisters (φ⁰=1×), with named NOVA-EDGE-CYCLES (φ¹), NOVA-CLOUD-CYCLES (φ²), NOVA-PHANTOM-CYCLES (φ³) tiers; sell-cycles-to-network marketplace; φ⁻⁵ conversion fee; ONESICANS bypass ICP on NOVA-EDGE/NOVA-CLOUD/NOVA-PHANTOM"
+    },
+    "agi_main": {
+      "type": "motoko",
+      "main": "src/agi_main/main.mo",
+      "dependencies": [],
+      "description": "AGI MAIN — Sovereign Mind Canister: ICP system heartbeat fires every ~2s automatically (zero calls needed). Full autonomous economy loop: NNS maturity accrual → neurons spawn neurons (C_HARVEST) → Group D disburses ICP → φ-split treasury (9%=withdrawable) → ecosystem ONESICAN listings at φ² → collectSovereignRevenue() = real money. One deploy. One bootstrap call. Forever."
+    },
     "medina": {
       "type": "motoko",
       "main": "icp/medina/Medina.mo",

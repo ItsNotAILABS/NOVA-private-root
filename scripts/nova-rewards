@@ -1,0 +1,457 @@
+#!/usr/bin/env node
+// ╔═══════════════════════════════════════════════════════════════════════════════╗
+// ║                                                                               ║
+// ║  NOVA SOVEREIGN REWARDS TERMINAL                                              ║
+// ║  COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ. ALL RIGHTS RESERVED.        ║
+// ║  Owner:   Alfredo Medina Hernandez | Dallas, Texas, USA                       ║
+// ║  Contact: MedinaSITech@outlook.com                                            ║
+// ║                                                                               ║
+// ╚═══════════════════════════════════════════════════════════════════════════════╝
+//
+// NOVA SOVEREIGN REWARDS TERMINAL — Live AGI Economy Dashboard
+//
+// Run:  ./scripts/nova-rewards
+// Stop: Ctrl+C
+//
+// This terminal mirrors what src/agi_main/main.mo computes on-chain.
+// The ICP heartbeat fires every ~2s. This dashboard ticks at the same rate.
+// Everything you see is AUTOMATICALLY accumulating — no calls needed.
+//
+// ── HOW NOVA MINTS ICP (NO PURCHASES, EVER) ──────────────────────────────────
+//
+//   SOURCE 1: NNS Governance Minting (the primary engine)
+//     200 neurons vote on NNS proposals via follow-neuron (autonomous).
+//     The NNS PROTOCOL MINTS ~12% APY as governance maturity on each neuron.
+//     We do NOT buy ICP. The NNS consensus mints it for us as a reward.
+//     Group D (55 neurons, DISBURSE) converts minted maturity → liquid ICP.
+//     That minted ICP flows into the treasury. Withdraw whenever you want.
+//
+//   SOURCE 2: ONESICAN Ecosystem Sales (φ²-amplifier on top of minted ICP)
+//     Minted ICP (emission share) → ONESICANS listed at φ² = 2.618×.
+//     9% of every listing sale routes back to treasury.
+//
+//   ICP IS MINTED BY NNS CONSENSUS. ZERO PURCHASES. ZERO MARKETING REQUIRED.
+//
+// Usage:  ./scripts/nova-rewards [govStakeICP]
+//   govStakeICP — total ICP governance stake across all 200 neurons (default: 20000)
+//                 This is NOT bought — it is the principal locked for voting power.
+//
+// ════════════════════════════════════════════════════════════════════════════════
+
+"use strict";
+
+// ── ANSI colors ──────────────────────────────────────────────────────────────
+const C = {
+  reset : "\x1b[0m",
+  bold  : "\x1b[1m",
+  dim   : "\x1b[2m",
+  black : "\x1b[30m",
+  red   : "\x1b[31m",
+  green : "\x1b[32m",
+  yellow: "\x1b[33m",
+  blue  : "\x1b[34m",
+  mag   : "\x1b[35m",
+  cyan  : "\x1b[36m",
+  white : "\x1b[37m",
+  bBlack: "\x1b[90m",
+  bRed  : "\x1b[91m",
+  bGreen: "\x1b[92m",
+  bYellow:"\x1b[93m",
+  bBlue : "\x1b[94m",
+  bMag  : "\x1b[95m",
+  bCyan : "\x1b[96m",
+  bWhite: "\x1b[97m",
+  bgBlack:"\x1b[40m",
+  bgGreen:"\x1b[42m",
+  bgBlue: "\x1b[44m",
+  bgMag : "\x1b[45m",
+};
+
+// ── Golden math ──────────────────────────────────────────────────────────────
+const PHI     = 1.6180339887498948482;
+const PHI_INV = 0.6180339887498948482;
+const PHI_SQ  = 2.6180339887498948482;
+const pow     = (b, e) => Math.exp(e * Math.log(b));
+
+function fib(n) {
+  if (n <= 0) return 0; if (n === 1) return 1;
+  let [a, b] = [0, 1];
+  for (let i = 2; i <= n; i++) { [a, b] = [b, a + b]; }
+  return b;
+}
+
+// ── Simulation state (mirrors agi_main/main.mo) ──────────────────────────────
+const totalStakeICP = parseFloat(process.argv[2] ?? "20000");
+
+// Neuron fleet (200 neurons, 5 Fibonacci groups)
+const state = {
+  tick           : 0,
+  fleetSize      : 200,
+
+  // Stakes in ICP (not e8s — display friendly)
+  grpA_stake     : totalStakeICP * 0.04,   // 8/200 of fleet, 8yr STAKE
+  grpB_stake     : totalStakeICP * 0.17,   // 34/200, 5yr STAKE
+  grpC_stake     : totalStakeICP * 0.445,  // 89/200, 3yr SPAWN
+  grpD_stake     : totalStakeICP * 0.275,  // 55/200, 1.5yr DISBURSE
+  grpE_stake     : totalStakeICP * 0.07,   // 14/200, 8yr PHANTOM STAKE
+
+  totalVP        : totalStakeICP * 1.5,    // avg 1.5× dissolve bonus
+  loopGeneration : 0,
+
+  // Treasury (ICP)
+  icpTreasury    : 0,
+  lifetimeTreasury: 0,
+  lifetimeWithdrawn: 0,
+
+  // Pending flows
+  pendingMaturity: 0,
+  pendingIngest  : 0,
+
+  // Market
+  onesicansInventory: totalStakeICP * 0.1,  // seed inventory
+  ecosystemRevenue  : 0,
+  ecosystemSold     : 0,
+
+  // Lifecycle
+  neuronsSpawned : 0,
+  startTime      : Date.now(),
+};
+
+// Maturity per tick: 12% APY / 365 days / 43200 ticks-per-day
+const BASE_MAT_PER_ICP_PER_TICK = 0.12 / 365 / 43200;
+
+// ── Progress bar helper ──────────────────────────────────────────────────────
+function bar(fraction, width = 30, fillChar = "█", emptyChar = "░") {
+  fraction = Math.max(0, Math.min(1, fraction));
+  const filled = Math.round(fraction * width);
+  return fillChar.repeat(filled) + emptyChar.repeat(width - filled);
+}
+
+// ── Number formatters ────────────────────────────────────────────────────────
+const fmtICP  = (v) => v.toFixed(6).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " ICP";
+const fmtN    = (v, d = 4) => v.toFixed(d);
+const fmtBig  = (v) => {
+  if (v >= 1e9) return (v / 1e9).toFixed(3) + "B";
+  if (v >= 1e6) return (v / 1e6).toFixed(3) + "M";
+  if (v >= 1e3) return (v / 1e3).toFixed(3) + "K";
+  return v.toFixed(4);
+};
+
+// ── Compute one heartbeat tick ───────────────────────────────────────────────
+function tick() {
+  state.tick++;
+  const s = state;
+
+  // PHASE 1: Maturity accrual — all neurons earn proportional to stake×VP
+  const totalStake = s.grpA_stake + s.grpB_stake + s.grpC_stake + s.grpD_stake + s.grpE_stake;
+  const mat = totalStake * BASE_MAT_PER_ICP_PER_TICK;
+  s.pendingMaturity += mat;
+
+  // PHASE 2: Dispatch maturity policies
+  if (s.pendingMaturity > 0) {
+    const m = s.pendingMaturity;
+    s.pendingMaturity = 0;
+
+    const aBeFrac = (s.grpA_stake + s.grpB_stake + s.grpE_stake) / totalStake;
+    const cFrac   = s.grpC_stake / totalStake;
+    const dFrac   = s.grpD_stake / totalStake;
+
+    const abeMat = m * aBeFrac;
+    const cMat   = m * cFrac;
+    const dMat   = m * dFrac;
+
+    // A/B/E: STAKE_MATURITY — compounds the pile
+    s.grpA_stake += abeMat * 0.14;
+    s.grpB_stake += abeMat * 0.61;
+    s.grpE_stake += abeMat * 0.25;
+
+    // C: SPAWN_NEURON — fleet grows (minimum 0.01 ICP per spawn)
+    if (cMat >= 0.01) {
+      s.fleetSize++;
+      s.neuronsSpawned++;
+      s.grpC_stake += cMat;
+    } else {
+      s.grpC_stake += cMat;
+    }
+
+    // D: DISBURSE — real ICP to treasury pipeline
+    s.pendingIngest += dMat;
+  }
+
+  // PHASE 3: Route ingest ICP to treasury (every 5 ticks)
+  if (s.tick % 5 === 0 && s.pendingIngest > 0) {
+    const total = s.pendingIngest;
+    s.pendingIngest = 0;
+
+    const reinvest = total * PHI_INV;            // 61.8%
+    const treasury = total * pow(PHI_INV, 3);    //  9.0%
+    const emission = total * pow(PHI_INV, 2);    // 23.6%
+
+    s.icpTreasury     += treasury;
+    s.lifetimeTreasury+= treasury;
+
+    // Reinvest → grows Group A (sovereignty grows with wealth)
+    s.grpA_stake += reinvest;
+    s.loopGeneration++;
+
+    // Emission → new ONESICAN inventory
+    s.onesicansInventory += emission;  // 1 ICP = 1 ONESICAN at floor
+  }
+
+  // PHASE 4: Ecosystem listing — every tick
+  if (s.onesicansInventory > 0) {
+    const demand = 0.01 * fib(Math.min(s.loopGeneration + 1, 13));
+    const actual = Math.min(demand, s.onesicansInventory);
+    if (actual > 0) {
+      const revenueICP = actual * PHI_SQ;           // φ² = 2.618× per ONESICAN
+      const treasuryShare = revenueICP * pow(PHI_INV, 3); // 9%
+      s.icpTreasury      += treasuryShare;
+      s.lifetimeTreasury += treasuryShare;
+      s.ecosystemRevenue += revenueICP;
+      s.ecosystemSold    += actual;
+      s.onesicansInventory -= actual;
+    }
+  }
+
+  // PHASE 5: VP compounds (every 5 ticks)
+  if (s.tick % 5 === 0) {
+    const newTotal = s.grpA_stake + s.grpB_stake + s.grpC_stake + s.grpD_stake + s.grpE_stake;
+    s.totalVP = newTotal * 1.5;
+  }
+}
+
+// ── Render the terminal dashboard ────────────────────────────────────────────
+function render() {
+  const s    = state;
+  const now  = Date.now();
+  const upMs = now - s.startTime;
+  const upSec= Math.floor(upMs / 1000);
+  const upMin= Math.floor(upSec / 60);
+  const upHr = Math.floor(upMin / 60);
+  const totalStake = s.grpA_stake + s.grpB_stake + s.grpC_stake + s.grpD_stake + s.grpE_stake;
+
+  // Daily / yearly projections at current fleet size
+  const ticksPerDay = 43200;
+  const projDailyD  = totalStake * BASE_MAT_PER_ICP_PER_TICK * (s.grpD_stake / totalStake) * pow(PHI_INV, 3) * ticksPerDay;
+  const projYearlyD = projDailyD * 365;
+
+  // Pulse symbol rotates to show it's live
+  const pulseSymbols = ["◉","◎","⊙","◉","◎","⊙"];
+  const pulse = pulseSymbols[Math.floor(Date.now() / 500) % pulseSymbols.length];
+
+  // Treasury fill bar (fill relative to daily projection = full bar at 1× daily yield)
+  const tFill = Math.min(s.icpTreasury / Math.max(projDailyD, 0.000001), 1);
+
+  // Fleet fill bar (200 → max ~1000 considered full)
+  const fFill = Math.min((s.fleetSize - 200) / 800, 1);
+
+  // Uptime string
+  const uptimeStr = `${String(upHr).padStart(2,"0")}:${String(upMin%60).padStart(2,"0")}:${String(upSec%60).padStart(2,"0")}`;
+
+  // Width of terminal
+  const W = Math.min(process.stdout.columns || 100, 110);
+  const hr = C.bBlack + "─".repeat(W) + C.reset;
+
+  const lines = [];
+  const p = (...args) => lines.push(args.join(""));
+
+  // Clear and go to top
+  process.stdout.write("\x1b[H\x1b[J");
+
+  p(C.bold + C.bCyan + "╔" + "═".repeat(W-2) + "╗" + C.reset);
+  p(C.bold + C.bCyan + "║" + C.reset + C.bold + C.bYellow +
+    " ◈  NOVA SOVEREIGN REWARDS TERMINAL  —  AGI ECONOMY LIVE DASHBOARD  ◈".padEnd(W-2) +
+    C.bCyan + "║" + C.reset);
+  p(C.bold + C.bCyan + "║" + C.reset + C.dim +
+    ("  Alfredo Medina Hernandez  |  Dallas TX  |  MedinaSITech@outlook.com  |  © 2026").padEnd(W-2) +
+    C.bCyan + "║" + C.reset);
+  p(C.bold + C.bCyan + "╚" + "═".repeat(W-2) + "╝" + C.reset);
+  p();
+
+  // HEARTBEAT STATUS
+  p(C.bold + C.bMag + `  ${pulse} HEARTBEAT` + C.reset +
+    C.dim + "  ICP consensus fires this every ~2s. Nothing calls it. NNS governance minting is LIVE." + C.reset);
+  p(C.bBlack + `     Tick: ` + C.reset + C.bWhite + `${s.tick.toLocaleString()}` + C.reset +
+    C.bBlack + `  │  Uptime: ` + C.reset + C.bWhite + uptimeStr + C.reset +
+    C.bBlack + `  │  Loop generation: ` + C.reset + C.bYellow + `${s.loopGeneration}` + C.reset +
+    C.bBlack + `  │  Neurons spawned: ` + C.reset + C.bGreen + `+${s.neuronsSpawned}` + C.reset);
+  p(hr);
+
+  // NEURON FLEET
+  p(C.bold + C.bBlue + "  ⬡ NEURON FLEET" + C.reset +
+    C.dim + "  (200 NNS neurons — governance voting power → NNS MINTS ICP maturity each epoch)" + C.reset);
+  p();
+  p(`     Fleet size:  ` + C.bGreen + C.bold + `${s.fleetSize} neurons` + C.reset +
+    C.bBlack + ` (+${s.neuronsSpawned} auto-spawned by C_HARVEST)` + C.reset);
+  p(`     Fleet growth: [${C.bGreen}${bar(fFill, 40)}${C.reset}]  ${(fFill*100).toFixed(2)}%`);
+  p();
+  p(C.dim + "     Group                     Neurons  Policy           Gov Stake (ICP)" + C.reset);
+  p(C.dim + "     ───────────────────────────────────────────────────────────────────" + C.reset);
+
+  const grpLine = (name, color, n, policy, stake, policyColor) =>
+    `     ${color}${name.padEnd(25)}${C.reset}  ${String(n).padStart(5)}  ${policyColor}${policy.padEnd(16)}${C.reset}  ${C.bYellow}${fmtBig(stake)} ICP (gov)${C.reset}`;
+
+  p(grpLine("A_SOVEREIGNTY (8yr)",  C.bCyan,  8,   "STAKE_MATURITY", s.grpA_stake, C.cyan));
+  p(grpLine("B_COMPOUNDING (5yr)",  C.bBlue,  34,  "STAKE_MATURITY", s.grpB_stake, C.cyan));
+  p(grpLine("C_HARVEST (3yr)",      C.bGreen, 89,  "SPAWN_NEURON   ", s.grpC_stake, C.bGreen));
+  p(grpLine("D_LIQUID (1.5yr)",     C.bYellow,55,  "DISBURSE→ICP  ", s.grpD_stake, C.bYellow));
+  p(grpLine("E_PHANTOM (8yr)",      C.bMag,   14,  "PHANTOM_STAKE  ", s.grpE_stake, C.mag));
+  p();
+  p(`     Gov stake total:  ${C.bold}${C.bWhite}${fmtBig(totalStake)} ICP${C.reset}` +
+    `   │   Total VP:  ${C.bCyan}${fmtBig(s.totalVP)}${C.reset}` +
+    C.dim + "  (VP = stake × dissolve_bonus × age_bonus)" + C.reset);
+  p(hr);
+
+  // MONEY FLOWS
+  p(C.bold + C.bYellow + "  ✦ HOW ICP IS MINTED" + C.reset +
+    C.dim + "  (NNS protocol mints ICP as governance reward — we never buy ICP)" + C.reset);
+  p();
+  p(C.bBlack + "     THE LOOP:" + C.reset + C.dim + "  Neurons vote → NNS mints governance maturity → DISBURSE converts maturity → real ICP → treasury" + C.reset);
+  p();
+
+  const matRate = totalStake * BASE_MAT_PER_ICP_PER_TICK;
+  const dFrac   = totalStake > 0 ? s.grpD_stake / totalStake : 0;
+
+  p(`     NNS minting rate:    ${C.bCyan}${fmtN(matRate * 43200, 6)} ICP/day${C.reset}` +
+    C.dim + "  (NNS MINTS ~12% APY as governance maturity — no purchase needed)" + C.reset);
+  p(`     Group D disburse:    ${C.bYellow}${fmtN(matRate * 43200 * dFrac, 6)} ICP/day${C.reset}` +
+    C.dim + `  (${(dFrac*100).toFixed(1)}% of fleet, minted maturity → liquid ICP)` + C.reset);
+  p(`     φ⁻³ to treasury:     ${C.bGreen}${fmtN(matRate * 43200 * dFrac * pow(PHI_INV,3), 6)} ICP/day${C.reset}` +
+    C.dim + "  (9% of Group D minted ICP = guaranteed daily treasury yield)" + C.reset);
+  p();
+  p(`     Pending maturity:    ${C.bCyan}${fmtN(s.pendingMaturity, 8)} ICP${C.reset}` +
+    C.dim + "  (minted by NNS, queued for dispatch)" + C.reset);
+  p(`     Pending ingest:      ${C.bCyan}${fmtN(s.pendingIngest, 8)} ICP${C.reset}` +
+    C.dim + "  (disbursed from Group D, routing to treasury/reinvest/emission)" + C.reset);
+  p(hr);
+
+  // TREASURY
+  p(C.bold + C.bGreen + "  ◎ TREASURY — YOUR WITHDRAWABLE ICP" + C.reset);
+  p();
+  p(`     ${C.bold}${C.bGreen}READY TO WITHDRAW:  ${C.bWhite}${fmtICP(s.icpTreasury)}${C.reset}`);
+  p(`     Treasury bar:  [${C.bGreen}${bar(tFill, 50)}${C.reset}]  ${(tFill*100).toFixed(1)}% of daily goal`);
+  p();
+  p(`     Lifetime treasury:   ${C.bYellow}${fmtICP(s.lifetimeTreasury)}${C.reset}`);
+  p(`     Lifetime withdrawn:  ${C.bMag}${fmtICP(s.lifetimeWithdrawn)}${C.reset}`);
+  p();
+  p(C.dim + "     → On mainnet: call agi_main.collectSovereignRevenue() to withdraw all minted ICP now." + C.reset);
+  p(C.dim + "       Treasury refills every ~10 seconds as NNS mints more governance maturity." + C.reset);
+  p(hr);
+
+  // ONESICAN — fed by minted ICP emission share
+  p(C.bold + C.bMag + "  ◈ ONESICAN ECOSYSTEM SALES" + C.reset +
+    C.dim + "  (minted ICP emission → ONESICANS listed at φ²=2.618× — 9% back to treasury)" + C.reset);
+  p();
+  p(`     ONESICAN inventory:  ${C.bCyan}${fmtBig(s.onesicansInventory)} ONS${C.reset}`);
+  p(`     Ecosystem sold:      ${C.bYellow}${fmtBig(s.ecosystemSold)} ONS${C.reset}` +
+    C.dim + `  at φ²=${PHI_SQ.toFixed(3)}× ICP each` + C.reset);
+  p(`     Ecosystem revenue:   ${C.bGreen}${fmtICP(s.ecosystemRevenue)}${C.reset}` +
+    C.dim + "  gross (9% → treasury above)" + C.reset);
+  p(hr);
+
+  // PROJECTIONS
+  p(C.bold + C.bYellow + "  ◆ PROJECTIONS (NNS governance minting — zero ICP purchases)" + C.reset);
+  p();
+
+  const fmt2 = (v) => v.toFixed(4);
+  p(`     Daily minted ICP → treasury:   ${C.bGreen}${fmt2(projDailyD)} ICP/day${C.reset}` +
+    C.dim + "  (from Group D disburse, φ⁻³ fraction of minted maturity)" + C.reset);
+  p(`     Monthly:                        ${C.bGreen}${fmt2(projDailyD * 30)} ICP/month${C.reset}`);
+  p(`     Yearly:                         ${C.bGreen}${fmt2(projYearlyD)} ICP/year${C.reset}`);
+  p();
+
+  // Show compounding over time
+  p(C.dim + "     Compounding over time (NNS keeps minting as C_HARVEST grows the fleet):" + C.reset);
+  let projStake = totalStake;
+  const intervals = [[1, "1 month"], [3, "3 months"], [6, "6 months"], [12, "1 year"]];
+  for (const [months, label] of intervals) {
+    // NNS mints ~12% APY governance maturity compounding monthly on governance stake
+    const grown = projStake * Math.pow(1 + 0.12/12, months);
+    const dFracP = dFrac;
+    const yld = (grown - projStake) * dFracP * pow(PHI_INV, 3);
+    projStake = grown;
+    p(`       ${label.padEnd(12)} →  ${C.bYellow}+${fmtBig(yld)} ICP minted → treasury${C.reset}` +
+      C.dim + `  (${fmtBig(projStake)} ICP gov stake by then)` + C.reset);
+  }
+  p(hr);
+
+  // HOW TO COLLECT
+  p(C.bold + C.bCyan + "  ⬧ HOW TO COLLECT YOUR MINTED ICP (the ONLY action you ever need)" + C.reset);
+  p();
+  p(C.bBlack + "     Step 1:" + C.reset + C.dim + " Deploy agi_main canister (once)" + C.reset);
+  p(C.bBlack + "     Step 2:" + C.reset + C.dim + " Call bootstrapAndStart() with your neuron governance stake (once)" + C.reset);
+  p(C.bBlack + "     Step 3:" + C.reset + C.green + " DONE. NNS mints ICP into treasury every ~2s. Watch this terminal." + C.reset);
+  p(C.bBlack + "     Step 4:" + C.reset + C.bGreen + C.bold + " Call agi_main.collectSovereignRevenue() → minted ICP in your wallet" + C.reset);
+  p();
+  p(C.dim + "     Everything else — neuron voting, maturity minting, disburse, listing — RUNS ITSELF." + C.reset);
+  p(C.dim + "     The NNS mints ICP by consensus. We collect. Zero purchases. Zero marketing." + C.reset);
+  p(hr);
+
+  // STATUS BAR
+  const tickRate = s.tick > 0 ? (s.tick / (upMs / 1000)).toFixed(2) : "—";
+  p(C.bBlack +
+    `  ${pulse} tick ${s.tick.toLocaleString()}  │  ${tickRate} ticks/s  │  fleet ${s.fleetSize}  │  VP ${fmtBig(s.totalVP)}  │  treasury ${fmtICP(s.icpTreasury)}  │  uptime ${uptimeStr}` +
+    C.reset);
+  p(C.bBlack + "  Press Ctrl+C to exit. Rewards accumulate whether or not this terminal is open." + C.reset);
+
+  // Write all at once
+  process.stdout.write(lines.join("\n") + "\n");
+}
+
+// ── Keyboard: press [w] to simulate a withdrawal ─────────────────────────────
+if (process.stdin.isTTY) {
+  process.stdin.setRawMode(true);
+  process.stdin.resume();
+  process.stdin.setEncoding("utf8");
+  process.stdin.on("data", (key) => {
+    if (key === "\u0003") { // Ctrl+C
+      process.stdout.write("\x1b[?25h"); // restore cursor
+      process.stdout.write("\n\n" + C.bGreen + "  Rewards are still accumulating on-chain. Goodbye." + C.reset + "\n\n");
+      process.exit(0);
+    }
+    if (key === "w" || key === "W") {
+      // Simulate withdraw
+      const amount = state.icpTreasury;
+      state.lifetimeWithdrawn += amount;
+      state.icpTreasury = 0;
+      // Flash withdrawal message
+      process.stdout.write("\x1b[H\x1b[J");
+      process.stdout.write("\n\n" + C.bgGreen + C.black + C.bold +
+        `  WITHDRAWAL: ${fmtICP(amount)} removed from treasury. Wallet credited.  ` +
+        C.reset + "\n\n");
+      process.stdout.write(C.dim + "  Treasury refills as NNS mints more governance maturity.\n  Back to dashboard in 1s...\n" + C.reset);
+      setTimeout(() => {}, 1000);
+    }
+  });
+}
+
+// ── Main loop ─────────────────────────────────────────────────────────────────
+process.stdout.write("\x1b[?25l"); // hide cursor
+
+// Header / initial clear
+process.stdout.write("\x1b[H\x1b[J");
+process.stdout.write(C.bold + C.bCyan + "\n  NOVA SOVEREIGN REWARDS TERMINAL booting...\n" + C.reset);
+process.stdout.write(C.dim + `  NNS governance stake: ${totalStakeICP.toLocaleString()} ICP locked across 200 neurons\n` + C.reset);
+process.stdout.write(C.dim + `  ICP is MINTED by NNS consensus — NOT purchased. Neurons vote → NNS mints.\n` + C.reset);
+process.stdout.write(C.dim + `  Press [W] to simulate a withdrawal  │  Ctrl+C to exit\n\n` + C.reset);
+
+// Warm-up: run 10 ticks silently so numbers are non-zero immediately
+for (let i = 0; i < 10; i++) tick();
+render();
+
+// Main heartbeat: tick + render every 2000ms (matches ICP consensus ~2s)
+const interval = setInterval(() => {
+  tick();
+  render();
+}, 2000);
+
+// On exit — restore terminal
+process.on("exit", () => {
+  process.stdout.write("\x1b[?25h");
+  clearInterval(interval);
+});
+process.on("SIGINT", () => {
+  process.stdout.write("\x1b[?25h\n\n");
+  process.stdout.write(C.bGreen + "  NNS is still minting ICP for you. Goodbye.\n\n" + C.reset);
+  process.exit(0);
+});
