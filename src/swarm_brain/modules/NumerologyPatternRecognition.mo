@@ -78,7 +78,7 @@
 //
 // FIBONACCI: 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987...
 //   • Nature's growth pattern
-//   • φ limit: F(n+1)/F(n) → 1.618... (golden ratio)
+//   • phi limit: F(n+1)/F(n) → 1.618... (golden ratio)
 //   • Already in codebase — Fibonacci.mo
 //
 // LUCAS: 2, 1, 3, 4, 7, 11, 18, 29, 47, 76, 123, 199, 322, 521...
@@ -130,7 +130,7 @@ module NumerologyPatternRecognition {
   
   // Golden Ratio and derivatives
   public let PHI : Float = 1.6180339887498948482;
-  public let PSI : Float = 0.6180339887498948482;      // 1/φ = φ - 1
+  public let PSI : Float = 0.6180339887498948482;      // 1/φ = phi - 1
   public let PHI_SQ : Float = 2.6180339887498948482;   // φ²
   public let SQRT_5 : Float = 2.2360679774997896964;
   

@@ -48,10 +48,10 @@ module {
   // ║                     MATHEMATICAL CONSTANTS                             ║
   // ╚════════════════════════════════════════════════════════════════════════╝
 
-  public let φ : Float = 1.6180339887498948482;
-  public let ψ : Float = 0.6180339887498948482;
+  public let phi : Float = 1.6180339887498948482;
+  public let psi : Float = 0.6180339887498948482;
   public let τ : Float = 6.2831853071795864769;
-  public let π : Float = 3.1415926535897932385;
+  public let pi : Float = 3.1415926535897932385;
   public let e : Float = 2.7182818284590452354;
   public let S₀ : Float = 0.3819660112501051518;
 
@@ -380,7 +380,7 @@ module {
     let phiNorm = phi / τ;
     if (phiNorm < ψ) {
       resps.add(#Learning);
-    } else if (phiNorm < φ - 1.0) {
+    } else if (phiNorm < phi - 1.0) {
       resps.add(#Prediction);
     } else {
       resps.add(#Optimization);
@@ -577,7 +577,7 @@ module {
         for (x in input.vals()) { sum += x };
         let output = Float.tanh(sum * state.coherence);
         let newState = { 
-          energy = state.energy * ψ + 0.1; 
+          energy = state.energy * psi + 0.1; 
           coherence = state.coherence;
           phase = state.phase;
           activation = output;
@@ -591,7 +591,7 @@ module {
         // Store input in activation (simplified memory)
         var sum : Float = 0.0;
         for (x in input.vals()) { sum += x };
-        let blended = state.activation * φ + sum * ψ;  // Golden blend
+        let blended = state.activation * phi + sum * ψ;  // Golden blend
         let newState = { 
           energy = state.energy; 
           coherence = state.coherence;
@@ -832,7 +832,7 @@ module {
       let eng = engines[i];
       
       // Natural frequency based on position
-      let omega = ψ * Float.sin(eng.sphericalPosition.theta);
+      let omega = psi * Float.sin(eng.sphericalPosition.theta);
       
       // Mean-field coupling
       let coupling = K * r * Float.sin(psi - eng.state.phase);
@@ -846,7 +846,7 @@ module {
       };
       localCoupling /= Float.fromInt(n - 1);
       
-      let dPhase = omega + coupling + K * ψ * localCoupling;
+      let dPhase = omega + coupling + K * psi * localCoupling;
       let newPhase = eng.state.phase + dPhase * dt;
       
       {

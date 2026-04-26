@@ -17,9 +17,9 @@ module {
   // naturally sustained coupled oscillating system.
 
   let PHI  : Float = 1.6180339887;
-  let PHI2 : Float = PHI  * PHI;         // φ²  ≈ 2.618
-  let PHI3 : Float = PHI2 * PHI;         // φ³  ≈ 4.236
-  let PHI4 : Float = PHI3 * PHI;         // φ⁴  ≈ 6.854
+  let PHI2 : Float = 2.6180339887;         // φ²  ≈ 2.618
+  let PHI3 : Float = 4.2360679775;         // φ³  ≈ 4.236
+  let PHI4 : Float = 6.8541019662;         // φ⁴  ≈ 6.854
 
   // Schumann fundamental (Earth's resonance)
   let SCHUMANN_HZ : Float = 7.83;

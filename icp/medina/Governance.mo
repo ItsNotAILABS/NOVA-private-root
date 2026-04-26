@@ -105,7 +105,7 @@ module {
     var rejected   = 0;
     var rolledBack = 0;
     for (p in proposals.vals()) {
-      switch p.status {
+      switch (p.status) {
         case (#pending)      { pending    += 1 };
         case (#approved)     { approved   += 1 };
         case (#rejected)     { rejected   += 1 };

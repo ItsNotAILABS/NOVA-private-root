@@ -61,7 +61,7 @@ module {
   //
   // 3. META-LEARNING (Schmidhuber, 1987; Finn et al., 2017)
   //    θ ← θ - α ∇_θ L(f_θ)  [inner loop]
-  //    φ ← φ - β ∇_φ Σ L(f_{θ_i})  [outer loop]
+  //    phi ← phi - β ∇_φ Σ L(f_{θ_i})  [outer loop]
   //
   // 4. COMPOUND INTEREST ON KNOWLEDGE (Novel)
   //    K(t+1) = K(t) × (1 + r_learn)^Δt + ΔK_new

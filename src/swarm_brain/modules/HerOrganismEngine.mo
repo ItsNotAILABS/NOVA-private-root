@@ -1865,7 +1865,7 @@ module HerOrganismEngine {
   };
 
   /// Fibonacci number approximation using Binet's formula
-  /// F(n) = (φⁿ - ψⁿ) / √5 where ψ = (1-√5)/2
+  /// F(n) = (φⁿ - ψⁿ) / √5 where psi = (1-√5)/2
   public func fibonacciBinet(n : Nat) : Float {
     let psi = (1.0 - SQRT_5) / 2.0;
     (phiPow(n) - fpow(psi, n)) / SQRT_5
@@ -2803,7 +2803,7 @@ module HerOrganismEngine {
     (r, psi)
   };
 
-  /// Mean phase ψ = arg(Σ eⁱθʲ)
+  /// Mean phase psi = arg(Σ eⁱθʲ)
   public func kuramotoMeanPhase(nodes : [KuramotoNode]) : Float {
     let (_, psi) = kuramotoOrderParameterWeighted(nodes, []);
     psi

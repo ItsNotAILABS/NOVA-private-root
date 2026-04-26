@@ -264,7 +264,7 @@ module {
   public let NODE_BRAIN_HZ : Float = 7.83;
   public let NODE_BRAIN_DESC : Text = "Receive carrier, Schumann fundamental";
 
-  // FLUX — 7.83 × φ exactly
+  // FLUX — 7.83 × phi exactly
   public let NODE_FLUX_HZ : Float = 12.67;  // 7.83 × PHI
   public let NODE_FLUX_DESC : Text = "First phi-scaled node, alpha-beta transition";
 

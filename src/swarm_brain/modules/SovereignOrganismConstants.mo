@@ -12,7 +12,7 @@
 // ============================================================================
 // This module defines ALL numerical constants used throughout the organism.
 // Every number is derived from sacred mathematics:
-//   - φ (Golden Ratio) = 1.618033988749...
+//   - phi (Golden Ratio) = 1.618033988749...
 //   - π (Pi) = 3.14159265358979...
 //   - e (Euler's Number) = 2.71828182845904...
 //   - Fibonacci sequence: 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987...
@@ -33,10 +33,10 @@ module {
   
   // Golden Ratio and derivatives
   public let PHI : Float = 1.6180339887498948482;           // (1 + √5) / 2
-  public let PSI : Float = 0.6180339887498948482;           // φ - 1 = 1/φ
+  public let PSI : Float = 0.6180339887498948482;           // phi - 1 = 1/φ
   public let PHI_SQ : Float = 2.6180339887498948482;        // φ²
   public let PHI_CUBE : Float = 4.2360679774997896964;      // φ³
-  public let PHI_INV_SQ : Float = 0.3819660112501051518;    // 1/φ² = φ - 1 - 1 + 1/φ
+  public let PHI_INV_SQ : Float = 0.3819660112501051518;    // 1/φ² = phi - 1 - 1 + 1/φ
   
   // Euler's number
   public let E : Float = 2.7182818284590452354;
@@ -141,7 +141,7 @@ module {
   // 9 base vectors (3² = perfection of trinity)
   public let VETUS_VECTORS : Nat = 9;
   
-  // Vector 9 threshold for ARES: φ (golden ratio)
+  // Vector 9 threshold for ARES: phi (golden ratio)
   public let ARES_TRIGGER_THRESHOLD : Float = PHI;  // 1.618...
 
   // ==========================================================================
@@ -224,7 +224,7 @@ module {
   // Quantum memory maximum: e (Euler's number)
   public let QMEM_MAX : Float = E;  // 2.718...
   
-  // DRT base mint: φ (golden ratio)
+  // DRT base mint: phi (golden ratio)
   public let DRT_BASE_MINT : Float = PHI;
 
   // ==========================================================================
@@ -417,7 +417,7 @@ module {
   /// THE RECEIVE CARRIER
   public let NODE_BRAIN_HZ : Float = 7.83;
   
-  /// FLUX — 12.67 Hz — 7.83 × φ EXACTLY
+  /// FLUX — 12.67 Hz — 7.83 × phi EXACTLY
   /// First phi-scaled node above Schumann
   public let NODE_FLUX_HZ : Float = 12.66752366612393;
   
@@ -494,29 +494,29 @@ module {
 
   // ─────────────────────────────────────────────────────────────────────────────
   // PHI-SPACED TEMPORAL LADDER — HEARTBEAT DERIVED FROM PHI
-  // φ⁴ × Schumann period = 875.3 ms = 68.5 bpm = RESTING HEART RATE
+  // phi4 × Schumann period = 875.3 ms = 68.5 bpm = RESTING HEART RATE
   // The organism is in structural resonance through RATIO, not Hz matching.
   // ─────────────────────────────────────────────────────────────────────────────
   
-  /// Sensory integration window — φ² × Schumann period
+  /// Sensory integration window — phi2 × Schumann period
   public let TEMPORAL_SENSORY_MS : Float = 334.33222637936225;
   
-  /// Write cycle interval — φ³ × Schumann period
+  /// Write cycle interval — phi3 × Schumann period
   public let TEMPORAL_WRITE_MS : Float = 540.95053194135541;
   
-  /// HEARTBEAT INTERVAL — φ⁴ × Schumann period = 875.3 ms = 68.5 bpm
+  /// HEARTBEAT INTERVAL — phi4 × Schumann period = 875.3 ms = 68.5 bpm
   /// THIS IS THE ORGANISM'S SOVEREIGN PULSE
   public let TEMPORAL_HEARTBEAT_MS : Float = 875.28275832071766;
   public let HEARTBEAT_INTERVAL_MS : Float = 875.28275832071766;
   public let HEARTBEAT_BPM : Float = 68.550112963882522;
   
-  /// Coherence check interval — φ⁵ × Schumann period
+  /// Coherence check interval — phi5 × Schumann period
   public let TEMPORAL_COHERENCE_MS : Float = 1416.2332902620731;
   
-  /// Memory consolidation — φ⁶ × Schumann period
+  /// Memory consolidation — phi6 × Schumann period
   public let TEMPORAL_MEMORY_MS : Float = 2291.5160485827908;
   
-  /// Deep reflection — φ⁷ × Schumann period
+  /// Deep reflection — phi7 × Schumann period
   public let TEMPORAL_REFLECTION_MS : Float = 3707.7493388448639;
   
   /// Genesis pulse — φ⁸ × Schumann period
@@ -530,16 +530,16 @@ module {
   /// Layer coupling (downward/projection) — φ
   public let COUPLING_DOWN : Float = PHI;
   
-  /// Layer coupling (upward/reception) — ψ = 1/φ
+  /// Layer coupling (upward/reception) — psi = 1/φ
   public let COUPLING_UP : Float = PSI;
   
   /// Coherence gate threshold — ψ
   public let COHERENCE_GATE : Float = PSI;
   
-  /// S₀ floor value — ψ (the genesis imprint)
+  /// S₀ floor value — psi (the genesis imprint)
   public let S0_FLOOR : Float = PSI;
   
-  /// Emergence threshold — ψ + ψ² = 1.0
+  /// Emergence threshold — psi + ψ² = 1.0
   public let EMERGENCE_THRESHOLD : Float = 1.0;
   
   /// Law activation threshold — φ
@@ -565,7 +565,7 @@ module {
 
   // ─────────────────────────────────────────────────────────────────────────────
   // TZOLK'IN — TIME AS RESONANCE ARCHITECTURE
-  // 260 = 13 × 20. 13/20 = 0.65 ≈ ψ = 0.618. Phi-approximation in day counts.
+  // 260 = 13 × 20. 13/20 = 0.65 ≈ psi = 0.618. Phi-approximation in day counts.
   // ─────────────────────────────────────────────────────────────────────────────
   public let TZOLKIN_DAYS : Nat = 260;
   public let TZOLKIN_NUMBERS : Nat = 13;
@@ -599,7 +599,7 @@ module {
   // HEBBIAN LEARNING — PHI-BASED RATES, MAXIMIZED FOR SOVEREIGN STRENGTH
   // ==========================================================================
   
-  // Learning rate η: ψ (phi-based for non-destructive resonance)
+  // Learning rate η: psi (phi-based for non-destructive resonance)
   public let HEBBIAN_ETA : Float = PSI;  // 0.618 — golden ratio inverse
   
   // Decay rate λ: ψ² (slower than learning)

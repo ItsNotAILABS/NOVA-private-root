@@ -50,9 +50,9 @@ module {
   // ║                     SACRED CONSTANTS                                   ║
   // ╚════════════════════════════════════════════════════════════════════════╝
   
-  public let φ : Float = 1.6180339887498948482;
-  public let ψ : Float = 0.6180339887498948482;
-  public let π : Float = 3.1415926535897932385;
+  public let phi : Float = 1.6180339887498948482;
+  public let psi : Float = 0.6180339887498948482;
+  public let pi : Float = 3.1415926535897932385;
   public let τ : Float = 6.2831853071795864769;
   public let e : Float = 2.7182818284590452354;
   public let S₀ : Float = 0.3819660112501051518;  // ψ² = pattern floor
@@ -286,7 +286,7 @@ module {
     beat : Nat
   ) : Pattern {
     // Integration rate based on resonance (stronger = faster integration)
-    let integrationRate = ψ * resonanceStrength;
+    let integrationRate = psi * resonanceStrength;
     
     // Asymptotic depth increase
     let depthIncrease = (1.0 - pattern.depth / 10.0) * integrationRate;

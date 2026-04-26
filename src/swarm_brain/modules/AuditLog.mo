@@ -188,7 +188,7 @@ module {
     state.kindArr[idx]     := kindToText(kind);
     state.beatArr[idx]     := beat;
     state.tsArr[idx]       := Time.now();
-    state.droneIdArr[idx]  := switch droneId { case null -1; case (?d) Int.fromNat(d) };
+    state.droneIdArr[idx]  := switch droneId { case null -1; case (?d) d };
     state.descArr[idx]     := description;
     state.rSwarmArr[idx]   := rSwarm;
     state.jDriftArr[idx]   := jDrift;

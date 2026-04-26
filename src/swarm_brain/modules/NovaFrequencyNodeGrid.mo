@@ -72,7 +72,7 @@ module NovaFrequencyNodeGrid {
   // CONSTANTS — Sacred Mathematics
   // ═══════════════════════════════════════════════════════════════════════════
 
-  public let φ       : Float = 1.6180339887498948482;
+  public let phi       : Float = 1.6180339887498948482;
   public let PHI     : Float = 1.6180339887498948482;
   public let PHI_INV : Float = 0.6180339887498948482;
   public let PHI_SQ  : Float = 2.6180339887498948482;
@@ -673,7 +673,7 @@ module NovaFrequencyNodeGrid {
   };
 
   // Cross-band coupling: measure how PHI-ratio aligned adjacent bands are
-  // Adjacent bands have frequencies in ratio φ — coupling strength measures
+  // Adjacent bands have frequencies in ratio phi — coupling strength measures
   // phase coherence between neighboring bands weighted by PHI_INV decay
   func computeCrossBandCoupling(allBands : [[FrequencyNode]], syncScores : [Float]) : Float {
     if (TOTAL_BANDS < 2) return 0.0;

@@ -92,13 +92,13 @@ module {
   // ═══════════════════════════════════════════════════════════════════════════
 
   // Golden ratio — appears in Fibonacci, sacred geometry, optimal packing
-  public let φ : Float = 1.6180339887498948482;
+  public let phi : Float = 1.6180339887498948482;
   
   // Euler's number — base of natural exponential (THE compounding base)
   public let e : Float = 2.7182818284590452354;
   
   // π — fundamental to all wave phenomena
-  public let π : Float = 3.1415926535897932385;
+  public let pi : Float = 3.1415926535897932385;
   
   // 2π — full phase cycle
   public let τ : Float = 6.28318530717958647692;

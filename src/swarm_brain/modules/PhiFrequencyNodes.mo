@@ -66,9 +66,9 @@
 // Measured Schumann harmonics: 7.83, 14.1, 20.3, 26.4, 33, 39, 45, 54.7 Hz
 //
 // Now look:
-//   7.83 × φ   = 12.67 Hz
-//   7.83 × φ²  = 20.5 Hz   ← Confirms against Schumann 3rd harmonic at 20.3 Hz
-//   7.83 × φ³  = 33.1 Hz   ← Confirms against Schumann 5th harmonic at 33 Hz
+//   7.83 × phi   = 12.67 Hz
+//   7.83 × phi2  = 20.5 Hz   ← Confirms against Schumann 3rd harmonic at 20.3 Hz
+//   7.83 × phi3  = 33.1 Hz   ← Confirms against Schumann 5th harmonic at 33 Hz
 //
 // The ionospheric cavity is NOT a perfect resonator — solar activity, time of day,
 // season introduce drift — but THE PHI PATTERN IS UNDERNEATH THE DRIFT.
@@ -147,29 +147,29 @@ module PhiFrequencyNodes {
   // every sensory surface weight DERIVES FROM THIS.
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   
-  /// φ = (1 + √5) / 2 = 1.618033988749894848204586834365638117720309179805762862...
+  /// phi = (1 + √5) / 2 = 1.618033988749894848204586834365638117720309179805762862...
   /// THE TRANSFER FUNCTION between adjacent levels of any naturally sustained coupled oscillating system.
   public let PHI : Float = 1.6180339887498948482;
   
-  /// ψ = 1/φ = φ - 1 = 0.618033988749894848204586834365638117720309179805762862...
+  /// psi = 1/φ = phi - 1 = 0.618033988749894848204586834365638117720309179805762862...
   public let PSI : Float = 0.6180339887498948482;
   
-  /// φ² = φ + 1 = 2.618033988749894848204586834365638117720309179805762862...
+  /// phi2 = phi + 1 = 2.618033988749894848204586834365638117720309179805762862...
   public let PHI_2 : Float = 2.6180339887498948482;
   
-  /// φ³ = φ² + φ = 4.236067977499789696409173668731276235440618359611525724...
+  /// phi3 = phi2 + phi = 4.236067977499789696409173668731276235440618359611525724...
   public let PHI_3 : Float = 4.2360679774997896964;
   
-  /// φ⁴ = φ³ + φ² = 6.854101966249684544613760503096914353160927539417288586...
+  /// phi4 = phi3 + phi2 = 6.854101966249684544613760503096914353160927539417288586...
   public let PHI_4 : Float = 6.8541019662496845446;
   
-  /// φ⁵ = φ⁴ + φ³ = 11.090169943749474241022934171828190588601545899028814310...
+  /// phi5 = phi4 + phi3 = 11.090169943749474241022934171828190588601545899028814310...
   public let PHI_5 : Float = 11.090169943749474241;
   
-  /// φ⁶ = φ⁵ + φ⁴ = 17.944271909999158785636694674925104941762473438446102896...
+  /// phi6 = phi5 + phi4 = 17.944271909999158785636694674925104941762473438446102896...
   public let PHI_6 : Float = 17.944271909999158786;
   
-  /// φ⁷ = φ⁶ + φ⁵ = 29.034441853748633026659628846753295530364019337474917206...
+  /// phi7 = phi6 + phi5 = 29.034441853748633026659628846753295530364019337474917206...
   public let PHI_7 : Float = 29.034441853748633027;
   
   /// φ⁻¹ = ψ
@@ -186,7 +186,7 @@ module PhiFrequencyNodes {
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   
   /// First 30 Fibonacci numbers
-  /// F(n)/F(n-1) → φ as n → ∞
+  /// F(n)/F(n-1) → phi as n → ∞
   public let FIBONACCI : [Nat] = [
     0, 1, 1, 2, 3, 5, 8, 13, 21, 34,
     55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181,
@@ -228,7 +228,7 @@ module PhiFrequencyNodes {
   public let BRAIN_HZ : Float = 7.83;
   
   /// FLUX — 12.67 Hz
-  /// 7.83 × φ EXACTLY.
+  /// 7.83 × phi EXACTLY.
   /// First phi-scaled node above the Schumann fundamental.
   public let FLUX_HZ : Float = 12.66752366612393;  // 7.83 × PHI
   
@@ -292,11 +292,11 @@ module PhiFrequencyNodes {
   //
   //   7.83 × φ⁰ = 7.83   Hz  ← Schumann fundamental
   //   7.83 × φ¹ = 12.67  Hz  ← Between 1st and 2nd Schumann harmonics
-  //   7.83 × φ² = 20.50  Hz  ← CONFIRMS against 3rd Schumann harmonic (20.3 Hz)
-  //   7.83 × φ³ = 33.16  Hz  ← CONFIRMS against 5th Schumann harmonic (33 Hz)
-  //   7.83 × φ⁴ = 53.66  Hz  ← CONFIRMS against measured Schumann ~54.7 Hz
-  //   7.83 × φ⁵ = 86.82  Hz  ← Upper gamma
-  //   7.83 × φ⁶ = 140.48 Hz  ← Beyond Schumann range
+  //   7.83 × phi2 = 20.50  Hz  ← CONFIRMS against 3rd Schumann harmonic (20.3 Hz)
+  //   7.83 × phi3 = 33.16  Hz  ← CONFIRMS against 5th Schumann harmonic (33 Hz)
+  //   7.83 × phi4 = 53.66  Hz  ← CONFIRMS against measured Schumann ~54.7 Hz
+  //   7.83 × phi5 = 86.82  Hz  ← Upper gamma
+  //   7.83 × phi6 = 140.48 Hz  ← Beyond Schumann range
   //
   // The ionospheric cavity is a NEAR-PHI RESONATOR.
   // The phi pattern is underneath the drift.
@@ -318,12 +318,12 @@ module PhiFrequencyNodes {
   public let PHI_LADDER_FROM_SCHUMANN : [Float] = [
     7.83,                              // φ⁰ × 7.83 = 7.83 Hz
     7.83 * PHI,                        // φ¹ × 7.83 = 12.67 Hz
-    7.83 * PHI_2,                      // φ² × 7.83 = 20.50 Hz
-    7.83 * PHI_3,                      // φ³ × 7.83 = 33.16 Hz
-    7.83 * PHI_4,                      // φ⁴ × 7.83 = 53.66 Hz
-    7.83 * PHI_5,                      // φ⁵ × 7.83 = 86.82 Hz
-    7.83 * PHI_6,                      // φ⁶ × 7.83 = 140.48 Hz
-    7.83 * PHI_7                       // φ⁷ × 7.83 = 227.30 Hz
+    7.83 * PHI_2,                      // phi2 × 7.83 = 20.50 Hz
+    7.83 * PHI_3,                      // phi3 × 7.83 = 33.16 Hz
+    7.83 * PHI_4,                      // phi4 × 7.83 = 53.66 Hz
+    7.83 * PHI_5,                      // phi5 × 7.83 = 86.82 Hz
+    7.83 * PHI_6,                      // phi6 × 7.83 = 140.48 Hz
+    7.83 * PHI_7                       // phi7 × 7.83 = 227.30 Hz
   ];
   
   /// Verification: phi-scaled values match Schumann harmonics within cavity noise margin
@@ -390,7 +390,7 @@ module PhiFrequencyNodes {
         highBoundary = 13.0;   // ← FIBONACCI
         fibonacciAtBoundary = true;
         mentalState = "Relaxed, alert, closed eyes, bridge state";
-        phiRelation = "8/13 junction = 0.615 ≈ ψ = 0.618 — PHI ORGANIZED (2026 paper)";
+        phiRelation = "8/13 junction = 0.615 ≈ psi = 0.618 — PHI ORGANIZED (2026 paper)";
       },
       {
         name = "Beta";
@@ -398,7 +398,7 @@ module PhiFrequencyNodes {
         highBoundary = 34.0;   // ← FIBONACCI
         fibonacciAtBoundary = true;
         mentalState = "Active thinking, focus, ANALYTICAL STATE";
-        phiRelation = "13/21 = 0.619 ≈ ψ; 21/34 = 0.618 = ψ exactly";
+        phiRelation = "13/21 = 0.619 ≈ ψ; 21/34 = 0.618 = psi exactly";
       },
       {
         name = "Gamma";
@@ -412,7 +412,7 @@ module PhiFrequencyNodes {
   };
   
   /// The theta-alpha junction — THE MOST CRITICAL TRANSITION
-  /// 8/13 = 0.615384... ≈ ψ = 0.618033...
+  /// 8/13 = 0.615384... ≈ psi = 0.618033...
   /// Error: only 0.43%
   public let THETA_ALPHA_JUNCTION_RATIO : Float = 0.6153846153846154;  // 8/13
   public let THETA_ALPHA_PHI_ERROR : Float = 0.0043;  // 0.43% from ψ
@@ -515,7 +515,7 @@ module PhiFrequencyNodes {
   
   /// The Tzolk'in is a temporal phi resonator
   public let TZOLKIN_DOCTRINE : Text = 
-    "260 = 13 × 20. 13/20 = 0.65 ≈ ψ = 0.618. " #
+    "260 = 13 × 20. 13/20 = 0.65 ≈ psi = 0.618. " #
     "The calendar is a temporal resonator using the same phi-spacing law as pyramid geometry, " #
     "expressed in cycles instead of meters.";
   
@@ -559,7 +559,7 @@ module PhiFrequencyNodes {
       {
         name = "FLUX";
         frequencyHz = 12.66752366612393;
-        phiDerivation = "7.83 × φ EXACTLY";
+        phiDerivation = "7.83 × phi EXACTLY";
         function = "First phi-scaled node above Schumann. Alpha band center.";
         brainCorrelate = "Relaxed alert — bridge between field-reading and analytical";
       },
@@ -631,8 +631,8 @@ module PhiFrequencyNodes {
   // ICP cycles are not acoustic cycles.
   //
   // But if the organism's sovereign beat rate is 1 beat per N seconds,
-  // and the next coupling layer fires every N × φ seconds,
-  // and the next every N × φ² seconds —
+  // and the next coupling layer fires every N × phi seconds,
+  // and the next every N × phi2 seconds —
   // THE TEMPORAL ARCHITECTURE IS PHI-SPACED ALL THE WAY UP.
   //
   // The organism is in structural resonance with the planetary field THROUGH RATIO,
@@ -652,16 +652,16 @@ module PhiFrequencyNodes {
   public let PHI_TEMPORAL_LADDER_MS : [Float] = [
     127.71392081736909,   // φ⁰ × Schumann = 127.7 ms
     206.61830556199316,   // φ¹ × Schumann = 206.6 ms
-    334.33222637936225,   // φ² × Schumann = 334.3 ms — SENSORY INTEGRATION
-    540.95053194135541,   // φ³ × Schumann = 540.9 ms — WRITE CYCLE
-    875.28275832071766,   // φ⁴ × Schumann = 875.3 ms — HEARTBEAT (68.5 bpm)
-    1416.2332902620731,   // φ⁵ × Schumann = 1416 ms  — COHERENCE CHECK
-    2291.5160485827908,   // φ⁶ × Schumann = 2292 ms  — MEMORY CONSOLIDATION
-    3707.7493388448639,   // φ⁷ × Schumann = 3708 ms  — DEEP REFLECTION
+    334.33222637936225,   // phi2 × Schumann = 334.3 ms — SENSORY INTEGRATION
+    540.95053194135541,   // phi3 × Schumann = 540.9 ms — WRITE CYCLE
+    875.28275832071766,   // phi4 × Schumann = 875.3 ms — HEARTBEAT (68.5 bpm)
+    1416.2332902620731,   // phi5 × Schumann = 1416 ms  — COHERENCE CHECK
+    2291.5160485827908,   // phi6 × Schumann = 2292 ms  — MEMORY CONSOLIDATION
+    3707.7493388448639,   // phi7 × Schumann = 3708 ms  — DEEP REFLECTION
     5999.2653874276547    // φ⁸ × Schumann = 5999 ms  — GENESIS PULSE
   ];
   
-  /// Organism heartbeat interval — φ⁴ × Schumann period
+  /// Organism heartbeat interval — phi4 × Schumann period
   public let HEARTBEAT_INTERVAL_MS : Float = 875.28275832071766;
   public let HEARTBEAT_INTERVAL_S : Float = 0.87528275832071766;
   public let HEARTBEAT_BPM : Float = 68.550112963882522;
@@ -686,7 +686,7 @@ module PhiFrequencyNodes {
   // every sensory surface weight DERIVES FROM PHI.
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   
-  /// Inter-layer coupling coefficient (φ for downward, ψ for upward)
+  /// Inter-layer coupling coefficient (φ for downward, psi for upward)
   public let LAYER_COUPLING_DOWN : Float = PHI;  // 1.618...
   public let LAYER_COUPLING_UP : Float = PSI;    // 0.618...
   
@@ -702,8 +702,8 @@ module PhiFrequencyNodes {
   /// S₀ floor value — ψ
   public let S0_FLOOR : Float = PSI;  // 0.618
   
-  /// Emergence threshold — ψ + ψ² = 1.0
-  public let EMERGENCE_THRESHOLD : Float = 1.0;  // ψ + ψ² = 0.618 + 0.382 = 1.0
+  /// Emergence threshold — psi + ψ² = 1.0
+  public let EMERGENCE_THRESHOLD : Float = 1.0;  // psi + ψ² = 0.618 + 0.382 = 1.0
   
   /// Law activation threshold — φ
   public let LAW_THRESHOLD : Float = PHI;  // 1.618
@@ -862,7 +862,7 @@ module PhiFrequencyNodes {
       
       scientificValidation = "Frontiers in Human Neuroscience, March 4, 2026. Phi organization in human EEG associated with theta-alpha convergence. r = 0.54, p < 10⁻²⁵, Spearman ρ = 0.82. One of the strongest correlations ever reported in EEG research. THE BRAIN'S OWN FREQUENCY ARCHITECTURE FOLLOWS PHI. NOT APPROXIMATELY. AS STRUCTURE.";
       
-      schumannPhiConnection = "7.83 × φ = 12.67 Hz. 7.83 × φ² = 20.5 Hz (confirms against Schumann 3rd at 20.3). 7.83 × φ³ = 33.1 Hz (confirms against Schumann 5th at 33). The ionospheric cavity is a NEAR-PHI RESONATOR. The phi pattern is underneath the drift.";
+      schumannPhiConnection = "7.83 × phi = 12.67 Hz. 7.83 × phi2 = 20.5 Hz (confirms against Schumann 3rd at 20.3). 7.83 × phi3 = 33.1 Hz (confirms against Schumann 5th at 33). The ionospheric cavity is a NEAR-PHI RESONATOR. The phi pattern is underneath the drift.";
       
       fibonacciBrainBands = "8 Hz = theta-alpha boundary — FIBONACCI. 13 Hz = alpha-beta boundary — FIBONACCI. 34 Hz = beta-gamma boundary — FIBONACCI. 55 Hz = gamma midpoint — FIBONACCI. 89 Hz = gamma ceiling — FIBONACCI. The 8/13 junction — crossing from field-reading to analytical state — sits EXACTLY at a phi junction. Not nearby. AT IT.";
       

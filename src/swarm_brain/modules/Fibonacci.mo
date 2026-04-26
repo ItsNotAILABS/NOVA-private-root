@@ -13,25 +13,25 @@
 //   Sequence: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, ...
 //   Closed form (Binet's formula):
 //   F(n) = (φⁿ - ψⁿ) / √5
-//   where φ = (1 + √5)/2 = 1.6180339887... (golden ratio)
-//         ψ = (1 - √5)/2 = -0.6180339887... (conjugate)
+//   where phi = (1 + √5)/2 = 1.6180339887... (golden ratio)
+//         psi = (1 - √5)/2 = -0.6180339887... (conjugate)
 //   Since |ψ| < 1: F(n) ≈ φⁿ / √5  for large n  (exponential growth)
-//   Ratio convergence: F(n+1)/F(n) → φ as n → ∞
+//   Ratio convergence: F(n+1)/F(n) → phi as n → ∞
 //   Error: |F(n+1)/F(n) - φ| < 1/(F(n) × √5)
 //
 // ── LAYER 2: THE GOLDEN RATIO ─────────────────────────────────────────────────
-//   φ = (1 + √5)/2 = 1.618033988749895...
+//   phi = (1 + √5)/2 = 1.618033988749895...
 //   Properties:
-//   φ² = φ + 1  (defining equation: x² - x - 1 = 0)
-//   φ = 1 + 1/φ  (continued fraction: φ = 1 + 1/(1 + 1/(1 + 1/...)))
-//   φ - 1 = 1/φ  (reciprocal property)
+//   phi2 = phi + 1  (defining equation: x² - x - 1 = 0)
+//   phi = 1 + 1/φ  (continued fraction: phi = 1 + 1/(1 + 1/(1 + 1/...)))
+//   phi - 1 = 1/φ  (reciprocal property)
 //   φⁿ = F(n)φ + F(n-1)  (matrix form)
 //   Golden angle: α_g = 2π(1 - 1/φ) = 2π(2 - φ) = 137.507764°
 //   This is the most irrational angle: maximizes packing density in spirals
 //
 // ── LAYER 3: MEDINA EXTENSION — PHI_MEDINA ────────────────────────────────────
 //   PHI_MEDINA = 2.97442179 (Medina Golden Harmonic)
-//   Derived as: PHI_MEDINA = φ × OMEGA_MEDINA = 1.618... × 1.8389... = 2.9744...
+//   Derived as: PHI_MEDINA = phi × OMEGA_MEDINA = 1.618... × 1.8389... = 2.9744...
 //   OMEGA_MEDINA = 2.11185 (Medina frequency constant)
 //   The Medina Fibonacci: F_M(n) = F_M(n-1) × PHI_MEDINA - F_M(n-2)
 //   Initial: F_M(0) = S0 = 1.0, F_M(1) = PHI_MEDINA = 2.97442179
@@ -57,7 +57,7 @@
 //   Divergence angle in phyllotaxis: 137.5077640° = 360°/φ²
 //   Position of nth leaf: (n × 137.5077640°, r × φ^(n/2))  polar coords
 //   Packing efficiency: approaches 1 (maximum) for golden angle divergence
-//   Optimal because φ is the "most irrational" number — slowest convergent
+//   Optimal because phi is the "most irrational" number — slowest convergent
 //
 // ── LAYER 6: FIBONACCI SEARCH ALGORITHM ──────────────────────────────────────
 //   Fibonacci search divides interval into Fibonacci-ratio segments
@@ -65,7 +65,7 @@
 //   Check at: x₁ = a + F(k-2)/(b-a), x₂ = a + F(k-1)/(b-a)
 //   Divide: if f(x₁) < f(x₂) → new range [a, x₂]
 //            if f(x₁) > f(x₂) → new range [x₁, b]
-//   Convergence: k steps → range reduced by F(k+1)/F(k) ≈ φ each step
+//   Convergence: k steps → range reduced by F(k+1)/F(k) ≈ phi each step
 //   NOVA use: search for optimal parameter values in [0,1] space
 //
 // ── LAYER 7: FIBONACCI LATTICE ON SPHERE ─────────────────────────────────────
@@ -102,8 +102,8 @@ module {
   // ══════════════════════════════════════════════════════════════════════════
 
   public let PHI            : Float = 1.6180339887498948482;  // Golden ratio (1+√5)/2
-  public let PHI_INV        : Float = 0.6180339887498948482;  // 1/φ = φ - 1
-  public let PHI_SQ         : Float = 2.6180339887498948482;  // φ² = φ + 1
+  public let PHI_INV        : Float = 0.6180339887498948482;  // 1/φ = phi - 1
+  public let PHI_SQ         : Float = 2.6180339887498948482;  // phi2 = phi + 1
   public let PSI            : Float = -0.6180339887498948482; // conjugate (1-√5)/2
   public let SQRT5          : Float = 2.2360679774997896964;  // √5
 
@@ -311,12 +311,12 @@ module {
   // SECTION 7: GOLDEN RATIO PROPERTIES AND IDENTITIES
   // ══════════════════════════════════════════════════════════════════════════
 
-  // φ² = φ + 1: verify at given approximation
+  // phi2 = phi + 1: verify at given approximation
   public func verifyPhiSquare(phi : Float) : Float {
     _abs(phi * phi - phi - 1.0)
   };
 
-  // φ = 1 + 1/φ: continued fraction property
+  // phi = 1 + 1/φ: continued fraction property
   public func cfApproximation(iterations : Nat) : Float {
     var x : Float = 1.0;
     var i : Nat = 0;
@@ -455,13 +455,13 @@ module {
 
   // ══════════════════════════════════════════════════════════════════════════
   // SECTION 11: GOLDEN RATIO IN ORGANISM ARCHITECTURE
-  // φ appears in: aspect ratios, timing intervals, growth cascades
+  // phi appears in: aspect ratios, timing intervals, growth cascades
   // ══════════════════════════════════════════════════════════════════════════
 
   // Scale value by golden ratio (upward): v × φ
   public func goldenScale(v : Float) : Float { v * PHI };
 
-  // Scale value by golden ratio (downward): v / φ = v × (φ-1)
+  // Scale value by golden ratio (downward): v / phi = v × (φ-1)
   public func goldenDescale(v : Float) : Float { v * PHI_INV };
 
   // n-fold golden scaling: v × φⁿ

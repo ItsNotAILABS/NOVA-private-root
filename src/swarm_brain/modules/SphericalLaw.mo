@@ -600,7 +600,7 @@ module {
   // SACRED GEOMETRY MATHEMATICS
   // ─────────────────────────────────────────────────────────────────────────────
 
-  /// Golden ratio φ = (1 + √5) / 2
+  /// Golden ratio phi = (1 + √5) / 2
   public let PHI : Float = 1.6180339887498948482;
 
   /// Fibonacci sequence generator
@@ -974,7 +974,7 @@ module {
   };
 
   /// Real spherical harmonic Y_l^m(θ, φ) for m >= 0
-  /// θ = polar angle [0, π], φ = azimuthal angle [0, 2π)
+  /// θ = polar angle [0, π], phi = azimuthal angle [0, 2π)
   public func realSphericalHarmonic(l : Nat, m : Int, theta : Float, phi : Float) : Float {
     let mAbs = Int.abs(m);
     let mNat = if (mAbs >= 0) { Int.abs(mAbs) } else { 0 };
@@ -996,7 +996,7 @@ module {
   public func sphericalHarmonicDecompose(
     fieldValues : [Float],       // f(θ_i, φ_j) on grid
     gridTheta : [Float],         // θ values
-    gridPhi : [Float],           // φ values
+    gridPhi : [Float],           // phi values
     maxL : Nat                   // maximum l to compute
   ) : [Float] {
     let nTheta = gridTheta.size();
@@ -1148,7 +1148,7 @@ module {
   };
 
   /// Spherical wave at point (r, θ, φ, t)
-  /// ψ = Σ_l,m c_l^m · j_l(kr) · Y_l^m(θ,φ) · cos(ωt + δ_l^m)
+  /// psi = Σ_l,m c_l^m · j_l(kr) · Y_l^m(θ,φ) · cos(ωt + δ_l^m)
   public func sphericalWave(
     r : Float, theta : Float, phi : Float, t : Float,
     k : Float, omega : Float,

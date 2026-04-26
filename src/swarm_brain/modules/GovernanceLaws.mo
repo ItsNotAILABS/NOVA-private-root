@@ -70,7 +70,7 @@
 //
 // JASMINE'S SPHERICAL HELIX LAW (L-051):
 //   θ += 0.031415 per beat (~2°)
-//   φ += 0.017453 per beat (~1°)
+//   phi += 0.017453 per beat (~1°)
 //   jasmine = sin(θ) × cos(φ) × kf + 1.0
 //   No blind spot in governance monitoring — covers full spherical surface
 //

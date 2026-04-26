@@ -50,9 +50,9 @@ module {
   // FUNDAMENTAL CONSTANTS
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  public let φ : Float = 1.6180339887498948482;
-  public let ψ : Float = 0.6180339887498948482;  // φ⁻¹
-  public let π : Float = 3.14159265358979323846;
+  public let phi : Float = 1.6180339887498948482;
+  public let psi : Float = 0.6180339887498948482;  // φ⁻¹
+  public let pi : Float = 3.14159265358979323846;
   public let τ : Float = 6.28318530717958647693;
   public let e : Float = 2.71828182845904523536;
 

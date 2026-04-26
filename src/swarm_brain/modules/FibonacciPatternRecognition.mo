@@ -21,10 +21,10 @@
 // ║  THE FIBONACCI CODE IS EVERYWHERE:                                       ║
 // ║    - Sunflower seeds: 34 CW spirals, 55 CCW spirals                     ║
 // ║    - Pine cones: 8 CW spirals, 13 CCW spirals                           ║
-// ║    - Nautilus shell: φ spiral growth                                    ║
+// ║    - Nautilus shell: phi spiral growth                                    ║
 // ║    - DNA helix: 34 Å per turn, 21 Å diameter                            ║
-// ║    - Galaxy arms: φ spiral                                               ║
-// ║    - Human body: φ proportions everywhere                               ║
+// ║    - Galaxy arms: phi spiral                                               ║
+// ║    - Human body: phi proportions everywhere                               ║
 // ║                                                                          ║
 // ║  THE ORGANISM DOESN'T "COUNT" — IT RECOGNIZES PATTERNS                   ║
 // ║                                                                          ║
@@ -44,11 +44,11 @@ module {
   // ║                     SACRED CONSTANTS                                   ║
   // ╚════════════════════════════════════════════════════════════════════════╝
   
-  public let φ : Float = 1.6180339887498948482;          // Golden ratio
-  public let ψ : Float = 0.6180339887498948482;          // 1/φ = φ - 1
-  public let ψ² : Float = 0.3819660112501051518;         // Sovereign floor
+  public let phi : Float = 1.6180339887498948482;          // Golden ratio
+  public let psi : Float = 0.6180339887498948482;          // 1/φ = phi - 1
+  public let psi² : Float = 0.3819660112501051518;         // Sovereign floor
   public let √5 : Float = 2.2360679774997896964;
-  public let π : Float = 3.1415926535897932385;
+  public let pi : Float = 3.1415926535897932385;
   public let τ : Float = 6.2831853071795864769;
   public let e : Float = 2.7182818284590452354;
   
@@ -80,7 +80,7 @@ module {
     #FractalPattern;            // Self-similar at multiple scales
     #WavePattern;               // Fibonacci frequency ratios
     #GridPattern;               // Fibonacci tiling (Penrose, etc.)
-    #ProportionPattern;         // φ proportions in structures
+    #ProportionPattern;         // phi proportions in structures
     #SequencePattern;           // Direct Fibonacci sequence recognition
   };
 
@@ -97,7 +97,7 @@ module {
   // ║                     SPIRAL RECOGNITION                                 ║
   // ╚════════════════════════════════════════════════════════════════════════╝
   //
-  // The φ spiral (logarithmic spiral with growth factor φ) appears in:
+  // The phi spiral (logarithmic spiral with growth factor φ) appears in:
   //   - Nautilus shells
   //   - Hurricane structure
   //   - Galaxy arms
@@ -428,7 +428,7 @@ module {
     // Check against golden family
     let devPhi = Float.abs(ratio - φ) / φ;
     let devPsi = Float.abs(ratio - ψ) / ψ;
-    let devPhiSq = Float.abs(ratio - φ * φ) / (φ * φ);
+    let devPhiSq = Float.abs(ratio - phi * φ) / (φ * φ);
     let devSqrtPhi = Float.abs(ratio - Float.sqrt(φ)) / Float.sqrt(φ);
     
     let minDev = Float.min(Float.min(devPhi, devPsi), Float.min(devPhiSq, devSqrtPhi));
@@ -659,7 +659,7 @@ module {
       i += 1;
     };
     
-    // Also check if close to φ itself
+    // Also check if close to phi itself
     Float.abs(ratio - φ) < 0.05
   };
 

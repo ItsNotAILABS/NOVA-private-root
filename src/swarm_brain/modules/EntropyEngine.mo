@@ -108,7 +108,7 @@
 //
 // ── LAYER 11: NEGENTROPY ─────────────────────────────────────────────────────
 //   J(x) = H(φ) - H(x)
-//   where φ = Gaussian with same mean and variance as x
+//   where phi = Gaussian with same mean and variance as x
 //   J(x) ≥ 0 always (Gaussian maximizes entropy for fixed variance)
 //   J(x) = 0 iff x is Gaussian distributed
 //   Hyvärinen polynomial approximation:
@@ -659,7 +659,7 @@ module {
 
   // ══════════════════════════════════════════════════════════════════════════
   // SECTION 11: NEGENTROPY
-  // J(x) = H(φ) - H(x)   where φ is Gaussian with same variance
+  // J(x) = H(φ) - H(x)   where phi is Gaussian with same variance
   // Polynomial approximation: J ≈ (1/12)E{x³}² + (1/48)κ²
   // where κ = E{x⁴} - 3 = excess kurtosis
   // J = 0 iff distribution is Gaussian
@@ -1637,7 +1637,7 @@ module {
     phases: [Float];                 // θ_i - Oscillator phases
     frequencies: [Float];            // ω_i - Natural frequencies
     orderParameter: Float;           // r - Kuramoto order parameter
-    meanPhase: Float;                // ψ - Mean phase
+    meanPhase: Float;                // psi - Mean phase
     
     // Entropy of phase distribution
     phaseEntropy: Float;             // H(θ) - Entropy of phase distribution
@@ -2624,7 +2624,7 @@ module {
     violationHistory: [Nat];         // Beats with violations
     
     // Harmonic resonance
-    sacredEntropyRatio: Float;       // φ = 1.618... Golden ratio target
+    sacredEntropyRatio: Float;       // phi = 1.618... Golden ratio target
     harmonicAlignment: Float;        // Alignment with sacred geometry
   };
 
@@ -2654,7 +2654,7 @@ module {
     let phi : Float = 1.618033988749895;
     let ratio = entropy / reference;
     let deviation = Float.abs(ratio - phi);
-    Float.exp(-deviation) // Closer to φ → higher alignment
+    Float.exp(-deviation) // Closer to phi → higher alignment
   };
 
   /// Initialize Medina entropy doctrine

@@ -68,9 +68,9 @@ module {
   // MEDINA CONSTANTS
   // ════════════════════════════════════════════════════════════════════════════════════════
 
-  public let φ : Float = 1.6180339887498948482;
-  public let ψ : Float = 0.6180339887498948482;
-  public let π : Float = 3.1415926535897932385;
+  public let phi : Float = 1.6180339887498948482;
+  public let psi : Float = 0.6180339887498948482;
+  public let pi : Float = 3.1415926535897932385;
   public let τ : Float = 6.2831853071795864769;
 
   public let PHI_MEDINA : Float = 2.97442179;

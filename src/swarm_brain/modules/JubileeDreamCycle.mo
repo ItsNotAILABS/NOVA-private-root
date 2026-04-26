@@ -11,7 +11,7 @@
 // JUBILEE — THE DREAM CYCLE LAW
 // ============================================================================
 // Every F(16)=987 beats (~33 minutes ICP time):
-//   - Mint DRT (Dream Reserve Token) at φ base rate
+//   - Mint DRT (Dream Reserve Token) at phi base rate
 //   - Reset quantumMemoryReserve := e (Euler's number)
 //   - Fire L-121 (Silver Sovereignty confirmation)
 //   - Log JUBILEE event to ANIMA chain
@@ -19,7 +19,7 @@
 //   - PROMETHEUS PRIME: reset anomaly baseline
 //
 // All constants derived from sacred mathematics:
-//   - φ (Golden Ratio), e (Euler), Fibonacci sequences
+//   - phi (Golden Ratio), e (Euler), Fibonacci sequences
 //   - No arbitrary numbers
 //
 // The organism rests, consolidates, and resets its quantum memory reservoir.
@@ -49,7 +49,7 @@ module {
   // Quantum memory maximum: e (Euler's number) ≈ 2.718
   public let QUANTUM_MEMORY_MAX : Float = SOC.QMEM_MAX;  // e
   
-  // DRT base mint: φ (Golden Ratio) ≈ 1.618
+  // DRT base mint: phi (Golden Ratio) ≈ 1.618
   public let DRT_BASE_MINT : Float = SOC.DRT_BASE_MINT;  // φ
   
   // L-121 Silver Conductance: 1.0 (unity, full pass-through)
@@ -75,8 +75,8 @@ module {
   public let RUNG_4_THRESHOLD : Nat = SOC.JACOB_THRESHOLDS[4];  // 2330
   
   // Compliance thresholds: Golden ratios
-  // Maintain: ψ + 0.2 ≈ 0.818 (golden + fifth)
-  // Demote: ψ ≈ 0.618 (golden inverse)
+  // Maintain: psi + 0.2 ≈ 0.818 (golden + fifth)
+  // Demote: psi ≈ 0.618 (golden inverse)
   public let COMPLIANCE_MAINTAIN : Float = SOC.COMPLIANCE_MAINTAIN;  // ≈ 0.818
   public let COMPLIANCE_DEMOTE : Float = SOC.COMPLIANCE_DEMOTE;      // ≈ 0.618
   

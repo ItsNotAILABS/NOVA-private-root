@@ -112,7 +112,7 @@ module UniversalPrimitiveEngine {
   
   public let S0 : Float = 1.0;                              // Love constant floor — the ultimate primitive
   public let PHI : Float = 1.6180339887498948482;           // Golden ratio — THE TRANSFER FUNCTION
-  public let PHI_INV : Float = 0.6180339887498948482;       // 1/φ = φ - 1
+  public let PHI_INV : Float = 0.6180339887498948482;       // 1/φ = phi - 1
   public let PI : Float = 3.1415926535897932385;            // Circle constant
   public let TAU : Float = 6.2831853071795864769;           // Full rotation
   public let EULER : Float = 2.7182818284590452354;         // Natural growth base

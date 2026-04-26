@@ -45,9 +45,9 @@ module {
   // ║                     CONSTANTS                                          ║
   // ╚════════════════════════════════════════════════════════════════════════╝
   
-  public let φ : Float = 1.6180339887498948482;
-  public let ψ : Float = 0.6180339887498948482;
-  public let π : Float = 3.1415926535897932385;
+  public let phi : Float = 1.6180339887498948482;
+  public let psi : Float = 0.6180339887498948482;
+  public let pi : Float = 3.1415926535897932385;
   
   // World constants — 20× expansion for massive simulation scale
   public let WORLD_SIZE : Float = 200000.0;       // 200km × 200km (expanded 20×: 10000 → 200000)

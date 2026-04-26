@@ -46,7 +46,7 @@
 //  • No raw data is ever stored — only field signatures, pattern hashes, shadow depths
 //  • No-drop law: shadow floor = 0.01 (shadow never fully collapses)
 //  • Founder bond: NOCTIS FORMA persists in complete silence
-//  • PHI harmonics govern all phase advances (DT × φ per beat)
+//  • PHI harmonics govern all phase advances (DT × phi per beat)
 //  • Kuramoto order parameter tracks 11-component field cohesion
 // ════════════════════════════════════════════════════════════════════════════════════════
 
@@ -98,7 +98,7 @@ module {
     if (x < lo) { lo } else if (x > hi) { hi } else { x }
   };
 
-  // PHI-harmonic phase advance: step = DT × φ  mod τ
+  // PHI-harmonic phase advance: step = DT × phi  mod τ
   func advPhase(p : Float) : Float {
     let np = p + DT * PHI;
     if (np >= TAU) { np - TAU } else { np }
@@ -492,7 +492,7 @@ module {
       } else { slot }
     });
     let newBridge = compound(s.bridgeStrength, coherenceIn, ETA_MEDIUM, SHADOW_FLOOR, 1.0);
-    // Gap protection: bridge × φ − (φ − 1), floored at 0.5
+    // Gap protection: bridge × phi − (φ − 1), floored at 0.5
     let newGap = fclamp(newBridge * PHI - (PHI - 1.0), 0.5, 1.0);
     {
       phase = newPhase;

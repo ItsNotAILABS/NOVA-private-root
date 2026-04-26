@@ -109,10 +109,10 @@ module {
   // SACRED CONSTANTS — Foundation Mathematics
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  public let φ : Float = 1.6180339887498948482;     // Golden Ratio
-  public let ψ : Float = 0.6180339887498948482;     // 1/φ
+  public let phi : Float = 1.6180339887498948482;     // Golden Ratio
+  public let psi : Float = 0.6180339887498948482;     // 1/φ
   public let τ : Float = 6.2831853071795864769;     // 2π
-  public let π : Float = 3.14159265358979323846;
+  public let pi : Float = 3.14159265358979323846;
   public let e : Float = 2.71828182845904523536;
   public let √5 : Float = 2.2360679774997896964;
   public let GOLDEN_ANGLE : Float = 2.399963229728653;  // 137.5077° in radians
@@ -569,7 +569,7 @@ module {
         toLab = toLab;
         bandwidth = 10.0;
         latency = 0.01;
-        strength = φ / Float.fromInt(i + 1);
+        strength = phi / Float.fromInt(i + 1);
         dataFlowing = false;
         lastTransmission = 0;
         totalDataTransferred = 0.0;
@@ -1105,7 +1105,7 @@ module {
     
     // Step 1: Kuramoto couple agents within each lab
     let coupledLabs = Array.map<Lab, Lab>(state.labs, func(lab) {
-      let coupledAgents = kuramotoCoupleAgents(lab.agents, φ * 0.1);
+      let coupledAgents = kuramotoCoupleAgents(lab.agents, phi * 0.1);
       { lab with agents = coupledAgents }
     });
     

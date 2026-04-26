@@ -61,7 +61,7 @@ module {
   // ══════════════════════════════════════════════════════════════════════════
   // SACRED JACOB'S LADDER — φ^n GEOMETRIC PROGRESSION (NOT ARITHMETIC)
   // ══════════════════════════════════════════════════════════════════════════
-  // The sovereign ratio φ = 1.618... compounds GEOMETRICALLY
+  // The sovereign ratio phi = 1.618... compounds GEOMETRICALLY
   // Each rung multiplies by φ, not adds — this is SACRED MATH
   //
   // Rung 0: φ^0 = 1.0         (baseline)

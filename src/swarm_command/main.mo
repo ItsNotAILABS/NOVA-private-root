@@ -47,7 +47,7 @@ actor SwarmCommand {
     x        : Float;
     y        : Float;
     z        : Float;
-    label    : Text;
+    lbl    : Text;
   };
 
   public type MissionStatus = {
@@ -218,35 +218,34 @@ actor SwarmCommand {
 
   // ─── WAYPOINTS ───────────────────────────────────────────────────────────────
 
-  public func addWaypoint(x : Float, y : Float, z : Float, label : Text) : async Nat {
+  public func addWaypoint(x : Float, y : Float, z : Float, lbl : Text) : async Nat {
     ensureWpCap();
     if (waypointCount >= WP_CAP) return 0;
     let idx = waypointCount;
     waypointX[idx]     := x;
     waypointY[idx]     := y;
     waypointZ[idx]     := z;
-    waypointLabel[idx] := label;
+    waypointLabel[idx] := lbl;
     waypointCount += 1;
     idx
   };
 
-  public query func getWaypoints() : async [{x:Float; y:Float; z:Float; label:Text}] {
-    Array.tabulate<{x:Float; y:Float; z:Float; label:Text}>(waypointCount, func(i) {
-      { x = waypointX[i]; y = waypointY[i]; z = waypointZ[i]; label = waypointLabel[i] }
+  public query func getWaypoints() : async [{x:Float; y:Float; z:Float; lbl:Text}] {
+    Array.tabulate<{x:Float; y:Float; z:Float; lbl:Text}>(waypointCount, func(i) {
+      { x = waypointX[i]; y = waypointY[i]; z = waypointZ[i]; lbl = waypointLabel[i] }
     })
   };
 
   // ─── HITL APPROVAL GATE ──────────────────────────────────────────────────────
 
   public func queueAction(
-    droneId  : Nat;
-    action   : Text;
-    reason   : Text;
-    cortisol : Float;
-    jDrift   : Float;
-    rSwarm   : Float;
-    beat     : Nat;
-  ) : async Nat {
+    droneId  : Nat,
+    action   : Text,
+    reason   : Text,
+    cortisol : Float,
+    jDrift   : Float,
+    rSwarm   : Float,
+    beat     : Nat,) : async Nat {
     ensureQueueCap();
     expirePending();
     let id  = nextRequestId % QUEUE_CAP;
@@ -339,7 +338,7 @@ actor SwarmCommand {
     status   : Text;
   }] {
     let total = if (nextRequestId < QUEUE_CAP) nextRequestId else QUEUE_CAP;
-    Array.tabulate(total, func(i : Nat) {
+    Array.tabulate<{ id:Nat; droneId:Nat; action:Text; reason:Text; cortisol:Float; jDrift:Float; rSwarm:Float; beat:Nat; deadline:Int; status:Text }>(total, func(i : Nat) {
       {
         id       = reqIds[i];
         droneId  = reqDroneIds[i];

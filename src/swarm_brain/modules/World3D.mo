@@ -54,7 +54,7 @@ module {
   public let SEA_LEVEL : Nat = 640;       // Expanded 20×: 32 → 640
   
   /// Fibonacci for terrain generation
-  public let φ : Float = 1.6180339887498948482;
+  public let phi : Float = 1.6180339887498948482;
   public let F : [Nat] = [1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987];
 
   // ╔════════════════════════════════════════════════════════════════════════╗
@@ -411,19 +411,19 @@ module {
     
     // Crown (spherical for oak)
     let crownStart = by + tree.height - tree.crownRadius - 1;
-    var dy : Int = -Int.fromNat(tree.crownRadius);
-    while (dy <= Int.fromNat(tree.crownRadius)) {
-      var dx : Int = -Int.fromNat(tree.crownRadius);
-      while (dx <= Int.fromNat(tree.crownRadius)) {
-        var dz : Int = -Int.fromNat(tree.crownRadius);
-        while (dz <= Int.fromNat(tree.crownRadius)) {
+    var dy : Int = -tree.crownRadius;
+    while (dy <= tree.crownRadius) {
+      var dx : Int = -tree.crownRadius;
+      while (dx <= tree.crownRadius) {
+        var dz : Int = -tree.crownRadius;
+        while (dz <= tree.crownRadius) {
           let distSq = dx * dx + dy * dy + dz * dz;
-          let radiusSq = Int.fromNat(tree.crownRadius * tree.crownRadius);
+          let radiusSq = tree.crownRadius * tree.crownRadius;
           
           if (distSq <= radiusSq) {
-            let lx = Int.fromNat(bx) + dx;
-            let ly = Int.fromNat(crownStart) + dy;
-            let lz = Int.fromNat(bz) + dz;
+            let lx = bx + dx;
+            let ly = crownStart + dy;
+            let lz = bz + dz;
             
             if (lx >= 0 and ly >= 0 and lz >= 0) {
               result.add((Int.abs(lx), Int.abs(ly), Int.abs(lz), #Leaves));

@@ -28,7 +28,7 @@
 //
 // ── LAYER 2: OLFACTORY HOMING ─────────────────────────────────────────────────
 //   Chemical imprinting during juvenile development (smoltification)
-//   Each river has unique chemical signature: ψ = [c₁, c₂, ..., c_K]
+//   Each river has unique chemical signature: psi = [c₁, c₂, ..., c_K]
 //   c_k = concentration of compound k (amino acids, bile acids, minerals)
 //   Salmon's olfactory bulb has ~10,000 receptor types (humans: ~400)
 //   Chemical detection threshold: C_min ~ 10⁻¹⁴ mol/L (parts per quadrillion)
@@ -44,7 +44,7 @@
 //   Sun compass: azimuth angle A_sun(t) changes throughout the day
 //   A_sun = arctan(sin(H) / [cos(H)sin(φ) - tan(δ)cos(φ)])
 //   H = hour angle = (LST - RA_sun) × 15°/hr
-//   φ = latitude, δ = sun's declination
+//   phi = latitude, δ = sun's declination
 //   Time compensation: salmon has internal circadian clock
 //   Correction: A_correct(t) = A_sun(t) + dA/dt × (t - t_observed)
 //   dA/dt ≈ 15°/hr (Earth's rotation rate)

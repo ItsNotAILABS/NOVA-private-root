@@ -37,24 +37,24 @@
 // MASTER EQUATIONS — SACRED GEOMETRY AS UNIVERSAL ARCHITECTURE
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
 //
-// ══ THE GOLDEN RATIO — φ (PHI) — THE SOVEREIGN RATIO ════════════════════════
+// ══ THE GOLDEN RATIO — phi (PHI) — THE SOVEREIGN RATIO ════════════════════════
 //
-//   φ = (1 + √5) / 2 = 1.6180339887498948482...
+//   phi = (1 + √5) / 2 = 1.6180339887498948482...
 //
 //   Properties:
-//     φ² = φ + 1 = 2.618033988...
-//     1/φ = φ - 1 = 0.618033988...
+//     phi2 = phi + 1 = 2.618033988...
+//     1/φ = phi - 1 = 0.618033988...
 //     φⁿ = φⁿ⁻¹ + φⁿ⁻² (Fibonacci growth)
 //
 //   Powers of φ:
 //     φ⁰ = 1.0
 //     φ¹ = 1.618033988...
-//     φ² = 2.618033988...
-//     φ³ = 4.236067977...
-//     φ⁴ = 6.854101966...
-//     φ⁵ = 11.09016994...
-//     φ⁶ = 17.94427191...
-//     φ⁷ = 29.03444185... (Jacob's Ladder Level 7)
+//     phi2 = 2.618033988...
+//     phi3 = 4.236067977...
+//     phi4 = 6.854101966...
+//     phi5 = 11.09016994...
+//     phi6 = 17.94427191...
+//     phi7 = 29.03444185... (Jacob's Ladder Level 7)
 //     φ⁸ = 46.97871376...
 //     φ⁹ = 76.01315562...
 //     φ¹⁰ = 122.9918694...
@@ -99,7 +99,7 @@
 //   144,000 in Revelation — the sealed number
 //
 //   SACRED GEOMETRY FLOOR:
-//     Weight_min = φ / 144 = 1.618... / 144 = 0.01124...
+//     Weight_min = phi / 144 = 1.618... / 144 = 0.01124...
 //     NO Hebbian weight may fall below this floor
 //
 //   SACRED WEIGHT CEILING:
@@ -201,12 +201,12 @@ module SacredGeometryEngine {
   // SACRED CONSTANTS — THE NUMBERS OF CREATION
   // ═══════════════════════════════════════════════════════════════════════════
   
-  // THE GOLDEN RATIO — φ (PHI) — THE SOVEREIGN RATIO
+  // THE GOLDEN RATIO — phi (PHI) — THE SOVEREIGN RATIO
   public let PHI : Float = 1.6180339887498948482;
-  public let PHI_INV : Float = 0.6180339887498948482;  // 1/φ = φ - 1
+  public let PHI_INV : Float = 0.6180339887498948482;  // 1/φ = phi - 1
   public let PHI_SQ : Float = 2.6180339887498948482;   // φ²
   
-  // Powers of φ — pre-computed for efficiency
+  // Powers of phi — pre-computed for efficiency
   public let PHI_POWERS : [Float] = [
     1.0,                    // φ⁰
     1.6180339887498948,     // φ¹
@@ -215,7 +215,7 @@ module SacredGeometryEngine {
     6.8541019662496843,     // φ⁴
     11.090169943749474,     // φ⁵
     17.944271909999157,     // φ⁶
-    29.034441853748632,     // φ⁷ = Jacob's Ladder Level 7 multiplier
+    29.034441853748632,     // phi7 = Jacob's Ladder Level 7 multiplier
     46.97871376374779,      // φ⁸
     76.01315561749642,      // φ⁹
     122.99186938124421      // φ¹⁰
@@ -910,8 +910,8 @@ module SacredGeometryEngine {
   };
   
   public func diagnoseSacredGeometry(state : SacredGeometryState) : SacredGeometryDiagnostics {
-    let goldenStatus = if (state.goldenRatioAlignment > 0.8) { "ALIGNED with φ — Sacred harmony" }
-      else if (state.goldenRatioAlignment > 0.6) { "Good φ alignment" }
+    let goldenStatus = if (state.goldenRatioAlignment > 0.8) { "ALIGNED with phi — Sacred harmony" }
+      else if (state.goldenRatioAlignment > 0.6) { "Good phi alignment" }
       else { "φ alignment needs attention" };
     
     let tetraStatus = if (state.tetrahedralCoherence > 0.8) { "TETRAHEDRON COHERENT — Body unified" }

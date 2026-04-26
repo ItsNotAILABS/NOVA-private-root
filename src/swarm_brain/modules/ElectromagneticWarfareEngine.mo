@@ -57,8 +57,8 @@ module {
   // FUNDAMENTAL CONSTANTS
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  public let φ : Float = 1.6180339887498948482;
-  public let π : Float = 3.14159265358979323846;
+  public let phi : Float = 1.6180339887498948482;
+  public let pi : Float = 3.14159265358979323846;
   public let τ : Float = 6.28318530717958647693;
 
   // Electromagnetic constants
@@ -362,7 +362,7 @@ module {
         shieldingEffectiveness = 0.0;
         helixActive = false;
         helixRotationHz = π;  // π Hz rotation
-        helixPitch = φ;  // φ meters pitch
+        helixPitch = φ;  // phi meters pitch
       };
 
       frequencyHopping = {

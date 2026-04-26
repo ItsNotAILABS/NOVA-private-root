@@ -926,7 +926,7 @@ module LearningCurriculumArchitecture {
       naturalFrequencies : [Float];   // ω_i
       couplingStrength : Float;       // K
       orderParameter : Float;         // r = |1/N Σ exp(iθ_j)|
-      meanPhase : Float;              // ψ = arg(Σ exp(iθ_j))
+      meanPhase : Float;              // psi = arg(Σ exp(iθ_j))
     };
     
     // Sync detection

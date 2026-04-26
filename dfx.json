@@ -134,9 +134,59 @@
       "main": "src/agi_main/main.mo",
       "dependencies": []
     },
+    "quipu_ledger": {
+      "type": "motoko",
+      "main": "src/quipu_ledger/main.mo",
+      "dependencies": []
+    },
+    "nova_protocol": {
+      "type": "motoko",
+      "main": "src/nova_protocol/main.mo",
+      "dependencies": []
+    },
     "medina": {
       "type": "motoko",
       "main": "icp/medina/Medina.mo",
+      "dependencies": []
+    },
+    "friston_machina": {
+      "type": "motoko",
+      "main": "src/friston_machina/main.mo",
+      "dependencies": []
+    },
+    "syntax_synapse": {
+      "type": "motoko",
+      "main": "src/syntax_synapse/main.mo",
+      "dependencies": []
+    },
+    "aegis_shield": {
+      "type": "motoko",
+      "main": "src/aegis_shield/main.mo",
+      "dependencies": []
+    },
+    "vael_cyber": {
+      "type": "motoko",
+      "main": "src/vael_cyber/main.mo",
+      "dependencies": []
+    },
+    "chimera_swarm": {
+      "type": "motoko",
+      "main": "src/chimera_swarm/main.mo",
+      "dependencies": []
+    },
+    "drone_fleet": {
+      "type": "motoko",
+      "main": "src/drone_fleet/main.mo",
+      "dependencies": []
+    },
+    "war_engine": {
+      "type": "motoko",
+      "main": "src/war_engine/main.mo",
+      "dependencies": []
+    },
+    "medina_defense": {
+      "type": "motoko",
+      "main": "src/medina_defense/main.mo",
       "dependencies": []
     },
     "frontend": {

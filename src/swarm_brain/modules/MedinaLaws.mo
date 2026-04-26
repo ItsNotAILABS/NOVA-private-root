@@ -81,7 +81,7 @@ module {
   public let OMEGA : Float = 9.0;
 
   // The Medina Golden Harmonic (Φ_M)
-  // φ × e^(1/φ) — Golden ratio elevated by natural growth
+  // phi × e^(1/φ) — Golden ratio elevated by natural growth
   public let PHI_MEDINA : Float = 2.97442179;
 
   // The Medina Resonance Frequency (ω_M)

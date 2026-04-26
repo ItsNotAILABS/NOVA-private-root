@@ -549,7 +549,7 @@ module {
 
   public type CoherenceToNonce = {
     coherenceValue : Float;       // S
-    phaseValue : Float;           // ψ (mean phase)
+    phaseValue : Float;           // psi (mean phase)
     gradientLaplacian : Float;    // ∇²Φ
     berryPhase : Float;           // ∮A·dl
     mappedNonce : Nat32;          // Resulting nonce
@@ -751,7 +751,7 @@ module {
     oscillators : [var KuramotoOscillator];
     globalCoupling : Float;       // K
     orderParameter : Float;       // S = |1/N × Σ exp(iθᵢ)|
-    meanPhase : Float;            // ψ = arg(1/N × Σ exp(iθᵢ))
+    meanPhase : Float;            // psi = arg(1/N × Σ exp(iθᵢ))
   };
 
   // Initialize Kuramoto network with 118 nodes (Brodmann + subcortical)

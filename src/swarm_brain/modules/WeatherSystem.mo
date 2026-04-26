@@ -60,7 +60,7 @@ module {
   public let R_DRY : Float = 287.05;                 // J/(kg·K) dry air
   public let R_VAPOR : Float = 461.5;                // J/(kg·K) water vapor
   
-  public let π : Float = 3.1415926535897932385;
+  public let pi : Float = 3.1415926535897932385;
 
   // ╔════════════════════════════════════════════════════════════════════════╗
   // ║                     VECTOR TYPE                                        ║

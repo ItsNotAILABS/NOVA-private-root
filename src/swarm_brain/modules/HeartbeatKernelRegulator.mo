@@ -67,8 +67,8 @@ module {
   // FUNDAMENTAL CONSTANTS
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  public let φ : Float = 1.6180339887498948482;  // Golden ratio
-  public let π : Float = 3.14159265358979323846;  // Pi
+  public let phi : Float = 1.6180339887498948482;  // Golden ratio
+  public let pi : Float = 3.14159265358979323846;  // Pi
   public let τ : Float = 6.28318530717958647693;  // Tau (full rotation)
 
   // Frequency constants
@@ -250,7 +250,7 @@ module {
       neuralMergeCore = {
         sphericalIntegrity = 1.0;
         radiusInCode = φ;  // Golden ratio radius
-        surfaceArea = 4.0 * π * φ * φ;  // 4πr²
+        surfaceArea = 4.0 * π * phi * φ;  // 4πr²
         internalFrequencies = [
           0.001,   // CHRONO
           7.83,    // SCHUMANN
