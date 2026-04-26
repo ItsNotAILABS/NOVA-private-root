@@ -441,11 +441,28 @@ actor TokenIntelligence {
     result
   };
 
-  // Mark action as executed
-  public shared(msg) func markActionDone(actionId : Nat) : async Bool {
+  // Mark action as executing (transition READY → EXECUTING)
+  // Callers poll getReadyActions() then claim one before running it.
+  // This prevents double-execution if two canisters race to consume the same action.
+  public shared(_msg) func markActionExecuting(actionId : Nat) : async Bool {
     var i = 0;
     while (i < actionCount and i < ACTION_CAP) {
       if (actionIds[i] == actionId and actionStatuses[i] == "READY") {
+        actionStatuses[i]   := "EXECUTING";
+        actionExecutedAt[i] := Time.now();
+        return true;
+      };
+      i += 1;
+    };
+    false
+  };
+
+  // Mark action as executed (accepts READY or EXECUTING → DONE)
+  public shared(msg) func markActionDone(actionId : Nat) : async Bool {
+    var i = 0;
+    while (i < actionCount and i < ACTION_CAP) {
+      if (actionIds[i] == actionId and
+          (actionStatuses[i] == "READY" or actionStatuses[i] == "EXECUTING")) {
         actionStatuses[i]   := "DONE";
         actionExecutedAt[i] := Time.now();
         return true;
@@ -602,7 +619,7 @@ actor TokenIntelligence {
       throttleReason = throttleReason;
       phi            = PHI;
       alertThreshold = HEALTH_ALERT_THRESHOLD;
-      architecture   = "SENSUM→COGITO→ACTIO | MEMORIA (128-epoch) | VIGILIA (64-node watchdog)";
+      architecture   = "SENSUM→COGITO→ACTIO(READY→EXECUTING→DONE) | MEMORIA (128-epoch) | VIGILIA (64-node watchdog)";
     }
   };
 

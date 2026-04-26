@@ -134,6 +134,16 @@
       "main": "src/agi_main/main.mo",
       "dependencies": []
     },
+    "quipu_ledger": {
+      "type": "motoko",
+      "main": "src/quipu_ledger/main.mo",
+      "dependencies": []
+    },
+    "nova_protocol": {
+      "type": "motoko",
+      "main": "src/nova_protocol/main.mo",
+      "dependencies": []
+    },
     "medina": {
       "type": "motoko",
       "main": "icp/medina/Medina.mo",

@@ -173,6 +173,18 @@
       "dependencies": [],
       "description": "AGI MAIN — Sovereign Mind Canister: ICP system heartbeat fires every ~2s automatically (zero calls needed). Full autonomous economy loop: NNS maturity accrual → neurons spawn neurons (C_HARVEST) → Group D disburses ICP → φ-split treasury (9%=withdrawable) → ecosystem ONESICAN listings at φ² → collectSovereignRevenue() = real money. One deploy. One bootstrap call. Forever."
     },
+    "quipu_ledger": {
+      "type": "motoko",
+      "main": "src/quipu_ledger/main.mo",
+      "dependencies": [],
+      "description": "QUIPU LEDGER — Digital Quipu: canonical cross-canister telemetry log. Typed, hierarchical, append-only, executable. SPINE(domain)→PENDANT(type)→SUBSIDIARY(depth)→KNOT(value)|COLOR(tag). Lifecycle: PENDING→EXECUTING→SETTLED. Inspired by Inca quipu as bytecode, not just ledger."
+    },
+    "nova_protocol": {
+      "type": "motoko",
+      "main": "src/nova_protocol/main.mo",
+      "dependencies": [],
+      "description": "NOVA PROTOCOL — Sovereign Protocol Constants Canister: single source of truth for all φ-constants, Fibonacci sequence, substrate multipliers (ICP=1×/EDGE=φ/CLOUD=φ²/PHANTOM=φ³), sub-token ladder, revenue routing ratios, SERVITORES manifest, quipu schema, Tawantinsuyu topology. The Inca standard knot convention for NOVA."
+    },
     "medina": {
       "type": "motoko",
       "main": "icp/medina/Medina.mo",
