@@ -453,7 +453,7 @@ module {
     oscillators : [var KuramotoOscillator];
     globalCoupling : Float;
     orderParameter : Float;    // S = |1/N × Σ exp(iθᵢ)|
-    meanPhase : Float;         // ψ = arg(1/N × Σ exp(iθᵢ))
+    meanPhase : Float;         // psi = arg(1/N × Σ exp(iθᵢ))
   };
 
   // Initialize Kuramoto system with phi-scaled frequencies

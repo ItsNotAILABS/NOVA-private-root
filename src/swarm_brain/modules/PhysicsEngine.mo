@@ -66,11 +66,11 @@ module {
   public let WATER_DENSITY : Float = 1000.0;
   
   /// Golden ratio (for Fibonacci physics)
-  public let φ : Float = 1.6180339887498948482;
-  public let ψ : Float = 0.6180339887498948482;
+  public let phi : Float = 1.6180339887498948482;
+  public let psi : Float = 0.6180339887498948482;
   
   /// Pi
-  public let π : Float = 3.1415926535897932385;
+  public let pi : Float = 3.1415926535897932385;
   
   /// Boltzmann constant (J/K)
   public let BOLTZMANN : Float = 1.380649e-23;
@@ -1841,7 +1841,7 @@ module {
   };
 
   /// Compute quantum potential (Bohmian mechanics)
-  /// Q = -ℏ²/(2m) · ∇²R/R where ψ = R·exp(iS/ℏ)
+  /// Q = -ℏ²/(2m) · ∇²R/R where psi = R·exp(iS/ℏ)
   public func computeQuantumPotential(
     amplitudeSecondDerivative: Float,
     amplitude: Float,
@@ -2271,7 +2271,7 @@ module {
   // ═══════════════════════════════════════════════════════════════════════════════
   // Gauge symmetry: physics is invariant under LOCAL transformations.
   //
-  // U(1) gauge: ψ → e^(iα(x)) ψ (phase rotation)
+  // U(1) gauge: psi → e^(iα(x)) psi (phase rotation)
   //   Requires gauge field A_μ: ∂_μ → D_μ = ∂_μ + ieA_μ
   //   This IS electromagnetism.
   //

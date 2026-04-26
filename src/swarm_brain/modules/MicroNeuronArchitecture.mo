@@ -178,7 +178,7 @@ module MicroNeuronArchitecture {
     
     // Kuramoto mean-field state
     var orderParameter : Float;           // r ∈ [0,1] — coherence
-    var meanPhase : Float;                // ψ ∈ [0,2π) — collective phase
+    var meanPhase : Float;                // psi ∈ [0,2π) — collective phase
     var meanFrequency : Float;            // ω̄ — mean natural frequency (Hz)
     var frequencyVariance : Float;        // σ² — frequency spread
     

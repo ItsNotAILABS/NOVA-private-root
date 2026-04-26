@@ -133,15 +133,15 @@ actor SwarmAudit {
   // ─── APPEND LOG ENTRY ────────────────────────────────────────────────────────
 
   public func log(
-    kind        : EventKind;
-    beat        : Nat;
-    droneId     : ?Nat;
-    description : Text;
-    rSwarm      : Float;
-    jDrift      : Float;
-    cortisol    : Float;
-    operator    : Text;
-    metadata    : Text;
+    kind        : EventKind,
+    beat        : Nat,
+    droneId     : ?Nat,
+    description : Text,
+    rSwarm      : Float,
+    jDrift      : Float,
+    cortisol    : Float,
+    operator    : Text,
+    metadata    : Text,
   ) : async Nat {
     ensureCap(nextSeq + 1);
     let idx = nextSeq % LOG_CAP;
@@ -149,7 +149,7 @@ actor SwarmAudit {
     kindArr[idx]     := kindToText(kind);
     beatArr[idx]     := beat;
     tsArr[idx]       := Time.now();
-    droneIdArr[idx]  := switch droneId { case null -1; case (?d) Int.fromNat(d) };
+    droneIdArr[idx]  := switch droneId { case null -1; case (?d) d };
     descArr[idx]     := description;
     rSwarmArr[idx]   := rSwarm;
     jDriftArr[idx]   := jDrift;

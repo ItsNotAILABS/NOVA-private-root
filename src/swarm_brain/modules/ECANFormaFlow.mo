@@ -48,8 +48,8 @@ module {
   // ║                     CONSTANTS                                          ║
   // ╚════════════════════════════════════════════════════════════════════════╝
   
-  public let φ : Float = 1.6180339887498948482;
-  public let ψ : Float = 0.6180339887498948482;
+  public let phi : Float = 1.6180339887498948482;
+  public let psi : Float = 0.6180339887498948482;
   public let SOVEREIGN_FLOOR : Float = 1.0;
   
   // FORMA economics
@@ -67,7 +67,7 @@ module {
   public let LTI_THRESHOLD : Float = 0.5;         // Above this, atom is persistent
   
   // Attention spread
-  public let SPREAD_FACTOR : Float = 0.618;       // ψ = golden inverse
+  public let SPREAD_FACTOR : Float = 0.618;       // psi = golden inverse
   public let RENT_RATE : Float = 0.02;            // 2% rent per beat
 
   // ╔════════════════════════════════════════════════════════════════════════╗

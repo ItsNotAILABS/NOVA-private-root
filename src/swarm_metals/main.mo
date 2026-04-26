@@ -124,11 +124,11 @@ actor SwarmMetals {
   //   rSwarm       — Kuramoto order parameter [0,1]
   //   beat         — current beat counter (drives sine/cosine temporality)
   func metalPipeline(
-      input         : Float;
-      prevVal       : Float;
-      threatDeflect : Float;
-      formaMintRate : Float;
-      rSwarm        : Float;
+      input         : Float,
+      prevVal       : Float,
+      threatDeflect : Float,
+      formaMintRate : Float,
+      rSwarm        : Float,
       beat          : Nat) : Float {
     var v = input;
 
@@ -194,10 +194,10 @@ actor SwarmMetals {
   //
   // Protected: only architect or trusted organism/brain canister may call.
   public shared(msg) func processVector(
-      organVector  : [Float];
-      rSwarm       : Float;
-      beat         : Nat;
-      threatLevel  : Float;
+      organVector  : [Float],
+      rSwarm       : Float,
+      beat         : Nat,
+      threatLevel  : Float,
       energyLevel  : Float) : async [Float] {
     requireAuthorized(msg.caller);
 
@@ -240,7 +240,7 @@ actor SwarmMetals {
   // ─── SET METAL RESONANCE ─────────────────────────────────────────────────────
   // Architect-only: tune individual metal constants post-genesis.
   // cobalt is in degrees [-360, 360]; all others clamped [0, 10].
-  public shared(msg) func setMetalResonance(metal : Text; value : Float) : async () {
+  public shared(msg) func setMetalResonance(metal : Text, value : Float) : async () {
     requireAuthorized(msg.caller);
     switch metal {
       case "GOLD"     { metalGold     := Float.max(0.0, Float.min(10.0, value)) };

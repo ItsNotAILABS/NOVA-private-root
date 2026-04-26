@@ -195,7 +195,7 @@ module {
   // ╚════════════════════════════════════════════════════════════════════════╝
   
   public let PHI : Float = 1.6180339887498948482;           // Golden ratio — THE TRANSFER FUNCTION
-  public let PHI_INV : Float = 0.6180339887498948482;       // 1/φ = φ - 1
+  public let PHI_INV : Float = 0.6180339887498948482;       // 1/φ = phi - 1
   public let PHI_SQ : Float = 2.6180339887498948482;        // φ²
   public let PHI_CUBED : Float = 4.2360679774997896964;     // φ³
   public let PHI_FOURTH : Float = 6.8541019662496845446;    // φ⁴

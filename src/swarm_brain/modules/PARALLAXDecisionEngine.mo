@@ -71,8 +71,8 @@ import Buffer "mo:base/Buffer";
 module PARALLAXDecisionEngine {
     
     // Mathematical constants
-    public let π : Float = 3.14159265358979323846;
-    public let φ : Float = 1.618033988749895;  // Golden ratio
+    public let pi : Float = 3.14159265358979323846;
+    public let phi : Float = 1.618033988749895;  // Golden ratio
     public let e : Float = 2.718281828459045;  // Euler's number
     
     // ========================================================================

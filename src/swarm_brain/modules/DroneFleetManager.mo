@@ -76,7 +76,7 @@ module DroneFleetManager {
   //   N=2000 → 10 squads, N=50000 → 50 squads
   //
   // DRONE TYPE — Pattern unfolds from golden angle:
-  //   typeIndex = (id × φ) mod 13  where φ = 1.618...
+  //   typeIndex = (id × φ) mod 13  where phi = 1.618...
   //   The golden ratio ensures uniform distribution across all types
   //
   // POSITION — Fibonacci sphere packing:
@@ -788,7 +788,7 @@ module DroneFleetManager {
   };
   
   // ═══════════════════════════════════════════════════════════════════════════
-  // SQUADRON-LEVEL KURAMOTO — Compute r and ψ for each squadron
+  // SQUADRON-LEVEL KURAMOTO — Compute r and psi for each squadron
   // ═══════════════════════════════════════════════════════════════════════════
   
   public func computeSquadronOrder(state: FleetState, squadronId: Nat) : (Float, Float) {

@@ -38,7 +38,7 @@
 //   u(σ*, σ*) > u(σ, σ*)  (strict Nash)  OR
 //   u(σ*, σ*) = u(σ, σ*) AND u(σ*, σ) > u(σ, σ)  (weak Nash, neutrally stable)
 //   Population dynamics: ẋᵢ = xᵢ × (fᵢ(x) - φ(x))
-//   where fᵢ = fitness of strategy i, φ = average fitness
+//   where fᵢ = fitness of strategy i, phi = average fitness
 //   ESS condition: all eigenvalues of Jacobian at equilibrium ≤ 0
 //
 // ── LAYER 4: REPLICATOR DYNAMICS ─────────────────────────────────────────────
@@ -311,7 +311,7 @@ module {
     })
   };
 
-  // Average fitness: φ = xᵀAx = Σᵢ xᵢ fᵢ
+  // Average fitness: phi = xᵀAx = Σᵢ xᵢ fᵢ
   public func avgFitness(population : [Float], fitness : [Float]) : Float {
     var phi : Float = 0.0;
     let n = if (population.size() < fitness.size()) population.size() else fitness.size();

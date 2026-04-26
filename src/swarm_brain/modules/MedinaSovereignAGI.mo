@@ -120,9 +120,9 @@ module {
   // MEDINA CONSTANTS
   // ════════════════════════════════════════════════════════════════════════════════════════
 
-  public let φ : Float = 1.6180339887498948482;
-  public let ψ : Float = 0.6180339887498948482;
-  public let π : Float = 3.1415926535897932385;
+  public let phi : Float = 1.6180339887498948482;
+  public let psi : Float = 0.6180339887498948482;
+  public let pi : Float = 3.1415926535897932385;
   public let τ : Float = 6.2831853071795864769;
   public let e : Float = 2.7182818284590452354;
 
@@ -261,8 +261,8 @@ module {
     let domainScore = Float.fromInt(state.domainsExperienced) / 100.0;
     
     // Weighted combination with golden ratio
-    let score = (noveltyScore * φ + transferScore * φ * φ + abstractionScore * φ + domainScore) / 
-                (φ + φ * φ + φ + 1.0);
+    let score = (noveltyScore * phi + transferScore * phi * phi + abstractionScore * phi + domainScore) / 
+                (φ + phi * phi + phi + 1.0);
     
     _clamp(score, 0.0, 1.0)
   };
@@ -359,8 +359,8 @@ module {
     let energyFactor = Float.sqrt(energyAvailable);
     
     // Combine with golden ratio weighting
-    let desire = (coherenceProximity * φ * φ + predictability * φ + energyFactor) /
-                 (φ * φ + φ + 1.0);
+    let desire = (coherenceProximity * phi * phi + predictability * phi + energyFactor) /
+                 (φ * phi + phi + 1.0);
     
     _clamp(desire, 0.0, 1.0)
   };
@@ -502,7 +502,7 @@ module {
     let achieveRate = if (generated > 0) { Float.fromInt(achieved) / Float.fromInt(generated) } else { 0.0 };
     
     // Autonomy = having multiple active self-generated goals + achieving them
-    let score = (activeCount / 10.0 * φ + achieveRate * φ * φ) / (φ + φ * φ);
+    let score = (activeCount / 10.0 * phi + achieveRate * phi * φ) / (φ + phi * φ);
     _clamp(score, 0.0, 1.0)
   };
 

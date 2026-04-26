@@ -110,8 +110,8 @@ module {
   // CONSTANTS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  public let φ : Float = 1.6180339887498948482;
-  public let π : Float = 3.1415926535897932385;
+  public let phi : Float = 1.6180339887498948482;
+  public let pi : Float = 3.1415926535897932385;
   public let VZO_HZ : Float = 12.0;          // VZO operates at 12 Hz (brain-synced)
   public let VZO_DT : Float = 1.0 / 12.0;    // 83.3ms per beat
 
@@ -329,7 +329,7 @@ module {
 
   func tickKernel(state : VZOState, rSwarm : Float, beat : Nat) : VZOState {
     // Kernel heartbeat — PHI-modulated scheduling
-    let kernelPhase = Float.sin(Float.fromInt(beat) * φ * 0.01);
+    let kernelPhase = Float.sin(Float.fromInt(beat) * phi * 0.01);
     let newKernelCoherence = Float.max(0.0, Float.min(1.0,
       state.kernelCoherence * 0.99 + rSwarm * 0.01 + kernelPhase * 0.001
     ));
@@ -382,7 +382,7 @@ module {
 
   func tickModelRouter(state : VZOState, rSwarm : Float, beat : Nat) : VZOState {
     // Route requests based on coherence and model affinity
-    let routerPhase = Float.cos(Float.fromInt(beat) * φ * 0.02);
+    let routerPhase = Float.cos(Float.fromInt(beat) * phi * 0.02);
     let newRouterCoherence = Float.max(0.0, Float.min(1.0,
       state.routerCoherence * 0.98 + rSwarm * 0.02 + routerPhase * 0.001
     ));
@@ -435,7 +435,7 @@ module {
   // ═══════════════════════════════════════════════════════════════════════════
 
   func tickDoctrineDNS(state : VZOState, rSwarm : Float, beat : Nat) : VZOState {
-    let dnsPhase = Float.sin(Float.fromInt(beat) * φ * 0.03);
+    let dnsPhase = Float.sin(Float.fromInt(beat) * phi * 0.03);
     let newDnsCoherence = Float.max(0.0, Float.min(1.0,
       state.dnsCoherence * 0.97 + rSwarm * 0.03 + dnsPhase * 0.001
     ));
@@ -490,55 +490,55 @@ module {
 
   func tickRemainingSubsystems(state : VZOState, rSwarm : Float, jDrift : Float, beat : Nat) : VZOState {
     // Transport coherence — PHI-coupled data transfer
-    let transportPhase = Float.sin(Float.fromInt(beat) * φ * 0.04);
+    let transportPhase = Float.sin(Float.fromInt(beat) * phi * 0.04);
     let newTransport = Float.max(0.0, Float.min(1.0,
       state.transportCoherence * 0.97 + rSwarm * 0.03 + transportPhase * 0.001
     ));
 
     // Identity coherence — sovereign identity management
-    let identityPhase = Float.cos(Float.fromInt(beat) * φ * 0.05);
+    let identityPhase = Float.cos(Float.fromInt(beat) * phi * 0.05);
     let newIdentity = Float.max(0.0, Float.min(1.0,
       state.identityCoherence * 0.98 + rSwarm * 0.02 + identityPhase * 0.001
     ));
 
     // Registry coherence — model/package/organism registry
-    let registryPhase = Float.sin(Float.fromInt(beat) * φ * 0.06);
+    let registryPhase = Float.sin(Float.fromInt(beat) * phi * 0.06);
     let newRegistry = Float.max(0.0, Float.min(1.0,
       state.registryCoherence * 0.97 + rSwarm * 0.03 + registryPhase * 0.001
     ));
 
     // Monitor coherence — system health, anomaly detection
-    let monitorPhase = Float.cos(Float.fromInt(beat) * φ * 0.07);
+    let monitorPhase = Float.cos(Float.fromInt(beat) * phi * 0.07);
     let newMonitor = Float.max(0.0, Float.min(1.0,
       state.monitorCoherence * 0.96 + rSwarm * 0.04 + monitorPhase * 0.001
     ));
 
     // Lifecycle coherence — model lifecycle management
-    let lifecyclePhase = Float.sin(Float.fromInt(beat) * φ * 0.08);
+    let lifecyclePhase = Float.sin(Float.fromInt(beat) * phi * 0.08);
     let newLifecycle = Float.max(0.0, Float.min(1.0,
       state.lifecycleCoherence * 0.97 + rSwarm * 0.03 + lifecyclePhase * 0.001
     ));
 
     // Security coherence — defense perimeter
-    let securityPhase = Float.cos(Float.fromInt(beat) * φ * 0.09);
+    let securityPhase = Float.cos(Float.fromInt(beat) * phi * 0.09);
     let newSecurity = Float.max(0.0, Float.min(1.0,
       state.securityCoherence * 0.98 + rSwarm * 0.02 + securityPhase * 0.001
     ));
 
     // Network coherence — peer connectivity, mesh routing
-    let networkPhase = Float.sin(Float.fromInt(beat) * φ * 0.10);
+    let networkPhase = Float.sin(Float.fromInt(beat) * phi * 0.10);
     let newNetwork = Float.max(0.0, Float.min(1.0,
       state.networkCoherence * 0.97 + rSwarm * 0.03 + networkPhase * 0.001
     ));
 
     // Storage coherence — distributed state
-    let storagePhase = Float.cos(Float.fromInt(beat) * φ * 0.11);
+    let storagePhase = Float.cos(Float.fromInt(beat) * phi * 0.11);
     let newStorage = Float.max(0.0, Float.min(1.0,
       state.storageCoherence * 0.98 + rSwarm * 0.02 + storagePhase * 0.001
     ));
 
     // SDK Interface coherence — developer-facing surface
-    let sdkPhase = Float.sin(Float.fromInt(beat) * φ * 0.12);
+    let sdkPhase = Float.sin(Float.fromInt(beat) * phi * 0.12);
     let newSDK = Float.max(0.0, Float.min(1.0,
       state.sdkCoherence * 0.96 + rSwarm * 0.04 + sdkPhase * 0.001
     ));
@@ -552,7 +552,7 @@ module {
     let sdkReady = if (overall > 0.7) overall else overall * 0.5;
 
     // Network mesh health — PHI-weighted connectivity
-    let meshHealth = (newNetwork * φ + newTransport) / (φ + 1.0);
+    let meshHealth = (newNetwork * phi + newTransport) / (φ + 1.0);
 
     // Node Grid health check — VZO monitors the 540-node grid
     let newNodeGridCoherence = overall * 0.6 + meshHealth * 0.4;

@@ -100,7 +100,7 @@
 //    K_scheduled = K × φ^(position/total) for forward
 //    K_scheduled = K × φ^((total-position)/total) for backward
 //    
-//    where φ = 1.618... (golden ratio)
+//    where phi = 1.618... (golden ratio)
 //
 // 4. MEDINA HARMONIC PROCESS NOISE
 //    ─────────────────────────────

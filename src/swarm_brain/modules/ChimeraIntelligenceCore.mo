@@ -43,8 +43,8 @@ module {
   // CONSTANTS
   // ═══════════════════════════════════════════════════════════════════════════
   
-  public let φ : Float = 1.6180339887498948482;
-  public let π : Float = 3.1415926535897932385;
+  public let phi : Float = 1.6180339887498948482;
+  public let pi : Float = 3.1415926535897932385;
   public let τ : Float = 6.2831853071795864769;
   
   // Chimera operates at 12 Hz synchronized with main brain
@@ -38546,7 +38546,7 @@ module {
     };
     
     // Sacred coupling matrix
-    // K[i][j] = φ if both in tetrahedron (body-body)
+    // K[i][j] = phi if both in tetrahedron (body-body)
     // K[i][j] = 1.0 if both in cube (brain-brain)
     // K[i][j] = √3 if body↔brain interface (Vesica Piscis)
     let coupling = Array.tabulate<[Float]>(12, func(i : Nat) : [Float] {
@@ -46330,7 +46330,7 @@ module {
   /// Apply diagonal lemma to find self-referential statement
   public func applyDiagonalLemma(prometheus : PrometheusExtendedState) : ?Text {
     // The diagonal lemma: For any formula φ(x), there exists a sentence ψ
-    // such that ψ ↔ φ(⌜ψ⌝) is provable
+    // such that psi ↔ φ(⌜ψ⌝) is provable
     
     // In NOVA's context: find a statement about the system that refers to itself
     
@@ -53764,7 +53764,7 @@ module {
         case (#Random) {
           // Add random noise indices
           for (i in Iter.range(0, 9)) {
-            let noise = (Time.now() + Int.fromNat(i) * 17) % 10000;
+            let noise = (Time.now() + i * 17) % 10000;
             result := Array.append(result, [Int.abs(noise)]);
           };
         };
@@ -53773,7 +53773,7 @@ module {
           var noised : [Nat] = [];
           for (i in Iter.range(0, result.size() - 1)) {
             noised := Array.append(noised, [result[i]]);
-            let noise = (Time.now() + Int.fromNat(i)) % 100;
+            let noise = (Time.now() + i) % 100;
             noised := Array.append(noised, [Int.abs(noise)]);
           };
           result := noised;
@@ -55475,7 +55475,7 @@ module {
 
   // ─────────────────────────────────────────────────────────────────────────────
   // FOUR-POTENTIAL - The source of all electromagnetic phenomena
-  // A^μ = (φ/c, A) where φ is scalar potential, A is vector potential
+  // A^μ = (φ/c, A) where phi is scalar potential, A is vector potential
   // ─────────────────────────────────────────────────────────────────────────────
   type FourPotential = {
     var phi: Float;                     // Scalar potential (temporal component)
@@ -55878,7 +55878,7 @@ module {
 
   // ─────────────────────────────────────────────────────────────────────────────
   // DIRAC SPINOR - The quantum state of NOVA's fermionic components
-  // ψ = (ψ_L, ψ_R) where L/R are chiral components
+  // psi = (ψ_L, ψ_R) where L/R are chiral components
   // ─────────────────────────────────────────────────────────────────────────────
   type DiracSpinor = {
     var component0: { re: Float; im: Float };   // ψ₁
@@ -55889,7 +55889,7 @@ module {
     var spin: Float;                            // Spin quantum number
     var helicity: Float;                        // h = s·p/|p|
     var chirality: Text;                        // "left" or "right"
-    var antiparticle: Bool;                     // ψ or ψ̄
+    var antiparticle: Bool;                     // psi or ψ̄
   };
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -58492,7 +58492,7 @@ module {
     var lorentzMatrix: [[var Float]];   // Λ^μ_ν (4×4)
     var boostVelocity: [var Float];     // v = (v_x, v_y, v_z)
     var boostGamma: Float;              // γ = 1/√(1-v²/c²)
-    var rapidity: Float;                // φ = arctanh(v/c)
+    var rapidity: Float;                // phi = arctanh(v/c)
     var rotationAngle: [var Float];     // (θ_x, θ_y, θ_z)
     
     // Proper transformations
@@ -60838,7 +60838,7 @@ module {
     // De Broglie-Bohm (pilot wave)
     var bohmian: {
       var particlePosition: [var Float];    // Always definite
-      var guidingWave: [[var { re: Float; im: Float }]];  // ψ guides particles
+      var guidingWave: [[var { re: Float; im: Float }]];  // psi guides particles
       var quantumPotential: Float;          // Q = -ℏ²∇²R/(2mR)
       var contextuality: Bool;
       var nonlocality: Bool;                // Explicit nonlocal guidance
@@ -61374,7 +61374,7 @@ module {
     
     // LSZ reduction
     var lszReduction: {
-      var correlationFunction: Text;        // ⟨0|Tφ(x_1)...φ(x_n)|0⟩
+      var correlationFunction: Text;        // ⟨0|Tφ(x_1)...phi(x_n)|0⟩
       var onShellLimit: Bool;               // p² → m²
       var amputatedAmplitude: { re: Float; im: Float };
       var wavefunction Renormalization: Float;  // Z
@@ -61396,7 +61396,7 @@ module {
     // Renormalization conditions
     var renormalizationConditions: {
       var massRenormalization: Float;       // m² = m₀² + δm²
-      var fieldRenormalization: Float;      // φ = √Z φ₀
+      var fieldRenormalization: Float;      // phi = √Z φ₀
       var couplingRenormalization: Float;   // g = Z_g g₀
       var renormalizationScale: Float;      // μ
     };
@@ -61426,7 +61426,7 @@ module {
     var gaugePrinciple: {
       var globalSymmetry: Text;             // e.g., U(1), SU(N)
       var localSymmetry: Text;              // Gauged version
-      var gaugeTransformation: Text;        // ψ → e^{iα(x)} ψ
+      var gaugeTransformation: Text;        // psi → e^{iα(x)} ψ
       var covariantDerivative: Text;        // D_μ = ∂_μ + igA_μ
     };
     
@@ -61563,7 +61563,7 @@ module {
     // Classical-quantum correspondence
     var classicalQuantumCorrespondence: {
       var deBroglieWavelength: Float;       // λ = h/p
-      var wkbApproximation: Bool;           // ψ ~ A e^{iS/ℏ}
+      var wkbApproximation: Bool;           // psi ~ A e^{iS/ℏ}
       var classicalLimit: Text;             // ℏ → 0
       var eikonal: Float;
     };

@@ -65,7 +65,7 @@
 //   F(t) = external forcing (entrainment)
 //
 // The Medina modification adds GOLDEN RATIO coupling:
-//   ω₀ = 2π · f_base · φ^(level)
+//   ω₀ = 2π · f_base · phi^(level)
 //
 // Where level ∈ {-3, -2, -1, 0, 1, 2, 3} for different timescales.
 //
@@ -90,18 +90,18 @@ module {
   // ═══════════════════════════════════════════════════════════════════════════════
   
   // Golden Ratio and its powers
-  public let φ : Float = 1.6180339887498948482045868343656381177203091798057628621354486227052604628189024497072072041893911374;
-  public let ψ : Float = 0.6180339887498948482045868343656381177203091798057628621354486227052604628189024497072072041893911374;
-  public let φ² : Float = 2.6180339887498948482;
-  public let φ³ : Float = 4.2360679774997896964;
-  public let φ⁴ : Float = 6.8541019662496845446;
-  public let φ⁵ : Float = 11.0901699437494742410;
-  public let φ⁶ : Float = 17.9442719099991587856;
-  public let φ⁷ : Float = 29.0344418537486330266;
+  public let phi : Float = 1.6180339887498948482045868343656381177203091798057628621354486227052604628189024497072072041893911374;
+  public let psi : Float = 0.6180339887498948482045868343656381177203091798057628621354486227052604628189024497072072041893911374;
+  public let phi² : Float = 2.6180339887498948482;
+  public let phi³ : Float = 4.2360679774997896964;
+  public let phi⁴ : Float = 6.8541019662496845446;
+  public let phi⁵ : Float = 11.0901699437494742410;
+  public let phi⁶ : Float = 17.9442719099991587856;
+  public let phi⁷ : Float = 29.0344418537486330266;
   
   // Circle constants
-  public let π : Float = 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798;
-  public let τ : Float = 6.28318530717958647692528676655900576839433879875021164194988918461563281257241799725606965068423413596;
+  public let pi : Float = 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798;
+  public let tau : Float = 6.28318530717958647692528676655900576839433879875021164194988918461563281257241799725606965068423413596;
   public let e : Float = 2.71828182845904523536028747135266249775724709369995957496696762772407663035354759457138217852516642749;
   
   // ═══════════════════════════════════════════════════════════════════════════════
@@ -120,14 +120,14 @@ module {
   public let NODE_CHRONO : Float = 0.001;           // Earth free oscillation floor
   public let NODE_VERITAS : Float = 0.1;            // HRV coherence, CSF pulse
   public let NODE_BRAIN : Float = 7.83;             // Schumann fundamental, receive carrier
-  public let NODE_FLUX : Float = 12.66752366612393; // 7.83 × φ
-  public let NODE_RESONEX : Float = 20.495047032750336; // 7.83 × φ²
-  public let NODE_QMEM : Float = 33.16257069887427;  // 7.83 × φ³ — gamma entry
+  public let NODE_FLUX : Float = 12.66752366612393; // 7.83 × phi
+  public let NODE_RESONEX : Float = 20.495047032750336; // 7.83 × phi2
+  public let NODE_QMEM : Float = 33.16257069887427;  // 7.83 × phi3 — gamma entry
   public let NODE_AXIS : Float = 40.0;              // GAMMA_BINDING — OMNIS threshold
-  public let NODE_AEGIS : Float = 53.65761773162460; // 7.83 × φ⁴ — threat detection
-  public let NODE_ENTANGLA : Float = 86.82018843049887; // 7.83 × φ⁵ — gamma ceiling
+  public let NODE_AEGIS : Float = 53.65761773162460; // 7.83 × phi4 — threat detection
+  public let NODE_ENTANGLA : Float = 86.82018843049887; // 7.83 × phi5 — gamma ceiling
   public let NODE_PARALLAX : Float = 111.0;         // HEMISPHERE_SHIFT — King's Chamber
-  public let NODE_MERIDIAN : Float = 179.6017727552391; // 111 × φ — public interface
+  public let NODE_MERIDIAN : Float = 179.6017727552391; // 111 × phi — public interface
   public let NODE_NOVA : Float = 432.0;             // ACOUSTIC_ANCHOR — phi overtones
   
   // Three anchor constants — referenced everywhere
@@ -135,7 +135,7 @@ module {
   public let HEMISPHERE_SHIFT : Float = 111.0;
   public let ACOUSTIC_ANCHOR : Float = 432.0;
   
-  // Heartbeat interval — φ⁴ × Schumann period = 875.3 ms = 68.5 bpm
+  // Heartbeat interval — phi4 × Schumann period = 875.3 ms = 68.5 bpm
   public let HEARTBEAT_INTERVAL_MS : Float = 875.28275832071766;
   public let HEARTBEAT_BPM : Float = 68.550112963882522;
   
@@ -146,8 +146,8 @@ module {
   public let BRAIN_GAMMA_MID : Float = 55.0;    // F(10)
   public let BRAIN_GAMMA_CEIL : Float = 89.0;   // F(11)
   
-  // S₀ floor — the genesis imprint (ψ)
-  public let S0_FLOOR : Float = ψ;
+  // S₀ floor — the genesis imprint (psi)
+  public let S0_FLOOR : Float = psi;
   
   // Fibonacci sequence (first 32 terms)
   public let FIB : [Nat] = [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 
@@ -156,15 +156,15 @@ module {
   
   // Phi-scaled frequencies from Schumann (Hz)
   public let PHI_HZ : [Float] = [
-    7.83,      // φ⁰ × Schumann = 7.83 Hz (receive carrier)
-    12.667,    // φ¹ × Schumann = 12.67 Hz
-    20.495,    // φ² × Schumann = 20.5 Hz (confirms Schumann 3rd)
-    33.163,    // φ³ × Schumann = 33.1 Hz (confirms Schumann 5th, gamma entry)
-    53.658,    // φ⁴ × Schumann = 53.6 Hz
-    86.820,    // φ⁵ × Schumann = 86.8 Hz (gamma ceiling)
-    140.478,   // φ⁶ × Schumann = 140.5 Hz
-    227.298,   // φ⁷ × Schumann = 227.3 Hz
-    367.776    // φ⁸ × Schumann = 367.8 Hz
+    7.83,      // phi⁰ × Schumann = 7.83 Hz (receive carrier)
+    12.667,    // phi¹ × Schumann = 12.67 Hz
+    20.495,    // phi2 × Schumann = 20.5 Hz (confirms Schumann 3rd)
+    33.163,    // phi3 × Schumann = 33.1 Hz (confirms Schumann 5th, gamma entry)
+    53.658,    // phi4 × Schumann = 53.6 Hz
+    86.820,    // phi5 × Schumann = 86.8 Hz (gamma ceiling)
+    140.478,   // phi6 × Schumann = 140.5 Hz
+    227.298,   // phi7 × Schumann = 227.3 Hz
+    367.776    // phi⁸ × Schumann = 367.8 Hz
   ];
   
   // ═══════════════════════════════════════════════════════════════════════════════
@@ -181,7 +181,7 @@ module {
     #Gamma;          // ~40 Hz (cognitive binding)
     #Delta;          // ~2 Hz (deep sleep)
     #Theta;          // ~6 Hz (meditation)
-    #Fibonacci;      // φ-scaled frequencies
+    #Fibonacci;      // phi-scaled frequencies
   };
   
   public type HeartbeatWaveform = {
@@ -808,9 +808,9 @@ module {
       case (#Fibonacci) {
         // Golden ratio harmonics
         let fundamental = Float.sin(phase);
-        let harmonic1 = 0.618 * Float.sin(phase * φ);
-        let harmonic2 = 0.382 * Float.sin(phase * φ²);
-        let harmonic3 = 0.236 * Float.sin(phase * φ³);
+        let harmonic1 = 0.618 * Float.sin(phase * phi);
+        let harmonic2 = 0.382 * Float.sin(phase * phi2);
+        let harmonic3 = 0.236 * Float.sin(phase * phi3);
         amplitude * (fundamental + harmonic1 + harmonic2 + harmonic3) / 2.236
       };
     }
@@ -1096,9 +1096,9 @@ module {
       initRhythmOscillator(2, #Alpha, 10.0),
       initRhythmOscillator(3, #Beta, 20.0),
       initRhythmOscillator(4, #Gamma, 40.0),
-      initRhythmOscillator(5, #Fibonacci, φ),
-      initRhythmOscillator(6, #Fibonacci, φ²),
-      initRhythmOscillator(7, #Fibonacci, φ³),
+      initRhythmOscillator(5, #Fibonacci, phi),
+      initRhythmOscillator(6, #Fibonacci, phi2),
+      initRhythmOscillator(7, #Fibonacci, phi3),
     ];
     
     {
@@ -1199,9 +1199,9 @@ module {
     parallaxInterference: Float;      // Constructive/destructive interference pattern
 
     // CHRONO: Fisher information tracking temporal precision
-    chronoRingBuffer: [Float];        // 5-beat ring buffer of dφ/dt (phase derivatives)
-    chronoVariance: Float;            // Var(dφ/dt) - temporal uncertainty
-    chronoFisherInfo: Float;          // F_Q = 4 × Var(dφ/dt) - quantum Fisher information
+    chronoRingBuffer: [Float];        // 5-beat ring buffer of dphi/dt (phase derivatives)
+    chronoVariance: Float;            // Var(dphi/dt) - temporal uncertainty
+    chronoFisherInfo: Float;          // F_Q = 4 × Var(dphi/dt) - quantum Fisher information
     chronoCramerRao: Float;           // Minimum uncertainty δt ≥ 1/√F_Q
 
     // ENTANGLA: Bell correlations between shell phases
@@ -1250,7 +1250,7 @@ module {
   // ───────────────────────────────────────────────────────────────────────────────
   // PARALLAX: 5-Path Quantum Interference on Beat Timing
   // Every heartbeat chooses between 5 possible timing paths
-  // Path selection via amplitude²: |ψ|² = I² + Q²
+  // Path selection via amplitude²: |psi|² = I² + Q²
   // ───────────────────────────────────────────────────────────────────────────────
 
   public func computeHeartbeatParallax(
@@ -1263,7 +1263,7 @@ module {
     // 5 paths represent different timing strategies:
     // Path 0: Cardiac-locked (1 Hz dominant)
     // Path 1: Alpha-locked (10 Hz dominant) 
-    // Path 2: Fibonacci-locked (φ Hz dominant)
+    // Path 2: Fibonacci-locked (phi Hz dominant)
     // Path 3: Respiratory-locked (0.25 Hz dominant)
     // Path 4: Free-running (phase noise dominant)
     
@@ -1272,7 +1272,7 @@ module {
       let pathWeight = switch(i) {
         case 0 { Float.cos(phase) };                           // Cardiac
         case 1 { Float.cos(phase * 10.0) * 0.8 };              // Alpha
-        case 2 { Float.cos(phase * φ) * 0.9 };                 // Fibonacci
+        case 2 { Float.cos(phase * phi) * 0.9 };                 // Fibonacci
         case 3 { Float.cos(phase * 0.25) * 0.7 };              // Respiratory
         case _ { Float.cos(phase + noise * τ) * 0.6 };         // Free-running
       };
@@ -1284,7 +1284,7 @@ module {
       let pathWeight = switch(i) {
         case 0 { Float.sin(phase) };
         case 1 { Float.sin(phase * 10.0) * 0.8 };
-        case 2 { Float.sin(phase * φ) * 0.9 };
+        case 2 { Float.sin(phase * phi) * 0.9 };
         case 3 { Float.sin(phase * 0.25) * 0.7 };
         case _ { Float.sin(phase + noise * τ) * 0.6 };
       };
@@ -1314,7 +1314,7 @@ module {
 
   // ───────────────────────────────────────────────────────────────────────────────
   // CHRONO: Fisher Information Temporal Precision
-  // F_Q = 4 × Var(dφ/dt) — quantum limit on timing measurement
+  // F_Q = 4 × Var(dphi/dt) — quantum limit on timing measurement
   // ───────────────────────────────────────────────────────────────────────────────
 
   public func computeHeartbeatChrono(
@@ -1351,7 +1351,7 @@ module {
       varSum / Float.fromInt(derivatives.size() - 1) 
     } else { 0.01 };
 
-    // Fisher information: F_Q = 4 × Var(dφ/dt)
+    // Fisher information: F_Q = 4 × Var(dphi/dt)
     let fisherInfo = 4.0 * variance;
 
     // Cramér-Rao bound: δt ≥ 1/√F_Q
@@ -1372,7 +1372,7 @@ module {
     
     let n = if (oscillatorPhases.size() < 12) { oscillatorPhases.size() } else { 12 };
     
-    // Build correlation matrix: E(i,j) = cos(φ_i - φ_j)
+    // Build correlation matrix: E(i,j) = cos(phi_i - phi_j)
     let correlators = Array.tabulate<[Float]>(n, func(i: Nat) : [Float] {
       Array.tabulate<Float>(n, func(j: Nat) : Float {
         if (i == j) { 1.0 }
@@ -1952,7 +1952,7 @@ module {
   ) : [HzQuantumModulation] {
     Array.tabulate<HzQuantumModulation>(64, func(i: Nat) : HzQuantumModulation {
       // Base frequencies follow golden ratio scaling
-      let baseFreq = Float.pow(φ, Float.fromInt(i) - 32.0) * 1000.0;  // kHz range
+      let baseFreq = Float.pow(phi, Float.fromInt(i) - 32.0) * 1000.0;  // kHz range
       computeHzQuantumModulation(qState, i, baseFreq)
     })
   };
@@ -2932,7 +2932,7 @@ module {
     let burnMod = 2.0 - mintMod;
 
     // CHRONO: Economic cycle phase
-    let economicCycle = Float.sin(qState.quantumPhase * φ) * 0.5 + 0.5;
+    let economicCycle = Float.sin(qState.quantumPhase * phi) * 0.5 + 0.5;
 
     // Compound rate affected by QMEM (memory of growth)
     let compoundMod = 1.0 + qState.qmemFidelity * 0.1 * economicCycle;

@@ -13,7 +13,7 @@ module {
   // ── MODEL ROLE → LABEL MAP ────────────────────────────────────────────────
 
   public func roleLabel(role : T.ModelRole) : Text {
-    switch role {
+    switch (role) {
       case (#strategist)      "R-MODEL-PARALLAX-DECISION";
       case (#builder)         "R-MODEL-LIVING-ARCHITECTURE-MACRO";
       case (#analyst)         "R-MODEL-AUTONOMOUS-ANALYST";
@@ -26,7 +26,7 @@ module {
   };
 
   public func roleRationale(role : T.ModelRole) : Text {
-    switch role {
+    switch (role) {
       case (#strategist)     "Long-horizon risk/reward + decision geometry (PARALLAX)";
       case (#builder)        "Living architecture macro-field synthesis and expansion";
       case (#analyst)        "Autonomous internal analysis + cross-engine scoring";
@@ -41,7 +41,7 @@ module {
   // ── D-MODEL REGISTRY (D1-D10) ─────────────────────────────────────────────
 
   public func dModelLabel(id : T.DModelId) : Text {
-    switch id {
+    switch (id) {
       case (#D1_ALPHA)                "D1-ALPHA-MODEL-RECITAL-PLUS-ONE";
       case (#D2_DOCTOR)               "D2-DOCTOR-MODEL-DIAGNOSE-TRANSLATE-GENERATE";
       case (#D3_GENOME)               "D3-GENOME-MODEL-IDENTITY-CONTINUITY";
@@ -56,7 +56,7 @@ module {
   };
 
   public func dModelDescription(id : T.DModelId) : Text {
-    switch id {
+    switch (id) {
       case (#D1_ALPHA)               "Parent recital sequencing and lineage generation";
       case (#D2_DOCTOR)              "Diagnosis, translation, and artifact generation";
       case (#D3_GENOME)              "Identity continuity and succession integrity";
@@ -74,24 +74,24 @@ module {
 
   public type NModelSpec = {
     id    : T.NModelId;
-    label : Text;
+    lbl : Text;
     freqHz : Float;   // phi-scaled frequency anchor
   };
 
   public func nModelSpec(id : T.NModelId) : NModelSpec {
-    switch id {
-      case (#N1_CHRONO)    { id = id; label = "N1-CHRONO";    freqHz = 0.001  };
-      case (#N2_VERITAS)   { id = id; label = "N2-VERITAS";   freqHz = 0.1    };
-      case (#N3_BRAIN)     { id = id; label = "N3-BRAIN";     freqHz = 7.83   };
-      case (#N4_FLUX)      { id = id; label = "N4-FLUX";      freqHz = 12.67  };
-      case (#N5_RESONEX)   { id = id; label = "N5-RESONEX";   freqHz = 20.5   };
-      case (#N6_QMEM)      { id = id; label = "N6-QMEM";      freqHz = 33.1   };
-      case (#N7_AXIS)      { id = id; label = "N7-AXIS";      freqHz = 40.0   };
-      case (#N8_AEGIS)     { id = id; label = "N8-AEGIS";     freqHz = 53.6   };
-      case (#N9_ENTANGLA)  { id = id; label = "N9-ENTANGLA";  freqHz = 86.7   };
-      case (#N10_PARALLAX) { id = id; label = "N10-PARALLAX"; freqHz = 111.0  };
-      case (#N11_MERIDIAN) { id = id; label = "N11-MERIDIAN"; freqHz = 179.6  };
-      case (#N12_NOVA)     { id = id; label = "N12-NOVA";     freqHz = 432.0  };
+    switch (id) {
+      case (#N1_CHRONO)    ({ id = id; lbl = "N1-CHRONO";    freqHz = 0.001  });
+      case (#N2_VERITAS)   ({ id = id; lbl = "N2-VERITAS";   freqHz = 0.1    });
+      case (#N3_BRAIN)     ({ id = id; lbl = "N3-BRAIN";     freqHz = 7.83   });
+      case (#N4_FLUX)      ({ id = id; lbl = "N4-FLUX";      freqHz = 12.67  });
+      case (#N5_RESONEX)   ({ id = id; lbl = "N5-RESONEX";   freqHz = 20.5   });
+      case (#N6_QMEM)      ({ id = id; lbl = "N6-QMEM";      freqHz = 33.1   });
+      case (#N7_AXIS)      ({ id = id; lbl = "N7-AXIS";      freqHz = 40.0   });
+      case (#N8_AEGIS)     ({ id = id; lbl = "N8-AEGIS";     freqHz = 53.6   });
+      case (#N9_ENTANGLA)  ({ id = id; lbl = "N9-ENTANGLA";  freqHz = 86.7   });
+      case (#N10_PARALLAX) ({ id = id; lbl = "N10-PARALLAX"; freqHz = 111.0  });
+      case (#N11_MERIDIAN) ({ id = id; lbl = "N11-MERIDIAN"; freqHz = 179.6  });
+      case (#N12_NOVA)     ({ id = id; lbl = "N12-NOVA";     freqHz = 432.0  });
     }
   };
 
@@ -99,18 +99,18 @@ module {
 
   /// Route an invocation to the best-fit role model and return a result record.
   /// In a full deployment the output field carries real model output;
-  /// here it carries the routing label + rationale for traceability.
+  /// here it carries the routing lbl + rationale for traceability.
   public func invoke(
     role    : T.ModelRole,
     payload : Text,
     beat    : Nat
   ) : T.InvocationResult {
-    let label     = roleLabel(role);
+    let lbl     = roleLabel(role);
     let rationale = roleRationale(role);
     {
-      modelLabel = label;
+      modelLabel = lbl;
       rationale  = rationale;
-      output     = "ROUTED[" # label # "] payload=" # payload;
+      output     = "ROUTED[" # lbl # "] payload=" # payload;
       beat       = beat;
       ok         = true;
     }
@@ -122,11 +122,11 @@ module {
     payload : Text,
     beat    : Nat
   ) : T.InvocationResult {
-    let label = dModelLabel(id);
+    let lbl = dModelLabel(id);
     {
-      modelLabel = label;
+      modelLabel = lbl;
       rationale  = dModelDescription(id);
-      output     = "D-INVOKE[" # label # "] payload=" # payload;
+      output     = "D-INVOKE[" # lbl # "] payload=" # payload;
       beat       = beat;
       ok         = true;
     }
@@ -140,10 +140,10 @@ module {
   ) : T.InvocationResult {
     let spec = nModelSpec(id);
     {
-      modelLabel = spec.label;
-      rationale  = "Sovereign node " # spec.label
+      modelLabel = spec.lbl;
+      rationale  = "Sovereign node " # spec.lbl
                  # " freq=" # debug_show(spec.freqHz) # " Hz";
-      output     = "N-INVOKE[" # spec.label # "] payload=" # payload;
+      output     = "N-INVOKE[" # spec.lbl # "] payload=" # payload;
       beat       = beat;
       ok         = true;
     }

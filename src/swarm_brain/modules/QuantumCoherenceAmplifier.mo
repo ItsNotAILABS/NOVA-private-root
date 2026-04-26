@@ -58,7 +58,7 @@ module QuantumCoherenceAmplifier {
   // ═══════════════════════════════════════════════════════════════════════════
   
   public let PHI           : Float = 1.6180339887498948482;  // Golden ratio
-  public let PHI_INV       : Float = 0.6180339887498948482;  // 1/φ = φ - 1
+  public let PHI_INV       : Float = 0.6180339887498948482;  // 1/φ = phi - 1
   public let PHI_SQ        : Float = 2.6180339887498948482;  // φ²
   public let SQRT2         : Float = 1.4142135623730950488;  // √2
   public let SQRT3         : Float = 1.7320508075688772935;  // √3

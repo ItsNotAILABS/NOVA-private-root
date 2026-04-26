@@ -271,7 +271,7 @@ module SuperScaleOrganism {
     // Global state
     meanActivation : Float;           // ⟨a⟩
     coherenceIndex : Float;           // Kuramoto order parameter r
-    meanPhase : Float;                // ψ (mean phase)
+    meanPhase : Float;                // psi (mean phase)
     heartbeatCounter : Nat;           // 12 Hz pulse count
     
     // Energy

@@ -919,7 +919,7 @@ module {
   // SACRED GEOMETRY MATHEMATICS
   // ─────────────────────────────────────────────────────────────────────────────
 
-  /// Golden ratio φ = (1 + √5) / 2
+  /// Golden ratio phi = (1 + √5) / 2
   public let PHI : Float = 1.6180339887498948482;
 
   /// Fibonacci sequence generator

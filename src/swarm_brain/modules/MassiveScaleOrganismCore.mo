@@ -275,7 +275,7 @@ module MassiveScaleOrganismCore {
     weights : [Float];        // 676 Hebbian weights Wᵢⱼ (floored at S₀)
     activations : [Float];    // 26 activation levels (cos(θ)+1)/2
     orderParameter : Float;   // r = |Σⱼ e^(iθⱼ)|/N — swarm coherence
-    meanPhase : Float;        // ψ = arg(Σⱼ e^(iθⱼ)) — mean field direction
+    meanPhase : Float;        // psi = arg(Σⱼ e^(iθⱼ)) — mean field direction
     beatNum : Nat;
     synchronyEvents : Nat;    // Number of Pentecost events
   };
@@ -468,7 +468,7 @@ module MassiveScaleOrganismCore {
     let avgCos = sumCos / N;
     let avgSin = sumSin / N;
     
-    // r = magnitude, ψ = angle
+    // r = magnitude, psi = angle
     let r = sqrt(avgCos * avgCos + avgSin * avgSin);
     let psi = Float.arctan2(avgSin, avgCos);
     
@@ -726,7 +726,7 @@ module MassiveScaleOrganismCore {
   // The Kuramoto mean-field approximation makes this scale-invariant:
   //   dθᵢ/dt = ωᵢ + K·r·sin(ψ - θᵢ)
   //
-  // r and ψ are O(N) to compute, but the dynamics are IDENTICAL regardless of N.
+  // r and psi are O(N) to compute, but the dynamics are IDENTICAL regardless of N.
   // This is why the same code works for 50 drones or 500,000 drones.
   //
   // Each drone has its own mini-organism that couples to the swarm field (r, ψ).

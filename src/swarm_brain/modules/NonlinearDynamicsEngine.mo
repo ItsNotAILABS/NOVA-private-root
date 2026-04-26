@@ -52,10 +52,10 @@ module {
   // ║                     MATHEMATICAL CONSTANTS                             ║
   // ╚════════════════════════════════════════════════════════════════════════╝
 
-  public let φ : Float = 1.6180339887498948482;
-  public let ψ : Float = 0.6180339887498948482;
+  public let phi : Float = 1.6180339887498948482;
+  public let psi : Float = 0.6180339887498948482;
   public let τ : Float = 6.2831853071795864769;
-  public let π : Float = 3.1415926535897932385;
+  public let pi : Float = 3.1415926535897932385;
   public let e : Float = 2.7182818284590452354;
   public let ln2 : Float = 0.6931471805599453;
 
@@ -1259,7 +1259,7 @@ module {
       state = {
         chaoticMeasure = if (maxLyap > 0.0) { maxLyap } else { 0.0 };
         predictabilityHorizon = if (maxLyap > 0.0) { 1.0 / maxLyap } else { 100.0 };
-        energy = engine.state.energy * ψ + 0.1;
+        energy = engine.state.energy * psi + 0.1;
         coherence = engine.state.coherence;
       };
     };

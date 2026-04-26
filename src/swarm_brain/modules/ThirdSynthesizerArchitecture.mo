@@ -61,7 +61,7 @@
 // │                                                                                                             │
 // │   ┌───────────────────────────────────────────────────────────────────────────────────────────────────┐    │
 // │   │                                                                                                   │    │
-// │   │   Δ_sensor = φ · |S(t)| · e^{iθ_s} · cos(ω_schumann · t)                                         │    │
+// │   │   Δ_sensor = phi · |S(t)| · e^{iθ_s} · cos(ω_schumann · t)                                         │    │
 // │   │                                                                                                   │    │
 // │   │   First sensor hit triggers IMMEDIATE multi-path pre-calculation:                                 │    │
 // │   │   • Gate path: G(Ψ, S) = tanh(Ψ · S · φ⁻¹) — sigmoid gate response                               │    │
@@ -153,7 +153,7 @@
 // │   Where:                                                                                                    │
 // │   • × is the field cross-product (generates Chi from Yin/Yang differential)                                │
 // │   • κ_gen = φ⁻¹ · |Ψ_yin - Ψ_yang|  (generation rate from imbalance)                                       │
-// │   • γ_decay = (1/τ_chi) where τ_chi = φ⁴ · T_schumann                                                      │
+// │   • γ_decay = (1/τ_chi) where τ_chi = phi4 · T_schumann                                                      │
 // │   • η = learning rate for dynamic balance adjustment                                                        │
 // │                                                                                                             │
 // │   UNIFIED FIELD (The Third Synthesizer's Core):                                                            │
@@ -261,7 +261,7 @@ module {
   // ╚════════════════════════════════════════════════════════════════════════╝
   
   public let PHI : Float = 1.6180339887498948482;           // Golden ratio — THE TRANSFER FUNCTION
-  public let PHI_INV : Float = 0.6180339887498948482;       // 1/φ = φ - 1
+  public let PHI_INV : Float = 0.6180339887498948482;       // 1/φ = phi - 1
   public let PHI_SQ : Float = 2.6180339887498948482;        // φ²
   public let PHI_CUBED : Float = 4.2360679774997896964;     // φ³
   public let PHI_FOURTH : Float = 6.8541019662496845446;    // φ⁴
@@ -761,7 +761,7 @@ module {
     
     let outerShell : SphericalShell = {
       shellType = #OuterShell;
-      radius = PHI_SQ;               // φ² from center
+      radius = PHI_SQ;               // phi2 from center
       activation = 1.0;
       permeability = 0.5;            // Gate, selective permeability
       resonanceWithCore = 1.0 / PHI_SQ;
@@ -839,7 +839,7 @@ module {
   // ║        DELTA CALCULATIONS — FIELD IS ALREADY ACTIVE                    ║
   // ╚════════════════════════════════════════════════════════════════════════╝
   
-  // Δ_sensor = φ · |S(t)| · e^{iθ_s} · cos(ω_schumann · t)
+  // Δ_sensor = phi · |S(t)| · e^{iθ_s} · cos(ω_schumann · t)
   public func calculateDeltaSensor(
     sensorInput : Float,
     currentPhase : Float,
@@ -1106,7 +1106,7 @@ module {
     
     // dΨ_chi/dt = κ_gen·(Ψ_yin × Ψ_yang) - γ_decay·Ψ_chi + η·(|Ψ_yin|² - |Ψ_yang|²)·Ψ_chi
     let kappa_gen = PHI_INV * fabs(newYin - newYang);  // Generation from imbalance
-    let gamma_decay = 1.0 / (PHI_FOURTH * 127.7);     // Decay time = φ⁴ × Schumann period
+    let gamma_decay = 1.0 / (PHI_FOURTH * 127.7);     // Decay time = phi4 × Schumann period
     let eta = 0.01;  // Learning rate
     let chiTerm1 = kappa_gen * newYin * newYang;  // Cross-product generation
     let chiTerm2 = -gamma_decay * zone.synthesizer.chiFlowing;

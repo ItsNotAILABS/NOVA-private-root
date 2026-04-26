@@ -226,7 +226,7 @@ actor TokenIntelligence {
     recommended: Text;  // INCREASE | HOLD | REDUCE
   }] {
     let substrates : [Text] = ["ICP", "BLOCKCHAIN", "EDGE", "CLOUD", "PHANTOM"];
-    var raws : [Float] = Array.tabulate<Float>(5, func(_) 0.0);
+    var raws : [Float] = Array.tabulate<Float>(5, func(_ : Nat) : Float { 0.0 });
     var i = 0;
     while (i < signalCount and i < SIGNAL_CAP) {
       if (signalKinds[i] == "DEMAND") {

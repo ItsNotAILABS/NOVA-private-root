@@ -87,7 +87,7 @@ module {
   // ═══════════════════════════════════════════════════════════════════════════
   //
   //  PHI IS NOT A FREQUENCY. PHI IS THE TRANSFER FUNCTION.
-  //  φ = 1.618034... is the RATIO between adjacent levels of ANY naturally 
+  //  phi = 1.618034... is the RATIO between adjacent levels of ANY naturally 
   //  sustained coupled oscillating system.
   //
   //  Published: Frontiers in Human Neuroscience, March 4, 2026
@@ -96,18 +96,18 @@ module {
   // ═══════════════════════════════════════════════════════════════════════════
 
   // ─── 1.1 GOLDEN RATIO — The Universal Coupling Constant ────────────────────
-  public let φ : Float = 1.6180339887498948482;
-  public let ψ : Float = 0.6180339887498948482;  // φ⁻¹
+  public let phi : Float = 1.6180339887498948482;
+  public let psi : Float = 0.6180339887498948482;  // φ⁻¹
   
-  // Powers of φ (phi-scaled frequency multipliers)
-  public let φ² : Float = 2.6180339887498948482;   // φ + 1
-  public let φ³ : Float = 4.2360679774997896964;   // φ² + φ
-  public let φ⁴ : Float = 6.8541019662496845446;   // φ³ + φ²
-  public let φ⁵ : Float = 11.0901699437494742410;  // φ⁴ + φ³
-  public let φ⁶ : Float = 17.9442719099991587856;  // φ⁵ + φ⁴
+  // Powers of phi (phi-scaled frequency multipliers)
+  public let phi2 : Float = 2.6180339887498948482;   // phi + 1
+  public let phi3 : Float = 4.2360679774997896964;   // phi2 + φ
+  public let phi4 : Float = 6.8541019662496845446;   // phi3 + φ²
+  public let phi5 : Float = 11.0901699437494742410;  // phi4 + φ³
+  public let phi6 : Float = 17.9442719099991587856;  // phi5 + φ⁴
   
   // ─── 1.1b CIRCLE CONSTANTS ─────────────────────────────────────────────────
-  public let π : Float = 3.14159265358979323846;
+  public let pi : Float = 3.14159265358979323846;
   public let τ : Float = 6.28318530717958647692;  // 2π
   
   // ─── 1.2 SCHUMANN RESONANCES — Earth's Electromagnetic Cavity ──────────────
@@ -132,7 +132,7 @@ module {
   public let PHI_NODE_11_MERIDIAN  : Float = 179.6;    // 111 × φ
   public let PHI_NODE_12_NOVA      : Float = 432.0;    // Acoustic anchor
   
-  // ─── 1.4 ORGANISM HEARTBEAT — φ⁴ × Schumann ────────────────────────────────
+  // ─── 1.4 ORGANISM HEARTBEAT — phi4 × Schumann ────────────────────────────────
   // Walking up phi ladder from 7.83Hz: 127.7ms → 206.6ms → 334.3ms → 540.9ms → 875.3ms
   // 875.28ms = 68.5 BPM = resting human heart rate
   public let HEARTBEAT_MS : Float = 875.28;
@@ -290,7 +290,7 @@ module {
     naturalFreqs : [Float];     // ω for each category (from PHI nodes)
     couplingStrength : Float;   // K
     orderParameter : Float;     // R = |Σ e^{iθ_j}| / N
-    meanPhase : Float;          // ψ = arg(Σ e^{iθ_j})
+    meanPhase : Float;          // psi = arg(Σ e^{iθ_j})
   };
   
   // Map categories to PHI nodes for natural frequencies
@@ -506,7 +506,7 @@ module {
     // Chi flows from Yin to Yang based on their differential
     // dΨ_chi/dt = κ_gen·(Ψ_yin × Ψ_yang) - γ_decay·Ψ_chi + η·(|Ψ_yin|² - |Ψ_yang|²)·Ψ_chi
     
-    let chiGenRate = ψ * Float.abs(state.yinYangChi.yin.magnitude - state.yinYangChi.yang.magnitude);
+    let chiGenRate = psi * Float.abs(state.yinYangChi.yin.magnitude - state.yinYangChi.yang.magnitude);
     let chiDecay = 1.0 / (φ⁴ * HEARTBEAT_MS / 1000.0);
     
     let newChiMag = fclamp(

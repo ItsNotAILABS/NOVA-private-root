@@ -224,7 +224,7 @@ module {
     
     // Rotation amount depends on decision type
     let rotateAmount = switch (decision.decisionType) {
-      case (#PhaseWrap) { 7 };           // φ related
+      case (#PhaseWrap) { 7 };           // phi related
       case (#LearningEvent) { 13 };      // Prime
       case (#Bifurcation) { 17 };        // Feigenbaum related
       case (#CoherenceThreshold) { 23 }; // Prime

@@ -37,12 +37,12 @@
 // RING AFFINITY REWARDS (from N12 → N1):
 //   N12 (surface)    → base reward × φ⁰    = 1.000
 //   N11              → base reward × φ¹    = 1.618
-//   N10              → base reward × φ²    = 2.618
-//   N9               → base reward × φ³    = 4.236
-//   N8               → base reward × φ⁴    = 6.854
-//   N7               → base reward × φ⁵    = 11.09
-//   N6               → base reward × φ⁶    = 17.94
-//   N5               → base reward × φ⁷    = 29.03
+//   N10              → base reward × phi2    = 2.618
+//   N9               → base reward × phi3    = 4.236
+//   N8               → base reward × phi4    = 6.854
+//   N7               → base reward × phi5    = 11.09
+//   N6               → base reward × phi6    = 17.94
+//   N5               → base reward × phi7    = 29.03
 //   N4               → base reward × φ⁸    = 46.98
 //   N3               → base reward × φ⁹    = 76.01
 //   N2               → base reward × φ¹⁰   = 122.9
@@ -109,7 +109,7 @@ module AgentIncentiveService {
     agents            : [AgentSovereign];
     pendingEvents     : [IncentiveEvent];
     fieldOrderParam   : Float;         // Kuramoto order parameter R ∈ [0,1]
-    meanPhase         : Float;         // ψ — mean field phase
+    meanPhase         : Float;         // psi — mean field phase
     totalRoyaltyRouted: Float;         // Cumulative creator royalty dispatched
     totalFieldPressure: Float;         // Sum of all incentive pressures
     beatNum           : Nat;
@@ -154,7 +154,7 @@ module AgentIncentiveService {
     if (wrapped < 0.0) { wrapped + two_pi } else { wrapped }
   };
 
-  /// Compute Kuramoto order parameter R and mean phase ψ from agent phases
+  /// Compute Kuramoto order parameter R and mean phase psi from agent phases
   public func computeOrderParam(phases : [Float]) : (Float, Float) {
     if (phases.size() == 0) { return (0.0, 0.0) };
     var sumCos : Float = 0.0;
@@ -294,7 +294,7 @@ module AgentIncentiveService {
       totalFieldPressure = 0.0;
       beatNum            = 0;
       hebbianMatrix      = [];
-      founderBonus       = PHI;          // Founders earn φ × multiplier
+      founderBonus       = PHI;          // Founders earn phi × multiplier
     }
   };
 

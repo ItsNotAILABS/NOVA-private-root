@@ -79,7 +79,7 @@ module UnifiedSuperOrganismArchitecture {
   
   // Fundamental constants
   public let PHI       : Float = 1.6180339887498948482;  // Golden ratio φ
-  public let PHI_INV   : Float = 0.6180339887498948482;  // 1/φ = φ - 1
+  public let PHI_INV   : Float = 0.6180339887498948482;  // 1/φ = phi - 1
   public let EULER     : Float = 2.7182818284590452354;  // e
   public let PI        : Float = 3.1415926535897932385;  // π
   public let TAU       : Float = 6.2831853071795864769;  // 2π
@@ -209,7 +209,7 @@ module UnifiedSuperOrganismArchitecture {
     sqrt(cosSum*cosSum + sinSum*sinSum) / nf
   };
   
-  /// Compute mean phase ψ = arg(1/N × Σ exp(iθⱼ))
+  /// Compute mean phase psi = arg(1/N × Σ exp(iθⱼ))
   public func kuramotoPsi(phases : [Float]) : Float {
     var cosSum : Float = 0.0;
     var sinSum : Float = 0.0;

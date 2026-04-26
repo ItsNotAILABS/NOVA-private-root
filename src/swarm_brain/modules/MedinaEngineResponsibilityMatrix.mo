@@ -83,8 +83,8 @@ module {
   // MEDINA CONSTANTS
   // ════════════════════════════════════════════════════════════════════════════════════════
 
-  public let φ : Float = 1.6180339887498948482;
-  public let ψ : Float = 0.6180339887498948482;
+  public let phi : Float = 1.6180339887498948482;
+  public let psi : Float = 0.6180339887498948482;
 
   // Minimum requirements
   public let MIN_RESPONSIBILITIES : Nat = 2;
@@ -656,7 +656,7 @@ module {
     let connScore = Float.fromInt(engine.connectedEngines.size()) / 10.0;
 
     // Golden-weighted average
-    (respScore * φ + catScore * φ + scaleScore + connScore) / (φ + φ + 1.0 + 1.0)
+    (respScore * phi + catScore * phi + scaleScore + connScore) / (φ + phi + 1.0 + 1.0)
   };
 
   /// Validate all engines in the responsibility matrix

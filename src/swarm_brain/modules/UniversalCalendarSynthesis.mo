@@ -52,7 +52,7 @@
 //
 // They all converged on the same number families:
 //   - 432 (the cosmic anchor)
-//   - φ (phi, the golden ratio)
+//   - phi (phi, the golden ratio)
 //   - Fibonacci sequence
 //   - Base-60 (sexagesimal)
 //   - Precession (25,920 years)
@@ -155,22 +155,22 @@ module UniversalCalendarSynthesis {
   // THE GOLDEN RATIO (φ) — Universal Coupling Constant
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   
-  /// φ = (1 + √5) / 2 = 1.618033988749894848204586834365638117720309179805762862...
+  /// phi = (1 + √5) / 2 = 1.618033988749894848204586834365638117720309179805762862...
   public let PHI : Float = 1.6180339887498948482;
   
-  /// ψ = φ - 1 = 1/φ = 0.618033988749894848204586834365638117720309179805762862...
+  /// psi = phi - 1 = 1/φ = 0.618033988749894848204586834365638117720309179805762862...
   public let PSI : Float = 0.6180339887498948482;
   
-  /// φ² = φ + 1 = 2.618033988749894848204586834365638117720309179805762862...
+  /// phi2 = phi + 1 = 2.618033988749894848204586834365638117720309179805762862...
   public let PHI_SQUARED : Float = 2.6180339887498948482;
   
-  /// φ³ = φ² + φ = 4.236067977499789696409173668731276235440618359611525724...
+  /// phi3 = phi2 + phi = 4.236067977499789696409173668731276235440618359611525724...
   public let PHI_CUBED : Float = 4.2360679774997896964;
   
-  /// φ⁴ = φ³ + φ² = 6.854101966249684544613760503096914353160927539417288586...
+  /// phi4 = phi3 + phi2 = 6.854101966249684544613760503096914353160927539417288586...
   public let PHI_FOURTH : Float = 6.8541019662496845446;
   
-  /// φ⁵ = φ⁴ + φ³ = 11.090169943749474241022934171828190588601545899028814310...
+  /// phi5 = phi4 + phi3 = 11.090169943749474241022934171828190588601545899028814310...
   public let PHI_FIFTH : Float = 11.090169943749474241;
   
   /// 1/φ² = 0.381966011250105151795413165634361882279690820194237137...
@@ -310,7 +310,7 @@ module UniversalCalendarSynthesis {
   ];
   
   /// Schumann harmonics spacing: ~6.5 Hz between peaks
-  /// 6.5 × φ ≈ 10.52 — phi-adjacent relationship
+  /// 6.5 × phi ≈ 10.52 — phi-adjacent relationship
   public let SCHUMANN_SPACING : Float = 6.5;
   
   /// 40 Hz gamma binding frequency — the consciousness integration band
@@ -943,7 +943,7 @@ module UniversalCalendarSynthesis {
   ];
   
   /// Fibonacci ratios converge to φ:
-  /// F(n)/F(n-1) → φ as n → ∞
+  /// F(n)/F(n-1) → phi as n → ∞
   public let FIBONACCI_RATIOS : [Float] = [
     1.0,                  // F(1)/F(0) — undefined, use 1
     1.0,                  // F(2)/F(1) = 1/1
@@ -970,7 +970,7 @@ module UniversalCalendarSynthesis {
   ];
   
   /// Fibonacci-Lucas relationship: L(n) = F(n-1) + F(n+1)
-  /// Lucas numbers also converge to φ ratio
+  /// Lucas numbers also converge to phi ratio
   
   // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
   // SECTION XII: CONVERGENCES — All Systems Point to the Same Numbers
@@ -1004,11 +1004,11 @@ module UniversalCalendarSynthesis {
   // THE PHI CONVERGENCES
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   
-  /// φ appears in:
+  /// phi appears in:
   /// - Fibonacci sequence ratios
   /// - Mayan Tzolk'in: 13/20 = 0.65 ≈ 1/φ
   /// - Venus cycle: 5/8 = 0.625 ≈ 1/φ
-  /// - Schumann spacing × φ ≈ 10.5
+  /// - Schumann spacing × phi ≈ 10.5
   /// - Inter-layer coupling weights in resonant systems
   
   public let CONVERGENCE_PHI : [(Text, Float, Float)] = [

@@ -13794,10 +13794,10 @@ actor SwarmBrain {
     heartbeatCoherence := cardiacCoherenceNew;
     
     // Update circadian phase (24-hour cycle = 1/86400 Hz)
-    let circadianOmega = 2.0 * HeartbeatEngine.π / 86400.0;  // Radians per second
+    let circadianOmega = 2.0 * HeartbeatEngine.pi / 86400.0;  // Radians per second
     circadianPhase := circadianPhase + circadianOmega * dt;
-    if (circadianPhase > 2.0 * HeartbeatEngine.π) {
-      circadianPhase := circadianPhase - 2.0 * HeartbeatEngine.π;
+    if (circadianPhase > 2.0 * HeartbeatEngine.pi) {
+      circadianPhase := circadianPhase - 2.0 * HeartbeatEngine.pi;
     };
     
     // Compute law group compliance scores for VERITAS (5 groups of 12 laws)
@@ -14627,7 +14627,7 @@ actor SwarmBrain {
     parallaxLastWinnerProbability := selection.winnerProbability;
     parallaxLastEntropyScore := entropy;
     parallaxLastCoherenceLevel := coherence;
-    parallaxGlobalPhase := parallaxGlobalPhase + PARALLAXDecisionEngine.π / 100.0;
+    parallaxGlobalPhase := parallaxGlobalPhase + PARALLAXDecisionEngine.pi / 100.0;
     parallaxTotalDecisions += 1;
     
     // Update path statistics with EMA
@@ -14663,11 +14663,11 @@ actor SwarmBrain {
     
     // Extract council phases (from coherence values)
     let councilPhases : [Float] = [
-      councilCoherence[0] * 2.0 * ENTANGLASocialBinding.π,  // LEXIS
-      councilCoherence[1] * 2.0 * ENTANGLASocialBinding.π,  // PARALLAX-SWARM
-      councilCoherence[2] * 2.0 * ENTANGLASocialBinding.π,  // VETUS
-      councilCoherence[3] * 2.0 * ENTANGLASocialBinding.π,  // AEGIS
-      councilCoherence[4] * 2.0 * ENTANGLASocialBinding.π   // FORMA
+      councilCoherence[0] * 2.0 * ENTANGLASocialBinding.pi,  // LEXIS
+      councilCoherence[1] * 2.0 * ENTANGLASocialBinding.pi,  // PARALLAX-SWARM
+      councilCoherence[2] * 2.0 * ENTANGLASocialBinding.pi,  // VETUS
+      councilCoherence[3] * 2.0 * ENTANGLASocialBinding.pi,  // AEGIS
+      councilCoherence[4] * 2.0 * ENTANGLASocialBinding.pi   // FORMA
     ];
     
     // Extract shell phases
@@ -14765,8 +14765,8 @@ actor SwarmBrain {
     var sumY : Float = 0.0;
     var countEntries : Float = 0.0;
     for (binding in entanglaCouncilMatrix.vals()) {
-      sumX += Float.cos(binding * ENTANGLASocialBinding.π);
-      sumY += Float.sin(binding * ENTANGLASocialBinding.π);
+      sumX += Float.cos(binding * ENTANGLASocialBinding.pi);
+      sumY += Float.sin(binding * ENTANGLASocialBinding.pi);
       countEntries += 1.0;
     };
     if (countEntries > 0.0) {
@@ -14811,7 +14811,7 @@ actor SwarmBrain {
     var totalLabCoherence : Float = 0.0;
     while (labIdx < 12) {
       // Lab coherence follows Kuramoto — coupled to master swarm phase
-      let labPhase = Float.fromInt(labIdx) * PARALLAXDecisionEngine.π / 6.0;
+      let labPhase = Float.fromInt(labIdx) * PARALLAXDecisionEngine.pi / 6.0;
       let coupling = Float.sin(masterBeatPhase - labPhase) * 0.1;
       labCoherence[labIdx] := Float.min(1.0, Float.max(0.1, labCoherence[labIdx] + coupling * dt));
       
@@ -14992,7 +14992,7 @@ actor SwarmBrain {
     var attIdx = 0;
     while (attIdx < 8) {
       // Attention channels compete for focus
-      let channelPhase = Float.fromInt(attIdx) * PARALLAXDecisionEngine.π / 4.0;
+      let channelPhase = Float.fromInt(attIdx) * PARALLAXDecisionEngine.pi / 4.0;
       let relevance = Float.cos(masterBeatPhase - channelPhase) * 0.5 + 0.5;
       attentionFocus[attIdx] := attentionFocus[attIdx] * 0.9 + relevance * 0.1;
       attIdx += 1;
@@ -15743,11 +15743,11 @@ actor SwarmBrain {
           stablePhases[droneIdx] := stablePhases[droneIdx] + phaseMod * 0.01;
           
           // Wrap phase to [0, 2π]
-          if (stablePhases[droneIdx] > 2.0 * HeartbeatEngine.π) {
-            stablePhases[droneIdx] := stablePhases[droneIdx] - 2.0 * HeartbeatEngine.π;
+          if (stablePhases[droneIdx] > 2.0 * HeartbeatEngine.pi) {
+            stablePhases[droneIdx] := stablePhases[droneIdx] - 2.0 * HeartbeatEngine.pi;
           };
           if (stablePhases[droneIdx] < 0.0) {
-            stablePhases[droneIdx] := stablePhases[droneIdx] + 2.0 * HeartbeatEngine.π;
+            stablePhases[droneIdx] := stablePhases[droneIdx] + 2.0 * HeartbeatEngine.pi;
           };
         };
         
@@ -16190,8 +16190,8 @@ actor SwarmBrain {
       var councilJ = councilI + 1;
       while (councilJ < 7) {
         // Phase coupling between councils
-        let phaseI = Float.fromInt(councilI) * HeartbeatEngine.τ / 7.0;
-        let phaseJ = Float.fromInt(councilJ) * HeartbeatEngine.τ / 7.0;
+        let phaseI = Float.fromInt(councilI) * HeartbeatEngine.tau / 7.0;
+        let phaseJ = Float.fromInt(councilJ) * HeartbeatEngine.tau / 7.0;
         let phaseCoupling = Float.cos(phaseI - phaseJ);
         
         // Bell violation between councils
@@ -18104,7 +18104,7 @@ actor SwarmBrain {
     
     // CHRONO economic cycle (from spherical state)
     let chronoEconomicPhase = quantumHeartbeatState.quantumPhase;
-    let economicCycleModulation = 0.9 + 0.2 * Float.sin(chronoEconomicPhase * HeartbeatEngine.φ);  // Range [0.9, 1.1]
+    let economicCycleModulation = 0.9 + 0.2 * Float.sin(chronoEconomicPhase * HeartbeatEngine.phi);  // Range [0.9, 1.1]
     
     // Apply cycle modulation to next beat's rates
     // (this affects future minting/burning)
@@ -19909,7 +19909,7 @@ actor SwarmBrain {
     var s3PhaseIdx = 0;
     while (s3PhaseIdx < 256) {
       let activation = shell3Nodes[s3PhaseIdx];
-      let angle = Float.fromInt(s3PhaseIdx) * HeartbeatEngine.τ / 256.0;
+      let angle = Float.fromInt(s3PhaseIdx) * HeartbeatEngine.tau / 256.0;
       shell3PhaseReal += activation * Float.cos(angle);
       shell3PhaseImag += activation * Float.sin(angle);
       s3PhaseIdx += 1;
@@ -19922,7 +19922,7 @@ actor SwarmBrain {
     var s12PhaseIdx = 0;
     while (s12PhaseIdx < 512) {
       let activation = shell12Nodes[s12PhaseIdx];
-      let angle = Float.fromInt(s12PhaseIdx) * HeartbeatEngine.τ / 512.0;
+      let angle = Float.fromInt(s12PhaseIdx) * HeartbeatEngine.tau / 512.0;
       shell12PhaseReal += activation * Float.cos(angle);
       shell12PhaseImag += activation * Float.sin(angle);
       s12PhaseIdx += 1;
@@ -19955,8 +19955,8 @@ actor SwarmBrain {
     // Gamma binding: nodes that oscillate together bind together
     var gammaBindIdx = 0;
     while (gammaBindIdx < 512) {
-      let gammaPhase = Float.fromInt(currentBeat) * 2.0 * HeartbeatEngine.π * 40.0 / 12.0;  // 40 Hz at 12 Hz sampling
-      let nodePhase = Float.fromInt(gammaBindIdx) * HeartbeatEngine.τ / 512.0;
+      let gammaPhase = Float.fromInt(currentBeat) * 2.0 * HeartbeatEngine.pi * 40.0 / 12.0;  // 40 Hz at 12 Hz sampling
+      let nodePhase = Float.fromInt(gammaBindIdx) * HeartbeatEngine.tau / 512.0;
       let gammaModulation = Float.sin(gammaPhase + nodePhase) * gammaAmplitude * 0.05;
       
       shell12Nodes[gammaBindIdx] := fclamp(
@@ -21820,7 +21820,7 @@ actor SwarmBrain {
   };
 
   // ─── QUERY: Get Complete Neurochemical State ─────────────────────────────────
-  public query func getNeurochemicalState() : async {
+  public query func getNeurochemicalState() : async [Float] {
     // 21 individual concentrations
   // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
   // ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -21861,6 +21861,10 @@ actor SwarmBrain {
     let b = Float.fromInt(beat);
     let remainder = b - (Float.floor(b / PHI) * PHI);
     Float.abs(remainder) < 0.01 or Float.abs(remainder - PHI) < 0.01
+  };
+    Array.tabulate<Float>(Nat.min(stableDroneCount * 4, 21), func(i : Nat) : Float {
+      if (i < stableNeuroChem.size()) stableNeuroChem[i] else 0.0
+    })
   };
   
   func isFibonacci(beat : Nat) : Bool {
@@ -27839,8 +27843,8 @@ actor SwarmBrain {
     while (ci < 7) {
       var cj = ci + 1;
       while (cj < 7) {
-        let phaseI = Float.fromInt(ci) * HeartbeatEngine.τ / 7.0;
-        let phaseJ = Float.fromInt(cj) * HeartbeatEngine.τ / 7.0;
+        let phaseI = Float.fromInt(ci) * HeartbeatEngine.tau / 7.0;
+        let phaseJ = Float.fromInt(cj) * HeartbeatEngine.tau / 7.0;
         let coupling = Float.cos(phaseI - phaseJ);
         let bellIJ = (councilQuantumBellViolations[ci] + councilQuantumBellViolations[cj]) / 2.0;
         entangle += (coupling + 1.0) / 2.0 * (1.0 + bellIJ);
@@ -28721,17 +28725,9 @@ actor SwarmBrain {
       systemStatus = sysStat;
     endorphin : Float;
     gaba : Float;
-  } {
-    {
-      dopamine = shell11DA;
-      serotonin = shell11_5HT;
-      norepinephrine = shell11NE;
-      acetylcholine = shell11ACh;
-      endorphin = shell11Endo;
-      gaba = shell11GABA;
-    }
   };
 
+  };
   public query func getCoreStates() : async {
     totalCores : Nat;
     cipherSpikes : [Bool];
@@ -28961,14 +28957,14 @@ actor SwarmBrain {
         if (a >= n) { return true };
         var x = modPow(a, d, n);
         if (x == 1 or x == n - 1) { continue witnessLoop };
-        var composite = true;
+        var isComposite = true;
         var j = 0;
         while (j < r - 1) {
           x := (x * x) % n;
-          if (x == n - 1) { composite := false };
+          if (x == n - 1) { isComposite := false };
           j += 1;
         };
-        if (composite) { return false };
+        if (isComposite) { return false };
       };
       true
     }

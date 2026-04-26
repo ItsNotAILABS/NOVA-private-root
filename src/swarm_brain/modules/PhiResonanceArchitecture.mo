@@ -39,7 +39,7 @@ module PhiResonanceArchitecture {
   /// Phi squared - appears in golden angle derivation
   public let PHI_SQUARED : Float = 2.6180339887498948482;
   
-  /// Golden angle in degrees: 360° / φ² = 137.507764°
+  /// Golden angle in degrees: 360° / phi2 = 137.507764°
   /// The angle between successive elements in Fibonacci spirals
   /// Cortical columns are spaced at this angle around the cortical surface
   public let GOLDEN_ANGLE_DEG : Float = 137.50776405003785;
@@ -152,7 +152,7 @@ module PhiResonanceArchitecture {
   public let SCHUMANN_H8 : Float = 54.7;  // Hz - high gamma
 
   /// Schumann spacing - approximately 6.5 Hz between harmonics
-  /// 6.5 × φ ≈ 10.5, 10.5 × φ ≈ 17 (explains higher harmonic spacing drift)
+  /// 6.5 × phi ≈ 10.5, 10.5 × phi ≈ 17 (explains higher harmonic spacing drift)
   public let SCHUMANN_SPACING : Float = 6.5;
 
   /// LAYER +1: Low gamma - cross-hemispheric binding onset
@@ -898,7 +898,7 @@ module PhiResonanceArchitecture {
     
     // Fibonacci spiral in 3D
     // θ = n × golden_angle
-    // φ (elevation) = arccos(1 - 2n/N)
+    // phi (elevation) = arccos(1 - 2n/N)
     // r = √n / √N (for uniform distribution on sphere)
     
     let theta = n * GOLDEN_ANGLE_RAD;
@@ -1034,7 +1034,7 @@ module PhiResonanceArchitecture {
     // R = |mean complex exponential|
     let R = Float.sqrt(meanCos * meanCos + meanSin * meanSin);
     
-    // Mean phase ψ = arg(mean complex exponential)
+    // Mean phase psi = arg(mean complex exponential)
     let meanPhase = Float.arctan2(meanSin, meanCos);
     
     { R = R; meanPhase = meanPhase }

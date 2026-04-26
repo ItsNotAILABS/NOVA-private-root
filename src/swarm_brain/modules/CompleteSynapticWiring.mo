@@ -548,7 +548,7 @@ module CompleteSynapticWiring {
     // Kuramoto coupling
     couplingStrength : Float;             // K
     orderParameter : Float;               // r = |1/N Σ exp(iθ)|
-    meanPhase : Float;                    // ψ = arg(Σ exp(iθ))
+    meanPhase : Float;                    // psi = arg(Σ exp(iθ))
     
     // Shell 12 global integration
     shell12Integration : [Float];         // 512 integrated signals
@@ -617,9 +617,9 @@ module CompleteSynapticWiring {
     };
     let n = Float.fromInt(phases.size());
     let r = sqrt(cosSum*cosSum + sinSum*sinSum) / n;
-    var ψ = 0.0;
+    var psi = 0.0;
     if (abs(cosSum) > 1e-10 or abs(sinSum) > 1e-10) {
-      ψ := if (cosSum > 0.0) {
+      psi := if (cosSum > 0.0) {
         if (sinSum >= 0.0) { (sinSum / cosSum) |> func(x : Float) : Float { 
           var a = x; var i = 0; while (i < 10) { a := a - (a - x + a*a*a/3.0) / (1.0 + a*a); i += 1 }; a 
         } }

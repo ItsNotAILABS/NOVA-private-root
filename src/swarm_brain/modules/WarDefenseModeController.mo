@@ -86,8 +86,8 @@ module {
   // FUNDAMENTAL CONSTANTS
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  public let φ : Float = 1.6180339887498948482;  // Golden ratio
-  public let π : Float = 3.14159265358979323846;  // Circle constant
+  public let phi : Float = 1.6180339887498948482;  // Golden ratio
+  public let pi : Float = 3.14159265358979323846;  // Circle constant
 
   // ═══════════════════════════════════════════════════════════════════════════════
   // WAR-DEFENSE MODE ENUM

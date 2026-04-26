@@ -15,9 +15,9 @@ module {
   // CONSTANTS — The mathematics of reality
   // ═══════════════════════════════════════════════════════════════════════════
   
-  public let φ : Float = 1.6180339887498948482;   // Golden ratio
-  public let ψ : Float = 0.6180339887498948482;   // 1/φ
-  public let π : Float = 3.14159265358979323846;
+  public let phi : Float = 1.6180339887498948482;   // Golden ratio
+  public let psi : Float = 0.6180339887498948482;   // 1/φ
+  public let pi : Float = 3.14159265358979323846;
   public let τ : Float = 6.28318530717958647692;  // 2π
   public let e : Float = 2.71828182845904523536;  // Euler
   public let ℏ : Float = 1.054571817e-34;         // Reduced Planck

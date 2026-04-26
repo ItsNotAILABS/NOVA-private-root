@@ -110,7 +110,7 @@ actor Medina {
 
   /// Dispatch a pre-parsed command.
   public func runCommand(cmd : T.ParsedCommand) : async Text {
-    switch cmd.tag {
+    switch (cmd.tag) {
       case (#memory_find)  { memoryFind(cmd.args)   };
       case (#memory_pin)   { memoryPin(cmd.args)    };
       case (#memory_map)   { memoryMap(cmd.args)    };
@@ -166,17 +166,17 @@ actor Medina {
   // ── MEMORY COMMANDS ────────────────────────────────────────────────────────
 
   func memoryFind(args : [Text]) : Text {
-    let query = if (args.size() > 0) args[0] else "";
+    let searchQ = if (args.size() > 0) args[0] else "";
     let found = Array.filter<T.MemEntry>(memEntries, func(e) {
-      Text.contains(e.content, #text query)
+      Text.contains(e.content, #text searchQ)
     });
-    "MEMORY-FIND: " # Nat.toText(found.size()) # " entries matched \"" # query # "\""
+    "MEMORY-FIND: " # Nat.toText(found.size()) # " entries matched \"" # searchQ # "\""
   };
 
   func memoryPin(args : [Text]) : Text {
     if (args.size() == 0) return "ERROR: /memory pin <id>";
     let idOpt = Nat.fromText(args[0]);
-    switch idOpt {
+    switch (idOpt) {
       case null { "ERROR: invalid id" };
       case (?targetId) {
         memEntries := Array.map<T.MemEntry, T.MemEntry>(
@@ -191,13 +191,13 @@ actor Medina {
 
   func memoryMap(args : [Text]) : Text {
     let mode : T.MapMode = if (args.size() > 0) {
-      switch args[0] {
+      switch (args[0]) {
         case "ring" #ring;
         case "path" #path;
         case _      #helix;
       }
     } else #helix;
-    let sorted = switch mode {
+    let sorted = switch (mode) {
       case (#helix) MT.mapHelix(memEntries);
       case (#ring)  MT.mapRing(memEntries);
       case (#path) {
@@ -220,7 +220,7 @@ actor Medina {
 
   func govPropose(args : [Text]) : Text {
     let reg : T.Register = if (args.size() > 0) {
-      switch args[0] {
+      switch (args[0]) {
         case "founder"  #founder;
         case "builder"  #builder;
         case "organism" #organism;
@@ -238,7 +238,7 @@ actor Medina {
   func govApprove(args : [Text]) : Text {
     if (args.size() == 0) return "ERROR: /govern approve <id>";
     let idOpt = Nat.fromText(args[0]);
-    switch idOpt {
+    switch (idOpt) {
       case null { "ERROR: invalid proposal id" };
       case (?targetId) {
         let pass = currentLawPass();
@@ -277,7 +277,7 @@ actor Medina {
   };
 
   func textToRole(s : Text) : T.ModelRole {
-    switch s {
+    switch (s) {
       case "strategist"     #strategist;
       case "builder"        #builder;
       case "governance"     #governance;
@@ -302,7 +302,7 @@ actor Medina {
   func companyOnboard(args : [Text]) : Text {
     let name = if (args.size() > 0) args[0] else "unknown";
     let modeStr = if (args.size() > 1) args[1] else "connect";
-    let mode : T.OnboardMode = switch modeStr {
+    let mode : T.OnboardMode = switch (modeStr) {
       case "internalize" #internalize;
       case "hybrid"      #hybrid;
       case _             #connect;
@@ -322,7 +322,7 @@ actor Medina {
   func companyConnect(args : [Text]) : Text {
     if (args.size() < 2) return "ERROR: /company connect <tenantId> <systemId>";
     let tidOpt = Nat.fromText(args[0]);
-    switch tidOpt {
+    switch (tidOpt) {
       case null { "ERROR: invalid tenantId" };
       case (?tid) {
         let sysId = args[1];
@@ -343,7 +343,7 @@ actor Medina {
   func companyInternalize(args : [Text]) : Text {
     if (args.size() < 2) return "ERROR: /company internalize <tenantId> <assetId>";
     let tidOpt = Nat.fromText(args[0]);
-    switch tidOpt {
+    switch (tidOpt) {
       case null { "ERROR: invalid tenantId" };
       case (?tid) {
         let assetId = args[1];
@@ -365,7 +365,7 @@ actor Medina {
   func companyHybrid(args : [Text]) : Text {
     if (args.size() < 2) return "ERROR: /company hybrid <tenantId> <deltaKey>";
     let tidOpt = Nat.fromText(args[0]);
-    switch tidOpt {
+    switch (tidOpt) {
       case null { "ERROR: invalid tenantId" };
       case (?tid) {
         let deltaKey = args[1];
@@ -437,9 +437,9 @@ actor Medina {
   };
 
   /// Query memory entries (returns up to 20 results).
-  public query func memoryQuery(query : Text) : async [T.MemEntry] {
+  public query func memoryQuery(searchQ : Text) : async [T.MemEntry] {
     let found = Array.filter<T.MemEntry>(memEntries, func(e) {
-      Text.contains(e.content, #text query)
+      Text.contains(e.content, #text searchQ)
     });
     if (found.size() > 20) Array.tabulate<T.MemEntry>(20, func(i) { found[i] })
     else found

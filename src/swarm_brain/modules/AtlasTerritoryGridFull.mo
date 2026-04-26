@@ -135,8 +135,8 @@ module AtlasTerritoryGridFull {
         ];
         
         for ((dx, dy) in offsets.vals()) {
-            let nx = Int.abs(Int.fromNat(x) + dx);
-            let ny = Int.abs(Int.fromNat(y) + dy);
+            let nx = Int.abs(x + dx);
+            let ny = Int.abs(y + dy);
             if (nx < state.gridWidth and ny < state.gridHeight) {
                 buffer.add(getCellIndex(state, nx, ny));
             };

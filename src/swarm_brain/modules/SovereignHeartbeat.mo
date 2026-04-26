@@ -99,7 +99,7 @@ module {
   // ==========================================================================
   // THE CATCH: PHI is the transfer function between adjacent levels of any
   // naturally sustained coupled oscillating system. March 2026 confirmed.
-  // Heartbeat = φ⁴ × Schumann period = 875.3 ms = 68.5 bpm
+  // Heartbeat = phi4 × Schumann period = 875.3 ms = 68.5 bpm
   // ==========================================================================
   
   // Fundamental constants
@@ -112,10 +112,10 @@ module {
   let SCHUMANN_PERIOD_MS : Float = 127.71392081736909;
   
   // PHI-DERIVED TIMING (φⁿ × Schumann period)
-  let HEARTBEAT_INTERVAL_MS : Float = 875.28275832071766;  // φ⁴ × Schumann = 68.5 bpm
-  let SENSORY_WINDOW_MS : Float = 334.33222637936225;      // φ² × Schumann
-  let WRITE_CYCLE_MS : Float = 540.95053194135541;         // φ³ × Schumann
-  let COHERENCE_CHECK_MS : Float = 1416.2332902620731;     // φ⁵ × Schumann
+  let HEARTBEAT_INTERVAL_MS : Float = 875.28275832071766;  // phi4 × Schumann = 68.5 bpm
+  let SENSORY_WINDOW_MS : Float = 334.33222637936225;      // phi2 × Schumann
+  let WRITE_CYCLE_MS : Float = 540.95053194135541;         // phi3 × Schumann
+  let COHERENCE_CHECK_MS : Float = 1416.2332902620731;     // phi5 × Schumann
   
   // Anchor frequencies
   let GAMMA_BINDING_HZ : Float = 40.0;     // OMNIS threshold
@@ -126,7 +126,7 @@ module {
   let S0_FLOOR : Float = PSI;  // 0.618
   
   // Emergence and coupling
-  let EMERGENCE_THRESHOLD : Float = 1.0;   // ψ + ψ² = 1.0
+  let EMERGENCE_THRESHOLD : Float = 1.0;   // psi + ψ² = 1.0
   let COUPLING_DOWN : Float = PHI;         // Projection
   let COUPLING_UP : Float = PSI;           // Reception
 

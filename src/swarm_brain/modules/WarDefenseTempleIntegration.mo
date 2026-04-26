@@ -51,9 +51,9 @@ module {
   // FUNDAMENTAL CONSTANTS — Geometry, Harmonics, Frequency, Velocity
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  public let φ : Float = 1.6180339887498948482;  // Golden ratio (geometry)
-  public let ψ : Float = 0.6180339887498948482;  // φ⁻¹ (coupling constant)
-  public let π : Float = 3.14159265358979323846;  // Circle constant (rotation)
+  public let phi : Float = 1.6180339887498948482;  // Golden ratio (geometry)
+  public let psi : Float = 0.6180339887498948482;  // φ⁻¹ (coupling constant)
+  public let pi : Float = 3.14159265358979323846;  // Circle constant (rotation)
   public let τ : Float = 6.28318530717958647693;  // Full rotation (2π)
 
   // Frequency nodes (Hertz - temporal architecture)

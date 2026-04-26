@@ -133,7 +133,7 @@ actor NexusPropagator {
     id          : Nat;
     substrate   : Text;
     address     : Text;   // substrate-specific address/identifier
-    label       : Text;   // human-readable label
+    lbl       : Text;   // human-readable lbl
     weight      : Float;  // golden-ratio decay weight (0.0–1.0)
     registeredAt: Int;
     regBeat     : Nat;
@@ -220,7 +220,7 @@ actor NexusPropagator {
   public shared(msg) func registerNode(
     substrate : Text,
     address   : Text,
-    label     : Text
+    lbl     : Text
   ) : async {
     id        : Nat;
     substrate : Text;
@@ -242,7 +242,7 @@ actor NexusPropagator {
     nodeIds[idx]         := id;
     nodeSubstrates[idx]  := substrate;
     nodeAddresses[idx]   := address;
-    nodeLabels[idx]      := label;
+    nodeLabels[idx]      := lbl;
     nodeWeights[idx]     := 1.0;  // will be recomputed below
     nodeRegAt[idx]       := now;
     nodeRegBeats[idx]    := nexusBeat;
@@ -365,17 +365,17 @@ actor NexusPropagator {
     id         : Nat;
     substrate  : Text;
     address    : Text;
-    label      : Text;
+    lbl      : Text;
     weight     : Float;
     touchCount : Nat;
     status     : Text;
   }] {
-    Array.tabulate<{ id:Nat; substrate:Text; address:Text; label:Text; weight:Float; touchCount:Nat; status:Text }>(nodeCount, func(i) {
+    Array.tabulate<{ id:Nat; substrate:Text; address:Text; lbl:Text; weight:Float; touchCount:Nat; status:Text }>(nodeCount, func(i) {
       {
         id         = nodeIds[i];
         substrate  = nodeSubstrates[i];
         address    = nodeAddresses[i];
-        label      = nodeLabels[i];
+        lbl      = nodeLabels[i];
         weight     = nodeWeights[i];
         touchCount = nodeTouchCounts[i];
         status     = nodeStatuses[i];
@@ -385,14 +385,14 @@ actor NexusPropagator {
 
   // ── Get nodes by substrate ─────────────────────────────────────────────────
   public query func getNodesBySubstrate(substrate : Text) : async [{
-    id : Nat; label : Text; address : Text; weight : Float; status : Text;
+    id : Nat; lbl : Text; address : Text; weight : Float; status : Text;
   }] {
-    var result : [{ id:Nat; label:Text; address:Text; weight:Float; status:Text }] = [];
+    var result : [{ id:Nat; lbl:Text; address:Text; weight:Float; status:Text }] = [];
     var i = 0;
     while (i < nodeCount and i < NODE_CAP) {
       if (nodeSubstrates[i] == substrate) {
         result := Array.append(result, [{
-          id = nodeIds[i]; label = nodeLabels[i]; address = nodeAddresses[i];
+          id = nodeIds[i]; lbl = nodeLabels[i]; address = nodeAddresses[i];
           weight = nodeWeights[i]; status = nodeStatuses[i];
         }]);
       };
@@ -455,11 +455,11 @@ actor NexusPropagator {
 
   // ── Top-N nodes by weight (highest weight = longest-standing presence) ─────
   public query func getTopNodesByWeight(n : Nat) : async [{
-    id : Nat; substrate : Text; label : Text; weight : Float;
+    id : Nat; substrate : Text; lbl : Text; weight : Float;
   }] {
     let limit = if (n < nodeCount) n else nodeCount;
     // Build index array sorted by weight descending (simple selection for up to n)
-    var sorted : [{ id:Nat; substrate:Text; label:Text; weight:Float }] = [];
+    var sorted : [{ id:Nat; substrate:Text; lbl:Text; weight:Float }] = [];
     var remaining : [Bool] = Array.tabulate<Bool>(nodeCount, func(_) { true });
     var k = 0;
     while (k < limit) {
@@ -478,7 +478,7 @@ actor NexusPropagator {
       } else {
         sorted := Array.append(sorted, [{
           id = nodeIds[bestIdx]; substrate = nodeSubstrates[bestIdx];
-          label = nodeLabels[bestIdx]; weight = nodeWeights[bestIdx];
+          lbl = nodeLabels[bestIdx]; weight = nodeWeights[bestIdx];
         }]);
         remaining := Array.tabulate<Bool>(nodeCount, func(i) {
           if (i == bestIdx) false else remaining[i]

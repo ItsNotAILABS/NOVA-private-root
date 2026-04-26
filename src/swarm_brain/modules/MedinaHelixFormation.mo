@@ -87,7 +87,7 @@
 // ─────────────────────────────
 //   r(θ) = r₀ × φ^(θ/90°)
 //
-//   After every 90° rotation, radius scales by φ (golden ratio).
+//   After every 90° rotation, radius scales by phi (golden ratio).
 //   This is the Fibonacci spiral extended into 3D.
 //
 // THE MEDINA DNA TOPOLOGY (MDT):
@@ -436,7 +436,7 @@ module {
   // ==========================================================================
   
   public func createGoldenHelix(initialRadius: Float, verticalRise: Float) : HelixParameters {
-    // Golden helix: radius multiplies by φ every 90°
+    // Golden helix: radius multiplies by phi every 90°
     let goldenGrowthRate = Float.log(GOLDEN_RATIO) / (PI / 2.0);
     
     {
@@ -907,7 +907,7 @@ module {
   // SACRED GEOMETRY MATHEMATICS
   // ─────────────────────────────────────────────────────────────────────────────
 
-  /// Golden ratio φ = (1 + √5) / 2
+  /// Golden ratio phi = (1 + √5) / 2
   public let PHI : Float = 1.6180339887498948482;
 
   /// Fibonacci sequence generator

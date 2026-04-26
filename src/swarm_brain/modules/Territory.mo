@@ -45,8 +45,8 @@ module {
   // ║                     CONSTANTS                                          ║
   // ╚════════════════════════════════════════════════════════════════════════╝
   
-  public let φ : Float = 1.6180339887498948482;
-  public let ψ : Float = 0.6180339887498948482;
+  public let phi : Float = 1.6180339887498948482;
+  public let psi : Float = 0.6180339887498948482;
   
   // Fibonacci sequence
   public let F : [Nat] = [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144];
@@ -404,8 +404,8 @@ module {
     gridY: Nat
   ) : BiomeState {
     // Calculate distance from center (3, 3 in 6×6 grid)
-    let dx = Float.fromInt(Int.abs(Int.fromNat(gridX) - 3));
-    let dy = Float.fromInt(Int.abs(Int.fromNat(gridY) - 3));
+    let dx = Float.fromInt(Int.abs(gridX - 3));
+    let dy = Float.fromInt(Int.abs(gridY - 3));
     let distance = Float.sqrt(dx * dx + dy * dy);
     
     // Assign ring based on distance

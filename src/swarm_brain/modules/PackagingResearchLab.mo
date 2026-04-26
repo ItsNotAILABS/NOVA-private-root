@@ -64,9 +64,9 @@ module {
   //  CONSTANTS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  public let φ : Float = 1.6180339887498948482;
-  public let ψ : Float = 0.6180339887498948482;
-  public let π : Float = 3.1415926535897932385;
+  public let phi : Float = 1.6180339887498948482;
+  public let psi : Float = 0.6180339887498948482;
+  public let pi : Float = 3.1415926535897932385;
   public let τ : Float = 6.2831853071795864769;
 
   public let DIVISION_COUNT : Nat = 8;
@@ -265,7 +265,7 @@ module {
   };
 
   func phiModulate(coherence : Float, rSwarm : Float, jDrift : Float, beat : Nat) : Float {
-    let phase = Float.sin(Float.fromInt(beat) * φ * 0.1);
+    let phase = Float.sin(Float.fromInt(beat) * phi * 0.1);
     let swarmBoost = rSwarm * COHERENCE_GAIN * φ;
     let driftPenalty = Float.abs(jDrift) * COHERENCE_GAIN * ψ;
     let updated = coherence * COHERENCE_DECAY + swarmBoost + phase * 0.005 - driftPenalty;
@@ -273,8 +273,8 @@ module {
   };
 
   func phiModulateStrong(coherence : Float, rSwarm : Float, jDrift : Float, beat : Nat, successRate : Float) : Float {
-    let phase = Float.sin(Float.fromInt(beat) * φ * PHI_COUPLING);
-    let swarmBoost = rSwarm * COHERENCE_GAIN * φ * successRate;
+    let phase = Float.sin(Float.fromInt(beat) * phi * PHI_COUPLING);
+    let swarmBoost = rSwarm * COHERENCE_GAIN * phi * successRate;
     let driftPenalty = Float.abs(jDrift) * COHERENCE_GAIN * ψ;
     let updated = coherence * COHERENCE_DECAY + swarmBoost + phase * 0.008 - driftPenalty;
     clampCoherence(updated)
@@ -1355,8 +1355,8 @@ module {
   //
   //  2000 nodes = 8 divisions × 250 nodes each
   //  Each node operates in a 5-dimensional field:
-  //    D0: Temporal    (nanosecond → generational)   — φ⁰ to φ⁴ frequency bands
-  //    D1: Spatial     (synapse → swarm)             — φ⁵ to φ⁹ frequency bands
+  //    D0: Temporal    (nanosecond → generational)   — φ⁰ to phi4 frequency bands
+  //    D1: Spatial     (synapse → swarm)             — phi5 to φ⁹ frequency bands
   //    D2: Organizational (Wasm → enterprise)        — φ¹⁰ to φ¹⁴ frequency bands
   //    D3: Causal      (Layer -6 → +8)              — φ¹⁵ to φ¹⁹ frequency bands
   //    D4: Coherence   (Kuramoto phase field)        — φ²⁰ to φ²⁴ frequency bands
@@ -1514,10 +1514,10 @@ module {
     let activeNat = if (active > 250) { 250 } else if (active < 25) { 25 } else { active };
 
     // Average node coherence follows division coherence with PHI modulation
-    let nodePhase = Float.sin(Float.fromInt(beat) * φ * 0.1 + Float.fromInt(divIndex) * ψ);
+    let nodePhase = Float.sin(Float.fromInt(beat) * phi * 0.1 + Float.fromInt(divIndex) * ψ);
     let avgCoh = clampCoherence(
       grid.avgNodeCoherence * COHERENCE_DECAY +
-      divCoherence * COHERENCE_GAIN * φ +
+      divCoherence * COHERENCE_GAIN * phi +
       nodePhase * 0.003
     );
 
@@ -1543,7 +1543,7 @@ module {
     let bandRes = clampCoherence(
       grid.phiBandResonance * 0.99 +
       fieldStr * SYNTH_PHI_COUPLING +
-      Float.abs(Float.cos(Float.fromInt(beat) * ψ * 0.05)) * 0.005
+      Float.abs(Float.cos(Float.fromInt(beat) * psi * 0.05)) * 0.005
     );
 
     {
@@ -1575,7 +1575,7 @@ module {
       field.temporal * 0.98 +
       (if (grids.size() > 0) { grids[0].fieldStrength } else { 0.5 }) * 0.01 +
       (if (grids.size() > 4) { grids[4].fieldStrength } else { 0.5 }) * 0.005 +
-      Float.sin(t * φ * 0.01) * 0.003
+      Float.sin(t * phi * 0.01) * 0.003
     );
 
     // D1 Spatial: forge + prototype (spatial distribution)
@@ -1583,7 +1583,7 @@ module {
       field.spatial * 0.98 +
       (if (grids.size() > 1) { grids[1].fieldStrength } else { 0.5 }) * 0.01 +
       (if (grids.size() > 3) { grids[3].fieldStrength } else { 0.5 }) * 0.005 +
-      Float.cos(t * ψ * 0.01) * 0.003
+      Float.cos(t * psi * 0.01) * 0.003
     );
 
     // D2 Organizational: forge + doctrine (structural)
@@ -1591,7 +1591,7 @@ module {
       field.organizational * 0.98 +
       (if (grids.size() > 1) { grids[1].fieldStrength } else { 0.5 }) * 0.008 +
       (if (grids.size() > 7) { grids[7].fieldStrength } else { 0.5 }) * 0.008 +
-      Float.sin(t * φ * ψ * 0.01) * 0.002
+      Float.sin(t * phi * psi * 0.01) * 0.002
     );
 
     // D3 Causal: QA + crypto (verification chains)
@@ -1599,7 +1599,7 @@ module {
       field.causal * 0.98 +
       (if (grids.size() > 2) { grids[2].fieldStrength } else { 0.5 }) * 0.01 +
       (if (grids.size() > 6) { grids[6].fieldStrength } else { 0.5 }) * 0.005 +
-      Float.cos(t * φ * 0.02) * 0.003
+      Float.cos(t * phi * 0.02) * 0.003
     );
 
     // D4 Coherence: replication + all (Kuramoto coupling)

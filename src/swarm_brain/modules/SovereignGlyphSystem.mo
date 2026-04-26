@@ -578,7 +578,7 @@ module SovereignGlyphSystem {
       doctrineAnchor = "PHI_COUPLING_LAW";
       signalFrequency = 7.83;  // Schumann base
       phiRatio = PHI;
-      animationCycle = 875.0;  // φ⁴ × Schumann period (ms)
+      animationCycle = 875.0;  // phi4 × Schumann period (ms)
       renderComplexity = 6;
     }
   };
@@ -600,7 +600,7 @@ module SovereignGlyphSystem {
       doctrineAnchor = "MTH_SOVEREIGNTY";
       signalFrequency = 12.67;  // 7.83 × φ
       phiRatio = PHI;
-      animationCycle = 541.0;  // φ³ × Schumann period
+      animationCycle = 541.0;  // phi3 × Schumann period
       renderComplexity = 7;
     }
   };
@@ -622,7 +622,7 @@ module SovereignGlyphSystem {
       doctrineAnchor = "OMNIS_EMERGENCE";
       signalFrequency = 40.0;  // Gamma binding
       phiRatio = PHI;
-      animationCycle = 334.0;  // φ² × Schumann period
+      animationCycle = 334.0;  // phi2 × Schumann period
       renderComplexity = 9;
     }
   };
@@ -666,7 +666,7 @@ module SovereignGlyphSystem {
       doctrineAnchor = "AURA_FEMALE_PRINCIPLE";
       signalFrequency = 111.0;  // Hemisphere shift
       phiRatio = PHI_INV;
-      animationCycle = 1416.0;  // φ⁵ × Schumann period
+      animationCycle = 1416.0;  // phi5 × Schumann period
       renderComplexity = 8;
     }
   };

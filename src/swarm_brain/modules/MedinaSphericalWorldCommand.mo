@@ -87,13 +87,13 @@ module {
   // MEDINA CONSTANTS — The mathematical fabric of reality
   // ════════════════════════════════════════════════════════════════════════════════════════
 
-  public let φ : Float = 1.6180339887498948482;           // Golden ratio
-  public let ψ : Float = 0.6180339887498948482;           // Inverse golden ratio (1/φ)
-  public let π : Float = 3.1415926535897932385;           // Pi
+  public let phi : Float = 1.6180339887498948482;           // Golden ratio
+  public let psi : Float = 0.6180339887498948482;           // Inverse golden ratio (1/φ)
+  public let pi : Float = 3.1415926535897932385;           // Pi
   public let τ : Float = 6.2831853071795864769;           // Tau (2π)
   public let e : Float = 2.7182818284590452354;           // Euler's number
 
-  public let PHI_MEDINA : Float = 2.97442179;             // φ × e^(1/φ)
+  public let PHI_MEDINA : Float = 2.97442179;             // phi × e^(1/φ)
   public let OMEGA_MEDINA : Float = 2.11185;              // 2π/Φ_M
   public let TAU_EMERGENCE : Float = 0.618033988749;      // Emergence threshold
 
@@ -752,7 +752,7 @@ module {
 
   func propagateRegionalToOrganism(webDensity : Float, moduleCoupling : Float) : Float {
     // Web density and module coupling produce OMNIS coherence
-    _clamp((webDensity * φ + moduleCoupling) / (φ + 1.0), 0.0, 1.0)
+    _clamp((webDensity * phi + moduleCoupling) / (φ + 1.0), 0.0, 1.0)
   };
 
   func propagateOrganismToWorld(omnisC : Float, worldHealth : Float) : Float {
@@ -779,7 +779,7 @@ module {
     var biomeHealth : Float = 0.0;
     for (b in biomes.vals()) { biomeHealth += b.health };
     let avgBiomeHealth = biomeHealth / Float.fromInt(biomes.size());
-    _clamp((omnisC * φ + avgBiomeHealth) / (φ + 1.0), 0.0, 1.0)
+    _clamp((omnisC * phi + avgBiomeHealth) / (φ + 1.0), 0.0, 1.0)
   };
 
   func propagateOrganismToRegional(omnisC : Float, moduleCoupling : Float) : Float {

@@ -59,7 +59,7 @@ module {
     oscillators     : [Oscillator];  // N oscillators
     globalCoupling  : Float;         // K
     orderParam      : Float;         // r ∈ [0,1]
-    meanPhase       : Float;         // ψ = arg(Σ exp(i·θⱼ))
+    meanPhase       : Float;         // psi = arg(Σ exp(i·θⱼ))
     beatNum         : Nat;
     syncHistory     : [Float];       // last 100 r values
     criticalK       : Float;         // phase transition threshold
@@ -86,7 +86,7 @@ module {
   //   - Body↔Brain interface: 8 connections, coupling = √3 (Vesica Piscis)
   //
   // This creates the SACRED COUPLING MATRIX:
-  //   K[i][j] = φ     if both in tetrahedron (body-body)
+  //   K[i][j] = phi     if both in tetrahedron (body-body)
   //   K[i][j] = 1.0   if both in cube (brain-brain)
   //   K[i][j] = √3    if body↔brain interface (Vesica Piscis)
   //   K[i][j] = 0     if no geometric connection
@@ -211,7 +211,7 @@ module {
   // Sacred Kuramoto:   dθᵢ/dt = ωᵢ + Σⱼ K[i][j] sin(θⱼ - θᵢ)
   //
   // The coupling matrix K[i][j] encodes:
-  //   - φ for body-body (tetrahedron edges)
+  //   - phi for body-body (tetrahedron edges)
   //   - √3 for body-brain interface (Vesica Piscis)
   //   - 1.0 for brain-brain (cube edges)
   //
@@ -389,7 +389,7 @@ module {
 
   // ── Order parameter (global synchronization measure) ──────────
   // r = |1/N Σⱼ exp(i·θⱼ)| = √((Σcos θⱼ)² + (Σsin θⱼ)²) / N
-  // ψ = atan2(Σsin θⱼ, Σcos θⱼ)
+  // psi = atan2(Σsin θⱼ, Σcos θⱼ)
   public func computeOrderParameter(oscs: [Oscillator]) : (Float, Float) {
     let n = oscs.size();
     if (n == 0) { return (0.0, 0.0) };
@@ -3649,7 +3649,7 @@ module {
     beatNum        : Nat;
     // History buffers
     rHistory       : [Float];          // Past r values
-    psiHistory     : [Float];          // Past ψ values
+    psiHistory     : [Float];          // Past psi values
     // Delay observables
     delayResonance : Bool;             // Delay matches natural period
     stabilityIndex : Float;            // Delay-induced stability

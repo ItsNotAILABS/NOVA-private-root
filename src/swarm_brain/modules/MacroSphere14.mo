@@ -57,9 +57,9 @@ module {
   // ║                     SACRED CONSTANTS                                   ║
   // ╚════════════════════════════════════════════════════════════════════════╝
   
-  public let φ : Float = 1.6180339887498948482;
-  public let ψ : Float = 0.6180339887498948482;
-  public let π : Float = 3.1415926535897932385;
+  public let phi : Float = 1.6180339887498948482;
+  public let psi : Float = 0.6180339887498948482;
+  public let pi : Float = 3.1415926535897932385;
   public let τ : Float = 6.2831853071795864769;
   public let e : Float = 2.7182818284590452354;
   public let S₀ : Float = 0.3819660112501051518;
@@ -543,7 +543,7 @@ module {
     {
       r = 1.0;
       psi = 0.0;
-      globalK = φ / π;          // Golden-circle coupling ratio
+      globalK = phi / π;          // Golden-circle coupling ratio
       phases = phases;
       frequencies = frequencies;
       rHistory = [];
@@ -822,7 +822,7 @@ module {
   // SACRED GEOMETRY MATHEMATICS
   // ─────────────────────────────────────────────────────────────────────────────
 
-  /// Golden ratio φ = (1 + √5) / 2
+  /// Golden ratio phi = (1 + √5) / 2
   public let PHI : Float = 1.6180339887498948482;
 
   /// Fibonacci sequence generator

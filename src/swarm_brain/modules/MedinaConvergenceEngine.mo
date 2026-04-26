@@ -121,14 +121,14 @@ module {
   // ════════════════════════════════════════════════════════════════════════════════════════
 
   // Universal Constants
-  public let φ : Float = 1.6180339887498948482;           // Golden ratio
-  public let ψ : Float = 0.6180339887498948482;           // Inverse golden ratio (1/φ)
-  public let π : Float = 3.1415926535897932385;           // Pi
+  public let phi : Float = 1.6180339887498948482;           // Golden ratio
+  public let psi : Float = 0.6180339887498948482;           // Inverse golden ratio (1/φ)
+  public let pi : Float = 3.1415926535897932385;           // Pi
   public let τ : Float = 6.2831853071795864769;           // Tau (2π)
   public let e : Float = 2.7182818284590452354;           // Euler's number
 
   // Medina Sovereign Constants
-  public let PHI_MEDINA : Float = 2.97442179;             // φ × e^(1/φ) — Growth amplifier
+  public let PHI_MEDINA : Float = 2.97442179;             // phi × e^(1/φ) — Growth amplifier
   public let OMEGA_MEDINA : Float = 2.11185;              // 2π/Φ_M — Resonance frequency
   public let TAU_EMERGENCE : Float = 0.618033988749;      // Emergence threshold (1/φ)
 
@@ -337,7 +337,7 @@ module {
     let rawResonance = amplitudeProduct * phaseAlignment * frequencySensitivity;
 
     // Apply golden ratio damping to prevent runaway resonance
-    let dampedResonance = rawResonance * ψ + (1.0 - ψ) * rawResonance * rawResonance;
+    let dampedResonance = rawResonance * psi + (1.0 - ψ) * rawResonance * rawResonance;
 
     _clamp(dampedResonance, 0.0, 1.0)
   };

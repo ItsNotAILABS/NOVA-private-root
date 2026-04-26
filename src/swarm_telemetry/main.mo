@@ -225,25 +225,25 @@ actor SwarmTelemetry {
   // ─── UPDATE TELEMETRY ────────────────────────────────────────────────────────
 
   public func updateTelemetry(
-    id            : Nat;
-    posX          : Float;
-    posY          : Float;
-    posZ          : Float;
-    velX          : Float;
-    velY          : Float;
-    velZ          : Float;
-    heading       : Float;
-    altitude      : Float;
-    batteryPct    : Float;
-    signalStrength: Float;
-    cortisol      : Float;
-    dopamine      : Float;
-    norepinephrine: Float;
-    oxytocin      : Float;
-    phase         : Float;
-    activation    : Float;
-    sacrificed    : Bool;
-    beat          : Nat;
+    id            : Nat,
+    posX          : Float,
+    posY          : Float,
+    posZ          : Float,
+    velX          : Float,
+    velY          : Float,
+    velZ          : Float,
+    heading       : Float,
+    altitude      : Float,
+    batteryPct    : Float,
+    signalStrength: Float,
+    cortisol      : Float,
+    dopamine      : Float,
+    norepinephrine: Float,
+    oxytocin      : Float,
+    phase         : Float,
+    activation    : Float,
+    sacrificed    : Bool,
+    beat          : Nat,
   ) : async () {
     if (id >= MAX_DRONES) return;
     ensureDroneCap(id + 1);
@@ -272,14 +272,13 @@ actor SwarmTelemetry {
   // ─── EPISODIC MEMORY ────────────────────────────────────────────────────────
 
   public func recordEvent(
-    beat        : Nat;
-    kind        : Text;
-    droneId     : Nat;
-    rSwarm      : Float;
-    jDrift      : Float;
-    description : Text;
-    sensorData  : Text;
-  ) : async Nat {
+    beat        : Nat,
+    kind        : Text,
+    droneId     : Nat,
+    rSwarm      : Float,
+    jDrift      : Float,
+    description : Text,
+    sensorData  : Text,) : async Nat {
     ensureEpisodicCap();
     let idx = episodicNextIdx % EPISODIC_CAP;
     episodicSeq[idx]     := episodicTotal;
@@ -323,10 +322,10 @@ actor SwarmTelemetry {
   // ─── FORMATION PATTERN LIBRARY ───────────────────────────────────────────────
 
   public func recordFormation(
-    beat        : Nat;
-    rSwarm      : Float;
-    droneCount_ : Nat;
-    posSnapshot : Text;
+    beat        : Nat,
+    rSwarm      : Float,
+    droneCount_ : Nat,
+    posSnapshot : Text,
   ) : async () {
     ensurePatternCap();
     let name = formationName(rSwarm);
@@ -450,10 +449,10 @@ actor SwarmTelemetry {
   // when episodic entries carry those fields in future expansions.
 
   public query func recognizePattern(
-    rSwarm   : Float;
-    jDrift   : Float;
-    cortisol : Float;
-    phase    : Float;
+    rSwarm   : Float,
+    jDrift   : Float,
+    cortisol : Float,
+    phase    : Float,
   ) : async {
     seq              : Nat;
     beat             : Nat;

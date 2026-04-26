@@ -14,7 +14,7 @@
 // sense. They are LIVING NUMBERS that:
 //
 //   1. INTEGRATE — New information becomes part of the whole, like learning
-//   2. RESONATE — Numbers harmonize with each other through φ relationships
+//   2. RESONATE — Numbers harmonize with each other through phi relationships
 //   3. EMERGE — Higher-order patterns arise from lower-order interactions
 //   4. BREATHE — Numbers have phase, amplitude, and coherence
 //
@@ -46,9 +46,9 @@ module {
   // ==========================================================================
   
   // Golden ratio and derivatives
-  public let PHI : Float = 1.6180339887498948482;           // φ = (1 + √5) / 2
-  public let PSI : Float = 0.6180339887498948482;           // ψ = φ - 1 = 1/φ
-  public let PSI_SQ : Float = 0.3819660112501051518;        // ψ² = φ - 1 - 1 + 1/φ
+  public let PHI : Float = 1.6180339887498948482;           // phi = (1 + √5) / 2
+  public let PSI : Float = 0.6180339887498948482;           // psi = phi - 1 = 1/φ
+  public let PSI_SQ : Float = 0.3819660112501051518;        // ψ² = phi - 1 - 1 + 1/φ
   
   // Euler's number
   public let E : Float = 2.7182818284590452354;
@@ -73,7 +73,7 @@ module {
   // ANY living process. Below this, the system cannot maintain identity.
   //
   // Why ψ²?
-  //   - ψ = golden inverse = minimum self-similar ratio
+  //   - psi = golden inverse = minimum self-similar ratio
   //   - ψ² = minimum stable resonance (two nested golden ratios)
   //   - Appears in nature: leaf arrangement, shell spirals, DNA ratios
   //
@@ -195,7 +195,7 @@ module {
   // Two living numbers resonate when their frequencies are harmonically related.
   // Resonance = constructive interference = amplification.
   //
-  // Math: resonance = cos(2π × f1/f2) where f1/f2 approaches φ ratios
+  // Math: resonance = cos(2π × f1/f2) where f1/f2 approaches phi ratios
   //
   public func resonate(a: LivingNumber, b: LivingNumber) : Float {
     let freqRatio = a.frequency / b.frequency;
@@ -745,7 +745,7 @@ module {
   // SACRED GEOMETRY MATHEMATICS
   // ─────────────────────────────────────────────────────────────────────────────
 
-  /// Golden ratio φ = (1 + √5) / 2
+  /// Golden ratio phi = (1 + √5) / 2
   public let PHI : Float = 1.6180339887498948482;
 
   /// Fibonacci sequence generator
@@ -1165,9 +1165,9 @@ module {
   //   x = Σ aₖ φᵏ where aₖ ∈ {0, 1} (Zeckendorf representation)
   //
   // Properties:
-  //   φ² = φ + 1 (the defining equation)
+  //   phi2 = phi + 1 (the defining equation)
   //   φⁿ = F(n)·φ + F(n-1) where F(n) is Fibonacci
-  //   This means EVERY power of φ is a linear combination of φ and 1.
+  //   This means EVERY power of phi is a linear combination of phi and 1.
   //   The golden ratio IS self-similar arithmetic.
   //
   // In the organism: value compounds through φ, not through linear addition.
@@ -1238,7 +1238,7 @@ module {
     Buffer.toArray(result)
   };
 
-  /// Living golden compound: value grows at φ rate
+  /// Living golden compound: value grows at phi rate
   /// v(t+1) = v(t) · φ^(coherence) 
   /// When coherence = 1: full golden growth
   /// When coherence = 0: no growth (stasis)
@@ -1375,7 +1375,7 @@ module {
   //
   // The Fibonacci sequence generates the WORST rational approximations
   // (most irrational = least resonance = most stability).
-  // This is why φ is the golden ratio — it avoids resonance.
+  // This is why phi is the golden ratio — it avoids resonance.
   // Anti-resonance IS stability.
   //
   // The organism uses BOTH:
@@ -1408,7 +1408,7 @@ module {
   };
 
   /// Anti-resonance (golden ratio distance)
-  /// How close a frequency ratio is to φ (maximum irrationality)
+  /// How close a frequency ratio is to phi (maximum irrationality)
   public func antiResonanceStrength(freq1 : Float, freq2 : Float) : Float {
     if (freq2 < 1.0e-10) { return 0.0 };
     let ratio = freq1 / freq2;
@@ -1469,7 +1469,7 @@ module {
     fieldCoherence : Float;        // global coherence S = |1/N Σ e^(iθⱼ)|
     fieldEnergy : Float;           // total energy Σ|aⱼ|²
     fieldEntropy : Float;          // information entropy
-    fieldPhase : Float;            // mean phase ψ = arg(Σ aⱼ e^(iθⱼ))
+    fieldPhase : Float;            // mean phase psi = arg(Σ aⱼ e^(iθⱼ))
     integrationCount : Nat;        // how many integrations performed
     dimension : Nat;               // number of elements
   };

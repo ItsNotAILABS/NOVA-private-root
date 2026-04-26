@@ -101,7 +101,7 @@ module {
   public let EMERGENCE_TAU      : Float = 0.618033988749;  // Golden ratio emergence point
 
   // Jasmine's Law Constants
-  public let JASMINE_ALPHA      : Float = 2.97442179;  // φ × e^(1/φ) — Growth amplifier
+  public let JASMINE_ALPHA      : Float = 2.97442179;  // phi × e^(1/φ) — Growth amplifier
   public let JASMINE_BETA       : Float = 0.1618;      // Antifragility coefficient
   public let JASMINE_GAMMA      : Float = 0.0069314718; // Knowledge decay (ln(2)/100)
   public let JASMINE_OMEGA      : Float = 2.11185;     // Resonance frequency (2π/Φ_M)
@@ -285,7 +285,7 @@ module {
   // ORDER PARAMETER:
   //   r × e^(iψ) = (1/N) Σⱼ₌₁ᴺ e^(iθⱼ)
   //   r = √((Σcos θⱼ)² + (Σsin θⱼ)²) / N
-  //   ψ = atan2(Σsin θⱼ, Σcos θⱼ)
+  //   psi = atan2(Σsin θⱼ, Σcos θⱼ)
   //
   // CRITICAL COUPLING (Phase Transition):
   //   Kc = 2 / (π × g(0))
@@ -307,7 +307,7 @@ module {
 
   public type KuramotoResult = {
     orderParameter  : Float;  // r ∈ [0, 1]
-    meanPhase       : Float;  // ψ ∈ [0, 2π)
+    meanPhase       : Float;  // psi ∈ [0, 2π)
     newPhases       : [Float];
     syncVariance    : Float;  // phase spread
     criticalK       : Float;  // Kc for this distribution
@@ -1205,7 +1205,7 @@ module {
   // SACRED GEOMETRY MATHEMATICS
   // ─────────────────────────────────────────────────────────────────────────────
 
-  /// Golden ratio φ = (1 + √5) / 2
+  /// Golden ratio phi = (1 + √5) / 2
   public let PHI : Float = 1.6180339887498948482;
 
   /// Fibonacci sequence generator

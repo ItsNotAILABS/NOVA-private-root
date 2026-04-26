@@ -46,7 +46,7 @@
 // Core Architecture:
 // 1. Hierarchical Predictive Processing (Friston)
 // 2. Global Workspace Theory (Baars/Dehaene)
-// 3. Integrated Information Theory φ (Tononi)
+// 3. Integrated Information Theory phi (Tononi)
 // 4. Adaptive Resonance Theory (Grossberg)
 // 5. Dynamic Systems (Freeman/Kelso)
 // 
