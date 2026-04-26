@@ -280,12 +280,12 @@ actor NovaProtocol {
   // ═══════════════════════════════════════════════════════════════════════════
 
   public query func getRevenueRoutingRatios() : async {
-    toDivision   : Float;  // φ⁻¹ = 61.8%
-    toGovernance : Float;  // φ⁻² = 23.6%
-    toEmission   : Float;  // φ⁻³ =  9.0%
-    toReserve    : Float;  // φ⁻⁴ =  5.6%
+    toDivision   : Float;  // φ⁻¹ ≈ 0.618 (61.8% of each unit)
+    toGovernance : Float;  // φ⁻² ≈ 0.382 (38.2% of each unit)
+    toEmission   : Float;  // φ⁻³ ≈ 0.236 (23.6% of each unit)
+    toReserve    : Float;  // φ⁻⁴ ≈ 0.146 (14.6% of each unit)
     formula      : Text;
-    sanityCheck  : Float;  // should sum to ~1.0
+    sanityCheck  : Float;  // sum of the four φ-power ratios (not normalized to 1.0)
   } {
     let toDivision   = _pow(PHI_INV, 1.0);  // φ⁻¹ ≈ 0.618
     let toGovernance = _pow(PHI_INV, 2.0);  // φ⁻² ≈ 0.382

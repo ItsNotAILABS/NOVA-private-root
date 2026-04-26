@@ -540,6 +540,7 @@ actor NexusPropagator {
   stable var tamboStoredTotal    : Nat = 0;
   stable var tamboForwardedTotal : Nat = 0;
   stable var tamboExpiredTotal   : Nat = 0;
+  stable var tamboStoredCurrent  : Nat = 0;  // live count of STORED tambos (decremented on forward/expire)
 
   func _findTambo(id : Nat) : ?Nat {
     var i = 0;
@@ -582,6 +583,7 @@ actor NexusPropagator {
     tamboCount          := tamboCount + 1;
     nextTamboId         := nextTamboId + 1;
     tamboStoredTotal    := tamboStoredTotal + 1;
+    tamboStoredCurrent  := tamboStoredCurrent + 1;
     nexusBeat           := nexusBeat + 1;
 
     { success = true; tamboId = id }
@@ -603,14 +605,16 @@ actor NexusPropagator {
         };
         // Check TTL expiry
         if (tamboTtlBeats[i] > 0 and nexusBeat > tamboStoredBeats[i] + tamboTtlBeats[i]) {
-          tamboStatuses[i]  := "EXPIRED";
-          tamboExpiredTotal := tamboExpiredTotal + 1;
-          nexusBeat         := nexusBeat + 1;
+          tamboStatuses[i]   := "EXPIRED";
+          tamboExpiredTotal  := tamboExpiredTotal + 1;
+          tamboStoredCurrent := if (tamboStoredCurrent > 0) tamboStoredCurrent - 1 else 0;
+          nexusBeat          := nexusBeat + 1;
           return { success = false; status = "EXPIRED"; fromSubstrate = tamboFromSubs[i]; toSubstrate = tamboToSubs[i] }
         };
         tamboStatuses[i]    := "FORWARDED";
         tamboForwardedAt[i] := Time.now();
         tamboForwardedTotal := tamboForwardedTotal + 1;
+        tamboStoredCurrent  := if (tamboStoredCurrent > 0) tamboStoredCurrent - 1 else 0;
         nexusBeat           := nexusBeat + 1;
         { success = true; status = "FORWARDED"; fromSubstrate = tamboFromSubs[i]; toSubstrate = tamboToSubs[i] }
       };
@@ -632,7 +636,10 @@ actor NexusPropagator {
       };
       i += 1;
     };
-    if (expired > 0) { nexusBeat := nexusBeat + 1 };
+    if (expired > 0) {
+      tamboStoredCurrent := if (tamboStoredCurrent > expired) tamboStoredCurrent - expired else 0;
+      nexusBeat          := nexusBeat + 1;
+    };
     { expiredCount = expired }
   };
 
@@ -710,12 +717,7 @@ actor NexusPropagator {
     }];
     description     : Text;
   } {
-    var stored : Nat = 0;
-    var i = 0;
-    while (i < tamboCount and i < TAMBO_CAP) {
-      if (tamboStatuses[i] == "STORED") { stored += 1 };
-      i += 1;
-    };
+    // Use stable counter for O(1) stored count
     let substrates : [Text] = ["ICP", "BLOCKCHAIN", "EDGE", "CLOUD", "PHANTOM"];
     let pending = Array.tabulate<{ substrate:Text; pending:Nat }>(5, func(si) {
       let sub = substrates[si];
@@ -729,7 +731,7 @@ actor NexusPropagator {
     });
     {
       totalTambos        = tamboCount;
-      storedCount        = stored;
+      storedCount        = tamboStoredCurrent;
       forwardedTotal     = tamboForwardedTotal;
       expiredTotal       = tamboExpiredTotal;
       pendingBySubstrate = pending;
@@ -757,12 +759,6 @@ actor NexusPropagator {
     subModels      : [Text];
     roadNetwork    : Text;
   } {
-    var tamboStored : Nat = 0;
-    var i = 0;
-    while (i < tamboCount and i < TAMBO_CAP) {
-      if (tamboStatuses[i] == "STORED") { tamboStored += 1 };
-      i += 1;
-    };
     {
       seal            = sovereignSeal;
       claimed         = genesisLocked;
@@ -774,7 +770,7 @@ actor NexusPropagator {
       cloudCount      = cloudNodeCount;
       phantomCount    = phantomNodeCount;
       tamboCount      = tamboCount;
-      tamboStored;
+      tamboStored     = tamboStoredCurrent;
       tamboForwarded  = tamboForwardedTotal;
       subModels       = ["PROPAGATOR", "TAMBO_RELAY"];
       roadNetwork     = "QHAPAQ ÑAN — " # Nat.toText(nodeCount) # " nodes across 5 substrates, " # Nat.toText(tamboCount) # " tambos";

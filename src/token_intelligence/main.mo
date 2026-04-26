@@ -443,7 +443,9 @@ actor TokenIntelligence {
 
   // Mark action as executing (transition READY → EXECUTING)
   // Callers poll getReadyActions() then claim one before running it.
-  // This prevents double-execution if two canisters race to consume the same action.
+  // On ICP, each update call is processed atomically — the canister processes
+  // one message at a time, so concurrent claim attempts are automatically
+  // serialized by the IC runtime (no true race condition is possible).
   public shared(_msg) func markActionExecuting(actionId : Nat) : async Bool {
     var i = 0;
     while (i < actionCount and i < ACTION_CAP) {

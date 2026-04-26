@@ -267,6 +267,10 @@ actor QuipuLedger {
   // ═══════════════════════════════════════════════════════════════════════════
 
   // Claim a PENDING record for execution (transition → EXECUTING)
+  // On ICP, each update call is processed atomically — the canister processes
+  // one message at a time, so concurrent claim attempts are automatically
+  // serialized by the IC runtime (no true race condition is possible within
+  // a single actor; the first caller to arrive wins the PENDING→EXECUTING transition).
   public shared(_msg) func claimRecord(quipuId : Nat, executor : Text) : async {
     success : Bool;
     status  : Text;

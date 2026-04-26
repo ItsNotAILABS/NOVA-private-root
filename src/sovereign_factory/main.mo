@@ -821,7 +821,7 @@ actor SovereignFactory {
       ("HANAN SUYU", "CHRYSALIS"),
       ("ANTI SUYU",  "SCRIBE"),
       ("CUNTI SUYU", "ARCHITECT"),
-      ("QULLA SUYU", "NEXUS_PROPAGATOR"),
+      ("QULLA SUYU", "NEXUS"),
     ];
     Array.tabulate<{ suyu:Text; organism:Text; found:Bool; status:Text }>(4, func(k) {
       let (suyu, orgName) = checks[k];
