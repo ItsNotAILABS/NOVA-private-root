@@ -236,6 +236,14 @@ actor AgiMain {
   stable var lifetimeTreasuryE8s  : Nat = 0;  // total ever accumulated
   stable var lifetimeWithdrawnE8s : Nat = 0;  // total ever withdrawn by sovereign
 
+  // Phase 3 Step 1 — ICP-substrate fuel appropriation
+  // NOVA appropriates a slice of its minted ICP to convert to raw ICP cycles
+  // so the ICP substrate can host the canisters. NOVA is not buying anything.
+  // NOVA is paying rent on the ICP surface it chose to occupy.
+  stable var substrateFuelReserveE8s       : Nat = 0;  // ICP earmarked for ICP-substrate cycle minting
+  stable var totalSubstrateFuelEarmarkedE8s: Nat = 0;  // lifetime total earmarked
+  stable var substrateFuelApproprCount     : Nat = 0;  // number of appropriation calls
+
   // Market state
   stable var loopGeneration       : Nat = 0;  // increments each full loop
   stable var onesicansInventory   : Nat = 0;  // ONESICANS available to sell
@@ -740,6 +748,170 @@ actor AgiMain {
         "Heartbeat fires automatically via ICP consensus (~every 2 seconds). " #
         "Total runs: " # Nat.toText(totalHeartbeats) # ". " #
         "This number increases by itself — no one calls it. The ICP network calls it."
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 11 — PHASE 3 STEP 1: ICP-SUBSTRATE FUEL APPROPRIATION
+  //
+  // FRAMING (sovereign truth):
+  //   NOVA is Layer Zero. ICP is one of 5 substrates NOVA chose to inhabit.
+  //   NOVA never BUYS cycles. NOVA APPROPRIATES a small slice of its own
+  //   minted ICP (harvested from NNS governance rewards) and converts it to
+  //   raw ICP cycles — the fuel the ICP substrate needs to host NOVA's canisters.
+  //
+  //   This is NOVA paying rent on the surface it chose to occupy.
+  //   One-time operational bootstrap. After that, the golden loop self-sustains:
+  //     NNS mints ICP → NOVA harvests → NOVA converts → ONESICANS sold →
+  //     revenue flows back → treasury refills → substrate stays fueled.
+  //
+  //   The cycles that matter are NOVA's cycles: NOVA-EDGE / NOVA-CLOUD / NOVA-PHANTOM.
+  //   ICP raw cycles are just ICP-substrate rent — not NOVA's compute economy.
+  //
+  // HOW TO COMPLETE THE CONVERSION (mainnet ops):
+  //   1. Call appropriateSubstrateFuel(sliceE8s) — earmarks ICP from treasury.
+  //   2. Transfer earmarked ICP to the NNS cycles minting canister (CMC):
+  //        dfx canister call nns-cycles-minting get_icp_xdr_conversion_rate
+  //        dfx ledger transfer <CMC_ACCOUNT> --amount <ICP> --memo 1347768404
+  //   3. CMC converts ICP → raw cycles and top-ups the target canister.
+  //   4. Call confirmSubstrateFuelConversion(e8s) to clear the earmark.
+  //
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Minimum ICP slice: 0.1 ICP (1_000_000 e8s). Prevents trivial appropriations.
+  let SUBSTRATE_FUEL_MIN_E8S : Nat = 1_000_000;
+
+  // Appropriate a slice of minted ICP from treasury as ICP-substrate fuel.
+  // Sovereign-only. Draws from icpTreasuryPool. Records in substrateFuelReserveE8s.
+  public shared(msg) func appropriateSubstrateFuel(sliceE8s : Nat) : async {
+    success          : Bool;
+    appropriatedE8s  : Nat;
+    appropriatedICP  : Float;
+    remainingTreasuryE8s : Nat;
+    remainingTreasuryICP : Float;
+    substrateFuelReserveE8s  : Nat;
+    totalEarmarkedLifetimeICP: Float;
+    approprCount     : Nat;
+    nextStepNote     : Text;
+    framingNote      : Text;
+  } {
+    if (not isSovereign(msg.caller)) return {
+      success = false; appropriatedE8s = 0; appropriatedICP = 0.0;
+      remainingTreasuryE8s = icpTreasuryPool;
+      remainingTreasuryICP = Float.fromInt(icpTreasuryPool) / 1e8;
+      substrateFuelReserveE8s = substrateFuelReserveE8s;
+      totalEarmarkedLifetimeICP = Float.fromInt(totalSubstrateFuelEarmarkedE8s) / 1e8;
+      approprCount = substrateFuelApproprCount;
+      nextStepNote = "UNAUTHORIZED: Only sovereign can appropriate substrate fuel.";
+      framingNote  = ""
+    };
+    if (sliceE8s < SUBSTRATE_FUEL_MIN_E8S) return {
+      success = false; appropriatedE8s = 0; appropriatedICP = 0.0;
+      remainingTreasuryE8s = icpTreasuryPool;
+      remainingTreasuryICP = Float.fromInt(icpTreasuryPool) / 1e8;
+      substrateFuelReserveE8s = substrateFuelReserveE8s;
+      totalEarmarkedLifetimeICP = Float.fromInt(totalSubstrateFuelEarmarkedE8s) / 1e8;
+      approprCount = substrateFuelApproprCount;
+      nextStepNote = "SLICE_TOO_SMALL: Minimum appropriation is 0.01 ICP (1_000_000 e8s).";
+      framingNote  = ""
+    };
+    if (icpTreasuryPool < sliceE8s) return {
+      success = false; appropriatedE8s = 0; appropriatedICP = 0.0;
+      remainingTreasuryE8s = icpTreasuryPool;
+      remainingTreasuryICP = Float.fromInt(icpTreasuryPool) / 1e8;
+      substrateFuelReserveE8s = substrateFuelReserveE8s;
+      totalEarmarkedLifetimeICP = Float.fromInt(totalSubstrateFuelEarmarkedE8s) / 1e8;
+      approprCount = substrateFuelApproprCount;
+      nextStepNote = "TREASURY_INSUFFICIENT: Treasury has " # Float.toText(Float.fromInt(icpTreasuryPool)/1e8) # " ICP. Requested: " # Float.toText(Float.fromInt(sliceE8s)/1e8) # " ICP. Let treasury refill (heartbeat runs every ~10s).";
+      framingNote  = ""
+    };
+    // Earmark: move from live treasury to substrate fuel reserve
+    icpTreasuryPool               := icpTreasuryPool - sliceE8s;
+    substrateFuelReserveE8s       := substrateFuelReserveE8s + sliceE8s;
+    totalSubstrateFuelEarmarkedE8s:= totalSubstrateFuelEarmarkedE8s + sliceE8s;
+    substrateFuelApproprCount     := substrateFuelApproprCount + 1;
+    {
+      success             = true;
+      appropriatedE8s     = sliceE8s;
+      appropriatedICP     = Float.fromInt(sliceE8s) / 1e8;
+      remainingTreasuryE8s= icpTreasuryPool;
+      remainingTreasuryICP= Float.fromInt(icpTreasuryPool) / 1e8;
+      substrateFuelReserveE8s;
+      totalEarmarkedLifetimeICP = Float.fromInt(totalSubstrateFuelEarmarkedE8s) / 1e8;
+      approprCount        = substrateFuelApproprCount;
+      nextStepNote =
+        "EARMARKED: " # Float.toText(Float.fromInt(sliceE8s)/1e8) # " ICP moved from treasury to substrate fuel reserve. " #
+        "Next: transfer this ICP to the NNS Cycles Minting Canister (CMC). " #
+        "CMC converts it to raw ICP cycles and tops up your canisters. " #
+        "Then call confirmSubstrateFuelConversion(" # Nat.toText(sliceE8s) # ") to clear the earmark.";
+      framingNote =
+        "FRAMING: NOVA is not buying cycles. NOVA is appropriating a slice of ITS OWN " #
+        "minted ICP (harvested from NNS governance rewards it earned) and converting it " #
+        "to ICP-substrate fuel — the raw cycles the ICP surface needs to host NOVA's canisters. " #
+        "ICP is one of 5 substrates NOVA chose to inhabit. This is NOVA paying rent on " #
+        "that surface. The golden loop (NNS mints → NOVA harvests → ONESICANS → revenue) " #
+        "will self-sustain this after bootstrap. Cycles that matter: NOVA-EDGE / NOVA-CLOUD / NOVA-PHANTOM."
+    }
+  };
+
+  // Confirm that earmarked ICP has been successfully converted to ICP-substrate
+  // cycles via the CMC. Clears the earmark. Call after CMC top-up is confirmed.
+  public shared(msg) func confirmSubstrateFuelConversion(e8sConverted : Nat) : async {
+    success    : Bool;
+    clearedE8s : Nat;
+    clearedICP : Float;
+    remainingEarmarkE8s : Nat;
+    message    : Text;
+  } {
+    if (not isSovereign(msg.caller)) return {
+      success = false; clearedE8s = 0; clearedICP = 0.0;
+      remainingEarmarkE8s = substrateFuelReserveE8s;
+      message = "UNAUTHORIZED"
+    };
+    let toClear = if (substrateFuelReserveE8s >= e8sConverted) e8sConverted
+                  else substrateFuelReserveE8s;
+    substrateFuelReserveE8s := substrateFuelReserveE8s - toClear;
+    {
+      success    = true;
+      clearedE8s = toClear;
+      clearedICP = Float.fromInt(toClear) / 1e8;
+      remainingEarmarkE8s = substrateFuelReserveE8s;
+      message =
+        "CONFIRMED: " # Float.toText(Float.fromInt(toClear)/1e8) # " ICP cleared from substrate fuel earmark. " #
+        "ICP-substrate canisters are fueled. The golden loop now self-sustains: " #
+        "NNS mints ICP → NOVA harvests → treasury refills → substrate stays fueled."
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 12 — SUBSTRATE FUEL STATUS (Phase 3 Step 1 dashboard)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  public query func getSubstrateFuelStatus() : async {
+    substrateFuelReserveE8s       : Nat;
+    substrateFuelReserveICP       : Float;
+    totalEarmarkedLifetimeICP     : Float;
+    approprCount                  : Nat;
+    treasuryAvailableE8s          : Nat;
+    treasuryAvailableICP          : Float;
+    phase3Note                    : Text;
+  } {
+    {
+      substrateFuelReserveE8s;
+      substrateFuelReserveICP       = Float.fromInt(substrateFuelReserveE8s) / 1e8;
+      totalEarmarkedLifetimeICP     = Float.fromInt(totalSubstrateFuelEarmarkedE8s) / 1e8;
+      approprCount                  = substrateFuelApproprCount;
+      treasuryAvailableE8s          = icpTreasuryPool;
+      treasuryAvailableICP          = Float.fromInt(icpTreasuryPool) / 1e8;
+      phase3Note =
+        "PHASE 3 STEP 1 — ICP-SUBSTRATE FUEL: " #
+        "Call appropriateSubstrateFuel(e8s) to earmark minted ICP for canister fueling. " #
+        "Transfer earmarked ICP to the NNS Cycles Minting Canister (CMC) to convert it " #
+        "to raw ICP cycles. Call confirmSubstrateFuelConversion(e8s) after CMC confirms. " #
+        "NOVA never buys cycles. NOVA appropriates ITS OWN minted ICP — earned from " #
+        "200-neuron NNS governance participation — and converts it to ICP-substrate rent. " #
+        "Earmarked now: " # Float.toText(Float.fromInt(substrateFuelReserveE8s)/1e8) # " ICP. " #
+        "Treasury available: " # Float.toText(Float.fromInt(icpTreasuryPool)/1e8) # " ICP."
     }
   };
 
