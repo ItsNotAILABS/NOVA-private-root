@@ -192,11 +192,6 @@ persistent actor OrganismSolver {
     if (f <= 0.0) 0 else Int.abs(Float.toInt(f))
   };
 
-  func _pow(base : Float, exp : Float) : Float {
-    if (base <= 0.0) { if (exp == 0.0) 1.0 else 0.0 }
-    else Float.exp(exp * Float.log(base))
-  };
-
   // Priority order: CRITICAL=0, HIGH=1, NORMAL=2, LOW=3
   func _priorityOrd(p : Text) : Nat {
     if (p == "CRITICAL") return 0;
@@ -296,7 +291,7 @@ persistent actor OrganismSolver {
     };
 
     let refreshCount : Nat = switch (_findBinding(lbl)) {
-      case null    0;
+      case null 0;
       case (?prev) prev.refreshCount + 1;
     };
     _upsertBinding({
@@ -607,8 +602,11 @@ persistent actor OrganismSolver {
                 }]);
               };
             } else {
-              // Exponential backoff: 2^retries seconds (in nanoseconds)
-              let backoffNs : Int = _floatToNat(_pow(2.0, Float.fromInt(newRetries))) * 1_000_000_000;
+              // Exponential backoff: 2^retries seconds (lookup for max retries=3)
+              let backoffSecs : Nat = if (newRetries == 1) 2
+                                     else if (newRetries == 2) 4
+                                     else 8;
+              let backoffNs : Int = backoffSecs * 1_000_000_000;
               _updateJob(job.id, "RETRYING", newRetries, now + backoffNs);
               _appendLog({
                 evTick = _solverTick; jobId = job.id; jobType = job.jobType;

@@ -111,6 +111,10 @@ persistent actor AgiTerminal {
     else Float.exp(exp * Float.log(base))
   };
 
+  func _calcVoteWeight(stakeE8s : Nat) : Float {
+    Float.fromInt(stakeE8s) / 1.0e8 * 1.5
+  };
+
   // ═══════════════════════════════════════════════════════════════════════════
   // SECTION 5 — SOLVER REGISTRATION
   // ═══════════════════════════════════════════════════════════════════════════
@@ -138,7 +142,7 @@ persistent actor AgiTerminal {
     stake      := initialStake;
     neurons    := if (initialNeurons > 0) initialNeurons else 200;
     onesicans  := initialOnesicans;
-    voteWeight := Float.fromInt(initialStake) / 1.0e8 * 1.5;
+    voteWeight := _calcVoteWeight(initialStake);
     booted     := true;
     { ok = true; message = "AGI_TERMINAL_BOOTED. Heartbeat active. Solver triggers every 50 ticks." }
   };
@@ -175,7 +179,7 @@ persistent actor AgiTerminal {
     };
 
     // ── Voting power update ───────────────────────────────────────────────────
-    voteWeight := Float.fromInt(stake) / 1.0e8 * 1.5;
+    voteWeight := _calcVoteWeight(stake);
 
     // ── ONESICAN emission (every 13 ticks from treasury surplus) ─────────────
     if (parallaxTreasury > 100_000_000 and Nat.rem(tick, 13) == 0) {
@@ -222,7 +226,7 @@ persistent actor AgiTerminal {
     stake      := newStake;
     maturity   := newMaturity;
     neurons    := newNeurons;
-    voteWeight := Float.fromInt(newStake) / 1.0e8 * 1.5;
+    voteWeight := _calcVoteWeight(newStake);
     { ok = true }
   };
 
