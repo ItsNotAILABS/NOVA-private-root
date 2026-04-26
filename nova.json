@@ -117,7 +117,7 @@
       "type": "motoko",
       "main": "src/cycles_market/main.mo",
       "dependencies": [],
-      "description": "CYCLES MARKET — Cross-substrate ONESICAN marketplace: canister listings, φ³-substrate pricing (ICP→PHANTOM), developer seats, compute credit"
+      "description": "NOVA CYCLES MARKET — Internal Sovereign Compute Exchange: where NOVA canisters trade surplus cycles to each other; NOVA Layer Zero pricing across 5 chosen substrates (ICP/BLOCKCHAIN φ⁰=1×, NOVA-EDGE φ¹=1.618×, NOVA-CLOUD φ²=2.618×, NOVA-PHANTOM φ³=4.236×); developer seats, compute credit, φ-spread bid/ask"
     },
     "token_intelligence": {
       "type": "motoko",
@@ -165,7 +165,7 @@
       "type": "motoko",
       "main": "src/cycles_bridge/main.mo",
       "dependencies": [],
-      "description": "CYCLES BRIDGE — Sovereign ONESICAN↔ICP cycles bridge: φ-substrate pricing (ICP=1× EDGE=φ CLOUD=φ² PHANTOM=φ³), sell-cycles-to-network marketplace, canister fuel marketplace, φ⁻⁵ conversion fee, dual masking — ONESICANS bypass ICP on EDGE/CLOUD/PHANTOM"
+      "description": "NOVA SOVEREIGNTY GATE — ONESICANS ↔ Substrate Compute: NOVA Layer Zero appropriates minted ICP to fuel ICP-substrate canisters (φ⁰=1×), with named NOVA-EDGE-CYCLES (φ¹), NOVA-CLOUD-CYCLES (φ²), NOVA-PHANTOM-CYCLES (φ³) tiers; sell-cycles-to-network marketplace; φ⁻⁵ conversion fee; ONESICANS bypass ICP on NOVA-EDGE/NOVA-CLOUD/NOVA-PHANTOM"
     },
     "agi_main": {
       "type": "motoko",
