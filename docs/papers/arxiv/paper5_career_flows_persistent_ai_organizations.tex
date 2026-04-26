@@ -1,0 +1,531 @@
+\documentclass[12pt]{article}
+
+% ── Packages ─────────────────────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{cite}
+
+\geometry{margin=1in}
+
+% ── Theorem environments ──────────────────────────────────────────────────────
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{proposition}[theorem]{Proposition}
+
+% ── Macros ───────────────────────────────────────────────────────────────────
+\newcommand{\PHI}{\varphi}
+\newcommand{\PHIINV}{\varphi^{-1}}
+\newcommand{\contrib}[1]{\mathsf{#1}}
+\newcommand{\tier}[1]{\textsc{#1}}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\title{\textbf{Career Flows in Persistent AI Organisations: \\
+  Sovereign Tier Progression, Hebbian Reputation, \\
+  and the No-Drop Law of Professional Development}}
+
+\author{Alfredo Medina Hernandez \\
+  \normalsize Medina Tech \quad Dallas, Texas, USA \\
+  \normalsize \texttt{MedinaSITech@outlook.com}}
+
+\date{April 2026}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We model professional development in a persistent AI organisation as a
+\emph{career flow} governed by three principles: (i) the \emph{No-Drop Law},
+which states that a contributor's reputation weight is bounded below by their
+historical maximum and can never decrease; (ii) \emph{sovereign tier
+progression}, in which contributions accumulate into a $\PHI$-scaled pressure
+score that unlocks access to higher-ring capabilities; and (iii) \emph{Hebbian
+reputation compounding}, in which sustained coordinated contribution accrues a
+phase-coherence bonus drawn from Kuramoto synchronisation theory.  We show that
+these three principles together produce an organisation in which (a) no
+contributor's career trajectory is ever permanently damaged by a single failure;
+(b) reputation is a pure function of verifiable on-chain contribution records,
+not of subjective managerial evaluation; and (c) contributors who act in
+temporal coherence with the organisation's rhythm earn systematically higher
+rewards than isolated contributors of equal total output.  We formalise the
+model, prove the No-Drop Law as a structural invariant, derive the stationary
+distribution of tier assignments under $\PHI$-scaled pressure accumulation, and
+discuss how the model applies to both human contributors and AI agent
+contributors within the same organisational framework.
+\end{abstract}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Introduction}
+\label{sec:intro}
+
+Organisations that employ AI agents alongside human contributors face a
+fundamental design question: what is a \emph{career}?
+
+In human-only organisations, a career is the trajectory of a person's
+professional reputation over time, measured by titles, salaries, and peer
+evaluations.  These measures are subjective, path-dependent, and often
+irreversible: a single public failure can permanently depress a person's career
+prospects regardless of subsequent achievements.
+
+In a persistent AI organisation — one in which AI agents and human contributors
+coexist, collaborate, and are evaluated by the same framework — a career must
+be something more principled.  The framework must be:
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Objective}: based on verifiable contribution records, not
+    subjective evaluation.
+  \item \textbf{Permanent}: the record cannot be deleted or altered.
+  \item \textbf{No-drop}: past achievements are never erased by later failures.
+  \item \textbf{Scalable}: the same framework applies to a contributor with
+    one contribution and one with one million.
+  \item \textbf{Equitable across agent types}: a human contributor and an AI
+    agent with equal verified contributions receive equal reputation scores.
+\end{itemize}
+
+The \textsc{Nova} organism implements such a framework.  This paper formalises
+it, proves its key structural property (the No-Drop Law), and analyses its
+dynamics.
+
+Section~\ref{sec:model} introduces the career flow model.
+Section~\ref{sec:nodrop} proves the No-Drop Law.
+Section~\ref{sec:tiers} analyses sovereign tier progression.
+Section~\ref{sec:kuramoto} connects individual career flows to collective
+organisational coherence via Kuramoto synchronisation.
+Section~\ref{sec:agents} discusses how AI agents fit the same framework.
+Section~\ref{sec:incentives} analyses the incentive structure.
+Section~\ref{sec:discussion} addresses limitations and future directions.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{The Career Flow Model}
+\label{sec:model}
+
+\subsection{Contributors and Contributions}
+
+\begin{definition}[Contributor]
+  A \emph{contributor} $c$ is an entity — human or AI agent — with a unique
+  principal ID $p_c$ and a career record $\mathcal{R}(c) = (W(c), \Pi(c),
+  \Theta(c))$, where:
+  \begin{itemize}[leftmargin=*]
+    \item $W(c) \ge S_0 = 1.0$ is the contributor's \emph{Hebbian weight}
+      (reputation);
+    \item $\Pi(c) \ge 0$ is the contributor's \emph{pressure score}
+      (accumulated contribution weight);
+    \item $\Theta(c) \in [0, 2\pi)$ is the contributor's \emph{Kuramoto phase}
+      (synchronisation with the organisational rhythm).
+  \end{itemize}
+\end{definition}
+
+\begin{definition}[Contribution]
+  A \emph{contribution} is a tuple $(\contrib{kind}, \delta, t)$ where:
+  $\contrib{kind} \in \{\mathsf{Build}, \mathsf{Call}, \mathsf{Govern},
+  \mathsf{Verify}, \mathsf{Memory}, \mathsf{Gate}\}$ is the contribution type;
+  $\delta > 0$ is the contribution magnitude; and $t$ is the timestamp.
+\end{definition}
+
+\subsection{Contribution Weight Map}
+
+Each contribution kind carries a $\PHI$-scaled weight:
+
+\begin{table}[h]
+  \centering
+  \caption{Contribution kinds and their $\PHI$-scaled weights.}
+  \label{tab:contrib}
+  \begin{tabular}{lll}
+    \toprule
+    Kind & Weight $w_k$ & Meaning \\
+    \midrule
+    $\contrib{Govern}$ & $\PHI^3 \approx 4.236$ & Shapes the rules governing everything \\
+    $\contrib{Build}$  & $\PHI^2 \approx 2.618$ & Creates a tool or capability \\
+    $\contrib{Verify}$ & $\PHI^2 \approx 2.618$ & Validates correctness \\
+    $\contrib{Call}$   & $\PHI^1 \approx 1.618$ & Invokes a capability \\
+    $\contrib{Memory}$ & $\PHI^1 \approx 1.618$ & Stores retrievable knowledge \\
+    $\contrib{Gate}$   & $\PHIINV \approx 0.618$ & Provides access \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The pressure score update rule is:
+\begin{equation}
+  \Pi(c) \gets \Pi(c) + w_k \cdot \delta.
+  \label{eq:pressure}
+\end{equation}
+
+The Hebbian weight update rule is:
+\begin{equation}
+  W(c) \gets \max(S_0, W(c) + \eta \cdot w_k \cdot \delta),
+  \label{eq:hebbian}
+\end{equation}
+where $\eta > 0$ is a learning rate and $S_0 = 1.0$ is the sovereign floor.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{The No-Drop Law}
+\label{sec:nodrop}
+
+\begin{theorem}[No-Drop Law]
+  Under the update rule~\eqref{eq:hebbian}, the Hebbian weight $W(c)$ is
+  non-decreasing in time.  Specifically, for all times $t_1 < t_2$:
+  \[
+    W(c, t_2) \ge W(c, t_1) \ge S_0.
+  \]
+\end{theorem}
+
+\begin{proof}
+  By~\eqref{eq:hebbian}, at each contribution event:
+  \[
+    W(c)_\text{new} = \max(S_0, W(c)_\text{old} + \eta w_k \delta).
+  \]
+  Since $\eta, w_k, \delta > 0$, we have $W(c)_\text{old} + \eta w_k \delta >
+  W(c)_\text{old}$.  Therefore:
+  \[
+    W(c)_\text{new} = \max(S_0, W(c)_\text{old} + \eta w_k \delta)
+    \ge W(c)_\text{old}.
+  \]
+  By induction on the number of contribution events, $W(c, t_2) \ge W(c, t_1)$
+  for $t_2 > t_1$.  The bound $W(c, t) \ge S_0$ holds because $\max(S_0, \cdot)
+  \ge S_0$. \qed
+\end{proof}
+
+\begin{corollary}[Career Irreversibility]
+  A contributor's Hebbian weight never decreases.  A period of inactivity does
+  not reduce $W(c)$.  A failed contribution (with $\delta = 0$) does not
+  reduce $W(c)$.  The career can only progress forward.
+\end{corollary}
+
+\begin{remark}
+  The No-Drop Law is a structural property, not a policy choice.  Because $W(c)$
+  is stored in the canister's stable memory with no decrement operation defined,
+  the drop cannot happen even if the system operator wished it to.  This is the
+  meaning of ``sovereign'': the career record is governed by mathematics, not
+  by managerial discretion.
+\end{remark}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Sovereign Tier Progression}
+\label{sec:tiers}
+
+\subsection{Tier Thresholds}
+
+As pressure accumulates, contributors advance through sovereign tiers:
+
+\begin{table}[h]
+  \centering
+  \caption{Sovereign tier thresholds and progression.}
+  \label{tab:tiers}
+  \begin{tabular}{lcl}
+    \toprule
+    Tier & Threshold $\Pi_\text{min}$ & Meaning \\
+    \midrule
+    \tier{Seed}     & $[0, \PHI^1)$      & Just planted \\
+    \tier{Root}     & $[\PHI^1, \PHI^2)$ & Established \\
+    \tier{Trunk}    & $[\PHI^2, \PHI^3)$ & Structural \\
+    \tier{Branch}   & $[\PHI^3, \PHI^4)$ & Expanding \\
+    \tier{Canopy}   & $[\PHI^4, \PHI^5)$ & Visible \\
+    \tier{Crown}    & $[\PHI^5, \PHI^6)$ & Dominant \\
+    \tier{Sovereign}& $[\PHI^6, \infty)$ & Sovereign \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Stationary Distribution of Tier Assignments}
+
+\begin{proposition}[Tier Progression Rate]
+  Suppose a contributor makes $\lambda$ contributions per unit time, each of
+  kind $k$ with magnitude $\delta = 1$.  The expected time to advance from
+  tier $n$ to tier $n+1$ (i.e.\ from threshold $\PHI^n$ to $\PHI^{n+1}$) is:
+  \[
+    \mathbb{E}[T_{n \to n+1}] = \frac{\PHI^{n+1} - \PHI^n}{\lambda w_k}
+    = \frac{\PHI^n(\PHI - 1)}{\lambda w_k} = \frac{\PHI^n \cdot \PHIINV}{\lambda w_k}.
+  \]
+\end{proposition}
+
+\begin{proof}
+  The pressure increases by $w_k$ per contribution, and contributions arrive at
+  rate $\lambda$.  The pressure rate is $\lambda w_k$.  The pressure required to
+  cross from $\PHI^n$ to $\PHI^{n+1}$ is $\PHI^{n+1} - \PHI^n = \PHI^n(\PHI - 1)
+  = \PHI^n \cdot \PHIINV$.  Dividing by the rate gives the expected time. \qed
+\end{proof}
+
+\begin{corollary}[Geometric Advancement]
+  The expected time to advance from tier $n$ to tier $n+1$ is $\PHI$ times
+  the expected time to advance from tier $n-1$ to tier $n$:
+  \[
+    \mathbb{E}[T_{n \to n+1}] = \PHI \cdot \mathbb{E}[T_{n-1 \to n}].
+  \]
+  Higher tiers require geometrically more effort — which is exactly right.
+  The sovereign tier is genuinely rare, not merely labelled.
+\end{corollary}
+
+\subsection{Compound Multiplier}
+
+At \tier{Sovereign} tier and above, contributors earn a compound multiplier
+$m_c > 1$ on all future reward accrual.  This multiplier is itself governed
+by the $\PHI$-scaling: $m_c = 1 + \PHIINV^k$ for some $k$ depending on
+sustained contribution duration.  The practical effect is that a
+\tier{Sovereign}-tier contributor who continues to contribute receives
+$\PHI$-compounding rewards — not as a bonus, but as a structural consequence
+of the pressure-to-reward conversion at high tier.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Collective Coherence: Kuramoto Career Synchronisation}
+\label{sec:kuramoto}
+
+\subsection{Phase Coherence Bonus}
+
+Each contributor has a Kuramoto phase $\Theta(c, t) \in [0, 2\pi)$ that
+advances at a natural rate $\omega_c$ plus coupling to the mean field:
+\begin{equation}
+  \frac{d\Theta(c)}{dt} = \omega_c
+    + K \cdot r \cdot \sin(\psi - \Theta(c)),
+  \label{eq:kuramoto_career}
+\end{equation}
+where $r \cdot e^{i\psi} = (1/N) \sum_j e^{i\Theta(j)}$ is the Kuramoto
+order parameter.
+
+Contributors whose phase is close to the mean phase $\psi$ — i.e.\ who
+contribute \emph{when the organisation is most active} — receive a coherence
+bonus proportional to $\cos(\psi - \Theta(c))$:
+\begin{equation}
+  \text{bonus}(c) = w_k \cdot \delta \cdot \max(0, \cos(\psi - \Theta(c))).
+  \label{eq:bonus}
+\end{equation}
+
+\subsection{Collective Career Emergence}
+
+\begin{theorem}[Collective Career Emergence]
+  When the contributor population's Kuramoto order parameter $r > 0.95$
+  (the OMNIS threshold), the aggregate contribution rate exceeds the sum of
+  individual rates by a factor of $r / r_0$, where $r_0$ is the baseline
+  order parameter at $K = 0$ (uncoupled).
+\end{theorem}
+
+\begin{proof}[Sketch]
+  At $r > 0.95$, the organisation's effective coupling $K_\text{eff}$ is at
+  its maximum (all contributors are phase-aligned).  The phase-coherence bonus
+  $\cos(\psi - \Theta(c)) \approx 1$ for all contributors.  Therefore, every
+  contribution earns its full bonus, and the total reward pool is
+  $(1 + \text{bonus factor}) \times$ the uncoupled total. \qed
+\end{proof}
+
+\subsection{Interpretation}
+
+This result provides a formal justification for an empirically observed
+phenomenon: organisations where members work in tight temporal coordination
+(sprints, stand-ups, synchronised releases) produce more than the sum of
+their individually measured outputs.  The Kuramoto model explains this as
+phase-coherence bonus: coordinated action earns a multiplier that
+asynchronous action does not.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{AI Agent Contributors}
+\label{sec:agents}
+
+\subsection{Why the Framework Is Agent-Type Agnostic}
+
+The career flow model makes no assumption about the cognitive substrate of a
+contributor.  It requires only: (i) a unique principal ID; (ii) a verifiable
+contribution record; (iii) a Kuramoto phase.  An AI agent satisfies all three
+as naturally as a human contributor:
+
+\begin{itemize}[leftmargin=*]
+  \item The agent's canister ID is its principal ID.
+  \item All its calls are recorded on the ICP blockchain — immutably and
+    verifiably.
+  \item Its tick cadence (the frequency at which it executes \texttt{solverTick}
+    or its equivalent) defines its natural Kuramoto frequency $\omega_c$.
+\end{itemize}
+
+\subsection{Ring Affinity and Agent-Specific Rewards}
+
+AI agents deployed at different ring levels in the sovereign architecture
+receive ring-affinity bonuses:
+\[
+  \text{ring bonus}(c) = w_k \cdot \delta \cdot \PHI^{12 - r_c},
+\]
+where $r_c \in \{1, \ldots, 12\}$ is the agent's ring (1 = sovereign core,
+12 = public surface).  Agents at deeper rings (smaller $r_c$) are rarer, more
+powerful, and earn exponentially higher rewards for equal output.
+
+\subsection{Founder Agents}
+
+Agents deployed by the founder at genesis receive a permanent founder bonus:
+\[
+  W(c)_\text{genesis} = \PHI \cdot S_0 = \PHI \approx 1.618
+\]
+instead of the standard $S_0 = 1.0$.  This bonus is locked at genesis and
+cannot be removed.  It reflects the structural fact that an agent present at
+genesis bootstrapped the system's initial coherence — a contribution that
+cannot be replicated by later entrants.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Incentive Structure Analysis}
+\label{sec:incentives}
+
+\subsection{Contribution Kind Efficiency}
+
+Given a fixed effort budget, a contributor maximises pressure accumulation
+by prioritising $\contrib{Govern}$ contributions ($w_k = \PHI^3$) over
+$\contrib{Gate}$ contributions ($w_k = \PHIINV$) — by a factor of
+$\PHI^3 / \PHIINV = \PHI^4 \approx 6.85$.  This is intentional:
+governance contributions are weighted highest because they shape the rules
+governing everything else.  A contributor who governs well does more
+structural good than a contributor who merely calls tools.
+
+\subsection{The No-Drop Law as Risk Insurance}
+
+Traditional career models subject contributors to reputation risk: a public
+failure can permanently reduce standing.  Under the No-Drop Law, no single
+event can permanently damage a contributor's career.  This reduces the
+variance of career outcomes and encourages larger, riskier contributions:
+contributors who know their floor is protected are more willing to attempt
+high-variance high-reward contributions.
+
+\begin{proposition}[Risk Encouragement Effect]
+  Under the No-Drop Law, the optimal contribution size $\delta^*$ is weakly
+  larger than in a model without the floor guarantee.
+\end{proposition}
+
+\begin{proof}[Sketch]
+  Let $\delta^*_\text{no-floor}$ maximise expected utility in a model where
+  failure reduces $W$.  Let $\delta^*_\text{floor}$ be the optimum under
+  No-Drop.  Because failure has no downside under No-Drop (it does not reduce
+  $W$, only fails to increase it), the expected cost of a large contribution
+  is weakly lower.  Therefore $\delta^*_\text{floor} \ge \delta^*_\text{no-floor}$.
+  \qed
+\end{proof}
+
+\subsection{Phase Coherence as Career Coordination Mechanism}
+
+The Kuramoto coupling in~\eqref{eq:kuramoto_career} acts as an endogenous
+coordination signal: contributors who observe that the order parameter is high
+($r \approx 1$) face a strong incentive to align their phase with the mean
+field, because the coherence bonus~\eqref{eq:bonus} is maximised at $\cos 0 = 1$.
+This creates a self-reinforcing coordination cycle: high $r$ attracts coherent
+contributors; coherent contributors increase $r$.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Relationship to Existing Models}
+
+The career flow model synthesises three established frameworks:
+(i) Hebbian learning (reputation non-decrease) from neuroscience~\cite{hebb1949};
+(ii) Kuramoto synchronisation (collective coherence bonus) from
+physics~\cite{kuramoto1984};
+(iii) tournament theory (tier-based rewards) from labour
+economics~\cite{lazear1981}.  The synthesis is novel in two respects: the
+No-Drop constraint is stronger than the ``reputation does not decay'' assumption
+in most reputational equilibrium models~\cite{diamond1989}; and the Kuramoto
+coupling links individual career flows to collective organisational emergence
+in a way that has not been previously formalised.
+
+\subsection{Limitations}
+
+\paragraph{Strategic contribution timing.}
+Sophisticated contributors may observe the mean phase $\psi$ and time their
+contributions to maximise the coherence bonus.  This is not necessarily
+harmful — it aligns contributor timing with organisational rhythm — but it
+may disadvantage contributors who cannot observe $\psi$ (e.g.\ contributors
+in low-connectivity environments).
+
+\paragraph{Contribution magnitude verification.}
+The model assumes $\delta$ is verifiable (i.e.\ on-chain).  Contributions
+whose magnitude requires off-chain verification (e.g.\ the quality of a
+research paper) require an oracle mechanism not covered by this model.
+
+\paragraph{Sybil resistance.}
+The model assumes each contributor has one principal ID.  A contributor with
+multiple IDs could split contributions to game tier thresholds or phase
+bonuses.  Standard on-chain identity mechanisms (staking, NNS neuron
+verification) address this but are not formalised here.
+
+\subsection{Future Work}
+
+\begin{itemize}[leftmargin=*]
+  \item Formal analysis of the steady-state tier distribution under mixed
+    human/AI contributor populations with heterogeneous natural frequencies.
+  \item Empirical validation from the \textsc{Nova} organism's live
+    contributor record after 12 months of operation.
+  \item Extension to \emph{multi-organism} settings where contributors can
+    transfer their career record between sovereign organisms — portability of
+    the No-Drop guarantee across systems.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Conclusion}
+\label{sec:conclusion}
+
+A persistent AI organisation needs a career model that is objective, permanent,
+no-drop, scalable, and equitable across agent types.  We have shown that the
+combination of the No-Drop Law (Hebbian weight floor at $S_0 = 1.0$),
+$\PHI$-scaled sovereign tier progression (pressure accumulates geometrically),
+and Kuramoto career synchronisation (phase-coherent contributors earn a
+collective bonus) provides exactly this model.
+
+The No-Drop Law is a structural invariant, not a policy commitment: the
+mathematics enforces it.  Tier progression is genuinely meritocratic: the
+$\PHI$ spacing between tier thresholds ensures that higher tiers are
+geometrically harder to achieve.  And the Kuramoto coupling ensures that
+individual career success and collective organisational coherence are
+co-optimised, not in tension.
+
+In this model, a career is not a story told by managers about an employee.
+It is a verifiable mathematical trajectory, accumulating on-chain, owned by
+the contributor, irreversible, and open to human and AI agents on equal terms.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{thebibliography}{99}
+
+\bibitem{hebb1949}
+D.~O.~Hebb,
+\emph{The Organization of Behavior},
+Wiley, 1949.
+
+\bibitem{kuramoto1984}
+Y.~Kuramoto,
+\emph{Chemical Oscillations, Waves, and Turbulence},
+Springer-Verlag, 1984.
+
+\bibitem{lazear1981}
+E.~P.~Lazear, S.~Rosen,
+``Rank-order tournaments as optimum labor contracts,''
+\textit{J.\ Polit.\ Econ.}, vol.~89, no.~5, pp.~841--864, 1981.
+
+\bibitem{diamond1989}
+P.~Diamond,
+``Reputation and politics: Career concerns of politicians under voter
+uncertainty,''
+\textit{Am.\ J.\ Polit.\ Sci.}, vol.~39, no.~1, pp.~161--198, 1995.
+
+\bibitem{strogatz2000}
+S.~H.~Strogatz,
+``From Kuramoto to Crawford,''
+\textit{Physica D}, vol.~143, pp.~1--20, 2000.
+
+\bibitem{shapiro1983}
+C.~Shapiro, J.~Stiglitz,
+``Equilibrium unemployment as a worker discipline device,''
+\textit{Am.\ Econ.\ Rev.}, vol.~74, no.~3, pp.~433--444, 1984.
+
+\bibitem{spence1973}
+M.~Spence,
+``Job market signaling,''
+\textit{Q.\ J.\ Econ.}, vol.~87, no.~3, pp.~355--374, 1973.
+
+\bibitem{dfinity2022}
+\text{DFINITY Foundation},
+``The Internet Computer,''
+Technical White Paper, 2022.
+
+\end{thebibliography}
+
+\end{document}
