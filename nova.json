@@ -239,6 +239,18 @@
       "dependencies": [],
       "description": "MEDINA DEFENSE — Biologically-accurate Amygdala fear circuit (LA/BA/CeA nuclei), sensory threat ingestion, prefrontal suppression override, passive decay heartbeat"
     },
+    "agi_terminal": {
+      "type": "motoko",
+      "main": "src/agi_terminal/main.mo",
+      "dependencies": [],
+      "description": "AGI TERMINAL — Sovereign Pulse Canister: 873ms system heartbeat (ICP consensus round), getSystemStatus() HEART snapshot (booted/tick/neurons/stake/maturity/voteWeight/parallaxTreasury/onesicans/circulating/spawnedNeurons), triggers organism_solver.solverTick() every 50 ticks autonomously"
+    },
+    "organism_solver": {
+      "type": "motoko",
+      "main": "src/organism_solver/main.mo",
+      "dependencies": [],
+      "description": "ORGANISM SOLVER — Autonomous Job Engine + SYN Synapse Binding Engine: synBind/synQuery/synRevoke/synRevokeAll/synBindAll/synBindHeart (query-once, imprint-forever, zero future cycles), job queue (ADD_HOTKEY/AUTO_DISCOVER/GOVERNANCE_SYNC/DEPLOY_WORKER/HEARTBEAT_CHECK), CRITICAL/HIGH/NORMAL/LOW priorities, 3× exponential backoff retry, masterBoot()/initialize(), MAX_QUEUE=200/MAX_BINDINGS=64/MAX_WORKERS=50"
+    },
     "frontend": {
       "type": "assets",
       "source": ["src/frontend/dist"],

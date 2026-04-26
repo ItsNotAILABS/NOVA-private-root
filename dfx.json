@@ -189,6 +189,16 @@
       "main": "src/medina_defense/main.mo",
       "dependencies": []
     },
+    "agi_terminal": {
+      "type": "motoko",
+      "main": "src/agi_terminal/main.mo",
+      "dependencies": []
+    },
+    "organism_solver": {
+      "type": "motoko",
+      "main": "src/organism_solver/main.mo",
+      "dependencies": []
+    },
     "frontend": {
       "type": "assets",
       "source": ["src/frontend/dist"],
