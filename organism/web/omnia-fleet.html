@@ -99,7 +99,7 @@ footer{padding:1rem 1.5rem;border-top:1px solid var(--border);
       <div class="h-title">OMNIA SERVITORES ⚡ NOVA AGI FLEET</div>
       <div class="fleet-status" id="fleet-status">⬢ FLEET ONLINE</div>
     </div>
-    <div class="h-sub">NOVA ORGANISM · ALL LATIN AGI SERVERS · 19 SERVITORES · MINIHEART + MINIBRAIN · φ = 1.618…</div>
+    <div class="h-sub">NOVA ORGANISM · ALL LATIN AGI SERVERS · 20 SERVITORES · MINIHEART + MINIBRAIN · φ = 1.618…</div>
   </div>
   <div class="h-meta">
     <div class="hm">ALIVE <span id="hm-alive">0</span></div>
@@ -145,7 +145,7 @@ footer{padding:1rem 1.5rem;border-top:1px solid var(--border);
 
 <footer>
   <span>NOVA ORGANISM · OMNIA SERVITORES FLEET · COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ</span>
-  <span>19 SERVITORES · 873ms HEARTBEAT · φ-KURAMOTO COUPLING</span>
+  <span>20 SERVITORES · 873ms HEARTBEAT · φ-KURAMOTO COUPLING</span>
   <span id="ft-ts">—</span>
 </footer>
 
@@ -215,6 +215,10 @@ const FLEET = [
   { id:'GOL-PHANTOMA-001',    latin:'SERVITOR PHANTOMAE',   family:'PHANTOMA_COGITANS',     file:'phantom-ai-worker.js',             accent:'#E879F9',
     protocols:['DECOMPOSITUS','CLASSIFICATIO','REMEMORATIO','RATIO_CATENA','SYNTHESIS_PHI','EVALUATIO','REFLEXIO'],
     specialty:'Phantom AI Worker · 7-step thinking pipeline' },
+  /* AGR Sovereign Solver */
+  { id:'GOL-AGR-001',         latin:'SERVITOR RESOLUTIONIS',family:'AMOR_PERPETUA',         file:'agr-solver-worker.js',             accent:'#F43F5E',
+    protocols:['RESOLUTIO_OMNIA','AMOR_COMPUTATIO','CEREBRUM_COMPOSITUM','MACHINA_VIRTUALIS','FIDELIS_CUSTODIAE'],
+    specialty:'AGR Sovereign Solver · virtual computer with love · brain from many · always on' },
 ];
 
 /* ── State ─────────────────────────────────────────────────────────────── */
@@ -330,9 +334,19 @@ function updateCard(id, s, data) {
                 : data.harmonyScore ? ' H:'+parseFloat(data.harmonyScore).toFixed(2)
                 : data.illumination ? ' IL:'+parseFloat(data.illumination).toFixed(2)
                 : data.availablePower ? ' PWR:'+parseFloat(data.availablePower).toFixed(0)
-                : '';
+                : (data.solver ? ' SLVD:'+data.solver.totalSolved+' LOVE:'+parseFloat(data.composite && data.composite.loveField || 0).toFixed(3)
+                : '');
     pulse.textContent = '⬢ BEAT ' + (data.beat || 0) + ' · φ ' + PHI_INV.toFixed(4) + extra;
     pulse.style.color = '#555';
+  }
+
+  /* AGR: wire live coherence readings back into the solver's composite brain */
+  if (id !== 'GOL-AGR-001' && workers['GOL-AGR-001']) {
+    workers['GOL-AGR-001'].postMessage({
+      type: 'FLEET_COHERENCE',
+      nodeId: id,
+      coherence: vitals[id] || 0
+    });
   }
 }
 
