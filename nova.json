@@ -147,7 +147,7 @@
       "type": "motoko",
       "main": "src/neuron_fleet/main.mo",
       "dependencies": [],
-      "description": "NEURON FLEET — 200 NNS neuron fleet: 5 Fibonacci groups (A_SOVEREIGNTY×8/B_COMPOUNDING×34/C_HARVEST×89/D_LIQUID×55/E_PHANTOM×14), auto-stake-maturity, spawn-neuron policy, fleet-wide voting, 100 field nodes, φ-VP maximization, cycles premium explainer"
+      "description": "NEURON FLEET — 1,000 NNS neuron fleet (×5 expansion): 5 Fibonacci groups (A_SOVEREIGNTY×40/B_COMPOUNDING×170/C_HARVEST×445/D_LIQUID×275/E_PHANTOM×70), auto-stake-maturity, spawn-neuron policy, fleet-wide voting, 100 field nodes, φ-VP maximization. Group E backs PHANTOM clearinghouse liquidity. Infrastructure-first: 1,000 neurons now, 2,000 next."
     },
     "ai_division": {
       "type": "motoko",
@@ -250,6 +250,12 @@
       "main": "src/organism_solver/main.mo",
       "dependencies": [],
       "description": "ORGANISM SOLVER — Autonomous Job Engine + SYN Synapse Binding Engine: synBind/synQuery/synRevoke/synRevokeAll/synBindAll/synBindHeart (query-once, imprint-forever, zero future cycles), job queue (ADD_HOTKEY/AUTO_DISCOVER/GOVERNANCE_SYNC/DEPLOY_WORKER/HEARTBEAT_CHECK), CRITICAL/HIGH/NORMAL/LOW priorities, 3× exponential backoff retry, masterBoot()/initialize(), MAX_QUEUE=200/MAX_BINDINGS=64/MAX_WORKERS=50"
+    },
+    "phantom_transfer": {
+      "type": "motoko",
+      "main": "src/phantom_transfer/main.mo",
+      "dependencies": [],
+      "description": "PHANTOM TRANSFER — Sovereign Multi-Rail Clearinghouse (BUILD №33): NOVA is the clearinghouse — not ICP, not ETH, not SOL. 4 rails: FIAT (USD/MXN/EUR/Visa → ONESICAN, NOVA-PESO MXN peg), INTERNAL (ONESICAN/CHR/GOL/ORS/SCB), CRYPTO (BTC/ETH/SOL/ICP/MATIC via PHANTOM substrate, no custodian), PHANTOM (stealth commitment-reveal, 24h timeout, φ⁻³ fee). PARALLAX is the settlement layer. Group E PHANTOM neurons (70) back clearinghouse liquidity. initiateTransfer/settlePhantomTransfer/ingestFiatPayment/cancelTransfer/getClearinghouseStatus."
     },
     "frontend": {
       "type": "assets",

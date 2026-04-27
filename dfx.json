@@ -199,6 +199,11 @@
       "main": "src/organism_solver/main.mo",
       "dependencies": []
     },
+    "phantom_transfer": {
+      "type": "motoko",
+      "main": "src/phantom_transfer/main.mo",
+      "dependencies": []
+    },
     "frontend": {
       "type": "assets",
       "source": ["src/frontend/dist"],
