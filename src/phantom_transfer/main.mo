@@ -577,6 +577,15 @@ actor PhantomTransfer {
         };
         i += 1;
       };
+      // Auto-expire stale claim links (72 h timeout) — Section 13
+      var ci = 0;
+      while (ci < claimCount and ci < CLAIM_CAP) {
+        if (claimStatuses[ci] == "PENDING" and now > claimExpiresAt[ci]) {
+          claimStatuses[ci]  := "EXPIRED";
+          totalClaimsExpired := totalClaimsExpired + 1;
+        };
+        ci += 1;
+      };
     };
   };
 
@@ -692,50 +701,69 @@ actor PhantomTransfer {
     novaPesoMinted         : Nat;
     novaPesoBurned         : Nat;
     heartbeatTick          : Nat;
+    registeredUsers        : Nat;
+    linkedAccountsTotal    : Nat;
+    claimsGenerated        : Nat;
+    claimsRedeemed         : Nat;
+    claimsExpired          : Nat;
+    exitsQueued            : Nat;
+    exitsDelivered         : Nat;
+    authorizedOracles      : Nat;
     feeSchedule            : [{rail:Text; rateText:Text; ratePct:Float}];
     supportedRails         : [Text];
     supportedCurrencies    : [Text];
     architectureStatement  : Text;
   } {
     {
-      canisterId        = "phantom_transfer";
-      build             = buildNumber;
-      sovereignSeal     = sovereignSeal;
-      totalTransfers    = transferCount;
-      pending           = totalTransfersPending;
-      settled           = totalTransfersSettled;
-      refunded          = totalTransfersRefunded;
-      volumeSettled     = totalVolumeSettled;
-      feesCollected     = totalFeesCollected;
-      fiatIngestedCents = totalFiatIngested;
-      phantomInitiated  = totalPhantomInitiated;
-      phantomSettled    = totalPhantomSettled;
-      autoExpired       = totalAutoExpired;
-      novaPesoSupply    = novaPesoSupply;
-      novaPesoMinted    = novaPesoMinted;
-      novaPesoBurned    = novaPesoBurned;
-      heartbeatTick     = heartbeatTick;
+      canisterId         = "phantom_transfer";
+      build              = buildNumber;
+      sovereignSeal      = sovereignSeal;
+      totalTransfers     = transferCount;
+      pending            = totalTransfersPending;
+      settled            = totalTransfersSettled;
+      refunded           = totalTransfersRefunded;
+      volumeSettled      = totalVolumeSettled;
+      feesCollected      = totalFeesCollected;
+      fiatIngestedCents  = totalFiatIngested;
+      phantomInitiated   = totalPhantomInitiated;
+      phantomSettled     = totalPhantomSettled;
+      autoExpired        = totalAutoExpired;
+      novaPesoSupply     = novaPesoSupply;
+      novaPesoMinted     = novaPesoMinted;
+      novaPesoBurned     = novaPesoBurned;
+      heartbeatTick      = heartbeatTick;
+      registeredUsers    = userCount;
+      linkedAccountsTotal= laCount;
+      claimsGenerated    = totalClaimsGenerated;
+      claimsRedeemed     = totalClaimsRedeemed;
+      claimsExpired      = totalClaimsExpired;
+      exitsQueued        = totalExitsQueued;
+      exitsDelivered     = totalExitsDelivered;
+      authorizedOracles  = oracleCount;
       feeSchedule = [
         { rail="INTERNAL"; rateText="φ⁻⁵ = 0.090%"; ratePct = PHI_5 * 100.0 },
         { rail="FIAT";     rateText="φ⁻⁴ = 0.146%"; ratePct = PHI_4 * 100.0 },
         { rail="CRYPTO";   rateText="φ⁻⁴ = 0.146%"; ratePct = PHI_4 * 100.0 },
         { rail="PHANTOM";  rateText="φ⁻³ = 0.236%"; ratePct = PHI_3 * 100.0 },
       ];
-      supportedRails = ["FIAT", "INTERNAL", "CRYPTO", "PHANTOM"];
+      supportedRails = ["FIAT", "INTERNAL", "CRYPTO", "PHANTOM", "CLAIM_LINK", "FIAT_EXIT"];
       supportedCurrencies = [
-        "USD", "MXN", "EUR",                                   // fiat rails
-        "NOVA_PESO",                                            // MXN sovereign peg
-        "ONESICAN", "CHR", "GOL", "ORS", "SCB", "PHT",        // internal tokens
-        "ICP", "BTC", "ETH", "SOL", "MATIC", "BNB",           // crypto rails
+        "USD", "MXN", "EUR",                                          // fiat rails
+        "NOVA_PESO",                                                   // MXN sovereign peg
+        "ONESICAN", "CHR", "GOL", "ORS", "SCB", "PHT",               // internal tokens
+        "ICP", "BTC", "ETH", "ETH_L2", "SOL", "MATIC", "BNB",       // crypto rails (ETH_L2 = Arbitrum/Optimism/Base/zkEVM)
       ];
       architectureStatement =
-        "NOVA IS THE CLEARINGHOUSE. ICP, ETH, BTC, SOL — those are substrates. Rails. Exit gates. " #
-        "NOVA chose them. NOVA connects them. NOVA is not tied to them. " #
-        "Every transfer routes through the PARALLAX settlement layer. " #
-        "NOVA-PESO: on-chain MXN sovereign peg — Monterrey, Mexico, sovereign digital economy. " #
-        "Visa/card → ONESICAN (internal) → any rail out. No custodian. No ckBTC. No wrappers. " #
-        "PHANTOM rail: commitment-reveal stealth settlement, 24h timeout, φ⁻³ fee. " #
-        "Group E PHANTOM neurons (70) back clearinghouse liquidity. We are Layer Zero.";
+        "NOVA IS THE CLEARINGHOUSE. ICP, ETH, ETH_L2, BTC, SOL — substrates. Exit rails. " #
+        "NOVA is portable. ETH L2 (Arbitrum/Optimism/Base) settlement layer is the same PARALLAX. " #
+        "The exit rail to Ethereum L2 does not change NOVA. NOVA is the constant. " #
+        "User identity: persistent sovereign identity per user — linked banks, cards, crypto wallets, internal NOVA wallet. " #
+        "Tiers 1-5: fiat-only → multi-bank → crypto-native → full multi-rail → claim-link (no account needed). " #
+        "Claim links: send to anyone. Recipient chooses delivery (ACH/SPEI/SEPA/Chime/card/NOVA wallet). No crypto required. " #
+        "Fiat exit: ONESICAN → USD via ACH | MXN via SPEI | EUR via SEPA. Off-chain bridge reads QUEUED exits. " #
+        "Oracle rates: setExchangeRate callable by authorized AI agent or oracle — keeps conversion live. " #
+        "NOVA-PESO: on-chain MXN sovereign peg. Visa/card → ONESICAN → any rail. No custodian. No ckBTC. " #
+        "PHANTOM rail: commitment-reveal stealth, 24h timeout, φ⁻³ fee. Group E neurons (70) back liquidity.";
     }
   };
 
@@ -787,6 +815,676 @@ actor PhantomTransfer {
       toEmission   = _floatToNat(f * PHI_3);
       retainedBps  = PHI_4 * 10_000.0;  // 1.46 bps retained
     }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 12 — USER IDENTITY + LINKED ACCOUNTS (PARALLAX MULTI-LEDGER)
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // PARALLAX knows the user — not just the transaction.
+  // Persistent sovereign identity: who you are, what you have linked, what you hold.
+  //
+  // User tiers:
+  //   Tier 1 — Fiat-only (single card or bank, one source)
+  //   Tier 2 — Multi-bank (multiple banks/cards, same country)
+  //   Tier 3 — Crypto wallet (no bank required — wallet-native user)
+  //   Tier 4 — Full multi-rail (bank + crypto + cross-border)
+  //   Tier 5 — Unregistered recipient (claim-link delivery, no NOVA account yet)
+  //
+  // LinkedAccount railTypes:
+  //   BANK_ACH | BANK_SPEI | BANK_SEPA |
+  //   CARD_VISA | CARD_CHIME | CARD_DEBIT |
+  //   WALLET_BTC | WALLET_ETH | WALLET_ETH_L2 | WALLET_SOL |
+  //   WALLET_ICP | WALLET_MATIC | WALLET_BNB | WALLET_NOVA
+  //
+  // WALLET_ETH_L2 covers Arbitrum, Optimism, Base, Polygon zkEVM.
+  // Settlement layer is the same PARALLAX clearinghouse regardless of which L2.
+  // NOVA is portable. The exit rail to ETH L2 does not change NOVA.
+
+  let USER_CAP       : Nat = 4096;
+  let LINKED_ACC_CAP : Nat = 16384;
+
+  stable var userCount             : Nat       = 0;
+  stable var userPrincipals        : [var Text] = Array.init<Text>(USER_CAP, "");
+  stable var userDisplayNames      : [var Text] = Array.init<Text>(USER_CAP, "");
+  stable var userOnesicansBalance  : [var Nat]  = Array.init<Nat>(USER_CAP,  0);
+  stable var userNovaPesoBalance   : [var Nat]  = Array.init<Nat>(USER_CAP,  0);
+  stable var userCreatedAt         : [var Int]  = Array.init<Int>(USER_CAP,  0);
+  stable var userTierLevel         : [var Nat]  = Array.init<Nat>(USER_CAP,  1);
+
+  // Parallel arrays for linked accounts (flat pool across all users)
+  stable var laCount               : Nat       = 0;
+  stable var laOwner               : [var Text] = Array.init<Text>(LINKED_ACC_CAP, "");
+  stable var laRailType            : [var Text] = Array.init<Text>(LINKED_ACC_CAP, "");
+  stable var laAccountRef          : [var Text] = Array.init<Text>(LINKED_ACC_CAP, "");
+  stable var laLabel               : [var Text] = Array.init<Text>(LINKED_ACC_CAP, "");
+  stable var laBalanceCents        : [var Nat]  = Array.init<Nat>(LINKED_ACC_CAP,  0);
+  stable var laCurrency            : [var Text] = Array.init<Text>(LINKED_ACC_CAP, "");
+  stable var laActive              : [var Bool] = Array.init<Bool>(LINKED_ACC_CAP, true);
+  stable var laLinkedAt            : [var Int]  = Array.init<Int>(LINKED_ACC_CAP,  0);
+
+  func _findUser(p : Text) : ?Nat {
+    var i = 0;
+    while (i < userCount and i < USER_CAP) {
+      if (userPrincipals[i] == p) return ?i;
+      i += 1;
+    };
+    null
+  };
+
+  func _computeUserTier(p : Text) : Nat {
+    var hasCrypto = false;
+    var bankCount = 0;
+    var cardCount = 0;
+    var i = 0;
+    while (i < laCount and i < LINKED_ACC_CAP) {
+      if (laOwner[i] == p and laActive[i]) {
+        let rt = laRailType[i];
+        if (rt == "WALLET_BTC" or rt == "WALLET_ETH"    or rt == "WALLET_ETH_L2" or
+            rt == "WALLET_SOL" or rt == "WALLET_ICP"    or rt == "WALLET_MATIC"  or
+            rt == "WALLET_BNB" or rt == "WALLET_NOVA") {
+          hasCrypto := true;
+        };
+        if (rt == "BANK_ACH"   or rt == "BANK_SPEI"  or rt == "BANK_SEPA")  bankCount += 1;
+        if (rt == "CARD_VISA"  or rt == "CARD_CHIME" or rt == "CARD_DEBIT") cardCount += 1;
+      };
+      i += 1;
+    };
+    if      (hasCrypto and (bankCount > 0 or cardCount > 0)) 4
+    else if  hasCrypto                                        3
+    else if (bankCount > 1 or (bankCount > 0 and cardCount > 0) or cardCount > 1) 2
+    else 1
+  };
+
+  // Register a new PARALLAX identity (call once per principal)
+  public shared(msg) func registerUser(displayName : Text) : async { success : Bool; message : Text } {
+    let p = Principal.toText(msg.caller);
+    switch (_findUser(p)) {
+      case (?_) return { success=false; message="ALREADY_REGISTERED: " # p };
+      case null {};
+    };
+    if (userCount >= USER_CAP) return { success=false; message="USER_CAP_REACHED" };
+    let i               = userCount;
+    userPrincipals[i]   := p;
+    userDisplayNames[i] := displayName;
+    userCreatedAt[i]    := Time.now();
+    userTierLevel[i]    := 1;
+    userCount           := userCount + 1;
+    { success=true; message="PARALLAX_IDENTITY_REGISTERED: " # displayName # " | principal=" # p }
+  };
+
+  // Link an external rail to the calling user's identity
+  // accountRef is tokenized in production (never store raw card/account numbers on-chain)
+  public shared(msg) func linkAccount(
+    railType     : Text,   // BANK_ACH | BANK_SPEI | CARD_CHIME | WALLET_ETH_L2 | etc.
+    accountRef   : Text,   // tokenized routing+acct, CLABE, IBAN, card token, wallet address
+    label        : Text,   // "My Chase Checking" | "Chime Debit" | "MetaMask L2" | etc.
+    currency     : Text,   // USD | MXN | EUR | BTC | ETH | SOL | ICP | MATIC
+    balanceCents : Nat     // last-known balance from off-chain bridge sync
+  ) : async { success : Bool; linkedAccId : Nat; message : Text } {
+    let p = Principal.toText(msg.caller);
+    let ui = switch (_findUser(p)) {
+      case null return { success=false; linkedAccId=0; message="USER_NOT_REGISTERED: call registerUser first" };
+      case (?x) x;
+    };
+    if (laCount >= LINKED_ACC_CAP) return { success=false; linkedAccId=0; message="LINKED_ACC_CAP_REACHED" };
+    // Reject duplicate (same railType + accountRef already active for this user)
+    var j = 0;
+    while (j < laCount and j < LINKED_ACC_CAP) {
+      if (laOwner[j] == p and laRailType[j] == railType and laAccountRef[j] == accountRef and laActive[j]) {
+        return { success=false; linkedAccId=j; message="ACCOUNT_ALREADY_LINKED" };
+      };
+      j += 1;
+    };
+    let idx          = laCount;
+    laOwner[idx]     := p;
+    laRailType[idx]  := railType;
+    laAccountRef[idx]:= accountRef;
+    laLabel[idx]     := label;
+    laBalanceCents[idx] := balanceCents;
+    laCurrency[idx]  := currency;
+    laActive[idx]    := true;
+    laLinkedAt[idx]  := Time.now();
+    laCount          := laCount + 1;
+    userTierLevel[ui]:= _computeUserTier(p);
+    { success=true; linkedAccId=idx;
+      message="ACCOUNT_LINKED: \"" # label # "\" (" # railType # ") → tier " # Nat.toText(userTierLevel[ui]) }
+  };
+
+  // Deactivate a linked account
+  public shared(msg) func unlinkAccount(linkedAccId : Nat) : async { success : Bool; message : Text } {
+    let p = Principal.toText(msg.caller);
+    if (linkedAccId >= laCount or linkedAccId >= LINKED_ACC_CAP) return {
+      success=false; message="LINKED_ACC_NOT_FOUND"
+    };
+    if (laOwner[linkedAccId] != p and not isSovereign(msg.caller)) return {
+      success=false; message="UNAUTHORIZED"
+    };
+    laActive[linkedAccId] := false;
+    { success=true; message="ACCOUNT_UNLINKED: " # laLabel[linkedAccId] }
+  };
+
+  // Called by oracle/bridge after balance sync for a linked external account
+  public shared(msg) func updateLinkedAccountBalance(linkedAccId : Nat, balanceCents : Nat) : async Bool {
+    if (linkedAccId >= laCount or linkedAccId >= LINKED_ACC_CAP) return false;
+    if (not isSovereign(msg.caller) and not _isAuthorizedOracle(Principal.toText(msg.caller))) return false;
+    laBalanceCents[linkedAccId] := balanceCents;
+    true
+  };
+
+  public query func getUserProfile(userPrincipal : Text) : async ?{
+    principal        : Text;
+    displayName      : Text;
+    onesicansBalance : Nat;
+    novaPesoBalance  : Nat;
+    tierLevel        : Nat;
+    createdAt        : Int;
+    activeLinkedAccs : Nat;
+  } {
+    switch (_findUser(userPrincipal)) {
+      case null null;
+      case (?i) {
+        var count = 0;
+        var j = 0;
+        while (j < laCount and j < LINKED_ACC_CAP) {
+          if (laOwner[j] == userPrincipal and laActive[j]) count += 1;
+          j += 1;
+        };
+        ?{
+          principal        = userPrincipals[i];
+          displayName      = userDisplayNames[i];
+          onesicansBalance = userOnesicansBalance[i];
+          novaPesoBalance  = userNovaPesoBalance[i];
+          tierLevel        = userTierLevel[i];
+          createdAt        = userCreatedAt[i];
+          activeLinkedAccs = count;
+        }
+      };
+    }
+  };
+
+  // Returns all active linked accounts (banks + cards + wallets) with balances
+  // accountRef is shown as-is; in production the bridge returns masked/tokenized refs
+  public query func getUserLinkedAccounts(userPrincipal : Text) : async [{
+    linkedAccId  : Nat;
+    railType     : Text;
+    accountRef   : Text;
+    label        : Text;
+    balanceCents : Nat;
+    currency     : Text;
+    linkedAt     : Int;
+  }] {
+    var result : [{linkedAccId:Nat; railType:Text; accountRef:Text; label:Text; balanceCents:Nat; currency:Text; linkedAt:Int}] = [];
+    var i = 0;
+    while (i < laCount and i < LINKED_ACC_CAP) {
+      if (laOwner[i] == userPrincipal and laActive[i]) {
+        result := Array.append(result, [{
+          linkedAccId  = i;
+          railType     = laRailType[i];
+          accountRef   = laAccountRef[i];
+          label        = laLabel[i];
+          balanceCents = laBalanceCents[i];
+          currency     = laCurrency[i];
+          linkedAt     = laLinkedAt[i];
+        }]);
+      };
+      i += 1;
+    };
+    result
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 13 — CLAIM LINKS (TIER 5: NO ACCOUNT NEEDED)
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // Scenario: Ana (Chime user) sends $50 USD to her cousin Carlos in Mexico.
+  // Carlos has no NOVA account, no crypto, no bank app. Nothing.
+  //   1. Ana calls generateClaimLink(5000, "USD", "Para Carlos")
+  //   2. PARALLAX returns a claim code → Ana shares with Carlos
+  //   3. Carlos opens link → picks delivery method (SPEI, cash, new NOVA wallet)
+  //   4. Carlos calls redeemClaimLink(code, "BANK_SPEI", "CLABE...")
+  //   5. PARALLAX routes delivery. No crypto ever touched.
+  //
+  // Claim link expires in 72 hours. Unclaimed amounts refund to sender.
+  //
+  // Delivery methods (redeemMethod):
+  //   BANK_ACH    → US bank deposit (ACH push)
+  //   BANK_SPEI   → MX bank deposit (SPEI, same-day)
+  //   BANK_SEPA   → EU bank deposit (SEPA credit)
+  //   CARD_CHIME  → Chime direct deposit
+  //   CARD_DEBIT  → Any debit card push (Visa/Mastercard)
+  //   NOVA_WALLET → auto-register + receive in PARALLAX (best path)
+
+  let CLAIM_CAP        : Nat = 4096;
+  let CLAIM_TIMEOUT_NS : Int = 259_200_000_000_000; // 72 hours
+
+  stable var claimCount           : Nat       = 0;
+  stable var claimCodes           : [var Text] = Array.init<Text>(CLAIM_CAP, "");
+  stable var claimAmounts         : [var Nat]  = Array.init<Nat>(CLAIM_CAP,  0);
+  stable var claimCurrencies      : [var Text] = Array.init<Text>(CLAIM_CAP, "");
+  stable var claimSenders         : [var Text] = Array.init<Text>(CLAIM_CAP, "");
+  stable var claimCreatedAt       : [var Int]  = Array.init<Int>(CLAIM_CAP,  0);
+  stable var claimExpiresAt       : [var Int]  = Array.init<Int>(CLAIM_CAP,  0);
+  stable var claimStatuses        : [var Text] = Array.init<Text>(CLAIM_CAP, "PENDING");
+  stable var claimRedeemMethods   : [var Text] = Array.init<Text>(CLAIM_CAP, "");
+  stable var claimRedeemRefs      : [var Text] = Array.init<Text>(CLAIM_CAP, "");
+  stable var claimNotes           : [var Text] = Array.init<Text>(CLAIM_CAP, "");
+
+  stable var totalClaimsGenerated : Nat = 0;
+  stable var totalClaimsRedeemed  : Nat = 0;
+  stable var totalClaimsExpired   : Nat = 0;
+
+  // Generate a claim link for a registered user (or sovereign)
+  // In production: use IC raw_rand for cryptographically random claim codes
+  public shared(msg) func generateClaimLink(
+    amount   : Nat,    // in smallest unit of currency (cents for USD/MXN/EUR)
+    currency : Text,   // USD | MXN | EUR | ONESICAN
+    note     : Text
+  ) : async { success : Bool; claimCode : Text; expiresAt : Int; message : Text } {
+    let p = Principal.toText(msg.caller);
+    if (not isSovereign(msg.caller)) {
+      switch (_findUser(p)) {
+        case null return { success=false; claimCode=""; expiresAt=0; message="USER_NOT_REGISTERED: call registerUser first" };
+        case (?_) {};
+      };
+    };
+    if (claimCount >= CLAIM_CAP) return { success=false; claimCode=""; expiresAt=0; message="CLAIM_CAP_REACHED" };
+    let now       = Time.now();
+    let expiresAt = now + CLAIM_TIMEOUT_NS;
+    // Claim code: counter + amount + currency (unique within this canister)
+    // Production: replace with IC raw_rand to prevent enumeration
+    let code = "NOVA-" # Nat.toText(claimCount + 1) # "-" # currency # "-" # Nat.toText(amount);
+    let i = claimCount;
+    claimCodes[i]        := code;
+    claimAmounts[i]      := amount;
+    claimCurrencies[i]   := currency;
+    claimSenders[i]      := p;
+    claimCreatedAt[i]    := now;
+    claimExpiresAt[i]    := expiresAt;
+    claimStatuses[i]     := "PENDING";
+    claimRedeemMethods[i]:= "";
+    claimRedeemRefs[i]   := "";
+    claimNotes[i]        := note;
+    claimCount           := claimCount + 1;
+    totalClaimsGenerated := totalClaimsGenerated + 1;
+    {
+      success   = true;
+      claimCode = code;
+      expiresAt = expiresAt;
+      message   = "CLAIM_LINK_READY: " # code # " | " # Nat.toText(amount) # " " # currency #
+                  " | 72h expiry | share code with recipient — they call redeemClaimLink to choose delivery"
+    }
+  };
+
+  // Recipient redeems a claim link — no NOVA account required
+  public shared(msg) func redeemClaimLink(
+    claimCode    : Text,
+    redeemMethod : Text,  // BANK_ACH | BANK_SPEI | BANK_SEPA | CARD_CHIME | CARD_DEBIT | NOVA_WALLET
+    redeemRef    : Text   // routing+acct, CLABE, IBAN, card token, or NOVA principal
+  ) : async { success : Bool; amount : Nat; currency : Text; message : Text } {
+    var i = 0;
+    while (i < claimCount and i < CLAIM_CAP) {
+      if (claimCodes[i] == claimCode) {
+        if (claimStatuses[i] != "PENDING") return {
+          success=false; amount=0; currency=""; message="CLAIM_NOT_PENDING: " # claimStatuses[i]
+        };
+        if (Time.now() > claimExpiresAt[i]) {
+          claimStatuses[i]   := "EXPIRED";
+          totalClaimsExpired := totalClaimsExpired + 1;
+          return { success=false; amount=0; currency=""; message="CLAIM_EXPIRED: 72h window passed" }
+        };
+        let amount   = claimAmounts[i];
+        let currency = claimCurrencies[i];
+        claimStatuses[i]     := "REDEEMED";
+        claimRedeemMethods[i]:= redeemMethod;
+        claimRedeemRefs[i]   := redeemRef;
+        totalClaimsRedeemed  := totalClaimsRedeemed + 1;
+        return {
+          success  = true;
+          amount   = amount;
+          currency = currency;
+          message  = "CLAIM_REDEEMED: " # Nat.toText(amount) # " " # currency #
+                     " → " # redeemMethod # " | ref=" # redeemRef #
+                     " | PARALLAX will deliver. No crypto required."
+        }
+      };
+      i += 1;
+    };
+    { success=false; amount=0; currency=""; message="CLAIM_CODE_NOT_FOUND: " # claimCode }
+  };
+
+  // Sender can cancel a pending claim link before it's redeemed
+  public shared(msg) func cancelClaimLink(claimCode : Text) : async { success : Bool; message : Text } {
+    let p = Principal.toText(msg.caller);
+    var i = 0;
+    while (i < claimCount and i < CLAIM_CAP) {
+      if (claimCodes[i] == claimCode) {
+        if (claimStatuses[i] != "PENDING") return {
+          success=false; message="CANNOT_CANCEL: " # claimStatuses[i]
+        };
+        if (claimSenders[i] != p and not isSovereign(msg.caller)) return {
+          success=false; message="UNAUTHORIZED: not your claim link"
+        };
+        claimStatuses[i] := "CANCELLED";
+        return { success=true; message="CLAIM_CANCELLED: " # claimCode # " — amount refunded to sender" }
+      };
+      i += 1;
+    };
+    { success=false; message="CLAIM_CODE_NOT_FOUND: " # claimCode }
+  };
+
+  public query func getClaimStatus(claimCode : Text) : async ?{
+    claimCode    : Text;
+    amount       : Nat;
+    currency     : Text;
+    status       : Text;
+    expiresAt    : Int;
+    redeemMethod : Text;
+  } {
+    var i = 0;
+    while (i < claimCount and i < CLAIM_CAP) {
+      if (claimCodes[i] == claimCode) {
+        return ?{
+          claimCode    = claimCodes[i];
+          amount       = claimAmounts[i];
+          currency     = claimCurrencies[i];
+          status       = claimStatuses[i];
+          expiresAt    = claimExpiresAt[i];
+          redeemMethod = claimRedeemMethods[i];
+        }
+      };
+      i += 1;
+    };
+    null
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 14 — FIAT EXIT ROUTING (ONESICAN → USD/MXN/EUR)
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // Entry is ingestFiatPayment (fiat → ONESICAN inside PARALLAX).
+  // Exit is exitToFiat (ONESICAN → fiat, pushed to bank/card/cash network).
+  //
+  // Exit rails:
+  //   ACH   → USD bank deposit (US ACH push, routing number + account number)
+  //   SPEI  → MXN bank deposit (Mexico SPEI, CLABE 18 digits)
+  //   SEPA  → EUR bank deposit (EU SEPA credit transfer, IBAN)
+  //   CARD  → card push (Visa Direct / Mastercard Send to debit card)
+  //
+  // Exit flow:
+  //   1. User calls exitToFiat → ONESICAN debited from PARALLAX balance
+  //   2. Exit record created (QUEUED) on-chain
+  //   3. Off-chain NOVA bridge reads QUEUED exits → initiates ACH/SPEI/SEPA/card
+  //   4. Bridge calls markExitDelivered(exitId) after bank confirmation
+  //
+  // Bridge partners (production): Synapse/Column (ACH), Banxico SPEI API (MXN),
+  //   SEPA clearing (EUR), Visa Direct (card push).
+
+  let EXIT_CAP : Nat = 8192;
+
+  stable var exitCount             : Nat       = 0;
+  stable var exitIds               : [var Nat]  = Array.init<Nat>(EXIT_CAP,  0);
+  stable var exitUserPrincipals    : [var Text] = Array.init<Text>(EXIT_CAP, "");
+  stable var exitAmountsOnesican   : [var Nat]  = Array.init<Nat>(EXIT_CAP,  0);
+  stable var exitAmountsFiat       : [var Nat]  = Array.init<Nat>(EXIT_CAP,  0); // net fiat cents
+  stable var exitTargetCurrencies  : [var Text] = Array.init<Text>(EXIT_CAP, "");
+  stable var exitRails             : [var Text] = Array.init<Text>(EXIT_CAP, "");
+  stable var exitDestRefs          : [var Text] = Array.init<Text>(EXIT_CAP, "");
+  stable var exitStatuses          : [var Text] = Array.init<Text>(EXIT_CAP, "QUEUED");
+  stable var exitCreatedAt         : [var Int]  = Array.init<Int>(EXIT_CAP,  0);
+  stable var exitDeliveredAt       : [var Int]  = Array.init<Int>(EXIT_CAP,  0);
+  stable var exitNotes             : [var Text] = Array.init<Text>(EXIT_CAP, "");
+  stable var nextExitId            : Nat        = 1;
+
+  stable var totalExitsQueued      : Nat = 0;
+  stable var totalExitsDelivered   : Nat = 0;
+  stable var totalExitVolumeFiat   : Nat = 0; // cumulative fiat cents delivered
+
+  // Convert ONESICAN balance → fiat, queue for off-chain bridge delivery
+  public shared(msg) func exitToFiat(
+    amountOnesicans : Nat,
+    targetCurrency  : Text,   // USD | MXN | EUR
+    exitRail        : Text,   // ACH | SPEI | SEPA | CARD
+    destinationRef  : Text,   // routing+acct, CLABE, IBAN, card token (tokenized)
+    note            : Text
+  ) : async { success : Bool; exitId : Nat; fiatAmount : Nat; message : Text } {
+    let p      = Principal.toText(msg.caller);
+    let userIdx : ?Nat = if (isSovereign(msg.caller)) null else _findUser(p);
+    if (not isSovereign(msg.caller) and userIdx == null) return {
+      success=false; exitId=0; fiatAmount=0; message="USER_NOT_REGISTERED: call registerUser first"
+    };
+    if (exitCount >= EXIT_CAP) return { success=false; exitId=0; fiatAmount=0; message="EXIT_CAP_REACHED" };
+    let rate : Nat = if      (targetCurrency == "USD") fiatRateUSD
+                     else if (targetCurrency == "MXN") fiatRateMXN
+                     else if (targetCurrency == "EUR") fiatRateEUR
+                     else 0;
+    if (rate == 0) return {
+      success=false; exitId=0; fiatAmount=0; message="UNSUPPORTED_EXIT_CURRENCY: " # targetCurrency
+    };
+    let fee          = _computeFee("FIAT", amountOnesicans);
+    let netOnesicans = if (amountOnesicans > fee) amountOnesicans - fee else 0;
+    // Inverse of ingestFiatPayment: ONESICAN → fiat cents
+    let netFiatCents = (netOnesicans * 100) / rate;
+    // Debit user ONESICAN balance (registered users only; sovereign bypasses)
+    switch (userIdx) {
+      case (?i) {
+        if (userOnesicansBalance[i] < amountOnesicans) return {
+          success=false; exitId=0; fiatAmount=0; message="INSUFFICIENT_ONESICAN_BALANCE"
+        };
+        userOnesicansBalance[i] := userOnesicansBalance[i] - amountOnesicans;
+      };
+      case null {};
+    };
+    let idx = exitCount;
+    let id  = nextExitId;
+    exitIds[idx]             := id;
+    exitUserPrincipals[idx]  := p;
+    exitAmountsOnesican[idx] := amountOnesicans;
+    exitAmountsFiat[idx]     := netFiatCents;
+    exitTargetCurrencies[idx]:= targetCurrency;
+    exitRails[idx]           := exitRail;
+    exitDestRefs[idx]        := destinationRef;
+    exitStatuses[idx]        := "QUEUED";
+    exitCreatedAt[idx]       := Time.now();
+    exitDeliveredAt[idx]     := 0;
+    exitNotes[idx]           := note;
+    exitCount                := exitCount + 1;
+    nextExitId               := nextExitId + 1;
+    totalExitsQueued         := totalExitsQueued + 1;
+    totalFeesCollected       := totalFeesCollected + fee;
+    {
+      success    = true;
+      exitId     = id;
+      fiatAmount = netFiatCents;
+      message    = "EXIT_QUEUED: exit#" # Nat.toText(id) # " | " # Nat.toText(amountOnesicans) #
+                   " ONESICAN → " # Nat.toText(netFiatCents) # " " # targetCurrency # " cents via " # exitRail #
+                   " | fee=" # Nat.toText(fee) # " | bridge will initiate " # exitRail # " transfer"
+    }
+  };
+
+  // Called by off-chain bridge after ACH/SPEI/SEPA/card confirms delivery
+  public shared(msg) func markExitDelivered(exitId : Nat) : async { success : Bool; message : Text } {
+    if (not isSovereign(msg.caller) and not _isAuthorizedOracle(Principal.toText(msg.caller))) return {
+      success=false; message="UNAUTHORIZED"
+    };
+    var i = 0;
+    while (i < exitCount and i < EXIT_CAP) {
+      if (exitIds[i] == exitId) {
+        if (exitStatuses[i] != "QUEUED") return {
+          success=false; message="EXIT_NOT_QUEUED: " # exitStatuses[i]
+        };
+        exitStatuses[i]   := "DELIVERED";
+        exitDeliveredAt[i]:= Time.now();
+        totalExitsDelivered  := totalExitsDelivered + 1;
+        totalExitVolumeFiat  := totalExitVolumeFiat + exitAmountsFiat[i];
+        return {
+          success=true;
+          message="EXIT_DELIVERED: exit#" # Nat.toText(exitId) # " | " #
+                  Nat.toText(exitAmountsFiat[i]) # " " # exitTargetCurrencies[i] # " cents via " # exitRails[i]
+        }
+      };
+      i += 1;
+    };
+    { success=false; message="EXIT_NOT_FOUND: " # Nat.toText(exitId) }
+  };
+
+  // Bridge polls this to get pending exits to process
+  public query func getQueuedExits(limit : Nat) : async [{
+    exitId         : Nat;
+    userPrincipal  : Text;
+    amountOnesican : Nat;
+    fiatAmount     : Nat;
+    targetCurrency : Text;
+    exitRail       : Text;
+    destinationRef : Text;
+    createdAt      : Int;
+  }] {
+    var result : [{exitId:Nat; userPrincipal:Text; amountOnesican:Nat; fiatAmount:Nat; targetCurrency:Text; exitRail:Text; destinationRef:Text; createdAt:Int}] = [];
+    var i = 0;
+    var found = 0;
+    while (i < exitCount and i < EXIT_CAP and found < limit) {
+      if (exitStatuses[i] == "QUEUED") {
+        result := Array.append(result, [{
+          exitId         = exitIds[i];
+          userPrincipal  = exitUserPrincipals[i];
+          amountOnesican = exitAmountsOnesican[i];
+          fiatAmount     = exitAmountsFiat[i];
+          targetCurrency = exitTargetCurrencies[i];
+          exitRail       = exitRails[i];
+          destinationRef = exitDestRefs[i];
+          createdAt      = exitCreatedAt[i];
+        }]);
+        found += 1;
+      };
+      i += 1;
+    };
+    result
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 15 — ORACLE EXCHANGE RATES
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // Exchange rates are kept live by authorized oracle principals or AI agents.
+  // Sovereign can always set rates directly.
+  // Rates: ONESICAN units per 100 fiat cents (same unit as fiatRateUSD/MXN/EUR).
+  //
+  // Production oracle sources:
+  //   USD/MXN → Banxico API (real-time spot, updated every minute)
+  //   EUR/USD → ECB reference rate
+  //   Crypto  → on-chain DEX TWAP (future expansion)
+  //
+  // Oracle principal is registered by sovereign → calls setExchangeRate() on-chain.
+  // Any oracle principal can also call updateLinkedAccountBalance() and markExitDelivered().
+
+  let ORACLE_CAP : Nat = 16;
+
+  stable var oracleCount       : Nat       = 0;
+  stable var oraclePrincipals  : [var Text] = Array.init<Text>(ORACLE_CAP, "");
+  stable var oracleLabels      : [var Text] = Array.init<Text>(ORACLE_CAP, "");
+
+  // Rate metadata: who set it and when (indices: 0=USD, 1=MXN, 2=EUR)
+  stable var rateLastUpdatedBy : [var Text] = Array.init<Text>(3, "GENESIS");
+  stable var rateLastUpdatedAt : [var Int]  = Array.init<Int>(3,  0);
+
+  func _isAuthorizedOracle(p : Text) : Bool {
+    var i = 0;
+    while (i < oracleCount and i < ORACLE_CAP) {
+      if (oraclePrincipals[i] == p) return true;
+      i += 1;
+    };
+    false
+  };
+
+  public shared(msg) func addOraclePrincipal(oraclePrincipal : Text, label : Text) : async Bool {
+    requireSovereign(msg.caller);
+    if (oracleCount >= ORACLE_CAP) return false;
+    var i = 0;
+    while (i < oracleCount and i < ORACLE_CAP) {
+      if (oraclePrincipals[i] == oraclePrincipal) return true; // already registered
+      i += 1;
+    };
+    oraclePrincipals[oracleCount] := oraclePrincipal;
+    oracleLabels[oracleCount]     := label;
+    oracleCount := oracleCount + 1;
+    true
+  };
+
+  public shared(msg) func removeOraclePrincipal(oraclePrincipal : Text) : async Bool {
+    requireSovereign(msg.caller);
+    var i = 0;
+    while (i < oracleCount and i < ORACLE_CAP) {
+      if (oraclePrincipals[i] == oraclePrincipal) {
+        // Shift remaining entries left to fill the gap
+        var j = i;
+        while (j + 1 < oracleCount and j + 1 < ORACLE_CAP) {
+          oraclePrincipals[j] := oraclePrincipals[j + 1];
+          oracleLabels[j]     := oracleLabels[j + 1];
+          j += 1;
+        };
+        if (oracleCount > 0) {
+          oraclePrincipals[oracleCount - 1] := "";
+          oracleLabels[oracleCount - 1]     := "";
+          oracleCount := oracleCount - 1;
+        };
+        return true;
+      };
+      i += 1;
+    };
+    false
+  };
+
+  // Set fiat exchange rate — callable by sovereign or any authorized oracle/AI agent
+  // ratePerCent: ONESICAN units per 100 fiat cents (e.g. 100 = 1 USD → 100 ONESICAN)
+  public shared(msg) func setExchangeRate(currency : Text, ratePerCent : Nat) : async {
+    success : Bool;
+    message : Text;
+  } {
+    let p = Principal.toText(msg.caller);
+    if (not isSovereign(msg.caller) and not _isAuthorizedOracle(p)) return {
+      success=false; message="UNAUTHORIZED: not sovereign or registered oracle"
+    };
+    if (ratePerCent == 0) return { success=false; message="INVALID_RATE: zero not allowed" };
+    let now = Time.now();
+    if (currency == "USD") {
+      fiatRateUSD         := ratePerCent;
+      rateLastUpdatedBy[0]:= p;
+      rateLastUpdatedAt[0]:= now;
+    } else if (currency == "MXN") {
+      fiatRateMXN         := ratePerCent;
+      rateLastUpdatedBy[1]:= p;
+      rateLastUpdatedAt[1]:= now;
+    } else if (currency == "EUR") {
+      fiatRateEUR         := ratePerCent;
+      rateLastUpdatedBy[2]:= p;
+      rateLastUpdatedAt[2]:= now;
+    } else {
+      return { success=false; message="UNSUPPORTED_CURRENCY: " # currency # " (supported: USD | MXN | EUR)" }
+    };
+    { success=true; message="RATE_UPDATED: " # currency # " → " # Nat.toText(ratePerCent) # " ONESICAN/100cents | oracle=" # p }
+  };
+
+  public query func getExchangeRates() : async [{
+    currency    : Text;
+    ratePerCent : Nat;
+    updatedBy   : Text;
+    updatedAt   : Int;
+  }] {
+    [
+      { currency="USD"; ratePerCent=fiatRateUSD; updatedBy=rateLastUpdatedBy[0]; updatedAt=rateLastUpdatedAt[0] },
+      { currency="MXN"; ratePerCent=fiatRateMXN; updatedBy=rateLastUpdatedBy[1]; updatedAt=rateLastUpdatedAt[1] },
+      { currency="EUR"; ratePerCent=fiatRateEUR; updatedBy=rateLastUpdatedBy[2]; updatedAt=rateLastUpdatedAt[2] },
+    ]
+  };
+
+  public query func getOraclePrincipals() : async [{ principal : Text; label : Text }] {
+    var result : [{principal:Text; label:Text}] = [];
+    var i = 0;
+    while (i < oracleCount and i < ORACLE_CAP) {
+      result := Array.append(result, [{ principal=oraclePrincipals[i]; label=oracleLabels[i] }]);
+      i += 1;
+    };
+    result
   };
 
 };
