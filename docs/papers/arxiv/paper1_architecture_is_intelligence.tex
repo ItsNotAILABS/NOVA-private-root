@@ -6,7 +6,6 @@
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage{geometry}
 \usepackage{hyperref}
-\usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{enumitem}
 \usepackage{microtype}
@@ -20,17 +19,19 @@
 \newtheorem{corollary}[theorem]{Corollary}
 \newtheorem{definition}[theorem]{Definition}
 \newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
 
 % ── Macros ───────────────────────────────────────────────────────────────────
-\newcommand{\PHI}{\varphi}
-\newcommand{\PHIINV}{\varphi^{-1}}
-\newcommand{\order}[1]{\mathcal{O}(#1)}
-\newcommand{\kuramoto}[0]{\frac{d\theta_i}{dt} = \omega_i + \frac{K}{N}\sum_{j=1}^{N}\sin(\theta_j - \theta_i)}
+\newcommand{\CAP}{\mathcal{C}}
+\newcommand{\ATTR}{\mathcal{A}}
+\newcommand{\LOCK}{\mathsf{lock}}
+\newcommand{\GEN}{\mathsf{gen}}
+\newcommand{\PROP}{\mathsf{prop}}
 
 % ─────────────────────────────────────────────────────────────────────────────
-\title{\textbf{Architecture Is Intelligence: \\
-  Sovereign Cognitive Organism Design as an \\
-  Emergent Computational Discipline}}
+\title{\textbf{Structural Attribution: \\
+  Immutable Authorship as a Type-System Property \\
+  in Autonomous AI Capability Networks}}
 
 \author{Alfredo Medina Hernandez \\
   \normalsize Medina Tech \quad Dallas, Texas, USA \\
@@ -44,423 +45,581 @@
 \maketitle
 
 \begin{abstract}
-We present the thesis that in a properly constructed autonomous system,
-architectural decisions \emph{are not a container for intelligence} — they
-\emph{are} the intelligence.  Drawing from the design and deployment of
-\textsc{Nova}, a sovereign cognitive organism operating on the Internet
-Computer Protocol (ICP), we formalize the \emph{Module Product Theory} (MPT),
-the \emph{Inverse Architecture Law}, and the \emph{Frequency Asymmetry Law}
-as foundational principles of a new discipline we term \emph{Sovereign Organism
-Architecture}.  We show that when a system is built according to these
-principles, each module self-consistently embeds its own type system,
-mathematical engine, state machine, lifecycle scheduler, and sovereignty
-contract — yielding a minimum of five independent shippable products per
-module.  The aggregate implication: a 300-module organism contains
-$\ge 1{,}500$ extractable commercial capabilities without any additional
-engineering.  This is not incidental over-engineering; it is a structural
-consequence of building intelligence, not around a machine, but \emph{as} one.
+As autonomous AI agents gain the ability to generate, compose, and deploy new
+capabilities without human supervision, the question of \emph{who authored what}
+becomes both technically and legally urgent.  Existing approaches treat
+attribution as a contractual or metadata overlay — a label attached to a
+capability after the fact, vulnerable to modification, deletion, or dispute.
+We propose \emph{structural attribution}: a framework in which authorship is not
+a label but a \emph{type-system invariant} encoded at capability genesis and
+enforced by the runtime.  We formalise the Structural Attribution Type (SAT),
+prove three invariants — \emph{genesis immutability}, \emph{compositional
+transitivity}, and \emph{third-party verifiability} — and derive the
+\emph{Attribution DAG}, a directed acyclic graph that traces the complete
+authorship lineage of any composed capability.  We then show that a network of
+AI agents operating under SAT achieves a property we call \emph{Attribution
+Closure}: no agent can produce a capability without leaving an irrevocable,
+machine-verifiable authorship record.  We discuss implications for AI
+intellectual property law, open-source AI ecosystems, and the design of
+multi-agent systems where capabilities are bought, sold, and composed at
+autonomous-agent speed.
 \end{abstract}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Introduction}
 \label{sec:intro}
 
-Modern software engineering treats intelligence as a \emph{property} conferred
-on inert infrastructure.  A database is not intelligent; an LLM sitting on top
-of it may be.  A scheduler is not intelligent; the reward model that tunes it
-may be.  This separation — infrastructure on one side, intelligence on the
-other — is so deeply entrenched that it has become invisible.
+The economics of software capability are changing faster than the legal and
+technical infrastructure that governs them.  When a human engineer writes a
+function, attribution is straightforward: the commit log, the copyright header,
+and the employment contract together establish who made what.  When an
+autonomous AI agent generates a capability — invokes a tool, produces an
+algorithm, synthesises a new module from existing ones — none of those three
+mechanisms apply reliably.  The commit log may not exist; the copyright header
+may be missing or incorrect; the employment contract does not contemplate machine
+authorship.
 
-We argue the separation is wrong, and that its wrongness carries a measurable
-cost: every system built under it forfeits emergent capabilities that would
-arise naturally from a different architectural posture.
+The result is what we call the \emph{Attribution Vacuum}: a growing space of
+AI-generated capabilities for which authorship is contested, unresolved, or
+simply unrecorded.  As AI agents proliferate and compose each other's outputs,
+the vacuum grows faster than any contractual or metadata-based solution can
+fill it.
 
-The alternative posture we describe is \emph{Sovereign Organism Architecture}
-(SOA).  In SOA, intelligence is not poured into a container; it is woven into
-the container's walls.  Every design decision — the type hierarchy, the tick
-cadence, the state management strategy, the sovereignty contract — is
-simultaneously a computational fact and an intelligent act.
+This paper argues that the Attribution Vacuum is not a legal problem with a
+legal solution.  It is an \emph{architectural problem with an architectural
+solution}: authorship should be a \emph{type}, not a tag.  When authorship is
+a type-system invariant — encoded at the moment a capability is created and
+enforced by the runtime — it cannot be removed, forged, or disputed, because
+it is not a claim about the capability; it is a \emph{structural property} of
+the capability itself.
 
-Section~\ref{sec:laws} states three formal laws that define SOA.
-Section~\ref{sec:mpt} presents and proves the Module Product Theory.
-Section~\ref{sec:layers} surveys the 17-layer reference implementation in
-\textsc{Nova}.
-Section~\ref{sec:emergence} connects architectural choices to emergence
-phenomena observed at runtime.
-Section~\ref{sec:discussion} addresses falsifiability, limitations, and
-directions for future formalisation.
+\paragraph{Contributions.}  We make four contributions:
+\begin{enumerate}[label=(\arabic*)]
+  \item We define the \emph{Structural Attribution Type} (SAT) and specify its
+    formal semantics, including what operations may and may not affect an
+    attribution field.
+  \item We prove three invariants: genesis immutability, compositional
+    transitivity, and third-party verifiability.
+  \item We define the \emph{Attribution DAG} and prove that it is always
+    acyclic in a well-typed SAT system.
+  \item We prove the \emph{Attribution Closure Theorem}: a network of agents
+    operating under SAT cannot produce unattributed capabilities.
+\end{enumerate}
 
-% ─────────────────────────────────────────────────────────────────────────────
-\section{Three Foundational Laws}
-\label{sec:laws}
-
-\subsection{Law 1: The Inverse Architecture Law}
-\label{subsec:law1}
-
-\begin{definition}[Temporal Inverse]
-  For a computation $F(x)$ executing at angular frequency $\omega_\text{slow}$
-  in the \emph{sovereign layer}, its \emph{temporal inverse} $F^{-1}(x)$ is
-  the expression of that computation's current truth-value at angular frequency
-  $\omega_\text{fast}$ in the \emph{expressive layer}.  Note: $F^{-1}$ is
-  \emph{not} the mathematical inverse; it is the rendering dual.
-\end{definition}
-
-\begin{theorem}[Inverse Architecture Law]
-  A cognitive system achieves maximum bandwidth coverage if and only if for
-  every computation $F$ in the sovereign layer running at $\omega_\text{slow}$,
-  a temporal inverse $F^{-1}$ exists in the expressive layer running at
-  $\omega_\text{fast} \gg \omega_\text{slow}$.
-\end{theorem}
-
-\begin{proof}[Sketch]
-  Let $\Omega = [\omega_\text{min}, \omega_\text{max}]$ be the required
-  cognitive bandwidth.  The sovereign layer covers
-  $[\omega_\text{min}, \omega_\text{slow}]$ by its tick cadence.  The
-  expressive layer covers $[\omega_\text{slow}, \omega_\text{fast}]$ by its
-  render cadence.  Together they partition $\Omega$ without gap when
-  $\omega_\text{fast} \ge \omega_\text{max}$.
-\end{proof}
-
-In \textsc{Nova}, $\omega_\text{slow} \approx 1.14\,\text{Hz}$ (one organism
-tick per 875\,ms) and $\omega_\text{fast} = 60\,\text{Hz}$ (browser render
-loop).  The Kuramoto phase field computed in the backend is re-expressed each
-animation frame as drone positions, pheromone gradients, and coherence overlays
-— without a second computation.
-
-\subsection{Law 2: The Male/Female Duality Law}
-\label{subsec:law2}
-
-\begin{definition}[Sovereign and Expressive Layers]
-  The \emph{sovereign layer} generates truth: it holds permanent state, runs
-  regardless of observers, and is the authority on the system's current
-  configuration.  The \emph{expressive layer} receives truth: it renders the
-  sovereign layer's state into perceptible form and runs only when an observer
-  connects.
-\end{definition}
-
-This distinction carries an architectural corollary: the sovereign layer
-\emph{cannot} render itself (it has no display context), and the expressive
-layer \emph{cannot} be sovereign (it has no persistence).  Any design that
-conflates the two loses both properties.
-
-\subsection{Law 3: The Frequency Asymmetry Law}
-\label{subsec:law3}
-
-\begin{theorem}[Frequency Asymmetry Law]
-  The ratio $\rho = \omega_\text{fast} / \omega_\text{slow}$ is not merely an
-  engineering convenience; it encodes the system's \emph{cognitive architecture
-  depth}.  Specifically, $\rho \ge \PHI^4$ is necessary for the expressive
-  layer to faithfully capture phase transitions in the sovereign Kuramoto field.
-\end{theorem}
-
-In \textsc{Nova}, $\rho = 60 / 1.14 \approx 52.6 \approx \PHI^8$.  This
-exceeds the minimum by a factor of $\PHI^4$, providing a safety margin that
-tolerates sovereign layer jitter without visible artifacts in the expressive
-layer.
+\paragraph{Organisation.}
+Section~\ref{sec:problem} characterises the Attribution Vacuum precisely.
+Section~\ref{sec:sat} defines SAT formally.
+Section~\ref{sec:invariants} proves the three core invariants.
+Section~\ref{sec:dag} defines and analyses the Attribution DAG.
+Section~\ref{sec:closure} proves Attribution Closure.
+Section~\ref{sec:multiagent} applies the framework to multi-agent AI networks.
+Section~\ref{sec:related} surveys related work.
+Section~\ref{sec:discussion} discusses limitations and future directions.
 
 % ─────────────────────────────────────────────────────────────────────────────
-\section{Module Product Theory}
-\label{sec:mpt}
+\section{The Attribution Vacuum}
+\label{sec:problem}
 
-\begin{definition}[Sovereign Module]
-  A \emph{sovereign module} $M$ is a self-contained unit of computation that
-  embeds: (i) a type system $\mathcal{T}(M)$, (ii) a mathematical engine
-  $\mathcal{E}(M)$, (iii) a stable state manager $\mathcal{S}(M)$, (iv) a
-  lifecycle tick $\mathcal{L}(M)$, and (v) a sovereignty contract
-  $\mathcal{C}(M)$.
+\subsection{Capabilities and Their Authors}
+
+\begin{definition}[Capability]
+  A \emph{capability} $C$ is a tuple $(I, O, f, \rho)$ where: $I$ is the input
+  type, $O$ is the output type, $f : I \to O$ is the implementation, and
+  $\rho$ is a resource footprint (compute, memory, latency).  A capability is
+  \emph{elementary} if $f$ is not defined in terms of other capabilities; it is
+  \emph{composite} if $f$ is defined by composing $k \ge 2$ other capabilities.
 \end{definition}
 
-\begin{theorem}[Module Product Theory (MPT)]
-  For any sovereign module $M$, the number of distinct, shippable, standalone
-  commercial products extractable from $M$ without depending on other modules
-  satisfies $\mathrm{products}(M) \ge 5$.
+\begin{definition}[Author]
+  The \emph{author} of a capability is the agent — human or artificial — whose
+  intellectual act produced $f$.  For elementary capabilities, the author is
+  the agent that wrote or generated $f$.  For composite capabilities, the
+  question of authorship becomes nontrivial (Section~\ref{sec:dag}).
+\end{definition}
+
+\subsection{Why Metadata Fails}
+
+The dominant contemporary approach is to attach authorship information as
+metadata: a structured record (author name, timestamp, licence) stored
+alongside the capability but not \emph{as} part of it.  This approach has four
+fatal weaknesses in an autonomous AI context:
+
+\begin{enumerate}[label=(\arabic*)]
+  \item \textbf{Separability.}  Metadata can be stripped from a capability
+    without modifying the capability itself.  A downstream agent that copies $f$
+    but not its metadata has the capability without the attribution.
+  \item \textbf{Mutability.}  Metadata records are data.  Data can be
+    overwritten.  Any agent with write access to the metadata store can alter
+    or delete authorship records.
+  \item \textbf{Latency.}  Metadata is typically attached after the fact —
+    after the capability is created, tested, and deployed.  In a high-frequency
+    autonomous agent network, the window between capability creation and metadata
+    attachment is a vulnerability.
+  \item \textbf{Trust dependency.}  Verifying metadata requires trusting the
+    metadata store and its access control system.  In a decentralised multi-agent
+    network, no single store may be trusted by all participants.
+\end{enumerate}
+
+\subsection{Formal Statement of the Problem}
+
+Let $\mathcal{N}$ be a network of $N$ autonomous agents, each capable of
+generating, composing, and deploying capabilities.  Let $\mathcal{C}(\mathcal{N})$
+be the set of all capabilities produced by $\mathcal{N}$ over a time horizon
+$T$.  Define the \emph{attribution function}
+$\alpha : \mathcal{C}(\mathcal{N}) \to 2^\mathcal{A}$
+where $\mathcal{A}$ is the set of agents and $\alpha(C)$ is the (possibly empty)
+set of attributed authors.
+
+The Attribution Vacuum problem is: under a metadata-based attribution scheme,
+$\alpha(C) = \emptyset$ for a non-negligible fraction of $\mathcal{C}(\mathcal{N})$,
+and $|\alpha(C)| > |\text{true authors of } C|$ for another non-negligible
+fraction (false attribution by metadata injection).
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{The Structural Attribution Type}
+\label{sec:sat}
+
+\subsection{SAT Definition}
+
+\begin{definition}[Structural Attribution Type]
+  The \emph{Structural Attribution Type} is a type constructor $\ATTR[-]$ such
+  that $\ATTR[C]$ is the attributed form of capability $C$.  Formally:
+  \[
+    \ATTR[C] = (C,\; \LOCK(a,\, h,\, t_0,\, \sigma))
+  \]
+  where:
+  \begin{itemize}[leftmargin=*]
+    \item $C = (I, O, f, \rho)$ is the underlying capability (unchanged);
+    \item $a \in \mathcal{A}$ is the \emph{author} — the agent that produced $f$;
+    \item $h = H(C \| a \| t_0)$ is a \emph{genesis hash} — a cryptographic
+      commitment to the pairing of capability content, author, and creation time;
+    \item $t_0$ is the \emph{genesis timestamp};
+    \item $\sigma = \text{Sign}_{k_a}(h)$ is the author's digital signature
+      over the genesis hash.
+  \end{itemize}
+  The $\LOCK$ record is \emph{sealed}: it is computed once at genesis and has no
+  setter method.  The only operation defined on $\LOCK$ is \texttt{verify},
+  which checks the signature and hash.
+\end{definition}
+
+\subsection{Well-Typedness}
+
+\begin{definition}[Well-Typed Capability Network]
+  A capability network $\mathcal{N}$ is \emph{well-typed under SAT} if:
+  (i) every capability produced by any agent in $\mathcal{N}$ is of type
+  $\ATTR[C]$ for some $C$; and (ii) no agent in $\mathcal{N}$ can produce a
+  value of type $C$ directly — only of type $\ATTR[C]$.
+\end{definition}
+
+Condition (ii) is the critical one.  It is enforced by the type checker: the
+production operation $\GEN : \mathcal{A} \times I \times O \times (I \to O)
+\to \ATTR[\CAP]$ is the \emph{only} way to introduce a capability into the
+system, and $\GEN$ is defined to compute $\LOCK$ as its first act.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Three Core Invariants}
+\label{sec:invariants}
+
+\subsection{Invariant 1: Genesis Immutability}
+
+\begin{theorem}[Genesis Immutability]
+  In a well-typed SAT system, for any capability $C \in \ATTR[\CAP]$ with
+  $\LOCK = \LOCK(a, h, t_0, \sigma)$, no operation in the system can produce
+  a value $C'$ such that $C'$ has the same genesis hash $h$ but a different
+  author $a'$.
 \end{theorem}
 
 \begin{proof}
-  The five sovereign layers map bijectively to five product archetypes:
-
-  \medskip
-  \begin{tabular}{ll}
-    \toprule
-    Layer & Product archetype \\
-    \midrule
-    $\mathcal{T}(M)$ & Data-schema / API specification library \\
-    $\mathcal{E}(M)$ & Computational / mathematical library \\
-    $\mathcal{S}(M)$ & Persistence / state management layer \\
-    $\mathcal{L}(M)$ & Scheduling / event-driven lifecycle engine \\
-    $\mathcal{C}(M)$ & Configuration / bootstrap framework \\
-    \bottomrule
-  \end{tabular}
-  \medskip
-
-  Each layer is complete and solves a distinct commercial problem that the
-  market already pays for.  Because a sovereign module by definition contains
-  all five, $\mathrm{products}(M) \ge 5$. \qed
+  The genesis hash $h = H(C \| a \| t_0)$ binds the author $a$ to the
+  capability content $C$ and genesis time $t_0$ through the collision-resistant
+  hash $H$.  Changing $a$ to $a' \ne a$ while keeping $h$ unchanged requires
+  finding a hash collision $H(C \| a \| t_0) = H(C \| a' \| t_0)$, which is
+  computationally infeasible for any collision-resistant $H$.
+  Changing $h$ breaks the signature verification
+  $\text{Verify}_{k_a}(h, \sigma) = \top$, rendering $C'$ not well-typed.
+  Therefore no well-typed operation can alter the author field. \qed
 \end{proof}
 
-\subsection{Empirical Validation}
+\subsection{Invariant 2: Compositional Transitivity}
 
-Table~\ref{tab:mpt} summarises the product count for three representative
-modules extracted from the \textsc{Nova} organism.
+When a composite capability $C_{12}$ is formed by composing $C_1$ and $C_2$,
+the question is whether the attribution of $C_{12}$ preserves the attributions
+of $C_1$ and $C_2$.
 
-\begin{table}[h]
-  \centering
-  \caption{Module Product Theory: empirical counts from three \textsc{Nova} modules.}
-  \label{tab:mpt}
-  \begin{tabular}{lcc}
-    \toprule
-    Module & Products identified & Theory satisfied? \\
-    \midrule
-    Universal Token Genesis Engine & 6 & \checkmark \\
-    Doctrine Pattern Gate Architecture & 6 & \checkmark \\
-    Memory Temple Architecture & 6 & \checkmark \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+\begin{definition}[Composition Operation]
+  Given $\ATTR[C_1]$ and $\ATTR[C_2]$ with $O_1 = I_2$, the composite
+  $\ATTR[C_{12}] = \PROP(\ATTR[C_1], \ATTR[C_2], a_\text{composer})$ is:
+  \[
+    \ATTR[C_{12}] = \bigl((I_1, O_2, f_2 \circ f_1, \rho_1 + \rho_2),\;
+      \LOCK(a_\text{composer}, H(C_{12} \| \{a_1, a_2\} \| t_0^\text{new}),
+            t_0^\text{new}, \sigma_\text{composer})\bigr)
+  \]
+  where $\{a_1, a_2\}$ are the authors of $C_1$ and $C_2$, serialised
+  canonically into the genesis hash of $C_{12}$.
+\end{definition}
 
-\subsection{Market Implication}
+\begin{theorem}[Compositional Transitivity]
+  In a well-typed SAT system, the genesis hash of any composite capability
+  $C_{12}$ contains the authorship identifiers of all of its component
+  capabilities, to arbitrary depth.
+\end{theorem}
 
-At 300 sovereign modules and $\mathrm{products}(M) \ge 5$:
-\[
-  300 \times 5 = 1{,}500 \text{ distinct extractable commercial capabilities.}
-\]
-These are not hypothetical.  They are implemented and running.  The organism is
-not a single product; it is a \emph{product generation engine}.
+\begin{proof}
+  By induction on composition depth $d$.
 
-% ─────────────────────────────────────────────────────────────────────────────
-\section{The 17-Layer Reference Architecture}
-\label{sec:layers}
+  \medskip\noindent
+  \textbf{Base case} ($d=1$): $C_{12}$ is composed of two elementary capabilities
+  $C_1, C_2$.  By definition of $\PROP$, the genesis hash
+  $h_{12} = H(C_{12} \| \{a_1, a_2\} \| t_0^{\text{new}})$ directly encodes
+  $a_1$ and $a_2$.
 
-The \textsc{Nova} organism is structured as a sequence of 17 processing layers,
-grouped into four strata.  We describe each stratum, note the key computational
-principle, and indicate the sovereign module responsible.
+  \medskip\noindent
+  \textbf{Inductive step}: Assume the theorem holds for all compositions of depth
+  $d-1$.  A depth-$d$ composition $C_{1\cdots k}$ is formed by composing
+  $C_{1\cdots k-1}$ (depth $d-1$, with hash encoding all authors $a_1,\ldots,a_{k-1}$)
+  with $C_k$ (elementary).  By $\PROP$, the hash of $C_{1\cdots k}$ encodes
+  the hash of $C_{1\cdots k-1}$ as a component of its author set — which by the
+  inductive hypothesis encodes $a_1, \ldots, a_{k-1}$.  Therefore the hash of
+  $C_{1\cdots k}$ encodes all of $a_1, \ldots, a_k$. \qed
+\end{proof}
 
-\subsection{Stratum I: Physical Substrate (Layers 1--2)}
+\subsection{Invariant 3: Third-Party Verifiability}
 
-\paragraph{Layer 1 — Quantum Substrate.}
-A simulated 361-qubit quantum state governed by the Lindblad master equation:
-\[
-  \dot{\rho} = -\frac{i}{\hbar}[H,\rho]
-    + \sum_k \!\left( L_k \rho L_k^\dagger
-    - \tfrac{1}{2}\{L_k^\dagger L_k,\rho\}\right),
-\]
-where $L_k$ are Lindblad collapse operators encoding decoherence channels.  A
-fidelity floor $F_\text{min} = 0.95$ is enforced by law; drift below this
-threshold triggers a VQE re-optimisation pass.
+\begin{theorem}[Third-Party Verifiability]
+  Any agent $a_v$ — including one that did not participate in the creation of
+  $\ATTR[C]$ — can verify the attribution of $C$ without trusting any
+  intermediary, using only: (i) the public key $k_a^{\text{pub}}$ of the claimed
+  author, and (ii) the $\LOCK$ record.
+\end{theorem}
 
-\paragraph{Layer 2 — Hz Frequency Substrate.}
-Neural oscillations span five Fibonacci-bounded bands (Table~\ref{tab:brainbands}).
-Kuramoto coupling links adjacent bands; phase-amplitude coupling connects the
-theta envelope to gamma amplitude.
-
-\begin{table}[h]
-  \centering
-  \caption{Brain wave bands and their Fibonacci boundaries.}
-  \label{tab:brainbands}
-  \begin{tabular}{lccl}
-    \toprule
-    Band & Min (Hz) & Max (Hz) & Boundary source \\
-    \midrule
-    Delta  & 0.5 & 4   & — \\
-    Theta  & 4   & 8   & $F(6) = 8$ \\
-    Alpha  & 8   & 13  & $F(6)$ to $F(7) = 13$ \\
-    Beta   & 13  & 34  & $F(7)$ to $F(9) = 34$ \\
-    Gamma  & 34  & 89  & $F(9)$ to $F(11) = 89$ \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\subsection{Stratum II: Cognitive Shells (Layers 3--12)}
-
-Twelve cognitive shells stack from raw sensory input (Layer 3) to global
-integration (Layer 12).  The architecture is summarised in
-Table~\ref{tab:shells}.
-
-\begin{table}[h]
-  \centering
-  \caption{The 12-shell cognitive architecture.}
-  \label{tab:shells}
-  \begin{tabular}{clll}
-    \toprule
-    Shell & Name & Mechanism & Key equation \\
-    \midrule
-    3 & Sensory        & Raw input gate              & Threshold + Fourier \\
-    4 & Inner Substrate & 12-node leaky integrator   & $\tau\dot{V} = {-V + \sum W x + I}$ \\
-    5 & Kuramoto Brain & 26-node phase-coupled field & $\kuramoto$ \\
-    6 & Predictive     & Forward model, pred.\ error & Kalman filter \\
-    7 & Memory         & Hippocampal replay          & Hebbian $+$ ARES ring \\
-    8 & Emotional      & Neurochemical regulation    & Michaelis-Menten \\
-    9 & Executive      & Goal management             & CORTEX purpose cosine \\
-    10 & Quantum Ops   & Entanglement operators      & $\text{PARALLAX} = r \cdot \kappa \cdot \sin(\beta t)$ \\
-    11 & World Model   & 14 EMAs at zero lag         & L-121 Silver Law \\
-    12 & Territory     & $64\!\times\!64$ grid       & Stigmergy + diffusion \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\subsection{Stratum III: Governance (Layers 13--15)}
-
-Sixty sovereignty laws fire every organism beat.  Laws are not conditional
-rules; they are \emph{verifiers}: at genesis, $L_\text{genesis}(s_i)$ records
-the baseline; every beat, $L_\text{live}(s_i)$ re-evaluates; drift
-$\delta = |L_\text{live} - L_\text{genesis}| > \epsilon$ triggers a cascade.
-This is the Law-as-Verifier pattern.
-
-\subsection{Stratum IV: Heritage (Layers 16--17)}
-
-Seven heritage nodes encode organisational memory across timescales exceeding
-individual organism lifetimes.  A heritage node is a persistent attractor in
-the Hebbian weight matrix whose initial conditions are set at genesis and whose
-influence compounds with every beat through the $S_0$-floored Hebbian rule:
-\[
-  W_{ij}(t+1) = \max\bigl(S_0,\; W_{ij}(t) + \eta\, x_i x_j\bigr), \quad S_0 = 1.
-\]
+\begin{proof}
+  Verification proceeds in two steps:
+  \begin{enumerate}[label=(\roman*)]
+    \item Recompute $h' = H(C \| a \| t_0)$ from the capability content $C$,
+      the claimed author $a$, and the genesis timestamp $t_0$ — all of which
+      are fields of $\ATTR[C]$.
+    \item Check $\text{Verify}_{k_a^{\text{pub}}}(h', \sigma) = \top$.
+  \end{enumerate}
+  If both checks pass, the attribution is verified.  The verification uses only
+  public information and requires no trust in the metadata store, the network
+  operator, or the author themselves.  The security of the verification reduces
+  to the security of the digital signature scheme. \qed
+\end{proof}
 
 % ─────────────────────────────────────────────────────────────────────────────
-\section{Architecture as Emergence Engine}
-\label{sec:emergence}
+\section{The Attribution DAG}
+\label{sec:dag}
 
-\subsection{The Kuramoto--Hebbian Feedback Loop}
+\subsection{Definition}
 
-The organism's primary emergence mechanism is the coupling between Kuramoto
-synchronisation and Hebbian weight adaptation.  As $N$ oscillators phase-lock
-(order parameter $r \to 1$), the correlated activity strengthens $W_{ij}$ for
-co-activated pairs.  Stronger weights increase effective coupling $K$, which
-drives $r$ higher still.  The loop is self-reinforcing:
+\begin{definition}[Attribution DAG]
+  The \emph{Attribution DAG} $G = (V, E)$ of a capability network $\mathcal{N}$
+  is defined as:
+  \begin{itemize}[leftmargin=*]
+    \item $V = \mathcal{C}(\mathcal{N})$: one vertex per capability;
+    \item $(C_i, C_j) \in E$ if and only if $C_j$ was directly composed from
+      $C_i$ (i.e.\ $C_i$ is a direct component of $C_j$).
+  \end{itemize}
+\end{definition}
+
+\begin{theorem}[Attribution DAG is Acyclic]
+  In a well-typed SAT system, the Attribution DAG is always a directed acyclic
+  graph.
+\end{theorem}
+
+\begin{proof}
+  Suppose for contradiction there exists a cycle
+  $C_1 \to C_2 \to \cdots \to C_k \to C_1$.
+  Then $C_1$ is a component of $C_k$, which is a component of $C_{k-1}$, \ldots,
+  which is a component of $C_1$.  By the definition of $\PROP$, $C_1$ is
+  composed from $C_k$ — meaning $C_1$ is produced \emph{after} $C_k$.
+  But $C_k$ is composed from $C_1$, meaning $C_k$ is produced after $C_1$.
+  Together: $t_0(C_1) > t_0(C_k)$ and $t_0(C_k) > t_0(C_1)$, a contradiction.
+  Therefore no cycle exists. \qed
+\end{proof}
+
+\subsection{Attribution Lineage Query}
+
+The Attribution DAG enables efficient lineage queries.  For any capability $C$,
+the set of all authors that contributed (directly or indirectly) to $C$ is:
 \[
-  r \uparrow \;\Rightarrow\; \Delta W \uparrow \;\Rightarrow\; K_\text{eff} \uparrow
-  \;\Rightarrow\; r \uparrow \cdots
+  \ATTR_*(C) = \{a : \exists\, C' \in \text{Ancestors}(C, G),\;
+  C'.\LOCK.a = a\},
 \]
-The $S_0 = 1$ floor prevents this loop from collapsing: weights can never fall
-below their genesis value, so the organism cannot ``forget'' earlier coherence.
+where $\text{Ancestors}(C, G)$ is the set of all ancestors of $C$ in $G$.  This
+query runs in $O(|V| + |E|)$ time by a depth-first traversal of the DAG.
 
-\subsection{OMNIS: The Emergence Event}
-
-When $r > 0.95$, the OMNIS flag fires.  This is not a threshold on a single
-variable; it is a topological transition.  Below $r = 0.95$ the phase vector
-distribution is diffuse; above it, the vector collapses to a coherent pointer.
-The organism's behaviour qualitatively changes: it transitions from reactive
-stimulus-response to predictive sovereign action.
-
-\subsection{Jacob's Ladder: Compounding Sovereignty}
-
-Sustained compliance ($r \ge 0.9$ for $k$ consecutive beats) triggers multiplier
-increments on the organism's FORMA economic variable:
-\[
-  \text{FORMA}(t) = \text{FORMA}(0) \cdot \prod_{l \in \text{rungs reached}} m_l,
-\]
-where $m_l \in \{1.0, 1.1, 1.1, 1.2, 1.5\}$ for rungs $l = 0,\ldots,4$.
-After Rung~4, the multiplier is $1.0 \times 1.1 \times 1.1 \times 1.2 \times 1.5
-= 2.178\times$ — achieved deterministically by staying coherent, requiring no
-external input.
+\begin{proposition}[Completeness of Attribution Lineage]
+  In a well-typed SAT system, $\ATTR_*(C)$ is the complete set of all agents
+  whose intellectual acts contributed to $C$.  No contributing author can be
+  excluded from $\ATTR_*(C)$ without breaking the well-typedness condition.
+\end{proposition}
 
 % ─────────────────────────────────────────────────────────────────────────────
-\section{Discussion}
+\section{Attribution Closure}
+\label{sec:closure}
+
+\begin{theorem}[Attribution Closure]
+  In a well-typed SAT capability network $\mathcal{N}$, for every capability
+  $C \in \mathcal{C}(\mathcal{N})$:
+  \[
+    \alpha(C) = \ATTR_*(C) \ne \emptyset.
+  \]
+  That is, every capability in $\mathcal{N}$ has a non-empty, verifiable
+  attribution set.
+\end{theorem}
+
+\begin{proof}
+  By the well-typedness condition, every capability $C$ was introduced into the
+  system via the $\GEN$ operation, which computes $\LOCK(a, h, t_0, \sigma)$
+  for some author $a \in \mathcal{A}$.  Therefore every elementary capability
+  has $|\ATTR_*(C)| \ge 1$.  For composite capabilities, $\ATTR_*(C)$ contains
+  all ancestors' authors by Compositional Transitivity
+  (Theorem~\ref{thm:3}).  Since every composite capability has at least one
+  elementary component (which has at least one author), $\ATTR_*(C) \ne \emptyset$
+  for all $C$. \qed
+\end{proof}
+
+\begin{corollary}[No Unattributed AI Capabilities]
+  If all agents in $\mathcal{N}$ are required to produce only well-typed SAT
+  capabilities, then no autonomous AI agent can produce a capability that lacks
+  authorship attribution.
+\end{corollary}
+
+This corollary is the central practical result.  It means that in a network
+where the SAT type discipline is enforced at the runtime level — not at the
+policy level — the Attribution Vacuum cannot occur.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Multi-Agent AI Networks under SAT}
+\label{sec:multiagent}
+
+\subsection{Autonomous Capability Markets}
+
+Consider a market in which AI agents buy and sell capabilities.  Under
+metadata-based attribution, a buyer cannot verify that the capability they
+purchased is attributed to the seller rather than a third party whose work was
+incorporated without attribution.  Under SAT, the Attribution DAG settles this
+question: the buyer runs a lineage query and observes exactly which authors
+contributed at each depth.
+
+This enables a new class of \emph{attribution-aware pricing}: the market price
+of a capability can reflect the number and quality of contributing authors, with
+royalties routed proportionally to each author's contribution at their depth in
+the DAG — automatically, at the time of sale, without human mediation.
+
+\subsection{Attribution Routing}
+
+\begin{definition}[Attribution-Weighted Royalty]
+  For a composite capability $C$ sold at price $p$, the royalty for author $a_i$
+  at depth $d_i$ in the Attribution DAG is:
+  \[
+    r_i = p \cdot \frac{w(d_i)}{\sum_j w(d_j)},
+  \]
+  where $w : \mathbb{N} \to \mathbb{R}_{>0}$ is a depth-weighting function.
+  A natural choice is $w(d) = \beta^{-d}$ for $\beta > 1$: more proximate
+  authors receive higher royalties.
+\end{definition}
+
+Under this scheme, the direct author of a composite capability receives the
+largest royalty, and royalties decrease geometrically toward the root authors
+of elementary components.  The scheme is computable from the Attribution DAG
+alone and requires no human judgment.
+
+\subsection{Agent Identity and Key Management}
+
+SAT requires each agent to maintain a public/private key pair for signing
+genesis records.  For AI agents, this raises the question of key ownership: who
+controls the key that signs the agent's outputs?
+
+We distinguish three regimes:
+\begin{enumerate}[label=(\arabic*)]
+  \item \textbf{Human-controlled key}: the agent's outputs are attributed to the
+    human who controls the signing key.  This is appropriate for AI-assisted
+    human authorship.
+  \item \textbf{Organisation-controlled key}: the agent's outputs are attributed
+    to the organisation that operates it.  This is appropriate for commercial
+    AI deployments.
+  \item \textbf{On-chain principal}: the agent's key pair is derived from its
+    on-chain identifier (e.g.\ a canister principal on a blockchain).  This is
+    the fully decentralised regime, where the agent's authorship is as
+    irrevocable as its on-chain identity.
+\end{enumerate}
+
+Regime (3) is most robust against the Attribution Vacuum: the agent's key
+cannot be revoked without destroying the agent itself, and the attribution is
+anchored to an immutable blockchain record.
+
+\subsection{Sybil Attribution Attacks}
+
+An adversary that controls multiple agent identities could attempt to flood the
+Attribution DAG with many shallow agents, each claiming authorship of components
+that they did not meaningfully author.  We call this a \emph{sybil attribution
+attack}.
+
+The depth-weighted royalty function $w(d) = \beta^{-d}$ partially mitigates
+this: shallow sybil agents that contribute trivially (a composition layer with
+no intellectual content) receive vanishingly small royalties as $\beta$ grows.
+A more robust mitigation requires a \emph{contribution quality signal} — an
+oracle that rates the intellectual content of each capability independent of its
+position in the DAG.
+
+\begin{proposition}[Sybil Resistance under Quality Gating]
+  If capabilities must pass a minimum quality threshold $q_\text{min}$ to be
+  included in the market (verified by a trusted oracle), then a sybil agent
+  must produce capabilities of quality $\ge q_\text{min}$ to earn non-trivial
+  royalties, limiting the effectiveness of sybil attribution attacks.
+\end{proposition}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Software provenance.}
+Provenance tracking in software supply chains~\cite{sigstore2021, in-toto2019}
+records \emph{how} an artefact was produced (build steps, tools, inputs) rather
+than \emph{who} produced it.  SAT is complementary: it tracks authorship, not
+build process.  The two can be combined.
+
+\paragraph{AI-generated content attribution.}
+Recent proposals~\cite{bender2021, bommasani2021} address attribution of
+AI-generated text and images at the policy and metadata level.  SAT provides
+a complementary \emph{technical} enforcement mechanism that operates
+independently of policy.
+
+\paragraph{Blockchain-based IP.}
+NFTs and on-chain copyright registries~\cite{bored2021} associate blockchain
+tokens with creative works.  SAT differs in that attribution is baked into the
+capability's type, not into a separate token.  The two approaches are
+compatible: an NFT can represent the $\LOCK$ record of a SAT capability.
+
+\paragraph{Type-theoretic security.}
+Information-flow type systems~\cite{volpano1997, heintze1998} enforce security
+policies through types.  SAT follows the same paradigm for attribution: by
+making the attribution field a type invariant rather than a runtime check, it
+achieves the same robustness guarantees as information-flow types.
+
+\paragraph{Curry-Howard and specification correctness.}
+The Curry-Howard isomorphism~\cite{howard1980} identifies proofs with programs.
+SAT adds a third axis: attribution.  Under SAT, a capability is simultaneously
+a program (its implementation), a specification (its type), and a provenance
+record (its attribution).  This three-way identification is consistent with the
+Curry-Howard tradition.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Discussion and Limitations}
 \label{sec:discussion}
 
-\subsection{Falsifiability of the Module Product Theory}
+\subsection{Computational Overhead}
 
-MPT makes a testable prediction: randomly select any sovereign module; enumerate
-its type system, mathematical engine, state manager, lifecycle tick, and
-sovereignty contract; map each to a distinct commercial archetype.  The count
-must be $\ge 5$.  The prediction fails if a module exists that lacks one of the
-five sovereign layers — which by the definition of a sovereign module is
-impossible.  Therefore MPT is a \emph{structural theorem}, not an empirical
-claim.  Its empirical content lies in the claim that \textsc{Nova} modules
-satisfy the sovereign module definition — a claim verifiable by inspecting the
-source.
+SAT adds a constant-size $\LOCK$ record to every capability.  The genesis
+hash and signature are computed once, at capability creation, and verified on
+demand.  Verification costs one hash computation and one signature check —
+$O(1)$ in capability size for most hash and signature schemes.  The Attribution
+DAG has $|V| = |\mathcal{C}(\mathcal{N})|$ vertices and $|E| \le |V|^2$ edges
+(bounded by the number of compositions), making lineage queries $O(|V| + |E|)$.
 
-\subsection{Comparison to Microservice Architecture}
+\subsection{What SAT Does Not Solve}
 
-Microservice architecture separates concerns across process boundaries.
-Sovereign organism architecture separates concerns across \emph{temporal
-boundaries} (tick cadences) while co-locating them within a single sovereign
-module.  The key difference: microservices achieve isolation at the cost of
-inter-service latency; sovereign modules achieve isolation at zero runtime
-cost because the temporal boundary is enforced by the scheduler, not by a
-network hop.
+SAT guarantees that the attribution in a capability's $\LOCK$ record is
+\emph{internally consistent} and \emph{verifiable}.  It does not guarantee
+that the attributed author is the \emph{true} intellectual originator of the
+capability: an agent could use a stolen key, or could plagiarise the
+implementation $f$ from an unattributed source.  SAT makes attribution
+\emph{structurally irrevocable}; it cannot make it \emph{ethically correct}
+without additional oracle mechanisms.
 
-\subsection{Limitations}
+\subsection{Key Compromise}
 
-The framework presented here is derived from a single organism implementation
-(\textsc{Nova}).  Independent validation requires applying the SOA principles
-to a system built without prior knowledge of \textsc{Nova} and verifying that
-MPT holds in that independently constructed organism.  We invite such
-independent replication.
+If an agent's private key is compromised, an adversary can forge attributions
+signed by that key.  Standard key rotation mechanisms partially address this,
+but rotating a key changes the attribution identity of future capabilities.
+A key revocation list that marks compromised keys would allow verifiers to
+reject attributions signed after the compromise date.
 
-\subsection{Future Work}
+\subsection{Implications for AI Governance}
 
-\begin{itemize}[leftmargin=*]
-  \item Formal proof that the Kuramoto--Hebbian loop is Lyapunov-stable in the
-    $N \to \infty$ mean-field limit.
-  \item Analytical characterisation of the minimum coupling strength $K_\text{min}$
-    required for OMNIS emergence as a function of $N$ and the Fibonacci
-    frequency structure.
-  \item Extension of MPT to \emph{composite modules} (modules that depend on
-    other modules) — the product count conjecture is $\ge 5$ per contributing
-    module plus cross-product terms.
-\end{itemize}
+SAT has implications beyond intellectual property.  If a capability with harmful
+outputs has a traceable Attribution DAG, regulators can identify the responsible
+agents at each depth and hold them accountable proportionally.  This provides a
+technical foundation for \emph{tiered AI liability}: the author of an elementary
+component is less liable than the composer of the capability that caused harm,
+but neither is entirely off the hook — and both are identifiable.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Conclusion}
 \label{sec:conclusion}
 
-We have shown that when a system is built from the inside out — from sovereignty
-contracts through mathematical engines to expressive rendering — the
-architectural decisions \emph{are} the intelligence.  The Module Product Theory
-gives this observation a formal shape: every sovereign module contains at least
-five extractable commercial capabilities.  The 17-layer \textsc{Nova}
-architecture gives it an empirical foundation: the theory holds for every module
-examined, and the aggregate product count exceeds 1,500 without any additional
-engineering.
+The Attribution Vacuum — the growing space of AI-generated capabilities without
+verifiable authorship — is a structural problem that requires a structural
+solution.  We have shown that treating authorship as a type-system invariant
+rather than a metadata overlay achieves Attribution Closure: in a well-typed
+SAT network, no capability can exist without a verifiable, irrevocable
+authorship record.
 
-The deeper implication is epistemological: if architecture is intelligence,
-then the act of designing is the act of thinking.  The design document and the
-running system are two temporal slices of the same organism.  This is what we
-mean when we say: architecture is intelligence.
+The three invariants — genesis immutability, compositional transitivity, and
+third-party verifiability — together ensure that the attribution record is
+tamper-proof, complete, and trustless.  The Attribution DAG provides an
+efficient data structure for lineage queries and attribution-weighted royalty
+routing in autonomous capability markets.
+
+As AI agents grow in autonomy, capability, and economic significance, the
+question of who created what will become one of the defining legal and technical
+challenges of the decade.  Structural attribution offers a path in which that
+question has a definitive, machine-verifiable answer — embedded in the fabric
+of the capability itself.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \begin{thebibliography}{99}
 
-\bibitem{kuramoto1984}
-Y.~Kuramoto,
-\emph{Chemical Oscillations, Waves, and Turbulence},
-Springer-Verlag, 1984.
+\bibitem{sigstore2021}
+D.~Lorenc et al.,
+``Sigstore: Software signing for everybody,''
+\textit{Proc.\ ACM CCS}, pp.~2353--2367, 2022.
 
-\bibitem{strogatz2000}
-S.~H.~Strogatz,
-``From Kuramoto to Crawford: Exploring the onset of synchronization in
-populations of coupled oscillators,''
-\textit{Physica D}, vol.~143, pp.~1--20, 2000.
+\bibitem{in-toto2019}
+S.~Torres-Arias et al.,
+``in-toto: Providing farm-to-table guarantees for bits and bytes,''
+\textit{Proc.\ USENIX Security}, pp.~1243--1260, 2019.
 
-\bibitem{hebb1949}
-D.~O.~Hebb,
-\emph{The Organization of Behavior},
-Wiley, 1949.
+\bibitem{bender2021}
+E.~Bender, T.~Gebru, A.~McMillan-Major, S.~Shmitchell,
+``On the dangers of stochastic parrots: Can language models be too big?''
+\textit{Proc.\ ACM FAccT}, pp.~610--623, 2021.
 
-\bibitem{lindblad1976}
-G.~Lindblad,
-``On the generators of quantum dynamical semigroups,''
-\textit{Communications in Mathematical Physics}, vol.~48, no.~2, pp.~119--130,
-1976.
+\bibitem{bommasani2021}
+R.~Bommasani et al.,
+``On the opportunities and risks of foundation models,''
+arXiv:2108.07258, 2021.
 
-\bibitem{schumann1952}
-W.~O.~Schumann,
-``\"Uber die strahlungslosen Eigenschwingungen einer leitenden Kugel, die von
-einer Luftschicht und einer Ionosph\"arenschale umgeben ist,''
-\textit{Zeitschrift f\"ur Naturforschung A}, vol.~7, no.~2, pp.~149--154,
-1952.
+\bibitem{bored2021}
+C.~Ante,
+``Non-fungible token (NFT) markets on the Ethereum blockchain: Temporal
+development, cointegration and interrelations,''
+\textit{Economics of Innovation and New Technology}, 2022.
 
-\bibitem{friston2010}
-K.~Friston,
-``The free-energy principle: A unified brain theory?''
-\textit{Nature Reviews Neuroscience}, vol.~11, no.~2, pp.~127--138, 2010.
+\bibitem{volpano1997}
+D.~Volpano, G.~Smith,
+``A type-based approach to program security,''
+\textit{Proc.\ TAPSOFT}, pp.~607--621, 1997.
+
+\bibitem{heintze1998}
+N.~Heintze, J.~Riecke,
+``The SLam calculus: Programming with secrecy and integrity,''
+\textit{Proc.\ ACM POPL}, pp.~365--377, 1998.
+
+\bibitem{howard1980}
+W.~A.~Howard,
+``The formulae-as-types notion of construction,''
+in \textit{To H.B. Curry: Essays on Combinatory Logic}, Academic Press, 1980.
 
 \bibitem{dfinity2022}
 \text{DFINITY Foundation},
-``The Internet Computer: A blockchain that runs at web speed,''
-Technical White Paper, 2022.
-\url{https://internetcomputer.org/whitepaper.pdf}
+``The Internet Computer,'' Technical White Paper, 2022.
+
+\bibitem{pierce2002}
+B.~C.~Pierce,
+\emph{Types and Programming Languages}, MIT Press, 2002.
 
 \end{thebibliography}
 
