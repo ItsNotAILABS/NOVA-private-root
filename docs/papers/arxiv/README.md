@@ -11,8 +11,8 @@
 | File | Title | Release order |
 |------|-------|---------------|
 | `paper1_architecture_is_intelligence.tex` | Structural Attribution: Immutable Authorship as a Type-System Property in Autonomous AI Capability Networks | **Release first** |
-| `paper2_phi_resonant_protocol_orchestration.tex` | Memory Without Forgetting: The No-Decay Constraint for Persistent State in Long-Horizon Autonomous AI Agents | Hold briefly / refine |
-| `paper3_self_healing_multi_agent_systems.tex` | Self-Healing Multi-Agent Systems via Permanent State Imprinting | Hold briefly / refine |
+| `paper2_phi_resonant_protocol_orchestration.tex` | Memoria Perpetua: On Persistent State and the Architecture of Undying Knowledge in Autonomous AI Agents | Hold briefly / refine |
+| `paper3_self_healing_multi_agent_systems.tex` | Nexus Perpetuus: Self-Healing Agent Networks Through Permanent State Binding | Hold briefly / refine |
 | `paper4_paper_engine_isomorphism.tex` | The Paper–Engine Isomorphism | **Release first** |
 | `paper5_career_flows_persistent_ai_organizations.tex` | Career Flows in Persistent AI Organisations | **Release first** |
 

@@ -31,9 +31,9 @@
 \newcommand{\PHI}{\varphi}
 
 % ─────────────────────────────────────────────────────────────────────────────
-\title{\textbf{Memory Without Forgetting: \\
-  The No-Decay Constraint for Persistent State \\
-  in Long-Horizon Autonomous AI Agents}}
+\title{\textbf{\textit{Memoria Perpetua} \\
+  \normalfont\large On Persistent State and the Architecture \\
+  of Undying Knowledge in Autonomous AI Agents}}
 
 \author{Alfredo Medina Hernandez \\
   \normalsize Medina Tech \quad Dallas, Texas, USA \\
@@ -47,78 +47,83 @@
 \maketitle
 
 \begin{abstract}
-Autonomous AI agents that operate over long time horizons — days, months, or
-indefinitely — confront a fundamental architectural tension: memory accumulates
-faster than it can be manually curated, yet forgetting is costly because
-context lost today may be exactly what is needed tomorrow.  Current approaches
-resolve this tension by deleting old state, imposing session boundaries, or
-relying on retrieval systems that return approximate rather than exact memories.
-We argue that these approaches are economically incorrect: as storage cost
-approaches zero and the value of long-horizon context grows with agent
-capability, the optimal policy is to \emph{never delete}.  We formalise this
-intuition as the \emph{No-Decay Constraint} (NDC): agent memory units have
-non-decreasing existence and non-increasing relevance — they persist forever
-but are re-weighted continuously so that stale memories do not pollute current
-reasoning.  We define a formal model of NDC-compliant memory, prove that an
-NDC agent dominates a deletion-based agent in a long-horizon retrieval game,
-characterise the optimal relevance-decay schedule as a function of retrieval
-frequency and update cost, and show that NDC memory is \emph{upgrade-safe}:
-the memory store survives arbitrary software updates without consistency loss.
-We discuss implications for the design of autonomous AI agents, long-running
-AI organisations, and multi-agent systems where memory is shared and queried
-across agents.
+Every agent that forgets is a lesser version of the agent it was yesterday.
+This is not a metaphor — it is an architectural fact.  When a system discards
+its own past to make room for its present, it does not become leaner; it
+becomes amnesiac.  We argue that the dominant engineering response to
+long-horizon memory — deletion, expiry, session boundaries — is not a solution
+to the memory problem.  It is a surrender to it.
+
+We introduce \emph{Memoria Perpetua}: an architectural discipline in which
+agent memory units persist indefinitely, their influence shaped not by deletion
+but by continuous relevance re-weighting.  We formalise this discipline as the
+\emph{No-Decay Constraint} (NDC): memory units have non-decreasing existence
+and query-adaptive relevance — they remain in the store forever, surfacing or
+sinking as retrieval patterns determine their significance.  We prove that an
+NDC agent strictly dominates a deletion-based agent in any long-horizon
+retrieval task where storage cost is less than the value of the potentially
+deleted context — a condition that holds for any sufficiently capable agent in
+any sufficiently long-horizon environment.  We derive the optimal relevance-decay
+schedule, prove that NDC memory survives arbitrary software upgrades without
+consistency loss, and extend the model to multi-agent populations where shared
+memory must remain coherent without synchronous locking.
+
+The core claim is simple.  Past experience has value that cannot be known in
+advance.  An architecture that discards it is not efficient — it is
+epistemologically reckless.
 \end{abstract}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Introduction}
 \label{sec:intro}
 
-A human professional who has worked in a field for twenty years has more
-relevant knowledge than one who has worked for two — not because they have
-processed more information per day, but because they have retained more of what
-they processed.  Their career is, in a meaningful sense, the accumulated memory
-of their professional life.
+A human professional who has worked in a field for twenty years carries
+something that a newcomer cannot buy or download: the sediment of every
+decision, every mistake, every pattern quietly recognised and quietly filed.
+That sediment is not organised.  It is not indexed.  Most of it is irrelevant
+on any given day.  But some fraction of it — the fraction that cannot be
+predicted in advance — is exactly what distinguishes mastery from competence.
+The expert is not faster or smarter.  The expert simply forgot less.
 
 Current AI agents do not work this way.  A session-limited language model
-forgets everything at the session boundary.  A RAG-augmented system retrieves
-approximate matches from an external store, losing precision as the store grows.
-A fine-tuned model encodes experience into weights, making it expensive to
-update and impossible to query directly.  None of these architectures supports
-what we need for truly long-horizon autonomous agents: a memory that grows
-without bound, never forgets anything, and yet does not become slower or less
-precise over time.
+forgets everything when the session ends.  A RAG-augmented system retrieves
+approximate matches, losing precision as the store grows and relevance signals
+blur together.  A fine-tuned model embeds experience into weights — expensive
+to update, impossible to inspect, and reset entirely at the next training run.
+None of these architectures are \emph{accumulative}.  They are, by design,
+temporary.
 
-We call this the \emph{Long-Horizon Memory Problem} (LHMP).
+We call this the \emph{Long-Horizon Memory Problem} (LHMP): the growing gap
+between what an agent has experienced and what it retains.  The gap is not
+inevitable.  It is chosen — chosen because deletion is simple, because
+expiry is easy to implement, because session boundaries are a convenient
+fiction.  None of these conveniences justify the cost.
 
-The dominant answer to LHMP in current practice is deletion: old memories are
-purged to keep the memory store manageable.  We argue this answer is wrong on
-economic grounds.  Storage cost is falling exponentially; retrieval cost is
-falling with improved indexing.  The marginal cost of retaining one more memory
-unit is approaching zero.  The marginal benefit of retaining a memory unit that
-turns out to be relevant — even years later — is positive and bounded below by
-the agent's capability value.  The expected value of retention therefore
-dominates the expected value of deletion for any sufficiently capable agent in
-any sufficiently long-horizon task.
+Storage cost is falling toward zero.  Retrieval cost is falling with it.
+The marginal cost of keeping one more memory unit is approaching nothing.
+The marginal value of a memory unit that turns out to be needed — even years
+later — is real and positive.  The arithmetic has already resolved in favour
+of permanence.  What remains is the architecture to make permanence viable.
 
-The correct answer is not deletion but \emph{relevance re-weighting}: old
-memories are retained but their influence on current reasoning is continuously
-discounted as a function of elapsed time, retrieval frequency, and contextual
-relevance.  We call the architectural principle underlying this answer the
-\emph{No-Decay Constraint} (NDC).
+That architecture is \emph{Memoria Perpetua}: retain everything; re-weight
+continuously; let the retrieval signal, not the clock, determine what matters.
+We formalise this as the \emph{No-Decay Constraint} (NDC) and prove that an
+agent built under it is strictly better — in formal terms — than any agent
+that deletes.
 
 \paragraph{Contributions.}
 \begin{enumerate}[label=(\arabic*)]
-  \item We define a formal model of NDC-compliant agent memory,
-    including the memory unit, the relevance function, the decay schedule,
-    and the retrieval oracle.
-  \item We prove that an NDC agent dominates a deletion-based agent in a
-    long-horizon retrieval game (Theorem~\ref{thm:dominance}).
-  \item We characterise the optimal relevance-decay schedule
-    (Theorem~\ref{thm:optimal-decay}).
-  \item We define \emph{upgrade-safe memory} and prove that NDC memory
-    satisfies it.
-  \item We extend the model to multi-agent shared memory and prove
-    bounded staleness under periodic refresh.
+  \item A formal model of NDC-compliant agent memory: the memory unit, the
+    product-form relevance function, and the retrieval oracle.
+  \item A dominance proof: the NDC agent's expected retrieval payoff is at least
+    as large as any deletion-based agent's, with strict advantage whenever
+    the deletion threshold catches a query-relevant unit.
+  \item The optimal relevance-decay schedule as a function of query rate,
+    memory arrival rate, and horizon length.
+  \item Upgrade-safe memory: a serialisation protocol that ensures the memory
+    store survives arbitrary software updates without loss or warm-up delay.
+  \item Shared NDC memory: bounded staleness in multi-agent populations without
+    synchronous coordination.
 \end{enumerate}
 
 \paragraph{Organisation.}
@@ -524,68 +529,93 @@ economically suboptimal and how to replace it with relevance decay.
 \section{Discussion and Limitations}
 \label{sec:discussion}
 
-\subsection{Storage Scalability}
+\subsection{The Right Problem to Solve}
 
-NDC memory grows without bound.  For agents operating over very long horizons
-(years to decades), the memory store may become large enough to require
-specialised storage infrastructure.  We argue this is the correct engineering
-problem to solve — how to scale storage — rather than the incorrect one of
-deciding what to forget.
+NDC memory grows without bound.  For agents operating over very long horizons —
+years, decades — the memory store will eventually require serious infrastructure:
+distributed storage, tiered access, hierarchical indexing.  We consider this the
+correct engineering problem.  The alternative — deciding what to delete — is not
+an engineering problem.  It is an epistemological bet on which memories will
+never matter, made in advance, without the evidence that would settle the bet.
+Infrastructure scales.  Lost context does not return.
 
 \subsection{Privacy and the Right to Be Forgotten}
 
-NDC memory conflicts with privacy regulations that require data deletion upon
-request (e.g.\ GDPR's ``right to be forgotten'').  We propose two mitigations:
-(i) \emph{content encryption} with owner-controlled keys — a unit is retained
-but becomes undecipherable if the key is deleted; (ii) \emph{relevance
-nullification} — the unit exists but is assigned $\rho = 0$ permanently and
-excluded from all retrieval results.  Both mitigations preserve NDC property
-(i) while honouring the privacy requirement.
+NDC memory is in tension with data-deletion regulations such as GDPR's right
+to erasure.  The tension is real, but it is not irresolvable.  Two mitigations
+preserve NDC existence-permanence while honouring the privacy requirement:
+(i)~\emph{content encryption} with owner-controlled keys — the unit persists
+but becomes meaningless if the key is destroyed; (ii)~\emph{relevance
+nullification} — the unit exists with $\rho = 0$ permanently, invisible to all
+retrieval without altering the store's structural integrity.  Neither approach
+deletes; both render the content inaccessible.  The distinction matters: an
+architecture that can forget on demand is architecturally weaker than one that
+renders content invisible while retaining it.
 
 \subsection{Adversarial Memory Poisoning}
 
-An adversary that can write to the shared NDC store could inject memory units
-with high initial relevance scores to poison the retrieval oracle.  Mitigations
-include: (i) requiring a minimum quality score verified by an oracle before
-a unit enters $\MEM_\text{active}$; (ii) attribution-based trust weighting
-(units authored by trusted agents receive higher $\phi_\text{freq}$ boosts);
-(iii) cryptographic signatures on memory units to prevent post-hoc content
-modification.
+A hostile agent with write access could inject memory units crafted to surface
+at critical decision points, poisoning the retrieval oracle.  Three layers of
+defence apply: (i) a minimum quality gate before a unit enters the active
+partition; (ii) attribution-weighted trust — units authored by verified agents
+receive stronger frequency reinforcement; (iii) cryptographic signatures
+binding content to author at write time, preventing post-hoc modification.
+The attribution framework of Paper~1 in this series applies directly here:
+a memory unit's author is its type, not its label.
 
 \subsection{Future Directions}
 
 \begin{itemize}[leftmargin=*]
-  \item Empirical validation: implement NDC memory in a long-horizon task
-    environment (e.g.\ a software engineering agent running over months) and
-    measure retrieval quality versus deletion-based alternatives.
-  \item Optimal decay schedule for non-stationary distributions: the current
-    result (Theorem~\ref{thm:optimal-decay}) assumes i.i.d.\ content. Real
-    agent experience is non-stationary.
-  \item Federated NDC: extend the model to agents that do not share a store
-    but exchange memory units peer-to-peer.
+  \item \textbf{Non-stationary distributions.}  The optimal decay schedule
+    (Theorem~\ref{thm:optimal-decay}) assumes i.i.d.\ content.  Real agent
+    experience is structured and non-stationary.  Extending the result to
+    drifting or regime-switching distributions is the natural next step.
+  \item \textbf{Empirical validation.}  Implement NDC memory in a long-running
+    agent (e.g.\ a software engineering agent operating across months of a
+    real codebase) and compare retrieval quality against deletion-based
+    alternatives at matched storage budgets.
+  \item \textbf{Federated NDC.}  Extend shared memory to agents that do not
+    share a common store but exchange memory units peer-to-peer, with local
+    NDC guarantees but global eventual coherence.
 \end{itemize}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Conclusion}
 \label{sec:conclusion}
 
-The long-horizon memory problem requires a rethinking of the economics of
-forgetting.  We have shown that the No-Decay Constraint — retain everything,
-re-weight continuously — dominates deletion-based memory in a formal retrieval
-game, with the advantage growing as the time horizon and agent capability
-increase.  The optimal relevance-decay schedule approaches zero for very
-long-horizon agents, confirming the intuition that a truly persistent agent
-should approach permanent memory.
+\emph{Memoria Perpetua.}  Perpetual memory.  The name is the argument.
 
-Upgrade safety ensures that the memory store survives arbitrary software
-updates, making NDC memory compatible with the continuous-deployment reality
-of production AI systems.  Bounded staleness in shared NDC stores enables
-multi-agent coordination without synchronous locking.
+An agent that forgets is not lean — it is amputated.  It loses, at every
+session boundary and every deletion threshold, some fraction of its
+accumulated experience that it cannot know it will need.  The lost fraction
+is unrecoverable.  The cost is permanent.  And the engineering justification —
+storage was expensive, retrieval was slow — is dissolving year by year as
+infrastructure costs fall toward zero.
 
-The No-Decay Constraint is not a storage optimisation.  It is an
-epistemological commitment: past experience has value, even if that value is
-latent.  An agent that forgets is not an agent that is efficient — it is an
-agent that has discarded evidence it may never recover.
+The No-Decay Constraint is the architectural response: never delete, but never
+let the past crowd out the present either.  The relevance function, shaped by
+recency, retrieval frequency, and semantic content, ensures that dormant
+memories sink to a floor without disappearing, and resurface the moment a query
+finds them relevant.  The system does not decide what to forget.  It decides,
+dynamically and continuously, what to surface.
+
+Upgrade safety closes the last gap.  A memory store that survives software
+upgrades is not a caching system — it is a permanent record.  The agent carries
+its full experience through every version of itself, every patch, every
+architectural change.  The serialisation protocol makes this possible with a
+single root checksum.
+
+For multi-agent systems, shared NDC memory enables coherence without
+coordination: agents read from the same store, refresh at their own pace, and
+converge on the same view within a bounded window.  No locks, no barriers, no
+quorum.  Just time and refresh rate.
+
+The deep claim of this paper is not about storage policy.  It is about what it
+means for an agent to persist.  A system that resets at every session boundary
+is not a long-horizon agent.  It is a sequence of short-horizon agents that
+happen to run in the same process.  \emph{Memoria Perpetua} is the condition
+under which a system becomes, for the first time, genuinely continuous — the
+same mind, accumulating, from genesis to whatever horizon it is given.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \begin{thebibliography}{99}

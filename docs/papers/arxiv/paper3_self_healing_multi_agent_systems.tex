@@ -30,8 +30,9 @@
 \newcommand{\synRevoke}{\texttt{synRevoke}}
 
 % ─────────────────────────────────────────────────────────────────────────────
-\title{\textbf{Self-Healing Multi-Agent Systems via \\
-  Permanent State Imprinting and Autonomous Job Queues}}
+\title{\textbf{\textit{Nexus Perpetuus} \\
+  \normalfont\large Self-Healing Agent Networks Through \\
+  Permanent State Binding}}
 
 \author{Alfredo Medina Hernandez \\
   \normalsize Medina Tech \quad Dallas, Texas, USA \\
@@ -45,34 +46,46 @@
 \maketitle
 
 \begin{abstract}
-We present the \emph{Synapse Binding Engine} (SYN), a mechanism for eliminating
-cross-agent query latency in multi-agent systems through a \emph{permanent
-contract}: a single cross-canister call imprints a remote agent's state
-snapshot into the local canister's stable memory, after which all queries are
-pure local reads with zero network cost.  We formalise three structural
-invariants of SYN — \emph{imprint permanence}, \emph{upgrade survival}, and
-\emph{owner-revocable termination} — and prove formal \emph{safety} and
-\emph{liveness} properties of the resulting system.  We establish bounded
-staleness proportional to the governance-sync interval, characterise the full
-failure mode taxonomy (transient, permanent, and cascade failures), and prove
-self-healing convergence time bounds under each failure class.  We then analyse
-the autonomous priority-scheduled job queue that drives recovery: five job types
-with four priority levels and exponential back-off retry, governed by live
-state-snapshot routing decisions.  We show that the resulting system is
-\emph{self-bootstrapping}, \emph{self-healing}, and \emph{self-governing}
-without any human intervention after a single initialisation call, and derive
-the expected number of ticks to full recovery as a function of failure type and
-queue depth.  Finally, we discuss how SYN directly enables new classes of
-AI-agent coordination patterns that are not achievable under on-demand querying.
+The cost of knowing what another agent knows should be paid once.  Not once
+per tick.  Not once per query.  Once — at the moment of first contact — and
+never again.  This is the premise of \emph{Nexus Perpetuus}: a permanent
+binding between agents that converts the first cross-agent call into a local
+write, after which all knowledge of the remote agent is available without
+network cost, without coordination, and without fragility to the remote
+agent's availability.
+
+We formalise this premise as the \emph{Synapse Binding Engine} (SYN), a
+mechanism in which a single call imprints a remote agent's state snapshot
+into the local canister's stable memory.  The imprint is permanent: it
+survives canister upgrades, remote unavailability, and the full lifecycle of
+the local agent.  We prove three structural invariants — imprint permanence,
+upgrade survival, and owner-gated termination — and establish formal safety
+and liveness properties of the resulting system.  We characterise a seven-class
+failure taxonomy, prove recovery time bounds for each class, and show that the
+autonomous job queue — five job types, four priority levels, exponential
+back-off retry — drives the system from any failure state back to nominal
+operation without human intervention.
+
+The result is an agent architecture that is \emph{self-bootstrapping},
+\emph{self-healing}, and \emph{self-governing}: one initialisation call, and
+then it runs.  We discuss the coordination patterns this unlocks for AI agent
+networks that cannot afford the overhead of on-demand querying at scale.
 \end{abstract}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Introduction}
 \label{sec:intro}
 
+Every time an agent asks another agent what it knows, it is admitting that
+the question might have been answered already.  In a system that ticks at
+sub-second cadence, that admission is paid in compute, in latency, and in
+fragility — because the agent being asked might not answer.  Might be
+upgrading.  Might be temporarily unreachable.  Might have been deprecated
+three versions ago.
+
 The dominant paradigm for cross-agent coordination is \emph{on-demand querying}:
-whenever Agent~$A$ needs data from Agent~$B$, it sends a message, waits for the
-reply, and then proceeds.  This paradigm has three costs that compound in
+whenever Agent~$A$ needs data from Agent~$B$, it sends a message, waits for
+the reply, and then proceeds.  This paradigm has three costs that compound in
 high-frequency autonomous systems:
 
 \begin{enumerate}[label=(\arabic*)]
@@ -81,17 +94,23 @@ high-frequency autonomous systems:
     ticking at 875\,ms, one avoidable cross-canister call consumes
     $\approx\!30\%$ of the tick budget.
   \item \textbf{Cycle cost.}  Every cross-canister call consumes compute units.
-    A system that queries its ``brain'' 50 times per tick at 43-second intervals
-    spends more on coordination than on computation.
+    A system that queries its own components fifty times per tick spends more
+    on coordination than on computation.
   \item \textbf{Coupling fragility.}  If Agent~$B$ is temporarily unreachable,
     Agent~$A$'s dependent computation fails — even if the relevant state has
-    not changed.
+    not changed since the last query.
 \end{enumerate}
 
-SYN addresses all three by converting the first cross-agent query into a
-\emph{permanent local write}.  After the imprint, queries cost nothing; the
-state survives canister upgrades; and temporary unreachability of the remote
-agent does not affect the local agent's operation.
+The architecture we call \emph{Nexus Perpetuus} — the perpetual bond — resolves
+all three by converting the first cross-agent query into a \emph{permanent local
+write}.  After the imprint, Agent~$A$ knows what Agent~$B$ knows without asking.
+The knowledge is local, deterministic, and resilient to Agent~$B$'s availability.
+The bond, once formed, does not require the other party to remain present.
+
+We formalise this as the \emph{Synapse Binding Engine} (SYN): a mechanism for
+imprinting remote state into local stable memory through a single cross-canister
+call, with an autonomous job queue that keeps the imprint fresh, heals from
+failures, and governs the binding lifecycle without human intervention.
 
 Section~\ref{sec:model} establishes the system model.
 Section~\ref{sec:syn} defines SYN and proves its key invariants.
@@ -645,64 +664,75 @@ for execution.
 Hewitt's actor model~\cite{hewitt1973} establishes message-passing as the
 primitive for concurrent computation.  SYN complements this by providing a
 mechanism to \emph{eliminate} message-passing for stable read-heavy data.
+The actor model tells you how to send a message; SYN tells you when to stop.
 
 \paragraph{Eventual consistency.}
 Vogels~\cite{vogels2009} surveys eventual consistency in large-scale distributed
-systems.  SYN achieves a weaker form — \emph{sync-periodic consistency} — where
-staleness is bounded by the governance-sync interval rather than propagation
-delay.
+systems.  SYN achieves a weaker but more operationally predictable form —
+\emph{sync-periodic consistency} — where staleness is not a probabilistic
+guarantee but a hard bound set by the governance-sync interval.
 
 \paragraph{Content-addressed storage.}
-IPFS~\cite{benet2014} achieves immutability through content addressing.  SYN
-achieves a different form of immutability: the binding data is mutable (can be
-refreshed) but the binding's existence is permanent until owner revocation.
+IPFS~\cite{benet2014} achieves immutability through content addressing: the
+same content always has the same address, and that address never expires.  SYN
+achieves a different form of immutability at the binding level: the binding
+label is permanent, but the data it points to can be refreshed.  Immutable
+address, mutable content, permanent bond.
 
 \paragraph{Distributed caches.}
 Redis and Memcached provide distributed caching with configurable expiry.  SYN
-differs in three ways: (i) bindings have no automatic expiry; (ii) the binding
-survives canister upgrades; (iii) only the owner can delete a binding.
+differs in three fundamental ways: bindings have no automatic expiry; they
+survive the local canister's own upgrade cycles; and only the owner principal
+can destroy them.  SYN is not a cache.  It is a contract.
 
 \paragraph{Self-healing systems.}
-The self-healing systems literature~\cite{kephart2003, salehie2009} describes
-autonomic systems that monitor, analyse, plan, and execute (MAPE) without
-human intervention.  SYN implements MAPE at the binding layer; the job queue
+The autonomic computing literature~\cite{kephart2003, salehie2009} describes
+systems that monitor, analyse, plan, and execute (MAPE) without human
+intervention.  SYN implements MAPE at the binding layer; the job queue
 implements MAPE at the coordination layer.  The formal safety and liveness
 proofs (Section~\ref{sec:liveness}) provide a mathematical foundation that
-most self-healing systems literature lacks.
+most self-healing systems literature treats as an aspiration rather than a result.
 
 \paragraph{Multi-agent AI systems.}
 Recent multi-agent AI frameworks~\cite{park2023, autogen2023} rely on
 synchronous message-passing for coordination.  SYN provides a complementary
 asynchronous-but-bounded alternative: agents coordinate through cached state
-rather than live messages, trading some staleness for zero blocking.
+rather than live messages, trading a bounded window of staleness for zero
+blocking latency and resilience to partial network failures.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Conclusion}
 \label{sec:conclusion}
 
-The Synapse Binding Engine eliminates the fundamental cost of cross-agent
-coordination: the recurring query.  By converting the first query into a
-permanent local write, SYN enables a multi-agent system to operate with bounded
-staleness ($\le \Delta_\text{GS}$), zero coordination latency for all reads
-after the initial bind, and owner-controlled termination semantics that do not
-depend on the availability of the remote agent.
+\emph{Nexus Perpetuus.}  The perpetual bond.
 
-The formal safety and liveness proofs establish that SYN-bound systems never
-enter unrecoverable states and that all jobs eventually reach terminal status.
-The failure mode taxonomy quantifies recovery time across seven failure classes,
-from transient timeouts (7-second worst case) to cascade failures (bounded by
-topology remapping time).  The AI coordination implications — zero-latency
-consensus approximation, priority-aware self-triage, and autonomous topology
-discovery — represent a new class of multi-agent AI patterns enabled by
-permanent state imprinting.
+The Synapse Binding Engine is built on a simple observation: the right time
+to pay for knowing what another agent knows is when you first need to know it —
+not every time you need to consult it.  One cross-canister call.  One imprint.
+And then the knowledge is yours, locally, permanently, regardless of whether
+the other party is still running.
 
-The autonomous job queue ensures that the binding refresh cycle, the canister
-health check cycle, and the governance synchronisation cycle all operate without
-human input.  The cached state signal closes the feedback loop: the system reads
-its own operational data and adjusts its job priorities accordingly.  The result
-is a self-bootstrapping, self-healing, self-governing multi-agent system that
-requires a single initialisation call and then runs forever — with formal
-guarantees to prove it.
+The formal properties flow from this premise.  Safety: the system never enters
+a state it cannot recover from, because label uniqueness, transient guards, and
+actor-grain atomicity together prevent corruption at every layer.  Liveness:
+every job eventually reaches a terminal state, because the queue is finite, the
+tick fires on schedule, and CRITICAL jobs cannot be starved.  The failure
+taxonomy — seven classes, each with a proven recovery bound — gives the system
+operator a complete picture of what can go wrong and exactly how long recovery
+takes.
+
+The autonomous job queue is what makes it self-governing.  Five job types.
+Four priorities.  Exponential back-off.  The system reads its own cached state
+signal, escalates when the signal crosses a threshold, and heals without
+instruction.  A single \texttt{initialize()} call queues the bootstrap jobs;
+everything after that is autonomous.
+
+For AI agent networks at scale, the implications go beyond fault tolerance.
+\emph{Nexus Perpetuus} is the infrastructure that allows a large, distributed,
+high-frequency agent system to reason about shared state without paying the
+coordination tax on every tick.  Agents become statefully aware of each other
+at the cost of one round trip apiece.  After that, they know — locally,
+deterministically, and without asking.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \begin{thebibliography}{99}
