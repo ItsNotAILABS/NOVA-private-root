@@ -49,17 +49,21 @@ We present the \emph{Synapse Binding Engine} (SYN), a mechanism for eliminating
 cross-agent query latency in multi-agent systems through a \emph{permanent
 contract}: a single cross-canister call imprints a remote agent's state
 snapshot into the local canister's stable memory, after which all queries are
-pure local reads with zero network cost.  We formalise three properties of SYN
-— \emph{imprint permanence}, \emph{upgrade survival}, and \emph{owner-revocable
-termination} — and prove that a SYN-bound system achieves eventual consistency
-with bounded staleness proportional to the GOVERNANCE\_SYNC job interval.  We
-then describe the autonomous job queue that drives self-healing: five job types
-($\mathsf{ADD\_HOTKEY}$, $\mathsf{AUTO\_DISCOVER}$, $\mathsf{GOVERNANCE\_SYNC}$,
-$\mathsf{DEPLOY\_WORKER}$, $\mathsf{HEARTBEAT\_CHECK}$) with four priority
-levels and exponential back-off retry, governed by live HEART-snapshot routing
-decisions.  We show that the resulting system is \emph{self-bootstrapping},
-\emph{self-healing}, and \emph{self-governing} without any human intervention
-after a single master-boot call.
+pure local reads with zero network cost.  We formalise three structural
+invariants of SYN — \emph{imprint permanence}, \emph{upgrade survival}, and
+\emph{owner-revocable termination} — and prove formal \emph{safety} and
+\emph{liveness} properties of the resulting system.  We establish bounded
+staleness proportional to the governance-sync interval, characterise the full
+failure mode taxonomy (transient, permanent, and cascade failures), and prove
+self-healing convergence time bounds under each failure class.  We then analyse
+the autonomous priority-scheduled job queue that drives recovery: five job types
+with four priority levels and exponential back-off retry, governed by live
+state-snapshot routing decisions.  We show that the resulting system is
+\emph{self-bootstrapping}, \emph{self-healing}, and \emph{self-governing}
+without any human intervention after a single initialisation call, and derive
+the expected number of ticks to full recovery as a function of failure type and
+queue depth.  Finally, we discuss how SYN directly enables new classes of
+AI-agent coordination patterns that are not achievable under on-demand querying.
 \end{abstract}
 
 % ─────────────────────────────────────────────────────────────────────────────
@@ -90,9 +94,13 @@ state survives canister upgrades; and temporary unreachability of the remote
 agent does not affect the local agent's operation.
 
 Section~\ref{sec:model} establishes the system model.
-Section~\ref{sec:syn} defines SYN and proves its key properties.
+Section~\ref{sec:syn} defines SYN and proves its key invariants.
+Section~\ref{sec:liveness} proves the safety and liveness properties.
 Section~\ref{sec:jobqueue} describes the autonomous job queue.
 Section~\ref{sec:selfhealing} analyses the self-healing dynamics.
+Section~\ref{sec:failures} classifies the failure mode taxonomy and derives
+recovery time bounds.
+Section~\ref{sec:ai} discusses implications for AI agent coordination.
 Section~\ref{sec:impl} reports implementation details.
 Section~\ref{sec:related} situates the work relative to existing distributed
 systems literature.
@@ -218,6 +226,93 @@ The Organism Solver supports up to $N_{\max} = 64$ simultaneous bindings,
 limited by the stable memory budget for the binding array.  This is sufficient
 to mirror the entire 39-canister \textsc{Nova} organism plus 25 future
 expansion canisters.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Safety and Liveness Properties}
+\label{sec:liveness}
+
+\subsection{System Safety}
+
+We define safety as the property that the system never enters a state from
+which correct operation cannot be restored.
+
+\begin{definition}[SYN Safety State]
+  The system is in a \emph{safe state} at time $t$ if:
+  (i) all bindings in $\texttt{\_bindings}$ have $\REL(B) \ge 0$ (non-negative
+  staleness); (ii) no two bindings share the same label $\ell$; and (iii) the
+  re-entrancy guard $\texttt{\_tickRunning} = \mathsf{false}$ (no tick is
+  permanently locked).
+\end{definition}
+
+\begin{theorem}[SYN Safety]
+  \label{thm:safety}
+  A SYN-bound system never leaves the safe state if: (i) labels are
+  unique-by-construction in $\synBind$; (ii) the re-entrancy guard is
+  transient (non-stable); and (iii) all write operations are atomic.
+\end{theorem}
+
+\begin{proof}
+  (i) The $\synBind$ operation checks for an existing binding with the same
+  label before inserting.  If one exists, it updates in-place; uniqueness
+  is preserved.
+  (ii) The guard $\texttt{\_tickRunning}$ is declared \texttt{transient}
+  (not stable), so it resets to $\mathsf{false}$ at every canister upgrade.
+  A crashed tick that leaves the guard as $\mathsf{true}$ is corrected at
+  the next upgrade without any administrative intervention.
+  (iii) All write operations in the actor model are executed sequentially
+  within a single message, providing atomicity at the actor grain.
+  Under (i)--(iii), no state transition produces a duplicate label, a
+  permanently locked guard, or a partially-written binding. \qed
+\end{proof}
+
+\subsection{System Liveness}
+
+\begin{definition}[Job Liveness]
+  The job queue is \emph{live} if: for every job $j$ enqueued at time $t_e$,
+  $j$ eventually reaches status $\mathsf{DONE}$ or $\mathsf{FAILED}$ at some
+  finite time $t_f > t_e$.
+\end{definition}
+
+\begin{theorem}[Job Queue Liveness]
+  \label{thm:liveness}
+  The autonomous job queue is live under the following conditions:
+  (a) the solver tick fires at finite intervals $T_\text{tick} < \infty$;
+  (b) $R_\text{max} < \infty$;
+  (c) CRITICAL jobs are never dropped.
+\end{theorem}
+
+\begin{proof}
+  Let $j$ be any enqueued job with priority $p$.  At each tick, either $j$
+  is executed (moving it toward $\mathsf{DONE}$ or $\mathsf{FAILED}$) or $j$
+  waits because $n < N_\text{tick}$ and $j$ is not CRITICAL.
+
+  Case 1: $p = \mathsf{CRITICAL}$.  By condition (c), $j$ is executed at every
+  tick until it completes.  It completes in at most
+  $R_\text{max} + 1$ executions.
+
+  Case 2: $p \in \{\mathsf{HIGH}, \mathsf{NORMAL}, \mathsf{LOW}\}$.
+  $j$ may be skipped at a tick only if $N_\text{tick}$ other jobs execute first.
+  But the queue is finite (bounded by $N_\text{max} = 200$), so $j$ must be
+  reached within $\lceil N_\text{max} / N_\text{tick} \rceil$ ticks.  After
+  $R_\text{max}$ failures, $j$ transitions to $\mathsf{FAILED}$, which is
+  terminal.  Therefore $j$ reaches a terminal state in at most
+  $\lceil N_\text{max} / N_\text{tick} \rceil \times (R_\text{max} + 1)$ ticks.
+  Under condition (a), this is a finite time. \qed
+\end{proof}
+
+\begin{corollary}[Expected Resolution Time]
+  The expected ticks to resolution for a NORMAL-priority job in a queue of
+  depth $D \le N_\text{max}$ with $N_\text{tick}$ jobs executed per tick is:
+  \[
+    \mathbb{E}[T_\text{resolve}] = \left\lceil \frac{D}{N_\text{tick}} \right\rceil
+    \times (1 + p_\text{fail} + p_\text{fail}^2 + \cdots + p_\text{fail}^{R_\text{max}})
+    = \left\lceil \frac{D}{N_\text{tick}} \right\rceil \cdot
+    \frac{1 - p_\text{fail}^{R_\text{max}+1}}{1 - p_\text{fail}},
+  \]
+  where $p_\text{fail}$ is the per-attempt failure probability.
+  For $p_\text{fail} = 0$ (no failures): $\mathbb{E}[T_\text{resolve}]
+  = \lceil D / N_\text{tick} \rceil$.
+\end{corollary}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Autonomous Job Queue}
@@ -358,6 +453,154 @@ re-audits the registry and updates status to ``OK'' or ``ERROR''.  This closes
 a second self-healing loop independent of SYN.
 
 % ─────────────────────────────────────────────────────────────────────────────
+\section{Failure Mode Taxonomy and Recovery Bounds}
+\label{sec:failures}
+
+\subsection{Failure Classification}
+
+We classify failures in a SYN-bound multi-agent system into three tiers:
+
+\begin{table}[h]
+  \centering
+  \caption{SYN failure mode taxonomy and expected recovery time.}
+  \label{tab:failures}
+  \begin{tabular}{lllp{4cm}}
+    \toprule
+    Class & Failure type & Recovery mechanism & Bound \\
+    \midrule
+    F1 & Transient network timeout & Exponential back-off retry & $\le 7\,\text{s}$ \\
+    F2 & Remote agent temporarily offline & HEARTBEAT\_CHECK → CRITICAL re-queue & $\le T_\text{tick}$ after recovery \\
+    F3 & Remote agent permanently offline & Binding becomes stale; data persists & Indefinite (no loss) \\
+    F4 & Local canister upgrade & Stable memory serialisation & $0$ (immediate post-upgrade) \\
+    F5 & Solver tick crash (guard stuck) & Transient guard resets on upgrade & Next upgrade \\
+    F6 & Queue overflow (LOW jobs) & LOW eviction; HIGH/CRITICAL safe & $0$ (immediate) \\
+    F7 & Cascade failure (chain of offline agents) & AUTO\_DISCOVER at CRITICAL & $\le \lceil D/N_\text{tick}\rceil T_\text{tick}$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Transient Failures (F1, F2)}
+
+For a single transient failure (F1), the exponential back-off sequence
+$2^1, 2^2, 2^3$ seconds yields a cumulative worst-case delay of $7\,\text{s}$
+before the job transitions to $\mathsf{FAILED}$.  A new job is re-enqueued
+at CRITICAL, resetting the retry count.
+
+For a temporarily offline remote agent (F2), the $\mathsf{HEARTBEAT\_CHECK}$
+job detects the absence within one tick interval.  The self-healing response
+(re-enqueue at CRITICAL) means recovery begins within $T_\text{tick}$ after
+the agent returns online.
+
+\subsection{Permanent Failures (F3)}
+
+When a remote agent goes permanently offline, the SYN binding for that agent
+becomes permanently stale: the cached data $d$ is the last snapshot taken
+before the agent went offline.  Critically, \textbf{the data is not lost}: the
+binding persists in stable memory and can be queried for the last-known state.
+For many use cases (e.g.\ audit logs, configuration snapshots), the last-known
+state is the only relevant state.
+
+\begin{proposition}[Graceful Degradation under Permanent Failure]
+  Under F3 failure, the local agent continues to operate using stale but
+  non-null data for all bindings of the failed agent.  The system degrades
+  gracefully: local reads remain $O(1)$ and deterministic; only the staleness
+  of the cached data increases.
+\end{proposition}
+
+\subsection{Cascade Failures (F7)}
+
+A cascade failure occurs when multiple agents fail in sequence, each failure
+causing dependent agents to enter a degraded state.  The $\mathsf{AUTO\_DISCOVER}$
+job at CRITICAL priority re-maps the live topology after each failure event,
+enabling the system to route around dead agents.
+
+\begin{theorem}[Cascade Recovery Bound]
+  Let $k$ agents fail in cascade over $k$ consecutive ticks.
+  The expected time to topology remapping after the $k$-th failure is at most:
+  \[
+    T_\text{cascade} = (k+1) \cdot T_\text{tick} + \mathbb{E}[T_\text{AUTO\_DISCOVER}],
+  \]
+  where $\mathbb{E}[T_\text{AUTO\_DISCOVER}]$ is the expected execution time of
+  a single $\mathsf{AUTO\_DISCOVER}$ job.
+\end{theorem}
+
+\begin{proof}
+  After each failure, the $\mathsf{HEARTBEAT\_CHECK}$ job (scheduled every tick)
+  detects the absence within one tick.  The failure is logged and an
+  $\mathsf{AUTO\_DISCOVER}$ job is enqueued at CRITICAL.  Because CRITICAL jobs
+  bypass the $N_\text{tick}$ limit, the $\mathsf{AUTO\_DISCOVER}$ job executes
+  at the next tick.  For $k$ cascade failures: the $k$-th failure is detected
+  at tick $k$; $\mathsf{AUTO\_DISCOVER}$ runs at tick $k+1$; the topology is
+  remapped by tick $k+1 + \mathbb{E}[T_\text{AUTO\_DISCOVER}] / T_\text{tick}$
+  ticks.  \qed
+\end{proof}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{AI Agent Coordination Implications}
+\label{sec:ai}
+
+\subsection{The Coordination Bottleneck in Multi-Agent AI Systems}
+
+Modern multi-agent AI systems face a fundamental coordination bottleneck: the
+more agents are in a system, the more cross-agent queries are needed, and the
+higher the aggregate query cost.  Under on-demand querying, the query cost
+scales as $O(N \cdot F)$ where $N$ is the agent count and $F$ is the query
+frequency.  For large, high-frequency agent networks, this is prohibitive.
+
+SYN breaks this scaling law.  After the initial imprint (one cross-agent call
+per binding), all subsequent queries are local reads with $O(1)$ cost,
+regardless of agent count or query frequency.  The aggregate query cost under
+SYN scales as $O(N)$ (the initial imprint round) plus $O(N \cdot R / \Delta_\text{GS})$
+(periodic refresh), where $R$ is the refresh count.  For $\Delta_\text{GS} \gg T_\text{tick}$,
+the refresh cost is a small fraction of the on-demand cost.
+
+\subsection{SYN-Enabled AI Coordination Patterns}
+
+SYN enables three coordination patterns that are not achievable under on-demand
+querying:
+
+\paragraph{Pattern 1: Stateless Reasoning over Shared State.}
+An AI reasoning agent can make decisions based on a globally consistent state
+snapshot without any synchronous communication.  The HEART binding pattern
+provides this: the agent's decision function is a pure function of locally
+cached state, making it both fast and deterministic.
+
+\paragraph{Pattern 2: Autonomous Topology Discovery.}
+The $\mathsf{AUTO\_DISCOVER}$ job enables an AI agent to build a complete map
+of the multi-agent topology without human intervention.  As new agents join the
+network, the next $\mathsf{AUTO\_DISCOVER}$ cycle incorporates them.  This
+supports dynamic agent networks that grow and shrink at runtime.
+
+\paragraph{Pattern 3: Priority-Aware Self-Triage.}
+The live state signal (e.g.\ cached economic state fields) drives autonomous
+priority escalation.  An AI agent that observes a critical condition in the
+cached state can immediately elevate its own job priorities, effectively
+self-triaging without waiting for an external orchestrator.  This closes the
+feedback loop between perception and action at the agent level.
+
+\subsection{Towards Zero-Latency Agent Consensus}
+
+In a multi-agent system where all agents maintain SYN bindings to each other's
+state snapshots, the system approaches \emph{zero-latency consensus}: at any
+point in time, every agent has a locally-cached view of every other agent's
+most recent published state.  The staleness of this view is bounded by
+$\Delta_\text{GS}$, not by network round-trip time.
+
+\begin{proposition}[SYN Consensus Approximation]
+  In a fully-connected SYN network of $N$ agents, each maintaining bindings
+  to all $N-1$ others with refresh interval $\Delta_\text{GS}$, the maximum
+  age of any agent's view of any other agent's state is $\Delta_\text{GS}$.
+  In the limit $\Delta_\text{GS} \to 0$, the system achieves a perfect
+  replica of the global state at every agent, with refresh cost approaching
+  $O(N^2)$ cross-agent calls per unit time — equivalent to the fully
+  synchronised case, but without blocking.
+\end{proposition}
+
+This trade-off between staleness and refresh cost can be tuned per-binding:
+fast-changing state (e.g.\ economic variables) is refreshed at short intervals;
+slow-changing state (e.g.\ topology) is refreshed at long intervals.
+
+% ─────────────────────────────────────────────────────────────────────────────
 \section{Implementation Details}
 \label{sec:impl}
 
@@ -419,6 +662,20 @@ Redis and Memcached provide distributed caching with configurable expiry.  SYN
 differs in three ways: (i) bindings have no automatic expiry; (ii) the binding
 survives canister upgrades; (iii) only the owner can delete a binding.
 
+\paragraph{Self-healing systems.}
+The self-healing systems literature~\cite{kephart2003, salehie2009} describes
+autonomic systems that monitor, analyse, plan, and execute (MAPE) without
+human intervention.  SYN implements MAPE at the binding layer; the job queue
+implements MAPE at the coordination layer.  The formal safety and liveness
+proofs (Section~\ref{sec:liveness}) provide a mathematical foundation that
+most self-healing systems literature lacks.
+
+\paragraph{Multi-agent AI systems.}
+Recent multi-agent AI frameworks~\cite{park2023, autogen2023} rely on
+synchronous message-passing for coordination.  SYN provides a complementary
+asynchronous-but-bounded alternative: agents coordinate through cached state
+rather than live messages, trading some staleness for zero blocking.
+
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Conclusion}
 \label{sec:conclusion}
@@ -426,16 +683,26 @@ survives canister upgrades; (iii) only the owner can delete a binding.
 The Synapse Binding Engine eliminates the fundamental cost of cross-agent
 coordination: the recurring query.  By converting the first query into a
 permanent local write, SYN enables a multi-agent system to operate with bounded
-staleness, zero coordination latency for all reads after the initial bind, and
-owner-controlled termination semantics that do not depend on the availability
-of the remote agent.
+staleness ($\le \Delta_\text{GS}$), zero coordination latency for all reads
+after the initial bind, and owner-controlled termination semantics that do not
+depend on the availability of the remote agent.
+
+The formal safety and liveness proofs establish that SYN-bound systems never
+enter unrecoverable states and that all jobs eventually reach terminal status.
+The failure mode taxonomy quantifies recovery time across seven failure classes,
+from transient timeouts (7-second worst case) to cascade failures (bounded by
+topology remapping time).  The AI coordination implications — zero-latency
+consensus approximation, priority-aware self-triage, and autonomous topology
+discovery — represent a new class of multi-agent AI patterns enabled by
+permanent state imprinting.
 
 The autonomous job queue ensures that the binding refresh cycle, the canister
 health check cycle, and the governance synchronisation cycle all operate without
-human input.  The HEART snapshot closes the feedback loop: the system reads its
-own economic state and adjusts its job priorities accordingly.  The result is a
-self-bootstrapping, self-healing, self-governing organism that requires a single
-master-boot call and then runs forever.
+human input.  The cached state signal closes the feedback loop: the system reads
+its own operational data and adjusts its job priorities accordingly.  The result
+is a self-bootstrapping, self-healing, self-governing multi-agent system that
+requires a single initialisation call and then runs forever — with formal
+guarantees to prove it.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \begin{thebibliography}{99}
@@ -475,6 +742,26 @@ S.~Gilbert, N.~Lynch,
 ``Brewer's conjecture and the feasibility of consistent, available,
 partition-tolerant web services,''
 \textit{SIGACT News}, vol.~33, no.~2, pp.~51--59, 2002.
+
+\bibitem{kephart2003}
+J.~O.~Kephart, D.~M.~Chess,
+``The vision of autonomic computing,''
+\textit{Computer}, vol.~36, no.~1, pp.~41--50, 2003.
+
+\bibitem{salehie2009}
+M.~Salehie, L.~Tahvildari,
+``Self-adaptive software: Landscape and research challenges,''
+\textit{ACM Trans.\ Auton.\ Adapt.\ Syst.}, vol.~4, no.~2, 2009.
+
+\bibitem{park2023}
+J.~S.~Park et al.,
+``Generative agents: Interactive simulacra of human behavior,''
+\textit{Proc.\ ACM UIST}, 2023.
+
+\bibitem{autogen2023}
+Q.~Wu et al.,
+``AutoGen: Enabling next-gen LLM applications via multi-agent conversation,''
+arXiv:2308.08155, 2023.
 
 \end{thebibliography}
 

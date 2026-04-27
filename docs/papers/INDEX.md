@@ -31,8 +31,8 @@ Source files: [`arxiv/`](arxiv/)
 
 | # | File | Title | Release order |
 |---|------|-------|---------------|
-| 1 | [`arxiv/paper1_architecture_is_intelligence.tex`](arxiv/paper1_architecture_is_intelligence.tex) | Architecture Is Intelligence | **First** |
-| 2 | [`arxiv/paper2_phi_resonant_protocol_orchestration.tex`](arxiv/paper2_phi_resonant_protocol_orchestration.tex) | φ-Resonant Protocol Orchestration | Hold/refine |
+| 1 | [`arxiv/paper1_architecture_is_intelligence.tex`](arxiv/paper1_architecture_is_intelligence.tex) | Structural Attribution: Immutable Authorship as a Type-System Property in AI Capability Networks | **First** |
+| 2 | [`arxiv/paper2_phi_resonant_protocol_orchestration.tex`](arxiv/paper2_phi_resonant_protocol_orchestration.tex) | Memory Without Forgetting: The No-Decay Constraint for Persistent State in Long-Horizon AI Agents | Hold/refine |
 | 3 | [`arxiv/paper3_self_healing_multi_agent_systems.tex`](arxiv/paper3_self_healing_multi_agent_systems.tex) | Self-Healing Multi-Agent Systems | Hold/refine |
 | 4 | [`arxiv/paper4_paper_engine_isomorphism.tex`](arxiv/paper4_paper_engine_isomorphism.tex) | The Paper–Engine Isomorphism | **First** |
 | 5 | [`arxiv/paper5_career_flows_persistent_ai_organizations.tex`](arxiv/paper5_career_flows_persistent_ai_organizations.tex) | Career Flows in Persistent AI Organisations | **First** |
