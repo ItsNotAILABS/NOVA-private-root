@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// PHANTOM WALLET — Runtime Dashboard  (Build №38)
+// PHANTOM WALLET — Runtime Dashboard  (Build №40)
 // Language: TypeScript + React (CPL: typed JSX calling Motoko via actor)
 // Powered by PARALLAX → phantom_transfer canister (Build №35)
 // Medina Tech · 2026
@@ -14,6 +14,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { verifyProtocol } from '../parallax/sovereign-protocol';
 import {
   parallax_getClearinghouseStatus,
   parallax_getExchangeRates,
@@ -656,6 +657,43 @@ function StatusPanel({ status, rates, loading }: {
           Canister offline — check connection or dfx deployment.
         </div>
       )}
+
+      {/* ── Protocol Invariant Verification ─────────────────────── */}
+      {(() => {
+        const result = verifyProtocol();
+        return (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{
+              fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase' as const,
+              color: result.allPassed ? '#4f4' : '#f44', marginBottom: 8,
+            }}>
+              Protocol Invariant Check — {result.allPassed ? '✓ ALL PASSED' : '✗ VIOLATION DETECTED'}
+            </div>
+            {result.doctrineResults.map(d => (
+              <div key={d.doctrine} style={{
+                display: 'flex', justifyContent: 'space-between', padding: '3px 0',
+                borderBottom: '1px solid #090f1a', fontSize: 10,
+              }}>
+                <span style={{ color: '#2a4060' }}>{d.doctrine}</span>
+                <span style={{ color: d.passed ? '#4f4' : '#f44', fontWeight: 700 }}>
+                  {d.passed ? '✓' : '✗'}
+                </span>
+              </div>
+            ))}
+            <div style={{ marginTop: 6, display: 'flex', gap: 16, fontSize: 10 }}>
+              <span style={{ color: result.feeProofValid ? '#44aaff' : '#f44' }}>
+                FEE PROOF: {result.feeProofValid ? 'φ⁻³/φ⁻⁴=φ ✓' : '✗'}
+              </span>
+              <span style={{ color: result.noDropValid ? '#4f4' : '#f44' }}>
+                NO-DROP: {result.noDropValid ? 'W≥S₀ ✓' : '✗'}
+              </span>
+              <span style={{ color: result.layerZeroValid ? '#b844ff' : '#f44' }}>
+                LAYER-0: {result.layerZeroValid ? 'NOVA ✓' : '✗'}
+              </span>
+            </div>
+          </div>
+        );
+      })()}
 
       <div style={W.divider} />
 

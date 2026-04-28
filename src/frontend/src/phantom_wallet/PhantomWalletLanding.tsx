@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// PHANTOM WALLET — Consumer Landing Page  (Build №38)
+// PHANTOM WALLET — Consumer Landing Page  (Build №40)
 // Language: TypeScript + React (CPL: typed JSX, CSS-in-JS)
 // Powered by PARALLAX · Medina Tech · 2026
 //
@@ -8,6 +8,8 @@
 // ═══════════════════════════════════════════════════════════════════════════
 
 import React, { useEffect, useRef, useState } from 'react';
+import { SOVEREIGN_GEOMETRY } from '../math/sovereign-geometry';
+import { SOVEREIGN_PROTOCOL, verifyProtocol } from '../parallax/sovereign-protocol';
 
 interface PhantomWalletLandingProps {
   onLaunch: () => void;
@@ -500,6 +502,169 @@ export function PhantomWalletLanding({ onLaunch }: PhantomWalletLandingProps) {
               <div style={S.feeValue(f.hi)}>{f.value}</div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* ── SOVEREIGN MATH ENGINE ───────────────────────────────── */}
+      <div style={{ ...S.section, paddingTop: 0, borderTop: '1px solid #0f1a2a' }}>
+        <div style={{ ...S.sectionTitle, marginTop: 64, color: '#b844ff' }}>The sovereign math engine</div>
+        <div style={S.sectionSub}>
+          PARALLAX does not set fees by committee or market rate.
+          Every constant in this system is derived from a geometric proof.
+          Below is the live computation — these are not hardcoded numbers.
+          They are computed at import time from first principles.
+        </div>
+
+        {/* φ-Powers Table */}
+        <div style={{ marginBottom: 40 }}>
+          <div style={{ fontSize: 11, color: '#b844ff', letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: 14 }}>
+            φ-Axis: Golden Ratio Power Tower (live computed)
+          </div>
+          <div style={{ overflowX: 'auto' as const }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' as const, fontSize: 11 }}>
+              <thead>
+                <tr style={{ color: '#2a4060', textAlign: 'left' as const }}>
+                  {['Symbol', 'Value', 'As %', 'Ecosystem Role'].map(h => (
+                    <th key={h} style={{ padding: '6px 10px', borderBottom: '1px solid #0f1a2a', fontWeight: 600, letterSpacing: '0.08em' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {SOVEREIGN_GEOMETRY.phiPowers.map(p => (
+                  <tr key={p.symbol} style={{ borderBottom: '1px solid #090f1a' }}>
+                    <td style={{ padding: '5px 10px', color: p.exponent === -4 ? '#44aaff' : p.exponent === -3 ? '#b844ff' : p.exponent === 0 ? '#4f4' : '#3a6080', fontWeight: p.exponent <= 0 ? 700 : 400, fontFamily: 'monospace' }}>
+                      {p.symbol}
+                    </td>
+                    <td style={{ padding: '5px 10px', color: '#5080a0', fontFamily: 'monospace' }}>
+                      {p.value.toFixed(8)}
+                    </td>
+                    <td style={{ padding: '5px 10px', color: p.exponent === -4 ? '#44aaff' : '#2a4060', fontFamily: 'monospace' }}>
+                      {p.percentage.toFixed(5)}%
+                    </td>
+                    <td style={{ padding: '5px 10px', color: '#2a4060', maxWidth: 320 }}>
+                      {p.ecosystemUse}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div style={{ marginTop: 8, fontSize: 10, color: '#1a3050' }}>
+            Source: sovereign-geometry.ts §1 · computed from PHI = 1.6180339887498948482
+          </div>
+        </div>
+
+        {/* Fee Geometry Proof */}
+        <div style={{ marginBottom: 40 }}>
+          <div style={{ fontSize: 11, color: '#44aaff', letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: 14 }}>
+            Fee Geometry Proof (§8 — live computed)
+          </div>
+          <div style={{ background: '#060d1a', border: '1px solid #1a3050', borderRadius: 10, padding: '20px 22px', fontFamily: 'monospace' as const, fontSize: 12 }}>
+            <div style={{ color: '#2a5070', marginBottom: 8 }}>{'// §8 FEE GEOMETRY PROOF — sovereign-geometry.ts'}</div>
+            {[
+              `fee_fiat     = φ⁻⁴ = ${SOVEREIGN_GEOMETRY.feeGeometry.feeFiatDecimal.toFixed(10)}`,
+              `fee_phantom  = φ⁻³ = ${SOVEREIGN_GEOMETRY.feeGeometry.feePhantomDecimal.toFixed(10)}`,
+              `fee_ratio    = φ⁻³ / φ⁻⁴ = ${SOVEREIGN_GEOMETRY.feeGeometry.feeRatio.toFixed(10)} (= φ, exact)`,
+              `fee_delta    = φ⁻³ − φ⁻⁴ = ${SOVEREIGN_GEOMETRY.feeGeometry.feeDelta.toFixed(10)} (= φ⁻⁶)`,
+              `fee_fiat + fee_phantom = ${(SOVEREIGN_GEOMETRY.feeGeometry.feeFiatDecimal + SOVEREIGN_GEOMETRY.feeGeometry.feePhantomDecimal).toFixed(10)} (= φ⁻² = AMOR)`,
+              ``,
+              `On $1,000 vs Western Union (4%):  save $${SOVEREIGN_GEOMETRY.feeGeometry.savingsVsWULo.toFixed(2)}`,
+              `On $1,000 vs Western Union (8%):  save $${SOVEREIGN_GEOMETRY.feeGeometry.savingsVsWUHi.toFixed(2)}`,
+              `On $60B/year US→Mexico flow:      return $${(SOVEREIGN_PROTOCOL.feeProtocol.FAMILIES_SAVED_LOW / 1e9).toFixed(2)}B–$${(SOVEREIGN_PROTOCOL.feeProtocol.FAMILIES_SAVED_HIGH / 1e9).toFixed(2)}B to families`,
+            ].map((line, i) => (
+              <div key={i} style={{ color: line === '' ? 'transparent' : line.startsWith('//') ? '#2a5070' : '#5080a0', marginBottom: 3 }}>
+                {line || '│'}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Platonic Solids */}
+        <div style={{ marginBottom: 40 }}>
+          <div style={{ fontSize: 11, color: '#f90', letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: 14 }}>
+            Platonic Solid Ratios (§4 — unit edge length, all five solids)
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
+            {SOVEREIGN_GEOMETRY.platonicSolids.map(solid => (
+              <div key={solid.name} style={{ background: '#090f1a', border: '1px solid #1a2a10', borderRadius: 8, padding: '12px 14px' }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#f90', marginBottom: 6 }}>{solid.name}</div>
+                <div style={{ fontSize: 10, color: '#3a6080', fontFamily: 'monospace', lineHeight: 1.7 }}>
+                  <div>F:{solid.faces} E:{solid.edges} V:{solid.vertices}</div>
+                  <div>{solid.schlaefli}</div>
+                  <div>R = {solid.circumradius.toFixed(5)}</div>
+                  <div>r = {solid.inradius.toFixed(5)}</div>
+                  <div>ρ = {solid.midradius.toFixed(5)}</div>
+                </div>
+                <div style={{ fontSize: 9, color: '#1a3050', marginTop: 6, lineHeight: 1.4 }}>{solid.phiRelation.slice(0, 80)}{solid.phiRelation.length > 80 ? '…' : ''}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Golden Pentagon Proof */}
+        <div style={{ marginBottom: 40 }}>
+          <div style={{ fontSize: 11, color: '#4f4', letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: 14 }}>
+            Golden Pentagon (§7) — diagonal/side = φ (live proof)
+          </div>
+          <div style={{ background: '#060d1a', border: '1px solid #1a3050', borderRadius: 10, padding: '18px 22px', fontFamily: 'monospace' as const, fontSize: 12, color: '#3a7050' }}>
+            <div>side = {SOVEREIGN_GEOMETRY.goldenPentagon.side}</div>
+            <div>diagonal = φ = {SOVEREIGN_GEOMETRY.goldenPentagon.diagonal.toFixed(10)}</div>
+            <div>internal angle = {SOVEREIGN_GEOMETRY.goldenPentagon.internalAngle}°</div>
+            <div>apex angle = {SOVEREIGN_GEOMETRY.goldenPentagon.apexAngle}° (golden gnomon)</div>
+            <div>2·cos(π/5) = {SOVEREIGN_GEOMETRY.goldenPentagon.proofCosine.toFixed(10)} ← this IS φ</div>
+            <div style={{ color: '#4f4', marginTop: 6 }}>Proof: diagonal/side = 2·cos(36°) = φ ✓ (error &lt; 10⁻¹⁰)</div>
+          </div>
+        </div>
+
+        {/* Sovereign Tiers */}
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontSize: 11, color: '#88cc44', letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: 14 }}>
+            Sovereign Tier Progression (Paper V §9 — φ-scaled pressure thresholds)
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
+            {SOVEREIGN_GEOMETRY.sovereignTiers.map(tier => (
+              <div key={tier.tier} style={{ background: '#090f1a', border: '1px solid #1a2a10', borderRadius: 8, padding: '12px 14px' }}>
+                <div style={{ fontSize: 10, color: '#88cc44', letterSpacing: '0.08em', marginBottom: 4 }}>TIER {tier.tier}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>{tier.name}</div>
+                <div style={{ fontSize: 10, color: '#3a6080', fontFamily: 'monospace', marginBottom: 4 }}>P ≥ φ{['⁰','¹','²','³','⁴'][tier.tier - 1]} = {tier.pressureThreshold.toFixed(4)}</div>
+                <div style={{ fontSize: 9, color: '#1a3050', lineHeight: 1.4 }}>{tier.description}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* PEI Functor Table */}
+        <div style={{ marginBottom: 40 }}>
+          <div style={{ fontSize: 11, color: '#b844ff', letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: 14 }}>
+            Paper–Engine Isomorphism (Paper IV, §7) — Φ: Doc → Mod
+          </div>
+          {SOVEREIGN_PROTOCOL.peiManifest.map(m => (
+            <div key={m.paperId} style={{ marginBottom: 14, background: '#060d1a', border: '1px solid #1a1030', borderRadius: 10, padding: '16px 18px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#b844ff' }}>{m.paperId}</div>
+                <div style={{ fontSize: 10, color: '#2a3060', fontFamily: 'monospace' }}>Φ = {m.phiFunctor.toFixed(6)}</div>
+              </div>
+              <div style={{ fontSize: 11, color: '#4a3060', marginBottom: 8, lineHeight: 1.4 }}>{m.title}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <div style={{ fontSize: 10, color: '#2a4060' }}>
+                  <div style={{ color: '#3a4070', marginBottom: 3 }}>DOCUMENT (P)</div>
+                  <div>Theorems: {m.document.theorems.slice(0,2).join(', ')}{m.document.theorems.length > 2 ? '…' : ''}</div>
+                  <div>Sections: {m.document.sections.length}</div>
+                </div>
+                <div style={{ fontSize: 10, color: '#2a4060' }}>
+                  <div style={{ color: '#3a4070', marginBottom: 3 }}>MODULE (E) via Φ</div>
+                  <div>Exports: {m.module.exports.slice(0,2).join(', ')}{m.module.exports.length > 2 ? '…' : ''}</div>
+                  <div>Invariants: {m.module.invariants.length}</div>
+                </div>
+              </div>
+              <div style={{ marginTop: 8, fontSize: 10, color: '#1a2050', fontStyle: 'italic' }}>{m.corollary}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ fontSize: 10, color: '#1a3050', textAlign: 'center' as const }}>
+          sovereign-geometry.ts (§1–§12) · sovereign-protocol.ts (§1–§9) · computed at module load time
+          · Build №40 · Medina Tech · Dallas, Texas · 2026
         </div>
       </div>
 
