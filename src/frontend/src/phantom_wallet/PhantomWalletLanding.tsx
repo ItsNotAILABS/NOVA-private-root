@@ -872,7 +872,7 @@ export function PhantomWalletLanding({ onLaunch }: PhantomWalletLandingProps) {
       </div>
 
       <div style={S.footer}>
-        PHANTOM WALLET (Build №39) · Powered by PARALLAX · phantom_transfer canister (Build №35) ·
+        PHANTOM WALLET (Build №40) · Powered by PARALLAX · phantom_transfer canister (Build №35) ·
         φ⁻⁴ FIAT/CRYPTO · φ⁻³ PHANTOM · ONESICAN clearinghouse · Group E neurons (70) ·
         4 charter doctrines · 5 arXiv papers · Medina Tech · Dallas, Texas · 2026
       </div>
