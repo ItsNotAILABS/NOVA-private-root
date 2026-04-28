@@ -171,7 +171,25 @@ export interface LinkAccountResult {
   message:   string;
 }
 
-// ── IDL Factory — matches phantom_transfer/main.mo public interface ────────
+export interface TransferResult {
+  success:   boolean;
+  txId:      bigint;
+  fee:       bigint;
+  netAmount: bigint;
+  status:    string;
+  message:   string;
+}
+
+export interface PhantomTransferResult {
+  success:        boolean;
+  txId:           bigint;
+  commitmentHash: string;
+  expiresAt:      bigint;
+  fee:            bigint;
+  message:        string;
+}
+
+
 // This is the Candid IDL defined in TypeScript using @dfinity/candid.
 // Only the functions used by the PWA are included (query/update distinction).
 const idlFactory = ({ IDL: I }: { IDL: typeof IDL }): IDL.ServiceClass => {
@@ -269,6 +287,23 @@ const idlFactory = ({ IDL: I }: { IDL: typeof IDL }): IDL.ServiceClass => {
     note:           I.Text,
   });
 
+  const TransferResultT = I.Record({
+    success:   I.Bool,
+    txId:      I.Nat,
+    fee:       I.Nat,
+    netAmount: I.Nat,
+    status:    I.Text,
+    message:   I.Text,
+  });
+  const PhantomTransferResultT = I.Record({
+    success:        I.Bool,
+    txId:           I.Nat,
+    commitmentHash: I.Text,
+    expiresAt:      I.Int,
+    fee:            I.Nat,
+    message:        I.Text,
+  });
+
   return I.Service({
     // ── QUERIES (read-only, fast) ────────────────────────────────────────
     getClearinghouseStatus: I.Func([], [ClearinghouseStatusT], ['query']),
@@ -277,13 +312,19 @@ const idlFactory = ({ IDL: I }: { IDL: typeof IDL }): IDL.ServiceClass => {
     getRailStatus:          I.Func([I.Text], [I.Record({ rail: I.Text, volume: I.Nat, count: I.Nat, avgFee: I.Nat })], ['query']),
 
     // ── UPDATES (state-changing calls) ───────────────────────────────────
-    registerUser:       I.Func([I.Text], [RegisterT], []),
-    linkAccount:        I.Func([I.Text, I.Text, I.Text, I.Nat, I.Text], [LinkAccountT], []),
-    ingestFiatPayment:  I.Func([I.Text, I.Nat, I.Text, I.Text], [IngestFiatT], []),
-    exitToFiat:         I.Func([I.Nat, I.Text, I.Text, I.Text, I.Text], [ExitFiatT], []),
-    sendRemittance:     I.Func([I.Text, I.Nat, I.Text, I.Text, I.Text, I.Text, I.Text], [RemittanceT], []),
-    generateClaimLink:  I.Func([I.Nat, I.Text, I.Text, I.Text], [ClaimResultT], []),
-    redeemClaimLink:    I.Func([I.Text, I.Text, I.Text], [RedeemResultT], []),
+    registerUser:            I.Func([I.Text], [RegisterT], []),
+    linkAccount:             I.Func([I.Text, I.Text, I.Text, I.Nat, I.Text], [LinkAccountT], []),
+    ingestFiatPayment:       I.Func([I.Text, I.Nat, I.Text, I.Text], [IngestFiatT], []),
+    exitToFiat:              I.Func([I.Nat, I.Text, I.Text, I.Text, I.Text], [ExitFiatT], []),
+    sendRemittance:          I.Func([I.Text, I.Nat, I.Text, I.Text, I.Text, I.Text, I.Text], [RemittanceT], []),
+    generateClaimLink:       I.Func([I.Nat, I.Text, I.Text, I.Text], [ClaimResultT], []),
+    redeemClaimLink:         I.Func([I.Text, I.Text, I.Text], [RedeemResultT], []),
+    // NOVA rails — sovereign callers use these directly
+    initiateTransfer:        I.Func([I.Text, I.Text, I.Nat, I.Text, I.Text, I.Text, I.Text], [TransferResultT], []),
+    confirmTransfer:         I.Func([I.Nat], [TransferResultT], []),
+    cancelTransfer:          I.Func([I.Nat], [TransferResultT], []),
+    initiatePhantomTransfer: I.Func([I.Text, I.Nat, I.Text, I.Text, I.Text, I.Text], [PhantomTransferResultT], []),
+    settlePhantomTransfer:   I.Func([I.Nat, I.Text, I.Text], [TransferResultT], []),
   });
 };
 
@@ -395,4 +436,52 @@ export async function parallax_redeemClaimLink(
   return (await (actor.redeemClaimLink as (
     cc: string, rm: string, rr: string
   ) => Promise<RedeemResult>)(claimCode, redeemMethod, redeemRef));
+}
+
+// ── NOVA Rail wrappers — initiateTransfer / initiatePhantomTransfer ───────
+// These are sovereign-level functions on the phantom_transfer canister.
+// Consumer callers (non-sovereign) will receive UNAUTHORIZED from the canister.
+// They are exposed here for sovereign/backend integration and testing.
+
+export async function parallax_initiateTransfer(
+  rail: string, currency: string, amount: number,
+  recipient: string, sourceSubstrate: string, targetSubstrate: string, note: string
+): Promise<TransferResult> {
+  const actor = getParallaxActor();
+  return (await (actor.initiateTransfer as (
+    r: string, c: string, a: bigint, rec: string, src: string, tgt: string, n: string
+  ) => Promise<TransferResult>)(
+    rail, currency, BigInt(amount), recipient, sourceSubstrate, targetSubstrate, note
+  ));
+}
+
+export async function parallax_confirmTransfer(txId: number): Promise<TransferResult> {
+  const actor = getParallaxActor();
+  return (await (actor.confirmTransfer as (id: bigint) => Promise<TransferResult>)(BigInt(txId)));
+}
+
+export async function parallax_cancelTransfer(txId: number): Promise<TransferResult> {
+  const actor = getParallaxActor();
+  return (await (actor.cancelTransfer as (id: bigint) => Promise<TransferResult>)(BigInt(txId)));
+}
+
+export async function parallax_initiatePhantomTransfer(
+  currency: string, amount: number, commitmentHash: string,
+  sourceSubstrate: string, targetSubstrate: string, note: string
+): Promise<PhantomTransferResult> {
+  const actor = getParallaxActor();
+  return (await (actor.initiatePhantomTransfer as (
+    c: string, a: bigint, ch: string, src: string, tgt: string, n: string
+  ) => Promise<PhantomTransferResult>)(
+    currency, BigInt(amount), commitmentHash, sourceSubstrate, targetSubstrate, note
+  ));
+}
+
+export async function parallax_settlePhantomTransfer(
+  txId: number, preimage: string, recipient: string
+): Promise<TransferResult> {
+  const actor = getParallaxActor();
+  return (await (actor.settlePhantomTransfer as (
+    id: bigint, pre: string, rec: string
+  ) => Promise<TransferResult>)(BigInt(txId), preimage, recipient));
 }

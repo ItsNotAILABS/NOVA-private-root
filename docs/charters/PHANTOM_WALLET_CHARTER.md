@@ -1,43 +1,65 @@
 # Phantom Wallet — Master Product Charter
-## First Product of the NOVA Ecosystem
+## First Product of the NOVA Ecosystem  (Build №38 — Global + Crypto + PHANTOM Rail)
 ### Medina Tech · Dallas, Texas · 2026 · CONFIDENTIAL & PROPRIETARY
 
 ---
 
-> **"Send money to Mexico. They get it in seconds. You used a card. They used a phone. No one touched a bank."**
+> **"Send anything. Anywhere. PARALLAX routes it. You do nothing."**
 
 ---
 
 ## The Mission
 
-Phantom Wallet is the **first consumer product** built on PARALLAX. It is not a bank account. It is not a crypto wallet. It is a money sender — a way for anyone to send value to anyone else, instantly, using whatever they have:
+Phantom Wallet is the **first consumer product** built on PARALLAX. It is not a bank account. It is not a crypto wallet. It is a sovereign value transfer layer — a way for anyone to send any asset to anyone else, instantly, anywhere in the world, using whatever they have.
 
-- You have a Chime debit card → they get MXN on their phone
-- You have Banorte → they get USD in their bank account
-- You have nothing but a phone number → they get a claim link they can redeem anywhere
+- You have ETH → they get BRL on their Pix account in São Paulo
+- You have USD on your Chime card → they get MXN on their phone in Guadalajara
+- You have ¥200,000 JPY → they get €700 EUR on their German IBAN
+- You want to send anonymously → PHANTOM rail: commitment hash, claim link, zero identity revealed
 
-The name is **Phantom Wallet** now. The mission is **Phantom Bank** later. That mission means: full banking, full financial sovereignty, for people who have always been excluded from it. Mexico first. Then everywhere.
+The name is **Phantom Wallet** now. The mission is **Phantom Bank** later. That mission means full banking and full financial sovereignty for anyone — regardless of country, citizenship, or bank access.
+
+**Powered by PARALLAX. Invisible by design.**
 
 ---
 
-## What This Product Does
+## What This Product Does (Build №38)
 
-Phantom Wallet has **two modes**:
+Phantom Wallet has **three rails** exposed to the consumer:
 
-### Mode 1: Send
-The sender picks:
-- How much to send
-- In what currency
-- From what source (card, bank, CLABE)
-- To who (phone, bank account, CLABE, or claim link)
+### Rail 1: FIAT
+Any fiat currency → any fiat currency → anywhere.
 
-Phantom Wallet calls `sendRemittance()` on the PARALLAX canister. The recipient gets their money. Done.
+| From | To | Rails |
+|------|-----|-------|
+| USD, MXN, EUR, GBP, JPY, BRL | Same 6 currencies | EDGE GATE → ONESICAN → fiat exit |
 
-### Mode 2: Receive / Redeem
-The recipient:
-- Receives a claim link (text message, WhatsApp, QR)
-- Opens Phantom Wallet (or the link itself)
-- Picks how to receive (Banorte account, Oxxo, phone wallet, card)
+Destinations: Phone, CLABE (Mexico), IBAN (EU/UK), Card token.
+Function: `sendRemittance()` on `phantom_transfer` canister.
+Fee: φ⁻⁴ = 0.146%
+
+### Rail 2: CRYPTO (Bridge)
+Any crypto asset → USD equivalent → ONESICAN bridge → any fiat exit.
+
+Supported: **BTC, ETH, SOL, ICP, MATIC**
+
+The sender inputs a crypto amount. PARALLAX converts to USD via the oracle network, bridges through ONESICAN clearinghouse, and settles to the recipient's preferred fiat exit rail. No custodian. NOVA is the bridge.
+
+Fee: φ⁻⁴ = 0.146%
+
+### Rail 3: PHANTOM (Stealth)
+Commitment-reveal stealth transfers.
+
+1. Sender commits an amount + currency → PARALLAX generates a **commitment hash** (the seal)
+2. PARALLAX holds the commitment in the ONESICAN pool (24h window)
+3. Recipient receives a **claim code** — they redeem to any destination when ready
+4. Sender identity is never exposed unless they choose to reveal it
+
+This is the PHANTOM rail from `phantom_transfer/main.mo`. Consumer-facing implementation uses `generateClaimLink()`. The commitment hash is displayed to the sender as the cryptographic seal.
+
+Fee: φ⁻³ = 0.236% (stealth premium)
+
+---
 - Calls `redeemClaimLink()`
 - Money lands in seconds
 

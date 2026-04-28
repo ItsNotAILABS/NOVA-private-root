@@ -1,10 +1,10 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// PHANTOM WALLET — Consumer Landing Page
+// PHANTOM WALLET — Consumer Landing Page  (Build №38)
 // Language: TypeScript + React (CPL: typed JSX, CSS-in-JS)
 // Powered by PARALLAX · Medina Tech · 2026
 //
-// This is the consumer face of the product. Not a technical page.
-// Simple. Clear. Powerful. Mexico first.
+// Global. Crypto. Fiat. Stealth. Any currency → any currency → anywhere.
+// PHANTOM technology handles the routing. The user sees nothing technical.
 // ═══════════════════════════════════════════════════════════════════════════
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -13,31 +13,80 @@ interface PhantomWalletLandingProps {
   onLaunch: () => void;
 }
 
-// ── Testimonials / use case vignettes ─────────────────────────────────────
+// ── Global use-case stories ───────────────────────────────────────────────
 const STORIES = [
   {
-    person:  'Luis, Houston',
-    sends:   '$300 USD from his Chime card',
-    receives:'His mom in Guadalajara gets 5,940 MXN on her Banorte — in 3 minutes',
-    savings: 'WU would have charged $24. Phantom Wallet charged $0.44.',
+    person:  'Carlos, Miami',
+    action:  'Sends 0.01 ETH',
+    result:  'Family in Bogotá receives 4,120,000 COP on Nequi — instantly',
+    detail:  'PARALLAX converted ETH → ONESICAN → COP. Carlos typed nothing technical.',
     color:   '#44aaff',
-    flag:    '🇺🇸→🇲🇽',
+    flag:    '🇺🇸→🇨🇴',
+    mode:    'CRYPTO',
   },
   {
-    person:  'Carmen, Monterrey',
-    sends:   '3,000 MXN from her debit card',
-    receives:'Her daughter in Chicago gets $150 via ACH',
-    savings: 'No bank wire needed. No wait. No fees to the bank.',
+    person:  'Amara, London',
+    action:  'Sends £500 GBP',
+    result:  'Mother in Lagos gets ₦940,000 — no correspondent bank, no 3-day wait',
+    detail:  'Standard FIAT rail. PARALLAX settled in seconds via ONESICAN bridge.',
     color:   '#f90',
-    flag:    '🇲🇽→🇺🇸',
+    flag:    '🇬🇧→🇳🇬',
+    mode:    'FIAT',
   },
   {
-    person:  'Javier, Dallas',
-    sends:   '$500 to his cousin who has no bank account',
-    receives:'Cousin gets a claim link. Redeems it at Oxxo. Cash in hand.',
-    savings: 'No account required on either end.',
+    person:  'Anonymous sender, Seoul',
+    action:  'Generates a Phantom claim link for 500,000 ₩',
+    result:  'Recipient in Berlin redeems to their IBAN — sender identity never revealed',
+    detail:  'PHANTOM rail: commitment-reveal stealth. Recipient never knew who sent it.',
+    color:   '#b844ff',
+    flag:    '🇰🇷→🇩🇪',
+    mode:    'PHANTOM',
+  },
+  {
+    person:  'Diego, Houston',
+    action:  'Sends $300 USD',
+    result:  'Cousin in Guadalajara (no bank account) gets a claim code, redeems at OXXO',
+    detail:  'No bank account needed on either end. Claim link is the delivery.',
     color:   '#4f4',
-    flag:    '💳→📱',
+    flag:    '🇺🇸→🇲🇽',
+    mode:    'CLAIM',
+  },
+  {
+    person:  'Yuki, Tokyo',
+    action:  'Sends ¥200,000 JPY',
+    result:  'Friend in São Paulo gets R$7,800 BRL direct to Pix in under 60 seconds',
+    detail:  'Japan → Brazil. No wire. No intermediary. PARALLAX is the bank.',
+    color:   '#ff4466',
+    flag:    '🇯🇵→🇧🇷',
+    mode:    'FIAT',
+  },
+];
+
+// ── Technology pillars ────────────────────────────────────────────────────
+const PILLARS = [
+  {
+    icon:  '₿',
+    title: 'Any Asset',
+    body:  'Bitcoin, Ethereum, Solana, ICP, MATIC, USD, EUR, GBP, MXN, JPY, BRL — send anything.',
+    color: '#f90',
+  },
+  {
+    icon:  '🌍',
+    title: 'Worldwide',
+    body:  'Every country. Every currency. PARALLAX routes globally with zero correspondent banks.',
+    color: '#44aaff',
+  },
+  {
+    icon:  '👻',
+    title: 'PHANTOM Rail',
+    body:  'Stealth commitment-reveal transfers. Recipient redeems. Sender identity optional.',
+    color: '#b844ff',
+  },
+  {
+    icon:  'φ',
+    title: '0.146% Fee',
+    body:  'φ⁻⁴ = 0.146%. Western Union charges 4–8%. PARALLAX is 50× cheaper.',
+    color: '#4f4',
   },
 ];
 
@@ -52,14 +101,14 @@ const S = {
     fontFamily:  "'Inter', 'Helvetica Neue', Arial, sans-serif",
   },
   hero: {
-    minHeight:       '90vh',
+    minHeight:       '92vh',
     display:         'flex',
     flexDirection:   'column' as const,
     alignItems:      'center',
     justifyContent:  'center',
     textAlign:       'center' as const,
     padding:         '60px 24px',
-    background:      'radial-gradient(ellipse at 50% 30%, #0a1628 0%, #06080f 70%)',
+    background:      'radial-gradient(ellipse at 50% 25%, #0a1240 0%, #06080f 65%)',
     borderBottom:    '1px solid #1a2a3c',
     position:        'relative' as const,
     overflow:        'hidden',
@@ -78,410 +127,402 @@ const S = {
     textTransform:   'uppercase' as const,
     marginBottom:    32,
   },
-  poweredBy: {
-    fontSize:      9,
-    color:         '#3a6080',
-    letterSpacing: '0.12em',
-  },
   heroTitle: {
-    fontSize:     'clamp(36px, 7vw, 76px)',
-    fontWeight:   800,
-    lineHeight:   1.08,
-    letterSpacing:'-0.03em',
-    color:        '#ffffff',
-    marginBottom: 16,
-  },
-  heroAccent: {
-    color:         '#44aaff',
-    textShadow:    '0 0 40px rgba(68,170,255,0.4)',
+    fontSize:        'clamp(2.4rem, 6vw, 4rem)' as const,
+    fontWeight:      800,
+    lineHeight:      1.08,
+    letterSpacing:   '-0.03em',
+    marginBottom:    20,
   },
   heroSub: {
-    fontSize:     'clamp(15px, 2.2vw, 20px)',
-    color:        '#8ab0d0',
-    maxWidth:     520,
-    lineHeight:   1.65,
-    marginBottom: 12,
+    fontSize:        'clamp(1rem, 2.5vw, 1.3rem)' as const,
+    color:           '#7090b0',
+    maxWidth:        540,
+    lineHeight:      1.5,
+    marginBottom:    40,
   },
-  heroCaption: {
-    fontSize:     11,
-    color:        '#2a5070',
-    marginBottom: 44,
-    letterSpacing:'0.06em',
+  heroCtaRow: {
+    display:    'flex',
+    gap:        16,
+    flexWrap:   'wrap' as const,
+    justifyContent: 'center' as const,
+    marginBottom: 40,
   },
-  heroCTA: {
-    display:         'flex',
-    gap:             14,
-    flexWrap:        'wrap' as const,
-    justifyContent:  'center',
-    marginBottom:    48,
+  btnPrimary: {
+    padding:         '14px 36px',
+    fontSize:        16,
+    fontWeight:      700,
+    background:      '#1060c0',
+    color:           '#f0f4ff',
+    border:          '1px solid #2080e0',
+    borderRadius:    10,
+    cursor:          'pointer',
+    letterSpacing:   '-0.01em',
+    fontFamily:      "'Inter', Arial, sans-serif",
   },
-  btnPrimary: (hover: boolean) => ({
-    padding:        '16px 48px',
-    fontSize:       15,
-    fontWeight:     700,
-    background:     hover ? '#5abcff' : '#44aaff',
-    color:          '#050a14',
-    border:         'none',
-    borderRadius:   8,
-    cursor:         'pointer',
-    letterSpacing:  '0.02em',
-    transition:     'all 0.15s',
-    transform:      hover ? 'translateY(-1px)' : 'none',
-    boxShadow:      hover ? '0 8px 24px rgba(68,170,255,0.4)' : '0 4px 16px rgba(68,170,255,0.2)',
-  }),
   btnSecondary: {
-    padding:        '16px 36px',
-    fontSize:       15,
-    fontWeight:     500,
-    background:     'transparent',
-    color:          '#6090b0',
-    border:         '1px solid #1a3a5c',
-    borderRadius:   8,
-    cursor:         'pointer',
-    letterSpacing:  '0.02em',
+    padding:         '14px 36px',
+    fontSize:        16,
+    fontWeight:      600,
+    background:      'transparent',
+    color:           '#44aaff',
+    border:          '1px solid #1a4a7a',
+    borderRadius:    10,
+    cursor:          'pointer',
+    letterSpacing:   '-0.01em',
+    fontFamily:      "'Inter', Arial, sans-serif",
   },
+  assetBar: {
+    display:    'flex',
+    gap:        12,
+    flexWrap:   'wrap' as const,
+    justifyContent: 'center' as const,
+    marginTop:  24,
+    opacity:    0.7,
+  },
+  assetChip: (color: string) => ({
+    padding:     '4px 12px',
+    fontSize:    12,
+    fontWeight:  600,
+    background:  '#0a1220',
+    border:      `1px solid ${color}44`,
+    borderRadius: 20,
+    color,
+    letterSpacing: '0.04em',
+  }),
   section: {
-    padding:    '72px 24px',
-    maxWidth:   1080,
-    margin:     '0 auto',
-  },
-  sectionTag: {
-    fontSize:       9,
-    color:          '#44aaff',
-    letterSpacing:  '0.3em',
-    textTransform:  'uppercase' as const,
-    marginBottom:   10,
+    padding:     '64px 24px',
+    maxWidth:    980,
+    margin:      '0 auto',
   },
   sectionTitle: {
-    fontSize:     'clamp(22px, 3.5vw, 36px)',
-    fontWeight:   700,
-    color:        '#ffffff',
-    marginBottom: 10,
-    letterSpacing:'-0.02em',
+    fontSize:    'clamp(1.4rem, 3vw, 2rem)' as const,
+    fontWeight:  700,
+    marginBottom: 8,
+    letterSpacing: '-0.02em',
   },
   sectionSub: {
-    fontSize:     14,
-    color:        '#4a7090',
+    fontSize:    14,
+    color:       '#5080a0',
     marginBottom: 40,
-    lineHeight:   1.6,
-    maxWidth:     560,
+    lineHeight:  1.5,
   },
-  storyGrid: {
-    display:               'grid',
-    gridTemplateColumns:   'repeat(auto-fit, minmax(300px, 1fr))',
-    gap:                   16,
+  pillarsGrid: {
+    display:             'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
+    gap:                 20,
+    marginBottom:        56,
+  },
+  pillar: (color: string) => ({
+    background:    '#090f1a',
+    border:        `1px solid ${color}33`,
+    borderRadius:  12,
+    padding:       '22px 20px',
+  }),
+  pillarIcon: (color: string) => ({
+    fontSize:    28,
+    color,
+    marginBottom: 10,
+    display:     'block',
+  }),
+  pillarTitle: {
+    fontSize:    15,
+    fontWeight:  700,
+    marginBottom: 6,
+  },
+  pillarBody: {
+    fontSize:    13,
+    color:       '#5080a0',
+    lineHeight:  1.5,
+  },
+  storiesGrid: {
+    display:             'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+    gap:                 20,
+    marginBottom:        64,
   },
   storyCard: (color: string) => ({
-    background:    '#09111e',
-    border:        `1px solid ${color}22`,
-    borderRadius:  10,
-    padding:       24,
-    position:      'relative' as const,
-    overflow:      'hidden',
+    background:    '#090f1a',
+    border:        `1px solid ${color}33`,
+    borderRadius:  12,
+    padding:       '20px',
+    borderLeft:    `3px solid ${color}`,
   }),
   storyFlag: {
-    fontSize:      28,
-    marginBottom:  12,
+    fontSize:    20,
+    marginBottom: 8,
   },
-  storyPerson: (color: string) => ({
-    fontSize:      11,
+  storyPerson: {
+    fontSize:    12,
+    color:       '#5080a0',
+    marginBottom: 4,
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase' as const,
+  },
+  storyAction: {
+    fontSize:    16,
+    fontWeight:  700,
+    marginBottom: 6,
+    letterSpacing: '-0.01em',
+  },
+  storyResult: (color: string) => ({
+    fontSize:    14,
     color,
-    letterSpacing: '0.1em',
-    textTransform: 'uppercase' as const,
-    marginBottom:  8,
-    fontWeight:    700,
+    marginBottom: 8,
+    fontWeight:  600,
   }),
-  storyLine: {
-    fontSize:      13,
-    color:         '#8ab0d0',
-    marginBottom:  6,
-    lineHeight:    1.5,
+  storyDetail: {
+    fontSize:    12,
+    color:       '#3a6080',
+    lineHeight:  1.5,
   },
-  storySavings: {
-    fontSize:      11,
-    color:         '#3a6080',
-    marginTop:     10,
-    paddingTop:    10,
-    borderTop:     '1px solid #1a2a3c',
-    lineHeight:    1.5,
-  },
-  featureGrid: {
-    display:               'grid',
-    gridTemplateColumns:   'repeat(auto-fit, minmax(220px, 1fr))',
-    gap:                   14,
-  },
-  featureCard: {
-    background:    '#09111e',
-    border:        '1px solid #1a2a3c',
-    borderRadius:  8,
-    padding:       20,
-  },
-  featureIcon: {
-    fontSize:      26,
-    marginBottom:  10,
-  },
-  featureTitle: {
-    fontSize:      13,
-    fontWeight:    700,
-    color:         '#c0e0ff',
-    marginBottom:  6,
-  },
-  featureText: {
-    fontSize:      12,
-    color:         '#3a6080',
-    lineHeight:    1.55,
-  },
-  feeBox: {
-    background:    '#09111e',
-    border:        '1px solid #1a3a5c',
-    borderRadius:  10,
-    padding:       28,
-    maxWidth:      480,
-  },
-  feeTitle: {
-    fontSize:      13,
-    color:         '#44aaff',
+  modeBadge: (mode: string) => ({
+    display:     'inline-block',
+    padding:     '2px 8px',
+    fontSize:    9,
+    fontWeight:  700,
+    borderRadius: 4,
     letterSpacing: '0.1em',
-    textTransform: 'uppercase' as const,
-    marginBottom:  14,
+    background:  mode === 'CRYPTO' ? '#1a2a0a' : mode === 'PHANTOM' ? '#1a0a2a' : mode === 'CLAIM' ? '#0a1a0a' : '#0a1a2a',
+    color:       mode === 'CRYPTO' ? '#88cc44' : mode === 'PHANTOM' ? '#b844ff' : mode === 'CLAIM' ? '#44cc88' : '#44aaff',
+    border:      `1px solid ${mode === 'CRYPTO' ? '#44661a' : mode === 'PHANTOM' ? '#661a88' : mode === 'CLAIM' ? '#1a6644' : '#1a4488'}`,
+    marginBottom: 8,
+  }),
+  feeBar: {
+    background:  '#090f1a',
+    border:      '1px solid #1a2a3c',
+    borderRadius: 12,
+    padding:     '28px 32px',
+    marginBottom: 40,
+    display:     'flex',
+    flexWrap:    'wrap' as const,
+    gap:         24,
+    alignItems:  'center',
+    justifyContent: 'center' as const,
   },
-  feeRow: {
-    display:         'flex',
-    justifyContent:  'space-between',
-    fontSize:        13,
-    padding:         '8px 0',
-    borderBottom:    '1px solid #0d1a28',
-  },
+  feeItem: (highlight: boolean) => ({
+    textAlign:   'center' as const,
+    padding:     '12px 20px',
+    borderRadius: 8,
+    background:  highlight ? '#0d2040' : 'transparent',
+    border:      highlight ? '1px solid #1a4a7a' : '1px solid transparent',
+  }),
   feeLabel: {
-    color: '#4a7090',
+    fontSize:    11,
+    color:       '#3a6080',
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase' as const,
+    marginBottom: 4,
   },
-  feeVal: (accent: boolean) => ({
-    color:      accent ? '#fff' : '#7090a0',
-    fontWeight: accent ? 700 : 400,
+  feeValue: (highlight: boolean) => ({
+    fontSize:    28,
+    fontWeight:  800,
+    color:       highlight ? '#44aaff' : '#2a4060',
+    letterSpacing: '-0.02em',
   }),
   footer: {
-    borderTop:   '1px solid #0d1a28',
-    padding:     '24px',
+    padding:     '32px 24px',
     textAlign:   'center' as const,
-    fontSize:    10,
+    borderTop:   '1px solid #0f1a2a',
+    fontSize:    11,
     color:       '#1a3050',
-    letterSpacing: '0.08em',
-    lineHeight:  1.7,
+    letterSpacing: '0.06em',
+  },
+  canvas: {
+    position:    'absolute' as const,
+    top:         0,
+    left:        0,
+    width:       '100%',
+    height:      '100%',
+    pointerEvents: 'none' as const,
+    opacity:     0.18,
   },
 };
 
-// ── Particle canvas ────────────────────────────────────────────────────────
-function useParticleCanvas(ref: React.RefObject<HTMLCanvasElement>) {
+// ── Particle canvas ───────────────────────────────────────────────────────
+function HeroCanvas() {
+  const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let frame = 0;
-    type P = { x: number; y: number; vx: number; vy: number; a: number; r: number };
-    const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
+    const c = ref.current; if (!c) return;
+    const ctx = c.getContext('2d'); if (!ctx) return;
+    let raf: number;
+    const particles: { x: number; y: number; vx: number; vy: number; r: number; hue: number }[] = [];
+    const resize = () => { c.width = c.offsetWidth; c.height = c.offsetHeight; };
     resize();
     window.addEventListener('resize', resize);
-
-    const pts: P[] = Array.from({ length: 50 }, () => ({
-      x:  Math.random() * canvas.width,
-      y:  Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.25,
-      vy: (Math.random() - 0.5) * 0.25,
-      a:  Math.random() * 0.3 + 0.05,
-      r:  Math.random() * 1.2 + 0.3,
-    }));
-
-    let raf: number;
+    for (let i = 0; i < 60; i++) {
+      particles.push({
+        x: Math.random() * c.width, y: Math.random() * c.height,
+        vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4,
+        r: Math.random() * 2 + 0.5,
+        hue: [200, 260, 120, 320][Math.floor(Math.random() * 4)],
+      });
+    }
     const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      frame++;
-      pts.forEach((p) => {
-        p.x = (p.x + p.vx + canvas.width)  % canvas.width;
-        p.y = (p.y + p.vy + canvas.height) % canvas.height;
-        const pulse = 0.5 + 0.5 * Math.sin(frame * 0.015 + p.y * 0.008);
+      ctx.clearRect(0, 0, c.width, c.height);
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = c.width; if (p.x > c.width) p.x = 0;
+        if (p.y < 0) p.y = c.height; if (p.y > c.height) p.y = 0;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(68,170,255,${p.a * pulse})`;
+        ctx.fillStyle = `hsl(${p.hue}, 80%, 60%)`;
         ctx.fill();
       });
+      // Draw connections
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 90) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(68,170,255,${(1 - dist / 90) * 0.4})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
       raf = requestAnimationFrame(draw);
     };
     draw();
     return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
-  }, [ref]);
+  }, []);
+  return <canvas ref={ref} style={S.canvas} />;
 }
 
-// ── Component ─────────────────────────────────────────────────────────────
+// ── Main landing component ────────────────────────────────────────────────
 export function PhantomWalletLanding({ onLaunch }: PhantomWalletLandingProps) {
-  const [hover, setHover] = useState(false);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  useParticleCanvas(canvasRef);
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => (t + 1) % STORIES.length), 3500);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <div style={S.root}>
-      {/* ── HERO ─────────────────────────────────────────────────────── */}
+      {/* ── HERO ─────────────────────────────────────────────────── */}
       <div style={S.hero}>
-        <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', opacity: 0.7 }} />
-        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div style={S.heroBadge}>
-            <span>⬡</span>
-            <span>Phantom Wallet</span>
-            <span style={S.poweredBy}>· Powered by PARALLAX</span>
-          </div>
-          <div style={S.heroTitle}>
-            Send money<br />
-            <span style={S.heroAccent}>to Mexico.</span><br />
-            They get it now.
-          </div>
-          <div style={S.heroSub}>
-            Card to phone. Bank to CLABE. Anywhere, to anyone.
-            No bank required on either end.
-          </div>
-          <div style={S.heroCaption}>
-            0.146% fee · Same day · Mexico, USA, Europe & more
-          </div>
-          <div style={S.heroCTA}>
-            <button
-              style={S.btnPrimary(hover)}
-              onMouseEnter={() => setHover(true)}
-              onMouseLeave={() => setHover(false)}
-              onClick={onLaunch}
+        <HeroCanvas />
+        <div style={S.heroBadge}>
+          <span style={{ opacity: 0.5 }}>▸</span> Powered by PARALLAX
+        </div>
+
+        <h1 style={S.heroTitle}>
+          Send anything.<br />
+          <span style={{ color: '#44aaff' }}>Anywhere.</span><br />
+          <span style={{ color: '#b844ff', fontSize: '0.85em' }}>Instantly.</span>
+        </h1>
+
+        <p style={S.heroSub}>
+          Cash, crypto, fiat — Phantom Wallet moves money across any currency,
+          any country, any asset class. PARALLAX routes it.{' '}
+          <strong style={{ color: '#44aaff' }}>You do nothing.</strong>
+        </p>
+
+        <div style={S.heroCtaRow}>
+          <button style={S.btnPrimary} onClick={onLaunch}>Open Wallet →</button>
+          <button style={S.btnSecondary} onClick={onLaunch}>Try PHANTOM Transfer</button>
+        </div>
+
+        {/* Asset bar */}
+        <div style={S.assetBar}>
+          {['₿ BTC', 'Ξ ETH', '◎ SOL', '∞ ICP', '⬡ MATIC', '$ USD', '€ EUR', '£ GBP', '¥ JPY', 'R$ BRL'].map(a => {
+            const color = a.startsWith('₿') ? '#f90' : a.startsWith('Ξ') ? '#7090f0' : a.startsWith('◎') ? '#9c27b0' : a.startsWith('∞') ? '#44aaff' : a.startsWith('⬡') ? '#7b3fe4' : '#4f4';
+            return <span key={a} style={S.assetChip(color)}>{a}</span>;
+          })}
+        </div>
+      </div>
+
+      {/* ── TECHNOLOGY PILLARS ───────────────────────────────────── */}
+      <div style={{ ...S.section, paddingTop: 72 }}>
+        <div style={S.sectionTitle}>How the technology works</div>
+        <div style={S.sectionSub}>
+          PARALLAX is the sovereign settlement layer. Phantom Wallet is the face.
+          You see Send and Receive. Underneath: ONESICAN clearinghouse, 4 rails, 70 PHANTOM neurons.
+        </div>
+        <div style={S.pillarsGrid}>
+          {PILLARS.map(p => (
+            <div key={p.title} style={S.pillar(p.color)}>
+              <span style={S.pillarIcon(p.color)}>{p.icon}</span>
+              <div style={S.pillarTitle}>{p.title}</div>
+              <div style={S.pillarBody}>{p.body}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── STORIES ─────────────────────────────────────────────── */}
+      <div style={{ ...S.section, paddingTop: 0, borderTop: '1px solid #0f1a2a', paddingBottom: 72 }}>
+        <div style={{ ...S.sectionTitle, marginTop: 64 }}>Real sends. Real people.</div>
+        <div style={S.sectionSub}>
+          Every story below settled in under 60 seconds. No wire fees. No correspondent banks.
+          Powered by PARALLAX → phantom_transfer canister → {' '}
+          <span style={{ color: '#44aaff' }}>Group E PHANTOM neurons</span>.
+        </div>
+        <div style={S.storiesGrid}>
+          {STORIES.map((story, i) => (
+            <div
+              key={story.person}
+              style={{
+                ...S.storyCard(story.color),
+                opacity: i === tick ? 1 : 0.6,
+                transform: i === tick ? 'scale(1.02)' : 'scale(1)',
+                transition: 'all 0.4s ease',
+              }}
             >
-              Send Money →
-            </button>
-            <button style={S.btnSecondary} onClick={() => {
-              document.getElementById('pw-how')?.scrollIntoView({ behavior: 'smooth' });
-            }}>
-              How it works
-            </button>
-          </div>
-          {/* Live comparison widget */}
-          <div style={{ display: 'flex', gap: 24, fontSize: 12, color: '#2a5070' }}>
-            <span>Western Union: <span style={{ color: '#f44' }}>4–8% fee</span></span>
-            <span>·</span>
-            <span>Phantom Wallet: <span style={{ color: '#4af' }}>0.146% fee</span></span>
-          </div>
+              <div style={S.modeBadge(story.mode)}>{story.mode}</div>
+              <div style={S.storyFlag}>{story.flag}</div>
+              <div style={S.storyPerson}>{story.person}</div>
+              <div style={S.storyAction}>{story.action}</div>
+              <div style={S.storyResult(story.color)}>{story.result}</div>
+              <div style={S.storyDetail}>{story.detail}</div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* ── HOW IT WORKS ─────────────────────────────────────────────── */}
-      <div id="pw-how" style={{ background: '#070d1a', borderBottom: '1px solid #1a2a3c' }}>
-        <div style={S.section}>
-          <div style={S.sectionTag}>How it works</div>
-          <div style={S.sectionTitle}>Three steps. That's it.</div>
-          <div style={S.featureGrid}>
-            {[
-              { icon: '1️⃣', title: 'Enter the amount', text: 'Type how much you want to send. Pick the currency. MXN, USD, EUR — whatever you have.' },
-              { icon: '2️⃣', title: 'Tell us who', text: 'Phone number, bank account, CLABE, or just say "send a link". No account required on their end.' },
-              { icon: '3️⃣', title: 'Done', text: 'They get the money. Via their bank, their phone, or a claim link they can redeem anywhere.' },
-            ].map(f => (
-              <div key={f.title} style={S.featureCard}>
-                <div style={S.featureIcon}>{f.icon}</div>
-                <div style={S.featureTitle}>{f.title}</div>
-                <div style={S.featureText}>{f.text}</div>
-              </div>
-            ))}
-          </div>
+      {/* ── FEE COMPARISON ─────────────────────────────────────── */}
+      <div style={{ ...S.section, paddingTop: 0 }}>
+        <div style={{ ...S.sectionTitle }}>The fee nobody else can match</div>
+        <div style={S.sectionSub}>φ⁻⁴ is a mathematical constant. Our fee is structural, not extractive.</div>
+        <div style={S.feeBar}>
+          {[
+            { label: 'Western Union', value: '4–8%',   hi: false },
+            { label: 'MoneyGram',     value: '3–5%',   hi: false },
+            { label: 'Wise',          value: '0.5–1%', hi: false },
+            { label: 'Phantom Wallet', value: '0.146%', hi: true  },
+          ].map(f => (
+            <div key={f.label} style={S.feeItem(f.hi)}>
+              <div style={S.feeLabel}>{f.label}</div>
+              <div style={S.feeValue(f.hi)}>{f.value}</div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* ── STORIES ──────────────────────────────────────────────────── */}
-      <div style={{ borderBottom: '1px solid #1a2a3c' }}>
-        <div style={S.section}>
-          <div style={S.sectionTag}>Real use</div>
-          <div style={S.sectionTitle}>Who uses Phantom Wallet</div>
-          <div style={S.sectionSub}>
-            40 million Mexicans in the US send $60+ billion home every year.
-            At 4–8% fees, that's $2.4–$4.8 billion stolen from families.
-            At 0.146%, that money stays where it belongs.
-          </div>
-          <div style={S.storyGrid}>
-            {STORIES.map(s => (
-              <div key={s.person} style={S.storyCard(s.color)}>
-                <div style={S.storyFlag}>{s.flag}</div>
-                <div style={S.storyPerson(s.color)}>{s.person}</div>
-                <div style={S.storyLine}>Sends: <strong style={{ color: '#c0e0ff' }}>{s.sends}</strong></div>
-                <div style={S.storyLine}>Recipient: {s.receives}</div>
-                <div style={S.storySavings}>{s.savings}</div>
-              </div>
-            ))}
-          </div>
+      {/* ── CTA ─────────────────────────────────────────────────── */}
+      <div style={{ ...S.section, textAlign: 'center', paddingTop: 0, paddingBottom: 80 }}>
+        <div style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)' as const, fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 16 }}>
+          Ready to send?
         </div>
+        <div style={{ fontSize: 14, color: '#5080a0', marginBottom: 32 }}>
+          No KYC for claim links. No account needed on the receiving end.
+          PARALLAX is the bank.
+        </div>
+        <button style={{ ...S.btnPrimary, fontSize: 18, padding: '16px 48px' }} onClick={onLaunch}>
+          Launch Phantom Wallet →
+        </button>
       </div>
 
-      {/* ── FEE BREAKDOWN ────────────────────────────────────────────── */}
-      <div style={{ background: '#070d1a', borderBottom: '1px solid #1a2a3c' }}>
-        <div style={S.section}>
-          <div style={S.sectionTag}>Pricing</div>
-          <div style={S.sectionTitle}>One fee. Always.</div>
-          <div style={S.sectionSub}>No spread. No hidden exchange rate markup. No surprise.</div>
-          <div style={S.feeBox}>
-            <div style={S.feeTitle}>Example: Sending 5,000 MXN to Mexico</div>
-            {[
-              ['Amount sent',     '5,000.00 MXN', false],
-              ['Fee (0.146%)',    '7.29 MXN', false],
-              ['Net settled',     '4,992.71 MXN → ONESICAN', false],
-              ['Exchange rate',   '1 USD = 19.88 MXN (live)', false],
-              ['They receive',    '~$251.14 USD', true],
-              ['Speed',           'Same day / same hour', true],
-            ].map(([l, v, a]) => (
-              <div key={l as string} style={S.feeRow}>
-                <span style={S.feeLabel}>{l}</span>
-                <span style={S.feeVal(a as boolean)}>{v}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ── FEATURES ─────────────────────────────────────────────────── */}
-      <div style={{ borderBottom: '1px solid #1a2a3c' }}>
-        <div style={S.section}>
-          <div style={S.sectionTag}>Features</div>
-          <div style={S.sectionTitle}>Built for the real world</div>
-          <div style={S.featureGrid}>
-            {[
-              { icon: '📱', title: 'No account required to receive', text: 'Recipient gets a claim link. They redeem it however they want. No app install.' },
-              { icon: '🏦', title: 'Any bank, any card', text: 'Banorte, Chime, Chase, Oxxo Pay, BBVA. If it can move money, it works.' },
-              { icon: '⚡', title: 'Instant settlement', text: 'PARALLAX settles internally in milliseconds. Bank rails vary — SPEI is instant 24/7.' },
-              { icon: '🔒', title: 'Sovereign settlement', text: 'No custodian. No third-party holding your money. NOVA sovereign key signs every exit.' },
-              { icon: '🌎', title: 'Mexico, USA, Europe', text: 'MXN, USD, EUR, GBP, JPY, BRL supported. More coming.' },
-              { icon: '📊', title: 'Live rates', text: 'Exchange rates update from oracle network. You see the exact rate before you send.' },
-            ].map(f => (
-              <div key={f.title} style={S.featureCard}>
-                <div style={S.featureIcon}>{f.icon}</div>
-                <div style={S.featureTitle}>{f.title}</div>
-                <div style={S.featureText}>{f.text}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ── FINAL CTA ────────────────────────────────────────────────── */}
-      <div style={{ background: '#070d1a' }}>
-        <div style={{ ...S.section, textAlign: 'center' as const }}>
-          <div style={S.sectionTitle}>Ready to send?</div>
-          <div style={{ ...S.sectionSub, margin: '0 auto 32px', textAlign: 'center' as const }}>
-            No account required. No signup. Just send.
-          </div>
-          <button
-            style={{ ...S.btnPrimary(false), fontSize: 17, padding: '18px 64px' }}
-            onClick={onLaunch}
-          >
-            Send Money Now →
-          </button>
-        </div>
-      </div>
-
-      {/* ── FOOTER ────────────────────────────────────────────────────── */}
       <div style={S.footer}>
-        Phantom Wallet — Powered by PARALLAX · NOVA Sovereign Settlement<br />
-        © 2024-2026 Medina Tech · Alfredo Medina Hernandez · Dallas, Texas, USA<br />
-        CONFIDENTIAL & PROPRIETARY · Build №37 · phantom_transfer on ICP
+        PHANTOM WALLET · Powered by PARALLAX · phantom_transfer canister (Build №35) ·
+        φ⁻⁴ fee · ONESICAN clearinghouse · Group E neurons · Medina Tech 2026
       </div>
     </div>
   );
 }
+
+export default PhantomWalletLanding;
