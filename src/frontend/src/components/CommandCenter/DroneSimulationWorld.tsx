@@ -477,8 +477,8 @@ function renderFleet500(
   ctx.stroke();
 
   // ─── TIME / WEATHER LABEL ────────────────────────────────────────────────────
-  const tod = fleetState.timeOfDay;
-  const timeStr = `${String(Math.floor(tod)).padStart(2, '0')}:${String(Math.floor((tod % 1) * 60)).padStart(2, '0')}`;
+  const timeOfDay = fleetState.timeOfDay;
+  const timeStr = `${String(Math.floor(timeOfDay)).padStart(2, '0')}:${String(Math.floor((timeOfDay % 1) * 60)).padStart(2, '0')}`;
   ctx.fillStyle = '#4a8aca';
   ctx.font = '10px monospace';
   ctx.fillText(`${timeStr} · ${fleetState.weather} · Wind ${fleetState.windSpeedMs.toFixed(1)} m/s`, 8, height - 8);

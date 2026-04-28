@@ -373,17 +373,17 @@ export function ParallaxLanding({ onLaunch }: ParallaxLandingProps) {
           style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
         />
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={S.badge}>NOVA · PARALLAX · Sovereign Clearinghouse · Build №35</div>
+          <div style={S.badge}>NOVA · PARALLAX · Sovereign Settlement Infrastructure · Build №37</div>
           <div style={S.heroTitle}>
             <span style={S.heroAccent}>PARALLAX</span><br />
-            moves settlement.
+            powers Phantom Wallet.
           </div>
           <div style={S.heroSub}>
-            Not money. Not crypto. Settlement.<br />
-            Any entry rail. Any exit rail. One fee.
+            PARALLAX is the settlement layer. Not a product — the engine.<br />
+            Every product in the NOVA ecosystem runs on this.
           </div>
           <div style={S.heroCaption}>
-            φ⁻⁴ = 0.146% · Same day · No bank required · 6 currencies · 5 tiers
+            φ⁻⁴ = 0.146% · Same day · No bank required · 6 currencies · 5 tiers · "Powered by PARALLAX"
           </div>
           <div style={S.heroCTA}>
             <button
@@ -392,13 +392,20 @@ export function ParallaxLanding({ onLaunch }: ParallaxLandingProps) {
               onMouseLeave={() => setHoverPrimary(false)}
               onClick={onLaunch}
             >
-              Launch Clearinghouse →
+              Clearinghouse Dashboard →
             </button>
             <button style={S.btnSecondary} onClick={() => {
               document.getElementById('parallax-arch')?.scrollIntoView({ behavior: 'smooth' });
             }}>
-              How it works
+              Architecture
             </button>
+          </div>
+          {/* Products powered by PARALLAX */}
+          <div style={{ display: 'flex', gap: 20, marginTop: 8, fontSize: 10, color: '#2a5070' }}>
+            <span style={{ color: '#44aaff' }}>Powered by PARALLAX →</span>
+            <span>Phantom Wallet</span>
+            <span style={{ opacity: 0.5 }}>·</span>
+            <span style={{ opacity: 0.4 }}>[Phantom Bank — future]</span>
           </div>
         </div>
       </div>
