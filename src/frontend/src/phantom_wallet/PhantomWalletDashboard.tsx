@@ -682,9 +682,53 @@ function StatusPanel({ status, rates, loading }: {
         </div>
       ))}
 
-      <div style={{ marginTop: 16, fontSize: 10, color: '#1a3050', textAlign: 'center' as const }}>
+      <div style={W.divider} />
+
+      {/* ── Exit Rail Architecture ─────────────────────────────── */}
+      <div style={{ fontSize: 11, color: '#b844ff', letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: 10 }}>
+        Exit Rail Architecture (PARALLAX Charter)
+      </div>
+      {[
+        { rail: 'ACH',         region: '🇺🇸 USA',   speed: 'Instant clearing',  color: '#44aaff' },
+        { rail: 'SPEI',        region: '🇲🇽 Mexico', speed: '24/7 instant',       color: '#f90' },
+        { rail: 'SEPA',        region: '🇪🇺 EU/UK',  speed: 'Same-day',          color: '#6699ff' },
+        { rail: 'ZENGIN',      region: '🇯🇵 Japan',  speed: 'Domestic instant',  color: '#ff4466' },
+        { rail: 'PIX',         region: '🇧🇷 Brazil', speed: '24/7 instant',       color: '#4f4' },
+        { rail: 'CLAIM_LINK',  region: '🌍 Global',  speed: 'No account needed', color: '#b844ff' },
+        { rail: 'CARD',        region: '💳 Global',  speed: 'Push payment',       color: '#88cc44' },
+      ].map(r => (
+        <div key={r.rail} style={{ ...W.rateRow, alignItems: 'center' }}>
+          <span style={{ color: r.color, fontWeight: 700, fontSize: 11, minWidth: 90 }}>{r.rail}</span>
+          <span style={{ color: '#4a7090', fontSize: 11, flex: 1, textAlign: 'center' as const }}>{r.region}</span>
+          <span style={{ color: '#2a4060', fontSize: 10 }}>{r.speed}</span>
+        </div>
+      ))}
+
+      <div style={W.divider} />
+
+      {/* ── Charter Doctrines ──────────────────────────────────── */}
+      <div style={{ fontSize: 11, color: '#f90', letterSpacing: '0.1em', textTransform: 'uppercase' as const, marginBottom: 10 }}>
+        Charter Doctrines
+      </div>
+      {[
+        { num: 'I',   label: 'Sovereign Settlement', text: 'Not a bank. Not a custodian. PARALLAX is the engine.', color: '#44aaff' },
+        { num: 'II',  label: 'Attribution Closure',  text: 'Every transfer → irrevocable quipu_ledger record. Paper I.', color: '#f90' },
+        { num: 'III', label: 'Paper–Engine Isomorphism', text: 'phantom_transfer canister IS the PARALLAX charter. Paper IV.', color: '#b844ff' },
+        { num: 'IV',  label: 'No-Drop Law',          text: 'Reputation ≥ S₀ = 1.0 always. Structural, not policy. Paper V.', color: '#4f4' },
+      ].map(d => (
+        <div key={d.num} style={{ paddingBottom: 10, marginBottom: 10, borderBottom: '1px solid #0f1a2a' }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 3 }}>
+            <span style={{ fontSize: 9, color: d.color, fontWeight: 700, letterSpacing: '0.08em' }}>DOCTRINE {d.num}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: d.color }}>{d.label}</span>
+          </div>
+          <div style={{ fontSize: 11, color: '#3a6080', lineHeight: 1.4 }}>{d.text}</div>
+        </div>
+      ))}
+
+      <div style={{ marginTop: 8, fontSize: 10, color: '#1a3050', textAlign: 'center' as const }}>
         Powered by PARALLAX · phantom_transfer Build #{status?.buildNumber.toString() ?? '35'}<br />
-        ONESICAN oracle · φ⁻⁴ FIAT/CRYPTO · φ⁻³ PHANTOM · Group E neurons (70) back liquidity
+        ONESICAN oracle · φ⁻⁴ FIAT/CRYPTO · φ⁻³ PHANTOM · Group E neurons (70) back liquidity<br />
+        arXiv Wave 1 · 5 sovereign papers · Medina Tech · Dallas, Texas · 2026
       </div>
     </div>
   );

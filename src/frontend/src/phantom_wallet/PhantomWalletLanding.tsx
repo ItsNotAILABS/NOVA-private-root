@@ -503,6 +503,195 @@ export function PhantomWalletLanding({ onLaunch }: PhantomWalletLandingProps) {
         </div>
       </div>
 
+      {/* ── CHARTER BLOCKQUOTE ──────────────────────────────────── */}
+      <div style={{ ...S.section, paddingTop: 0, paddingBottom: 0 }}>
+        <div style={{
+          background: '#060d1a', border: '1px solid #1a4a7a',
+          borderLeft: '4px solid #44aaff', borderRadius: 12,
+          padding: '28px 36px', marginBottom: 40,
+          fontStyle: 'italic', fontSize: 'clamp(1rem, 2.2vw, 1.25rem)' as const,
+          color: '#a0c8e8', lineHeight: 1.7, letterSpacing: '-0.01em',
+        }}>
+          "PARALLAX is the engine — the clearinghouse — that powers products.
+          Every product in the NOVA ecosystem that touches money runs on PARALLAX.
+          Invisibly. Instantly. At φ⁻⁴ fee."
+          <div style={{ marginTop: 12, fontSize: 11, color: '#2a5070', fontStyle: 'normal', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+            — PARALLAX Charter · Medina Tech · 2026
+          </div>
+        </div>
+      </div>
+
+      {/* ── EXIT RAIL GRID ───────────────────────────────────────── */}
+      <div style={{ ...S.section, paddingTop: 0 }}>
+        <div style={S.sectionTitle}>Where the money lands</div>
+        <div style={S.sectionSub}>
+          PARALLAX exits to every major rail worldwide. Value enters on any asset.
+          It exits on whatever the recipient needs.
+        </div>
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+          gap: 12, marginBottom: 40,
+        }}>
+          {[
+            { rail: 'ACH',        flag: '🇺🇸', desc: 'US bank account · 1–2 hours',        color: '#44aaff' },
+            { rail: 'SPEI',       flag: '🇲🇽', desc: 'Mexico bank · Instant · 24/7',       color: '#f90' },
+            { rail: 'SEPA',       flag: '🇪🇺', desc: 'EU IBAN · Same-day clearing',         color: '#6699ff' },
+            { rail: 'ZENGIN',     flag: '🇯🇵', desc: 'Japan bank · Domestic instant',       color: '#ff4466' },
+            { rail: 'PIX',        flag: '🇧🇷', desc: 'Brazil instant · 24/7',              color: '#4f4' },
+            { rail: 'CLAIM_LINK', flag: '📱',  desc: 'No account needed · Phone pickup',    color: '#b844ff' },
+            { rail: 'CARD',       flag: '💳',  desc: 'Visa/MC push · Global',              color: '#88cc44' },
+            { rail: 'PHONE',      flag: '📲',  desc: 'Mobile wallet · Instant deliver',    color: '#44ccff' },
+          ].map(r => (
+            <div key={r.rail} style={{
+              background: '#090f1a', border: `1px solid ${r.color}33`,
+              borderRadius: 10, padding: '14px 16px',
+            }}>
+              <div style={{ fontSize: 18, marginBottom: 4 }}>{r.flag}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: r.color, letterSpacing: '0.04em', marginBottom: 4 }}>{r.rail}</div>
+              <div style={{ fontSize: 11, color: '#3a6080', lineHeight: 1.4 }}>{r.desc}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 11, color: '#2a4060', textAlign: 'center' as const, marginBottom: 40 }}>
+          Source: PARALLAX Charter · Supported Rails · Entry: FIAT / CRYPTO / INTERNAL · Exit: 8 rails worldwide
+        </div>
+      </div>
+
+      {/* ── CHARTER DOCTRINES ───────────────────────────────────── */}
+      <div style={{ ...S.section, paddingTop: 0, borderTop: '1px solid #0f1a2a', paddingBottom: 64 }}>
+        <div style={{ ...S.sectionTitle, marginTop: 64 }}>The doctrines</div>
+        <div style={S.sectionSub}>
+          Phantom Wallet is built on four structural principles derived from the NOVA sovereign charter
+          and the published research of Medina Tech. These are not marketing copy.
+          They are architectural invariants enforced in code.
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20, marginBottom: 40 }}>
+          {[
+            {
+              num:   'I',
+              title: 'Sovereign Settlement',
+              color: '#44aaff',
+              text:  'PARALLAX is not a bank. Not a stablecoin. Not a custodian. Not ICP-dependent. ICP is one substrate NOVA chose. NOVA provides the cycles. The substrates do not provide NOVA.',
+              cite:  'PARALLAX Charter — "What PARALLAX Is NOT"',
+            },
+            {
+              num:   'II',
+              title: 'Attribution Closure',
+              color: '#f90',
+              text:  'Every transaction leaves an irrevocable, machine-verifiable record. No agent — human or AI — can produce a transfer without a complete authorship trace in the quipu_ledger.',
+              cite:  'Paper I: Structural Attribution · Theorem 1 (Attribution Closure)',
+            },
+            {
+              num:   'III',
+              title: 'Paper–Engine Isomorphism',
+              color: '#b844ff',
+              text:  'Every sovereign document is a specification. Every module is its proof-of-execution. The phantom_transfer canister IS the PARALLAX charter — compiled to Motoko and running on ICP.',
+              cite:  'Paper IV: The Paper–Engine Isomorphism (PEI) · Corollary C1',
+            },
+            {
+              num:   'IV',
+              title: 'No-Drop Law',
+              color: '#4f4',
+              text:  'Reputation weight is bounded below by S₀ = 1.0 and can never decrease. No single failure can permanently reduce standing. The PHANTOM transfer guarantee is structural, not a policy.',
+              cite:  'Paper V: Career Flows · Theorem (No-Drop Law)',
+            },
+          ].map(d => (
+            <div key={d.num} style={{
+              background: '#090f1a', border: `1px solid ${d.color}33`,
+              borderRadius: 12, padding: '22px 20px',
+              borderTop: `3px solid ${d.color}`,
+            }}>
+              <div style={{ fontSize: 11, color: d.color, letterSpacing: '0.12em', textTransform: 'uppercase' as const, marginBottom: 8 }}>
+                Doctrine {d.num}
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 10, letterSpacing: '-0.01em' }}>{d.title}</div>
+              <div style={{ fontSize: 12, color: '#5080a0', lineHeight: 1.6, marginBottom: 12 }}>{d.text}</div>
+              <div style={{ fontSize: 10, color: '#2a4060', fontStyle: 'italic', lineHeight: 1.4 }}>{d.cite}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── RESEARCH PAPERS ─────────────────────────────────────── */}
+      <div style={{ ...S.section, paddingTop: 0, borderTop: '1px solid #0f1a2a', paddingBottom: 80 }}>
+        <div style={{ ...S.sectionTitle, marginTop: 64 }}>The research behind the product</div>
+        <div style={S.sectionSub}>
+          Phantom Wallet is not a startup project. It is the first consumer deployment of a body of
+          sovereign research. Every architectural decision maps to a published theorem.
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 14 }}>
+          {[
+            {
+              num:    'I',
+              title:  'Structural Attribution: Immutable Authorship as a Type-System Property in Autonomous AI Capability Networks',
+              status: 'RELEASE',
+              color:  '#44aaff',
+              gist:   'Proves that every NOVA transfer carries an irrevocable authorship trace — the Attribution DAG. No capability (and no transaction) can exist without a genesis record. Basis for quipu_ledger.',
+            },
+            {
+              num:    'II',
+              title:  'Memoria Perpetua: No-Decay Memory Architecture for Persistent Sovereign AI Systems',
+              status: 'HOLD',
+              color:  '#5080a0',
+              gist:   'Proves that sovereign memory state never decays through upgrades. ONESICAN balances and clearinghouse counters survive canister upgrades without loss. NDC invariant.',
+            },
+            {
+              num:    'III',
+              title:  'Nexus Perpetuus: Self-Healing Multi-Agent Systems via SYN Synapse Binding',
+              status: 'HOLD',
+              color:  '#5080a0',
+              gist:   'Formalises the SYN binding engine. Safety + liveness proofs across 7-class failure taxonomy. Basis for agi_terminal heartbeat and organism_solver synBind.',
+            },
+            {
+              num:    'IV',
+              title:  'The Paper–Engine Isomorphism: Every Sovereign Research Document Is an Executable Program, and Vice Versa',
+              status: 'RELEASE',
+              color:  '#b844ff',
+              gist:   'Proves that phantom_transfer canister and PARALLAX Charter are the same object in two representations. The code IS the paper. The paper IS the spec. Covariant functor Φ: Doc → Mod.',
+            },
+            {
+              num:    'V',
+              title:  'Career Flows in Persistent AI Organisations: Sovereign Tier Progression, Hebbian Reputation, and the No-Drop Law of Professional Development',
+              status: 'RELEASE',
+              color:  '#4f4',
+              gist:   'Proves No-Drop Law (reputation ≥ S₀ = 1.0 always) and Pareto-optimal Nash equilibrium for the NOVA contribution economy. φ-scaled tier pressure. Sybil resistance via Kuramoto anomaly detection.',
+            },
+          ].map(p => (
+            <div key={p.num} style={{
+              background: '#090f1a', border: `1px solid ${p.color}33`,
+              borderRadius: 10, padding: '18px 20px',
+              display: 'grid', gridTemplateColumns: '36px 1fr auto', gap: 14, alignItems: 'start',
+            }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: '50%',
+                background: `${p.color}22`, border: `1px solid ${p.color}55`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 12, fontWeight: 700, color: p.color, flexShrink: 0,
+              }}>
+                {p.num}
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6, letterSpacing: '-0.01em', lineHeight: 1.4 }}>{p.title}</div>
+                <div style={{ fontSize: 11, color: '#3a6080', lineHeight: 1.6 }}>{p.gist}</div>
+                <div style={{ marginTop: 6, fontSize: 10, color: '#2a4060' }}>Alfredo Medina Hernandez · Medina Tech · Dallas, Texas · April 2026</div>
+              </div>
+              <div style={{
+                padding: '3px 10px', fontSize: 9, fontWeight: 700, borderRadius: 4,
+                letterSpacing: '0.1em', textTransform: 'uppercase' as const, flexShrink: 0,
+                background: p.status === 'RELEASE' ? `${p.color}22` : '#1a2030',
+                color: p.status === 'RELEASE' ? p.color : '#3a5070',
+                border: `1px solid ${p.status === 'RELEASE' ? p.color + '66' : '#2a3a50'}`,
+              }}>
+                {p.status}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 20, fontSize: 11, color: '#1a3050', textAlign: 'center' as const }}>
+          arXiv Wave 1 · docs/papers/arxiv/ · Release sequence: Papers I, IV, V first · Papers II, III held
+        </div>
+      </div>
+
       {/* ── CTA ─────────────────────────────────────────────────── */}
       <div style={{ ...S.section, textAlign: 'center', paddingTop: 0, paddingBottom: 80 }}>
         <div style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)' as const, fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 16 }}>
@@ -518,8 +707,9 @@ export function PhantomWalletLanding({ onLaunch }: PhantomWalletLandingProps) {
       </div>
 
       <div style={S.footer}>
-        PHANTOM WALLET · Powered by PARALLAX · phantom_transfer canister (Build №35) ·
-        φ⁻⁴ fee · ONESICAN clearinghouse · Group E neurons · Medina Tech 2026
+        PHANTOM WALLET (Build №39) · Powered by PARALLAX · phantom_transfer canister (Build №35) ·
+        φ⁻⁴ FIAT/CRYPTO · φ⁻³ PHANTOM · ONESICAN clearinghouse · Group E neurons (70) ·
+        4 charter doctrines · 5 arXiv papers · Medina Tech · Dallas, Texas · 2026
       </div>
     </div>
   );
