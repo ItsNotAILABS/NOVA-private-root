@@ -136,7 +136,7 @@ actor PhantomTransfer {
     if (genesisLocked) return "PHANTOM_TRANSFER_ALREADY_CLAIMED";
     sovereignPrincipal := msg.caller;
     genesisLocked      := true;
-    sovereignSeal      := "NOVA-PHANTOM-TRANSFER-BUILD33-CLEARINGHOUSE-" # Principal.toText(msg.caller);
+    sovereignSeal      := "NOVA-PHANTOM-TRANSFER-BUILD35-CLEARINGHOUSE-" # Principal.toText(msg.caller);
     genesisTimestamp   := Time.now();
     "GENESIS_CLAIMED: NOVA IS THE CLEARINGHOUSE. " # sovereignSeal
   };
