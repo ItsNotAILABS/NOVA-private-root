@@ -22,7 +22,9 @@ const getParallaxCanisterId = (): string => {
   if (typeof process !== 'undefined' && process.env?.PARALLAX_CANISTER_ID) {
     return process.env.PARALLAX_CANISTER_ID as string;
   }
-  // Local dfx default — phantom_transfer gets this ID in local replica
+  // Local dfx default replica ID for phantom_transfer canister.
+  // PRODUCTION: set VITE_PARALLAX_CANISTER_ID env var to the mainnet canister ID
+  // before deploying. Never ship this default ID to mainnet.
   return 'br5f7-7uaaa-aaaaa-qaaca-cai';
 };
 

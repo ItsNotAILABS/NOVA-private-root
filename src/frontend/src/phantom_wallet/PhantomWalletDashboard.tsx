@@ -19,6 +19,11 @@ import {
   type ExchangeRate,
 } from '../canister/parallaxActor';
 
+// ── Fee constant — mirrors φ⁻⁴ as defined in phantom_transfer canister ──────
+// This constant must match FEE_RATE in src/phantom_transfer/main.mo.
+// Future: fetch from canister's getFeeRate() query if the rate becomes dynamic.
+const PHI_INV4_FEE = 1 / (1.6180339887498948482 ** 4); // 0.14589803375031546%
+
 // ── Tab type ──────────────────────────────────────────────────────────────
 type WalletTab = 'SEND' | 'RECEIVE' | 'STATUS';
 
@@ -254,8 +259,7 @@ function SendPanel({ rates }: { rates: ExchangeRate[] }) {
 
   // Compute fee preview
   const amountNum = parseFloat(amount) || 0;
-  const feePct    = 0.0014589803375031546;
-  const feeAmt    = amountNum * feePct;
+  const feeAmt    = amountNum * PHI_INV4_FEE;
   const net       = amountNum - feeAmt;
 
   // Find exchange rate
