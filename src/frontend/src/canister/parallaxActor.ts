@@ -271,7 +271,7 @@ const idlFactory = ({ IDL: I }: { IDL: typeof IDL }): IDL.ServiceClass => {
     // ── QUERIES (read-only, fast) ────────────────────────────────────────
     getClearinghouseStatus: I.Func([], [ClearinghouseStatusT], ['query']),
     getExchangeRates:       I.Func([], [I.Vec(ExchangeRateT)], ['query']),
-    getQueuedExits:         I.Func([I.Nat, I.Nat], [I.Vec(QueuedExitT)], ['query']),
+    getQueuedExits:         I.Func([I.Nat], [I.Vec(QueuedExitT)], ['query']),
     getRailStatus:          I.Func([I.Text], [I.Record({ rail: I.Text, volume: I.Nat, count: I.Nat, avgFee: I.Nat })], ['query']),
 
     // ── UPDATES (state-changing calls) ───────────────────────────────────
@@ -322,10 +322,10 @@ export async function parallax_getExchangeRates(): Promise<ExchangeRate[]> {
   return (await (actor.getExchangeRates as () => Promise<ExchangeRate[]>)());
 }
 
-export async function parallax_getQueuedExits(offset: number, limit: number): Promise<QueuedExit[]> {
+export async function parallax_getQueuedExits(limit: number): Promise<QueuedExit[]> {
   const actor = getParallaxActor();
-  return (await (actor.getQueuedExits as (o: bigint, l: bigint) => Promise<QueuedExit[]>)(
-    BigInt(offset), BigInt(limit)
+  return (await (actor.getQueuedExits as (l: bigint) => Promise<QueuedExit[]>)(
+    BigInt(limit)
   ));
 }
 

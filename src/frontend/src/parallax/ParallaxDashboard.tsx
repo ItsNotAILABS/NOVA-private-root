@@ -594,7 +594,7 @@ export function ParallaxDashboard() {
   const fetchExits = useCallback(async () => {
     setExitsLoad(true);
     try {
-      const ex = await parallax_getQueuedExits(0, 20);
+      const ex = await parallax_getQueuedExits(20);
       setExits(ex);
     } catch { /* offline */ }
     setExitsLoad(false);
