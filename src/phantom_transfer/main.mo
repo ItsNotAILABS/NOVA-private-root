@@ -9,7 +9,7 @@
 // ║                                                                                                           ║
 // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-// NATIVE NOVA PROTOCOL — BUILD №33
+// NATIVE NOVA PROTOCOL — BUILD №35
 // PHANTOM TRANSFER — Sovereign Multi-Rail Clearinghouse
 // Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
 //
@@ -124,7 +124,7 @@ actor PhantomTransfer {
   stable var genesisLocked      : Bool      = false;
   stable var sovereignSeal      : Text      = "";
   stable var genesisTimestamp   : Int       = 0;
-  stable var buildNumber        : Nat       = 33;
+  stable var buildNumber        : Nat       = 35;
 
   func isSovereign(caller : Principal) : Bool {
     if (not genesisLocked) return true;
@@ -218,11 +218,14 @@ actor PhantomTransfer {
   // SECTION 5 — FIAT LEDGER (edge conversion: Visa/card → NOVA tokens)
   // ═══════════════════════════════════════════════════════════════════════════
 
-  // oracle rates: how many ONESICAN units per 100 fiat cents (i.e. per dollar/peso)
-  // These are sovereign-set rates, updated by the clearinghouse
+  // oracle rates: how many ONESICAN units per 100 fiat cents (i.e. per dollar/peso/pound/etc.)
+  // These are sovereign-set rates, updated by the clearinghouse or oracle agent
   stable var fiatRateUSD     : Nat = 100;   // 1 USD → 100 ONESICAN units (1:1 sovereign)
   stable var fiatRateMXN     : Nat = 5;     // 1 MXN → 5 ONESICAN units (MXN peg)
   stable var fiatRateEUR     : Nat = 110;   // 1 EUR → 110 ONESICAN units
+  stable var fiatRateGBP     : Nat = 127;   // 1 GBP → 127 ONESICAN units (~1.27 USD sovereign)
+  stable var fiatRateJPY     : Nat = 1;     // 1 JPY → 1 ONESICAN unit (~0.0067 USD; 100 JPY → 67 cents)
+  stable var fiatRateBRL     : Nat = 20;    // 1 BRL → 20 ONESICAN units (~0.20 USD sovereign peg)
 
   // NOVA-PESO: internal MXN-equivalent sub-token
   // 1 MXN = 1 NOVA-PESO (sovereign peg, held in PARALLAX ledger as MXN sub-denomination)
@@ -237,6 +240,17 @@ actor PhantomTransfer {
     fiatRateUSD := usdRate;
     fiatRateMXN := mxnRate;
     fiatRateEUR := eurRate;
+    true
+  };
+
+  // Extended rate setter for additional currencies (sovereign or oracle)
+  public shared(msg) func setFiatRatesExtended(
+    gbpRate : Nat, jpyRate : Nat, brlRate : Nat
+  ) : async Bool {
+    requireSovereign(msg.caller);
+    if (gbpRate > 0) fiatRateGBP := gbpRate;
+    if (jpyRate > 0) fiatRateJPY := jpyRate;
+    if (brlRate > 0) fiatRateBRL := brlRate;
     true
   };
 
@@ -262,6 +276,9 @@ actor PhantomTransfer {
     let rate : Nat = if (currency == "USD") fiatRateUSD
                      else if (currency == "MXN") fiatRateMXN
                      else if (currency == "EUR") fiatRateEUR
+                     else if (currency == "GBP") fiatRateGBP
+                     else if (currency == "JPY") fiatRateJPY
+                     else if (currency == "BRL") fiatRateBRL
                      else 0;
     if (rate == 0) return {
       success = false; txId = 0; onesicansIssued = 0; novaPesoIssued = 0;
@@ -708,6 +725,7 @@ actor PhantomTransfer {
     claimsExpired          : Nat;
     exitsQueued            : Nat;
     exitsDelivered         : Nat;
+    totalRemittances       : Nat;
     authorizedOracles      : Nat;
     feeSchedule            : [{rail:Text; rateText:Text; ratePct:Float}];
     supportedRails         : [Text];
@@ -739,6 +757,7 @@ actor PhantomTransfer {
       claimsExpired      = totalClaimsExpired;
       exitsQueued        = totalExitsQueued;
       exitsDelivered     = totalExitsDelivered;
+      totalRemittances   = totalRemittances;
       authorizedOracles  = oracleCount;
       feeSchedule = [
         { rail="INTERNAL"; rateText="φ⁻⁵ = 0.090%"; ratePct = PHI_5 * 100.0 },
@@ -746,9 +765,9 @@ actor PhantomTransfer {
         { rail="CRYPTO";   rateText="φ⁻⁴ = 0.146%"; ratePct = PHI_4 * 100.0 },
         { rail="PHANTOM";  rateText="φ⁻³ = 0.236%"; ratePct = PHI_3 * 100.0 },
       ];
-      supportedRails = ["FIAT", "INTERNAL", "CRYPTO", "PHANTOM", "CLAIM_LINK", "FIAT_EXIT"];
+      supportedRails = ["FIAT", "INTERNAL", "CRYPTO", "PHANTOM", "CLAIM_LINK", "FIAT_EXIT", "REMITTANCE"];
       supportedCurrencies = [
-        "USD", "MXN", "EUR",                                          // fiat rails
+        "USD", "MXN", "EUR", "GBP", "JPY", "BRL",                    // fiat rails (6 currencies)
         "NOVA_PESO",                                                   // MXN sovereign peg
         "ONESICAN", "CHR", "GOL", "ORS", "SCB", "PHT",               // internal tokens
         "ICP", "BTC", "ETH", "ETH_L2", "SOL", "MATIC", "BNB",       // crypto rails (ETH_L2 = Arbitrum/Optimism/Base/zkEVM)
@@ -757,13 +776,14 @@ actor PhantomTransfer {
         "NOVA IS THE CLEARINGHOUSE. ICP, ETH, ETH_L2, BTC, SOL — substrates. Exit rails. " #
         "NOVA is portable. ETH L2 (Arbitrum/Optimism/Base) settlement layer is the same PARALLAX. " #
         "The exit rail to Ethereum L2 does not change NOVA. NOVA is the constant. " #
-        "User identity: persistent sovereign identity per user — linked banks, cards, crypto wallets, internal NOVA wallet. " #
-        "Tiers 1-5: fiat-only → multi-bank → crypto-native → full multi-rail → claim-link (no account needed). " #
-        "Claim links: send to anyone. Recipient chooses delivery (ACH/SPEI/SEPA/Chime/card/NOVA wallet). No crypto required. " #
-        "Fiat exit: ONESICAN → USD via ACH | MXN via SPEI | EUR via SEPA. Off-chain bridge reads QUEUED exits. " #
-        "Oracle rates: setExchangeRate callable by authorized AI agent or oracle — keeps conversion live. " #
-        "NOVA-PESO: on-chain MXN sovereign peg. Visa/card → ONESICAN → any rail. No custodian. No ckBTC. " #
-        "PHANTOM rail: commitment-reveal stealth, 24h timeout, φ⁻³ fee. Group E neurons (70) back liquidity.";
+        "5 user tiers: Tier1=fiat-only, Tier2=crypto multi-chain, Tier3=multi-bank aggregator, " #
+        "Tier4=bank-to-bank international, Tier5=card-only/claim-link (no account needed). " #
+        "sendRemittance: single-call Tier1/5 path — card in, pesos out, 0.146% fee vs 4-8% WU. " #
+        "6 fiat currencies: USD|MXN|EUR|GBP|JPY|BRL — all oracle-live via setExchangeRate. " #
+        "Exit rails: ACH (USD) | SPEI (MXN) | SEPA (EUR/GBP) | Zengin (JPY) | PIX (BRL) | CARD. " #
+        "User identity: persistent sovereign identity — linked banks, cards, crypto wallets, NOVA wallet. " #
+        "Claim links: send to anyone. Recipient picks delivery. No crypto ever required. " #
+        "NOVA-PESO: on-chain MXN sovereign peg. Visa/card → ONESICAN → any rail. No custodian.";
     }
   };
 
@@ -1257,6 +1277,9 @@ actor PhantomTransfer {
     let rate : Nat = if      (targetCurrency == "USD") fiatRateUSD
                      else if (targetCurrency == "MXN") fiatRateMXN
                      else if (targetCurrency == "EUR") fiatRateEUR
+                     else if (targetCurrency == "GBP") fiatRateGBP
+                     else if (targetCurrency == "JPY") fiatRateJPY
+                     else if (targetCurrency == "BRL") fiatRateBRL
                      else 0;
     if (rate == 0) return {
       success=false; exitId=0; fiatAmount=0; message="UNSUPPORTED_EXIT_CURRENCY: " # targetCurrency
@@ -1383,9 +1406,9 @@ actor PhantomTransfer {
   stable var oraclePrincipals  : [var Text] = Array.init<Text>(ORACLE_CAP, "");
   stable var oracleLabels      : [var Text] = Array.init<Text>(ORACLE_CAP, "");
 
-  // Rate metadata: who set it and when (indices: 0=USD, 1=MXN, 2=EUR)
-  stable var rateLastUpdatedBy : [var Text] = Array.init<Text>(3, "GENESIS");
-  stable var rateLastUpdatedAt : [var Int]  = Array.init<Int>(3,  0);
+  // Rate metadata: who set it and when (indices: 0=USD, 1=MXN, 2=EUR, 3=GBP, 4=JPY, 5=BRL)
+  stable var rateLastUpdatedBy : [var Text] = Array.init<Text>(6, "GENESIS");
+  stable var rateLastUpdatedAt : [var Int]  = Array.init<Int>(6,  0);
 
   func _isAuthorizedOracle(p : Text) : Bool {
     var i = 0;
@@ -1458,8 +1481,20 @@ actor PhantomTransfer {
       fiatRateEUR         := ratePerCent;
       rateLastUpdatedBy[2]:= p;
       rateLastUpdatedAt[2]:= now;
+    } else if (currency == "GBP") {
+      fiatRateGBP         := ratePerCent;
+      rateLastUpdatedBy[3]:= p;
+      rateLastUpdatedAt[3]:= now;
+    } else if (currency == "JPY") {
+      fiatRateJPY         := ratePerCent;
+      rateLastUpdatedBy[4]:= p;
+      rateLastUpdatedAt[4]:= now;
+    } else if (currency == "BRL") {
+      fiatRateBRL         := ratePerCent;
+      rateLastUpdatedBy[5]:= p;
+      rateLastUpdatedAt[5]:= now;
     } else {
-      return { success=false; message="UNSUPPORTED_CURRENCY: " # currency # " (supported: USD | MXN | EUR)" }
+      return { success=false; message="UNSUPPORTED_CURRENCY: " # currency # " (supported: USD | MXN | EUR | GBP | JPY | BRL)" }
     };
     { success=true; message="RATE_UPDATED: " # currency # " → " # Nat.toText(ratePerCent) # " ONESICAN/100cents | oracle=" # p }
   };
@@ -1474,6 +1509,9 @@ actor PhantomTransfer {
       { currency="USD"; ratePerCent=fiatRateUSD; updatedBy=rateLastUpdatedBy[0]; updatedAt=rateLastUpdatedAt[0] },
       { currency="MXN"; ratePerCent=fiatRateMXN; updatedBy=rateLastUpdatedBy[1]; updatedAt=rateLastUpdatedAt[1] },
       { currency="EUR"; ratePerCent=fiatRateEUR; updatedBy=rateLastUpdatedBy[2]; updatedAt=rateLastUpdatedAt[2] },
+      { currency="GBP"; ratePerCent=fiatRateGBP; updatedBy=rateLastUpdatedBy[3]; updatedAt=rateLastUpdatedAt[3] },
+      { currency="JPY"; ratePerCent=fiatRateJPY; updatedBy=rateLastUpdatedBy[4]; updatedAt=rateLastUpdatedAt[4] },
+      { currency="BRL"; ratePerCent=fiatRateBRL; updatedBy=rateLastUpdatedBy[5]; updatedAt=rateLastUpdatedAt[5] },
     ]
   };
 
@@ -1485,6 +1523,211 @@ actor PhantomTransfer {
       i += 1;
     };
     result
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 16 — SEND REMITTANCE (SINGLE-CALL TIER 1 / TIER 5 FAMILY PATH)
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // The family path — for the Monterrey-to-Chicago use case.
+  // The user should never have to think about rails, ONESICAN, or substrates.
+  // They say: "I have 5,000 MXN. My sister in Chicago should get dollars."
+  // PARALLAX handles everything in a single call.
+  //
+  // Flow:
+  //   1. Charge sender's card/bank (fromCardRef) in fromCurrency
+  //   2. Ingest fiat → ONESICAN at oracle rate (Section 5 FIAT rail)
+  //   3. Convert ONESICAN → toCurrency at oracle rate
+  //   4. Queue fiat exit (Section 14) to recipient's ref
+  //   5. Return both txId (entry) and exitId (exit) in one response
+  //
+  // toRefType tells PARALLAX how to deliver:
+  //   BANK_ACH   → US bank routing+account
+  //   BANK_SPEI  → Mexican CLABE (18 digits)
+  //   BANK_SEPA  → European IBAN
+  //   BANK_ZENGIN→ Japanese bank (7-digit + account)
+  //   CARD_VISA  → Visa Direct push to debit card token
+  //   CARD_CHIME → Chime instant deposit
+  //   PHONE      → phone number (paired with a claim link if unregistered)
+  //   CLAIM_LINK → auto-generates a claim link (recipient not yet on NOVA)
+  //   NOVA_WALLET→ PARALLAX internal wallet (registered user)
+  //
+  // For PHONE and CLAIM_LINK: a claim link is generated automatically.
+  // Recipient is notified (off-chain by NOVA bridge) and picks their delivery.
+  //
+  // This is what replaces Western Union for the 40M Mexicans in the US sending
+  // $60B/year to Mexico. 0.146% fee vs 4-8%. Same-day vs 3-5 business days.
+
+  stable var totalRemittances : Nat = 0;
+
+  // Helper: get rate for any supported currency (returns 0 if unsupported)
+  func _getFiatRate(currency : Text) : Nat {
+    if      (currency == "USD") fiatRateUSD
+    else if (currency == "MXN") fiatRateMXN
+    else if (currency == "EUR") fiatRateEUR
+    else if (currency == "GBP") fiatRateGBP
+    else if (currency == "JPY") fiatRateJPY
+    else if (currency == "BRL") fiatRateBRL
+    else 0
+  };
+
+  // Helper: infer the best exit rail for a given currency and toRefType
+  func _inferExitRail(toCurrency : Text, toRefType : Text) : Text {
+    if (toRefType == "BANK_ACH")    "ACH"
+    else if (toRefType == "BANK_SPEI")  "SPEI"
+    else if (toRefType == "BANK_SEPA")  "SEPA"
+    else if (toRefType == "BANK_ZENGIN")"ZENGIN"
+    else if (toRefType == "CARD_VISA")  "CARD"
+    else if (toRefType == "CARD_CHIME") "CARD"
+    else if (toRefType == "NOVA_WALLET") "NOVA"
+    else if (toCurrency == "USD")       "ACH"
+    else if (toCurrency == "MXN")       "SPEI"
+    else if (toCurrency == "EUR")       "SEPA"
+    else if (toCurrency == "GBP")       "SEPA"
+    else if (toCurrency == "JPY")       "ZENGIN"
+    else if (toCurrency == "BRL")       "PIX"
+    else "ACH"
+  };
+
+  public shared(msg) func sendRemittance(
+    fromCurrency  : Text,   // USD | MXN | EUR | GBP | JPY | BRL
+    amountCents   : Nat,    // amount in smallest unit of fromCurrency
+    fromCardRef   : Text,   // tokenized card/bank ref for the charge (processed off-chain edge gate)
+    toCurrency    : Text,   // USD | MXN | EUR | GBP | JPY | BRL
+    toRef         : Text,   // routing+acct / CLABE / IBAN / card token / phone / "NOVA:<principal>"
+    toRefType     : Text,   // BANK_ACH | BANK_SPEI | BANK_SEPA | BANK_ZENGIN | CARD_VISA | CARD_CHIME | PHONE | CLAIM_LINK | NOVA_WALLET
+    note          : Text
+  ) : async {
+    success       : Bool;
+    txId          : Nat;    // entry tx (fiat → ONESICAN)
+    exitId        : Nat;    // exit tx (ONESICAN → fiat) — 0 if claim link generated instead
+    claimCode     : Text;   // populated if toRefType=PHONE or CLAIM_LINK
+    fiatIn        : Nat;    // fromCurrency cents sent
+    onesicansNet  : Nat;    // net ONESICAN after fee
+    fiatOut       : Nat;    // toCurrency cents recipient receives
+    fee           : Nat;    // ONESICAN fee collected
+    message       : Text;
+  } {
+    let p = Principal.toText(msg.caller);
+    // Accept registered users or sovereign
+    if (not isSovereign(msg.caller)) {
+      switch (_findUser(p)) {
+        case null return {
+          success=false; txId=0; exitId=0; claimCode=""; fiatIn=0; onesicansNet=0; fiatOut=0; fee=0;
+          message="USER_NOT_REGISTERED: call registerUser first"
+        };
+        case (?_) {};
+      };
+    };
+    if (transferCount >= TRANSFER_CAP or exitCount >= EXIT_CAP) return {
+      success=false; txId=0; exitId=0; claimCode=""; fiatIn=0; onesicansNet=0; fiatOut=0; fee=0;
+      message="CAPACITY_REACHED"
+    };
+    // ── STEP 1: Ingest fromCurrency → ONESICAN ───────────────────────────────
+    let fromRate = _getFiatRate(fromCurrency);
+    if (fromRate == 0) return {
+      success=false; txId=0; exitId=0; claimCode=""; fiatIn=0; onesicansNet=0; fiatOut=0; fee=0;
+      message="UNSUPPORTED_FROM_CURRENCY: " # fromCurrency
+    };
+    let toRate = _getFiatRate(toCurrency);
+    if (toRate == 0) return {
+      success=false; txId=0; exitId=0; claimCode=""; fiatIn=0; onesicansNet=0; fiatOut=0; fee=0;
+      message="UNSUPPORTED_TO_CURRENCY: " # toCurrency
+    };
+    let grossOnesicans = amountCents * fromRate / 100;
+    let fee            = _computeFee("FIAT", grossOnesicans);
+    let netOnesicans   = if (grossOnesicans > fee) grossOnesicans - fee else 0;
+    let now            = Time.now();
+    // Record entry transaction
+    let ni = transferCount;
+    let txId = nextTxId;
+    txIds[ni]            := txId;
+    txSenders[ni]        := "REMITTANCE:" # fromCardRef;
+    txRecipients[ni]     := toRef;
+    txRails[ni]          := "FIAT";
+    txCurrencies[ni]     := fromCurrency;
+    txAmounts[ni]        := grossOnesicans;
+    txFees[ni]           := fee;
+    txStatuses[ni]       := "SETTLED";
+    txCommitments[ni]    := "";
+    txPhantom[ni]        := false;
+    txCreatedAt[ni]      := now;
+    txSettledAt[ni]      := now;
+    txNotes[ni]          := "REMITTANCE: " # note # " | from=" # fromCardRef # " to=" # toRef;
+    txSourceSubstrate[ni]:= "EDGE";
+    txTargetSubstrate[ni]:= "PARALLAX";
+    transferCount        := transferCount + 1;
+    nextTxId             := nextTxId + 1;
+    totalFiatIngested    := totalFiatIngested + amountCents;
+    totalFeesCollected   := totalFeesCollected + fee;
+    totalTransfersSettled:= totalTransfersSettled + 1;
+    // ── STEP 2: PHONE / CLAIM_LINK → generate claim link instead of exit ──────
+    if (toRefType == "PHONE" or toRefType == "CLAIM_LINK") {
+      if (claimCount >= CLAIM_CAP) return {
+        success=false; txId; exitId=0; claimCode=""; fiatIn=amountCents;
+        onesicansNet=netOnesicans; fiatOut=0; fee;
+        message="CLAIM_CAP_REACHED: remittance entry recorded but claim link could not be issued"
+      };
+      let expiresAt = now + CLAIM_TIMEOUT_NS;
+      let code = "NOVA-REM-" # Nat.toText(claimCount + 1) # "-" # toCurrency # "-" # Nat.toText(netOnesicans);
+      let ci = claimCount;
+      claimCodes[ci]        := code;
+      claimAmounts[ci]      := netOnesicans;     // stored in ONESICAN; bridge converts on delivery
+      claimCurrencies[ci]   := toCurrency;
+      claimSenders[ci]      := p;
+      claimCreatedAt[ci]    := now;
+      claimExpiresAt[ci]    := expiresAt;
+      claimStatuses[ci]     := "PENDING";
+      claimRedeemMethods[ci]:= toRefType;
+      claimRedeemRefs[ci]   := toRef;           // phone number or ""
+      claimNotes[ci]        := "REMITTANCE from " # fromCurrency # " | " # note;
+      claimCount            := claimCount + 1;
+      totalClaimsGenerated  := totalClaimsGenerated + 1;
+      totalRemittances      := totalRemittances + 1;
+      let fiatOutEstimate   = (netOnesicans * 100) / toRate;
+      return {
+        success=true; txId; exitId=0; claimCode=code;
+        fiatIn=amountCents; onesicansNet=netOnesicans; fiatOut=fiatOutEstimate; fee;
+        message = "REMITTANCE_CLAIM: " # Nat.toText(amountCents) # " " # fromCurrency #
+                  " → " # Nat.toText(fiatOutEstimate) # " " # toCurrency #
+                  " (est.) | claim code=" # code #
+                  " | recipient redeems via link — no NOVA account needed | 72h expiry | fee=" # Nat.toText(fee)
+      }
+    };
+    // ── STEP 3: Known destination → queue fiat exit directly ─────────────────
+    let netFiatCents  = (netOnesicans * 100) / toRate;
+    let exitRail      = _inferExitRail(toCurrency, toRefType);
+    if (exitCount >= EXIT_CAP) return {
+      success=false; txId; exitId=0; claimCode=""; fiatIn=amountCents;
+      onesicansNet=netOnesicans; fiatOut=0; fee;
+      message="EXIT_CAP_REACHED: remittance entry recorded but exit could not be queued"
+    };
+    let ei = exitCount;
+    let exitId = nextExitId;
+    exitIds[ei]             := exitId;
+    exitUserPrincipals[ei]  := p;
+    exitAmountsOnesican[ei] := netOnesicans;
+    exitAmountsFiat[ei]     := netFiatCents;
+    exitTargetCurrencies[ei]:= toCurrency;
+    exitRails[ei]           := exitRail;
+    exitDestRefs[ei]        := toRef;
+    exitStatuses[ei]        := "QUEUED";
+    exitCreatedAt[ei]       := now;
+    exitDeliveredAt[ei]     := 0;
+    exitNotes[ei]           := "REMITTANCE: " # note # " | entry txId=" # Nat.toText(txId);
+    exitCount               := exitCount + 1;
+    nextExitId              := nextExitId + 1;
+    totalExitsQueued        := totalExitsQueued + 1;
+    totalRemittances        := totalRemittances + 1;
+    {
+      success=true; txId; exitId; claimCode="";
+      fiatIn=amountCents; onesicansNet=netOnesicans; fiatOut=netFiatCents; fee;
+      message = "REMITTANCE_QUEUED: " # Nat.toText(amountCents) # " " # fromCurrency #
+                " → " # Nat.toText(netFiatCents) # " " # toCurrency # " " # exitRail #
+                " | fee=" # Nat.toText(fee) # " (" # Float.toText(PHI_4 * 100.0) # "%) | " #
+                "bridge delivers via " # exitRail # " to " # toRef #
+                " | txId=" # Nat.toText(txId) # " exitId=" # Nat.toText(exitId)
+    }
   };
 
 };
