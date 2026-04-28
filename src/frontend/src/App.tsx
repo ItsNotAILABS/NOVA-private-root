@@ -40,6 +40,9 @@ import { NeuroCogLab }    from './components/CommandCenter/NeuroCogLab';
 // ── Neural Emergence Core ─────────────────────────────────────────────────────
 import { NECDashboard }   from './components/nec/NECDashboard';
 
+// ── PARALLAX Clearinghouse PWA ────────────────────────────────────────────
+import { ParallaxApp }    from './parallax/ParallaxApp';
+
 // ── Terminal Hub — 40 Calls · 30 Packages · 15 Sovereign Terminals ──────────
 import { TerminalHub }    from './terminals/TerminalHub';
 
@@ -55,6 +58,7 @@ type NavView =
   | 'ARTIFACTS'      // artifact studio
   | 'PRESENCE'       // presence board
   | 'SIMULATION'     // world simulation chamber
+  | 'PARALLAX'       // PARALLAX clearinghouse PWA — the real financial system
 
 
   | 'LAB_EMERGENCE'  // emergence lab: Kuramoto, Ising, Lorenz, Turing, Sandpile
@@ -64,6 +68,7 @@ type NavView =
 
 
 const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
+  { id: 'PARALLAX',   label: 'PARALLAX',    icon: '⬡' },
   { id: 'COMMAND',    label: 'Command',    icon: '◉' },
   { id: 'TERMINALS',  label: 'Terminals',  icon: '⊞' },
   { id: 'COMPANION',  label: 'Companion',  icon: '🜁' },
@@ -234,7 +239,7 @@ function adaptToSwarmShape(organism: ReturnType<typeof useOrganismState>) {
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 export default function App() {
-  const [view, setView] = useState<NavView>('COMMAND'); // Default to Command Center
+  const [view, setView] = useState<NavView>('PARALLAX'); // Default: PARALLAX clearinghouse
   const organism = useOrganismState();
   const swarm = adaptToSwarmShape(organism);
 
@@ -277,6 +282,13 @@ export default function App() {
 
       {/* ── Content area ─────────────────────────────────────────────────── */}
       <div style={S.content}>
+        {/* ── PARALLAX CLEARINGHOUSE PWA — The Financial System ─────────── */}
+        {view === 'PARALLAX' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <ParallaxApp />
+          </div>
+        )}
+
         {/* ── ORO COMMAND CENTER — Multi-Agent Workspace ────────────────── */}
         {view === 'COMMAND' && (
           <OroCommandCenter organism={organism} />
