@@ -270,6 +270,12 @@
       "dependencies": [],
       "description": "NOVA STREAM — Sovereign On-Chain Streaming Bus (BUILD №41): Ring buffer (512 slots), monotonic global event IDs, named topics, publisher ACL. publish(topic,payload,origin) — any authorized canister pushes events. getStreamSince(topic,cursor) — the streaming primitive (poll events with id>=cursor). getStream/getTopics/getStreamHead/getEventCount/getStreamStatus. Multiple canisters publish to named topics; CPL frontend and other canisters consume via cursor-based polling."
     },
+    "nova_builder": {
+      "type": "motoko",
+      "main": "src/nova_builder/main.mo",
+      "dependencies": [],
+      "description": "NOVA BUILDER — Sovereign CaffeineAI Replacement (BUILD №42): Non-profit, permissionless, on-chain AI-assisted canister builder. Intent intake → swarm_brain code generation → sovereign_factory deploy. Cycles subsidy pool funded by donations/grants/protocol fees. Rate-limited by pool balance only — zero account-based limits ever. Every build burns ICP cycles → direct deflationary pressure. Stream-publishes all events to nova_stream (BUILDER_INTAKE/BUILDER_GENERATE/BUILDER_DEPLOY/BUILDER_CYCLES_BURN). Community-governed via nova_governance."
+    },
     "frontend": {
       "type": "assets",
       "source": [

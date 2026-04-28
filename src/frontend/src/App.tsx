@@ -41,12 +41,16 @@ import { ParallaxApp }       from './parallax/ParallaxApp';
 // ── PHANTOM WALLET — First Consumer Product · Powered by PARALLAX ─────────
 import { PhantomWalletApp }  from './phantom_wallet/PhantomWalletApp';
 
+// ── NOVA BUILDER — Sovereign CaffeineAI Replacement · Build №42 ──────────
+import { NovaBuilderApp }    from './nova_builder/NovaBuilderApp';
+
 // ── Terminal Hub — 40 Calls · 30 Packages · 15 Sovereign Terminals ──────────
 import { TerminalHub }    from './terminals/TerminalHub';
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 type NavView =
   | 'PHANTOM_WALLET'  // Phantom Wallet — first consumer product · Powered by PARALLAX
+  | 'NOVA_BUILDER'   // NOVA BUILDER — sovereign CaffeineAI replacement · Build №42
   | 'SWARM'          // original tactical swarm view
   | 'COMMAND'        // ORO Command Center — multi-agent workspace
   | 'COMPANION'      // AURO companion chat/voice/command bridge
@@ -68,6 +72,7 @@ type NavView =
 
 const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
   { id: 'PHANTOM_WALLET', label: 'Phantom Wallet', icon: '⬡' },
+  { id: 'NOVA_BUILDER',  label: 'NOVA Builder',  icon: '⊕' },
   { id: 'PARALLAX',   label: 'PARALLAX',    icon: '◈' },
   { id: 'COMMAND',    label: 'Command',    icon: '◉' },
   { id: 'TERMINALS',  label: 'Terminals',  icon: '⊞' },
@@ -286,6 +291,13 @@ export default function App() {
         {view === 'PHANTOM_WALLET' && (
           <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
             <PhantomWalletApp />
+          </div>
+        )}
+
+        {/* ── NOVA BUILDER — Sovereign CaffeineAI Replacement · Build №42 ────── */}
+        {view === 'NOVA_BUILDER' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <NovaBuilderApp />
           </div>
         )}
 

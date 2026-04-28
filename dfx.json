@@ -219,6 +219,11 @@
       "main": "src/nova_stream/main.mo",
       "dependencies": []
     },
+    "nova_builder": {
+      "type": "motoko",
+      "main": "src/nova_builder/main.mo",
+      "dependencies": []
+    },
     "frontend": {
       "type": "assets",
       "source": [
