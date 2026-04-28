@@ -3,11 +3,9 @@
   "_OWNER": "Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com",
   "_NOTICE": "This manifest drives the NOVA sovereign build CLI. No DFX required.",
   "_EPOCH": "NOVA-EPOCH-2025",
-
   "version": "1",
   "name": "NOVA",
   "description": "NOVA (PARALLAX) — Sovereign Cognitive Swarm Organism",
-
   "compiler": {
     "tool": "moc",
     "version": "0.13.4",
@@ -15,7 +13,6 @@
     "source_linux_aarch64": "https://github.com/dfinity/motoko/releases/download/0.13.4/moc",
     "cache_dir": ".nova/moc"
   },
-
   "canisters": {
     "swarm_brain": {
       "type": "motoko",
@@ -26,7 +23,9 @@
     "swarm_organism": {
       "type": "motoko",
       "main": "src/swarm_organism/main.mo",
-      "dependencies": ["swarm_brain"],
+      "dependencies": [
+        "swarm_brain"
+      ],
       "description": "Organism-level orchestration canister"
     },
     "swarm_command": {
@@ -62,7 +61,15 @@
     "swarm_oracle": {
       "type": "motoko",
       "main": "src/swarm_oracle/main.mo",
-      "dependencies": ["swarm_brain", "swarm_organism", "swarm_command", "swarm_metals", "swarm_audit", "swarm_telemetry", "swarm_quantum"],
+      "dependencies": [
+        "swarm_brain",
+        "swarm_organism",
+        "swarm_command",
+        "swarm_metals",
+        "swarm_audit",
+        "swarm_telemetry",
+        "swarm_quantum"
+      ],
       "description": "Unified read-only information oracle — composite queries across all swarm dimensions"
     },
     "chrysalis": {
@@ -257,26 +264,40 @@
       "dependencies": [],
       "description": "PHANTOM TRANSFER — Sovereign Multi-Rail Clearinghouse (BUILD №33): NOVA is the clearinghouse — not ICP, not ETH, not SOL. 4 rails: FIAT (USD/MXN/EUR/Visa → ONESICAN, NOVA-PESO MXN peg), INTERNAL (ONESICAN/CHR/GOL/ORS/SCB), CRYPTO (BTC/ETH/SOL/ICP/MATIC via PHANTOM substrate, no custodian), PHANTOM (stealth commitment-reveal, 24h timeout, φ⁻³ fee). PARALLAX is the settlement layer. Group E PHANTOM neurons (70) back clearinghouse liquidity. initiateTransfer/settlePhantomTransfer/ingestFiatPayment/cancelTransfer/getClearinghouseStatus."
     },
+    "nova_stream": {
+      "type": "motoko",
+      "main": "src/nova_stream/main.mo",
+      "dependencies": [],
+      "description": "NOVA STREAM — Sovereign On-Chain Streaming Bus (BUILD №41): Ring buffer (512 slots), monotonic global event IDs, named topics, publisher ACL. publish(topic,payload,origin) — any authorized canister pushes events. getStreamSince(topic,cursor) — the streaming primitive (poll events with id>=cursor). getStream/getTopics/getStreamHead/getEventCount/getStreamStatus. Multiple canisters publish to named topics; CPL frontend and other canisters consume via cursor-based polling."
+    },
     "frontend": {
       "type": "assets",
-      "source": ["src/frontend/dist"],
-      "dependencies": ["swarm_brain", "swarm_organism"],
+      "source": [
+        "src/frontend/dist"
+      ],
+      "dependencies": [
+        "swarm_brain",
+        "swarm_organism"
+      ],
       "description": "Sovereign web UI (Vite + React)"
     }
   },
-
   "build": {
     "output_dir": ".nova/build",
     "wasm_dir": ".nova/build/canisters",
     "idl_dir": ".nova/build/idl",
-    "flags": ["--package", "base", ".nova/moc-packages/base"]
+    "flags": [
+      "--package",
+      "base",
+      ".nova/moc-packages/base"
+    ]
   },
-
   "check": {
     "type_check_only": true,
-    "flags": ["--check"]
+    "flags": [
+      "--check"
+    ]
   },
-
   "networks": {
     "local": {
       "bind": "127.0.0.1:8000",
