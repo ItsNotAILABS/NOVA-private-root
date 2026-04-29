@@ -576,7 +576,7 @@ actor PhantomTransfer {
 
   system func heartbeat() : async () {
     heartbeatTick := heartbeatTick + 1;
-    // Run expiry sweep every 144 ticks (~2 minutes at ICP 873ms heartbeat)
+    // Run expiry sweep every 144 ticks (~2 minutes at NOVA 873ms heartbeat)
     if (Nat.rem(heartbeatTick, 144) == 0) {
       let now = Time.now();
       var i = 0;

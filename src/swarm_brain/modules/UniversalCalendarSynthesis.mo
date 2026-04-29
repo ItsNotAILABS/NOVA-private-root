@@ -1247,7 +1247,7 @@ module UniversalCalendarSynthesis {
   ];
   
   /// Heartbeat interval candidates from phi-432 series
-  /// The ICP heartbeat (~2 seconds = 0.5 Hz) is near 432/φ¹⁴ ≈ 0.516 Hz
+  /// The NOVA heartbeat (873ms ≈ 1.146 Hz) is the sovereign timing constant
   public let HEARTBEAT_CANDIDATE_HZ : Float = 0.516;
   public let HEARTBEAT_CANDIDATE_SECONDS : Float = 1.938;  // 1/0.516
   

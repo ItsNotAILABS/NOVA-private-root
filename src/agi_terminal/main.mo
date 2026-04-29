@@ -14,7 +14,7 @@
 // Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
 //
 // The AGI Terminal is the heartbeat of the organism.
-// It fires every ICP consensus round (target: 873ms) via the system heartbeat.
+// It fires every NOVA heartbeat tick (873ms) via the system heartbeat.
 // Every 50 ticks (~43 s) it calls organism_solver.solverTick(), driving the
 // autonomous job queue without any human input.
 //

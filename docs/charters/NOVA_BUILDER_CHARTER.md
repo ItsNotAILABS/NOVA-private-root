@@ -84,7 +84,7 @@ self-reinforcing protocol infrastructure.
 ### 3.2 — Automated Pipeline (Heartbeat-Driven)
 
 The nova_builder canister runs a **fully automated** build pipeline without manual admin
-intervention. The ICP heartbeat (~873ms) drives the queue processor:
+intervention. The NOVA 873ms heartbeat drives the queue processor:
 
 ```
 submitBuild(intent) → session QUEUED
@@ -175,7 +175,7 @@ The rate is **graduated**, not binary:
 | 5–10× threshold | HIGH | 5 — elevated processing |
 | 10×+ threshold | FLOODGATES | 10 — maximum throughput |
 
-The heartbeat runs every ~873ms on ICP. When the pool is full, up to 10 builds
+The NOVA heartbeat runs every 873ms. When the pool is full, up to 10 builds
 process per tick. When the pool is low, the queue slows to preserve resources.
 When the pool is empty, the queue pauses entirely.
 

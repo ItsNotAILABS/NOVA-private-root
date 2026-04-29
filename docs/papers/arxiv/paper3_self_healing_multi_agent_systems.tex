@@ -236,7 +236,7 @@ SYN exposes five public operations:
 For the HEART binding, $\Delta_\text{GS}$ is set by the GOVERNANCE\_SYNC job
 cadence; at one job per solver tick (50 AGI heartbeats, $\approx 43\,\text{s}$),
 $\Delta_\text{GS} = 43\,\text{s}$.  For economic state variables (maturity,
-treasury), $\lambda \approx 1/2\,\text{s}^{-1}$ (one ICP heartbeat per 2\,s),
+treasury), $\lambda \approx 1/0.873\,\text{s}^{-1}$ (one NOVA heartbeat per 873\,ms),
 giving expected staleness $\approx 21$ unobserved ticks per sync period.
 
 \subsection{Capacity}

@@ -628,7 +628,7 @@ actor NovaBuilder {
   // The heartbeat is the autonomous engine that turns builder intents into
   // deployed canisters WITHOUT manual admin intervention.
   //
-  // Every 873ms tick (ICP heartbeat), the processor:
+  // Every 873ms NOVA heartbeat tick, the processor:
   //   1. Checks _queueBatchSize() — graduated rate limit based on pool balance
   //   2. Scans the session ring for QUEUED builds
   //   3. For each QUEUED build (up to batch size):
@@ -738,7 +738,7 @@ actor NovaBuilder {
   };
 
   // Heartbeat — autonomous queue processor
-  // Runs on every ICP heartbeat (~873ms).
+  // Runs on every NOVA 873ms heartbeat tick.
   // Processes up to _queueBatchSize() QUEUED builds per tick.
   system func heartbeat() : async () {
     heartbeatTick += 1;
