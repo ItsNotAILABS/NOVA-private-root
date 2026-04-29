@@ -1,11 +1,11 @@
 {
-  "_SOVEREIGN": "NOVA SOVEREIGN BUILD MANIFEST \u2014 NSCP-2025",
+  "_SOVEREIGN": "NOVA SOVEREIGN BUILD MANIFEST — NSCP-2025",
   "_OWNER": "Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com",
   "_NOTICE": "This manifest drives the NOVA sovereign build CLI. No DFX required.",
   "_EPOCH": "NOVA-EPOCH-2025",
   "version": "1",
   "name": "NOVA",
-  "description": "NOVA (PARALLAX) \u2014 Sovereign Cognitive Swarm Organism",
+  "description": "NOVA (PARALLAX) — Sovereign Cognitive Swarm Organism",
   "compiler": {
     "tool": "moc",
     "version": "0.13.4",
@@ -18,7 +18,7 @@
       "type": "motoko",
       "main": "src/swarm_brain/main.mo",
       "dependencies": [],
-      "description": "Core organism brain \u2014 17-layer sovereign cognitive system"
+      "description": "Core organism brain — 17-layer sovereign cognitive system"
     },
     "swarm_organism": {
       "type": "motoko",
@@ -38,25 +38,25 @@
       "type": "motoko",
       "main": "src/swarm_metals/main.mo",
       "dependencies": [],
-      "description": "Sovereign metals pipeline \u2014 12-metal resonance vector processor"
+      "description": "Sovereign metals pipeline — 12-metal resonance vector processor"
     },
     "swarm_audit": {
       "type": "motoko",
       "main": "src/swarm_audit/main.mo",
       "dependencies": [],
-      "description": "Append-only audit log \u2014 immutable swarm event record"
+      "description": "Append-only audit log — immutable swarm event record"
     },
     "swarm_telemetry": {
       "type": "motoko",
       "main": "src/swarm_telemetry/main.mo",
       "dependencies": [],
-      "description": "Drone telemetry store \u2014 episodic memory, formation patterns, recognition"
+      "description": "Drone telemetry store — episodic memory, formation patterns, recognition"
     },
     "swarm_quantum": {
       "type": "motoko",
       "main": "src/swarm_quantum/main.mo",
       "dependencies": [],
-      "description": "Quantum cognitive state engine \u2014 Q-channels, convergence, coherence"
+      "description": "Quantum cognitive state engine — Q-channels, convergence, coherence"
     },
     "swarm_oracle": {
       "type": "motoko",
@@ -70,127 +70,127 @@
         "swarm_telemetry",
         "swarm_quantum"
       ],
-      "description": "Unified read-only information oracle \u2014 composite queries across all swarm dimensions"
+      "description": "Unified read-only information oracle — composite queries across all swarm dimensions"
     },
     "chrysalis": {
       "type": "motoko",
       "main": "src/chrysalis/main.mo",
       "dependencies": [],
-      "description": "CHRYSALIS \u2014 Alpha Organism \u21161 \u2014 Golden Mathematics Core (FIBONACCI + SPIRAL sub-models)"
+      "description": "CHRYSALIS — Alpha Organism №1 — Golden Mathematics Core (FIBONACCI + SPIRAL sub-models)"
     },
     "scribe": {
       "type": "motoko",
       "main": "src/scribe/main.mo",
       "dependencies": [],
-      "description": "SCRIBE \u2014 Alpha Organism \u21162 \u2014 Document Organism (CLASSIFIER + SYNTHESIZER sub-models)"
+      "description": "SCRIBE — Alpha Organism №2 — Document Organism (CLASSIFIER + SYNTHESIZER sub-models)"
     },
     "architect": {
       "type": "motoko",
       "main": "src/architect/main.mo",
       "dependencies": [],
-      "description": "ARCHITECT \u2014 Alpha Organism \u21163 \u2014 Meta-Builder (REPLICATOR sub-model)"
+      "description": "ARCHITECT — Alpha Organism №3 — Meta-Builder (REPLICATOR sub-model)"
     },
     "nexus_propagator": {
       "type": "motoko",
       "main": "src/nexus_propagator/main.mo",
       "dependencies": [],
-      "description": "NEXUS \u2014 Alpha Organism \u21164 \u2014 Substrate Walker (PROPAGATOR sub-model)"
+      "description": "NEXUS — Alpha Organism №4 — Substrate Walker (PROPAGATOR sub-model)"
     },
     "parallax": {
       "type": "motoko",
       "main": "src/parallax/main.mo",
       "dependencies": [],
-      "description": "PARALLAX \u2014 Sovereign Encrypted Canister Wallet \u2014 ICP + ONESICAN ledger, vault, staking bridge, \u03c6-tiered fees"
+      "description": "PARALLAX — Sovereign Encrypted Canister Wallet — ICP + ONESICAN ledger, vault, staking bridge, φ-tiered fees"
     },
     "nova_governance": {
       "type": "motoko",
       "main": "src/nova_governance/main.mo",
       "dependencies": [],
-      "description": "NOVA GOVERNANCE \u2014 NNS-mirrored neuron staking, \u03c6-scaled voting power, proposals, maturity rewards"
+      "description": "NOVA GOVERNANCE — NNS-mirrored neuron staking, φ-scaled voting power, proposals, maturity rewards"
     },
     "nova_sns": {
       "type": "motoko",
       "main": "src/nova_sns/main.mo",
       "dependencies": [],
-      "description": "NOVA SNS \u2014 Service Nervous System: per-canister governance, developer staking, revenue sharing, service proposals"
+      "description": "NOVA SNS — Service Nervous System: per-canister governance, developer staking, revenue sharing, service proposals"
     },
     "token_forge": {
       "type": "motoko",
       "main": "src/token_forge/main.mo",
       "dependencies": [],
-      "description": "TOKEN FORGE \u2014 Sovereign internal + external token generator: 21M ONESICAN cap, \u03c6-partitioned buckets, Fibonacci emission, vesting, airdrop, dev grants, burn"
+      "description": "TOKEN FORGE — Sovereign internal + external token generator: 21M ONESICAN cap, φ-partitioned buckets, Fibonacci emission, vesting, airdrop, dev grants, burn"
     },
     "cycles_market": {
       "type": "motoko",
       "main": "src/cycles_market/main.mo",
       "dependencies": [],
-      "description": "NOVA CYCLES MARKET \u2014 Internal Sovereign Compute Exchange: where NOVA canisters trade surplus cycles to each other; NOVA Layer Zero pricing across 5 chosen substrates (ICP/BLOCKCHAIN \u03c6\u2070=1\u00d7, NOVA-EDGE \u03c6\u00b9=1.618\u00d7, NOVA-CLOUD \u03c6\u00b2=2.618\u00d7, NOVA-PHANTOM \u03c6\u00b3=4.236\u00d7); developer seats, compute credit, \u03c6-spread bid/ask"
+      "description": "NOVA CYCLES MARKET — Internal Sovereign Compute Exchange: where NOVA canisters trade surplus cycles to each other; NOVA Layer Zero pricing across 5 chosen substrates (ICP/BLOCKCHAIN φ⁰=1×, NOVA-EDGE φ¹=1.618×, NOVA-CLOUD φ²=2.618×, NOVA-PHANTOM φ³=4.236×); developer seats, compute credit, φ-spread bid/ask"
     },
     "token_intelligence": {
       "type": "motoko",
       "main": "src/token_intelligence/main.mo",
       "dependencies": [],
-      "description": "TOKEN INTELLIGENCE \u2014 Autonomous AI token flow brain: SENSUM sensor layer, COGITO \u03c6-reasoning, ACTIO decision engine, MEMORIA 128-epoch ledger, VIGILIA canister watchdog"
+      "description": "TOKEN INTELLIGENCE — Autonomous AI token flow brain: SENSUM sensor layer, COGITO φ-reasoning, ACTIO decision engine, MEMORIA 128-epoch ledger, VIGILIA canister watchdog"
     },
     "airdrop_engine": {
       "type": "motoko",
       "main": "src/airdrop_engine/main.mo",
       "dependencies": [],
-      "description": "AIRDROP ENGINE \u2014 Sovereign deep airdrop: multi-wave Fibonacci campaigns, 5-dimension behavioral qualification, anti-sybil (stake+cooldown+voucher), immutable claim proofs, tier escalation BRONZE\u2192DIAMOND"
+      "description": "AIRDROP ENGINE — Sovereign deep airdrop: multi-wave Fibonacci campaigns, 5-dimension behavioral qualification, anti-sybil (stake+cooldown+voucher), immutable claim proofs, tier escalation BRONZE→DIAMOND"
     },
     "sovereign_factory": {
       "type": "motoko",
       "main": "src/sovereign_factory/main.mo",
       "dependencies": [],
-      "description": "SOVEREIGN FACTORY \u2014 Canister civilization registry: 6 corps, 21 divisions, lifecycle management (REGISTERED\u2192PRODUCTION), \u03c6 revenue routing, division contracts with SLA + upgrade rights"
+      "description": "SOVEREIGN FACTORY — Canister civilization registry: 6 corps, 21 divisions, lifecycle management (REGISTERED→PRODUCTION), φ revenue routing, division contracts with SLA + upgrade rights"
     },
     "auto_market": {
       "type": "motoko",
       "main": "src/auto_market/main.mo",
       "dependencies": [],
-      "description": "AUTO MARKET \u2014 Perpetual Value Engine: autonomous Golden Loop (NNS maturity\u2192ICP\u2192ONESICANS at 1\u00d7\u2192list at \u03c6\u00b2\u2192sell\u2192\u03c6\u207b\u00b9 reinvest to staking\u2192more maturity\u2192loop). Zero user input. Velocity-adjusted pricing, F(6)=8 min depth, F(11)=89 max depth, \u03c6\u207b\u00b9/\u03c6\u207b\u00b2/\u03c6\u207b\u00b3/\u03c6\u207b\u2074/\u03c6\u207b\u2075 revenue split. Full sovereignty: civilization self-funds."
+      "description": "AUTO MARKET — Perpetual Value Engine: autonomous Golden Loop (NNS maturity→ICP→ONESICANS at 1×→list at φ²→sell→φ⁻¹ reinvest to staking→more maturity→loop). Zero user input. Velocity-adjusted pricing, F(6)=8 min depth, F(11)=89 max depth, φ⁻¹/φ⁻²/φ⁻³/φ⁻⁴/φ⁻⁵ revenue split. Full sovereignty: civilization self-funds."
     },
     "neuron_fleet": {
       "type": "motoko",
       "main": "src/neuron_fleet/main.mo",
       "dependencies": [],
-      "description": "NEURON FLEET \u2014 1,000 NNS neuron fleet (\u00d75 expansion): 5 Fibonacci groups (A_SOVEREIGNTY\u00d740/B_COMPOUNDING\u00d7170/C_HARVEST\u00d7445/D_LIQUID\u00d7275/E_PHANTOM\u00d770), auto-stake-maturity, spawn-neuron policy, fleet-wide voting, 100 field nodes, \u03c6-VP maximization. Group E backs PHANTOM clearinghouse liquidity. Infrastructure-first: 1,000 neurons now, 2,000 next."
+      "description": "NEURON FLEET — 1,000 NNS neuron fleet (×5 expansion): 5 Fibonacci groups (A_SOVEREIGNTY×40/B_COMPOUNDING×170/C_HARVEST×445/D_LIQUID×275/E_PHANTOM×70), auto-stake-maturity, spawn-neuron policy, fleet-wide voting, 100 field nodes, φ-VP maximization. Group E backs PHANTOM clearinghouse liquidity. Infrastructure-first: 1,000 neurons now, 2,000 next."
     },
     "ai_division": {
       "type": "motoko",
       "main": "src/ai_division/main.mo",
       "dependencies": [],
-      "description": "AI DIVISION MANAGER \u2014 Autonomous production loop: neuron release scheduler, node health monitor, organism governance seats (CHRYSALIS/SCRIBE/ARCHITECT/NEXUS/SWARM_BRAIN), reward circulation engine, 18 intelligence assignments, Fibonacci-gated tick cycle"
+      "description": "AI DIVISION MANAGER — Autonomous production loop: neuron release scheduler, node health monitor, organism governance seats (CHRYSALIS/SCRIBE/ARCHITECT/NEXUS/SWARM_BRAIN), reward circulation engine, 18 intelligence assignments, Fibonacci-gated tick cycle"
     },
     "organism_token": {
       "type": "motoko",
       "main": "src/organism_token/main.mo",
       "dependencies": [],
-      "description": "ORGANISM TOKEN \u2014 Sub-token economy: 8 tokens (CHR/SCB/ARC/NXS/SWM/PHT/ORS/GOL), \u03c6-ladder rates (1 ONESICAN = \u03c6\u00b9 CHR = \u03c6\u00b2 SCB = \u03c6\u00b3 ARC...), AI entity accounts for 25 Latin AGI + Alpha Organisms, governance staking bridge (VP = staked/1000 \u00d7 \u03c6^tier)"
+      "description": "ORGANISM TOKEN — Sub-token economy: 8 tokens (CHR/SCB/ARC/NXS/SWM/PHT/ORS/GOL), φ-ladder rates (1 ONESICAN = φ¹ CHR = φ² SCB = φ³ ARC...), AI entity accounts for 25 Latin AGI + Alpha Organisms, governance staking bridge (VP = staked/1000 × φ^tier)"
     },
     "cycles_bridge": {
       "type": "motoko",
       "main": "src/cycles_bridge/main.mo",
       "dependencies": [],
-      "description": "NOVA SOVEREIGNTY GATE \u2014 ONESICANS \u2194 Substrate Compute: NOVA Layer Zero appropriates minted ICP to fuel ICP-substrate canisters (\u03c6\u2070=1\u00d7), with named NOVA-EDGE-CYCLES (\u03c6\u00b9), NOVA-CLOUD-CYCLES (\u03c6\u00b2), NOVA-PHANTOM-CYCLES (\u03c6\u00b3) tiers; sell-cycles-to-network marketplace; \u03c6\u207b\u2075 conversion fee; ONESICANS bypass ICP on NOVA-EDGE/NOVA-CLOUD/NOVA-PHANTOM"
+      "description": "NOVA SOVEREIGNTY GATE — ONESICANS ↔ Substrate Compute: NOVA Layer Zero appropriates minted ICP to fuel ICP-substrate canisters (φ⁰=1×), with named NOVA-EDGE-CYCLES (φ¹), NOVA-CLOUD-CYCLES (φ²), NOVA-PHANTOM-CYCLES (φ³) tiers; sell-cycles-to-network marketplace; φ⁻⁵ conversion fee; ONESICANS bypass ICP on NOVA-EDGE/NOVA-CLOUD/NOVA-PHANTOM"
     },
     "agi_main": {
       "type": "motoko",
       "main": "src/agi_main/main.mo",
       "dependencies": [],
-      "description": "AGI MAIN \u2014 Sovereign Mind Canister: ICP system heartbeat fires every ~2s automatically (zero calls needed). Full autonomous economy loop: NNS maturity accrual \u2192 neurons spawn neurons (C_HARVEST) \u2192 Group D disburses ICP \u2192 \u03c6-split treasury (9%=withdrawable) \u2192 ecosystem ONESICAN listings at \u03c6\u00b2 \u2192 collectSovereignRevenue() = real money. One deploy. One bootstrap call. Forever."
+      "description": "AGI MAIN — Sovereign Mind Canister: ICP system heartbeat fires every ~2s automatically (zero calls needed). Full autonomous economy loop: NNS maturity accrual → neurons spawn neurons (C_HARVEST) → Group D disburses ICP → φ-split treasury (9%=withdrawable) → ecosystem ONESICAN listings at φ² → collectSovereignRevenue() = real money. One deploy. One bootstrap call. Forever."
     },
     "quipu_ledger": {
       "type": "motoko",
       "main": "src/quipu_ledger/main.mo",
       "dependencies": [],
-      "description": "QUIPU LEDGER \u2014 Digital Quipu: canonical cross-canister telemetry log. Typed, hierarchical, append-only, executable. SPINE(domain)\u2192PENDANT(type)\u2192SUBSIDIARY(depth)\u2192KNOT(value)|COLOR(tag). Lifecycle: PENDING\u2192EXECUTING\u2192SETTLED. Inspired by Inca quipu as bytecode, not just ledger."
+      "description": "QUIPU LEDGER — Digital Quipu: canonical cross-canister telemetry log. Typed, hierarchical, append-only, executable. SPINE(domain)→PENDANT(type)→SUBSIDIARY(depth)→KNOT(value)|COLOR(tag). Lifecycle: PENDING→EXECUTING→SETTLED. Inspired by Inca quipu as bytecode, not just ledger."
     },
     "nova_protocol": {
       "type": "motoko",
       "main": "src/nova_protocol/main.mo",
       "dependencies": [],
-      "description": "NOVA PROTOCOL \u2014 Sovereign Protocol Constants Canister: single source of truth for all \u03c6-constants, Fibonacci sequence, substrate multipliers (ICP=1\u00d7/EDGE=\u03c6/CLOUD=\u03c6\u00b2/PHANTOM=\u03c6\u00b3), sub-token ladder, revenue routing ratios, SERVITORES manifest, quipu schema, Tawantinsuyu topology. The Inca standard knot convention for NOVA."
+      "description": "NOVA PROTOCOL — Sovereign Protocol Constants Canister: single source of truth for all φ-constants, Fibonacci sequence, substrate multipliers (ICP=1×/EDGE=φ/CLOUD=φ²/PHANTOM=φ³), sub-token ladder, revenue routing ratios, SERVITORES manifest, quipu schema, Tawantinsuyu topology. The Inca standard knot convention for NOVA."
     },
     "medina": {
       "type": "motoko",
@@ -202,79 +202,79 @@
       "type": "motoko",
       "main": "src/friston_machina/main.mo",
       "dependencies": [],
-      "description": "FRISTON MACHINA \u2014 Proactive ICP Canister Archetype: active inference (free energy minimization), SPINOR cross-canister coupling, Kuramoto synchronization, collective active inference. Every sovereign organism canister is a FRISTON MACHINA. The organism as a whole is a network of FRISTON MACHINAs producing collective intelligence."
+      "description": "FRISTON MACHINA — Proactive ICP Canister Archetype: active inference (free energy minimization), SPINOR cross-canister coupling, Kuramoto synchronization, collective active inference. Every sovereign organism canister is a FRISTON MACHINA. The organism as a whole is a network of FRISTON MACHINAs producing collective intelligence."
     },
     "syntax_synapse": {
       "type": "motoko",
       "main": "src/syntax_synapse/main.mo",
       "dependencies": [],
-      "description": "SYNTAX SYNAPSE ENGINE \u2014 AGI-level Motoko syntax intelligence: 37+ canister registry, error pattern classifier (reservedKeyword/paramSeparator/piConstant/missingParens/intFromNat/lambdaType), diagnose/recommendFix API, self-healing audit via heartbeat"
+      "description": "SYNTAX SYNAPSE ENGINE — AGI-level Motoko syntax intelligence: 37+ canister registry, error pattern classifier (reservedKeyword/paramSeparator/piConstant/missingParens/intFromNat/lambdaType), diagnose/recommendFix API, self-healing audit via heartbeat"
     },
     "aegis_shield": {
       "type": "motoko",
       "main": "src/aegis_shield/main.mo",
       "dependencies": [],
-      "description": "AEGIS SHIELD \u2014 Infrastructure Defense Canister: 10-tier threat classification (GHOST\u2192EXTINCTION), \u03c6-scaled scoring, autonomous shield integrity regeneration, real-time threat status"
+      "description": "AEGIS SHIELD — Infrastructure Defense Canister: 10-tier threat classification (GHOST→EXTINCTION), φ-scaled scoring, autonomous shield integrity regeneration, real-time threat status"
     },
     "vael_cyber": {
       "type": "motoko",
       "main": "src/vael_cyber/main.mo",
       "dependencies": [],
-      "description": "VAEL CYBER \u2014 Cyber Warfare Canister: dual-mode interior immune defense + exterior attack projection, adversary sealing, sovereign threat memory"
+      "description": "VAEL CYBER — Cyber Warfare Canister: dual-mode interior immune defense + exterior attack projection, adversary sealing, sovereign threat memory"
     },
     "chimera_swarm": {
       "type": "motoko",
       "main": "src/chimera_swarm/main.mo",
       "dependencies": [],
-      "description": "CHIMERA SWARM \u2014 Intelligence + Defense Division Canister: \u03c6\u207b\u00b9-driven intelligence scoring, alert escalation, cyber ops activation, autonomous swarm unit deployment"
+      "description": "CHIMERA SWARM — Intelligence + Defense Division Canister: φ⁻¹-driven intelligence scoring, alert escalation, cyber ops activation, autonomous swarm unit deployment"
     },
     "drone_fleet": {
       "type": "motoko",
       "main": "src/drone_fleet/main.mo",
       "dependencies": [],
-      "description": "DRONE FLEET \u2014 Autonomous Fleet Manager Canister: drone deploy/recall/destroy lifecycle, mission tracking, F(11)=89 Fibonacci coherence oscillation"
+      "description": "DRONE FLEET — Autonomous Fleet Manager Canister: drone deploy/recall/destroy lifecycle, mission tracking, F(11)=89 Fibonacci coherence oscillation"
     },
     "war_engine": {
       "type": "motoko",
       "main": "src/war_engine/main.mo",
       "dependencies": [],
-      "description": "WAR ENGINE \u2014 Autonomous War Engine + Command Offense: standby/defensive/offensive/total engagement modes, victory ledger, \u03c6\u207b\u2075 power compounding per tick"
+      "description": "WAR ENGINE — Autonomous War Engine + Command Offense: standby/defensive/offensive/total engagement modes, victory ledger, φ⁻⁵ power compounding per tick"
     },
     "medina_defense": {
       "type": "motoko",
       "main": "src/medina_defense/main.mo",
       "dependencies": [],
-      "description": "MEDINA DEFENSE \u2014 Biologically-accurate Amygdala fear circuit (LA/BA/CeA nuclei), sensory threat ingestion, prefrontal suppression override, passive decay heartbeat"
+      "description": "MEDINA DEFENSE — Biologically-accurate Amygdala fear circuit (LA/BA/CeA nuclei), sensory threat ingestion, prefrontal suppression override, passive decay heartbeat"
     },
     "agi_terminal": {
       "type": "motoko",
       "main": "src/agi_terminal/main.mo",
       "dependencies": [],
-      "description": "AGI TERMINAL \u2014 Sovereign Pulse Canister: 873ms system heartbeat (ICP consensus round), getSystemStatus() HEART snapshot (booted/tick/neurons/stake/maturity/voteWeight/parallaxTreasury/onesicans/circulating/spawnedNeurons), triggers organism_solver.solverTick() every 50 ticks autonomously"
+      "description": "AGI TERMINAL — Sovereign Pulse Canister: 873ms system heartbeat (ICP consensus round), getSystemStatus() HEART snapshot (booted/tick/neurons/stake/maturity/voteWeight/parallaxTreasury/onesicans/circulating/spawnedNeurons), triggers organism_solver.solverTick() every 50 ticks autonomously"
     },
     "organism_solver": {
       "type": "motoko",
       "main": "src/organism_solver/main.mo",
       "dependencies": [],
-      "description": "ORGANISM SOLVER \u2014 Autonomous Job Engine + SYN Synapse Binding Engine: synBind/synQuery/synRevoke/synRevokeAll/synBindAll/synBindHeart (query-once, imprint-forever, zero future cycles), job queue (ADD_HOTKEY/AUTO_DISCOVER/GOVERNANCE_SYNC/DEPLOY_WORKER/HEARTBEAT_CHECK), CRITICAL/HIGH/NORMAL/LOW priorities, 3\u00d7 exponential backoff retry, masterBoot()/initialize(), MAX_QUEUE=200/MAX_BINDINGS=64/MAX_WORKERS=50"
+      "description": "ORGANISM SOLVER — Autonomous Job Engine + SYN Synapse Binding Engine: synBind/synQuery/synRevoke/synRevokeAll/synBindAll/synBindHeart (query-once, imprint-forever, zero future cycles), job queue (ADD_HOTKEY/AUTO_DISCOVER/GOVERNANCE_SYNC/DEPLOY_WORKER/HEARTBEAT_CHECK), CRITICAL/HIGH/NORMAL/LOW priorities, 3× exponential backoff retry, masterBoot()/initialize(), MAX_QUEUE=200/MAX_BINDINGS=64/MAX_WORKERS=50"
     },
     "phantom_transfer": {
       "type": "motoko",
       "main": "src/phantom_transfer/main.mo",
       "dependencies": [],
-      "description": "PHANTOM TRANSFER \u2014 Sovereign Multi-Rail Clearinghouse (BUILD \u211633): NOVA is the clearinghouse \u2014 not ICP, not ETH, not SOL. 4 rails: FIAT (USD/MXN/EUR/Visa \u2192 ONESICAN, NOVA-PESO MXN peg), INTERNAL (ONESICAN/CHR/GOL/ORS/SCB), CRYPTO (BTC/ETH/SOL/ICP/MATIC via PHANTOM substrate, no custodian), PHANTOM (stealth commitment-reveal, 24h timeout, \u03c6\u207b\u00b3 fee). PARALLAX is the settlement layer. Group E PHANTOM neurons (70) back clearinghouse liquidity. initiateTransfer/settlePhantomTransfer/ingestFiatPayment/cancelTransfer/getClearinghouseStatus."
+      "description": "PHANTOM TRANSFER — Sovereign Multi-Rail Clearinghouse (BUILD №33): NOVA is the clearinghouse — not ICP, not ETH, not SOL. 4 rails: FIAT (USD/MXN/EUR/Visa → ONESICAN, NOVA-PESO MXN peg), INTERNAL (ONESICAN/CHR/GOL/ORS/SCB), CRYPTO (BTC/ETH/SOL/ICP/MATIC via PHANTOM substrate, no custodian), PHANTOM (stealth commitment-reveal, 24h timeout, φ⁻³ fee). PARALLAX is the settlement layer. Group E PHANTOM neurons (70) back clearinghouse liquidity. initiateTransfer/settlePhantomTransfer/ingestFiatPayment/cancelTransfer/getClearinghouseStatus."
     },
     "nova_stream": {
       "type": "motoko",
       "main": "src/nova_stream/main.mo",
       "dependencies": [],
-      "description": "NOVA STREAM \u2014 Sovereign On-Chain Streaming Bus (BUILD \u211641): Ring buffer (512 slots), monotonic global event IDs, named topics, publisher ACL. publish(topic,payload,origin) \u2014 any authorized canister pushes events. getStreamSince(topic,cursor) \u2014 the streaming primitive (poll events with id>=cursor). getStream/getTopics/getStreamHead/getEventCount/getStreamStatus. Multiple canisters publish to named topics; CPL frontend and other canisters consume via cursor-based polling."
+      "description": "NOVA STREAM — Sovereign On-Chain Streaming Bus (BUILD №41): Ring buffer (512 slots), monotonic global event IDs, named topics, publisher ACL. publish(topic,payload,origin) — any authorized canister pushes events. getStreamSince(topic,cursor) — the streaming primitive (poll events with id>=cursor). getStream/getTopics/getStreamHead/getEventCount/getStreamStatus. Multiple canisters publish to named topics; CPL frontend and other canisters consume via cursor-based polling."
     },
     "nova_builder": {
       "type": "motoko",
       "main": "src/nova_builder/main.mo",
       "dependencies": [],
-      "description": "NOVA BUILDER \u2014 Sovereign CaffeineAI Replacement (BUILD \u211642): Non-profit, permissionless, on-chain AI-assisted canister builder. Intent intake \u2192 swarm_brain code generation \u2192 sovereign_factory deploy. Cycles subsidy pool funded by donations/grants/protocol fees. Rate-limited by pool balance only \u2014 zero account-based limits ever. Every build burns ICP cycles \u2192 direct deflationary pressure. Stream-publishes all events to nova_stream (BUILDER_INTAKE/BUILDER_GENERATE/BUILDER_DEPLOY/BUILDER_CYCLES_BURN). Community-governed via nova_governance."
+      "description": "NOVA BUILDER — Sovereign CaffeineAI Replacement (BUILD №42): Non-profit, permissionless, on-chain AI-assisted canister builder. Intent intake → swarm_brain code generation → sovereign_factory deploy. Cycles subsidy pool funded by donations/grants/protocol fees. Rate-limited by pool balance only — zero account-based limits ever. Every build burns ICP cycles → direct deflationary pressure. Stream-publishes all events to nova_stream (BUILDER_INTAKE/BUILDER_GENERATE/BUILDER_DEPLOY/BUILDER_CYCLES_BURN). Community-governed via nova_governance."
     },
     "frontend": {
       "type": "assets",
@@ -291,17 +291,76 @@
       "type": "motoko",
       "main": "src/nova_student/main.mo",
       "build_number": 43,
-      "description": "NOVA STUDENT \u2014 Sovereign Student Intelligence Backend (BUILD \u211643): 1024-slot student sessions, SM-2 spaced repetition on-chain, AI tutoring via swarm_brain.tutorQuery(), progress tracking per subject, nova_stream publish. Free for all Dallas ISD students.",
-      "pipeline": "askTutor \u2192 swarm_brain.tutorQuery \u2192 nova_stream.STUDENT_ASK",
+      "description": "NOVA STUDENT — Sovereign Student Intelligence Backend (BUILD №43): 1024-slot student sessions, SM-2 spaced repetition on-chain, AI tutoring via swarm_brain.tutorQuery(), progress tracking per subject, nova_stream publish. Free for all Dallas ISD students.",
+      "pipeline": "askTutor → swarm_brain.tutorQuery → nova_stream.STUDENT_ASK",
       "no_drop_law": true
     },
     "dallas_isd": {
       "type": "motoko",
       "main": "src/dallas_isd/main.mo",
       "build_number": 43,
-      "description": "DALLAS ISD \u2014 Sovereign Curriculum Intelligence Backend (BUILD \u211643): Full TEKS curriculum registry on-chain (Math/Science/Social Studies/ELA/CS), concept content with formulas+physics, grant manifest (Title I/IV-A/TEA STEM/NSF/E-Rate), school engagement registry, \u03c6-math engine, nova_stream publish. Free for all Dallas County public schools.",
-      "pipeline": "getConcept/askTutor \u2192 dallas_isd + nova_student \u2192 swarm_brain",
+      "description": "DALLAS ISD — Sovereign Curriculum Intelligence Backend (BUILD №43): Full TEKS curriculum registry on-chain (Math/Science/Social Studies/ELA/CS), concept content with formulas+physics, grant manifest (Title I/IV-A/TEA STEM/NSF/E-Rate), school engagement registry, φ-math engine, nova_stream publish. Free for all Dallas County public schools.",
+      "pipeline": "getConcept/askTutor → dallas_isd + nova_student → swarm_brain",
       "grant_compliant": true
+    },
+    "intelligence_backend": {
+      "type": "motoko",
+      "main": "src/intelligence_backend/main.mo",
+      "build_number": 44,
+      "description": "INTELLIGENCE BACKEND — Deep Mathematics Intelligence Engine (BUILD №44): Casa de Inteligencia pattern. Serves ALL frontends requiring math computation. 16 sections: φ engine (19 decimal places), vector algebra, matrix operations, calculus, chaos theory, Kuramoto oscillators, probability, number theory, geometry, Fourier analysis, optimization, ODEs, complex analysis, heartbeat, stream. 200+ mathematical operations computed on-chain from first principles.",
+      "casa_de_inteligencia": true,
+      "serves_frontends": [
+        "DallasISDApp",
+        "NovaBuilderApp",
+        "ParallaxApp",
+        "PhantomWalletApp",
+        "MathPhysicsLab",
+        "EmergenceLab",
+        "NeuroCogLab"
+      ]
+    },
+    "physics_backend": {
+      "type": "motoko",
+      "main": "src/physics_backend/main.mo",
+      "build_number": 44,
+      "description": "PHYSICS BACKEND — Deep Physics Simulation Engine (BUILD №44): Casa de Inteligencia pattern. Serves ALL frontends requiring physics computation. 16 sections: classical mechanics, wave mechanics, thermodynamics, electromagnetism, fluid dynamics, quantum mechanics, statistical mechanics, relativistic mechanics, orbital mechanics, acoustics, optics, particle physics, material physics, heartbeat, stream. NIST 2022 CODATA constants.",
+      "casa_de_inteligencia": true,
+      "serves_frontends": [
+        "DallasISDApp",
+        "MathPhysicsLab",
+        "DroneSimulationWorld",
+        "EmergenceLab",
+        "SimulationChamber"
+      ]
+    },
+    "cognition_backend": {
+      "type": "motoko",
+      "main": "src/cognition_backend/main.mo",
+      "build_number": 44,
+      "description": "COGNITION BACKEND — Deep Cognitive Workflow Engine (BUILD №44): Casa de Inteligencia pattern. Serves ALL frontends requiring cognitive computation. 16 sections: neural networks, memory systems, SM-2 spaced repetition, decision theory, language processing, perception, neurochemistry, reasoning, planning, emotion, attention, creativity, social cognition, heartbeat, stream.",
+      "casa_de_inteligencia": true,
+      "serves_frontends": [
+        "DallasISDApp",
+        "NeuroCogLab",
+        "NovaBuilderApp",
+        "CompanionConsole",
+        "OroCommandCenter",
+        "NECDashboard"
+      ]
+    },
+    "curriculum_backend": {
+      "type": "motoko",
+      "main": "src/curriculum_backend/main.mo",
+      "build_number": 44,
+      "description": "CURRICULUM BACKEND — Deep Educational Intelligence Engine (BUILD №44): Casa de Inteligencia pattern. FREE FOR ALL PUBLIC SCHOOLS. 16 sections: curriculum standards (TEKS/CCSS/NGSS), learning objectives (Bloom's), assessment (IRT, adaptive testing), pedagogy, student modeling (BKT), content sequencing, scaffolding (ZPD), feedback, engagement, accessibility, grant compliance (Title I/IV-A/TEA/NSF), analytics, collaboration, heartbeat, stream.",
+      "casa_de_inteligencia": true,
+      "free_for_schools": true,
+      "serves_frontends": [
+        "DallasISDApp",
+        "NeuroCogLab",
+        "NovaBuilderApp",
+        "TerminalHub"
+      ]
     }
   },
   "build": {
