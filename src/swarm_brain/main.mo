@@ -31,7 +31,9 @@
 // ║                                                                                                           ║
 // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-// PARALLAX DRONE SWARM SIMULATION
+// SWARM BRAIN — SOVEREIGN COGNITIVE INTELLIGENCE ENGINE (BUILD №46)
+// EVERYTHING IS INTELLIGENCE — This is NOT simulation. This is REAL computation.
+// Physics = REAL math and geometry. Golden numbers are REAL. No fake simulation.
 // Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
 // Sovereign Cognitive Swarm Engine. All doctrine attributed herein.
 // Kuramoto synchrony, Hebbian learning, Jasmine's Law, OMNIS emergence

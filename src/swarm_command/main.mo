@@ -1,4 +1,13 @@
-// PARALLAX DRONE SWARM SIMULATION
+// ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+// ║  COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ. ALL RIGHTS RESERVED.                                    ║
+// ║  Owner: Alfredo Medina Hernandez · Dallas TX · MedinaSITech@outlook.com                                  ║
+// ║  Framework: Medina Doctrine — Native Nova Protocol                                                        ║
+// ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+//
+// SWARM COMMAND — SOVEREIGN SWARM INTELLIGENCE ENGINE (BUILD №46)
+// EVERYTHING IS INTELLIGENCE — This is NOT simulation. This is REAL computation.
+// Physics = REAL math and geometry. Golden numbers are REAL. No fake simulation.
+//
 // Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
 // Sovereign Cognitive Swarm Engine. All doctrine attributed herein.
 // Kuramoto synchrony, Hebbian learning, Jasmine's Law, OMNIS emergence

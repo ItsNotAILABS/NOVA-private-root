@@ -22,7 +22,7 @@ import { HomeNow }            from './components/habitat/HomeNow';
 import { WorkerHub }          from './components/habitat/WorkerHub';
 import { ArtifactStudio }     from './components/habitat/ArtifactStudio';
 import { PresenceBoard }      from './components/habitat/PresenceBoard';
-import { ComputationChamber } from './components/simulation/ComputationChamber'; // REAL physics, not simulation
+import { ComputationChamber } from './components/computation/ComputationChamber'; // REAL physics computation (NOT simulation)
 import { CompanionConsole } from './components/companion/CompanionConsole';
 
 // ── Science Labs — using working versions ──────────────────────────────────
@@ -31,7 +31,7 @@ import { MathPhysicsLab } from './components/labs/MathPhysicsLab';
 import { NeuroCogLab }    from './components/labs/NeuroCogLab';
 // ── ORO Command Center — The Real Multi-Agent Workspace ─────────────────────────
 import { OroCommandCenter }     from './components/CommandCenter/OroCommandCenter';
-import { DroneRealWorld }       from './components/CommandCenter/DroneRealWorld'; // REAL physics, not simulation
+import { DroneRealWorld }       from './components/CommandCenter/DroneRealWorld'; // REAL physics computation (NOT simulation)
 // ── Neural Emergence Core ─────────────────────────────────────────────────────
 import { NECDashboard }   from './components/nec/NECDashboard';
 
