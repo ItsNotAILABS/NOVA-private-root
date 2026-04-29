@@ -257,6 +257,63 @@ const S = {
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  // Template library
+  templateBtn: {
+    width: '100%',
+    textAlign: 'left' as const,
+    background: '#050d1a',
+    border: '1px solid #0a2040',
+    borderRadius: 4,
+    padding: '7px 10px',
+    color: '#4a8090',
+    fontSize: 9,
+    fontFamily: "'SF Mono', 'Fira Code', monospace",
+    cursor: 'pointer',
+    marginBottom: 4,
+    letterSpacing: '0.04em',
+  },
+  // Build pipeline
+  pipelineBox: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 0,
+    marginBottom: 10,
+    marginTop: 6,
+  },
+  pipelineStage: (active: boolean, done: boolean) => ({
+    fontSize: 8,
+    fontWeight: 600,
+    letterSpacing: '0.08em',
+    color: active ? '#030810' : done ? '#4f4' : '#1a3050',
+    background: active ? '#4af' : 'transparent',
+    padding: '3px 6px',
+    borderRadius: 2,
+    whiteSpace: 'nowrap' as const,
+  }),
+  pipelineArrow: (done: boolean) => ({
+    fontSize: 9,
+    color: done ? '#4f4' : '#0a2040',
+    padding: '0 2px',
+  }),
+  // Organism tree
+  treeBox: {
+    background: '#020810',
+    border: '1px solid #0a2040',
+    borderRadius: 4,
+    padding: '8px 10px',
+    fontSize: 9,
+    color: '#3a6080',
+    fontFamily: "'SF Mono', 'Fira Code', monospace",
+    whiteSpace: 'pre' as const,
+    lineHeight: 1.7,
+    overflowX: 'auto' as const,
+  },
+  registryItem: (deployed: boolean) => ({
+    fontSize: 9,
+    color: deployed ? '#4f4' : '#2a4060',
+    padding: '4px 0',
+    borderBottom: '1px solid #0a1830',
+  }),
 };
 
 // ── Log entry type (local) ────────────────────────────────────────────────
@@ -279,6 +336,35 @@ function fmtPool(balance: bigint, threshold: bigint): number {
   const pct = (Number(balance) / Number(threshold)) * 100;
   return Math.min(200, pct); // pool can exceed threshold; cap at 200 for display
 }
+
+// ── Template library ──────────────────────────────────────────────────────
+const TEMPLATES: { label: string; intent: string }[] = [
+  { label: '⊕ Counter',    intent: 'Counter canister with increment, decrement, and get' },
+  { label: '⊕ KV Store',   intent: 'Key-value store with CRUD operations' },
+  { label: '⊕ Token',      intent: 'Token ledger with mint, transfer, and balance' },
+  { label: '⊕ NFT',        intent: 'NFT collection with mint and transfer' },
+  { label: '⊕ DAO',        intent: 'DAO governance with proposals and voting' },
+  { label: '⊕ Blog/CMS',   intent: 'Blog/CMS with posts and comments' },
+];
+
+// ── Build pipeline stages ─────────────────────────────────────────────────
+const PIPELINE_STAGES = ['INTENT', 'BRAIN', 'CODE', 'FACTORY', 'DEPLOYED'] as const;
+
+function stageIndex(status: BuildSession['status']): number {
+  if ('QUEUED'     in status) return 0;
+  if ('GENERATING' in status) return 1;
+  if ('GENERATED'  in status) return 2;
+  if ('DEPLOYING'  in status) return 3;
+  if ('DEPLOYED'   in status) return 4;
+  return -1; // FAILED
+}
+
+// ── Mock organism registry ────────────────────────────────────────────────
+const MOCK_ORGANISMS = [
+  { id: 'ORG-001', name: 'Counter Organism',  canisterId: 'bkyz2-fmaaa-aaaaa-qaaaq-cai', deployed: true },
+  { id: 'ORG-002', name: 'Token Ledger',      canisterId: 'rrkah-fqaaa-aaaaa-aaaaq-cai', deployed: true },
+  { id: 'ORG-003', name: 'DAO Module',        canisterId: null,                          deployed: false },
+];
 
 // ── Dashboard component ───────────────────────────────────────────────────
 export function NovaBuilderDashboard() {
@@ -462,6 +548,23 @@ export function NovaBuilderDashboard() {
           {error && <div style={{ fontSize: 10, color: '#f44', marginTop: 8 }}>{error}</div>}
         </div>
 
+        {/* Template library */}
+        <div style={S.intentBox}>
+          <span style={S.intentLabel}>⊞ Templates — Click to populate</span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
+            {TEMPLATES.map(t => (
+              <button
+                key={t.label}
+                style={S.templateBtn}
+                onClick={() => setIntent(t.intent)}
+                disabled={submitting}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Active session */}
         {session && (
           <div style={S.sessionBox}>
@@ -474,6 +577,25 @@ export function NovaBuilderDashboard() {
               <span style={{ marginLeft: 'auto', fontSize: 8, color: '#2a4060' }}>
                 {fmtCycles(session.cyclesConsumed)} cycles committed
               </span>
+            </div>
+            {/* Build pipeline visualization */}
+            <div style={S.pipelineBox}>
+              {PIPELINE_STAGES.map((stage, i) => {
+                const si = stageIndex(session.status);
+                const done    = si > i;
+                const active  = si === i;
+                const failed  = si === -1;
+                return (
+                  <React.Fragment key={stage}>
+                    {i > 0 && (
+                      <span style={S.pipelineArrow(done)}>→</span>
+                    )}
+                    <span style={S.pipelineStage(active, done)}>
+                      {done ? '✓' : active ? '◉' : failed ? '✗' : '○'}{' '}{stage}
+                    </span>
+                  </React.Fragment>
+                );
+              })}
             </div>
             {'DEPLOYED' in session.status && session.deployAddress && (
               <div style={S.deployAddress}>
@@ -582,6 +704,49 @@ export function NovaBuilderDashboard() {
               </div>
             ))
           )}
+        </div>
+
+        {/* Organism branching visualization */}
+        <div>
+          <div style={S.panelTitle}>Organism Branching</div>
+          <div style={S.treeBox}>
+{`◉ ORGANISM VEIN
+├── ⊕ Counter Module
+│   ├── increment()
+│   └── decrement()
+├── ⊕ Token Branch
+│   ├── mint()
+│   ├── transfer()
+│   └── ⊕ Audit Sub-Branch
+│       ├── log()
+│       └── verify()
+├── ⊕ DAO Branch
+│   ├── propose()
+│   └── vote()
+└── ⊕ [Next Build...]`}
+          </div>
+          <div style={{ fontSize: 8, color: '#1a3050', marginTop: 4, lineHeight: 1.6 }}>
+            Each build creates a vein. Products branch off.<br />
+            Sub-branches extend the organism tree.
+          </div>
+        </div>
+
+        {/* Organism registry */}
+        <div>
+          <div style={S.panelTitle}>Your Organisms</div>
+          {MOCK_ORGANISMS.map(org => (
+            <div key={org.id} style={S.registryItem(org.deployed)}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>{org.deployed ? '●' : '○'} {org.name}</span>
+                <span style={{ fontSize: 7, color: '#2a4060' }}>{org.id}</span>
+              </div>
+              {org.canisterId && (
+                <div style={{ fontSize: 8, color: '#2a4060', marginTop: 2, paddingLeft: 12 }}>
+                  └ {org.canisterId}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
 
         {/* No-account doctrine + pipeline status */}
