@@ -1,15 +1,17 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// NOVA × DALLAS ISD — CLASSROOM VIEW
+// ⚠⚠⚠  TRADE SECRET — CONFIDENTIAL — DO NOT DISTRIBUTE  ⚠⚠⚠
 // ═══════════════════════════════════════════════════════════════════════════════
 //
-// CPL protocol view for Dallas ISD public school classrooms.
-// Renders the three free adapters: Phi Explorer, Kuramoto Lab, TEKS Bridge.
+// THIS FILE CONTAINS TRADE SECRET UI COMPONENTS.
+// PhiExplorerPanel and KuramotoPanel expose proprietary φ-formula and
+// Kuramoto synchronization engines that are sovereign IP of NOVA / Medina Tech.
 //
-// FREE for all Dallas ISD public schools.
-// No fees. No data collection. No subscriptions.
-// Powered by NOVA — Medina Tech, Dallas TX.
+// DO NOT expose this view in free/public-facing products.
+// For the FREE public school view, use: DigitalClassroom.tsx
+// See: docs/charters/NOVA_MASTER_CHARTER.md §4 (Trade Secrets)
 //
 // COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ. ALL RIGHTS RESERVED.
+// MEDINA TECH — DALLAS, TEXAS — TRADE SECRET
 // ═══════════════════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useCallback } from 'react';

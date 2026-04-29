@@ -1,19 +1,28 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// NOVA × DALLAS ISD — FREE PUBLIC SCHOOL ADAPTERS
+// ⚠⚠⚠  TRADE SECRET — CONFIDENTIAL — DO NOT DISTRIBUTE  ⚠⚠⚠
 // ═══════════════════════════════════════════════════════════════════════════════
 //
-// Three free educational adapters for Dallas Independent School District
-// public schools. These expose NOVA's sovereign mathematics as interactive
-// learning tools — at zero cost, forever.
+// THIS FILE CONTAINS TRADE SECRETS OF NOVA / MEDINA TECH.
 //
-// Adapters:
-//   1. PhiExplorerAdapter      — Golden ratio / Fibonacci explorer
-//   2. KuramotoClassroomAdapter — Oscillator synchronization lab
-//   3. SchoolMathBridgeAdapter  — NOVA math ↔ TEKS curriculum bridge
+// The PhiExplorer (§2) and KuramotoClassroom (§3) adapters are PROPRIETARY
+// intellectual property. The φ-formula engine, golden spiral algorithms,
+// and Kuramoto synchronization code are TRADE SECRETS that power NOVA's
+// three commercial products (PARALLAX, NOVA BUILDER, NOVA ORGANISM).
+//
+// DO NOT:
+//   - Expose these functions in free/public-facing products
+//   - Include in Dallas ISD Digital Classroom free adapters
+//   - Share source code with third parties
+//   - Open-source or publish any portion of §2 or §3
+//
+// The SchoolMathBridge (§4) TEKS mappings are educational metadata only
+// and are superseded by DigitalClassroomAdapters.ts (all-curriculum version).
+//
+// For the FREE public school adapters, use: DigitalClassroomAdapters.ts
+// See: docs/charters/NOVA_MASTER_CHARTER.md §4 (Trade Secrets)
 //
 // COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ. ALL RIGHTS RESERVED.
-// FREE FOR ALL DALLAS ISD PUBLIC SCHOOLS — NO FEES, NO DATA COLLECTION
-// MEDINA TECH — DALLAS, TEXAS
+// MEDINA TECH — DALLAS, TEXAS — TRADE SECRET
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // ─── §1  CONSTANTS ──────────────────────────────────────────────────────────────

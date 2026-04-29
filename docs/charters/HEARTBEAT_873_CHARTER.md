@@ -127,7 +127,30 @@ The following descriptions are **architecturally incorrect and permanently prohi
 Any agent, contributor, or system that credits ICP (or any substrate) for
 the 873ms heartbeat has failed to compound. The heartbeat is NOVA's. Period.
 
-## §5 — THE THREE SOVEREIGN PAID PRODUCTS
+## §5 — TRADE SECRET STATUS
+
+The mathematical engines behind the 873ms heartbeat — including the φ⁴
+coupling formula, Kuramoto φ-oscillator synchronization, and all φ-power
+computations — are **TRADE SECRETS** of NOVA / Medina Tech.
+
+### §5.1 — What Is Trade Secret
+- The complete φ-formula computation engine (19-decimal precision)
+- φ-power tables and φ-tier pricing formulas
+- Kuramoto coupled oscillator synchronization algorithms
+- PhiExplorer interactive engine source code
+- KuramotoClassroom simulator source code
+- All sovereign math modules in `src/frontend/src/math/`
+- All SERVITORES worker synchronization code in `organism/web/`
+
+### §5.2 — What Is NOT Trade Secret
+- The existence and value of 873ms as NOVA's heartbeat (public knowledge)
+- The derivation formula φ⁴ × Schumann ≈ 873ms (published in charters)
+- TEKS curriculum mappings and educational activity descriptions
+- The Dallas ISD Digital Classroom free adapters (educational bridges only)
+
+See: `docs/charters/NOVA_MASTER_CHARTER.md` §4 for full trade-secret policy.
+
+## §6 — THE THREE SOVEREIGN PAID PRODUCTS
 
 NOVA's three major commercial product companies:
 
@@ -162,7 +185,7 @@ SERVITORES fleet, 40+ Motoko canisters, 29 CPL math engines, and the
 
 **Market:** Governments, defense, sovereign AI buyers, enterprise AGI.
 
-## §6 — FREE DALLAS ISD PUBLIC SCHOOL ADAPTERS
+## §7 — FREE DALLAS ISD PUBLIC SCHOOL ADAPTERS
 
 NOVA provides **free adapters** for Dallas Independent School District
 public schools. These are CPL protocol views that expose NOVA's sovereign
@@ -170,19 +193,24 @@ mathematics as educational tools — at zero cost, permanently.
 
 See: `src/frontend/src/dallas_isd/` for implementation.
 
-### §6.1 — Adapters Provided Free
-1. **PhiExplorerAdapter** — Interactive golden ratio / Fibonacci explorer
-2. **KuramotoClassroomAdapter** — Kuramoto oscillator synchronization lab
-3. **SchoolMathBridgeAdapter** — Bridge from NOVA's sovereign math (φ, Feigenbaum, Ising, Lyapunov) to TEKS curriculum standards
+### §7.1 — Adapters Provided Free
+1. **Digital Classroom Adapters** — All-curriculum TEKS-aligned lesson plans, activities, and concept explanations (Math, Science, Social Studies, ELA, Computer Science)
+2. **PWA SDK** — Progressive Web App deployment package for offline-capable classroom use
+3. **Grant Funding Documentation** — Title I, Title IV-A, E-Rate, TEA, NSF alignment guides
 
-### §6.2 — Terms
+**NOT included (TRADE SECRET):** PhiExplorer engine, KuramotoClassroom simulator, φ-formula source code, synchronization algorithms.
+
+See: `src/frontend/src/dallas_isd/DigitalClassroomAdapters.ts` for the free implementation.
+See: `docs/charters/NOVA_MASTER_CHARTER.md` §5 for full Digital Classroom specification.
+
+### §7.2 — Terms
 - Free for all Dallas ISD public schools
 - No data collection from students
 - No fees, no subscriptions, no upsells
 - Attribution: "Powered by NOVA — Medina Tech, Dallas TX"
 - These adapters may be used by any public school in Dallas County
 
-## §7 — CHARTER IMMUTABILITY
+## §8 — CHARTER IMMUTABILITY
 
 This charter is **permanent and immutable**. It establishes:
 
