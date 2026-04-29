@@ -655,7 +655,7 @@ actor NovaBuilder {
     ignore _publishToStream("BUILDER_GENERATE", genPayload);
 
     if (brainCanisterPrincipal == "aaaaa-aa") {
-      _failBuild(slot, sid, "BRAIN_NOT_CONFIGURED: setBrainCanister() required");
+      await _failBuild(slot, sid, "BRAIN_NOT_CONFIGURED: setBrainCanister() required");
       return;
     };
 
@@ -670,12 +670,12 @@ actor NovaBuilder {
     };
 
     if (not brainOk) {
-      _failBuild(slot, sid, "BRAIN_CALL_FAILED");
+      await _failBuild(slot, sid, "BRAIN_CALL_FAILED");
       return;
     };
 
     if (Text.size(generatedCode) == 0) {
-      _failBuild(slot, sid, "BRAIN_EMPTY_OUTPUT: no code generated");
+      await _failBuild(slot, sid, "BRAIN_EMPTY_OUTPUT: no code generated");
       return;
     };
 
@@ -691,7 +691,7 @@ actor NovaBuilder {
     ignore _publishToStream("BUILDER_DEPLOY", deployPayload);
 
     if (factoryCanisterPrincipal == "aaaaa-aa") {
-      _failBuild(slot, sid, "FACTORY_NOT_CONFIGURED: setFactoryCanister() required");
+      await _failBuild(slot, sid, "FACTORY_NOT_CONFIGURED: setFactoryCanister() required");
       return;
     };
 
@@ -706,12 +706,12 @@ actor NovaBuilder {
     };
 
     if (not factoryOk) {
-      _failBuild(slot, sid, "FACTORY_CALL_FAILED");
+      await _failBuild(slot, sid, "FACTORY_CALL_FAILED");
       return;
     };
 
     if (Text.size(canisterAddress) == 0) {
-      _failBuild(slot, sid, "FACTORY_NO_ADDRESS: deploy returned empty address");
+      await _failBuild(slot, sid, "FACTORY_NO_ADDRESS: deploy returned empty address");
       return;
     };
 
@@ -727,7 +727,7 @@ actor NovaBuilder {
   };
 
   // Helper: fail a build, refund cycles, publish event
-  func _failBuild(slot : Nat, sid : Text, reason : Text) {
+  func _failBuild(slot : Nat, sid : Text, reason : Text) : async () {
     sessStatus[slot]    := 5; // FAILED
     sessError[slot]     := reason;
     sessCompleted[slot] := Time.now();
