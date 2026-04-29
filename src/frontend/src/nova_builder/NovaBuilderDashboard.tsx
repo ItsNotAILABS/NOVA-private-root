@@ -584,8 +584,16 @@ export function NovaBuilderDashboard() {
           )}
         </div>
 
-        {/* No-account doctrine */}
+        {/* No-account doctrine + pipeline status */}
         <div style={{ marginTop: 'auto' }}>
+          <div style={S.panelTitle}>Automated Pipeline</div>
+          <div style={{ fontSize: 8, color: '#4a6880', lineHeight: 1.8, marginBottom: 12 }}>
+            ● Intent → swarm_brain (AGI code gen)<br />
+            ● Code → sovereign_factory (deploy)<br />
+            ● Cycles burned → ICP deflation<br />
+            ● Heartbeat processes queue every tick<br />
+            ● Graduated rate by pool balance
+          </div>
           <div style={S.panelTitle}>No-Limit Doctrine</div>
           <div style={{ fontSize: 8, color: '#1a3050', lineHeight: 1.8 }}>
             ● No account limits · Ever<br />

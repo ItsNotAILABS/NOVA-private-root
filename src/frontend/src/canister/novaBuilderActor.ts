@@ -142,10 +142,21 @@ const novaBuilderIdl = ({ IDL: _IDL }: { IDL: typeof IDL }) => {
     getNoDropLaw:      _IDL.Func([], [_IDL.Text], ['query']),
     getSeal:           _IDL.Func([], [_IDL.Text], ['query']),
     isLocked:          _IDL.Func([], [_IDL.Bool], ['query']),
+    getRateLimitTier:  _IDL.Func([], [_IDL.Record({
+      tier: _IDL.Text,
+      batchSize: _IDL.Nat,
+      poolPct: _IDL.Nat,
+    })], ['query']),
+    getTotalDonated:   _IDL.Func([], [_IDL.Nat], ['query']),
+    getHeartbeatTick:  _IDL.Func([], [_IDL.Nat], ['query']),
+    getBrainCanister:  _IDL.Func([], [_IDL.Text], ['query']),
+    getFactoryCanister: _IDL.Func([], [_IDL.Text], ['query']),
     // Admin
     claimBuilder:      _IDL.Func([], [_IDL.Text], []),
     creditPool:        _IDL.Func([_IDL.Nat], [_IDL.Text], []),
     setStreamCanister: _IDL.Func([_IDL.Text], [_IDL.Text], []),
+    setBrainCanister:  _IDL.Func([_IDL.Text], [_IDL.Text], []),
+    setFactoryCanister: _IDL.Func([_IDL.Text], [_IDL.Text], []),
     setSubsidyThreshold: _IDL.Func([_IDL.Nat], [_IDL.Text], []),
     setCyclesPerBuild: _IDL.Func([_IDL.Nat], [_IDL.Text], []),
     markBuildGenerating: _IDL.Func([_IDL.Text], [_IDL.Text], []),
@@ -168,9 +179,16 @@ export type NovaBuilderActor = ActorSubclass<{
   getNoDropLaw(): Promise<string>;
   getSeal(): Promise<string>;
   isLocked(): Promise<boolean>;
+  getRateLimitTier(): Promise<{ tier: string; batchSize: bigint; poolPct: bigint }>;
+  getTotalDonated(): Promise<bigint>;
+  getHeartbeatTick(): Promise<bigint>;
+  getBrainCanister(): Promise<string>;
+  getFactoryCanister(): Promise<string>;
   claimBuilder(): Promise<string>;
   creditPool(amount: bigint): Promise<string>;
   setStreamCanister(p: string): Promise<string>;
+  setBrainCanister(p: string): Promise<string>;
+  setFactoryCanister(p: string): Promise<string>;
 }>;
 
 // ── Factory ───────────────────────────────────────────────────────────────

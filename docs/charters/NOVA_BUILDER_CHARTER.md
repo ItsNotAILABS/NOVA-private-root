@@ -67,18 +67,44 @@ self-reinforcing protocol infrastructure.
 | 2 | Golden math constants (φ, φ⁻¹, φ-tier cycle costs) |
 | 3 | Build session types (BuildStatus, BuildSession, BuildSummary, BuilderStatus) |
 | 4 | Session ring buffer (512 slots, monotonic IDs) |
-| 5 | Cycles subsidy pool accounting |
-| 6 | nova_stream integration (inter-canister publish) |
+| 5 | Cycles subsidy pool accounting + graduated rate limiting |
+| 6a | nova_stream integration (inter-canister publish) |
+| 6b | Inter-canister targets (swarm_brain + sovereign_factory principals) |
 | 7 | Governance configuration (threshold, cycles-per-build) |
-| 8 | Cycle donation entry point |
+| 8 | Cycle donation entry point (ExperimentalCycles) |
 | 9 | `submitBuild(intent)` — the primary user entry point |
 | 10 | `getBuildSession(id)` — cursor-based session polling |
 | 11 | Lifecycle transitions (QUEUED→GENERATING→GENERATED→DEPLOYING→DEPLOYED\|FAILED) |
 | 12 | `getBuilderStatus()`, `getRecentBuilds(n)` — public proof of work |
 | 13 | Diagnostics |
 | 14 | No-Drop Law (immutable covenant) |
+| 15 | Automated heartbeat queue processor (swarm_brain → sovereign_factory pipeline) |
+| 16 | Pool economics query (graduated rate limit tier) |
 
-### 3.2 — Existing NOVA Infrastructure Used
+### 3.2 — Automated Pipeline (Heartbeat-Driven)
+
+The nova_builder canister runs a **fully automated** build pipeline without manual admin
+intervention. The ICP heartbeat (~873ms) drives the queue processor:
+
+```
+submitBuild(intent) → session QUEUED
+                    ↓ (heartbeat picks up, batch size by pool tier)
+swarm_brain.generateCanisterCode(intent)
+                    ↓ success → session GENERATED
+sovereign_factory.deployBuilderCanister(code, sessionId)
+                    ↓ success → session DEPLOYED → cycles burned
+nova_stream.publish(BUILDER_DEPLOY, ...) → on-chain proof
+```
+
+On failure at any stage: cycles are **refunded** to the subsidy pool, session marked FAILED,
+and the failure event is published to nova_stream for transparent diagnostics.
+
+Inter-canister targets are configured by the architect:
+- `setBrainCanister(principal)` — points to swarm_brain
+- `setFactoryCanister(principal)` — points to sovereign_factory
+- `setStreamCanister(principal)` — points to nova_stream
+
+### 3.3 — Existing NOVA Infrastructure Used
 
 | Canister | Role |
 |----------|------|
@@ -91,7 +117,7 @@ self-reinforcing protocol infrastructure.
 | `sovereign_factory` | TAWANTINSUYU — deploys user canisters |
 | `nova_governance` | Community votes on subsidy thresholds |
 
-### 3.3 — Stream Topics Published
+### 3.4 — Stream Topics Published
 
 | Topic | Events |
 |-------|--------|
@@ -100,7 +126,7 @@ self-reinforcing protocol infrastructure.
 | `BUILDER_DEPLOY` | Deployment lifecycle |
 | `BUILDER_CYCLES_BURN` | Cycles consumed + running total |
 
-### 3.4 — CPL Frontend
+### 3.5 — CPL Frontend
 
 | File | Role |
 |------|------|
@@ -136,12 +162,22 @@ More builders → more cycles burned → stronger ICP deflation
 This is the self-reinforcing loop that CaffeineAI never created because it was a VC-funded startup
 with no protocol-level integration with ICP tokenomics.
 
-### 4.3 — Rate Limiting: Cycles Only — Never Accounts
+### 4.3 — Rate Limiting: Cycles Only — Never Accounts (Graduated)
 
 NOVA BUILDER has exactly **one** rate-limiting mechanism: the cycles pool balance.
+The rate is **graduated**, not binary:
 
-- If `pool >= subsidyThreshold`: queue is open. Any principal may build. No limits.
-- If `pool < subsidyThreshold`: queue is paused until pool is replenished.
+| Pool Balance | Tier | Builds per Heartbeat Tick |
+|---|---|---|
+| Below threshold | PAUSED | 0 — queue stops until pool is replenished |
+| 1–2× threshold | TRICKLE | 1 — conservative processing |
+| 2–5× threshold | NORMAL | 3 — standard throughput |
+| 5–10× threshold | HIGH | 5 — elevated processing |
+| 10×+ threshold | FLOODGATES | 10 — maximum throughput |
+
+The heartbeat runs every ~873ms on ICP. When the pool is full, up to 10 builds
+process per tick. When the pool is low, the queue slows to preserve resources.
+When the pool is empty, the queue pauses entirely.
 
 **There are no account-based limits. No per-user quotas. No signup. No approval.** This is a hard
 architectural invariant encoded in the `getNoDropLaw()` function.

@@ -24,8 +24,23 @@
 //   Subsidy pool   — cycles consumed per build tracked; pool funded by donations/fees
 //   Stream publish — all events published to nova_stream topics:
 //                    BUILDER_INTAKE / BUILDER_GENERATE / BUILDER_DEPLOY / BUILDER_CYCLES_BURN
-//   Rate limiting  — by cycles pool balance only; zero account-based limits ever
+//   Rate limiting  — GRADUATED by cycles pool balance only; zero account-based limits ever
+//                    pool < threshold → PAUSED (0 builds/tick)
+//                    pool < 2× threshold → TRICKLE (1 build/tick)
+//                    pool < 5× threshold → NORMAL (3 builds/tick)
+//                    pool < 10× threshold → HIGH (5 builds/tick)
+//                    pool >= 10× threshold → FLOODGATES (10 builds/tick)
 //   Governance hook — thresholds adjustable by nova_governance votes
+//   Heartbeat      — automated queue processor calls swarm_brain → sovereign_factory
+//                    per-tick without manual admin intervention
+//
+// INTER-CANISTER PIPELINE (fully automated):
+//   nova_builder.submitBuild(intent) → queued
+//   heartbeat picks up QUEUED builds (batch size by pool balance):
+//     → swarm_brain.generateCanisterCode(intent) → code
+//     → sovereign_factory.deployBuilderCanister(code, sessionId) → canister address
+//     → nova_stream.publish(BUILDER_DEPLOY, ...) → on-chain proof
+//   On failure at any stage: refund cycles to pool, mark FAILED
 //
 // PUBLIC API:
 //   submitBuild(intent)          — submit a plain-language build description → session ID
@@ -44,6 +59,7 @@
 
 import Array     "mo:base/Array";
 import Bool      "mo:base/Bool";
+import Cycles    "mo:base/ExperimentalCycles";
 import Float     "mo:base/Float";
 import Int       "mo:base/Int";
 import Nat       "mo:base/Nat";
@@ -226,11 +242,10 @@ actor NovaBuilder {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // Section 5 — ECONOMICS: CYCLES SUBSIDY POOL
+  // Section 5 — ECONOMICS: CYCLES SUBSIDY POOL + GRADUATED RATE LIMITING
   // ═══════════════════════════════════════════════════════════════════════════
 
   // Subsidy pool — tracks cycles allocated for builder subsidies
-  // This is an accounting pool; actual cycle deposits handled by donateCycles()
   stable var subsidyPool        : Nat = 0;
   stable var cyclesPerBuild     : Nat = BASE_CYCLES_COST;
   stable var subsidyThreshold   : Nat = 500_000_000; // 500M cycles minimum to open queue
@@ -238,10 +253,26 @@ actor NovaBuilder {
   stable var totalBuilds        : Nat = 0;
   stable var totalDeployed      : Nat = 0;
   stable var totalFailed        : Nat = 0;
+  stable var totalDonated       : Nat = 0;
 
-  // Pool is open if balance > threshold
+  // Pool is open if balance >= subsidyThreshold
   func _poolIsOpen() : Bool {
     subsidyPool >= subsidyThreshold
+  };
+
+  // Graduated rate limiting — returns how many builds the heartbeat should
+  // process per tick. More pool = more throughput. Never account-based.
+  //   pool <  threshold     → 0 (paused)
+  //   pool <  2× threshold  → 1 (trickle)
+  //   pool <  5× threshold  → 3 (normal)
+  //   pool <  10× threshold → 5 (high)
+  //   pool >= 10× threshold → 10 (floodgates)
+  func _queueBatchSize() : Nat {
+    if (subsidyPool < subsidyThreshold)       { return 0  };
+    if (subsidyPool < subsidyThreshold * 2)   { return 1  };
+    if (subsidyPool < subsidyThreshold * 5)   { return 3  };
+    if (subsidyPool < subsidyThreshold * 10)  { return 5  };
+    10
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -270,6 +301,40 @@ actor NovaBuilder {
   public query func getStreamCanister() : async Text { streamCanisterPrincipal };
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // Section 6b — INTER-CANISTER TARGETS (swarm_brain + sovereign_factory)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // SwarmBrainActor — routes build intent to AGI reasoning for code generation
+  // swarm_brain.generateCanisterCode(intent) → returns generated Motoko code
+  type SwarmBrainActor = actor {
+    generateCanisterCode : (intent : Text) -> async Text;
+  };
+
+  // SovereignFactoryActor — deploys user canisters via TAWANTINSUYU factory
+  // sovereign_factory.deployBuilderCanister(code, sessionId) → returns canister address
+  type SovereignFactoryActor = actor {
+    deployBuilderCanister : (code : Text, sessionId : Text) -> async Text;
+  };
+
+  stable var brainCanisterPrincipal   : Text = "aaaaa-aa";
+  stable var factoryCanisterPrincipal : Text = "aaaaa-aa";
+
+  public shared(msg) func setBrainCanister(p : Text) : async Text {
+    assert(_isArchitect(msg.caller));
+    brainCanisterPrincipal := p;
+    "BRAIN_CANISTER_SET: " # p
+  };
+
+  public shared(msg) func setFactoryCanister(p : Text) : async Text {
+    assert(_isArchitect(msg.caller));
+    factoryCanisterPrincipal := p;
+    "FACTORY_CANISTER_SET: " # p
+  };
+
+  public query func getBrainCanister()   : async Text { brainCanisterPrincipal };
+  public query func getFactoryCanister() : async Text { factoryCanisterPrincipal };
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // Section 7 — GOVERNANCE CONFIGURATION
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -290,13 +355,17 @@ actor NovaBuilder {
   // ═══════════════════════════════════════════════════════════════════════════
 
   public shared func donateCycles() : async Text {
-    // In a deployed canister, msg.cycles carries the attached cycles.
-    // Here we accept the donation and credit the subsidy pool.
-    // Full ICP cycle attachment requires ExperimentalCycles; this records intent.
-    subsidyPool += 1_000_000_000; // 1B cycles credit per donation call (mock for type-check)
-    let payload = "{\"event\":\"DONATION\",\"pool\":" # Nat.toText(subsidyPool) # "}";
+    // Accept cycles attached to this call via ExperimentalCycles
+    let available = Cycles.available();
+    if (available == 0) {
+      return "NO_CYCLES_ATTACHED: attach cycles to the call to donate"
+    };
+    let accepted = Cycles.accept<system>(available);
+    subsidyPool  += accepted;
+    totalDonated += accepted;
+    let payload = "{\"event\":\"DONATION\",\"accepted\":" # Nat.toText(accepted) # ",\"pool\":" # Nat.toText(subsidyPool) # "}";
     ignore _publishToStream("BUILDER_CYCLES_BURN", payload);
-    "DONATION_ACCEPTED: pool=" # Nat.toText(subsidyPool)
+    "DONATION_ACCEPTED: " # Nat.toText(accepted) # " cycles — pool=" # Nat.toText(subsidyPool)
   };
 
   // Admin: direct pool credit (for grants, protocol fee routing)
@@ -519,8 +588,13 @@ actor NovaBuilder {
     " | failed=" # Nat.toText(totalFailed) #
     " | poolBalance=" # Nat.toText(subsidyPool) #
     " | totalBurn=" # Nat.toText(totalCyclesBurned) #
+    " | totalDonated=" # Nat.toText(totalDonated) #
     " | open=" # Bool.toText(_poolIsOpen()) #
-    " | stream=" # streamCanisterPrincipal
+    " | batchSize=" # Nat.toText(_queueBatchSize()) #
+    " | heartbeat=" # Nat.toText(heartbeatTick) #
+    " | stream=" # streamCanisterPrincipal #
+    " | brain=" # brainCanisterPrincipal #
+    " | factory=" # factoryCanisterPrincipal
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -546,5 +620,169 @@ actor NovaBuilder {
     "6.SourceCodeOnChain " #
     "7.ThisisAProtocol"
   };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Section 15 — AUTOMATED QUEUE PROCESSOR (heartbeat-driven pipeline)
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // The heartbeat is the autonomous engine that turns builder intents into
+  // deployed canisters WITHOUT manual admin intervention.
+  //
+  // Every 873ms tick (ICP heartbeat), the processor:
+  //   1. Checks _queueBatchSize() — graduated rate limit based on pool balance
+  //   2. Scans the session ring for QUEUED builds
+  //   3. For each QUEUED build (up to batch size):
+  //      a. Marks GENERATING → calls swarm_brain.generateCanisterCode(intent)
+  //      b. On success: stores code, marks GENERATED
+  //      c. Marks DEPLOYING → calls sovereign_factory.deployBuilderCanister(code, sid)
+  //      d. On success: stores canister address, marks DEPLOYED, publishes burn event
+  //      e. On any failure: marks FAILED, refunds cycles to pool
+  //
+  // This is the "AI reasoning queue" and "deploy orchestrator" from the plan,
+  // running as a fully automated on-chain pipeline.
+
+  stable var heartbeatTick     : Nat  = 0;
+  stable var processingLock    : Bool = false;
+  stable var lastProcessedTick : Nat  = 0;
+
+  // Process a single QUEUED build end-to-end
+  func _processQueuedBuild(slot : Nat) : async () {
+    let sid = sessId[slot];
+
+    // ── Step 1: Code Generation via swarm_brain ──────────────────
+    sessStatus[slot] := 1; // GENERATING
+    let genPayload = "{\"event\":\"BUILDER_GENERATE\",\"sessionId\":\"" # sid # "\",\"stage\":\"GENERATING\"}";
+    ignore _publishToStream("BUILDER_GENERATE", genPayload);
+
+    if (brainCanisterPrincipal == "aaaaa-aa") {
+      _failBuild(slot, sid, "BRAIN_NOT_CONFIGURED: setBrainCanister() required");
+      return;
+    };
+
+    // Inter-canister call to swarm_brain
+    let brainActor : SwarmBrainActor = actor(brainCanisterPrincipal);
+    var generatedCode : Text = "";
+    var brainOk : Bool = true;
+    try {
+      generatedCode := await brainActor.generateCanisterCode(sessIntent[slot]);
+    } catch (e) {
+      brainOk := false;
+    };
+
+    if (not brainOk) {
+      _failBuild(slot, sid, "BRAIN_CALL_FAILED");
+      return;
+    };
+
+    if (Text.size(generatedCode) == 0) {
+      _failBuild(slot, sid, "BRAIN_EMPTY_OUTPUT: no code generated");
+      return;
+    };
+
+    // Code generated successfully
+    sessStatus[slot] := 2; // GENERATED
+    sessCode[slot]   := generatedCode;
+    let codePayload = "{\"event\":\"BUILDER_CODE_READY\",\"sessionId\":\"" # sid # "\",\"codeLen\":" # Nat.toText(Text.size(generatedCode)) # "}";
+    ignore _publishToStream("BUILDER_GENERATE", codePayload);
+
+    // ── Step 2: Deploy via sovereign_factory ─────────────────────
+    sessStatus[slot] := 3; // DEPLOYING
+    let deployPayload = "{\"event\":\"BUILDER_DEPLOY\",\"sessionId\":\"" # sid # "\",\"stage\":\"DEPLOYING\"}";
+    ignore _publishToStream("BUILDER_DEPLOY", deployPayload);
+
+    if (factoryCanisterPrincipal == "aaaaa-aa") {
+      _failBuild(slot, sid, "FACTORY_NOT_CONFIGURED: setFactoryCanister() required");
+      return;
+    };
+
+    // Inter-canister call to sovereign_factory
+    let factoryActor : SovereignFactoryActor = actor(factoryCanisterPrincipal);
+    var canisterAddress : Text = "";
+    var factoryOk : Bool = true;
+    try {
+      canisterAddress := await factoryActor.deployBuilderCanister(generatedCode, sid);
+    } catch (e) {
+      factoryOk := false;
+    };
+
+    if (not factoryOk) {
+      _failBuild(slot, sid, "FACTORY_CALL_FAILED");
+      return;
+    };
+
+    if (Text.size(canisterAddress) == 0) {
+      _failBuild(slot, sid, "FACTORY_NO_ADDRESS: deploy returned empty address");
+      return;
+    };
+
+    // ── Step 3: Success — DEPLOYED ──────────────────────────────
+    sessStatus[slot]    := 4; // DEPLOYED
+    sessAddress[slot]   := canisterAddress;
+    sessCompleted[slot] := Time.now();
+    totalDeployed       += 1;
+    let burned = sessCycles[slot];
+    let successPayload = "{\"event\":\"BUILDER_DEPLOYED\",\"sessionId\":\"" # sid # "\",\"address\":\"" # canisterAddress # "\",\"cyclesBurned\":" # Nat.toText(burned) # ",\"totalBurn\":" # Nat.toText(totalCyclesBurned) # "}";
+    ignore _publishToStream("BUILDER_DEPLOY", successPayload);
+    ignore _publishToStream("BUILDER_CYCLES_BURN", successPayload);
+  };
+
+  // Helper: fail a build, refund cycles, publish event
+  func _failBuild(slot : Nat, sid : Text, reason : Text) {
+    sessStatus[slot]    := 5; // FAILED
+    sessError[slot]     := reason;
+    sessCompleted[slot] := Time.now();
+    totalFailed         += 1;
+    subsidyPool         += sessCycles[slot]; // refund on failure
+    let payload = "{\"event\":\"BUILDER_FAILED\",\"sessionId\":\"" # sid # "\",\"reason\":\"" # reason # "\"}";
+    ignore _publishToStream("BUILDER_DEPLOY", payload);
+  };
+
+  // Heartbeat — autonomous queue processor
+  // Runs on every ICP heartbeat (~873ms).
+  // Processes up to _queueBatchSize() QUEUED builds per tick.
+  system func heartbeat() : async () {
+    heartbeatTick += 1;
+
+    // Skip if already processing (re-entrancy guard)
+    if (processingLock) return;
+
+    let batchSize = _queueBatchSize();
+    if (batchSize == 0) return; // pool below threshold — paused
+
+    processingLock := true;
+
+    // Scan session ring for QUEUED builds
+    var processed = 0;
+    var i = 0;
+    while (i < MAX_SESSIONS and processed < batchSize) {
+      if (sessValid[i] and sessStatus[i] == 0) { // 0 = QUEUED
+        ignore _processQueuedBuild(i);
+        processed += 1;
+      };
+      i += 1;
+    };
+
+    lastProcessedTick := heartbeatTick;
+    processingLock := false;
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Section 16 — POOL ECONOMICS QUERY
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Returns the current graduated rate limit tier name + batch size
+  public query func getRateLimitTier() : async { tier : Text; batchSize : Nat; poolPct : Nat } {
+    let pct = if (subsidyThreshold > 0) { (subsidyPool * 100) / subsidyThreshold } else { 100 };
+    let batch = _queueBatchSize();
+    let tierName = if (batch == 0) { "PAUSED" }
+                   else if (batch == 1) { "TRICKLE" }
+                   else if (batch == 3) { "NORMAL" }
+                   else if (batch == 5) { "HIGH" }
+                   else { "FLOODGATES" };
+    { tier = tierName; batchSize = batch; poolPct = pct }
+  };
+
+  public query func getTotalDonated() : async Nat { totalDonated };
+  public query func getHeartbeatTick() : async Nat { heartbeatTick };
 
 }
