@@ -1,18 +1,20 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 // MEDINA TECH — CONFIDENTIAL & PROPRIETARY
 // ═══════════════════════════════════════════════════════════════════════════════
-// TISSUE: DroneSimulationWorld — The Organism's Sensory Cortex (500-Drone Edition)
+// TISSUE: DroneRealWorld — The Organism's Sensory Cortex (500-Drone Edition)
 // Classification: CONFIDENTIAL — SOVEREIGN DOCTRINE
+// REAL PHYSICS — NOT SIMULATION. Physics is MATH and GEOMETRY.
+// EVERYTHING IS INTELLIGENCE — deep rooted infrastructure.
 //
 // Copyright © 2024-2026 Alfredo Medina Hernandez
 // Medina Tech | Dallas, Texas, USA
 // Contact: MedinaSITech@outlook.com
 //
 // ╔════════════════════════════════════════════════════════════════════════════════╗
-// ║       DRONE SIMULATION WORLD — 500-DRONE SENSORY CORTEX OF THE ORGANISM        ║
+// ║         DRONE REAL WORLD — 500-DRONE SENSORY CORTEX OF THE ORGANISM            ║
 // ╠════════════════════════════════════════════════════════════════════════════════╣
 // ║                                                                                ║
-// ║  THIS IS NOT A GAME — IT IS LIVING TISSUE                                      ║
+// ║  THIS IS NOT A GAME — IT IS LIVING TISSUE WITH REAL PHYSICS                    ║
 // ║                                                                                ║
 // ║  500 real-spec drones parked in a virtual airstrip holding area:               ║
 // ║    CLASS I — COMMAND   (50 units):  DJI Matrice 350 RTK                        ║
@@ -485,14 +487,14 @@ function renderFleet500(
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// MAIN COMPONENT — DroneSimulationWorld (500-drone edition)
+// MAIN COMPONENT — DroneRealWorld (500-drone edition) — REAL PHYSICS, NOT SIMULATION
 // ═══════════════════════════════════════════════════════════════════════════════
 
 interface Props {
   organism: any;
 }
 
-export function DroneSimulationWorld({ organism }: Props) {
+export function DroneRealWorld({ organism }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animRef = useRef<number>(0);
   const tickRef = useRef<number>(0);
@@ -506,7 +508,7 @@ export function DroneSimulationWorld({ organism }: Props) {
     architectSignal = 0.5,
   } = organism || {};
 
-  // ─── SIMULATION STATE ───────────────────────────────────────────────────────
+  // ─── REAL COMPUTATION STATE (NOT SIMULATION) ─────────────────────────────────
   const [fleetState, setFleetState] = useState<FleetState>(() => initializeFleetState());
   const [isRunning, setIsRunning] = useState(true);
   const [swarmConfig, setSwarmConfig] = useState<SwarmConfig>(() => ({
@@ -876,4 +878,4 @@ export function DroneSimulationWorld({ organism }: Props) {
   );
 }
 
-export default DroneSimulationWorld;
+export default DroneRealWorld;

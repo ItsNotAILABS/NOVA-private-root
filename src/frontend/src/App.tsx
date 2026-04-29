@@ -22,7 +22,7 @@ import { HomeNow }            from './components/habitat/HomeNow';
 import { WorkerHub }          from './components/habitat/WorkerHub';
 import { ArtifactStudio }     from './components/habitat/ArtifactStudio';
 import { PresenceBoard }      from './components/habitat/PresenceBoard';
-import { SimulationChamber }  from './components/simulation/SimulationChamber';
+import { ComputationChamber } from './components/simulation/ComputationChamber'; // REAL physics, not simulation
 import { CompanionConsole } from './components/companion/CompanionConsole';
 
 // ── Science Labs — using working versions ──────────────────────────────────
@@ -31,7 +31,7 @@ import { MathPhysicsLab } from './components/labs/MathPhysicsLab';
 import { NeuroCogLab }    from './components/labs/NeuroCogLab';
 // ── ORO Command Center — The Real Multi-Agent Workspace ─────────────────────────
 import { OroCommandCenter }     from './components/CommandCenter/OroCommandCenter';
-import { DroneSimulationWorld } from './components/CommandCenter/DroneSimulationWorld';
+import { DroneRealWorld }       from './components/CommandCenter/DroneRealWorld'; // REAL physics, not simulation
 // ── Neural Emergence Core ─────────────────────────────────────────────────────
 import { NECDashboard }   from './components/nec/NECDashboard';
 
@@ -335,17 +335,17 @@ export default function App() {
           <CompanionConsole />
         )}
 
-        {/* ── DRONE SIMULATION — The Actual Experiment ────────────────────── */}
+        {/* ── DRONE REAL WORLD — The Actual Experiment (REAL PHYSICS) ────────────────────── */}
         {view === 'DRONES' && (
-          <DroneSimulationWorld organism={organism} />
+          <DroneRealWorld organism={organism} />
         )}
 
-        {/* ── SWARM VIEW: original tactical simulation ────────────────── */}
+        {/* ── SWARM VIEW: original tactical computation (REAL PHYSICS) ────────────────── */}
         {view === 'SWARM' && (
           <div style={S.swarmRoot}>
             <div style={S.mapArea}>
               <div style={{ position: 'absolute', top: 12, left: 16, zIndex: 10, fontSize: 11, color: '#4af', letterSpacing: '0.12em', textTransform: 'uppercase', opacity: 0.8 }}>
-                ⬡ PARALLAX SWARM SIM — MEDINA TECH — BEAT {beat}
+                ⬡ PARALLAX SWARM REAL — MEDINA TECH — BEAT {beat}
               </div>
               <TacticalMap swarm={swarm} />
             </div>
@@ -383,7 +383,7 @@ export default function App() {
 
         {view === 'SIMULATION' && (
           <div style={{ width: '100%', height: '100%' }}>
-            <SimulationChamber organism={organism} />
+            <ComputationChamber organism={organism} />
           </div>
         )}
 

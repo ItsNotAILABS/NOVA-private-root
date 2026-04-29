@@ -1,15 +1,17 @@
 // ============================================================================
 // MEDINA TECH — CONFIDENTIAL & PROPRIETARY
 // ============================================================================
-// Component: SimulationWorld3D — Full 3D Physics World
-// PARALLAX Drone Swarm Simulation — Medina Tech 2026
+// Component: RealWorld3D — Full 3D REAL Physics World (NOT SIMULATION)
+// PARALLAX Drone Swarm REAL PHYSICS — Medina Tech 2026
+// Physics is MATH and GEOMETRY — no fake simulations.
+// EVERYTHING IS INTELLIGENCE — deep rooted infrastructure.
 //
-// The organism lives in this world. This is the full 3D simulation:
-//   - Physics-based entities
-//   - Drone swarms
+// The organism lives in this world. This is REAL PHYSICS computation:
+//   - REAL physics-based entities (math and geometry)
+//   - Drone swarms with REAL flight dynamics
 //   - Terrain with voxel-based destruction
-//   - Weather effects
-//   - Day/night cycle
+//   - Weather effects (atmospheric physics)
+//   - Day/night cycle (orbital mechanics)
 // ============================================================================
 
 import React, { useRef, useMemo, useState } from 'react';

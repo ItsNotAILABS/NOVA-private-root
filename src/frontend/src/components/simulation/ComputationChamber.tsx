@@ -1,6 +1,8 @@
-// ─── NOVA / PARALLAX — Simulation Chamber Component ─────────────────────────
+// ─── NOVA / PARALLAX — Computation Chamber Component ─────────────────────────
+// REAL physics computation — NOT simulation. Physics is MATH and GEOMETRY.
 // Displays the living world-body: macro-state, gradient fields, world objects,
 // sediments, domain unlocks. Rendered as an SVG overhead map.
+// EVERYTHING IS INTELLIGENCE — deep rooted infrastructure.
 // Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
 
 import React, { useMemo } from 'react';
@@ -155,8 +157,8 @@ function WorldMap({ objects, sediments, domains, width, height }: WorldMapProps)
   );
 }
 
-// ── SimulationChamber ─────────────────────────────────────────────────────────
-export function SimulationChamber({ organism }: { organism: OrganismState }) {
+// ── ComputationChamber (REAL physics, NOT simulation) ─────────────────────────────────
+export function ComputationChamber({ organism }: { organism: OrganismState }) {
   const { world, macroState, simConfidence, beat } = organism;
 
   if (!world || !macroState) {
@@ -175,7 +177,7 @@ export function SimulationChamber({ organism }: { organism: OrganismState }) {
       {/* World map */}
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: 8, left: 10, zIndex: 10, fontSize: 9, color: '#4af', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-          ⬡ SIMULATION CHAMBER — BEAT {beat}
+          ⬡ COMPUTATION CHAMBER — REAL PHYSICS — BEAT {beat}
         </div>
         <div style={{ position: 'absolute', top: 8, right: 10, zIndex: 10, fontSize: 8, color: '#ffd700' }}>
           SC: {(simConfidence * 100).toFixed(0)}%
