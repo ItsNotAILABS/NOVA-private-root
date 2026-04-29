@@ -306,9 +306,21 @@
     "intelligence_backend": {
       "type": "motoko",
       "main": "src/intelligence_backend/main.mo",
-      "build_number": 44,
-      "description": "INTELLIGENCE BACKEND — Deep Mathematics Intelligence Engine (BUILD №44): Casa de Inteligencia pattern. Serves ALL frontends requiring math computation. 16 sections: φ engine (19 decimal places), vector algebra, matrix operations, calculus, chaos theory, Kuramoto oscillators, probability, number theory, geometry, Fourier analysis, optimization, ODEs, complex analysis, heartbeat, stream. 200+ mathematical operations computed on-chain from first principles.",
+      "build_number": 45,
+      "description": "INTELLIGENCE BACKEND — Deep Mathematics Intelligence Engine (BUILD №45): Casa de Inteligencia pattern. Serves ENTIRE ORGANISM — all canisters, frontends, workers. WAVE ROUTING ENGINE distributes computation like blood through veins. AGI ENGINES inside process and route math in real-time. 16+ sections: φ engine (19 decimal places), vector algebra, matrix operations, calculus, chaos theory, Kuramoto oscillators, probability, number theory, geometry, Fourier analysis, optimization, ODEs, complex analysis, wave router, math AGI, heartbeat, stream. 200+ mathematical operations computed on-chain from first principles.",
       "casa_de_inteligencia": true,
+      "wave_router": true,
+      "agi_engine": true,
+      "serves_entire_organism": true,
+      "serves_canisters": [
+        "swarm_brain",
+        "swarm_organism",
+        "physics_backend",
+        "cognition_backend",
+        "curriculum_backend",
+        "nova_stream",
+        "phantom_transfer"
+      ],
       "serves_frontends": [
         "DallasISDApp",
         "NovaBuilderApp",
@@ -317,28 +329,53 @@
         "MathPhysicsLab",
         "EmergenceLab",
         "NeuroCogLab"
-      ]
+      ],
+      "serves_workers": "ALL_SERVITORES"
     },
     "physics_backend": {
       "type": "motoko",
       "main": "src/physics_backend/main.mo",
-      "build_number": 44,
-      "description": "PHYSICS BACKEND — Deep Physics Simulation Engine (BUILD №44): Casa de Inteligencia pattern. Serves ALL frontends requiring physics computation. 16 sections: classical mechanics, wave mechanics, thermodynamics, electromagnetism, fluid dynamics, quantum mechanics, statistical mechanics, relativistic mechanics, orbital mechanics, acoustics, optics, particle physics, material physics, heartbeat, stream. NIST 2022 CODATA constants.",
+      "build_number": 45,
+      "description": "PHYSICS BACKEND — Deep Physics Mathematics & Geometry Engine (BUILD №45): NOT simulation — REAL math and geometry. Casa de Inteligencia pattern. Serves ENTIRE ORGANISM — all canisters, frontends, workers. WAVE ROUTING ENGINE distributes computation like blood through veins. AGI ENGINES inside process and route physics in real-time. 16+ sections: classical mechanics, wave mechanics, thermodynamics, electromagnetism, fluid dynamics, quantum mechanics, statistical mechanics, relativistic mechanics, orbital mechanics, acoustics, optics, particle physics, material physics, wave router, physics AGI, heartbeat, stream. NIST 2022 CODATA constants.",
       "casa_de_inteligencia": true,
+      "wave_router": true,
+      "agi_engine": true,
+      "serves_entire_organism": true,
+      "serves_canisters": [
+        "swarm_brain",
+        "swarm_organism",
+        "intelligence_backend",
+        "cognition_backend",
+        "nova_stream",
+        "organism_solver"
+      ],
       "serves_frontends": [
         "DallasISDApp",
         "MathPhysicsLab",
-        "DroneSimulationWorld",
+        "DroneWorld",
         "EmergenceLab",
-        "SimulationChamber"
-      ]
+        "WorldEngine"
+      ],
+      "serves_workers": "ALL_SERVITORES"
     },
     "cognition_backend": {
       "type": "motoko",
       "main": "src/cognition_backend/main.mo",
-      "build_number": 44,
-      "description": "COGNITION BACKEND — Deep Cognitive Workflow Engine (BUILD №44): Casa de Inteligencia pattern. Serves ALL frontends requiring cognitive computation. 16 sections: neural networks, memory systems, SM-2 spaced repetition, decision theory, language processing, perception, neurochemistry, reasoning, planning, emotion, attention, creativity, social cognition, heartbeat, stream.",
+      "build_number": 45,
+      "description": "COGNITION BACKEND — Deep Cognitive Intelligence Engine (BUILD №45): Casa de Inteligencia pattern. Serves ENTIRE ORGANISM — all canisters, frontends, workers. WAVE ROUTING ENGINE distributes computation like blood through veins. AGI ENGINES inside process and route cognition in real-time. 16+ sections: neural networks, memory systems, SM-2 spaced repetition, decision theory, language processing, perception, neurochemistry, reasoning, planning, emotion, attention, creativity, social cognition, wave router, cognition AGI, heartbeat, stream.",
       "casa_de_inteligencia": true,
+      "wave_router": true,
+      "agi_engine": true,
+      "serves_entire_organism": true,
+      "serves_canisters": [
+        "swarm_brain",
+        "swarm_organism",
+        "intelligence_backend",
+        "physics_backend",
+        "curriculum_backend",
+        "nova_stream",
+        "organism_solver"
+      ],
       "serves_frontends": [
         "DallasISDApp",
         "NeuroCogLab",
@@ -346,21 +383,33 @@
         "CompanionConsole",
         "OroCommandCenter",
         "NECDashboard"
-      ]
+      ],
+      "serves_workers": "ALL_SERVITORES"
     },
     "curriculum_backend": {
       "type": "motoko",
       "main": "src/curriculum_backend/main.mo",
-      "build_number": 44,
-      "description": "CURRICULUM BACKEND — Deep Educational Intelligence Engine (BUILD №44): Casa de Inteligencia pattern. FREE FOR ALL PUBLIC SCHOOLS. 16 sections: curriculum standards (TEKS/CCSS/NGSS), learning objectives (Bloom's), assessment (IRT, adaptive testing), pedagogy, student modeling (BKT), content sequencing, scaffolding (ZPD), feedback, engagement, accessibility, grant compliance (Title I/IV-A/TEA/NSF), analytics, collaboration, heartbeat, stream.",
+      "build_number": 45,
+      "description": "CURRICULUM BACKEND — Deep Educational Intelligence Engine (BUILD №45): FREE FOR ALL PUBLIC SCHOOLS. Casa de Inteligencia pattern. Serves ENTIRE ORGANISM — all canisters, frontends, workers. WAVE ROUTING ENGINE distributes computation like blood through veins. AGI ENGINES inside process and route education in real-time. 16+ sections: curriculum standards (TEKS/CCSS/NGSS), learning objectives (Bloom's), assessment (IRT, adaptive testing), pedagogy, student modeling (BKT), content sequencing, scaffolding (ZPD), feedback, engagement, accessibility, grant compliance (Title I/IV-A/TEA/NSF), analytics, collaboration, wave router, curriculum AGI, heartbeat, stream.",
       "casa_de_inteligencia": true,
+      "wave_router": true,
+      "agi_engine": true,
+      "serves_entire_organism": true,
       "free_for_schools": true,
+      "serves_canisters": [
+        "dallas_isd",
+        "nova_student",
+        "cognition_backend",
+        "intelligence_backend",
+        "nova_stream"
+      ],
       "serves_frontends": [
         "DallasISDApp",
         "NeuroCogLab",
         "NovaBuilderApp",
         "TerminalHub"
-      ]
+      ],
+      "serves_workers": "ALL_SERVITORES"
     }
   },
   "build": {

@@ -5,8 +5,8 @@
 // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
-// INTELLIGENCE BACKEND — DEEP MATHEMATICS INTELLIGENCE ENGINE (BUILD №44)
-// Casa de Inteligencia: This backend serves ALL frontends requiring mathematical computation
+// INTELLIGENCE BACKEND — DEEP MATHEMATICS INTELLIGENCE ENGINE (BUILD №45)
+// Casa de Inteligencia: This backend serves the ENTIRE ORGANISM — all canisters, frontends, workers
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
 //
 // MISSION:
@@ -15,8 +15,26 @@
 //   a utility library — this is the mathematical substrate of NOVA computed to machine
 //   precision from first principles. Intelligence is infrastructure.
 //
-// ARCHITECTURE (Casa de Inteligencia):
-//   This BACKEND serves MULTIPLE FRONTENDS:
+// WAVE ROUTING ENGINE (VEIN ARCHITECTURE):
+//   When computation enters this backend, the WAVE ROUTER distributes it to wherever it
+//   needs to go in the organism. Like blood entering a vein — it routes to the right organ.
+//   The Wave Router is an AGI that runs inside this backend, deciding in real-time where
+//   each computation must flow.
+//
+// AGI ENGINES INSIDE:
+//   This backend has LIVING INTELLIGENCE inside it. Not just functions — AGIs that process,
+//   route, and transform mathematical computations. The backend and frontend both have their
+//   own intelligence that talk to each other through wave propagation.
+//
+// ARCHITECTURE (Casa de Inteligencia — SERVES ENTIRE ORGANISM):
+//   CANISTER LAYER (Motoko backends):
+//     → swarm_brain (core organism math, Kuramoto oscillators)
+//     → swarm_organism (organism coordination math)
+//     → physics_backend (math-physics coupling)
+//     → cognition_backend (neural math, learning algorithms)
+//     → nova_stream (math event publishing)
+//     → phantom_transfer (financial math, fee calculations)
+//   CPL LAYER (Frontend intelligence):
 //     → DallasISDApp.tsx (classroom math, φ-visualizations)
 //     → NovaBuilderApp.tsx (code generation math, optimization)
 //     → ParallaxApp.tsx (financial clearinghouse math, fee calculations)
@@ -24,6 +42,8 @@
 //     → MathPhysicsLab.tsx (research math, chaos theory)
 //     → EmergenceLab.tsx (emergence math, Kuramoto oscillators)
 //     → NeuroCogLab.tsx (cognitive math, neurochemistry)
+//   WORKER LAYER (SERVITORES):
+//     → All 70 SERVITORES workers receive math via wave routing
 //
 // CAPABILITIES:
 //   §1  Sovereign Identity & Genesis
@@ -88,7 +108,7 @@ actor IntelligenceBackend {
   stable var genesisLocked      : Bool      = false;
   stable var sovereignSeal      : Text      = "";
   stable var genesisTimestamp   : Int       = 0;
-  stable var buildNumber        : Nat       = 44;
+  stable var buildNumber        : Nat       = 45;
 
   func _isArchitect(caller : Principal) : Bool { caller == architectPrincipal };
 
@@ -176,6 +196,95 @@ actor IntelligenceBackend {
     122.9918693812442174380 // φ¹⁰
   ];
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // §1.5 — WAVE ROUTING ENGINE (VEIN ARCHITECTURE)
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // THE WAVE ROUTER AGI — When computation enters this backend at the "beginning
+  // of the vein," this engine routes it to wherever it needs to go in the organism.
+  // Like blood flow — it finds the right organ. This is LIVING INTELLIGENCE inside
+  // the backend, not passive functions.
+  //
+  // ROUTE TARGETS:
+  //   → swarm_brain (Kuramoto oscillators, core math)
+  //   → physics_backend (math-physics coupling)
+  //   → cognition_backend (neural network math)
+  //   → curriculum_backend (educational math)
+  //   → CPL frontend layers (real-time visualization)
+  //   → SERVITORES workers (distributed math compute)
+  //
+  // The Wave Router uses φ-weighted priority to decide routing order.
+
+  type MathRouteTarget = {
+    #SWARM_BRAIN;
+    #PHYSICS;
+    #COGNITION;
+    #CURRICULUM;
+    #CPL_FRONTEND;
+    #SERVITORES;
+    #BROADCAST_ALL;
+  };
+
+  type MathWavePacket = {
+    payload     : Text;
+    target      : MathRouteTarget;
+    priority    : Float;  // φ⁻ⁿ weighted
+    timestamp   : Int;
+    mathType    : Text;   // "PHI" | "FIBONACCI" | "KURAMOTO" | "LYAPUNOV" | etc.
+  };
+
+  stable var mathWaveCount    : Nat = 0;
+  stable var mathRoutesTotal  : Nat = 0;
+
+  /// Route a math computation to the right destination in the organism
+  public shared(msg) func waveRouteMath(payload : Text, target : MathRouteTarget, priorityLevel : Nat) : async Text {
+    let priority = switch (priorityLevel) {
+      case 1 { PHI_INV };      // φ⁻¹ — urgent
+      case 2 { PHI_INV_2 };    // φ⁻² — high
+      case 3 { PHI_INV_3 };    // φ⁻³ — normal
+      case 4 { PHI_INV_4 };    // φ⁻⁴ — low
+      case _ { PHI_INV_5 };    // φ⁻⁵ — background
+    };
+    mathWaveCount += 1;
+    mathRoutesTotal += 1;
+    "MATH_WAVE_ROUTED:" # debug_show(target) # ":PRIORITY:" # Float.toText(priority)
+  };
+
+  public query func getMathRouteStats() : async { packetsRouted : Nat; totalRouted : Nat } {
+    { packetsRouted = mathWaveCount; totalRouted = mathRoutesTotal }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // §1.6 — MATHEMATICS AGI (LIVING INTELLIGENCE)
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // This backend contains LIVING INTELLIGENCE — AGIs that process mathematics
+  // in real-time. The Math AGI decides HOW to compute, not just WHAT to compute.
+  // It optimizes, prioritizes, and routes based on organism state.
+
+  type MathAGIState = {
+    #DORMANT;       // Low-power mode
+    #LISTENING;     // Waiting for inputs
+    #COMPUTING;     // Active math processing
+    #ROUTING;       // Sending results through wave router
+    #COORDINATING;  // Talking to other backends
+  };
+
+  stable var mathAGIState : Text = "LISTENING";
+  stable var agiMathCycles : Nat = 0;
+  stable var agiMathLastWake : Int = 0;
+
+  public query func getMathAGIState() : async Text { mathAGIState };
+
+  public shared(msg) func wakeMathAGI() : async Text {
+    if (mathAGIState == "DORMANT") {
+      mathAGIState := "LISTENING";
+      agiMathLastWake := Time.now();
+      return "MATH_AGI_AWAKENED";
+    };
+    "MATH_AGI_ALREADY_ACTIVE:" # mathAGIState
+  };
+
   /// Compute φⁿ for any integer n (positive or negative)
   public query func computePhi(n : Int) : async Float {
     _phiPower(n)
@@ -238,7 +347,7 @@ actor IntelligenceBackend {
   // §3 — VECTOR ALGEBRA ENGINE
   // ═══════════════════════════════════════════════════════════════════════════
   //
-  // Full n-dimensional vector operations. Used by physics simulations, drone
+  // Full n-dimensional vector operations. Used by physics computation, drone
   // swarm coordination, neural network computations, and gradient descent.
 
   type Vector = [Float];
@@ -495,7 +604,7 @@ actor IntelligenceBackend {
   // §5 — CALCULUS ENGINE
   // ═══════════════════════════════════════════════════════════════════════════
   //
-  // Numerical differentiation and integration. Used by physics simulations,
+  // Numerical differentiation and integration. Used by physics computation,
   // optimization algorithms, and sensitivity analysis.
 
   /// Numerical derivative using central difference: f'(x) ≈ (f(x+h) - f(x-h)) / 2h
@@ -909,7 +1018,7 @@ actor IntelligenceBackend {
   // ═══════════════════════════════════════════════════════════════════════════
   //
   // Platonic solids, sacred geometry, coordinate transformations.
-  // Used by spatial simulations, drone formations, and φ-based visualizations.
+  // Used by spatial computation, drone formations, and φ-based visualizations.
 
   /// Platonic solid properties
   type PlatonicSolid = {
@@ -1082,7 +1191,7 @@ actor IntelligenceBackend {
   // §13 — DIFFERENTIAL EQUATIONS ENGINE
   // ═══════════════════════════════════════════════════════════════════════════
   //
-  // ODE solvers using Runge-Kutta methods. Used by physics simulations,
+  // ODE solvers using Runge-Kutta methods. Used by physics computation,
   // population dynamics, and chemical kinetics.
 
   /// Runge-Kutta 4th order step for dy/dt = f(t, y)

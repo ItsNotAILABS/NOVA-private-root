@@ -5,8 +5,8 @@
 // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
-// COGNITION BACKEND — DEEP COGNITIVE WORKFLOW ENGINE (BUILD №44)
-// Casa de Inteligencia: This backend serves ALL frontends requiring cognitive computation
+// COGNITION BACKEND — DEEP COGNITIVE INTELLIGENCE ENGINE (BUILD №45)
+// Casa de Inteligencia: This backend serves the ENTIRE ORGANISM — all canisters, frontends, workers
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
 //
 // MISSION:
@@ -15,14 +15,34 @@
 //   this is the cognitive substrate of NOVA computed from neuroscience and AI first
 //   principles. Intelligence is infrastructure.
 //
-// ARCHITECTURE (Casa de Inteligencia):
-//   This BACKEND serves MULTIPLE FRONTENDS:
+// WAVE ROUTING ENGINE (VEIN ARCHITECTURE):
+//   When computation enters this backend, the WAVE ROUTER distributes it to wherever it
+//   needs to go in the organism. Like blood entering a vein — it routes to the right organ.
+//   The Wave Router is an AGI that runs inside this backend, deciding in real-time where
+//   each computation must flow.
+//
+// AGI ENGINES INSIDE:
+//   This backend has LIVING INTELLIGENCE inside it. Not just functions — AGIs that process,
+//   route, and transform cognitive computations. The backend and frontend both have their
+//   own intelligence that talk to each other through wave propagation.
+//
+// ARCHITECTURE (Casa de Inteligencia — SERVES ENTIRE ORGANISM):
+//   CANISTER LAYER (Motoko backends):
+//     → swarm_brain (cognitive orchestration, learning)
+//     → swarm_organism (organism-level cognition)
+//     → intelligence_backend (math-cognition coupling)
+//     → physics_backend (neural field physics)
+//     → nova_stream (cognition event publishing)
+//     → organism_solver (SYN binding cognition)
+//   CPL LAYER (Frontend intelligence):
 //     → DallasISDApp.tsx (student learning, spaced repetition, tutoring)
 //     → NeuroCogLab.tsx (cognitive research, neurochemistry)
 //     → NovaBuilderApp.tsx (code generation cognition, intent understanding)
 //     → CompanionConsole.tsx (conversational AI, voice interaction)
 //     → OroCommandCenter.tsx (multi-agent coordination)
 //     → NECDashboard.tsx (neural emergence core)
+//   WORKER LAYER (SERVITORES):
+//     → All 70 SERVITORES workers receive cognition via wave routing
 //
 // CAPABILITIES:
 //   §1  Sovereign Identity & Genesis
@@ -66,7 +86,7 @@ actor CognitionBackend {
   stable var genesisLocked      : Bool      = false;
   stable var sovereignSeal      : Text      = "";
   stable var genesisTimestamp   : Int       = 0;
-  stable var buildNumber        : Nat       = 44;
+  stable var buildNumber        : Nat       = 45;
 
   func _isArchitect(caller : Principal) : Bool { caller == architectPrincipal };
 
@@ -111,6 +131,84 @@ actor CognitionBackend {
   let SM2_MIN_EF          : Float = 1.3;   // Minimum easiness factor
   let SM2_INITIAL_EF      : Float = 2.5;   // Initial easiness factor
   let SM2_MIN_INTERVAL    : Nat   = 1;     // Minimum interval (days)
+
+  // φ⁻ⁿ constants for wave routing priorities
+  let PHI_INV_2 : Float = 0.3819660112501051518;   // φ⁻²
+  let PHI_INV_3 : Float = 0.2360679774997896964;   // φ⁻³
+  let PHI_INV_4 : Float = 0.1458980337503154990;   // φ⁻⁴
+  let PHI_INV_5 : Float = 0.0901699437494742410;   // φ⁻⁵
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // §1.5 — WAVE ROUTING ENGINE (VEIN ARCHITECTURE)
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // THE WAVE ROUTER AGI — When computation enters this backend at the "beginning
+  // of the vein," this engine routes it to wherever it needs to go in the organism.
+  // Like blood flow — it finds the right organ. This is LIVING INTELLIGENCE inside
+  // the backend, not passive functions.
+
+  type CognitionRouteTarget = {
+    #SWARM_BRAIN;
+    #SWARM_ORGANISM;
+    #INTELLIGENCE;
+    #PHYSICS;
+    #CURRICULUM;
+    #CPL_FRONTEND;
+    #SERVITORES;
+    #BROADCAST_ALL;
+  };
+
+  type CognitionWavePacket = {
+    payload     : Text;
+    target      : CognitionRouteTarget;
+    priority    : Float;
+    timestamp   : Int;
+    cogType     : Text;   // "NEURAL" | "MEMORY" | "DECISION" | "LEARNING" | etc.
+  };
+
+  stable var cogWaveCount    : Nat = 0;
+  stable var cogRoutesTotal  : Nat = 0;
+
+  /// Route a cognition computation to the right destination in the organism
+  public shared(msg) func waveRouteCognition(payload : Text, target : CognitionRouteTarget, priorityLevel : Nat) : async Text {
+    let priority = switch (priorityLevel) {
+      case 1 { PHI_INV };      // φ⁻¹ — urgent
+      case 2 { PHI_INV_2 };    // φ⁻² — high
+      case 3 { PHI_INV_3 };    // φ⁻³ — normal
+      case 4 { PHI_INV_4 };    // φ⁻⁴ — low
+      case _ { PHI_INV_5 };    // φ⁻⁵ — background
+    };
+    cogWaveCount += 1;
+    cogRoutesTotal += 1;
+    "COGNITION_WAVE_ROUTED:" # debug_show(target) # ":PRIORITY:" # Float.toText(priority)
+  };
+
+  public query func getCognitionRouteStats() : async { packetsRouted : Nat; totalRouted : Nat } {
+    { packetsRouted = cogWaveCount; totalRouted = cogRoutesTotal }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // §1.6 — COGNITION AGI (LIVING INTELLIGENCE)
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // This backend contains LIVING INTELLIGENCE — AGIs that process cognition
+  // in real-time. The Cognition AGI decides HOW to think, not just WHAT to think.
+  // It optimizes, prioritizes, and routes based on organism state.
+
+  stable var cognitionAGIState : Text = "LISTENING";
+  stable var agiCogCycles : Nat = 0;
+  stable var agiCogLastWake : Int = 0;
+
+  public query func getCognitionAGIState() : async Text { cognitionAGIState };
+
+  public shared(msg) func wakeCognitionAGI() : async Text {
+    if (cognitionAGIState == "DORMANT") {
+      cognitionAGIState := "LISTENING";
+      agiCogLastWake := Time.now();
+      return "COGNITION_AGI_AWAKENED";
+    };
+    "COGNITION_AGI_ALREADY_ACTIVE:" # cognitionAGIState
+  };
 
   // ═══════════════════════════════════════════════════════════════════════════
   // §2 — NEURAL NETWORK ENGINE

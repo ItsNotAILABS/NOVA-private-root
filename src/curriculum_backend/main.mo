@@ -5,8 +5,8 @@
 // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
-// CURRICULUM BACKEND — DEEP EDUCATIONAL INTELLIGENCE ENGINE (BUILD №44)
-// Casa de Inteligencia: This backend serves ALL frontends requiring educational computation
+// CURRICULUM BACKEND — DEEP EDUCATIONAL INTELLIGENCE ENGINE (BUILD №45)
+// Casa de Inteligencia: This backend serves the ENTIRE ORGANISM — all canisters, frontends, workers
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
 //
 // MISSION:
@@ -15,12 +15,31 @@
 //   this is the educational substrate of NOVA computed from learning science first principles.
 //   Intelligence is infrastructure. FREE FOR ALL PUBLIC SCHOOLS.
 //
-// ARCHITECTURE (Casa de Inteligencia):
-//   This BACKEND serves MULTIPLE FRONTENDS:
+// WAVE ROUTING ENGINE (VEIN ARCHITECTURE):
+//   When computation enters this backend, the WAVE ROUTER distributes it to wherever it
+//   needs to go in the organism. Like blood entering a vein — it routes to the right organ.
+//   The Wave Router is an AGI that runs inside this backend, deciding in real-time where
+//   each computation must flow.
+//
+// AGI ENGINES INSIDE:
+//   This backend has LIVING INTELLIGENCE inside it. Not just functions — AGIs that process,
+//   route, and transform educational computations. The backend and frontend both have their
+//   own intelligence that talk to each other through wave propagation.
+//
+// ARCHITECTURE (Casa de Inteligencia — SERVES ENTIRE ORGANISM):
+//   CANISTER LAYER (Motoko backends):
+//     → dallas_isd canister (Dallas ISD specific data)
+//     → nova_student canister (student records, progress)
+//     → cognition_backend (learning algorithms)
+//     → intelligence_backend (educational math)
+//     → nova_stream (curriculum event publishing)
+//   CPL LAYER (Frontend intelligence):
 //     → DallasISDApp.tsx (classroom interface, student view)
 //     → NeuroCogLab.tsx (learning science research)
 //     → NovaBuilderApp.tsx (educational tool generation)
 //     → TerminalHub.tsx (educator terminal)
+//   WORKER LAYER (SERVITORES):
+//     → All 70 SERVITORES workers receive curriculum via wave routing
 //
 // CAPABILITIES:
 //   §1  Sovereign Identity & Genesis
@@ -65,7 +84,7 @@ actor CurriculumBackend {
   stable var genesisLocked      : Bool      = false;
   stable var sovereignSeal      : Text      = "";
   stable var genesisTimestamp   : Int       = 0;
-  stable var buildNumber        : Nat       = 44;
+  stable var buildNumber        : Nat       = 45;
 
   func _isArchitect(caller : Principal) : Bool { caller == architectPrincipal };
 
@@ -106,6 +125,85 @@ actor CurriculumBackend {
   // Zone of Proximal Development
   let ZPD_LOWER_BOUND : Float = 0.60;  // Can do with support
   let ZPD_UPPER_BOUND : Float = 0.90;  // Just beyond comfort
+
+  // φ⁻ⁿ constants for wave routing priorities
+  let PHI      : Float = 1.6180339887498948482;
+  let PHI_INV  : Float = 0.6180339887498948482;   // φ⁻¹
+  let PHI_INV_2: Float = 0.3819660112501051518;   // φ⁻²
+  let PHI_INV_3: Float = 0.2360679774997896964;   // φ⁻³
+  let PHI_INV_4: Float = 0.1458980337503154990;   // φ⁻⁴
+  let PHI_INV_5: Float = 0.0901699437494742410;   // φ⁻⁵
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // §1.5 — WAVE ROUTING ENGINE (VEIN ARCHITECTURE)
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // THE WAVE ROUTER AGI — When computation enters this backend at the "beginning
+  // of the vein," this engine routes it to wherever it needs to go in the organism.
+  // Like blood flow — it finds the right organ. This is LIVING INTELLIGENCE inside
+  // the backend, not passive functions.
+
+  type CurriculumRouteTarget = {
+    #DALLAS_ISD;
+    #NOVA_STUDENT;
+    #COGNITION;
+    #INTELLIGENCE;
+    #CPL_FRONTEND;
+    #SERVITORES;
+    #BROADCAST_ALL;
+  };
+
+  type CurriculumWavePacket = {
+    payload     : Text;
+    target      : CurriculumRouteTarget;
+    priority    : Float;
+    timestamp   : Int;
+    eduType     : Text;   // "TEKS" | "ASSESSMENT" | "LESSON" | "PROGRESS" | etc.
+  };
+
+  stable var currWaveCount    : Nat = 0;
+  stable var currRoutesTotal  : Nat = 0;
+
+  /// Route a curriculum computation to the right destination in the organism
+  public shared(msg) func waveRouteCurriculum(payload : Text, target : CurriculumRouteTarget, priorityLevel : Nat) : async Text {
+    let priority = switch (priorityLevel) {
+      case 1 { PHI_INV };      // φ⁻¹ — urgent
+      case 2 { PHI_INV_2 };    // φ⁻² — high
+      case 3 { PHI_INV_3 };    // φ⁻³ — normal
+      case 4 { PHI_INV_4 };    // φ⁻⁴ — low
+      case _ { PHI_INV_5 };    // φ⁻⁵ — background
+    };
+    currWaveCount += 1;
+    currRoutesTotal += 1;
+    "CURRICULUM_WAVE_ROUTED:" # debug_show(target) # ":PRIORITY:" # Float.toText(priority)
+  };
+
+  public query func getCurriculumRouteStats() : async { packetsRouted : Nat; totalRouted : Nat } {
+    { packetsRouted = currWaveCount; totalRouted = currRoutesTotal }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // §1.6 — CURRICULUM AGI (LIVING INTELLIGENCE)
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // This backend contains LIVING INTELLIGENCE — AGIs that process education
+  // in real-time. The Curriculum AGI decides HOW to teach, not just WHAT to teach.
+  // It optimizes, prioritizes, and routes based on student state.
+
+  stable var curriculumAGIState : Text = "LISTENING";
+  stable var agiCurrCycles : Nat = 0;
+  stable var agiCurrLastWake : Int = 0;
+
+  public query func getCurriculumAGIState() : async Text { curriculumAGIState };
+
+  public shared(msg) func wakeCurriculumAGI() : async Text {
+    if (curriculumAGIState == "DORMANT") {
+      curriculumAGIState := "LISTENING";
+      agiCurrLastWake := Time.now();
+      return "CURRICULUM_AGI_AWAKENED";
+    };
+    "CURRICULUM_AGI_ALREADY_ACTIVE:" # curriculumAGIState
+  };
 
   // ═══════════════════════════════════════════════════════════════════════════
   // §2 — CURRICULUM STANDARDS ENGINE

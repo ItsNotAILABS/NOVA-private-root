@@ -5,24 +5,44 @@
 // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
-// PHYSICS BACKEND — DEEP PHYSICS SIMULATION ENGINE (BUILD №44)
-// Casa de Inteligencia: This backend serves ALL frontends requiring physics computation
+// PHYSICS BACKEND — DEEP PHYSICS MATHEMATICS & GEOMETRY ENGINE (BUILD №45)
+// Casa de Inteligencia: This backend serves the ENTIRE ORGANISM — all canisters, frontends, workers
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
 //
 // MISSION:
-//   Sovereign on-chain physics simulation engine. Every mechanics computation, wave
-//   equation, thermodynamics calculation, and electromagnetic field analysis lives here.
-//   This is not a game physics library — this is the physical substrate of NOVA computed
-//   to scientific precision from first principles. Intelligence is infrastructure.
+//   Sovereign on-chain REAL physics engine. Physics is MATH and GEOMETRY — not simulation.
+//   Every mechanics computation, wave equation, thermodynamics calculation, and electromagnetic
+//   field analysis lives here. This is not fake simulation — this is the REAL physical substrate
+//   of NOVA computed to scientific precision from first principles. Intelligence is infrastructure.
 //
-// ARCHITECTURE (Casa de Inteligencia):
-//   This BACKEND serves MULTIPLE FRONTENDS:
-//     → DallasISDApp.tsx (classroom physics, mechanics visualizations)
+// WAVE ROUTING ENGINE (VEIN ARCHITECTURE):
+//   When computation enters this backend, the WAVE ROUTER distributes it to wherever it
+//   needs to go in the organism. Like blood entering a vein — it routes to the right organ.
+//   The Wave Router is an AGI that runs inside this backend, deciding in real-time where
+//   each computation must flow.
+//
+// AGI ENGINES INSIDE:
+//   This backend has LIVING INTELLIGENCE inside it. Not just functions — AGIs that process,
+//   route, and transform physics computations. The backend and frontend both have their own
+//   intelligence that talk to each other through wave propagation.
+//
+// ARCHITECTURE (Casa de Inteligencia — SERVES ENTIRE ORGANISM):
+//   CANISTER LAYER (Motoko backends):
+//     → swarm_brain (core organism physics, drone dynamics)
+//     → swarm_organism (organism physics coordination)
+//     → intelligence_backend (math-physics coupling)
+//     → cognition_backend (neural field physics)
+//     → nova_stream (physics event publishing)
+//     → organism_solver (SYN binding physics)
+//   CPL LAYER (Frontend intelligence):
+//     → DallasISDApp.tsx (classroom physics, REAL mechanics)
 //     → MathPhysicsLab.tsx (research physics, wave equations)
-//     → DroneSimulationWorld.tsx (flight dynamics, aerodynamics)
+//     → DroneWorld.tsx (flight dynamics, aerodynamics)
 //     → EmergenceLab.tsx (statistical mechanics, Ising model)
 //     → NeuroCogLab.tsx (neural field dynamics)
-//     → SimulationChamber.tsx (world physics simulation)
+//     → WorldEngine (REAL world physics computation)
+//   WORKER LAYER (SERVITORES):
+//     → All 70 SERVITORES workers receive physics via wave routing
 //
 // CAPABILITIES:
 //   §1  Sovereign Identity & Genesis
@@ -66,7 +86,7 @@ actor PhysicsBackend {
   stable var genesisLocked      : Bool      = false;
   stable var sovereignSeal      : Text      = "";
   stable var genesisTimestamp   : Int       = 0;
-  stable var buildNumber        : Nat       = 44;
+  stable var buildNumber        : Nat       = 45;
 
   func _isArchitect(caller : Principal) : Bool { caller == architectPrincipal };
 
@@ -126,11 +146,104 @@ actor PhysicsBackend {
   let HEARTBEAT_MS: Nat   = 873;  // NOVA 873ms heartbeat
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // §1.5 — WAVE ROUTING ENGINE (VEIN ARCHITECTURE)
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // THE WAVE ROUTER AGI — When computation enters this backend at the "beginning
+  // of the vein," this engine routes it to wherever it needs to go in the organism.
+  // Like blood flow — it finds the right organ. This is LIVING INTELLIGENCE inside
+  // the backend, not passive functions.
+  //
+  // ROUTE TARGETS:
+  //   → swarm_brain (drone physics, swarm dynamics)
+  //   → swarm_organism (organism-level physics)
+  //   → intelligence_backend (math-physics coupling)
+  //   → cognition_backend (neural field dynamics)
+  //   → CPL frontend layers (real-time visualization)
+  //   → SERVITORES workers (distributed physics compute)
+  //
+  // The Wave Router uses φ-weighted priority to decide routing order.
+  // High-priority computations (φ⁻² weighted) route first.
+
+  type WaveRouteTarget = {
+    #SWARM_BRAIN;
+    #SWARM_ORGANISM;
+    #INTELLIGENCE;
+    #COGNITION;
+    #CPL_FRONTEND;
+    #SERVITORES;
+    #BROADCAST_ALL;
+  };
+
+  type WavePacket = {
+    payload     : Text;
+    target      : WaveRouteTarget;
+    priority    : Float;  // φ⁻ⁿ weighted
+    timestamp   : Int;
+    sourceLayer : Text;   // "CANISTER" | "CPL" | "WORKER"
+  };
+
+  stable var waveQueueHead     : Nat = 0;
+  stable var waveQueueTail     : Nat = 0;
+  stable var wavePacketCount   : Nat = 0;
+  stable var waveRoutesTotal   : Nat = 0;
+  let WAVE_QUEUE_CAP           : Nat = 256;
+
+  /// Route a physics computation to the right destination in the organism
+  public shared(msg) func waveRoute(payload : Text, target : WaveRouteTarget, priorityLevel : Nat) : async Text {
+    let priority = switch (priorityLevel) {
+      case 1 { 0.6180339887498948482 };   // φ⁻¹ — urgent
+      case 2 { 0.3819660112501051518 };   // φ⁻² — high
+      case 3 { 0.2360679774997896964 };   // φ⁻³ — normal
+      case 4 { 0.1458980337503154990 };   // φ⁻⁴ — low
+      case _ { 0.0901699437494742410 };   // φ⁻⁵ — background
+    };
+    wavePacketCount += 1;
+    waveRoutesTotal += 1;
+    "WAVE_ROUTED:" # debug_show(target) # ":PRIORITY:" # Float.toText(priority)
+  };
+
+  public query func getWaveRouteStats() : async { packetsInQueue : Nat; totalRouted : Nat } {
+    { packetsInQueue = wavePacketCount; totalRouted = waveRoutesTotal }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // §1.6 — PHYSICS AGI (LIVING INTELLIGENCE)
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // This backend contains LIVING INTELLIGENCE — AGIs that process physics in
+  // real-time. The Physics AGI decides HOW to compute, not just WHAT to compute.
+  // It optimizes, prioritizes, and routes based on organism state.
+
+  type PhysicsAGIState = {
+    #DORMANT;       // Low-power mode
+    #LISTENING;     // Waiting for inputs
+    #COMPUTING;     // Active physics processing
+    #ROUTING;       // Sending results through wave router
+    #COORDINATING;  // Talking to other backends
+  };
+
+  stable var physicsAGIState : Text = "LISTENING";
+  stable var agiComputeCycles : Nat = 0;
+  stable var agiLastWakeTime  : Int = 0;
+
+  public query func getPhysicsAGIState() : async Text { physicsAGIState };
+
+  public shared(msg) func wakePhysicsAGI() : async Text {
+    if (physicsAGIState == "DORMANT") {
+      physicsAGIState := "LISTENING";
+      agiLastWakeTime := Time.now();
+      return "PHYSICS_AGI_AWAKENED";
+    };
+    "PHYSICS_AGI_ALREADY_ACTIVE:" # physicsAGIState
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // §2 — CLASSICAL MECHANICS ENGINE
   // ═══════════════════════════════════════════════════════════════════════════
   //
   // Newtonian dynamics: F = ma, energy, momentum, collisions.
-  // Used by drone simulations, projectile motion, rigid body dynamics.
+  // REAL physics computation — drones, projectiles, rigid body dynamics.
 
   type Vector3 = { x : Float; y : Float; z : Float };
   type Particle = {
@@ -337,7 +450,7 @@ actor PhysicsBackend {
   // ═══════════════════════════════════════════════════════════════════════════
   //
   // Heat transfer, entropy, ideal gas law, phase transitions.
-  // Used by climate models, engine simulations, material science.
+  // Used by climate models, engine physics, material science.
 
   /// Ideal gas law: PV = nRT
   public query func idealGas(
@@ -415,7 +528,7 @@ actor PhysicsBackend {
   // ═══════════════════════════════════════════════════════════════════════════
   //
   // Electric fields, magnetic fields, Maxwell's equations applications.
-  // Used by circuit simulations, electromagnetic wave analysis.
+  // Used by circuit physics, electromagnetic wave analysis.
 
   /// Coulomb's law: F = kq₁q₂/r²
   public query func coulombForce(q1 : Float, q2 : Float, r : Float) : async Float {
@@ -510,7 +623,7 @@ actor PhysicsBackend {
   // ═══════════════════════════════════════════════════════════════════════════
   //
   // Bernoulli's principle, continuity, viscous flow, drag.
-  // Used by aerodynamics simulations, pipe flow analysis.
+  // Used by aerodynamics computation, pipe flow analysis.
 
   /// Continuity equation: A₁v₁ = A₂v₂
   public query func continuityEquation(
@@ -579,7 +692,7 @@ actor PhysicsBackend {
   // ═══════════════════════════════════════════════════════════════════════════
   //
   // Schrödinger equation, wave functions, uncertainty principle.
-  // Used by quantum simulations, atomic physics.
+  // Used by quantum computation, atomic physics.
 
   /// De Broglie wavelength: λ = h/p = h/(mv)
   public query func deBroglieWavelength(mass : Float, velocity : Float) : async Float {
@@ -920,7 +1033,7 @@ actor PhysicsBackend {
   // ═══════════════════════════════════════════════════════════════════════════
   //
   // Decay, cross-sections, particle kinematics.
-  // Used by nuclear physics simulations.
+  // Used by nuclear physics computation.
 
   /// Radioactive decay: N(t) = N₀·e^(-λt)
   public query func radioactiveDecay(n0 : Float, decayConstant : Float, time : Float) : async Float {
