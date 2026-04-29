@@ -44,6 +44,9 @@ import { PhantomWalletApp }  from './phantom_wallet/PhantomWalletApp';
 // ── NOVA BUILDER — Sovereign CaffeineAI Replacement · Build №42 ──────────
 import { NovaBuilderApp }    from './nova_builder/NovaBuilderApp';
 
+// ── DALLAS ISD — Sovereign AI Classroom Platform · Build №43 ─────────────
+import { DallasISDApp }      from './dallas_isd/DallasISDApp';
+
 // ── Terminal Hub — 40 Calls · 30 Packages · 15 Sovereign Terminals ──────────
 import { TerminalHub }    from './terminals/TerminalHub';
 
@@ -51,6 +54,7 @@ import { TerminalHub }    from './terminals/TerminalHub';
 type NavView =
   | 'PHANTOM_WALLET'  // Phantom Wallet — first consumer product · Powered by PARALLAX
   | 'NOVA_BUILDER'   // NOVA BUILDER — sovereign CaffeineAI replacement · Build №42
+  | 'DALLAS_ISD'     // DALLAS ISD — sovereign AI classroom platform · Build №43
   | 'SWARM'          // original tactical swarm view
   | 'COMMAND'        // ORO Command Center — multi-agent workspace
   | 'COMPANION'      // AURO companion chat/voice/command bridge
@@ -73,6 +77,7 @@ type NavView =
 const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
   { id: 'PHANTOM_WALLET', label: 'Phantom Wallet', icon: '⬡' },
   { id: 'NOVA_BUILDER',  label: 'NOVA Builder',  icon: '⊕' },
+  { id: 'DALLAS_ISD',    label: 'DISD Classroom', icon: '🎓' },
   { id: 'PARALLAX',   label: 'PARALLAX',    icon: '◈' },
   { id: 'COMMAND',    label: 'Command',    icon: '◉' },
   { id: 'TERMINALS',  label: 'Terminals',  icon: '⊞' },
@@ -298,6 +303,13 @@ export default function App() {
         {view === 'NOVA_BUILDER' && (
           <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
             <NovaBuilderApp />
+          </div>
+        )}
+
+        {/* ── DALLAS ISD — Sovereign AI Classroom Platform · Build №43 ──────── */}
+        {view === 'DALLAS_ISD' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <DallasISDApp />
           </div>
         )}
 

@@ -1,6 +1,6 @@
 {
-  "_PROTOTYPE": "PARALLAX DRONE SWARM — Medina Tech | Alfredo Medina Hernandez | Dallas TX | 2026",
-  "_CONFIDENTIAL": "STRICT PROTOTYPE — SELF-HOSTED LOCAL ONLY — DO NOT DEPLOY TO IC MAINNET",
+  "_PROTOTYPE": "PARALLAX DRONE SWARM \u2014 Medina Tech | Alfredo Medina Hernandez | Dallas TX | 2026",
+  "_CONFIDENTIAL": "STRICT PROTOTYPE \u2014 SELF-HOSTED LOCAL ONLY \u2014 DO NOT DEPLOY TO IC MAINNET",
   "_CONSOLIDATED": "2026-04-02: swarm_quantum, swarm_metals, swarm_audit, swarm_command, swarm_telemetry absorbed into swarm_brain for 12 Hz heartbeat coherence",
   "version": 1,
   "canisters": {
@@ -233,6 +233,14 @@
         "swarm_brain",
         "swarm_organism"
       ]
+    },
+    "nova_student": {
+      "type": "motoko",
+      "main": "src/nova_student/main.mo"
+    },
+    "dallas_isd": {
+      "type": "motoko",
+      "main": "src/dallas_isd/main.mo"
     }
   },
   "defaults": {

@@ -14,6 +14,11 @@
 // COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ. ALL RIGHTS RESERVED.
 // ═══════════════════════════════════════════════════════════════════════════════
 
+// ─── NOVA DALLAS ISD AI Classroom App (Build №43) ────────────────────────────
+// Full platform: AI tutor (nova_student backend), TEKS concepts (dallas_isd backend),
+// SM-2 quiz (synced to nova_student canister), grant manifest (dallas_isd canister).
+export { DallasISDApp } from './DallasISDApp';
+
 // ─── Digital Classroom Adapters (FREE — all subjects) ───────────────────────
 export {
   DigitalClassroomAdapters,
