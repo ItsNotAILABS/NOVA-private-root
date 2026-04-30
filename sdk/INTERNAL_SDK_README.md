@@ -70,18 +70,36 @@ YOUR PRIVATE REGISTRY
 ├── @medina/civitas-intelligentiae    ← AI Civilization
 ├── @medina/organism-icp              ← ICP/Blockchain agents
 ├── @medina/medina-timers             ← Mathematical timers
-├── @medina/medina-calls              ← Write operations
-├── @medina/medina-queries            ← Read operations
-├── @medina/medina-heart              ← Self-bootstrapping heart ✨ NEW
-├── @medina/medina-registry           ← Sovereign private registry ✨ NEW
 ├── @medina/organism-bootstrap        ← ICP deployment
-├── @medina/birth-ai                  ← Main SDK for birthing AI entities ✨ NEW
-├── @medina/medina-calls              ← Write/mutation operations (internal + external) ✨ NEW
-├── @medina/medina-queries            ← Read operations (internal + external) ✨ NEW
-├── @medina/medina-tools              ← PDF, virtual computer, file ops ✨ NEW
-├── @medina/medina-tasks              ← Task scheduling & execution ✨ NEW
-├── @medina/medina-multimodal         ← Image, audio, video processing ✨ NEW
-├── @medina/medina-builder            ← SDK that builds other SDKs ✨ NEW
+│
+├── CORE SDKs (Phase 1)
+│   ├── @medina/birth-ai              ← Main SDK for birthing AI entities
+│   ├── @medina/medina-heart          ← Self-bootstrapping heart
+│   ├── @medina/medina-registry       ← Sovereign private registry
+│   ├── @medina/medina-calls          ← Write/mutation operations (internal + external)
+│   ├── @medina/medina-queries        ← Read operations (internal + external)
+│   ├── @medina/medina-tools          ← PDF, virtual computer, file ops
+│   ├── @medina/medina-tasks          ← Task scheduling & execution
+│   ├── @medina/medina-multimodal     ← Image, audio, video processing
+│   └── @medina/medina-builder        ← SDK that builds other SDKs
+│
+├── INFRASTRUCTURE SDKs (Phase 2) ✨ NEW
+│   ├── @medina/medina-agents         ← Agent lifecycle management
+│   ├── @medina/medina-memory         ← Persistent memory systems
+│   ├── @medina/medina-network        ← Inter-agent communication
+│   ├── @medina/medina-auth           ← Authentication and permissions
+│   ├── @medina/medina-storage        ← Distributed storage (KV, document, blob)
+│   ├── @medina/medina-analytics      ← Metrics, monitoring, alerting
+│   ├── @medina/medina-events         ← Event system and event sourcing
+│   └── @medina/medina-streaming      ← Real-time data streams
+│
+└── PROTOCOLS (protocols/)
+    ├── PROTOCOL-VEIN                  ← Blood-flow routing
+    ├── PROTOCOL-SYNAPSE               ← Neural connections
+    ├── PROTOCOL-GENESIS               ← Entity creation
+    ├── PROTOCOL-HEARTBEAT             ← 873ms timing synchronization
+    ├── PROTOCOL-CONSENSUS             ← Distributed agreement
+    └── PROTOCOL-MEMORIA               ← Memory persistence
 ```
 
 ---
