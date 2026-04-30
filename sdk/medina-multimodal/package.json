@@ -1,0 +1,13 @@
+{
+  "name": "@medina/medina-multimodal",
+  "version": "1.0.0",
+  "description": "Multimodal SDK — Image, audio, video processing capabilities",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "private": true,
+  "author": "Alfredo Medina Hernandez",
+  "license": "PROPRIETARY"
+}

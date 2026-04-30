@@ -41,13 +41,13 @@ const CORE_SDKS = {
   '@medina/medina-queries': {
     name: '@medina/medina-queries',
     version: '1.0.0',
-    description: 'Read operations',
+    description: 'Read operations (internal + external)',
     category: 'data',
   },
   '@medina/medina-calls': {
     name: '@medina/medina-calls',
     version: '1.0.0',
-    description: 'Write operations',
+    description: 'Write operations (internal + external)',
     category: 'data',
   },
   '@medina/medina-timers': {
@@ -73,6 +73,36 @@ const CORE_SDKS = {
     version: '1.0.0',
     description: 'ICP deployment',
     category: 'deployment',
+  },
+  '@medina/birth-ai': {
+    name: '@medina/birth-ai',
+    version: '1.0.0',
+    description: 'Main SDK for birthing AI entities',
+    category: 'core',
+  },
+  '@medina/medina-tools': {
+    name: '@medina/medina-tools',
+    version: '1.0.0',
+    description: 'PDF, virtual computer, file operations',
+    category: 'tools',
+  },
+  '@medina/medina-tasks': {
+    name: '@medina/medina-tasks',
+    version: '1.0.0',
+    description: 'Task scheduling and execution',
+    category: 'scheduling',
+  },
+  '@medina/medina-multimodal': {
+    name: '@medina/medina-multimodal',
+    version: '1.0.0',
+    description: 'Image, audio, video processing',
+    category: 'multimodal',
+  },
+  '@medina/medina-builder': {
+    name: '@medina/medina-builder',
+    version: '1.0.0',
+    description: 'SDK that builds other SDKs',
+    category: 'meta',
   },
 };
 

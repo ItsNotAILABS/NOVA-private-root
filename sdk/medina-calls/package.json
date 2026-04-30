@@ -1,0 +1,13 @@
+{
+  "name": "@medina/medina-calls",
+  "version": "1.0.0",
+  "description": "Write operations — Internal and External call mutations",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "private": true,
+  "author": "Alfredo Medina Hernandez",
+  "license": "PROPRIETARY"
+}
