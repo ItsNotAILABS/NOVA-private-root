@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
-// NOVA INTELLIGENCE CORE — MASTER INDEX (BUILD №47)
+// NOVA INTELLIGENCE CORE — MASTER INDEX (BUILD №48)
 // COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ. ALL RIGHTS RESERVED.
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
 //
@@ -15,7 +15,31 @@
 // PHYSICS = REAL MATH AND GEOMETRY — NOT SIMULATION
 // NO EXTERNAL DEPENDENCIES — NOVA DOES ITS OWN COMPUTATIONS
 //
+// BACKEND-FIRST ARCHITECTURE (BUILD №48):
+//   STEP 1: CORE ENGINES   — CHRONO, NEXORIS, QUANTUM_FLUX, COREOGRAPH
+//   STEP 2: AGENT ORGANS   — 12 autonomous agents (ANIMUS, CORPUS, SENSUS, MEMORIA, etc.)
+//   STEP 3: RUNTIME        — OrganismRuntime coordinates everything
+//   STEP 4: BOOTSTRAP      — bootstrapOrganism() awakens all loops
+//
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CORE ENGINES — The "physics" of the organism
+// ══════════════════════════════════════════════════════════════════════════════
+
+export * from './engines';
+
+// ══════════════════════════════════════════════════════════════════════════════
+// AGENT ORGANS — 12 autonomous intelligence agents
+// ══════════════════════════════════════════════════════════════════════════════
+
+export * from './agents';
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RUNTIME & BOOTSTRAP — Coordination and lifecycle
+// ══════════════════════════════════════════════════════════════════════════════
+
+export * from './runtime';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PILLAR EXPORTS
@@ -36,19 +60,36 @@ export * from './machine_learning';
 export * from './emergence/EmergenceLab';
 
 // ══════════════════════════════════════════════════════════════════════════════
-// MODULE REGISTRY — Compressed list of all 654 modules
+// MODULE REGISTRY — Compressed list of all 654+ modules
 // ══════════════════════════════════════════════════════════════════════════════
 
 export * from './MODULE_COMPRESSION_REGISTRY';
 
 // ══════════════════════════════════════════════════════════════════════════════
-// INTELLIGENCE CORE MANIFEST
+// INTELLIGENCE CORE MANIFEST (BUILD №48)
 // ══════════════════════════════════════════════════════════════════════════════
 
 export const INTELLIGENCE_CORE = {
   id: 'NOVA_INTELLIGENCE_CORE',
-  version: '47.0.0',
-  build: 47,
+  version: '48.0.0',
+  build: 48,
+  
+  architecture: {
+    step1: 'CORE_ENGINES',      // CHRONO, NEXORIS, QUANTUM_FLUX, COREOGRAPH
+    step2: 'AGENT_ORGANS',      // 12 autonomous agents
+    step3: 'RUNTIME',           // OrganismRuntime coordinator
+    step4: 'BOOTSTRAP',         // bootstrapOrganism() awakens all
+  },
+  
+  engines: ['CHRONO', 'NEXORIS', 'QUANTUM_FLUX', 'COREOGRAPH'] as const,
+  
+  coreAgents: ['ANIMUS', 'CORPUS', 'SENSUS', 'MEMORIA'] as const,
+  
+  allAgents: [
+    'ANIMUS', 'CORPUS', 'SENSUS', 'MEMORIA',
+    'EMOTIO', 'VOLUNTAS', 'LINGUA', 'IMAGINATIO',
+    'CONSCIENTIA', 'RATIO', 'INTUITUS', 'SPIRITUS',
+  ] as const,
   
   pillars: [
     'NEURAL',
@@ -68,61 +109,13 @@ export const INTELLIGENCE_CORE = {
     SERVITORES:  70,  // Workers
   },
   
-  principle: 'INTELLIGENCE = SUBSTRATE = ORGANISM = CREATION',
+  principle: 'BACKEND-FIRST: Engines → Agents → Runtime → Bootstrap → ALIVE',
   
   noExternalDeps: true,
   physicsIsRealMath: true,
   
   attribution: 'COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ. ALL RIGHTS RESERVED.',
 } as const;
-
-// ══════════════════════════════════════════════════════════════════════════════
-// WAVE ROUTING ENGINE — Blood flow through veins
-// ══════════════════════════════════════════════════════════════════════════════
-
-export interface WaveRoute {
-  source: string;
-  destination: string;
-  purpose: string;
-  priority: number;
-}
-
-export interface WaveRouterState {
-  routes: WaveRoute[];
-  activeFlows: number;
-  coherence: number;
-  lastBeatMs: number;
-}
-
-export function initWaveRouter(): WaveRouterState {
-  return {
-    routes: [],
-    activeFlows: 0,
-    coherence: 0.5,
-    lastBeatMs: Date.now(),
-  };
-}
-
-export function routeComputation(
-  router: WaveRouterState,
-  source: string,
-  destination: string,
-  purpose: string
-): WaveRouterState {
-  const newRoute: WaveRoute = {
-    source,
-    destination,
-    purpose,
-    priority: 1,
-  };
-  
-  return {
-    ...router,
-    routes: [...router.routes, newRoute],
-    activeFlows: router.activeFlows + 1,
-    lastBeatMs: Date.now(),
-  };
-}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // HEARTBEAT — 873ms sovereign rhythm
