@@ -69,9 +69,9 @@ export {
 
 export {
   PHI_POWERS,
-  computePhiPower,
-  FIBONACCI_SEQUENCE,
-  fibonacciMemo,
+  getPhiPower,
+  FIBONACCI,
+  FIBONACCI_CONVERGENTS,
   PLATONIC_SOLIDS,
   VESICA_PISCIS,
   THEODORUS_SPIRAL,
@@ -82,11 +82,12 @@ export {
 // ══════════════════════════════════════════════════════════════════════════════
 
 export {
-  SCHUMANN_HZ,
-  PHI_HZ,
-  HEARTBEAT_PERIOD_MS,
-  hzToMs,
-  msToHz,
+  HEARTBEAT_RATE,
+  HZ_LEXIS,
+  HZ_FORGE,
+  HZ_SOMA,
+  HZ_MEMORIA,
+  HZ_PULSE,
 } from '../../frontend/src/math/hz-substrate';
 
 // ══════════════════════════════════════════════════════════════════════════════

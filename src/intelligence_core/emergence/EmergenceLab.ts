@@ -25,10 +25,10 @@
 // ══════════════════════════════════════════════════════════════════════════════
 
 import {
-  KuramotoOscillator,
-  KuramotoOrderResult,
-  PhaseTransitionState,
-  OrganKuramotoState,
+  type KuramotoOscillator,
+  type KuramotoOrderResult,
+  type PhaseTransitionState,
+  type OrganKuramotoState,
   ORGAN_FREQS,
   ORGAN_FREQ_ARRAY,
   computeOrderParameter,
@@ -41,16 +41,16 @@ import {
   initOrganKuramoto,
   stepOrganKuramoto,
   frequencyCoherence,
-} from '../../math/kuramoto';
+} from '../../frontend/src/math/kuramoto';
 
 import {
-  LandauParams,
-  IsingState,
-  LorenzState,
-  RDState,
-  SandpileState,
-  EmergenceInputs,
-  BrusselatorState,
+  type LandauParams,
+  type IsingState,
+  type LorenzState,
+  type RDState,
+  type SandpileState,
+  type EmergenceInputs,
+  type BrusselatorState,
   landauFreeEnergyFull,
   landauGradient,
   findEquilibriumPhi,
@@ -72,17 +72,17 @@ import {
   initBrusselator,
   brusselatorStep,
   brusselatorOscillates,
-} from '../../math/emergence';
+} from '../../frontend/src/math/emergence';
 
 import {
-  LyapunovState5,
+  type LyapunovState5,
   initLyapunov,
   lyapunovTick,
   lyapunovExponent,
   isOmnisState,
   OMNIS_THRESHOLD,
   EMERGENCE_TAU,
-} from '../../math/lyapunov';
+} from '../../frontend/src/math/lyapunov';
 
 import {
   clamp,
@@ -93,7 +93,7 @@ import {
   ISING_2D_BETA,
   ISING_2D_TC,
   FEIGENBAUM_D,
-} from '../../math/core';
+} from '../../frontend/src/math/core';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // EMERGENCE LAB STATE — The complete state of the emergence intelligence
