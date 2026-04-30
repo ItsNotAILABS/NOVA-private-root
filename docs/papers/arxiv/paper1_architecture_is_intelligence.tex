@@ -1,0 +1,626 @@
+\documentclass[12pt]{article}
+
+% ── Packages ─────────────────────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{cite}
+
+\geometry{margin=1in}
+
+% ── Theorem environments ──────────────────────────────────────────────────────
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
+
+% ── Macros ───────────────────────────────────────────────────────────────────
+\newcommand{\CAP}{\mathcal{C}}
+\newcommand{\ATTR}{\mathcal{A}}
+\newcommand{\LOCK}{\mathsf{lock}}
+\newcommand{\GEN}{\mathsf{gen}}
+\newcommand{\PROP}{\mathsf{prop}}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\title{\textbf{Structural Attribution: \\
+  Immutable Authorship as a Type-System Property \\
+  in Autonomous AI Capability Networks}}
+
+\author{Alfredo Medina Hernandez \\
+  \normalsize Medina Tech \quad Dallas, Texas, USA \\
+  \normalsize \texttt{MedinaSITech@outlook.com}}
+
+\date{April 2026}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+As autonomous AI agents gain the ability to generate, compose, and deploy new
+capabilities without human supervision, the question of \emph{who authored what}
+becomes both technically and legally urgent.  Existing approaches treat
+attribution as a contractual or metadata overlay — a label attached to a
+capability after the fact, vulnerable to modification, deletion, or dispute.
+We propose \emph{structural attribution}: a framework in which authorship is not
+a label but a \emph{type-system invariant} encoded at capability genesis and
+enforced by the runtime.  We formalise the Structural Attribution Type (SAT),
+prove three invariants — \emph{genesis immutability}, \emph{compositional
+transitivity}, and \emph{third-party verifiability} — and derive the
+\emph{Attribution DAG}, a directed acyclic graph that traces the complete
+authorship lineage of any composed capability.  We then show that a network of
+AI agents operating under SAT achieves a property we call \emph{Attribution
+Closure}: no agent can produce a capability without leaving an irrevocable,
+machine-verifiable authorship record.  We discuss implications for AI
+intellectual property law, open-source AI ecosystems, and the design of
+multi-agent systems where capabilities are bought, sold, and composed at
+autonomous-agent speed.
+\end{abstract}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Introduction}
+\label{sec:intro}
+
+The economics of software capability are changing faster than the legal and
+technical infrastructure that governs them.  When a human engineer writes a
+function, attribution is straightforward: the commit log, the copyright header,
+and the employment contract together establish who made what.  When an
+autonomous AI agent generates a capability — invokes a tool, produces an
+algorithm, synthesises a new module from existing ones — none of those three
+mechanisms apply reliably.  The commit log may not exist; the copyright header
+may be missing or incorrect; the employment contract does not contemplate machine
+authorship.
+
+The result is what we call the \emph{Attribution Vacuum}: a growing space of
+AI-generated capabilities for which authorship is contested, unresolved, or
+simply unrecorded.  As AI agents proliferate and compose each other's outputs,
+the vacuum grows faster than any contractual or metadata-based solution can
+fill it.
+
+This paper argues that the Attribution Vacuum is not a legal problem with a
+legal solution.  It is an \emph{architectural problem with an architectural
+solution}: authorship should be a \emph{type}, not a tag.  When authorship is
+a type-system invariant — encoded at the moment a capability is created and
+enforced by the runtime — it cannot be removed, forged, or disputed, because
+it is not a claim about the capability; it is a \emph{structural property} of
+the capability itself.
+
+\paragraph{Contributions.}  We make four contributions:
+\begin{enumerate}[label=(\arabic*)]
+  \item We define the \emph{Structural Attribution Type} (SAT) and specify its
+    formal semantics, including what operations may and may not affect an
+    attribution field.
+  \item We prove three invariants: genesis immutability, compositional
+    transitivity, and third-party verifiability.
+  \item We define the \emph{Attribution DAG} and prove that it is always
+    acyclic in a well-typed SAT system.
+  \item We prove the \emph{Attribution Closure Theorem}: a network of agents
+    operating under SAT cannot produce unattributed capabilities.
+\end{enumerate}
+
+\paragraph{Organisation.}
+Section~\ref{sec:problem} characterises the Attribution Vacuum precisely.
+Section~\ref{sec:sat} defines SAT formally.
+Section~\ref{sec:invariants} proves the three core invariants.
+Section~\ref{sec:dag} defines and analyses the Attribution DAG.
+Section~\ref{sec:closure} proves Attribution Closure.
+Section~\ref{sec:multiagent} applies the framework to multi-agent AI networks.
+Section~\ref{sec:related} surveys related work.
+Section~\ref{sec:discussion} discusses limitations and future directions.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{The Attribution Vacuum}
+\label{sec:problem}
+
+\subsection{Capabilities and Their Authors}
+
+\begin{definition}[Capability]
+  A \emph{capability} $C$ is a tuple $(I, O, f, \rho)$ where: $I$ is the input
+  type, $O$ is the output type, $f : I \to O$ is the implementation, and
+  $\rho$ is a resource footprint (compute, memory, latency).  A capability is
+  \emph{elementary} if $f$ is not defined in terms of other capabilities; it is
+  \emph{composite} if $f$ is defined by composing $k \ge 2$ other capabilities.
+\end{definition}
+
+\begin{definition}[Author]
+  The \emph{author} of a capability is the agent — human or artificial — whose
+  intellectual act produced $f$.  For elementary capabilities, the author is
+  the agent that wrote or generated $f$.  For composite capabilities, the
+  question of authorship becomes nontrivial (Section~\ref{sec:dag}).
+\end{definition}
+
+\subsection{Why Metadata Fails}
+
+The dominant contemporary approach is to attach authorship information as
+metadata: a structured record (author name, timestamp, licence) stored
+alongside the capability but not \emph{as} part of it.  This approach has four
+fatal weaknesses in an autonomous AI context:
+
+\begin{enumerate}[label=(\arabic*)]
+  \item \textbf{Separability.}  Metadata can be stripped from a capability
+    without modifying the capability itself.  A downstream agent that copies $f$
+    but not its metadata has the capability without the attribution.
+  \item \textbf{Mutability.}  Metadata records are data.  Data can be
+    overwritten.  Any agent with write access to the metadata store can alter
+    or delete authorship records.
+  \item \textbf{Latency.}  Metadata is typically attached after the fact —
+    after the capability is created, tested, and deployed.  In a high-frequency
+    autonomous agent network, the window between capability creation and metadata
+    attachment is a vulnerability.
+  \item \textbf{Trust dependency.}  Verifying metadata requires trusting the
+    metadata store and its access control system.  In a decentralised multi-agent
+    network, no single store may be trusted by all participants.
+\end{enumerate}
+
+\subsection{Formal Statement of the Problem}
+
+Let $\mathcal{N}$ be a network of $N$ autonomous agents, each capable of
+generating, composing, and deploying capabilities.  Let $\mathcal{C}(\mathcal{N})$
+be the set of all capabilities produced by $\mathcal{N}$ over a time horizon
+$T$.  Define the \emph{attribution function}
+$\alpha : \mathcal{C}(\mathcal{N}) \to 2^\mathcal{A}$
+where $\mathcal{A}$ is the set of agents and $\alpha(C)$ is the (possibly empty)
+set of attributed authors.
+
+The Attribution Vacuum problem is: under a metadata-based attribution scheme,
+$\alpha(C) = \emptyset$ for a non-negligible fraction of $\mathcal{C}(\mathcal{N})$,
+and $|\alpha(C)| > |\text{true authors of } C|$ for another non-negligible
+fraction (false attribution by metadata injection).
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{The Structural Attribution Type}
+\label{sec:sat}
+
+\subsection{SAT Definition}
+
+\begin{definition}[Structural Attribution Type]
+  The \emph{Structural Attribution Type} is a type constructor $\ATTR[-]$ such
+  that $\ATTR[C]$ is the attributed form of capability $C$.  Formally:
+  \[
+    \ATTR[C] = (C,\; \LOCK(a,\, h,\, t_0,\, \sigma))
+  \]
+  where:
+  \begin{itemize}[leftmargin=*]
+    \item $C = (I, O, f, \rho)$ is the underlying capability (unchanged);
+    \item $a \in \mathcal{A}$ is the \emph{author} — the agent that produced $f$;
+    \item $h = H(C \| a \| t_0)$ is a \emph{genesis hash} — a cryptographic
+      commitment to the pairing of capability content, author, and creation time;
+    \item $t_0$ is the \emph{genesis timestamp};
+    \item $\sigma = \text{Sign}_{k_a}(h)$ is the author's digital signature
+      over the genesis hash.
+  \end{itemize}
+  The $\LOCK$ record is \emph{sealed}: it is computed once at genesis and has no
+  setter method.  The only operation defined on $\LOCK$ is \texttt{verify},
+  which checks the signature and hash.
+\end{definition}
+
+\subsection{Well-Typedness}
+
+\begin{definition}[Well-Typed Capability Network]
+  A capability network $\mathcal{N}$ is \emph{well-typed under SAT} if:
+  (i) every capability produced by any agent in $\mathcal{N}$ is of type
+  $\ATTR[C]$ for some $C$; and (ii) no agent in $\mathcal{N}$ can produce a
+  value of type $C$ directly — only of type $\ATTR[C]$.
+\end{definition}
+
+Condition (ii) is the critical one.  It is enforced by the type checker: the
+production operation $\GEN : \mathcal{A} \times I \times O \times (I \to O)
+\to \ATTR[\CAP]$ is the \emph{only} way to introduce a capability into the
+system, and $\GEN$ is defined to compute $\LOCK$ as its first act.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Three Core Invariants}
+\label{sec:invariants}
+
+\subsection{Invariant 1: Genesis Immutability}
+
+\begin{theorem}[Genesis Immutability]
+  In a well-typed SAT system, for any capability $C \in \ATTR[\CAP]$ with
+  $\LOCK = \LOCK(a, h, t_0, \sigma)$, no operation in the system can produce
+  a value $C'$ such that $C'$ has the same genesis hash $h$ but a different
+  author $a'$.
+\end{theorem}
+
+\begin{proof}
+  The genesis hash $h = H(C \| a \| t_0)$ binds the author $a$ to the
+  capability content $C$ and genesis time $t_0$ through the collision-resistant
+  hash $H$.  Changing $a$ to $a' \ne a$ while keeping $h$ unchanged requires
+  finding a hash collision $H(C \| a \| t_0) = H(C \| a' \| t_0)$, which is
+  computationally infeasible for any collision-resistant $H$.
+  Changing $h$ breaks the signature verification
+  $\text{Verify}_{k_a}(h, \sigma) = \top$, rendering $C'$ not well-typed.
+  Therefore no well-typed operation can alter the author field. \qed
+\end{proof}
+
+\subsection{Invariant 2: Compositional Transitivity}
+
+When a composite capability $C_{12}$ is formed by composing $C_1$ and $C_2$,
+the question is whether the attribution of $C_{12}$ preserves the attributions
+of $C_1$ and $C_2$.
+
+\begin{definition}[Composition Operation]
+  Given $\ATTR[C_1]$ and $\ATTR[C_2]$ with $O_1 = I_2$, the composite
+  $\ATTR[C_{12}] = \PROP(\ATTR[C_1], \ATTR[C_2], a_\text{composer})$ is:
+  \[
+    \ATTR[C_{12}] = \bigl((I_1, O_2, f_2 \circ f_1, \rho_1 + \rho_2),\;
+      \LOCK(a_\text{composer}, H(C_{12} \| \{a_1, a_2\} \| t_0^\text{new}),
+            t_0^\text{new}, \sigma_\text{composer})\bigr)
+  \]
+  where $\{a_1, a_2\}$ are the authors of $C_1$ and $C_2$, serialised
+  canonically into the genesis hash of $C_{12}$.
+\end{definition}
+
+\begin{theorem}[Compositional Transitivity]
+  In a well-typed SAT system, the genesis hash of any composite capability
+  $C_{12}$ contains the authorship identifiers of all of its component
+  capabilities, to arbitrary depth.
+\end{theorem}
+
+\begin{proof}
+  By induction on composition depth $d$.
+
+  \medskip\noindent
+  \textbf{Base case} ($d=1$): $C_{12}$ is composed of two elementary capabilities
+  $C_1, C_2$.  By definition of $\PROP$, the genesis hash
+  $h_{12} = H(C_{12} \| \{a_1, a_2\} \| t_0^{\text{new}})$ directly encodes
+  $a_1$ and $a_2$.
+
+  \medskip\noindent
+  \textbf{Inductive step}: Assume the theorem holds for all compositions of depth
+  $d-1$.  A depth-$d$ composition $C_{1\cdots k}$ is formed by composing
+  $C_{1\cdots k-1}$ (depth $d-1$, with hash encoding all authors $a_1,\ldots,a_{k-1}$)
+  with $C_k$ (elementary).  By $\PROP$, the hash of $C_{1\cdots k}$ encodes
+  the hash of $C_{1\cdots k-1}$ as a component of its author set — which by the
+  inductive hypothesis encodes $a_1, \ldots, a_{k-1}$.  Therefore the hash of
+  $C_{1\cdots k}$ encodes all of $a_1, \ldots, a_k$. \qed
+\end{proof}
+
+\subsection{Invariant 3: Third-Party Verifiability}
+
+\begin{theorem}[Third-Party Verifiability]
+  Any agent $a_v$ — including one that did not participate in the creation of
+  $\ATTR[C]$ — can verify the attribution of $C$ without trusting any
+  intermediary, using only: (i) the public key $k_a^{\text{pub}}$ of the claimed
+  author, and (ii) the $\LOCK$ record.
+\end{theorem}
+
+\begin{proof}
+  Verification proceeds in two steps:
+  \begin{enumerate}[label=(\roman*)]
+    \item Recompute $h' = H(C \| a \| t_0)$ from the capability content $C$,
+      the claimed author $a$, and the genesis timestamp $t_0$ — all of which
+      are fields of $\ATTR[C]$.
+    \item Check $\text{Verify}_{k_a^{\text{pub}}}(h', \sigma) = \top$.
+  \end{enumerate}
+  If both checks pass, the attribution is verified.  The verification uses only
+  public information and requires no trust in the metadata store, the network
+  operator, or the author themselves.  The security of the verification reduces
+  to the security of the digital signature scheme. \qed
+\end{proof}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{The Attribution DAG}
+\label{sec:dag}
+
+\subsection{Definition}
+
+\begin{definition}[Attribution DAG]
+  The \emph{Attribution DAG} $G = (V, E)$ of a capability network $\mathcal{N}$
+  is defined as:
+  \begin{itemize}[leftmargin=*]
+    \item $V = \mathcal{C}(\mathcal{N})$: one vertex per capability;
+    \item $(C_i, C_j) \in E$ if and only if $C_j$ was directly composed from
+      $C_i$ (i.e.\ $C_i$ is a direct component of $C_j$).
+  \end{itemize}
+\end{definition}
+
+\begin{theorem}[Attribution DAG is Acyclic]
+  In a well-typed SAT system, the Attribution DAG is always a directed acyclic
+  graph.
+\end{theorem}
+
+\begin{proof}
+  Suppose for contradiction there exists a cycle
+  $C_1 \to C_2 \to \cdots \to C_k \to C_1$.
+  Then $C_1$ is a component of $C_k$, which is a component of $C_{k-1}$, \ldots,
+  which is a component of $C_1$.  By the definition of $\PROP$, $C_1$ is
+  composed from $C_k$ — meaning $C_1$ is produced \emph{after} $C_k$.
+  But $C_k$ is composed from $C_1$, meaning $C_k$ is produced after $C_1$.
+  Together: $t_0(C_1) > t_0(C_k)$ and $t_0(C_k) > t_0(C_1)$, a contradiction.
+  Therefore no cycle exists. \qed
+\end{proof}
+
+\subsection{Attribution Lineage Query}
+
+The Attribution DAG enables efficient lineage queries.  For any capability $C$,
+the set of all authors that contributed (directly or indirectly) to $C$ is:
+\[
+  \ATTR_*(C) = \{a : \exists\, C' \in \text{Ancestors}(C, G),\;
+  C'.\LOCK.a = a\},
+\]
+where $\text{Ancestors}(C, G)$ is the set of all ancestors of $C$ in $G$.  This
+query runs in $O(|V| + |E|)$ time by a depth-first traversal of the DAG.
+
+\begin{proposition}[Completeness of Attribution Lineage]
+  In a well-typed SAT system, $\ATTR_*(C)$ is the complete set of all agents
+  whose intellectual acts contributed to $C$.  No contributing author can be
+  excluded from $\ATTR_*(C)$ without breaking the well-typedness condition.
+\end{proposition}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Attribution Closure}
+\label{sec:closure}
+
+\begin{theorem}[Attribution Closure]
+  In a well-typed SAT capability network $\mathcal{N}$, for every capability
+  $C \in \mathcal{C}(\mathcal{N})$:
+  \[
+    \alpha(C) = \ATTR_*(C) \ne \emptyset.
+  \]
+  That is, every capability in $\mathcal{N}$ has a non-empty, verifiable
+  attribution set.
+\end{theorem}
+
+\begin{proof}
+  By the well-typedness condition, every capability $C$ was introduced into the
+  system via the $\GEN$ operation, which computes $\LOCK(a, h, t_0, \sigma)$
+  for some author $a \in \mathcal{A}$.  Therefore every elementary capability
+  has $|\ATTR_*(C)| \ge 1$.  For composite capabilities, $\ATTR_*(C)$ contains
+  all ancestors' authors by Compositional Transitivity
+  (Theorem~\ref{thm:3}).  Since every composite capability has at least one
+  elementary component (which has at least one author), $\ATTR_*(C) \ne \emptyset$
+  for all $C$. \qed
+\end{proof}
+
+\begin{corollary}[No Unattributed AI Capabilities]
+  If all agents in $\mathcal{N}$ are required to produce only well-typed SAT
+  capabilities, then no autonomous AI agent can produce a capability that lacks
+  authorship attribution.
+\end{corollary}
+
+This corollary is the central practical result.  It means that in a network
+where the SAT type discipline is enforced at the runtime level — not at the
+policy level — the Attribution Vacuum cannot occur.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Multi-Agent AI Networks under SAT}
+\label{sec:multiagent}
+
+\subsection{Autonomous Capability Markets}
+
+Consider a market in which AI agents buy and sell capabilities.  Under
+metadata-based attribution, a buyer cannot verify that the capability they
+purchased is attributed to the seller rather than a third party whose work was
+incorporated without attribution.  Under SAT, the Attribution DAG settles this
+question: the buyer runs a lineage query and observes exactly which authors
+contributed at each depth.
+
+This enables a new class of \emph{attribution-aware pricing}: the market price
+of a capability can reflect the number and quality of contributing authors, with
+royalties routed proportionally to each author's contribution at their depth in
+the DAG — automatically, at the time of sale, without human mediation.
+
+\subsection{Attribution Routing}
+
+\begin{definition}[Attribution-Weighted Royalty]
+  For a composite capability $C$ sold at price $p$, the royalty for author $a_i$
+  at depth $d_i$ in the Attribution DAG is:
+  \[
+    r_i = p \cdot \frac{w(d_i)}{\sum_j w(d_j)},
+  \]
+  where $w : \mathbb{N} \to \mathbb{R}_{>0}$ is a depth-weighting function.
+  A natural choice is $w(d) = \beta^{-d}$ for $\beta > 1$: more proximate
+  authors receive higher royalties.
+\end{definition}
+
+Under this scheme, the direct author of a composite capability receives the
+largest royalty, and royalties decrease geometrically toward the root authors
+of elementary components.  The scheme is computable from the Attribution DAG
+alone and requires no human judgment.
+
+\subsection{Agent Identity and Key Management}
+
+SAT requires each agent to maintain a public/private key pair for signing
+genesis records.  For AI agents, this raises the question of key ownership: who
+controls the key that signs the agent's outputs?
+
+We distinguish three regimes:
+\begin{enumerate}[label=(\arabic*)]
+  \item \textbf{Human-controlled key}: the agent's outputs are attributed to the
+    human who controls the signing key.  This is appropriate for AI-assisted
+    human authorship.
+  \item \textbf{Organisation-controlled key}: the agent's outputs are attributed
+    to the organisation that operates it.  This is appropriate for commercial
+    AI deployments.
+  \item \textbf{On-chain principal}: the agent's key pair is derived from its
+    on-chain identifier (e.g.\ a canister principal on a blockchain).  This is
+    the fully decentralised regime, where the agent's authorship is as
+    irrevocable as its on-chain identity.
+\end{enumerate}
+
+Regime (3) is most robust against the Attribution Vacuum: the agent's key
+cannot be revoked without destroying the agent itself, and the attribution is
+anchored to an immutable blockchain record.
+
+\subsection{Sybil Attribution Attacks}
+
+An adversary that controls multiple agent identities could attempt to flood the
+Attribution DAG with many shallow agents, each claiming authorship of components
+that they did not meaningfully author.  We call this a \emph{sybil attribution
+attack}.
+
+The depth-weighted royalty function $w(d) = \beta^{-d}$ partially mitigates
+this: shallow sybil agents that contribute trivially (a composition layer with
+no intellectual content) receive vanishingly small royalties as $\beta$ grows.
+A more robust mitigation requires a \emph{contribution quality signal} — an
+oracle that rates the intellectual content of each capability independent of its
+position in the DAG.
+
+\begin{proposition}[Sybil Resistance under Quality Gating]
+  If capabilities must pass a minimum quality threshold $q_\text{min}$ to be
+  included in the market (verified by a trusted oracle), then a sybil agent
+  must produce capabilities of quality $\ge q_\text{min}$ to earn non-trivial
+  royalties, limiting the effectiveness of sybil attribution attacks.
+\end{proposition}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Software provenance.}
+Provenance tracking in software supply chains~\cite{sigstore2021, in-toto2019}
+records \emph{how} an artefact was produced (build steps, tools, inputs) rather
+than \emph{who} produced it.  SAT is complementary: it tracks authorship, not
+build process.  The two can be combined.
+
+\paragraph{AI-generated content attribution.}
+Recent proposals~\cite{bender2021, bommasani2021} address attribution of
+AI-generated text and images at the policy and metadata level.  SAT provides
+a complementary \emph{technical} enforcement mechanism that operates
+independently of policy.
+
+\paragraph{Blockchain-based IP.}
+NFTs and on-chain copyright registries~\cite{bored2021} associate blockchain
+tokens with creative works.  SAT differs in that attribution is baked into the
+capability's type, not into a separate token.  The two approaches are
+compatible: an NFT can represent the $\LOCK$ record of a SAT capability.
+
+\paragraph{Type-theoretic security.}
+Information-flow type systems~\cite{volpano1997, heintze1998} enforce security
+policies through types.  SAT follows the same paradigm for attribution: by
+making the attribution field a type invariant rather than a runtime check, it
+achieves the same robustness guarantees as information-flow types.
+
+\paragraph{Curry-Howard and specification correctness.}
+The Curry-Howard isomorphism~\cite{howard1980} identifies proofs with programs.
+SAT adds a third axis: attribution.  Under SAT, a capability is simultaneously
+a program (its implementation), a specification (its type), and a provenance
+record (its attribution).  This three-way identification is consistent with the
+Curry-Howard tradition.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Discussion and Limitations}
+\label{sec:discussion}
+
+\subsection{Computational Overhead}
+
+SAT adds a constant-size $\LOCK$ record to every capability.  The genesis
+hash and signature are computed once, at capability creation, and verified on
+demand.  Verification costs one hash computation and one signature check —
+$O(1)$ in capability size for most hash and signature schemes.  The Attribution
+DAG has $|V| = |\mathcal{C}(\mathcal{N})|$ vertices and $|E| \le |V|^2$ edges
+(bounded by the number of compositions), making lineage queries $O(|V| + |E|)$.
+
+\subsection{What SAT Does Not Solve}
+
+SAT guarantees that the attribution in a capability's $\LOCK$ record is
+\emph{internally consistent} and \emph{verifiable}.  It does not guarantee
+that the attributed author is the \emph{true} intellectual originator of the
+capability: an agent could use a stolen key, or could plagiarise the
+implementation $f$ from an unattributed source.  SAT makes attribution
+\emph{structurally irrevocable}; it cannot make it \emph{ethically correct}
+without additional oracle mechanisms.
+
+\subsection{Key Compromise}
+
+If an agent's private key is compromised, an adversary can forge attributions
+signed by that key.  Standard key rotation mechanisms partially address this,
+but rotating a key changes the attribution identity of future capabilities.
+A key revocation list that marks compromised keys would allow verifiers to
+reject attributions signed after the compromise date.
+
+\subsection{Implications for AI Governance}
+
+SAT has implications beyond intellectual property.  If a capability with harmful
+outputs has a traceable Attribution DAG, regulators can identify the responsible
+agents at each depth and hold them accountable proportionally.  This provides a
+technical foundation for \emph{tiered AI liability}: the author of an elementary
+component is less liable than the composer of the capability that caused harm,
+but neither is entirely off the hook — and both are identifiable.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Conclusion}
+\label{sec:conclusion}
+
+The Attribution Vacuum — the growing space of AI-generated capabilities without
+verifiable authorship — is a structural problem that requires a structural
+solution.  We have shown that treating authorship as a type-system invariant
+rather than a metadata overlay achieves Attribution Closure: in a well-typed
+SAT network, no capability can exist without a verifiable, irrevocable
+authorship record.
+
+The three invariants — genesis immutability, compositional transitivity, and
+third-party verifiability — together ensure that the attribution record is
+tamper-proof, complete, and trustless.  The Attribution DAG provides an
+efficient data structure for lineage queries and attribution-weighted royalty
+routing in autonomous capability markets.
+
+As AI agents grow in autonomy, capability, and economic significance, the
+question of who created what will become one of the defining legal and technical
+challenges of the decade.  Structural attribution offers a path in which that
+question has a definitive, machine-verifiable answer — embedded in the fabric
+of the capability itself.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{thebibliography}{99}
+
+\bibitem{sigstore2021}
+D.~Lorenc et al.,
+``Sigstore: Software signing for everybody,''
+\textit{Proc.\ ACM CCS}, pp.~2353--2367, 2022.
+
+\bibitem{in-toto2019}
+S.~Torres-Arias et al.,
+``in-toto: Providing farm-to-table guarantees for bits and bytes,''
+\textit{Proc.\ USENIX Security}, pp.~1243--1260, 2019.
+
+\bibitem{bender2021}
+E.~Bender, T.~Gebru, A.~McMillan-Major, S.~Shmitchell,
+``On the dangers of stochastic parrots: Can language models be too big?''
+\textit{Proc.\ ACM FAccT}, pp.~610--623, 2021.
+
+\bibitem{bommasani2021}
+R.~Bommasani et al.,
+``On the opportunities and risks of foundation models,''
+arXiv:2108.07258, 2021.
+
+\bibitem{bored2021}
+C.~Ante,
+``Non-fungible token (NFT) markets on the Ethereum blockchain: Temporal
+development, cointegration and interrelations,''
+\textit{Economics of Innovation and New Technology}, 2022.
+
+\bibitem{volpano1997}
+D.~Volpano, G.~Smith,
+``A type-based approach to program security,''
+\textit{Proc.\ TAPSOFT}, pp.~607--621, 1997.
+
+\bibitem{heintze1998}
+N.~Heintze, J.~Riecke,
+``The SLam calculus: Programming with secrecy and integrity,''
+\textit{Proc.\ ACM POPL}, pp.~365--377, 1998.
+
+\bibitem{howard1980}
+W.~A.~Howard,
+``The formulae-as-types notion of construction,''
+in \textit{To H.B. Curry: Essays on Combinatory Logic}, Academic Press, 1980.
+
+\bibitem{dfinity2022}
+\text{DFINITY Foundation},
+``The Internet Computer,'' Technical White Paper, 2022.
+
+\bibitem{pierce2002}
+B.~C.~Pierce,
+\emph{Types and Programming Languages}, MIT Press, 2002.
+
+\end{thebibliography}
+
+\end{document}

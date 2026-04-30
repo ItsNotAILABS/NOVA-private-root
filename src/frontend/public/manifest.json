@@ -1,0 +1,29 @@
+{
+  "name": "PARALLAX by NOVA — Sovereign Clearinghouse",
+  "short_name": "PARALLAX",
+  "description": "PARALLAX moves settlement. Not money. Any rail, any currency, any tier. 0.146% fee. Same day.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050a14",
+  "theme_color": "#44aaff",
+  "orientation": "any",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "productivity"],
+  "screenshots": [],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

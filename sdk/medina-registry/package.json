@@ -1,0 +1,23 @@
+{
+  "name": "@medina/medina-registry",
+  "version": "1.0.0",
+  "description": "Sovereign private registry for MEDINA SDK distribution",
+  "main": "src/index.js",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "medina",
+    "registry",
+    "sovereign",
+    "private",
+    "sdk"
+  ],
+  "author": "Alfredo Medina Hernandez",
+  "license": "PROPRIETARY",
+  "private": true
+}

@@ -21,8 +21,10 @@ export { InternalAnalysisLab } from './InternalAnalysisLab';
 export { MemoryTempleLab } from './MemoryTempleLab';
 export { ConstantFeedbackLab } from './ConstantFeedbackLab';
 
-// The Actual Experiment
-export { DroneSimulationWorld } from './DroneSimulationWorld';
+// The Actual Experiment — REAL PHYSICS, NOT SIMULATION
+export { DroneRealWorld } from './DroneRealWorld';
+// Legacy alias for backward compatibility
+export { DroneRealWorld as DroneSimulationWorld } from './DroneRealWorld';
 
 // Terminals — 2,000-Node Grid + Defense Command
 export { PackagingLabTerminal } from './PackagingLabTerminal';

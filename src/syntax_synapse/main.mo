@@ -104,6 +104,8 @@ persistent actor SyntaxSynapse {
     ("drone_fleet",       "src/drone_fleet/main.mo"),
     ("war_engine",        "src/war_engine/main.mo"),
     ("medina_defense",    "src/medina_defense/main.mo"),
+    ("agi_terminal",      "src/agi_terminal/main.mo"),
+    ("organism_solver",   "src/organism_solver/main.mo"),
   ];
 
   // Seed registry with defaults on first deploy

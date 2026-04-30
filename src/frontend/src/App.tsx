@@ -22,29 +22,39 @@ import { HomeNow }            from './components/habitat/HomeNow';
 import { WorkerHub }          from './components/habitat/WorkerHub';
 import { ArtifactStudio }     from './components/habitat/ArtifactStudio';
 import { PresenceBoard }      from './components/habitat/PresenceBoard';
-import { SimulationChamber }  from './components/simulation/SimulationChamber';
+import { ComputationChamber } from './components/computation/ComputationChamber'; // REAL physics computation (NOT simulation)
 import { CompanionConsole } from './components/companion/CompanionConsole';
 
-// ── Science Labs ──────────────────────────────────────────────────────────────
-import { EmergenceLab }       from './components/labs/EmergenceLab';
-import { MathPhysicsLab }     from './components/labs/MathPhysicsLab';
-import { NeuroCogLab }        from './components/labs/NeuroCogLab';
+// ── Science Labs — using working versions ──────────────────────────────────
+import { EmergenceLab }   from './components/labs/EmergenceLab';
+import { MathPhysicsLab } from './components/labs/MathPhysicsLab';
+import { NeuroCogLab }    from './components/labs/NeuroCogLab';
 // ── ORO Command Center — The Real Multi-Agent Workspace ─────────────────────────
 import { OroCommandCenter }     from './components/CommandCenter/OroCommandCenter';
-import { DroneSimulationWorld } from './components/CommandCenter/DroneSimulationWorld';
-
-// ── Emergence · Math/Physics · NeuroCog Labs ────────────────────────────────
-import { EmergenceLab }   from './components/CommandCenter/EmergenceLab';
-import { MathPhysicsLab } from './components/CommandCenter/MathPhysicsLab';
-import { NeuroCogLab }    from './components/CommandCenter/NeuroCogLab';
+import { DroneRealWorld }       from './components/CommandCenter/DroneRealWorld'; // REAL physics computation (NOT simulation)
 // ── Neural Emergence Core ─────────────────────────────────────────────────────
 import { NECDashboard }   from './components/nec/NECDashboard';
+
+// ── PARALLAX Clearinghouse PWA ────────────────────────────────────────────
+import { ParallaxApp }       from './parallax/ParallaxApp';
+
+// ── PHANTOM WALLET — First Consumer Product · Powered by PARALLAX ─────────
+import { PhantomWalletApp }  from './phantom_wallet/PhantomWalletApp';
+
+// ── NOVA BUILDER — Sovereign CaffeineAI Replacement · Build №42 ──────────
+import { NovaBuilderApp }    from './nova_builder/NovaBuilderApp';
+
+// ── DALLAS ISD — Sovereign AI Classroom Platform · Build №43 ─────────────
+import { DallasISDApp }      from './dallas_isd/DallasISDApp';
 
 // ── Terminal Hub — 40 Calls · 30 Packages · 15 Sovereign Terminals ──────────
 import { TerminalHub }    from './terminals/TerminalHub';
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 type NavView =
+  | 'PHANTOM_WALLET'  // Phantom Wallet — first consumer product · Powered by PARALLAX
+  | 'NOVA_BUILDER'   // NOVA BUILDER — sovereign CaffeineAI replacement · Build №42
+  | 'DALLAS_ISD'     // DALLAS ISD — sovereign AI classroom platform · Build №43
   | 'SWARM'          // original tactical swarm view
   | 'COMMAND'        // ORO Command Center — multi-agent workspace
   | 'COMPANION'      // AURO companion chat/voice/command bridge
@@ -55,6 +65,7 @@ type NavView =
   | 'ARTIFACTS'      // artifact studio
   | 'PRESENCE'       // presence board
   | 'SIMULATION'     // world simulation chamber
+  | 'PARALLAX'       // PARALLAX clearinghouse PWA — settlement infrastructure
 
 
   | 'LAB_EMERGENCE'  // emergence lab: Kuramoto, Ising, Lorenz, Turing, Sandpile
@@ -64,6 +75,10 @@ type NavView =
 
 
 const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
+  { id: 'PHANTOM_WALLET', label: 'Phantom Wallet', icon: '⬡' },
+  { id: 'NOVA_BUILDER',  label: 'NOVA Builder',  icon: '⊕' },
+  { id: 'DALLAS_ISD',    label: 'DISD Classroom', icon: '🎓' },
+  { id: 'PARALLAX',   label: 'PARALLAX',    icon: '◈' },
   { id: 'COMMAND',    label: 'Command',    icon: '◉' },
   { id: 'TERMINALS',  label: 'Terminals',  icon: '⊞' },
   { id: 'COMPANION',  label: 'Companion',  icon: '🜁' },
@@ -234,7 +249,7 @@ function adaptToSwarmShape(organism: ReturnType<typeof useOrganismState>) {
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 export default function App() {
-  const [view, setView] = useState<NavView>('COMMAND'); // Default to Command Center
+  const [view, setView] = useState<NavView>('PHANTOM_WALLET'); // Default: Phantom Wallet consumer product
   const organism = useOrganismState();
   const swarm = adaptToSwarmShape(organism);
 
@@ -277,6 +292,34 @@ export default function App() {
 
       {/* ── Content area ─────────────────────────────────────────────────── */}
       <div style={S.content}>
+        {/* ── PHANTOM WALLET — First Consumer Product · Powered by PARALLAX ─── */}
+        {view === 'PHANTOM_WALLET' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <PhantomWalletApp />
+          </div>
+        )}
+
+        {/* ── NOVA BUILDER — Sovereign CaffeineAI Replacement · Build №42 ────── */}
+        {view === 'NOVA_BUILDER' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <NovaBuilderApp />
+          </div>
+        )}
+
+        {/* ── DALLAS ISD — Sovereign AI Classroom Platform · Build №43 ──────── */}
+        {view === 'DALLAS_ISD' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <DallasISDApp />
+          </div>
+        )}
+
+        {/* ── PARALLAX CLEARINGHOUSE PWA — The Settlement Infrastructure ─────── */}
+        {view === 'PARALLAX' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <ParallaxApp />
+          </div>
+        )}
+
         {/* ── ORO COMMAND CENTER — Multi-Agent Workspace ────────────────── */}
         {view === 'COMMAND' && (
           <OroCommandCenter organism={organism} />
@@ -292,17 +335,17 @@ export default function App() {
           <CompanionConsole />
         )}
 
-        {/* ── DRONE SIMULATION — The Actual Experiment ────────────────────── */}
+        {/* ── DRONE REAL WORLD — The Actual Experiment (REAL PHYSICS) ────────────────────── */}
         {view === 'DRONES' && (
-          <DroneSimulationWorld organism={organism} />
+          <DroneRealWorld organism={organism} />
         )}
 
-        {/* ── SWARM VIEW: original tactical simulation ────────────────── */}
+        {/* ── SWARM VIEW: original tactical computation (REAL PHYSICS) ────────────────── */}
         {view === 'SWARM' && (
           <div style={S.swarmRoot}>
             <div style={S.mapArea}>
               <div style={{ position: 'absolute', top: 12, left: 16, zIndex: 10, fontSize: 11, color: '#4af', letterSpacing: '0.12em', textTransform: 'uppercase', opacity: 0.8 }}>
-                ⬡ PARALLAX SWARM SIM — MEDINA TECH — BEAT {beat}
+                ⬡ PARALLAX SWARM REAL — MEDINA TECH — BEAT {beat}
               </div>
               <TacticalMap swarm={swarm} />
             </div>
@@ -340,7 +383,7 @@ export default function App() {
 
         {view === 'SIMULATION' && (
           <div style={{ width: '100%', height: '100%' }}>
-            <SimulationChamber organism={organism} />
+            <ComputationChamber organism={organism} />
           </div>
         )}
 

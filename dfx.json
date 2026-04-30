@@ -1,6 +1,6 @@
 {
-  "_PROTOTYPE": "PARALLAX DRONE SWARM — Medina Tech | Alfredo Medina Hernandez | Dallas TX | 2026",
-  "_CONFIDENTIAL": "STRICT PROTOTYPE — SELF-HOSTED LOCAL ONLY — DO NOT DEPLOY TO IC MAINNET",
+  "_PROTOTYPE": "PARALLAX DRONE SWARM \u2014 Medina Tech | Alfredo Medina Hernandez | Dallas TX | 2026",
+  "_CONFIDENTIAL": "STRICT PROTOTYPE \u2014 SELF-HOSTED LOCAL ONLY \u2014 DO NOT DEPLOY TO IC MAINNET",
   "_CONSOLIDATED": "2026-04-02: swarm_quantum, swarm_metals, swarm_audit, swarm_command, swarm_telemetry absorbed into swarm_brain for 12 Hz heartbeat coherence",
   "version": 1,
   "canisters": {
@@ -12,7 +12,9 @@
     "swarm_organism": {
       "type": "motoko",
       "main": "src/swarm_organism/main.mo",
-      "dependencies": ["swarm_brain"]
+      "dependencies": [
+        "swarm_brain"
+      ]
     },
     "swarm_command": {
       "type": "motoko",
@@ -42,7 +44,15 @@
     "swarm_oracle": {
       "type": "motoko",
       "main": "src/swarm_oracle/main.mo",
-      "dependencies": ["swarm_brain", "swarm_organism", "swarm_command", "swarm_metals", "swarm_audit", "swarm_telemetry", "swarm_quantum"]
+      "dependencies": [
+        "swarm_brain",
+        "swarm_organism",
+        "swarm_command",
+        "swarm_metals",
+        "swarm_audit",
+        "swarm_telemetry",
+        "swarm_quantum"
+      ]
     },
     "chrysalis": {
       "type": "motoko",
@@ -189,10 +199,48 @@
       "main": "src/medina_defense/main.mo",
       "dependencies": []
     },
+    "agi_terminal": {
+      "type": "motoko",
+      "main": "src/agi_terminal/main.mo",
+      "dependencies": []
+    },
+    "organism_solver": {
+      "type": "motoko",
+      "main": "src/organism_solver/main.mo",
+      "dependencies": []
+    },
+    "phantom_transfer": {
+      "type": "motoko",
+      "main": "src/phantom_transfer/main.mo",
+      "dependencies": []
+    },
+    "nova_stream": {
+      "type": "motoko",
+      "main": "src/nova_stream/main.mo",
+      "dependencies": []
+    },
+    "nova_builder": {
+      "type": "motoko",
+      "main": "src/nova_builder/main.mo",
+      "dependencies": []
+    },
     "frontend": {
       "type": "assets",
-      "source": ["src/frontend/dist"],
-      "dependencies": ["swarm_brain", "swarm_organism"]
+      "source": [
+        "src/frontend/dist"
+      ],
+      "dependencies": [
+        "swarm_brain",
+        "swarm_organism"
+      ]
+    },
+    "nova_student": {
+      "type": "motoko",
+      "main": "src/nova_student/main.mo"
+    },
+    "dallas_isd": {
+      "type": "motoko",
+      "main": "src/dallas_isd/main.mo"
     }
   },
   "defaults": {

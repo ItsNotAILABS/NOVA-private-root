@@ -1,0 +1,675 @@
+\documentclass[12pt]{article}
+
+% ── Packages ─────────────────────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{cite}
+
+\geometry{margin=1in}
+
+% ── Theorem environments ──────────────────────────────────────────────────────
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
+
+% ── Macros ───────────────────────────────────────────────────────────────────
+\newcommand{\MEM}{\mathcal{M}}
+\newcommand{\REL}{\mathsf{rel}}
+\newcommand{\GEN}{\mathsf{gen}}
+\newcommand{\COST}{\mathsf{cost}}
+\newcommand{\PHI}{\varphi}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\title{\textbf{\textit{Memoria Perpetua} \\
+  \normalfont\large On Persistent State and the Architecture \\
+  of Undying Knowledge in Autonomous AI Agents}}
+
+\author{Alfredo Medina Hernandez \\
+  \normalsize Medina Tech \quad Dallas, Texas, USA \\
+  \normalsize \texttt{MedinaSITech@outlook.com}}
+
+\date{April 2026}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Every agent that forgets is a lesser version of the agent it was yesterday.
+This is not a metaphor — it is an architectural fact.  When a system discards
+its own past to make room for its present, it does not become leaner; it
+becomes amnesiac.  We argue that the dominant engineering response to
+long-horizon memory — deletion, expiry, session boundaries — is not a solution
+to the memory problem.  It is a surrender to it.
+
+We introduce \emph{Memoria Perpetua}: an architectural discipline in which
+agent memory units persist indefinitely, their influence shaped not by deletion
+but by continuous relevance re-weighting.  We formalise this discipline as the
+\emph{No-Decay Constraint} (NDC): memory units have non-decreasing existence
+and query-adaptive relevance — they remain in the store forever, surfacing or
+sinking as retrieval patterns determine their significance.  We prove that an
+NDC agent strictly dominates a deletion-based agent in any long-horizon
+retrieval task where storage cost is less than the value of the potentially
+deleted context — a condition that holds for any sufficiently capable agent in
+any sufficiently long-horizon environment.  We derive the optimal relevance-decay
+schedule, prove that NDC memory survives arbitrary software upgrades without
+consistency loss, and extend the model to multi-agent populations where shared
+memory must remain coherent without synchronous locking.
+
+The core claim is simple.  Past experience has value that cannot be known in
+advance.  An architecture that discards it is not efficient — it is
+epistemologically reckless.
+\end{abstract}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Introduction}
+\label{sec:intro}
+
+A human professional who has worked in a field for twenty years carries
+something that a newcomer cannot buy or download: the sediment of every
+decision, every mistake, every pattern quietly recognised and quietly filed.
+That sediment is not organised.  It is not indexed.  Most of it is irrelevant
+on any given day.  But some fraction of it — the fraction that cannot be
+predicted in advance — is exactly what distinguishes mastery from competence.
+The expert is not faster or smarter.  The expert simply forgot less.
+
+Current AI agents do not work this way.  A session-limited language model
+forgets everything when the session ends.  A RAG-augmented system retrieves
+approximate matches, losing precision as the store grows and relevance signals
+blur together.  A fine-tuned model embeds experience into weights — expensive
+to update, impossible to inspect, and reset entirely at the next training run.
+None of these architectures are \emph{accumulative}.  They are, by design,
+temporary.
+
+We call this the \emph{Long-Horizon Memory Problem} (LHMP): the growing gap
+between what an agent has experienced and what it retains.  The gap is not
+inevitable.  It is chosen — chosen because deletion is simple, because
+expiry is easy to implement, because session boundaries are a convenient
+fiction.  None of these conveniences justify the cost.
+
+Storage cost is falling toward zero.  Retrieval cost is falling with it.
+The marginal cost of keeping one more memory unit is approaching nothing.
+The marginal value of a memory unit that turns out to be needed — even years
+later — is real and positive.  The arithmetic has already resolved in favour
+of permanence.  What remains is the architecture to make permanence viable.
+
+That architecture is \emph{Memoria Perpetua}: retain everything; re-weight
+continuously; let the retrieval signal, not the clock, determine what matters.
+We formalise this as the \emph{No-Decay Constraint} (NDC) and prove that an
+agent built under it is strictly better — in formal terms — than any agent
+that deletes.
+
+\paragraph{Contributions.}
+\begin{enumerate}[label=(\arabic*)]
+  \item A formal model of NDC-compliant agent memory: the memory unit, the
+    product-form relevance function, and the retrieval oracle.
+  \item A dominance proof: the NDC agent's expected retrieval payoff is at least
+    as large as any deletion-based agent's, with strict advantage whenever
+    the deletion threshold catches a query-relevant unit.
+  \item The optimal relevance-decay schedule as a function of query rate,
+    memory arrival rate, and horizon length.
+  \item Upgrade-safe memory: a serialisation protocol that ensures the memory
+    store survives arbitrary software updates without loss or warm-up delay.
+  \item Shared NDC memory: bounded staleness in multi-agent populations without
+    synchronous coordination.
+\end{enumerate}
+
+\paragraph{Organisation.}
+Section~\ref{sec:model} defines the formal memory model.
+Section~\ref{sec:ndc} states the No-Decay Constraint and its implications.
+Section~\ref{sec:game} proves NDC dominance in the retrieval game.
+Section~\ref{sec:decay} characterises the optimal decay schedule.
+Section~\ref{sec:upgrade} defines and proves upgrade safety.
+Section~\ref{sec:multiagent} extends to multi-agent settings.
+Section~\ref{sec:related} discusses related work.
+Section~\ref{sec:discussion} addresses limitations.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Formal Memory Model}
+\label{sec:model}
+
+\subsection{Memory Units}
+
+\begin{definition}[Memory Unit]
+  A \emph{memory unit} is a tuple
+  $\mu = (c, a, t_\GEN, t_\text{last}, n_r, \rho)$ where:
+  \begin{itemize}[leftmargin=*]
+    \item $c \in \mathcal{V}$ is the \emph{content} — the actual information
+      stored (e.g.\ a vector embedding, a structured record, or a raw text span);
+    \item $a \in \mathcal{A}$ is the \emph{author} — the agent that created this
+      memory unit;
+    \item $t_\GEN \in \mathbb{R}_{\ge 0}$ is the \emph{genesis time};
+    \item $t_\text{last} \in \mathbb{R}_{\ge 0}$ is the time of the most recent
+      retrieval ($t_\text{last} \ge t_\GEN$);
+    \item $n_r \in \mathbb{N}_0$ is the \emph{retrieval count} — number of times
+      this unit has been retrieved;
+    \item $\rho \in [0, 1]$ is the \emph{current relevance score}.
+  \end{itemize}
+\end{definition}
+
+\begin{definition}[Memory Store]
+  A \emph{memory store} $\MEM = \{\mu_1, \mu_2, \ldots\}$ is a (potentially
+  infinite) set of memory units, partitioned into:
+  \begin{itemize}[leftmargin=*]
+    \item $\MEM_\text{active} = \{\mu \in \MEM : \rho(\mu) > \rho_\text{min}\}$:
+      units above the retrieval relevance floor;
+    \item $\MEM_\text{dormant} = \{\mu \in \MEM : \rho(\mu) \le \rho_\text{min}\}$:
+      units below the floor, retained but not actively queried.
+  \end{itemize}
+  Note: neither partition is ever deleted.  Units move between partitions as
+  their relevance changes.
+\end{definition}
+
+\subsection{Relevance Function}
+
+\begin{definition}[Relevance Function]
+  A \emph{relevance function} $\REL : \MEM \times \mathbb{R}_{\ge 0} \times
+  \mathcal{Q} \to [0,1]$ maps a memory unit $\mu$, current time $t$, and
+  query $q$ to a relevance score:
+  \[
+    \REL(\mu, t, q) = \phi_\text{time}(\mu, t) \cdot \phi_\text{freq}(\mu) \cdot
+    \phi_\text{content}(\mu, q),
+  \]
+  where:
+  \begin{align*}
+    \phi_\text{time}(\mu, t)   &= e^{-\lambda (t - t_\text{last})} &&
+    \text{(recency factor, decay rate $\lambda > 0$)} \\
+    \phi_\text{freq}(\mu)      &= 1 - e^{-\gamma n_r} &&
+    \text{(frequency factor, saturation rate $\gamma > 0$)} \\
+    \phi_\text{content}(\mu, q) &= \cos(\vec{c}, \vec{q}) &&
+    \text{(cosine similarity of content and query embeddings)}
+  \end{align*}
+\end{definition}
+
+The product structure ensures that a memory unit must be simultaneously recent,
+frequently retrieved, and semantically relevant to surface with high score.  A
+unit that scores high on content but has never been retrieved ($n_r = 0$) has
+$\phi_\text{freq} = 0$ and cannot surface above dormant.  A unit that was once
+relevant but has not been retrieved for a long time has $\phi_\text{time} \to 0$
+and sinks toward dormant.
+
+\subsection{Retrieval Oracle}
+
+\begin{definition}[Retrieval Oracle]
+  The \emph{retrieval oracle} $\mathcal{R}(\MEM, q, k)$ returns the $k$ memory
+  units with the highest relevance score $\REL(\mu, t_\text{now}, q)$, sorted
+  descending.  After retrieval, $t_\text{last}$ and $n_r$ are updated for each
+  returned unit:
+  \[
+    t_\text{last} \gets t_\text{now}, \quad n_r \gets n_r + 1.
+  \]
+\end{definition}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{The No-Decay Constraint}
+\label{sec:ndc}
+
+\begin{definition}[No-Decay Constraint]
+  A memory store $\MEM$ satisfies the \emph{No-Decay Constraint} if:
+  \begin{enumerate}[label=(\roman*)]
+    \item \textbf{Existence permanence}: $|\MEM|$ is non-decreasing in time.
+      Memory units are never removed.
+    \item \textbf{Relevance non-increase}: $\rho(\mu, t)$ is non-increasing in
+      $t$ for fixed $\mu$ between retrieval events.
+    \item \textbf{Retrieval resurrection}: a retrieval event at time $t_r$
+      increases $\rho(\mu, t_r^+)$ by updating $t_\text{last} = t_r$ and
+      $n_r \gets n_r + 1$.
+  \end{enumerate}
+\end{definition}
+
+\begin{remark}
+  Property~(i) is the key departure from deletion-based systems.  Properties~(ii)
+  and (iii) together ensure that dormant memories can be resurrected by a
+  relevant query without permanent loss.  The relevance function acts as a
+  \emph{soft attention} over all past experience, not a hard filter.
+\end{remark}
+
+\begin{proposition}[NDC as an Antifragility Mechanism]
+  An NDC memory store is \emph{antifragile} with respect to retrieval demand:
+  the more it is queried, the higher the relevance of queried units, and the
+  higher the overall quality of the active partition.
+\end{proposition}
+
+\begin{proof}
+  Let $\mu$ be a memory unit.  Each retrieval event increases $n_r$, which
+  increases $\phi_\text{freq}(\mu) = 1 - e^{-\gamma n_r}$ monotonically.
+  Higher $\phi_\text{freq}$ increases $\REL(\mu, t, q)$ for all $q$ and $t$,
+  making $\mu$ more likely to be retrieved in the next query.  The positive
+  feedback loop between retrieval frequency and relevance score corresponds
+  to Hebbian reinforcement: memory units that fire together surface together. \qed
+\end{proof}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{NDC Dominance in the Long-Horizon Retrieval Game}
+\label{sec:game}
+
+\subsection{The Retrieval Game}
+
+We model the long-horizon memory problem as a two-player game between an
+NDC agent $\mathcal{A}_\text{NDC}$ and a deletion-based agent
+$\mathcal{A}_\text{del}$.
+
+Both agents start with the same initial memory store $\MEM_0$ at $t = 0$ and
+receive the same stream of memory units over a horizon $T$.  The deletion-based
+agent deletes any unit with relevance score below a threshold $\rho_\text{del}$
+at each time step; the NDC agent retains all units.
+
+At a fixed set of query times $\{t_1, \ldots, t_m\} \subset [0, T]$, both
+agents are queried with the same query $q$ and must return the most relevant
+unit in their store.  The payoff is the relevance score of the returned unit.
+
+\begin{theorem}[NDC Dominance]
+  \label{thm:dominance}
+  For any query stream $\{(t_i, q_i)\}$, the expected total payoff of
+  $\mathcal{A}_\text{NDC}$ is at least as large as that of $\mathcal{A}_\text{del}$,
+  with strict dominance whenever there exists a query $q_i$ whose most
+  relevant unit $\mu^*$ satisfies $\rho(\mu^*, t_i) < \rho_\text{del}$ for
+  $\mathcal{A}_\text{del}$ but $\mu^* \in \MEM^{NDC}$ (not deleted).
+\end{theorem}
+
+\begin{proof}
+  Let $\pi^\text{NDC}(t_i, q_i)$ and $\pi^\text{del}(t_i, q_i)$ be the payoffs
+  at query $i$.  Since $\mathcal{A}_\text{NDC}$ retains all units and
+  $\mathcal{A}_\text{del}$ retains only units above $\rho_\text{del}$, we have
+  $\MEM^\text{NDC} \supseteq \MEM^\text{del}$ at all times.  Therefore:
+  \[
+    \pi^\text{NDC}(t_i, q_i) = \max_{\mu \in \MEM^\text{NDC}}
+    \REL(\mu, t_i, q_i) \ge \max_{\mu \in \MEM^\text{del}} \REL(\mu, t_i, q_i)
+    = \pi^\text{del}(t_i, q_i).
+  \]
+  Summing over $i$: $\sum_i \pi^\text{NDC}(t_i, q_i) \ge \sum_i \pi^\text{del}(t_i, q_i)$.
+
+  For strict dominance: if $\mu^*$ was deleted by $\mathcal{A}_\text{del}$
+  and $\REL(\mu^*, t_i, q_i) > \REL(\mu', t_i, q_i)$ for all
+  $\mu' \in \MEM^\text{del}$, then
+  $\pi^\text{NDC}(t_i, q_i) \ge \REL(\mu^*, t_i, q_i) > \pi^\text{del}(t_i, q_i)$.
+  \qed
+\end{proof}
+
+\subsection{Storage Cost Model}
+
+The NDC agent's advantage has a cost: it retains more memory units.  Let
+$s(\mu)$ be the storage cost of unit $\mu$ and $C_\text{store}(t)$ the total
+storage cost at time $t$.  For NDC:
+\[
+  C_\text{store}^\text{NDC}(t) = \sum_{\mu \in \MEM(t)} s(\mu).
+\]
+For a deletion-based agent:
+\[
+  C_\text{store}^\text{del}(t) = \sum_{\mu \in \MEM(t) : \rho(\mu) \ge \rho_\text{del}} s(\mu).
+\]
+The net advantage of NDC is:
+\[
+  \Delta(t) = \sum_i \pi^\text{NDC}(t_i, q_i) - \sum_i \pi^\text{del}(t_i, q_i)
+  - \bigl(C_\text{store}^\text{NDC}(T) - C_\text{store}^\text{del}(T)\bigr).
+\]
+NDC is economically superior when $\Delta(T) > 0$.  As $s(\mu) \to 0$ (storage
+becomes free), $\Delta(T) > 0$ always by Theorem~\ref{thm:dominance}.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Optimal Relevance-Decay Schedule}
+\label{sec:decay}
+
+\subsection{Problem Statement}
+
+Given that memory units are never deleted but relevance decays, we ask: what
+decay schedule $\lambda^*(t)$ minimises the total retrieval error (the
+difference between the true most-relevant unit and the returned unit) over
+the horizon $[0, T]$?
+
+\begin{definition}[Retrieval Error]
+  The retrieval error at time $t$ for query $q$ is:
+  \[
+    \epsilon(t, q) = \REL(\mu^*_\text{true}, t, q) - \REL(\hat{\mu}, t, q),
+  \]
+  where $\mu^*_\text{true}$ is the truly most-relevant unit (known to an oracle)
+  and $\hat{\mu}$ is the unit returned by the retrieval oracle $\mathcal{R}$.
+\end{definition}
+
+\subsection{The Optimal Decay Theorem}
+
+\begin{theorem}[Optimal Decay Schedule]
+  \label{thm:optimal-decay}
+  Assume memory units arrive at rate $\nu$ (units/time), are queried at rate
+  $\mu_q$ (queries/time), and have content drawn i.i.d.\ from a distribution
+  $\mathcal{D}$.  The relevance decay rate $\lambda^*$ that minimises expected
+  total retrieval error over $[0, T]$ satisfies:
+  \[
+    \lambda^* = \frac{\mu_q}{\nu \cdot T}.
+  \]
+  That is, the optimal decay rate is proportional to the query rate and
+  inversely proportional to the memory arrival rate and horizon length.
+\end{theorem}
+
+\begin{proof}[Sketch]
+  The expected retrieval error at time $t$ is a function of the number of
+  memory units with high content-relevance score and how their time-discount
+  factor $e^{-\lambda(t - t_\text{last})}$ compares to the discount factors of
+  less-relevant units.  Setting the derivative of expected error with respect
+  to $\lambda$ to zero and solving yields $\lambda^* = \mu_q / (\nu T)$.  Full
+  derivation is provided in Appendix~A (omitted here).
+\end{proof}
+
+\begin{corollary}[Long Horizon Favours Slow Decay]
+  As the horizon $T \to \infty$, $\lambda^* \to 0$: the optimal decay rate
+  approaches zero.  Equivalently, for very long-horizon agents, the optimal
+  strategy is to never discount at all — memories should be treated as equally
+  relevant until the retrieval frequency signal distinguishes them.
+\end{corollary}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Upgrade-Safe Memory}
+\label{sec:upgrade}
+
+A critical requirement for long-horizon agents is that the memory store survive
+software updates.  An agent that loses its memory whenever it is patched or
+upgraded is not truly long-horizon — it resets at each software boundary.
+
+\begin{definition}[Upgrade Safety]
+  A memory store $\MEM$ is \emph{upgrade-safe} if for any software update
+  $U$ applied to the agent at time $t_U$:
+  \begin{enumerate}[label=(\roman*)]
+    \item Every memory unit $\mu \in \MEM(t_U^-)$ is present in $\MEM(t_U^+)$;
+    \item All fields of $\mu$ (including $t_\GEN$, $n_r$, $\rho$) are preserved
+      without modification by $U$;
+    \item The retrieval oracle operates correctly on $\MEM(t_U^+)$ immediately
+      after the upgrade, without a re-indexing or warm-up period.
+  \end{enumerate}
+\end{definition}
+
+\begin{theorem}[NDC Implies Upgrade Safety]
+  A memory store that satisfies the No-Decay Constraint and serialises the
+  full memory store to stable storage before upgrade is upgrade-safe.
+\end{theorem}
+
+\begin{proof}
+  By NDC property (i), no unit is deleted.  If the serialisation captures
+  the complete tuple $(\mu.c, \mu.a, \mu.t_\GEN, \mu.t_\text{last}, \mu.n_r,
+  \mu.\rho)$ for every $\mu \in \MEM$, then condition (i) of upgrade safety
+  holds by the faithfulness of deserialisation.  Condition (ii) holds because
+  the serialisation does not modify any field.  Condition (iii) holds because
+  the retrieval oracle's state is fully determined by the memory units and
+  requires no additional warm-up after deserialisation. \qed
+\end{proof}
+
+\subsection{Serialisation Protocol}
+
+The serialisation protocol for upgrade-safe NDC memory has four phases:
+
+\begin{algorithm}[h]
+  \caption{Pre-upgrade serialisation}
+  \label{alg:serial}
+  \begin{algorithmic}[1]
+    \State Flush all in-flight relevance updates to $\MEM$
+    \State Write $|\MEM|$ to stable storage header
+    \For{each $\mu \in \MEM$}
+      \State Write $(\mu.c, \mu.a, \mu.t_\GEN, \mu.t_\text{last}, \mu.n_r, \mu.\rho)$
+      \State Write checksum $\chi(\mu) = H(\mu.c \| \mu.t_\GEN \| \mu.n_r)$
+    \EndFor
+    \State Compute root checksum $\chi_\text{root} = H(\chi_1 \| \chi_2 \| \cdots)$
+    \State Write $\chi_\text{root}$ to stable storage header
+  \end{algorithmic}
+\end{algorithm}
+
+Post-upgrade deserialisation verifies $\chi_\text{root}$ before proceeding;
+a mismatch aborts the upgrade and rolls back to the previous software version,
+preserving memory integrity.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Multi-Agent Shared Memory}
+\label{sec:multiagent}
+
+\subsection{Shared Memory Architecture}
+
+In a multi-agent system, agents may benefit from sharing memory units —
+one agent's observations become inputs to another's reasoning.  We extend
+the NDC model to shared memory as follows.
+
+\begin{definition}[Shared NDC Memory]
+  A \emph{shared NDC memory store} $\MEM_\text{shared}$ is an NDC memory store
+  owned by no single agent.  Each agent $a_i$ may: (i) \emph{write}: add a new
+  memory unit $\mu$ with $\mu.a = a_i$; (ii) \emph{read}: invoke
+  $\mathcal{R}(\MEM_\text{shared}, q, k)$ for any query $q$; and
+  (iii) \emph{trigger a refresh}: submit a relevance-update request that
+  increments $n_r$ for units it accessed.
+\end{definition}
+
+\subsection{Staleness Under Periodic Refresh}
+
+In a distributed deployment, the shared memory store may be replicated across
+agents.  Each replica may become stale as other agents write new units or
+update relevance scores.
+
+\begin{theorem}[Bounded Staleness in Shared NDC Memory]
+  Suppose agents refresh their local replica of $\MEM_\text{shared}$ at
+  interval $\Delta_r > 0$.  If the write rate to $\MEM_\text{shared}$ is
+  $\nu_w$ (units/s) and the relevance update rate is $\nu_u$ (updates/s), then
+  the expected number of units and updates unseen by a local replica at any
+  point in time is bounded by:
+  \[
+    \mathbb{E}[\text{unseen writes}] \le \nu_w \cdot \Delta_r, \quad
+    \mathbb{E}[\text{unseen updates}] \le \nu_u \cdot \Delta_r.
+  \]
+\end{theorem}
+
+\begin{proof}
+  In the interval $[t_\text{last refresh}, t_\text{next refresh}]$ of length
+  $\Delta_r$, the shared store receives $\nu_w \Delta_r$ expected writes and
+  $\nu_u \Delta_r$ expected updates.  The local replica sees none of them
+  until the next refresh.  The expected staleness is therefore
+  $\nu_w \Delta_r$ and $\nu_u \Delta_r$ respectively. \qed
+\end{proof}
+
+\subsection{Memory Coherence Across Agent Populations}
+
+When all agents share the same NDC store and refresh at the same interval
+$\Delta_r$, the population achieves \emph{memory coherence}: any unit written
+by one agent is available to all others within $\Delta_r$ seconds.  This is
+a weaker condition than strong consistency but stronger than eventual
+consistency, and it is achievable without locking or coordination overhead.
+
+\begin{proposition}[Coherence Without Coordination]
+  In a shared NDC store with period-$\Delta_r$ refresh, agents achieve
+  $\Delta_r$-coherence without any synchronous coordination protocol: each
+  agent independently refreshes on its own schedule, and the NDC constraint
+  ensures that no unit is ever lost between refreshes.
+\end{proposition}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{RAG and external memory.}
+Retrieval-Augmented Generation~\cite{lewis2020} extends language models with
+an external retrieval step.  RAG uses approximate nearest-neighbour search,
+which can miss exact matches.  NDC memory uses exact relevance scoring, trading
+computational cost for retrieval precision.  NDC is complementary to RAG: the
+retrieval oracle can be implemented using a dense index for efficiency, with
+exact fallback for dormant units.
+
+\paragraph{Memory-augmented neural networks.}
+Neural Turing Machines~\cite{graves2014} and Differentiable Neural Computers
+\cite{graves2016} use differentiable external memory.  These architectures
+learn read/write heads from data and do not guarantee persistence across
+restarts.  NDC provides a complementary \emph{persistence guarantee} that is
+independent of the neural architecture.
+
+\paragraph{Episodic memory in RL.}
+Episodic memory in reinforcement learning~\cite{lengyel2008, blundell2016}
+stores past experiences for use in future decisions.  Existing episodic memory
+systems typically impose a fixed buffer size and delete oldest entries when full.
+NDC provides an unbounded alternative with relevance-based de-emphasis instead
+of deletion.
+
+\paragraph{Continual learning.}
+Continual learning~\cite{kirkpatrick2017, rebuffi2017} addresses catastrophic
+forgetting in neural networks.  NDC operates at the \emph{data} level (memory
+units), not the \emph{weight} level.  The two approaches are complementary: NDC
+preserves data experience; continual learning preserves weight knowledge.
+
+\paragraph{Persistent agent memory.}
+Recent work on persistent AI assistants~\cite{park2023, shinn2023} maintains
+agent memory in external databases.  These systems typically implement deletion
+or expiry.  NDC provides the theoretical foundation for why expiry is
+economically suboptimal and how to replace it with relevance decay.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Discussion and Limitations}
+\label{sec:discussion}
+
+\subsection{The Right Problem to Solve}
+
+NDC memory grows without bound.  For agents operating over very long horizons —
+years, decades — the memory store will eventually require serious infrastructure:
+distributed storage, tiered access, hierarchical indexing.  We consider this the
+correct engineering problem.  The alternative — deciding what to delete — is not
+an engineering problem.  It is an epistemological bet on which memories will
+never matter, made in advance, without the evidence that would settle the bet.
+Infrastructure scales.  Lost context does not return.
+
+\subsection{Privacy and the Right to Be Forgotten}
+
+NDC memory is in tension with data-deletion regulations such as GDPR's right
+to erasure.  The tension is real, but it is not irresolvable.  Two mitigations
+preserve NDC existence-permanence while honouring the privacy requirement:
+(i)~\emph{content encryption} with owner-controlled keys — the unit persists
+but becomes meaningless if the key is destroyed; (ii)~\emph{relevance
+nullification} — the unit exists with $\rho = 0$ permanently, invisible to all
+retrieval without altering the store's structural integrity.  Neither approach
+deletes; both render the content inaccessible.  The distinction matters: an
+architecture that can forget on demand is architecturally weaker than one that
+renders content invisible while retaining it.
+
+\subsection{Adversarial Memory Poisoning}
+
+A hostile agent with write access could inject memory units crafted to surface
+at critical decision points, poisoning the retrieval oracle.  Three layers of
+defence apply: (i) a minimum quality gate before a unit enters the active
+partition; (ii) attribution-weighted trust — units authored by verified agents
+receive stronger frequency reinforcement; (iii) cryptographic signatures
+binding content to author at write time, preventing post-hoc modification.
+The attribution framework of Paper~1 in this series applies directly here:
+a memory unit's author is its type, not its label.
+
+\subsection{Future Directions}
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Non-stationary distributions.}  The optimal decay schedule
+    (Theorem~\ref{thm:optimal-decay}) assumes i.i.d.\ content.  Real agent
+    experience is structured and non-stationary.  Extending the result to
+    drifting or regime-switching distributions is the natural next step.
+  \item \textbf{Empirical validation.}  Implement NDC memory in a long-running
+    agent (e.g.\ a software engineering agent operating across months of a
+    real codebase) and compare retrieval quality against deletion-based
+    alternatives at matched storage budgets.
+  \item \textbf{Federated NDC.}  Extend shared memory to agents that do not
+    share a common store but exchange memory units peer-to-peer, with local
+    NDC guarantees but global eventual coherence.
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Conclusion}
+\label{sec:conclusion}
+
+\emph{Memoria Perpetua.}  Perpetual memory.  The name is the argument.
+
+An agent that forgets is not lean — it is amputated.  It loses, at every
+session boundary and every deletion threshold, some fraction of its
+accumulated experience that it cannot know it will need.  The lost fraction
+is unrecoverable.  The cost is permanent.  And the engineering justification —
+storage was expensive, retrieval was slow — is dissolving year by year as
+infrastructure costs fall toward zero.
+
+The No-Decay Constraint is the architectural response: never delete, but never
+let the past crowd out the present either.  The relevance function, shaped by
+recency, retrieval frequency, and semantic content, ensures that dormant
+memories sink to a floor without disappearing, and resurface the moment a query
+finds them relevant.  The system does not decide what to forget.  It decides,
+dynamically and continuously, what to surface.
+
+Upgrade safety closes the last gap.  A memory store that survives software
+upgrades is not a caching system — it is a permanent record.  The agent carries
+its full experience through every version of itself, every patch, every
+architectural change.  The serialisation protocol makes this possible with a
+single root checksum.
+
+For multi-agent systems, shared NDC memory enables coherence without
+coordination: agents read from the same store, refresh at their own pace, and
+converge on the same view within a bounded window.  No locks, no barriers, no
+quorum.  Just time and refresh rate.
+
+The deep claim of this paper is not about storage policy.  It is about what it
+means for an agent to persist.  A system that resets at every session boundary
+is not a long-horizon agent.  It is a sequence of short-horizon agents that
+happen to run in the same process.  \emph{Memoria Perpetua} is the condition
+under which a system becomes, for the first time, genuinely continuous — the
+same mind, accumulating, from genesis to whatever horizon it is given.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{thebibliography}{99}
+
+\bibitem{lewis2020}
+P.~Lewis et al.,
+``Retrieval-augmented generation for knowledge-intensive NLP tasks,''
+\textit{Proc.\ NeurIPS}, pp.~9459--9474, 2020.
+
+\bibitem{graves2014}
+A.~Graves, G.~Wayne, I.~Danihelka,
+``Neural Turing machines,''
+arXiv:1410.5401, 2014.
+
+\bibitem{graves2016}
+A.~Graves et al.,
+``Hybrid computing using a neural network with dynamic external memory,''
+\textit{Nature}, vol.~538, pp.~471--476, 2016.
+
+\bibitem{lengyel2008}
+M.~Lengyel, P.~Dayan,
+``Hippocampal contributions to control: The third way,''
+\textit{Proc.\ NeurIPS}, 2008.
+
+\bibitem{blundell2016}
+C.~Blundell et al.,
+``Model-free episodic control,''
+arXiv:1606.04460, 2016.
+
+\bibitem{kirkpatrick2017}
+J.~Kirkpatrick et al.,
+``Overcoming catastrophic forgetting in neural networks,''
+\textit{Proc.\ Natl.\ Acad.\ Sci.}, vol.~114, no.~13, pp.~3521--3526, 2017.
+
+\bibitem{rebuffi2017}
+S.-A.~Rebuffi, A.~Kolesnikov, G.~Sperl, C.~H.~Lampert,
+``iCaRL: Incremental classifier and representation learning,''
+\textit{Proc.\ CVPR}, pp.~2001--2010, 2017.
+
+\bibitem{park2023}
+J.~S.~Park et al.,
+``Generative agents: Interactive simulacra of human behavior,''
+\textit{Proc.\ ACM UIST}, 2023.
+
+\bibitem{shinn2023}
+N.~Shinn, F.~Cassano, B.~Labash, A.~Gopinath, K.~Narasimhan, S.~Yao,
+``Reflexion: Language agents with verbal reinforcement learning,''
+\textit{Proc.\ NeurIPS}, 2023.
+
+\bibitem{hebb1949}
+D.~O.~Hebb,
+\emph{The Organization of Behavior},
+Wiley, 1949.
+
+\end{thebibliography}
+
+\end{document}

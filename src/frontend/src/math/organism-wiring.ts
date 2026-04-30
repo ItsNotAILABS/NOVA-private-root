@@ -86,23 +86,35 @@ import {
 } from './neurochemistry';
 
 import {
-  GenesisState, genesisTick, genesisInit, BreathRhythm,
+  GenesisState, genesisTick, initGenesisState as genesisInit, BreathRhythm,
 } from './genesis';
 
 import {
-  kuramotoTick, KuramotoState, kuramotoInit,
+  stepOrganKuramoto as kuramotoTick,
+  OrganKuramotoState as KuramotoState,
+  initOrganKuramoto,
 } from './kuramoto';
 
+// Alias: kuramotoInit ignores count, uses built-in ORGAN_FREQS (18 organs)
+const kuramotoInit = (_count?: number): KuramotoState => initOrganKuramoto();
+
 import {
-  lyapunovTick, LyapunovState, lyapunovInit,
+  lyapunovTick,
+  LyapunovState5 as LyapunovState,
+  initLyapunov as lyapunovInit,
 } from './lyapunov';
 
 import {
-  quantumTick, QuantumState, quantumInit,
+  quantumBeat as quantumTick,
+  QuantumSystemState as QuantumState,
+  initQuantumSystem as quantumInit,
 } from './quantum';
 
 import {
-  hzTick, HzState, hzInit, HzMode,
+  hzSubstrateTick as hzTick,
+  HzSubstrateState as HzState,
+  initHzSubstrate as hzInit,
+  OrganismMode as HzMode,
 } from './hz-substrate';
 
 import {
@@ -187,7 +199,7 @@ const KD_NMDA = 0.5;                           // NMDA receptor affinity
 const KD_AMPA = 0.3;                           // AMPA receptor affinity
 
 // Organ-specific metabolic rates (normalized)
-const METABOLIC_BRAIN = 0.20;                  // Brain uses 20% of body's energy
+const METABOLIC_BRAIN_RATIO = 0.20;                  // Brain uses 20% of body's energy
 const METABOLIC_HEART = 0.10;                  // Heart high metabolic rate
 const METABOLIC_LIVER = 0.15;                  // Liver detoxification energy
 const METABOLIC_KIDNEY = 0.08;                 // Kidney filtration energy
@@ -207,10 +219,10 @@ const METABOLIC_OTHER = 0.03;                  // Other organs
  */
 export const ORGAN_SYSTEMS = {
   // Central Nervous System
-  BRAIN_CORTEX: { id: 0, name: 'Cerebral Cortex', baseFreq: 10.0, coupling: 0.8, metabolic: METABOLIC_BRAIN * 0.6 },
-  BRAIN_LIMBIC: { id: 1, name: 'Limbic System', baseFreq: 8.0, coupling: 0.9, metabolic: METABOLIC_BRAIN * 0.2 },
-  BRAIN_STEM: { id: 2, name: 'Brainstem', baseFreq: 4.0, coupling: 0.95, metabolic: METABOLIC_BRAIN * 0.1 },
-  SPINAL_CORD: { id: 3, name: 'Spinal Cord', baseFreq: 5.0, coupling: 0.85, metabolic: METABOLIC_BRAIN * 0.1 },
+  BRAIN_CORTEX: { id: 0, name: 'Cerebral Cortex', baseFreq: 10.0, coupling: 0.8, metabolic: METABOLIC_BRAIN_RATIO * 0.6 },
+  BRAIN_LIMBIC: { id: 1, name: 'Limbic System', baseFreq: 8.0, coupling: 0.9, metabolic: METABOLIC_BRAIN_RATIO * 0.2 },
+  BRAIN_STEM: { id: 2, name: 'Brainstem', baseFreq: 4.0, coupling: 0.95, metabolic: METABOLIC_BRAIN_RATIO * 0.1 },
+  SPINAL_CORD: { id: 3, name: 'Spinal Cord', baseFreq: 5.0, coupling: 0.85, metabolic: METABOLIC_BRAIN_RATIO * 0.1 },
   
   // Cardiovascular
   HEART: { id: 4, name: 'Heart', baseFreq: 1.2, coupling: 0.99, metabolic: METABOLIC_HEART },
@@ -1435,12 +1447,12 @@ export const NEUROIMMUNE = {
   CYTOKINE_BRAIN_EFFECTS: {
     IL1_BETA: {
       effects: ['fever', 'sickness_behavior', 'sleep'],
-      nt_modulation: { DA: -0.2, 5HT: -0.15 },
+      nt_modulation: { DA: -0.2, '5HT': -0.15 },
       hypothalamus: 0.5,
     },
     IL6: {
       effects: ['fatigue', 'depression', 'cognitive_impairment'],
-      nt_modulation: { DA: -0.25, 5HT: -0.2 },
+      nt_modulation: { DA: -0.25, '5HT': -0.2 },
       bbPermeability: 0.1,
     },
     TNF_ALPHA: {
@@ -3092,7 +3104,7 @@ function metabolicWiring(
   dt: number
 ): { metabolic: OrganismState['metabolic']; neuroMod: Partial<NeurochemStimuli> } {
   // Glucose consumption by brain (constant high demand)
-  const brainGlucoseUse = METABOLIC_BRAIN * (0.8 + executive.workingMemory * 0.2);
+  const brainGlucoseUse = METABOLIC_BRAIN_RATIO * (0.8 + executive.workingMemory * 0.2);
   
   // Glucose consumption by muscles
   const muscleActivity = motor.intention * (1 - motor.inhibition) * motor.velocity;

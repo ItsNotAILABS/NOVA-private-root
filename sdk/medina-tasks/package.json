@@ -1,0 +1,13 @@
+{
+  "name": "@medina/medina-tasks",
+  "version": "1.0.0",
+  "description": "Tasks SDK — Task scheduling, execution, and management",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "private": true,
+  "author": "Alfredo Medina Hernandez",
+  "license": "PROPRIETARY"
+}

@@ -1,0 +1,24 @@
+{
+  "name": "@medina/medina-heart",
+  "version": "1.0.0",
+  "description": "Self-bootstrapping biological heart - THE HEART IS THE BOOTSTRAP",
+  "main": "src/index.js",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "medina",
+    "heart",
+    "bootstrap",
+    "autonomous",
+    "phi",
+    "873ms"
+  ],
+  "author": "Alfredo Medina Hernandez",
+  "license": "PROPRIETARY",
+  "private": true
+}

@@ -14,7 +14,7 @@
 // Stop: Ctrl+C
 //
 // This terminal mirrors what src/agi_main/main.mo computes on-chain.
-// The ICP heartbeat fires every ~2s. This dashboard ticks at the same rate.
+// The NOVA heartbeat fires every 873ms. This dashboard ticks at the same rate.
 // Everything you see is AUTOMATICALLY accumulating — no calls needed.
 //
 // ── HOW NOVA MINTS ICP (NO PURCHASES, EVER) ──────────────────────────────────

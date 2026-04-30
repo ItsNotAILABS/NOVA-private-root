@@ -64,7 +64,7 @@ module HzFrequencySubstrate {
   public let TAU : Float = 6.2831853071795864769;  // 2π
   public let PHI : Float = 1.6180339887498948482;
   
-  // ICP heartbeat rate approximation (beats per second)
+  // NOVA heartbeat rate (beats per second)
   public let HEARTBEAT_RATE : Float = 0.5;  // ~2 seconds per beat
   
   // Frequency coherence contribution to C equation

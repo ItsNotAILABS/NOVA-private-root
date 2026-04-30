@@ -1063,7 +1063,7 @@ function stepBurgers(state: BurgersState, dt: number): BurgersState {
 // ∂u/∂t + u∂u/∂x + ∂³u/∂x³ = 0
 function initKdV(gridSize: number): KdVState {
   const u = Array.from({ length: gridSize }, (_, i) => 
-    2 * Math.exp(-((i - gridSize / 2) / 10) ** 2) // Gaussian pulse
+    2 * Math.exp(-(((i - gridSize / 2) / 10) ** 2)) // Gaussian pulse
   );
   return {
     u,
@@ -1154,7 +1154,7 @@ function stepSineGordon(state: SineGordonState, dt: number): SineGordonState {
 // i∂ψ/∂t = -∂²ψ/∂x² + g|ψ|²ψ
 function initNonlinearSchrodinger(gridSize: number, g: number): NonlinearSchrodingerState {
   const psi = Array.from({ length: gridSize }, (_, i) => ({
-    re: Math.exp(-((i - gridSize / 2) / 10) ** 2),
+    re: Math.exp(-(((i - gridSize / 2) / 10) ** 2)),
     im: 0,
   }));
   return {

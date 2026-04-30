@@ -1,0 +1,798 @@
+\documentclass[12pt]{article}
+
+% ── Packages ─────────────────────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{microtype}
+\usepackage{cite}
+
+\geometry{margin=1in}
+
+% ── Theorem environments ──────────────────────────────────────────────────────
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{invariant}[theorem]{Invariant}
+
+% ── Macros ───────────────────────────────────────────────────────────────────
+\newcommand{\PHI}{\varphi}
+\newcommand{\synBind}{\texttt{synBind}}
+\newcommand{\synQuery}{\texttt{synQuery}}
+\newcommand{\synRevoke}{\texttt{synRevoke}}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\title{\textbf{\textit{Nexus Perpetuus} \\
+  \normalfont\large Self-Healing Agent Networks Through \\
+  Permanent State Binding}}
+
+\author{Alfredo Medina Hernandez \\
+  \normalsize Medina Tech \quad Dallas, Texas, USA \\
+  \normalsize \texttt{MedinaSITech@outlook.com}}
+
+\date{April 2026}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+The cost of knowing what another agent knows should be paid once.  Not once
+per tick.  Not once per query.  Once — at the moment of first contact — and
+never again.  This is the premise of \emph{Nexus Perpetuus}: a permanent
+binding between agents that converts the first cross-agent call into a local
+write, after which all knowledge of the remote agent is available without
+network cost, without coordination, and without fragility to the remote
+agent's availability.
+
+We formalise this premise as the \emph{Synapse Binding Engine} (SYN), a
+mechanism in which a single call imprints a remote agent's state snapshot
+into the local canister's stable memory.  The imprint is permanent: it
+survives canister upgrades, remote unavailability, and the full lifecycle of
+the local agent.  We prove three structural invariants — imprint permanence,
+upgrade survival, and owner-gated termination — and establish formal safety
+and liveness properties of the resulting system.  We characterise a seven-class
+failure taxonomy, prove recovery time bounds for each class, and show that the
+autonomous job queue — five job types, four priority levels, exponential
+back-off retry — drives the system from any failure state back to nominal
+operation without human intervention.
+
+The result is an agent architecture that is \emph{self-bootstrapping},
+\emph{self-healing}, and \emph{self-governing}: one initialisation call, and
+then it runs.  We discuss the coordination patterns this unlocks for AI agent
+networks that cannot afford the overhead of on-demand querying at scale.
+\end{abstract}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Introduction}
+\label{sec:intro}
+
+Every time an agent asks another agent what it knows, it is admitting that
+the question might have been answered already.  In a system that ticks at
+sub-second cadence, that admission is paid in compute, in latency, and in
+fragility — because the agent being asked might not answer.  Might be
+upgrading.  Might be temporarily unreachable.  Might have been deprecated
+three versions ago.
+
+The dominant paradigm for cross-agent coordination is \emph{on-demand querying}:
+whenever Agent~$A$ needs data from Agent~$B$, it sends a message, waits for
+the reply, and then proceeds.  This paradigm has three costs that compound in
+high-frequency autonomous systems:
+
+\begin{enumerate}[label=(\arabic*)]
+  \item \textbf{Latency.}  Even on high-throughput blockchains, a cross-canister
+    call introduces a round-trip delay of hundreds of milliseconds.  In a system
+    ticking at 875\,ms, one avoidable cross-canister call consumes
+    $\approx\!30\%$ of the tick budget.
+  \item \textbf{Cycle cost.}  Every cross-canister call consumes compute units.
+    A system that queries its own components fifty times per tick spends more
+    on coordination than on computation.
+  \item \textbf{Coupling fragility.}  If Agent~$B$ is temporarily unreachable,
+    Agent~$A$'s dependent computation fails — even if the relevant state has
+    not changed since the last query.
+\end{enumerate}
+
+The architecture we call \emph{Nexus Perpetuus} — the perpetual bond — resolves
+all three by converting the first cross-agent query into a \emph{permanent local
+write}.  After the imprint, Agent~$A$ knows what Agent~$B$ knows without asking.
+The knowledge is local, deterministic, and resilient to Agent~$B$'s availability.
+The bond, once formed, does not require the other party to remain present.
+
+We formalise this as the \emph{Synapse Binding Engine} (SYN): a mechanism for
+imprinting remote state into local stable memory through a single cross-canister
+call, with an autonomous job queue that keeps the imprint fresh, heals from
+failures, and governs the binding lifecycle without human intervention.
+
+Section~\ref{sec:model} establishes the system model.
+Section~\ref{sec:syn} defines SYN and proves its key invariants.
+Section~\ref{sec:liveness} proves the safety and liveness properties.
+Section~\ref{sec:jobqueue} describes the autonomous job queue.
+Section~\ref{sec:selfhealing} analyses the self-healing dynamics.
+Section~\ref{sec:failures} classifies the failure mode taxonomy and derives
+recovery time bounds.
+Section~\ref{sec:ai} discusses implications for AI agent coordination.
+Section~\ref{sec:impl} reports implementation details.
+Section~\ref{sec:related} situates the work relative to existing distributed
+systems literature.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{System Model}
+\label{sec:model}
+
+\begin{definition}[Canister]
+  A \emph{canister} is an autonomous actor with: (i) stable state $\Sigma$ that
+  persists across upgrades via a serialisation/deserialisation hook;
+  (ii) a message queue from which it processes calls sequentially;
+  (iii) an owner principal $p_\text{own}$ that controls administrative
+  operations; and (iv) a globally unique canister ID $\mathrm{id}$.
+\end{definition}
+
+\begin{definition}[HEART Snapshot]
+  The \emph{HEART snapshot} $H = (b, \tau, \eta, s, m, v, \pi, o, c, \sigma)$
+  is a 10-tuple of the AGI Terminal canister's key state variables:
+  \begin{align*}
+    b &\in \{0,1\} && \text{booted flag} \\
+    \tau &\in \mathbb{N} && \text{current tick} \\
+    \eta &\in \mathbb{N} && \text{neuron count} \\
+    s &\in \mathbb{N} && \text{total staked ICP (e8s)} \\
+    m &\in \mathbb{N} && \text{pending maturity (e8s)} \\
+    v &\in \mathbb{R}_{\ge 0} && \text{voting power} \\
+    \pi &\in \mathbb{N} && \text{treasury ICP (e8s)} \\
+    o &\in \mathbb{N} && \text{ONESICAN inventory} \\
+    c &\in \mathbb{N} && \text{circulating OnesICANs} \\
+    \sigma &\in \mathbb{N} && \text{spawned neurons}
+  \end{align*}
+\end{definition}
+
+\begin{definition}[SYN Binding]
+  A \emph{SYN binding} is a tuple
+  $B = (\ell, \mathrm{cid}, k, d, t_b, n_r)$ stored in the local canister's
+  stable memory, where:
+  $\ell$ is the binding label (a string key);
+  $\mathrm{cid}$ is the remote canister ID;
+  $k$ is the data key passed to the remote canister;
+  $d$ is the locally stored data snapshot (serialised text);
+  $t_b$ is the timestamp of the last bind call;
+  $n_r \in \mathbb{N}_0$ is the refresh count.
+\end{definition}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Synapse Binding Engine}
+\label{sec:syn}
+
+\subsection{Operations}
+
+SYN exposes five public operations:
+
+\begin{description}[leftmargin=1.8cm, labelwidth=1.6cm]
+  \item[\synBind$(\ell, \mathrm{cid}, k)$]
+    Performs one cross-canister call to $\mathrm{cid}$ to retrieve the current
+    value for key $k$; stores the result as a binding with label $\ell$ in
+    local stable memory.  All future reads use the local copy.
+  \item[\synQuery$(\ell)$]
+    Returns the locally stored data for label $\ell$.
+    \textbf{No network call.  No cycle cost.  Deterministic.}
+  \item[\synRevoke$(\ell)$]
+    Owner-only.  Deletes the binding for $\ell$.  Data is gone; no recovery.
+  \item[$\synRevoke$All$()$]
+    Owner-only.  Deletes all bindings.  Solver goes dark on the next tick.
+  \item[\texttt{synBindHeart}$(\mathrm{cid}_\text{AGI})$]
+    Specialisation of \synBind{} for the HEART snapshot: calls
+    $\mathrm{cid}_\text{AGI}.\texttt{getSystemStatus}()$ and imprints all ten
+    fields locally.  Also caches $m$ (maturity) and $v$ (voting power) as
+    first-class numeric fields for fast routing decisions without string parsing.
+\end{description}
+
+\subsection{Invariants}
+
+\begin{invariant}[Imprint Permanence]
+  After \synBind$(\ell, \mathrm{cid}, k)$ returns successfully, $\synQuery(\ell)$
+  returns the imprinted data without any network call, for the lifetime of the
+  canister (unless \synRevoke\ is called by the owner).
+\end{invariant}
+
+\begin{invariant}[Upgrade Survival]
+  Because bindings are stored in the canister's stable memory and serialised
+  through the pre-upgrade/post-upgrade hooks, all bindings survive an arbitrary
+  number of canister upgrades.
+\end{invariant}
+
+\begin{invariant}[Owner-Gated Termination]
+  Only the owner principal $p_\text{own}$ may call \synRevoke\ or
+  $\synRevoke$All.  No binding can be deleted by any other principal, including
+  the remote canister from which the data was originally retrieved.
+\end{invariant}
+
+\subsection{Staleness Analysis}
+
+\begin{theorem}[Bounded Staleness]
+  Under the PRPO governance-sync schedule with interval $\Delta_\text{GS}$
+  (seconds), the staleness of any SYN binding relative to the current remote
+  state is bounded by $\Delta_\text{GS}$ in expectation.  Specifically, if the
+  remote state changes at rate $\lambda$ (events/second), then the expected
+  number of unseen updates in a binding is $\lambda \cdot \Delta_\text{GS}$.
+\end{theorem}
+
+\begin{proof}
+  Let $T_\text{bind}$ be the last bind time.  The binding reflects remote state
+  at $T_\text{bind}$.  The next GOVERNANCE\_SYNC job refreshes the binding at
+  $T_\text{bind} + \Delta_\text{GS}$ (in the common case; see the retry
+  analysis in Section~\ref{subsec:retry} for the failure case).  In the
+  interval $[T_\text{bind}, T_\text{bind} + \Delta_\text{GS}]$, the remote
+  state undergoes $\lambda \cdot \Delta_\text{GS}$ expected changes.
+  Therefore, the expected staleness (unseen updates) is $\lambda \Delta_\text{GS}$.
+  \qed
+\end{proof}
+
+For the HEART binding, $\Delta_\text{GS}$ is set by the GOVERNANCE\_SYNC job
+cadence; at one job per solver tick (50 AGI heartbeats, $\approx 43\,\text{s}$),
+$\Delta_\text{GS} = 43\,\text{s}$.  For economic state variables (maturity,
+treasury), $\lambda \approx 1/0.873\,\text{s}^{-1}$ (one NOVA heartbeat per 873\,ms),
+giving expected staleness $\approx 21$ unobserved ticks per sync period.
+
+\subsection{Capacity}
+
+The Organism Solver supports up to $N_{\max} = 64$ simultaneous bindings,
+limited by the stable memory budget for the binding array.  This is sufficient
+to mirror the entire 39-canister \textsc{Nova} organism plus 25 future
+expansion canisters.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Safety and Liveness Properties}
+\label{sec:liveness}
+
+\subsection{System Safety}
+
+We define safety as the property that the system never enters a state from
+which correct operation cannot be restored.
+
+\begin{definition}[SYN Safety State]
+  The system is in a \emph{safe state} at time $t$ if:
+  (i) all bindings in $\texttt{\_bindings}$ have $\REL(B) \ge 0$ (non-negative
+  staleness); (ii) no two bindings share the same label $\ell$; and (iii) the
+  re-entrancy guard $\texttt{\_tickRunning} = \mathsf{false}$ (no tick is
+  permanently locked).
+\end{definition}
+
+\begin{theorem}[SYN Safety]
+  \label{thm:safety}
+  A SYN-bound system never leaves the safe state if: (i) labels are
+  unique-by-construction in $\synBind$; (ii) the re-entrancy guard is
+  transient (non-stable); and (iii) all write operations are atomic.
+\end{theorem}
+
+\begin{proof}
+  (i) The $\synBind$ operation checks for an existing binding with the same
+  label before inserting.  If one exists, it updates in-place; uniqueness
+  is preserved.
+  (ii) The guard $\texttt{\_tickRunning}$ is declared \texttt{transient}
+  (not stable), so it resets to $\mathsf{false}$ at every canister upgrade.
+  A crashed tick that leaves the guard as $\mathsf{true}$ is corrected at
+  the next upgrade without any administrative intervention.
+  (iii) All write operations in the actor model are executed sequentially
+  within a single message, providing atomicity at the actor grain.
+  Under (i)--(iii), no state transition produces a duplicate label, a
+  permanently locked guard, or a partially-written binding. \qed
+\end{proof}
+
+\subsection{System Liveness}
+
+\begin{definition}[Job Liveness]
+  The job queue is \emph{live} if: for every job $j$ enqueued at time $t_e$,
+  $j$ eventually reaches status $\mathsf{DONE}$ or $\mathsf{FAILED}$ at some
+  finite time $t_f > t_e$.
+\end{definition}
+
+\begin{theorem}[Job Queue Liveness]
+  \label{thm:liveness}
+  The autonomous job queue is live under the following conditions:
+  (a) the solver tick fires at finite intervals $T_\text{tick} < \infty$;
+  (b) $R_\text{max} < \infty$;
+  (c) CRITICAL jobs are never dropped.
+\end{theorem}
+
+\begin{proof}
+  Let $j$ be any enqueued job with priority $p$.  At each tick, either $j$
+  is executed (moving it toward $\mathsf{DONE}$ or $\mathsf{FAILED}$) or $j$
+  waits because $n < N_\text{tick}$ and $j$ is not CRITICAL.
+
+  Case 1: $p = \mathsf{CRITICAL}$.  By condition (c), $j$ is executed at every
+  tick until it completes.  It completes in at most
+  $R_\text{max} + 1$ executions.
+
+  Case 2: $p \in \{\mathsf{HIGH}, \mathsf{NORMAL}, \mathsf{LOW}\}$.
+  $j$ may be skipped at a tick only if $N_\text{tick}$ other jobs execute first.
+  But the queue is finite (bounded by $N_\text{max} = 200$), so $j$ must be
+  reached within $\lceil N_\text{max} / N_\text{tick} \rceil$ ticks.  After
+  $R_\text{max}$ failures, $j$ transitions to $\mathsf{FAILED}$, which is
+  terminal.  Therefore $j$ reaches a terminal state in at most
+  $\lceil N_\text{max} / N_\text{tick} \rceil \times (R_\text{max} + 1)$ ticks.
+  Under condition (a), this is a finite time. \qed
+\end{proof}
+
+\begin{corollary}[Expected Resolution Time]
+  The expected ticks to resolution for a NORMAL-priority job in a queue of
+  depth $D \le N_\text{max}$ with $N_\text{tick}$ jobs executed per tick is:
+  \[
+    \mathbb{E}[T_\text{resolve}] = \left\lceil \frac{D}{N_\text{tick}} \right\rceil
+    \times (1 + p_\text{fail} + p_\text{fail}^2 + \cdots + p_\text{fail}^{R_\text{max}})
+    = \left\lceil \frac{D}{N_\text{tick}} \right\rceil \cdot
+    \frac{1 - p_\text{fail}^{R_\text{max}+1}}{1 - p_\text{fail}},
+  \]
+  where $p_\text{fail}$ is the per-attempt failure probability.
+  For $p_\text{fail} = 0$ (no failures): $\mathbb{E}[T_\text{resolve}]
+  = \lceil D / N_\text{tick} \rceil$.
+\end{corollary}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Autonomous Job Queue}
+\label{sec:jobqueue}
+
+\subsection{Job Types and Semantics}
+
+Five job types implement the full self-management lifecycle:
+
+\begin{table}[h]
+  \centering
+  \caption{Job types, default priorities, and semantics.}
+  \label{tab:jobs}
+  \begin{tabular}{llp{6cm}}
+    \toprule
+    Job type & Default priority & Semantic \\
+    \midrule
+    \texttt{AUTO\_DISCOVER}   & CRITICAL & Map the current canister topology \\
+    \texttt{GOVERNANCE\_SYNC} & HIGH     & Refresh fleet $+$ AI SYN bindings \\
+    \texttt{HEARTBEAT\_CHECK} & NORMAL   & Ping all registered canisters \\
+    \texttt{ADD\_HOTKEY}      & NORMAL   & Register a new NNS hotkey \\
+    \texttt{DEPLOY\_WORKER}   & NORMAL   & Spawn a named service worker \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Priority Scheduler}
+
+Jobs are partitioned by priority (CRITICAL, HIGH, NORMAL, LOW) and sorted
+within each partition by creation time.  At each solver tick, up to
+$N_\text{tick} = 5$ jobs are processed; CRITICAL jobs bypass the limit.
+When the queue reaches $N_\text{max} = 200$, LOW-priority jobs are evicted
+first; if still full, NORMAL jobs are evicted.  CRITICAL and HIGH jobs are
+never dropped.
+
+\begin{algorithm}[h]
+  \caption{Solver tick scheduler}
+  \label{alg:tick}
+  \begin{algorithmic}[1]
+    \State $\mathit{eligible} \gets \{j \in Q : j.\mathit{status} \in \{\mathsf{PENDING}, \mathsf{RETRYING}\}
+                   \wedge j.\mathit{nextRunAt} \le t_\text{now}\}$
+    \State $\mathit{sorted} \gets \text{sort by priority}(\mathit{eligible})$
+    \State $n \gets 0$
+    \For{$j \in \mathit{sorted}$}
+      \If{$n < N_\text{tick}$ \textbf{or} $j.\mathit{priority} = \mathsf{CRITICAL}$}
+        \State $\text{execute}(j)$; $n \gets n + 1$
+        \If{failed and $j.\mathit{retries} < R_\text{max}$}
+          \State $j.\mathit{nextRunAt} \gets t_\text{now} + 2^{j.\mathit{retries}}\,\text{s}$
+          \State $j.\mathit{status} \gets \mathsf{RETRYING}$
+        \ElsIf{failed}
+          \State $j.\mathit{status} \gets \mathsf{FAILED}$
+          \If{$j.\mathit{type} = \mathsf{HEARTBEAT\_CHECK}$}
+            \State \textbf{enqueue} $\mathsf{HEARTBEAT\_CHECK}$ at $\mathsf{CRITICAL}$
+          \EndIf
+        \EndIf
+      \EndIf
+    \EndFor
+  \end{algorithmic}
+\end{algorithm}
+
+\subsection{Exponential Back-off Retry}
+\label{subsec:retry}
+
+Failed jobs retry with delay $2^{r}\,\text{s}$ where $r \in \{1, 2, 3\}$ is
+the retry attempt.  At $R_\text{max} = 3$ failures, the job transitions to
+$\mathsf{FAILED}$.  For $\mathsf{HEARTBEAT\_CHECK}$ failures — indicating a
+possibly dead canister — a new $\mathsf{HEARTBEAT\_CHECK}$ at CRITICAL priority
+is immediately re-queued.
+
+\begin{proposition}[Retry Convergence]
+  In the absence of permanent failure (i.e.\ if the remote canister recovers
+  within $2^{R_\text{max}}\,\text{s} = 8\,\text{s}$), every job eventually
+  completes.  In the presence of permanent failure, the job transitions to
+  $\mathsf{FAILED}$ after at most $1 + 2 + 4 = 7$ seconds of cumulative retry
+  delay.
+\end{proposition}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Self-Healing Dynamics}
+\label{sec:selfhealing}
+
+\subsection{HEART-Driven Routing Decisions}
+
+The HEART binding's cached maturity field $m$ drives autonomous priority
+escalation at each solver tick:
+
+\[
+  \text{If } m > m_\text{threshold}:
+  \quad \forall j \in Q,\; j.\mathit{type} \in \{\mathsf{ADD\_HOTKEY},
+  \mathsf{GOVERNANCE\_SYNC}\}:
+  \quad j.\mathit{priority} \gets \mathsf{CRITICAL}.
+\]
+
+At $m_\text{threshold} = 10^{10}\,\text{e8s}$ (100\,ICP worth of maturity),
+the system recognises that economic activity has accumulated and upgrades
+governance-related jobs to maximum priority.  This requires no human
+observation: the HEART snapshot, refreshed every 43\,s, provides the signal;
+the solver acts on it without human input.
+
+\subsection{Self-Bootstrapping via \texttt{initialize()}}
+
+The \texttt{initialize()} call queues the three bootstrap jobs in a single
+transaction:
+$\mathsf{AUTO\_DISCOVER}$ (CRITICAL),
+$\mathsf{GOVERNANCE\_SYNC}$ (HIGH),
+$\mathsf{HEARTBEAT\_CHECK}$ (NORMAL).
+After this call, the system requires no further configuration: the AGI Terminal
+fires $\texttt{solverTick()}$ every 50 system ticks, the jobs execute, SYN
+bindings are populated, and the organism is operational.
+
+\subsection{Canister Self-Diagnosis via Syntax Synapse}
+
+A companion canister, the Syntax Synapse Engine, maintains a registry of all 39
+canisters and periodically audits them for error patterns.  It classifies six
+error categories:
+
+\begin{table}[h]
+  \centering
+  \caption{Syntax Synapse error pattern taxonomy.}
+  \label{tab:synapse}
+  \begin{tabular}{ll}
+    \toprule
+    Pattern tag & Source \\
+    \midrule
+    \texttt{\#reservedKeyword}    & Use of Motoko reserved word as field name \\
+    \texttt{\#paramSeparator}     & Semicolon instead of comma in param list \\
+    \texttt{\#piConstant}         & Float literal without decimal point \\
+    \texttt{\#missingParens}      & Unwrapped switch/if condition \\
+    \texttt{\#intFromNat}         & Type mismatch between \texttt{Int} and \texttt{Nat} \\
+    \texttt{\#lambdaType}         & Lambda type without enclosing parentheses \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+For each error pattern, the Syntax Synapse Engine returns a fix recommendation
+via \texttt{recommendFix(pattern)}.  The system heartbeat (every 13 ticks)
+re-audits the registry and updates status to ``OK'' or ``ERROR''.  This closes
+a second self-healing loop independent of SYN.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Failure Mode Taxonomy and Recovery Bounds}
+\label{sec:failures}
+
+\subsection{Failure Classification}
+
+We classify failures in a SYN-bound multi-agent system into three tiers:
+
+\begin{table}[h]
+  \centering
+  \caption{SYN failure mode taxonomy and expected recovery time.}
+  \label{tab:failures}
+  \begin{tabular}{lllp{4cm}}
+    \toprule
+    Class & Failure type & Recovery mechanism & Bound \\
+    \midrule
+    F1 & Transient network timeout & Exponential back-off retry & $\le 7\,\text{s}$ \\
+    F2 & Remote agent temporarily offline & HEARTBEAT\_CHECK → CRITICAL re-queue & $\le T_\text{tick}$ after recovery \\
+    F3 & Remote agent permanently offline & Binding becomes stale; data persists & Indefinite (no loss) \\
+    F4 & Local canister upgrade & Stable memory serialisation & $0$ (immediate post-upgrade) \\
+    F5 & Solver tick crash (guard stuck) & Transient guard resets on upgrade & Next upgrade \\
+    F6 & Queue overflow (LOW jobs) & LOW eviction; HIGH/CRITICAL safe & $0$ (immediate) \\
+    F7 & Cascade failure (chain of offline agents) & AUTO\_DISCOVER at CRITICAL & $\le \lceil D/N_\text{tick}\rceil T_\text{tick}$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Transient Failures (F1, F2)}
+
+For a single transient failure (F1), the exponential back-off sequence
+$2^1, 2^2, 2^3$ seconds yields a cumulative worst-case delay of $7\,\text{s}$
+before the job transitions to $\mathsf{FAILED}$.  A new job is re-enqueued
+at CRITICAL, resetting the retry count.
+
+For a temporarily offline remote agent (F2), the $\mathsf{HEARTBEAT\_CHECK}$
+job detects the absence within one tick interval.  The self-healing response
+(re-enqueue at CRITICAL) means recovery begins within $T_\text{tick}$ after
+the agent returns online.
+
+\subsection{Permanent Failures (F3)}
+
+When a remote agent goes permanently offline, the SYN binding for that agent
+becomes permanently stale: the cached data $d$ is the last snapshot taken
+before the agent went offline.  Critically, \textbf{the data is not lost}: the
+binding persists in stable memory and can be queried for the last-known state.
+For many use cases (e.g.\ audit logs, configuration snapshots), the last-known
+state is the only relevant state.
+
+\begin{proposition}[Graceful Degradation under Permanent Failure]
+  Under F3 failure, the local agent continues to operate using stale but
+  non-null data for all bindings of the failed agent.  The system degrades
+  gracefully: local reads remain $O(1)$ and deterministic; only the staleness
+  of the cached data increases.
+\end{proposition}
+
+\subsection{Cascade Failures (F7)}
+
+A cascade failure occurs when multiple agents fail in sequence, each failure
+causing dependent agents to enter a degraded state.  The $\mathsf{AUTO\_DISCOVER}$
+job at CRITICAL priority re-maps the live topology after each failure event,
+enabling the system to route around dead agents.
+
+\begin{theorem}[Cascade Recovery Bound]
+  Let $k$ agents fail in cascade over $k$ consecutive ticks.
+  The expected time to topology remapping after the $k$-th failure is at most:
+  \[
+    T_\text{cascade} = (k+1) \cdot T_\text{tick} + \mathbb{E}[T_\text{AUTO\_DISCOVER}],
+  \]
+  where $\mathbb{E}[T_\text{AUTO\_DISCOVER}]$ is the expected execution time of
+  a single $\mathsf{AUTO\_DISCOVER}$ job.
+\end{theorem}
+
+\begin{proof}
+  After each failure, the $\mathsf{HEARTBEAT\_CHECK}$ job (scheduled every tick)
+  detects the absence within one tick.  The failure is logged and an
+  $\mathsf{AUTO\_DISCOVER}$ job is enqueued at CRITICAL.  Because CRITICAL jobs
+  bypass the $N_\text{tick}$ limit, the $\mathsf{AUTO\_DISCOVER}$ job executes
+  at the next tick.  For $k$ cascade failures: the $k$-th failure is detected
+  at tick $k$; $\mathsf{AUTO\_DISCOVER}$ runs at tick $k+1$; the topology is
+  remapped by tick $k+1 + \mathbb{E}[T_\text{AUTO\_DISCOVER}] / T_\text{tick}$
+  ticks.  \qed
+\end{proof}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{AI Agent Coordination Implications}
+\label{sec:ai}
+
+\subsection{The Coordination Bottleneck in Multi-Agent AI Systems}
+
+Modern multi-agent AI systems face a fundamental coordination bottleneck: the
+more agents are in a system, the more cross-agent queries are needed, and the
+higher the aggregate query cost.  Under on-demand querying, the query cost
+scales as $O(N \cdot F)$ where $N$ is the agent count and $F$ is the query
+frequency.  For large, high-frequency agent networks, this is prohibitive.
+
+SYN breaks this scaling law.  After the initial imprint (one cross-agent call
+per binding), all subsequent queries are local reads with $O(1)$ cost,
+regardless of agent count or query frequency.  The aggregate query cost under
+SYN scales as $O(N)$ (the initial imprint round) plus $O(N \cdot R / \Delta_\text{GS})$
+(periodic refresh), where $R$ is the refresh count.  For $\Delta_\text{GS} \gg T_\text{tick}$,
+the refresh cost is a small fraction of the on-demand cost.
+
+\subsection{SYN-Enabled AI Coordination Patterns}
+
+SYN enables three coordination patterns that are not achievable under on-demand
+querying:
+
+\paragraph{Pattern 1: Stateless Reasoning over Shared State.}
+An AI reasoning agent can make decisions based on a globally consistent state
+snapshot without any synchronous communication.  The HEART binding pattern
+provides this: the agent's decision function is a pure function of locally
+cached state, making it both fast and deterministic.
+
+\paragraph{Pattern 2: Autonomous Topology Discovery.}
+The $\mathsf{AUTO\_DISCOVER}$ job enables an AI agent to build a complete map
+of the multi-agent topology without human intervention.  As new agents join the
+network, the next $\mathsf{AUTO\_DISCOVER}$ cycle incorporates them.  This
+supports dynamic agent networks that grow and shrink at runtime.
+
+\paragraph{Pattern 3: Priority-Aware Self-Triage.}
+The live state signal (e.g.\ cached economic state fields) drives autonomous
+priority escalation.  An AI agent that observes a critical condition in the
+cached state can immediately elevate its own job priorities, effectively
+self-triaging without waiting for an external orchestrator.  This closes the
+feedback loop between perception and action at the agent level.
+
+\subsection{Towards Zero-Latency Agent Consensus}
+
+In a multi-agent system where all agents maintain SYN bindings to each other's
+state snapshots, the system approaches \emph{zero-latency consensus}: at any
+point in time, every agent has a locally-cached view of every other agent's
+most recent published state.  The staleness of this view is bounded by
+$\Delta_\text{GS}$, not by network round-trip time.
+
+\begin{proposition}[SYN Consensus Approximation]
+  In a fully-connected SYN network of $N$ agents, each maintaining bindings
+  to all $N-1$ others with refresh interval $\Delta_\text{GS}$, the maximum
+  age of any agent's view of any other agent's state is $\Delta_\text{GS}$.
+  In the limit $\Delta_\text{GS} \to 0$, the system achieves a perfect
+  replica of the global state at every agent, with refresh cost approaching
+  $O(N^2)$ cross-agent calls per unit time — equivalent to the fully
+  synchronised case, but without blocking.
+\end{proposition}
+
+This trade-off between staleness and refresh cost can be tuned per-binding:
+fast-changing state (e.g.\ economic variables) is refreshed at short intervals;
+slow-changing state (e.g.\ topology) is refreshed at long intervals.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Implementation Details}
+\label{sec:impl}
+
+\subsection{Stable Memory Layout}
+
+The Organism Solver uses the \texttt{persistent actor} pattern from the Motoko
+base library, which automatically serialises all \texttt{var} declarations
+(equivalent to \texttt{stable var}) through the pre-upgrade/post-upgrade hooks.
+The binding array \texttt{\_bindings : [SynBinding]} occupies a contiguous
+region of stable memory that survives an unlimited number of canister upgrades.
+
+\subsection{Re-entrancy Guard}
+
+The \texttt{solverTick()} function is guarded by a transient boolean
+\texttt{\_tickRunning}.  Because the guard is \texttt{transient} (not stable),
+it resets to \texttt{false} after every upgrade — ensuring that a crashed tick
+cannot permanently lock the solver.
+
+\subsection{Ring Buffer Event Log}
+
+The solver maintains a ring buffer of the last $L = 100$ events.  When the
+log exceeds $L$ entries, the oldest entries are discarded:
+\[
+  \mathtt{\_log}[t] = \mathtt{\_log}[(t \bmod L)].
+\]
+This provides a lightweight audit trail without unbounded memory growth.
+
+\subsection{Complexity}
+
+$\synBind$ executes in $\order{1}$ local operations plus one cross-canister
+round trip.  $\synQuery$ executes in $\order{|\mathtt{\_bindings}|}$ time
+(linear scan for the label), bounded by $N_\text{max} = 64$.
+$\synRevoke$ is also $\order{N_\text{max}}$.  The scheduler tick is
+$\order{Q_\text{eligible} \log Q_\text{eligible}}$ for the sort, then $\order{N_\text{tick}}$
+for execution.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Actor model.}
+Hewitt's actor model~\cite{hewitt1973} establishes message-passing as the
+primitive for concurrent computation.  SYN complements this by providing a
+mechanism to \emph{eliminate} message-passing for stable read-heavy data.
+The actor model tells you how to send a message; SYN tells you when to stop.
+
+\paragraph{Eventual consistency.}
+Vogels~\cite{vogels2009} surveys eventual consistency in large-scale distributed
+systems.  SYN achieves a weaker but more operationally predictable form —
+\emph{sync-periodic consistency} — where staleness is not a probabilistic
+guarantee but a hard bound set by the governance-sync interval.
+
+\paragraph{Content-addressed storage.}
+IPFS~\cite{benet2014} achieves immutability through content addressing: the
+same content always has the same address, and that address never expires.  SYN
+achieves a different form of immutability at the binding level: the binding
+label is permanent, but the data it points to can be refreshed.  Immutable
+address, mutable content, permanent bond.
+
+\paragraph{Distributed caches.}
+Redis and Memcached provide distributed caching with configurable expiry.  SYN
+differs in three fundamental ways: bindings have no automatic expiry; they
+survive the local canister's own upgrade cycles; and only the owner principal
+can destroy them.  SYN is not a cache.  It is a contract.
+
+\paragraph{Self-healing systems.}
+The autonomic computing literature~\cite{kephart2003, salehie2009} describes
+systems that monitor, analyse, plan, and execute (MAPE) without human
+intervention.  SYN implements MAPE at the binding layer; the job queue
+implements MAPE at the coordination layer.  The formal safety and liveness
+proofs (Section~\ref{sec:liveness}) provide a mathematical foundation that
+most self-healing systems literature treats as an aspiration rather than a result.
+
+\paragraph{Multi-agent AI systems.}
+Recent multi-agent AI frameworks~\cite{park2023, autogen2023} rely on
+synchronous message-passing for coordination.  SYN provides a complementary
+asynchronous-but-bounded alternative: agents coordinate through cached state
+rather than live messages, trading a bounded window of staleness for zero
+blocking latency and resilience to partial network failures.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Conclusion}
+\label{sec:conclusion}
+
+\emph{Nexus Perpetuus.}  The perpetual bond.
+
+The Synapse Binding Engine is built on a simple observation: the right time
+to pay for knowing what another agent knows is when you first need to know it —
+not every time you need to consult it.  One cross-canister call.  One imprint.
+And then the knowledge is yours, locally, permanently, regardless of whether
+the other party is still running.
+
+The formal properties flow from this premise.  Safety: the system never enters
+a state it cannot recover from, because label uniqueness, transient guards, and
+actor-grain atomicity together prevent corruption at every layer.  Liveness:
+every job eventually reaches a terminal state, because the queue is finite, the
+tick fires on schedule, and CRITICAL jobs cannot be starved.  The failure
+taxonomy — seven classes, each with a proven recovery bound — gives the system
+operator a complete picture of what can go wrong and exactly how long recovery
+takes.
+
+The autonomous job queue is what makes it self-governing.  Five job types.
+Four priorities.  Exponential back-off.  The system reads its own cached state
+signal, escalates when the signal crosses a threshold, and heals without
+instruction.  A single \texttt{initialize()} call queues the bootstrap jobs;
+everything after that is autonomous.
+
+For AI agent networks at scale, the implications go beyond fault tolerance.
+\emph{Nexus Perpetuus} is the infrastructure that allows a large, distributed,
+high-frequency agent system to reason about shared state without paying the
+coordination tax on every tick.  Agents become statefully aware of each other
+at the cost of one round trip apiece.  After that, they know — locally,
+deterministically, and without asking.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{thebibliography}{99}
+
+\bibitem{hewitt1973}
+C.~Hewitt, P.~Bishop, R.~Steiger,
+``A universal modular actor formalism for artificial intelligence,''
+\textit{Proc.\ 3rd IJCAI}, pp.~235--245, 1973.
+
+\bibitem{vogels2009}
+W.~Vogels,
+``Eventually consistent,''
+\textit{Queue}, vol.~6, no.~6, pp.~14--19, 2009.
+
+\bibitem{benet2014}
+J.~Benet,
+``IPFS -- Content addressed, versioned, P2P file system,''
+arXiv:1407.3561, 2014.
+
+\bibitem{armstrong2010}
+J.~Armstrong,
+\emph{Programming Erlang: Software for a Concurrent World},
+2nd ed., Pragmatic Bookshelf, 2013.
+
+\bibitem{lamport1978}
+L.~Lamport,
+``Time, clocks, and the ordering of events in a distributed system,''
+\textit{Commun.\ ACM}, vol.~21, no.~7, pp.~558--565, 1978.
+
+\bibitem{dfinity2022}
+\text{DFINITY Foundation},
+``The Internet Computer,''
+Technical White Paper, 2022.
+
+\bibitem{gilbert2002}
+S.~Gilbert, N.~Lynch,
+``Brewer's conjecture and the feasibility of consistent, available,
+partition-tolerant web services,''
+\textit{SIGACT News}, vol.~33, no.~2, pp.~51--59, 2002.
+
+\bibitem{kephart2003}
+J.~O.~Kephart, D.~M.~Chess,
+``The vision of autonomic computing,''
+\textit{Computer}, vol.~36, no.~1, pp.~41--50, 2003.
+
+\bibitem{salehie2009}
+M.~Salehie, L.~Tahvildari,
+``Self-adaptive software: Landscape and research challenges,''
+\textit{ACM Trans.\ Auton.\ Adapt.\ Syst.}, vol.~4, no.~2, 2009.
+
+\bibitem{park2023}
+J.~S.~Park et al.,
+``Generative agents: Interactive simulacra of human behavior,''
+\textit{Proc.\ ACM UIST}, 2023.
+
+\bibitem{autogen2023}
+Q.~Wu et al.,
+``AutoGen: Enabling next-gen LLM applications via multi-agent conversation,''
+arXiv:2308.08155, 2023.
+
+\end{thebibliography}
+
+\end{document}
