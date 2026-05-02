@@ -410,6 +410,29 @@
         "TerminalHub"
       ],
       "serves_workers": "ALL_SERVITORES"
+    },
+    "airport_orchestrator": {
+      "type": "motoko",
+      "main": "src/airport_orchestrator/main.mo",
+      "build_number": 49,
+      "description": "AIRPORT ORCHESTRATOR — Central Coordination for Airport Operations (BUILD №49): NOVA V5 Airport Application. 16 sections: flight schedule management, gate assignment engine, passenger flow orchestration, booking engine integration, IoT device registry, personalization profile store, connection management, social matching engine, loyalty & gamification (AEROPORTO tokens), partner ecosystem, compliance & privacy (GDPR automation), emergency & security, nova_stream integration, wave router, heartbeat (873ms), system status & diagnostics. Target scale: 500K concurrent passengers.",
+      "dependencies": [
+        "nova_stream",
+        "phantom_transfer",
+        "organism_token"
+      ],
+      "pilot": true,
+      "scale_target": 500000
+    },
+    "flight_intelligence": {
+      "type": "motoko",
+      "main": "src/flight_intelligence/main.mo",
+      "build_number": 49,
+      "description": "FLIGHT INTELLIGENCE — Predictive Flight Operations & Passenger Impact Analysis (BUILD №49): NOVA V5 Airport Application. Delay cascade prediction, connection risk scoring (φ-weighted), rebooking recommendations, baggage tracking integration, weather correlation. Monte Carlo connection probability simulation. φ-decay delay propagation model.",
+      "dependencies": [
+        "airport_orchestrator"
+      ],
+      "pilot": true
     }
   },
   "build": {
