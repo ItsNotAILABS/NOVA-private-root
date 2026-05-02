@@ -13,7 +13,7 @@
 // CONFIDENTIAL — TRADE SECRET — PROTECTED UNDER NDA
 // ═══════════════════════════════════════════════════════════════════════════
 
-import { PHI, PHI_INV, clamp, sigmoid, tanh as novaTanh } from '../math/core';
+import { PHI, clamp, sigmoid } from '../math/core';
 import {
   computeAmplitudeOrderParameter,
   kuramotoStep,
