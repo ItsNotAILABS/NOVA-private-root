@@ -101,7 +101,12 @@ var threatScore  = 0.0;
 
 function rateLimitCheck(principal, now) {
   totalRequests++;
-  if (!rateBuckets[principal]) {
+  /* Guard against prototype pollution — reject dangerous keys */
+  if (principal === '__proto__' || principal === 'constructor' || principal === 'prototype') {
+    blockedRequests++;
+    return { allowed: false, tier: 'PAUSED', reason: 'INVALID_PRINCIPAL' };
+  }
+  if (!Object.prototype.hasOwnProperty.call(rateBuckets, principal)) {
     rateBuckets[principal] = { count: 0, windowStart: now, tier: 'NORMAL' };
   }
   var bucket = rateBuckets[principal];
@@ -198,11 +203,10 @@ function coarsenLocation(lat, lon) {
     }
   }
 
-  /* Only return IATA code + name — NEVER raw GPS */
+  /* Only return IATA code + name — NEVER raw GPS or precise distance */
   return {
     iata: nearest ? nearest.iata : 'UNK',
     name: nearest ? nearest.name : 'Unknown',
-    distanceKm: Math.round(minDist * 10) / 10,
     withinAirport: minDist < 10,
   };
 }
@@ -244,12 +248,14 @@ function classifyRequest(request) {
 
 function checkHoneypot(flightId) {
   return {
-    isHoneypot: !!honeypotIds[flightId],
+    isHoneypot: Object.prototype.hasOwnProperty.call(honeypotIds, flightId) && !!honeypotIds[flightId],
     flightId: flightId,
   };
 }
 
 function registerHoneypot(flightId) {
+  /* Guard against prototype pollution */
+  if (flightId === '__proto__' || flightId === 'constructor' || flightId === 'prototype') return;
   honeypotIds[flightId] = true;
 }
 
