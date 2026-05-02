@@ -47,8 +47,8 @@ import { NovaBuilderApp }    from './nova_builder/NovaBuilderApp';
 // ── DALLAS ISD — Sovereign AI Classroom Platform · Build №43 ─────────────
 import { DallasISDApp }      from './dallas_isd/DallasISDApp';
 
-// ── SKYHI GROUP — Enterprise Client Portal · Build №49 ────────────────────
-import { SkyhiApp }          from './skyhi/SkyhiApp';
+// ── SKYHI CLIENT — Enterprise Intelligence Portal · Build №1 ─────────────
+import { SkyHiClientPortal } from './skyhi_client/SkyHiClientPortal';
 // ── AIRPORT PASSENGER — NOVA V5 Airport Application · Build №49 ──────────
 import { AirportPassengerApp } from './airport_passenger/AirportPassengerApp';
 // ── SKYHI GROUP — Sovereign Airport AGI Integration · Build №49 ──────────
