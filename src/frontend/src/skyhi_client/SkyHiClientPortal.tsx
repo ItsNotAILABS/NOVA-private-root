@@ -22,6 +22,8 @@
 import React, { useState } from 'react';
 import { useOrganismState } from '../hooks/useOrganismState';
 import { useSkyhiLiveData } from './useSkyhiLiveData';
+import { useSkyhiAuth } from './useSkyhiAuth';
+import { SkyHiLoginGate } from './SkyHiLoginGate';
 import { PHI } from '../math/core';
 
 // ── φ-tier pricing constants (from nova_protocol — exact to 3dp) ──────────
@@ -246,10 +248,39 @@ function TierCard({ tier, name, priceForma, features, highlight = false, include
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// MAIN PORTAL
+// MAIN PORTAL (with auth gate wrapper)
 // ═══════════════════════════════════════════════════════════════════════════
 
 export function SkyHiClientPortal() {
+  const auth = useSkyhiAuth();
+
+  // ── Auth gate — show login screen if not authenticated ─────────────────
+  if (auth.loading) {
+    return (
+      <div style={{
+        width: '100%', height: '100%', background: '#050a14',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: '#38bdf8', fontSize: 12, letterSpacing: '0.14em',
+        fontFamily: 'system-ui, -apple-system, monospace',
+      }}>
+        ⟳ VALIDATING SESSION…
+      </div>
+    );
+  }
+
+  if (!auth.authenticated) {
+    return <SkyHiLoginGate onLogin={auth.login} loading={auth.loading} error={auth.error} />;
+  }
+
+  // ── Authenticated — render the portal ──────────────────────────────────
+  return <SkyHiClientPortalInner auth={auth} />;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AUTHENTICATED PORTAL INNER
+// ═══════════════════════════════════════════════════════════════════════════
+
+function SkyHiClientPortalInner({ auth }: { auth: ReturnType<typeof useSkyhiAuth> }) {
   // ── Live data sources ────────────────────────────────────────────────────
   // S4D substrate — Kuramoto r, drones (WORKFORCE), swarm QCoherence
   const org  = useOrganismState();
@@ -384,16 +415,44 @@ export function SkyHiClientPortal() {
           </div>
         </div>
 
-        {/* Breadcrumb / Access tier */}
-        <div style={{
-          ...glassCard(C.goldBorder, C.goldGlow),
-          padding: '8px 14px',
-          textAlign: 'center',
-          minWidth: 130,
-        }}>
-          <div style={{ fontSize: 8, color: C.textDim, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 4 }}>ACCESS TIER</div>
-          <div style={{ fontSize: 10, fontWeight: 700, color: C.gold, letterSpacing: '0.1em' }}>PHANTOM · φ³</div>
-          <div style={{ fontSize: 8, color: C.textDim, marginTop: 2 }}>Full sovereign access</div>
+        {/* Breadcrumb / Access tier + Session */}
+        <div style={{ display: 'flex', gap: 10, alignItems: 'stretch' }}>
+          <div style={{
+            ...glassCard(C.goldBorder, C.goldGlow),
+            padding: '8px 14px',
+            textAlign: 'center',
+            minWidth: 130,
+          }}>
+            <div style={{ fontSize: 8, color: C.textDim, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 4 }}>ACCESS TIER</div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: C.gold, letterSpacing: '0.1em' }}>
+              {auth.tier ? auth.tier.toUpperCase() : 'SOVEREIGN'} · {auth.tier === 'sovereign' ? 'φ³' : auth.tier === 'premium' ? 'φ²' : auth.tier === 'basic' ? 'φ¹' : 'φ⁰'}
+            </div>
+            <div style={{ fontSize: 8, color: C.textDim, marginTop: 2 }}>{auth.clientId ?? 'Skyhi Group'}</div>
+          </div>
+          <div style={{
+            ...glassCard(C.skyBorder, C.skyGlow),
+            padding: '8px 14px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minWidth: 90,
+          }}>
+            <div style={{ fontSize: 8, color: C.textDim, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 4 }}>SESSION</div>
+            <div style={{ fontSize: 9, color: C.green, fontWeight: 700, letterSpacing: '0.06em', marginBottom: 4 }}>
+              {auth.expiresAt ? `${Math.max(0, Math.round((auth.expiresAt - Date.now()) / 60000))}m left` : 'ACTIVE'}
+            </div>
+            <button
+              onClick={() => auth.logout()}
+              style={{
+                padding: '3px 10px', fontSize: 8, fontWeight: 700,
+                background: 'rgba(239, 68, 68, 0.12)',
+                border: `1px solid ${C.red}`, borderRadius: 4,
+                color: C.red, cursor: 'pointer',
+                letterSpacing: '0.1em', textTransform: 'uppercase',
+              }}
+            >LOGOUT</button>
+          </div>
         </div>
       </div>
 
