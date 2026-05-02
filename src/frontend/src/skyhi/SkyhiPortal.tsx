@@ -13,6 +13,7 @@
 
 import React, { useState } from 'react';
 import { useSkyhiLive, fmt2, fmtPct, fmtNum } from './useSkyhiLive';
+import { SkyhiConnectPlatform } from './SkyhiConnectPlatform';
 
 // ── Palette ───────────────────────────────────────────────────────────────
 const SKY   = '#44aaff';
@@ -113,8 +114,9 @@ function Bar({ value, color = SKY, max = 1 }: { value: number | null; color?: st
 const FORMA_PRICE_INSTABILITY_SCALE = 0.15;
 
 
-type TabId = 'LAYERS' | 'INTEL' | 'DFW' | 'FORMA' | 'PROPOSAL';
+type TabId = 'LAYERS' | 'INTEL' | 'DFW' | 'FORMA' | 'CONNECT' | 'PROPOSAL';
 const TABS: { id: TabId; label: string; icon: string }[] = [
+  { id: 'CONNECT',  label: 'Connect Services', icon: '⚡' },
   { id: 'LAYERS',   label: 'Service Tiers',    icon: '◈' },
   { id: 'INTEL',    label: 'Intelligence',      icon: '⊕' },
   { id: 'DFW',      label: 'DFW Integration',   icon: '✈' },
@@ -704,7 +706,7 @@ interface Props {
 }
 
 export function SkyhiPortal({ clientId, onSignOut }: Props) {
-  const [tab, setTab] = useState<TabId>('INTEL');
+  const [tab, setTab] = useState<TabId>('CONNECT');
   const live = useSkyhiLive();
 
   return (
@@ -800,6 +802,7 @@ export function SkyhiPortal({ clientId, onSignOut }: Props) {
 
       {/* ── Content ────────────────────────────────────────────────────── */}
       <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
+        {tab === 'CONNECT'  && <SkyhiConnectPlatform />}
         {tab === 'LAYERS'   && <LayersPanel />}
         {tab === 'INTEL'    && <IntelPanel />}
         {tab === 'DFW'      && <DFWPanel />}
