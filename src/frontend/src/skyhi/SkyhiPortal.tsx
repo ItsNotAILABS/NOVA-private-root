@@ -107,7 +107,12 @@ function Bar({ value, color = SKY, max = 1 }: { value: number | null; color?: st
   );
 }
 
-// ── Tab selector ──────────────────────────────────────────────────────────
+// ── Proposal pricing constants ────────────────────────────────────────────
+// FORMA stability modulation: if stability drops, prices scale up by up to
+// this fraction (e.g. 0.15 = 15% increase at zero stability).
+const FORMA_PRICE_INSTABILITY_SCALE = 0.15;
+
+
 type TabId = 'LAYERS' | 'INTEL' | 'DFW' | 'FORMA' | 'PROPOSAL';
 const TABS: { id: TabId; label: string; icon: string }[] = [
   { id: 'LAYERS',   label: 'Service Tiers',    icon: '◈' },
@@ -550,7 +555,7 @@ function ProposalPanel() {
   const stab = stability ?? 1.0;
   const scaledBase = (base: number) =>
     stability != null
-      ? Math.round(base * (1 + (1 - stab) * 0.15))
+      ? Math.round(base * (1 + (1 - stab) * FORMA_PRICE_INSTABILITY_SCALE))
       : null;
 
   const tiers = [

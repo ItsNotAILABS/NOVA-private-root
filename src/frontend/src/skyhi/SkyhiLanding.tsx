@@ -201,15 +201,18 @@ export function SkyhiLanding({ onAccess }: Props) {
     if (!canSubmit) return;
     setLoading(true);
     setError('');
-    // Validate access code (in production: Internet Identity + canister ACL check)
+    // Fixed-duration response to avoid timing side-channels.
+    // In production: replace with Internet Identity + canister ACL challenge.
+    const AUTH_DELAY_MS = 600;
+    const valid = code.trim().toUpperCase() === SKYHI_ACCESS_CODE;
     setTimeout(() => {
-      if (code.trim().toUpperCase() === SKYHI_ACCESS_CODE) {
+      if (valid) {
         onAccess('SKYHI-GROUP-001');
       } else {
         setError('Invalid access credential. Contact your NOVA account executive.');
         setLoading(false);
       }
-    }, 600);
+    }, AUTH_DELAY_MS);
   };
 
   return (
