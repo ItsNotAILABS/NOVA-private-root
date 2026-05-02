@@ -433,6 +433,53 @@
         "airport_orchestrator"
       ],
       "pilot": true
+    "skyhi_group": {
+      "type": "motoko",
+      "main": "src/skyhi_group/main.mo",
+      "build_number": 49,
+      "description": "SKYHI GROUP — Sovereign Airport AGI Integration Canister (BUILD №49): Client skyhigroup.co. PII Vault (ZK-SNARK Groth16, never raw data), PARALLAX 4-rail payment integration, AEGIS 10-tier threat gateway, honeypot flight registry, canary token system, session management (15-min bounded), audit log (GDPR/CCPA), AGI services (travel assistant, translation, flight prediction, social scoring), 873ms self-correcting heartbeat loop. Inter-canister wiring: aegis_shield, vael_cyber, chimera_swarm, syntax_synapse, chrysalis, friston_machina, scribe, phantom_transfer, cognition_backend, nova_stream, swarm_brain.",
+      "client": "skyhigroup.co",
+      "nova_products": ["NOVA_ORGANISM", "PARALLAX", "NOVA_BUILDER"],
+      "pipeline": "skyhi_group → aegis_shield + phantom_transfer + cognition_backend → nova_stream",
+      "charter": "docs/charters/SKYHI_GROUP_CHARTER.md",
+      "servitores_worker": "organism/web/skyhi-gateway-worker.js",
+      "serves_canisters": [
+        "aegis_shield",
+        "vael_cyber",
+        "chimera_swarm",
+        "syntax_synapse",
+        "chrysalis",
+        "friston_machina",
+        "scribe",
+        "phantom_transfer",
+        "cognition_backend",
+        "nova_stream",
+        "swarm_brain"
+      ],
+      "serves_frontends": [
+        "SkyHiApp"
+      ],
+      "defense_encryption": {
+        "e2ee": "AES-256-GCM",
+        "transport": "X25519 + ChaCha20-Poly1305",
+        "zk_identity": "Groth16 ZK-SNARK",
+        "pfs": true,
+        "mtls": true,
+        "pii_vault": "ZK-hash only, never raw",
+        "geo_privacy": "IATA code only, GPS coarsened on-device"
+      },
+      "offense_encryption": {
+        "aegis_tiers": 10,
+        "honeypot_flights": true,
+        "canary_tokens": true,
+        "shadow_endpoints": true,
+        "phi_tier_throttling": true
+      },
+      "self_correcting": {
+        "heartbeat_ms": 873,
+        "health_dimensions": 5,
+        "threshold": "phi_inv"
+      }
     }
   },
   "build": {

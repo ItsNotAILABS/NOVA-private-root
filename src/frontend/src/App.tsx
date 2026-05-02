@@ -49,6 +49,8 @@ import { DallasISDApp }      from './dallas_isd/DallasISDApp';
 
 // ── AIRPORT PASSENGER — NOVA V5 Airport Application · Build №49 ──────────
 import { AirportPassengerApp } from './airport_passenger/AirportPassengerApp';
+// ── SKYHI GROUP — Sovereign Airport AGI Integration · Build №49 ──────────
+import { SkyHiApp }          from './skyhi/SkyHiApp';
 
 // ── Terminal Hub — 40 Calls · 30 Packages · 15 Sovereign Terminals ──────────
 import { TerminalHub }    from './terminals/TerminalHub';
@@ -70,6 +72,7 @@ type NavView =
   | 'PRESENCE'       // presence board
   | 'SIMULATION'     // world simulation chamber
   | 'PARALLAX'       // PARALLAX clearinghouse PWA — settlement infrastructure
+  | 'SKYHI'          // SKYHI GROUP — sovereign airport AGI integration · Build №49
 
 
   | 'LAB_EMERGENCE'  // emergence lab: Kuramoto, Ising, Lorenz, Turing, Sandpile
@@ -84,6 +87,7 @@ const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
   { id: 'DALLAS_ISD',    label: 'DISD Classroom', icon: '🎓' },
   { id: 'AIRPORT',       label: 'Airport V5',     icon: '✈' },
   { id: 'PARALLAX',   label: 'PARALLAX',    icon: '◈' },
+  { id: 'SKYHI',      label: 'SkyHi',       icon: '✈' },
   { id: 'COMMAND',    label: 'Command',    icon: '◉' },
   { id: 'TERMINALS',  label: 'Terminals',  icon: '⊞' },
   { id: 'COMPANION',  label: 'Companion',  icon: '🜁' },
@@ -329,6 +333,13 @@ export default function App() {
         {view === 'PARALLAX' && (
           <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
             <ParallaxApp />
+          </div>
+        )}
+
+        {/* ── SKYHI GROUP — Sovereign Airport AGI Integration · Build №49 ─────── */}
+        {view === 'SKYHI' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <SkyHiApp />
           </div>
         )}
 

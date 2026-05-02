@@ -241,6 +241,10 @@
     "dallas_isd": {
       "type": "motoko",
       "main": "src/dallas_isd/main.mo"
+    },
+    "skyhi_group": {
+      "type": "motoko",
+      "main": "src/skyhi_group/main.mo"
     }
   },
   "defaults": {
