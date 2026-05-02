@@ -47,6 +47,9 @@ import { NovaBuilderApp }    from './nova_builder/NovaBuilderApp';
 // ── DALLAS ISD — Sovereign AI Classroom Platform · Build №43 ─────────────
 import { DallasISDApp }      from './dallas_isd/DallasISDApp';
 
+// ── SKYHI GROUP — Enterprise Client Portal · Build №49 ────────────────────
+import { SkyhiApp }          from './skyhi/SkyhiApp';
+
 // ── Terminal Hub — 40 Calls · 30 Packages · 15 Sovereign Terminals ──────────
 import { TerminalHub }    from './terminals/TerminalHub';
 
@@ -55,6 +58,7 @@ type NavView =
   | 'PHANTOM_WALLET'  // Phantom Wallet — first consumer product · Powered by PARALLAX
   | 'NOVA_BUILDER'   // NOVA BUILDER — sovereign CaffeineAI replacement · Build №42
   | 'DALLAS_ISD'     // DALLAS ISD — sovereign AI classroom platform · Build №43
+  | 'SKYHI_CLIENT'   // SKYHI GROUP — enterprise client portal · Build №49
   | 'SWARM'          // original tactical swarm view
   | 'COMMAND'        // ORO Command Center — multi-agent workspace
   | 'COMPANION'      // AURO companion chat/voice/command bridge
@@ -78,6 +82,7 @@ const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
   { id: 'PHANTOM_WALLET', label: 'Phantom Wallet', icon: '⬡' },
   { id: 'NOVA_BUILDER',  label: 'NOVA Builder',  icon: '⊕' },
   { id: 'DALLAS_ISD',    label: 'DISD Classroom', icon: '🎓' },
+  { id: 'SKYHI_CLIENT',  label: 'Skyhi Client',   icon: '✈' },
   { id: 'PARALLAX',   label: 'PARALLAX',    icon: '◈' },
   { id: 'COMMAND',    label: 'Command',    icon: '◉' },
   { id: 'TERMINALS',  label: 'Terminals',  icon: '⊞' },
@@ -310,6 +315,13 @@ export default function App() {
         {view === 'DALLAS_ISD' && (
           <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
             <DallasISDApp />
+          </div>
+        )}
+
+        {/* ── SKYHI GROUP — Enterprise Client Portal · Build №49 ──────────────── */}
+        {view === 'SKYHI_CLIENT' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <SkyhiApp />
           </div>
         )}
 
