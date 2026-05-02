@@ -47,6 +47,8 @@ import { NovaBuilderApp }    from './nova_builder/NovaBuilderApp';
 // ── DALLAS ISD — Sovereign AI Classroom Platform · Build №43 ─────────────
 import { DallasISDApp }      from './dallas_isd/DallasISDApp';
 
+// ── AIRPORT PASSENGER — NOVA V5 Airport Application · Build №49 ──────────
+import { AirportPassengerApp } from './airport_passenger/AirportPassengerApp';
 // ── SKYHI GROUP — Sovereign Airport AGI Integration · Build №49 ──────────
 import { SkyHiApp }          from './skyhi/SkyHiApp';
 
@@ -58,6 +60,7 @@ type NavView =
   | 'PHANTOM_WALLET'  // Phantom Wallet — first consumer product · Powered by PARALLAX
   | 'NOVA_BUILDER'   // NOVA BUILDER — sovereign CaffeineAI replacement · Build №42
   | 'DALLAS_ISD'     // DALLAS ISD — sovereign AI classroom platform · Build №43
+  | 'AIRPORT'        // AIRPORT PASSENGER — NOVA V5 airport application · Build №49
   | 'SWARM'          // original tactical swarm view
   | 'COMMAND'        // ORO Command Center — multi-agent workspace
   | 'COMPANION'      // AURO companion chat/voice/command bridge
@@ -82,6 +85,7 @@ const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
   { id: 'PHANTOM_WALLET', label: 'Phantom Wallet', icon: '⬡' },
   { id: 'NOVA_BUILDER',  label: 'NOVA Builder',  icon: '⊕' },
   { id: 'DALLAS_ISD',    label: 'DISD Classroom', icon: '🎓' },
+  { id: 'AIRPORT',       label: 'Airport V5',     icon: '✈' },
   { id: 'PARALLAX',   label: 'PARALLAX',    icon: '◈' },
   { id: 'SKYHI',      label: 'SkyHi',       icon: '✈' },
   { id: 'COMMAND',    label: 'Command',    icon: '◉' },
@@ -315,6 +319,13 @@ export default function App() {
         {view === 'DALLAS_ISD' && (
           <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
             <DallasISDApp />
+          </div>
+        )}
+
+        {/* ── AIRPORT PASSENGER — NOVA V5 Airport Application · Build №49 ──────── */}
+        {view === 'AIRPORT' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <AirportPassengerApp />
           </div>
         )}
 
