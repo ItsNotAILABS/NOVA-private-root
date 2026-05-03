@@ -18,9 +18,10 @@
 | **A** | Every Fracture Was Part of the Vein — An Autobiography of Building NOVA | *Planned* | — |
 | **B** | [Module Product Theory: 5+ Products From Any NOVA Module](PAPER-B-MODULE-PRODUCT-THEORY.md) | **Filed** | 2026-04-21 |
 | **C** | [Sovereign Callable Marketplace & SDK Architecture](PAPER-C-SOVEREIGN-MARKETPLACE-SDK.md) | **Filed** | 2026-04-21 |
-| **D** | The Incentive Field: Why Rewards Are Physics, Not Points | *Planned* | — |
-| **E** | The No-Drop Law: Information Theory for Organisms That Must Survive | *Planned* | — |
-| **F** | PHI as Substrate: Sacred Mathematics in Living Software | *Planned* | — |
+| **D** | [Architectural Reach & Systemic Integration (Research Paper 12)](PAPER-D-ARCHITECTURAL-REACH-SYSTEMIC-INTEGRATION.md) | **Filed** | 2026-05-03 |
+| **E** | The Incentive Field: Why Rewards Are Physics, Not Points | *Planned* | — |
+| **F** | The No-Drop Law: Information Theory for Organisms That Must Survive | *Planned* | — |
+| **G** | PHI as Substrate: Sacred Mathematics in Living Software | *Planned* | — |
 
 ---
 

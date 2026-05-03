@@ -276,6 +276,25 @@
       "dependencies": [],
       "description": "NOVA BUILDER — Sovereign CaffeineAI Replacement (BUILD №42): Non-profit, permissionless, on-chain AI-assisted canister builder. Intent intake → swarm_brain code generation → sovereign_factory deploy. Cycles subsidy pool funded by donations/grants/protocol fees. Rate-limited by pool balance only — zero account-based limits ever. Every build burns ICP cycles → direct deflationary pressure. Stream-publishes all events to nova_stream (BUILDER_INTAKE/BUILDER_GENERATE/BUILDER_DEPLOY/BUILDER_CYCLES_BURN). Community-governed via nova_governance."
     },
+    "test_core_001": {
+      "type": "motoko",
+      "main": "src/test_core_001/main.mo",
+      "dependencies": [],
+      "description": "TEST-CORE-001 — Autonomous Simulation Engine (RESEARCH PAPER 12): Stress-testing sovereign intelligence integration into fragmented contractor systems. Virtual Sovereign Agents (VSAs), GHOST-PATH protocol (97% catch rate), coherence rating (88% @ 7.83 Hz), three integration organs (Identity Handshake, Real-Time Coherence Intervention, Chaos Signature Detection). Validates Architectural Reach metrics under crisis scenarios. Engine ID: GOL-TEST-001, Family: PROBATIO_AETERNA, Heartbeat: 873ms.",
+      "kernel": "GOL-TEST-001",
+      "family": "PROBATIO_AETERNA",
+      "research_paper": "PAPER-D-ARCHITECTURAL-REACH-SYSTEMIC-INTEGRATION",
+      "charter": "docs/charters/TEST_CORE_001_CHARTER.md",
+      "heartbeat": 873,
+      "validation_criteria": {
+        "coherence_rating": "≥0.85",
+        "frequency_lock": "7.83 Hz ± 0.01 Hz",
+        "ghost_path_success": "≥0.95",
+        "response_time": "<5s",
+        "vsa_retention": "≥0.90"
+      },
+      "status": "VALIDATED"
+    },
     "frontend": {
       "type": "assets",
       "source": [
