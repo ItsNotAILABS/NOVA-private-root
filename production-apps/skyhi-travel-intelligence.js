@@ -692,7 +692,9 @@ if (typeof self !== 'undefined') {
         var items = msg.items || [];
         for (var i = 0; i < items.length; i++) {
           var item = items[i];
-          var id   = item.id || ('inv_' + Date.now() + '_' + i);
+          var id   = String(item.id || ('inv_' + Date.now() + '_' + i));
+          /* Guard against prototype-pollution keys */
+          if (id === '__proto__' || id === 'constructor' || id === 'prototype') continue;
           travex.inventory[id] = Object.assign({
             id:          id,
             platform:    item.platform    || 'UNKNOWN',
@@ -745,7 +747,8 @@ if (typeof self !== 'undefined') {
 
       /* ── Graph connection ────────────────────────────────────────────── */
       case 'CONNECT_NODES': {
-        var from = msg.from, to = msg.to, m = msg.meta || {};
+        var from = String(msg.from || ''), to = String(msg.to || ''), m = msg.meta || {};
+        if (!from || !to || from === '__proto__' || to === '__proto__') break;
         if (!passex.adjacencyList[from]) passex.adjacencyList[from] = [];
         if (passex.adjacencyList[from].indexOf(to) === -1) passex.adjacencyList[from].push(to);
         var cMin   = m.connectionMinutes !== undefined ? m.connectionMinutes : 60;
@@ -758,7 +761,8 @@ if (typeof self !== 'undefined') {
 
       /* ── Gate registration ───────────────────────────────────────────── */
       case 'REGISTER_GATE': {
-        var gateId = msg.gateId;
+        var gateId = String(msg.gateId || '');
+        if (!gateId || gateId === '__proto__' || gateId === 'constructor' || gateId === 'prototype') break;
         var gm     = msg.meta || {};
         passex.gates[gateId] = Object.assign({
           gateId:   gateId,
@@ -782,14 +786,18 @@ if (typeof self !== 'undefined') {
 
       /* ── Outcome feedback ────────────────────────────────────────────── */
       case 'RECORD_OUTCOME': {
-        var entry = travex.inventory[msg.inventoryId];
+        var invId = String(msg.inventoryId || '');
+        /* Guard against prototype-pollution keys */
+        if (!invId || invId === '__proto__' || invId === 'constructor' || invId === 'prototype') break;
+        var entry = Object.prototype.hasOwnProperty.call(travex.inventory, invId)
+          ? travex.inventory[invId] : null;
         if (entry) {
           var predicted = entry.demandScore || 0.5;
           var actual    = clamp01(msg.actualFillRate || 0);
           var error     = Math.abs(predicted - actual);
 
           travex.feedbackLog = travex.feedbackLog.slice(-255).concat([{
-            inventoryId:    msg.inventoryId,
+            inventoryId:    invId,
             outcome:        msg.outcome,
             predictedScore: predicted,
             actualFillRate: actual,
@@ -807,7 +815,7 @@ if (typeof self !== 'undefined') {
           w.SOCIAL_PULSE    = clamp01(w.SOCIAL_PULSE    + lr * direction * AMOR);
 
           if (msg.outcome === 'FILLED' || msg.outcome === 'LAST_MINUTE') entry.status = 'CLOSED';
-          emit('outcome_ack', { inventoryId: msg.inventoryId, error: Math.round(error * 10_000) / 10_000 });
+          emit('outcome_ack', { inventoryId: invId, error: Math.round(error * 10_000) / 10_000 });
         }
         break;
       }
@@ -896,10 +904,8 @@ if (typeof module !== 'undefined' && module.exports) {
 
     /* Direct API for Node.js usage */
     ingestInventory: function(items) {
-      if (typeof self !== 'undefined') {
-        self.dispatchEvent
-          ? self.dispatchEvent(new MessageEvent('message', { data: { type: 'INGEST_INVENTORY', items: items } }))
-          : null;
+      if (typeof self !== 'undefined' && typeof self.dispatchEvent === 'function') {
+        self.dispatchEvent(new MessageEvent('message', { data: { type: 'INGEST_INVENTORY', items: items } }));
       }
       /* Inline path for Node.js */
       for (var i = 0; i < items.length; i++) {

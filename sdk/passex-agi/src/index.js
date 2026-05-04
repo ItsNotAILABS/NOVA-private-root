@@ -653,7 +653,6 @@ module.exports = {
 
   /* Utility */
   clamp01,
-  anonymise,
   poissonPMF,
   poissonCDF,
   priorityScore,
