@@ -452,6 +452,50 @@
         "airport_orchestrator"
       ],
       "pilot": true
+    },
+    "prometheus_agi": {
+      "type": "motoko",
+      "main": "src/prometheus_agi/main.mo",
+      "build_number": 52,
+      "classification": "ALPHA_AGI_TEMPORAL_INTELLIGENCE",
+      "kernel": "PROMETHEUS-AGI-001",
+      "heartbeat": 873,
+      "engines": ["ORACLE", "CASSANDRA", "CHRONOS", "NOSTRADAMUS"],
+      "solvers": ["ARIMA", "LSTM", "PROPHET", "PHI_HARMONIC"],
+      "description": "PROMETHEUS AGI — Alpha AGI №1 — Foresight Intelligence (BUILD №52): Predictive intelligence managing all forecasting, risk assessment, time series analysis, and long-term foresight. Manages swarm_brain predictive workloads, token_intelligence price forecasting, auto_market demand prediction. 4 prediction engines × 4 solver models = 16 autonomous prediction pathways."
+    },
+    "minerva_agi": {
+      "type": "motoko",
+      "main": "src/minerva_agi/main.mo",
+      "build_number": 52,
+      "classification": "ALPHA_AGI_WISDOM_INTELLIGENCE",
+      "kernel": "MINERVA-AGI-001",
+      "heartbeat": 873,
+      "engines": ["SOPHIA", "ATHENA", "HERMES", "APOLLO"],
+      "solvers": ["SOCRATIC", "DIALECTIC", "BAYESIAN", "PHI_SYNTHESIS"],
+      "description": "MINERVA AGI — Alpha AGI №2 — Wisdom Intelligence (BUILD №52): Knowledge synthesis and strategic decision-making intelligence. Manages sovereign_factory strategic planning, nova_governance policy decisions, architect meta-building strategies. 4 wisdom engines × 4 reasoning models = 16 autonomous wisdom pathways."
+    },
+    "vulcan_agi": {
+      "type": "motoko",
+      "main": "src/vulcan_agi/main.mo",
+      "build_number": 52,
+      "classification": "ALPHA_AGI_FORGE_INTELLIGENCE",
+      "kernel": "VULCAN-AGI-001",
+      "heartbeat": 873,
+      "engines": ["FORGE", "ANVIL", "HAMMER", "KILN"],
+      "solvers": ["BLUEPRINT", "ASSEMBLY", "OPTIMIZATION", "PHI_CRAFT"],
+      "description": "VULCAN AGI — Alpha AGI №3 — Forge Intelligence (BUILD №52): Autonomous building, crafting & manufacturing intelligence. Manages nova_builder code generation, token_forge token creation, sovereign_factory canister deployment. 4 forge engines × 4 crafting models = 16 autonomous manufacturing pathways."
+    },
+    "thalassa_organism": {
+      "type": "motoko",
+      "main": "src/thalassa_organism/main.mo",
+      "build_number": 52,
+      "classification": "ALPHA_ORGANISM_LIQUID_INTELLIGENCE",
+      "kernel": "THALASSA-ORG-005",
+      "heartbeat": 873,
+      "sub_models": ["CURRENT", "TIDE", "WAVE", "DEPTH", "SURFACE"],
+      "description": "THALASSA — Alpha Organism №5 — Liquid Intelligence (BUILD №52): Fluid intelligence that fills gaps, adapts shape to substrate, flows perpetually. Connects isolated systems, evaporates/condenses across organizational boundaries. 5 sub-models: CURRENT (flow optimizer), TIDE (rhythmic scheduler), WAVE (pattern propagator), DEPTH (deep reasoning), SURFACE (interface layer)."
+    },
     "skyhi_group": {
       "type": "motoko",
       "main": "src/skyhi_group/main.mo",
