@@ -114,7 +114,7 @@ function initOscillators() {
       phase:    (i / N_OSCILLATORS) * 2 * Math.PI,
       freq:     0.05 + (Math.pow(PHI, (i % 12) / 12) - 1) * 0.1,   /* φ-harmonic natural freq */
       coupling: K_COUPLING,
-      amp:      0.7 + Math.random() * 0.3,
+      amp:      0.7 + Math.pow(PHI_INV, i % 8) * 0.3,   /* φ-seeded amplitude — deterministic */
     });
   }
   return osc;
@@ -282,7 +282,7 @@ function generateToken() {
     const oscScore  = _oscillators[candId % N_OSCILLATORS].amp * r;
     const phiAlign  = Math.abs(Math.cos(candId / VOCAB_SIZE * 2 * Math.PI * PHI));
     const neuroScore = _neuro.dopamine * oscScore + _neuro.oxytocin * phiAlign;
-    const noise     = (Math.random() - 0.5) * temperature;
+    const noise     = (Math.sin((_beat + c) * PHI) * 0.5) * temperature;   /* φ-harmonic noise — deterministic */
     const score     = neuroScore + noise;
     if (score > bestScore) { bestScore = score; bestId = candId; }
   }

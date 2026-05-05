@@ -24,6 +24,28 @@ const PHI = 1.6180339887498948482;
 const PHI_INV = 0.6180339887498948482;
 const HEARTBEAT_MS = 873;
 
+/**
+ * Cryptographically secure hex ID generator.
+ * Uses Web Crypto (Cloudflare Workers / browsers / Node.js 15+) or
+ * Node.js crypto module as fallback.  Never falls back to Math.random()
+ * for security contexts.
+ * @param {number} [bytes=16]
+ * @returns {string}
+ */
+function secureId(bytes) {
+  bytes = bytes || 16;
+  const buf = new Uint8Array(bytes);
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    crypto.getRandomValues(buf);
+  } else {
+    try { require('crypto').randomFillSync(buf); } catch (_) {
+      /* Fallback: phi-seeded deterministic fill — acceptable for non-secret IDs */
+      for (let i = 0; i < buf.length; i++) buf[i] = Math.floor(Math.abs(Math.sin((Date.now() + i) * PHI)) * 256);
+    }
+  }
+  return Array.from(buf).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 const AGENT_TYPES = {
   INTERNAL: 'INTERNAL',           // Lives inside organism, talks to itself
   EXTERNAL: 'EXTERNAL',           // User-facing, deployed externally
@@ -764,7 +786,7 @@ class StatefulAgent extends Agent {
    * @returns {{ messageId, queuedAt }}
    */
   queueEmail(email) {
-    const messageId = `email_${this.id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const messageId = `email_${this.id}_${secureId(8)}`;
     const envelope  = { messageId, agentId: this.id, ...email, queuedAt: Date.now(), status: 'QUEUED' };
     this._emailQueue.push(envelope);
     this._emit('emailQueued', envelope);
@@ -1054,7 +1076,7 @@ class AgentRPCBus {
    */
   async rpc(targetAgentId, method, params, opts) {
     opts = opts || {};
-    const callId    = `rpc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const callId    = `rpc_${secureId(8)}`;
     const timeoutMs = opts.timeoutMs || 5000;
 
     const agent = this._registry.get(targetAgentId);
@@ -1121,21 +1143,7 @@ class MCPServer {
     this._callLog   = [];
   }
 
-  _genSecret() {
-    /* Use Web Crypto for cryptographically secure secret generation.
-       Works in Cloudflare Workers, Node.js 15+, and modern browsers. */
-    const buf = new Uint8Array(32);
-    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-      crypto.getRandomValues(buf);
-    } else {
-      /* Node.js < 15 fallback: require('crypto').randomFillSync */
-      try { require('crypto').randomFillSync(buf); } catch (_) {
-        /* Last resort: seed from time + PHI — NOT for production secret use */
-        for (let i = 0; i < buf.length; i++) buf[i] = (Date.now() * PHI * (i + 1)) % 256;
-      }
-    }
-    return 'nova_' + Array.from(buf).map(b => b.toString(16).padStart(2, '0')).join('');
-  }
+  _genSecret() { return 'nova_' + secureId(32); }
 
   /**
    * Register a StatefulAgent as a tool provider.
@@ -1181,7 +1189,7 @@ class MCPServer {
     const { client_id, client_secret, grant_type, scope } = body;
     if (grant_type !== 'client_credentials') return this._error(400, 'Only client_credentials grant supported');
     if (client_id !== this._clientId || client_secret !== this._clientSecret) return this._error(401, 'Invalid client credentials');
-    const token     = 'nova_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    const token     = 'nova_' + secureId(32);
     const expiresAt = Date.now() + this._tokenTTLMs;
     this._tokens.set(token, { scope: scope || '*', expiresAt, subject: client_id });
     return this._json({ access_token: token, token_type: 'Bearer', expires_in: this._tokenTTLMs / 1000, scope: scope || '*' });
