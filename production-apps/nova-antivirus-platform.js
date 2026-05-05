@@ -52,7 +52,7 @@ const AGI_FAMILY   = 'AEGIS_AETERNA';
 
 /* Threat thresholds */
 const QUARANTINE_THRESHOLD = PHI_INV;   /* ≥ 0.618 → quarantine */
-const CRITICAL_THRESHOLD   = 1 - AMOR;  /* ≥ 0.618 (AMOR complement) — block now */
+const CRITICAL_THRESHOLD   = 1 - AMOR;  /* ≥ PHI_INV (0.618…) — block immediately; equals 1 - AMOR = PHI_INV */
 const ALLOW_THRESHOLD      = AMOR;      /* < AMOR → clean */
 
 /* Fleet size */
@@ -843,7 +843,7 @@ class SovereignAntivirusPlatform {
 
   releaseQuarantine(quarantineId, operator, note) { return this._quarantine.release(quarantineId, operator, note); }
   destroyQuarantine(quarantineId, operator)       { return this._quarantine.destroy(quarantineId, operator); }
-  addQarantineNote(quarantineId, op, text)        { return this._quarantine.addNote(quarantineId, op, text); }
+  addQuarantineNote(quarantineId, op, text)        { return this._quarantine.addNote(quarantineId, op, text); }
 
   advanceIR(incidentId, note, actions) { return this._ir.advance(incidentId, note, actions); }
   closeIR(incidentId, lessons)         { return this._ir.close(incidentId, lessons); }
