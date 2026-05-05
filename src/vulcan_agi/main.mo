@@ -320,18 +320,149 @@ actor VulcanAGI {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // Section 8 — 873ms Heartbeat
+  // Section 8 — Autonomous Material Generation
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  private stable var materialTypes: [Text] = [
+    "IRON", "GOLD", "PLATINUM", "ADAMANTINE",
+    "MITHRIL", "ORICHALCUM", "STARMETAL", "VOIDSTONE"
+  ];
+  private stable var currentEngine: Nat = 0;
+  private stable var currentModel: Nat = 0;
+  private stable var forgeCounter: Nat = 0;
+
+  private func selectEngine(): ForgeEngine {
+    switch (currentEngine % 4) {
+      case 0 #FORGE;
+      case 1 #ANVIL;
+      case 2 #HAMMER;
+      case _ #KILN;
+    }
+  };
+
+  private func selectModel(): CraftingModel {
+    switch (currentModel % 4) {
+      case 0 #BLUEPRINT;
+      case 1 #ASSEMBLY;
+      case 2 #OPTIMIZATION;
+      case _ #PHI_CRAFT;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Section 9 — 873ms Heartbeat (AUTONOMOUS FORGING)
   // ═══════════════════════════════════════════════════════════════════════════
 
   private stable var beat: Nat = 0;
 
-  private func heartbeat(): async () {
+  system func heartbeat(): async () {
     beat += 1;
-    // Autonomous forge cycles happen here
+
+    // Every φ² beats (≈3 beats), generate raw materials
+    if (beat % 3 == 0) {
+      let materialType = materialTypes[beat % materialTypes.size()];
+      let quality = 0.5 + (Float.sin(Float.fromInt(beat) * 0.1) * 0.3); // 0.2-0.8
+      let quantity = 10 + (beat % 20); // 10-29 units
+
+      ignore await addMaterial(materialType, quality, quantity);
+    };
+
+    // Every φ³ beats (≈4 beats), forge an artifact
+    if (beat % 4 == 0 and materials.size() >= 2) {
+      let engine = selectEngine();
+      let model = selectModel();
+
+      // Select random materials (last 2 added)
+      let matCount = materials.size();
+      let mat1Id = materials[matCount - 1].id;
+      let mat2Id = materials[matCount - 2].id;
+
+      let artifactName = "ARTIFACT_" # Nat.toText(forgeCounter);
+      ignore await forge(artifactName, engine, model, [mat1Id, mat2Id]);
+      forgeCounter += 1;
+    };
+
+    // Every φ⁴ beats (≈7 beats), run production pipeline
+    if (beat % 7 == 0 and materials.size() >= 3) {
+      let matCount = materials.size();
+      let mat1Id = materials[matCount - 1].id;
+      let mat2Id = materials[matCount - 2].id;
+      let mat3Id = materials[matCount - 3].id;
+
+      let pipelineName = "PIPELINE_" # Nat.toText(beat / 7);
+      ignore await productionPipeline(pipelineName, [mat1Id, mat2Id, mat3Id]);
+    };
+
+    // Rotate engines every φ⁵ beats (≈11 beats)
+    if (beat % 11 == 0) {
+      currentEngine := (currentEngine + 1) % 4;
+    };
+
+    // Rotate models every 5 beats
+    if (beat % 5 == 0) {
+      currentModel := (currentModel + 1) % 4;
+    };
+
+    // Every φ⁶ beats (≈18 beats), recycle old materials (keep last 100)
+    if (beat % 18 == 0 and materials.size() > 100) {
+      let keep = materials.size() - 100;
+      materials := Array.tabulate<Material>(100, func(i) {
+        materials[keep + i]
+      });
+    };
+
+    // Quality improvement cycle: every φ⁷ beats (≈29 beats)
+    if (beat % 29 == 0 and artifacts.size() > 0) {
+      // Analyze artifact quality distribution
+      let avgQuality = Array.foldLeft<Artifact, Float>(
+        artifacts,
+        0.0,
+        func(acc, a) { acc + a.quality }
+      ) / Float.fromInt(artifacts.size());
+
+      // If average quality > φ⁻¹, system is performing well
+      // This metric could drive autonomous optimization
+    };
   };
 
   system func postupgrade() {
     let intervalNs: Nat = HEARTBEAT_MS * 1_000_000;
     let _ = Timer.recurringTimer(#nanoseconds(intervalNs), heartbeat);
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Section 10 — Real-Time Metrics
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  public query func getAutonomousMetrics(): async {
+    beat: Nat;
+    materialsInventory: Nat;
+    artifactsForged: Nat;
+    currentEngine: Text;
+    currentModel: Text;
+    activeMaterial: Text;
+  } {
+    let engine = switch (selectEngine()) {
+      case (#FORGE) "FORGE";
+      case (#ANVIL) "ANVIL";
+      case (#HAMMER) "HAMMER";
+      case (#KILN) "KILN";
+    };
+
+    let model = switch (selectModel()) {
+      case (#BLUEPRINT) "BLUEPRINT";
+      case (#ASSEMBLY) "ASSEMBLY";
+      case (#OPTIMIZATION) "OPTIMIZATION";
+      case (#PHI_CRAFT) "PHI_CRAFT";
+    };
+
+    {
+      beat = beat;
+      materialsInventory = materials.size();
+      artifactsForged = artifacts.size();
+      currentEngine = engine;
+      currentModel = model;
+      activeMaterial = materialTypes[beat % materialTypes.size()];
+    }
   };
 }

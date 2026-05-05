@@ -269,18 +269,126 @@ actor MinervaAGI {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // Section 8 — 873ms Heartbeat
+  // Section 8 — Autonomous Knowledge Accumulation
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  private stable var autonomousDomains: [Text] = [
+    "TEMPORAL", "STRATEGIC", "TACTICAL", "PHILOSOPHICAL",
+    "MATHEMATICAL", "COGNITIVE", "ECONOMIC", "DEFENSIVE"
+  ];
+  private stable var currentEngine: Nat = 0;
+  private stable var currentModel: Nat = 0;
+  private stable var synthesisCounter: Nat = 0;
+
+  private func selectEngine(): WisdomEngine {
+    switch (currentEngine % 4) {
+      case 0 #SOPHIA;
+      case 1 #ATHENA;
+      case 2 #HERMES;
+      case _ #APOLLO;
+    }
+  };
+
+  private func selectModel(): ReasoningModel {
+    switch (currentModel % 4) {
+      case 0 #SOCRATIC;
+      case 1 #DIALECTIC;
+      case 2 #BAYESIAN;
+      case _ #PHI_SYNTHESIS;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Section 9 — 873ms Heartbeat (AUTONOMOUS WISDOM)
   // ═══════════════════════════════════════════════════════════════════════════
 
   private stable var beat: Nat = 0;
 
-  private func heartbeat(): async () {
+  system func heartbeat(): async () {
     beat += 1;
-    // Autonomous wisdom accumulation happens here
+
+    // Every φ² beats (≈3 beats), ingest autonomous knowledge
+    if (beat % 3 == 0) {
+      let domain = autonomousDomains[beat % autonomousDomains.size()];
+      let observation = "Observation at beat " # Nat.toText(beat) # ": System coherence evolving";
+      let confidence = 0.7 + (Float.sin(Float.fromInt(beat) * 0.1) * 0.2); // 0.5-0.9
+
+      ignore await ingestKnowledge(observation, domain, confidence);
+    };
+
+    // Every φ³ beats (≈4 beats), synthesize wisdom
+    if (beat % 4 == 0) {
+      let engine = selectEngine();
+      let model = selectModel();
+      let domain = autonomousDomains[synthesisCounter % autonomousDomains.size()];
+
+      ignore await synthesizeWisdom(engine, model, domain);
+      synthesisCounter += 1;
+    };
+
+    // Every φ⁴ beats (≈7 beats), run strategic planning
+    if (beat % 7 == 0) {
+      let domain = autonomousDomains[beat % autonomousDomains.size()];
+      ignore await strategicPlan(domain);
+    };
+
+    // Rotate engines every φ⁵ beats (≈11 beats)
+    if (beat % 11 == 0) {
+      currentEngine := (currentEngine + 1) % 4;
+    };
+
+    // Rotate models every 5 beats
+    if (beat % 5 == 0) {
+      currentModel := (currentModel + 1) % 4;
+    };
+
+    // Every φ⁶ beats (≈18 beats), prune old knowledge (keep last 1000)
+    if (beat % 18 == 0 and knowledgeBase.size() > 1000) {
+      let keep = knowledgeBase.size() - 1000;
+      knowledgeBase := Array.tabulate<Knowledge>(1000, func(i) {
+        knowledgeBase[keep + i]
+      });
+    };
   };
 
   system func postupgrade() {
     let intervalNs: Nat = HEARTBEAT_MS * 1_000_000;
     let _ = Timer.recurringTimer(#nanoseconds(intervalNs), heartbeat);
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Section 10 — Real-Time Metrics
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  public query func getAutonomousMetrics(): async {
+    beat: Nat;
+    knowledgeItems: Nat;
+    wisdomGenerated: Nat;
+    currentEngine: Text;
+    currentModel: Text;
+    activeDomain: Text;
+  } {
+    let engine = switch (selectEngine()) {
+      case (#SOPHIA) "SOPHIA";
+      case (#ATHENA) "ATHENA";
+      case (#HERMES) "HERMES";
+      case (#APOLLO) "APOLLO";
+    };
+
+    let model = switch (selectModel()) {
+      case (#SOCRATIC) "SOCRATIC";
+      case (#DIALECTIC) "DIALECTIC";
+      case (#BAYESIAN) "BAYESIAN";
+      case (#PHI_SYNTHESIS) "PHI_SYNTHESIS";
+    };
+
+    {
+      beat = beat;
+      knowledgeItems = knowledgeBase.size();
+      wisdomGenerated = wisdomLog.size();
+      currentEngine = engine;
+      currentModel = model;
+      activeDomain = autonomousDomains[beat % autonomousDomains.size()];
+    }
   };
 }
