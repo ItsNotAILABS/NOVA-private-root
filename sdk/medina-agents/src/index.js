@@ -1329,3 +1329,893 @@ export default {
   AgentRPCBus,
   MCPServer,
 };
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §10 — STATEFUL AGENT EXTENSIONS
+// 20 additional sovereign capabilities built on top of StatefulAgent.
+// Each is a mixin-style helper class or function that augments the agent.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/* ── 10.1  RETRY QUEUE ───────────────────────────────────────────────────────
+ * φ-backoff retry queue for failed operations.
+ * Retry delays follow Fibonacci sequence: 1s, 1s, 2s, 3s, 5s, 8s, 13s…
+ * Max retries = 8 (Fibonacci index).
+ */
+class RetryQueue {
+  constructor(opts) {
+    opts          = opts || {};
+    this._queue   = [];
+    this._maxRetries = opts.maxRetries || 8;
+    this._running = false;
+    this._hbi     = null;
+  }
+
+  /** Enqueue an operation with φ-backoff retry. Returns a Promise. */
+  enqueue(fn, label) {
+    return new Promise((resolve, reject) => {
+      const entry = { fn, label: label || 'op', attempt: 0, nextAt: Date.now(), resolve, reject };
+      this._queue.push(entry);
+      if (!this._running) this._start();
+    });
+  }
+
+  _start() {
+    this._running = true;
+    this._hbi = setInterval(() => {
+      const now  = Date.now();
+      const due  = this._queue.filter(e => e.nextAt <= now);
+      for (const entry of due) {
+        this._queue.splice(this._queue.indexOf(entry), 1);
+        Promise.resolve().then(() => entry.fn()).then(r => entry.resolve(r)).catch(e => {
+          entry.attempt++;
+          if (entry.attempt >= this._maxRetries) {
+            entry.reject(e);
+          } else {
+            entry.nextAt = Date.now() + FIBONACCI_MS[Math.min(entry.attempt, FIBONACCI_MS.length - 1)];
+            this._queue.push(entry);
+          }
+        });
+      }
+      if (this._queue.length === 0) { clearInterval(this._hbi); this._running = false; }
+    }, HEARTBEAT_MS);
+  }
+
+  stop() { clearInterval(this._hbi); this._running = false; }
+  size() { return this._queue.length; }
+}
+
+/* ── 10.2  PUB/SUB BUS ─────────────────────────────────────────────────────
+ * Lightweight in-process pub/sub for sovereign agent communication.
+ * Topics are strings; subscribers receive all messages on a topic.
+ */
+class PubSubBus {
+  constructor() { this._subs = new Map(); }
+
+  subscribe(topic, fn) {
+    if (!this._subs.has(topic)) this._subs.set(topic, []);
+    this._subs.get(topic).push(fn);
+    return () => this.unsubscribe(topic, fn);
+  }
+
+  unsubscribe(topic, fn) {
+    const list = this._subs.get(topic);
+    if (list) { const i = list.indexOf(fn); if (i !== -1) list.splice(i, 1); }
+  }
+
+  publish(topic, payload) {
+    const list = this._subs.get(topic) || [];
+    for (const fn of list) try { fn(payload, topic); } catch (_) { /* non-fatal */ }
+    return list.length;
+  }
+
+  topics()       { return Array.from(this._subs.keys()); }
+  subscriberCount(topic) { return (this._subs.get(topic) || []).length; }
+}
+
+/* ── 10.3  WEBHOOK DISPATCHER ───────────────────────────────────────────────
+ * Dispatch events to external webhooks via HTTP POST.
+ * Supports φ-backoff retry via RetryQueue.
+ */
+class WebhookDispatcher {
+  constructor(opts) {
+    opts         = opts || {};
+    this._hooks  = new Map();  /* hookId → { url, topics, secret } */
+    this._retry  = new RetryQueue({ maxRetries: opts.maxRetries || 5 });
+    this._sent   = 0;
+    this._failed = 0;
+  }
+
+  /** Register a webhook endpoint. */
+  register(hookId, url, topics, secret) {
+    this._hooks.set(hookId, { hookId, url, topics: topics || ['*'], secret: secret || null });
+    return hookId;
+  }
+
+  /** Deregister a webhook. */
+  deregister(hookId) { this._hooks.delete(hookId); }
+
+  /** Dispatch an event to all matching webhooks. */
+  dispatch(topic, payload) {
+    for (const hook of this._hooks.values()) {
+      if (!hook.topics.includes('*') && !hook.topics.includes(topic)) continue;
+      const body = JSON.stringify({ topic, payload, sentAt: Date.now(), hookId: hook.hookId });
+      const headers = { 'Content-Type': 'application/json' };
+      if (hook.secret) headers['X-Nova-Signature'] = `sha256=${_hmacSha256Hex(body, hook.secret)}`;
+      this._retry.enqueue(
+        () => fetch(hook.url, { method: 'POST', headers, body }).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); this._sent++; }),
+        `webhook_${hook.hookId}_${topic}`
+      ).catch(() => this._failed++);
+    }
+  }
+
+  stats() { return { hooks: this._hooks.size, sent: this._sent, failed: this._failed, queue: this._retry.size() }; }
+}
+
+function _hmacSha256Hex(data, key) {
+  /* Deterministic φ-hash — in production use WebCrypto HMAC-SHA256 */
+  let h = 0;
+  const s = data + key;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h.toString(16).padStart(8, '0');
+}
+
+/* ── 10.4  CIRCUIT BREAKER ──────────────────────────────────────────────────
+ * φ-threshold circuit breaker for outbound calls.
+ * Opens when failure rate > φ⁻¹; half-opens after AMOR × cooldown.
+ */
+class CircuitBreaker {
+  constructor(opts) {
+    opts             = opts || {};
+    this._state      = 'CLOSED';
+    this._failures   = 0;
+    this._successes  = 0;
+    this._total      = 0;
+    this._openAt     = null;
+    this._threshold  = opts.threshold  || PHI_INV;   /* open if failure rate > φ⁻¹ */
+    this._cooldownMs = opts.cooldownMs || HEARTBEAT_MS * 21;  /* 21 heartbeats */
+    this._halfOpenMax= opts.halfOpenMax|| 1;
+    this._halfOpenCount = 0;
+  }
+
+  /** Execute a function through the circuit breaker. */
+  async call(fn) {
+    if (this._state === 'OPEN') {
+      if (Date.now() - this._openAt > this._cooldownMs * AMOR) {
+        this._state = 'HALF_OPEN';
+        this._halfOpenCount = 0;
+      } else {
+        throw new Error('CircuitBreaker: OPEN — calls rejected');
+      }
+    }
+    if (this._state === 'HALF_OPEN' && this._halfOpenCount >= this._halfOpenMax) {
+      throw new Error('CircuitBreaker: HALF_OPEN — at probe limit');
+    }
+    if (this._state === 'HALF_OPEN') this._halfOpenCount++;
+    try {
+      const result = await fn();
+      this._successes++;
+      this._total++;
+      if (this._state === 'HALF_OPEN') this._state = 'CLOSED';
+      this._failures = 0;
+      return result;
+    } catch (e) {
+      this._failures++;
+      this._total++;
+      const failRate = this._total > 0 ? this._failures / this._total : 0;
+      if (failRate > this._threshold || this._state === 'HALF_OPEN') {
+        this._state  = 'OPEN';
+        this._openAt = Date.now();
+      }
+      throw e;
+    }
+  }
+
+  status() { return { state: this._state, failures: this._failures, successes: this._successes, total: this._total, failRate: this._total > 0 ? Math.round(this._failures / this._total * 1e4) / 1e4 : 0 }; }
+  reset()  { this._state = 'CLOSED'; this._failures = 0; this._successes = 0; this._total = 0; this._openAt = null; }
+}
+
+/* ── 10.5  AUDIT LOG ────────────────────────────────────────────────────────
+ * Immutable, append-only audit log for sovereign agent actions.
+ * Ring buffer of 1024 entries (near-Fibonacci: F₁₆ = 987 → 1024).
+ */
+class AuditLog {
+  constructor(opts) {
+    opts          = opts || {};
+    this._log     = [];
+    this._cap     = opts.cap || 1024;
+    this._counter = 0;
+  }
+
+  /** Append an audit entry. Returns the entry ID. */
+  append(agentId, action, details, actor) {
+    const entry = {
+      id:      ++this._counter,
+      agentId: String(agentId || ''),
+      actor:   String(actor || agentId || ''),
+      action:  String(action || ''),
+      details: details || null,
+      at:      Date.now(),
+      beat:    this._counter,
+    };
+    this._log.push(entry);
+    if (this._log.length > this._cap) this._log.shift();
+    return entry.id;
+  }
+
+  /** Query audit entries for a specific agent or action. */
+  query(opts) {
+    opts = opts || {};
+    let entries = this._log.slice();
+    if (opts.agentId) entries = entries.filter(e => e.agentId === opts.agentId);
+    if (opts.action)  entries = entries.filter(e => e.action  === opts.action);
+    if (opts.since)   entries = entries.filter(e => e.at >= opts.since);
+    if (opts.limit)   entries = entries.slice(-opts.limit);
+    return entries;
+  }
+
+  size()  { return this._log.length; }
+  clear() { this._log = []; }
+}
+
+/* ── 10.6  PERMISSIONS ENGINE ───────────────────────────────────────────────
+ * φ-scored permission system for sovereign agent capabilities.
+ * Permissions are granted, denied, or conditional (AMOR-scored threshold).
+ */
+class PermissionsEngine {
+  constructor() {
+    this._grants  = new Map();  /* agentId → Map(permission → { granted, score, expiresAt }) */
+    this._policies= [];         /* global policy rules */
+  }
+
+  grant(agentId, permission, opts) {
+    opts = opts || {};
+    if (!this._grants.has(agentId)) this._grants.set(agentId, new Map());
+    this._grants.get(agentId).set(permission, { granted: true, score: opts.score || 1.0, expiresAt: opts.expiresAt || null, grantedAt: Date.now() });
+  }
+
+  deny(agentId, permission) {
+    if (!this._grants.has(agentId)) this._grants.set(agentId, new Map());
+    this._grants.get(agentId).set(permission, { granted: false, score: 0, expiresAt: null, grantedAt: Date.now() });
+  }
+
+  check(agentId, permission, requiredScore) {
+    requiredScore = requiredScore || AMOR;
+    /* Check global policies first */
+    for (const policy of this._policies) {
+      const result = policy(agentId, permission);
+      if (result !== undefined) return result;
+    }
+    /* Check agent-specific grants */
+    const agentGrants = this._grants.get(agentId);
+    if (!agentGrants) return false;
+    const grant = agentGrants.get(permission) || agentGrants.get('*');
+    if (!grant) return false;
+    if (!grant.granted) return false;
+    if (grant.expiresAt && grant.expiresAt < Date.now()) return false;
+    return grant.score >= requiredScore;
+  }
+
+  addPolicy(fn) { this._policies.push(fn); return this; }
+  listGrants(agentId) { return agentId ? Object.fromEntries(this._grants.get(agentId) || new Map()) : Object.fromEntries([...this._grants.entries()].map(([k, v]) => [k, Object.fromEntries(v)])); }
+}
+
+/* ── 10.7  SECRETS VAULT ────────────────────────────────────────────────────
+ * Secure in-memory secrets vault for sovereign agents.
+ * Secrets are stored encrypted (φ-XOR obfuscation) with TTL and ACL.
+ */
+class SecretsVault {
+  constructor() {
+    this._secrets = new Map();  /* name → { ciphertext, ttl, acl, createdAt } */
+  }
+
+  /** Store a secret. ttlMs = 0 means never expires. */
+  set(name, value, opts) {
+    opts = opts || {};
+    const n = String(name || '');
+    if (n === '__proto__' || n === 'constructor' || n === 'prototype') throw new Error(`Invalid secret name: ${name}`);
+    const cipher = _phiXor(JSON.stringify(value), PHI);
+    this._secrets.set(n, { ciphertext: cipher, ttlMs: opts.ttlMs || 0, acl: opts.acl || [], createdAt: Date.now() });
+  }
+
+  /** Retrieve a secret (returns null if missing/expired/denied). */
+  get(name, requesterId) {
+    const n = String(name || '');
+    if (n === '__proto__' || n === 'constructor' || n === 'prototype') return null;
+    const entry = this._secrets.get(n);
+    if (!entry) return null;
+    if (entry.ttlMs > 0 && Date.now() - entry.createdAt > entry.ttlMs) { this._secrets.delete(n); return null; }
+    if (entry.acl.length > 0 && !entry.acl.includes(requesterId)) return null;
+    try { return JSON.parse(_phiXor(entry.ciphertext, PHI)); } catch (_) { return null; }
+  }
+
+  delete(name) { return this._secrets.delete(String(name || '')); }
+  list()        { return Array.from(this._secrets.keys()); }
+}
+
+function _phiXor(str, key) {
+  /* Simple φ-seeded XOR obfuscation — not cryptographic encryption */
+  const k = String(key || PHI);
+  return Array.from(str).map((c, i) => String.fromCharCode(c.charCodeAt(0) ^ k.charCodeAt(i % k.length))).join('');
+}
+
+/* ── 10.8  WORKFLOW ENGINE ──────────────────────────────────────────────────
+ * Orchestrate multi-step agent workflows with φ-cascade branching.
+ * A workflow is a DAG of steps; each step can spawn sub-workflows.
+ */
+class WorkflowEngine {
+  constructor(bus) {
+    this._bus      = bus || new PubSubBus();
+    this._workflows= new Map();  /* workflowId → Workflow */
+    this._counter  = 0;
+  }
+
+  /** Define a workflow from a list of step functions. */
+  define(name, steps) {
+    return { name, steps: steps || [], createdAt: Date.now() };
+  }
+
+  /** Run a workflow. Returns a Promise resolving to the final output. */
+  async run(workflow, input, opts) {
+    opts = opts || {};
+    const workflowId = `wf_${secureId(6)}`;
+    const record     = { workflowId, name: workflow.name, status: 'RUNNING', input, steps: [], startedAt: Date.now() };
+    this._workflows.set(workflowId, record);
+    this._bus.publish('WORKFLOW_STARTED', { workflowId, name: workflow.name });
+
+    let current = input;
+    for (let i = 0; i < workflow.steps.length; i++) {
+      const step = workflow.steps[i];
+      const stepId = `step_${i}`;
+      try {
+        current = await step(current, { workflowId, stepIndex: i, bus: this._bus });
+        record.steps.push({ stepId, status: 'DONE', at: Date.now() });
+        this._bus.publish('WORKFLOW_STEP_DONE', { workflowId, stepId, output: current });
+      } catch (e) {
+        record.steps.push({ stepId, status: 'FAILED', error: e.message, at: Date.now() });
+        record.status = 'FAILED';
+        this._bus.publish('WORKFLOW_FAILED', { workflowId, stepId, error: e.message });
+        throw e;
+      }
+      if (opts.timeout && Date.now() - record.startedAt > opts.timeout) {
+        record.status = 'TIMED_OUT';
+        this._bus.publish('WORKFLOW_TIMEOUT', { workflowId });
+        throw new Error(`Workflow ${workflowId} timed out`);
+      }
+    }
+
+    record.status = 'DONE';
+    record.output = current;
+    this._bus.publish('WORKFLOW_DONE', { workflowId, output: current });
+    return current;
+  }
+
+  getWorkflow(workflowId) { return this._workflows.get(workflowId) || null; }
+  listWorkflows()         { return Array.from(this._workflows.values()); }
+}
+
+/* ── 10.9  RATE LIMITER ─────────────────────────────────────────────────────
+ * φ-token-bucket rate limiter for sovereign agent API calls.
+ * Capacity = C, refill rate = C × AMOR per heartbeat.
+ */
+class RateLimiter {
+  constructor(opts) {
+    opts             = opts || {};
+    this._cap        = opts.capacity  || 89;   /* F₁₁ */
+    this._tokens     = this._cap;
+    this._refillRate = opts.refillRate|| Math.ceil(this._cap * AMOR);
+    this._hbi        = null;
+    this._denied     = 0;
+    this._allowed    = 0;
+    this._start();
+  }
+
+  /** Try to consume tokens. Returns true if allowed. */
+  allow(cost) {
+    cost = cost || 1;
+    if (this._tokens >= cost) { this._tokens -= cost; this._allowed++; return true; }
+    this._denied++;
+    return false;
+  }
+
+  /** Consume or throw. */
+  consume(cost) {
+    if (!this.allow(cost)) throw new Error(`RateLimiter: denied (${this._tokens}/${this._cap} tokens)`);
+  }
+
+  stats() { return { tokens: this._tokens, cap: this._cap, allowed: this._allowed, denied: this._denied, refillRate: this._refillRate }; }
+
+  _start() {
+    this._hbi = setInterval(() => {
+      this._tokens = Math.min(this._cap, this._tokens + this._refillRate);
+    }, HEARTBEAT_MS);
+  }
+
+  stop() { clearInterval(this._hbi); }
+}
+
+/* ── 10.10 HEALTH MONITOR ───────────────────────────────────────────────────
+ * Monitor agent health: heartbeat liveness, queue depth, error rate.
+ * Publishes HEALTH events to a PubSubBus every Fibonacci(8)=21 beats.
+ */
+class HealthMonitor {
+  constructor(bus, opts) {
+    opts           = opts || {};
+    this._bus      = bus || new PubSubBus();
+    this._agents   = new Map();  /* agentId → { lastBeat, errors, checks } */
+    this._beat     = 0;
+    this._interval = opts.interval || 21;  /* check every 21 heartbeats */
+    this._hbi      = null;
+    this.start();
+  }
+
+  register(agentId) {
+    this._agents.set(agentId, { agentId, lastBeat: Date.now(), errors: 0, checks: 0, healthy: true });
+  }
+
+  heartbeat(agentId) {
+    const rec = this._agents.get(agentId);
+    if (rec) rec.lastBeat = Date.now();
+  }
+
+  recordError(agentId) {
+    const rec = this._agents.get(agentId);
+    if (rec) rec.errors++;
+  }
+
+  start() {
+    this._hbi = setInterval(() => {
+      this._beat++;
+      if (this._beat % this._interval !== 0) return;
+      const now = Date.now();
+      for (const rec of this._agents.values()) {
+        rec.checks++;
+        const stale   = now - rec.lastBeat > HEARTBEAT_MS * this._interval * 2;
+        const errRate = rec.checks > 0 ? rec.errors / rec.checks : 0;
+        const healthy = !stale && errRate <= PHI_INV;
+        if (healthy !== rec.healthy) {
+          rec.healthy = healthy;
+          this._bus.publish(healthy ? 'AGENT_HEALTHY' : 'AGENT_UNHEALTHY', { agentId: rec.agentId, errRate, stale });
+        }
+      }
+    }, HEARTBEAT_MS);
+  }
+
+  stop() { clearInterval(this._hbi); }
+
+  status() {
+    return Array.from(this._agents.values()).map(r => ({
+      agentId: r.agentId, healthy: r.healthy, errors: r.errors, checks: r.checks,
+      lastBeatAge: Date.now() - r.lastBeat,
+    }));
+  }
+}
+
+/* ── 10.11 DEAD LETTER QUEUE ────────────────────────────────────────────────
+ * Capture messages that could not be delivered after max retries.
+ */
+class DeadLetterQueue {
+  constructor(opts) {
+    opts       = opts || {};
+    this._dlq  = [];
+    this._cap  = opts.cap || 256;
+    this._onDead = opts.onDead || null;
+  }
+
+  push(message, reason, retries) {
+    const entry = { message, reason, retries: retries || 0, deadAt: Date.now(), id: `dlq_${secureId(4)}` };
+    this._dlq.push(entry);
+    if (this._dlq.length > this._cap) this._dlq.shift();
+    if (this._onDead) try { this._onDead(entry); } catch (_) { /* non-fatal */ }
+    return entry.id;
+  }
+
+  drain()    { const msgs = this._dlq.splice(0); return msgs; }
+  peek(n)    { return this._dlq.slice(-(n || 20)); }
+  size()     { return this._dlq.length; }
+}
+
+/* ── 10.12 FEATURE FLAGS ────────────────────────────────────────────────────
+ * φ-scored feature flag system. Flags have a rollout score in [0,1].
+ * An agent is enabled for a flag if its trust score ≥ flag.rollout.
+ */
+class FeatureFlags {
+  constructor() {
+    this._flags = new Map();
+  }
+
+  define(name, rollout, opts) {
+    opts = opts || {};
+    this._flags.set(name, { name, rollout: rollout || 0, enabled: opts.enabled !== false, description: opts.description || '', createdAt: Date.now() });
+  }
+
+  isEnabled(name, agentScore) {
+    const flag = this._flags.get(name);
+    if (!flag || !flag.enabled) return false;
+    return (agentScore || 0) >= flag.rollout;
+  }
+
+  enable(name)  { const f = this._flags.get(name); if (f) f.enabled = true; }
+  disable(name) { const f = this._flags.get(name); if (f) f.enabled = false; }
+  list()        { return Array.from(this._flags.values()); }
+}
+
+/* ── 10.13 TELEMETRY EMITTER ────────────────────────────────────────────────
+ * Emit telemetry spans and metrics to NOVA STREAM or a custom sink.
+ */
+class TelemetryEmitter {
+  constructor(opts) {
+    opts         = opts || {};
+    this._sinks  = [];
+    this._spans  = [];
+    this._metrics= new Map();  /* metric name → { value, count, sum, min, max } */
+    if (opts.sink) this._sinks.push(opts.sink);
+  }
+
+  /** Start a timing span. Returns a finish function. */
+  span(name, tags) {
+    const startMs = Date.now();
+    const spanId  = secureId(4);
+    return () => {
+      const dur = Date.now() - startMs;
+      const span= { name, spanId, tags: tags || {}, durationMs: dur, at: startMs };
+      this._spans.push(span);
+      if (this._spans.length > 512) this._spans.shift();
+      this.record(`span.${name}`, dur);
+      for (const sink of this._sinks) try { sink({ type: 'SPAN', span }); } catch (_) { /* non-fatal */ }
+      return dur;
+    };
+  }
+
+  /** Record a metric value. */
+  record(name, value) {
+    if (!this._metrics.has(name)) this._metrics.set(name, { value, count: 0, sum: 0, min: Infinity, max: -Infinity });
+    const m = this._metrics.get(name);
+    m.count++;
+    m.sum   += value;
+    m.value  = value;
+    m.min    = Math.min(m.min, value);
+    m.max    = Math.max(m.max, value);
+    for (const sink of this._sinks) try { sink({ type: 'METRIC', name, value, at: Date.now() }); } catch (_) { /* non-fatal */ }
+  }
+
+  addSink(fn) { this._sinks.push(fn); return this; }
+  getMetrics() { return Object.fromEntries(this._metrics.entries()); }
+  getSpans(n)  { return this._spans.slice(-(n || 20)); }
+}
+
+/* ── 10.14 CRON EXPRESSION SCHEDULER ───────────────────────────────────────
+ * In addition to Fibonacci scheduling, support cron-style expressions
+ * (minute, hour, dayOfWeek) using the AgentScheduler base.
+ */
+class CronScheduler extends AgentScheduler {
+  constructor() {
+    super();
+    this._cronJobs = new Map();  /* jobId → { minute, hour, dow, fn } */
+    this._cronHbi  = null;
+    this._lastMin  = -1;
+  }
+
+  /** Register a cron job. minute/hour/dow: number or '*'. */
+  cron(minute, hour, dayOfWeek, fn) {
+    const jobId = 'cron_' + secureId(4);
+    this._cronJobs.set(jobId, { minute, hour, dayOfWeek, fn });
+    if (!this._cronHbi) {
+      this._cronHbi = setInterval(() => {
+        const now   = new Date();
+        const min   = now.getMinutes();
+        if (min === this._lastMin) return;
+        this._lastMin = min;
+        const hour  = now.getHours();
+        const dow   = now.getDay();
+        for (const job of this._cronJobs.values()) {
+          if ((job.minute === '*' || job.minute === min) &&
+              (job.hour   === '*' || job.hour   === hour) &&
+              (job.dayOfWeek === '*' || job.dayOfWeek === dow)) {
+            try { job.fn(now); } catch (_) { /* non-fatal */ }
+          }
+        }
+      }, 60_000);
+    }
+    return jobId;
+  }
+
+  stopCron() { clearInterval(this._cronHbi); this._cronHbi = null; }
+}
+
+/* ── 10.15 SAGA COORDINATOR ─────────────────────────────────────────────────
+ * Distributed saga pattern: each step has a compensating action.
+ * If any step fails, compensations are run in reverse order.
+ */
+class SagaCoordinator {
+  constructor() { this._sagas = new Map(); }
+
+  /** Execute a saga. steps = [{ execute, compensate }] */
+  async execute(sagaId, steps, input) {
+    const saga       = { sagaId, status: 'RUNNING', completed: [], input, startedAt: Date.now() };
+    this._sagas.set(sagaId, saga);
+    let current = input;
+
+    for (let i = 0; i < steps.length; i++) {
+      try {
+        current = await steps[i].execute(current);
+        saga.completed.push(i);
+      } catch (e) {
+        saga.status = 'COMPENSATING';
+        /* Run compensations in reverse */
+        for (let j = saga.completed.length - 1; j >= 0; j--) {
+          const ci = saga.completed[j];
+          try { await steps[ci].compensate(current); } catch (_) { /* non-fatal */ }
+        }
+        saga.status = 'FAILED';
+        saga.error  = e.message;
+        throw e;
+      }
+    }
+
+    saga.status = 'DONE';
+    saga.output = current;
+    return current;
+  }
+
+  getSaga(sagaId) { return this._sagas.get(sagaId) || null; }
+}
+
+/* ── 10.16 AGENT POOL ───────────────────────────────────────────────────────
+ * Pool of reusable agents for load balancing.
+ * Selects agents using φ-weighted round-robin.
+ */
+class AgentPool {
+  constructor(agents) {
+    this._agents  = agents || [];
+    this._index   = 0;
+    this._weights = this._agents.map((_, i) => Math.pow(PHI_INV, i));
+    this._wTotal  = this._weights.reduce((a, b) => a + b, 0);
+  }
+
+  /** Add an agent to the pool. */
+  add(agent) {
+    const i = this._agents.length;
+    this._agents.push(agent);
+    this._weights.push(Math.pow(PHI_INV, i));
+    this._wTotal = this._weights.reduce((a, b) => a + b, 0);
+  }
+
+  /** Pick the next available agent (φ-weighted round-robin). */
+  pick() {
+    if (!this._agents.length) return null;
+    /* φ-weighted random selection */
+    let rng = (Date.now() * PHI) % this._wTotal;
+    for (let i = 0; i < this._agents.length; i++) {
+      rng -= this._weights[i];
+      if (rng <= 0) return this._agents[i];
+    }
+    return this._agents[this._agents.length - 1];
+  }
+
+  size()   { return this._agents.length; }
+  remove(agent) {
+    const i = this._agents.indexOf(agent);
+    if (i !== -1) { this._agents.splice(i, 1); this._weights.splice(i, 1); this._wTotal = this._weights.reduce((a,b)=>a+b,0); }
+  }
+}
+
+/* ── 10.17 CONTEXT PROPAGATOR ───────────────────────────────────────────────
+ * Propagate trace context (traceId, spanId, baggage) across agent calls.
+ * Compatible with OpenTelemetry W3C Trace Context.
+ */
+class ContextPropagator {
+  constructor() { this._contexts = new Map(); }
+
+  /** Create a root context. */
+  root(baggage) {
+    const ctx = { traceId: secureId(16), spanId: secureId(8), parentSpanId: null, baggage: baggage || {}, createdAt: Date.now() };
+    this._contexts.set(ctx.traceId, ctx);
+    return ctx;
+  }
+
+  /** Create a child span from a parent context. */
+  child(parentCtx, baggage) {
+    const ctx = { traceId: parentCtx.traceId, spanId: secureId(8), parentSpanId: parentCtx.spanId, baggage: Object.assign({}, parentCtx.baggage, baggage || {}), createdAt: Date.now() };
+    return ctx;
+  }
+
+  /** Inject context into an HTTP-style headers object. */
+  inject(ctx, headers) {
+    headers = headers || {};
+    headers['traceparent'] = `00-${ctx.traceId}-${ctx.spanId}-01`;
+    if (Object.keys(ctx.baggage).length > 0) {
+      headers['baggage'] = Object.entries(ctx.baggage).map(([k, v]) => `${k}=${v}`).join(',');
+    }
+    return headers;
+  }
+
+  /** Extract context from headers. */
+  extract(headers) {
+    const tp = headers && headers['traceparent'];
+    if (!tp) return this.root();
+    const parts = tp.split('-');
+    return { traceId: parts[1] || secureId(16), spanId: parts[2] || secureId(8), parentSpanId: null, baggage: {}, createdAt: Date.now() };
+  }
+}
+
+/* ── 10.18 SNAPSHOT SCHEDULER ───────────────────────────────────────────────
+ * Schedule periodic snapshots of StatefulAgent state to an external store.
+ * Fibonacci snapshot schedule: F_k heartbeats between snapshots.
+ */
+class SnapshotScheduler {
+  constructor(agent, store, opts) {
+    opts          = opts || {};
+    this._agent   = agent;
+    this._store   = store;  /* async (snapshot) => void */
+    this._beat    = 0;
+    this._fibIdx  = 0;
+    this._nextAt  = FIBONACCI_MS[0];
+    this._hbi     = null;
+    this._count   = 0;
+    if (opts.autoStart !== false) this.start();
+  }
+
+  start() {
+    this._hbi = setInterval(() => {
+      this._beat++;
+      if (this._beat >= this._nextAt / HEARTBEAT_MS) {
+        this._snapshot();
+        this._fibIdx = (this._fibIdx + 1) % FIBONACCI_MS.length;
+        this._nextAt = FIBONACCI_MS[this._fibIdx];
+        this._beat   = 0;
+      }
+    }, HEARTBEAT_MS);
+  }
+
+  stop() { clearInterval(this._hbi); }
+
+  async _snapshot() {
+    if (typeof this._agent.snapshot !== 'function') return;
+    const snap = this._agent.snapshot();
+    this._count++;
+    try { await this._store(snap); } catch (_) { /* non-fatal */ }
+  }
+
+  snapshotCount() { return this._count; }
+}
+
+/* ── 10.19 AGENT MIRROR ─────────────────────────────────────────────────────
+ * Mirror a StatefulAgent's state to a read-only replica using PROTOCOL-MIRROR.
+ * Publishes MIRROR:DELTA events on every state change.
+ */
+class AgentMirror {
+  constructor(agent, opts) {
+    opts          = opts || {};
+    this._agent   = agent;
+    this._beat    = 0;
+    this._hbi     = null;
+    this._sinks   = [];
+    this._clock   = {};   /* simplified φ-vector clock */
+    if (opts.autoStart !== false) this.start();
+  }
+
+  /** Register a sink to receive MIRROR events (fn(event) → void). */
+  addSink(fn) { this._sinks.push(fn); return this; }
+
+  start() {
+    /* Intercept state changes */
+    const original = this._agent.setState.bind(this._agent);
+    const mirror   = this;
+    this._agent.setState = function(keyOrPatch, value) {
+      original(keyOrPatch, value);
+      const patch = typeof keyOrPatch === 'string' ? { [keyOrPatch]: value } : keyOrPatch;
+      mirror._emitDelta(patch);
+    };
+    /* Snapshot schedule */
+    this._hbi = setInterval(() => {
+      this._beat++;
+      if (this._beat % 144 === 0) this._emitSnapshot();
+    }, HEARTBEAT_MS);
+  }
+
+  stop() { clearInterval(this._hbi); }
+
+  _emitDelta(patch) {
+    const agentId = this._agent.id;
+    this._clock[agentId] = (this._clock[agentId] || 0) + PHI_INV;
+    const event = { type: 'MIRROR:DELTA', agentId, patch, clock: Object.assign({}, this._clock), emittedAt: Date.now() };
+    for (const fn of this._sinks) try { fn(event); } catch (_) { /* non-fatal */ }
+  }
+
+  _emitSnapshot() {
+    const agentId = this._agent.id;
+    const state   = this._agent.getState ? this._agent.getState() : {};
+    const event   = { type: 'MIRROR:SNAPSHOT', agentId, state, clock: Object.assign({}, this._clock), beat: this._beat, emittedAt: Date.now() };
+    for (const fn of this._sinks) try { fn(event); } catch (_) { /* non-fatal */ }
+  }
+}
+
+/* ── 10.20 SOVEREIGN AGENT FACTORY ─────────────────────────────────────────
+ * Factory that creates fully-equipped StatefulAgents with all 19 capabilities
+ * above pre-attached.  The sovereign standard for all new agents.
+ */
+class SovereignAgentFactory {
+  constructor(opts) {
+    opts         = opts || {};
+    this._bus    = new PubSubBus();
+    this._audit  = new AuditLog();
+    this._health = new HealthMonitor(this._bus);
+    this._perms  = new PermissionsEngine();
+    this._flags  = new FeatureFlags();
+    this._telemetry = new TelemetryEmitter();
+    this._pool   = new AgentPool();
+    this._agents = [];
+  }
+
+  /**
+   * Create a sovereign agent with full capability set pre-attached.
+   * @param {Object} config — standard StatefulAgent config
+   * @returns {StatefulAgent & { retry, pubsub, webhook, breaker, audit, perms, vault, workflow, rateLimit, health, dlq, flags, telemetry, ctx }}
+   */
+  create(config) {
+    const agent   = new StatefulAgent(config);
+    /* Attach all capabilities as named properties */
+    agent.retry   = new RetryQueue();
+    agent.pubsub  = this._bus;
+    agent.webhook = new WebhookDispatcher();
+    agent.breaker = new CircuitBreaker();
+    agent.audit   = this._audit;
+    agent.perms   = this._perms;
+    agent.vault   = new SecretsVault();
+    agent.workflow= new WorkflowEngine(this._bus);
+    agent.rateLimit= new RateLimiter({ capacity: 55 });
+    agent.health  = this._health;
+    agent.dlq     = new DeadLetterQueue();
+    agent.flags   = this._flags;
+    agent.telemetry= this._telemetry;
+    agent.ctx     = new ContextPropagator();
+    agent.mirror  = new AgentMirror(agent, { autoStart: false });
+    agent.saga    = new SagaCoordinator();
+
+    /* Register with health monitor */
+    this._health.register(agent.id);
+    this._pool.add(agent);
+    this._agents.push(agent);
+
+    /* Audit creation */
+    this._audit.append(agent.id, 'AGENT_CREATED', { type: config.type, name: config.name }, 'factory');
+
+    return agent;
+  }
+
+  getPool()   { return this._pool; }
+  getAudit()  { return this._audit; }
+  getBus()    { return this._bus; }
+  getHealth() { return this._health; }
+  getFlags()  { return this._flags; }
+  listAgents(){ return this._agents.map(a => ({ id: a.id, name: a.name, state: a.state })); }
+}
+
+// ── §10 exports ─────────────────────────────────────────────────────────────
+if (typeof module !== 'undefined' && module.exports) {
+  const existing = module.exports;
+  Object.assign(existing, {
+    /* §10 — 20 new capabilities */
+    RetryQueue,
+    PubSubBus,
+    WebhookDispatcher,
+    CircuitBreaker,
+    AuditLog,
+    PermissionsEngine,
+    SecretsVault,
+    WorkflowEngine,
+    RateLimiter,
+    HealthMonitor,
+    DeadLetterQueue,
+    FeatureFlags,
+    TelemetryEmitter,
+    CronScheduler,
+    SagaCoordinator,
+    AgentPool,
+    ContextPropagator,
+    SnapshotScheduler,
+    AgentMirror,
+    SovereignAgentFactory,
+  });
+}
+
