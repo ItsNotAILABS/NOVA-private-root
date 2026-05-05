@@ -40,7 +40,18 @@ export const BUILD_52_MANIFEST = {
         "All temporal optimization tasks"
       ],
       heartbeat: 873,
-      status: "ACTIVE"
+      status: "ACTIVE",
+      autonomousComputation: true,
+      linesOfCode: 434,
+      sectionsImplemented: 9,
+      autonomousBehavior: [
+        "Generates predictions on every 873ms beat",
+        "Updates history with actual values",
+        "Rotates engines every φ⁴ beats (≈7 beats = 6.1 seconds)",
+        "Rotates solvers every φ³ beats (≈4 beats = 3.5 seconds)",
+        "Runs ensemble prediction every φ⁵ beats (≈11 beats = 9.6 seconds)",
+        "Maintains sliding window of last 100 values"
+      ]
     },
     {
       id: "MINERVA-AGI-001",
@@ -56,7 +67,18 @@ export const BUILD_52_MANIFEST = {
         "All wisdom synthesis tasks"
       ],
       heartbeat: 873,
-      status: "ACTIVE"
+      status: "ACTIVE",
+      autonomousComputation: true,
+      linesOfCode: 395,
+      sectionsImplemented: 10,
+      autonomousBehavior: [
+        "Ingests knowledge every φ² beats (≈3 beats = 2.6 seconds)",
+        "Synthesizes wisdom every φ³ beats (≈4 beats = 3.5 seconds)",
+        "Runs strategic planning every φ⁴ beats (≈7 beats = 6.1 seconds)",
+        "Rotates engines every φ⁵ beats (≈11 beats = 9.6 seconds)",
+        "Rotates models every 5 beats (4.4 seconds)",
+        "Prunes old knowledge every φ⁶ beats (≈18 beats = 15.7 seconds, keeps last 1000)"
+      ]
     },
     {
       id: "VULCAN-AGI-001",
@@ -72,7 +94,19 @@ export const BUILD_52_MANIFEST = {
         "All autonomous construction tasks"
       ],
       heartbeat: 873,
-      status: "ACTIVE"
+      status: "ACTIVE",
+      autonomousComputation: true,
+      linesOfCode: 469,
+      sectionsImplemented: 10,
+      autonomousBehavior: [
+        "Generates raw materials every φ² beats (≈3 beats = 2.6 seconds)",
+        "Forges artifacts every φ³ beats (≈4 beats = 3.5 seconds)",
+        "Runs production pipeline every φ⁴ beats (≈7 beats = 6.1 seconds)",
+        "Rotates engines every φ⁵ beats (≈11 beats = 9.6 seconds)",
+        "Rotates models every 5 beats (4.4 seconds)",
+        "Recycles old materials every φ⁶ beats (≈18 beats = 15.7 seconds, keeps last 100)",
+        "Analyzes quality every φ⁷ beats (≈29 beats = 25.3 seconds)"
+      ]
     }
   ],
 
