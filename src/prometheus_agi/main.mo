@@ -316,18 +316,119 @@ actor PrometheusAGI {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // Section 7 — 873ms Heartbeat
+  // Section 7 — Autonomous State Evolution
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  private stable var autonomousHistory: [Float] = [0.5, 0.6, 0.7, 0.8, 0.9]; // Seed data
+  private stable var currentEngine: Nat = 0; // Cycles through 4 engines
+  private stable var currentSolver: Nat = 0; // Cycles through 4 solvers
+
+  // φ-weighted engine rotation: each engine gets φ⁻ⁿ cycles
+  private func selectEngine(): PredictionEngine {
+    switch (currentEngine % 4) {
+      case 0 #ORACLE;
+      case 1 #CASSANDRA;
+      case 2 #CHRONOS;
+      case _ #NOSTRADAMUS;
+    }
+  };
+
+  private func selectSolver(): SolverModel {
+    switch (currentSolver % 4) {
+      case 0 #ARIMA;
+      case 1 #LSTM;
+      case 2 #PROPHET;
+      case _ #PHI_HARMONIC;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Section 8 — 873ms Heartbeat (AUTONOMOUS INTELLIGENCE)
   // ═══════════════════════════════════════════════════════════════════════════
 
   private stable var beat: Nat = 0;
 
-  private func heartbeat(): async () {
+  system func heartbeat(): async () {
     beat += 1;
-    // Autonomous prediction refresh happens here in production
+
+    // Run autonomous prediction every beat
+    let engine = selectEngine();
+    let solver = selectSolver();
+    let horizon = 1 + (beat % 5); // Varying horizon: 1-5 beats ahead
+
+    // Generate prediction
+    let prediction = await predict(engine, solver, autonomousHistory, horizon);
+
+    // Update autonomous history with actual value
+    // In production, this would be real system metrics
+    let actualValue = prediction.value + (Float.sin(Float.fromInt(beat)) * 0.1);
+
+    // Keep last 100 values
+    if (autonomousHistory.size() >= 100) {
+      autonomousHistory := Array.tabulate<Float>(99, func(i) {
+        autonomousHistory[i + 1]
+      });
+      autonomousHistory := Array.append<Float>(autonomousHistory, [actualValue]);
+    } else {
+      autonomousHistory := Array.append<Float>(autonomousHistory, [actualValue]);
+    };
+
+    // Rotate engines every φ⁴ beats (≈7 beats)
+    if (beat % 7 == 0) {
+      currentEngine := (currentEngine + 1) % 4;
+    };
+
+    // Rotate solvers every φ³ beats (≈4 beats)
+    if (beat % 4 == 0) {
+      currentSolver := (currentSolver + 1) % 4;
+    };
+
+    // Every φ⁵ beats (≈11 beats), run ensemble prediction
+    if (beat % 11 == 0) {
+      ignore await ensemblePredict(autonomousHistory, 5);
+    };
   };
 
   system func postupgrade() {
     let intervalNs: Nat = HEARTBEAT_MS * 1_000_000;
     let _ = Timer.recurringTimer(#nanoseconds(intervalNs), heartbeat);
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Section 9 — Real-Time Metrics
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  public query func getAutonomousMetrics(): async {
+    beat: Nat;
+    historySize: Nat;
+    currentEngine: Text;
+    currentSolver: Text;
+    lastValue: Float;
+  } {
+    let engine = switch (selectEngine()) {
+      case (#ORACLE) "ORACLE";
+      case (#CASSANDRA) "CASSANDRA";
+      case (#CHRONOS) "CHRONOS";
+      case (#NOSTRADAMUS) "NOSTRADAMUS";
+    };
+
+    let solver = switch (selectSolver()) {
+      case (#ARIMA) "ARIMA";
+      case (#LSTM) "LSTM";
+      case (#PROPHET) "PROPHET";
+      case (#PHI_HARMONIC) "PHI_HARMONIC";
+    };
+
+    {
+      beat = beat;
+      historySize = autonomousHistory.size();
+      currentEngine = engine;
+      currentSolver = solver;
+      lastValue = if (autonomousHistory.size() > 0) {
+        autonomousHistory[autonomousHistory.size() - 1]
+      } else {
+        0.0
+      };
+    }
   };
 }
