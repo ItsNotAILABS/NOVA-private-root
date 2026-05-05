@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCRIBE — Document Intelligence</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <h1 class="logo">SCRIBE</h1>
+      <div class="subtitle">Alpha Organism №2 — Document Intelligence</div>
+    </header>
+
+    <main class="main">
+      <!-- Section 1: Document Classification -->
+      <section class="panel classifier-panel">
+        <h2>CLASSIFIER</h2>
+        <div class="categories">
+          <div class="category" data-category="MATHEMATICS">MATHEMATICS</div>
+          <div class="category" data-category="PHYSICS">PHYSICS</div>
+          <div class="category" data-category="BIOLOGY">BIOLOGY</div>
+          <div class="category" data-category="COMPUTATION">COMPUTATION</div>
+          <div class="category" data-category="PHILOSOPHY">PHILOSOPHY</div>
+          <div class="category" data-category="ECONOMICS">ECONOMICS</div>
+          <div class="category" data-category="HISTORY">HISTORY</div>
+          <div class="category" data-category="SYNTHESIS">SYNTHESIS</div>
+        </div>
+
+        <textarea
+          id="documentInput"
+          class="document-input"
+          placeholder="Paste your document here for classification..."></textarea>
+
+        <button id="classifyBtn" class="btn btn-primary">Classify Document</button>
+
+        <div id="classificationResult" class="result hidden"></div>
+      </section>
+
+      <!-- Section 2: Paper Synthesis -->
+      <section class="panel synthesizer-panel">
+        <h2>SYNTHESIZER</h2>
+        <div class="papers-list" id="papersList">
+          <div class="empty-state">No papers added yet. Classification results will appear here.</div>
+        </div>
+
+        <button id="synthesizeBtn" class="btn btn-secondary" disabled>Synthesize Research</button>
+
+        <div id="synthesisResult" class="result hidden"></div>
+      </section>
+
+      <!-- Section 3: Storage Stats -->
+      <section class="panel stats-panel">
+        <h2>STORAGE</h2>
+        <div class="stats">
+          <div class="stat">
+            <span class="stat-label">Documents:</span>
+            <span class="stat-value" id="docCount">0</span>
+            <span class="stat-limit">/ 2048</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Papers:</span>
+            <span class="stat-value" id="paperCount">0</span>
+            <span class="stat-limit">/ 256</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Generation:</span>
+            <span class="stat-value" id="generation">0</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="copyright">© 2024-2026 Alfredo Medina Hernandez — MEDINA TECH</div>
+      <div class="phi-constant">φ = 1.6180339887498948482</div>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
