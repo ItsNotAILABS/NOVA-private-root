@@ -349,6 +349,7 @@ function _updateLyapunov(topSim) {
  * @returns {VectorEntry | null}
  */
 function get(id) {
+  if (!id || id === '__proto__' || id === 'constructor' || id === 'prototype') return null;
   return _index.get(id) || null;
 }
 
@@ -358,6 +359,7 @@ function get(id) {
  * @returns {boolean}
  */
 function remove(id) {
+  if (!id || id === '__proto__' || id === 'constructor' || id === 'prototype') return false;
   const entry = _index.get(id);
   if (!entry) return false;
   _removeFromCell(entry);

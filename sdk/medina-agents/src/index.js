@@ -1064,23 +1064,22 @@ class AgentRPCBus {
     const entry = { callId, from: opts.callerAgentId || 'bus', to: targetAgentId, method, params, calledAt: Date.now(), status: 'PENDING' };
     this._callLog = [...this._callLog.slice(-255), entry];
 
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         entry.status = 'TIMEOUT';
         reject(new Error(`RPC timeout: ${targetAgentId}.${method}`));
       }, timeoutMs);
-      try {
-        const result  = await agent.handleRPC(method, params, opts.callerAgentId);
+      agent.handleRPC(method, params, opts.callerAgentId).then((result) => {
         clearTimeout(timer);
         entry.status  = 'RESOLVED';
         entry.result  = result;
         resolve(result);
-      } catch (e) {
+      }).catch((e) => {
         clearTimeout(timer);
         entry.status  = 'FAILED';
         entry.error   = e.message;
         reject(e);
-      }
+      });
     });
   }
 
@@ -1122,7 +1121,21 @@ class MCPServer {
     this._callLog   = [];
   }
 
-  _genSecret() { return 'nova_' + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2); }
+  _genSecret() {
+    /* Use Web Crypto for cryptographically secure secret generation.
+       Works in Cloudflare Workers, Node.js 15+, and modern browsers. */
+    const buf = new Uint8Array(32);
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      crypto.getRandomValues(buf);
+    } else {
+      /* Node.js < 15 fallback: require('crypto').randomFillSync */
+      try { require('crypto').randomFillSync(buf); } catch (_) {
+        /* Last resort: seed from time + PHI — NOT for production secret use */
+        for (let i = 0; i < buf.length; i++) buf[i] = (Date.now() * PHI * (i + 1)) % 256;
+      }
+    }
+    return 'nova_' + Array.from(buf).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
 
   /**
    * Register a StatefulAgent as a tool provider.
