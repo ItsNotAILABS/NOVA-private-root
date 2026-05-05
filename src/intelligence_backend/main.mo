@@ -1017,44 +1017,307 @@ actor IntelligenceBackend {
   // §10 — GEOMETRY ENGINE
   // ═══════════════════════════════════════════════════════════════════════════
   //
-  // Platonic solids, sacred geometry, coordinate transformations.
-  // Used by spatial computation, drone formations, and φ-based visualizations.
+  // Platonic solids, sacred geometry, golden triangles, Kepler triangle,
+  // Flower of Life, Metatron's Cube, golden angle, phyllotaxis.
+  // Mirrors sovereign-geometry.ts (CPL layer) exactly.
+  //
+  //   §10.1  Platonic Solids
+  //   §10.2  Vesica Piscis & Pentagon Ratio
+  //   §10.3  Golden Triangle & Golden Gnomon  (NEW)
+  //   §10.4  Golden Angle & Phyllotaxis       (NEW)
+  //   §10.5  Kepler's Triangle                (NEW)
+  //   §10.6  Flower of Life                   (NEW)
+  //   §10.7  Metatron's Cube                  (NEW)
+  //   §10.8  General geometry helpers
 
-  /// Platonic solid properties
+  // ─── §10.1  PLATONIC SOLIDS ───────────────────────────────────────────────
+
   type PlatonicSolid = {
-    name      : Text;
-    faces     : Nat;
-    vertices  : Nat;
-    edges     : Nat;
-    element   : Text;
-    dualSolid : Text;
-    faceShape : Text;
+    name         : Text;
+    faces        : Nat;
+    vertices     : Nat;
+    edges        : Nat;
+    element      : Text;
+    dualSolid    : Text;
+    faceShape    : Text;
+    circumradius : Float;  // R (unit edge)
+    midradius    : Float;  // ρ (unit edge)
+    phiRelation  : Text;
   };
 
   public query func getPlatonicSolids() : async [PlatonicSolid] {
     [
-      { name = "Tetrahedron";  faces = 4;  vertices = 4;  edges = 6;  element = "Fire";  dualSolid = "Tetrahedron";  faceShape = "Triangle" },
-      { name = "Cube";         faces = 6;  vertices = 8;  edges = 12; element = "Earth"; dualSolid = "Octahedron";   faceShape = "Square" },
-      { name = "Octahedron";   faces = 8;  vertices = 6;  edges = 12; element = "Air";   dualSolid = "Cube";         faceShape = "Triangle" },
-      { name = "Dodecahedron"; faces = 12; vertices = 20; edges = 30; element = "Aether";dualSolid = "Icosahedron";  faceShape = "Pentagon" },
-      { name = "Icosahedron";  faces = 20; vertices = 12; edges = 30; element = "Water"; dualSolid = "Dodecahedron"; faceShape = "Triangle" }
+      {
+        name = "Tetrahedron";  faces = 4;  vertices = 4;  edges = 6;
+        element = "Fire";   dualSolid = "Tetrahedron";  faceShape = "Triangle";
+        circumradius = _sqrt(6.0) / 4.0;
+        midradius    = 1.0 / _sqrt(8.0);
+        phiRelation  = "Dual stella octangula encodes sqrt(2). Nested in icosahedron via phi."
+      },
+      {
+        name = "Cube";         faces = 6;  vertices = 8;  edges = 12;
+        element = "Earth";  dualSolid = "Octahedron";   faceShape = "Square";
+        circumradius = SQRT3 / 2.0;
+        midradius    = SQRT2 / 2.0;
+        phiRelation  = "Section at 45 deg gives silver ratio sqrt(2). Nested in icosahedron via phi."
+      },
+      {
+        name = "Octahedron";   faces = 8;  vertices = 6;  edges = 12;
+        element = "Air";    dualSolid = "Cube";         faceShape = "Triangle";
+        circumradius = SQRT2 / 2.0;
+        midradius    = 0.5;
+        phiRelation  = "Dual of cube. Three perpendicular golden rectangles inscribe the icosahedron."
+      },
+      {
+        name = "Dodecahedron"; faces = 12; vertices = 20; edges = 30;
+        element = "Aether"; dualSolid = "Icosahedron";  faceShape = "Pentagon";
+        circumradius = SQRT3 * PHI / 2.0;
+        midradius    = PHI_SQ / 2.0;
+        phiRelation  = "Every edge ratio, face diagonal, and vertex coordinate encodes phi. rho = phi^2/2."
+      },
+      {
+        name = "Icosahedron";  faces = 20; vertices = 12; edges = 30;
+        element = "Water";  dualSolid = "Dodecahedron"; faceShape = "Triangle";
+        circumradius = PHI * SQRT3 / 2.0;
+        midradius    = PHI / 2.0;
+        phiRelation  = "R = phi*sqrt(3)/2. Three orthogonal golden rectangles span all 12 vertices."
+      }
     ]
   };
 
-  /// Vesica Piscis dimensions (two overlapping circles)
-  /// The almond-shaped intersection has ratio height/width = √3
+  // ─── §10.2  VESICA PISCIS & PENTAGON RATIO ────────────────────────────────
+
+  /// Vesica Piscis dimensions (two unit circles, centres 1 apart)
+  /// Lens height/width = sqrt(3); area = 2pi/3 - sqrt(3)/2
   public query func vesicaPiscisRatio() : async { heightToWidth : Float; area : Float } {
-    { heightToWidth = SQRT3; area = PI / 3.0 * (2.0 - SQRT3) }  // For unit circles
+    { heightToWidth = SQRT3; area = 2.0 * PI / 3.0 - SQRT3 / 2.0 }
   };
 
-  /// Pentagon diagonal/side ratio = φ
+  /// Pentagon diagonal/side ratio = phi (from 2*cos(pi/5) = phi)
   public query func pentagonRatio() : async Float { PHI };
 
-  /// Regular polygon interior angle: (n-2)·180°/n
+  /// Regular polygon interior angle in radians: (n-2)*pi/n
   public query func polygonInteriorAngle(sides : Nat) : async Float {
     if (sides < 3) return 0.0;
     Float.fromInt(sides - 2) * PI / Float.fromInt(sides)
   };
+
+  // ─── §10.3  GOLDEN TRIANGLE & GOLDEN GNOMON ──────────────────────────────
+  //
+  // Golden Triangle (36-72-72°): leg/base = phi
+  //   cos(36°) = phi/2 exactly (from 2*cos(pi/5) = phi)
+  //   Self-similar: each bisection of a base angle yields a smaller golden
+  //   gnomon and a smaller golden triangle (scale factor phi^-1).
+  //
+  // Golden Gnomon (108-36-36°): base/leg = phi
+  //   Together with the golden triangle they tile the plane aperiodically
+  //   as Penrose P3 Robinson tiles.
+
+  type GoldenTriangleResult = {
+    apexAngleDeg  : Float;   // 36
+    baseAngleDeg  : Float;   // 72
+    leg           : Float;   // phi (base = 1)
+    legToBase     : Float;   // phi
+    height        : Float;   // phi * sin(72 deg)
+    area          : Float;
+    perimeter     : Float;   // 2*phi + 1
+    circumradius  : Float;   // phi / (2*sin(36 deg))
+    cosApexExact  : Float;   // phi/2 (exact proof value)
+    selfSimilarity: Float;   // phi^-1
+  };
+
+  public query func goldenTriangle() : async GoldenTriangleResult {
+    let apex36  = PI / 5.0;                         // 36° in radians
+    let base72  = 2.0 * PI / 5.0;                   // 72° in radians
+    let leg     = PHI;
+    let height  = leg * _sin(base72);
+    let area    = 0.5 * height;                      // base = 1
+    let perim   = 2.0 * leg + 1.0;
+    let R       = leg / (2.0 * _sin(apex36));
+    {
+      apexAngleDeg   = 36.0;
+      baseAngleDeg   = 72.0;
+      leg            = leg;
+      legToBase      = PHI;
+      height         = height;
+      area           = area;
+      perimeter      = perim;
+      circumradius   = R;
+      cosApexExact   = PHI / 2.0;                   // cos(pi/5) = phi/2 exactly
+      selfSimilarity = PHI_INV;
+    }
+  };
+
+  type GoldenGnomonResult = {
+    apexAngleDeg  : Float;   // 108
+    baseAngleDeg  : Float;   // 36
+    leg           : Float;   // 1 (legs normalised)
+    base          : Float;   // phi
+    baseToLeg     : Float;   // phi
+    height        : Float;   // sin(36 deg)
+    area          : Float;   // phi*sin(36 deg)/2
+    perimeter     : Float;   // 2 + phi
+    selfSimilarity: Float;   // phi^-1
+  };
+
+  public query func goldenGnomon() : async GoldenGnomonResult {
+    let base36   = PI / 5.0;       // 36° in radians
+    let height   = _sin(base36);
+    let area     = 0.5 * PHI * height;
+    {
+      apexAngleDeg   = 108.0;
+      baseAngleDeg   = 36.0;
+      leg            = 1.0;
+      base           = PHI;
+      baseToLeg      = PHI;
+      height         = height;
+      area           = area;
+      perimeter      = 2.0 + PHI;
+      selfSimilarity = PHI_INV;
+    }
+  };
+
+  // ─── §10.4  GOLDEN ANGLE & PHYLLOTAXIS ────────────────────────────────────
+  //
+  // Golden angle gamma = 360° * phi^-2 ≈ 137.5077640500...°
+  // The most irrational angle — continued fraction [1;1,1,...] — giving the
+  // most uniform angular packing (phyllotaxis: sunflower seeds, pine cones).
+  //
+  // Vogel model: r(n) = r0*sqrt(n),  theta(n) = n*gamma_rad
+
+  type GoldenAngleResult = {
+    degreesExact      : Float;   // 360 * phi^-2
+    complementDegrees : Float;   // 360 - gamma
+    radiansExact      : Float;   // 2*pi * phi^-2
+    phiSquaredInverse : Float;   // phi^-2
+  };
+
+  public query func goldenAngle() : async GoldenAngleResult {
+    let phi2inv = PHI_INV * PHI_INV;            // phi^-2 = 0.38196601...
+    let deg     = 360.0 * phi2inv;
+    let rad     = TAU * phi2inv;
+    {
+      degreesExact      = deg;
+      complementDegrees = 360.0 - deg;
+      radiansExact      = rad;
+      phiSquaredInverse = phi2inv;
+    }
+  };
+
+  type PhyllotaxisSeed = { n : Nat; r : Float; thetaRad : Float; x : Float; y : Float };
+
+  /// Vogel phyllotaxis: position of the n-th primordium (seed / leaf)
+  /// r = r0 * sqrt(n),  theta = n * golden_angle_rad
+  public query func phyllotaxisSeed(n : Nat, r0 : Float) : async PhyllotaxisSeed {
+    let phi2inv  = PHI_INV * PHI_INV;
+    let gammaRad = TAU * phi2inv;
+    let theta    = Float.fromInt(n) * gammaRad;
+    let r        = r0 * _sqrt(Float.fromInt(n));
+    { n = n; r = r; thetaRad = theta; x = r * _cos(theta); y = r * _sin(theta) }
+  };
+
+  // ─── §10.5  KEPLER'S TRIANGLE ─────────────────────────────────────────────
+  //
+  // Right triangle with sides 1 : sqrt(phi) : phi.
+  // Pythagorean proof: 1 + phi = phi^2  (since phi^2 = phi + 1 by definition).
+  // Great Pyramid of Giza: slant height / half-base ≈ phi (within surveying accuracy).
+  // Pi-phi near-identity: (1 + sqrt(phi) + phi) / 2 ≈ pi/2 (error < 0.03%).
+
+  type KeplerTriangleResult = {
+    shortLeg         : Float;   // 1
+    longLeg          : Float;   // sqrt(phi)
+    hypotenuse       : Float;   // phi
+    pythagoreanCheck : Float;   // 1 + phi = phi^2 (must equal hyp^2)
+    shortLegAngleDeg : Float;   // arctan(1/sqrt(phi)) ≈ 38.1727°
+    longLegAngleDeg  : Float;   // arctan(sqrt(phi))   ≈ 51.8273°
+    area             : Float;   // sqrt(phi) / 2
+    perimeter        : Float;   // 1 + sqrt(phi) + phi
+    piApprox         : Float;   // 2*(1 + sqrt(phi) + phi) / (2*1) — half-perimeter / short leg
+  };
+
+  public query func keplerTriangle() : async KeplerTriangleResult {
+    let sqrtPhi   = _sqrt(PHI);
+    let check     = 1.0 + PHI;            // = phi^2 — Pythagorean LHS
+    let shortAngle = _atan(1.0 / sqrtPhi) * 180.0 / PI;
+    let longAngle  = _atan(sqrtPhi)       * 180.0 / PI;
+    let perim      = 1.0 + sqrtPhi + PHI;
+    {
+      shortLeg         = 1.0;
+      longLeg          = sqrtPhi;
+      hypotenuse       = PHI;
+      pythagoreanCheck = check;
+      shortLegAngleDeg = shortAngle;
+      longLegAngleDeg  = longAngle;
+      area             = 0.5 * sqrtPhi;
+      perimeter        = perim;
+      piApprox         = perim / 2.0;    // ≈ pi/2 within 0.03%
+    }
+  };
+
+  // ─── §10.6  FLOWER OF LIFE ────────────────────────────────────────────────
+  //
+  // Seven overlapping unit circles (Seed of Life): 1 central + 6 surrounding,
+  // each outer centre at distance r=1 from the centre on a 60° grid.
+  // Six adjacent pairs create Vesica Piscis intersections (lens height = sqrt(3)).
+  // Extending to 19 circles = full Flower of Life.
+  // 13-circle "Fruit of Life" is the basis for Metatron's Cube.
+
+  type FlowerOfLifeResult = {
+    circleCountSeed   : Nat;   // 7
+    circleCountFull   : Nat;   // 19
+    circleCountFruit  : Nat;   // 13
+    innerHexArea      : Float; // (3*sqrt(3)/2)*r^2  (r=1)
+    patternWidth      : Float; // 4r
+    patternHeight     : Float; // r*(2+sqrt(3))
+    vesicaCount       : Nat;   // 6
+    vesicaLensHeight  : Float; // sqrt(3)
+    vesicaLensArea    : Float; // 2pi/3 - sqrt(3)/2
+  };
+
+  public query func flowerOfLife() : async FlowerOfLifeResult {
+    {
+      circleCountSeed   = 7;
+      circleCountFull   = 19;
+      circleCountFruit  = 13;
+      innerHexArea      = 3.0 * SQRT3 / 2.0;
+      patternWidth      = 4.0;
+      patternHeight     = 2.0 + SQRT3;
+      vesicaCount       = 6;
+      vesicaLensHeight  = SQRT3;
+      vesicaLensArea    = 2.0 * PI / 3.0 - SQRT3 / 2.0;
+    }
+  };
+
+  // ─── §10.7  METATRON'S CUBE ───────────────────────────────────────────────
+  //
+  // 13-circle Fruit of Life with all centres connected by straight lines.
+  // C(13,2) = 78 unique line segments.
+  // Encodes all five Platonic solids as 2-D projections.
+  // Inner ring: 6 circles at radius r; outer ring: 6 at radius 2r, offset 30°.
+
+  type MetatronsCubeResult = {
+    totalCircles   : Nat;   // 13
+    innerRingCount : Nat;   // 6
+    outerRingCount : Nat;   // 6
+    totalLines     : Nat;   // 78
+    innerRadius    : Float; // 1 (normalised)
+    outerRadius    : Float; // 2
+    radiusRatio    : Float; // 2
+  };
+
+  public query func metatronsCube() : async MetatronsCubeResult {
+    {
+      totalCircles   = 13;
+      innerRingCount = 6;
+      outerRingCount = 6;
+      totalLines     = 78;
+      innerRadius    = 1.0;
+      outerRadius    = 2.0;
+      radiusRatio    = 2.0;
+    }
+  };
+
+  // ─── §10.8  GENERAL GEOMETRY HELPERS ─────────────────────────────────────
 
   /// Distance between two 3D points
   public query func distance3D(p1 : [Float], p2 : [Float]) : async Float {

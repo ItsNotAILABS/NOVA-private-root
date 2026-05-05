@@ -549,6 +549,442 @@ export function generateGeometricSeal(capabilityIndex: number, timestamp: number
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// §13  GOLDEN TRIANGLE & GOLDEN GNOMON
+// The two fundamental triangles of the golden ratio — they tile the plane
+// (as Penrose P3 Robinson tiles) and together construct the regular pentagon
+// and the star pentagram.
+//
+// GOLDEN TRIANGLE (acute isoceles): apex = 36°, base angles = 72°–72°
+//   leg / base = φ    (if base = 1, each equal leg = φ)
+//   Self-similar: bisecting one base angle separates a golden gnomon from
+//   a smaller golden triangle, each scaled by φ⁻¹.
+//   Five golden triangles meeting at the center assemble a regular pentagon.
+//
+// GOLDEN GNOMON (obtuse isoceles): apex = 108°, base angles = 36°–36°
+//   base / leg = φ    (if legs = 1, the base = φ)
+//   Complement to the golden triangle: together they tile the plane and build
+//   the Penrose P3 tiling (aperiodic, 5-fold symmetric).
+//
+// KEY PROOF:  cos(36°) = φ/2  (exact) — from the identity
+//   2cos(π/5) = (1+√5)/2 = φ.  Therefore diagonal/side in a regular pentagon
+//   equals 2cos(36°) = φ, connecting the pentagon, pentagram, and golden triangles.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface GoldenTriangle {
+  apexAngleDeg:          number;   // 36° — tip of the acute triangle
+  baseAngleDeg:          number;   // 72° — each base angle
+  base:                  number;   // 1 (normalized)
+  leg:                   number;   // φ — each equal leg
+  legToBaseRatio:        number;   // φ — defining ratio
+  height:                number;   // φ·sin(72°) — altitude from apex to base
+  area:                  number;   // ½·base·height
+  perimeter:             number;   // 2φ + 1
+  circumradius:          number;   // φ / (2·sin 36°)
+  inradius:              number;   // area / semi-perimeter
+  selfSimilarityRatio:   number;   // φ⁻¹ — scaling factor each gnomonic cut
+  cosApexExact:          number;   // cos(36°) = φ/2 — exact proof value
+  proof:                 string;
+}
+
+export const GOLDEN_TRIANGLE: Readonly<GoldenTriangle> = (() => {
+  const apex36  = 36 * PI / 180;
+  const base72  = 72 * PI / 180;
+  const leg     = PHI;
+  const base    = 1;
+  const height  = leg * Math.sin(base72);
+  const area    = 0.5 * base * height;
+  const perim   = 2 * leg + base;
+  const semi    = perim / 2;
+  const R       = leg / (2 * Math.sin(apex36));
+  const inr     = area / semi;
+  return {
+    apexAngleDeg:        36,
+    baseAngleDeg:        72,
+    base,
+    leg,
+    legToBaseRatio:      PHI,
+    height,
+    area,
+    perimeter:           perim,
+    circumradius:        R,
+    inradius:            inr,
+    selfSimilarityRatio: PHI_INV,
+    cosApexExact:        PHI / 2,   // cos(π/5) = φ/2 exactly
+    proof: [
+      'cos(36°) = cos(π/5) = φ/2 exactly (from Chebyshev polynomial T₅).',
+      'Therefore leg/base = 2cos(36°) = φ for a 36-72-72° isoceles triangle.',
+      'Bisecting one 72° base angle creates a smaller golden gnomon (inverted) and',
+      'a smaller golden triangle scaled by φ⁻¹. The recursion is infinite.',
+      'Five such triangles fan around a common apex to build a regular pentagon;',
+      'the five diagonals of the pentagon form a pentagram whose triangles are',
+      'again golden triangles — a closed self-similar system.',
+    ].join(' '),
+  };
+})();
+
+export interface GoldenGnomon {
+  apexAngleDeg:          number;   // 108° — obtuse apex
+  baseAngleDeg:          number;   // 36°  — each base angle
+  leg:                   number;   // 1 (normalized equal legs)
+  base:                  number;   // φ — the longer base
+  baseToLegRatio:        number;   // φ — defining ratio
+  height:                number;   // sin(36°) — altitude from apex to base midpoint
+  area:                  number;   // ½·base·height = φ·sin(36°)/2
+  perimeter:             number;   // 2 + φ
+  circumradius:          number;   // φ / (2·sin 108°)
+  inradius:              number;   // area / semi-perimeter
+  selfSimilarityRatio:   number;   // φ⁻¹ — scaling factor each gnomonic cut
+  penrosePairName:       string;   // 'Golden Triangle' — Penrose P3 tile partner
+}
+
+export const GOLDEN_GNOMON: Readonly<GoldenGnomon> = (() => {
+  const apex108  = 108 * PI / 180;
+  const base36   = 36  * PI / 180;
+  const leg      = 1;
+  const base     = PHI;
+  const height   = leg * Math.sin(base36);
+  const area     = 0.5 * base * height;
+  const perim    = 2 * leg + base;
+  const semi     = perim / 2;
+  const R        = base / (2 * Math.sin(apex108));
+  const inr      = area / semi;
+  return {
+    apexAngleDeg:        108,
+    baseAngleDeg:        36,
+    leg,
+    base,
+    baseToLegRatio:      PHI,
+    height,
+    area,
+    perimeter:           perim,
+    circumradius:        R,
+    inradius:            inr,
+    selfSimilarityRatio: PHI_INV,
+    penrosePairName:     'Golden Triangle',
+  };
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §14  GOLDEN ANGLE & PHYLLOTAXIS
+// The golden angle γ = 360° × φ⁻² ≈ 137.5077640500...° is the irrational
+// divergence angle governing botanical growth: sunflower seeds, pine-cone
+// scales, leaf spirals, and nautilus chambers.
+//
+// PROOF OF OPTIMALITY:
+//   Any rational divergence angle p/q° produces exactly q angular spokes and
+//   leaves large bare sectors between them.  The golden angle, whose continued-
+//   fraction expansion is [1;1,1,1,...] — the slowest-converging CF of any
+//   positive real — maximises the minimum angular separation between all
+//   successive seeds, packing them as uniformly as possible.
+//
+// PHYLLOTAXIS GEOMETRY (Vogel model):
+//   n-th primordium:  r(n) = r₀·√n,  θ(n) = n·γ (radians)
+//   Consecutive seeds separated by γ always group into two families of
+//   Archimedean spirals whose member counts are consecutive Fibonacci numbers.
+//   Sunflower: 34 clockwise / 55 counter-clockwise spirals (both Fibonacci).
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface GoldenAngle {
+  degreesExact:           number;   // 360 × φ⁻² ≈ 137.5077640500378...°
+  complementDegrees:      number;   // 360 − γ ≈ 222.4922359499622...°
+  radiansExact:           number;   // 2π × φ⁻² ≈ 2.399963229728653...
+  phiSquaredInverse:      number;   // φ⁻² = 0.38196601125010515...
+  fibonacciSpiralsLow:    number;   // inner Fibonacci spiral count (e.g. 34)
+  fibonacciSpiralsHigh:   number;   // outer Fibonacci spiral count (e.g. 55)
+  botanicalExamples:      string;
+  proof:                  string;
+}
+
+export const GOLDEN_ANGLE: Readonly<GoldenAngle> = (() => {
+  const phi2inv = phiPow(-2);           // φ⁻²
+  const deg     = 360 * phi2inv;        // ≈ 137.5077640500378°
+  const rad     = 2 * PI * phi2inv;     // ≈ 2.39996322972865...
+  return {
+    degreesExact:         deg,
+    complementDegrees:    360 - deg,
+    radiansExact:         rad,
+    phiSquaredInverse:    phi2inv,
+    fibonacciSpiralsLow:  34,
+    fibonacciSpiralsHigh: 55,
+    botanicalExamples: [
+      'Sunflower (Helianthus annuus): 34/55 or 55/89 opposing spiral families.',
+      'Pine cone (Pinus): 8/13 spirals.',
+      'Pineapple (Ananas comosus): 8/13 spirals.',
+      'Daisy (Bellis perennis): 21/34 spirals.',
+      'Romanesco broccoli: 13/21 spirals.',
+      'Aloe vera: leaf divergence ≈ golden angle.',
+    ].join(' '),
+    proof: [
+      'γ = 360°·φ⁻² because φ satisfies φ⁻¹ + φ⁻² = 1 (the fundamental identity).',
+      'So γ divides the full circle in the golden ratio: (360°−γ)/γ = φ.',
+      'The CF expansion [1;1,1,...] makes φ the hardest irrational to approximate',
+      'by rationals — hence n·γ (mod 360°) fills the circle most uniformly.',
+      'The Fibonacci spiral counts emerge because F(n+1)·γ ≡ −F(n)·γ (mod 360°),',
+      'creating the quasi-periodic lattice that human eyes parse as spirals.',
+    ].join(' '),
+  };
+})();
+
+/** Vogel model: position of the n-th primordium (seed / leaf) in polar form */
+export function phyllotaxisSeed(
+  n: number,
+  r0 = 1,
+): { r: number; theta: number; x: number; y: number } {
+  const theta = n * GOLDEN_ANGLE.radiansExact;
+  const r     = r0 * Math.sqrt(n);
+  return { r, theta, x: r * Math.cos(theta), y: r * Math.sin(theta) };
+}
+
+/** Generate the first n primordium positions (Vogel spiral) */
+export function phyllotaxisSpiral(n: number, r0 = 1) {
+  return Array.from({ length: n }, (_, i) => phyllotaxisSeed(i + 1, r0));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §15  KEPLER'S TRIANGLE
+// The unique right triangle whose sides are in the ratio 1 : √φ : φ.
+// Documented by Johannes Kepler (Mysterium Cosmographicum, 1597).
+//
+// PYTHAGOREAN PROOF:
+//   1² + (√φ)² = 1 + φ = φ²     (since φ² = φ + 1, the defining equation of φ)
+//   ∴ the triangle is a valid right triangle. ✓
+//
+// GREAT PYRAMID CONNECTION:
+//   The Great Pyramid of Giza (Khufu): slant height ≈ 356 royal cubits,
+//   base half-width = 220 royal cubits.  356/220 ≈ 1.6182 ≈ φ.
+//   The face triangle of the pyramid is a Kepler triangle within surveying
+//   tolerance — suggesting ancient knowledge of this form.
+//
+// π–φ CONNECTION:
+//   Perimeter / (2 × short leg) = (1 + √φ + φ) / 2 ≈ 1.5705... ≈ π/2
+//   The error is |π/2 − (1+√φ+φ)/2| < 0.0003 — a near-miraculous coincidence
+//   that has puzzled mathematicians for centuries.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface KeplerTriangle {
+  shortLeg:              number;   // 1
+  longLeg:               number;   // √φ ≈ 1.27201964951406896...
+  hypotenuse:            number;   // φ ≈ 1.61803398874989485...
+  hypotenuseToShort:     number;   // φ
+  longToShort:           number;   // √φ
+  hypotenuseToLong:      number;   // φ / √φ = √φ
+  pythagoreanCheck:      number;   // 1 + φ = φ² (must equal hypotenuse²)
+  shortLegAngleDeg:      number;   // arctan(1/√φ) ≈ 38.1727°
+  longLegAngleDeg:       number;   // arctan(√φ)   ≈ 51.8273°
+  rightAngleDeg:         number;   // 90°
+  area:                  number;   // √φ / 2
+  perimeter:             number;   // 1 + √φ + φ
+  piPhiConnectionNote:   string;
+  historicalNote:        string;
+}
+
+export const KEPLER_TRIANGLE: Readonly<KeplerTriangle> = (() => {
+  const sqrtPhi    = Math.sqrt(PHI);
+  const shortLeg   = 1;
+  const longLeg    = sqrtPhi;
+  const hyp        = PHI;
+  const check      = shortLeg * shortLeg + longLeg * longLeg;  // should = φ²
+  const shortAngle = Math.atan(1 / sqrtPhi) * 180 / PI;
+  const longAngle  = Math.atan(sqrtPhi) * 180 / PI;
+  return {
+    shortLeg,
+    longLeg,
+    hypotenuse:          hyp,
+    hypotenuseToShort:   PHI,
+    longToShort:         sqrtPhi,
+    hypotenuseToLong:    sqrtPhi,  // φ / √φ = √φ
+    pythagoreanCheck:    check,    // = 1 + φ = φ² = 2.6180...
+    shortLegAngleDeg:    shortAngle,
+    longLegAngleDeg:     longAngle,
+    rightAngleDeg:       90,
+    area:                0.5 * shortLeg * longLeg,
+    perimeter:           shortLeg + longLeg + hyp,
+    piPhiConnectionNote: [
+      'Perimeter / (2 × short leg) = (1 + √φ + φ) / 2 ≈ 1.5705...',
+      'π/2 ≈ 1.5707... — a near-identity with error < 0.03%.',
+      'This is why ancient builders who knew φ may have "squared the circle"',
+      'empirically: using a Kepler triangle approximates π from φ alone.',
+    ].join(' '),
+    historicalNote: [
+      'Kepler described this triangle in Mysterium Cosmographicum (1597).',
+      'Great Pyramid of Giza: slant height 356 / base half-width 220 = 1.6182 ≈ φ.',
+      'The face triangle of Khufu\'s pyramid matches Kepler\'s triangle within',
+      'the surveying accuracy of ancient Egyptian royal cubits.',
+    ].join(' '),
+  };
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §16  FLOWER OF LIFE
+// Seven overlapping circles (the "Seed of Life") where every surrounding
+// circle centre lies exactly on the circumference of the central circle.
+// The six outer centres form a regular hexagon of side r = circle radius.
+//
+// CIRCLE CENTRES (normalized r = 1):
+//   C₀ = (0, 0)          — central circle
+//   Cₖ = (cos(60°k), sin(60°k))  for k = 0…5  — ring circles
+//
+// SACRED GEOMETRY HISTORY:
+//   — Temple of Osiris at Abydos, Egypt (red ochre, ≥535 BCE)
+//   — Leonardo da Vinci's notebooks (15th c.)
+//   — Forbidden City, Beijing
+//   — Goldberg's molecular geometry (fullerenes)
+//
+// Extending to 19 circles (adding a second ring) yields the full "Flower of
+// Life" pattern. Selecting 13 circles and connecting all centres with straight
+// lines yields Metatron's Cube (§17).
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface FlowerOfLife {
+  circleRadius:          number;   // r = 1 (normalised)
+  circleCountSeed:       number;   // 7  — "Seed of Life" (1 + 6)
+  circleCountFull:       number;   // 19 — full Flower of Life (1 + 6 + 12)
+  circleCountFruit:      number;   // 13 — "Fruit of Life" (basis for Metatron's Cube)
+  innerHexagonSide:      number;   // r — the 6 outer centres form a hexagon of side r
+  innerHexagonArea:      number;   // (3√3/2)·r²  for the inner hexagon
+  patternWidth:          number;   // 4r — leftmost to rightmost point
+  patternHeight:         number;   // r(2+√3) ≈ 3.732r
+  vesicaPiscisCount:     number;   // 6 — adjacent circle pairs create 6 Vesica Piscis
+  vesicaLensHeight:      number;   // r√3 per lens
+  vesicaLensArea:        number;   // 2π/3 − √3/2 per unit-circle lens
+  sqrt3Relation:         string;
+  phiRelation:           string;
+  sacredGeometryNote:    string;
+}
+
+export const FLOWER_OF_LIFE: Readonly<FlowerOfLife> = (() => {
+  const r           = 1;
+  const hexArea     = 3 * SQRT3 / 2;          // regular unit-side hexagon area
+  const vesicaArea  = 2 * PI / 3 - SQRT3 / 2;
+  return {
+    circleRadius:        r,
+    circleCountSeed:     7,
+    circleCountFull:     19,
+    circleCountFruit:    13,
+    innerHexagonSide:    r,
+    innerHexagonArea:    hexArea,
+    patternWidth:        4 * r,
+    patternHeight:       r * (2 + SQRT3),
+    vesicaPiscisCount:   6,
+    vesicaLensHeight:    r * SQRT3,
+    vesicaLensArea:      vesicaArea,
+    sqrt3Relation: [
+      '60° hexagonal symmetry encodes √3 throughout.',
+      'Lens height / lens width = √3 (each Vesica Piscis).',
+      'Inner hexagon area = (3√3/2)r².',
+      'Adjacent centre distance = r → lens height = r√3.',
+    ].join(' '),
+    phiRelation: [
+      'In the 19-circle Flower of Life, connecting non-adjacent centres creates',
+      'Vesica Piscis chains whose accumulated lengths converge to φ-multiples.',
+      'The Fruit of Life (13 circles) generates Metatron\'s Cube (§17),',
+      'which encodes all five Platonic solids and the golden triangles.',
+    ].join(' '),
+    sacredGeometryNote: [
+      'Temple of Osiris, Abydos (red-ochre, ≥535 BCE).',
+      'Leonardo da Vinci notebooks (15th c.).',
+      'Forbidden City, Beijing.',
+      'Appears in Goldberg polyhedra and carbon fullerene geometry.',
+    ].join(' — '),
+  };
+})();
+
+/** Return the (x, y) centre of ring circle k (k = 0…5) in the Seed of Life (r = 1) */
+export function flowerOfLifeCenter(k: number, r = 1): { x: number; y: number } {
+  const theta = (k * PI) / 3;   // 60° steps
+  return { x: r * Math.cos(theta), y: r * Math.sin(theta) };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §17  METATRON'S CUBE
+// Constructed by taking the 13-circle "Fruit of Life" pattern and drawing
+// straight lines from every circle centre to every other circle centre.
+//
+// STRUCTURE:
+//   13 circles: 1 central + 6 at radius r + 6 at radius 2r (offset 30°)
+//   Lines: C(13,2) = 78 unique line segments
+//
+// ENCODED PLATONIC SOLIDS (2-D projections):
+//   • Tetrahedron   — 4 vertices in the Star of David triangle pairs
+//   • Cube          — hexagonal projection reveals 8 cube vertices
+//   • Octahedron    — dual of cube projection (shared 12-edge skeleton)
+//   • Dodecahedron  — pentagonal sub-rings (requires 3-D rotation)
+//   • Icosahedron   — 20-triangle projection in the full diagram
+//
+// PHI PRESENCE:
+//   The golden triangles (36°-72°-72°) and golden gnomons (108°-36°-36°)
+//   tile the interior regions. Outer ring radius / inner ring radius = 2.
+//   Connecting all 13 centres to the 6 inner centres forms a 6-pointed star
+//   (hexagram) whose triangles are equilateral — a reflection of the φ-hexagon
+//   packing underlying both the Flower of Life and Fibonacci spirals.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface MetatronsCube {
+  totalCircles:           number;   // 13
+  centralCount:           number;   // 1
+  innerRingCount:         number;   // 6 (at distance r)
+  outerRingCount:         number;   // 6 (at distance 2r, offset 30°)
+  totalLines:             number;   // C(13,2) = 78
+  innerRingRadius:        number;   // r = 1 (normalised)
+  outerRingRadius:        number;   // 2r = 2
+  outerToInnerRatio:      number;   // 2
+  encodedPlatonicSolids:  string[];
+  phiRelation:            string;
+  sacredGeometryNote:     string;
+}
+
+export const METATRONS_CUBE: Readonly<MetatronsCube> = {
+  totalCircles:    13,
+  centralCount:    1,
+  innerRingCount:  6,
+  outerRingCount:  6,
+  totalLines:      78,    // C(13,2) = 13·12/2 = 78
+  innerRingRadius: 1,
+  outerRingRadius: 2,
+  outerToInnerRatio: 2,
+  encodedPlatonicSolids: [
+    'Tetrahedron (4 vertices — Star of David inner triangles)',
+    'Cube (8 vertices — hexagonal axis projection)',
+    'Octahedron (6 vertices — dual of cube, same 12-edge frame)',
+    'Dodecahedron (20 vertices — pentagonal ring sub-structure)',
+    'Icosahedron (12 vertices — inner ring + rotated outer pairs)',
+  ],
+  phiRelation: [
+    'Golden triangles (36°-72°-72°) and golden gnomons (108°-36°-36°)',
+    'tile every interior region of Metatron\'s Cube.',
+    'The six inner-ring centres at radius r form a regular hexagon;',
+    'six outer-ring centres at 2r and 30° offset complete the Fruit of Life.',
+    'Every radial length ratio in the diagram is a power of √3 or involves φ.',
+    'The 78 line segments contain nested self-similar golden triangles at',
+    'every scale, mirroring the infinite regress of the pentagon / pentagram.',
+  ].join(' '),
+  sacredGeometryNote: [
+    'Metatron\'s Cube is cited in Kabbalistic texts (Sefer Yetzirah, 3rd c. CE).',
+    'Drunvalo Melchizedek\'s analysis (1990s) popularised its φ-geometry.',
+    'The 78-line complete graph K₁₃ corresponds to 78 Tarot cards (coincidence).',
+    'In molecular geometry, the 13-sphere arrangement describes',
+    'the densest known packing of 12 equal spheres around a central sphere —',
+    'a kissing-number result proved by Schütte & van der Waerden (1953).',
+  ].join(' '),
+};
+
+/** Return the (x, y) centre of every circle in Metatron's Cube (r = 1) */
+export function metatronsCubeCenters(r = 1): Array<{ x: number; y: number; ring: number }> {
+  const centres: Array<{ x: number; y: number; ring: number }> = [
+    { x: 0, y: 0, ring: 0 },   // central
+  ];
+  for (let k = 0; k < 6; k++) {
+    const theta = (k * PI) / 3;                // 60° steps — inner ring
+    centres.push({ x: r * Math.cos(theta), y: r * Math.sin(theta), ring: 1 });
+  }
+  for (let k = 0; k < 6; k++) {
+    const theta = (k * PI) / 3 + PI / 6;      // 60° steps, 30° offset — outer ring
+    centres.push({ x: 2 * r * Math.cos(theta), y: 2 * r * Math.sin(theta), ring: 2 });
+  }
+  return centres;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // EXPORT SUMMARY  (single object for UI consumption)
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -566,6 +1002,12 @@ export const SOVEREIGN_GEOMETRY = {
   sovereignTiers:   SOVEREIGN_TIERS,
   phiConvergents:   PHI_CONVERGENTS,
   goldenMeans:      GOLDEN_MEANS,
+  goldenTriangle:   GOLDEN_TRIANGLE,
+  goldenGnomon:     GOLDEN_GNOMON,
+  goldenAngle:      GOLDEN_ANGLE,
+  keplerTriangle:   KEPLER_TRIANGLE,
+  flowerOfLife:     FLOWER_OF_LIFE,
+  metatronsCube:    METATRONS_CUBE,
 } as const;
 
 export type SovereignGeometry = typeof SOVEREIGN_GEOMETRY;
