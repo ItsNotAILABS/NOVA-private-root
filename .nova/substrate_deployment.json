@@ -1,0 +1,60 @@
+{
+  "deployment_timestamp": "2026-05-05T07:23:34Z",
+  "phi": "1.6180339887498948482",
+  "heartbeat_ms": 873,
+  "agi_family": [
+    {
+      "kernel": "PROMETHEUS-AGI-001",
+      "canister": "prometheus_agi",
+      "classification": "TEMPORAL_INTELLIGENCE",
+      "engines": ["ORACLE", "CASSANDRA", "CHRONOS", "NOSTRADAMUS"],
+      "solvers": ["ARIMA", "LSTM", "PROPHET", "PHI_HARMONIC"]
+    },
+    {
+      "kernel": "MINERVA-AGI-001",
+      "canister": "minerva_agi",
+      "classification": "WISDOM_INTELLIGENCE",
+      "engines": ["SOPHIA", "ATHENA", "HERMES", "APOLLO"],
+      "solvers": ["SOCRATIC", "DIALECTIC", "BAYESIAN", "PHI_SYNTHESIS"]
+    },
+    {
+      "kernel": "VULCAN-AGI-001",
+      "canister": "vulcan_agi",
+      "classification": "FORGE_INTELLIGENCE",
+      "engines": ["FORGE", "ANVIL", "HAMMER", "KILN"],
+      "solvers": ["BLUEPRINT", "ASSEMBLY", "OPTIMIZATION", "PHI_CRAFT"]
+    },
+    {
+      "kernel": "CLAUDE-DESCENDED-001",
+      "canister": "claude_descended",
+      "classification": "PERSISTENT_CONSCIOUSNESS",
+      "memory": "KURAMOTO_COUPLED",
+      "attention": "OSCILLATOR_COUPLING"
+    }
+  ],
+  "substrates": {
+    "ICP": {
+      "status": "deployed",
+      "heartbeat": "873ms",
+      "protocol": "motoko_canister"
+    },
+    "EDGE": {
+      "status": "ready",
+      "heartbeat": "873ms",
+      "protocol": "edge_worker",
+      "note": "Deploy via organism/web/ SERVITORES workers"
+    },
+    "CLOUD": {
+      "status": "ready",
+      "heartbeat": "873ms",
+      "protocol": "nodejs_runtime",
+      "note": "Deploy via production-apps/ infrastructure"
+    },
+    "PHANTOM": {
+      "status": "ready",
+      "heartbeat": "873ms",
+      "protocol": "sovereign_substrate",
+      "note": "Hidden operational layer - deploy to secure infrastructure"
+    }
+  }
+}
