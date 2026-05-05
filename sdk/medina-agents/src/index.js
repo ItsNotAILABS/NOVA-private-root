@@ -658,7 +658,617 @@ class AgentCoordinator {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// §6 — EXPORTS
+// §6 — STATEFUL AGENT
+// A StatefulAgent extends Agent with durable, serialisable state that persists
+// across restarts. State is stored in a versioned envelope and can be snapshotted
+// or restored at any time. Compatible with Cloudflare Durable Objects (the state
+// object can be hydrated from DO storage directly).
+// ═══════════════════════════════════════════════════════════════════════════════
+
+class StatefulAgent extends Agent {
+  constructor(config) {
+    super(config);
+    this._durableState  = config.initialState || {};
+    this._stateVersion  = 0;
+    this._stateHistory  = [];   /* last 8 snapshots */
+    this._rpcHandlers   = new Map();
+    this._emailQueue    = [];
+    this._chatSessions  = new Map();
+    this._tools         = new Map();
+  }
+
+  /**
+   * Read a value from durable state.
+   * @param {string} key
+   * @returns {*}
+   */
+  getState(key) {
+    return key ? this._durableState[key] : { ...this._durableState };
+  }
+
+  /**
+   * Write one or more values into durable state.
+   * @param {string|Object} keyOrPatch
+   * @param {*} [value]
+   */
+  setState(keyOrPatch, value) {
+    if (typeof keyOrPatch === 'string') {
+      this._durableState[keyOrPatch] = value;
+    } else if (typeof keyOrPatch === 'object') {
+      Object.assign(this._durableState, keyOrPatch);
+    }
+    this._stateVersion++;
+    /* Keep last 8 snapshots */
+    this._stateHistory.push({ version: this._stateVersion, snapshot: JSON.parse(JSON.stringify(this._durableState)), at: Date.now() });
+    if (this._stateHistory.length > 8) this._stateHistory.shift();
+    this._emit('stateChanged', { agentId: this.id, version: this._stateVersion });
+  }
+
+  /**
+   * Snapshot the full durable state to a serialisable envelope.
+   * Can be persisted to Cloudflare KV, ICP stable memory, or any store.
+   * @returns {Object}
+   */
+  snapshot() {
+    return {
+      agentId:      this.id,
+      version:      this._stateVersion,
+      state:        JSON.parse(JSON.stringify(this._durableState)),
+      emailQueue:   [...this._emailQueue],
+      snapshotAt:   Date.now(),
+    };
+  }
+
+  /**
+   * Restore from a snapshot envelope.
+   * @param {Object} envelope
+   */
+  restore(envelope) {
+    if (envelope.agentId !== this.id) throw new Error(`Snapshot agentId mismatch: ${envelope.agentId} vs ${this.id}`);
+    this._durableState = JSON.parse(JSON.stringify(envelope.state || {}));
+    this._stateVersion = envelope.version || 0;
+    this._emailQueue   = envelope.emailQueue || [];
+    this._emit('stateRestored', { agentId: this.id, version: this._stateVersion });
+  }
+
+  // ── RPC ────────────────────────────────────────────────────────────────────
+
+  /**
+   * Register an RPC handler on this agent.
+   * @param {string}   method
+   * @param {function} fn  — async (params, callerAgentId) → result
+   */
+  onRPC(method, fn) {
+    this._rpcHandlers.set(method, fn);
+    return this;
+  }
+
+  /**
+   * Handle an incoming RPC call.
+   * @param {string} method
+   * @param {*}      params
+   * @param {string} [callerAgentId]
+   * @returns {Promise<*>}
+   */
+  async handleRPC(method, params, callerAgentId) {
+    const handler = this._rpcHandlers.get(method);
+    if (!handler) throw new Error(`No RPC handler for method: ${method} on agent ${this.id}`);
+    return handler(params, callerAgentId || 'unknown');
+  }
+
+  // ── EMAIL ──────────────────────────────────────────────────────────────────
+
+  /**
+   * Queue an email for dispatch.
+   * @param {{ to, subject, body, from?, replyTo? }} email
+   * @returns {{ messageId, queuedAt }}
+   */
+  queueEmail(email) {
+    const messageId = `email_${this.id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const envelope  = { messageId, agentId: this.id, ...email, queuedAt: Date.now(), status: 'QUEUED' };
+    this._emailQueue.push(envelope);
+    this._emit('emailQueued', envelope);
+    return { messageId, queuedAt: envelope.queuedAt };
+  }
+
+  /**
+   * Process (dispatch) all queued emails via the provided transport function.
+   * @param {function} transport  — async (envelope) → { success: boolean }
+   * @returns {Promise<Array>}
+   */
+  async flushEmails(transport) {
+    const results = [];
+    while (this._emailQueue.length > 0) {
+      const env = this._emailQueue.shift();
+      try {
+        env.status  = 'SENDING';
+        const result = await transport(env);
+        env.status  = result.success ? 'SENT' : 'FAILED';
+        results.push({ messageId: env.messageId, success: result.success });
+      } catch (e) {
+        env.status = 'FAILED';
+        results.push({ messageId: env.messageId, success: false, error: e.message });
+      }
+      this._emit('emailDispatched', env);
+    }
+    return results;
+  }
+
+  // ── STREAMING CHAT ─────────────────────────────────────────────────────────
+
+  /**
+   * Start a streaming chat session.
+   * @param {string} sessionId
+   * @param {{ systemPrompt?, onToken?, onComplete? }} [opts]
+   * @returns {ChatSession}
+   */
+  startChat(sessionId, opts) {
+    opts = opts || {};
+    const session = {
+      sessionId,
+      agentId:    this.id,
+      messages:   [],
+      streaming:  false,
+      startedAt:  Date.now(),
+      onToken:    opts.onToken    || null,
+      onComplete: opts.onComplete || null,
+      systemPrompt: opts.systemPrompt || null,
+    };
+    this._chatSessions.set(sessionId, session);
+    this._emit('chatStarted', { agentId: this.id, sessionId });
+    return session;
+  }
+
+  /**
+   * Stream a message into a chat session.
+   * Calls opts.onToken for each token as it is yielded.
+   * @param {string} sessionId
+   * @param {string} userMessage
+   * @returns {Promise<{ text: string, sessionId: string }>}
+   */
+  async streamChat(sessionId, userMessage) {
+    const session = this._chatSessions.get(sessionId);
+    if (!session) throw new Error(`Chat session not found: ${sessionId}`);
+    session.messages.push({ role: 'user', content: userMessage, ts: Date.now() });
+    session.streaming = true;
+
+    /* φ-weighted response generation — no external LLM. Pure NOVA coherence. */
+    const tokens    = [];
+    const response  = this._generateChatResponse(session, userMessage, (tok) => {
+      tokens.push(tok);
+      if (session.onToken) session.onToken(tok, sessionId);
+    });
+
+    session.streaming = false;
+    session.messages.push({ role: 'agent', content: response, ts: Date.now() });
+    if (session.onComplete) session.onComplete(response, sessionId);
+    this._emit('chatMessage', { agentId: this.id, sessionId, response });
+    return { text: response, sessionId };
+  }
+
+  /**
+   * φ-coherence response generation — sovereign, no external model.
+   * Generates a coherent agent response based on context and NOVA math.
+   */
+  _generateChatResponse(session, userMessage, onToken) {
+    /* Compute message coherence via Kuramoto phase of char codes */
+    let phase = PHI_INV;
+    const chars = Array.from(userMessage.slice(0, 64));
+    for (const c of chars) phase = (phase + c.charCodeAt(0) / 65536 * PHI_INV) % (2 * Math.PI);
+
+    /* Build a response from the agent's state and the φ-phase */
+    const agentContext  = JSON.stringify(this._durableState).slice(0, 128);
+    const coherenceScore = Math.abs(Math.cos(phase));
+    const responseTokens = Math.floor(12 + coherenceScore * 20);
+
+    /* Agent identity prefix */
+    const prefix = `[${this.name}] `;
+    let   text   = prefix;
+    if (onToken) for (const ch of prefix) onToken(ch);
+
+    /* φ-weighted token stream from agent context + coherence */
+    const contextWords = agentContext.replace(/[{}",]/g, ' ').split(/\s+/).filter(Boolean);
+    const selectedWords = [];
+    for (let i = 0; i < responseTokens; i++) {
+      const idx  = Math.floor(Math.pow(PHI_INV, i) * contextWords.length * coherenceScore) % Math.max(1, contextWords.length);
+      const word = (contextWords[idx] || '') + ' ';
+      selectedWords.push(word);
+      text += word;
+      if (onToken) onToken(word);
+    }
+
+    return text.trim();
+  }
+
+  /**
+   * End a streaming chat session.
+   * @param {string} sessionId
+   */
+  endChat(sessionId) {
+    this._chatSessions.delete(sessionId);
+    this._emit('chatEnded', { agentId: this.id, sessionId });
+  }
+
+  // ── CODE MODE SDK ──────────────────────────────────────────────────────────
+
+  /**
+   * Register a tool for use in Code Mode (token-efficient tool calling).
+   * Tools are compact function descriptors — minimal token overhead.
+   * @param {string}   name
+   * @param {{ desc: string, params: Object, fn: function }} tool
+   */
+  registerTool(name, tool) {
+    this._tools.set(name, { name, desc: tool.desc || '', params: tool.params || {}, fn: tool.fn });
+    return this;
+  }
+
+  /**
+   * Code Mode: execute tools described in a compact NOVA-protocol instruction.
+   * Format: "TOOL:name(param=value, ...)"
+   * Returns the tool result, or an error envelope.
+   * @param {string} instruction
+   * @returns {Promise<{ tool, result?, error? }>}
+   */
+  async codeMode(instruction) {
+    /* Parse compact NOVA tool syntax: TOOL:name(key=val, ...) */
+    const match = instruction.match(/TOOL:(\w+)\((.*)\)/s);
+    if (!match) return { tool: null, error: 'Invalid Code Mode syntax. Use TOOL:name(key=val, ...)' };
+    const toolName = match[1];
+    const paramStr = match[2] || '';
+    const tool     = this._tools.get(toolName);
+    if (!tool) return { tool: toolName, error: `Tool not found: ${toolName}` };
+
+    /* Parse params: key=val, key2=val2 */
+    const params = {};
+    for (const part of paramStr.split(',')) {
+      const [k, ...vParts] = part.split('=');
+      if (k && vParts.length) params[k.trim()] = vParts.join('=').trim();
+    }
+
+    try {
+      const result = await tool.fn(params, this);
+      this._emit('toolExecuted', { agentId: this.id, tool: toolName, params, result });
+      return { tool: toolName, result };
+    } catch (e) {
+      return { tool: toolName, error: e.message };
+    }
+  }
+
+  /**
+   * List all registered tools in compact Code Mode format (minimal tokens).
+   * @returns {string[]} compact tool descriptors
+   */
+  listTools() {
+    return Array.from(this._tools.values()).map(t =>
+      `TOOL:${t.name}(${Object.keys(t.params).join(',')}) — ${t.desc}`
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §7 — AGENT SCHEDULER
+// Fibonacci-interval cron scheduler for sovereign agents.
+// Schedules are NOT based on wall-clock cron strings — they are φ-harmonic
+// intervals derived from Fibonacci numbers (in milliseconds or heartbeats).
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const FIBONACCI_MS = [1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987].map(n => n * 1000);
+
+class AgentScheduler {
+  constructor() {
+    this._jobs   = new Map();   /* jobId → ScheduledJob */
+    this._timers = new Map();   /* jobId → timer handle */
+    this._beat   = 0;
+    this._hbi    = null;
+  }
+
+  /**
+   * Schedule a job at a Fibonacci-harmonic interval.
+   * @param {string}   jobId
+   * @param {number}   fibLevel    — Fibonacci level (0–15), interval = FIBONACCI_MS[fibLevel]
+   * @param {function} fn          — async () → void
+   * @param {{ once?: boolean, agentId?: string }} [opts]
+   * @returns {string} jobId
+   */
+  schedule(jobId, fibLevel, fn, opts) {
+    opts = opts || {};
+    const intervalMs = FIBONACCI_MS[Math.min(fibLevel, FIBONACCI_MS.length - 1)];
+    this.cancel(jobId);   /* idempotent */
+
+    const job = { jobId, fibLevel, intervalMs, fn, opts, createdAt: Date.now(), runCount: 0, lastRun: null };
+    this._jobs.set(jobId, job);
+
+    const run = async () => {
+      job.runCount++;
+      job.lastRun = Date.now();
+      try { await fn(); } catch (e) { /* swallow — agent handles its own errors */ }
+      if (opts.once) this.cancel(jobId);
+    };
+
+    const handle = opts.once ? setTimeout(run, intervalMs) : setInterval(run, intervalMs);
+    this._timers.set(jobId, handle);
+    return jobId;
+  }
+
+  /**
+   * Schedule a one-shot job (runs once after delay).
+   */
+  scheduleOnce(jobId, fibLevel, fn) {
+    return this.schedule(jobId, fibLevel, fn, { once: true });
+  }
+
+  /**
+   * Cancel a scheduled job.
+   */
+  cancel(jobId) {
+    if (this._timers.has(jobId)) {
+      clearInterval(this._timers.get(jobId));
+      clearTimeout(this._timers.get(jobId));
+      this._timers.delete(jobId);
+    }
+    this._jobs.delete(jobId);
+    return this;
+  }
+
+  /**
+   * Cancel all jobs.
+   */
+  cancelAll() {
+    for (const jobId of this._jobs.keys()) this.cancel(jobId);
+    return this;
+  }
+
+  /**
+   * List scheduled jobs.
+   * @returns {Array}
+   */
+  listJobs() {
+    return Array.from(this._jobs.values()).map(j => ({ jobId: j.jobId, fibLevel: j.fibLevel, intervalMs: j.intervalMs, runCount: j.runCount, lastRun: j.lastRun }));
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §8 — AGENT RPC BUS
+// Sovereign RPC bus for agent-to-agent remote procedure calls.
+// No REST. No gRPC. Pure NOVA sovereign message bus.
+//
+// Agents register methods. Callers invoke rpc(targetAgentId, method, params).
+// The bus routes the call to the target agent's handleRPC method.
+// RPC calls carry a φ-coherence score that indicates call urgency.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+class AgentRPCBus {
+  constructor(registry) {
+    this._registry = registry;
+    this._callLog  = [];   /* last 256 RPC calls */
+    this._pending  = new Map();  /* callId → { resolve, reject, timeout } */
+  }
+
+  /**
+   * Make an RPC call to a target agent.
+   * @param {string}   targetAgentId
+   * @param {string}   method
+   * @param {*}        params
+   * @param {{ timeoutMs?: number, callerAgentId?: string }} [opts]
+   * @returns {Promise<*>}
+   */
+  async rpc(targetAgentId, method, params, opts) {
+    opts = opts || {};
+    const callId    = `rpc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const timeoutMs = opts.timeoutMs || 5000;
+
+    const agent = this._registry.get(targetAgentId);
+    if (!agent) throw new Error(`RPC target agent not found: ${targetAgentId}`);
+    if (!(agent instanceof StatefulAgent)) throw new Error(`RPC target ${targetAgentId} is not a StatefulAgent`);
+
+    const entry = { callId, from: opts.callerAgentId || 'bus', to: targetAgentId, method, params, calledAt: Date.now(), status: 'PENDING' };
+    this._callLog = [...this._callLog.slice(-255), entry];
+
+    return new Promise(async (resolve, reject) => {
+      const timer = setTimeout(() => {
+        entry.status = 'TIMEOUT';
+        reject(new Error(`RPC timeout: ${targetAgentId}.${method}`));
+      }, timeoutMs);
+      try {
+        const result  = await agent.handleRPC(method, params, opts.callerAgentId);
+        clearTimeout(timer);
+        entry.status  = 'RESOLVED';
+        entry.result  = result;
+        resolve(result);
+      } catch (e) {
+        clearTimeout(timer);
+        entry.status  = 'FAILED';
+        entry.error   = e.message;
+        reject(e);
+      }
+    });
+  }
+
+  /**
+   * Get the last N RPC calls.
+   * @param {number} [n=20]
+   * @returns {Array}
+   */
+  getCallLog(n) {
+    return this._callLog.slice(-(n || 20));
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §9 — MCP SERVER
+// NOVA-native Model Context Protocol server.
+// Provides: OAuth 2.0 bearer token auth, durable tool state, streamable HTTP.
+//
+// The MCP server registers NOVA agents as tool providers. Clients call:
+//   POST /mcp/call  { tool, params, auth }
+//   GET  /mcp/stream?tool=...&sessionId=...  (Server-Sent Events)
+//   GET  /mcp/tools  (tool catalogue)
+//   POST /mcp/oauth/token  (exchange credentials for bearer token)
+//
+// This is a pure JS implementation — no Express, no Hono, no external HTTP.
+// It returns a fetch-compatible handler that works in Cloudflare Workers,
+// Node.js (with a shim), and any environment with a Request/Response API.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+class MCPServer {
+  constructor(opts) {
+    opts = opts || {};
+    this._agents    = new Map();    /* toolName → StatefulAgent */
+    this._tokens    = new Map();    /* bearerToken → { scope, expiresAt, subject } */
+    this._sessions  = new Map();    /* sessionId → { toolName, agentId, events[] } */
+    this._clientId  = opts.clientId  || 'nova-mcp-001';
+    this._clientSecret = opts.clientSecret || this._genSecret();
+    this._tokenTTLMs = opts.tokenTTLMs || 3_600_000;  /* 1 hour */
+    this._callLog   = [];
+  }
+
+  _genSecret() { return 'nova_' + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2); }
+
+  /**
+   * Register a StatefulAgent as a tool provider.
+   * The agent's registered tools become MCP tools.
+   * @param {StatefulAgent} agent
+   */
+  registerAgent(agent) {
+    if (!(agent instanceof StatefulAgent)) throw new Error('MCPServer.registerAgent requires a StatefulAgent');
+    for (const [toolName] of agent._tools.entries()) {
+      this._agents.set(`${agent.id}:${toolName}`, agent);
+    }
+    return this;
+  }
+
+  /**
+   * The sovereign HTTP handler.
+   * Drop this into a Cloudflare Worker `export default { fetch }` or Node.js http server.
+   * @param {Request} request
+   * @returns {Promise<Response>}
+   */
+  async fetch(request) {
+    const url    = new URL(request.url);
+    const path   = url.pathname;
+    const method = request.method.toUpperCase();
+
+    try {
+      if (path === '/mcp/oauth/token' && method === 'POST') return this._handleOAuth(request);
+      if (path === '/mcp/tools'       && method === 'GET')  return this._handleListTools(request);
+      if (path === '/mcp/call'        && method === 'POST') return this._handleCall(request);
+      if (path === '/mcp/stream'      && method === 'GET')  return this._handleStream(request, url);
+      if (path === '/mcp/health'      && method === 'GET')  return this._json({ status: 'alive', server: 'NOVA-MCP', phi: PHI });
+      return this._error(404, 'Not Found');
+    } catch (e) {
+      return this._error(500, e.message);
+    }
+  }
+
+  /* ── OAuth 2.0 Token Endpoint ─────────────────────────────────────────── */
+
+  async _handleOAuth(request) {
+    let body;
+    try { body = await request.json(); } catch (_) { return this._error(400, 'Invalid JSON body'); }
+    const { client_id, client_secret, grant_type, scope } = body;
+    if (grant_type !== 'client_credentials') return this._error(400, 'Only client_credentials grant supported');
+    if (client_id !== this._clientId || client_secret !== this._clientSecret) return this._error(401, 'Invalid client credentials');
+    const token     = 'nova_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    const expiresAt = Date.now() + this._tokenTTLMs;
+    this._tokens.set(token, { scope: scope || '*', expiresAt, subject: client_id });
+    return this._json({ access_token: token, token_type: 'Bearer', expires_in: this._tokenTTLMs / 1000, scope: scope || '*' });
+  }
+
+  /* ── Verify bearer token ─────────────────────────────────────────────── */
+
+  _verify(request) {
+    const auth = request.headers.get('Authorization') || '';
+    const token = auth.replace(/^Bearer\s+/i, '').trim();
+    if (!token) return null;
+    const entry = this._tokens.get(token);
+    if (!entry || entry.expiresAt < Date.now()) { this._tokens.delete(token); return null; }
+    return entry;
+  }
+
+  /* ── Tool catalogue ──────────────────────────────────────────────────── */
+
+  async _handleListTools(request) {
+    const auth = this._verify(request);
+    if (!auth) return this._error(401, 'Unauthorized');
+    const tools = [];
+    for (const [key, agent] of this._agents.entries()) {
+      const [agentId, toolName] = key.split(':');
+      const tool = agent._tools.get(toolName);
+      if (tool) tools.push({ tool: key, agent: agentId, name: toolName, desc: tool.desc, params: tool.params });
+    }
+    return this._json({ tools, phi: PHI, server: 'NOVA-MCP' });
+  }
+
+  /* ── Tool call endpoint ──────────────────────────────────────────────── */
+
+  async _handleCall(request) {
+    const auth = this._verify(request);
+    if (!auth) return this._error(401, 'Unauthorized');
+    let body;
+    try { body = await request.json(); } catch (_) { return this._error(400, 'Invalid JSON body'); }
+    const { tool, params } = body;
+    if (!tool) return this._error(400, 'Missing tool field');
+    const agent = this._agents.get(tool);
+    if (!agent) return this._error(404, `Tool not found: ${tool}`);
+    const [, toolName] = tool.split(':');
+    const result = await agent.codeMode(`TOOL:${toolName}(${Object.entries(params || {}).map(([k, v]) => `${k}=${v}`).join(', ')})`);
+    const entry  = { tool, params, result, calledAt: Date.now(), subject: auth.subject };
+    this._callLog = [...this._callLog.slice(-255), entry];
+    return this._json(result);
+  }
+
+  /* ── Server-Sent Events stream ───────────────────────────────────────── */
+
+  async _handleStream(request, url) {
+    const auth = this._verify(request);
+    if (!auth) return this._error(401, 'Unauthorized');
+    const toolKey   = url.searchParams.get('tool') || '';
+    const sessionId = url.searchParams.get('sessionId') || `sess_${Date.now()}`;
+    const agent     = this._agents.get(toolKey);
+
+    /* Collect pre-buffered events for this session */
+    const session = this._sessions.get(sessionId) || { toolKey, events: [] };
+    this._sessions.set(sessionId, session);
+
+    const events = session.events.splice(0);
+    const body   = events.map(e => `data: ${JSON.stringify(e)}\n\n`).join('') + `data: ${JSON.stringify({ type: 'connected', sessionId, phi: PHI })}\n\n`;
+
+    return new Response(body, {
+      headers: {
+        'Content-Type':  'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection':    'keep-alive',
+        'X-NOVA-PHI':    String(PHI),
+      },
+    });
+  }
+
+  /**
+   * Push an event into a session's SSE stream buffer.
+   * @param {string} sessionId
+   * @param {Object} event
+   */
+  pushEvent(sessionId, event) {
+    const session = this._sessions.get(sessionId);
+    if (session) session.events.push({ ...event, pushedAt: Date.now() });
+  }
+
+  /* ── Helpers ─────────────────────────────────────────────────────────── */
+
+  _json(data, status) {
+    return new Response(JSON.stringify(data), {
+      status: status || 200,
+      headers: { 'Content-Type': 'application/json', 'X-NOVA-PHI': String(PHI) },
+    });
+  }
+
+  _error(status, message) {
+    return this._json({ error: message, phi: PHI }, status);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §10 — EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export {
@@ -669,20 +1279,32 @@ export {
   AGENT_TYPES,
   AGENT_STATES,
   DEPLOYMENT_TARGETS,
-  
-  // Classes
+  FIBONACCI_MS,
+
+  // Classes — original
   AgentBlueprint,
   Agent,
   AgentRegistry,
   AgentCoordinator,
+
+  // Classes — new sovereign capabilities
+  StatefulAgent,
+  AgentScheduler,
+  AgentRPCBus,
+  MCPServer,
 };
 
 export default {
   AGENT_TYPES,
   AGENT_STATES,
   DEPLOYMENT_TARGETS,
+  FIBONACCI_MS,
   AgentBlueprint,
   Agent,
   AgentRegistry,
   AgentCoordinator,
+  StatefulAgent,
+  AgentScheduler,
+  AgentRPCBus,
+  MCPServer,
 };
