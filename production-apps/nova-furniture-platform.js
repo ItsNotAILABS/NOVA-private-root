@@ -273,7 +273,9 @@ function generateQuote(project, opts) {
   /* φ-freight: AMOR% of product cost for delivery logistics */
   const freight      = productCost * AMOR * 0.25;
   const total        = Math.round((subtotal + freight) * (1 + margin) * 100) / 100;
-  const tax          = Math.round(total * 0.0825 * 100) / 100;  /* TX rate */
+  /* Sales tax — defaults to Texas rate (8.25%). Override via opts.taxRate for other jurisdictions. */
+  const taxRate      = (typeof (opts && opts.taxRate) === 'number') ? opts.taxRate : 0.0825;
+  const tax          = Math.round(total * taxRate * 100) / 100;
 
   const quote = {
     quoteId:     `QTE-${secureId(4).toUpperCase()}`,

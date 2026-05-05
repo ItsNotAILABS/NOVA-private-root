@@ -255,7 +255,7 @@ class SafetyMonitor {
         }
       }
     }
-    /* Daily summary (every 144 beats ≈ 2min in heartbeat time) */
+    /* Periodic safety summary (every 144 beats ≈ 2 minutes at 873ms/beat) */
     if (this._beat % 144 === 0) {
       this._emit('SAFETY:REPORT', this.inspectionReport());
     }

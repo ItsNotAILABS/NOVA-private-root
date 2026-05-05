@@ -775,10 +775,13 @@ const PAPER_CORPUS = [
 
 /** Retrieve relevant paper excerpts for a code prompt (used to enrich generation). */
 function getPaperContext(prompt) {
-  const tokens  = _tokeniseCode(prompt);
-  const matches = [];
+  /* Pre-process tokens once and use a Set for O(1) lookups */
+  const tokens    = _tokeniseCode(prompt);
+  const tokenSet  = new Set(tokens.map(t => t.toLowerCase()));
+  const matches   = [];
   for (const paper of PAPER_CORPUS) {
-    const overlap = paper.keyTerms.filter(kw => tokens.some(t => kw.toLowerCase().includes(t) || t.includes(kw.toLowerCase().split(' ')[0]))).length;
+    const kwRoots = paper.keyTerms.map(kw => kw.toLowerCase().split(' ')[0]);
+    const overlap = kwRoots.filter(root => tokenSet.has(root) || tokens.some(t => root.includes(t))).length;
     if (overlap > 0) matches.push({ paper, overlap });
   }
   matches.sort((a, b) => b.overlap - a.overlap);
@@ -1051,13 +1054,14 @@ class SovereignCodingPlatform {
 }
 
 function _inferTopic(message) {
-  const m = (message || '').toLowerCase();
-  if (m.includes('function') || m.includes('def '))    return 'functions';
-  if (m.includes('loop') || m.includes('for ') || m.includes('while ')) return 'loops';
-  if (m.includes('class') || m.includes('object'))     return 'objects';
-  if (m.includes('array') || m.includes('list'))       return 'arrays';
-  if (m.includes('async') || m.includes('await'))      return 'async';
-  if (m.includes('phi') || m.includes('golden'))       return 'phi';
+  /* Use word-boundary tokens to avoid false positives (e.g., 'before', 'information') */
+  const tokens = new Set(_tokeniseCode(message));
+  if (tokens.has('function') || tokens.has('func') || tokens.has('def')) return 'functions';
+  if (tokens.has('loop') || tokens.has('for') || tokens.has('while'))    return 'loops';
+  if (tokens.has('class') || tokens.has('object') || tokens.has('obj'))  return 'objects';
+  if (tokens.has('array') || tokens.has('list') || tokens.has('arr'))    return 'arrays';
+  if (tokens.has('async') || tokens.has('await') || tokens.has('promise')) return 'async';
+  if (tokens.has('phi') || tokens.has('golden') || tokens.has('ratio'))  return 'phi';
   return 'variables';
 }
 

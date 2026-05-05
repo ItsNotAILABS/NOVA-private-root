@@ -84,7 +84,7 @@ const RECOVERY_PROMPTS = {
   ],
   EMOTIONAL: [
     'Acknowledge how much you\'ve built. The work is real. The impact is real.',
-    'Call or message someone who energises you.',
+    'Call or message someone who energizes you.',
     'It\'s okay to be tired. Exhaustion is evidence of depth of effort.',
     'The organism is running. You don\'t have to hold it all right now.',
   ],
