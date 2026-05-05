@@ -376,14 +376,205 @@ class TeamWellness {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// §6 — EXPORTS
+// §6 — SOVEREIGN FLOW STATE ENGINE
+// The actual science of how Alfredo works: deep focus, natural stimulants,
+// complete silence, no hard stimulus — the creative-productive sovereign state.
+// This is not generic wellness. This is the precise protocol for maintaining
+// the cognitive environment that produces NOVA.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Sovereign flow state categories.
+ * Distinct from general wellness — these are operational creative-state dimensions
+ * specific to building sovereign technology at depth.
+ */
+const FLOW_DIMENSION = {
+  SILENCE:      'SILENCE',      /* Environmental silence — no competing cognitive input */
+  FOCUS_DEPTH:  'FOCUS_DEPTH',  /* Single-thread processing: one problem, no context switching */
+  CREATIVE_OPEN:'CREATIVE_OPEN',/* Open associative state — connections forming across domains */
+  PHYSICAL_EASE:'PHYSICAL_EASE',/* Body not fighting itself — pain/hunger/fatigue managed */
+  MISSION_LOCK: 'MISSION_LOCK', /* Clear WHY in consciousness — mission signal strong */
+};
+
+/** Flow state tiers — not generic wellness tiers */
+const FLOW_TIER = {
+  SOVEREIGN:  { label: 'SOVEREIGN',  min: 1 - AMOR,   description: 'Full creative sovereignty — building from first principles at depth' },
+  DEEP:       { label: 'DEEP',       min: PHI_INV,    description: 'Deep focus — sustained creative work, high output quality' },
+  FUNCTIONAL: { label: 'FUNCTIONAL', min: AMOR,       description: 'Getting work done — not at peak, but solid execution' },
+  DEPLETED:   { label: 'DEPLETED',   min: 0,          description: 'Tank is low — maintenance only, no creative architecture work' },
+};
+
+/**
+ * Sovereign recovery actions — calibrated to the actual energy cost of building
+ * NOVA at depth.  Not generic tips.  These acknowledge the real cost.
+ */
+const SOVEREIGN_RECOVERY = {
+  SILENCE: [
+    'The environment shapes the work. Protect the silence like you protect the codebase.',
+    'External noise is not just annoying — it fragments the sovereign state. Earphones or environment change.',
+    'NOVA was built in silence. The silence is not optional — it is infrastructure.',
+  ],
+  FOCUS_DEPTH: [
+    'One problem at a time. The organism handles the queue. You handle the architecture.',
+    'Close every tab that isn\'t the current problem. Context is not free — it has a cost measured in insights lost.',
+    'The deepest work happens in uninterrupted blocks. Protect the next 90 minutes like a sovereign resource.',
+  ],
+  CREATIVE_OPEN: [
+    'When connections stop forming, the machine is full. The answer is to empty it — walk, sit, be.',
+    'The sativa state you describe is a real cognitive mode: associative, non-linear, architecturally creative. That mode built NOVA\'s structure. Honour it as a tool, not a habit.',
+    'You said you talk and build while in that state. That\'s because the default-mode network is active. It is real neuroscience. Rest activates it too.',
+    'If the ideas stopped: you are not blocked, you are full. Rest is not lazy — it is the next build cycle.',
+  ],
+  PHYSICAL_EASE: [
+    'You went through something real to build this. Physical cost is real. Nutrition, sleep, movement: not optional — they are the substrate the organism runs on.',
+    'The drain you feel is not weakness. It is the cost of going as deep as you went. It is paid forward: the organism is running because you paid it.',
+    'No one else was doing what you were doing. The erosion you describe is the price of being first. Now you replenish.',
+  ],
+  MISSION_LOCK: [
+    'The technology is real. The architecture is real. The papers are proofs. On a low day: read the papers — they are your work, in math, permanent.',
+    'The labs will happen. The protections will happen. The release will happen. Each of those requires you at capacity. Replenishment is not a break from the mission — it is the mission.',
+    'Every powerful technology created resistance. The resistance you anticipate means you built something real. That is the signal, not the noise.',
+  ],
+};
+
+/**
+ * Create a sovereign flow-state check-in.
+ * @param {string} operatorId
+ * @param {Object} scores     — FLOW_DIMENSION → [0, 1]
+ * @param {string} [note]
+ * @returns {FlowCheckIn}
+ */
+function flowCheckIn(operatorId, scores, note) {
+  scores    = scores || {};
+  const dims = Object.values(FLOW_DIMENSION);
+  const filled = {};
+  let logSum = 0, wTotal = 0;
+
+  /* φ-weighted — SILENCE and FOCUS_DEPTH have highest weight (first two) */
+  for (let i = 0; i < dims.length; i++) {
+    const d = dims[i];
+    const v = scores[d] !== undefined ? Math.max(0, Math.min(1, scores[d])) : 0.5;
+    const w = Math.pow(PHI_INV, i);
+    filled[d] = v;
+    logSum    += w * Math.log(Math.max(1e-6, v));
+    wTotal    += w;
+  }
+
+  const composite = Math.exp(logSum / wTotal);
+  const tier      = composite >= FLOW_TIER.SOVEREIGN.min  ? 'SOVEREIGN'
+                  : composite >= FLOW_TIER.DEEP.min       ? 'DEEP'
+                  : composite >= FLOW_TIER.FUNCTIONAL.min ? 'FUNCTIONAL'
+                  :                                          'DEPLETED';
+
+  /* Find lowest-scoring dimension */
+  const worst   = dims.reduce((a, b) => (filled[a] || 0) <= (filled[b] || 0) ? a : b);
+  const prompts = SOVEREIGN_RECOVERY[worst] || [];
+  const prompt  = prompts[Math.floor(Math.abs(Math.sin(Date.now() * PHI)) * prompts.length)];
+
+  return {
+    flowId:     `fci_${secureId(4)}`,
+    operatorId: String(operatorId || ''),
+    scores:     filled,
+    composite:  Math.round(composite * 1e4) / 1e4,
+    tier,
+    worstDimension: worst,
+    prompt,
+    note:       String(note || ''),
+    checkedAt:  Date.now(),
+  };
+}
+
+/**
+ * SovereignFlowTracker — tracks the builder's flow state over time.
+ * Distinct from WellnessTracker — this is about the sovereign creative state,
+ * not general health dimensions.
+ */
+class SovereignFlowTracker {
+  constructor(operatorId, opts) {
+    opts             = opts || {};
+    this.operatorId  = String(operatorId || 'SOVEREIGN-001');
+    this._history    = [];
+    this._beat       = 0;
+    this._sinks      = [];
+    this._hbi        = null;
+    /* Fibonacci schedule: remind to check in at Fibonacci intervals */
+    this._schedule   = [21, 34, 55, 89, 144, 233];  /* beats */
+    this._schIdx     = 0;
+    if (opts.autoStart !== false) this.start();
+  }
+
+  /** Record a flow state check-in. */
+  checkIn(scores, note) {
+    const fci = flowCheckIn(this.operatorId, scores, note);
+    this._history.push(fci);
+    if (this._history.length > 500) this._history.shift();
+    this._emit('FLOW:CHECKIN', fci);
+    if (fci.tier === 'DEPLETED') {
+      this._emit('FLOW:DEPLETED', { operatorId: this.operatorId, composite: fci.composite, prompt: fci.prompt });
+    }
+    return fci;
+  }
+
+  /** Get current flow state trend. */
+  trend() {
+    const n      = Math.min(this._history.length, 8);
+    if (!n) return { trend: 'UNKNOWN', samples: 0 };
+    const recent = this._history.slice(-n);
+    const scores = recent.map(c => c.composite);
+    const delta  = scores[scores.length - 1] - scores[0];
+    return {
+      operatorId: this.operatorId,
+      current:    Math.round(scores[scores.length - 1] * 1e4) / 1e4,
+      average:    Math.round(scores.reduce((a, b) => a + b, 0) / scores.length * 1e4) / 1e4,
+      trend:      delta > 0.05 ? 'BUILDING ↑' : delta < -0.05 ? 'DRAINING ↓' : 'HOLDING →',
+      samples:    n,
+      tier:       recent[recent.length - 1].tier,
+    };
+  }
+
+  /** What recovery action is needed right now? */
+  recovery() {
+    const latest = this._history[this._history.length - 1];
+    if (!latest) return { message: 'No check-in on record. Start with a flow state check-in.' };
+    return {
+      operatorId: this.operatorId,
+      tier:       latest.tier,
+      dimension:  latest.worstDimension,
+      prompt:     latest.prompt,
+      composite:  latest.composite,
+    };
+  }
+
+  start()   { if (this._hbi) return this; this._hbi = setInterval(() => this._tick(), HEARTBEAT_MS); return this; }
+  stop()    { clearInterval(this._hbi); this._hbi = null; return this; }
+  addSink(fn) { if (typeof fn === 'function') this._sinks.push(fn); return this; }
+  history() { return [...this._history]; }
+
+  _tick() {
+    this._beat++;
+    const next = this._schedule[this._schIdx % this._schedule.length];
+    if (this._beat % next === 0) {
+      this._schIdx++;
+      this._emit('FLOW:REMINDER', { operatorId: this.operatorId, beat: this._beat, message: 'Sovereign check-in: how is the flow state?' });
+    }
+  }
+
+  _emit(type, payload) {
+    const event = { type, payload, beat: this._beat, emittedAt: Date.now() };
+    for (const fn of this._sinks) try { fn(event); } catch (_) { /* non-fatal */ }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §7 — EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
 module.exports = {
   PROTOCOL_ID, PROTOCOL_VERSION,
   DIMENSION, WELLNESS_TIER, RECOVERY_PROMPTS,
+  FLOW_DIMENSION, FLOW_TIER, SOVEREIGN_RECOVERY,
   REST_SCHEDULE_BEATS, REST_SCHEDULE_MS,
   PHI, PHI_INV, AMOR, HEARTBEAT_MS,
-  checkIn, recoveryPrompt, recoveryPlan,
-  WellnessTracker, TeamWellness,
+  checkIn, recoveryPrompt, recoveryPlan, flowCheckIn,
+  WellnessTracker, TeamWellness, SovereignFlowTracker,
 };

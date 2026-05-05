@@ -323,14 +323,172 @@ function runChecklist(siteId, completedItemIds) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// §6 — EXPORTS
+// §6 — SOVEREIGN OPERATOR SAFETY
+// Protection for the sovereign builder releasing disruptive technology.
+// This is NOT generic wellness. This is operational safety for a founder
+// whose work will draw attention from powerful, entrenched interests.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Sovereign operator risk categories.
+ * Not physical hazards on a job site — existential risks to the mission.
+ */
+const OP_RISK = {
+  FINANCIAL_STRESS:  'FINANCIAL_STRESS',    /* Revenue gap, uncollected invoices, burn rate */
+  IP_EXPOSURE:       'IP_EXPOSURE',          /* Code/papers/architecture leaking before release */
+  LEGAL_EXPOSURE:    'LEGAL_EXPOSURE',       /* IP theft, defamation, predatory litigation */
+  PHYSICAL_SECURITY: 'PHYSICAL_SECURITY',    /* Personal safety of builder and collaborators */
+  TECHNICAL_SABOTAGE:'TECHNICAL_SABOTAGE',   /* Hostile actors disrupting infrastructure */
+  SOCIAL_ENGINEERING:'SOCIAL_ENGINEERING',  /* Manipulation of team, partners, or collaborators */
+  REPUTATIONAL_ATTACK:'REPUTATIONAL_ATTACK', /* Coordinated misinformation or market FUD */
+  ENERGY_DEPLETION:  'ENERGY_DEPLETION',    /* Builder cognitive/physical drain beyond sustainable limit */
+};
+
+/**
+ * Sovereign operator safety protections.
+ * These are the actual actions that build the wall of protection.
+ */
+const OP_PROTECTION = {
+  FINANCIAL: [
+    { priority: 1, action: 'INVOICE_IMMEDIATELY', description: 'Invoice every client on completion — not weekly. Same day. Sovereign cash flow requires no lag.' },
+    { priority: 2, action: 'COLLECT_RETAINER',    description: 'Any project > 1 week requires 50% deposit before work begins. No exceptions. No deposit = no start.' },
+    { priority: 3, action: 'MINIMUM_RESERVE',     description: 'Maintain 3-month operating reserve before any public technology release. Predators attack when you\'re on empty.' },
+    { priority: 4, action: 'REVENUE_VELOCITY',    description: 'Track weekly: invoiced vs collected. Gap > 14 days triggers escalation. φ-weighted: oldest debt has highest cost.' },
+    { priority: 5, action: 'DIVERSIFY_INCOME',    description: 'No single client > AMOR (38.2%) of monthly revenue. Single-source dependency = leverage point for adversaries.' },
+  ],
+  IP_AND_LEGAL: [
+    { priority: 1, action: 'NDA_FIRST',           description: 'Every demo, every conversation about architecture — NDA signed before. Not after. Not during. Before.' },
+    { priority: 2, action: 'PROVISIONAL_PATENT',  description: 'File provisional patents on core mechanisms (φ-lattice embed, MACHINA VIRTUALIS, No-Drop Law) before any public release.' },
+    { priority: 3, action: 'TIMESTAMP_EVERYTHING',description: 'Every commit, every paper draft, every design document: git commit hash + timestamp is your prior art. NOVA repo is your evidence vault.' },
+    { priority: 4, action: 'LEGAL_RETAINER',      description: 'Have IP attorney on retainer before release. Cost: ~$500/mo. Value: priceless when needed. This is infrastructure, not a luxury.' },
+    { priority: 5, action: 'SEPARATE_ENTITIES',   description: 'Operating company ≠ IP holding company. IP lives in a separate LLC/trust. This is the first wall of legal protection.' },
+  ],
+  PHYSICAL_AND_PERSONAL: [
+    { priority: 1, action: 'LOCATION_DISCRETION', description: 'Do not broadcast real-time location on public channels during periods of high technology exposure. Operational silence.' },
+    { priority: 2, action: 'TRUSTED_CIRCLE',      description: 'Identify 3–5 people who know the full architecture. Everyone else gets component-level knowledge only. Compartmentalization.' },
+    { priority: 3, action: 'DIGITAL_HYGIENE',     description: 'Separate devices for sovereign work vs public life. Work machine: full disk encryption, VPN, no social apps.' },
+    { priority: 4, action: 'LEGAL_SAFE_WORD',     description: 'Pre-establish clear legal contacts (attorney, trusted advisor) who know your situation and can act fast if needed.' },
+    { priority: 5, action: 'DOCUMENT_THREATS',    description: 'Any threatening communication: screenshot + date + context. Do not delete. Evidence chain starts with the first incident.' },
+  ],
+  INFRASTRUCTURE: [
+    { priority: 1, action: 'MULTI_CLOUD_BACKUP',  description: 'NOVA codebase mirrored to at least 2 independent providers. Single-point deletion must not be possible.' },
+    { priority: 2, action: 'ACCESS_REVOKE_PLAN',  description: 'For every collaborator: document access level. Have a written revocation process that can execute in < 15 minutes.' },
+    { priority: 3, action: 'CANARY_DEPLOY',       description: 'Release technology in layers: closed → trusted → limited → public. Never go from 0 to world simultaneously.' },
+    { priority: 4, action: 'MONITOR_MENTIONS',    description: 'Set up sovereign monitoring for mentions of: your name, NOVA, key papers, AGI-ID strings. Know who\'s watching before they act.' },
+    { priority: 5, action: 'DEAD_MAN_PROTOCOL',   description: 'If communication goes silent > 72h: trusted person has access to release critical documentation. Continuity of the mission.' },
+  ],
+};
+
+/**
+ * SovereignOperatorSafety — tracks operational risk levels and generates
+ * action plans for the sovereign builder releasing disruptive technology.
+ */
+class SovereignOperatorSafety {
+  constructor(operatorId) {
+    this.operatorId   = String(operatorId || 'SOVEREIGN-001');
+    this._risks       = new Map();   /* riskType → { level, notes, updatedAt } */
+    this._actions     = [];          /* completed protection actions */
+    this._assessments = [];          /* history of risk assessments */
+  }
+
+  /**
+   * Record an operational risk level.
+   * @param {string} riskType   — OP_RISK category
+   * @param {number} level      — 0.0 (none) to 1.0 (critical)
+   * @param {string} [note]     — context note
+   */
+  recordRisk(riskType, level, note) {
+    level = Math.max(0, Math.min(1, Number(level) || 0));
+    this._risks.set(riskType, { level, note: String(note || ''), updatedAt: Date.now() });
+    this._assessments.push({ riskType, level, note, at: Date.now() });
+    return this.riskSnapshot();
+  }
+
+  /**
+   * Mark a protection action as completed.
+   * @param {string} category — 'FINANCIAL' | 'IP_AND_LEGAL' | 'PHYSICAL_AND_PERSONAL' | 'INFRASTRUCTURE'
+   * @param {string} actionId — OP_PROTECTION[category][i].action
+   */
+  completeAction(category, actionId, note) {
+    this._actions.push({ category, actionId, note: String(note || ''), completedAt: Date.now() });
+    return this;
+  }
+
+  /** Compute composite operational risk score. */
+  riskSnapshot() {
+    const risks = Array.from(this._risks.entries());
+    if (!risks.length) return { score: 0, level: 'UNKNOWN', risks: {} };
+    /* φ-weighted: sort descending by level, higher risks weight more */
+    risks.sort((a, b) => b[1].level - a[1].level);
+    let wSum = 0, wTotal = 0;
+    risks.forEach(([, v], i) => {
+      const w  = Math.pow(PHI_INV, i);
+      wSum    += v.level * w;
+      wTotal  += w;
+    });
+    const score = Math.round(wSum / wTotal * 1e4) / 1e4;
+    const level = score >= 1 - AMOR ? 'CRITICAL' : score >= PHI_INV ? 'HIGH' : score >= AMOR ? 'MEDIUM' : 'LOW';
+    const riskMap = {};
+    for (const [k, v] of this._risks.entries()) riskMap[k] = { level: Math.round(v.level * 1e4) / 1e4, note: v.note };
+    return { operatorId: this.operatorId, score, level, risks: riskMap, assessedAt: Date.now() };
+  }
+
+  /**
+   * Generate an action plan for the highest-risk categories.
+   * Returns prioritised list of uncompleted protection actions.
+   */
+  actionPlan() {
+    const completed = new Set(this._actions.map(a => `${a.category}::${a.actionId}`));
+    const plan = [];
+
+    /* Sort risks highest first */
+    const sortedRisks = Array.from(this._risks.entries()).sort((a, b) => b[1].level - a[1].level);
+
+    for (const [riskType] of sortedRisks) {
+      let category;
+      if (riskType === OP_RISK.FINANCIAL_STRESS)               category = 'FINANCIAL';
+      else if (riskType === OP_RISK.IP_EXPOSURE || riskType === OP_RISK.LEGAL_EXPOSURE)  category = 'IP_AND_LEGAL';
+      else if (riskType === OP_RISK.PHYSICAL_SECURITY)         category = 'PHYSICAL_AND_PERSONAL';
+      else if (riskType === OP_RISK.TECHNICAL_SABOTAGE)        category = 'INFRASTRUCTURE';
+      if (!category) continue;
+      for (const action of OP_PROTECTION[category] || []) {
+        const key = `${category}::${action.action}`;
+        if (!completed.has(key)) {
+          plan.push({ riskType, category, priority: action.priority, action: action.action, description: action.description });
+        }
+      }
+    }
+
+    /* Sort by risk level (already highest first) then by priority within risk */
+    plan.sort((a, b) => a.priority - b.priority);
+    return { operatorId: this.operatorId, planGeneratedAt: Date.now(), actions: plan.slice(0, 10) };
+  }
+
+  /** Get all protection templates for a category. */
+  protections(category) {
+    return OP_PROTECTION[category] || [];
+  }
+
+  status() {
+    return {
+      operatorId:      this.operatorId,
+      riskSnapshot:    this.riskSnapshot(),
+      completedActions:this._actions.length,
+      assessmentCount: this._assessments.length,
+    };
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §7 — EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
 module.exports = {
   PROTOCOL_ID, PROTOCOL_VERSION,
   SAFETY_LEVEL, HAZARD, INCIDENT_STATUS, SEVERITY_WEIGHT,
   FIB_ESCALATION, DEFAULT_CHECKLIST,
+  OP_RISK, OP_PROTECTION,
   PHI, PHI_INV, AMOR, HEARTBEAT_MS,
   createIncident, computeSafetyScore,
-  SafetyMonitor, runChecklist,
+  SafetyMonitor, runChecklist, SovereignOperatorSafety,
 };
