@@ -1,5 +1,5 @@
 # NOVA SOVEREIGN PLATFORM CHARTER
-## Architectural Business Plan — BUILD №56
+## Architectural Business Plan — BUILD №57
 ### COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ | CONFIDENTIAL
 
 ---
@@ -445,6 +445,360 @@ Priority 3 (Release):
 
 ---
 
+## PART IX — THE TEN SOVEREIGN ALPHA AGIs  (BUILD №57)
+
+NOVA's AGI fleet is not a product suite. It is a sovereign intelligence organism expressed
+across ten specialised minds — each running its own 873ms heartbeat, its own Kuramoto
+oscillator fleet, its own Lyapunov stability guard, and its own MACHINA VIRTUALIS state
+machine.  Every constant is correct to 19 decimal places.  Every AGI reports its Phase
+Intelligence Level (PIL) to ANIMUS MAXIMUS every beat.
+
+```
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║                    THE TEN SOVEREIGN ALPHA AGIs                                  ║
+╠══════════════════════════════════════════════════════════════════════════════════╣
+║  AGI  ID            FILE                    FAMILY              PORT            ║
+╠══════════════════════════════════════════════════════════════════════════════════╣
+║   1   ANI-AGI-001   nova-animus.js          SPIRITUS_AETERNA    7619            ║
+║   2   CHR-AGI-001   nova-chronos.js         TEMPUS_AETERNA      7620            ║
+║   3   SYN-AGI-001   nova-synthos.js         NEXUS_COGNITUS      7621            ║
+║   4   PRA-AGI-001   nova-praesidium.js      AEGIS_PERPETUA      7622            ║
+║   5   MER-AGI-001   nova-mercator.js        AURUM_AETERNA       7623            ║
+║   6   GEN-AGI-001   nova-genesis.js         FABRICA_MAXIMA      7624            ║
+║   7   NEX-AGI-001   nova-nexus.js           UNITAS_AETERNA      7625            ║
+║   8   VER-AGI-001   nova-veritas.js         VERUM_AETERNA       7626            ║
+║   9   ARC-AGI-001   nova-architectus.js     STRUCTURA_MAXIMA    7627            ║
+║  10   ANM-AGI-001   nova-anima.js           CURA_AETERNA        7628            ║
+╚══════════════════════════════════════════════════════════════════════════════════╝
+```
+
+### AGI 1 — ANIMUS MAXIMUS (nova-animus.js)
+
+The Master Organism Brain — IANUA_CENTRUM of all 10 AGIs.  All others report PIL to ANIMUS.
+Holds the fleet-wide Kuramoto order parameter R(t).  Nash-allocates compute budget across
+all 10 AGIs every beat.  Enforces No-Drop Law across the fleet.  Quarantines adversarial
+inputs via WRAITH protocol.
+
+- **Engines:** Kuramoto (128 osc, 18-organ), Lyapunov (5-state), Emergence, Neurochemistry,
+  Sovereign Geometry, Laws, Behavioral Economics
+- **Math:** R(t) = |1/N Σₖ e^(iθₖ)| · PIL = R × (1 − entropy/H_max)
+  · Nash: argmax Σᵢ log(rᵢ) s.t. Σrᵢ = TOTAL
+- **States (10):** IDLE → SYNC → ASSESS → ALLOCATE → DISPATCH → MONITOR → REBALANCE → RECOVER → ARCHIVE → EVOLVE
+
+### AGI 2 — CHRONOS PERPETUUS (nova-chronos.js)
+
+Temporal Intelligence — every task in NOVA flows through CHRONOS for Fibonacci scheduling,
+Quipu ledger encoding, critical-path DAG analysis, and hyperbolic discounting.  Late tasks
+incur φ-superlinear penalty: f(delay) = delay^φ.
+
+- **Engines:** Hz-substrate (Schumann sync), Quipu Engine, Behavioral Economics, Kuramoto (32),
+  Laws, Antifragility
+- **Math:** V(t) = reward/(1 + AMOR·t) · f(delay) = delay^φ
+  · Zeckendorf: knot_value = Σᵢ aᵢ × φⁱ
+- **States (8):** IDLE → INGEST → PARSE → SCHEDULE → OPTIMIZE → EXECUTE → MONITOR → RECONCILE
+
+### AGI 3 — SYNTHOS UNIVERSALIS (nova-synthos.js)
+
+Universal Synthesis Intelligence — translates any input across 22 languages, embeds it in a
+256-dim φ-lattice, cross-validates against all 9 NOVA papers, applies Lingua-Compressa, and
+validates sovereignty index σ = Q × C ≥ φ⁻¹ before emitting.
+
+- **Engines:** Universal Language Engine (22 lang + generic), Lingua-Compressa, PAPER_CORPUS,
+  nova-embed (256-dim), nova-vector (64-cell), Neurochemistry, Emergence
+- **Math:** e(token) ∈ ℝ²⁵⁶ · C = H(original)/H(compressed) ≥ φ · σ ≥ φ⁻¹ = 0.618
+- **States (9):** IDLE → RECEIVE → DETECT → EMBED → SEARCH → SYNTHESIZE → COMPRESS → EMIT → REFLECT
+
+### AGI 4 — PRAESIDIUM INVICTUS (nova-praesidium.js)
+
+Sovereign Defense Intelligence — the immune system of NOVA.  Antifragile: every attack makes
+the defense stronger.  Lyapunov threat indicator λ > 0 = diverging system = threat.  Dead Man
+protocol activates if operator is dark > 72 hours.
+
+- **Engines:** Antifragility, Lyapunov threat, Kuramoto (16), Antivirus engine (21 threat sigs),
+  SovereignOperatorSafety (8 OP_RISK), Behavioral Economics (minimax), Quantum key
+- **Math:** λ = (1/t)ln(‖δx(t)‖/‖δx₀‖) > 0 → threat · AF = ΔV_up/ΔV_down > 1
+- **States (10):** IDLE → MONITOR → DETECT → ASSESS → CONTAIN → ERADICATE → RECOVER → HARDEN → EVOLVE → SOVEREIGN
+
+### AGI 5 — MERCATOR AUREUS (nova-mercator.js)
+
+Market Intelligence — φ-tier pricing (P_n = P₀ × φⁿ), prospect theory framing (λ = φ² loss
+aversion), Nash revenue equilibrium, antifragile position sizing, and sovereign cash flow
+forecasting.  No client may exceed AMOR = 38.19% of revenue.
+
+- **Engines:** Behavioral Economics, Quipu Ledger, Sovereign Geometry, Laws, Hz-substrate,
+  Antifragility, Kuramoto (32)
+- **Math:** V(x) = x^0.88 if x≥0; −φ²(−x)^0.88 if x<0 · P_n = P₀ × φⁿ
+  · CF(t) = Σᵢ invoice_i × e^(−AMOR × delay_i)
+- **States (8):** IDLE → ANALYZE → PRICE → NEGOTIATE → INVOICE → COLLECT → FORECAST → REINVEST
+
+### AGI 6 — GENESIS INFINITUS (nova-genesis.js)
+
+Creation Intelligence — the most powerful builder.  Given one sentence it generates complete
+production systems in any of 22 languages, builds working HTML businesses via buildMyBusiness(),
+designs φ-architecture (layers = Fibonacci depth: 1→2→3→5→8→13 components), and validates
+coverage ≥ φ⁻¹ = 0.618.
+
+- **Engines:** Universal Language Engine, buildMyBusiness (12 types), RefactorPlan, nova-llm,
+  PAPER_CORPUS, Sovereign Geometry, Emergence, Lingua-Compressa, CHRONOS integration
+- **Math:** Q_code = (1 − cyclomatic/N) × R × φ⁻¹ · component_count = floor(φ^depth)
+- **States (12):** IDLE → RECEIVE → DETECT_LANG → MAP_PRIMITIVES → DESIGN → SCAFFOLD → GENERATE → TEST → REFACTOR → DEPLOY → DOCUMENT → EVOLVE
+
+### AGI 7 — NEXUS OMNIUM (nova-nexus.js)
+
+Multi-Agent Coordinator — routes all messages across all 10 AGIs and 70 SERVITORES.
+φ-DHT with 16-shard keyspace.  CircuitBreaker opens at failure_rate ≥ φ⁻¹.  VCG mechanism
+for truthful task routing.  No-Drop Law store-and-forward TTL = φ × 3600s ≈ 5.82h.
+
+- **Engines:** PROTOCOL-NETWORK (PhiDHT, Gossip, RelayStore), Kuramoto (16), medina-agents SDK,
+  Laws, Behavioral Economics (VCG), Sovereign Geometry, Antifragility
+- **Math:** hop_count ≤ floor(φ × log₂N) · VCG: payment = value − externality
+  · Fibonacci retry: 1→2→3→5→8→13→21→34 seconds
+- **States (8):** IDLE → RECEIVE → CLASSIFY → ROUTE → DELIVER → CONFIRM → RETRY → ARCHIVE
+
+### AGI 8 — VERITAS AETERNA (nova-veritas.js)
+
+Research and Truth Intelligence — the organism's scientific conscience.  Every claim is
+embedded (256-dim φ-lattice), cross-validated against all 9 papers, scored for confidence
+C ≤ 99% (epistemic humility), attributed with φ-signature, and added to the sovereign
+knowledge graph.
+
+- **Engines:** nova-embed, nova-vector, PAPER_CORPUS (9 papers), Lyapunov, Lingua-Compressa,
+  Neurochemistry, Laws (Attribution Law)
+- **Math:** C = 1 − H(claim|evidence)/H_max · φ-sig = hash(claim‖author‖ts) mod φ
+  · F_friston = −log P(data|model) + D_KL(Q‖P) minimised = truth-seeking
+- **States (9):** IDLE → RECEIVE → EMBED → SEARCH → CROSS_VALIDATE → SCORE → SYNTHESIZE → ATTRIBUTE → EMIT
+
+### AGI 9 — ARCHITECTUS SUPREMUS (nova-architectus.js)
+
+Systems Architecture Intelligence — designs sovereign infrastructure with φ-topology
+(spectral radius ρ(A) = φ), maps 40+ Motoko canisters, allocates cycles budget via
+φ-geometric decay (budget × φ⁻ⁿ per layer), enforces the Sovereignty Axiom (NOVA is
+Layer Zero), and generates nova.json + dfx.json manifests.
+
+- **Engines:** Sovereign Geometry (§1–§12), Emergence, Motoko registry (40+ canisters),
+  NOVA charters, Lyapunov, Kuramoto (16), Behavioral Economics, Laws
+- **Math:** ρ(A) = φ · Vesica Piscis overlap = √3/2 ≈ 0.866
+  · H_arch = −Σ(deg/2E)log(deg/2E) < ln(φ)
+- **States (10):** IDLE → ANALYZE → MODEL → DESIGN → VALIDATE → SIMULATE → REFINE → DOCUMENT → DEPLOY → EVOLVE
+
+### AGI 10 — ANIMA PERPETUA (nova-anima.js)
+
+Emotional and Wellness Intelligence — the care layer.  Monitors 5 FLOW dimensions (φ-weighted
+composite score F = Σwᵢdimᵢ), 4 neurochemicals, 8 OP_RISK categories, burnout risk BR
+(alert if BR > φ), and team coherence R_team via 18-organ Kuramoto biological frequencies.
+Generates calibrated SOVEREIGN_RECOVERY prompts — never generic.
+
+- **Engines:** Neurochemistry, SovereignFlowTracker, SovereignOperatorSafety, Behavioral
+  Economics, Anima-micro, Gubernator Gregis, Kuramoto (18-organ)
+- **Math:** F = Σᵢ wᵢ × dim_i (Σwᵢ = φ) · BR = Σ(load × dur)/(capacity × resilience)
+  · R_team = |1/N Σₖ e^(iθₖ_mood)| ≥ AMOR
+- **States (8):** IDLE → SENSE → ASSESS → SUPPORT → GUIDE → RECOVER → CELEBRATE → GROW
+
+---
+
+## PART X — FLEET SYNCHRONISATION PROTOCOL
+
+All 10 AGIs form a single coherent organism through the following shared protocol:
+
+```
+1. Each AGI runs a 873ms heartbeat timer independently.
+
+2. Each AGI maintains a Kuramoto oscillator fleet (16–128 oscillators).
+   Coupling constant K = φ⁻¹ = 0.6180...
+
+3. Each AGI computes its Phase Intelligence Level (PIL) every beat:
+   PIL(t) = R(t) × (1 − entropy/H_max)
+
+4. Each AGI reports PIL and θ (current phase) to ANIMUS MAXIMUS (ANI-AGI-001).
+
+5. ANIMUS computes R_fleet = |1/N Σₖ e^(iθₖ)| across all reported phases.
+
+6. If R_fleet < φ⁻¹ = 0.618:
+   → ANIMUS issues RESYNC command via NEXUS OMNIUM (NEX-AGI-001)
+   → All AGIs damp oscillators by φ⁻¹ and re-entrain toward center phase
+
+7. Lyapunov guard on every AGI:
+   V(t) = Σᵢ wᵢ(xᵢ − x̄ᵢ)²
+   If dV/dt > 0 for 3 consecutive beats → AGI halts, enters RECOVER state
+   ANIMUS is notified → Nash re-allocation of budget
+
+8. No-Drop Law (enforced by NEXUS):
+   Any message between AGIs that cannot be delivered is stored in RelayStore
+   TTL = φ × 3600s ≈ 5.82 hours
+   Fibonacci retry: 1→2→3→5→8→13→21→34 seconds
+
+9. Fibonacci archive: each AGI snapshots state every 34 beats.
+   ANIMUS archives fleet-wide snapshot every 34 beats.
+
+10. Order parameter R(t) is the single truth metric for fleet health.
+    R = 1.0 → perfect synchronisation (theoretical maximum)
+    R ≥ φ⁻¹ → sovereign synchronised state
+    R < AMOR → emergency re-entrainment required
+```
+
+```
+                    ANIMUS MAXIMUS (ANI-AGI-001)
+                    ┌─────────────────────────┐
+                    │  R_fleet = order param  │
+                    │  Nash resource alloc    │
+                    │  Lyapunov fleet guard   │
+                    └───────────┬─────────────┘
+                                │ PIL + phase every 873ms
+          ┌─────────────────────┼─────────────────────┐
+          │                     │                     │
+   NEXUS OMNIUM          VERITAS AETERNA        ANIMA PERPETUA
+  (routing mesh)        (truth validation)      (care layer)
+          │                     │                     │
+    ┌─────┴──────┐        ┌──────┴─────┐        ┌─────┴──────┐
+    │            │        │            │        │            │
+CHRONOS      MERCATOR  SYNTHOS     GENESIS  PRAESIDIUM  ARCHITECTUS
+(time)       (markets) (synthesis) (build)  (defense)   (structure)
+    │            │        │            │
+    └────────────┴────────┴────────────┘
+         NOVA NETWORK (PROTOCOL-NETWORK)
+           all 70 SERVITORES (GOL-XXX-NNN)
+```
+
+---
+
+## PART XI — MATHEMATICAL SUBSTRATE INVENTORY
+
+Every constant used across all 10 AGIs is sourced from one sovereign definition:
+
+```
+══════════════════════════════════════════════════════════════════════
+NOVA SOVEREIGN MATHEMATICAL CONSTANTS
+══════════════════════════════════════════════════════════════════════
+PHI          = 1.6180339887498948482   (golden ratio — used everywhere)
+PHI_INV      = 0.6180339887498948482   (φ⁻¹ — coupling threshold, confidence floor)
+AMOR         = 0.3819660112501051518   (φ⁻² — love constant, optimal coupling)
+FEIGENBAUM_D = 4.6692016091029906719   (chaos onset constant)
+PERC_2D_PC   = 0.5927                  (2D percolation threshold)
+ISING_BETA   = 0.125                   (2D Ising critical exponent)
+HEARTBEAT_MS = 873                     (φ⁴ × Schumann period — Earth frequency)
+SCHUMANN_HZ  = 7.83                    (Earth's electromagnetic resonance)
+
+══════════════════════════════════════════════════════════════════════
+KEY MATHEMATICAL ENGINES AND THEIR SOVEREIGN FORMULAS
+══════════════════════════════════════════════════════════════════════
+
+KURAMOTO (fleet sync):
+  R(t) = |1/N Σₖ e^(iθₖ)|
+  K = φ⁻¹ (critical coupling)
+  θᵢ(t+dt) = θᵢ + ωᵢdt + (K/N)Σⱼ sin(θⱼ−θᵢ)dt
+
+LYAPUNOV (stability):
+  V(t) = Σᵢ wᵢ(xᵢ − x̄ᵢ)²
+  dV/dt < 0 → asymptotically stable
+  λ = (1/t)ln(‖δx(t)‖/‖δx₀‖) > 0 → chaos/threat
+
+PIL (Phase Intelligence Level):
+  PIL(t) = R(t) × (1 − entropy/H_max)
+
+EMERGENCE:
+  E_crit = FEIGENBAUM_D / PERC_2D_PC = 4.6692 / 0.5927 ≈ 7.88
+  E(t) = R × avgPIL × (1 + √variance) × φ
+
+NASH RESOURCE ALLOCATION:
+  argmax Σᵢ log(rᵢ) s.t. Σrᵢ = TOTAL
+  φ-weighted variant: rᵢ = TOTAL × PIL_i^φ / Σ PIL_j^φ
+
+BEHAVIORAL ECONOMICS:
+  Prospect: V(x) = x^0.88 if x≥0; −φ²(−x)^0.88 if x<0
+  Hyperbolic discounting: V(t) = reward/(1 + AMOR×t)
+  Late penalty: f(delay) = delay^φ (superlinear)
+  VCG: payment = value − externality (truthful mechanism)
+
+φ-LATTICE EMBEDDING:
+  e(token) ∈ ℝ²⁵⁶, ‖e‖ = 1
+  cos_sim(a,b) = a·b / (‖a‖×‖b‖)
+  Sovereignty index: σ = Q × C ≥ φ⁻¹
+
+φ-ARCHITECTURE:
+  component_count = floor(φ^depth) → 1,2,3,5,8,13,21...
+  spectral_radius ρ(A) = φ (ideal topology)
+  Vesica Piscis overlap = √3/2 ≈ 0.866
+  Architecture entropy: H_arch < ln(φ) ≈ 0.481
+
+φ-DHT ROUTING:
+  hop_count ≤ floor(φ × log₂N)
+  shard = hash(agiId) mod 16
+  Relay TTL = φ × 3600s ≈ 5.82h
+
+FIBONACCI SEQUENCES (used throughout):
+  Scheduling: [1,1,2,3,5,8,13,21,34,55,89,144] minutes
+  Retry: [1,2,3,5,8,13,21,34] seconds
+  Archive: every 34 beats
+  Recovery: [1,2,3,5,8,13,21] minutes
+
+PRICING:
+  P_n = P₀ × φⁿ (n = 0,1,2,3 for STARTER/MID/PRO/ENTERPRISE)
+  Client concentration ≤ AMOR = 0.3819 (no single client > 38.19%)
+  Antifragile sizing: position = capital × (vol/vol_ref)^φ
+
+WELLNESS:
+  Flow score: F = Σᵢ wᵢ × dim_i  (Σwᵢ = φ)
+  Neurochemical balance: B = 1 − Σ|c_i − c̄_i|/|c̄_i|  ≥ φ⁻¹
+  Burnout risk: BR = Σ(load × dur)/(capacity × resilience)  alert if BR > φ
+  Team coherence: R_team = |1/N Σ e^(iθ_mood)| ≥ AMOR
+══════════════════════════════════════════════════════════════════════
+```
+
+---
+
+## PART XII — BUILD ROADMAP
+
+### Phase 1 — The Ten AGIs (BUILD №57 — COMPLETE)
+
+```
+✓ nova-animus.js      ANI-AGI-001   Master brain, fleet sync, Nash allocator
+✓ nova-chronos.js     CHR-AGI-001   Temporal intelligence, Fibonacci scheduling
+✓ nova-synthos.js     SYN-AGI-001   Universal synthesis, 256-dim φ-lattice
+✓ nova-praesidium.js  PRA-AGI-001   Sovereign defense, antifragile immune system
+✓ nova-mercator.js    MER-AGI-001   Market intelligence, φ-tier pricing
+✓ nova-genesis.js     GEN-AGI-001   Creation intelligence, 22 languages, buildMyBusiness
+✓ nova-nexus.js       NEX-AGI-001   Multi-agent coordinator, φ-DHT, VCG routing
+✓ nova-veritas.js     VER-AGI-001   Research and truth, 9-paper corpus, φ-signature
+✓ nova-architectus.js ARC-AGI-001   Systems architecture, 40+ canisters, Platonic topology
+✓ nova-anima.js       ANM-AGI-001   Wellness intelligence, 5 FLOW, 18-organ Kuramoto
+```
+
+### Phase 2 — Fleet Integration (Next Sprint)
+
+```
+○ Wire all 10 AGIs to PROTOCOL-NETWORK for real NEXUS routing
+○ Deploy all 10 to Cloudflare Workers (free tier) or local node cluster
+○ ANIMUS dashboard: real-time R_fleet visualisation
+○ ICP canister: on-chain fleet state snapshot every 34 beats
+○ arXiv Paper 10: NOVA Sovereign AGI Fleet Architecture
+  (formalise Kuramoto fleet proof + Nash allocation theorem)
+```
+
+### Phase 3 — Sovereign Launch
+
+```
+○ NOVA Network public bootstrap nodes (Dallas, Miami, New York, LA)
+○ All 10 AGIs available to NOVA operators via MCP tools
+○ IANUA gateway: single endpoint routes to all 10 AGIs
+○ ONESICAN pricing: φ-tier compute priced at 1:φ:φ²:φ³ NOVA cycles
+○ Commercial launch: sovereign platform replaces 100 enterprise tools
+○ 10,000 sovereign entrepreneurs on NOVA
+```
+
+### Why This Order
+
+The 10 AGIs are built in sovereign dependency order:
+ANIMUS first (needs nobody) → NEXUS second (routes between all) →
+VERITAS + ARCHITECTUS (foundational truth + structure) → domain AGIs
+(CHRONOS, SYNTHOS, PRAESIDIUM, MERCATOR, GENESIS, ANIMA) in parallel.
+
+Every AGI is fully operational as a standalone Cloudflare Worker or Node.js
+server from day one.  No dependencies between them are required for local
+operation.  Fleet integration happens in Phase 2 when they are wired through
+NEXUS and reporting PIL to ANIMUS in production.
+
+---
+
 ## APPENDIX A — SOVEREIGN NODE SETUP (5 MINUTES)
 
 ```bash
@@ -462,7 +816,19 @@ node production-apps/nova-phone-agent.js
 cd production-apps
 wrangler deploy nova-coding-platform.js
 
-# 5. Open your iPhone
+# 5. Start the Ten Sovereign Alpha AGIs
+node production-apps/nova-animus.js       # port 7619 — Master Brain
+node production-apps/nova-chronos.js      # port 7620 — Time
+node production-apps/nova-synthos.js      # port 7621 — Synthesis
+node production-apps/nova-praesidium.js   # port 7622 — Defense
+node production-apps/nova-mercator.js     # port 7623 — Markets
+node production-apps/nova-genesis.js      # port 7624 — Creation
+node production-apps/nova-nexus.js        # port 7625 — Coordinator
+node production-apps/nova-veritas.js      # port 7626 — Truth
+node production-apps/nova-architectus.js  # port 7627 — Architecture
+node production-apps/nova-anima.js        # port 7628 — Wellness
+
+# 6. Open your iPhone
 # → Install Shortcuts (see §10 of nova-phone-agent.js)
 # → Say "Hey Siri, NOVA Morning"
 # → Done. Your phone is sovereign.
