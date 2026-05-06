@@ -73,7 +73,9 @@ function timestamp() { return new Date().toISOString(); }
 // Routing through Phantom: no plaintext ever hits an external server.
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const PHANTOM_KEY_MATERIAL = 'NOVA_PHANTOM_SOVEREIGN_KEY_2026';  /* derive real key from user wallet */
+/* ⚠️  DEVELOPMENT PLACEHOLDER — load from environment in production:
+   process.env.NOVA_PHANTOM_KEY  or derive from Phantom wallet private key. */
+const PHANTOM_KEY_MATERIAL = process.env.NOVA_PHANTOM_KEY || 'NOVA_PHANTOM_DEV_KEY_DO_NOT_DEPLOY';
 
 /**
  * Phantom envelope — seals a payload for sovereign transport.
@@ -235,12 +237,14 @@ const CRITICAL_SIGNALS = ['urgent', 'asap', 'immediately', 'emergency', 'payment
 const NOISE_SIGNALS    = ['unsubscribe', 'newsletter', 'promotion', 'sale', '% off', 'coupon', 'deal', 'offer expires', 'discount'];
 
 class EmailAgent {
-  constructor() {
+  constructor(opts) {
+    opts            = opts || {};
     this.servitorId = `GOL-MAIL-${secureId(3).toUpperCase()}`;
     this._messages  = [];
     this._beat      = 0;
     this._sinks     = [];
     this._drafts    = [];
+    this._signature = opts.signature || '';   /* configurable sign-off name */
   }
 
   /**
@@ -327,8 +331,9 @@ class EmailAgent {
 
   _intentToDraft(intent, msg) {
     /* Sovereign draft — direct, no filler, professional */
-    const greeting = msg && msg.from ? `Hi${msg.from.includes('@') ? '' : ' ' + msg.from.split(' ')[0]},\n\n` : '';
-    return `${greeting}${intent}.\n\nBest,\nAlfredo`;
+    const greeting   = msg && msg.from ? `Hi${msg.from.includes('@') ? '' : ' ' + msg.from.split(' ')[0]},\n\n` : '';
+    const signOff    = this._signature ? `\n\nBest,\n${this._signature}` : '';
+    return `${greeting}${intent}.${signOff}`;
   }
 
   listDrafts() { return [...this._drafts]; }
@@ -869,7 +874,20 @@ class SovereignPhonePlatform {
     };
   }
 
-  start()  { if (this._running) return this; this._running = true; this._hbi = setInterval(() => { this._beat++; this.calendar.tick(); this.email.tick(); this.tasks.tick(); this.finance.tick(); this.security.tick(); this.comms.tick(); }, HEARTBEAT_MS); return this; }
+  start() {
+    if (this._running) return this;
+    this._running = true;
+    this._hbi = setInterval(() => {
+      this._beat++;
+      this.calendar.tick();
+      this.email.tick();
+      this.tasks.tick();
+      this.finance.tick();
+      this.security.tick();
+      this.comms.tick();
+    }, HEARTBEAT_MS);
+    return this;
+  }
   stop()   { this._running = false; clearInterval(this._hbi); this._hbi = null; return this; }
   addSink(fn) { if (typeof fn === 'function') this._sinks.push(fn); return this; }
 

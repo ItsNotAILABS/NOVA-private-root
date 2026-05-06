@@ -53,7 +53,7 @@ const HEARTBEAT_MS = 873;
  * Routing table size: floor(φ × log₂(N)) per node.
  */
 const DHT_SHARDS           = 16;
-const ROUTING_TABLE_SIZE   = Math.floor(PHI * Math.log2(1024));   /* ≈ 16 entries */
+const ROUTING_TABLE_SIZE   = Math.floor(PHI * Math.log2(1024));   /* = 16 entries for N=1024; used as per-shard target */
 const GOSSIP_FAN_OUT       = 3;           /* φ-rounded: send to 3 peers per gossip round */
 const RELAY_TTL_MS         = 3600000 * PHI;   /* ~5.8 hours max relay persistence */
 const LYAPUNOV_ALPHA       = 0.1;         /* Lyapunov update rate */
@@ -145,6 +145,8 @@ class PhiDHT {
       this._table.get(node.nodeId).lastSeen = Date.now();
       return this;
     }
+    /* Total table capacity = ROUTING_TABLE_SIZE × DHT_SHARDS (one per shard slot);
+       4× ROUTING_TABLE_SIZE is a practical upper bound that allows cross-shard redundancy. */
     if (this._table.size >= ROUTING_TABLE_SIZE * 4) {
       this._evictWorstNode();
     }
@@ -401,7 +403,9 @@ class LyapunovMonitor {
   update(disagreement) {
     const V_new   = Math.max(0, Math.min(1, Number(disagreement) || 0));
     this._dV      = V_new - this._V;
-    this._V       = V_new - LYAPUNOV_ALPHA * this._V;   /* damped update */
+    /* Exponential moving average: V(t+1) = (1-α)·V(t) + α·V_new
+       Ensures V̇ ≤ 0 when V_new < V(t) (converging toward lower disagreement). */
+    this._V       = (1 - LYAPUNOV_ALPHA) * this._V + LYAPUNOV_ALPHA * V_new;
     this._V       = Math.max(0, Math.min(1, this._V));
     const stable  = this._dV <= 0;
     if (stable) this._convergeCount++;
@@ -490,7 +494,12 @@ class GossipEngine {
   }
 
   _sample(arr, k) {
-    const shuffled = [...arr].sort(() => Math.sin(Date.now() * PHI) - 0.5);
+    /* Fisher-Yates shuffle with Math.random() for unbiased random sampling. */
+    const shuffled = [...arr];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
     return shuffled.slice(0, k);
   }
 
@@ -518,7 +527,9 @@ function networkSeal(msg, recipientPublicKey) {
   const nonce      = secureId(12);
   const sessionKey = secureId(16);
   const plaintext  = JSON.stringify(msg);
-  /* Sovereign XOR with session key (replace with AES-256-GCM in production) */
+  /* ⚠️  DEVELOPMENT PLACEHOLDER — NOT FOR PRODUCTION.
+     Replace with Node.js crypto.createCipheriv('aes-256-gcm', key, iv)
+     and ECDH key exchange before deploying to a live network. */
   const key        = sessionKey;
   const ciphertext = Array.from(plaintext).map((c, i) =>
     (c.charCodeAt(0) ^ key.charCodeAt(i % key.length)).toString(16).padStart(2, '0')

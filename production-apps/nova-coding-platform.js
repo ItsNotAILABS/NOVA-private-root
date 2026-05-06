@@ -1284,7 +1284,7 @@ function buildMyBusiness(description, overrides) {
           </div>
           <div class="form-row">
             <input type="email"  name="email"   placeholder="Email Address"       required />
-            <input type="date"   name="date"    min="${new Date().toISOString().split('T')[0]}" required />
+            <input type="date"   name="date"    id="booking-date-input" required />
           </div>
           <select name="service" required>
             <option value="">Select a Service...</option>
@@ -1481,6 +1481,11 @@ function buildMyBusiness(description, overrides) {
       /* Optional: send to a webhook */
       /* fetch('/api/book', { method: 'POST', body: JSON.stringify(data) }); */
     }
+    /* Set booking date minimum to today dynamically */
+    (function() {
+      var d = document.getElementById('booking-date-input');
+      if (d) d.setAttribute('min', new Date().toISOString().split('T')[0]);
+    })();
   </script>
 </body>
 </html>`;
@@ -1823,7 +1828,8 @@ SovereignCodingPlatform.prototype.buildMyBusiness = function(description, overri
 };
 
 SovereignCodingPlatform.prototype.generatePricing = function(typeOrDescription, location) {
-  const typeKey = BUSINESS_TEMPLATES[typeOrDescription.toUpperCase()] ? typeOrDescription.toUpperCase() : _detectBusinessType(typeOrDescription);
+  const safeType = String(typeOrDescription || '');
+  const typeKey  = BUSINESS_TEMPLATES[safeType.toUpperCase()] ? safeType.toUpperCase() : _detectBusinessType(safeType);
   return generatePricing(typeKey, location);
 };
 
