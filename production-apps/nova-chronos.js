@@ -301,7 +301,7 @@ function _deadlineAlert(tasks) {
 // §9 — CHRONOS PERPETUUS CORE
 // ═══════════════════════════════════════════════════════════════════════════════
 
-class ChronosPerpetUus {
+class ChronosPerpetuus {
   constructor() {
     this.id      = AGI_ID;
     this.version = AGI_VERSION;
@@ -534,7 +534,7 @@ function _mcpFetch(chronos) {
 // §11 — ENTRY POINT
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const chronos = new ChronosPerpetUus();
+const chronos = new ChronosPerpetuus();
 chronos.start();
 
 if (typeof addEventListener !== 'undefined') {
@@ -566,4 +566,4 @@ if (typeof require !== 'undefined' && require.main === module) {
   });
 }
 
-module.exports = { ChronosPerpetUus, _hyperbolicValue, _latePenalty, _criticalPath, _stressTest };
+module.exports = { ChronosPerpetuus, _hyperbolicValue, _latePenalty, _criticalPath, _stressTest };
