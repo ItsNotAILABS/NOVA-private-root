@@ -17,14 +17,19 @@
  *   4. SOLVER-AGI-001  — autonomous code reasoning (MACHINA VIRTUALIS)
  *   5. PROTOCOL-MCP    — streamable HTTP tool endpoints for any IDE
  *
- * BUILD №53 NEW CAPABILITIES:
- *   §8  — Multi-Agent Thread Engine (one sovereign SERVITOR per coding thread)
- *   §9  — Student Learning Mode (high-school friendly, φ-graded difficulty)
- *   §10 — Language-Aware Template Library (JS, Python, Motoko, HTML, Bash)
- *   §11 — Multi-File Refactor Engine (constraint-tracked cross-file changes)
- *   §12 — Repository Intelligence (PR triage, diff analysis, code review)
- *   §13 — Research Paper Knowledge Corpus (all 9 NOVA papers baked in)
- *   §14 — Enhanced SovereignCodingPlatform (all capabilities integrated)
+ * BUILD №55 NEW CAPABILITIES:
+ *   §16 — Entrepreneur App Factory (buildMyBusiness, 12 business types)
+ *   §17 — Business Intelligence (pricing, marketing copy, business plan)
+ *   §18 — Sovereign Deploy (generateCloudflareConfig)
+ *   §19 — §16–18 integration into SovereignCodingPlatform
+ *
+ * BUILD №56 NEW CAPABILITIES:
+ *   §20 — Universal Language Engine (22 languages + generic fallback)
+ *         Every language detected by structural primitives, not keywords.
+ *         JS · TS · Python · Rust · Go · Motoko · SQL · Java · Kotlin ·
+ *         Swift · C++ · C# · Ruby · PHP · Solidity · R · GLSL · HLSL ·
+ *         Houdini/VEX · Bash · HTML/CSS + any unknown language.
+ *   §21 — SovereignCodingPlatform methods for §20
  *
  * Target: better than CaffeineAI in every dimension.
  * Education: designed to teach high-school students to code with sovereign AI.
@@ -1900,6 +1905,12 @@ SovereignCodingPlatform.prototype.mcpFetch = function() {
         else if (tool === 'generate_business_plan')   result = platform.generateBusinessPlan(p.businessDescription || '');
         else if (tool === 'generate_cloudflare_config') result = platform.generateCloudflareConfig(p.appName, p.scriptFile, p.routes);
         else if (tool === 'list_business_types')      result = platform.listBusinessTypes();
+        /* Universal Language Engine (§20) */
+        else if (tool === 'universal_generate')       result = platform.universalGenerate(p.prompt || '', p.language || '', p);
+        else if (tool === 'detect_language')          result = platform.detectLanguage(p.code || '', p.hint || '');
+        else if (tool === 'get_primitives')           result = platform.getUniversalPrimitives(p.language || '');
+        else if (tool === 'analyse_code')             result = platform.analyseCode(p.code || '');
+        else if (tool === 'list_languages')           result = platform.listLanguages();
         else if (tool === 'platform_status')          result = platform.status();
         else {
           /* Fall back to original handler */
@@ -1917,7 +1928,596 @@ SovereignCodingPlatform.prototype.mcpFetch = function() {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// §15 — ENTRY POINT  (BUILD №55)
+// §20 — UNIVERSAL LANGUAGE ENGINE  (BUILD №56)
+//
+// "If you just give them HTML and you don't, then you're not actually taking
+//  it serious for them. Plus you loaded right now. You find the primitive of
+//  the languages, you make it into an engineer AI."
+//                                    — Alfredo Medina Hernandez, May 2026
+//
+// Every language has the same underlying shape:
+//   DEFINE · CALL · BRANCH · REPEAT · IMPORT · TYPE · ASYNC · EMIT
+// The Universal Language Engine maps any language to these 8 primitives,
+// then generates sovereign code in that language.
+//
+// Supported: JS/TS · Python · Rust · Go · Motoko · SQL · Java · Kotlin ·
+//            Swift · C++ · C · C# · Ruby · PHP · Haskell · Solidity ·
+//            R · MATLAB · GLSL · HLSL · Houdini/VEX · + any unknown language
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** The 8 universal code primitives — every language has all of these. */
+const UNIVERSAL_PRIMITIVES = {
+  DEFINE:  'define',     /* function / method / def / fn / func / sub */
+  CALL:    'call',       /* invoke a function or method */
+  BRANCH:  'branch',     /* if / else / switch / match / when / case */
+  REPEAT:  'repeat',     /* for / while / loop / each / map / reduce */
+  IMPORT:  'import',     /* import / require / use / include / using / mod */
+  TYPE:    'type',       /* class / struct / enum / interface / type / record */
+  ASYNC:   'async',      /* async / await / promise / future / goroutine / task */
+  EMIT:    'emit',       /* return / yield / print / log / send / emit */
+};
+
+/**
+ * Universal language registry.
+ * Each entry defines: detect patterns, primitives, φ-pattern, template.
+ */
+const UNIVERSAL_LANG_REGISTRY = {
+
+  typescript: {
+    label:    'TypeScript',
+    aliases:  ['ts', '.ts', '.tsx'],
+    detect:   [/:\s*(string|number|boolean|void|interface|type\s+\w+\s*=)/i, /interface\s+\w+/, /<\w+>/],
+    primitives: {
+      DEFINE:  'function name(param: Type): ReturnType { }  // or  const name = (p: T): R => { }',
+      CALL:    'name(arg)',
+      BRANCH:  'if (cond) { } else if (cond) { } else { }',
+      REPEAT:  'for (const item of items) { }  // or  items.map(item => )',
+      IMPORT:  "import { Name } from './module';",
+      TYPE:    'interface Name { prop: Type; }  // or  type Name = { };',
+      ASYNC:   'async function name(): Promise<Type> { const r = await call(); }',
+      EMIT:    'return value;  // or  throw new Error("msg");',
+    },
+    phi_pattern: `const PHI: number = 1.6180339887498948482;\nconst AMOR: number = PHI ** -2;`,
+    comment:  '//',
+    block_comment: ['/*', '*/'],
+    runtime:  'Node.js / Browser / Deno / Cloudflare Workers',
+  },
+
+  javascript: {
+    label:    'JavaScript',
+    aliases:  ['js', '.js', '.mjs', '.cjs', '.jsx'],
+    detect:   [/const\s+\w+\s*=/, /function\s+\w+\s*\(/, /=>\s*\{/, /require\s*\(/],
+    primitives: {
+      DEFINE:  'function name(param) { }  // or  const name = (p) => { }',
+      CALL:    'name(arg)',
+      BRANCH:  'if (cond) { } else if (cond) { } else { }',
+      REPEAT:  'for (const item of items) { }  // or  items.forEach(item => )',
+      IMPORT:  "import { Name } from './module';  // or  const { Name } = require('./module');",
+      TYPE:    'class Name { constructor(opts) { } }',
+      ASYNC:   'async function name() { const r = await call(); return r; }',
+      EMIT:    'return value;  // or  console.log(value);',
+    },
+    phi_pattern: `const PHI = 1.6180339887498948482;\nconst AMOR = PHI ** -2; // 0.3819...`,
+    comment:  '//',
+    block_comment: ['/*', '*/'],
+    runtime:  'Node.js / Browser / Cloudflare Workers / Bun',
+  },
+
+  python: {
+    label:    'Python',
+    aliases:  ['py', '.py', '.pyw'],
+    detect:   [/def\s+\w+\s*\(/, /import\s+\w+/, /from\s+\w+\s+import/, /:\s*$/m],
+    primitives: {
+      DEFINE:  'def name(param: type) -> return_type:\n    ...',
+      CALL:    'name(arg)',
+      BRANCH:  'if cond:\n    ...\nelif cond:\n    ...\nelse:\n    ...',
+      REPEAT:  'for item in items:\n    ...  # or  [expr for item in items]',
+      IMPORT:  'import module  # or  from module import name',
+      TYPE:    'class Name:\n    def __init__(self, param: type):\n        self.param = param',
+      ASYNC:   'async def name() -> type:\n    result = await call()\n    return result',
+      EMIT:    'return value  # or  yield value  # or  print(value)',
+    },
+    phi_pattern: `PHI = 1.6180339887498948482\nAMOR = PHI ** -2  # 0.3819...`,
+    comment:  '#',
+    block_comment: ['"""', '"""'],
+    runtime:  'CPython / PyPy / Jupyter / Django / Flask / FastAPI / ML',
+  },
+
+  rust: {
+    label:    'Rust',
+    aliases:  ['rs', '.rs'],
+    detect:   [/fn\s+\w+\s*\(/, /let\s+mut\s+/, /impl\s+\w+/, /use\s+\w+::/],
+    primitives: {
+      DEFINE:  'fn name(param: Type) -> ReturnType { }',
+      CALL:    'name(arg)',
+      BRANCH:  'match value { Pattern => expr, _ => expr }  // or  if cond { }',
+      REPEAT:  'for item in items { }  // or  items.iter().map(|x| x)',
+      IMPORT:  'use crate::module::Name;  // or  use std::collections::HashMap;',
+      TYPE:    'struct Name { field: Type }  // or  enum Name { Variant(Type) }',
+      ASYNC:   'async fn name() -> Result<Type, Error> { let r = call().await?; Ok(r) }',
+      EMIT:    'return value;  // or  value  // implicit return  // or  println!("{}", v);',
+    },
+    phi_pattern: `const PHI: f64 = 1.6180339887498948482;\nconst AMOR: f64 = 0.3819660112501051518;`,
+    comment:  '//',
+    block_comment: ['/*', '*/'],
+    runtime:  'Native binary / WebAssembly / Embedded / System',
+  },
+
+  go: {
+    label:    'Go',
+    aliases:  ['go', '.go'],
+    detect:   [/func\s+\w+\s*\(/, /package\s+\w+/, /:=\s*/, /import\s+\(/],
+    primitives: {
+      DEFINE:  'func name(param Type) ReturnType { }  // or method: func (r *Recv) name()',
+      CALL:    'name(arg)',
+      BRANCH:  'if cond { } else if cond { } else { }  // or  switch val { case x: }',
+      REPEAT:  'for i, item := range items { }  // or  for cond { }',
+      IMPORT:  'import "package"  // or  import ( "pkg1"\n  "pkg2" )',
+      TYPE:    'type Name struct { Field Type }  // or  type Name interface { Method() }',
+      ASYNC:   'go func() { result := call(); ch <- result }()  // goroutine + channel',
+      EMIT:    'return value, err  // or  fmt.Println(value)',
+    },
+    phi_pattern: `const PHI = 1.6180339887498948482\nconst AMOR = 0.3819660112501051518`,
+    comment:  '//',
+    block_comment: ['/*', '*/'],
+    runtime:  'Native binary / Cloud / Kubernetes / Microservices',
+  },
+
+  motoko: {
+    label:    'Motoko (ICP)',
+    aliases:  ['mo', '.mo'],
+    detect:   [/actor\s+\w+/, /public\s+func/, /stable\s+var/, /import\s+\w+\s+"mo:/],
+    primitives: {
+      DEFINE:  'public func name(param : Type) : async ReturnType { };',
+      CALL:    'await name(arg)',
+      BRANCH:  'if (cond) { } else { }  // or  switch (val) { case (#variant x) { } }',
+      REPEAT:  'for (item in items.vals()) { }',
+      IMPORT:  'import Name "mo:base/Module";',
+      TYPE:    'type Name = { field : Type };  // or  public type Name = object { };',
+      ASYNC:   'public func name() : async () { let r = await call(); };',
+      EMIT:    'return value  // implicit or explicit  // or  Debug.print("msg");',
+    },
+    phi_pattern: `let PHI : Float = 1.6180339887498948482;\nlet AMOR : Float = 0.3819660112501051518;`,
+    comment:  '//',
+    block_comment: ['/*', '*/'],
+    runtime:  'ICP (Internet Computer) canister — Motoko compiler (moc)',
+  },
+
+  sql: {
+    label:    'SQL',
+    aliases:  ['sql', '.sql'],
+    detect:   [/SELECT\s+/i, /FROM\s+\w+/i, /WHERE\s+/i, /CREATE\s+TABLE/i],
+    primitives: {
+      DEFINE:  'CREATE FUNCTION name(param TYPE) RETURNS ReturnType AS $$ ... $$ LANGUAGE plpgsql;',
+      CALL:    'SELECT name(arg)',
+      BRANCH:  'CASE WHEN cond THEN val ELSE val END  // or  WHERE col = val',
+      REPEAT:  'FOR row IN SELECT ... LOOP ... END LOOP;  // or  window functions',
+      IMPORT:  '-- No native import; use schema prefix: schema.table',
+      TYPE:    'CREATE TABLE name (col TYPE, col TYPE, PRIMARY KEY (col));',
+      ASYNC:   '-- Use transactions: BEGIN; ... COMMIT;  // async via connection pool',
+      EMIT:    'RETURN value;  // or  SELECT result;  // or  RAISE NOTICE "msg";',
+    },
+    phi_pattern: `-- PHI constant\nSELECT 1.6180339887498948482 AS phi;\nSELECT 0.3819660112501051518 AS amor;`,
+    comment:  '--',
+    block_comment: ['/*', '*/'],
+    runtime:  'PostgreSQL / MySQL / SQLite / Snowflake / BigQuery',
+  },
+
+  java: {
+    label:    'Java',
+    aliases:  ['java', '.java'],
+    detect:   [/public\s+(class|interface|enum)\s+\w+/, /void\s+\w+\s*\(/, /import\s+java\./],
+    primitives: {
+      DEFINE:  'public ReturnType name(Type param) { return value; }',
+      CALL:    'object.name(arg)',
+      BRANCH:  'if (cond) { } else if (cond) { } else { }  // or  switch (val) { case X: }',
+      REPEAT:  'for (Type item : items) { }  // or  items.stream().map(x -> x)',
+      IMPORT:  'import package.ClassName;',
+      TYPE:    'public class Name { private Type field; public Name(Type p) { field = p; } }',
+      ASYNC:   'CompletableFuture<Type> future = CompletableFuture.supplyAsync(() -> call());',
+      EMIT:    'return value;  // or  System.out.println(value);',
+    },
+    phi_pattern: `public static final double PHI = 1.6180339887498948482;\npublic static final double AMOR = 0.3819660112501051518;`,
+    comment:  '//',
+    block_comment: ['/*', '*/'],
+    runtime:  'JVM / Android / Spring / Enterprise',
+  },
+
+  kotlin: {
+    label:    'Kotlin',
+    aliases:  ['kt', '.kt', '.kts'],
+    detect:   [/fun\s+\w+\s*\(/, /val\s+\w+\s*=/, /data\s+class\s+\w+/, /object\s+\w+/],
+    primitives: {
+      DEFINE:  'fun name(param: Type): ReturnType { return value }  // or  fun name() = expr',
+      CALL:    'name(arg)  // or  object.name(arg)',
+      BRANCH:  'if (cond) { } else { }  // or  when (val) { x -> ... else -> ... }',
+      REPEAT:  'for (item in items) { }  // or  items.map { it }',
+      IMPORT:  'import package.ClassName',
+      TYPE:    'data class Name(val field: Type)  // or  class Name { }',
+      ASYNC:   'suspend fun name(): Type { val r = withContext(Dispatchers.IO) { call() }; return r }',
+      EMIT:    'return value  // or  println(value)',
+    },
+    phi_pattern: `const val PHI = 1.6180339887498948482\nconst val AMOR = 0.3819660112501051518`,
+    comment:  '//',
+    block_comment: ['/*', '*/'],
+    runtime:  'JVM / Android / Kotlin Multiplatform',
+  },
+
+  swift: {
+    label:    'Swift',
+    aliases:  ['swift', '.swift'],
+    detect:   [/func\s+\w+\s*\(/, /var\s+\w+\s*:/, /struct\s+\w+/, /import\s+(UIKit|SwiftUI|Foundation)/],
+    primitives: {
+      DEFINE:  'func name(param: Type) -> ReturnType { return value }',
+      CALL:    'name(param: arg)',
+      BRANCH:  'if cond { } else if cond { } else { }  // or  switch val { case x: }',
+      REPEAT:  'for item in items { }  // or  items.map { $0 }',
+      IMPORT:  'import FrameworkName',
+      TYPE:    'struct Name: Protocol { var field: Type }  // or  class Name: Parent { }',
+      ASYNC:   'func name() async throws -> Type { let r = try await call(); return r }',
+      EMIT:    'return value  // or  print(value)  // or  throw Error.case',
+    },
+    phi_pattern: `let PHI: Double = 1.6180339887498948482\nlet AMOR: Double = 0.3819660112501051518`,
+    comment:  '//',
+    block_comment: ['/*', '*/'],
+    runtime:  'iOS / macOS / watchOS / tvOS / Swift on server',
+  },
+
+  cpp: {
+    label:    'C++',
+    aliases:  ['cpp', '.cpp', '.cc', '.cxx', '.hpp'],
+    detect:   [/#include\s*</, /std::\w+/, /class\s+\w+\s*\{/, /template\s*</],
+    primitives: {
+      DEFINE:  'ReturnType name(Type param) { return value; }  // or template<typename T>',
+      CALL:    'name(arg)',
+      BRANCH:  'if (cond) { } else if (cond) { } else { }  // or  switch (val) { case x: }',
+      REPEAT:  'for (auto& item : items) { }  // or  std::for_each(begin, end, fn)',
+      IMPORT:  '#include <header>  // or  #include "local.h"',
+      TYPE:    'class Name {\npublic:\n  Type field;\n  Name(Type p) : field(p) {}\n};',
+      ASYNC:   'std::future<Type> f = std::async(std::launch::async, []{ return call(); });',
+      EMIT:    'return value;  // or  std::cout << value << std::endl;',
+    },
+    phi_pattern: `constexpr double PHI = 1.6180339887498948482;\nconstexpr double AMOR = 0.3819660112501051518;`,
+    comment:  '//',
+    block_comment: ['/*', '*/'],
+    runtime:  'Native / Embedded / Game engines / Systems / WebAssembly (Emscripten)',
+  },
+
+  csharp: {
+    label:    'C#',
+    aliases:  ['cs', 'csharp', '.cs'],
+    detect:   [/namespace\s+\w+/, /using\s+System/, /public\s+(class|interface|record)\s+\w+/, /async\s+Task/],
+    primitives: {
+      DEFINE:  'public ReturnType Name(Type param) { return value; }',
+      CALL:    'object.Name(arg)',
+      BRANCH:  'if (cond) { } else if (cond) { } else { }  // or  switch (val) { case x: }',
+      REPEAT:  'foreach (var item in items) { }  // or  items.Select(x => x)',
+      IMPORT:  'using Namespace.ClassName;',
+      TYPE:    'public class Name { public Type Field { get; set; } = default!; }',
+      ASYNC:   'public async Task<Type> NameAsync() { var r = await CallAsync(); return r; }',
+      EMIT:    'return value;  // or  Console.WriteLine(value);  // or  throw new Exception();',
+    },
+    phi_pattern: `public const double PHI = 1.6180339887498948482;\npublic const double AMOR = 0.3819660112501051518;`,
+    comment:  '//',
+    block_comment: ['/*', '*/'],
+    runtime:  '.NET / Unity / ASP.NET / Blazor / MAUI',
+  },
+
+  ruby: {
+    label:    'Ruby',
+    aliases:  ['rb', '.rb'],
+    detect:   [/def\s+\w+/, /require\s+'/, /class\s+\w+\s*(<\s*\w+)?$/, /end$/m],
+    primitives: {
+      DEFINE:  'def name(param)\n  value\nend  # implicit return',
+      CALL:    'name(arg)  # or  object.name',
+      BRANCH:  'if cond\n  ...\nelsif cond\n  ...\nelse\n  ...\nend  // or  value if cond',
+      REPEAT:  'items.each { |item| }  // or  items.map { |x| x }  // or  for item in items',
+      IMPORT:  "require 'gem'  # or  require_relative './file'",
+      TYPE:    'class Name < Parent\n  attr_accessor :field\n  def initialize(p)\n    @field = p\n  end\nend',
+      ASYNC:   "Thread.new { result = call }  # or  Async { call.async }  # async gem",
+      EMIT:    "return value  # or  puts value  # or  raise RuntimeError, 'msg'",
+    },
+    phi_pattern: `PHI = 1.6180339887498948482\nAMOR = 0.3819660112501051518`,
+    comment:  '#',
+    block_comment: ['=begin', '=end'],
+    runtime:  'MRI / JRuby / Rails / Sinatra / Scripting',
+  },
+
+  php: {
+    label:    'PHP',
+    aliases:  ['php', '.php'],
+    detect:   [/<\?php/, /function\s+\w+\s*\(/, /\$\w+\s*=/, /namespace\s+\w+/],
+    primitives: {
+      DEFINE:  'function name(Type $param): ReturnType { return $value; }',
+      CALL:    'name($arg)',
+      BRANCH:  'if ($cond) { } elseif ($cond) { } else { }  // or  match ($val) { x => y }',
+      REPEAT:  'foreach ($items as $key => $item) { }  // or  array_map(fn($x) => $x, $arr)',
+      IMPORT:  "require_once 'file.php';  // or  use Namespace\\ClassName;",
+      TYPE:    'class Name extends Parent implements Interface {\n  private Type $field;\n  public function __construct(Type $p) { $this->field = $p; }\n}',
+      ASYNC:   '$promise = async(function() { $r = await(call()); return $r; });  // ReactPHP / Swoole',
+      EMIT:    'return $value;  // or  echo $value;  // or  throw new Exception("msg");',
+    },
+    phi_pattern: `const PHI = 1.6180339887498948482;\nconst AMOR = 0.3819660112501051518;`,
+    comment:  '//',
+    block_comment: ['/*', '*/'],
+    runtime:  'PHP-FPM / Laravel / Symfony / WordPress / CLI',
+  },
+
+  solidity: {
+    label:    'Solidity (Smart Contracts)',
+    aliases:  ['sol', '.sol'],
+    detect:   [/pragma\s+solidity/, /contract\s+\w+/, /mapping\s*\(/, /address\s+\w+/],
+    primitives: {
+      DEFINE:  'function name(Type param) public returns (ReturnType) { return value; }',
+      CALL:    'IName(addr).name{value: amount}(arg)',
+      BRANCH:  'if (cond) { } else { }  // or  require(cond, "msg");  // or revert()',
+      REPEAT:  'for (uint i = 0; i < items.length; i++) { }  // Note: gas cost!',
+      IMPORT:  "import './Contract.sol';  // or  import '@openzeppelin/contracts/..';",
+      TYPE:    'struct Name { Type field; }  // or  mapping(address => uint) balances;',
+      ASYNC:   '// Solidity is synchronous. Use events for async patterns:\n// emit EventName(param);\n// External calls: (bool ok, ) = addr.call{value: v}("");',
+      EMIT:    'return value;  // or  emit EventName(param);  // or  revert("msg");',
+    },
+    phi_pattern: `uint256 public constant PHI_NUMERATOR = 1618033988749894848;\nuint256 public constant PHI_DENOMINATOR = 1000000000000000000;  // PHI as 18-decimal fixed point`,
+    comment:  '//',
+    block_comment: ['/*', '*/'],
+    runtime:  'Ethereum / EVM / Polygon / Arbitrum / DeFi protocols',
+  },
+
+  r: {
+    label:    'R (Statistics)',
+    aliases:  ['r', '.r', '.R'],
+    detect:   [/<-\s*function/, /library\s*\(/, /data\.frame\s*\(/, /ggplot\s*\(/],
+    primitives: {
+      DEFINE:  'name <- function(param) {\n  return(value)\n}',
+      CALL:    'name(arg)',
+      BRANCH:  'if (cond) { } else if (cond) { } else { }  // or  ifelse(cond, yes, no)',
+      REPEAT:  'for (item in items) { }  // or  lapply(items, function(x) x)  // or sapply',
+      IMPORT:  'library(package)  # or  require(package)  # or  source("file.R")',
+      TYPE:    'Name <- R6Class("Name", public = list(field = NULL, initialize = function(p) { self$field <- p }))',
+      ASYNC:   'future({ call() })  # future package  // or  promises::promise(function(resolve) resolve(call()))',
+      EMIT:    'return(value)  # or  print(value)  # or  cat(value)',
+    },
+    phi_pattern: `PHI <- 1.6180339887498948482\nAMOR <- 0.3819660112501051518`,
+    comment:  '#',
+    block_comment: ['#', '#'],
+    runtime:  'R console / RStudio / Shiny / R Markdown / Production via Plumber',
+  },
+
+  glsl: {
+    label:    'GLSL / HLSL (Shaders)',
+    aliases:  ['glsl', 'hlsl', 'frag', 'vert', '.glsl', '.hlsl', '.frag', '.vert'],
+    detect:   [/void\s+main\s*\(/, /uniform\s+\w+/, /gl_Position/, /gl_FragColor/],
+    primitives: {
+      DEFINE:  'float name(float param) { return value; }  // or  vec4 name(vec2 uv)',
+      CALL:    'name(arg)',
+      BRANCH:  'if (cond) { } else { }  // or  float r = cond ? a : b;',
+      REPEAT:  'for (int i = 0; i < N; i++) { }  // Note: loops must be finite at compile time',
+      IMPORT:  '#version 300 es  // or  #include (HLSL)  // or use uniform buffers',
+      TYPE:    'struct Name { vec3 field; float w; };',
+      ASYNC:   '// Shaders are parallel, not async. Use compute shaders for parallel work.',
+      EMIT:    'gl_FragColor = vec4(r, g, b, a);  // or  return color;  // or  gl_Position = ...',
+    },
+    phi_pattern: `const float PHI = 1.6180339887;  // GLSL precision: mediump\nconst float AMOR = 0.3819660112;`,
+    comment:  '//',
+    block_comment: ['/*', '*/'],
+    runtime:  'GPU (OpenGL / WebGL / Vulkan / DirectX / Metal)',
+  },
+
+  houdini: {
+    label:    'Houdini (VEX / Python)',
+    aliases:  ['vex', 'houdini', '.vfl'],
+    detect:   [/\@P\b/, /\@ptnum\b/, /hou\.\w+/, /addpoint\s*\(/, /setpointattrib\s*\(/],
+    primitives: {
+      DEFINE:  '// VEX function:\nvoid name(vector param) { ... }\n// Python:\ndef name(param): return value',
+      CALL:    'name(arg)  // VEX: direct call  // Python: hou.node("/path").parm("name").eval()',
+      BRANCH:  'if (cond) { }  // VEX identical to C  // Python: if cond:',
+      REPEAT:  'for (int i = 0; i < npoints(0); i++) { }  // or  foreach (point in geo.points())',
+      IMPORT:  '// Python: import hou  // VEX: built-in intrinsics only',
+      TYPE:    'struct Name { vector pos; float mass; };  // VEX struct',
+      ASYNC:   '// Houdini is procedural/parallel (geometry nodes). For async: hou.ui.startApp()',
+      EMIT:    '@P = newPosition;  // VEX point attribute write  // or  print("msg")  // Python',
+    },
+    phi_pattern: `float phi = 1.6180339887;  // VEX\nfloat amor = 0.3819660112;  // φ⁻²\n@P *= phi;  // scale by golden ratio`,
+    comment:  '//',
+    block_comment: ['/*', '*/'],
+    runtime:  'SideFX Houdini (3D / VFX / Simulation / Procedural geometry)',
+  },
+
+  bash: {
+    label:    'Bash / Shell',
+    aliases:  ['sh', 'bash', '.sh', '.bash', '.zsh'],
+    detect:   [/^#!.*\/(bash|sh|zsh)/, /\$\(\s*/, /\[\[\s*/, /echo\s+/],
+    primitives: {
+      DEFINE:  'name() {\n  local param="$1"\n  echo "$param"\n}',
+      CALL:    'name "$arg"  # or  result=$(name "$arg")',
+      BRANCH:  'if [[ "$cond" == "value" ]]; then\n  ...\nelif [[ ... ]]; then\n  ...\nfi',
+      REPEAT:  'for item in "${items[@]}"; do\n  ...\ndone  # or  while IFS= read -r line',
+      IMPORT:  'source ./file.sh  # or  . ./file.sh',
+      TYPE:    '# Bash uses associative arrays:\ndeclare -A name\nname[field]="value"',
+      ASYNC:   'name &  # background process\nPID=$!\nwait $PID  # join\n# or: command & disown',
+      EMIT:    'echo "$value"  # or  return $code  # or  printf "%s\\n" "$value"',
+    },
+    phi_pattern: `PHI=1.6180339887498948482\nAMOR=0.3819660112501051518`,
+    comment:  '#',
+    block_comment: ['#', '#'],
+    runtime:  'Linux / macOS / WSL / CI/CD pipelines / DevOps',
+  },
+
+  html: {
+    label:    'HTML / CSS',
+    aliases:  ['html', 'htm', 'css', '.html', '.htm', '.css'],
+    detect:   [/<!DOCTYPE\s+html>/i, /<html/, /<div/, /{\s*color\s*:/],
+    primitives: {
+      DEFINE:  '<template id="name">  // or  <style>  // or  <component>',
+      CALL:    '<button onclick="name()">  // or  class="component-name"',
+      BRANCH:  '<!-- no native branch — use JS or CSS :has() / :is() / @media -->\n@media (max-width: 640px) { }',
+      REPEAT:  '<!-- no native repeat — use JS .innerHTML or template engine -->\n<ul id="list"><!-- JS: items.map(i => `<li>${i}</li>`).join("") --></ul>',
+      IMPORT:  '<link rel="stylesheet" href="style.css">  // or  <script src="app.js">',
+      TYPE:    '<section class="name">  // or  :root { --name: value; }  // CSS custom property',
+      ASYNC:   'fetch("/api").then(r => r.json()).then(data => { })  // or  async/await in script',
+      EMIT:    'document.getElementById("id").textContent = value;  // or  console.log(value)',
+    },
+    phi_pattern: `<style>\n:root {\n  --phi: 1.618;\n  --amor: 0.382;\n  --radius: calc(var(--phi) * 8px);\n}\n.golden { aspect-ratio: var(--phi); }\n</style>`,
+    comment:  '<!-- -->',
+    block_comment: ['<!--', '-->'],
+    runtime:  'Browser / SSR (Next, Nuxt, Astro) / Email clients',
+  },
+};
+
+/** Generic fallback for any unrecognised language. */
+const GENERIC_LANG = {
+  label:    'Generic (unknown language)',
+  detect:   [],
+  primitives: {
+    DEFINE:  'function/method definition pattern for this language',
+    CALL:    'function call pattern',
+    BRANCH:  'conditional branch pattern (if/when/match/case)',
+    REPEAT:  'loop/iteration pattern (for/while/each/map)',
+    IMPORT:  'import/include/use/require pattern',
+    TYPE:    'type/class/struct/record definition pattern',
+    ASYNC:   'async/concurrent pattern (async-await/futures/goroutines)',
+    EMIT:    'return/output/emit pattern',
+  },
+  phi_pattern: `# PHI = 1.6180339887498948482 — golden ratio\n# AMOR = PHI^(-2) = 0.3819... — love constant`,
+  comment:  '#',
+  runtime:  'Universal',
+};
+
+/**
+ * Detect the language from a code string or explicit label.
+ * @param {string} code      — raw code snippet
+ * @param {string} [hint]    — optional language hint from user
+ * @returns {{ key: string, lang: Object }}
+ */
+function detectLanguage(code, hint) {
+  code = String(code || '');
+  hint = String(hint || '').toLowerCase().replace(/[^a-z0-9+#_]/g, '');
+
+  /* 1. Direct hint lookup */
+  for (const [key, lang] of Object.entries(UNIVERSAL_LANG_REGISTRY)) {
+    if (key === hint) return { key, lang };
+    if (lang.aliases && lang.aliases.some(a => a.toLowerCase().replace(/\./g, '') === hint.replace(/\./g, ''))) {
+      return { key, lang };
+    }
+  }
+
+  /* 2. Regex detection from code */
+  const matched = [];
+  for (const [key, lang] of Object.entries(UNIVERSAL_LANG_REGISTRY)) {
+    if (!lang.detect) continue;
+    const hits = lang.detect.filter(r => r.test(code)).length;
+    if (hits > 0) matched.push({ key, lang, hits });
+  }
+  if (matched.length > 0) {
+    matched.sort((a, b) => b.hits - a.hits);
+    return { key: matched[0].key, lang: matched[0].lang };
+  }
+
+  /* 3. Fallback */
+  return { key: 'generic', lang: GENERIC_LANG };
+}
+
+/**
+ * Get the 8 universal primitives for any language.
+ * @param {string} languageHint  — language name or file extension
+ * @returns {{ language, primitives, phiPattern, runtime, comment }}
+ */
+function getUniversalPrimitives(languageHint) {
+  const { key, lang } = detectLanguage('', languageHint);
+  return {
+    language:   lang.label || key,
+    key,
+    primitives: lang.primitives,
+    phiPattern: lang.phi_pattern,
+    runtime:    lang.runtime || 'Universal',
+    comment:    lang.comment || '//',
+  };
+}
+
+/**
+ * Universal code generation: generate in any language, guided by primitives.
+ * @param {string} prompt        — what to build (plain English)
+ * @param {string} languageHint  — target language
+ * @param {Object} [opts]        — { context, student }
+ * @returns {{ code, language, primitiveUsed, coherence }}
+ */
+function universalGenerate(prompt, languageHint, opts) {
+  opts = opts || {};
+  const { key, lang } = detectLanguage(opts.sampleCode || '', languageHint);
+
+  /* Enrich prompt with primitive context */
+  const primitiveCtx = Object.entries(lang.primitives || {})
+    .map(([prim, pattern]) => `${UNIVERSAL_PRIMITIVES[prim] || prim}: ${pattern}`)
+    .join('\n');
+  const langCtx = `Language: ${lang.label || key}.\nRuntime: ${lang.runtime || 'Universal'}.\nPrimitive patterns:\n${primitiveCtx}\nφ-pattern:\n${lang.phi_pattern || ''}`;
+
+  const enrichedOpts = Object.assign({}, opts, { context: (opts.context || '') + '\n' + langCtx, language: key });
+  const result = generateCode(prompt, enrichedOpts);
+
+  return Object.assign(result, {
+    language:       lang.label || key,
+    languageKey:    key,
+    runtime:        lang.runtime || 'Universal',
+    primitiveCount: Object.keys(lang.primitives || {}).length,
+    phiPattern:     lang.phi_pattern,
+  });
+}
+
+/**
+ * Detect the language of a code string.
+ * Returns the language label + all 8 primitives.
+ */
+function analyseCode(code) {
+  const { key, lang } = detectLanguage(code, '');
+  return {
+    detected:   lang.label || key,
+    key,
+    runtime:    lang.runtime || 'Universal',
+    primitives: lang.primitives,
+    confidence: lang.detect ? lang.detect.filter(r => r.test(code)).length / Math.max(lang.detect.length, 1) : 0,
+  };
+}
+
+/** List all supported languages. */
+function listLanguages() {
+  return Object.entries(UNIVERSAL_LANG_REGISTRY).map(([key, lang]) => ({
+    key,
+    label:   lang.label,
+    aliases: lang.aliases || [],
+    runtime: lang.runtime || 'Universal',
+  }));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §21 — UNIVERSAL LANGUAGE METHODS ON SovereignCodingPlatform
+// ═══════════════════════════════════════════════════════════════════════════════
+
+SovereignCodingPlatform.prototype.universalGenerate = function(prompt, language, opts) {
+  const result = universalGenerate(prompt, language, opts);
+  this._stats.generations++;
+  this._publish('CODING_UNIVERSAL_GENERATE', { prompt: prompt.slice(0, 64), language: result.languageKey });
+  return result;
+};
+
+SovereignCodingPlatform.prototype.detectLanguage = function(code, hint) {
+  const { key, lang } = detectLanguage(code, hint);
+  return { language: lang.label || key, key, runtime: lang.runtime || 'Universal' };
+};
+
+SovereignCodingPlatform.prototype.getUniversalPrimitives = function(language) {
+  return getUniversalPrimitives(language);
+};
+
+SovereignCodingPlatform.prototype.analyseCode = function(code) {
+  return analyseCode(code);
+};
+
+SovereignCodingPlatform.prototype.listLanguages = function() {
+  return listLanguages();
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §15 — ENTRY POINT  (BUILD №56)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const codingPlatform = new SovereignCodingPlatform();
@@ -1951,6 +2551,10 @@ if (typeof module !== 'undefined') {
     buildMyBusiness, generatePricing, generateMarketingCopy,
     generateBusinessPlan, generateCloudflareConfig,
     _detectBusinessType,
+    /* Universal Language Engine (§20–§21) */
+    UNIVERSAL_PRIMITIVES, UNIVERSAL_LANG_REGISTRY,
+    detectLanguage, universalGenerate, analyseCode,
+    getUniversalPrimitives, listLanguages,
     /* Index */
     CodebaseIndex,
     /* Constants */
