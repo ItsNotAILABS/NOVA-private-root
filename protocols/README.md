@@ -11,13 +11,15 @@ This directory contains the core protocols that power NOVA's sovereign AI infras
 
 ```
 protocols/
-├── PROTOCOL-VEIN.js        ← Blood-flow routing protocol
-├── PROTOCOL-SYNAPSE.js     ← Neural connection protocol
-├── PROTOCOL-GENESIS.js     ← Entity creation protocol
-├── PROTOCOL-HEARTBEAT.js   ← Timing synchronization protocol
-├── PROTOCOL-CONSENSUS.js   ← Distributed agreement protocol
-├── PROTOCOL-MEMORIA.js     ← Memory persistence protocol
-└── README.md               ← This file
+├── PROTOCOL-VEIN.js              ← Blood-flow routing protocol
+├── PROTOCOL-SYNAPSE.js           ← Neural connection protocol
+├── PROTOCOL-GENESIS.js           ← Entity creation protocol
+├── PROTOCOL-HEARTBEAT.js         ← Timing synchronization protocol
+├── PROTOCOL-CONSENSUS.js         ← Distributed agreement protocol
+├── PROTOCOL-MEMORIA.js           ← Memory persistence protocol
+├── PROTOCOL-AUTONOMOUS.js        ← Autonomous deployment & operation (BUILD №54)
+├── PROTOCOL-ALPHA-SAFETY.js      ← Production safety system (BUILD №54)
+└── README.md                     ← This file
 ```
 
 ---
@@ -135,6 +137,12 @@ Distributed agreement. Achieves consensus across multiple nodes without central 
 
 ### PROTOCOL-MEMORIA
 Memory persistence. Handles storage, retrieval, and consolidation of memories.
+
+### PROTOCOL-AUTONOMOUS
+Autonomous deployment and operation. All NOVA entities self-deploy, self-scale, self-heal, and self-optimize without human intervention. Implements lifecycle states (CONCEPTION → GESTATION → BIRTH → MATURATION → PRODUCTION → EVOLUTION → REPLICATION), runtime environments, and auto-behaviors (DEPLOY, SCALE, HEAL, UPDATE, OPTIMIZE, MONITOR, REPORT, REPLICATE).
+
+### PROTOCOL-ALPHA-SAFETY
+Production-grade safety system for AI operations. Five-layer safety: (1) Pre-execution validation, (2) Runtime monitoring, (3) Rollback capability, (4) Audit logging, (5) Human oversight. Includes Lyapunov chaos detection, resource limits, coherence validation, and emergency protocols.
 
 ---
 
