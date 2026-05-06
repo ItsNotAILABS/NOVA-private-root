@@ -17,6 +17,14 @@ protocols/
 ├── PROTOCOL-HEARTBEAT.js   ← Timing synchronization protocol
 ├── PROTOCOL-CONSENSUS.js   ← Distributed agreement protocol
 ├── PROTOCOL-MEMORIA.js     ← Memory persistence protocol
+├── PROTOCOL-SOLVER.js      ← φ-cascade solver + MACHINA VIRTUALIS
+├── PROTOCOL-EMBEDDING.js   ← φ-lattice embedding + DP noise
+├── PROTOCOL-VECTOR.js      ← φ-shard search + federated aggregation
+├── PROTOCOL-TRUST.js       ← Identity registry + capability grants
+├── PROTOCOL-MIRROR.js      ← φ-vector clock + delta anti-entropy
+├── PROTOCOL-HEALTH.js      ← Health monitoring (AGI + human operators)
+├── PROTOCOL-SAFETY.js      ← Safety incidents + worksite safety
+├── PROTOCOL-WELLNESS.js    ← Wellness check-ins + recovery planning
 └── README.md               ← This file
 ```
 
