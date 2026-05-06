@@ -28,7 +28,7 @@
  *         Every language detected by structural primitives, not keywords.
  *         JS · TS · Python · Rust · Go · Motoko · SQL · Java · Kotlin ·
  *         Swift · C++ · C# · Ruby · PHP · Solidity · R · GLSL · HLSL ·
- *         Houdini/VEX · Bash · HTML/CSS + any unknown language.
+ *         Houdini/VEX · Bash · HTML/CSS · Haskell · MATLAB + any unknown language.
  *   §21 — SovereignCodingPlatform methods for §20
  *
  * Target: better than CaffeineAI in every dimension.
@@ -1959,7 +1959,7 @@ const UNIVERSAL_PRIMITIVES = {
 
 /**
  * Universal language registry.
- * Each entry defines: detect patterns, primitives, φ-pattern, template.
+ * Each entry defines: detect patterns, primitives, phi_pattern, runtime.
  */
 const UNIVERSAL_LANG_REGISTRY = {
 
@@ -2361,6 +2361,46 @@ const UNIVERSAL_LANG_REGISTRY = {
     comment:  '<!-- -->',
     block_comment: ['<!--', '-->'],
     runtime:  'Browser / SSR (Next, Nuxt, Astro) / Email clients',
+  },
+
+  haskell: {
+    label:    'Haskell',
+    aliases:  ['hs', 'haskell', '.hs'],
+    detect:   [/module\s+\w+\s+where/, /import\s+qualified\s+\w+/, /::\s*\w+\s*->/, /do\s*$/m],
+    primitives: {
+      DEFINE:  'name :: Type -> ReturnType\nname param = expression  -- pattern matching:\nname [] = []\nname (x:xs) = x : name xs',
+      CALL:    'name arg  -- or  name arg1 arg2  -- curried application',
+      BRANCH:  'case expr of\n  Pattern1 -> result1\n  Pattern2 -> result2\n  _        -> defaultResult',
+      REPEAT:  'map fn items  -- or  filter pred items  -- or  foldr fn z items\n-- for: [expr | x <- items, guard]',
+      IMPORT:  'import Module (name1, name2)  -- or  import qualified Module as M',
+      TYPE:    'data Name = Constructor Field1 Field2\n  | Variant2 Field\n  deriving (Show, Eq)\nnewtype Name = Name { unwrap :: Type }',
+      ASYNC:   'import Control.Concurrent.Async\nasync (call)  -- or  mapConcurrently fn items\n-- IO monad: do { r <- ioAction; return r }',
+      EMIT:    'return value  -- IO return\n-- or  pure value  -- applicative\n-- or  print value  -- IO ()',
+    },
+    phi_pattern: `phi :: Double\nphi = 1.6180339887498948482\namor :: Double\namor = phi ** (-2)  -- 0.3819...`,
+    comment:  '--',
+    block_comment: ['{-', '-}'],
+    runtime:  'GHC / Cabal / Stack / Haskell Platform / WASM (Asterius)',
+  },
+
+  matlab: {
+    label:    'MATLAB / Octave',
+    aliases:  ['matlab', 'octave', 'm', '.m'],
+    detect:   [/function\s+\[?\w+\]?\s*=\s*\w+\s*\(/, /end\s*$/, /%\s*.*$/, /^\s*clc\s*;?$/m],
+    primitives: {
+      DEFINE:  'function result = name(param)\n  result = expression;\nend\n% or anonymous:\nf = @(x) x^2;',
+      CALL:    'result = name(arg)',
+      BRANCH:  'if cond\n  ...\nelseif cond\n  ...\nelse\n  ...\nend\n% or  switch val; case x; ...; end',
+      REPEAT:  'for i = 1:length(items)\n  item = items(i);\nend\n% or  while cond; ...; end\n% or  arrayfun(@fn, items)',
+      IMPORT:  'addpath("./folder")  % or  import pkg.*  % or source file (runs it)',
+      TYPE:    'classdef Name < handle\n  properties\n    Field\n  end\n  methods\n    function obj = Name(p)\n      obj.Field = p;\n    end\n  end\nend',
+      ASYNC:   '% Parallel Toolbox:\np = parpool;  % start workers\nparfor i = 1:N; ...; end  % parallel loop\nf = parfeval(@fn, nOut, arg);  % async call\nresult = fetchOutputs(f);',
+      EMIT:    'disp(value)  % or  fprintf("fmt", value)  % or  return  (exits function)',
+    },
+    phi_pattern: `PHI = 1.6180339887498948482;\nAMOR = PHI ^ -2;  % 0.3819...\nx = PHI .* ones(size(data));  % vectorised`,
+    comment:  '%',
+    block_comment: ['%{', '%}'],
+    runtime:  'MATLAB / Octave / GNU Octave (open-source) / Simulink',
   },
 };
 

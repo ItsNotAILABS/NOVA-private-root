@@ -116,6 +116,8 @@ freelancer, food truck, salon, tutor, consultant, online store, real estate.
 
 **Universal Language Engine (§20 — BUILD №56):**
 Any language. Any runtime. Frontend, backend, VR, shaders, data science.
+Supports 22 languages with 8 universal primitives each, plus a generic fallback
+for any language not explicitly listed:
 ```
 JavaScript/TypeScript  →  Web, Node, React, Next
 Python                 →  ML, data, backend, scripting
@@ -130,9 +132,10 @@ C#                     →  Unity, .NET, enterprise
 Ruby / PHP             →  Web, legacy, rapid prototyping
 Solidity               →  Smart contracts, DeFi
 R / MATLAB             →  Statistics, research, scientific
+Haskell                →  Functional, research, compilers
 GLSL / HLSL            →  GPU shaders, visual effects
 Houdini (VEX/Python)   →  3D, VFX, simulation
-Generic (any other)    →  Universal primitive detection
+Generic fallback       →  Universal primitive detection for any other language
 ```
 
 Every language is detected by its structural primitives — not keywords.
