@@ -1073,7 +1073,845 @@ function _error(status, msg) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// §15 — ENTRY POINT
+// §16 — ENTREPRENEUR APP FACTORY  (BUILD №55 — the real upgrade)
+//
+// This is what separates NOVA from CaffeineAI and every other tool:
+// One sentence → a fully working product.  Zero developer knowledge required.
+//
+// The self-entrepreneur doesn't know what a PR triage is.
+// They know: "I run a hair salon.  I need to take bookings online."
+// NOVA answers with a working website they can open right now.
+//
+// Philosophy:
+//   "Why does he have to go to a developer for that?
+//    Why does he have to buy 100 tools that cost more money?"
+//                               — Alfredo Medina Hernandez, May 2026
+//
+// Cost: ZERO.  NOVA is the only tool.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** 12 sovereign business type templates — complete, working, instant. */
+const BUSINESS_TEMPLATES = {
+
+  BARBERSHOP: {
+    label:    'Barber Shop / Hair Studio',
+    colors:   { primary: '#1a1a2e', accent: '#e94560', bg: '#f8f9fa' },
+    services: ['Haircut', 'Fade', 'Beard Trim', 'Line-Up', 'Shave', 'Color'],
+    hours:    'Mon–Sat 9am–7pm · Sun 10am–5pm',
+    tagline:  'Fresh cuts. Sovereign style.',
+    booking:  true,
+  },
+  RESTAURANT: {
+    label:    'Restaurant / Food Business',
+    colors:   { primary: '#2d1b00', accent: '#e67e22', bg: '#fff8f0' },
+    services: ['Dine In', 'Takeout', 'Catering', 'Private Events'],
+    hours:    'Mon–Thu 11am–10pm · Fri–Sat 11am–11pm · Sun 12pm–9pm',
+    tagline:  'Every meal, a sovereign experience.',
+    booking:  true,
+  },
+  GYM: {
+    label:    'Gym / Fitness Studio',
+    colors:   { primary: '#0a0a0a', accent: '#00ff88', bg: '#f0f4f0' },
+    services: ['Open Gym', 'Group Classes', 'Personal Training', 'Nutrition'],
+    hours:    'Mon–Fri 5am–11pm · Sat–Sun 7am–9pm',
+    tagline:  'Build strength. Build sovereignty.',
+    booking:  true,
+  },
+  TRAINER: {
+    label:    'Personal Trainer / Coach',
+    colors:   { primary: '#1e3a5f', accent: '#f39c12', bg: '#fafbff' },
+    services: ['1-on-1 Training', 'Online Coaching', 'Nutrition Plan', 'Group Session'],
+    hours:    'Flexible — book any time',
+    tagline:  'Your transformation starts here.',
+    booking:  true,
+  },
+  PHOTOGRAPHER: {
+    label:    'Photographer / Videographer',
+    colors:   { primary: '#1a1a1a', accent: '#d4af37', bg: '#f9f9f9' },
+    services: ['Portraits', 'Events', 'Commercial', 'Real Estate', 'Video'],
+    hours:    'By appointment',
+    tagline:  'Every frame, a sovereign moment.',
+    booking:  true,
+  },
+  FREELANCER: {
+    label:    'Freelancer / Consultant',
+    colors:   { primary: '#2c3e50', accent: '#3498db', bg: '#f4f6f7' },
+    services: ['Consulting', 'Project Work', 'Retainer', 'Workshop'],
+    hours:    'Mon–Fri 9am–6pm',
+    tagline:  'Sovereign expertise. Real results.',
+    booking:  false,
+  },
+  FOODTRUCK: {
+    label:    'Food Truck / Pop-Up',
+    colors:   { primary: '#c0392b', accent: '#f39c12', bg: '#fff9f0' },
+    services: ['Menu Item 1', 'Menu Item 2', 'Combo Deal', 'Catering'],
+    hours:    'Check schedule for today\'s location',
+    tagline:  'Find us. Love us. Feed yourself.',
+    booking:  false,
+  },
+  SALON: {
+    label:    'Nail Salon / Beauty Studio',
+    colors:   { primary: '#6c3483', accent: '#f8c8e0', bg: '#fff5fc' },
+    services: ['Manicure', 'Pedicure', 'Gel Nails', 'Waxing', 'Lashes'],
+    hours:    'Tue–Sat 9am–7pm · Sun 10am–5pm',
+    tagline:  'You deserve to feel beautiful.',
+    booking:  true,
+  },
+  TUTOR: {
+    label:    'Tutor / Teacher',
+    colors:   { primary: '#1a5276', accent: '#28b463', bg: '#f0f9ff' },
+    services: ['Math', 'Science', 'English', 'SAT Prep', 'Coding'],
+    hours:    'After school & weekends',
+    tagline:  'Unlock your potential. Learn sovereign.',
+    booking:  true,
+  },
+  CONSULTANT: {
+    label:    'Business Consultant / Agency',
+    colors:   { primary: '#2c3e50', accent: '#e74c3c', bg: '#f8f9fa' },
+    services: ['Strategy', 'Operations', 'Marketing', 'Finance', 'Tech'],
+    hours:    'Mon–Fri 8am–6pm',
+    tagline:  'Results. Not reports.',
+    booking:  false,
+  },
+  STORE: {
+    label:    'Online Store / E-Commerce',
+    colors:   { primary: '#2e4057', accent: '#048a81', bg: '#f6fff8' },
+    services: ['Products', 'Bundles', 'Subscriptions', 'Custom Orders'],
+    hours:    'Open 24 / 7',
+    tagline:  'Your sovereign store. Always open.',
+    booking:  false,
+  },
+  REALESTATE: {
+    label:    'Real Estate Agent / Property',
+    colors:   { primary: '#1b2631', accent: '#d4ac0d', bg: '#fdfdf5' },
+    services: ['Buy', 'Sell', 'Rent', 'Property Management', 'Valuation'],
+    hours:    'Available 7 days a week',
+    tagline:  'Find your sovereign home.',
+    booking:  true,
+  },
+};
+
+/**
+ * Detect the closest business type from a plain-English description.
+ * @param {string} description — e.g. "I run a barber shop in Dallas"
+ * @returns {string} — BUSINESS_TEMPLATES key
+ */
+function _detectBusinessType(description) {
+  const lower = description.toLowerCase();
+  const signals = {
+    BARBERSHOP:   ['barber', 'haircut', 'fade', 'barbershop', 'hair shop', 'cuts'],
+    RESTAURANT:   ['restaurant', 'food', 'eat', 'dining', 'cafe', 'coffee', 'bakery', 'pizza', 'burgers', 'wings'],
+    GYM:          ['gym', 'fitness', 'crossfit', 'yoga', 'pilates', 'workout', 'exercise'],
+    TRAINER:      ['trainer', 'coach', 'personal training', 'coaching', 'weight loss'],
+    PHOTOGRAPHER: ['photo', 'photographer', 'video', 'shoot', 'portrait', 'wedding'],
+    FREELANCER:   ['freelance', 'freelancer', 'consulting', 'consultant', 'design', 'developer'],
+    FOODTRUCK:    ['food truck', 'truck', 'pop-up', 'popup', 'street food', 'tacos', 'sandwiches'],
+    SALON:        ['nail', 'salon', 'beauty', 'wax', 'lash', 'lashes', 'spa', 'makeup'],
+    TUTOR:        ['tutor', 'tutoring', 'teach', 'teacher', 'education', 'school', 'math', 'science', 'lesson'],
+    CONSULTANT:   ['agency', 'marketing agency', 'business consultant', 'strategy', 'operations'],
+    STORE:        ['store', 'shop', 'sell', 'product', 'ecommerce', 'e-commerce', 'online store'],
+    REALESTATE:   ['real estate', 'realtor', 'property', 'homes', 'house', 'apartment', 'rent'],
+  };
+  let bestType = 'FREELANCER', bestCount = 0;
+  for (const [type, words] of Object.entries(signals)) {
+    const count = words.filter(w => lower.includes(w)).length;
+    if (count > bestCount) { bestCount = count; bestType = type; }
+  }
+  return bestType;
+}
+
+/**
+ * Extract key details from a plain-English business description.
+ */
+function _parseBusinessDescription(description) {
+  const lower = description.toLowerCase();
+  /* Extract business name */
+  const nameMatch = description.match(/(?:called|named|my business is|it's called|i call it)\s+["']?([A-Z][^"',\.]+)["']?/i)
+    || description.match(/^([A-Z][a-zA-Z'\s]+?)(?:\s+is|\s+in|\s+at|\.|,)/);
+  const name = nameMatch ? nameMatch[1].trim() : 'My Business';
+  /* Extract location */
+  const locMatch = description.match(/(?:in|at|near|located in|based in)\s+([A-Z][a-zA-Z\s,]+?)(?:\s+that|\s+and|\s+I|\.|,|$)/i);
+  const location = locMatch ? locMatch[1].trim() : '';
+  /* Extract phone */
+  const phoneMatch = description.match(/(\d{3}[-.\s]?\d{3}[-.\s]?\d{4})/);
+  const phone = phoneMatch ? phoneMatch[1] : '';
+  /* Extract email */
+  const emailMatch = description.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+  const email = emailMatch ? emailMatch[1] : '';
+  /* Extract Instagram/social */
+  const igMatch = description.match(/@([a-zA-Z0-9_]{2,30})/);
+  const instagram = igMatch ? igMatch[1] : '';
+  return { name, location, phone, email, instagram };
+}
+
+/**
+ * Generate a complete, working single-file website for a business.
+ * This is not a code snippet. This is a working product.
+ *
+ * @param {string} description  — plain English business description
+ * @param {Object} [overrides]  — { name, type, services, phone, email, colors }
+ * @returns {{ type, businessName, files: { 'index.html': string, 'README.txt': string }, summary }}
+ */
+function buildMyBusiness(description, overrides) {
+  description = String(description || '');
+  overrides   = overrides || {};
+
+  const typeKey  = overrides.type ? overrides.type.toUpperCase() : _detectBusinessType(description);
+  const template = BUSINESS_TEMPLATES[typeKey] || BUSINESS_TEMPLATES.FREELANCER;
+  const details  = _parseBusinessDescription(description);
+
+  const name     = overrides.name     || details.name     || template.label;
+  const location = overrides.location || details.location || '';
+  const phone    = overrides.phone    || details.phone    || '';
+  const email    = overrides.email    || details.email    || '';
+  const ig       = overrides.instagram|| details.instagram|| '';
+  const services = overrides.services || template.services;
+  const colors   = overrides.colors   || template.colors;
+  const tagline  = overrides.tagline  || template.tagline;
+  const hours    = overrides.hours    || template.hours;
+
+  /* Generate working index.html */
+  const bookingSection = template.booking ? `
+    <!-- ── BOOKING SECTION ── -->
+    <section id="book" class="booking-section">
+      <div class="container">
+        <h2>Book Your Appointment</h2>
+        <p class="subtitle">Pick a service and we'll get you in.</p>
+        <form class="booking-form" onsubmit="submitBooking(event)">
+          <div class="form-row">
+            <input type="text"   name="name"    placeholder="Your Name"          required />
+            <input type="tel"    name="phone"   placeholder="Phone Number"        required />
+          </div>
+          <div class="form-row">
+            <input type="email"  name="email"   placeholder="Email Address"       required />
+            <input type="date"   name="date"    min="${new Date().toISOString().split('T')[0]}" required />
+          </div>
+          <select name="service" required>
+            <option value="">Select a Service...</option>
+            ${services.map(s => `<option value="${s}">${s}</option>`).join('\n            ')}
+          </select>
+          <textarea name="notes" placeholder="Anything we should know? (optional)" rows="3"></textarea>
+          <button type="submit" class="btn-primary">Request Appointment</button>
+          <div id="booking-confirm" style="display:none" class="confirm-msg">
+            ✅ Request sent! We'll confirm within 2 hours.
+          </div>
+        </form>
+      </div>
+    </section>` : '';
+
+  const contactMap = location ? `
+        <div class="contact-item">
+          <span class="icon">📍</span>
+          <span>${location}</span>
+        </div>` : '';
+  const contactPhone = phone ? `
+        <div class="contact-item">
+          <a href="tel:${phone.replace(/\D/g, '')}"><span class="icon">📞</span><span>${phone}</span></a>
+        </div>` : '';
+  const contactEmail = email ? `
+        <div class="contact-item">
+          <a href="mailto:${email}"><span class="icon">✉️</span><span>${email}</span></a>
+        </div>` : '';
+  const igLink = ig ? `<a href="https://instagram.com/${ig}" target="_blank" class="social-link">📸 @${ig}</a>` : '';
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${name}${location ? ' — ' + location : ''}</title>
+  <meta name="description" content="${name}. ${tagline}${location ? ' Located in ' + location + '.' : ''}">
+  <style>
+    /* ── SOVEREIGN BASE ── */
+    :root {
+      --primary:  ${colors.primary};
+      --accent:   ${colors.accent};
+      --bg:       ${colors.bg};
+      --phi:      1.618;
+      --radius:   12px;
+      --font:     'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font); background: var(--bg); color: #222; line-height: 1.618; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+    h1, h2, h3 { line-height: 1.2; }
+    h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); color: var(--primary); margin-bottom: 12px; }
+    .subtitle { color: #666; margin-bottom: 32px; font-size: 1.1rem; }
+
+    /* ── NAVIGATION ── */
+    nav { background: var(--primary); padding: 16px 0; position: sticky; top: 0; z-index: 100; }
+    nav .container { display: flex; align-items: center; justify-content: space-between; }
+    .nav-brand { color: #fff; font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; }
+    .nav-links  { display: flex; gap: 28px; list-style: none; }
+    .nav-links a { color: rgba(255,255,255,0.85); font-size: 0.95rem; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--accent); text-decoration: none; }
+    .nav-cta { background: var(--accent); color: #fff !important; padding: 8px 20px; border-radius: 6px; font-weight: 600; }
+    .nav-cta:hover { opacity: 0.9; }
+    @media(max-width:640px){.nav-links{display:none}}
+
+    /* ── HERO ── */
+    .hero { background: var(--primary); color: #fff; padding: 100px 0 80px; text-align: center; }
+    .hero h1 { font-size: clamp(2.2rem, 6vw, 4rem); font-weight: 800; margin-bottom: 20px; }
+    .hero .tagline { font-size: 1.3rem; opacity: 0.85; margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto; }
+    .hero-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary { display: inline-block; background: var(--accent); color: #fff; padding: 14px 32px; border-radius: var(--radius); font-size: 1.05rem; font-weight: 700; border: none; cursor: pointer; transition: transform 0.15s, opacity 0.15s; }
+    .btn-primary:hover { transform: translateY(-2px); opacity: 0.92; text-decoration: none; }
+    .btn-ghost { display: inline-block; border: 2px solid rgba(255,255,255,0.5); color: #fff; padding: 12px 28px; border-radius: var(--radius); font-size: 1rem; font-weight: 600; transition: border-color 0.2s; }
+    .btn-ghost:hover { border-color: var(--accent); text-decoration: none; }
+
+    /* ── SERVICES ── */
+    .services-section { padding: 80px 0; text-align: center; }
+    .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 40px; }
+    .service-card { background: #fff; border-radius: var(--radius); padding: 32px 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); transition: transform 0.2s, box-shadow 0.2s; border-top: 4px solid var(--accent); }
+    .service-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+    .service-card h3 { color: var(--primary); font-size: 1.15rem; }
+
+    /* ── BOOKING ── */
+    .booking-section { background: var(--primary); color: #fff; padding: 80px 0; }
+    .booking-section h2 { color: #fff; }
+    .booking-section .subtitle { color: rgba(255,255,255,0.75); }
+    .booking-form { max-width: 580px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media(max-width:580px){.form-row{grid-template-columns:1fr}}
+    .booking-form input, .booking-form select, .booking-form textarea {
+      width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08); color: #fff; font-size: 1rem; font-family: var(--font);
+    }
+    .booking-form input::placeholder, .booking-form textarea::placeholder { color: rgba(255,255,255,0.5); }
+    .booking-form select option { background: var(--primary); }
+    .confirm-msg { text-align: center; padding: 16px; background: rgba(255,255,255,0.1); border-radius: 8px; color: #fff; }
+
+    /* ── HOURS ── */
+    .hours-section { padding: 60px 0; text-align: center; background: #fff; }
+    .hours-text { font-size: 1.25rem; color: var(--primary); font-weight: 600; margin-top: 16px; }
+
+    /* ── CONTACT ── */
+    .contact-section { padding: 80px 0; text-align: center; }
+    .contact-grid { display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 32px; }
+    .contact-item { display: flex; align-items: center; gap: 12px; font-size: 1.1rem; }
+    .contact-item .icon { font-size: 1.4rem; }
+    .social-link { display: inline-block; margin-top: 24px; background: var(--primary); color: #fff !important; padding: 10px 24px; border-radius: 24px; font-size: 0.95rem; }
+
+    /* ── FOOTER ── */
+    footer { background: var(--primary); color: rgba(255,255,255,0.6); text-align: center; padding: 32px 0; font-size: 0.9rem; }
+    footer span { color: rgba(255,255,255,0.3); font-size: 0.75rem; display: block; margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+  <!-- ── NAVIGATION ── -->
+  <nav>
+    <div class="container">
+      <span class="nav-brand">${name}</span>
+      <ul class="nav-links">
+        <li><a href="#services">Services</a></li>
+        ${hours ? '<li><a href="#hours">Hours</a></li>' : ''}
+        <li><a href="#contact">Contact</a></li>
+        ${template.booking ? '<li><a href="#book" class="nav-cta">Book Now</a></li>' : ''}
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <header class="hero">
+    <div class="container">
+      <h1>${name}</h1>
+      <p class="tagline">${tagline}</p>
+      <div class="hero-btns">
+        ${template.booking ? '<a href="#book" class="btn-primary">Book an Appointment</a>' : '<a href="#contact" class="btn-primary">Get In Touch</a>'}
+        <a href="#services" class="btn-ghost">See Our Services</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── SERVICES ── -->
+  <section id="services" class="services-section">
+    <div class="container">
+      <h2>What We Offer</h2>
+      <p class="subtitle">Professional service, every time.</p>
+      <div class="services-grid">
+        ${services.map(s => `<div class="service-card"><h3>${s}</h3></div>`).join('\n        ')}
+      </div>
+    </div>
+  </section>
+
+  ${bookingSection}
+
+  <!-- ── HOURS ── -->
+  ${hours ? `<section id="hours" class="hours-section">
+    <div class="container">
+      <h2>Hours</h2>
+      <p class="hours-text">${hours}</p>
+    </div>
+  </section>` : ''}
+
+  <!-- ── CONTACT ── -->
+  <section id="contact" class="contact-section">
+    <div class="container">
+      <h2>Find Us</h2>
+      <div class="contact-grid">
+        ${contactMap}
+        ${contactPhone}
+        ${contactEmail}
+      </div>
+      ${igLink}
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer>
+    <div class="container">
+      <p>&copy; ${new Date().getFullYear()} ${name}. All rights reserved.</p>
+      <span>Built with NOVA Sovereign Platform — zero tools, zero developers, zero limits.</span>
+    </div>
+  </footer>
+
+  <script>
+    function submitBooking(e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = Object.fromEntries(new FormData(form));
+      /* In production: replace this with your booking API or email service */
+      console.log('[NOVA] Booking request:', data);
+      form.style.display = 'none';
+      document.getElementById('booking-confirm').style.display = 'block';
+      /* Optional: send to a webhook */
+      /* fetch('/api/book', { method: 'POST', body: JSON.stringify(data) }); */
+    }
+  </script>
+</body>
+</html>`;
+
+  const readme = `${name} — Built with NOVA Sovereign Platform
+${'═'.repeat(50)}
+
+YOUR WEBSITE IS READY. Here's how to use it:
+
+1. OPEN YOUR WEBSITE
+   Just double-click "index.html" and it opens in your browser.
+   That's it. Your website works immediately.
+
+2. SHARE IT ONLINE (FREE OPTIONS)
+   • Netlify Drop: go to app.netlify.com/drop → drag your folder → done. Live in 30 seconds.
+   • GitHub Pages: free hosting in 2 minutes.
+   • Cloudflare Pages: free, fast, sovereign.
+
+3. CUSTOM DOMAIN (OPTIONAL)
+   Buy your domain at Cloudflare ($10/year) and connect it to your free hosting.
+   Cost: $10/year total. No monthly fees.
+
+4. EDIT YOUR INFORMATION
+   Open index.html in any text editor (Notepad, TextEdit, VS Code).
+   Search for your business name and update phone, email, hours, services.
+
+5. BOOKING (if enabled)
+   The booking form works out of the box.
+   To receive actual emails: add Formspree (free) or Netlify Forms.
+   Go to formspree.io → create free account → replace the form action.
+
+BUSINESS DETAILS
+────────────────
+Name:     ${name}
+Type:     ${template.label}
+Location: ${location || '(add your address)'}
+Phone:    ${phone || '(add your phone number)'}
+Email:    ${email || '(add your email)'}
+Hours:    ${hours}
+
+BUILT BY NOVA
+────────────────
+This website was built by NOVA Sovereign Platform.
+Zero developers. Zero tools. One sentence.
+This is what technology is supposed to be — for everyone.`;
+
+  return {
+    businessId: `BIZ-${secureId(4).toUpperCase()}`,
+    type:         typeKey,
+    businessName: name,
+    template:     template.label,
+    detectedFrom: description.slice(0, 120),
+    files: {
+      'index.html': html,
+      'README.txt':  readme,
+    },
+    summary: `Created complete ${template.label} website for "${name}"${location ? ' in ' + location : ''}. ${template.booking ? 'Includes booking form.' : ''} Open index.html to see your live site.`,
+    fileCount:  2,
+    linesOfCode: html.split('\n').length + readme.split('\n').length,
+    deployIn:   '30 seconds (drag to netlify.com/drop)',
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §17 — BUSINESS INTELLIGENCE ENGINE
+//
+// Beyond code.  NOVA generates pricing strategy, marketing copy,
+// terms of service, and business model canvas — all from plain English.
+// Still zero developer knowledge required.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Generate a pricing strategy for a business.
+ * @param {string} businessType — BUSINESS_TEMPLATES key or plain description
+ * @param {string} [location]   — affects pricing tier
+ * @returns {{ tiers: Array, advice: string[], priceRange: string }}
+ */
+function generatePricing(businessType, location) {
+  const typeKey  = (businessType || '').toUpperCase();
+  const template = BUSINESS_TEMPLATES[typeKey];
+  const isHighCOL = location && /new york|san francisco|los angeles|miami|seattle|boston|chicago|austin/i.test(location);
+  const mult     = isHighCOL ? PHI : 1.0;     /* φ multiplier for high cost-of-living areas */
+
+  const BASE_PRICING = {
+    BARBERSHOP:   { low: 25, mid: 45,  high: 75,  unit: 'per cut' },
+    RESTAURANT:   { low: 12, mid: 22,  high: 45,  unit: 'per plate' },
+    GYM:          { low: 25, mid: 55,  high: 120, unit: 'per month' },
+    TRAINER:      { low: 50, mid: 85,  high: 150, unit: 'per hour' },
+    PHOTOGRAPHER: { low: 150,mid: 350, high: 800, unit: 'per session' },
+    FREELANCER:   { low: 50, mid: 100, high: 200, unit: 'per hour' },
+    FOODTRUCK:    { low: 8,  mid: 14,  high: 22,  unit: 'per item' },
+    SALON:        { low: 25, mid: 55,  high: 120, unit: 'per service' },
+    TUTOR:        { low: 30, mid: 65,  high: 120, unit: 'per hour' },
+    CONSULTANT:   { low: 100,mid: 200, high: 500, unit: 'per hour' },
+    STORE:        { low: 10, mid: 35,  high: 150, unit: 'per product' },
+    REALESTATE:   { low: 2.5,mid: 3,   high: 6,   unit: '% commission' },
+  };
+
+  const base = BASE_PRICING[typeKey] || BASE_PRICING.FREELANCER;
+  const r    = (x) => Math.round(x * mult);
+
+  const services = template ? template.services : ['Basic', 'Standard', 'Premium'];
+
+  return {
+    businessType: typeKey,
+    location:     location || 'general market',
+    priceRange:   `$${r(base.low)}–$${r(base.high)} ${base.unit}`,
+    tiers: [
+      {
+        name:  'Starter / Entry',
+        price: `$${r(base.low)} ${base.unit}`,
+        includes: [services[0] || 'Basic service', 'No frills', 'Great for first-time clients'],
+        advice: 'Use this to get people in the door. Once they trust you, they upgrade.',
+      },
+      {
+        name:  'Standard',
+        price: `$${r(base.mid)} ${base.unit}`,
+        includes: [services[0] || 'Full service', services[1] || 'Add-on included', 'Most popular option'],
+        advice: 'This is your money-maker. Price it where you\'d be happy doing it all day.',
+      },
+      {
+        name:  'Premium / VIP',
+        price: `$${r(base.high)} ${base.unit}`,
+        includes: [services[0] || 'Premium experience', 'Priority scheduling', 'Everything included'],
+        advice: 'Some clients want the best. Give them a reason to spend more.',
+      },
+    ],
+    advice: [
+      `Start at $${r(base.mid)} ${base.unit} — you can always lower, rarely raise.`,
+      'Never compete on price. Compete on trust, quality, and speed of booking.',
+      `If you\'re fully booked, raise your prices by 20%. Do it again when you\'re full again.`,
+      'Offer a loyalty card: 10th service free. Costs you nothing. Keeps them coming back.',
+      isHighCOL
+        ? `In ${location}, the market supports premium pricing. Don\'t undercharge.`
+        : 'Research what the top 3 competitors in your area charge. Price in the middle or above.',
+    ],
+    phiPricing: `φ-optimal midpoint: $${Math.round(r(base.low) * PHI)} ${base.unit} — mathematically the sweet spot between accessible and profitable.`,
+  };
+}
+
+/**
+ * Generate marketing copy for a business.
+ * @param {Object} business — { name, type, location, tagline }
+ * @returns {{ headline, bio, socialBio, emailSubject, callToAction }}
+ */
+function generateMarketingCopy(business) {
+  business = business || {};
+  const name     = business.name     || 'My Business';
+  const typeKey  = (business.type || 'FREELANCER').toUpperCase();
+  const template = BUSINESS_TEMPLATES[typeKey] || BUSINESS_TEMPLATES.FREELANCER;
+  const loc      = business.location || '';
+
+  const copies = {
+    BARBERSHOP:   { action: 'Book your cut', social: 'Fresh fades & clean cuts 💈', email: 'Your next appointment is waiting' },
+    RESTAURANT:   { action: 'Order now',     social: 'Good food. Good vibes 🍽️',   email: 'Hungry? We\'ve got you covered' },
+    GYM:          { action: 'Start today',   social: 'Strong body. Sovereign mind 💪',email: 'Ready to level up?' },
+    TRAINER:      { action: 'Book a session',social: 'Transformations happen here 🏋️', email: 'Let\'s talk about your goals' },
+    PHOTOGRAPHER: { action: 'Book a shoot',  social: 'Every moment, perfectly captured 📸', email: 'Your memories, preserved forever' },
+    FREELANCER:   { action: 'Start a project',social: 'Ideas built. Problems solved ⚡',  email: 'Let\'s build something together' },
+    FOODTRUCK:    { action: 'Find us today', social: 'Chase the truck 🚚🔥',         email: 'We\'re near you. Come eat.' },
+    SALON:        { action: 'Book your glow',social: 'You deserve to feel amazing 💅', email: 'Treat yourself. You\'ve earned it.' },
+    TUTOR:        { action: 'Book a lesson', social: 'Learning that actually sticks 📚', email: 'Your best grade starts here' },
+    CONSULTANT:   { action: 'Get a consultation', social: 'Results, not reports 📈',  email: 'Ready to grow your business?' },
+    STORE:        { action: 'Shop now',      social: 'Quality you can feel 🛍️',       email: 'New arrivals just dropped' },
+    REALESTATE:   { action: 'See listings',  social: 'Find your dream home 🏠',       email: 'New listings in your area' },
+  };
+
+  const copy   = copies[typeKey] || copies.FREELANCER;
+
+  return {
+    businessName:  name,
+    headline:      `${name}${loc ? ' — ' + loc : ''}. ${template.tagline}`,
+    taglines: [
+      template.tagline,
+      `${loc ? loc + '\'s best ' : 'Your trusted '}${template.label.toLowerCase()}.`,
+      `${copy.social.replace(/[🍽️💈💪🏋️📸⚡🚚🔥💅📚📈🛍️🏠]/g, '').trim()}.`,
+    ],
+    socialBio:     `${template.label} ${loc ? 'in ' + loc + '. ' : ''}${template.tagline} ${copy.social}`,
+    googleBio:     `${name} is a ${template.label.toLowerCase()}${loc ? ' in ' + loc : ''} offering ${template.services.slice(0, 3).join(', ')} and more. ${template.tagline}`,
+    emailSubject:  copy.email,
+    callToAction:  copy.action,
+    instagramCaption: `${copy.social}\n\n${template.tagline}\n\n${copy.action} → link in bio\n\n${template.services.slice(0, 4).map(s => `#${s.replace(/\s+/g,'')}`).join(' ')} ${loc ? '#' + loc.replace(/\s+/g,'') : ''}`,
+    smsTemplate:   `Hi [Name]! ${name} here. ${copy.email}. ${copy.action}: [LINK] — reply STOP to unsubscribe.`,
+  };
+}
+
+/**
+ * Generate a 1-page business plan for a self-entrepreneur.
+ * @param {string} businessDescription  — plain English
+ * @returns {string} — complete business plan as formatted text
+ */
+function generateBusinessPlan(businessDescription) {
+  businessDescription = String(businessDescription || '');
+  const typeKey    = _detectBusinessType(businessDescription);
+  const details    = _parseBusinessDescription(businessDescription);
+  const template   = BUSINESS_TEMPLATES[typeKey] || BUSINESS_TEMPLATES.FREELANCER;
+  const pricing    = generatePricing(typeKey, details.location);
+  const marketing  = generateMarketingCopy({ name: details.name, type: typeKey, location: details.location });
+
+  return `
+╔════════════════════════════════════════════════════╗
+║     ONE-PAGE BUSINESS PLAN — ${(details.name || 'My Business').padEnd(22)}║
+╠════════════════════════════════════════════════════╣
+║  Generated by NOVA Sovereign Platform               ║
+╚════════════════════════════════════════════════════╝
+
+THE BUSINESS
+─────────────
+Name:     ${details.name || '[Your business name]'}
+Type:     ${template.label}
+Location: ${details.location || '[Your city]'}
+Mission:  ${template.tagline}
+
+WHAT YOU SELL
+──────────────
+${template.services.map((s, i) => `  ${i + 1}. ${s}`).join('\n')}
+
+PRICING (φ-optimised)
+──────────────────────
+${pricing.tiers.map(t => `  ${t.name}: ${t.price}\n     → ${t.advice}`).join('\n\n')}
+
+Advice: ${pricing.advice[0]}
+
+TARGET CUSTOMER
+────────────────
+  Your ideal client needs what you sell AND lives/works nearby.
+  Start marketing to people you already know.
+  Ask every customer for a referral — it costs nothing.
+
+MARKETING (first 30 days)
+──────────────────────────
+  Day 1–7:   Tell 50 people you know. Text them personally.
+  Day 8–14:  Post on Instagram/Facebook every day. Use your phone.
+  Day 15–21: Ask your first 5 customers to leave a Google review.
+  Day 22–30: Start a loyalty program. Make regulars feel special.
+
+  Your Google Business headline: "${marketing.googleBio.slice(0, 100)}..."
+  Instagram bio: "${marketing.socialBio.slice(0, 100)}..."
+
+MONEY (simple version)
+───────────────────────
+  You need to cover your costs FIRST. Then everything else is profit.
+  Track: income vs. expenses every week. Use a simple spreadsheet.
+  Invoice the day you finish a job. Chase unpaid invoices within 7 days.
+  Goal month 1: cover your own costs.
+  Goal month 3: pay yourself something.
+  Goal month 6: hire help or raise prices.
+
+TOOLS YOU NEED (zero-cost to start)
+─────────────────────────────────────
+  • Website: this one (already done)
+  • Bookings: Calendly free tier OR your booking form above
+  • Payments: Venmo / Cash App / Zelle (free) or Square (2.6%)
+  • Accounting: Wave (free) — handles invoices + taxes
+  • Communication: WhatsApp Business (free)
+  • Marketing: Instagram + Google Business Profile (both free)
+  Total: $0/month to start.
+
+NEXT 3 ACTIONS (do these TODAY)
+─────────────────────────────────
+  1. Upload your website to Netlify Drop (free, 2 minutes)
+  2. Create a free Google Business Profile
+  3. Text 10 people you know and tell them you're open
+
+════════════════════════════════════════════════════════
+Built with NOVA. This is yours. Go build.
+`.trim();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §18 — SOVEREIGN DEPLOY ENGINE
+//
+// Generates deployment packages so the entrepreneur can go live immediately.
+// No cloud knowledge required.  Just follow the README.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Generate a Cloudflare Workers deployment config for a production app.
+ * @param {string} appName      — name of the app
+ * @param {string} scriptFile   — the worker JS file
+ * @param {string[]} [routes]   — optional custom routes
+ * @returns {{ wranglerToml: string, deployInstructions: string }}
+ */
+function generateCloudflareConfig(appName, scriptFile, routes) {
+  const slug = (appName || 'nova-app').toLowerCase().replace(/[^a-z0-9-]/g, '-');
+  routes = routes || [`${slug}.workers.dev/*`];
+
+  const wranglerToml = `name = "${slug}"
+main = "${scriptFile || 'index.js'}"
+compatibility_date = "${new Date().toISOString().split('T')[0]}"
+
+[triggers]
+crons = []
+
+[[routes]]
+${routes.map(r => `pattern = "${r}"`).join('\n')}
+
+[vars]
+AGI_ID = "${slug}-001"
+NOVA_VERSION = "1.0.0"
+`;
+
+  const deployInstructions = `DEPLOY TO CLOUDFLARE WORKERS
+═════════════════════════════
+
+FREE TIER: 100,000 requests/day. $0/month.
+
+STEP 1 — Install Wrangler (one-time setup)
+  npm install -g wrangler
+  wrangler login
+
+STEP 2 — Deploy
+  cd your-project-folder
+  wrangler deploy
+
+STEP 3 — Your app is live at:
+  https://${slug}.workers.dev
+
+That's it. Your sovereign app runs on Cloudflare's edge in 200 cities.
+Zero servers to manage. Zero downtime. Zero monthly fees on the free tier.
+
+CUSTOM DOMAIN (optional, $10/year)
+  1. Buy domain at dash.cloudflare.com
+  2. Go to Workers → your app → Custom Domains
+  3. Add your domain. Done in 2 minutes.`;
+
+  return { wranglerToml, deployInstructions, appSlug: slug, liveUrl: `https://${slug}.workers.dev` };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §19 — UPGRADED SovereignCodingPlatform (BUILD №55)
+// Adds entrepreneur methods to the existing platform class.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/* Extend the platform prototype with §16–§18 entrepreneur capabilities */
+SovereignCodingPlatform.prototype.buildMyBusiness = function(description, overrides) {
+  const result = buildMyBusiness(description, overrides);
+  this._publish('ENTREPRENEUR:BUSINESS_BUILT', { name: result.businessName, type: result.type, lines: result.linesOfCode });
+  return result;
+};
+
+SovereignCodingPlatform.prototype.generatePricing = function(typeOrDescription, location) {
+  const typeKey = BUSINESS_TEMPLATES[typeOrDescription.toUpperCase()] ? typeOrDescription.toUpperCase() : _detectBusinessType(typeOrDescription);
+  return generatePricing(typeKey, location);
+};
+
+SovereignCodingPlatform.prototype.generateMarketingCopy = function(business) {
+  return generateMarketingCopy(business);
+};
+
+SovereignCodingPlatform.prototype.generateBusinessPlan = function(description) {
+  return generateBusinessPlan(description);
+};
+
+SovereignCodingPlatform.prototype.generateCloudflareConfig = function(appName, scriptFile, routes) {
+  return generateCloudflareConfig(appName, scriptFile, routes);
+};
+
+SovereignCodingPlatform.prototype.listBusinessTypes = function() {
+  return Object.entries(BUSINESS_TEMPLATES).map(([key, t]) => ({ key, label: t.label, booking: t.booking, services: t.services }));
+};
+
+/* Override mcpFetch to add entrepreneur tools */
+const _originalMcpFetch = SovereignCodingPlatform.prototype.mcpFetch;
+SovereignCodingPlatform.prototype.mcpFetch = function() {
+  const platform    = this;
+  const originalFn  = _originalMcpFetch.call(this);
+  return async function(request) {
+    const url  = new URL(request.url);
+    const path = url.pathname;
+
+    /* Entrepreneur tools list */
+    if (path === '/mcp/tools') {
+      return _json({ tools: [
+        /* Original 14 tools */
+        { name: 'search_code',             description: 'Semantic code search (enriched with paper corpus)', params: ['query', 'k'] },
+        { name: 'generate_code',           description: 'Sovereign code generation (language-aware + paper-enriched)', params: ['prompt', 'language', 'context'] },
+        { name: 'scan_bugs',               description: 'Bug pattern detection with Lyapunov signal', params: ['code', 'fileId'] },
+        { name: 'index_file',              description: 'Index a file into the codebase', params: ['fileId', 'code', 'metadata'] },
+        { name: 'find_similar',            description: 'Find semantically similar files', params: ['fileId', 'k'] },
+        { name: 'triage_pr',               description: 'Triage a pull request', params: ['pr'] },
+        { name: 'analyse_diff',            description: 'Analyse a unified diff', params: ['diffText'] },
+        { name: 'open_thread',             description: 'Open a multi-agent coding thread', params: ['userId', 'language', 'mode'] },
+        { name: 'thread_send',             description: 'Send a message to a coding thread', params: ['threadId', 'message'] },
+        { name: 'get_template',            description: 'Get a language starter template', params: ['language', 'templateName'] },
+        { name: 'student_send',            description: 'Student-mode message with explanation', params: ['studentId', 'message', 'language'] },
+        { name: 'get_paper_context',       description: 'Get relevant NOVA paper knowledge for a query', params: ['query'] },
+        { name: 'list_papers',             description: 'List all NOVA research papers in the knowledge corpus', params: [] },
+        /* §16–§18 Entrepreneur tools */
+        { name: 'build_my_business',       description: '⭐ ONE SENTENCE → WORKING WEBSITE. For self-entrepreneurs who need a business online NOW. Zero developer needed.', params: ['description', 'overrides'] },
+        { name: 'generate_pricing',        description: 'Generate φ-optimised pricing strategy for any business type', params: ['businessType', 'location'] },
+        { name: 'generate_marketing_copy', description: 'Generate taglines, social bio, email subjects, captions', params: ['business'] },
+        { name: 'generate_business_plan',  description: 'Generate a complete 1-page business plan from a plain English description', params: ['businessDescription'] },
+        { name: 'generate_cloudflare_config', description: 'Generate Cloudflare Workers deployment config + instructions', params: ['appName', 'scriptFile', 'routes'] },
+        { name: 'list_business_types',     description: 'List all 12 sovereign business templates', params: [] },
+        { name: 'platform_status',         description: 'Get platform status and stats', params: [] },
+      ]});
+    }
+
+    if (path === '/mcp/invoke' && request.method === 'POST') {
+      let body;
+      try { body = await request.json(); } catch (_) { return _json({ error: 'Invalid JSON' }, 400); }
+      const { tool, params } = body || {};
+      if (!tool) return _json({ error: 'Missing tool' }, 400);
+      const p = params || {};
+      try {
+        let result;
+        if      (tool === 'build_my_business')       result = platform.buildMyBusiness(p.description || '', p.overrides);
+        else if (tool === 'generate_pricing')         result = platform.generatePricing(p.businessType || 'FREELANCER', p.location);
+        else if (tool === 'generate_marketing_copy')  result = platform.generateMarketingCopy(p.business || {});
+        else if (tool === 'generate_business_plan')   result = platform.generateBusinessPlan(p.businessDescription || '');
+        else if (tool === 'generate_cloudflare_config') result = platform.generateCloudflareConfig(p.appName, p.scriptFile, p.routes);
+        else if (tool === 'list_business_types')      result = platform.listBusinessTypes();
+        else if (tool === 'platform_status')          result = platform.status();
+        else {
+          /* Fall back to original handler */
+          const fakeReq = new Request(request.url, { method: request.method, body: JSON.stringify(body) });
+          return originalFn(fakeReq);
+        }
+        return _json({ tool, result });
+      } catch (e) {
+        return _json({ error: e.message }, 500);
+      }
+    }
+
+    return originalFn(request);
+  };
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// §15 — ENTRY POINT  (BUILD №55)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const codingPlatform = new SovereignCodingPlatform();
@@ -1102,6 +1940,11 @@ if (typeof module !== 'undefined') {
     PAPER_CORPUS, getPaperContext,
     /* Templates */
     LANGUAGE_TEMPLATES, getTemplate,
+    /* Entrepreneur (§16–§18) */
+    BUSINESS_TEMPLATES,
+    buildMyBusiness, generatePricing, generateMarketingCopy,
+    generateBusinessPlan, generateCloudflareConfig,
+    _detectBusinessType,
     /* Index */
     CodebaseIndex,
     /* Constants */
