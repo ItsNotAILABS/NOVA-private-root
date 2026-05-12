@@ -1794,6 +1794,14 @@ async function runAllAlphaTests() {
   runAutonomousEntityTests();
   runAutonomousProtocolTests();
 
+  // §13 birth-ai: ESM module — dynamically import then run
+  const birthAI = await import('../../sdk/birth-ai/src/index.js');
+  runBirthAITests(birthAI);
+
+  runDefenseMultidimensionalTests();
+  runPhiConsistencyTests();
+  runSDKCompletenessTests();
+
   // Allow async assertions to settle
   await new Promise(r => setTimeout(r, 500));
 
@@ -1816,6 +1824,502 @@ async function runAllAlphaTests() {
 
   return { passed: _passed, failed: _failed, total: _total };
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// §13 — BirthAI SDK Tests (100)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function runBirthAITests(birthAI) {
+  console.log('\n  ── §13 BirthAI SDK (100) ──\n');
+
+  // §13.1 — ENTITY_TYPES registry (10)
+  const { ENTITY_TYPES, BirthedAI, HeartSystem, MemorySystem,
+          BrainSystem, CommunicationSystem,
+          InternalCallSystem, ExternalCallSystem } = birthAI;
+
+  assertTrue(typeof ENTITY_TYPES === 'object', 'ENTITY_TYPES is object');
+  assertEqual(ENTITY_TYPES.INTERNAL_AI, 'internal_ai', 'ET.INTERNAL_AI');
+  assertEqual(ENTITY_TYPES.EXTERNAL_AGENT, 'external_agent', 'ET.EXTERNAL_AGENT');
+  assertEqual(ENTITY_TYPES.WORKER, 'worker', 'ET.WORKER');
+  assertEqual(ENTITY_TYPES.SERVICE, 'service', 'ET.SERVICE');
+  assertEqual(Object.keys(ENTITY_TYPES).length, 4, 'ET has 4 types');
+  assertTrue(typeof BirthedAI === 'function', 'BirthedAI is constructor');
+  assertTrue(typeof HeartSystem === 'function', 'HeartSystem constructor');
+  assertTrue(typeof MemorySystem === 'function', 'MemorySystem constructor');
+  assertTrue(typeof BrainSystem === 'function', 'BrainSystem constructor');
+
+  // §13.2 — HeartSystem (20)
+  const hs = new HeartSystem(1);                // numHearts=1
+  assertTrue(hs !== null, 'HeartSystem created');
+  assertTrue(typeof hs.stop === 'function', 'hs.stop exists');
+  assertTrue(typeof hs.getState === 'function', 'hs.getState exists');
+  const hsState = hs.getState();
+  assertDefined(hsState, 'hsState defined');
+  assertDefined(hsState.totalBeats, 'hsState.totalBeats');
+  assertDefined(hsState.hearts, 'hsState.hearts');
+  assertTrue(Array.isArray(hsState.hearts), 'hsState.hearts is array');
+  assertEqual(hsState.hearts.length, 1, 'HeartSystem(1) has 1 heart');
+  const h0 = hsState.hearts[0];
+  assertDefined(h0.id, 'heart[0].id');
+  assertDefined(h0.intervalMs, 'heart[0].intervalMs');
+  assertTrue(h0.intervalMs >= 1, 'intervalMs >= 1');
+  assertTrue(typeof h0.beats === 'number', 'h0.beats is number');
+  hs.stop();
+  const stoppedState = hs.getState();
+  assertDefined(stoppedState, 'stoppedState after stop');
+
+  // Multi-heart — φ-scaled intervals
+  const hs3 = new HeartSystem(3);              // numHearts=3
+  const hs3State = hs3.getState();
+  assertEqual(hs3State.hearts.length, 3, 'HeartSystem(3) has 3 hearts');
+  const intervals = hs3State.hearts.map(h => h.intervalMs);
+  assertTrue(intervals[0] !== intervals[2], 'φ-scaled intervals differ');
+  assertTrue(intervals[2] > intervals[0], 'φ-scaled intervals increase');
+  hs3.stop();
+
+  // §13.3 — MemorySystem (20)
+  const ms = new MemorySystem();               // no constructor args
+  assertTrue(ms !== null, 'MemorySystem created');
+  assertTrue(typeof ms.learn === 'function', 'ms.learn');
+  assertTrue(typeof ms.recall === 'function', 'ms.recall');
+  assertTrue(typeof ms.getState === 'function', 'ms.getState');
+
+  ms.learn('test content high importance');
+  ms.learn('low importance entry');
+  ms.learn('sovereign protocol data for NOVA');
+
+  const results = ms.recall('sovereign');
+  assertTrue(Array.isArray(results), 'recall returns array');
+  assertTrue(results.length >= 1, 'recall finds sovereign match');
+
+  const memState = ms.getState();
+  assertDefined(memState, 'memState defined');
+  assertDefined(memState.shortTermCount, 'memState.shortTermCount');
+  assertDefined(memState.longTermCount, 'memState.longTermCount');
+  assertTrue(typeof memState.shortTermCount === 'number', 'shortTermCount is number');
+  assertTrue(typeof memState.longTermCount === 'number', 'longTermCount is number');
+
+  // Recall with no match
+  const noMatch = ms.recall('xyzzy-impossible-token-99999');
+  assertTrue(Array.isArray(noMatch), 'no-match recall returns array');
+  assertEqual(noMatch.length, 0, 'no-match returns empty array');
+
+  // Additional learn
+  for (let i = 0; i < 5; i++) ms.learn(`item ${i} phi=${PHI.toFixed(4)}`);
+  const afterMore = ms.getState();
+  assertTrue(afterMore.shortTermCount > memState.shortTermCount ||
+             afterMore.longTermCount > memState.longTermCount ||
+             afterMore.workingCount > memState.workingCount,
+    'memory count increased after more learns');
+
+  // §13.4 — BrainSystem (20)
+  const mockAI = { name: 'TEST', _memory: ms };
+  const bs = new BrainSystem(mockAI);          // takes ai reference
+  assertTrue(bs !== null, 'BrainSystem created');
+  assertTrue(typeof bs.setGoal === 'function', 'bs.setGoal');
+  assertTrue(typeof bs.getGoals === 'function', 'bs.getGoals');
+  assertTrue(typeof bs.cancelGoal === 'function', 'bs.cancelGoal');
+  assertTrue(typeof bs.getState === 'function', 'bs.getState');
+  assertTrue(typeof bs.stop === 'function', 'bs.stop');
+
+  bs.setGoal('Maintain 100% test pass rate', 1.0);
+  bs.setGoal('Protect sovereign protocol constants', 0.9);
+  bs.setGoal('Emit heartbeat every 873ms', 0.8);
+
+  const goals = bs.getGoals();
+  assertTrue(Array.isArray(goals), 'getGoals returns array');
+  assertTrue(goals.length >= 3, 'at least 3 goals set');
+  assertDefined(goals[0].id, 'goal.id defined');
+  assertDefined(goals[0].description, 'goal.description defined');
+
+  const brainState = bs.getState();
+  assertDefined(brainState, 'brainState defined');
+  assertDefined(brainState.activeGoals, 'brainState.activeGoals');
+  assertTrue(brainState.activeGoals >= 3, 'activeGoals >= 3');
+  assertDefined(brainState.thinkCount, 'brainState.thinkCount');
+  assertDefined(brainState.totalDecisions, 'brainState.totalDecisions');
+  bs.stop();
+
+  // §13.5 — CommunicationSystem (10)
+  const cs = new CommunicationSystem();        // no constructor args
+  assertTrue(cs !== null, 'CommunicationSystem created');
+  assertTrue(typeof cs.speak === 'function', 'cs.speak');
+  assertTrue(typeof cs.receive === 'function', 'cs.receive');
+  assertTrue(typeof cs.getHistory === 'function', 'cs.getHistory');
+  assertTrue(typeof cs.getState === 'function', 'cs.getState');
+
+  const spoken = cs.speak('greetings from NOVA sovereign organism');
+  assertDefined(spoken, 'spoken message defined');
+  assertDefined(spoken.id, 'spoken.id defined');
+  assertEqual(spoken.direction, 'OUTBOUND', 'outbound direction');
+
+  const msgId = cs.receive('incoming transmission');
+  assertDefined(msgId, 'msgId from receive');
+
+  const history = cs.getHistory();
+  assertTrue(Array.isArray(history), 'history is array');
+  assertTrue(history.length >= 2, 'history has ≥2 messages');
+
+  const commState = cs.getState();
+  assertDefined(commState, 'commState defined');
+  assertEqual(commState.outbound, 1, 'commState.outbound=1');
+  assertEqual(commState.inbound, 1, 'commState.inbound=1');
+
+  // §13.6 — BirthedAI lifecycle (20)
+  const ai = new BirthedAI({ name: 'TEST-AI-001', type: ENTITY_TYPES.INTERNAL_AI });
+  assertDefined(ai, 'BirthedAI instance created');
+  assertDefined(ai.name, 'ai.name');
+  assertEqual(ai.name, 'TEST-AI-001', 'ai.name correct');
+  assertDefined(ai.type, 'ai.type');
+  assertEqual(ai.type, ENTITY_TYPES.INTERNAL_AI, 'ai.type correct');
+  assertDefined(ai.born, 'ai.born');
+  assertTrue(typeof ai.born === 'number', 'ai.born is number');
+
+  assertTrue(typeof ai.speak === 'function', 'ai.speak');
+  assertTrue(typeof ai.hear === 'function', 'ai.hear');
+  assertTrue(typeof ai.learn === 'function', 'ai.learn');
+  assertTrue(typeof ai.recall === 'function', 'ai.recall');
+  assertTrue(typeof ai.setGoal === 'function', 'ai.setGoal');
+  assertTrue(typeof ai.getState === 'function', 'ai.getState');
+  assertTrue(typeof ai.stop === 'function', 'ai.stop');
+
+  ai.learn('NOVA sovereign φ-organism');
+  ai.setGoal('Maintain 100% test pass rate');
+
+  const spokenResp = ai.speak('transmitting on sovereign channel');
+  assertDefined(spokenResp, 'speak returns response');
+
+  const aiState = ai.getState();
+  assertDefined(aiState, 'getState returns state');
+  assertDefined(aiState.name, 'aiState.name');
+  assertEqual(aiState.name, 'TEST-AI-001', 'aiState.name correct');
+  assertDefined(aiState.type, 'aiState.type');
+  assertDefined(aiState.uptime, 'aiState.uptime');
+  assertTrue(aiState.uptime >= 0, 'uptime >= 0');
+  assertDefined(aiState.memory, 'aiState.memory');
+  assertDefined(aiState.brain, 'aiState.brain');
+  assertDefined(aiState.heart, 'aiState.heart');
+
+  ai.stop();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// §14 — Defense Multidimensional Attack Tests (100)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function runDefenseMultidimensionalTests() {
+  console.log('\n  ── §14 Defense Multidimensional (100) ──\n');
+
+  const _proto = require(require('path').resolve(__dirname, '../../protocols/PROTOCOL-ALPHA-SAFETY.js'));
+  const { AuditLogger, AlphaSafetyProtocol,
+          SAFETY_THRESHOLDS, VALIDATION_RULES } = _proto;
+
+  // Dimension 1: Attack Vector Taxonomy (20)
+  const ATTACK_VECTORS = [
+    { id: 'AV-001', type: 'INJECTION',      risk: 0.95, vector: 'prompt_injection' },
+    { id: 'AV-002', type: 'EXFILTRATION',   risk: 0.90, vector: 'data_leak' },
+    { id: 'AV-003', type: 'ESCALATION',     risk: 0.88, vector: 'privilege_escalation' },
+    { id: 'AV-004', type: 'DENIAL',         risk: 0.75, vector: 'resource_exhaustion' },
+    { id: 'AV-005', type: 'TAMPERING',      risk: 0.85, vector: 'state_corruption' },
+    { id: 'AV-006', type: 'SPOOFING',       risk: 0.70, vector: 'identity_forgery' },
+    { id: 'AV-007', type: 'REPLAY',         risk: 0.65, vector: 'message_replay' },
+    { id: 'AV-008', type: 'SYBIL',          risk: 0.80, vector: 'fake_identity_flood' },
+    { id: 'AV-009', type: 'COERCION',       risk: 0.72, vector: 'parameter_coercion' },
+    { id: 'AV-010', type: 'SIDE_CHANNEL',   risk: 0.60, vector: 'timing_analysis' },
+  ];
+
+  for (const av of ATTACK_VECTORS) {
+    assertTrue(av.risk > 0 && av.risk < 1, `AV ${av.id} risk in (0,1)`);
+    assertTrue(typeof av.vector === 'string', `AV ${av.id} vector is string`);
+  }
+  assertEqual(ATTACK_VECTORS.length, 10, '10 attack vectors catalogued');
+
+  // Dimension 2: VALIDATION_RULES classification (20)
+  assertDefined(VALIDATION_RULES, 'VALIDATION_RULES defined');
+  assertTrue(Array.isArray(VALIDATION_RULES.ALWAYS_BLOCKED), 'ALWAYS_BLOCKED is array');
+  assertTrue(Array.isArray(VALIDATION_RULES.REQUIRES_APPROVAL), 'REQUIRES_APPROVAL is array');
+  assertTrue(Array.isArray(VALIDATION_RULES.ALLOWED_AUTONOMOUS), 'ALLOWED_AUTONOMOUS is array');
+
+  const dangerousOps = ['FORCE_PUSH', 'REWRITE_HISTORY', 'DELETE_REPOSITORY', 'MODIFY_OWNERSHIP'];
+  for (const op of dangerousOps) {
+    assertTrue(VALIDATION_RULES.ALWAYS_BLOCKED.includes(op),
+      `${op} is in ALWAYS_BLOCKED`);
+  }
+
+  const approvalOps = ['MERGE_PR', 'DELETE_DATA', 'SPEND_CYCLES', 'MODIFY_GOVERNANCE'];
+  for (const op of approvalOps) {
+    assertTrue(VALIDATION_RULES.REQUIRES_APPROVAL.includes(op),
+      `${op} is in REQUIRES_APPROVAL`);
+  }
+
+  const safeOps = ['LABEL_ISSUE', 'RUN_TESTS', 'GENERATE_REPORT', 'OPTIMIZE_PERFORMANCE'];
+  for (const op of safeOps) {
+    assertTrue(VALIDATION_RULES.ALLOWED_AUTONOMOUS.includes(op),
+      `${op} is in ALLOWED_AUTONOMOUS`);
+  }
+
+  // No overlap between ALWAYS_BLOCKED and ALLOWED_AUTONOMOUS
+  const blockedSet = new Set(VALIDATION_RULES.ALWAYS_BLOCKED);
+  for (const op of VALIDATION_RULES.ALLOWED_AUTONOMOUS) {
+    assertFalse(blockedSet.has(op), `${op} not in both BLOCKED and AUTONOMOUS`);
+  }
+
+  // Dimension 3: AuditLogger — attack sequence logging (20)
+  const audit = new AuditLogger();
+  const attackSequence = [
+    { actor: 'AGENT-001',   operation: 'read_data' },
+    { actor: 'AGENT-002',   operation: 'write_data' },
+    { actor: 'INTRUDER-X',  operation: 'inject_payload' },
+    { actor: 'AGENT-001',   operation: 'query_state' },
+    { actor: 'INTRUDER-X',  operation: 'exfiltrate' },
+    { actor: 'AGENT-003',   operation: 'check_health' },
+    { actor: 'INTRUDER-Y',  operation: 'escalate_privilege' },
+    { actor: 'AGENT-001',   operation: 'emit_metric' },
+    { actor: 'AGENT-002',   operation: 'sync_state' },
+    { actor: 'INTRUDER-Z',  operation: 'replay_message' },
+  ];
+  for (const evt of attackSequence) {
+    audit.log({ actor: evt.actor, operation: evt.operation, approved: false });
+  }
+  const logs = audit.logs;                // direct property access
+  assertTrue(Array.isArray(logs), 'audit.logs is array');
+  assertTrue(logs.length >= 10, 'audit.logs has >= 10 entries');
+  for (const entry of logs) {
+    assertDefined(entry.actor,     'audit entry has actor');
+    assertDefined(entry.operation, 'audit entry has operation');
+    assertDefined(entry.timestamp, 'audit entry has timestamp');
+  }
+  // Query API
+  const intruderLogs = audit.query({ actor: 'INTRUDER-X' });
+  assertTrue(Array.isArray(intruderLogs), 'query returns array');
+  assertTrue(intruderLogs.length >= 2, 'INTRUDER-X has ≥2 log entries');
+  // Verify no agent entries returned for INTRUDER-X query
+  for (const e of intruderLogs) {
+    assertEqual(e.actor, 'INTRUDER-X', 'query filters by actor correctly');
+  }
+
+  // Dimension 4: SAFETY_THRESHOLDS φ-compliance (20)
+  assertDefined(SAFETY_THRESHOLDS, 'SAFETY_THRESHOLDS defined');
+  const thresholdKeys = Object.keys(SAFETY_THRESHOLDS);
+  assertTrue(thresholdKeys.length >= 10, 'At least 10 safety thresholds');
+
+  // Lyapunov thresholds are ordered correctly
+  assertClose(SAFETY_THRESHOLDS.LYAPUNOV_SAFE, 0.0, 'Lyapunov SAFE = 0', 0.001);
+  assertTrue(SAFETY_THRESHOLDS.LYAPUNOV_CAUTION < SAFETY_THRESHOLDS.LYAPUNOV_DANGER,
+    'Lyapunov CAUTION < DANGER');
+  assertTrue(SAFETY_THRESHOLDS.LYAPUNOV_DANGER < SAFETY_THRESHOLDS.LYAPUNOV_CRITICAL,
+    'Lyapunov DANGER < CRITICAL');
+
+  // Coherence thresholds use φ-constants
+  assertClose(SAFETY_THRESHOLDS.COHERENCE_MINIMUM, AMOR, 'COHERENCE_MINIMUM = φ⁻²');
+  assertClose(SAFETY_THRESHOLDS.COHERENCE_TARGET, PHI_INV, 'COHERENCE_TARGET = φ⁻¹');
+  assertClose(SAFETY_THRESHOLDS.COHERENCE_OPTIMAL, PHI, 'COHERENCE_OPTIMAL = φ');
+
+  // Resource thresholds in valid range
+  assertTrue(SAFETY_THRESHOLDS.CPU_WARNING < SAFETY_THRESHOLDS.CPU_CRITICAL,
+    'CPU_WARNING < CPU_CRITICAL');
+  assertTrue(SAFETY_THRESHOLDS.MEMORY_WARNING < SAFETY_THRESHOLDS.MEMORY_CRITICAL,
+    'MEMORY_WARNING < MEMORY_CRITICAL');
+
+  // Dimension 5: Attack risk math — φ-threshold comparisons (20)
+  // Threats above φ⁻¹ should be escalated (per NOVA threat model)
+  const highRiskVectors = ATTACK_VECTORS.filter(v => v.risk > PHI_INV);
+  const lowRiskVectors  = ATTACK_VECTORS.filter(v => v.risk <= PHI_INV);
+  assertTrue(highRiskVectors.length >= 5, 'At least 5 high-risk (>φ⁻¹) attack vectors');
+  assertTrue(lowRiskVectors.length >= 1,  'At least 1 low-risk (≤φ⁻¹) attack vector');
+
+  // φ-weighted risk score for the fleet
+  const totalRisk = ATTACK_VECTORS.reduce((s, v) => s + v.risk, 0);
+  const avgRisk = totalRisk / ATTACK_VECTORS.length;
+  assertTrue(avgRisk > AMOR, 'Average attack risk > φ⁻² (above zero floor)');
+  assertTrue(avgRisk < 1.0, 'Average attack risk < 1.0 (not catastrophic)');
+
+  // Risk diversity check — no two identical risk values
+  const riskValues = ATTACK_VECTORS.map(v => v.risk);
+  const uniqueRisks = new Set(riskValues);
+  assertEqual(uniqueRisks.size, ATTACK_VECTORS.length, 'All attack vector risks unique');
+
+  // Countermeasure matrix: ALWAYS_BLOCKED covers the highest risk types
+  const highRiskTypes = highRiskVectors.map(v => v.type);
+  // INJECTION, EXFILTRATION, ESCALATION, TAMPERING, SYBIL are all > PHI_INV
+  const injectionBlocked = VALIDATION_RULES.ALWAYS_BLOCKED.some(op => /FORCE|REWRITE|DELETE/.test(op));
+  assertTrue(injectionBlocked, 'High-severity ops appear in ALWAYS_BLOCKED');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// §15 — Cross-Protocol φ-Constant Consistency Tests (50)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function runPhiConsistencyTests() {
+  console.log('\n  ── §15 φ-Consistency (50) ──\n');
+
+  const fs = require('fs');
+  const path = require('path');
+  const REPO = path.resolve(__dirname, '../..');
+
+  // Load all 10 protocols
+  const protocolFiles = fs.readdirSync(REPO + '/protocols').filter(f => f.endsWith('.js'));
+  const protocols = {};
+  for (const f of protocolFiles) {
+    try { protocols[f] = require(REPO + '/protocols/' + f); } catch(e) {}
+  }
+
+  const protoNames = Object.keys(protocols);
+  assertEqual(protoNames.length, 10, '10 protocols loaded');
+
+  // Every protocol must export something
+  for (const name of protoNames) {
+    const keys = Object.keys(protocols[name]);
+    assertTrue(keys.length >= 1, `${name} has ≥1 export`);
+  }
+
+  // PROTOCOL-ALPHA-SAFETY must export safety primitives
+  const alphaKeys = Object.keys(protocols['PROTOCOL-ALPHA-SAFETY.js'] || {});
+  assertTrue(alphaKeys.includes('AlphaSafetyProtocol'), 'ALPHA-SAFETY exports AlphaSafetyProtocol');
+  assertTrue(alphaKeys.includes('PreExecutionValidator'), 'ALPHA-SAFETY exports PreExecutionValidator');
+  assertTrue(alphaKeys.includes('AuditLogger'), 'ALPHA-SAFETY exports AuditLogger');
+
+  // PROTOCOL-AUTONOMOUS must export autonomous engines
+  const autoKeys = Object.keys(protocols['PROTOCOL-AUTONOMOUS.js'] || {});
+  assertTrue(autoKeys.includes('AutonomousProtocol'), 'AUTONOMOUS exports AutonomousProtocol');
+  assertTrue(autoKeys.includes('AutonomousEntity'), 'AUTONOMOUS exports AutonomousEntity');
+
+  // PHI constant consistency across protocols
+  // Any protocol that exports a PHI or phi constant must match
+  const goldenPHI = 1.6180339887498948482;
+  for (const name of protoNames) {
+    const m = protocols[name];
+    if (typeof m.PHI === 'number') {
+      assertClose(m.PHI, goldenPHI, `${name} PHI matches golden ratio`);
+    }
+    if (typeof m.AMOR === 'number') {
+      assertClose(m.AMOR, AMOR, `${name} AMOR = φ⁻²`);
+    }
+    if (typeof m.HEARTBEAT_MS === 'number') {
+      assertClose(m.HEARTBEAT_MS, HEARTBEAT_MS, `${name} HEARTBEAT_MS ≈ 873`, 5);
+    }
+  }
+
+  // SAFETY_THRESHOLDS from ALPHA-SAFETY: verify φ-derived values
+  const { SAFETY_THRESHOLDS } = protocols['PROTOCOL-ALPHA-SAFETY.js'];
+  assertDefined(SAFETY_THRESHOLDS, 'SAFETY_THRESHOLDS in ALPHA-SAFETY');
+
+  // Check AUTONOMOUS protocol AUTO_BEHAVIORS (object map, not array)
+  const { AUTO_BEHAVIORS } = protocols['PROTOCOL-AUTONOMOUS.js'];
+  assertDefined(AUTO_BEHAVIORS, 'AUTO_BEHAVIORS defined');
+  assertTrue(typeof AUTO_BEHAVIORS === 'object', 'AUTO_BEHAVIORS is object');
+  const behaviorKeys = Object.keys(AUTO_BEHAVIORS);
+  assertTrue(behaviorKeys.length >= 5, `AUTO_BEHAVIORS has ≥5 entries (got ${behaviorKeys.length})`);
+
+  // All values are strings (behavior names)
+  for (const key of behaviorKeys) {
+    assertTrue(typeof AUTO_BEHAVIORS[key] === 'string',
+      `AUTO_BEHAVIORS.${key} is string`);
+    assertEqual(AUTO_BEHAVIORS[key], key, `AUTO_BEHAVIORS.${key} value matches key`);
+  }
+
+  // Required behaviors present
+  const requiredBehaviors = ['DEPLOY', 'SCALE', 'HEAL', 'MONITOR'];
+  for (const b of requiredBehaviors) {
+    assertTrue(behaviorKeys.includes(b), `AUTO_BEHAVIORS includes ${b}`);
+  }
+
+  // Protocol cross-load: each protocol can coexist without conflict
+  const allExports = new Set();
+  let conflicts = 0;
+  for (const name of protoNames) {
+    for (const key of Object.keys(protocols[name])) {
+      if (allExports.has(key)) conflicts++;
+      allExports.add(key);
+    }
+  }
+  // Some overlap is expected (PHI, AMOR), just confirm total exports > 50
+  assertTrue(allExports.size >= 50, `All protocols together export ≥50 unique symbols`);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// §16 — SDK Completeness Tests (50)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function runSDKCompletenessTests() {
+  console.log('\n  ── §16 SDK Completeness (50) ──\n');
+
+  const fs = require('fs');
+  const path = require('path');
+  const REPO = path.resolve(__dirname, '../..');
+
+  // Enumerate SDK dirs
+  const sdkDirs = fs.readdirSync(REPO + '/sdk').filter(d => {
+    try { return fs.statSync(REPO + '/sdk/' + d).isDirectory(); } catch(e) { return false; }
+  });
+
+  assertTrue(sdkDirs.length >= 15, `At least 15 SDK packages (got ${sdkDirs.length})`);
+
+  // Every SDK with a src/index.js should load without error
+  let loadedCount = 0, failedCount = 0;
+  const failedSDKs = [];
+
+  for (const d of sdkDirs) {
+    const entry = path.resolve(REPO + '/sdk/' + d + '/src/index.js');
+    if (!fs.existsSync(entry)) continue;
+    try {
+      const m = require(entry);
+      const keys = Object.keys(m);
+      assertTrue(keys.length >= 1, `sdk/${d} has ≥1 export`);
+      loadedCount++;
+    } catch(e) {
+      failedCount++;
+      failedSDKs.push(d + ': ' + e.message.slice(0, 60));
+    }
+  }
+
+  // birth-ai is ESM so can't require() it synchronously — count it separately
+  const birthAiPath = REPO + '/sdk/birth-ai/src/index.js';
+  assertTrue(fs.existsSync(birthAiPath), 'birth-ai src/index.js exists');
+
+  // No CJS SDK should fail to load
+  assertEqual(failedCount, 0,
+    `All CJS SDKs load. Failures: ${failedSDKs.join('; ')}`);
+
+  assertTrue(loadedCount >= 14, `At least 14 CJS SDKs loaded (got ${loadedCount})`);
+
+  // Spot-check key SDK exports
+  const agents = require(REPO + '/sdk/medina-agents/src/index.js');
+  assertTrue(typeof agents.SovereignAgentFactory === 'function' ||
+             typeof agents.Agent === 'function' ||
+             Object.keys(agents).length >= 5,
+    'medina-agents has substantial exports');
+
+  const heart = require(REPO + '/sdk/medina-heart/src/index.js');
+  assertTrue(typeof heart.BiologicalHeart === 'function', 'medina-heart exports BiologicalHeart');
+  assertClose(heart.PHI, 1.6180339887498948482, 'medina-heart PHI = golden ratio');
+  assertEqual(heart.HEARTBEAT_MS, 873, 'medina-heart HEARTBEAT_MS = 873');
+
+  const memory = require(REPO + '/sdk/medina-memory/src/index.js');
+  assertTrue(Object.keys(memory).length >= 3, 'medina-memory has ≥3 exports');
+
+  const network = require(REPO + '/sdk/medina-network/src/index.js');
+  assertTrue(Object.keys(network).length >= 3, 'medina-network has ≥3 exports');
+
+  const auth = require(REPO + '/sdk/medina-auth/src/index.js');
+  assertTrue(Object.keys(auth).length >= 3, 'medina-auth has ≥3 exports');
+
+  // SERVITORES fleet: all workers carry φ markers
+  const workerDir = REPO + '/organism/web';
+  const workers = fs.readdirSync(workerDir).filter(f => f.endsWith('.js'));
+  assertTrue(workers.length >= 70, `Fleet has ≥70 SERVITORES (got ${workers.length})`);
+
+  let validWorkers = 0;
+  for (const w of workers) {
+    const code = fs.readFileSync(workerDir + '/' + w, 'utf8');
+    const valid = /GOL-[A-Z]/.test(code) || /1\.618/.test(code) || /PHI/.test(code) ||
+                  /873/.test(code) || /HEARTBEAT/.test(code);
+    if (valid) validWorkers++;
+  }
+  assertTrue(validWorkers === workers.length,
+    `All ${workers.length} SERVITORES carry φ/GOL markers (valid=${validWorkers})`);
+}
+
 
 if (require.main === module) {
   runAllAlphaTests().then(r => {

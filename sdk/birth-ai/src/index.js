@@ -39,7 +39,8 @@
 // §1 — IMPORTS FROM OTHER MEDINA SDKs
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { BiologicalHeart, PHI, PHI_INV, HEARTBEAT_MS } from '@medina/medina-heart' with { type: 'optional' };
+// §1 — Native sovereign constants (self-contained — no external dependency needed)
+// PHI, PHI_INV, HEARTBEAT_MS are declared below in §2 as _PHI, _PHI_INV, _HEARTBEAT_MS
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // §2 — CONSTANTS
