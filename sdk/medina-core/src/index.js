@@ -22,7 +22,7 @@ function secureHexId(bytes = 16) {
 }
 
 function createEntityId(prefix, now = Date.now, random = Math.random) {
-  return `${prefix}_${now()}_${random().toString(36).substr(2, 9)}`;
+  return `${prefix}_${now()}_${random().toString(36).slice(2, 11)}`;
 }
 
 export {

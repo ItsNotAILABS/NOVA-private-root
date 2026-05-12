@@ -27,7 +27,7 @@ test('EventHandler filter supports type prefix matching', () => {
 test('EventBus onAll receives emitted event', async () => {
   const bus = new EventBus();
   let seen = false;
-  bus.onAll(async (event) => { if (event.type === 'heartbeat.tick') seen = true; });
-  await bus.emit('heartbeat.tick', { beat: 1 });
+  bus.onAll(async (event) => { if (event.type === 'heartbeat.tick') seen = true; }, { timeout: 1 });
+  await bus.emitAsync('heartbeat.tick', { beat: 1 });
   assert.equal(seen, true);
 });

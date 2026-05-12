@@ -218,9 +218,12 @@ class EventBus {
    */
   on(eventType, handler, config = {}) {
     const id = config.id || createEntityId('handler');
+    const filter = Object.hasOwn(config, 'filter')
+      ? config.filter
+      : eventType;
     const eventHandler = new EventHandler(id, handler, {
       ...config,
-      filter: eventType,
+      filter,
     });
     
     this._handlers.set(id, eventHandler);
