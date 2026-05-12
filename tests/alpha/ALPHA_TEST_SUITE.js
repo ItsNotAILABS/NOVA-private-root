@@ -1795,7 +1795,13 @@ async function runAllAlphaTests() {
   runAutonomousProtocolTests();
 
   // §13 birth-ai: ESM module — dynamically import then run
-  const birthAI = await import('../../sdk/birth-ai/src/index.js');
+  let birthAI;
+  try {
+    birthAI = await import('../../sdk/birth-ai/src/index.js');
+  } catch(e) {
+    console.error('  [§13] birth-ai failed to load:', e.message);
+    birthAI = {}; // skip gracefully — failures will surface as assertion failures
+  }
   runBirthAITests(birthAI);
 
   runDefenseMultidimensionalTests();
@@ -2161,7 +2167,9 @@ function runPhiConsistencyTests() {
   const protocolFiles = fs.readdirSync(REPO + '/protocols').filter(f => f.endsWith('.js'));
   const protocols = {};
   for (const f of protocolFiles) {
-    try { protocols[f] = require(REPO + '/protocols/' + f); } catch(e) {}
+    try { protocols[f] = require(REPO + '/protocols/' + f); } catch(e) {
+      console.error(`  [§15] Protocol ${f} failed: ${e.message}`);
+    }
   }
 
   const protoNames = Object.keys(protocols);
