@@ -7,6 +7,9 @@
   "exports": {
     ".": "./src/index.js"
   },
+  "scripts": {
+    "test": "node --test"
+  },
   "private": true,
   "author": "Alfredo Medina Hernandez",
   "license": "PROPRIETARY"

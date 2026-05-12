@@ -1,7 +1,7 @@
 {
-  "name": "@medina/medina-queries",
+  "name": "@medina/medina-agents",
   "version": "1.0.0",
-  "description": "Read operations — Internal and External query operations",
+  "description": "Agent lifecycle management SDK",
   "type": "module",
   "main": "src/index.js",
   "exports": {
