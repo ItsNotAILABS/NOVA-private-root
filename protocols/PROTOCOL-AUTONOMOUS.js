@@ -1354,7 +1354,7 @@ class MonitoringIntelligenceEngine {
         timestamp: measurement.timestamp,
         type: 'CHAOS_DETECTED',
         severity: Math.min(1.0, measurement.lyapunovExponent / PHI),
-        lyapunovExponent: measurement.lyapunov Exponent
+        lyapunovExponent: measurement.lyapunovExponent
       };
     }
 
