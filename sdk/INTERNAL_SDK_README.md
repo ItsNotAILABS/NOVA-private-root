@@ -74,6 +74,7 @@ YOUR PRIVATE REGISTRY
 │
 ├── CORE SDKs (Phase 1)
 │   ├── @medina/birth-ai              ← Main SDK for birthing AI entities
+│   ├── @medina/medina-core           ← Shared sovereign constants + ID primitives
 │   ├── @medina/medina-heart          ← Self-bootstrapping heart
 │   ├── @medina/medina-registry       ← Sovereign private registry
 │   ├── @medina/medina-calls          ← Write/mutation operations (internal + external)

@@ -1,0 +1,88 @@
+name: NOVA Division Test Matrix
+
+on:
+  push:
+    branches: [ main, master, develop ]
+    paths:
+      - 'sdk/**'
+      - 'protocols/**'
+      - 'src/frontend/**'
+      - '.github/workflows/division-test-matrix.yml'
+  pull_request:
+    branches: [ main, master, develop ]
+    paths:
+      - 'sdk/**'
+      - 'protocols/**'
+      - 'src/frontend/**'
+      - '.github/workflows/division-test-matrix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sdk-tests:
+    name: SDK package tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run SDK tests (all packages with scripts.test)
+        run: |
+          set -euo pipefail
+          for pkg in sdk/*; do
+            if [ -f "$pkg/package.json" ] && grep -q '"test"' "$pkg/package.json"; then
+              echo "=== Running tests in $pkg ==="
+              (cd "$pkg" && npm test)
+            fi
+          done
+
+  protocol-tests:
+    name: Protocol invariants tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run protocol tests
+        run: |
+          cd protocols
+          npm test
+
+  frontend-tests:
+    name: CPL frontend math and hooks tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: src/frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: |
+          cd src/frontend
+          npm ci
+
+      - name: Run frontend test suites
+        run: |
+          cd src/frontend
+          npm run test:run -- src/math/core.test.ts src/math/laws.test.ts src/hooks/useOrganismState.test.ts

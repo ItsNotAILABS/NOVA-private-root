@@ -1,7 +1,7 @@
 {
-  "name": "@medina/medina-queries",
+  "name": "@medina/medina-core",
   "version": "1.0.0",
-  "description": "Read operations — Internal and External query operations",
+  "description": "Shared sovereign core constants and identity primitives",
   "type": "module",
   "main": "src/index.js",
   "exports": {

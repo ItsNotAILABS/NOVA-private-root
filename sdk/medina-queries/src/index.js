@@ -14,12 +14,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════════════════════════════
  */
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// §1 — CONSTANTS
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const PHI = 1.6180339887498948482;
-const PHI_INV = 0.6180339887498948482;
+import { PHI, PHI_INV, createEntityId } from '../../medina-core/src/index.js';
 
 const QUERY_TYPES = {
   INTERNAL: 'INTERNAL',     // AI querying itself
@@ -42,7 +37,7 @@ const QUERY_STATUS = {
 
 class QueryRecord {
   constructor(type, path, params, source) {
-    this.id = `query_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    this.id = createEntityId('query');
     this.type = type;
     this.path = path;
     this.params = params;

@@ -16,13 +16,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════════════════════════════
  */
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// §1 — CONSTANTS
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const PHI = 1.6180339887498948482;
-const PHI_INV = 0.6180339887498948482;
-const HEARTBEAT_MS = 873;
+import { PHI, PHI_INV, HEARTBEAT_MS, secureHexId } from '../../medina-core/src/index.js';
 
 /**
  * Cryptographically secure hex ID generator.
@@ -33,17 +27,7 @@ const HEARTBEAT_MS = 873;
  * @returns {string}
  */
 function secureId(bytes) {
-  bytes = bytes || 16;
-  const buf = new Uint8Array(bytes);
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-    crypto.getRandomValues(buf);
-  } else {
-    try { require('crypto').randomFillSync(buf); } catch (_) {
-      /* Fallback: phi-seeded deterministic fill — acceptable for non-secret IDs */
-      for (let i = 0; i < buf.length; i++) buf[i] = Math.floor(Math.abs(Math.sin((Date.now() + i) * PHI)) * 256);
-    }
-  }
-  return Array.from(buf).map(b => b.toString(16).padStart(2, '0')).join('');
+  return secureHexId(bytes);
 }
 
 const AGENT_TYPES = {
@@ -2218,4 +2202,3 @@ if (typeof module !== 'undefined' && module.exports) {
     SovereignAgentFactory,
   });
 }
-

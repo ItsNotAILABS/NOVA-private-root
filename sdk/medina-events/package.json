@@ -1,7 +1,7 @@
 {
-  "name": "@medina/medina-queries",
+  "name": "@medina/medina-events",
   "version": "1.0.0",
-  "description": "Read operations — Internal and External query operations",
+  "description": "Event system SDK",
   "type": "module",
   "main": "src/index.js",
   "exports": {
