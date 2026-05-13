@@ -406,6 +406,7 @@ actor TokenForge {
     amount      : Nat,
     cliffDays   : Nat,
     totalDays   : Nat,
+    lbl       : Text
     label       : Text
   ) : async { success : Bool; vestId : Nat } {
     requireSovereign(msg.caller);
@@ -418,6 +419,7 @@ actor TokenForge {
     vestStartTimes[vi] := Time.now();
     vestCliffDays[vi]  := cliffDays;
     vestTotalDays[vi]  := if (totalDays < cliffDays + 1) cliffDays + 1 else totalDays;
+    vestLabels[vi]     := lbl;
     vestLabels[vi]     := label;
     teamVestBucket     := teamVestBucket - amount;
     vestCount          := vestCount + 1;
@@ -466,6 +468,7 @@ actor TokenForge {
     claimed      : Nat;
     cliffDays    : Nat;
     totalDays    : Nat;
+    lbl        : Text;
     label        : Text;
     startTime    : Int;
   } {
@@ -476,12 +479,17 @@ actor TokenForge {
       claimed     = vestClaimed[vestId];
       cliffDays   = vestCliffDays[vestId];
       totalDays   = vestTotalDays[vestId];
+      lbl       = vestLabels[vestId];
       label       = vestLabels[vestId];
       startTime   = vestStartTimes[vestId];
     }
   };
 
   public query func listVestingSchedules() : async [{
+    vestId : Nat; beneficiary : Text; total : Nat; claimed : Nat; lbl : Text;
+  }] {
+    Array.tabulate<{ vestId:Nat; beneficiary:Text; total:Nat; claimed:Nat; lbl:Text }>(vestCount, func(i) {
+      { vestId = i; beneficiary = vestBenes[i]; total = vestTotals[i]; claimed = vestClaimed[i]; lbl = vestLabels[i] }
     vestId : Nat; beneficiary : Text; total : Nat; claimed : Nat; label : Text;
   }] {
     Array.tabulate<{ vestId:Nat; beneficiary:Text; total:Nat; claimed:Nat; label:Text }>(vestCount, func(i) {

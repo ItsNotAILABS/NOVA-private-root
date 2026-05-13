@@ -31,7 +31,9 @@
 // ║                                                                                                           ║
 // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-// PARALLAX DRONE SWARM SIMULATION — ORGANISM LAYER
+// SWARM ORGANISM — SOVEREIGN ORGANISM INTELLIGENCE ENGINE (BUILD №46)
+// EVERYTHING IS INTELLIGENCE — This is NOT simulation. This is REAL computation.
+// Physics = REAL math and geometry. Golden numbers are REAL. No fake simulation.
 // Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
 // Sovereign Cognitive Swarm Engine. All doctrine attributed herein.
 //
@@ -47,8 +49,8 @@
 //   NERVOUS (routing), IMMUNE (defence), METABOLIC (energy), SENSORY
 //   (perception), REPRODUCTIVE (swarm growth).
 //
-// ICP HEARTBEAT — The organism is autonomous. system func heartbeat() fires
-// every ICP round (~2 s) and drives the full control loop without any
+// NOVA HEARTBEAT — The organism is autonomous. system func heartbeat() fires
+// every NOVA 873ms tick and drives the full control loop without any
 // external caller: tick brain → read state → run hive/ant/organs → push
 // directives back to brain.  The swarm lives.
 
@@ -1276,8 +1278,8 @@ actor SwarmOrganism {
   public query func getOrganismMode() : async Text { organismMode };
   public query func getOrganismBeat() : async Nat  { organismBeat };
 
-  // ─── ICP HEARTBEAT — The organism lives ──────────────────────────────────────
-  // system func heartbeat() fires every ICP round (~1-2 seconds) with no
+  // ─── NOVA HEARTBEAT — The organism lives ──────────────────────────────────────
+  // system func heartbeat() fires every NOVA 873ms tick with no
   // external caller required. The organism is autonomous and permanent.
   //
   // masterTick():

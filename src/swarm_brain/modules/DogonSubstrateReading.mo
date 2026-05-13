@@ -385,7 +385,7 @@ module DogonSubstrateReading {
       baseLearningRate = PSI;           // 0.618 — golden ratio
       learningRateDecay = PSI / 10.0;   // 0.0618
       weightDecay = PSI / 100.0;        // 0.00618
-      maxWeight = PHI * PHI;            // φ² ≈ 2.618
+      maxWeight = PHI * PHI;            // phi2 ≈ 2.618
       minWeight = -PHI;                 // -φ ≈ -1.618
       activationThreshold = PSI;        // 0.618
       phiScaling = true;

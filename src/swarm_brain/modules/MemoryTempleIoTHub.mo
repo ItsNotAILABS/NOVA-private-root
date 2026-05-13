@@ -55,8 +55,8 @@ module {
   // FUNDAMENTAL CONSTANTS — PHI FREQUENCY ARCHITECTURE
   // ═══════════════════════════════════════════════════════════════════════════════
 
-  public let φ : Float = 1.6180339887498948482;  // Golden ratio
-  public let π : Float = 3.14159265358979323846;  // Pi
+  public let phi : Float = 1.6180339887498948482;  // Golden ratio
+  public let pi : Float = 3.14159265358979323846;  // Pi
   public let τ : Float = 6.28318530717958647693;  // Tau (2π)
 
   // 12 PHI FREQUENCY NODES for IoT device coupling

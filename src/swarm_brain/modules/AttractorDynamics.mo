@@ -206,7 +206,7 @@ module {
   // Cells at φ-proportional positions have deeper basins
   func cell444Strength(domain: Nat, state: Nat, force: Nat) : Float {
     // Strength peaks at φ-proportional combinations
-    // (1, 2, 3) ≈ φ ratios, so cells near these have higher strength
+    // (1, 2, 3) ≈ phi ratios, so cells near these have higher strength
     let idealD = 1.0;  // φ^0
     let idealS = 2.0;  // near φ
     let idealF = 3.0;  // near φ²

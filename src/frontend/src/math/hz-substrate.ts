@@ -8,7 +8,7 @@
 
 import { clamp, TAU, PHI, wrapPhase } from './core';
 
-// ── ICP heartbeat rate ────────────────────────────────────────────────────────
+// ── NOVA heartbeat rate ────────────────────────────────────────────────────────
 export const HEARTBEAT_RATE = 0.5;   // ~2 seconds per beat
 
 // ── Phase coherence contribution coefficient ──────────────────────────────────

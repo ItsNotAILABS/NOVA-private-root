@@ -487,8 +487,8 @@ module EmergencePhysicsEngine {
   ) : Float {
     // For second-order transition with h=0:
     // dF/dφ = 2a₂φ + 4a₄φ³ + 6a₆φ⁵ = 0
-    // Solutions: φ = 0 or φ² = (-a₂ ± sqrt(a₂² - 3a₄a₆))/(3a₆) (if a₆ ≠ 0)
-    //            φ² = -a₂/(2a₄) (if a₆ = 0)
+    // Solutions: phi = 0 or phi2 = (-a₂ ± sqrt(a₂² - 3a₄a₆))/(3a₆) (if a₆ ≠ 0)
+    //            phi2 = -a₂/(2a₄) (if a₆ = 0)
     
     if (abs(landau.h) > 0.001) {
       // With field: numerical minimization

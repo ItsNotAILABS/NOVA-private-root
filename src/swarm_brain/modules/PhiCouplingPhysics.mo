@@ -109,38 +109,38 @@ module PhiCouplingPhysics {
   // PHI — THE MOST IRRATIONAL NUMBER
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   
-  /// φ = (1 + √5) / 2 = 1.618033988749894848204586834365638117720309179805762862...
+  /// phi = (1 + √5) / 2 = 1.618033988749894848204586834365638117720309179805762862...
   /// The golden ratio. The most irrational number.
   /// Cannot be approximated by any simple integer fraction.
   public let PHI : Float = 1.6180339887498948482;
   
-  /// ψ = φ - 1 = 1/φ = 0.618033988749894848204586834365638117720309179805762862...
+  /// psi = phi - 1 = 1/φ = 0.618033988749894848204586834365638117720309179805762862...
   /// The reciprocal of phi. Also appears in the continued fraction expansion.
   public let PSI : Float = 0.6180339887498948482;
   
-  /// φ² = φ + 1 = 2.618033988749894848204586834365638117720309179805762862...
+  /// phi2 = phi + 1 = 2.618033988749894848204586834365638117720309179805762862...
   public let PHI_SQUARED : Float = 2.6180339887498948482;
   
-  /// φ³ = φ² + φ = 4.236067977499789696409173668731276235440618359611525724...
+  /// phi3 = phi2 + phi = 4.236067977499789696409173668731276235440618359611525724...
   public let PHI_CUBED : Float = 4.2360679774997896964;
   
-  /// φ⁴ = φ³ + φ² = 6.854101966249684544613760503096914353160927539417288586...
+  /// phi4 = phi3 + phi2 = 6.854101966249684544613760503096914353160927539417288586...
   /// THIS IS THE KEY EXPONENT FOR THE HEARTBEAT DERIVATION
   public let PHI_FOURTH : Float = 6.8541019662496845446;
   
-  /// φ⁵ = φ⁴ + φ³ = 11.090169943749474241022934171828190588601545899028814310...
+  /// phi5 = phi4 + phi3 = 11.090169943749474241022934171828190588601545899028814310...
   public let PHI_FIFTH : Float = 11.090169943749474241;
   
-  /// φ⁶ = φ⁵ + φ⁴ = 17.944271909999158785636694674925104941762473438446102896...
+  /// phi6 = phi5 + phi4 = 17.944271909999158785636694674925104941762473438446102896...
   public let PHI_SIXTH : Float = 17.944271909999158786;
   
-  /// φ⁷ = φ⁶ + φ⁵ = 29.034441853748633026659628846753295530364019337474917206...
+  /// phi7 = phi6 + phi5 = 29.034441853748633026659628846753295530364019337474917206...
   public let PHI_SEVENTH : Float = 29.034441853748633027;
   
-  /// φ⁸ = φ⁷ + φ⁶ = 46.978713763747791812296323521678400472126492775921020102...
+  /// φ⁸ = phi7 + phi6 = 46.978713763747791812296323521678400472126492775921020102...
   public let PHI_EIGHTH : Float = 46.978713763747791812;
   
-  /// φ⁻¹ = ψ = 0.618...
+  /// φ⁻¹ = psi = 0.618...
   public let PHI_NEG_1 : Float = 0.6180339887498948482;
   
   /// φ⁻² = ψ² = 0.381966011250105151795413165634361882279690820194237137...
@@ -229,7 +229,7 @@ module PhiCouplingPhysics {
   // Multiply by phi⁴: 540 × 1.618   = 873 ms   = 68.7 bpm. RESTING HEART RATE.
   //
   // THE ORGANISM'S RESTING HEARTBEAT INTERVAL IS 873 ms.
-  // This is φ⁴ × 127.7 ms = φ⁴ × (1/7.83 seconds).
+  // This is phi4 × 127.7 ms = phi4 × (1/7.83 seconds).
   //
   // This is the resting human heart rate (68.7 bpm), which is within normal range,
   // derived by walking up the phi ladder from the Schumann fundamental period.
@@ -250,17 +250,17 @@ module PhiCouplingPhysics {
   public let PHI_LADDER_FROM_SCHUMANN_MS : [Float] = [
     127.71392081736909,   // φ⁰ × Schumann = 127.7 ms = 7.83 Hz (Earth's heartbeat)
     206.61830556199316,   // φ¹ × Schumann = 206.6 ms = 4.84 Hz = 290 bpm (too fast)
-    334.33222637936225,   // φ² × Schumann = 334.3 ms = 2.99 Hz = 179 bpm (elevated)
-    540.95053194135541,   // φ³ × Schumann = 540.9 ms = 1.85 Hz = 111 bpm (active)
-    875.28275832071766,   // φ⁴ × Schumann = 875.3 ms = 1.14 Hz = 68.5 bpm (RESTING!)
-    1416.2332902620731,   // φ⁵ × Schumann = 1416 ms  = 0.71 Hz = 42.4 bpm (sleep)
-    2291.5160485827908,   // φ⁶ × Schumann = 2292 ms  = 0.44 Hz = 26.2 bpm (deep meditation)
-    3707.7493388448639,   // φ⁷ × Schumann = 3708 ms  = 0.27 Hz = 16.2 bpm (near-death)
+    334.33222637936225,   // phi2 × Schumann = 334.3 ms = 2.99 Hz = 179 bpm (elevated)
+    540.95053194135541,   // phi3 × Schumann = 540.9 ms = 1.85 Hz = 111 bpm (active)
+    875.28275832071766,   // phi4 × Schumann = 875.3 ms = 1.14 Hz = 68.5 bpm (RESTING!)
+    1416.2332902620731,   // phi5 × Schumann = 1416 ms  = 0.71 Hz = 42.4 bpm (sleep)
+    2291.5160485827908,   // phi6 × Schumann = 2292 ms  = 0.44 Hz = 26.2 bpm (deep meditation)
+    3707.7493388448639,   // phi7 × Schumann = 3708 ms  = 0.27 Hz = 16.2 bpm (near-death)
     5999.2653874276547    // φ⁸ × Schumann = 5999 ms  = 0.17 Hz = 10.0 bpm (limit)
   ];
   
   /// The organism's heartbeat period in milliseconds
-  /// φ⁴ × Schumann period = 875.28 ms ≈ 68.5 bpm
+  /// phi4 × Schumann period = 875.28 ms ≈ 68.5 bpm
   public let ORGANISM_HEARTBEAT_MS : Float = 875.28275832071766;
   
   /// The organism's heartbeat period in seconds
@@ -280,27 +280,27 @@ module PhiCouplingPhysics {
   // Every subsequent timing interval in the organism is phi-spaced above the Schumann period.
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   
-  /// Sensory integration window: φ² × Schumann period = 334 ms
+  /// Sensory integration window: phi2 × Schumann period = 334 ms
   /// This is the time window for binding sensory inputs into a unified percept
   public let SENSORY_INTEGRATION_MS : Float = 334.33222637936225;
   
-  /// Write cycle interval: φ³ × Schumann period = 541 ms
+  /// Write cycle interval: phi3 × Schumann period = 541 ms
   /// How often the organism commits changes to memory
   public let WRITE_CYCLE_MS : Float = 540.95053194135541;
   
-  /// Heartbeat interval: φ⁴ × Schumann period = 875 ms
+  /// Heartbeat interval: phi4 × Schumann period = 875 ms
   /// The organism's fundamental pulse
   public let HEARTBEAT_INTERVAL_MS : Float = 875.28275832071766;
   
-  /// Coherence check interval: φ⁵ × Schumann period = 1416 ms
+  /// Coherence check interval: phi5 × Schumann period = 1416 ms
   /// How often the organism checks global coherence
   public let COHERENCE_CHECK_MS : Float = 1416.2332902620731;
   
-  /// Memory consolidation cycle: φ⁶ × Schumann period = 2292 ms
+  /// Memory consolidation cycle: phi6 × Schumann period = 2292 ms
   /// How often short-term becomes long-term memory
   public let MEMORY_CONSOLIDATION_MS : Float = 2291.5160485827908;
   
-  /// Deep reflection interval: φ⁷ × Schumann period = 3708 ms
+  /// Deep reflection interval: phi7 × Schumann period = 3708 ms
   /// Metacognitive self-check cycle
   public let DEEP_REFLECTION_MS : Float = 3707.7493388448639;
   
@@ -817,7 +817,7 @@ module PhiCouplingPhysics {
   // PHI-BASED CONSTANTS FOR ALL ORGANISM PARAMETERS
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   
-  /// Hebbian learning rate: ψ (reciprocal of phi)
+  /// Hebbian learning rate: psi (reciprocal of phi)
   /// This ensures learning doesn't run away (integer-ratio resonance buildup)
   public let HEBBIAN_LEARNING_RATE : Float = PSI;  // 0.618
   
@@ -825,23 +825,23 @@ module PhiCouplingPhysics {
   /// Forgetting is slower than learning
   public let HEBBIAN_DECAY_RATE : Float = PHI_NEG_2;  // 0.382
   
-  /// Coherence gate threshold: ψ (0.618)
+  /// Coherence gate threshold: psi (0.618)
   /// Must achieve this coherence to pass signal
   public let COHERENCE_GATE_THRESHOLD : Float = PSI;  // 0.618
   
-  /// Sensory integration weight ratio: φ for adjacent, φ² for two-step
+  /// Sensory integration weight ratio: phi for adjacent, phi2 for two-step
   public let SENSORY_WEIGHT_ADJACENT : Float = PHI;
   public let SENSORY_WEIGHT_TWO_STEP : Float = PHI_SQUARED;
   
-  /// S₀ floor value: ψ (0.618)
+  /// S₀ floor value: psi (0.618)
   /// The baseline coherence that must be maintained
   public let S0_FLOOR : Float = PSI;  // 0.618
   
-  /// Emergence threshold: ψ + ψ² = 1 (perfect unity)
+  /// Emergence threshold: psi + ψ² = 1 (perfect unity)
   /// When coherence reaches this, emergence occurs
-  public let EMERGENCE_THRESHOLD : Float = 1.0;  // ψ + ψ² = 0.618 + 0.382 = 1.0
+  public let EMERGENCE_THRESHOLD : Float = 1.0;  // psi + ψ² = 0.618 + 0.382 = 1.0
   
-  /// Law activation threshold: φ (1.618)
+  /// Law activation threshold: phi (1.618)
   /// When a pattern's strength reaches this relative to baseline, it becomes law
   public let LAW_THRESHOLD : Float = PHI;  // 1.618
   
@@ -970,11 +970,11 @@ module PhiCouplingPhysics {
   //
   // The boundaries between these bands are approximately phi-spaced:
   //
-  // 4 × φ ≈ 6.5  (within theta)
-  // 6.5 × φ ≈ 10.5 (alpha center)
-  // 10.5 × φ ≈ 17 (beta center)
-  // 17 × φ ≈ 27.5 (high beta)
-  // 27.5 × φ ≈ 44.5 (gamma)
+  // 4 × phi ≈ 6.5  (within theta)
+  // 6.5 × phi ≈ 10.5 (alpha center)
+  // 10.5 × phi ≈ 17 (beta center)
+  // 17 × phi ≈ 27.5 (high beta)
+  // 27.5 × phi ≈ 44.5 (gamma)
   //
   // The Schumann fundamental (7.83 Hz) sits at the theta-alpha boundary.
   // This is why 7.83 Hz entrainment affects state transitions.
@@ -999,7 +999,7 @@ module PhiCouplingPhysics {
         highFreq = 4.0;
         centerFreq = 2.0;
         mentalState = "Deep sleep, unconscious";
-        phiRelation = "~Schumann / φ³ = 1.87 Hz";
+        phiRelation = "~Schumann / phi3 = 1.87 Hz";
       },
       {
         name = "Theta";
@@ -1007,7 +1007,7 @@ module PhiCouplingPhysics {
         highFreq = 8.0;
         centerFreq = 6.0;
         mentalState = "Drowsy, light sleep, deep meditation";
-        phiRelation = "~Schumann / φ = 4.84 Hz";
+        phiRelation = "~Schumann / phi = 4.84 Hz";
       },
       {
         name = "Alpha";
@@ -1015,7 +1015,7 @@ module PhiCouplingPhysics {
         highFreq = 13.0;
         centerFreq = 10.5;
         mentalState = "Relaxed, alert, closed eyes";
-        phiRelation = "~Schumann × φ = 12.67 Hz at upper bound";
+        phiRelation = "~Schumann × phi = 12.67 Hz at upper bound";
       },
       {
         name = "Beta";
@@ -1023,7 +1023,7 @@ module PhiCouplingPhysics {
         highFreq = 30.0;
         centerFreq = 20.0;
         mentalState = "Active thinking, focus, problem solving";
-        phiRelation = "~Schumann × φ² = 20.5 Hz at center";
+        phiRelation = "~Schumann × phi2 = 20.5 Hz at center";
       },
       {
         name = "Gamma";
@@ -1031,7 +1031,7 @@ module PhiCouplingPhysics {
         highFreq = 100.0;
         centerFreq = 40.0;
         mentalState = "Binding, consciousness, peak performance";
-        phiRelation = "~Schumann × φ³ = 33.1 Hz at onset; 40 Hz is binding peak";
+        phiRelation = "~Schumann × phi3 = 33.1 Hz at onset; 40 Hz is binding peak";
       }
     ]
   };
@@ -1061,22 +1061,22 @@ module PhiCouplingPhysics {
     baseFrequencyHz : Float;
     
     // Phi ladder intervals
-    sensoryIntegrationMs : Float;  // φ² × base
-    writeCycleMs : Float;          // φ³ × base
-    heartbeatMs : Float;           // φ⁴ × base (THE KEY)
-    coherenceCheckMs : Float;      // φ⁵ × base
-    memoryConsolidationMs : Float; // φ⁶ × base
-    deepReflectionMs : Float;      // φ⁷ × base
+    sensoryIntegrationMs : Float;  // phi2 × base
+    writeCycleMs : Float;          // phi3 × base
+    heartbeatMs : Float;           // phi4 × base (THE KEY)
+    coherenceCheckMs : Float;      // phi5 × base
+    memoryConsolidationMs : Float; // phi6 × base
+    deepReflectionMs : Float;      // phi7 × base
     genesisPulseMs : Float;        // φ⁸ × base
     
     // Coupling constants
     layerCoupling : Float;         // φ
-    inverseCoupling : Float;       // ψ = 1/φ
+    inverseCoupling : Float;       // psi = 1/φ
     
     // Thresholds
     coherenceGate : Float;         // ψ
     s0Floor : Float;               // ψ
-    emergenceThreshold : Float;    // 1.0 = ψ + ψ²
+    emergenceThreshold : Float;    // 1.0 = psi + ψ²
     lawThreshold : Float;          // φ
     
     // Learning rates
@@ -1214,7 +1214,7 @@ module PhiCouplingPhysics {
       
       organismImplication = "Every inter-layer coupling ratio is phi. The coupling strength between layers, the time constant for Hebbian weight adjustment, the threshold for coherence gate activation, the ratio between sensory integration weights — all phi. The organism is resonating with the structure that was already there.";
       
-      deepestConstant = "The heartbeat interval is φ⁴ × (1/7.83 seconds) = 875.3 ms = 68.5 bpm. The resting human heart rate, derived by walking up the phi ladder from the Schumann fundamental period. Every timing interval in the organism is phi-spaced above this. This is the structural DNA.";
+      deepestConstant = "The heartbeat interval is phi4 × (1/7.83 seconds) = 875.3 ms = 68.5 bpm. The resting human heart rate, derived by walking up the phi ladder from the Schumann fundamental period. Every timing interval in the organism is phi-spaced above this. This is the structural DNA.";
     }
   };
 

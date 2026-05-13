@@ -16,17 +16,17 @@
 //   r₁, r₂ ∈ [0,1] uniform random
 //   p_best = particle's own best position found
 //   g_best = best position found by any particle in neighborhood
-//   Constriction factor: χ = 2/|2 - φ - √(φ² - 4φ)|  where φ = c₁ + c₂ > 4
-//   For φ = 4.1: χ ≈ 0.729 (guarantees convergence)
+//   Constriction factor: χ = 2/|2 - phi - √(φ² - 4φ)|  where phi = c₁ + c₂ > 4
+//   For phi = 4.1: χ ≈ 0.729 (guarantees convergence)
 //   Alternative constriction form:
 //   v_i(t+1) = χ[v_i(t) + c₁r₁(p_best - x) + c₂r₂(g_best - x)]
 //
 // ── LAYER 2: PSO CONVERGENCE ANALYSIS ──────────────────────────────────────────
 //   Simplified linear PSO: x(t+1) = (1-φ₁-φ₂)x(t) + φ₁p₁ + φ₂g₁
 //   Eigenvalues of transition matrix determine convergence
-//   λ = [(1+w-φ) ± √((1+w-φ)² - 4w)] / 2  where φ = (c₁+c₂)/2
+//   λ = [(1+w-φ) ± √((1+w-φ)² - 4w)] / 2  where phi = (c₁+c₂)/2
 //   Convergent condition: |λᵢ| < 1 for all eigenvalues
-//   Equivalent: -1 < w < 1 and 0 < φ < 2(w+1)
+//   Equivalent: -1 < w < 1 and 0 < phi < 2(w+1)
 //   Order of convergence: η = -log|λ_max|  (bits per iteration)
 //   Expected distance to optimum: d(t) = d(0) × |λ_max|^t
 //   For w=0.729, c1=c2=1.496: |λ_max| ≈ 0.98 (slow but guaranteed convergence)
@@ -76,17 +76,17 @@
 //   Q = pheromone constant, L_k = tour length of ant k
 //
 // ── LAYER 7: EMERGENT BEHAVIOR MEASURES ───────────────────────────────────────
-//   Order parameter φ = |Σᵢ vᵢ/|vᵢ|| / N  (average velocity direction alignment)
-//   φ = 1: perfect alignment (ordered flock)
-//   φ = 0: random directions (disordered swarm)
+//   Order parameter phi = |Σᵢ vᵢ/|vᵢ|| / N  (average velocity direction alignment)
+//   phi = 1: perfect alignment (ordered flock)
+//   phi = 0: random directions (disordered swarm)
 //   Polarization: P = |Σᵢ exp(iθᵢ)| / N  (complex vector sum of headings)
 //   Correlation length: ξ = max distance at which velocity correlations decay
 //   Susceptibility: χ = N × Var(φ) (large at phase transitions)
-//   Phase transition: φ changes from ≈0 to ≈1 at critical density
+//   Phase transition: phi changes from ≈0 to ≈1 at critical density
 //
 // ── LAYER 8: MEDINA SWARM SOVEREIGNTY INDEX ───────────────────────────────────
 //   S_swarm = S₀ × [order × Φ_M + coordination] / Ω
-//   order = polarization φ ∈ [0,1]
+//   order = polarization phi ∈ [0,1]
 //   coordination = 1 - diversity_D (how focused the swarm is)
 //   S_swarm ∈ [0, S₀(Φ_M+1)/Ω] = [0, 0.441]
 //

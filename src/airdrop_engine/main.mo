@@ -669,6 +669,7 @@ actor AirdropEngine {
   // Full tier breakdown: what each score threshold gets in each wave
   public query func tierBreakdown(baseAmount : Nat) : async [{
     tier     : Nat;
+    lbl    : Text;
     label    : Text;
     minScore : Float;
     wave1    : Nat;
@@ -681,6 +682,10 @@ actor AirdropEngine {
     let labels : [Text] = ["UNQUALIFIED","BRONZE","SILVER","GOLD","PLATINUM","DIAMOND"];
     let minScores : [Float] = [0.0, _pow(PHI_INV,5.0), _pow(PHI_INV,4.0), _pow(PHI_INV,3.0), _pow(PHI_INV,2.0), _pow(PHI_INV,1.0)];
     let wavePicks : [Nat] = [1, 2, 3, 5, 8, 13];
+    Array.tabulate<{ tier:Nat; lbl:Text; minScore:Float; wave1:Nat; wave2:Nat; wave3:Nat; wave5:Nat; wave8:Nat; wave13:Nat }>(6, func(t) {
+      let tierBonus = _floatToNat(_pow(PHI, Float.fromInt(t) * 0.5));
+      let amt : (Nat) -> Nat = func(w) { baseAmount * _fib(if(w==0) 1 else w) * tierBonus };
+      { tier = t; lbl = labels[t]; minScore = minScores[t];
     Array.tabulate<{ tier:Nat; label:Text; minScore:Float; wave1:Nat; wave2:Nat; wave3:Nat; wave5:Nat; wave8:Nat; wave13:Nat }>(6, func(t) {
       let tierBonus = _floatToNat(_pow(PHI, Float.fromInt(t) * 0.5));
       let amt : (Nat) -> Nat = func(w) { baseAmount * _fib(if(w==0) 1 else w) * tierBonus };

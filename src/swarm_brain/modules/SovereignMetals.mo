@@ -64,7 +64,7 @@
 //   z_0.95 = 1.645, z_0.99 = 2.326
 //   CVaR (Expected Shortfall): ES_α = -E[R | R ≤ VaR_α]
 //   For normal: ES_α = μ_P + σ_P × φ(z_α) / α
-//   φ = standard normal PDF
+//   phi = standard normal PDF
 //   Metals reserve VaR: probability of reserve value dropping below minimum
 //
 // ── LAYER 7: OPTIONS PRICING (BLACK-SCHOLES FOR METAL OPTIONS) ────────────────

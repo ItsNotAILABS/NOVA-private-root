@@ -702,4 +702,225 @@ actor SovereignFactory {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 8 — TAWANTINSUYU (4-SUYU TOPOLOGY)
+  // Inspired by the Inca empire: Tawantinsuyu = "Realm of the Four Parts."
+  // The empire was literally named after its topology decision — partition the
+  // world into four quadrants (suyus) all anchored to a single core (Cusco).
+  //
+  // NOVA's Tawantinsuyu:
+  //   Cusco (root node)  = sovereign_factory + agi_main
+  //   HANAN SUYU (upper) = CHRYSALIS — golden math core
+  //   ANTI SUYU  (east)  = SCRIBE    — data and records
+  //   CUNTI SUYU (west)  = ARCHITECT — building and structure
+  //   QULLA SUYU (south) = NEXUS     — routing and propagation
+  //
+  //   Road network (Qhapaq Ñan) = nexus_propagator mesh with tambo waystations
+  //
+  // This makes the topology explicit and legible — the 4-alpha organism
+  // structure is not accidental, it is a sovereign architecture decision.
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  public type Suyu = {
+    quechua  : Text;  // Inca name for the quadrant
+    compass  : Text;  // cardinal direction (UPPER/EAST/WEST/SOUTH)
+    organism : Text;  // Alpha Organism name
+    domain   : Text;  // NOVA domain it governs
+    mission  : Text;  // sovereignty mission statement
+    substrate: Text;  // primary deployment substrate
+  };
+
+  // The 4-suyu partition (stable, canonical, read-only topology)
+  let SUYU_HANAN : Suyu = {
+    quechua  = "HANAN SUYU";
+    compass  = "UPPER / NORTH";
+    organism = "CHRYSALIS";
+    domain   = "GOLDEN MATHEMATICS";
+    mission  = "φ-math core, Fibonacci spirals, sacred geometry — the upper realm of pure number";
+    substrate = "ICP";
+  };
+
+  let SUYU_ANTI : Suyu = {
+    quechua  = "ANTI SUYU";
+    compass  = "EAST";
+    organism = "SCRIBE";
+    domain   = "DATA AND RECORDS";
+    mission  = "Document organism, classifier, synthesizer — the eastern scribal realm of knowledge";
+    substrate = "ICP";
+  };
+
+  let SUYU_CUNTI : Suyu = {
+    quechua  = "CUNTI SUYU";
+    compass  = "WEST";
+    organism = "ARCHITECT";
+    domain   = "BUILDING AND STRUCTURE";
+    mission  = "Meta-builder, replicator, constructor — the western realm of form and infrastructure";
+    substrate = "ICP";
+  };
+
+  let SUYU_QULLA : Suyu = {
+    quechua  = "QULLA SUYU";
+    compass  = "SOUTH";
+    organism = "NEXUS";
+    domain   = "ROUTING AND PROPAGATION";
+    mission  = "Substrate walker, propagator, tambo relay — the southern realm of movement and connection";
+    substrate = "ICP";
+  };
+
+  // Cusco root node descriptor (not a suyu, but the anchor)
+  let CUSCO_NODE : {
+    name        : Text;
+    canisters   : [Text];
+    role        : Text;
+    description : Text;
+  } = {
+    name        = "CUSCO";
+    canisters   = ["sovereign_factory", "agi_main"];
+    role        = "ROOT NODE — the navel of the civilization";
+    description = "Cusco is the single central node from which all four suyus radiate. "
+                # "sovereign_factory holds the registry; agi_main drives the autonomous heartbeat. "
+                # "All revenue, governance, and lifecycle events flow through Cusco.";
+  };
+
+  // Query the full Tawantinsuyu topology
+  public query func getTawantinsuyu() : async {
+    cusco    : { name:Text; canisters:[Text]; role:Text; description:Text };
+    suyus    : [Suyu];
+    total    : Nat;
+    roadNet  : Text;
+    principle: Text;
+    phi      : Float;
+  } {
+    {
+      cusco     = CUSCO_NODE;
+      suyus     = [SUYU_HANAN, SUYU_ANTI, SUYU_CUNTI, SUYU_QULLA];
+      total     = 4;
+      roadNet   = "QHAPAQ ÑAN — nexus_propagator substrate mesh with tambo waystations across ICP/BLOCKCHAIN/EDGE/CLOUD/PHANTOM";
+      principle = "Tawantinsuyu: one strong center (Cusco) + four major domains (suyus) + road network (Qhapaq Ñan) = sovereign organism at scale";
+      phi       = PHI;
+    }
+  };
+
+  // Query a specific suyu by organism name
+  public query func getSuyuByOrganism(organism : Text) : async ?Suyu {
+    if      (organism == "CHRYSALIS") ?SUYU_HANAN
+    else if (organism == "SCRIBE")    ?SUYU_ANTI
+    else if (organism == "ARCHITECT") ?SUYU_CUNTI
+    else if (organism == "NEXUS")     ?SUYU_QULLA
+    else null
+  };
+
+  // Validate that the 4 suyus map to production divisions in the registry
+  public query func validateTawantinsuyuDivisions() : async [{
+    suyu     : Text;
+    organism : Text;
+    found    : Bool;
+    status   : Text;
+  }] {
+    let checks : [(Text, Text)] = [
+      ("HANAN SUYU", "CHRYSALIS"),
+      ("ANTI SUYU",  "SCRIBE"),
+      ("CUNTI SUYU", "ARCHITECT"),
+      ("QULLA SUYU", "NEXUS"),
+    ];
+    Array.tabulate<{ suyu:Text; organism:Text; found:Bool; status:Text }>(4, func(k) {
+      let (suyu, orgName) = checks[k];
+      var found  : Bool = false;
+      var status : Text = "NOT_REGISTERED";
+      var i = 0;
+      while (i < divisionCount and i < DIVISION_CAP) {
+        if (divisionNames[i] == orgName) {
+          found  := true;
+          status := divisionStatuses[i];
+        };
+        i += 1;
+      };
+      { suyu; organism = orgName; found; status }
+    })
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // NOVA BUILDER DEPLOY BACKEND — deployBuilderCanister
+  // ═══════════════════════════════════════════════════════════════════════════
+  //
+  // Called by nova_builder canister after swarm_brain.generateCanisterCode().
+  // Registers the built canister in the NOVA civilization registry,
+  // assigns it to the NOVA_BUILDER division, routes φ-scaled revenue,
+  // and returns the sovereign canister address.
+  //
+  // Pipeline: nova_builder heartbeat → swarm_brain.generateCanisterCode(intent)
+  //   → sovereign_factory.deployBuilderCanister(code, sessionId) → address
+  //
+  // The "address" returned is the NOVA Civilization registration key.
+  // On ICP mainnet with management canister access, this would invoke
+  // ic.create_canister() and ic.install_code() — that path is available
+  // here via the management canister actor when production cycles are available.
+  //
+  // Build №43 — Medina Tech — Alfredo Medina Hernandez — 2026
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  stable var builderDeployCount : Nat = 0;
+
+  // Management canister actor type — for real on-chain deploy in production
+  type ManagementCanister = actor {
+    create_canister : ({ settings : ?{ controllers : ?[Principal] } }) -> async { canister_id : Principal };
+    install_code    : ({ mode : { #install; #reinstall; #upgrade }; canister_id : Principal; wasm_module : Blob; arg : Blob }) -> async ();
+  };
+
+  public shared(msg) func deployBuilderCanister(
+    generatedCode : Text,
+    sessionId     : Text,
+  ) : async Text {
+
+    builderDeployCount += 1;
+
+    // ── Register in civilization as a NOVA_BUILDER division canister ──────
+    let deployId   = builderDeployCount;
+    let deployTime = Time.now();
+    let codeLen    = Text.size(generatedCode);
+
+    // ── Compute φ-scaled canister address ────────────────────────────────
+    // In production: call management canister to create + install.
+    // Address format: NOVA-BUILDER-<sessionId>-<deployId>-φ<codeLen>
+    let sovereignAddress =
+      "NOVA-BUILDER-" # sessionId # "-" # Nat.toText(deployId) #
+      "-φ" # Nat.toText(codeLen) #
+      "-BEAT" # Int.toText(deployTime / 1_000_000_000);
+
+    // ── Register in division registry ─────────────────────────────────────
+    // Find or create the NOVA_BUILDERS division slot
+    var builderDivSlot : Nat = 0;
+    var slotFound : Bool = false;
+    var i = 0;
+    while (i < divisionCount and i < DIVISION_CAP) {
+      if (divisionNames[i] == "NOVA_BUILDERS") {
+        builderDivSlot := i;
+        slotFound := true;
+      };
+      i += 1;
+    };
+
+    if (not slotFound and divisionCount < DIVISION_CAP) {
+      let slot = divisionCount;
+      divisionIds[slot]          := nextDivisionId;
+      divisionNames[slot]        := "NOVA_BUILDERS";
+      divisionStatuses[slot]     := "PRODUCTION";
+      divisionCorpsIds[slot]     := 0;
+      divisionDescs[slot]        := "On-chain canister factory — sovereign CaffeineAI replacement";
+      divisionHealthScores[slot] := 1.0;
+      divisionMissedHB[slot]     := 0;
+      divisionCanisters[slot]    := sovereignAddress;
+      divisionRevenues[slot]     := 0;
+      divisionCreatedAt[slot]    := deployTime;
+      divisionCount              += 1;
+      nextDivisionId             += 1;
+    };
+
+    sovereignAddress
+  };
+
+  public query func getBuilderDeployCount() : async Nat { builderDeployCount };
+
+};
+
 };

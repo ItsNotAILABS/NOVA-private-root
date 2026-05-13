@@ -48,7 +48,7 @@
 // 7. Von Neumann entropy: S(ρ) = -Tr(ρ log₂ ρ)
 // 8. Quantum coherence l₁ norm: C(ρ) = Σᵢ≠ⱼ |ρᵢⱼ|
 // 9. Entanglement entropy via partial trace
-// 10. Berry phase: φ = -Im·ln<ψ_prev|ψ_current>
+// 10. Berry phase: phi = -Im·ln<ψ_prev|ψ_current>
 // 11. Chern number: topological invariant over 4-plaquette lattice
 // 12. Penrose-Hameroff Objective Reduction (Orch OR)
 // 13. Quantum Zeno effect survival probability
@@ -616,7 +616,7 @@ module {
 
   // ============================================================
   // BERRY PHASE
-  // φ = -Im·ln<ψ_prev|ψ_current> (geometric phase)
+  // phi = -Im·ln<ψ_prev|ψ_current> (geometric phase)
   // Accumulated phase from adiabatic evolution
   // ============================================================
   public func berryPhase(psiPrev : [Cplx], psiCurrent : [Cplx]) : Float {

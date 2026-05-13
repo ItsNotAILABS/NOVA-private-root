@@ -48,8 +48,8 @@ module {
   // ║                     CONSTANTS                                          ║
   // ╚════════════════════════════════════════════════════════════════════════╝
   
-  public let φ : Float = 1.6180339887498948482;
-  public let π : Float = 3.1415926535897932385;
+  public let phi : Float = 1.6180339887498948482;
+  public let pi : Float = 3.1415926535897932385;
   public let GRAVITY : Float = 9.80665;
   
   // Simulation settings

@@ -3,7 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PARALLAX Drone Swarm — Medina Tech</title>
+    <title>PARALLAX — Sovereign Clearinghouse by NOVA</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#44aaff" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PARALLAX" />
+
+    <!-- SEO / Open Graph -->
+    <meta name="description" content="PARALLAX moves settlement. Not money. Any rail. Any currency. 0.146% fee." />
+    <meta property="og:title" content="PARALLAX — Sovereign Clearinghouse" />
+    <meta property="og:description" content="NOVA PARALLAX: MXN → USD. BTC → ETH. Card → Phone. 0.146%. Same day. No bank required." />
+    <meta property="og:type" content="website" />
+
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { background: #050a14; color: #e0f0ff; font-family: 'Courier New', monospace; overflow: hidden; }
@@ -12,5 +27,28 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Service Worker registration (CPL: inline JS in HTML) -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').then(function(reg) {
+            reg.addEventListener('updatefound', function() {
+              var newWorker = reg.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', function() {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    newWorker.postMessage({ type: 'SKIP_WAITING' });
+                  }
+                });
+              }
+            });
+          }).catch(function(err) {
+            console.warn('PARALLAX SW registration failed:', err);
+          });
+        });
+      }
+    </script>
   </body>
 </html>
+

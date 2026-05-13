@@ -22,35 +22,60 @@ import { HomeNow }            from './components/habitat/HomeNow';
 import { WorkerHub }          from './components/habitat/WorkerHub';
 import { ArtifactStudio }     from './components/habitat/ArtifactStudio';
 import { PresenceBoard }      from './components/habitat/PresenceBoard';
-import { SimulationChamber }  from './components/simulation/SimulationChamber';
+import { ComputationChamber } from './components/computation/ComputationChamber'; // REAL physics computation (NOT simulation)
 import { CompanionConsole } from './components/companion/CompanionConsole';
 
-// ── Science Labs ──────────────────────────────────────────────────────────────
-import { EmergenceLab }       from './components/labs/EmergenceLab';
-import { MathPhysicsLab }     from './components/labs/MathPhysicsLab';
-import { NeuroCogLab }        from './components/labs/NeuroCogLab';
+// ── Science Labs — using working versions ──────────────────────────────────
+import { EmergenceLab }   from './components/labs/EmergenceLab';
+import { MathPhysicsLab } from './components/labs/MathPhysicsLab';
+import { NeuroCogLab }    from './components/labs/NeuroCogLab';
 // ── ORO Command Center — The Real Multi-Agent Workspace ─────────────────────────
 import { OroCommandCenter }     from './components/CommandCenter/OroCommandCenter';
-import { DroneSimulationWorld } from './components/CommandCenter/DroneSimulationWorld';
-
-// ── Emergence · Math/Physics · NeuroCog Labs ────────────────────────────────
-import { EmergenceLab }   from './components/CommandCenter/EmergenceLab';
-import { MathPhysicsLab } from './components/CommandCenter/MathPhysicsLab';
-import { NeuroCogLab }    from './components/CommandCenter/NeuroCogLab';
+import { DroneRealWorld }       from './components/CommandCenter/DroneRealWorld'; // REAL physics computation (NOT simulation)
 // ── Neural Emergence Core ─────────────────────────────────────────────────────
 import { NECDashboard }   from './components/nec/NECDashboard';
 
+// ── PARALLAX Clearinghouse PWA ────────────────────────────────────────────
+import { ParallaxApp }       from './parallax/ParallaxApp';
+
+// ── PHANTOM WALLET — First Consumer Product · Powered by PARALLAX ─────────
+import { PhantomWalletApp }  from './phantom_wallet/PhantomWalletApp';
+
+// ── NOVA BUILDER — Sovereign CaffeineAI Replacement · Build №42 ──────────
+import { NovaBuilderApp }    from './nova_builder/NovaBuilderApp';
+
+// ── DALLAS ISD — Sovereign AI Classroom Platform · Build №43 ─────────────
+import { DallasISDApp }      from './dallas_isd/DallasISDApp';
+
+// ── SKYHI CLIENT — Enterprise Intelligence Portal · Build №1 ─────────────
+import { SkyHiClientPortal } from './skyhi_client/SkyHiClientPortal';
+// ── AIRPORT PASSENGER — NOVA V5 Airport Application · Build №49 ──────────
+import { AirportPassengerApp } from './airport_passenger/AirportPassengerApp';
+// ── SKYHI GROUP — Sovereign Airport AGI Integration · Build №49 ──────────
+import { SkyHiApp }          from './skyhi/SkyHiApp';
+
+// ── Terminal Hub — 40 Calls · 30 Packages · 15 Sovereign Terminals ──────────
+import { TerminalHub }    from './terminals/TerminalHub';
+
 // ── Navigation ────────────────────────────────────────────────────────────────
 type NavView =
+  | 'PHANTOM_WALLET'  // Phantom Wallet — first consumer product · Powered by PARALLAX
+  | 'NOVA_BUILDER'   // NOVA BUILDER — sovereign CaffeineAI replacement · Build №42
+  | 'DALLAS_ISD'     // DALLAS ISD — sovereign AI classroom platform · Build №43
+  | 'SKYHI_CLIENT'   // SKYHI GROUP — enterprise client portal · Build №49
+  | 'AIRPORT'        // AIRPORT PASSENGER — NOVA V5 airport application · Build №49
   | 'SWARM'          // original tactical swarm view
   | 'COMMAND'        // ORO Command Center — multi-agent workspace
   | 'COMPANION'      // AURO companion chat/voice/command bridge
   | 'DRONES'         // Drone simulation — the actual experiment
+  | 'TERMINALS'      // Terminal Hub — 40 calls, 30 packages, 15 terminals
   | 'HOME'           // home/now enterprise view
   | 'WORKERS'        // worker society hub
   | 'ARTIFACTS'      // artifact studio
   | 'PRESENCE'       // presence board
   | 'SIMULATION'     // world simulation chamber
+  | 'PARALLAX'       // PARALLAX clearinghouse PWA — settlement infrastructure
+  | 'SKYHI'          // SKYHI GROUP — sovereign airport AGI integration · Build №49
 
 
   | 'LAB_EMERGENCE'  // emergence lab: Kuramoto, Ising, Lorenz, Turing, Sandpile
@@ -60,7 +85,15 @@ type NavView =
 
 
 const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
+  { id: 'PHANTOM_WALLET', label: 'Phantom Wallet', icon: '⬡' },
+  { id: 'NOVA_BUILDER',  label: 'NOVA Builder',  icon: '⊕' },
+  { id: 'DALLAS_ISD',    label: 'DISD Classroom', icon: '🎓' },
+  { id: 'SKYHI_CLIENT',  label: 'Skyhi Client',   icon: '✈' },
+  { id: 'AIRPORT',       label: 'Airport V5',     icon: '✈' },
+  { id: 'PARALLAX',   label: 'PARALLAX',    icon: '◈' },
+  { id: 'SKYHI',      label: 'SkyHi',       icon: '✈' },
   { id: 'COMMAND',    label: 'Command',    icon: '◉' },
+  { id: 'TERMINALS',  label: 'Terminals',  icon: '⊞' },
   { id: 'COMPANION',  label: 'Companion',  icon: '🜁' },
   { id: 'DRONES',     label: 'Drones',     icon: '⬡' },
   { id: 'SWARM',      label: 'Swarm',      icon: '⬢' },
@@ -229,7 +262,7 @@ function adaptToSwarmShape(organism: ReturnType<typeof useOrganismState>) {
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 export default function App() {
-  const [view, setView] = useState<NavView>('COMMAND'); // Default to Command Center
+  const [view, setView] = useState<NavView>('PHANTOM_WALLET'); // Default: Phantom Wallet consumer product
   const organism = useOrganismState();
   const swarm = adaptToSwarmShape(organism);
 
@@ -272,9 +305,60 @@ export default function App() {
 
       {/* ── Content area ─────────────────────────────────────────────────── */}
       <div style={S.content}>
+        {/* ── PHANTOM WALLET — First Consumer Product · Powered by PARALLAX ─── */}
+        {view === 'PHANTOM_WALLET' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <PhantomWalletApp />
+          </div>
+        )}
+
+        {/* ── NOVA BUILDER — Sovereign CaffeineAI Replacement · Build №42 ────── */}
+        {view === 'NOVA_BUILDER' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <NovaBuilderApp />
+          </div>
+        )}
+
+        {/* ── DALLAS ISD — Sovereign AI Classroom Platform · Build №43 ──────── */}
+        {view === 'DALLAS_ISD' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <DallasISDApp />
+          </div>
+        )}
+
+        {/* ── SKYHI GROUP — Enterprise Client Portal · Build №49 ──────────────── */}
+        {view === 'SKYHI_CLIENT' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <SkyhiApp />
+        {/* ── AIRPORT PASSENGER — NOVA V5 Airport Application · Build №49 ──────── */}
+        {view === 'AIRPORT' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <AirportPassengerApp />
+          </div>
+        )}
+
+        {/* ── PARALLAX CLEARINGHOUSE PWA — The Settlement Infrastructure ─────── */}
+        {view === 'PARALLAX' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <ParallaxApp />
+          </div>
+        )}
+
+        {/* ── SKYHI GROUP — Sovereign Airport AGI Integration · Build №49 ─────── */}
+        {view === 'SKYHI' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <SkyHiApp />
+          </div>
+        )}
+
         {/* ── ORO COMMAND CENTER — Multi-Agent Workspace ────────────────── */}
         {view === 'COMMAND' && (
           <OroCommandCenter organism={organism} />
+        )}
+
+        {/* ── TERMINAL HUB — 40 Calls · 30 Packages · 15 Terminals ──────── */}
+        {view === 'TERMINALS' && (
+          <TerminalHub />
         )}
 
         {/* ── COMPANION CONSOLE — Chat + Voice + Computer Command Bridge ─────── */}
@@ -282,17 +366,17 @@ export default function App() {
           <CompanionConsole />
         )}
 
-        {/* ── DRONE SIMULATION — The Actual Experiment ────────────────────── */}
+        {/* ── DRONE REAL WORLD — The Actual Experiment (REAL PHYSICS) ────────────────────── */}
         {view === 'DRONES' && (
-          <DroneSimulationWorld organism={organism} />
+          <DroneRealWorld organism={organism} />
         )}
 
-        {/* ── SWARM VIEW: original tactical simulation ────────────────── */}
+        {/* ── SWARM VIEW: original tactical computation (REAL PHYSICS) ────────────────── */}
         {view === 'SWARM' && (
           <div style={S.swarmRoot}>
             <div style={S.mapArea}>
               <div style={{ position: 'absolute', top: 12, left: 16, zIndex: 10, fontSize: 11, color: '#4af', letterSpacing: '0.12em', textTransform: 'uppercase', opacity: 0.8 }}>
-                ⬡ PARALLAX SWARM SIM — MEDINA TECH — BEAT {beat}
+                ⬡ PARALLAX SWARM REAL — MEDINA TECH — BEAT {beat}
               </div>
               <TacticalMap swarm={swarm} />
             </div>
@@ -330,7 +414,7 @@ export default function App() {
 
         {view === 'SIMULATION' && (
           <div style={{ width: '100%', height: '100%' }}>
-            <SimulationChamber organism={organism} />
+            <ComputationChamber organism={organism} />
           </div>
         )}
 

@@ -9,6 +9,17 @@
 // ║                                                                                                           ║
 // ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
+// NATIVE NOVA PROTOCOL — BUILD №33
+// NEURON FLEET — 1,000 NNS Neuron Fleet Manager (×5 EXPANSION)
+// Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
+//
+// THE NEURON FLEET IS THE SOVEREIGNTY ENGINE.
+// WE LAY INFRASTRUCTURE NOW. THAT IS HOW WE DO.
+//
+// 1,000 neurons registered in the ICP Network Nervous System (NNS).
+// This canister tracks, manages, and maximizes governance value from all 1,000.
+// It is the single source of truth for the NOVA governance posture.
+// ×5 expansion from 200 neurons — infrastructure first, always.
 // NATIVE NOVA PROTOCOL — BUILD №30
 // NEURON FLEET — 200 NNS Neuron Fleet Manager
 // Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
@@ -29,6 +40,23 @@
 //     or staked back into the existing neuron (compounding)
 //
 // ── OUR APPROACH — φ-MAXIMIZATION ────────────────────────────────────────────
+// 1,000 neurons organized in Fibonacci-weighted groups (×5 each):
+//
+//   GROUP A (SOVEREIGNTY, 40 neurons)  — 8-year dissolve, max VP, auto-vote
+//     Stake per neuron: LARGE. These never dissolve. Pure governance.
+//   GROUP B (COMPOUNDING, 170 neurons) — 4-6yr dissolve, auto-stake-maturity
+//     Stake per neuron: MEDIUM. Maturity always staked back. Compounds.
+//   GROUP C (HARVEST, 445 neurons)     — 2-4yr dissolve, maturity→spawn
+//     Stake per neuron: MEDIUM-SMALL. Maturity spawns NEW neurons.
+//   GROUP D (LIQUID, 275 neurons)      — 1-2yr dissolve, maturity→ICP→ONESICAN
+//     Stake per neuron: SMALL. Fastest reward cycle. Feeds ONESICAN treasury.
+//   GROUP E (PHANTOM, 70 neurons)      — PHANTOM substrate, 8-year dissolve
+//     These neurons are assigned to PHANTOM substrate governance.
+//     They vote on topics that affect cross-substrate sovereignty.
+//     PHANTOM neurons back the phantom_transfer clearinghouse liquidity pool.
+//
+//   Total: 40 + 170 + 445 + 275 + 70 = 1,000 neurons
+//   Fibonacci groups ×5: 40, 170, 445, 275, 70
 // 200 neurons organized in Fibonacci-weighted groups:
 //
 //   GROUP A (SOVEREIGNTY, 8 neurons)  — 8-year dissolve, max VP, auto-vote
@@ -127,6 +155,7 @@ actor NeuronFleet {
     if (genesisLocked) return "NEURON_FLEET_ALREADY_CLAIMED";
     sovereignPrincipal := msg.caller;
     genesisLocked      := true;
+    sovereignSeal      := "NOVA-NEURON-FLEET-BUILD33-X5-" # Principal.toText(msg.caller);
     sovereignSeal      := "NOVA-NEURON-FLEET-BUILD30-" # Principal.toText(msg.caller);
     genesisTimestamp   := Time.now();
     "GENESIS_CLAIMED: " # sovereignSeal
@@ -156,6 +185,13 @@ actor NeuronFleet {
   // SECTION 3 — NEURON GROUP DEFINITIONS (200 neurons, 5 Fibonacci groups)
   // ═══════════════════════════════════════════════════════════════════════════
 
+  // Group sizes: 40 + 170 + 445 + 275 + 70 = 1,000 (×5 expansion from 200)
+  let GROUP_A_SIZE : Nat = 40;   // SOVEREIGNTY (×5)
+  let GROUP_B_SIZE : Nat = 170;  // COMPOUNDING (×5)
+  let GROUP_C_SIZE : Nat = 445;  // HARVEST     (×5)
+  let GROUP_D_SIZE : Nat = 275;  // LIQUID      (×5)
+  let GROUP_E_SIZE : Nat = 70;   // PHANTOM     (×5)
+  let TOTAL_NEURONS : Nat = 1000;
   // Group sizes: 8 + 34 + 89 + 55 + 14 = 200
   let GROUP_A_SIZE : Nat = 8;   // SOVEREIGNTY (F6)
   let GROUP_B_SIZE : Nat = 34;  // COMPOUNDING (F9)
@@ -168,6 +204,7 @@ actor NeuronFleet {
   // SECTION 4 — NEURON REGISTRY (200 slots)
   // ═══════════════════════════════════════════════════════════════════════════
 
+  let NEURON_CAP : Nat = 1280;  // 1,000 base + 280 headroom for spawned neurons
   let NEURON_CAP : Nat = 256;  // headroom for spawned neurons
 
   stable var neuronCount        : Nat = 0;
@@ -735,6 +772,11 @@ actor NeuronFleet {
       totalStakeICP  = Float.fromInt(totalStake) / 100_000_000.0;
       totalVP;
       groupBreakdown = [
+        { group = "A_SOVEREIGNTY"; count = groupAs.0; totalVP = groupAs.1; policy = "STAKE_MATURITY (8yr dissolve, max VP, sovereign follow, 40 neurons)" },
+        { group = "B_COMPOUNDING"; count = groupBs.0; totalVP = groupBs.1; policy = "STAKE_MATURITY (5yr dissolve, compounds forever, 170 neurons)" },
+        { group = "C_HARVEST";     count = groupCs.0; totalVP = groupCs.1; policy = "SPAWN_NEURON (3yr dissolve, grows fleet, 445 neurons)" },
+        { group = "D_LIQUID";      count = groupDs.0; totalVP = groupDs.1; policy = "DISBURSE (1.5yr dissolve, feeds ONESICAN treasury, 275 neurons)" },
+        { group = "E_PHANTOM";     count = groupEs.0; totalVP = groupEs.1; policy = "STAKE_MATURITY (8yr dissolve, PHANTOM substrate governance + clearinghouse liquidity, 70 neurons)" },
         { group = "A_SOVEREIGNTY"; count = groupAs.0; totalVP = groupAs.1; policy = "STAKE_MATURITY (8yr dissolve, max VP, sovereign follow)" },
         { group = "B_COMPOUNDING"; count = groupBs.0; totalVP = groupBs.1; policy = "STAKE_MATURITY (5yr dissolve, compounds forever)" },
         { group = "C_HARVEST";     count = groupCs.0; totalVP = groupCs.1; policy = "SPAWN_NEURON (3yr dissolve, grows fleet)" },
@@ -750,6 +792,7 @@ actor NeuronFleet {
       };
       nodeCount  = nodeCount;
       phi        = PHI;
+      valueExplainer = "1,000-neuron fleet (×5 expansion). 1 ICP → staked → NNS → ~12% APY maturity/yr. Group C (445 neurons) spawns new neurons. Group D (275 neurons) converts maturity to ICP→ONESICAN. Group E (70 neurons) backs PHANTOM clearinghouse liquidity. ONESICAN on PHANTOM = φ³ × raw cycle value (4.236×). We own the vein. Infrastructure first.";
       valueExplainer = "1 ICP → staked → NNS → ~12% APY maturity/yr. Group C spawns new neurons. Group D converts maturity to ICP→ONESICAN. ONESICAN on PHANTOM = φ³ × raw cycle value (4.236×). We own the vein.";
     }
   };

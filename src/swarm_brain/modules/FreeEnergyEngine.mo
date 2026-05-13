@@ -730,7 +730,7 @@ module FreeEnergyEngine {
   // ─────────────────────────────────────────────────────────────────────────────
 
   public type LandauState = {
-    orderParameter: Float;           // φ - Primary order parameter
+    orderParameter: Float;           // phi - Primary order parameter
     orderParameterGradient: [Float]; // ∇φ - Spatial gradient
     quadraticCoeff: Float;           // a - Temperature-dependent coefficient
     quarticCoeff: Float;             // b - Stabilization coefficient
@@ -841,7 +841,7 @@ module FreeEnergyEngine {
   };
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // GINZBURG-LANDAU THEORY — ψ = |ψ|·e^(iθ) Complex Order Parameter
+  // GINZBURG-LANDAU THEORY — psi = |ψ|·e^(iθ) Complex Order Parameter
   // Superconducting-like coherence in organism substrate
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -2073,7 +2073,7 @@ module FreeEnergyEngine {
 
   public type CriticalExponents = {
     alpha: Float;  // Specific heat: C ~ |t|^(-α)
-    beta: Float;   // Order parameter: φ ~ |t|^β
+    beta: Float;   // Order parameter: phi ~ |t|^β
     gamma: Float;  // Susceptibility: χ ~ |t|^(-γ)
     delta: Float;  // Critical isotherm: h ~ |φ|^δ
     nu: Float;     // Correlation length: ξ ~ |t|^(-ν)

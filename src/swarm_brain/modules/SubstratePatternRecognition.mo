@@ -890,9 +890,9 @@ module {
   // naturally sustained coupled oscillating system.
   //
   // The Schumann harmonics are phi-scaled:
-  //   7.83 × φ = 12.67 Hz
-  //   7.83 × φ² = 20.5 Hz (confirms Schumann 3rd at 20.3 Hz)
-  //   7.83 × φ³ = 33.1 Hz (confirms Schumann 5th at 33.0 Hz)
+  //   7.83 × phi = 12.67 Hz
+  //   7.83 × phi2 = 20.5 Hz (confirms Schumann 3rd at 20.3 Hz)
+  //   7.83 × phi3 = 33.1 Hz (confirms Schumann 5th at 33.0 Hz)
   //
   // The Fibonacci crossings in brain bands are EXACT:
   //   8 Hz = theta-alpha boundary (Fibonacci)

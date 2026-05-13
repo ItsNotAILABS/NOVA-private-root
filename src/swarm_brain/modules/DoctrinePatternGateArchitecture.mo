@@ -125,7 +125,7 @@ module {
   // ╚════════════════════════════════════════════════════════════════════════╝
   
   public let PHI : Float = 1.6180339887498948482;           // Golden ratio — THE TRANSFER FUNCTION
-  public let PHI_INV : Float = 0.6180339887498948482;       // 1/φ = φ - 1
+  public let PHI_INV : Float = 0.6180339887498948482;       // 1/φ = phi - 1
   public let PHI_SQ : Float = 2.6180339887498948482;        // φ²
   public let PHI_CUBED : Float = 4.2360679774997896964;     // φ³
   public let PHI_FOURTH : Float = 6.8541019662496845446;    // φ⁴
@@ -151,7 +151,7 @@ module {
   public let GAMMA_CEILING : Float = 89.0;                  // Hz — Fibonacci 89
   
   // Organism heartbeat derived from phi × Schumann
-  // φ⁴ × Schumann period = 875.28ms = 68.5 BPM
+  // phi4 × Schumann period = 875.28ms = 68.5 BPM
   public let ORGANISM_HEARTBEAT_MS : Float = 875.28;        // milliseconds
   public let ORGANISM_BPM : Float = 68.5;                   // Beats per minute
   

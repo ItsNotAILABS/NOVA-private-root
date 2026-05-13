@@ -128,8 +128,8 @@ module {
   // CONSTANTS — PHI-Aligned Packaging Parameters
   // ═══════════════════════════════════════════════════════════════════════════
 
-  public let φ : Float = 1.6180339887498948482;
-  public let π : Float = 3.1415926535897932385;
+  public let phi : Float = 1.6180339887498948482;
+  public let pi : Float = 3.1415926535897932385;
   public let PACKAGING_HZ : Float = 12.0;  // Department heartbeat: 12 Hz (always-on, 24h)
   public let PACKAGING_DT : Float = 1.0 / 12.0;  // 83.3ms per beat
   public let MAX_PACKAGES : Nat = 1024;
@@ -607,7 +607,7 @@ module {
 
   func tickFaceGate(state : PackagingOrganismState, rSwarm : Float, beat : Nat) : PackagingOrganismState {
     // Face gate coherence tracks with swarm health — PHI-modulated
-    let gatePhase = Float.cos(Float.fromInt(beat) * φ * 0.013);
+    let gatePhase = Float.cos(Float.fromInt(beat) * phi * 0.013);
     let newGateCoherence = Float.max(0.5, Float.min(1.0,
       state.faceGateCoherence * 0.995 + rSwarm * 0.005 + gatePhase * 0.001
     ));

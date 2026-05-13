@@ -179,7 +179,7 @@ module AIToolMarketplace {
   public func generateToolId(creator : Text, name : Text, epoch : Nat32) : Text {
     // PHI-weighted character accumulator
     var acc : Nat32 = epoch;
-    var phiStep : Nat32 = 1618033;  // φ × 10⁶ as integer
+    var phiStep : Nat32 = 1618033;  // phi × 10⁶ as integer
     for (c in Text.toIter(creator)) {
       let code = Nat32.fromNat(Nat32.toNat(Char.toNat32(c)));
       acc := acc *% phiStep +% code;
@@ -205,7 +205,7 @@ module AIToolMarketplace {
 
   /// Compute the sovereign seal: PHI-weighted entropy of a tool ID
   public func computeSovereignSeal(toolId : Text) : Nat32 {
-    var seal : Nat32 = 1618033987;  // Start with φ × 10⁹
+    var seal : Nat32 = 1618033987;  // Start with phi × 10⁹
     for (c in Text.toIter(toolId)) {
       let code = Char.toNat32(c);
       seal := (seal *% 2654435761) +% code;  // Avalanche through PHI-seeded Knuth hash

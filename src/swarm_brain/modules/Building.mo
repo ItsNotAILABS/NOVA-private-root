@@ -17,8 +17,8 @@
 // ║  Not HP bars. STRUCTURAL NODES that propagate damage.                    ║
 // ║                                                                          ║
 // ║  FIBONACCI IN ARCHITECTURE:                                              ║
-// ║    - Load distribution follows φ ratios                                  ║
-// ║    - Column spacing at φ intervals                                       ║
+// ║    - Load distribution follows phi ratios                                  ║
+// ║    - Column spacing at phi intervals                                       ║
 // ║    - Floor heights decrease by φ⁻¹ each level                           ║
 // ║    - Window proportions are golden rectangles                           ║
 // ║    - Buildings placed in Fibonacci spirals                              ║
@@ -45,9 +45,9 @@ module {
   // ║                     CONSTANTS                                          ║
   // ╚════════════════════════════════════════════════════════════════════════╝
   
-  public let φ : Float = 1.6180339887498948482;
-  public let ψ : Float = 0.6180339887498948482;
-  public let π : Float = 3.1415926535897932385;
+  public let phi : Float = 1.6180339887498948482;
+  public let psi : Float = 0.6180339887498948482;
+  public let pi : Float = 3.1415926535897932385;
   public let GOLDEN_ANGLE : Float = 2.3999632297286533;
   
   // Fibonacci sequence

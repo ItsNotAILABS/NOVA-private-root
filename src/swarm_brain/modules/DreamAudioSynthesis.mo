@@ -44,9 +44,9 @@ module {
   // ║                     CONSTANTS                                          ║
   // ╚════════════════════════════════════════════════════════════════════════╝
   
-  public let φ : Float = 1.6180339887498948482;
-  public let ψ : Float = 0.6180339887498948482;
-  public let π : Float = 3.1415926535897932385;
+  public let phi : Float = 1.6180339887498948482;
+  public let psi : Float = 0.6180339887498948482;
+  public let pi : Float = 3.1415926535897932385;
   
   // Musical constants
   public let A4_FREQUENCY : Float = 440.0;         // A4 = 440 Hz
@@ -320,10 +320,10 @@ module {
     // Use Fibonacci ratios instead of equal temperament
     let ratios : [Float] = [
       1.0,        // Unison
-      φ * 0.5,    // ~0.809
-      ψ + 0.5,    // ~1.118
+      phi * 0.5,    // ~0.809
+      psi + 0.5,    // ~1.118
       φ,          // ~1.618
-      φ * φ * 0.5 // ~1.309
+      phi * phi * 0.5 // ~1.309
     ];
     
     let octave = step / 5;
@@ -354,7 +354,7 @@ module {
       
       notes.add({
         pitch = 60 + noteStep;  // MIDI note
-        velocity = ψ + (Float.fromInt(step % 3)) * 0.1;
+        velocity = psi + (Float.fromInt(step % 3)) * 0.1;
         duration = duration;
         startTime = time;
       });

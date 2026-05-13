@@ -24,6 +24,23 @@
 
 ---
 
+## ◈ ARXIV WAVE 1 — DRAFT SET
+
+Five LaTeX draft papers prepared for arXiv submission.
+Source files: [`arxiv/`](arxiv/)
+
+| # | File | Title | Release order |
+|---|------|-------|---------------|
+| 1 | [`arxiv/paper1_architecture_is_intelligence.tex`](arxiv/paper1_architecture_is_intelligence.tex) | Structural Attribution: Immutable Authorship as a Type-System Property in AI Capability Networks | **First** |
+| 2 | [`arxiv/paper2_phi_resonant_protocol_orchestration.tex`](arxiv/paper2_phi_resonant_protocol_orchestration.tex) | Memoria Perpetua: On Persistent State and the Architecture of Undying Knowledge in Autonomous AI Agents | Hold/refine |
+| 3 | [`arxiv/paper3_self_healing_multi_agent_systems.tex`](arxiv/paper3_self_healing_multi_agent_systems.tex) | Nexus Perpetuus: Self-Healing Agent Networks Through Permanent State Binding | Hold/refine |
+| 4 | [`arxiv/paper4_paper_engine_isomorphism.tex`](arxiv/paper4_paper_engine_isomorphism.tex) | The Paper–Engine Isomorphism | **First** |
+| 5 | [`arxiv/paper5_career_flows_persistent_ai_organizations.tex`](arxiv/paper5_career_flows_persistent_ai_organizations.tex) | Career Flows in Persistent AI Organisations | **First** |
+
+See [`arxiv/README.md`](arxiv/README.md) for the submission checklist and arXiv subject classifications.
+
+---
+
 ## ◈ SERIES DESCRIPTION
 
 This paper series documents the NOVA (PARALLAX) organism — not as a technical manual,

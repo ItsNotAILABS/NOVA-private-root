@@ -239,11 +239,13 @@ actor CyclesMarket {
     switch (_findDev(p)) {
       case null null;
       case (?di) {
+        let lbl = if (devSeatTiers[di] == 3) "ARCHITECT" else if (devSeatTiers[di] == 2) "MAKER" else "BUILDER";
         let label = if (devSeatTiers[di] == 3) "ARCHITECT" else if (devSeatTiers[di] == 2) "MAKER" else "BUILDER";
         ?{
           devId           = devIds[di];
           handle          = devHandles[di];
           seatTier        = devSeatTiers[di];
+          seatLabel       = lbl;
           seatLabel       = label;
           primarySubstrate = devSubstrates[di];
           volumeBought    = devVolumeBought[di];
@@ -714,6 +716,14 @@ actor CyclesMarket {
     substrate  : Text;
     multiplier : Float;
     floorOnes  : Nat;
+    lbl      : Text;
+  }] {
+    [
+      { substrate = "ICP";          multiplier = 1.0;             floorOnes = _computePrice(basePrice, 1, "ICP");          lbl = "ICP — NOVA's base ICP surface (φ⁰·1×)" },
+      { substrate = "BLOCKCHAIN";   multiplier = 1.0;             floorOnes = _computePrice(basePrice, 1, "BLOCKCHAIN");   lbl = "Blockchain parity (φ⁰·1×)" },
+      { substrate = "NOVA-EDGE";    multiplier = PHI;             floorOnes = _computePrice(basePrice, 1, "NOVA-EDGE");    lbl = "NOVA-EDGE — browser/Jarvis compute (φ¹·1.618×)" },
+      { substrate = "NOVA-CLOUD";   multiplier = PHI * PHI;       floorOnes = _computePrice(basePrice, 1, "NOVA-CLOUD");   lbl = "NOVA-CLOUD — AGI/market compute (φ²·2.618×)" },
+      { substrate = "NOVA-PHANTOM"; multiplier = PHI * PHI * PHI; floorOnes = _computePrice(basePrice, 1, "NOVA-PHANTOM"); lbl = "NOVA-PHANTOM — sovereign-tier compute (φ³·4.236×)" },
     label      : Text;
   }] {
     [

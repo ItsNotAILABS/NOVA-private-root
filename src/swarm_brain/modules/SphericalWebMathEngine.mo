@@ -53,10 +53,10 @@ module {
   // ║                     SACRED MATHEMATICAL CONSTANTS                      ║
   // ╚════════════════════════════════════════════════════════════════════════╝
 
-  public let φ : Float = 1.6180339887498948482;      // Golden ratio
-  public let ψ : Float = 0.6180339887498948482;      // Golden conjugate (1/φ)
+  public let phi : Float = 1.6180339887498948482;      // Golden ratio
+  public let psi : Float = 0.6180339887498948482;      // Golden conjugate (1/φ)
   public let τ : Float = 6.2831853071795864769;      // 2π
-  public let π : Float = 3.1415926535897932385;      // π
+  public let pi : Float = 3.1415926535897932385;      // π
   public let e : Float = 2.7182818284590452354;      // Euler's number
   public let S₀ : Float = 0.3819660112501051518;     // 1 - φ⁻¹ (silver ratio)
   public let √2 : Float = 1.4142135623730950488;     // Square root of 2
@@ -316,26 +316,26 @@ module {
   public type SphericalCoord = {
     r : Float;      // Radius (distance from origin)
     θ : Float;      // Theta (polar angle from z-axis, 0 to π)
-    φ : Float;      // Phi (azimuthal angle in xy-plane, 0 to 2π)
+    phi : Float;      // Phi (azimuthal angle in xy-plane, 0 to 2π)
   };
 
   public func cartesianToSpherical(v : Vec3) : SphericalCoord {
     let r = vec3Length(v);
     if (r < 1e-10) {
-      return { r = 0.0; θ = 0.0; φ = 0.0 };
+      return { r = 0.0; θ = 0.0; phi = 0.0 };
     };
     
     let theta = Float.arccos(v.z / r);
     let phi = Float.arctan2(v.y, v.x);
     
-    { r = r; θ = theta; φ = if (phi < 0.0) { phi + τ } else { phi } }
+    { r = r; θ = theta; phi = if (phi < 0.0) { phi + τ } else { phi } }
   };
 
   public func sphericalToCartesian(s : SphericalCoord) : Vec3 {
     let sinTheta = Float.sin(s.θ);
     {
-      x = s.r * sinTheta * Float.cos(s.φ);
-      y = s.r * sinTheta * Float.sin(s.φ);
+      x = s.r * sinTheta * Float.cos(s.phi);
+      y = s.r * sinTheta * Float.sin(s.phi);
       z = s.r * Float.cos(s.θ);
     }
   };
@@ -343,7 +343,7 @@ module {
   public func sphericalDistance(a : SphericalCoord, b : SphericalCoord) : Float {
     // Haversine formula for great circle distance
     let dTheta = b.θ - a.θ;
-    let dPhi = b.φ - a.φ;
+    let dPhi = b.phi - a.phi;
     
     let sinDTheta2 = Float.sin(dTheta / 2.0);
     let sinDPhi2 = Float.sin(dPhi / 2.0);
@@ -557,7 +557,7 @@ module {
       let theta = Float.arccos(1.0 - 2.0 * (Float.fromInt(i) + 0.5) / Float.fromInt(n));
       let phi = goldenAngle * Float.fromInt(i);
       
-      let sphericalPos : SphericalCoord = { r = radius; θ = theta; φ = phi };
+      let sphericalPos : SphericalCoord = { r = radius; θ = theta; phi = phi };
       let cartPos = sphericalToCartesian(sphericalPos);
       
       // Assign multiple responsibilities based on position
@@ -658,7 +658,7 @@ module {
     if (phiNorm < ψ) {
       resps.add(#EnergyFlow);
     };
-    if (phiNorm > ψ and phiNorm < φ - 1.0) {
+    if (phiNorm > psi and phiNorm < phi - 1.0) {
       resps.add(#InformationEncoding);
     };
     
@@ -755,7 +755,7 @@ module {
         // Integrate over all nodes
         var sum : Float = 0.0;
         for (node in nodes.vals()) {
-          let ylm = sphericalHarmonic(l, m, node.position.θ, node.position.φ);
+          let ylm = sphericalHarmonic(l, m, node.position.θ, node.position.phi);
           sum += node.activation * ylm;
         };
         
@@ -850,7 +850,7 @@ module {
       let node = nodes[i];
       
       // Natural frequency (based on position)
-      let omega = φ * Float.sin(node.position.θ);
+      let omega = phi * Float.sin(node.position.θ);
       
       // Coupling term (mean-field approximation on sphere)
       let coupling = K * r * Float.sin(psi - node.phase);
@@ -864,7 +864,7 @@ module {
       };
       neighborCoupling /= Float.fromInt(n - 1);
       
-      let dPhase = omega + coupling + K * ψ * neighborCoupling;
+      let dPhase = omega + coupling + K * psi * neighborCoupling;
       let newPhase = node.phase + dPhase * dt;
       
       {
@@ -1322,7 +1322,7 @@ module {
               cartesian = node.cartesian;
               responsibilities = node.responsibilities;
               connections = node.connections;
-              activation = input * ψ + node.activation * φ;  // Golden blend
+              activation = input * psi + node.activation * φ;  // Golden blend
               phase = node.phase;
               coherence = node.coherence;
               energy = node.energy;

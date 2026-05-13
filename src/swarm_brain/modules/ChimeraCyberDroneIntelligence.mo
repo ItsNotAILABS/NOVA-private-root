@@ -198,7 +198,7 @@ module ChimeraCyberDroneIntelligence {
   public let FIELD_CEILING : Float = 1_000_000_000_000_000.0; // 1 PHz — full spectrum
 
   // Internal coherence thresholds
-  public let COHERENCE_FLOOR : Float = 0.618;         // ψ — minimum coherence
+  public let COHERENCE_FLOOR : Float = 0.618;         // psi — minimum coherence
   public let COHERENCE_OPTIMAL : Float = 0.85;        // Target coherence
   public let COHERENCE_SOVEREIGN : Float = 0.95;      // Sovereign threshold
 
@@ -310,7 +310,7 @@ module ChimeraCyberDroneIntelligence {
   };
 
   // Kuramoto coupling for cross-domain sync
-  public let KURAMOTO_K_CYBER : Float = 0.618;       // ψ — golden ratio coupling
+  public let KURAMOTO_K_CYBER : Float = 0.618;       // psi — golden ratio coupling
   public let KURAMOTO_K_PHYSICAL : Float = 0.618;    // Same math. Same coupling.
   public let KURAMOTO_K_EM : Float = 0.618;          // Same. Because it IS the same.
   public let KURAMOTO_K_CROSS_DOMAIN : Float = 0.382; // ψ² — cross-domain coupling
@@ -751,22 +751,22 @@ module ChimeraCyberDroneIntelligence {
     // Physical domain
     physicalDroneCount : Nat;
     physicalCoherence : Float;     // Kuramoto S for physical swarm
-    physicalMeanPhase : Float;     // ψ for physical swarm
+    physicalMeanPhase : Float;     // psi for physical swarm
     // Cyber domain
     cyberDroneCount : Nat;
     cyberCoherence : Float;        // Kuramoto S for cyber swarm
-    cyberMeanPhase : Float;        // ψ for cyber swarm
+    cyberMeanPhase : Float;        // psi for cyber swarm
     cyberTerrain : CyberTerrain;
     // EM domain
     emDroneCount : Nat;
     emCoherence : Float;           // Kuramoto S for EM swarm
-    emMeanPhase : Float;           // ψ for EM swarm
+    emMeanPhase : Float;           // psi for EM swarm
     // IoT mesh
     iotMesh : IoTMeshState;
     // Cross-domain unified
     totalDroneCount : Nat;         // Physical + Cyber + EM
     unifiedCoherence : Float;      // S across ALL domains
-    unifiedMeanPhase : Float;      // ψ across ALL domains
+    unifiedMeanPhase : Float;      // psi across ALL domains
     crossDomainCoupling : Float;   // How strongly domains are linked
     // Threat state
     activeThreats : [CrossDomainThreat];
@@ -1502,7 +1502,7 @@ module ChimeraCyberDroneIntelligence {
   public let PHEROMONE_DECAY_RATE : Float = 0.02;  // 2% decay per beat
   public let PHEROMONE_DEPOSIT_AMOUNT : Float = 0.5;
   public let PHEROMONE_MAX : Float = 5.0;
-  public let PHEROMONE_DANGER_AMPLIFIER : Float = 1.618; // φ amplification
+  public let PHEROMONE_DANGER_AMPLIFIER : Float = 1.618; // phi amplification
 
   // ── Deposit pheromone at current node ──────────────────────────────────
   public func depositPheromone(
@@ -1534,7 +1534,7 @@ module ChimeraCyberDroneIntelligence {
     if (connectedNodes.size() == 0) return 0;
     if (connectedNodes.size() == 1) return connectedNodes[0];
 
-    // Exploit vs explore: ψ (61.8%) of the time, go to highest pheromone
+    // Exploit vs explore: psi (61.8%) of the time, go to highest pheromone
     if (explorationSeed < PSI) {
       // EXPLOIT — follow the pheromone
       var maxPheromone : Float = 0.0;
@@ -6170,7 +6170,7 @@ module ChimeraCyberDroneIntelligence {
   //   η < η_c → Ordered phase (swarm moves together)
   //   η > η_c → Disordered phase (random motion)
   //
-  // Order parameter φ = |1/N Σ exp(iθⱼ)| — SAME AS KURAMOTO!
+  // Order parameter phi = |1/N Σ exp(iθⱼ)| — SAME AS KURAMOTO!
   //
   // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -6202,10 +6202,10 @@ module ChimeraCyberDroneIntelligence {
     speed : Float;                    // v₀ — particle speed
     boxSize : Float;                  // L — periodic boundary size
     // Order parameter
-    orderParameter : Float;           // φ = |1/N Σ exp(iθⱼ)|
+    orderParameter : Float;           // phi = |1/N Σ exp(iθⱼ)|
     orderParameterHistory : [Float];  // Track over time
     // Phase state
-    isOrdered : Bool;                 // φ > 0.5
+    isOrdered : Bool;                 // phi > 0.5
     criticalNoise : Float;            // Estimated η_c
     // Density
     density : Float;                  // N/L²
@@ -6289,7 +6289,7 @@ module ChimeraCyberDroneIntelligence {
   //   - Critical slowing down
   //
   // CRITICAL EXPONENTS (same for different systems in same universality class):
-  //   φ ~ (η_c - η)^β      — order parameter
+  //   phi ~ (η_c - η)^β      — order parameter
   //   χ ~ |η - η_c|^(-γ)   — susceptibility
   //   ξ ~ |η - η_c|^(-ν)   — correlation length
   //
@@ -6299,7 +6299,7 @@ module ChimeraCyberDroneIntelligence {
 
   public type CriticalityState = {
     // Order parameter
-    orderParameter : Float;           // φ — collective alignment
+    orderParameter : Float;           // phi — collective alignment
     orderParameterHistory : [Float];  // Last 100 values
     // Control parameter
     controlParameter : Float;         // η — noise/temperature
@@ -6328,9 +6328,9 @@ module ChimeraCyberDroneIntelligence {
   };
 
   public type CriticalPhase = {
-    #Ordered;             // φ ≈ 1 — collective state
-    #Disordered;          // φ ≈ 0 — random state
-    #Critical;            // φ ≈ 0.5 — at phase transition
+    #Ordered;             // phi ≈ 1 — collective state
+    #Disordered;          // phi ≈ 0 — random state
+    #Critical;            // phi ≈ 0.5 — at phase transition
     #Subcritical;         // Below critical point
     #Supercritical;       // Above critical point
   };

@@ -1714,7 +1714,7 @@ module UniversalTokenGenesisEngine {
     
     // Update PHI resonance
     let t = Float.fromInt(state.currentBeat);
-    let heartbeatPeriod = 875.28;  // φ⁴ × Schumann period in ms
+    let heartbeatPeriod = 875.28;  // phi4 × Schumann period in ms
     state.heartbeatPhase := (t * 1000.0 / heartbeatPeriod) - Float.floor(t * 1000.0 / heartbeatPeriod);
     state.heartbeatPhase := state.heartbeatPhase * 6.28318;  // Convert to radians
     

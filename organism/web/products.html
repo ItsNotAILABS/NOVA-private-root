@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOVA PRODUCTIONS — PARALLAX</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:#050a14;color:#e0f0ff;font-family:'Courier New',Courier,monospace;line-height:1.6;min-height:100vh}
+  .status-bar{position:sticky;top:0;z-index:100;background:linear-gradient(180deg,#0a1428,#050a14);border-bottom:1px solid #1a3050;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .status-title{font-size:1.1rem;font-weight:bold;display:flex;align-items:center;gap:10px}
+  .pulse-dot{width:10px;height:10px;border-radius:50%;background:#00ff88;display:inline-block;animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 4px #00ff88}50%{opacity:.4;box-shadow:0 0 12px #00ff88}}
+  .status-metrics{display:flex;gap:20px;font-size:.85rem;color:#88aacc}
+  .status-metrics span{white-space:nowrap}
+  .metric-val{color:#00ddff}
+  .container{max-width:1200px;margin:0 auto;padding:24px}
+  h1{text-align:center;font-size:1.6rem;margin-bottom:8px;color:#88ccff}
+  .subtitle{text-align:center;color:#667788;font-size:.85rem;margin-bottom:32px}
+  .product-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-bottom:40px}
+  @media(max-width:860px){.product-grid{grid-template-columns:1fr}}
+  .product-card{background:#0c1a2e;border:1px solid #1a3050;border-radius:8px;padding:20px;transition:border-color .3s}
+  .product-card:hover{border-color:#2a5080}
+  .product-header{display:flex;align-items:center;gap:10px;margin-bottom:2px;flex-wrap:wrap}
+  .product-name{font-size:1.15rem;font-weight:bold;color:#66bbff}
+  .version-badge{font-size:.7rem;background:#1a3050;color:#00ddaa;padding:2px 8px;border-radius:10px}
+  .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .status-dot.deployed{background:#00ff88}
+  .status-dot.certified{background:#4488ff}
+  .status-dot.building{background:#ffcc00}
+  .status-dot.active{background:#00ddff}
+  .product-latin{font-size:.75rem;color:#556677;font-style:italic;margin-bottom:8px}
+  .product-desc{font-size:.85rem;color:#99aabb;margin-bottom:14px;line-height:1.5}
+  .product-input{width:100%;background:#050a14;border:1px solid #1a3050;color:#e0f0ff;font-family:inherit;font-size:.85rem;padding:8px 10px;border-radius:4px;margin-bottom:10px;outline:none}
+  .product-input:focus{border-color:#3388cc}
+  .product-btn{background:#1a3050;color:#88ccff;border:1px solid #2a5080;font-family:inherit;font-size:.82rem;padding:7px 18px;border-radius:4px;cursor:pointer;transition:background .2s}
+  .product-btn:hover{background:#2a5080}
+  .product-result{margin-top:12px;padding:10px;background:#060e1c;border:1px solid #12253a;border-radius:4px;font-size:.8rem;color:#77aacc;min-height:38px;max-height:160px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
+  .product-stats{display:flex;gap:16px;margin-top:10px;font-size:.75rem;color:#556677}
+  .product-stats span{white-space:nowrap}
+  .stat-val{color:#00ddaa}
+  .worker-tag{display:inline-block;font-size:.7rem;color:#445566;border:1px solid #1a3050;padding:2px 6px;border-radius:3px;margin-top:8px}
+  .worker-tag.active{color:#00cc66;border-color:#00cc66}
+  .collapsible{margin-bottom:20px}
+  .collapsible-toggle{background:#0c1a2e;border:1px solid #1a3050;color:#88ccff;font-family:inherit;font-size:.9rem;padding:12px 18px;width:100%;text-align:left;cursor:pointer;border-radius:6px;display:flex;justify-content:space-between;align-items:center}
+  .collapsible-toggle:hover{background:#10223a}
+  .collapsible-toggle .arrow{transition:transform .2s}
+  .collapsible-toggle.open .arrow{transform:rotate(90deg)}
+  .collapsible-body{display:none;background:#0a1525;border:1px solid #1a3050;border-top:none;border-radius:0 0 6px 6px;padding:18px;font-size:.82rem;color:#99aabb;line-height:1.7}
+  .collapsible-body.open{display:block}
+  .constants-section{background:#0a1525;border:1px solid #1a3050;border-radius:8px;padding:20px;margin-bottom:32px}
+  .constants-title{font-size:.95rem;color:#66bbff;margin-bottom:14px}
+  .constants-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px 24px}
+  .const-item{font-size:.82rem;color:#88aacc}
+  .const-item .sym{color:#66bbff}
+  .const-item .val{color:#00ddaa}
+  .copyright{text-align:center;padding:24px;font-size:.75rem;color:#334455;border-top:1px solid #0e1e30}
+  .copyright strong{color:#445566}
+  .dash-item{margin-bottom:8px;padding-left:12px;border-left:2px solid #1a3050}
+  .dash-label{color:#66bbff}
+</style>
+</head>
+<body>
+
+<!-- Status Bar -->
+<div class="status-bar">
+  <div class="status-title">
+    <span>🏭 NOVA PRODUCTIONS — PARALLAX</span>
+    <span class="pulse-dot"></span>
+  </div>
+  <div class="status-metrics">
+    <span>Products: <span class="metric-val" id="m-products">10</span></span>
+    <span>Deploys: <span class="metric-val" id="m-deploys">0</span></span>
+    <span>Uptime: <span class="metric-val" id="m-uptime">99.5%</span></span>
+    <span>φ-Coherence: <span class="metric-val" id="m-coherence">0.000</span></span>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+  <h1>PARALLAX — Sovereign AI Products</h1>
+  <p class="subtitle">10 autonomous production-grade intelligence modules</p>
+
+  <!-- Product Grid -->
+  <div class="product-grid">
+
+    <!-- 1. LEXIS PRO -->
+    <div class="product-card" id="card-lexis-pro">
+      <div class="product-header">
+        <span class="status-dot deployed"></span>
+        <span class="product-name">LEXIS PRO</span>
+        <span class="version-badge" id="ver-lexis-pro">v1.0.0</span>
+      </div>
+      <div class="product-latin">Lexis Professio</div>
+      <div class="product-desc">Advanced NLP engine — summarization, named-entity recognition, sentiment analysis, tokenization, and word frequency mapping.</div>
+      <input class="product-input" id="input-lexis-pro" type="text" placeholder="Enter text to analyze…" value="The Golden Gate Bridge in San Francisco is 2737 meters long and a beautiful landmark.">
+      <button class="product-btn" onclick="runProduct('lexis-pro')">Run Analysis</button>
+      <div class="product-result" id="result-lexis-pro">Awaiting input…</div>
+      <div class="product-stats">
+        <span>Deploys: <span class="stat-val" id="dep-lexis-pro">0</span></span>
+        <span>Users: <span class="stat-val" id="usr-lexis-pro">0</span></span>
+        <span>Revenue: <span class="stat-val" id="rev-lexis-pro">0</span> φ</span>
+      </div>
+      <span class="worker-tag active" id="tag-lexis-pro">communication-worker</span>
+    </div>
+
+    <!-- 2. NUMERUS PRO -->
+    <div class="product-card" id="card-numerus-pro">
+      <div class="product-header">
+        <span class="status-dot deployed"></span>
+        <span class="product-name">NUMERUS PRO</span>
+        <span class="version-badge" id="ver-numerus-pro">v1.1.0</span>
+      </div>
+      <div class="product-latin">Numerus Professio</div>
+      <div class="product-desc">Mathematical computation platform — Fibonacci sequences, prime checking, golden spiral, statistics, matrix operations, φ-series.</div>
+      <input class="product-input" id="input-numerus-pro" type="text" placeholder="Enter a number…" value="21">
+      <button class="product-btn" onclick="runProduct('numerus-pro')">Compute</button>
+      <div class="product-result" id="result-numerus-pro">Awaiting input…</div>
+      <div class="product-stats">
+        <span>Deploys: <span class="stat-val" id="dep-numerus-pro">0</span></span>
+        <span>Users: <span class="stat-val" id="usr-numerus-pro">0</span></span>
+        <span>Revenue: <span class="stat-val" id="rev-numerus-pro">0</span> φ</span>
+      </div>
+      <span class="worker-tag active" id="tag-numerus-pro">math-worker</span>
+    </div>
+
+    <!-- 3. CUSTOS PRO -->
+    <div class="product-card" id="card-custos-pro">
+      <div class="product-header">
+        <span class="status-dot deployed"></span>
+        <span class="product-name">CUSTOS PRO</span>
+        <span class="version-badge" id="ver-custos-pro">v1.2.0</span>
+      </div>
+      <div class="product-latin">Custos Professio</div>
+      <div class="product-desc">Security scanning suite — FNV-1a hashing, Shannon entropy analysis, threat pattern scanning, cryptographic key generation, audit reports.</div>
+      <input class="product-input" id="input-custos-pro" type="text" placeholder="Enter data to scan…" value="SELECT * FROM users WHERE 1=1">
+      <button class="product-btn" onclick="runProduct('custos-pro')">Scan &amp; Audit</button>
+      <div class="product-result" id="result-custos-pro">Awaiting input…</div>
+      <div class="product-stats">
+        <span>Deploys: <span class="stat-val" id="dep-custos-pro">0</span></span>
+        <span>Users: <span class="stat-val" id="usr-custos-pro">0</span></span>
+        <span>Revenue: <span class="stat-val" id="rev-custos-pro">0</span> φ</span>
+      </div>
+      <span class="worker-tag active" id="tag-custos-pro">security-worker</span>
+    </div>
+
+    <!-- 4. EVOLUTIO PRO -->
+    <div class="product-card" id="card-evolutio-pro">
+      <div class="product-header">
+        <span class="status-dot deployed"></span>
+        <span class="product-name">EVOLUTIO PRO</span>
+        <span class="version-badge" id="ver-evolutio-pro">v1.3.0</span>
+      </div>
+      <div class="product-latin">Evolutio Professio</div>
+      <div class="product-desc">Genetic optimization engine — population evolution, tournament selection, φ-weighted fitness, mutation operators, crossover.</div>
+      <input class="product-input" id="input-evolutio-pro" type="text" placeholder="Generations to evolve…" value="10">
+      <button class="product-btn" onclick="runProduct('evolutio-pro')">Evolve</button>
+      <div class="product-result" id="result-evolutio-pro">Awaiting input…</div>
+      <div class="product-stats">
+        <span>Deploys: <span class="stat-val" id="dep-evolutio-pro">0</span></span>
+        <span>Users: <span class="stat-val" id="usr-evolutio-pro">0</span></span>
+        <span>Revenue: <span class="stat-val" id="rev-evolutio-pro">0</span> φ</span>
+      </div>
+      <span class="worker-tag active" id="tag-evolutio-pro">evolution-worker</span>
+    </div>
+
+    <!-- 5. MEMORIA PRO -->
+    <div class="product-card" id="card-memoria-pro">
+      <div class="product-header">
+        <span class="status-dot deployed"></span>
+        <span class="product-name">MEMORIA PRO</span>
+        <span class="version-badge" id="ver-memoria-pro">v1.4.0</span>
+      </div>
+      <div class="product-latin">Memoria Professio</div>
+      <div class="product-desc">Knowledge storage system — salience-scored memory, pattern search, automatic decay, consolidation, and recall boosting.</div>
+      <input class="product-input" id="input-memoria-pro" type="text" placeholder="Key to store/recall…" value="nova-knowledge">
+      <button class="product-btn" onclick="runProduct('memoria-pro')">Store &amp; Recall</button>
+      <div class="product-result" id="result-memoria-pro">Awaiting input…</div>
+      <div class="product-stats">
+        <span>Deploys: <span class="stat-val" id="dep-memoria-pro">0</span></span>
+        <span>Users: <span class="stat-val" id="usr-memoria-pro">0</span></span>
+        <span>Revenue: <span class="stat-val" id="rev-memoria-pro">0</span> φ</span>
+      </div>
+      <span class="worker-tag active" id="tag-memoria-pro">memory-worker</span>
+    </div>
+
+    <!-- 6. ARCHITECT -->
+    <div class="product-card" id="card-architect">
+      <div class="product-header">
+        <span class="status-dot certified"></span>
+        <span class="product-name">ARCHITECT</span>
+        <span class="version-badge" id="ver-architect">v1.5.0</span>
+      </div>
+      <div class="product-latin">Architectus</div>
+      <div class="product-desc">System design platform — blueprint generation, dependency graph analysis, load balancing strategies, architecture documentation.</div>
+      <input class="product-input" id="input-architect" type="text" placeholder="System name to design…" value="microservice-cluster">
+      <button class="product-btn" onclick="runProduct('architect')">Design Blueprint</button>
+      <div class="product-result" id="result-architect">Awaiting input…</div>
+      <div class="product-stats">
+        <span>Deploys: <span class="stat-val" id="dep-architect">0</span></span>
+        <span>Users: <span class="stat-val" id="usr-architect">0</span></span>
+        <span>Revenue: <span class="stat-val" id="rev-architect">0</span> φ</span>
+      </div>
+      <span class="worker-tag active" id="tag-architect">production-worker</span>
+    </div>
+
+    <!-- 7. SENTINEL -->
+    <div class="product-card" id="card-sentinel">
+      <div class="product-header">
+        <span class="status-dot certified"></span>
+        <span class="product-name">SENTINEL</span>
+        <span class="version-badge" id="ver-sentinel">v1.6.0</span>
+      </div>
+      <div class="product-latin">Sentinella</div>
+      <div class="product-desc">Monitoring and alerting platform — health checks, SLA tracking, anomaly detection, uptime reporting, incident management.</div>
+      <input class="product-input" id="input-sentinel" type="text" placeholder="Service to monitor…" value="nova-organism">
+      <button class="product-btn" onclick="runProduct('sentinel')">Health Check</button>
+      <div class="product-result" id="result-sentinel">Awaiting input…</div>
+      <div class="product-stats">
+        <span>Deploys: <span class="stat-val" id="dep-sentinel">0</span></span>
+        <span>Users: <span class="stat-val" id="usr-sentinel">0</span></span>
+        <span>Revenue: <span class="stat-val" id="rev-sentinel">0</span> φ</span>
+      </div>
+      <span class="worker-tag active" id="tag-sentinel">production-worker</span>
+    </div>
+
+    <!-- 8. COMPOSITOR -->
+    <div class="product-card" id="card-compositor">
+      <div class="product-header">
+        <span class="status-dot certified"></span>
+        <span class="product-name">COMPOSITOR</span>
+        <span class="version-badge" id="ver-compositor">v1.7.0</span>
+      </div>
+      <div class="product-latin">Compositor</div>
+      <div class="product-desc">Content generation engine — article drafts, executive briefs, technical reports, changelog composition, documentation synthesis.</div>
+      <input class="product-input" id="input-compositor" type="text" placeholder="Topic to generate…" value="sovereign AI architecture">
+      <button class="product-btn" onclick="runProduct('compositor')">Generate Content</button>
+      <div class="product-result" id="result-compositor">Awaiting input…</div>
+      <div class="product-stats">
+        <span>Deploys: <span class="stat-val" id="dep-compositor">0</span></span>
+        <span>Users: <span class="stat-val" id="usr-compositor">0</span></span>
+        <span>Revenue: <span class="stat-val" id="rev-compositor">0</span> φ</span>
+      </div>
+      <span class="worker-tag active" id="tag-compositor">production-worker</span>
+    </div>
+
+    <!-- 9. NAVIGATOR -->
+    <div class="product-card" id="card-navigator">
+      <div class="product-header">
+        <span class="status-dot active"></span>
+        <span class="product-name">NAVIGATOR</span>
+        <span class="version-badge" id="ver-navigator">v1.8.0</span>
+      </div>
+      <div class="product-latin">Navigatorus</div>
+      <div class="product-desc">Path intelligence system — route optimization, graph traversal, shortest path computation, load-aware mapping, waypoint planning.</div>
+      <input class="product-input" id="input-navigator" type="text" placeholder="Nodes to route (e.g. 8)…" value="8">
+      <button class="product-btn" onclick="runProduct('navigator')">Compute Route</button>
+      <div class="product-result" id="result-navigator">Awaiting input…</div>
+      <div class="product-stats">
+        <span>Deploys: <span class="stat-val" id="dep-navigator">0</span></span>
+        <span>Users: <span class="stat-val" id="usr-navigator">0</span></span>
+        <span>Revenue: <span class="stat-val" id="rev-navigator">0</span> φ</span>
+      </div>
+      <span class="worker-tag active" id="tag-navigator">production-worker</span>
+    </div>
+
+    <!-- 10. ANALYTICUS -->
+    <div class="product-card" id="card-analyticus">
+      <div class="product-header">
+        <span class="status-dot active"></span>
+        <span class="product-name">ANALYTICUS</span>
+        <span class="version-badge" id="ver-analyticus">v1.9.0</span>
+      </div>
+      <div class="product-latin">Analyticus</div>
+      <div class="product-desc">Data analytics platform — descriptive statistics, trend analysis, forecasting models, correlation detection, distribution fitting.</div>
+      <input class="product-input" id="input-analyticus" type="text" placeholder="Data points (comma-sep)…" value="3,7,12,5,21,8,13,34,2,55">
+      <button class="product-btn" onclick="runProduct('analyticus')">Analyze Data</button>
+      <div class="product-result" id="result-analyticus">Awaiting input…</div>
+      <div class="product-stats">
+        <span>Deploys: <span class="stat-val" id="dep-analyticus">0</span></span>
+        <span>Users: <span class="stat-val" id="usr-analyticus">0</span></span>
+        <span>Revenue: <span class="stat-val" id="rev-analyticus">0</span> φ</span>
+      </div>
+      <span class="worker-tag active" id="tag-analyticus">production-worker</span>
+    </div>
+
+  </div>
+
+  <!-- Organism Status (Collapsible) -->
+  <div class="collapsible">
+    <button class="collapsible-toggle" id="organism-toggle" onclick="toggleSection('organism')">
+      <span>⚙ ORGANISM STATUS — Engine Worker Heartbeat</span>
+      <span class="arrow">▶</span>
+    </button>
+    <div class="collapsible-body" id="organism-body">
+      <div class="dash-item"><span class="dash-label">Engine:</span> <span id="dash-engine">Connecting…</span></div>
+      <div class="dash-item"><span class="dash-label">Workers Active:</span> <span id="dash-workers">0</span></div>
+      <div class="dash-item"><span class="dash-label">Kuramoto R:</span> <span id="dash-kuramoto">0.000</span></div>
+      <div class="dash-item"><span class="dash-label">Total Beats:</span> <span id="dash-beats">0</span></div>
+      <div class="dash-item"><span class="dash-label">Avg Health:</span> <span id="dash-health">0</span></div>
+    </div>
+  </div>
+
+  <!-- Company Dashboard (Collapsible) -->
+  <div class="collapsible">
+    <button class="collapsible-toggle" id="company-toggle" onclick="toggleSection('company')">
+      <span>🏛 COMPANY DASHBOARD — Department Status</span>
+      <span class="arrow">▶</span>
+    </button>
+    <div class="collapsible-body" id="company-body">
+      <div id="dash-company">Connecting to company-worker…</div>
+    </div>
+  </div>
+
+  <!-- Certification Status (Collapsible) -->
+  <div class="collapsible">
+    <button class="collapsible-toggle" id="cert-toggle" onclick="toggleSection('cert')">
+      <span>🏅 CERTIFICATION STATUS — Registry</span>
+      <span class="arrow">▶</span>
+    </button>
+    <div class="collapsible-body" id="cert-body">
+      <div id="dash-cert">Connecting to certification-worker…</div>
+    </div>
+  </div>
+
+  <!-- NIST Math Constants -->
+  <div class="constants-section">
+    <div class="constants-title">📐 NIST Mathematical &amp; Physical Constants</div>
+    <div class="constants-grid">
+      <div class="const-item"><span class="sym">φ</span> = <span class="val">1.618033988749895</span></div>
+      <div class="const-item"><span class="sym">φ⁻¹</span> = <span class="val">0.618033988749895</span></div>
+      <div class="const-item"><span class="sym">π</span> = <span class="val">3.141592653589793</span></div>
+      <div class="const-item"><span class="sym">e</span> = <span class="val">2.718281828459045</span></div>
+      <div class="const-item"><span class="sym">√2</span> = <span class="val">1.4142135623730951</span></div>
+      <div class="const-item"><span class="sym">ln(2)</span> = <span class="val">0.6931471805599453</span></div>
+      <div class="const-item"><span class="sym">h</span> = <span class="val">6.62607015×10⁻³⁴ J·s</span></div>
+      <div class="const-item"><span class="sym">k<sub>B</sub></span> = <span class="val">1.380649×10⁻²³ J/K</span></div>
+      <div class="const-item"><span class="sym">c</span> = <span class="val">299792458 m/s</span></div>
+      <div class="const-item"><span class="sym">N<sub>A</sub></span> = <span class="val">6.02214076×10²³ mol⁻¹</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Copyright Footer -->
+<div class="copyright">
+  © 2024–2026 <strong>Medina Tech</strong>, Dallas TX. All rights reserved.<br>
+  SOVEREIGN ORGANISM — PARALLAX
+</div>
+
+<!-- JavaScript -->
+<script>
+(function () {
+  'use strict';
+
+  var PHI = 1.618033988749895;
+  var heartbeatCount = 0;
+  var totalDeploys = 0;
+  var phiCoherence = 0;
+  var workerPhases = {};
+  var workers = {};
+  var activeWorkers = 0;
+
+  // ─── WORKER SETUP ─────────────────────────────────────────────────────────────
+  var WORKER_DEFS = [
+    { key: 'engine',        file: 'engine-worker.js' },
+    { key: 'communication', file: 'communication-worker.js' },
+    { key: 'math',          file: 'math-worker.js' },
+    { key: 'security',      file: 'security-worker.js' },
+    { key: 'evolution',     file: 'evolution-worker.js' },
+    { key: 'memory',        file: 'memory-worker.js' },
+    { key: 'production',    file: 'production-worker.js' },
+    { key: 'company',       file: 'company-worker.js' },
+    { key: 'certification', file: 'certification-worker.js' }
+  ];
+
+  WORKER_DEFS.forEach(function (def) {
+    try {
+      var w = new Worker(def.file);
+      workers[def.key] = w;
+      activeWorkers++;
+      w.onmessage = function (e) { handleWorkerMessage(def.key, e.data); };
+      w.onerror = function (err) { console.warn('[NOVA] Worker error (' + def.key + '):', err.message); };
+    } catch (err) {
+      console.warn('[NOVA] Failed to create worker "' + def.file + '":', err.message);
+      workers[def.key] = null;
+    }
+  });
+
+  // Init evolution population
+  if (workers.evolution) workers.evolution.postMessage({ cmd: 'INIT_POPULATION', size: 50 });
+
+  // ─── WORKER MESSAGE ROUTER ────────────────────────────────────────────────────
+  function handleWorkerMessage(key, data) {
+    if (!data) return;
+
+    // Heartbeat handling
+    if (data.type === 'heartbeat' || data.type === 'HEARTBEAT') {
+      heartbeatCount++;
+      if (data.heart && typeof data.heart.phase === 'number') workerPhases[key] = data.heart.phase;
+      else if (typeof data.heart === 'number') workerPhases[key] = data.heart;
+      if (typeof data.phiCoherence === 'number') phiCoherence = data.phiCoherence;
+      if (typeof data.totalDeploys === 'number') totalDeploys = data.totalDeploys;
+      return;
+    }
+
+    // Engine vitals
+    if (key === 'engine' && data.type === 'VITALS' && data.payload) {
+      updateEngineDash(data.payload);
+      return;
+    }
+
+    // Route product responses
+    if (key === 'communication') handleLexisProResponse(data);
+    if (key === 'math')          handleNumerusProResponse(data);
+    if (key === 'security')      handleCustosProResponse(data);
+    if (key === 'evolution')     handleEvolutioProResponse(data);
+    if (key === 'memory')        handleMemoriaProResponse(data);
+    if (key === 'production')    handleProductionResponse(data);
+    if (key === 'company')       handleCompanyResponse(data);
+    if (key === 'certification') handleCertResponse(data);
+  }
+
+  // ─── STATUS BAR UPDATE ────────────────────────────────────────────────────────
+  setInterval(function () {
+    setText('m-deploys', totalDeploys);
+    setText('m-coherence', phiCoherence.toFixed(3));
+  }, 1000);
+
+  // Poll engine vitals
+  setInterval(function () { if (workers.engine) workers.engine.postMessage({ type: 'GET_VITALS' }); }, 2000);
+
+  function setText(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
+
+  // ─── PRODUCT RUNNER DISPATCH ──────────────────────────────────────────────────
+  var pendingResults = {};
+
+  window.runProduct = function (product) {
+    var input = document.getElementById('input-' + product);
+    var val = input ? input.value.trim() : '';
+    setText('result-' + product, 'Processing…');
+
+    switch (product) {
+      case 'lexis-pro':
+        if (!val || !workers.communication) { setText('result-lexis-pro', 'Enter text or worker unavailable.'); return; }
+        pendingResults['lexis-pro'] = {};
+        workers.communication.postMessage({ cmd: 'SUMMARIZE', text: val, maxWords: 30 });
+        workers.communication.postMessage({ cmd: 'NER', text: val });
+        workers.communication.postMessage({ cmd: 'SENTIMENT', text: val });
+        break;
+
+      case 'numerus-pro':
+        if (!workers.math) { setText('result-numerus-pro', 'Worker unavailable.'); return; }
+        var n = parseInt(val, 10) || 21;
+        pendingResults['numerus-pro'] = {};
+        workers.math.postMessage({ cmd: 'FIBONACCI', n: n });
+        workers.math.postMessage({ cmd: 'PRIME_CHECK', n: n });
+        workers.math.postMessage({ cmd: 'PHI_SERIES', n: Math.min(n, 12) });
+        break;
+
+      case 'custos-pro':
+        if (!val || !workers.security) { setText('result-custos-pro', 'Enter data or worker unavailable.'); return; }
+        pendingResults['custos-pro'] = {};
+        workers.security.postMessage({ cmd: 'HASH', data: val });
+        workers.security.postMessage({ cmd: 'ENTROPY', data: val });
+        workers.security.postMessage({ cmd: 'SCAN', data: val });
+        break;
+
+      case 'evolutio-pro':
+        if (!workers.evolution) { setText('result-evolutio-pro', 'Worker unavailable.'); return; }
+        var gens = parseInt(val, 10) || 10;
+        workers.evolution.postMessage({ cmd: 'EVOLVE', generations: gens });
+        break;
+
+      case 'memoria-pro':
+        if (!val || !workers.memory) { setText('result-memoria-pro', 'Enter key or worker unavailable.'); return; }
+        workers.memory.postMessage({ cmd: 'STORE', key: val, value: 'knowledge-' + Date.now(), salience: 0.9 });
+        setTimeout(function () { if (workers.memory) workers.memory.postMessage({ cmd: 'RECALL', key: val }); }, 200);
+        break;
+
+      case 'architect':
+        if (!val || !workers.production) { setText('result-architect', 'Worker unavailable.'); return; }
+        workers.production.postMessage({ cmd: 'BUILD_PRODUCT', productId: 'ARCHITECT' });
+        break;
+
+      case 'sentinel':
+        if (!workers.production) { setText('result-sentinel', 'Worker unavailable.'); return; }
+        workers.production.postMessage({ cmd: 'GET_METRICS' });
+        break;
+
+      case 'compositor':
+        if (!val || !workers.production) { setText('result-compositor', 'Worker unavailable.'); return; }
+        workers.production.postMessage({ cmd: 'GENERATE_ARTIFACT', productId: 'COMPOSITOR' });
+        break;
+
+      case 'navigator':
+        if (!workers.production) { setText('result-navigator', 'Worker unavailable.'); return; }
+        workers.production.postMessage({ cmd: 'BUILD_PRODUCT', productId: 'NAVIGATOR' });
+        break;
+
+      case 'analyticus':
+        if (!workers.math) { setText('result-analyticus', 'Worker unavailable.'); return; }
+        var nums = val.split(',').map(function (s) { return parseFloat(s.trim()); }).filter(function (n) { return !isNaN(n); });
+        if (nums.length === 0) { setText('result-analyticus', 'Enter comma-separated numbers.'); return; }
+        workers.math.postMessage({ cmd: 'STATISTICS', data: nums });
+        break;
+
+      default:
+        setText('result-' + product, 'Unknown product.');
+    }
+  };
+
+  // ─── LEXIS PRO RESPONSE ───────────────────────────────────────────────────────
+  function handleLexisProResponse(d) {
+    var cmd = d.cmd || d.type;
+    var r = pendingResults['lexis-pro'] || {};
+    if (cmd === 'SUMMARIZE') r.summary = d.summary;
+    if (cmd === 'NER') r.entities = d.entities;
+    if (cmd === 'SENTIMENT') r.sentiment = d.result;
+    pendingResults['lexis-pro'] = r;
+    var p = [];
+    if (r.summary) p.push('Summary: ' + r.summary);
+    if (r.sentiment) p.push('Sentiment: ' + r.sentiment.score.toFixed(3) + ' (pos:' + r.sentiment.positive + ' neg:' + r.sentiment.negative + ')');
+    if (r.entities && r.entities.length) p.push('Entities: ' + r.entities.map(function (e) { return e.text + ' [' + e.type + ']'; }).join(', '));
+    if (p.length) setText('result-lexis-pro', p.join('\n'));
+  }
+
+  // ─── NUMERUS PRO RESPONSE ─────────────────────────────────────────────────────
+  function handleNumerusProResponse(d) {
+    var cmd = d.cmd || d.type;
+    var r = pendingResults['numerus-pro'] || {};
+    if (cmd === 'FIBONACCI') r.fib = { n: d.n, val: d.result };
+    if (cmd === 'PRIME_CHECK') r.prime = d.isPrime;
+    if (cmd === 'PHI_SERIES') r.phi = d.result;
+    if (cmd === 'STATISTICS') {
+      var s = d.result;
+      if (s && !s.error) {
+        setText('result-analyticus', 'Mean: ' + s.mean.toFixed(4) + '\nStd: ' + s.std.toFixed(4) + '\nMedian: ' + s.median + '\nMin: ' + s.min + ' | Max: ' + s.max + '\nSum: ' + s.sum + ' | Count: ' + s.count);
+      }
+      return;
+    }
+    pendingResults['numerus-pro'] = r;
+    var p = [];
+    if (r.fib) p.push('Fibonacci(' + r.fib.n + ') = ' + r.fib.val);
+    if (r.prime !== undefined) p.push('Is prime: ' + (r.prime ? 'YES' : 'NO'));
+    if (r.phi) p.push('φ-series sum: ' + r.phi.sum.toFixed(6) + ', ratio: ' + r.phi.ratio.toFixed(6));
+    if (p.length) setText('result-numerus-pro', p.join('\n'));
+  }
+
+  // ─── CUSTOS PRO RESPONSE ──────────────────────────────────────────────────────
+  function handleCustosProResponse(d) {
+    var cmd = d.cmd || d.type;
+    var r = pendingResults['custos-pro'] || {};
+    if (cmd === 'HASH') r.hash = d.hex;
+    if (cmd === 'ENTROPY') r.entropy = d.entropy;
+    if (cmd === 'SCAN') r.scan = d.result;
+    pendingResults['custos-pro'] = r;
+    var p = [];
+    if (r.hash) p.push('Hash: ' + r.hash);
+    if (r.entropy !== undefined) p.push('Entropy: ' + r.entropy.toFixed(4) + ' bits');
+    if (r.scan) {
+      p.push('Safe: ' + (r.scan.safe ? 'YES ✓' : 'NO ✗') + ' | Score: ' + r.scan.score);
+      if (r.scan.threats && r.scan.threats.length) p.push('Threats: ' + r.scan.threats.map(function (t) { return t.name; }).join(', '));
+    }
+    if (p.length) setText('result-custos-pro', p.join('\n'));
+  }
+
+  // ─── EVOLUTIO PRO RESPONSE ────────────────────────────────────────────────────
+  function handleEvolutioProResponse(d) {
+    var cmd = d.cmd || d.type;
+    if (cmd === 'EVOLVE' && d.result) {
+      var r = d.result;
+      setText('result-evolutio-pro', 'Generation: ' + r.generation + '\nBest fitness: ' + (r.bestFitness !== undefined ? r.bestFitness.toFixed(6) : 'N/A') + '\nAvg fitness: ' + (r.avgFitness !== undefined ? r.avgFitness.toFixed(6) : 'N/A') + '\nPopulation: ' + r.popSize);
+    }
+    if (cmd === 'INIT_POPULATION' && d.result) {
+      setText('result-evolutio-pro', 'Population initialized: ' + d.result.size + ' | Best: ' + (d.result.bestFitness !== undefined ? d.result.bestFitness.toFixed(6) : 'N/A'));
+    }
+  }
+
+  // ─── MEMORIA PRO RESPONSE ────────────────────────────────────────────────────
+  function handleMemoriaProResponse(d) {
+    var cmd = d.cmd || d.type;
+    if (cmd === 'RECALL' && d.result) {
+      var r = d.result;
+      if (r.found) setText('result-memoria-pro', 'Key: ' + r.key + '\nValue: ' + r.value + '\nSalience: ' + (r.salience !== undefined ? r.salience.toFixed(4) : 'N/A') + '\nAccess count: ' + (r.accessCount || 1));
+      else setText('result-memoria-pro', 'Key "' + r.key + '" not found.');
+    }
+  }
+
+  // ─── PRODUCTION WORKER RESPONSE ───────────────────────────────────────────────
+  function handleProductionResponse(d) {
+    var cmd = d.cmd;
+    if (cmd === 'BUILD_PRODUCT' && d.result) {
+      var r = d.result;
+      if (r.error) { setText('result-architect', r.error); return; }
+      var pid = r.product ? r.product.id : '';
+      var target = pid === 'NAVIGATOR' ? 'result-navigator' : 'result-architect';
+      var b = r.buildResult || {};
+      setText(target, 'Build: ' + (r.product ? r.product.name : pid) + ' v' + (r.product ? r.product.version : '') + '\nHash: ' + (b.hash || 'N/A') + '\nDuration: ' + (b.duration || 0) + 'ms' + '\nArtifacts: ' + (b.artifacts ? b.artifacts.length : 0) + '\nCertification: ' + ((b.certificationScore || 0) * 100).toFixed(1) + '%');
+      updateProductStats(r.product);
+    }
+    if (cmd === 'DEPLOY_PRODUCT' && d.result) {
+      var dr = d.result;
+      if (dr.product) updateProductStats(dr.product);
+    }
+    if (cmd === 'GET_METRICS' && d.metrics) {
+      var m = d.metrics;
+      setText('result-sentinel', 'SYSTEM HEALTH REPORT\n' + 'Total Revenue: ' + m.totalRevenue.toFixed(2) + ' φ\n' + 'Total Users: ' + m.totalUsers + '\n' + 'Avg Uptime: ' + m.avgUptime.toFixed(3) + '%\n' + 'Products: ' + m.productCount + ' (' + m.activeProducts + ' active)\n' + 'Total Builds: ' + m.totalBuilds + ' | Deploys: ' + m.totalDeploys);
+      totalDeploys = m.totalDeploys;
+    }
+    if (cmd === 'GENERATE_ARTIFACT' && d.result) {
+      if (d.result.error) setText('result-compositor', d.result.error);
+      else setText('result-compositor', d.result.artifact);
+    }
+    if (cmd === 'GET_CATALOG' && d.catalog) {
+      updateCatalogStats(d.catalog);
+    }
+  }
+
+  // ─── COMPANY WORKER RESPONSE ──────────────────────────────────────────────────
+  function handleCompanyResponse(d) {
+    var cmd = d.cmd;
+    if (cmd === 'GET_COMPANY_STATUS' && d.status) {
+      var s = d.status;
+      var lines = [];
+      lines.push('Health Score: ' + s.healthScore + '/100 | Running Scripts: ' + s.runningScripts + ' | Compliance: ' + (s.protocolCompliance * 100).toFixed(1) + '%');
+      if (s.departments) {
+        lines.push('');
+        for (var i = 0; i < s.departments.length; i++) {
+          var dep = s.departments[i];
+          lines.push('  ' + dep.name + ' (' + dep.latinName + ') — ' + dep.staff + ' staff — ' + dep.status);
+        }
+      }
+      setText('dash-company', lines.join('\n'));
+    }
+  }
+
+  // ─── CERTIFICATION WORKER RESPONSE ────────────────────────────────────────────
+  function handleCertResponse(d) {
+    var cmd = d.cmd;
+    if (cmd === 'GET_STATS' && d.stats) {
+      var s = d.stats;
+      var lines = ['Certified: ' + s.totalCertified + ' | Avg Entropy: ' + s.avgEntropy + ' | Integrity: ' + (s.integrityRate * 100).toFixed(1) + '%'];
+      if (s.byLevel) {
+        var lvls = Object.keys(s.byLevel);
+        for (var i = 0; i < lvls.length; i++) {
+          lines.push('  ' + lvls[i] + ': ' + s.byLevel[lvls[i]]);
+        }
+      }
+      setText('dash-cert', lines.join('\n'));
+    }
+  }
+
+  // ─── ENGINE DASHBOARD ─────────────────────────────────────────────────────────
+  function updateEngineDash(vitals) {
+    setText('dash-engine', 'ONLINE — ' + vitals.workerCount + ' micro-workers');
+    setText('dash-workers', activeWorkers);
+    setText('dash-kuramoto', (vitals.kuramotoOrder || 0).toFixed(3));
+    setText('dash-beats', vitals.totalBeats || 0);
+    setText('dash-health', (vitals.avgHealth || 0).toFixed(1));
+  }
+
+  // ─── UPDATE PRODUCT STATS ─────────────────────────────────────────────────────
+  function updateProductStats(product) {
+    if (!product) return;
+    var map = {
+      'LEXIS_PRO': 'lexis-pro', 'NUMERUS_PRO': 'numerus-pro', 'CUSTOS_PRO': 'custos-pro',
+      'EVOLUTIO_PRO': 'evolutio-pro', 'MEMORIA_PRO': 'memoria-pro', 'ARCHITECT': 'architect',
+      'SENTINEL': 'sentinel', 'COMPOSITOR': 'compositor', 'NAVIGATOR': 'navigator', 'ANALYTICUS': 'analyticus'
+    };
+    var slug = map[product.id];
+    if (!slug) return;
+    setText('dep-' + slug, product.deployCount || 0);
+    setText('usr-' + slug, product.users || 0);
+    setText('rev-' + slug, (product.revenue || 0).toFixed ? product.revenue.toFixed(2) : product.revenue);
+    if (product.version) setText('ver-' + slug, 'v' + product.version);
+  }
+
+  function updateCatalogStats(catalog) {
+    for (var i = 0; i < catalog.length; i++) updateProductStats(catalog[i]);
+  }
+
+  // ─── COLLAPSIBLE TOGGLES ──────────────────────────────────────────────────────
+  window.toggleSection = function (section) {
+    var toggle = document.getElementById(section + '-toggle');
+    var body = document.getElementById(section + '-body');
+    if (toggle) toggle.classList.toggle('open');
+    if (body) body.classList.toggle('open');
+
+    // Fetch data on open
+    if (body && body.classList.contains('open')) {
+      if (section === 'company' && workers.company) workers.company.postMessage({ cmd: 'GET_COMPANY_STATUS' });
+      if (section === 'cert' && workers.certification) workers.certification.postMessage({ cmd: 'GET_STATS' });
+    }
+  };
+
+  // ─── PERIODIC CATALOG REFRESH ─────────────────────────────────────────────────
+  setInterval(function () {
+    if (workers.production) workers.production.postMessage({ cmd: 'GET_CATALOG' });
+  }, 5000);
+
+})();
+</script>
+</body>
+</html>

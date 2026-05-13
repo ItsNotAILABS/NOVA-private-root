@@ -99,6 +99,7 @@ footer{padding:1rem 1.5rem;border-top:1px solid var(--border);
       <div class="h-title">OMNIA SERVITORES ⚡ NOVA AGI FLEET</div>
       <div class="fleet-status" id="fleet-status">⬢ FLEET ONLINE</div>
     </div>
+    <div class="h-sub">NOVA ORGANISM · ALL LATIN AGI SERVERS · 24 SERVITORES · MINIHEART + MINIBRAIN · φ = 1.618…</div>
     <div class="h-sub">NOVA ORGANISM · ALL LATIN AGI SERVERS · 23 SERVITORES · MINIHEART + MINIBRAIN · φ = 1.618…</div>
   </div>
   <div class="h-meta">
@@ -145,6 +146,7 @@ footer{padding:1rem 1.5rem;border-top:1px solid var(--border);
 
 <footer>
   <span>NOVA ORGANISM · OMNIA SERVITORES FLEET · COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ</span>
+  <span>24 SERVITORES · 873ms HEARTBEAT · φ-KURAMOTO COUPLING</span>
   <span>23 SERVITORES · 873ms HEARTBEAT · φ-KURAMOTO COUPLING</span>
   <span id="ft-ts">—</span>
 </footer>
@@ -231,6 +233,10 @@ const FLEET = [
   { id:'GOL-DEFPROM-001',   latin:'SERVITOR DEFENSIONIS',family:'DEFENSIO_AETERNA',       file:'defense-canister-solver-worker.js',accent:'#FB7185',
     protocols:['PROMOTIO_CANISTRORUM','PROTOCOLA_QUAERENDI','REGISTRUM_DEFENSIONIS','VERIFICATIO_INTEGRA','PERSISTENTIA_DATA'],
     specialty:'Defense Canister Solver · promotes 6 defense families to IC canisters · query protocol generator · DB persistence' },
+  /* Worker #24: FUSIO MAGNA — The Grand Fusion Organism */
+  { id:'GOL-FUSIO-001',     latin:'SERVITOR FUSIONIS',  family:'FUSIO_AETERNA',          file:'fusion-worker.js',                 accent:'#C084FC',
+    protocols:['FUSIO_MAGNA','QUIPU_UNIVERSALIS','QHAPAQ_NAN_MESH','TAWANTINSUYU_HUB','LINGUA_COMPRESSA','ANTIFRAGILIS_IMMUNIS','FRACTAL_SOVEREIGNTY','BEHAVIORAL_LEGES'],
+    specialty:'Grand Fusion Organism · all 6 papers unified · 8 closed-loop engines · SOVEREIGN::FUSION::MAGNA · CUSCO root' },
 ];
 
 /* ── State ─────────────────────────────────────────────────────────────── */
@@ -382,6 +388,14 @@ function updateCard(id, s, data) {
   /* DEFENSE-PROM solver: forward vitals for cross-canister awareness */
   if (id !== 'GOL-DEFPROM-001' && workers['GOL-DEFPROM-001']) {
     workers['GOL-DEFPROM-001'].postMessage({
+      type: 'FLEET_COHERENCE',
+      nodeId: id,
+      coherence: vitals[id] || 0
+    });
+  }
+  /* FUSIO MAGNA: forward all fleet vitals so the fusion organism stays synchronized */
+  if (id !== 'GOL-FUSIO-001' && workers['GOL-FUSIO-001']) {
+    workers['GOL-FUSIO-001'].postMessage({
       type: 'FLEET_COHERENCE',
       nodeId: id,
       coherence: vitals[id] || 0

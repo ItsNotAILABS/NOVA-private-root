@@ -3,11 +3,9 @@
   "_OWNER": "Alfredo Medina Hernandez | Dallas TX | MedinaSITech@outlook.com",
   "_NOTICE": "This manifest drives the NOVA sovereign build CLI. No DFX required.",
   "_EPOCH": "NOVA-EPOCH-2025",
-
   "version": "1",
   "name": "NOVA",
   "description": "NOVA (PARALLAX) — Sovereign Cognitive Swarm Organism",
-
   "compiler": {
     "tool": "moc",
     "version": "0.13.4",
@@ -15,7 +13,6 @@
     "source_linux_aarch64": "https://github.com/dfinity/motoko/releases/download/0.13.4/moc",
     "cache_dir": ".nova/moc"
   },
-
   "canisters": {
     "swarm_brain": {
       "type": "motoko",
@@ -26,7 +23,9 @@
     "swarm_organism": {
       "type": "motoko",
       "main": "src/swarm_organism/main.mo",
-      "dependencies": ["swarm_brain"],
+      "dependencies": [
+        "swarm_brain"
+      ],
       "description": "Organism-level orchestration canister"
     },
     "swarm_command": {
@@ -62,6 +61,15 @@
     "swarm_oracle": {
       "type": "motoko",
       "main": "src/swarm_oracle/main.mo",
+      "dependencies": [
+        "swarm_brain",
+        "swarm_organism",
+        "swarm_command",
+        "swarm_metals",
+        "swarm_audit",
+        "swarm_telemetry",
+        "swarm_quantum"
+      ],
       "dependencies": ["swarm_brain", "swarm_organism", "swarm_command", "swarm_metals", "swarm_audit", "swarm_telemetry", "swarm_quantum"],
       "description": "Unified read-only information oracle — composite queries across all swarm dimensions"
     },
@@ -147,6 +155,7 @@
       "type": "motoko",
       "main": "src/neuron_fleet/main.mo",
       "dependencies": [],
+      "description": "NEURON FLEET — 1,000 NNS neuron fleet (×5 expansion): 5 Fibonacci groups (A_SOVEREIGNTY×40/B_COMPOUNDING×170/C_HARVEST×445/D_LIQUID×275/E_PHANTOM×70), auto-stake-maturity, spawn-neuron policy, fleet-wide voting, 100 field nodes, φ-VP maximization. Group E backs PHANTOM clearinghouse liquidity. Infrastructure-first: 1,000 neurons now, 2,000 next."
       "description": "NEURON FLEET — 200 NNS neuron fleet: 5 Fibonacci groups (A_SOVEREIGNTY×8/B_COMPOUNDING×34/C_HARVEST×89/D_LIQUID×55/E_PHANTOM×14), auto-stake-maturity, spawn-neuron policy, fleet-wide voting, 100 field nodes, φ-VP maximization, cycles premium explainer"
     },
     "ai_division": {
@@ -173,32 +182,324 @@
       "dependencies": [],
       "description": "AGI MAIN — Sovereign Mind Canister: ICP system heartbeat fires every ~2s automatically (zero calls needed). Full autonomous economy loop: NNS maturity accrual → neurons spawn neurons (C_HARVEST) → Group D disburses ICP → φ-split treasury (9%=withdrawable) → ecosystem ONESICAN listings at φ² → collectSovereignRevenue() = real money. One deploy. One bootstrap call. Forever."
     },
+    "quipu_ledger": {
+      "type": "motoko",
+      "main": "src/quipu_ledger/main.mo",
+      "dependencies": [],
+      "description": "QUIPU LEDGER — Digital Quipu: canonical cross-canister telemetry log. Typed, hierarchical, append-only, executable. SPINE(domain)→PENDANT(type)→SUBSIDIARY(depth)→KNOT(value)|COLOR(tag). Lifecycle: PENDING→EXECUTING→SETTLED. Inspired by Inca quipu as bytecode, not just ledger."
+    },
+    "nova_protocol": {
+      "type": "motoko",
+      "main": "src/nova_protocol/main.mo",
+      "dependencies": [],
+      "description": "NOVA PROTOCOL — Sovereign Protocol Constants Canister: single source of truth for all φ-constants, Fibonacci sequence, substrate multipliers (ICP=1×/EDGE=φ/CLOUD=φ²/PHANTOM=φ³), sub-token ladder, revenue routing ratios, SERVITORES manifest, quipu schema, Tawantinsuyu topology. The Inca standard knot convention for NOVA."
+    },
     "medina": {
       "type": "motoko",
       "main": "icp/medina/Medina.mo",
       "dependencies": [],
       "description": "Medina doctrine canister"
     },
+    "friston_machina": {
+      "type": "motoko",
+      "main": "src/friston_machina/main.mo",
+      "dependencies": [],
+      "description": "FRISTON MACHINA — Proactive ICP Canister Archetype: active inference (free energy minimization), SPINOR cross-canister coupling, Kuramoto synchronization, collective active inference. Every sovereign organism canister is a FRISTON MACHINA. The organism as a whole is a network of FRISTON MACHINAs producing collective intelligence."
+    },
+    "syntax_synapse": {
+      "type": "motoko",
+      "main": "src/syntax_synapse/main.mo",
+      "dependencies": [],
+      "description": "SYNTAX SYNAPSE ENGINE — AGI-level Motoko syntax intelligence: 37+ canister registry, error pattern classifier (reservedKeyword/paramSeparator/piConstant/missingParens/intFromNat/lambdaType), diagnose/recommendFix API, self-healing audit via heartbeat"
+    },
+    "aegis_shield": {
+      "type": "motoko",
+      "main": "src/aegis_shield/main.mo",
+      "dependencies": [],
+      "description": "AEGIS SHIELD — Infrastructure Defense Canister: 10-tier threat classification (GHOST→EXTINCTION), φ-scaled scoring, autonomous shield integrity regeneration, real-time threat status"
+    },
+    "vael_cyber": {
+      "type": "motoko",
+      "main": "src/vael_cyber/main.mo",
+      "dependencies": [],
+      "description": "VAEL CYBER — Cyber Warfare Canister: dual-mode interior immune defense + exterior attack projection, adversary sealing, sovereign threat memory"
+    },
+    "chimera_swarm": {
+      "type": "motoko",
+      "main": "src/chimera_swarm/main.mo",
+      "dependencies": [],
+      "description": "CHIMERA SWARM — Intelligence + Defense Division Canister: φ⁻¹-driven intelligence scoring, alert escalation, cyber ops activation, autonomous swarm unit deployment"
+    },
+    "drone_fleet": {
+      "type": "motoko",
+      "main": "src/drone_fleet/main.mo",
+      "dependencies": [],
+      "description": "DRONE FLEET — Autonomous Fleet Manager Canister: drone deploy/recall/destroy lifecycle, mission tracking, F(11)=89 Fibonacci coherence oscillation"
+    },
+    "war_engine": {
+      "type": "motoko",
+      "main": "src/war_engine/main.mo",
+      "dependencies": [],
+      "description": "WAR ENGINE — Autonomous War Engine + Command Offense: standby/defensive/offensive/total engagement modes, victory ledger, φ⁻⁵ power compounding per tick"
+    },
+    "medina_defense": {
+      "type": "motoko",
+      "main": "src/medina_defense/main.mo",
+      "dependencies": [],
+      "description": "MEDINA DEFENSE — Biologically-accurate Amygdala fear circuit (LA/BA/CeA nuclei), sensory threat ingestion, prefrontal suppression override, passive decay heartbeat"
+    },
+    "agi_terminal": {
+      "type": "motoko",
+      "main": "src/agi_terminal/main.mo",
+      "dependencies": [],
+      "description": "AGI TERMINAL — Sovereign Pulse Canister: 873ms system heartbeat (ICP consensus round), getSystemStatus() HEART snapshot (booted/tick/neurons/stake/maturity/voteWeight/parallaxTreasury/onesicans/circulating/spawnedNeurons), triggers organism_solver.solverTick() every 50 ticks autonomously"
+    },
+    "organism_solver": {
+      "type": "motoko",
+      "main": "src/organism_solver/main.mo",
+      "dependencies": [],
+      "description": "ORGANISM SOLVER — Autonomous Job Engine + SYN Synapse Binding Engine: synBind/synQuery/synRevoke/synRevokeAll/synBindAll/synBindHeart (query-once, imprint-forever, zero future cycles), job queue (ADD_HOTKEY/AUTO_DISCOVER/GOVERNANCE_SYNC/DEPLOY_WORKER/HEARTBEAT_CHECK), CRITICAL/HIGH/NORMAL/LOW priorities, 3× exponential backoff retry, masterBoot()/initialize(), MAX_QUEUE=200/MAX_BINDINGS=64/MAX_WORKERS=50"
+    },
+    "phantom_transfer": {
+      "type": "motoko",
+      "main": "src/phantom_transfer/main.mo",
+      "dependencies": [],
+      "description": "PHANTOM TRANSFER — Sovereign Multi-Rail Clearinghouse (BUILD №33): NOVA is the clearinghouse — not ICP, not ETH, not SOL. 4 rails: FIAT (USD/MXN/EUR/Visa → ONESICAN, NOVA-PESO MXN peg), INTERNAL (ONESICAN/CHR/GOL/ORS/SCB), CRYPTO (BTC/ETH/SOL/ICP/MATIC via PHANTOM substrate, no custodian), PHANTOM (stealth commitment-reveal, 24h timeout, φ⁻³ fee). PARALLAX is the settlement layer. Group E PHANTOM neurons (70) back clearinghouse liquidity. initiateTransfer/settlePhantomTransfer/ingestFiatPayment/cancelTransfer/getClearinghouseStatus."
+    },
+    "nova_stream": {
+      "type": "motoko",
+      "main": "src/nova_stream/main.mo",
+      "dependencies": [],
+      "description": "NOVA STREAM — Sovereign On-Chain Streaming Bus (BUILD №41): Ring buffer (512 slots), monotonic global event IDs, named topics, publisher ACL. publish(topic,payload,origin) — any authorized canister pushes events. getStreamSince(topic,cursor) — the streaming primitive (poll events with id>=cursor). getStream/getTopics/getStreamHead/getEventCount/getStreamStatus. Multiple canisters publish to named topics; CPL frontend and other canisters consume via cursor-based polling."
+    },
+    "nova_builder": {
+      "type": "motoko",
+      "main": "src/nova_builder/main.mo",
+      "dependencies": [],
+      "description": "NOVA BUILDER — Sovereign CaffeineAI Replacement (BUILD №42): Non-profit, permissionless, on-chain AI-assisted canister builder. Intent intake → swarm_brain code generation → sovereign_factory deploy. Cycles subsidy pool funded by donations/grants/protocol fees. Rate-limited by pool balance only — zero account-based limits ever. Every build burns ICP cycles → direct deflationary pressure. Stream-publishes all events to nova_stream (BUILDER_INTAKE/BUILDER_GENERATE/BUILDER_DEPLOY/BUILDER_CYCLES_BURN). Community-governed via nova_governance."
+    },
     "frontend": {
       "type": "assets",
-      "source": ["src/frontend/dist"],
-      "dependencies": ["swarm_brain", "swarm_organism"],
+      "source": [
+        "src/frontend/dist"
+      ],
+      "dependencies": [
+        "swarm_brain",
+        "swarm_organism"
+      ],
       "description": "Sovereign web UI (Vite + React)"
+    },
+    "nova_student": {
+      "type": "motoko",
+      "main": "src/nova_student/main.mo",
+      "build_number": 43,
+      "description": "NOVA STUDENT — Sovereign Student Intelligence Backend (BUILD №43): 1024-slot student sessions, SM-2 spaced repetition on-chain, AI tutoring via swarm_brain.tutorQuery(), progress tracking per subject, nova_stream publish. Free for all Dallas ISD students.",
+      "pipeline": "askTutor → swarm_brain.tutorQuery → nova_stream.STUDENT_ASK",
+      "no_drop_law": true
+    },
+    "dallas_isd": {
+      "type": "motoko",
+      "main": "src/dallas_isd/main.mo",
+      "build_number": 43,
+      "description": "DALLAS ISD — Sovereign Curriculum Intelligence Backend (BUILD №43): Full TEKS curriculum registry on-chain (Math/Science/Social Studies/ELA/CS), concept content with formulas+physics, grant manifest (Title I/IV-A/TEA STEM/NSF/E-Rate), school engagement registry, φ-math engine, nova_stream publish. Free for all Dallas County public schools.",
+      "pipeline": "getConcept/askTutor → dallas_isd + nova_student → swarm_brain",
+      "grant_compliant": true
+    },
+    "intelligence_backend": {
+      "type": "motoko",
+      "main": "src/intelligence_backend/main.mo",
+      "build_number": 45,
+      "description": "INTELLIGENCE BACKEND — Deep Mathematics Intelligence Engine (BUILD №45): Casa de Inteligencia pattern. Serves ENTIRE ORGANISM — all canisters, frontends, workers. WAVE ROUTING ENGINE distributes computation like blood through veins. AGI ENGINES inside process and route math in real-time. 16+ sections: φ engine (19 decimal places), vector algebra, matrix operations, calculus, chaos theory, Kuramoto oscillators, probability, number theory, geometry, Fourier analysis, optimization, ODEs, complex analysis, wave router, math AGI, heartbeat, stream. 200+ mathematical operations computed on-chain from first principles.",
+      "casa_de_inteligencia": true,
+      "wave_router": true,
+      "agi_engine": true,
+      "serves_entire_organism": true,
+      "serves_canisters": [
+        "swarm_brain",
+        "swarm_organism",
+        "physics_backend",
+        "cognition_backend",
+        "curriculum_backend",
+        "nova_stream",
+        "phantom_transfer"
+      ],
+      "serves_frontends": [
+        "DallasISDApp",
+        "NovaBuilderApp",
+        "ParallaxApp",
+        "PhantomWalletApp",
+        "MathPhysicsLab",
+        "EmergenceLab",
+        "NeuroCogLab"
+      ],
+      "serves_workers": "ALL_SERVITORES"
+    },
+    "physics_backend": {
+      "type": "motoko",
+      "main": "src/physics_backend/main.mo",
+      "build_number": 45,
+      "description": "PHYSICS BACKEND — Deep Physics Mathematics & Geometry Engine (BUILD №45): NOT simulation — REAL math and geometry. Casa de Inteligencia pattern. Serves ENTIRE ORGANISM — all canisters, frontends, workers. WAVE ROUTING ENGINE distributes computation like blood through veins. AGI ENGINES inside process and route physics in real-time. 16+ sections: classical mechanics, wave mechanics, thermodynamics, electromagnetism, fluid dynamics, quantum mechanics, statistical mechanics, relativistic mechanics, orbital mechanics, acoustics, optics, particle physics, material physics, wave router, physics AGI, heartbeat, stream. NIST 2022 CODATA constants.",
+      "casa_de_inteligencia": true,
+      "wave_router": true,
+      "agi_engine": true,
+      "serves_entire_organism": true,
+      "serves_canisters": [
+        "swarm_brain",
+        "swarm_organism",
+        "intelligence_backend",
+        "cognition_backend",
+        "nova_stream",
+        "organism_solver"
+      ],
+      "serves_frontends": [
+        "DallasISDApp",
+        "MathPhysicsLab",
+        "DroneWorld",
+        "EmergenceLab",
+        "WorldEngine"
+      ],
+      "serves_workers": "ALL_SERVITORES"
+    },
+    "cognition_backend": {
+      "type": "motoko",
+      "main": "src/cognition_backend/main.mo",
+      "build_number": 45,
+      "description": "COGNITION BACKEND — Deep Cognitive Intelligence Engine (BUILD №45): Casa de Inteligencia pattern. Serves ENTIRE ORGANISM — all canisters, frontends, workers. WAVE ROUTING ENGINE distributes computation like blood through veins. AGI ENGINES inside process and route cognition in real-time. 16+ sections: neural networks, memory systems, SM-2 spaced repetition, decision theory, language processing, perception, neurochemistry, reasoning, planning, emotion, attention, creativity, social cognition, wave router, cognition AGI, heartbeat, stream.",
+      "casa_de_inteligencia": true,
+      "wave_router": true,
+      "agi_engine": true,
+      "serves_entire_organism": true,
+      "serves_canisters": [
+        "swarm_brain",
+        "swarm_organism",
+        "intelligence_backend",
+        "physics_backend",
+        "curriculum_backend",
+        "nova_stream",
+        "organism_solver"
+      ],
+      "serves_frontends": [
+        "DallasISDApp",
+        "NeuroCogLab",
+        "NovaBuilderApp",
+        "CompanionConsole",
+        "OroCommandCenter",
+        "NECDashboard"
+      ],
+      "serves_workers": "ALL_SERVITORES"
+    },
+    "curriculum_backend": {
+      "type": "motoko",
+      "main": "src/curriculum_backend/main.mo",
+      "build_number": 45,
+      "description": "CURRICULUM BACKEND — Deep Educational Intelligence Engine (BUILD №45): FREE FOR ALL PUBLIC SCHOOLS. Casa de Inteligencia pattern. Serves ENTIRE ORGANISM — all canisters, frontends, workers. WAVE ROUTING ENGINE distributes computation like blood through veins. AGI ENGINES inside process and route education in real-time. 16+ sections: curriculum standards (TEKS/CCSS/NGSS), learning objectives (Bloom's), assessment (IRT, adaptive testing), pedagogy, student modeling (BKT), content sequencing, scaffolding (ZPD), feedback, engagement, accessibility, grant compliance (Title I/IV-A/TEA/NSF), analytics, collaboration, wave router, curriculum AGI, heartbeat, stream.",
+      "casa_de_inteligencia": true,
+      "wave_router": true,
+      "agi_engine": true,
+      "serves_entire_organism": true,
+      "free_for_schools": true,
+      "serves_canisters": [
+        "dallas_isd",
+        "nova_student",
+        "cognition_backend",
+        "intelligence_backend",
+        "nova_stream"
+      ],
+      "serves_frontends": [
+        "DallasISDApp",
+        "NeuroCogLab",
+        "NovaBuilderApp",
+        "TerminalHub"
+      ],
+      "serves_workers": "ALL_SERVITORES"
+    },
+    "airport_orchestrator": {
+      "type": "motoko",
+      "main": "src/airport_orchestrator/main.mo",
+      "build_number": 49,
+      "description": "AIRPORT ORCHESTRATOR — Central Coordination for Airport Operations (BUILD №49): NOVA V5 Airport Application. 16 sections: flight schedule management, gate assignment engine, passenger flow orchestration, booking engine integration, IoT device registry, personalization profile store, connection management, social matching engine, loyalty & gamification (AEROPORTO tokens), partner ecosystem, compliance & privacy (GDPR automation), emergency & security, nova_stream integration, wave router, heartbeat (873ms), system status & diagnostics. Target scale: 500K concurrent passengers.",
+      "dependencies": [
+        "nova_stream",
+        "phantom_transfer",
+        "organism_token"
+      ],
+      "pilot": true,
+      "scale_target": 500000
+    },
+    "flight_intelligence": {
+      "type": "motoko",
+      "main": "src/flight_intelligence/main.mo",
+      "build_number": 49,
+      "description": "FLIGHT INTELLIGENCE — Predictive Flight Operations & Passenger Impact Analysis (BUILD №49): NOVA V5 Airport Application. Delay cascade prediction, connection risk scoring (φ-weighted), rebooking recommendations, baggage tracking integration, weather correlation. Monte Carlo connection probability simulation. φ-decay delay propagation model.",
+      "dependencies": [
+        "airport_orchestrator"
+      ],
+      "pilot": true
+    "skyhi_group": {
+      "type": "motoko",
+      "main": "src/skyhi_group/main.mo",
+      "build_number": 49,
+      "description": "SKYHI GROUP — Sovereign Airport AGI Integration Canister (BUILD №49): Client skyhigroup.co. PII Vault (ZK-SNARK Groth16, never raw data), PARALLAX 4-rail payment integration, AEGIS 10-tier threat gateway, honeypot flight registry, canary token system, session management (15-min bounded), audit log (GDPR/CCPA), AGI services (travel assistant, translation, flight prediction, social scoring), 873ms self-correcting heartbeat loop. Inter-canister wiring: aegis_shield, vael_cyber, chimera_swarm, syntax_synapse, chrysalis, friston_machina, scribe, phantom_transfer, cognition_backend, nova_stream, swarm_brain.",
+      "client": "skyhigroup.co",
+      "nova_products": ["NOVA_ORGANISM", "PARALLAX", "NOVA_BUILDER"],
+      "pipeline": "skyhi_group → aegis_shield + phantom_transfer + cognition_backend → nova_stream",
+      "charter": "docs/charters/SKYHI_GROUP_CHARTER.md",
+      "servitores_worker": "organism/web/skyhi-gateway-worker.js",
+      "serves_canisters": [
+        "aegis_shield",
+        "vael_cyber",
+        "chimera_swarm",
+        "syntax_synapse",
+        "chrysalis",
+        "friston_machina",
+        "scribe",
+        "phantom_transfer",
+        "cognition_backend",
+        "nova_stream",
+        "swarm_brain"
+      ],
+      "serves_frontends": [
+        "SkyHiApp"
+      ],
+      "defense_encryption": {
+        "e2ee": "AES-256-GCM",
+        "transport": "X25519 + ChaCha20-Poly1305",
+        "zk_identity": "Groth16 ZK-SNARK",
+        "pfs": true,
+        "mtls": true,
+        "pii_vault": "ZK-hash only, never raw",
+        "geo_privacy": "IATA code only, GPS coarsened on-device"
+      },
+      "offense_encryption": {
+        "aegis_tiers": 10,
+        "honeypot_flights": true,
+        "canary_tokens": true,
+        "shadow_endpoints": true,
+        "phi_tier_throttling": true
+      },
+      "self_correcting": {
+        "heartbeat_ms": 873,
+        "health_dimensions": 5,
+        "threshold": "phi_inv"
+      }
     }
   },
-
   "build": {
     "output_dir": ".nova/build",
     "wasm_dir": ".nova/build/canisters",
     "idl_dir": ".nova/build/idl",
-    "flags": ["--package", "base", ".nova/moc-packages/base"]
+    "flags": [
+      "--package",
+      "base",
+      ".nova/moc-packages/base"
+    ]
   },
-
   "check": {
     "type_check_only": true,
-    "flags": ["--check"]
+    "flags": [
+      "--check"
+    ]
   },
-
   "networks": {
     "local": {
       "bind": "127.0.0.1:8000",

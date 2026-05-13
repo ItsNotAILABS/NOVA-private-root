@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOVA ORGANISM — PARALLAX</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:#050a14;color:#e0f0ff;font-family:'Courier New',Courier,monospace;line-height:1.6;min-height:100vh}
+  .status-bar{position:sticky;top:0;z-index:100;background:linear-gradient(180deg,#0a1428,#050a14);border-bottom:1px solid #1a3050;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .status-title{font-size:1.1rem;font-weight:bold;display:flex;align-items:center;gap:10px}
+  .pulse-dot{width:10px;height:10px;border-radius:50%;background:#00ff88;display:inline-block;animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 4px #00ff88}50%{opacity:.4;box-shadow:0 0 12px #00ff88}}
+  .status-metrics{display:flex;gap:20px;font-size:.85rem;color:#88aacc}
+  .status-metrics span{white-space:nowrap}
+  .metric-val{color:#00ddff}
+  .container{max-width:1200px;margin:0 auto;padding:24px}
+  h1{text-align:center;font-size:1.6rem;margin-bottom:8px;color:#88ccff}
+  .subtitle{text-align:center;color:#667788;font-size:.85rem;margin-bottom:32px}
+  .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;margin-bottom:40px}
+  .product-card{background:#0c1a2e;border:1px solid #1a3050;border-radius:8px;padding:20px;transition:border-color .3s}
+  .product-card:hover{border-color:#2a5080}
+  .product-name{font-size:1.15rem;font-weight:bold;color:#66bbff;margin-bottom:2px}
+  .product-type{font-size:.78rem;color:#556677;margin-bottom:10px}
+  .product-desc{font-size:.85rem;color:#99aabb;margin-bottom:14px;line-height:1.5}
+  .product-input{width:100%;background:#050a14;border:1px solid #1a3050;color:#e0f0ff;font-family:inherit;font-size:.85rem;padding:8px 10px;border-radius:4px;margin-bottom:10px;outline:none}
+  .product-input:focus{border-color:#3388cc}
+  .product-btn{background:#1a3050;color:#88ccff;border:1px solid #2a5080;font-family:inherit;font-size:.82rem;padding:7px 18px;border-radius:4px;cursor:pointer;transition:background .2s}
+  .product-btn:hover{background:#2a5080}
+  .product-btn:disabled{opacity:.5;cursor:not-allowed}
+  .product-result{margin-top:12px;padding:10px;background:#060e1c;border:1px solid #12253a;border-radius:4px;font-size:.8rem;color:#77aacc;min-height:38px;max-height:160px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
+  .collapsible{margin-bottom:32px}
+  .collapsible-toggle{background:#0c1a2e;border:1px solid #1a3050;color:#88ccff;font-family:inherit;font-size:.9rem;padding:12px 18px;width:100%;text-align:left;cursor:pointer;border-radius:6px;display:flex;justify-content:space-between;align-items:center}
+  .collapsible-toggle:hover{background:#10223a}
+  .collapsible-toggle .arrow{transition:transform .2s}
+  .collapsible-toggle.open .arrow{transform:rotate(90deg)}
+  .collapsible-body{display:none;background:#0a1525;border:1px solid #1a3050;border-top:none;border-radius:0 0 6px 6px;padding:18px;font-size:.82rem;color:#99aabb;line-height:1.7}
+  .collapsible-body.open{display:block}
+  .spec-item{margin-bottom:8px;padding-left:12px;border-left:2px solid #1a3050}
+  .spec-label{color:#66bbff}
+  .constants-section{background:#0a1525;border:1px solid #1a3050;border-radius:8px;padding:20px;margin-bottom:32px}
+  .constants-title{font-size:.95rem;color:#66bbff;margin-bottom:14px}
+  .constants-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px 24px}
+  .const-item{font-size:.82rem;color:#88aacc}
+  .const-item .sym{color:#66bbff}
+  .const-item .val{color:#00ddaa}
+  .copyright{text-align:center;padding:24px;font-size:.75rem;color:#334455;border-top:1px solid #0e1e30}
+  .copyright strong{color:#445566}
+  .worker-tag{display:inline-block;font-size:.7rem;color:#445566;border:1px solid #1a3050;padding:2px 6px;border-radius:3px;margin-top:8px}
+  .worker-tag.active{color:#00cc66;border-color:#00cc66}
+</style>
+</head>
+<body>
+
+<!-- Status Bar -->
+<div class="status-bar">
+  <div class="status-title">
+    <span>🧬 NOVA ORGANISM</span>
+    <span class="pulse-dot"></span>
+    <span id="status-label">RUNNING</span>
+  </div>
+  <div class="status-metrics">
+    <span>Heartbeat: <span class="metric-val" id="m-heartbeat">0</span></span>
+    <span>Kuramoto R: <span class="metric-val" id="m-kuramoto">0.000</span></span>
+    <span>Uptime: <span class="metric-val" id="m-uptime">0s</span></span>
+    <span>Workers: <span class="metric-val" id="m-workers">0/7</span></span>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+  <h1>PARALLAX — AI Products</h1>
+  <p class="subtitle">Sovereign intelligence modules powered by the NOVA organism</p>
+
+  <!-- Product Grid -->
+  <div class="product-grid">
+
+    <!-- LEXIS -->
+    <div class="product-card" id="card-lexis">
+      <div class="product-name">LEXIS</div>
+      <div class="product-type">Natural Language AI</div>
+      <div class="product-desc">Text analysis, extractive summarization, named-entity recognition, sentiment analysis, and word frequency mapping. Powered by communication-worker.</div>
+      <input class="product-input" id="input-lexis" type="text" placeholder="Enter text to analyze…" value="The Golden Gate Bridge in San Francisco is 2737 meters long.">
+      <button class="product-btn" id="btn-lexis" onclick="runLexis()">Analyze Text</button>
+      <div class="product-result" id="result-lexis">Awaiting input…</div>
+      <span class="worker-tag" id="tag-lexis">communication-worker</span>
+    </div>
+
+    <!-- NUMERUS -->
+    <div class="product-card" id="card-numerus">
+      <div class="product-name">NUMERUS</div>
+      <div class="product-type">Mathematical AI</div>
+      <div class="product-desc">Fibonacci computation, golden-ratio series, prime checks, statistics, and matrix operations. Powered by math-worker.</div>
+      <input class="product-input" id="input-numerus" type="text" placeholder="Enter a number (e.g. 21)…" value="21">
+      <button class="product-btn" id="btn-numerus" onclick="runNumerus()">Compute</button>
+      <div class="product-result" id="result-numerus">Awaiting input…</div>
+      <span class="worker-tag" id="tag-numerus">math-worker</span>
+    </div>
+
+    <!-- CUSTOS -->
+    <div class="product-card" id="card-custos">
+      <div class="product-name">CUSTOS</div>
+      <div class="product-type">Security AI</div>
+      <div class="product-desc">FNV-1a hashing, Shannon entropy analysis, threat pattern scanning, and cryptographic key generation. Powered by security-worker.</div>
+      <input class="product-input" id="input-custos" type="text" placeholder="Enter data to scan…" value="SELECT * FROM users WHERE 1=1">
+      <button class="product-btn" id="btn-custos" onclick="runCustos()">Scan &amp; Hash</button>
+      <div class="product-result" id="result-custos">Awaiting input…</div>
+      <span class="worker-tag" id="tag-custos">security-worker</span>
+    </div>
+
+    <!-- EVOLUTIO -->
+    <div class="product-card" id="card-evolutio">
+      <div class="product-name">EVOLUTIO</div>
+      <div class="product-type">Evolutionary AI</div>
+      <div class="product-desc">Genetic algorithms, population initialization, multi-generation evolution, crossover, and mutation operators. Powered by evolution-worker.</div>
+      <input class="product-input" id="input-evolutio" type="text" placeholder="Generations to evolve (e.g. 10)…" value="10">
+      <button class="product-btn" id="btn-evolutio" onclick="runEvolutio()">Evolve</button>
+      <div class="product-result" id="result-evolutio">Awaiting input…</div>
+      <span class="worker-tag" id="tag-evolutio">evolution-worker</span>
+    </div>
+
+    <!-- MEMORIA -->
+    <div class="product-card" id="card-memoria">
+      <div class="product-name">MEMORIA</div>
+      <div class="product-type">Memory AI</div>
+      <div class="product-desc">Persistent key-value storage with salience scoring, memory consolidation, decay, and pattern-based recall. Powered by memory-worker.</div>
+      <input class="product-input" id="input-memoria" type="text" placeholder="Key to store/recall (e.g. nova)…" value="nova">
+      <button class="product-btn" id="btn-memoria" onclick="runMemoria()">Store &amp; Recall</button>
+      <div class="product-result" id="result-memoria">Awaiting input…</div>
+      <span class="worker-tag" id="tag-memoria">memory-worker</span>
+    </div>
+
+  </div>
+
+  <!-- ANIMA MICRO Spec (Collapsible) -->
+  <div class="collapsible">
+    <button class="collapsible-toggle" id="anima-toggle" onclick="toggleAnima()">
+      <span>⚙ ANIMA MICRO — Architecture Specification</span>
+      <span class="arrow">▶</span>
+    </button>
+    <div class="collapsible-body" id="anima-body">
+      <div class="spec-item"><span class="spec-label">Mini Brain:</span> 7.83 Hz Schumann Resonance compute cycle — the organism's cognitive oscillation frequency, grounding thought to Earth's electromagnetic baseline.</div>
+      <div class="spec-item"><span class="spec-label">Mini Heart:</span> φ Hz (1.618 Hz) golden ratio pulse — 618 ms interval. Every ANIMA unit beats in golden time, ensuring optimal phase coherence across the swarm.</div>
+      <div class="spec-item"><span class="spec-label">Protocol Layer:</span> 50 sovereign protocols across 10 domains. Each protocol is validated per heartbeat cycle for continuous integrity.</div>
+      <div class="spec-item"><span class="spec-label">Database:</span> In-worker memory store with salience-weighted entries, automatic decay, and consolidation. No external DB required.</div>
+      <div class="spec-item"><span class="spec-label">Callable Interface:</span> Every worker exposes typed message commands. The organism page dispatches tasks to workers and renders results in real time — fully client-side, zero-server.</div>
+      <div class="spec-item"><span class="spec-label">Worker Fleet:</span> 7 specialized workers + 40 ANIMA MICRO units inside the engine worker. Total: 47 concurrent threads of sovereign computation.</div>
+    </div>
+  </div>
+
+  <!-- NIST Math Constants -->
+  <div class="constants-section">
+    <div class="constants-title">📐 NIST Mathematical &amp; Physical Constants</div>
+    <div class="constants-grid">
+      <div class="const-item"><span class="sym">φ</span> = <span class="val">1.618033988749895</span></div>
+      <div class="const-item"><span class="sym">φ⁻¹</span> = <span class="val">0.618033988749895</span></div>
+      <div class="const-item"><span class="sym">π</span> = <span class="val">3.141592653589793</span></div>
+      <div class="const-item"><span class="sym">e</span> = <span class="val">2.718281828459045</span></div>
+      <div class="const-item"><span class="sym">√2</span> = <span class="val">1.4142135623730951</span></div>
+      <div class="const-item"><span class="sym">ln(2)</span> = <span class="val">0.6931471805599453</span></div>
+      <div class="const-item"><span class="sym">h</span> = <span class="val">6.62607015×10⁻³⁴ J·s</span></div>
+      <div class="const-item"><span class="sym">k<sub>B</sub></span> = <span class="val">1.380649×10⁻²³ J/K</span></div>
+      <div class="const-item"><span class="sym">c</span> = <span class="val">299792458 m/s</span></div>
+      <div class="const-item"><span class="sym">N<sub>A</sub></span> = <span class="val">6.02214076×10²³ mol⁻¹</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Copyright Footer -->
+<div class="copyright">
+  © 2024–2026 <strong>Medina Tech</strong>, Dallas TX. All rights reserved.<br>
+  SOVEREIGN ORGANISM — PARALLAX
+</div>
+
+<!-- JavaScript -->
+<script>
+(function () {
+  'use strict';
+
+  var startTime = Date.now();
+  var heartbeatCount = 0;
+  var kuramotoR = 0;
+  var activeWorkers = 0;
+  var workerPhases = {};
+  var workers = {};
+
+  var WORKER_DEFS = [
+    { key: 'engine',        file: 'engine-worker.js' },
+    { key: 'protocol',      file: 'protocol-worker.js' },
+    { key: 'memory',        file: 'memory-worker.js' },
+    { key: 'security',      file: 'security-worker.js' },
+    { key: 'math',          file: 'math-worker.js' },
+    { key: 'communication', file: 'communication-worker.js' },
+    { key: 'evolution',     file: 'evolution-worker.js' }
+  ];
+
+  /* Safe worker construction with try/catch */
+  WORKER_DEFS.forEach(function (def) {
+    try {
+      var w = new Worker(def.file);
+      workers[def.key] = w;
+      activeWorkers++;
+      w.onmessage = function (e) { handleWorkerMessage(def.key, e.data); };
+      w.onerror = function (err) { console.warn('[NOVA] Worker error (' + def.key + '):', err.message); };
+    } catch (err) {
+      console.warn('[NOVA] Failed to create worker "' + def.file + '":', err.message);
+      workers[def.key] = null;
+    }
+  });
+
+  document.getElementById('m-workers').textContent = activeWorkers + '/7';
+
+  /* Activate worker tags */
+  var tagMap = { communication: 'tag-lexis', math: 'tag-numerus', security: 'tag-custos', evolution: 'tag-evolutio', memory: 'tag-memoria' };
+  Object.keys(tagMap).forEach(function (k) {
+    if (workers[k]) { var el = document.getElementById(tagMap[k]); if (el) el.classList.add('active'); }
+  });
+
+  /* Worker message router */
+  function handleWorkerMessage(key, data) {
+    if (!data) return;
+    if (data.type === 'heartbeat') {
+      heartbeatCount++;
+      if (typeof data.heart === 'number') workerPhases[key] = data.heart;
+      computeKuramoto();
+      return;
+    }
+    if (key === 'engine' && data.type === 'VITALS' && data.payload) {
+      if (typeof data.payload.kuramotoR === 'number') kuramotoR = data.payload.kuramotoR;
+      if (typeof data.payload.heartbeatCount === 'number') heartbeatCount = data.payload.heartbeatCount;
+      return;
+    }
+    if (key === 'communication') handleLexisResponse(data);
+    if (key === 'math')          handleNumerusResponse(data);
+    if (key === 'security')      handleCustosResponse(data);
+    if (key === 'evolution')     handleEvolutioResponse(data);
+    if (key === 'memory')        handleMemoriaResponse(data);
+  }
+
+  /* Kuramoto order parameter from heartbeat phases */
+  function computeKuramoto() {
+    var keys = Object.keys(workerPhases);
+    if (keys.length < 2) return;
+    var sumCos = 0, sumSin = 0;
+    keys.forEach(function (k) { sumCos += Math.cos(workerPhases[k]); sumSin += Math.sin(workerPhases[k]); });
+    kuramotoR = Math.sqrt(sumCos * sumCos + sumSin * sumSin) / keys.length;
+  }
+
+  /* Status bar refresh every second */
+  setInterval(function () {
+    document.getElementById('m-heartbeat').textContent = heartbeatCount;
+    document.getElementById('m-kuramoto').textContent = kuramotoR.toFixed(3);
+    var s = Math.floor((Date.now() - startTime) / 1000);
+    document.getElementById('m-uptime').textContent = (s >= 60 ? Math.floor(s / 60) + 'm ' : '') + (s % 60) + 's';
+  }, 1000);
+
+  /* Poll engine vitals */
+  setInterval(function () { if (workers.engine) workers.engine.postMessage({ type: 'GET_VITALS' }); }, 2000);
+
+  /* Init evolution population */
+  if (workers.evolution) workers.evolution.postMessage({ type: 'INIT_POPULATION', size: 50 });
+
+  function setResult(id, text) { var el = document.getElementById(id); if (el) el.textContent = text; }
+
+  /* ═══ LEXIS ═══ */
+  var lexisR = {};
+  window.runLexis = function () {
+    var text = document.getElementById('input-lexis').value.trim();
+    if (!text || !workers.communication) { setResult('result-lexis', workers.communication ? 'Please enter text.' : 'Worker unavailable.'); return; }
+    lexisR = {};
+    setResult('result-lexis', 'Analyzing…');
+    workers.communication.postMessage({ type: 'SUMMARIZE', text: text, maxWords: 30 });
+    workers.communication.postMessage({ type: 'NER', text: text });
+    workers.communication.postMessage({ type: 'SENTIMENT', text: text });
+  };
+  function handleLexisResponse(d) {
+    var cmd = d.cmd || d.type;
+    if (cmd === 'SUMMARIZE') lexisR.summary = d.summary;
+    if (cmd === 'NER') lexisR.entities = d.entities;
+    if (cmd === 'SENTIMENT') lexisR.sentiment = d.result;
+    var p = [];
+    if (lexisR.summary) p.push('Summary: ' + lexisR.summary);
+    if (lexisR.sentiment) p.push('Sentiment: ' + lexisR.sentiment.score.toFixed(3) + ' (pos:' + lexisR.sentiment.positive + ' neg:' + lexisR.sentiment.negative + ')');
+    if (lexisR.entities && lexisR.entities.length) p.push('Entities: ' + lexisR.entities.map(function (e) { return e.text + ' [' + e.type + ']'; }).join(', '));
+    if (p.length) setResult('result-lexis', p.join('\n'));
+  }
+
+  /* ═══ NUMERUS ═══ */
+  var numR = {};
+  window.runNumerus = function () {
+    var n = parseInt(document.getElementById('input-numerus').value.trim(), 10);
+    if (isNaN(n) || !workers.math) { setResult('result-numerus', workers.math ? 'Enter a valid number.' : 'Worker unavailable.'); return; }
+    numR = {};
+    setResult('result-numerus', 'Computing…');
+    workers.math.postMessage({ type: 'FIBONACCI', n: n });
+    workers.math.postMessage({ type: 'PRIME_CHECK', n: n });
+    workers.math.postMessage({ type: 'PHI_SERIES', n: Math.min(n, 12) });
+  };
+  function handleNumerusResponse(d) {
+    var cmd = d.cmd || d.type;
+    if (cmd === 'FIBONACCI') numR.fib = { n: d.n, val: d.result };
+    if (cmd === 'PRIME_CHECK') numR.prime = d.isPrime;
+    if (cmd === 'PHI_SERIES') numR.phi = d.result;
+    var p = [];
+    if (numR.fib) p.push('Fibonacci(' + numR.fib.n + ') = ' + numR.fib.val);
+    if (numR.prime !== undefined) p.push('Is prime: ' + (numR.prime ? 'YES' : 'NO'));
+    if (numR.phi) p.push('φ-series sum: ' + numR.phi.sum.toFixed(6) + ', ratio: ' + numR.phi.ratio.toFixed(6));
+    if (p.length) setResult('result-numerus', p.join('\n'));
+  }
+
+  /* ═══ CUSTOS ═══ */
+  var cusR = {};
+  window.runCustos = function () {
+    var text = document.getElementById('input-custos').value.trim();
+    if (!text || !workers.security) { setResult('result-custos', workers.security ? 'Enter data to scan.' : 'Worker unavailable.'); return; }
+    cusR = {};
+    setResult('result-custos', 'Scanning…');
+    workers.security.postMessage({ type: 'HASH', data: text });
+    workers.security.postMessage({ type: 'ENTROPY', data: text });
+    workers.security.postMessage({ type: 'SCAN', data: text });
+  };
+  function handleCustosResponse(d) {
+    var cmd = d.cmd || d.type;
+    if (cmd === 'HASH') cusR.hash = d.hex;
+    if (cmd === 'ENTROPY') cusR.entropy = d.entropy;
+    if (cmd === 'SCAN') cusR.scan = d.result;
+    var p = [];
+    if (cusR.hash) p.push('Hash: ' + cusR.hash);
+    if (cusR.entropy !== undefined) p.push('Entropy: ' + cusR.entropy.toFixed(4) + ' bits');
+    if (cusR.scan) {
+      p.push('Safe: ' + (cusR.scan.safe ? 'YES ✓' : 'NO ✗') + ' | Score: ' + cusR.scan.score);
+      if (cusR.scan.threats && cusR.scan.threats.length) p.push('Threats: ' + cusR.scan.threats.map(function (t) { return t.name + ' (w:' + t.weight + ')'; }).join(', '));
+    }
+    if (p.length) setResult('result-custos', p.join('\n'));
+  }
+
+  /* ═══ EVOLUTIO ═══ */
+  window.runEvolutio = function () {
+    var n = parseInt(document.getElementById('input-evolutio').value.trim(), 10) || 10;
+    if (!workers.evolution) { setResult('result-evolutio', 'Worker unavailable.'); return; }
+    setResult('result-evolutio', 'Evolving ' + n + ' generations…');
+    workers.evolution.postMessage({ type: 'EVOLVE', generations: n });
+  };
+  function handleEvolutioResponse(d) {
+    var cmd = d.cmd || d.type;
+    if (cmd === 'EVOLVE' && d.result) {
+      var r = d.result;
+      setResult('result-evolutio', 'Generation: ' + r.generation + '\nBest fitness: ' + (r.bestFitness !== undefined ? r.bestFitness.toFixed(6) : 'N/A') + '\nAvg fitness: ' + (r.avgFitness !== undefined ? r.avgFitness.toFixed(6) : 'N/A') + '\nPopulation: ' + r.popSize);
+    }
+    if (cmd === 'INIT_POPULATION' && d.result) {
+      setResult('result-evolutio', 'Population initialized: ' + d.result.size + ' | Best: ' + (d.result.bestFitness !== undefined ? d.result.bestFitness.toFixed(6) : 'N/A'));
+    }
+  }
+
+  /* ═══ MEMORIA ═══ */
+  window.runMemoria = function () {
+    var key = document.getElementById('input-memoria').value.trim();
+    if (!key || !workers.memory) { setResult('result-memoria', workers.memory ? 'Enter a key.' : 'Worker unavailable.'); return; }
+    setResult('result-memoria', 'Storing & recalling…');
+    workers.memory.postMessage({ type: 'STORE', key: key, value: 'organism-data-' + Date.now(), salience: 0.9 });
+    setTimeout(function () { if (workers.memory) workers.memory.postMessage({ type: 'RECALL', key: key }); }, 200);
+  };
+  function handleMemoriaResponse(d) {
+    var cmd = d.cmd || d.type;
+    if (cmd === 'RECALL' && d.result) {
+      var r = d.result;
+      if (r.found) setResult('result-memoria', 'Key: ' + r.key + '\nValue: ' + r.value + '\nSalience: ' + (r.salience !== undefined ? r.salience.toFixed(4) : 'N/A') + '\nAccess count: ' + (r.accessCount || 1));
+      else setResult('result-memoria', 'Key "' + r.key + '" not found in memory.');
+    }
+  }
+
+  /* Collapsible toggle */
+  window.toggleAnima = function () {
+    document.getElementById('anima-toggle').classList.toggle('open');
+    document.getElementById('anima-body').classList.toggle('open');
+  };
+})();
+</script>
+</body>
+</html>

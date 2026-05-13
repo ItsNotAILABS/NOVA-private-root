@@ -11,6 +11,7 @@ export const PI             = 3.1415926535897932385;  // π
 export const TAU            = 6.2831853071795864769;  // 2π
 export const SQRT2          = 1.4142135623730950488;  // √2
 export const SQRT3          = 1.7320508075688772935;  // √3
+export const SQRT5          = 2.2360679774997896964;  // √5  (φ = (1+√5)/2)
 export const LN2            = 0.6931471805599453094;  // ln(2)
 export const ISING_2D_BETA  = 0.125;   // Order parameter exponent
 export const ISING_2D_TC    = 2.269;   // Critical temperature (T_c/J)

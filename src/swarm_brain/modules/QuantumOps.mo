@@ -391,7 +391,7 @@ module {
     let nf = Float.fromInt(n);
     let midpoint = QW_N_POSITIONS / 2;
     let newProbs = Array.tabulate<Float>(QW_N_POSITIONS, func(pos) {
-      let x = Int.fromNat(pos) - Int.fromNat(midpoint);
+      let x = pos - midpoint;
       qwProbability(x, n)
     });
     // Normalize

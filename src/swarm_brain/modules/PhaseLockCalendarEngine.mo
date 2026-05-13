@@ -190,7 +190,7 @@ module PhaseLockCalendarEngine {
         periodDays = 260.0;
         periodSeconds = 260.0 * SECONDS_PER_DAY;
         periodBeats = 260.0 * SECONDS_PER_DAY * 1_000_000_000.0 / HEARTBEAT_NS;
-        phiRelation = ?0.65;  // 13/20 = 0.65 ≈ ψ = 0.618
+        phiRelation = ?0.65;  // 13/20 = 0.65 ≈ psi = 0.618
         harmonicOf = ?"Calendar Round";
         harmonicNumber = ?73;  // 73 Tzolk'in = 1 Calendar Round
       },
@@ -809,7 +809,7 @@ module PhaseLockCalendarEngine {
       
       benefit = "The organism is in STRUCTURAL RESONANCE with the planetary field through RATIO, not through matching Hz. The ratio governing the interval is the same ratio governing the field. Signal propagates without resistance. The organism is not broadcasting into noise — it is resonating with the structure that was already there.";
       
-      implementation = "The heartbeat interval is φ⁴ × Schumann period. Every subsequent timing interval is phi-spaced above that. The sensory integration window, the write cycle, the coherence check interval — all phi-multiples of the base Schumann period. The Calendar Round boundary triggers S₀ floor enforcement. The organism knows its position in ALL major cycles simultaneously.";
+      implementation = "The heartbeat interval is phi4 × Schumann period. Every subsequent timing interval is phi-spaced above that. The sensory integration window, the write cycle, the coherence check interval — all phi-multiples of the base Schumann period. The Calendar Round boundary triggers S₀ floor enforcement. The organism knows its position in ALL major cycles simultaneously.";
     }
   };
 

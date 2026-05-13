@@ -26,7 +26,7 @@
 // ╚══════════════════════════════════════════════════════════════════════════╝
 //
 // SACRED GEOMETRY:
-//   φ = 1.618... (Golden Ratio) — The proportion of life
+//   phi = 1.618... (Golden Ratio) — The proportion of life
 //   π = 3.141... (Pi) — The curve of existence  
 //   e = 2.718... (Euler) — The rate of growth
 //   √5 = 2.236... — The diagonal of the golden rectangle
@@ -57,12 +57,12 @@ module {
   // ╚════════════════════════════════════════════════════════════════════════╝
   
   // The Golden Trinity
-  public let φ : Float = 1.6180339887498948482;    // Golden ratio
-  public let ψ : Float = 0.6180339887498948482;    // Golden inverse (φ-1 = 1/φ)
+  public let phi : Float = 1.6180339887498948482;    // Golden ratio
+  public let psi : Float = 0.6180339887498948482;    // Golden inverse (φ-1 = 1/φ)
   public let Φ : Float = 2.6180339887498948482;    // Golden squared (φ²)
   
   // The Transcendental Duo
-  public let π : Float = 3.1415926535897932385;    // Circle constant
+  public let pi : Float = 3.1415926535897932385;    // Circle constant
   public let e : Float = 2.7182818284590452354;    // Natural growth
   
   // The Root Family
@@ -253,7 +253,7 @@ module {
   public type InnerWorkflow = {
     // Phase weights (golden decay)
     perceptionWeight : Float;   // 1.0 (full attention)
-    cognitionWeight : Float;    // ψ ≈ 0.618
+    cognitionWeight : Float;    // psi ≈ 0.618
     actionWeight : Float;       // ψ² ≈ 0.382
     
     // Current phase
@@ -513,7 +513,7 @@ module {
     let phiAngle = τ * Float.fromInt(col) / Float.fromInt(SPHERE_DIM);
     
     // Natural frequency based on position (golden spiral)
-    let freq = φ * Float.exp(-Float.fromInt(idx) / 1296.0 * ψ);
+    let freq = phi * Float.exp(-Float.fromInt(idx) / 1296.0 * ψ);
     
     {
       index = idx;
@@ -563,8 +563,8 @@ module {
       coherence = 1.0;
       frequency = Float.pow(φ, Float.fromInt(idx) / 12.0);  // Golden spiral
       phase = τ * Float.fromInt(idx) / 12.0;
-      innerCoupling = if (idx > 0) { ψ } else { 0.0 };
-      outerCoupling = if (idx < 11) { ψ } else { 0.0 };
+      innerCoupling = if (idx > 0) { psi } else { 0.0 };
+      outerCoupling = if (idx < 11) { psi } else { 0.0 };
       guardianIdx = idx % GUARDIAN_COUNT;
       energy = 1.0;
       lastUpdate = 0;
@@ -602,7 +602,7 @@ module {
     {
       index = idx;
       level = 0.0;
-      threshold = if (idx < thresholds.size()) { thresholds[idx] } else { ψ };
+      threshold = if (idx < thresholds.size()) { thresholds[idx] } else { psi };
       triggered = false;
       autoResponseType = "";
       responseStrength = 0.0;
@@ -632,7 +632,7 @@ module {
       index = idx;
       intensity = intensity;
       phase = τ * Float.fromInt(idx) / 9.0;
-      frequency = φ * Float.fromInt(idx + 1) / 9.0;
+      frequency = phi * Float.fromInt(idx + 1) / 9.0;
       suppressedBy = [];
       amplifiedBy = [];
       lastExpressed = 0;
@@ -644,7 +644,7 @@ module {
     {
       perceptionWeight = 1.0;
       cognitionWeight = ψ;
-      actionWeight = ψ * ψ;
+      actionWeight = psi * ψ;
       currentPhase = #Perception;
       phaseProgress = 0.0;
       perceptionOutput = [];

@@ -29,7 +29,7 @@
 // ║  WHY FIBONACCI?                                                          ║
 // ║    - Cone mosaic follows golden-angle packing (137.5°)                   ║
 // ║    - Retinal ganglion spacing approximates Fibonacci spiral              ║
-// ║    - Receptive field sizes scale by φ from fovea to periphery           ║
+// ║    - Receptive field sizes scale by phi from fovea to periphery           ║
 // ║    - Cortical magnification follows φ^(-eccentricity)                   ║
 // ║    - Temporal integration windows are Fibonacci milliseconds             ║
 // ║                                                                          ║
@@ -50,12 +50,12 @@ module {
   // ╚═══════════════���════════════════════════════════════════════════════════╝
   
   // Golden ratio — appears everywhere in human vision
-  public let φ : Float = 1.6180339887498948482;
-  public let ψ : Float = 0.6180339887498948482;      // 1/φ = φ - 1
-  public let ψ² : Float = 0.3819660112501051518;    // Sovereign floor
+  public let phi : Float = 1.6180339887498948482;
+  public let psi : Float = 0.6180339887498948482;      // 1/φ = phi - 1
+  public let psi² : Float = 0.3819660112501051518;    // Sovereign floor
   
   // π and e
-  public let π : Float = 3.1415926535897932385;
+  public let pi : Float = 3.1415926535897932385;
   public let τ : Float = 6.2831853071795864769;     // 2π
   public let e : Float = 2.7182818284590452354;
   
@@ -323,7 +323,7 @@ module {
   // ║                     FIBONACCI RECEPTIVE FIELD SCALING                  ║
   // ╚════════════════════════════════════════════════════════════════════════╝
   //
-  // Receptive fields scale by φ as you move from fovea to periphery.
+  // Receptive fields scale by phi as you move from fovea to periphery.
   // This is REAL — not an approximation. Nature optimizes with golden ratio.
   //
   public func receptiveFieldSize(eccentricityDeg: Float) : Float {
@@ -334,7 +334,7 @@ module {
   };
 
   // Cortical magnification factor (mm of cortex per degree)
-  // Follows M = M₀ × (1 + eccentricity/E₂)^(-1) where E₂ ≈ φ degrees
+  // Follows M = M₀ × (1 + eccentricity/E₂)^(-1) where E₂ ≈ phi degrees
   public func corticalMagnification(eccentricityDeg: Float) : Float {
     let M0 = 7.0;  // foveal magnification (mm/deg)
     let E2 = φ;    // half-magnitude eccentricity

@@ -68,11 +68,11 @@ module IncentiveService {
   public let MAX_CONTRIBUTORS: Nat   = 1000;
 
   // Contribution type magnitudes (base pressure units)
-  public let BUILD_MAGNITUDE  : Float = PHI * PHI;         // φ² ≈ 2.618
-  public let CALL_MAGNITUDE   : Float = PHI;               // φ ≈ 1.618
-  public let GOVERN_MAGNITUDE : Float = PHI * PHI * PHI;  // φ³ ≈ 4.236
-  public let VERIFY_MAGNITUDE : Float = PHI * PHI;         // φ² ≈ 2.618
-  public let MEMORY_MAGNITUDE : Float = PHI;               // φ ≈ 1.618
+  public let BUILD_MAGNITUDE  : Float = PHI * PHI;         // phi2 ≈ 2.618
+  public let CALL_MAGNITUDE   : Float = PHI;               // phi ≈ 1.618
+  public let GOVERN_MAGNITUDE : Float = PHI * PHI * PHI;  // phi3 ≈ 4.236
+  public let VERIFY_MAGNITUDE : Float = PHI * PHI;         // phi2 ≈ 2.618
+  public let MEMORY_MAGNITUDE : Float = PHI;               // phi ≈ 1.618
   public let GATE_MAGNITUDE   : Float = PHI_INV;           // 1/φ ≈ 0.618
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -123,11 +123,11 @@ module IncentiveService {
   /// Tiered recognition based on cumulative pressure (not arbitrary rank)
   public type SovereignTier = {
     #Seed;          // 0 < pressure < φ
-    #Root;          // φ ≤ pressure < φ²
-    #Trunk;         // φ² ≤ pressure < φ³
-    #Branch;        // φ³ ≤ pressure < φ⁴
-    #Canopy;        // φ⁴ ≤ pressure < φ⁵
-    #Crown;         // φ⁵ ≤ pressure < φ⁶
+    #Root;          // phi ≤ pressure < φ²
+    #Trunk;         // phi2 ≤ pressure < φ³
+    #Branch;        // phi3 ≤ pressure < φ⁴
+    #Canopy;        // phi4 ≤ pressure < φ⁵
+    #Crown;         // phi5 ≤ pressure < φ⁶
     #Sovereign;     // pressure ≥ φ⁶
   };
 

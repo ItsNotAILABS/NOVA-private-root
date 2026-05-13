@@ -39,8 +39,8 @@ module {
   // ║                     SACRED CONSTANTS                                   ║
   // ╚════════════════════════════════════════════════════════════════════════╝
   
-  public let φ : Float = 1.6180339887498948482;
-  public let ψ : Float = 0.6180339887498948482;
+  public let phi : Float = 1.6180339887498948482;
+  public let psi : Float = 0.6180339887498948482;
   public let τ : Float = 6.2831853071795864769;
   public let S₀ : Float = 0.3819660112501051518;
 
@@ -298,32 +298,32 @@ module {
       
       // ═══ KURAMOTO ↔ ALL SHELLS ═══
       // Phase coupling across all 12 shells
-      { fromEngine = 11; toEngine = 30; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 11; toEngine = 31; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 11; toEngine = 32; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 11; toEngine = 33; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 11; toEngine = 34; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 11; toEngine = 35; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 11; toEngine = 36; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 11; toEngine = 37; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 11; toEngine = 38; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 11; toEngine = 39; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 11; toEngine = 40; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 11; toEngine = 41; connectionType = #PhaseSync; strength = ψ },
+      { fromEngine = 11; toEngine = 30; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 11; toEngine = 31; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 11; toEngine = 32; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 11; toEngine = 33; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 11; toEngine = 34; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 11; toEngine = 35; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 11; toEngine = 36; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 11; toEngine = 37; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 11; toEngine = 38; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 11; toEngine = 39; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 11; toEngine = 40; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 11; toEngine = 41; connectionType = #PhaseSync; strength = psi },
       
       // ═══ SHELL CASCADE ═══
       // Shells feed into each other: 0→1→2→...→11
-      { fromEngine = 30; toEngine = 31; connectionType = #DataFlow; strength = φ },
-      { fromEngine = 31; toEngine = 32; connectionType = #DataFlow; strength = φ },
-      { fromEngine = 32; toEngine = 33; connectionType = #DataFlow; strength = φ },
-      { fromEngine = 33; toEngine = 34; connectionType = #DataFlow; strength = φ },
-      { fromEngine = 34; toEngine = 35; connectionType = #DataFlow; strength = φ },
-      { fromEngine = 35; toEngine = 36; connectionType = #DataFlow; strength = φ },
-      { fromEngine = 36; toEngine = 37; connectionType = #DataFlow; strength = φ },
-      { fromEngine = 37; toEngine = 38; connectionType = #DataFlow; strength = φ },
-      { fromEngine = 38; toEngine = 39; connectionType = #DataFlow; strength = φ },
-      { fromEngine = 39; toEngine = 40; connectionType = #DataFlow; strength = φ },
-      { fromEngine = 40; toEngine = 41; connectionType = #DataFlow; strength = φ },
+      { fromEngine = 30; toEngine = 31; connectionType = #DataFlow; strength = phi },
+      { fromEngine = 31; toEngine = 32; connectionType = #DataFlow; strength = phi },
+      { fromEngine = 32; toEngine = 33; connectionType = #DataFlow; strength = phi },
+      { fromEngine = 33; toEngine = 34; connectionType = #DataFlow; strength = phi },
+      { fromEngine = 34; toEngine = 35; connectionType = #DataFlow; strength = phi },
+      { fromEngine = 35; toEngine = 36; connectionType = #DataFlow; strength = phi },
+      { fromEngine = 36; toEngine = 37; connectionType = #DataFlow; strength = phi },
+      { fromEngine = 37; toEngine = 38; connectionType = #DataFlow; strength = phi },
+      { fromEngine = 38; toEngine = 39; connectionType = #DataFlow; strength = phi },
+      { fromEngine = 39; toEngine = 40; connectionType = #DataFlow; strength = phi },
+      { fromEngine = 40; toEngine = 41; connectionType = #DataFlow; strength = phi },
       
       // ═══ HEBBIAN ↔ SHELL 3 (MEMORY) ═══
       // Hebbian engine lives in Shell 3
@@ -336,17 +336,17 @@ module {
       { fromEngine = 34; toEngine = 702; connectionType = #FeedbackLoop; strength = 1.0 },
       
       // ═══ PATTERN ENGINES → RECOGNITION ═══
-      { fromEngine = 400; toEngine = 401; connectionType = #DataFlow; strength = φ },
-      { fromEngine = 401; toEngine = 402; connectionType = #DataFlow; strength = ψ },
-      { fromEngine = 401; toEngine = 403; connectionType = #DataFlow; strength = ψ },
-      { fromEngine = 402; toEngine = 404; connectionType = #DataFlow; strength = ψ },
-      { fromEngine = 403; toEngine = 404; connectionType = #DataFlow; strength = ψ },
-      { fromEngine = 404; toEngine = 405; connectionType = #DataFlow; strength = ψ },
+      { fromEngine = 400; toEngine = 401; connectionType = #DataFlow; strength = phi },
+      { fromEngine = 401; toEngine = 402; connectionType = #DataFlow; strength = psi },
+      { fromEngine = 401; toEngine = 403; connectionType = #DataFlow; strength = psi },
+      { fromEngine = 402; toEngine = 404; connectionType = #DataFlow; strength = psi },
+      { fromEngine = 403; toEngine = 404; connectionType = #DataFlow; strength = psi },
+      { fromEngine = 404; toEngine = 405; connectionType = #DataFlow; strength = psi },
       
       // ═══ INNER WORKFLOW ═══
       // Perception → Cognition → Action (φ-timed)
       { fromEngine = 500; toEngine = 32; connectionType = #DataFlow; strength = 1.0 },    // → Perception shell
-      { fromEngine = 500; toEngine = 35; connectionType = #DataFlow; strength = ψ },      // → Cognition shell
+      { fromEngine = 500; toEngine = 35; connectionType = #DataFlow; strength = psi },      // → Cognition shell
       { fromEngine = 500; toEngine = 37; connectionType = #DataFlow; strength = S₀ },     // → Motor shell
       
       // ═══ OUTER WORKFLOW ═══
@@ -357,55 +357,55 @@ module {
       { fromEngine = 501; toEngine = 25; connectionType = #DataFlow; strength = 0.050 },  // → Learning
       
       // ═══ DEFENSE ENGINES → VAEL FAMILY ═══
-      { fromEngine = 200; toEngine = 201; connectionType = #CoherenceLink; strength = φ },
-      { fromEngine = 201; toEngine = 202; connectionType = #CoherenceLink; strength = φ },
-      { fromEngine = 202; toEngine = 203; connectionType = #CoherenceLink; strength = φ },
-      { fromEngine = 203; toEngine = 204; connectionType = #CoherenceLink; strength = φ },
-      { fromEngine = 204; toEngine = 205; connectionType = #CoherenceLink; strength = φ },
-      { fromEngine = 205; toEngine = 206; connectionType = #CoherenceLink; strength = φ },
+      { fromEngine = 200; toEngine = 201; connectionType = #CoherenceLink; strength = phi },
+      { fromEngine = 201; toEngine = 202; connectionType = #CoherenceLink; strength = phi },
+      { fromEngine = 202; toEngine = 203; connectionType = #CoherenceLink; strength = phi },
+      { fromEngine = 203; toEngine = 204; connectionType = #CoherenceLink; strength = phi },
+      { fromEngine = 204; toEngine = 205; connectionType = #CoherenceLink; strength = phi },
+      { fromEngine = 205; toEngine = 206; connectionType = #CoherenceLink; strength = phi },
       { fromEngine = 200; toEngine = 207; connectionType = #DataFlow; strength = 1.0 },   // VAEL → DURA-VAEL
       { fromEngine = 204; toEngine = 207; connectionType = #DataFlow; strength = 1.0 },   // DURA → DURA-VAEL
       
       // ═══ VETUS → ARES ═══
-      { fromEngine = 210; toEngine = 211; connectionType = #ControlSignal; strength = φ },
+      { fromEngine = 210; toEngine = 211; connectionType = #ControlSignal; strength = phi },
       
       // ═══ MACRO SPHERE KURAMOTO ═══
       // All 14 macro nodes coupled through NOVA
-      { fromEngine = 50; toEngine = 62; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 51; toEngine = 62; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 52; toEngine = 62; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 53; toEngine = 62; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 54; toEngine = 62; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 55; toEngine = 62; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 56; toEngine = 62; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 57; toEngine = 62; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 58; toEngine = 62; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 59; toEngine = 62; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 60; toEngine = 62; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 61; toEngine = 62; connectionType = #PhaseSync; strength = ψ },
-      { fromEngine = 63; toEngine = 62; connectionType = #PhaseSync; strength = ψ },
+      { fromEngine = 50; toEngine = 62; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 51; toEngine = 62; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 52; toEngine = 62; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 53; toEngine = 62; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 54; toEngine = 62; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 55; toEngine = 62; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 56; toEngine = 62; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 57; toEngine = 62; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 58; toEngine = 62; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 59; toEngine = 62; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 60; toEngine = 62; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 61; toEngine = 62; connectionType = #PhaseSync; strength = psi },
+      { fromEngine = 63; toEngine = 62; connectionType = #PhaseSync; strength = psi },
       
       // ═══ ENTANGLA ROUTING ═══
       // ENTANGLA routes messages between all macro nodes
       { fromEngine = 62; toEngine = 63; connectionType = #DataFlow; strength = 1.0 },
-      { fromEngine = 63; toEngine = 50; connectionType = #Broadcast; strength = ψ },
-      { fromEngine = 63; toEngine = 51; connectionType = #Broadcast; strength = ψ },
-      { fromEngine = 63; toEngine = 52; connectionType = #Broadcast; strength = ψ },
-      { fromEngine = 63; toEngine = 53; connectionType = #Broadcast; strength = ψ },
-      { fromEngine = 63; toEngine = 54; connectionType = #Broadcast; strength = ψ },
-      { fromEngine = 63; toEngine = 55; connectionType = #Broadcast; strength = ψ },
-      { fromEngine = 63; toEngine = 56; connectionType = #Broadcast; strength = ψ },
-      { fromEngine = 63; toEngine = 57; connectionType = #Broadcast; strength = ψ },
-      { fromEngine = 63; toEngine = 58; connectionType = #Broadcast; strength = ψ },
-      { fromEngine = 63; toEngine = 59; connectionType = #Broadcast; strength = ψ },
-      { fromEngine = 63; toEngine = 60; connectionType = #Broadcast; strength = ψ },
-      { fromEngine = 63; toEngine = 61; connectionType = #Broadcast; strength = ψ },
+      { fromEngine = 63; toEngine = 50; connectionType = #Broadcast; strength = psi },
+      { fromEngine = 63; toEngine = 51; connectionType = #Broadcast; strength = psi },
+      { fromEngine = 63; toEngine = 52; connectionType = #Broadcast; strength = psi },
+      { fromEngine = 63; toEngine = 53; connectionType = #Broadcast; strength = psi },
+      { fromEngine = 63; toEngine = 54; connectionType = #Broadcast; strength = psi },
+      { fromEngine = 63; toEngine = 55; connectionType = #Broadcast; strength = psi },
+      { fromEngine = 63; toEngine = 56; connectionType = #Broadcast; strength = psi },
+      { fromEngine = 63; toEngine = 57; connectionType = #Broadcast; strength = psi },
+      { fromEngine = 63; toEngine = 58; connectionType = #Broadcast; strength = psi },
+      { fromEngine = 63; toEngine = 59; connectionType = #Broadcast; strength = psi },
+      { fromEngine = 63; toEngine = 60; connectionType = #Broadcast; strength = psi },
+      { fromEngine = 63; toEngine = 61; connectionType = #Broadcast; strength = psi },
       
       // ═══ ECONOMIC ENGINES ═══
-      { fromEngine = 300; toEngine = 301; connectionType = #DataFlow; strength = φ },     // FORMA → Mining
-      { fromEngine = 301; toEngine = 302; connectionType = #DataFlow; strength = φ },     // Mining → Profit streams
-      { fromEngine = 302; toEngine = 303; connectionType = #DataFlow; strength = φ },     // Streams → Treasury
-      { fromEngine = 303; toEngine = 304; connectionType = #DataFlow; strength = φ },     // Treasury → Royalty
+      { fromEngine = 300; toEngine = 301; connectionType = #DataFlow; strength = phi },     // FORMA → Mining
+      { fromEngine = 301; toEngine = 302; connectionType = #DataFlow; strength = phi },     // Mining → Profit streams
+      { fromEngine = 302; toEngine = 303; connectionType = #DataFlow; strength = phi },     // Streams → Treasury
+      { fromEngine = 303; toEngine = 304; connectionType = #DataFlow; strength = phi },     // Treasury → Royalty
       
       // ═══ JUBILEE ↔ EVERYTHING ═══
       // JUBILEE resets quantum memory, fires L-121, logs to ANIMA
@@ -414,7 +414,7 @@ module {
       { fromEngine = 503; toEngine = 602; connectionType = #ControlSignal; strength = 1.0 }, // → PROMETHEUS
       
       // ═══ SACESI → META SHELL ═══
-      { fromEngine = 505; toEngine = 41; connectionType = #DataFlow; strength = φ },
+      { fromEngine = 505; toEngine = 41; connectionType = #DataFlow; strength = phi },
       
       // ═══ COHERENCE → DOCTRINE ═══
       { fromEngine = 12; toEngine = 601; connectionType = #DataFlow; strength = 1.0 },
@@ -1257,7 +1257,7 @@ module {
   //
   public func tickOrchestration(state : EngineWiringState, beat : Nat) : EngineWiringState {
     // Step 1: Kuramoto coupling (φ-weighted)
-    let coupled = kuramotoCoupleEngines(state, φ * 0.1);
+    let coupled = kuramotoCoupleEngines(state, phi * 0.1);
     
     // Step 2: Transmit phase/coherence through fibers
     let transmitted = transmitThroughFibers(coupled, beat);

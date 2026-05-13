@@ -102,14 +102,14 @@ module {
   // ════════════════════════════════════════════════════════════════════════════════════════
 
   // Universal Constants
-  public let φ : Float = 1.6180339887498948482;           // Golden ratio
-  public let ψ : Float = 0.6180339887498948482;           // Inverse golden ratio (1/φ)
-  public let π : Float = 3.1415926535897932385;           // Pi
+  public let phi : Float = 1.6180339887498948482;           // Golden ratio
+  public let psi : Float = 0.6180339887498948482;           // Inverse golden ratio (1/φ)
+  public let pi : Float = 3.1415926535897932385;           // Pi
   public let τ : Float = 6.2831853071795864769;           // Tau (2π)
   public let e : Float = 2.7182818284590452354;           // Euler's number
 
   // Medina Sovereign Constants
-  public let PHI_MEDINA : Float = 2.97442179;             // φ × e^(1/φ) — Growth amplifier
+  public let PHI_MEDINA : Float = 2.97442179;             // phi × e^(1/φ) — Growth amplifier
   public let OMEGA_MEDINA : Float = 2.11185;              // 2π/Φ_M — Resonance frequency
   public let TAU_EMERGENCE : Float = 0.618033988749;      // Emergence threshold (1/φ)
 
@@ -285,7 +285,7 @@ module {
 
     // Kuramoto state
     orderParameter : Float;                // r value
-    meanPhase : Float;                     // ψ value
+    meanPhase : Float;                     // psi value
 
     // Time integration
     immediateState : Float;
@@ -718,7 +718,7 @@ module {
   /// Compute OMNIS coherence from all subsystems
   func computeOMNIS(state : UnifiedOrganismState) : Float {
     // OMNIS = weighted average of all scale values
-    let weights : [Float] = [1.0, φ, φ * φ, φ * φ * φ, φ, 1.0, ψ];  // Emphasize middle scales
+    let weights : [Float] = [1.0, φ, phi * φ, phi * phi * φ, φ, 1.0, ψ];  // Emphasize middle scales
     let values : [Float] = [
       state.scaleQuantum,
       state.scaleSynaptic,
@@ -748,7 +748,7 @@ module {
     let baseOMNIS = weightedSum / totalWeight;
     let subsystemOMNIS = convergenceContrib + agiContrib + webContrib + reproContrib + sacrificeContrib;
 
-    _clamp((baseOMNIS * φ + subsystemOMNIS) / (φ + 1.0), 0.0, 1.0)
+    _clamp((baseOMNIS * phi + subsystemOMNIS) / (φ + 1.0), 0.0, 1.0)
   };
 
   // ════════════════════════════════════════════════════════════════════════════════════════

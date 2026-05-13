@@ -1,4 +1,13 @@
-// PARALLAX DRONE SWARM SIMULATION — QUANTUM COGNITIVE LAYER
+// ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+// ║  COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ. ALL RIGHTS RESERVED.                                    ║
+// ║  Owner: Alfredo Medina Hernandez · Dallas TX · MedinaSITech@outlook.com                                  ║
+// ║  Framework: Medina Doctrine — Native Nova Protocol                                                        ║
+// ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+//
+// SWARM QUANTUM — QUANTUM COGNITIVE INTELLIGENCE ENGINE (BUILD №46)
+// EVERYTHING IS INTELLIGENCE — This is NOT simulation. This is REAL quantum math.
+// Physics = REAL math and geometry. Golden numbers are REAL. No fake simulation.
+//
 // Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
 // Sovereign Cognitive Swarm Engine. All doctrine attributed herein.
 // Quantum models, Four-360 mind architecture, Recognition Memory,
@@ -72,7 +81,7 @@ actor SwarmQuantum {
     rSwarm           : Float;
     jDrift           : Float;
     // Semantic label for this memory
-    label            : Text;
+    lbl            : Text;
     // Present-moment weight: decays as beats pass (recent = more salient)
     nowWeight        : Float;
   };
@@ -309,10 +318,9 @@ actor SwarmQuantum {
   // Drive the quantum layer forward by one beat given current swarm metrics.
   // rSwarm and jDrift are passed from the main swarm_brain tick.
   public func quantumTick(
-    rSwarm : Float;
-    jDrift : Float;
-    beat   : Nat;
-  ) : async QuantumSwarmMetrics {
+    rSwarm : Float,
+    jDrift : Float,
+    beat   : Nat,) : async QuantumSwarmMetrics {
     qBeat := beat;
     let n  = qDroneCount;
     if (n == 0) return {
@@ -471,15 +479,15 @@ actor SwarmQuantum {
 
   // Encode the current four-channel state into recognition memory.
   public func encodeMemory(
-    beat   : Nat;
-    alpha  : Float;
-    beta   : Float;
-    gamma  : Float;
-    delta  : Float;
-    conv   : Float;
-    rSwarm : Float;
-    jDrift : Float;
-    label  : Text;
+    beat   : Nat,
+    alpha  : Float,
+    beta   : Float,
+    gamma  : Float,
+    delta  : Float,
+    conv   : Float,
+    rSwarm : Float,
+    jDrift : Float,
+    lbl  : Text,
   ) : async Nat {
     ensureRecCap();
     let idx          = recNextIdx % REC_CAP;
@@ -493,7 +501,7 @@ actor SwarmQuantum {
     recConv[idx]     := conv;
     recRSwarm[idx]   := rSwarm;
     recJDrift[idx]   := jDrift;
-    recLabel[idx]    := label;
+    recLabel[idx]    := lbl;
     recNowWeight[idx] := 1.0; // fully present when just encoded
     let seq   = recTotal;
     recNextIdx := (recNextIdx + 1) % REC_CAP;
@@ -518,14 +526,14 @@ actor SwarmQuantum {
   // to the query vector, weighted by nowWeight (recent memories are more salient).
   // Returns the best match's seq, label, similarity score, and nowWeight.
   public query func recognizeState(
-    alpha : Float;
-    beta  : Float;
-    gamma : Float;
-    delta : Float;
-  ) : async { seq : Nat; label : Text; recognitionScore : Float; nowWeight : Float } {
+    alpha : Float,
+    beta  : Float,
+    gamma : Float,
+    delta : Float,
+  ) : async { seq : Nat; lbl : Text; recognitionScore : Float; nowWeight : Float } {
     let total = if (recTotal < REC_CAP) recTotal else REC_CAP;
     if (total == 0) return {
-      seq = 0; label = "NONE"; recognitionScore = 0.0; nowWeight = 0.0
+      seq = 0; lbl = "NONE"; recognitionScore = 0.0; nowWeight = 0.0
     };
     var bestIdx   : Nat   = 0;
     var bestScore : Float = -1.0;
@@ -542,7 +550,7 @@ actor SwarmQuantum {
     };
     {
       seq              = recSeq[bestIdx];
-      label            = recLabel[bestIdx];
+      lbl            = recLabel[bestIdx];
       recognitionScore = bestScore;
       nowWeight        = recNowWeight[bestIdx];
     }
@@ -563,7 +571,7 @@ actor SwarmQuantum {
         convergenceScore = recConv[i];
         rSwarm           = recRSwarm[i];
         jDrift           = recJDrift[i];
-        label            = recLabel[i];
+        lbl            = recLabel[i];
         nowWeight        = recNowWeight[i];
       }
     })

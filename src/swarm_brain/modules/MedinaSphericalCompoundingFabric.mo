@@ -115,8 +115,8 @@ module MedinaSphericalCompoundingFabric {
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   
   public let PHI : Float = 1.6180339887498948482;                  // Golden ratio φ
-  public let PHI_INV : Float = 0.6180339887498948482;              // 1/φ = φ - 1
-  public let PHI_SQUARED : Float = 2.6180339887498948482;          // φ² = φ + 1
+  public let PHI_INV : Float = 0.6180339887498948482;              // 1/φ = phi - 1
+  public let PHI_SQUARED : Float = 2.6180339887498948482;          // phi2 = phi + 1
   public let PHI_MEDINA : Float = 2.97442179;                      // Medina's golden harmonic
   public let OMEGA_MEDINA : Float = 2.11185;                       // Medina's resonance frequency
   public let TAU_EMERGENCE : Float = 0.618033988749;               // Emergence threshold (1/φ)
@@ -341,7 +341,7 @@ module MedinaSphericalCompoundingFabric {
     oscillators       : [KuramotoOscillator];  // N oscillators
     globalCoupling    : Float;                 // Global K
     orderParam        : Float;                 // r = |1/N Σ exp(i·θⱼ)| ∈ [0,1]
-    meanPhase         : Float;                 // ψ = arg(Σ exp(i·θⱼ))
+    meanPhase         : Float;                 // psi = arg(Σ exp(i·θⱼ))
     beatNum           : Nat;
     syncHistory       : [Float];               // Last 100 r values
     criticalK         : Float;                 // Phase transition threshold
@@ -353,7 +353,7 @@ module MedinaSphericalCompoundingFabric {
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   // KURAMOTO ORDER PARAMETER — Global synchronization measure
   // r = |1/N Σⱼ exp(i·θⱼ)| = √((Σcos θⱼ)² + (Σsin θⱼ)²) / N
-  // ψ = atan2(Σsin θⱼ, Σcos θⱼ)
+  // psi = atan2(Σsin θⱼ, Σcos θⱼ)
   // ─────────────────────────────────────────────────────────────────────────────────────────────────────────
   
   public func computeKuramotoOrderParameter(oscs : [KuramotoOscillator]) : (Float, Float) {

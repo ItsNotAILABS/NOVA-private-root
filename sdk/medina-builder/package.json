@@ -1,0 +1,13 @@
+{
+  "name": "@medina/medina-builder",
+  "version": "1.0.0",
+  "description": "Builder SDK — SDK that builds other SDKs and AI entities",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "private": true,
+  "author": "Alfredo Medina Hernandez",
+  "license": "PROPRIETARY"
+}

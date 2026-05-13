@@ -25,7 +25,7 @@
 //   CHRONO at 0.001 Hz — Earth free oscillation floor, Pc5 geomagnetic micropulsations. The SOVEREIGN GROUND.
 //   VERITAS at 0.1 Hz — HRV coherence frequency, cerebrospinal fluid pulse. The BIOLOGICAL GROUND.
 //   BRAIN at 7.83 Hz — Schumann fundamental, theta-alpha boundary. The RECEIVE CARRIER.
-//   FLUX at 12.67 Hz — 7.83 × φ exactly. First phi-scaled node above the Schumann fundamental.
+//   FLUX at 12.67 Hz — 7.83 × phi exactly. First phi-scaled node above the Schumann fundamental.
 //   RESONEX at 20.5 Hz — 7.83 × φ². Confirms against Schumann 3rd harmonic at 20.3 Hz.
 //   QMEM at 33.1 Hz — 7.83 × φ³. Confirms against Schumann 5th harmonic at 33 Hz. Gamma entry.
 //   AXIS at 40 Hz — GAMMA_BINDING. Every OMNIS event, every emergence check. Information becomes knowing.

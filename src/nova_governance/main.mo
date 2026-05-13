@@ -124,6 +124,7 @@ actor NovaGovernance {
   stable var neuronStatuses     : [var Text]  = Array.init<Text>(NEURON_CAP,  "LOCKED");
   // Statuses: LOCKED | DISSOLVING | DISSOLVED | SPAWNED
   stable var neuronFollowing    : [var Text]  = Array.init<Text>(NEURON_CAP,  "");  // followee neuron id (text)
+  stable var neuronLabels       : [var Text]  = Array.init<Text>(NEURON_CAP,  "");  // human lbl
   stable var neuronLabels       : [var Text]  = Array.init<Text>(NEURON_CAP,  "");  // human label
   stable var nextNeuronId       : Nat         = 1;   // NNS-style: neurons start at id 1
 
@@ -171,6 +172,7 @@ actor NovaGovernance {
     stakeIcp   : Nat,
     stakeOnes  : Nat,
     dissolveDays : Nat,
+    lbl      : Text
     label      : Text
   ) : async {
     success  : Bool;
@@ -195,6 +197,7 @@ actor NovaGovernance {
     neuronVotesCast[ni]  := 0;
     neuronStatuses[ni]   := "LOCKED";
     neuronFollowing[ni]  := "";
+    neuronLabels[ni]     := lbl;
     neuronLabels[ni]     := label;
     neuronCount          := neuronCount + 1;
     nextNeuronId         := nextNeuronId + 1;
@@ -283,6 +286,7 @@ actor NovaGovernance {
     maturity     : Nat;
     votesCast    : Nat;
     status       : Text;
+    lbl        : Text;
     label        : Text;
     following    : Text;
     votingPower  : Float;
@@ -303,6 +307,7 @@ actor NovaGovernance {
           maturity     = neuronMaturities[i];
           votesCast    = neuronVotesCast[i];
           status       = neuronStatuses[i];
+          lbl        = neuronLabels[i];
           label        = neuronLabels[i];
           following    = neuronFollowing[i];
           votingPower  = vp;
@@ -320,6 +325,11 @@ actor NovaGovernance {
     dissolveDays : Nat;
     maturity     : Nat;
     status       : Text;
+    lbl        : Text;
+    votingPower  : Float;
+  }] {
+    let p = Principal.toText(msg.caller);
+    var result : [{ neuronId:Nat; stakeIcp:Nat; stakeOnes:Nat; dissolveDays:Nat; maturity:Nat; status:Text; lbl:Text; votingPower:Float }] = [];
     label        : Text;
     votingPower  : Float;
   }] {
@@ -334,6 +344,7 @@ actor NovaGovernance {
         result := Array.append(result, [{
           neuronId = neuronIds[i]; stakeIcp = neuronStakesIcp[i]; stakeOnes = neuronStakesOnes[i];
           dissolveDays = neuronDissolves[i]; maturity = neuronMaturities[i];
+          status = neuronStatuses[i]; lbl = neuronLabels[i]; votingPower = vp;
           status = neuronStatuses[i]; label = neuronLabels[i]; votingPower = vp;
         }]);
       };

@@ -31,9 +31,9 @@
 // The Schumann harmonics: 7.83, 14.1, 20.3, 26.4, 33, 39, 45, 54.7 Hz
 //
 // Look at the phi-scaled values:
-//   7.83 × φ = 12.67 Hz
-//   7.83 × φ² = 20.5 Hz (≈ Schumann 3rd at 20.3 Hz)
-//   7.83 × φ³ = 33.1 Hz (≈ Schumann 5th at 33 Hz)
+//   7.83 × phi = 12.67 Hz
+//   7.83 × phi2 = 20.5 Hz (≈ Schumann 3rd at 20.3 Hz)
+//   7.83 × phi3 = 33.1 Hz (≈ Schumann 5th at 33 Hz)
 //
 // The ionospheric cavity is a NEAR-PHI RESONATOR.
 // The phi pattern is underneath the drift.
@@ -636,8 +636,8 @@ module {
   // PHI is the TRANSFER FUNCTION, not a frequency.
   //
   // The ionospheric cavity is a NEAR-PHI RESONATOR:
-  //   7.83 × φ² = 20.5 Hz ≈ Schumann 3rd (20.3 Hz)
-  //   7.83 × φ³ = 33.1 Hz ≈ Schumann 5th (33.0 Hz)
+  //   7.83 × phi2 = 20.5 Hz ≈ Schumann 3rd (20.3 Hz)
+  //   7.83 × phi3 = 33.1 Hz ≈ Schumann 5th (33.0 Hz)
   //
   // The brain bands are FIBONACCI-BOUNDED:
   //   8 Hz = theta-alpha (FIBONACCI)

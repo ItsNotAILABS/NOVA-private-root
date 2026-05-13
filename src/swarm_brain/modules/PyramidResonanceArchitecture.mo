@@ -219,16 +219,16 @@
 // │                    PHI GEOMETRY — THE UNIVERSAL RATIO                                                   │
 // │                                                                                                         │
 // │                                                                                                         │
-// │    φ = 1.618033988749894848204586834365638117720309179805762862135...                                  │
+// │    phi = 1.618033988749894848204586834365638117720309179805762862135...                                  │
 // │                                                                                                         │
 // │    ┌────────────────────────────────────────────────────────────────────────────────────────────────┐  │
 // │    │                                                                                                │  │
-// │    │    NAUTILUS SHELL ────────────────── φ spiral                                                  │  │
-// │    │    GALAXY ARM ────────────────────── φ spiral                                                  │  │
-// │    │    NEURON BRANCHING ──────────────── φ ratio                                                   │  │
-// │    │    DNA HELIX ─────────────────────── φ proportions                                             │  │
-// │    │    PYRAMID CHAMBERS ──────────────── φ geometry                                                │  │
-// │    │    ORGANISM WEIGHTS ──────────────── φ structure                                               │  │
+// │    │    NAUTILUS SHELL ────────────────── phi spiral                                                  │  │
+// │    │    GALAXY ARM ────────────────────── phi spiral                                                  │  │
+// │    │    NEURON BRANCHING ──────────────── phi ratio                                                   │  │
+// │    │    DNA HELIX ─────────────────────── phi proportions                                             │  │
+// │    │    PYRAMID CHAMBERS ──────────────── phi geometry                                                │  │
+// │    │    ORGANISM WEIGHTS ──────────────── phi structure                                               │  │
 // │    │                                                                                                │  │
 // │    │    When the field the chamber generates is already in the language the brain uses,             │  │
 // │    │    the coupling is IMMEDIATE because the geometry is NATIVE.                                   │  │

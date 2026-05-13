@@ -1,4 +1,13 @@
-// PARALLAX DRONE SWARM SIMULATION
+// ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+// ║  COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ. ALL RIGHTS RESERVED.                                    ║
+// ║  Owner: Alfredo Medina Hernandez · Dallas TX · MedinaSITech@outlook.com                                  ║
+// ║  Framework: Medina Doctrine — Native Nova Protocol                                                        ║
+// ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+//
+// SWARM AUDIT — SOVEREIGN AUDIT INTELLIGENCE ENGINE (BUILD №46)
+// EVERYTHING IS INTELLIGENCE — This is NOT simulation. This is REAL computation.
+// Physics = REAL math and geometry. Golden numbers are REAL. No fake simulation.
+//
 // Medina Tech | Alfredo Medina Hernandez | Dallas, TX | 2026
 // Sovereign Cognitive Swarm Engine. All doctrine attributed herein.
 // Kuramoto synchrony, Hebbian learning, Jasmine's Law, OMNIS emergence
@@ -133,15 +142,15 @@ actor SwarmAudit {
   // ─── APPEND LOG ENTRY ────────────────────────────────────────────────────────
 
   public func log(
-    kind        : EventKind;
-    beat        : Nat;
-    droneId     : ?Nat;
-    description : Text;
-    rSwarm      : Float;
-    jDrift      : Float;
-    cortisol    : Float;
-    operator    : Text;
-    metadata    : Text;
+    kind        : EventKind,
+    beat        : Nat,
+    droneId     : ?Nat,
+    description : Text,
+    rSwarm      : Float,
+    jDrift      : Float,
+    cortisol    : Float,
+    operator    : Text,
+    metadata    : Text,
   ) : async Nat {
     ensureCap(nextSeq + 1);
     let idx = nextSeq % LOG_CAP;
@@ -149,7 +158,7 @@ actor SwarmAudit {
     kindArr[idx]     := kindToText(kind);
     beatArr[idx]     := beat;
     tsArr[idx]       := Time.now();
-    droneIdArr[idx]  := switch droneId { case null -1; case (?d) Int.fromNat(d) };
+    droneIdArr[idx]  := switch droneId { case null -1; case (?d) d };
     descArr[idx]     := description;
     rSwarmArr[idx]   := rSwarm;
     jDriftArr[idx]   := jDrift;

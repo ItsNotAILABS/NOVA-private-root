@@ -24,7 +24,7 @@
 //   ILD = 20 × log₁₀(A_left / A_right)  [decibels]
 //   Encodes ELEVATION (vertical angle) in owls
 //   Owl's asymmetric ears: left ear higher, right ear lower
-//   ILD vs elevation: ILD = ILD_max × sin(φ)  where φ = elevation angle
+//   ILD vs elevation: ILD = ILD_max × sin(φ)  where phi = elevation angle
 //   Typical: ILD_max ≈ 30 dB (complete head shadow at high frequencies)
 //   ILD increases with frequency: head shadow larger relative to wavelength
 //   Neural computation: MSO → LSO → ICX (external nucleus of inferior colliculus)
@@ -156,7 +156,7 @@ module {
 
   public type SoundLocation = {
     azimuth_deg    : Float;    // θ horizontal angle (0=front, +right)
-    elevation_deg  : Float;    // φ vertical angle (+up)
+    elevation_deg  : Float;    // phi vertical angle (+up)
     distance_m     : Float;    // estimated distance
     confidence     : Float;    // [0,1] localization confidence
     itdEstimate    : Float;    // ITD used for azimuth
@@ -260,7 +260,7 @@ module {
   };
 
   // Elevation from ILD
-  // φ = arcsin(ILD / ILD_max)
+  // phi = arcsin(ILD / ILD_max)
   public func elevationFromILD(ild_db : Float) : Float {
     let sinPhi = _clamp(ild_db / MAX_ILD_DB, -1.0, 1.0);
     Float.arctan2(sinPhi, _sqrt(1.0 - sinPhi * sinPhi)) * 180.0 / PI

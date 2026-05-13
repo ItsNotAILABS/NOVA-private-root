@@ -133,6 +133,7 @@ actor NexusPropagator {
     id          : Nat;
     substrate   : Text;
     address     : Text;   // substrate-specific address/identifier
+    lbl       : Text;   // human-readable lbl
     label       : Text;   // human-readable label
     weight      : Float;  // golden-ratio decay weight (0.0–1.0)
     registeredAt: Int;
@@ -220,6 +221,7 @@ actor NexusPropagator {
   public shared(msg) func registerNode(
     substrate : Text,
     address   : Text,
+    lbl     : Text
     label     : Text
   ) : async {
     id        : Nat;
@@ -242,6 +244,7 @@ actor NexusPropagator {
     nodeIds[idx]         := id;
     nodeSubstrates[idx]  := substrate;
     nodeAddresses[idx]   := address;
+    nodeLabels[idx]      := lbl;
     nodeLabels[idx]      := label;
     nodeWeights[idx]     := 1.0;  // will be recomputed below
     nodeRegAt[idx]       := now;
@@ -365,16 +368,19 @@ actor NexusPropagator {
     id         : Nat;
     substrate  : Text;
     address    : Text;
+    lbl      : Text;
     label      : Text;
     weight     : Float;
     touchCount : Nat;
     status     : Text;
   }] {
+    Array.tabulate<{ id:Nat; substrate:Text; address:Text; lbl:Text; weight:Float; touchCount:Nat; status:Text }>(nodeCount, func(i) {
     Array.tabulate<{ id:Nat; substrate:Text; address:Text; label:Text; weight:Float; touchCount:Nat; status:Text }>(nodeCount, func(i) {
       {
         id         = nodeIds[i];
         substrate  = nodeSubstrates[i];
         address    = nodeAddresses[i];
+        lbl      = nodeLabels[i];
         label      = nodeLabels[i];
         weight     = nodeWeights[i];
         touchCount = nodeTouchCounts[i];
@@ -385,6 +391,9 @@ actor NexusPropagator {
 
   // ── Get nodes by substrate ─────────────────────────────────────────────────
   public query func getNodesBySubstrate(substrate : Text) : async [{
+    id : Nat; lbl : Text; address : Text; weight : Float; status : Text;
+  }] {
+    var result : [{ id:Nat; lbl:Text; address:Text; weight:Float; status:Text }] = [];
     id : Nat; label : Text; address : Text; weight : Float; status : Text;
   }] {
     var result : [{ id:Nat; label:Text; address:Text; weight:Float; status:Text }] = [];
@@ -392,6 +401,7 @@ actor NexusPropagator {
     while (i < nodeCount and i < NODE_CAP) {
       if (nodeSubstrates[i] == substrate) {
         result := Array.append(result, [{
+          id = nodeIds[i]; lbl = nodeLabels[i]; address = nodeAddresses[i];
           id = nodeIds[i]; label = nodeLabels[i]; address = nodeAddresses[i];
           weight = nodeWeights[i]; status = nodeStatuses[i];
         }]);
@@ -455,6 +465,11 @@ actor NexusPropagator {
 
   // ── Top-N nodes by weight (highest weight = longest-standing presence) ─────
   public query func getTopNodesByWeight(n : Nat) : async [{
+    id : Nat; substrate : Text; lbl : Text; weight : Float;
+  }] {
+    let limit = if (n < nodeCount) n else nodeCount;
+    // Build index array sorted by weight descending (simple selection for up to n)
+    var sorted : [{ id:Nat; substrate:Text; lbl:Text; weight:Float }] = [];
     id : Nat; substrate : Text; label : Text; weight : Float;
   }] {
     let limit = if (n < nodeCount) n else nodeCount;
@@ -478,6 +493,7 @@ actor NexusPropagator {
       } else {
         sorted := Array.append(sorted, [{
           id = nodeIds[bestIdx]; substrate = nodeSubstrates[bestIdx];
+          lbl = nodeLabels[bestIdx]; weight = nodeWeights[bestIdx];
           label = nodeLabels[bestIdx]; weight = nodeWeights[bestIdx];
         }]);
         remaining := Array.tabulate<Bool>(nodeCount, func(i) {
@@ -500,6 +516,247 @@ actor NexusPropagator {
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 7 — TAMBO RELAY (QHAPAQ ÑAN WAYSTATIONS)
+  // Inspired by the Inca tambo system: waystations (tambos) along the road
+  // network (Qhapaq Ñan) where chasqui runners handed off messages and goods.
+  // This is store-and-forward messaging: when direct substrate routing fails,
+  // messages are buffered at the nearest tambo and forwarded when connectivity
+  // resumes. Each tambo is anchored to a specific substrate pair.
+  //
+  // Tambo lifecycle:
+  //   STORED    — message buffered at tambo, awaiting relay
+  //   FORWARDED — message successfully relayed to destination substrate
+  //   EXPIRED   — message TTL exceeded, dropped (chasqui did not arrive)
+  //
+  // Anatomy:
+  //   fromSubstrate — originating substrate (where the message came from)
+  //   toSubstrate   — destination substrate (where it needs to go)
+  //   payload       — the message content (arbitrary text/JSON-encoded)
+  //   routeId       — optional associated NEXUS route ID (0 = none)
+  //   ttlBeats      — time-to-live in nexusBeat units (0 = no expiry)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  let TAMBO_CAP : Nat = 512;
+
+  stable var tamboCount        : Nat = 0;
+  stable var tamboIds          : [var Nat]   = Array.init<Nat>(TAMBO_CAP,   0);
+  stable var tamboFromSubs     : [var Text]  = Array.init<Text>(TAMBO_CAP,  "");
+  stable var tamboToSubs       : [var Text]  = Array.init<Text>(TAMBO_CAP,  "");
+  stable var tamboPayloads     : [var Text]  = Array.init<Text>(TAMBO_CAP,  "");
+  stable var tamboRouteIds     : [var Nat]   = Array.init<Nat>(TAMBO_CAP,   0);
+  stable var tamboTtlBeats     : [var Nat]   = Array.init<Nat>(TAMBO_CAP,   0);
+  stable var tamboStoredBeats  : [var Nat]   = Array.init<Nat>(TAMBO_CAP,   0); // nexusBeat when stored
+  stable var tamboStatuses     : [var Text]  = Array.init<Text>(TAMBO_CAP,  "STORED");
+  // Statuses: STORED | FORWARDED | EXPIRED
+  stable var tamboCreatedAt    : [var Int]   = Array.init<Int>(TAMBO_CAP,   0);
+  stable var tamboForwardedAt  : [var Int]   = Array.init<Int>(TAMBO_CAP,   0);
+  stable var nextTamboId       : Nat         = 1;
+
+  // Tambo aggregate counters
+  stable var tamboStoredTotal    : Nat = 0;
+  stable var tamboForwardedTotal : Nat = 0;
+  stable var tamboExpiredTotal   : Nat = 0;
+  stable var tamboStoredCurrent  : Nat = 0;  // live count of STORED tambos (decremented on forward/expire)
+
+  func _findTambo(id : Nat) : ?Nat {
+    var i = 0;
+    while (i < tamboCount and i < TAMBO_CAP) {
+      if (tamboIds[i] == id) return ?i;
+      i += 1;
+    };
+    null
+  };
+
+  // ── Store a message at the tambo (when direct routing fails) ─────────────
+  public shared(msg) func storeTambo(
+    fromSubstrate : Text,
+    toSubstrate   : Text,
+    payload       : Text,
+    routeId       : Nat,   // 0 if not associated with a specific route
+    ttlBeats      : Nat    // 0 for no expiry; otherwise drops after N beats
+  ) : async { success : Bool; tamboId : Nat } {
+    requireAuthorized(msg.caller);
+    if (tamboCount >= TAMBO_CAP) return { success = false; tamboId = 0 };
+    if (not _isValidSubstrate(fromSubstrate) or not _isValidSubstrate(toSubstrate)) {
+      return { success = false; tamboId = 0 }
+    };
+
+    let i  = tamboCount;
+    let id = nextTamboId;
+    let now = Time.now();
+
+    tamboIds[i]         := id;
+    tamboFromSubs[i]    := fromSubstrate;
+    tamboToSubs[i]      := toSubstrate;
+    tamboPayloads[i]    := payload;
+    tamboRouteIds[i]    := routeId;
+    tamboTtlBeats[i]    := ttlBeats;
+    tamboStoredBeats[i] := nexusBeat;
+    tamboStatuses[i]    := "STORED";
+    tamboCreatedAt[i]   := now;
+    tamboForwardedAt[i] := 0;
+
+    tamboCount          := tamboCount + 1;
+    nextTamboId         := nextTamboId + 1;
+    tamboStoredTotal    := tamboStoredTotal + 1;
+    tamboStoredCurrent  := tamboStoredCurrent + 1;
+    nexusBeat           := nexusBeat + 1;
+
+    { success = true; tamboId = id }
+  };
+
+  // ── Forward a stored tambo message (connectivity resumed) ────────────────
+  public shared(msg) func forwardTambo(tamboId : Nat) : async {
+    success       : Bool;
+    status        : Text;
+    fromSubstrate : Text;
+    toSubstrate   : Text;
+  } {
+    requireAuthorized(msg.caller);
+    switch (_findTambo(tamboId)) {
+      case null { { success = false; status = "NOT_FOUND"; fromSubstrate = ""; toSubstrate = "" } };
+      case (?i) {
+        if (tamboStatuses[i] != "STORED") {
+          return { success = false; status = tamboStatuses[i]; fromSubstrate = tamboFromSubs[i]; toSubstrate = tamboToSubs[i] }
+        };
+        // Check TTL expiry
+        if (tamboTtlBeats[i] > 0 and nexusBeat > tamboStoredBeats[i] + tamboTtlBeats[i]) {
+          tamboStatuses[i]   := "EXPIRED";
+          tamboExpiredTotal  := tamboExpiredTotal + 1;
+          tamboStoredCurrent := if (tamboStoredCurrent > 0) tamboStoredCurrent - 1 else 0;
+          nexusBeat          := nexusBeat + 1;
+          return { success = false; status = "EXPIRED"; fromSubstrate = tamboFromSubs[i]; toSubstrate = tamboToSubs[i] }
+        };
+        tamboStatuses[i]    := "FORWARDED";
+        tamboForwardedAt[i] := Time.now();
+        tamboForwardedTotal := tamboForwardedTotal + 1;
+        tamboStoredCurrent  := if (tamboStoredCurrent > 0) tamboStoredCurrent - 1 else 0;
+        nexusBeat           := nexusBeat + 1;
+        { success = true; status = "FORWARDED"; fromSubstrate = tamboFromSubs[i]; toSubstrate = tamboToSubs[i] }
+      };
+    }
+  };
+
+  // ── Expire stale tambos (called periodically to sweep expired messages) ───
+  // Sweeps all STORED tambos with exceeded TTL and marks them EXPIRED.
+  public shared(msg) func sweepExpiredTambos() : async { expiredCount : Nat } {
+    requireAuthorized(msg.caller);
+    var expired : Nat = 0;
+    var i = 0;
+    while (i < tamboCount and i < TAMBO_CAP) {
+      if (tamboStatuses[i] == "STORED" and tamboTtlBeats[i] > 0
+          and nexusBeat > tamboStoredBeats[i] + tamboTtlBeats[i]) {
+        tamboStatuses[i]  := "EXPIRED";
+        tamboExpiredTotal := tamboExpiredTotal + 1;
+        expired           += 1;
+      };
+      i += 1;
+    };
+    if (expired > 0) {
+      tamboStoredCurrent := if (tamboStoredCurrent > expired) tamboStoredCurrent - expired else 0;
+      nexusBeat          := nexusBeat + 1;
+    };
+    { expiredCount = expired }
+  };
+
+  // ── Query stored tambos for a destination substrate ───────────────────────
+  // Chasqui pattern: on arriving at a substrate, check what's waiting
+  public query func getTambosForSubstrate(toSubstrate : Text) : async [{
+    tamboId      : Nat;
+    fromSubstrate: Text;
+    payload      : Text;
+    routeId      : Nat;
+    storedBeats  : Nat;
+    ttlBeats     : Nat;
+    createdAt    : Int;
+  }] {
+    var result : [{ tamboId:Nat; fromSubstrate:Text; payload:Text; routeId:Nat; storedBeats:Nat; ttlBeats:Nat; createdAt:Int }] = [];
+    var i = 0;
+    while (i < tamboCount and i < TAMBO_CAP) {
+      if (tamboToSubs[i] == toSubstrate and tamboStatuses[i] == "STORED") {
+        result := Array.append(result, [{
+          tamboId       = tamboIds[i];
+          fromSubstrate = tamboFromSubs[i];
+          payload       = tamboPayloads[i];
+          routeId       = tamboRouteIds[i];
+          storedBeats   = tamboStoredBeats[i];
+          ttlBeats      = tamboTtlBeats[i];
+          createdAt     = tamboCreatedAt[i];
+        }]);
+      };
+      i += 1;
+    };
+    result
+  };
+
+  // ── Get a specific tambo record ───────────────────────────────────────────
+  public query func getTambo(tamboId : Nat) : async ?{
+    tamboId      : Nat;
+    fromSubstrate: Text;
+    toSubstrate  : Text;
+    payload      : Text;
+    routeId      : Nat;
+    ttlBeats     : Nat;
+    storedBeats  : Nat;
+    status       : Text;
+    createdAt    : Int;
+    forwardedAt  : Int;
+  } {
+    switch (_findTambo(tamboId)) {
+      case null null;
+      case (?i) {
+        ?{
+          tamboId       = tamboIds[i];
+          fromSubstrate = tamboFromSubs[i];
+          toSubstrate   = tamboToSubs[i];
+          payload       = tamboPayloads[i];
+          routeId       = tamboRouteIds[i];
+          ttlBeats      = tamboTtlBeats[i];
+          storedBeats   = tamboStoredBeats[i];
+          status        = tamboStatuses[i];
+          createdAt     = tamboCreatedAt[i];
+          forwardedAt   = tamboForwardedAt[i];
+        }
+      };
+    }
+  };
+
+  // ── Tambo mesh overview ───────────────────────────────────────────────────
+  public query func getTamboMeshStatus() : async {
+    totalTambos     : Nat;
+    storedCount     : Nat;
+    forwardedTotal  : Nat;
+    expiredTotal    : Nat;
+    pendingBySubstrate: [{
+      substrate: Text;
+      pending  : Nat;
+    }];
+    description     : Text;
+  } {
+    // Use stable counter for O(1) stored count
+    let substrates : [Text] = ["ICP", "BLOCKCHAIN", "EDGE", "CLOUD", "PHANTOM"];
+    let pending = Array.tabulate<{ substrate:Text; pending:Nat }>(5, func(si) {
+      let sub = substrates[si];
+      var cnt : Nat = 0;
+      var j = 0;
+      while (j < tamboCount and j < TAMBO_CAP) {
+        if (tamboToSubs[j] == sub and tamboStatuses[j] == "STORED") { cnt += 1 };
+        j += 1;
+      };
+      { substrate = sub; pending = cnt }
+    });
+    {
+      totalTambos        = tamboCount;
+      storedCount        = tamboStoredCurrent;
+      forwardedTotal     = tamboForwardedTotal;
+      expiredTotal       = tamboExpiredTotal;
+      pendingBySubstrate = pending;
+      description        = "QHAPAQ ÑAN waystations — store-and-forward relay across 5 substrates";
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SECTION 8 — NEXUS STATUS
   // SECTION 7 — NEXUS STATUS
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -513,6 +770,11 @@ actor NexusPropagator {
     edgeCount      : Nat;
     cloudCount     : Nat;
     phantomCount   : Nat;
+    tamboCount     : Nat;
+    tamboStored    : Nat;
+    tamboForwarded : Nat;
+    subModels      : [Text];
+    roadNetwork    : Text;
     subModels      : [Text];
   } {
     {
@@ -525,6 +787,11 @@ actor NexusPropagator {
       edgeCount       = edgeNodeCount;
       cloudCount      = cloudNodeCount;
       phantomCount    = phantomNodeCount;
+      tamboCount      = tamboCount;
+      tamboStored     = tamboStoredCurrent;
+      tamboForwarded  = tamboForwardedTotal;
+      subModels       = ["PROPAGATOR", "TAMBO_RELAY"];
+      roadNetwork     = "QHAPAQ ÑAN — " # Nat.toText(nodeCount) # " nodes across 5 substrates, " # Nat.toText(tamboCount) # " tambos";
       subModels       = ["PROPAGATOR"];
     }
   };
