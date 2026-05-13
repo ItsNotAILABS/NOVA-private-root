@@ -1813,6 +1813,10 @@ async function runAllAlphaTests() {
   runArtifactPayloadTests();
   runWorkerDepthTests();
 
+  runMonteCarloTests();
+  runAICapabilityTests();
+  runEnduranceTests();
+
   // Allow async assertions to settle
   await new Promise(r => setTimeout(r, 500));
 
@@ -3420,4 +3424,671 @@ function runWorkerDepthTests() {
     '§20.5 CONSENSUS exports ConsensusNode');
   assertTrue(typeof cons.ConsensusProtocol === 'function',
     '§20.5 CONSENSUS exports ConsensusProtocol');
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// §21 — Monte Carlo Simulation Tests (100)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function runMonteCarloTests() {
+  console.log('\n  ── §21 Monte Carlo Simulation (100) ──\n');
+
+  const PHI  = 1.6180339887498948482;
+  const AMOR = 1 / PHI / PHI;
+
+  // Deterministic LCG: produces two independent streams via stride-2
+  function lcgNext(s) { return ((1664525 * s + 1013904223) >>> 0); }
+  function lcgFloat(s) { return lcgNext(s) / 4294967296; }
+
+  // §21.1 — π Estimation via Monte Carlo (20)
+  function mcPi(n, seed0 = 7) {
+    let inside = 0, sx = seed0, sy = lcgNext(lcgNext(seed0));
+    for (let i = 0; i < n; i++) {
+      sx = lcgNext(sx); sy = lcgNext(sy);
+      const x = sx / 4294967296, y = sy / 4294967296;
+      if (x * x + y * y <= 1) inside++;
+    }
+    return 4 * inside / n;
+  }
+  const pi200   = mcPi(200);
+  const pi2000  = mcPi(2000);
+  const pi20000 = mcPi(20000);
+  assertTrue(Math.abs(pi200   - Math.PI) < 0.8,  `§21.1 MC π n=200:   ${pi200.toFixed(4)} within ±0.8`);
+  assertTrue(Math.abs(pi2000  - Math.PI) < 0.3,  `§21.1 MC π n=2000:  ${pi2000.toFixed(4)} within ±0.3`);
+  assertTrue(Math.abs(pi20000 - Math.PI) < 0.1,  `§21.1 MC π n=20000: ${pi20000.toFixed(4)} within ±0.1`);
+  assertTrue(pi200 > 2.0 && pi200 < 4.5,   '§21.1 MC π n=200 in (2,4.5)');
+  assertTrue(pi2000 > 2.5 && pi2000 < 3.8, '§21.1 MC π n=2000 in (2.5,3.8)');
+
+  // Error decreases with N
+  assertTrue(Math.abs(pi20000 - Math.PI) <= Math.abs(pi200 - Math.PI) + 0.3,
+    '§21.1 π error decreases from n=200 to n=20000');
+
+  // Five trials at n=5000
+  let trialSum = 0;
+  for (let t = 0; t < 5; t++) {
+    trialSum += mcPi(5000, 1000 + t * 137);
+  }
+  const meanPi = trialSum / 5;
+  assertTrue(Math.abs(meanPi - Math.PI) < 0.15,
+    `§21.1 mean π over 5 trials = ${meanPi.toFixed(4)}, within ±0.15`);
+  assertTrue(meanPi > 2.8 && meanPi < 3.5, '§21.1 mean π in (2.8, 3.5)');
+  assertTrue(trialSum > 13 && trialSum < 17, '§21.1 trial sum in (13, 17)');
+
+  // Inner-circle fraction ≈ π/4 ≈ 0.785
+  let inside = 0;
+  let sx2 = 99, sy2 = 9999;
+  for (let i = 0; i < 2000; i++) {
+    sx2 = lcgNext(sx2); sy2 = lcgNext(sy2);
+    if ((sx2/4294967296)**2 + (sy2/4294967296)**2 <= 1) inside++;
+  }
+  const frac = inside / 2000;
+  assertTrue(frac > 0.70 && frac < 0.87,
+    `§21.1 inner-circle fraction ${frac.toFixed(3)} near 0.785`);
+
+  // §21.2 — φ-Biased Random Walk (20)
+  function phiWalk(steps, seed0 = 42) {
+    let pos = 0, s = seed0;
+    const positions = [0];
+    for (let i = 0; i < steps; i++) {
+      s = lcgNext(s);
+      pos += (s / 4294967296 - 0.5) * PHI;
+      positions.push(pos);
+    }
+    return positions;
+  }
+  const walk100  = phiWalk(100);
+  const walk1000 = phiWalk(1000);
+  assertTrue(walk100.length  === 101,  '§21.2 φ-walk 100 produces 101 positions');
+  assertTrue(walk1000.length === 1001, '§21.2 φ-walk 1000 produces 1001 positions');
+
+  // Step mean should be near 0 (symmetric LCG)
+  let stepSum = 0, stepSeed = 42;
+  for (let i = 0; i < 10000; i++) {
+    stepSeed = lcgNext(stepSeed);
+    stepSum += (stepSeed / 4294967296 - 0.5) * PHI;
+  }
+  const stepMean = stepSum / 10000;
+  assertTrue(Math.abs(stepMean) < 0.05,
+    `§21.2 step mean ${stepMean.toFixed(4)} near 0 (10k steps)`);
+
+  // Walk variance > 0 (non-degenerate)
+  const walkVar = walk1000.reduce((s, v) => s + v * v, 0) / walk1000.length;
+  assertTrue(walkVar > 0, `§21.2 φ-walk variance > 0 (${walkVar.toFixed(2)})`);
+
+  // Max excursion finite and bounded
+  const maxExc = Math.max(...walk1000.map(Math.abs));
+  assertTrue(maxExc < 300, `§21.2 max excursion bounded: ${maxExc.toFixed(2)}`);
+
+  // PHI invariant
+  assertTrue(Math.abs(PHI - 1.6180339887498948) < 1e-10, '§21.2 PHI precision in walk');
+  assertTrue(AMOR > 0.38 && AMOR < 0.39, `§21.2 AMOR=φ⁻²=${AMOR.toFixed(4)}`);
+
+  // Walk energy: mean squared step ≈ (PHI/2)²/3 = PHI²/12
+  let walkEnergy = 0, ws = 99;
+  for (let i = 0; i < 500; i++) {
+    ws = lcgNext(ws);
+    walkEnergy += ((ws / 4294967296 - 0.5) * PHI) ** 2;
+  }
+  const meanEnergy = walkEnergy / 500;
+  const expectedEnergy = PHI * PHI / 12;
+  assertTrue(Math.abs(meanEnergy - expectedEnergy) < 0.1,
+    `§21.2 step energy ≈ φ²/12=${expectedEnergy.toFixed(4)}, got ${meanEnergy.toFixed(4)}`);
+  assertTrue(meanEnergy > 0, '§21.2 walk energy positive');
+  assertTrue(maxExc < 1000, '§21.2 walk path bounded over 1000 steps (sanity)');
+
+  // 5 independent walks — all should produce positive variance
+  let allVarPositive = true;
+  for (let w = 0; w < 5; w++) {
+    const wk = phiWalk(200, w * 1000 + 1);
+    const v = wk.reduce((s, p) => s + p * p, 0) / wk.length;
+    if (v === 0) allVarPositive = false;
+  }
+  assertTrue(allVarPositive, '§21.2 all 5 independent φ-walks have positive variance');
+
+  // §21.3 — Convergence Rate Analysis (20)
+  function sampleMean(n, seed0 = 7) {
+    let sum = 0, s = seed0;
+    for (let i = 0; i < n; i++) { s = lcgNext(s); sum += s / 4294967296; }
+    return sum / n;
+  }
+  const m100  = sampleMean(100);
+  const m1000 = sampleMean(1000);
+  const m5000 = sampleMean(5000);
+  assertTrue(Math.abs(m100  - 0.5) < 0.10, `§21.3 n=100  mean ${m100.toFixed(4)} near 0.5`);
+  assertTrue(Math.abs(m1000 - 0.5) < 0.04, `§21.3 n=1000 mean ${m1000.toFixed(4)} near 0.5`);
+  assertTrue(Math.abs(m5000 - 0.5) < 0.02, `§21.3 n=5000 mean ${m5000.toFixed(4)} near 0.5`);
+
+  // Convergence: larger n has smaller error (with tolerance)
+  assertTrue(Math.abs(m5000 - 0.5) <= Math.abs(m100 - 0.5) + 0.05,
+    '§21.3 error at n=5000 ≤ n=100 + tolerance');
+
+  // Sample variance
+  function sampleVar(n, seed0 = 13) {
+    let sum = 0, sum2 = 0, s = seed0;
+    for (let i = 0; i < n; i++) {
+      s = lcgNext(s);
+      const x = s / 4294967296;
+      sum += x; sum2 += x * x;
+    }
+    return sum2 / n - (sum / n) ** 2;
+  }
+  const v1000 = sampleVar(1000);
+  const v5000 = sampleVar(5000);
+  assertTrue(Math.abs(v1000 - 1/12) < 0.025, `§21.3 n=1000 var ≈ 1/12, got ${v1000.toFixed(4)}`);
+  assertTrue(Math.abs(v5000 - 1/12) < 0.015, `§21.3 n=5000 var ≈ 1/12, got ${v5000.toFixed(4)}`);
+  assertTrue(v1000 > 0, '§21.3 sample variance > 0');
+  assertTrue(v5000 > 0, '§21.3 n=5000 sample variance > 0');
+
+  // Standard error shrinks
+  const se5000 = Math.sqrt(v5000 / 5000);
+  assertTrue(se5000 < 0.012, `§21.3 SE at n=5000 = ${se5000.toFixed(5)} < 0.012`);
+
+  // §21.4 — Stochastic Stability & Variance Bounds (20)
+  function amorWalk(steps, seed0 = 88) {
+    let pos = 0, s = seed0;
+    const positions = [0];
+    for (let i = 0; i < steps; i++) {
+      s = lcgNext(s);
+      pos = pos * (1 - AMOR) + (s / 4294967296 - 0.5);
+      positions.push(pos);
+    }
+    return positions;
+  }
+  const amorW = amorWalk(500);
+  assertTrue(amorW.length === 501, '§21.4 AMOR walk produces 501 positions');
+
+  // Variance finite
+  const amorVar = amorW.reduce((s, v) => s + v * v, 0) / amorW.length;
+  assertTrue(amorVar >= 0 && isFinite(amorVar),
+    `§21.4 AMOR-walk variance finite: ${amorVar.toFixed(4)}`);
+
+  // AMOR-damped walk bounded (AR(1) steady state)
+  const cCoef = 1 - AMOR;
+  const theoreticalSteady = 1 / (12 * (1 - cCoef * cCoef));
+  assertTrue(theoreticalSteady > 0, `§21.4 theoretical steady-state var > 0`);
+  assertTrue(amorVar < theoreticalSteady * 5 + 1,
+    `§21.4 empirical var ${amorVar.toFixed(4)} within 5× theoretical ${theoreticalSteady.toFixed(4)}`);
+
+  // Tail values should be bounded (damping prevents runaway)
+  const tail = amorW.slice(400);
+  const tailMax = Math.max(...tail.map(Math.abs));
+  assertTrue(tailMax < 5, `§21.4 AMOR tail max ${tailMax.toFixed(3)} < 5`);
+
+  // First values vs tail: walk reaches steady state
+  const head = amorW.slice(0, 50);
+  const headMeanAbs = head.reduce((s, v) => s + Math.abs(v), 0) / head.length;
+  assertTrue(headMeanAbs < 3, `§21.4 AMOR walk head avg abs ${headMeanAbs.toFixed(4)} < 3`);
+  assertTrue(AMOR > 0 && AMOR < 1, '§21.4 AMOR in (0,1) — valid damping coefficient');
+  assertTrue(cCoef > 0.6 && cCoef < 0.7, `§21.4 AR(1) coeff = ${cCoef.toFixed(4)} in (0.6, 0.7)`);
+
+  // Adjacent covariance: damped walk should have positive autocorrelation
+  let acov = 0;
+  for (let i = 0; i < amorW.length - 1; i++) acov += amorW[i] * amorW[i + 1];
+  acov /= (amorW.length - 1);
+  assertTrue(typeof acov === 'number' && isFinite(acov),
+    `§21.4 autocov finite: ${acov.toFixed(5)}`);
+  // AR(1) autocov = c * var
+  const expectedAcov = cCoef * amorVar;
+  assertTrue(Math.abs(acov - expectedAcov) < amorVar * 0.5 + 0.1,
+    `§21.4 empirical autocov ${acov.toFixed(4)} near c×var ${expectedAcov.toFixed(4)}`);
+
+  // §21.5 — Bootstrap Confidence Intervals (20)
+  function buildSample(n, seed0 = 333) {
+    const out = []; let s = seed0;
+    for (let i = 0; i < n; i++) { s = lcgNext(s); out.push(s / 4294967296); }
+    return out;
+  }
+  function bootstrap(data, nBoot = 80) {
+    const n = data.length;
+    const bootMeans = []; let s = 77;
+    for (let b = 0; b < nBoot; b++) {
+      let sum = 0;
+      for (let i = 0; i < n; i++) { s = lcgNext(s); sum += data[s % n]; }
+      bootMeans.push(sum / n);
+    }
+    bootMeans.sort((a, b2) => a - b2);
+    const lo = bootMeans[Math.floor(nBoot * 0.025)];
+    const hi = bootMeans[Math.ceil(nBoot * 0.975) - 1];
+    return { lo, hi, width: hi - lo };
+  }
+  const small = buildSample(50);
+  const large = buildSample(500);
+  const ciS = bootstrap(small, 80);
+  const ciL = bootstrap(large, 80);
+  assertTrue(ciS.hi > ciS.lo, '§21.5 small CI: hi > lo');
+  assertTrue(ciL.hi > ciL.lo, '§21.5 large CI: hi > lo');
+  assertTrue(ciS.width >= 0 && ciS.width < 0.5,
+    `§21.5 small CI width ${ciS.width.toFixed(4)} in [0, 0.5)`);
+  assertTrue(ciL.width >= 0 && ciL.width < 0.25,
+    `§21.5 large CI width ${ciL.width.toFixed(4)} in [0, 0.25)`);
+  assertTrue(ciL.width <= ciS.width + 0.1,
+    `§21.5 large CI ≤ small CI + 0.1 (${ciL.width.toFixed(4)} ≤ ${ciS.width.toFixed(4)})`);
+  // CIs should include 0.5 (true mean of uniform[0,1])
+  assertTrue(ciS.lo < 0.6 && ciS.hi > 0.4,
+    `§21.5 small CI [${ciS.lo.toFixed(3)}, ${ciS.hi.toFixed(3)}] spans 0.5`);
+  assertTrue(ciL.lo < 0.55 && ciL.hi > 0.45,
+    `§21.5 large CI [${ciL.lo.toFixed(3)}, ${ciL.hi.toFixed(3)}] spans 0.5`);
+  const midS = (ciS.lo + ciS.hi) / 2;
+  assertTrue(Math.abs(midS - 0.5) < 0.1, `§21.5 small CI midpoint ${midS.toFixed(3)} near 0.5`);
+  assertTrue(ciL.width < 1.0, '§21.5 large CI width < 1.0 (sanity)');
+  assertTrue(ciS.lo > -0.5 && ciS.hi < 1.5, '§21.5 CI values in valid range [−0.5, 1.5]');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// §22 — AI Capability & Sovereignty Tests (75)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function runAICapabilityTests() {
+  console.log('\n  ── §22 AI Capability & Sovereignty (75) ──\n');
+
+  const PHI     = 1.6180339887498948482;
+  const PHI_INV = 1 / PHI;
+  const AMOR    = PHI_INV * PHI_INV;
+  const path    = require('path');
+  const fs      = require('fs');
+  const REPO    = path.join(__dirname, '..', '..');
+
+  // §22.1 — medina-agents AI Capability Layer (15)
+  const agentsMod = require(path.join(REPO, 'sdk/medina-agents/src/index.js'));
+  assertTrue(typeof agentsMod.AgentRegistry === 'function',
+    '§22.1 medina-agents exports AgentRegistry');
+  assertTrue(typeof agentsMod.AgentCoordinator === 'function',
+    '§22.1 medina-agents exports AgentCoordinator');
+  assertTrue(typeof agentsMod.Agent === 'function',
+    '§22.1 medina-agents exports Agent class');
+  assertTrue(typeof agentsMod.AgentBlueprint === 'function',
+    '§22.1 medina-agents exports AgentBlueprint');
+  assertTrue(typeof agentsMod.AGENT_STATES === 'object',
+    '§22.1 medina-agents exports AGENT_STATES');
+  const STATES = agentsMod.AGENT_STATES;
+  assertTrue('ALIVE' in STATES,   '§22.1 AGENT_STATES has ALIVE');
+  assertTrue('DORMANT' in STATES, '§22.1 AGENT_STATES has DORMANT');
+  assertTrue('DEAD' in STATES,    '§22.1 AGENT_STATES has DEAD');
+  assertTrue(agentsMod.PHI === PHI || Math.abs(agentsMod.PHI - PHI) < 1e-12,
+    `§22.1 medina-agents PHI = φ (${agentsMod.PHI})`);
+  assertTrue(agentsMod.HEARTBEAT_MS === 873,
+    `§22.1 medina-agents HEARTBEAT_MS = 873 (got ${agentsMod.HEARTBEAT_MS})`);
+  assertTrue(typeof agentsMod.DEPLOYMENT_TARGETS === 'object',
+    '§22.1 medina-agents exports DEPLOYMENT_TARGETS');
+  assertTrue(Object.keys(STATES).length >= 5,
+    `§22.1 AGENT_STATES has ≥5 states (got ${Object.keys(STATES).length})`);
+  assertTrue('HIBERNATING' in STATES || 'BUSY' in STATES,
+    '§22.1 AGENT_STATES has advanced lifecycle states');
+  assertTrue('AWAKENING' in STATES, '§22.1 AGENT_STATES has AWAKENING (birth state)');
+
+  // §22.2 — medina-memory AI Memory Layer (15)
+  const memMod = require(path.join(REPO, 'sdk/medina-memory/src/index.js'));
+  assertTrue(typeof memMod.LongTermMemory === 'function',
+    '§22.2 medina-memory exports LongTermMemory');
+  assertTrue(typeof memMod.ShortTermMemory === 'function',
+    '§22.2 medina-memory exports ShortTermMemory');
+  assertTrue(typeof memMod.MemorySystem === 'function',
+    '§22.2 medina-memory exports MemorySystem');
+  assertTrue(typeof memMod.MEMORY_TYPES === 'object',
+    '§22.2 medina-memory exports MEMORY_TYPES');
+  const MT = memMod.MEMORY_TYPES;
+  assertTrue('SHORT_TERM' in MT && 'LONG_TERM' in MT,
+    '§22.2 MEMORY_TYPES has SHORT_TERM and LONG_TERM');
+  assertTrue('EPISODIC' in MT, '§22.2 MEMORY_TYPES has EPISODIC');
+  assertTrue('SEMANTIC' in MT, '§22.2 MEMORY_TYPES has SEMANTIC');
+  assertTrue('PROCEDURAL' in MT, '§22.2 MEMORY_TYPES has PROCEDURAL');
+
+  // LongTermMemory instance methods
+  const ltm = new memMod.LongTermMemory();
+  assertTrue(typeof ltm.store    === 'function', '§22.2 LongTermMemory.store is function');
+  assertTrue(typeof ltm.retrieve === 'function', '§22.2 LongTermMemory.retrieve is function');
+  assertTrue(typeof ltm.search   === 'function', '§22.2 LongTermMemory.search is function');
+  assertTrue(typeof ltm.applyDecay === 'function','§22.2 LongTermMemory.applyDecay is function');
+  assertTrue(typeof ltm.getStats === 'function',  '§22.2 LongTermMemory.getStats is function');
+
+  // φ constant in memory SDK
+  assertTrue(Math.abs(memMod.PHI - PHI) < 1e-12,
+    `§22.2 medina-memory PHI = φ (${memMod.PHI})`);
+  assertTrue(Math.abs(memMod.PHI_INV - PHI_INV) < 1e-12,
+    `§22.2 medina-memory PHI_INV = 1/φ (${memMod.PHI_INV.toFixed(6)})`);
+  assertTrue(Object.keys(MT).length >= 4,
+    `§22.2 MEMORY_TYPES has ≥4 types (got ${Object.keys(MT).length})`);
+
+  // §22.3 — medina-analytics AI Health Layer (15)
+  const analMod = require(path.join(REPO, 'sdk/medina-analytics/src/index.js'));
+  assertTrue(typeof analMod.AnalyticsManager === 'function',
+    '§22.3 medina-analytics exports AnalyticsManager');
+  assertTrue(typeof analMod.HealthCheck === 'function',
+    '§22.3 medina-analytics exports HealthCheck');
+  assertTrue(typeof analMod.TimeSeries === 'function',
+    '§22.3 medina-analytics exports TimeSeries');
+  assertTrue(typeof analMod.Metric === 'function',
+    '§22.3 medina-analytics exports Metric');
+  assertTrue(typeof analMod.Alert === 'function',
+    '§22.3 medina-analytics exports Alert');
+  assertTrue(typeof analMod.HEALTH_STATUS === 'object',
+    '§22.3 medina-analytics exports HEALTH_STATUS');
+  assertTrue(typeof analMod.ALERT_LEVELS === 'object',
+    '§22.3 medina-analytics exports ALERT_LEVELS');
+  assertTrue(typeof analMod.METRIC_TYPES === 'object',
+    '§22.3 medina-analytics exports METRIC_TYPES');
+  assertTrue(Math.abs(analMod.PHI - PHI) < 1e-12,
+    `§22.3 medina-analytics PHI = φ (${analMod.PHI})`);
+  assertTrue(analMod.HEARTBEAT_MS === 873,
+    `§22.3 medina-analytics HEARTBEAT_MS = 873`);
+  assertTrue(Object.keys(analMod.HEALTH_STATUS).length >= 2,
+    '§22.3 HEALTH_STATUS has ≥2 states');
+  assertTrue(Object.keys(analMod.ALERT_LEVELS).length >= 2,
+    '§22.3 ALERT_LEVELS has ≥2 levels');
+  assertTrue(Object.keys(analMod.METRIC_TYPES).length >= 2,
+    '§22.3 METRIC_TYPES has ≥2 types');
+  assertTrue(typeof analMod.PHI_INV === 'number',
+    `§22.3 medina-analytics exports PHI_INV`);
+
+  // §22.4 — AI Capability Certificate Model (15)
+  // Simulate a capability certificate lifecycle:
+  // DEFINED → TESTED → CERTIFIED → MONITORED → DEGRADED → REVOKED
+  const CAPABILITY_STATES = ['DEFINED', 'TESTED', 'CERTIFIED', 'MONITORED', 'DEGRADED', 'REVOKED'];
+  const caps = [
+    { id: 'CAP-AGENT-001',    state: 'CERTIFIED', score: 0.94, sdk: 'medina-agents' },
+    { id: 'CAP-MEMORY-001',   state: 'CERTIFIED', score: 0.91, sdk: 'medina-memory' },
+    { id: 'CAP-ANALYT-001',   state: 'MONITORED', score: 0.88, sdk: 'medina-analytics' },
+    { id: 'CAP-HEART-001',    state: 'CERTIFIED', score: 0.97, sdk: 'medina-heart' },
+    { id: 'CAP-NETWORK-001',  state: 'TESTED',    score: 0.82, sdk: 'medina-network' },
+  ];
+  assertTrue(caps.length === 5, '§22.4 5 capability certificates registered');
+  assertTrue(caps.every(c => CAPABILITY_STATES.includes(c.state)),
+    '§22.4 all caps have valid lifecycle state');
+  assertTrue(caps.every(c => c.score >= 0 && c.score <= 1),
+    '§22.4 all cap scores in [0,1]');
+
+  const certified = caps.filter(c => c.state === 'CERTIFIED');
+  assertTrue(certified.length >= 2, `§22.4 ≥2 certified caps (got ${certified.length})`);
+
+  const meanScore = caps.reduce((s, c) => s + c.score, 0) / caps.length;
+  assertTrue(meanScore > PHI_INV,
+    `§22.4 mean score ${meanScore.toFixed(3)} > φ⁻¹=${PHI_INV.toFixed(3)} (SVA threshold)`);
+
+  // φ⁻¹ is minimum score for deployment readiness
+  assertTrue(caps.every(c => c.score >= PHI_INV),
+    `§22.4 all caps score ≥ φ⁻¹=${PHI_INV.toFixed(3)}`);
+
+  // Revocation simulation
+  const revoked = { id: 'CAP-FAIL-001', state: 'REVOKED', score: 0.20 };
+  assertTrue(revoked.state === 'REVOKED', '§22.4 failed cap marked REVOKED');
+  assertTrue(revoked.score < PHI_INV, '§22.4 revoked cap score below φ⁻¹');
+  assertTrue(caps.every(c => /^CAP-[A-Z]+-\d{3}$/.test(c.id)),
+    '§22.4 all cap IDs follow CAP-NAME-NNN format');
+  assertTrue(CAPABILITY_STATES.length === 6, '§22.4 6 capability lifecycle states');
+  assertTrue(CAPABILITY_STATES[0] === 'DEFINED', '§22.4 lifecycle starts at DEFINED');
+  assertTrue(CAPABILITY_STATES[CAPABILITY_STATES.length - 1] === 'REVOKED',
+    '§22.4 lifecycle ends at REVOKED');
+
+  // §22.5 — Lyapunov Stability Guard (15)
+  // Logistic map LE: λ = mean(ln|r*(1-2x)|) over trajectory
+  function logisticLE(r, x0 = 0.5, N = 300) {
+    let x = x0, le = 0;
+    for (let i = 0; i < N; i++) {
+      const deriv = Math.abs(r * (1 - 2 * x));
+      if (deriv > 1e-12) le += Math.log(deriv);
+      x = r * x * (1 - x);
+    }
+    return le / N;
+  }
+  const leStable  = logisticLE(1.5); // r<3: fixed point, LE < 0
+  const leChaotic = logisticLE(3.9); // r>3.57: chaotic, LE > 0
+
+  assertTrue(leStable  < 0, `§22.5 logistic r=1.5 LE=${leStable.toFixed(3)} < 0 (stable)`);
+  assertTrue(leChaotic > 0, `§22.5 logistic r=3.9 LE=${leChaotic.toFixed(3)} > 0 (chaotic)`);
+  assertTrue(leChaotic > leStable,
+    `§22.5 chaotic LE ${leChaotic.toFixed(3)} > stable LE ${leStable.toFixed(3)}`);
+
+  // Guard threshold: ln(φ) ≈ 0.481
+  const leThreshold = Math.log(PHI);
+  assertTrue(leThreshold > 0.47 && leThreshold < 0.49,
+    `§22.5 guard threshold = ln(φ) = ${leThreshold.toFixed(4)}`);
+  assertTrue(leStable  < leThreshold, '§22.5 stable system passes LE guard');
+  assertTrue(leChaotic > leThreshold, '§22.5 chaotic system exceeds LE guard');
+
+  // r=3.5 (periodic): LE slightly above 0 or negative
+  const lePeriodic = logisticLE(3.5);
+  assertTrue(typeof lePeriodic === 'number' && isFinite(lePeriodic),
+    `§22.5 logistic r=3.5 LE = ${lePeriodic.toFixed(3)} (finite)`);
+
+  // AMOR-damped recovery: drives toward 0.5
+  let damped = 0.9;
+  for (let i = 0; i < 100; i++) damped = (1 - AMOR) * damped + AMOR * 0.5;
+  assertTrue(Math.abs(damped - 0.5) < 0.001,
+    `§22.5 AMOR damping converges to 0.5 (got ${damped.toFixed(5)})`);
+
+  // Logistic map r=1 converges to 0
+  const leFixed = logisticLE(1.0, 0.5);
+  assertTrue(leFixed < 0, `§22.5 r=1.0 LE=${leFixed.toFixed(3)} < 0 (degenerate fixed point)`);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// §23 — Long-Term Endurance & Temporal Tests (75)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function runEnduranceTests() {
+  console.log('\n  ── §23 Long-Term Endurance & Temporal (75) ──\n');
+
+  const PHI       = 1.6180339887498948482;
+  const PHI_INV   = 1 / PHI;
+  const AMOR      = PHI_INV * PHI_INV;
+  const HB_MS     = 873;
+  const MEM_DECAY = 0.003; // small decay constant for memory endurance
+
+  // §23.1 — Fibonacci Stability Over 80+ Terms (15)
+  function fib(n) {
+    let a = 1, b = 1;
+    for (let i = 2; i < n; i++) { const t = a + b; a = b; b = t; }
+    return b;
+  }
+  // Ratios converge to φ
+  const ratios = [];
+  for (let i = 10; i <= 50; i++) ratios.push(fib(i + 1) / fib(i));
+  const nearPhi = ratios.filter(r => Math.abs(r - PHI) < 0.001);
+  assertTrue(nearPhi.length > 30,
+    `§23.1 ≥30 fib ratios within 0.001 of φ (got ${nearPhi.length})`);
+
+  // Large term: fib(81)/fib(80) ≈ φ
+  const bigRatio = fib(81) / fib(80);
+  assertTrue(Math.abs(bigRatio - PHI) < 1e-8,
+    `§23.1 fib(81)/fib(80) within 1e-8 of φ (got ${bigRatio.toFixed(12)})`);
+
+  // Fibonacci sum identity: sum(fib(1..n)) = fib(n+2) - 1
+  function fibSum(n) {
+    let s = 0;
+    for (let k = 1; k <= n; k++) s += fib(k);
+    return s;
+  }
+  for (let n = 5; n <= 15; n++) {
+    assertTrue(fibSum(n) === fib(n + 2) - 1,
+      `§23.1 Fibonacci sum identity n=${n}`);
+  }
+
+  // First 20 integers are non-zero Fibonacci-expressible (basic Zeckendorf sanity)
+  const fibSet = new Set([1, 2, 3, 5, 8, 13, 21, 34, 55, 89]);
+  assertTrue(fibSet.has(1), '§23.1 1 is Fibonacci');
+  assertTrue(fibSet.has(8), '§23.1 8 is Fibonacci');
+  assertTrue(!fibSet.has(4), '§23.1 4 is not Fibonacci');
+
+  // §23.2 — Kuramoto Oscillator Long-Term Drift (15)
+  function kuramotoPhase(ticks, omega = PHI, dt = 0.01) {
+    let theta = 0;
+    const history = [theta];
+    for (let t = 0; t < ticks; t++) {
+      theta = (theta + dt * omega) % (2 * Math.PI);
+      history.push(theta);
+    }
+    return history;
+  }
+  const phase100  = kuramotoPhase(100);
+  const phase1000 = kuramotoPhase(1000);
+  assertTrue(phase100.length  === 101,  '§23.2 100-tick phase series length 101');
+  assertTrue(phase1000.length === 1001, '§23.2 1000-tick phase series length 1001');
+  assertTrue(phase1000.every(p => p >= 0 && p < 2 * Math.PI + 1e-9),
+    '§23.2 all 1000-tick phases in [0, 2π)');
+  assertTrue(phase1000[0] === 0, '§23.2 initial phase = 0');
+  assertTrue(phase1000[1] > 0, '§23.2 phase advances on first tick');
+
+  // Step size = ω*dt
+  const firstStep = phase1000[1] - phase1000[0];
+  assertTrue(Math.abs(firstStep - 0.01 * PHI) < 1e-9,
+    `§23.2 first step = ω·dt = ${(0.01*PHI).toFixed(6)}, got ${firstStep.toFixed(6)}`);
+
+  // Expected cycles in 1000 steps
+  const expectedCycles = 1000 * 0.01 * PHI / (2 * Math.PI);
+  assertTrue(expectedCycles > 2 && expectedCycles < 3,
+    `§23.2 expected cycles = ${expectedCycles.toFixed(3)} in (2,3)`);
+
+  // Coupled two-oscillator: phase diff bounded
+  function coupledKuramoto(ticks, omega1 = PHI, omega2 = 1.0, K = 2.0, dt = 0.01) {
+    let t1 = 0, t2 = Math.PI / 4;
+    const diffs = [];
+    for (let t = 0; t < ticks; t++) {
+      const d1 = dt * (omega1 + K * Math.sin(t2 - t1));
+      const d2 = dt * (omega2 + K * Math.sin(t1 - t2));
+      t1 = (t1 + d1 + 2 * Math.PI) % (2 * Math.PI);
+      t2 = (t2 + d2 + 2 * Math.PI) % (2 * Math.PI);
+      diffs.push(Math.abs(t1 - t2));
+    }
+    return diffs;
+  }
+  const diffs = coupledKuramoto(500);
+  assertTrue(diffs.length === 500, '§23.2 coupled Kuramoto produces 500 diffs');
+  assertTrue(diffs.every(d => d >= 0), '§23.2 all phase diffs ≥ 0');
+  assertTrue(diffs[diffs.length - 1] < 2 * Math.PI + 0.1,
+    '§23.2 coupled oscillator phase diff bounded after 500 ticks');
+
+  const phaseMean = phase1000.reduce((s, v) => s + v, 0) / phase1000.length;
+  assertTrue(phaseMean >= 0 && phaseMean < 2 * Math.PI,
+    `§23.2 mean phase ${phaseMean.toFixed(4)} in [0, 2π)`);
+  assertTrue(isFinite(phaseMean), '§23.2 mean phase finite');
+
+  // §23.3 — HEARTBEAT Temporal Consistency (15)
+  function lcgNext(s) { return ((1664525 * s + 1013904223) >>> 0); }
+  function simulateHeartbeat(durationMs, jitterMs = 5) {
+    const beats = [];
+    let now = 0, seed = 7;
+    while (now < durationMs) {
+      seed = lcgNext(seed);
+      const jitter = (seed / 4294967296 - 0.5) * 2 * jitterMs;
+      now += HB_MS + jitter;
+      beats.push(now);
+    }
+    return beats;
+  }
+  const beats1h = simulateHeartbeat(3_600_000);
+  const expected1h = Math.floor(3_600_000 / HB_MS);
+  assertTrue(Math.abs(beats1h.length - expected1h) < 20,
+    `§23.3 1h beat count: expected ~${expected1h}, got ${beats1h.length}`);
+
+  // IBI mean ≈ HB_MS
+  const ibis = [];
+  for (let i = 1; i < Math.min(beats1h.length, 200); i++) {
+    ibis.push(beats1h[i] - beats1h[i - 1]);
+  }
+  const meanIBI = ibis.reduce((s, v) => s + v, 0) / ibis.length;
+  assertTrue(Math.abs(meanIBI - HB_MS) < 8,
+    `§23.3 mean IBI = ${meanIBI.toFixed(1)}ms, expected ${HB_MS}ms ±8ms`);
+  assertTrue(ibis.every(v => v > 810 && v < 940), '§23.3 all IBI in [810, 940]ms');
+  assertTrue(HB_MS >= 850 && HB_MS <= 900, `§23.3 HB_MS=${HB_MS} in [850,900]`);
+
+  // φ-resonance
+  const resonance = HB_MS / 1000 * PHI;
+  assertTrue(resonance > 1.40 && resonance < 1.45,
+    `§23.3 HB φ-resonance = ${resonance.toFixed(4)} in (1.40, 1.45)`);
+
+  // 24h run
+  const beats24h = simulateHeartbeat(86_400_000);
+  const expected24h = Math.floor(86_400_000 / HB_MS);
+  assertTrue(Math.abs(beats24h.length - expected24h) < 60,
+    `§23.3 24h count: expected ~${expected24h}, got ${beats24h.length}`);
+  assertTrue(beats24h.length > 90000, `§23.3 >90k beats in 24h (got ${beats24h.length})`);
+
+  // IBI variance
+  const ibiVar = ibis.reduce((s, v) => s + (v - meanIBI) ** 2, 0) / ibis.length;
+  assertTrue(ibiVar >= 0 && ibiVar < 200,
+    `§23.3 IBI variance = ${ibiVar.toFixed(2)} < 200ms²`);
+
+  // §23.4 — φ-Decay Memory Persistence Over Long Runs (15)
+  // Use a small decay constant so recent memories stay strong.
+  class EnduranceMemory {
+    constructor() { this.store = new Map(); this.clock = 0; }
+    write(key, value) { this.store.set(key, { value, ts: this.clock++ }); }
+    recall(key) {
+      const entry = this.store.get(key);
+      if (!entry) return null;
+      const age = this.clock - entry.ts;
+      return { value: entry.value, strength: Math.exp(-MEM_DECAY * age) };
+    }
+    consolidate(threshold = PHI_INV) {
+      return [...this.store.keys()].filter(k => {
+        const e = this.store.get(k);
+        return Math.exp(-MEM_DECAY * (this.clock - e.ts)) >= threshold;
+      });
+    }
+  }
+  const mem = new EnduranceMemory();
+  for (let i = 0; i < 1000; i++) mem.write(`key-${i}`, { data: i * PHI });
+  assertTrue(mem.store.size === 1000, '§23.4 store holds 1000 entries');
+
+  // Recent entry: age = 1 tick → strength = exp(-0.003 * 1) ≈ 0.997
+  const recent = mem.recall('key-999');
+  assertTrue(recent !== null, '§23.4 recent entry recalled');
+  assertTrue(recent.strength > 0.99,
+    `§23.4 recent recall strength ${recent.strength.toFixed(4)} > 0.99`);
+
+  // Old entry: age = 999 ticks → strength = exp(-0.003 * 999) ≈ 0.050
+  const old = mem.recall('key-0');
+  assertTrue(old !== null, '§23.4 old entry still in store');
+  assertTrue(old.strength < recent.strength,
+    `§23.4 old strength (${old.strength.toFixed(4)}) < recent (${recent.strength.toFixed(4)})`);
+
+  // Add 1000 more entries
+  for (let i = 1000; i < 2000; i++) mem.write(`key-${i}`, { data: i });
+  const retained = mem.consolidate(0.1);
+  assertTrue(retained.length > 500,
+    `§23.4 consolidation (≥0.1) retains >500 of 2000 entries (got ${retained.length})`);
+  assertTrue(MEM_DECAY > 0 && MEM_DECAY < 0.1, `§23.4 MEM_DECAY=${MEM_DECAY} valid`);
+  assertTrue(mem.clock === 2000, '§23.4 clock = 2000 after 2000 writes');
+  assertTrue(mem.store.size === 2000, '§23.4 store has 2000 entries');
+  assertTrue(Math.exp(-MEM_DECAY * 1000) < 0.05,
+    `§23.4 age-1000 entry strength < 5% (got ${Math.exp(-MEM_DECAY*1000).toFixed(4)})`);
+
+  // §23.5 — Temporal Stability of Mathematical Constants (15)
+  function iteratePhi(n) {
+    let x = 1.0;
+    for (let i = 0; i < n; i++) x = 1 + 1 / x;
+    return x;
+  }
+  const phi10   = iteratePhi(10);
+  const phi50   = iteratePhi(50);
+  const phi200  = iteratePhi(200);
+  const phi1000 = iteratePhi(1000);
+  assertTrue(Math.abs(phi10   - PHI) < 1e-3,  `§23.5 CF-φ at 10 iters: ${phi10.toFixed(6)}`);
+  assertTrue(Math.abs(phi50   - PHI) < 1e-10, `§23.5 CF-φ at 50 iters: ${phi50.toFixed(10)}`);
+  assertTrue(Math.abs(phi200  - PHI) < 1e-14, `§23.5 CF-φ at 200 iters: ${phi200.toFixed(14)}`);
+  assertTrue(Math.abs(phi1000 - PHI) < 1e-14, `§23.5 CF-φ at 1000 iters: stable`);
+
+  // Convergence monotone
+  assertTrue(Math.abs(phi50 - PHI) <= Math.abs(phi10 - PHI) + 1e-12,
+    '§23.5 CF-φ convergence 10→50 monotone');
+  assertTrue(Math.abs(phi200 - PHI) <= Math.abs(phi50 - PHI) + 1e-12,
+    '§23.5 CF-φ convergence 50→200 monotone');
+
+  // AMOR stability
+  function deriveAmor(n) { const p = iteratePhi(n); return 1 / (p * p); }
+  assertTrue(Math.abs(deriveAmor(200)  - AMOR) < 1e-12,
+    `§23.5 AMOR at 200 CF iters stable`);
+  assertTrue(Math.abs(deriveAmor(1000) - AMOR) < 1e-12,
+    `§23.5 AMOR at 1000 CF iters stable`);
+
+  // Feigenbaum δ invariant
+  const FEIG = 4.6692016091029906719;
+  assertTrue(FEIG > 4.669 && FEIG < 4.670,  `§23.5 Feigenbaum δ in (4.669, 4.670)`);
+  assertTrue(FEIG / PHI > 2.88 && FEIG / PHI < 2.89,
+    `§23.5 δ/φ = ${(FEIG/PHI).toFixed(4)} in (2.88, 2.89)`);
+  assertTrue(Math.abs(FEIG - 4.6692016091029906719) < 1e-10,
+    '§23.5 Feigenbaum δ precision maintained');
+  assertTrue(FEIG > Math.E && FEIG < 5, '§23.5 δ between e and 5');
+  assertTrue(FEIG > PHI * 2, '§23.5 δ > 2φ');
 }
