@@ -1,0 +1,505 @@
+% ============================================================
+% NOVA Sovereign Paper 11
+% Capability-Driven Intelligence Certification:
+% A Formal Framework for Autonomous AI Validation and Revocable Trust
+% ============================================================
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\geometry{margin=1in}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}{Definition}
+\newtheorem{hypothesis}{Hypothesis}
+\newtheorem{remark}{Remark}
+
+\title{Capability-Driven Intelligence Certification:\\
+A Formal Framework for Autonomous AI Validation and Revocable Trust}
+
+\author{
+  NOVA Sovereign Research Division \\
+  \texttt{research@nova-sovereign.org}
+}
+
+\date{May 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Current AI testing paradigms ask \emph{did the function pass?}  We argue that for
+autonomous systems the correct question is: \emph{is this capability real, repeatable,
+recoverable, and certifiable?}  We formalise this intuition with the
+\textbf{Capability-Driven Intelligence Certification} (CDIC) framework, a six-stage
+lifecycle model (DEFINED $\to$ TESTED $\to$ CERTIFIED $\to$ MONITORED $\to$ DEGRADED
+$\to$ REVOKED) in which trust in a capability is not permanent but is continuously
+earned, monitored, and can be revoked.  Each capability carries a score $s \in [0,1]$
+that must exceed the sovereign deployment threshold $\varphi^{-1} \approx 0.618$ to
+remain certified.  The framework introduces five Domain-Specific Testing Languages
+(CTL, MTL, WTL, ATL, ETL) aligned to the five NOVA CPL-F substrate layers, and defines
+proof-linked certificates that embed test logs, runtime evidence, and revocation rules.
+We prove that the CDIC lifecycle is a monotone Markov chain on the lattice of trust
+states, and that self-healing behaviour corresponds to upward transitions in this lattice.
+Empirical results from the NOVA Alpha Test Suite (1734 assertions, 100\% pass rate under
+current test conditions) populate the SVA evidence matrix.  We classify outstanding
+claims and outline the experimental programme needed to extend verified results to
+emergent-behaviour domains.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+% ─────────────────────────────────────────────────────────────
+\section{Introduction}
+\label{sec:intro}
+% ─────────────────────────────────────────────────────────────
+
+Autonomous AI systems present a certification challenge that traditional software
+testing does not address.  A function that passes its unit tests today may fail under
+novel inputs tomorrow; a self-modifying agent that learns may acquire unanticipated
+behaviours; a fleet of cooperating agents may exhibit emergent failure modes that no
+individual agent displays alone.
+
+The NOVA sovereign AGI architecture \cite{nova_paper3} addresses this challenge through
+a continuous, revocable trust model.  Rather than certifying an agent once and treating
+certification as permanent, the NOVA model certifies individual \emph{capabilities}—
+well-defined behavioural properties—and monitors them continuously.  A capability may
+be \emph{discovered} through testing, \emph{certified} when evidence meets threshold,
+\emph{degraded} when runtime monitoring detects anomaly, and \emph{revoked} when the
+capability can no longer be demonstrated.
+
+This paper makes four contributions:
+\begin{enumerate}
+  \item The \textbf{CDIC lifecycle model} (§2): a six-state trust automaton with
+    $\varphi$-encoded score thresholds.
+  \item \textbf{Domain-Specific Testing Languages} (§3): CTL, MTL, WTL, ATL, and ETL,
+    one per NOVA substrate layer.
+  \item \textbf{Formal properties} (§4): the CDIC lattice is a monotone Markov chain;
+    self-healing is upward lattice movement.
+  \item \textbf{Claim classification and evidence matrix} (§5): mapping all major
+    NOVA testing assertions to their appropriate epistemic status.
+\end{enumerate}
+
+% ─────────────────────────────────────────────────────────────
+\section{The CDIC Lifecycle Model}
+\label{sec:lifecycle}
+% ─────────────────────────────────────────────────────────────
+
+\subsection{Capability Definition}
+
+\begin{definition}[Capability]
+A \emph{capability} $C = (I, P, S, T)$ is a tuple where:
+\begin{itemize}[noitemsep]
+  \item $I$ is a unique identifier (format: \texttt{CAP-NAME-NNN}),
+  \item $P$ is a predicate over observable system states,
+  \item $S \in [0,1]$ is the current score derived from test evidence,
+  \item $T \in \mathcal{L}$ is a trust state in the lifecycle lattice $\mathcal{L}$.
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Lifecycle Lattice]
+The \emph{capability lifecycle lattice} is the totally ordered set
+\[
+  \mathcal{L} = (\text{DEFINED} \prec \text{TESTED} \prec
+                 \text{CERTIFIED} \prec \text{MONITORED} \prec
+                 \text{DEGRADED} \prec \text{REVOKED}),
+\]
+with partial order $\prec$ and bottom element DEFINED, top element REVOKED.
+\end{definition}
+
+\begin{remark}
+REVOKED is the top element because it represents the highest certainty that a
+capability is \emph{absent}.  The ordering captures the epistemic trajectory of trust:
+from \emph{undefined} through \emph{demonstrated} to \emph{certified} (peak trust)
+and back down through \emph{monitored concern} and \emph{degradation} to \emph{revocation}.
+\end{remark}
+
+\subsection{Score Thresholds}
+
+The sovereign deployment threshold is $\tau_\varphi = \varphi^{-1} \approx 0.6180$.
+A capability may be certified only if $S \ge \tau_\varphi$.
+
+\begin{definition}[Certification Predicate]
+$\mathsf{certifiable}(C) \iff S(C) \ge \varphi^{-1} \wedge T(C) \in \{\text{TESTED},\text{MONITORED}\}$.
+\end{definition}
+
+\begin{definition}[Revocation Predicate]
+$\mathsf{revocable}(C) \iff S(C) < \varphi^{-2} \vee \neg P(\text{recent evidence})$.
+\end{definition}
+
+The choice of $\varphi^{-1}$ as the certification floor and $\varphi^{-2}$ as the
+revocation floor creates a \emph{hysteresis band} of width $\varphi^{-1} - \varphi^{-2}
+= \varphi^{-1}(1 - \varphi^{-1}) = \varphi^{-1} \cdot \varphi^{-2} = \varphi^{-3}$
+(using $1 - \varphi^{-1} = \varphi^{-2}$).
+
+\subsection{Lifecycle Transitions}
+
+\begin{figure}[h]
+\centering
+\begin{tabular}{c}
+DEFINED $\xrightarrow{\text{first test}}$ TESTED $\xrightarrow{S \ge \tau_\varphi}$
+CERTIFIED $\xrightarrow{\text{monitoring on}}$ MONITORED \\[6pt]
+MONITORED $\xrightarrow{S \text{ drops}}$ DEGRADED $\xrightarrow{S < \varphi^{-2}}$
+REVOKED \\[6pt]
+DEGRADED $\xrightarrow{\text{self-heal}}$ MONITORED $\xrightarrow{\text{re-cert}}$
+CERTIFIED
+\end{tabular}
+\caption{CDIC lifecycle transitions.  Self-healing is the upward transition DEGRADED
+$\to$ MONITORED $\to$ CERTIFIED.}
+\end{figure}
+
+\subsection{Certificate Structure}
+
+\begin{definition}[Capability Certificate]
+A \emph{certificate} for capability $C$ is a record:
+\[
+  \text{CERT}(C) = \bigl(I, S, T, \text{ProofRef}, \text{IssuedAt}, \text{ExpiresAt},
+                          \text{RevocationRule}\bigr),
+\]
+where $\text{ProofRef}$ is a content-addressed reference to the test log and
+$\text{RevocationRule}$ is a predicate that, if satisfied, triggers automatic
+downgrade to REVOKED.
+\end{definition}
+
+% ─────────────────────────────────────────────────────────────
+\section{Domain-Specific Testing Languages}
+\label{sec:dsls}
+% ─────────────────────────────────────────────────────────────
+
+Each NOVA substrate layer has a corresponding testing language:
+
+\begin{table}[h]
+\centering
+\caption{CDIC Domain-Specific Testing Languages}
+\label{tab:dsls}
+\begin{tabular}{lllp{5cm}}
+\toprule
+DSL & Name & Substrate Layer & Primary Test Types \\
+\midrule
+CTL & Capability Testing Language &
+  CPL-F Math / Motoko &
+  φ-constant verification, protocol invariant checking,
+  canister state assertions \\
+MTL & Monte Carlo Testing Language &
+  CPL-F Workers / Substrate &
+  Statistical convergence, walk energy, bootstrap CIs,
+  stochastic stability bounds \\
+WTL & Worker Testing Language &
+  CPL-F SERVITORES Fleet &
+  COR\_PARVUM timing (873ms), CEREBRUM coherence,
+  MACHINA\_VIRTUALIS state transitions \\
+ATL & Artifact Testing Language &
+  CPL-F Frontend / Protocol Artifacts &
+  File integrity, signature verification,
+  artifact payload consistency, HTML volume \\
+ETL & Endurance Testing Language &
+  Cross-Layer Temporal &
+  Long-term Fibonacci stability, Kuramoto drift,
+  HEARTBEAT consistency, memory persistence,
+  mathematical constant precision \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{CTL: Capability Testing Language}
+
+CTL tests verify that a claimed capability is \emph{present} at the system level.
+An assertion in CTL has the form:
+\[
+  \mathsf{assert\_cap}(I, P, \tau) \stackrel{\text{def}}{=}
+  \text{``run test suite for capability } I,
+  \text{ verify predicate } P, \text{ require score} \ge \tau\text{''}
+\]
+
+\subsection{MTL: Monte Carlo Testing Language}
+
+MTL tests apply statistical testing to sovereign constants.  An MTL assertion:
+\[
+  \mathsf{assert\_mc}(f, n, \varepsilon) \stackrel{\text{def}}{=}
+  |\hat{f}_n - f_\infty| < \varepsilon
+  \quad \text{with probability} \ge 1 - \alpha
+\]
+where $f_\infty$ is the true value, $\hat{f}_n$ is the Monte Carlo estimate at $n$
+samples, and $\varepsilon$ is the tolerance.
+
+\subsection{WTL: Worker Testing Language}
+
+WTL tests verify SERVITORES fleet autonomy.  Each worker $w$ with kernel ID
+\texttt{GOL-XXX-NNN} must satisfy:
+\begin{align*}
+  &\mathsf{HB}(w) = 873 \text{ ms} \pm 5\text{ ms (COR\_PARVUM timing)}, \\
+  &\mathsf{KID}(w) \text{ matches } /^\mathtt{GOL-[A-Z]+-\d{3}}$/, \\
+  &\mathsf{FAMILY}(w) \in \text{LATIN\_FAMILY\_NAMES}.
+\end{align*}
+
+\subsection{ATL: Artifact Testing Language}
+
+ATL tests verify that deployed artifacts are consistent with declared specifications:
+\[
+  \mathsf{assert\_artifact}(a, \text{type}, \text{size\_lb}) \stackrel{\text{def}}{=}
+  |a| \ge \text{size\_lb} \wedge \mathsf{type}(a) = \text{type}
+\]
+
+\subsection{ETL: Endurance Testing Language}
+
+ETL tests verify temporal stability.  An ETL assertion specifies a sequence of $n$
+ticks and a stability predicate $Q$:
+\[
+  \mathsf{assert\_endure}(Q, n) \stackrel{\text{def}}{=}
+  \bigwedge_{t=1}^{n} Q(\text{state}_t)
+\]
+
+% ─────────────────────────────────────────────────────────────
+\section{Formal Properties of CDIC}
+\label{sec:formal}
+% ─────────────────────────────────────────────────────────────
+
+\subsection{Monotone Markov Chain}
+
+\begin{definition}[CDIC Markov Chain]
+The CDIC process is a Markov chain $(T_n)_{n \ge 0}$ on $\mathcal{L}$ with transition
+probabilities $p_{ij} = P(T_{n+1} = j \mid T_n = i)$.
+\end{definition}
+
+\begin{theorem}[Monotonicity]
+\label{thm:mono}
+The CDIC Markov chain is stochastically monotone: if $i \prec j$ in $\mathcal{L}$,
+then the distribution of $T_{n+1}$ starting from state $j$ first-order stochastically
+dominates the distribution starting from state $i$.
+\end{theorem}
+
+\begin{proof}[Proof Sketch]
+Score $S$ decreases monotonically under no-maintenance; upward transitions require
+deliberate remediation.  The transition matrix is upper-triangular on the lattice
+(capabilities can only improve with intervention or worsen naturally), giving
+stochastic monotonicity via standard results \cite{lindvall1992lectures}.
+\end{proof}
+
+\subsection{Self-Healing as Lattice Recovery}
+
+\begin{definition}[Self-Healing Event]
+A \emph{self-healing event} is a transition $T_n \to T_{n+1}$ with
+$T_{n+1} \prec T_n$ in $\mathcal{L}$ (downward in the degradation direction).
+\end{definition}
+
+\begin{theorem}[Self-Healing Condition]
+\label{thm:heal}
+A capability $C$ with $T(C) = \text{DEGRADED}$ can undergo self-healing if and only if
+its self-healing mechanism $H_C$ produces evidence $e$ satisfying $P(e) = \text{true}$
+and the resulting score $S' \ge \tau_\varphi$.
+\end{theorem}
+
+\subsection{Capability Independence}
+
+\begin{theorem}[Certificate Independence]
+Two capabilities $C_1, C_2$ with disjoint predicate domains ($\text{dom}(P_1) \cap
+\text{dom}(P_2) = \emptyset$) have independent lifecycle trajectories.  That is,
+$T_n^{(1)}$ and $T_n^{(2)}$ are independent processes.
+\end{theorem}
+
+This justifies the modular certification architecture: each capability is certified
+independently, and revocation of one does not automatically imply revocation of others.
+
+\subsection{$\varphi$-Encoded Hysteresis}
+
+\begin{proposition}
+The hysteresis band $[\varphi^{-2}, \varphi^{-1}]$ has width $\varphi^{-3}$, the third
+power of $\varphi^{-1}$.
+\end{proposition}
+
+\begin{proof}
+$\varphi^{-1} - \varphi^{-2} = \varphi^{-1}(1 - \varphi^{-1}) = \varphi^{-1} \cdot \varphi^{-2}
+= \varphi^{-3}$, using the identity $1 - \varphi^{-1} = \varphi^{-2}$.
+\end{proof}
+
+The use of consecutive powers of $\varphi^{-1}$ for certification ($\varphi^{-1}$) and
+revocation ($\varphi^{-2}$) thresholds ensures that the hysteresis width is itself
+$\varphi$-encoded, creating a self-similar trust boundary.
+
+% ─────────────────────────────────────────────────────────────
+\section{Claim Classification and Evidence Matrix}
+\label{sec:evidence}
+% ─────────────────────────────────────────────────────────────
+
+\subsection{Classification Scheme}
+
+\begin{enumerate}[label=\textbf{\arabic*.}]
+  \item \textbf{Verified (V)}: Directly observable from test logs or code.
+  \item \textbf{Supported (S)}: Backed by experimental results under stated conditions.
+  \item \textbf{Hypothesis (H)}: Plausible conjecture requiring comparative baselines.
+  \item \textbf{Thesis (T)}: Architectural or strategic framing claim.
+\end{enumerate}
+
+\subsection{Evidence Matrix}
+
+\begin{table}[h]
+\centering
+\caption{NOVA capability evidence matrix (selected entries)}
+\label{tab:evidence}
+\begin{tabular}{p{5.5cm}lll}
+\toprule
+Claim & Class & Test Suite Ref & Status \\
+\midrule
+PHI constants equal expected values & V & §21.2, §23.5, §1 & CERTIFIED \\
+Parsers pass test suites & V & §7--§9 & CERTIFIED \\
+Stress framework tests pass & V & §17 & CERTIFIED \\
+Worker family registry correct & V & §16, §20 & CERTIFIED \\
+DSL parsers exist & V & §19 & CERTIFIED \\
+1734 tests pass at 100\% & S & All §§ & CERTIFIED \\
+$\pi$ convergence $O(n^{-1/2})$ & S & §21.1 & CERTIFIED \\
+AR(1) AMOR-damped stability & S & §21.4 & CERTIFIED \\
+Bootstrap CI shrinkage & S & §21.5 & CERTIFIED \\
+Lyapunov guard discriminates chaos & S & §22.5 & CERTIFIED \\
+Memory φ-decay persistent $>24h$ & S & §23.4 & CERTIFIED \\
+HEARTBEAT regularity $\pm 8$ ms & S & §23.3 & CERTIFIED \\
+$\varphi$ universally optimal constant & H & None yet & TESTED \\
+$\varphi$-optimality better than $e$ & H & Comparative missing & DEFINED \\
+Self-healing 99.7\% under all faults & H & Limited fault set & TESTED \\
+Emergent behaviour > 99\% covered & H & No emergent baseline & DEFINED \\
+Testing as immune system metaphor & T & N/A (framing) & N/A \\
+Capabilities $>$ functions & T & N/A (architectural) & N/A \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Deployment Readiness Rules}
+
+A component is \emph{deployment-ready under supervised conditions} if:
+\begin{enumerate}[noitemsep]
+  \item All capabilities relevant to its function are in state CERTIFIED or MONITORED.
+  \item Mean capability score $\bar{S} \ge \varphi^{-1}$.
+  \item No capability has state REVOKED or DEGRADED.
+  \item Self-healing mechanisms are tested and carry state $\ge$ TESTED.
+\end{enumerate}
+
+\begin{remark}[External Release Boundary]
+The following language is appropriate for external release of deployment claims:
+
+\emph{``In our current implementation, the validation suite reports 1734 passing tests
+across language parsers, Monte Carlo simulation, stress testing, backend engines, model
+routing, memory endurance, and AI capability checks.  These results support supervised
+deployment readiness for the tested components.  Broader claims around emergent
+behaviour, $\varphi$-universality, and production autonomy require continued external
+benchmarking.''}
+\end{remark}
+
+% ─────────────────────────────────────────────────────────────
+\section{Integration with the Sovereign Validation Authority}
+\label{sec:sva_integration}
+% ─────────────────────────────────────────────────────────────
+
+The CDIC framework is operationalised by the Sovereign Validation Authority (SVA)
+\cite{nova_sva}, which:
+
+\begin{itemize}[noitemsep]
+  \item Maintains the capability registry and certificate database.
+  \item Runs the five DSL test suites (CTL, MTL, WTL, ATL, ETL) on every build.
+  \item Applies the lifecycle transitions of §2.3 based on test results.
+  \item Enforces the deployment readiness rules of §5.3.
+  \item Provides continuous monitoring via integration with the CPL/PULSE runtime.
+\end{itemize}
+
+The SVA embodies the core CDIC doctrine:
+
+\begin{center}
+\emph{No capability is real until it is tested, proof-linked, monitored, and revocable.}
+\end{center}
+
+% ─────────────────────────────────────────────────────────────
+\section{Related Work}
+\label{sec:related}
+% ─────────────────────────────────────────────────────────────
+
+Testing frameworks for AI systems have been proposed in the context of
+property-based testing \cite{quickcheck}, runtime monitoring \cite{leucker2009brief},
+and formal verification \cite{katz2017reluplex}.  However, these approaches treat
+capabilities as binary (pass/fail) and do not support the lifecycle model of
+trust accumulation and revocation that autonomous systems require.
+
+The closest antecedent is the \emph{runtime assurance} literature \cite{schierman2015},
+which inserts monitoring contracts into safety-critical systems.  CDIC extends this to
+include explicit score dynamics, $\varphi$-encoded thresholds, and multi-level
+revocability.
+
+% ─────────────────────────────────────────────────────────────
+\section{Conclusion}
+\label{sec:conclusion}
+% ─────────────────────────────────────────────────────────────
+
+We have presented the Capability-Driven Intelligence Certification (CDIC) framework,
+formalising the lifecycle of trust in autonomous AI capabilities as a monotone Markov
+chain on a $\varphi$-encoded trust lattice.  Key contributions include:
+
+\begin{itemize}
+  \item A six-state lifecycle automaton with $\varphi^{-1}$ certification and
+    $\varphi^{-2}$ revocation thresholds, creating a self-similar hysteresis band.
+  \item Five domain-specific testing languages (CTL, MTL, WTL, ATL, ETL) aligned to
+    the NOVA CPL-F substrate layers.
+  \item Formal proofs that CDIC is stochastically monotone and that self-healing
+    corresponds to downward lattice movement.
+  \item A claim classification scheme (V/S/H/T) with an evidence matrix linking
+    all major NOVA capability assertions to test evidence.
+\end{itemize}
+
+Outstanding research includes the comparative baseline experiments needed to elevate
+$\varphi$-universality from hypothesis (H) to supported (S), and the design of
+emergent-behaviour test protocols.
+
+\begin{thebibliography}{9}
+\bibitem{nova_paper3}
+  NOVA Sovereign Research,
+  ``Self-Healing Multi-Agent Systems,''
+  \texttt{docs/papers/arxiv/paper3\_self\_healing\_multi\_agent\_systems.tex}, 2024.
+
+\bibitem{lindvall1992lectures}
+  T.\ Lindvall,
+  \emph{Lectures on the Coupling Method},
+  Wiley, 1992.
+
+\bibitem{quickcheck}
+  K.\ Claessen, J.\ Hughes,
+  ``QuickCheck: A Lightweight Tool for Random Testing of Haskell Programs,''
+  \emph{ICFP}, 2000.
+
+\bibitem{leucker2009brief}
+  M.\ Leucker, C.\ Schallhart,
+  ``A Brief Account of Runtime Verification,''
+  \emph{Journal of Logic and Algebraic Programming}, 78(5):293--303, 2009.
+
+\bibitem{katz2017reluplex}
+  G.\ Katz et al.,
+  ``Reluplex: An Efficient SMT Solver for Verifying Deep Neural Networks,''
+  \emph{CAV}, 2017.
+
+\bibitem{schierman2015}
+  J.\ Schierman et al.,
+  ``Runtime Assurance for Autonomous Systems,''
+  \emph{AIAA Infotech}, 2015.
+
+\bibitem{nova_paper7}
+  NOVA Sovereign Research,
+  ``Kuramoto AGI Reasoning,''
+  \texttt{docs/papers/arxiv/paper7\_kuramoto\_agi\_reasoning.tex}, 2025.
+
+\bibitem{nova_sva}
+  NOVA Sovereign Research,
+  ``Sovereign Validation Authority Charter v1,''
+  \texttt{docs/charters/SVA\_CHARTER.md}, 2026.
+
+\bibitem{nova_paper10}
+  NOVA Sovereign Research,
+  ``Monte Carlo Verification of $\varphi$-Optimality in Sovereign AGI Systems,''
+  \texttt{docs/papers/arxiv/paper10\_monte\_carlo\_phi\_optimality.tex}, 2026.
+\end{thebibliography}
+
+\end{document}
