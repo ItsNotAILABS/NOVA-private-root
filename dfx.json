@@ -74,6 +74,11 @@
       "main": "src/nexus_propagator/main.mo",
       "dependencies": []
     },
+    "test_core_001": {
+      "type": "motoko",
+      "main": "src/test_core_001/main.mo",
+      "dependencies": []
+    },
     "parallax": {
       "type": "motoko",
       "main": "src/parallax/main.mo",

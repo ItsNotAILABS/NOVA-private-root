@@ -15,6 +15,12 @@
 | `paper3_self_healing_multi_agent_systems.tex` | Nexus Perpetuus: Self-Healing Agent Networks Through Permanent State Binding | Hold briefly / refine |
 | `paper4_paper_engine_isomorphism.tex` | The Paper–Engine Isomorphism | **Release first** |
 | `paper5_career_flows_persistent_ai_organizations.tex` | Career Flows in Persistent AI Organisations | **Release first** |
+| `paper6_sovereign_differential_privacy.tex` | Sovereign Differential Privacy: φ-Laplace Mechanisms for Autonomous Agent Systems | Wave 2 |
+| `paper7_kuramoto_agi_reasoning.tex` | Kuramoto AGI Reasoning: Phase-Locked Intelligence via φ-Oscillator Coupling | Wave 2 |
+| `paper8_no_drop_law.tex` | The No-Drop Law: Guaranteed Message Delivery in Sovereign Multi-Agent Networks | Wave 2 |
+| `paper9_sovereign_knowledge_consolidation.tex` | Sovereign Knowledge Consolidation: Genuine Learning and the Medina Architecture | Wave 3 |
+| `paper10_monte_carlo_phi_optimality.tex` | Monte Carlo Verification of φ-Optimality in Sovereign AGI Systems: A Statistical Validation Framework | Wave 3 |
+| `paper11_capability_driven_certification.tex` | Capability-Driven Intelligence Certification: A Formal Framework for Autonomous AI Validation and Revocable Trust | Wave 3 |
 
 ---
 
@@ -69,6 +75,12 @@ Before uploading each paper to arXiv:
 | 3 | cs.DC | cs.MA, cs.AI |
 | 4 | cs.PL | cs.SE, cs.AI |
 | 5 | cs.MA | econ.GN, cs.AI |
+| 6 | cs.CR | cs.AI, stat.ML |
+| 7 | cs.AI | nlin.AO, cs.MA |
+| 8 | cs.NI | cs.DC, cs.MA |
+| 9 | cs.AI | cs.LG, cs.MA |
+| 10 | stat.CO | cs.AI, cs.MA |
+| 11 | cs.AI | cs.SE, cs.LO |
 
 ---
 

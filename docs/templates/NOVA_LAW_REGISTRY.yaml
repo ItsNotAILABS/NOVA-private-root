@@ -93,6 +93,19 @@ law_registry:
       runtime_scope: ["core-a", "substrate"]
       test_id: "LAW-L10-TEST"
       change_control: "doctrine-quorum"
+    - id: "L11"
+      name: "AGI_AUTONOMY_LAW"
+      principle: "Alpha AGI systems evolve state autonomously on 873ms heartbeat without external dependencies."
+      enforcement_function: "agiHeartbeat"
+      owner_team: "intelligence-governance"
+      criticality: "P0"
+      runtime_scope: ["agi", "autonomy", "intelligence"]
+      test_id: "LAW-L11-TEST"
+      change_control: "founder-plus-doctrine-quorum"
+      agi_systems: ["PROMETHEUS-AGI-001", "MINERVA-AGI-001", "VULCAN-AGI-001"]
+      rotation_schedule: ["φ²=3", "φ³=4", "φ⁴=7", "φ⁵=11", "φ⁶=18", "φ⁷=29"]
+      engines_per_agi: 4
+      solvers_per_agi: 4
   extension_rule:
     next_law_id_policy: "incremental"
     required_fields:
