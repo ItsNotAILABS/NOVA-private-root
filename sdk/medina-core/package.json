@@ -1,0 +1,16 @@
+{
+  "name": "@medina/medina-core",
+  "version": "1.0.0",
+  "description": "Shared sovereign core constants and identity primitives",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "private": true,
+  "author": "Alfredo Medina Hernandez",
+  "license": "PROPRIETARY"
+}

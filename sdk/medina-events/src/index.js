@@ -17,13 +17,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════════════════════════════
  */
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// §1 — CONSTANTS
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const PHI = 1.6180339887498948482;
-const PHI_INV = 0.6180339887498948482;
-const HEARTBEAT_MS = 873;
+import { PHI, PHI_INV, HEARTBEAT_MS, createEntityId } from '../../medina-core/src/index.js';
 
 const EVENT_PRIORITY = {
   CRITICAL: 1.0,
@@ -46,7 +40,7 @@ const EVENT_STATUS = {
 
 class Event {
   constructor(type, data, config = {}) {
-    this.id = config.id || `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    this.id = config.id || createEntityId('evt');
     this.type = type;
     this.data = data;
     this.source = config.source || 'unknown';
@@ -223,10 +217,13 @@ class EventBus {
    * Subscribe to events
    */
   on(eventType, handler, config = {}) {
-    const id = config.id || `handler_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const id = config.id || createEntityId('handler');
+    const filter = Object.hasOwn(config, 'filter')
+      ? config.filter
+      : eventType;
     const eventHandler = new EventHandler(id, handler, {
       ...config,
-      filter: eventType,
+      filter,
     });
     
     this._handlers.set(id, eventHandler);

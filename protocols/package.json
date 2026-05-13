@@ -1,0 +1,10 @@
+{
+  "name": "@nova/protocols",
+  "version": "1.0.0",
+  "description": "NOVA sovereign protocol test harness",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/**/*.test.js"
+  }
+}
