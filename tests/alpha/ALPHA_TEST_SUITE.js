@@ -3647,7 +3647,7 @@ function runMonteCarloTests() {
       for (let i = 0; i < n; i++) { s = lcgNext(s); sum += data[s % n]; }
       bootMeans.push(sum / n);
     }
-    bootMeans.sort((a, b2) => a - b2);
+    bootMeans.sort((a, b) => a - b);
     const lo = bootMeans[Math.floor(nBoot * 0.025)];
     const hi = bootMeans[Math.ceil(nBoot * 0.975) - 1];
     return { lo, hi, width: hi - lo };
