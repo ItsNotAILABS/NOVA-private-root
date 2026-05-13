@@ -407,6 +407,7 @@ actor TokenForge {
     cliffDays   : Nat,
     totalDays   : Nat,
     lbl       : Text
+    label       : Text
   ) : async { success : Bool; vestId : Nat } {
     requireSovereign(msg.caller);
     if (amount == 0 or amount > teamVestBucket) return { success = false; vestId = 0 };
@@ -419,6 +420,7 @@ actor TokenForge {
     vestCliffDays[vi]  := cliffDays;
     vestTotalDays[vi]  := if (totalDays < cliffDays + 1) cliffDays + 1 else totalDays;
     vestLabels[vi]     := lbl;
+    vestLabels[vi]     := label;
     teamVestBucket     := teamVestBucket - amount;
     vestCount          := vestCount + 1;
     { success = true; vestId = vi }
@@ -467,6 +469,7 @@ actor TokenForge {
     cliffDays    : Nat;
     totalDays    : Nat;
     lbl        : Text;
+    label        : Text;
     startTime    : Int;
   } {
     if (vestId >= vestCount) return null;
@@ -477,6 +480,7 @@ actor TokenForge {
       cliffDays   = vestCliffDays[vestId];
       totalDays   = vestTotalDays[vestId];
       lbl       = vestLabels[vestId];
+      label       = vestLabels[vestId];
       startTime   = vestStartTimes[vestId];
     }
   };
@@ -486,6 +490,10 @@ actor TokenForge {
   }] {
     Array.tabulate<{ vestId:Nat; beneficiary:Text; total:Nat; claimed:Nat; lbl:Text }>(vestCount, func(i) {
       { vestId = i; beneficiary = vestBenes[i]; total = vestTotals[i]; claimed = vestClaimed[i]; lbl = vestLabels[i] }
+    vestId : Nat; beneficiary : Text; total : Nat; claimed : Nat; label : Text;
+  }] {
+    Array.tabulate<{ vestId:Nat; beneficiary:Text; total:Nat; claimed:Nat; label:Text }>(vestCount, func(i) {
+      { vestId = i; beneficiary = vestBenes[i]; total = vestTotals[i]; claimed = vestClaimed[i]; label = vestLabels[i] }
     })
   };
 

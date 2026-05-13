@@ -134,6 +134,7 @@ actor NexusPropagator {
     substrate   : Text;
     address     : Text;   // substrate-specific address/identifier
     lbl       : Text;   // human-readable lbl
+    label       : Text;   // human-readable label
     weight      : Float;  // golden-ratio decay weight (0.0–1.0)
     registeredAt: Int;
     regBeat     : Nat;
@@ -221,6 +222,7 @@ actor NexusPropagator {
     substrate : Text,
     address   : Text,
     lbl     : Text
+    label     : Text
   ) : async {
     id        : Nat;
     substrate : Text;
@@ -243,6 +245,7 @@ actor NexusPropagator {
     nodeSubstrates[idx]  := substrate;
     nodeAddresses[idx]   := address;
     nodeLabels[idx]      := lbl;
+    nodeLabels[idx]      := label;
     nodeWeights[idx]     := 1.0;  // will be recomputed below
     nodeRegAt[idx]       := now;
     nodeRegBeats[idx]    := nexusBeat;
@@ -366,16 +369,19 @@ actor NexusPropagator {
     substrate  : Text;
     address    : Text;
     lbl      : Text;
+    label      : Text;
     weight     : Float;
     touchCount : Nat;
     status     : Text;
   }] {
     Array.tabulate<{ id:Nat; substrate:Text; address:Text; lbl:Text; weight:Float; touchCount:Nat; status:Text }>(nodeCount, func(i) {
+    Array.tabulate<{ id:Nat; substrate:Text; address:Text; label:Text; weight:Float; touchCount:Nat; status:Text }>(nodeCount, func(i) {
       {
         id         = nodeIds[i];
         substrate  = nodeSubstrates[i];
         address    = nodeAddresses[i];
         lbl      = nodeLabels[i];
+        label      = nodeLabels[i];
         weight     = nodeWeights[i];
         touchCount = nodeTouchCounts[i];
         status     = nodeStatuses[i];
@@ -388,11 +394,15 @@ actor NexusPropagator {
     id : Nat; lbl : Text; address : Text; weight : Float; status : Text;
   }] {
     var result : [{ id:Nat; lbl:Text; address:Text; weight:Float; status:Text }] = [];
+    id : Nat; label : Text; address : Text; weight : Float; status : Text;
+  }] {
+    var result : [{ id:Nat; label:Text; address:Text; weight:Float; status:Text }] = [];
     var i = 0;
     while (i < nodeCount and i < NODE_CAP) {
       if (nodeSubstrates[i] == substrate) {
         result := Array.append(result, [{
           id = nodeIds[i]; lbl = nodeLabels[i]; address = nodeAddresses[i];
+          id = nodeIds[i]; label = nodeLabels[i]; address = nodeAddresses[i];
           weight = nodeWeights[i]; status = nodeStatuses[i];
         }]);
       };
@@ -460,6 +470,11 @@ actor NexusPropagator {
     let limit = if (n < nodeCount) n else nodeCount;
     // Build index array sorted by weight descending (simple selection for up to n)
     var sorted : [{ id:Nat; substrate:Text; lbl:Text; weight:Float }] = [];
+    id : Nat; substrate : Text; label : Text; weight : Float;
+  }] {
+    let limit = if (n < nodeCount) n else nodeCount;
+    // Build index array sorted by weight descending (simple selection for up to n)
+    var sorted : [{ id:Nat; substrate:Text; label:Text; weight:Float }] = [];
     var remaining : [Bool] = Array.tabulate<Bool>(nodeCount, func(_) { true });
     var k = 0;
     while (k < limit) {
@@ -479,6 +494,7 @@ actor NexusPropagator {
         sorted := Array.append(sorted, [{
           id = nodeIds[bestIdx]; substrate = nodeSubstrates[bestIdx];
           lbl = nodeLabels[bestIdx]; weight = nodeWeights[bestIdx];
+          label = nodeLabels[bestIdx]; weight = nodeWeights[bestIdx];
         }]);
         remaining := Array.tabulate<Bool>(nodeCount, func(i) {
           if (i == bestIdx) false else remaining[i]
@@ -741,6 +757,7 @@ actor NexusPropagator {
 
   // ═══════════════════════════════════════════════════════════════════════════
   // SECTION 8 — NEXUS STATUS
+  // SECTION 7 — NEXUS STATUS
   // ═══════════════════════════════════════════════════════════════════════════
 
   public query func getNexusStatus() : async {
@@ -758,6 +775,7 @@ actor NexusPropagator {
     tamboForwarded : Nat;
     subModels      : [Text];
     roadNetwork    : Text;
+    subModels      : [Text];
   } {
     {
       seal            = sovereignSeal;
@@ -774,6 +792,7 @@ actor NexusPropagator {
       tamboForwarded  = tamboForwardedTotal;
       subModels       = ["PROPAGATOR", "TAMBO_RELAY"];
       roadNetwork     = "QHAPAQ ÑAN — " # Nat.toText(nodeCount) # " nodes across 5 substrates, " # Nat.toText(tamboCount) # " tambos";
+      subModels       = ["PROPAGATOR"];
     }
   };
 

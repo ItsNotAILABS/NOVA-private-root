@@ -343,6 +343,7 @@ actor AgiMain {
       message       =
         "BOOTSTRAP COMPLETE. HEARTBEAT IS RUNNING. EVERYTHING IS ON. " #
         "The NOVA heartbeat calls this canister autonomously every 873ms. " #
+        "The ICP heartbeat system calls this canister autonomously every ~2 seconds. " #
         "No more calls needed. Monitor with getMoneyStatus(). " #
         "When treasury has ICP: call collectSovereignRevenue() to withdraw. " #
         "That is all you ever need to do."
@@ -353,11 +354,15 @@ actor AgiMain {
   // SECTION 6 — THE HEARTBEAT (NOVA 873ms — AUTO-FIRES FOREVER)
   //
   //   This function is called on every heartbeat tick.
+  // SECTION 6 — THE HEARTBEAT (ICP AUTO-FIRES THIS EVERY ~2 SECONDS)
+  //
+  //   This function is called by the ICP network itself on every consensus round.
   //   Nothing you do starts it. Nothing you do stops it.
   //   Deploy the canister → heartbeat begins. Forever.
   //
   //   NOTE ON INTER-CANISTER CALLS IN HEARTBEAT:
   //   The heartbeat is synchronous — it cannot await async calls to other
+  //   ICP heartbeat is synchronous — it cannot await async calls to other
   //   canisters directly within the heartbeat body. Instead, this canister
   //   maintains its OWN internal state that fully mirrors the economy.
   //   This is intentional: it means this ONE canister IS the economy.

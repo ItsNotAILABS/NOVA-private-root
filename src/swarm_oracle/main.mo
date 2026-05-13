@@ -641,11 +641,13 @@ actor SwarmOracle {
   };
 
   public composite query func getCommandWaypoints() : async [{ x : Float; y : Float; z : Float; lbl : Text }] {
+  public composite query func getCommandWaypoints() : async [{ x : Float; y : Float; z : Float; label : Text }] {
     switch (commandId) {
       case null { [] };
       case (?p) {
         let cmd = actor(Principal.toText(p)) : actor {
           getWaypoints : shared query () -> async [{ x : Float; y : Float; z : Float; lbl : Text }];
+          getWaypoints : shared query () -> async [{ x : Float; y : Float; z : Float; label : Text }];
         };
         await cmd.getWaypoints()
       };

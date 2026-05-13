@@ -154,6 +154,126 @@
       "main": "src/nova_protocol/main.mo",
       "dependencies": []
     },
+    "swarm_command": {
+      "type": "motoko",
+      "main": "src/swarm_command/main.mo",
+      "dependencies": []
+    },
+    "swarm_metals": {
+      "type": "motoko",
+      "main": "src/swarm_metals/main.mo",
+      "dependencies": []
+    },
+    "swarm_audit": {
+      "type": "motoko",
+      "main": "src/swarm_audit/main.mo",
+      "dependencies": []
+    },
+    "swarm_telemetry": {
+      "type": "motoko",
+      "main": "src/swarm_telemetry/main.mo",
+      "dependencies": []
+    },
+    "swarm_quantum": {
+      "type": "motoko",
+      "main": "src/swarm_quantum/main.mo",
+      "dependencies": []
+    },
+    "swarm_oracle": {
+      "type": "motoko",
+      "main": "src/swarm_oracle/main.mo",
+      "dependencies": ["swarm_brain", "swarm_organism", "swarm_command", "swarm_metals", "swarm_audit", "swarm_telemetry", "swarm_quantum"]
+    },
+    "chrysalis": {
+      "type": "motoko",
+      "main": "src/chrysalis/main.mo",
+      "dependencies": []
+    },
+    "scribe": {
+      "type": "motoko",
+      "main": "src/scribe/main.mo",
+      "dependencies": []
+    },
+    "architect": {
+      "type": "motoko",
+      "main": "src/architect/main.mo",
+      "dependencies": []
+    },
+    "nexus_propagator": {
+      "type": "motoko",
+      "main": "src/nexus_propagator/main.mo",
+      "dependencies": []
+    },
+    "parallax": {
+      "type": "motoko",
+      "main": "src/parallax/main.mo",
+      "dependencies": []
+    },
+    "nova_governance": {
+      "type": "motoko",
+      "main": "src/nova_governance/main.mo",
+      "dependencies": []
+    },
+    "nova_sns": {
+      "type": "motoko",
+      "main": "src/nova_sns/main.mo",
+      "dependencies": []
+    },
+    "token_forge": {
+      "type": "motoko",
+      "main": "src/token_forge/main.mo",
+      "dependencies": []
+    },
+    "cycles_market": {
+      "type": "motoko",
+      "main": "src/cycles_market/main.mo",
+      "dependencies": []
+    },
+    "token_intelligence": {
+      "type": "motoko",
+      "main": "src/token_intelligence/main.mo",
+      "dependencies": []
+    },
+    "airdrop_engine": {
+      "type": "motoko",
+      "main": "src/airdrop_engine/main.mo",
+      "dependencies": []
+    },
+    "sovereign_factory": {
+      "type": "motoko",
+      "main": "src/sovereign_factory/main.mo",
+      "dependencies": []
+    },
+    "auto_market": {
+      "type": "motoko",
+      "main": "src/auto_market/main.mo",
+      "dependencies": []
+    },
+    "neuron_fleet": {
+      "type": "motoko",
+      "main": "src/neuron_fleet/main.mo",
+      "dependencies": []
+    },
+    "ai_division": {
+      "type": "motoko",
+      "main": "src/ai_division/main.mo",
+      "dependencies": []
+    },
+    "organism_token": {
+      "type": "motoko",
+      "main": "src/organism_token/main.mo",
+      "dependencies": []
+    },
+    "cycles_bridge": {
+      "type": "motoko",
+      "main": "src/cycles_bridge/main.mo",
+      "dependencies": []
+    },
+    "agi_main": {
+      "type": "motoko",
+      "main": "src/agi_main/main.mo",
+      "dependencies": []
+    },
     "medina": {
       "type": "motoko",
       "main": "icp/medina/Medina.mo",
