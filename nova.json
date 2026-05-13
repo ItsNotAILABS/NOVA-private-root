@@ -70,6 +70,7 @@
         "swarm_telemetry",
         "swarm_quantum"
       ],
+      "dependencies": ["swarm_brain", "swarm_organism", "swarm_command", "swarm_metals", "swarm_audit", "swarm_telemetry", "swarm_quantum"],
       "description": "Unified read-only information oracle — composite queries across all swarm dimensions"
     },
     "chrysalis": {
@@ -155,6 +156,7 @@
       "main": "src/neuron_fleet/main.mo",
       "dependencies": [],
       "description": "NEURON FLEET — 1,000 NNS neuron fleet (×5 expansion): 5 Fibonacci groups (A_SOVEREIGNTY×40/B_COMPOUNDING×170/C_HARVEST×445/D_LIQUID×275/E_PHANTOM×70), auto-stake-maturity, spawn-neuron policy, fleet-wide voting, 100 field nodes, φ-VP maximization. Group E backs PHANTOM clearinghouse liquidity. Infrastructure-first: 1,000 neurons now, 2,000 next."
+      "description": "NEURON FLEET — 200 NNS neuron fleet: 5 Fibonacci groups (A_SOVEREIGNTY×8/B_COMPOUNDING×34/C_HARVEST×89/D_LIQUID×55/E_PHANTOM×14), auto-stake-maturity, spawn-neuron policy, fleet-wide voting, 100 field nodes, φ-VP maximization, cycles premium explainer"
     },
     "ai_division": {
       "type": "motoko",

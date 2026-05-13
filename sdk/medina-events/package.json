@@ -1,0 +1,16 @@
+{
+  "name": "@medina/medina-events",
+  "version": "1.0.0",
+  "description": "Event system SDK",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "private": true,
+  "author": "Alfredo Medina Hernandez",
+  "license": "PROPRIETARY"
+}

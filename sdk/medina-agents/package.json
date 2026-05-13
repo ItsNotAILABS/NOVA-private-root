@@ -1,0 +1,16 @@
+{
+  "name": "@medina/medina-agents",
+  "version": "1.0.0",
+  "description": "Agent lifecycle management SDK",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "private": true,
+  "author": "Alfredo Medina Hernandez",
+  "license": "PROPRIETARY"
+}

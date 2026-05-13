@@ -227,6 +227,7 @@ actor TokenIntelligence {
   }] {
     let substrates : [Text] = ["ICP", "BLOCKCHAIN", "EDGE", "CLOUD", "PHANTOM"];
     var raws : [Float] = Array.tabulate<Float>(5, func(_ : Nat) : Float { 0.0 });
+    var raws : [Float] = Array.tabulate<Float>(5, func(_) 0.0);
     var i = 0;
     while (i < signalCount and i < SIGNAL_CAP) {
       if (signalKinds[i] == "DEMAND") {
@@ -465,6 +466,11 @@ actor TokenIntelligence {
     while (i < actionCount and i < ACTION_CAP) {
       if (actionIds[i] == actionId and
           (actionStatuses[i] == "READY" or actionStatuses[i] == "EXECUTING")) {
+  // Mark action as executed
+  public shared(msg) func markActionDone(actionId : Nat) : async Bool {
+    var i = 0;
+    while (i < actionCount and i < ACTION_CAP) {
+      if (actionIds[i] == actionId and actionStatuses[i] == "READY") {
         actionStatuses[i]   := "DONE";
         actionExecutedAt[i] := Time.now();
         return true;
@@ -622,6 +628,7 @@ actor TokenIntelligence {
       phi            = PHI;
       alertThreshold = HEALTH_ALERT_THRESHOLD;
       architecture   = "SENSUM→COGITO→ACTIO(READY→EXECUTING→DONE) | MEMORIA (128-epoch) | VIGILIA (64-node watchdog)";
+      architecture   = "SENSUM→COGITO→ACTIO | MEMORIA (128-epoch) | VIGILIA (64-node watchdog)";
     }
   };
 

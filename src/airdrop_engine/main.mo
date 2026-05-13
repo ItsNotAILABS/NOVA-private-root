@@ -670,6 +670,7 @@ actor AirdropEngine {
   public query func tierBreakdown(baseAmount : Nat) : async [{
     tier     : Nat;
     lbl    : Text;
+    label    : Text;
     minScore : Float;
     wave1    : Nat;
     wave2    : Nat;
@@ -685,6 +686,10 @@ actor AirdropEngine {
       let tierBonus = _floatToNat(_pow(PHI, Float.fromInt(t) * 0.5));
       let amt : (Nat) -> Nat = func(w) { baseAmount * _fib(if(w==0) 1 else w) * tierBonus };
       { tier = t; lbl = labels[t]; minScore = minScores[t];
+    Array.tabulate<{ tier:Nat; label:Text; minScore:Float; wave1:Nat; wave2:Nat; wave3:Nat; wave5:Nat; wave8:Nat; wave13:Nat }>(6, func(t) {
+      let tierBonus = _floatToNat(_pow(PHI, Float.fromInt(t) * 0.5));
+      let amt : (Nat) -> Nat = func(w) { baseAmount * _fib(if(w==0) 1 else w) * tierBonus };
+      { tier = t; label = labels[t]; minScore = minScores[t];
         wave1 = amt(1); wave2 = amt(2); wave3 = amt(3);
         wave5 = amt(5); wave8 = amt(8); wave13 = amt(13) }
     })

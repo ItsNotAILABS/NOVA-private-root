@@ -212,6 +212,7 @@ actor Architect {
     let idx = blueprintCount;
     let id  = nextBlueprintId;
     let pid : Int = switch (parentId) { case null -1; case (?p) p };
+    let pid : Int = switch (parentId) { case null -1; case (?p) Int.fromNat(p) };
 
     bpIds[idx]       := id;
     bpNames[idx]     := name;

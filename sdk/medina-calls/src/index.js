@@ -13,12 +13,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════════════════════════════
  */
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// §1 — CONSTANTS
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const PHI = 1.6180339887498948482;
-const PHI_INV = 0.6180339887498948482;
+import { PHI, PHI_INV, createEntityId } from '../../medina-core/src/index.js';
 
 const CALL_TYPES = {
   INTERNAL: 'INTERNAL',     // AI talking to itself or other AIs
@@ -41,7 +36,7 @@ const CALL_STATUS = {
 
 class CallRecord {
   constructor(type, method, args, source, target) {
-    this.id = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    this.id = createEntityId('call');
     this.type = type;
     this.method = method;
     this.args = args;

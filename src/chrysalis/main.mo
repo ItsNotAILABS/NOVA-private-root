@@ -146,6 +146,7 @@ actor Chrysalis {
     let nf    = Float.fromInt(n);
     let phi_n = _pow(PHI, nf);
     let psi_n = if (n % 2 == 0) _pow(-PSI, nf) else -_pow(-PSI, nf);
+    let psi_n = if (n mod 2 == 0) _pow(-PSI, nf) else -_pow(-PSI, nf);
     (phi_n - psi_n) / SQRT5
   };
 
@@ -275,6 +276,7 @@ actor Chrysalis {
     let nf    = Float.fromInt(n);
     let phi_n = _pow(PHI, nf);
     let psi_n = if (n % 2 == 0) _pow(PHI_INV, nf) else -_pow(PHI_INV, nf);
+    let psi_n = if (n mod 2 == 0) _pow(PHI_INV, nf) else -_pow(PHI_INV, nf);
     phi_n + psi_n
   };
 

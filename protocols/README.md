@@ -22,6 +22,21 @@ protocols/
 ├── PROTOCOL-ORCHESTRATION.js     ← φ-resonant workflow orchestration (BUILD №55: 850 lines)
 ├── PROTOCOL-SOVEREIGNTY.js       ← Identity, ownership & governance (BUILD №55: 832 lines)
 └── README.md                     ← This file
+├── PROTOCOL-VEIN.js        ← Blood-flow routing protocol
+├── PROTOCOL-SYNAPSE.js     ← Neural connection protocol
+├── PROTOCOL-GENESIS.js     ← Entity creation protocol
+├── PROTOCOL-HEARTBEAT.js   ← Timing synchronization protocol
+├── PROTOCOL-CONSENSUS.js   ← Distributed agreement protocol
+├── PROTOCOL-MEMORIA.js     ← Memory persistence protocol
+├── PROTOCOL-SOLVER.js      ← φ-cascade solver + MACHINA VIRTUALIS
+├── PROTOCOL-EMBEDDING.js   ← φ-lattice embedding + DP noise
+├── PROTOCOL-VECTOR.js      ← φ-shard search + federated aggregation
+├── PROTOCOL-TRUST.js       ← Identity registry + capability grants
+├── PROTOCOL-MIRROR.js      ← φ-vector clock + delta anti-entropy
+├── PROTOCOL-HEALTH.js      ← Health monitoring (AGI + human operators)
+├── PROTOCOL-SAFETY.js      ← Safety incidents + worksite safety
+├── PROTOCOL-WELLNESS.js    ← Wellness check-ins + recovery planning
+└── README.md               ← This file
 ```
 
 ---
