@@ -195,7 +195,16 @@ function msgSearchResponse(requestId, results, lyapunovV, shardsSearched, status
 // §6 — EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-module.exports = {
+export {
+  PROTOCOL_ID, PROTOCOL_VERSION,
+  DEFAULT_K, N_CELLS, MAX_SHARDS,
+  SEARCH_STATUS, MSG,
+  PHI, PHI_INV, AMOR, HEARTBEAT_MS,
+  createRequest, cellToShard, shardsToSearch, aggregateResults,
+  msgSearchRequest, msgSearchResponse,
+};
+
+export default {
   PROTOCOL_ID, PROTOCOL_VERSION,
   DEFAULT_K, N_CELLS, MAX_SHARDS,
   SEARCH_STATUS, MSG,

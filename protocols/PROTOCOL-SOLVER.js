@@ -292,7 +292,15 @@ function _initContext(n) {
 // §6 — EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-module.exports = {
+export {
+  PROTOCOL_ID, PROTOCOL_VERSION,
+  MV_STATES, PRIORITY,
+  PHI, PHI_INV, AMOR, HEARTBEAT_MS,
+  phiCascade, machina,
+  SolverQueue,
+};
+
+export default {
   PROTOCOL_ID, PROTOCOL_VERSION,
   MV_STATES, PRIORITY,
   PHI, PHI_INV, AMOR, HEARTBEAT_MS,

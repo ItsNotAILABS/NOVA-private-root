@@ -525,7 +525,24 @@ class SovereignAIBridge {
 // §7 — EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-module.exports = {
+export {
+  PROTOCOL_ID,
+  PROTOCOL_VERSION,
+  PHI,
+  PHI_INV,
+  AMOR,
+  HEARTBEAT_MS,
+  BRIDGE_PROVIDER,
+  MODEL_TIER,
+  BRIDGE_STATE,
+  MODEL_REGISTRY,
+  SovereignFilter,
+  BridgeRouter,
+  BridgeConnection,
+  SovereignAIBridge,
+};
+
+export default {
   PROTOCOL_ID,
   PROTOCOL_VERSION,
   PHI,

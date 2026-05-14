@@ -249,7 +249,15 @@ class ChallengeAuthority {
 // §5 — EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-module.exports = {
+export {
+  PROTOCOL_ID, PROTOCOL_VERSION,
+  TRUST_TIER, SCOPE, GRANT_STATUS,
+  PHI, PHI_INV, AMOR, HEARTBEAT_MS,
+  TrustRegistry, ChallengeAuthority,
+  secureId,
+};
+
+export default {
   PROTOCOL_ID, PROTOCOL_VERSION,
   TRUST_TIER, SCOPE, GRANT_STATUS,
   PHI, PHI_INV, AMOR, HEARTBEAT_MS,

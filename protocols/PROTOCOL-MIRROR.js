@@ -246,7 +246,15 @@ function _hashState(state) {
 // §6 — EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-module.exports = {
+export {
+  PROTOCOL_ID, PROTOCOL_VERSION,
+  MIRROR_EVENT, SUBSTRATE, SNAPSHOT_BEATS,
+  PHI, PHI_INV, AMOR, HEARTBEAT_MS,
+  PhiVectorClock, MirrorReplica,
+  buildDelta, buildSnapshot, buildSync,
+};
+
+export default {
   PROTOCOL_ID, PROTOCOL_VERSION,
   MIRROR_EVENT, SUBSTRATE, SNAPSHOT_BEATS,
   PHI, PHI_INV, AMOR, HEARTBEAT_MS,

@@ -315,7 +315,15 @@ class HealthRegistry {
 // §6 — EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-module.exports = {
+export {
+  PROTOCOL_ID, PROTOCOL_VERSION,
+  HEALTH_TIER, VITAL, HEALTH_EVENT,
+  PHI, PHI_INV, AMOR, HEARTBEAT_MS,
+  createVital, computeHealthScore,
+  HealthEntity, HealthRegistry,
+};
+
+export default {
   PROTOCOL_ID, PROTOCOL_VERSION,
   HEALTH_TIER, VITAL, HEALTH_EVENT,
   PHI, PHI_INV, AMOR, HEARTBEAT_MS,

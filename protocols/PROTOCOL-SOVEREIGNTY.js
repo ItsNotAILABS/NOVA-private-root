@@ -785,7 +785,7 @@ class SovereigntyGraph {
 // §8 — EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-module.exports = {
+export {
   // Constants
   PHI,
   PHI_INV,
@@ -800,6 +800,19 @@ module.exports = {
   IDENTITY_TYPES,
 
   // Classes
+  SovereignIdentity,
+  GovernanceCouncil,
+  SovereigntyGraph
+};
+
+export default {
+  PHI,
+  PHI_INV,
+  AMOR,
+  HEARTBEAT_MS,
+  MEDINA_LAWS_SOVEREIGNTY,
+  SOVEREIGNTY_LEVELS,
+  IDENTITY_TYPES,
   SovereignIdentity,
   GovernanceCouncil,
   SovereigntyGraph

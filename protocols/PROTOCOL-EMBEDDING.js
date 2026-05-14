@@ -226,7 +226,17 @@ function deserialise(wire) {
 // §7 — PROTOCOL EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-module.exports = {
+export {
+  PROTOCOL_ID, PROTOCOL_VERSION,
+  DIM, SIMILARITY_THRESHOLD,
+  EMBEDDING_STATUS,
+  PHI, PHI_INV, AMOR, HEARTBEAT_MS,
+  createEnvelope, similarity, classify,
+  applyPhiLaplace, compose,
+  serialise, deserialise,
+};
+
+export default {
   PROTOCOL_ID, PROTOCOL_VERSION,
   DIM, SIMILARITY_THRESHOLD,
   EMBEDDING_STATUS,

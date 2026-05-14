@@ -569,7 +569,17 @@ class SovereignFlowTracker {
 // §7 — EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-module.exports = {
+export {
+  PROTOCOL_ID, PROTOCOL_VERSION,
+  DIMENSION, WELLNESS_TIER, RECOVERY_PROMPTS,
+  FLOW_DIMENSION, FLOW_TIER, SOVEREIGN_RECOVERY,
+  REST_SCHEDULE_BEATS, REST_SCHEDULE_MS,
+  PHI, PHI_INV, AMOR, HEARTBEAT_MS,
+  checkIn, recoveryPrompt, recoveryPlan, flowCheckIn,
+  WellnessTracker, TeamWellness, SovereignFlowTracker,
+};
+
+export default {
   PROTOCOL_ID, PROTOCOL_VERSION,
   DIMENSION, WELLNESS_TIER, RECOVERY_PROMPTS,
   FLOW_DIMENSION, FLOW_TIER, SOVEREIGN_RECOVERY,
