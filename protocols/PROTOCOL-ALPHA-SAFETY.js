@@ -2042,7 +2042,7 @@ class SafetyIntelligenceCoordinator {
 // §11 — EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════
 
-module.exports = {
+export {
   // Original exports
   AlphaSafetyProtocol,
   PreExecutionValidator,
@@ -2060,6 +2060,8 @@ module.exports = {
   ResilienceScoringEngine,
   SafetyIntelligenceCoordinator
 };
+
+export default AlphaSafetyProtocol;
 
 // ═══════════════════════════════════════════════════════════════════════════
 // END OF PROTOCOL-ALPHA-SAFETY.js

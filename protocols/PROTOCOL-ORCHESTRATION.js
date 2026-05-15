@@ -804,7 +804,7 @@ class OrchestrationEngine {
 // §8 — EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-module.exports = {
+export {
   // Constants
   PHI,
   PHI_INV,
@@ -822,6 +822,22 @@ module.exports = {
   STRATEGY_TYPES,
 
   // Classes
+  SovereignWorkflow,
+  WorkflowStage,
+  OrchestrationEngine
+};
+
+export default {
+  PHI,
+  PHI_INV,
+  PHI_SQUARED,
+  AMOR,
+  HEARTBEAT_MS,
+  FIBONACCI,
+  MEDINA_LAWS,
+  WORKFLOW_STATES,
+  STAGE_STATES,
+  STRATEGY_TYPES,
   SovereignWorkflow,
   WorkflowStage,
   OrchestrationEngine

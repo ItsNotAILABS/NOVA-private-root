@@ -2172,7 +2172,7 @@ function runPhiConsistencyTests() {
   const path = require('path');
   const REPO = path.resolve(__dirname, '../..');
 
-  // Load all 10 protocols
+  // Load all protocol modules in /protocols
   const protocolFiles = fs.readdirSync(REPO + '/protocols').filter(f => f.endsWith('.js'));
   const protocols = {};
   for (const f of protocolFiles) {
@@ -2182,7 +2182,7 @@ function runPhiConsistencyTests() {
   }
 
   const protoNames = Object.keys(protocols);
-  assertEqual(protoNames.length, 10, '10 protocols loaded');
+  assertEqual(protoNames.length, protocolFiles.length, 'all protocol modules loaded');
 
   // Every protocol must export something
   for (const name of protoNames) {

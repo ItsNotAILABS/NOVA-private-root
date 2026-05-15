@@ -863,7 +863,7 @@ function createLocalNetwork(n) {
 // §11 — EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-module.exports = {
+export {
   PROTOCOL_ID, PROTOCOL_VERSION,
   NODE_TYPE, MSG_TYPE,
   DHT_SHARDS, ROUTING_TABLE_SIZE, GOSSIP_FAN_OUT, MAX_HOPS,
@@ -887,6 +887,24 @@ module.exports = {
   SovereignNovaNode,
 
   /* Bootstrap */
+  bootstrapNode,
+  createLocalNetwork,
+};
+
+export default {
+  PROTOCOL_ID, PROTOCOL_VERSION,
+  NODE_TYPE, MSG_TYPE,
+  DHT_SHARDS, ROUTING_TABLE_SIZE, GOSSIP_FAN_OUT, MAX_HOPS,
+  GOSSIP_SCHEDULE_MS,
+  PHI, PHI_INV, AMOR, HEARTBEAT_MS,
+  createNodeIdentity,
+  createMessage, hopMessage, isExpired,
+  networkSeal, networkUnseal,
+  PhiDHT,
+  RelayStore,
+  LyapunovMonitor,
+  GossipEngine,
+  SovereignNovaNode,
   bootstrapNode,
   createLocalNetwork,
 };

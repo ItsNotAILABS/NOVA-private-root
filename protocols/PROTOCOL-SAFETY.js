@@ -483,7 +483,17 @@ class SovereignOperatorSafety {
 // §7 — EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-module.exports = {
+export {
+  PROTOCOL_ID, PROTOCOL_VERSION,
+  SAFETY_LEVEL, HAZARD, INCIDENT_STATUS, SEVERITY_WEIGHT,
+  FIB_ESCALATION, DEFAULT_CHECKLIST,
+  OP_RISK, OP_PROTECTION,
+  PHI, PHI_INV, AMOR, HEARTBEAT_MS,
+  createIncident, computeSafetyScore,
+  SafetyMonitor, runChecklist, SovereignOperatorSafety,
+};
+
+export default {
   PROTOCOL_ID, PROTOCOL_VERSION,
   SAFETY_LEVEL, HAZARD, INCIDENT_STATUS, SEVERITY_WEIGHT,
   FIB_ESCALATION, DEFAULT_CHECKLIST,
