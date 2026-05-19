@@ -45,3 +45,4 @@ _(After merge: [main branch link](https://htmlpreview.github.io/?https://github.
 | Blueprint Gallery | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/copilot/add-canonical-architecture-codex/organism/web/blueprints.html) | 25 architecture blueprints |
 | Products Catalog | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/copilot/add-canonical-architecture-codex/organism/web/products.html) | Product catalog |
 | ANIMA Micro | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/copilot/add-canonical-architecture-codex/organism/web/index.html) | 5 AI products, 7 autonomous workers |
+| Deep Research Lab Journal | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/main/organism/web/deep-research-lab-journal.html) | Professional native deployment page with 5 named efficiency bots |
