@@ -172,7 +172,11 @@
     if (!el) return;
     var cls = level === 'ok' ? 'ok' : level === 'warn' ? 'warn' : level === 'err' ? 'err' : '';
     var ts = new Date().toLocaleTimeString();
-    el.innerHTML = '<div class="'+cls+'">[' + ts + '] ' + text + '</div>' + el.innerHTML;
+    var line = document.createElement('div');
+    if (cls) line.className = cls;
+    line.textContent = '[' + ts + '] ' + text;
+    if (el.firstChild) el.insertBefore(line, el.firstChild);
+    else el.appendChild(line);
   }
 
   function renderBots(){
