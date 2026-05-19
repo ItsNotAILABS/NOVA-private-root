@@ -1,0 +1,50 @@
+name: Deep Research Lab Journal Pages Deploy
+
+on:
+  push:
+    branches: [ main, master, develop ]
+    paths:
+      - 'organism/web/deep-research-lab-journal/**'
+      - '.github/workflows/deep-research-lab-journal-pages.yml'
+  pull_request:
+    branches: [ main, master, develop ]
+    paths:
+      - 'organism/web/deep-research-lab-journal/**'
+      - '.github/workflows/deep-research-lab-journal-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-deep-research-lab-journal
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload static site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: organism/web/deep-research-lab-journal
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
