@@ -1,0 +1,38 @@
+# NOVA Julia-Motoko Bridge Documentation Site
+title: NOVA Julia-Motoko Bridge
+description: The world's first Julia → Motoko smart contract bridge. High-performance numerical computing on Internet Computer with golden ratio optimization.
+theme: jekyll-theme-cayman
+show_downloads: false
+
+# Markdown settings
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# Exclude from Jekyll processing
+exclude:
+  - README.md
+  - _pages_readme.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - .DS_Store
+
+# Include HTML files
+include:
+  - julia-motoko-bridge.html
+
+# Collections
+collections:
+  docs:
+    output: true
+    permalink: /:collection/:path/
+
+# Default front matter
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
