@@ -4,6 +4,7 @@ on:
   push:
     branches: [ main, master, develop ]
     paths:
+      - 'organism/web/deep-research-lab-journal.html'
       - 'organism/web/deep-research-lab-journal/**'
       - '.github/workflows/deep-research-lab-journal-pages.yml'
   pull_request:
@@ -19,6 +20,32 @@ permissions:
   id-token: write
 
 concurrency:
+  group: "pages-deep-research-lab-journal"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Prepare native artifact
+        run: |
+          mkdir -p _site
+          cp organism/web/deep-research-lab-journal.html _site/index.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
   group: pages-deep-research-lab-journal
   cancel-in-progress: true
 
