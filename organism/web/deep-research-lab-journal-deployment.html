@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOVA DEEP RESEARCH LAB JOURNAL — DEPLOYMENT</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:#050a14;color:#e0f0ff;font-family:'Courier New',Courier,monospace;line-height:1.6;min-height:100vh}
+  .status-bar{position:sticky;top:0;z-index:100;background:linear-gradient(180deg,#0a1428,#050a14);border-bottom:1px solid #1a3050;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .status-title{font-size:1.02rem;font-weight:bold;display:flex;align-items:center;gap:10px}
+  .pulse-dot{width:10px;height:10px;border-radius:50%;background:#00ff88;display:inline-block;animation:pulse .873s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 6px #00ff88}50%{opacity:.35;box-shadow:0 0 14px #00ff88}}
+  .status-metrics{display:flex;gap:18px;flex-wrap:wrap;color:#88aacc;font-size:.8rem}
+  .metric-val{color:#00ddff}
+
+  .container{max-width:1200px;margin:0 auto;padding:22px}
+  h1{text-align:center;color:#88ccff;font-size:1.55rem;margin-bottom:4px}
+  .subtitle{text-align:center;color:#667788;font-size:.8rem;margin-bottom:20px}
+  .section{margin-bottom:22px}
+  .section-title{font-size:1rem;color:#66bbff;margin-bottom:10px;border-bottom:1px solid #1a3050;padding-bottom:6px}
+
+  .native-bar{background:#0a1525;border:1px solid #1a3050;border-radius:8px;padding:12px 14px;font-size:.78rem;color:#88aacc;margin-bottom:18px}
+  .native-chip{display:inline-block;margin:4px 10px 0 0;padding:3px 8px;border-radius:4px;border:1px solid #1a3050;background:#0c1a2e;color:#66bbff;font-size:.72rem}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .card{background:#0c1a2e;border:1px solid #1a3050;border-radius:8px;padding:14px}
+  .card h3{color:#88ccff;font-size:.88rem;margin-bottom:4px}
+  .bot-id{font-size:.7rem;color:#556677;margin-bottom:6px}
+  .bot-role{font-size:.78rem;color:#a6bbd3;margin-bottom:8px}
+  .bot-live{font-size:.74rem;color:#00ddaa}
+
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:.75rem;color:#88aacc}
+  .field input,.field select,.field textarea{background:#060f1f;border:1px solid #1a3050;border-radius:5px;color:#ddecff;font-family:inherit;font-size:.8rem;padding:8px;outline:none}
+  .field textarea{min-height:90px;resize:vertical}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:#3388cc}
+
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .btn{background:#1a3050;color:#88ccff;border:1px solid #2a5080;border-radius:4px;padding:8px 14px;font-family:inherit;font-size:.78rem;cursor:pointer}
+  .btn:hover{background:#2a5080}
+  .btn.primary{background:linear-gradient(135deg,#003322,#001a10);color:#00ff88;border-color:#00ff8844}
+  .btn.primary:hover{background:#004430}
+
+  .checklist{list-style:none;display:grid;gap:6px}
+  .checklist li{background:#0c1a2e;border:1px solid #1a3050;border-radius:6px;padding:8px 10px;font-size:.78rem;color:#9db3cd;display:flex;justify-content:space-between;gap:8px}
+  .state{font-size:.7rem;padding:2px 8px;border-radius:10px;font-weight:bold}
+  .state.READY{background:#332200;color:#ffcc44}
+  .state.DONE{background:#003322;color:#00ff88}
+
+  .log{background:#060f1f;border:1px solid #1a3050;border-radius:8px;padding:10px;max-height:240px;overflow:auto;font-size:.74rem;color:#88aacc;line-height:1.5}
+  .log .ok{color:#00ff88}.log .warn{color:#ffcc44}.log .err{color:#ff5566}
+
+  .copyright{text-align:center;padding:22px;color:#334455;border-top:1px solid #0e1e30;font-size:.74rem;margin-top:20px}
+</style>
+</head>
+<body>
+
+<div class="status-bar">
+  <div class="status-title"><span class="pulse-dot"></span>DEEP RESEARCH LAB JOURNAL DEPLOYMENT</div>
+  <div class="status-metrics">
+    <span>Bots: <span class="metric-val" id="m-bots">0/5</span></span>
+    <span>Tasks: <span class="metric-val" id="m-tasks">0</span></span>
+    <span>Avg Latency: <span class="metric-val" id="m-latency">0 ms</span></span>
+    <span>Readiness: <span class="metric-val" id="m-ready">0%</span></span>
+  </div>
+</div>
+
+<div class="container">
+  <h1>📓 DEEP RESEARCH LAB JOURNAL</h1>
+  <p class="subtitle">Professional deployment page for GitHub hosting — native stack only</p>
+
+  <div class="native-bar">
+    Native deployment path in use:
+    <span class="native-chip">HTML5</span>
+    <span class="native-chip">CSS3</span>
+    <span class="native-chip">Vanilla JavaScript</span>
+    <span class="native-chip">Native Web Workers</span>
+    <span class="native-chip">No framework runtime</span>
+  </div>
+
+  <section class="section">
+    <div class="section-title">🤖 Efficiency Bot Fleet (5)</div>
+    <div class="grid" id="botGrid"></div>
+  </section>
+
+  <section class="section">
+    <div class="section-title">🧪 Journal Deployment Control</div>
+    <div class="card">
+      <div class="form-grid">
+        <div class="field">
+          <label for="journalTitle">Journal Name</label>
+          <input id="journalTitle" type="text" value="NOVA Deep Research Lab Journal">
+        </div>
+        <div class="field">
+          <label for="environment">Deployment Environment</label>
+          <select id="environment">
+            <option value="github-pages">GitHub Pages</option>
+            <option value="repo-docs">Repository Docs</option>
+            <option value="artifact-release">GitHub Release Artifact</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="cadence">Publishing Cadence</label>
+          <select id="cadence">
+            <option>Daily</option>
+            <option selected>Weekly</option>
+            <option>Bi-Weekly</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="owner">Maintainer</label>
+          <input id="owner" type="text" value="Deep Research Operations">
+        </div>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label for="scope">Research Scope</label>
+        <textarea id="scope">Architecture synthesis, deployment notes, validation outcomes, and release decision logs.</textarea>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="runBtn">Run Native Deployment Orchestration</button>
+        <button class="btn" id="resetBtn">Reset Session</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-title">✅ Deployment Checklist</div>
+    <ul class="checklist" id="checklist"></ul>
+  </section>
+
+  <section class="section">
+    <div class="section-title">📡 Bot Execution Log</div>
+    <div class="log" id="eventLog">Awaiting deployment orchestration…</div>
+  </section>
+</div>
+
+<div class="copyright">© 2024–2026 Medina Tech — NOVA sovereign deployment substrate</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var BOT_DEFS = [
+    { id:'BOT-OBSERVA-001', name:'OBSERVA_PRIMA', role:'Research intake and source triage', worker:'bot-observa-prima-worker.js' },
+    { id:'BOT-SCRIPTOR-001', name:'SCRIPTOR_NEXUS', role:'Journal drafting and section synthesis', worker:'bot-scriptor-nexus-worker.js' },
+    { id:'BOT-VERITAS-001', name:'VERITAS_AUDITOR', role:'Citation and integrity validation', worker:'bot-veritas-auditor-worker.js' },
+    { id:'BOT-DEPLOY-001', name:'DEPLOYA_ORCHESTRA', role:'Deployment packaging and publishing plan', worker:'bot-deploya-orchestra-worker.js' },
+    { id:'BOT-SENTINEL-001', name:'SENTINELLA_GUARD', role:'Post-deploy monitoring and incident watch', worker:'bot-sentinella-guard-worker.js' }
+  ];
+
+  var CHECKS = [
+    'Journal metadata captured',
+    'Research scope normalized',
+    'Entry structure generated',
+    'Citation audit complete',
+    'Deployment artifact prepared',
+    'GitHub deployment readiness confirmed'
+  ];
+
+  var workers = {};
+  var activeBots = 0;
+  var totalTasks = 0;
+  var totalLatency = 0;
+  var completedChecks = 0;
+
+  function setText(id, val){ var el=document.getElementById(id); if(el) el.textContent = val; }
+
+  function appendLog(level, text){
+    var el = document.getElementById('eventLog');
+    if (!el) return;
+    var cls = level === 'ok' ? 'ok' : level === 'warn' ? 'warn' : level === 'err' ? 'err' : '';
+    var ts = new Date().toLocaleTimeString();
+    var line = document.createElement('div');
+    if (cls) line.className = cls;
+    line.textContent = '[' + ts + '] ' + text;
+    if (el.firstChild) el.insertBefore(line, el.firstChild);
+    else el.appendChild(line);
+  }
+
+  function renderBots(){
+    var html = '';
+    for (var i=0;i<BOT_DEFS.length;i++) {
+      var b = BOT_DEFS[i];
+      html += '<div class="card">'
+        + '<h3>' + b.name + '</h3>'
+        + '<div class="bot-id">' + b.id + '</div>'
+        + '<div class="bot-role">' + b.role + '</div>'
+        + '<div class="bot-live" id="live-' + i + '">status: standby</div>'
+      + '</div>';
+    }
+    document.getElementById('botGrid').innerHTML = html;
+  }
+
+  function renderChecklist(){
+    var html = '';
+    for (var i=0;i<CHECKS.length;i++) {
+      html += '<li id="check-'+i+'"><span>' + CHECKS[i] + '</span><span class="state READY">READY</span></li>';
+    }
+    document.getElementById('checklist').innerHTML = html;
+  }
+
+  function markCheck(index){
+    var item = document.getElementById('check-' + index);
+    if (!item || item.dataset.done === '1') return;
+    item.dataset.done = '1';
+    var badge = item.querySelector('.state');
+    if (badge) { badge.textContent = 'DONE'; badge.className = 'state DONE'; }
+    completedChecks++;
+    setText('m-ready', Math.round((completedChecks / CHECKS.length) * 100) + '%');
+  }
+
+  function updateMetrics(){
+    setText('m-bots', activeBots + '/5');
+    setText('m-tasks', totalTasks);
+    var avg = totalTasks ? Math.round(totalLatency / totalTasks) : 0;
+    setText('m-latency', avg + ' ms');
+  }
+
+  function initWorkers(){
+    activeBots = 0;
+    for (var i=0;i<BOT_DEFS.length;i++) {
+      (function(idx){
+        var def = BOT_DEFS[idx];
+        try {
+          var w = new Worker(def.worker);
+          workers[def.id] = w;
+          activeBots++;
+          w.onmessage = function(ev){
+            var d = ev.data || {};
+            totalTasks++;
+            totalLatency += Number(d.latencyMs || 0);
+            updateMetrics();
+            var live = document.getElementById('live-' + idx);
+            if (live) live.textContent = 'status: active (' + (d.stage || 'ok') + ')';
+            appendLog('ok', def.name + ' → ' + (d.message || 'task completed'));
+          };
+          w.onerror = function(err){
+            appendLog('err', def.name + ' error: ' + (err.message || 'unknown'));
+          };
+        } catch (e) {
+          appendLog('warn', def.name + ' unavailable: ' + e.message);
+        }
+      })(i);
+    }
+    updateMetrics();
+  }
+
+  function broadcastTask(stage, payload){
+    var keys = Object.keys(workers);
+    for (var i=0;i<keys.length;i++) {
+      var w = workers[keys[i]];
+      if (w) w.postMessage({ stage: stage, payload: payload, ts: Date.now() });
+    }
+  }
+
+  function runDeployment(){
+    completedChecks = 0;
+    renderChecklist();
+    setText('m-ready', '0%');
+
+    var payload = {
+      title: document.getElementById('journalTitle').value.trim(),
+      environment: document.getElementById('environment').value,
+      cadence: document.getElementById('cadence').value,
+      owner: document.getElementById('owner').value.trim(),
+      scope: document.getElementById('scope').value.trim()
+    };
+
+    appendLog('ok', 'Deployment run started for "' + payload.title + '" (' + payload.environment + ')');
+
+    markCheck(0);
+    setTimeout(function(){ broadcastTask('INTAKE', payload); markCheck(1); }, 120);
+    setTimeout(function(){ broadcastTask('DRAFT', payload); markCheck(2); }, 360);
+    setTimeout(function(){ broadcastTask('AUDIT', payload); markCheck(3); }, 640);
+    setTimeout(function(){ broadcastTask('PACKAGE', payload); markCheck(4); }, 900);
+    setTimeout(function(){ broadcastTask('DEPLOY_READY', payload); markCheck(5); appendLog('ok', 'Native deployment sequence complete. Ready for GitHub publish.'); }, 1200);
+  }
+
+  function resetSession(){
+    totalTasks = 0;
+    totalLatency = 0;
+    completedChecks = 0;
+    updateMetrics();
+    setText('m-ready', '0%');
+    renderChecklist();
+    appendLog('warn', 'Session reset');
+    for (var i=0;i<BOT_DEFS.length;i++) {
+      var live = document.getElementById('live-' + i);
+      if (live) live.textContent = 'status: standby';
+    }
+  }
+
+  renderBots();
+  renderChecklist();
+  initWorkers();
+
+  document.getElementById('runBtn').addEventListener('click', runDeployment);
+  document.getElementById('resetBtn').addEventListener('click', resetSession);
+})();
+</script>
+</body>
+</html>

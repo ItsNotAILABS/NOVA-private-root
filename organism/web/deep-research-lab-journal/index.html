@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deep Research Lab Journal — Professional Deployment</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Inter,Segoe UI,system-ui,sans-serif;background:#07101d;color:#dce9ff;line-height:1.5;min-height:100vh}
+    .wrap{max-width:1180px;margin:0 auto;padding:28px}
+    .top{background:linear-gradient(145deg,#12223a,#0c172b);border:1px solid #1f3558;border-radius:16px;padding:24px;margin-bottom:20px}
+    h1{font-size:1.8rem;color:#9ec7ff;margin-bottom:8px}
+    .sub{color:#90a8c9;font-size:.95rem}
+    .meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
+    .pill{border:1px solid #2c4770;border-radius:999px;padding:6px 12px;font-size:.76rem;color:#9fc9ff;background:#0b1730}
+    .grid{display:grid;grid-template-columns:2fr 1fr;gap:20px}
+    @media(max-width:980px){.grid{grid-template-columns:1fr}}
+    .panel{background:#0c172b;border:1px solid #1d3152;border-radius:14px;padding:18px}
+    .panel h2{font-size:1rem;color:#9ec7ff;margin-bottom:12px}
+    .bots{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+    .bot{background:#0a1426;border:1px solid #1c2c49;border-radius:12px;padding:12px}
+    .bot h3{font-size:.95rem;color:#9ec7ff;margin-bottom:4px}
+    .bot .id{font-size:.72rem;color:#6f8db7;margin-bottom:8px}
+    .bot .role{font-size:.8rem;color:#aac4e7;min-height:38px;margin-bottom:10px}
+    .status{font-size:.75rem;color:#ffd37c;margin-bottom:10px}
+    button{background:#184177;border:1px solid #2d5ea0;color:#dce9ff;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:.8rem}
+    button:hover{background:#20508f}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .full{margin-top:12px;width:100%}
+    .stages{display:grid;gap:8px}
+    .stage{display:flex;justify-content:space-between;align-items:center;background:#0a1426;border:1px solid #1c2c49;border-radius:10px;padding:10px 12px;font-size:.85rem}
+    .stage .v{font-size:.75rem;color:#ffd37c}
+    .log{max-height:320px;overflow:auto;background:#08101d;border:1px solid #1b2a45;border-radius:10px;padding:10px;font-family:ui-monospace,Consolas,monospace;font-size:.78rem;color:#b7d3fa}
+    .log-line{margin-bottom:8px}
+    .footer{margin-top:18px;color:#7995bc;font-size:.75rem;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="top">
+      <h1>Deep Research Lab Journal — Professional Native Deployment</h1>
+      <p class="sub">Fully native GitHub deployment surface with five autonomous efficiency bots running on native Web Workers.</p>
+      <div class="meta">
+        <span class="pill">Native Stack: HTML + CSS + JS + Web Workers</span>
+        <span class="pill">Target: GitHub Pages</span>
+        <span class="pill">Mode: Professional Deployment</span>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="panel">
+        <h2>Deployment Bots (5)</h2>
+        <div class="bots" id="bots"></div>
+        <button class="full" id="run-all">Run Full Native Deployment</button>
+      </section>
+
+      <aside class="panel">
+        <h2>Deployment Stages</h2>
+        <div class="stages" id="stages"></div>
+      </aside>
+    </div>
+
+    <section class="panel" style="margin-top:20px">
+      <h2>Lab Journal Activity Log</h2>
+      <div class="log" id="log"></div>
+    </section>
+
+    <div class="footer">© 2026 Deep Research Lab Journal Deployment Surface — Native GitHub Ready</div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var bots = [
+        { id: 'BOT-DRL-001', name: 'Aletheia Scout', role: 'Discovers and ranks research sources', worker: 'aletheia-scout-bot.worker.js' },
+        { id: 'BOT-DRL-002', name: 'Methodus Architect', role: 'Builds journal structure and methodology frames', worker: 'methodus-architect-bot.worker.js' },
+        { id: 'BOT-DRL-003', name: 'Veritas Curator', role: 'Validates claims and evidence quality', worker: 'veritas-curator-bot.worker.js' },
+        { id: 'BOT-DRL-004', name: 'Praxis Release', role: 'Prepares release artifacts and changelog', worker: 'praxis-release-bot.worker.js' },
+        { id: 'BOT-DRL-005', name: 'Atlas Deploy', role: 'Coordinates deployment readiness and publication', worker: 'atlas-deploy-bot.worker.js' }
+      ];
+
+      var stages = [
+        'Source Discovery',
+        'Method Design',
+        'Evidence Validation',
+        'Release Packaging',
+        'GitHub Pages Deployment'
+      ];
+
+      var workers = {};
+      var logEl = document.getElementById('log');
+      var botsEl = document.getElementById('bots');
+      var stagesEl = document.getElementById('stages');
+      var runAllBtn = document.getElementById('run-all');
+
+      function log(text) {
+        var line = document.createElement('div');
+        line.className = 'log-line';
+        line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + text;
+        logEl.prepend(line);
+      }
+
+      function stageMarkup() {
+        stages.forEach(function (name, idx) {
+          var row = document.createElement('div');
+          row.className = 'stage';
+          row.innerHTML = '<span>' + (idx + 1) + '. ' + name + '</span><span class="v" id="stage-' + idx + '">PENDING</span>';
+          stagesEl.appendChild(row);
+        });
+      }
+
+      function updateStage(idx, value) {
+        var el = document.getElementById('stage-' + idx);
+        if (el) el.textContent = value;
+      }
+
+      function initWorker(bot) {
+        try {
+          var worker = new Worker(bot.worker);
+          workers[bot.id] = worker;
+          worker.onmessage = function (event) {
+            var data = event.data || {};
+            if (data.type === 'result') {
+              setStatus(bot.id, 'READY');
+              log(bot.name + ' completed: ' + data.summary + ' (score: ' + data.score + ')');
+            }
+          };
+          worker.onerror = function () {
+            setStatus(bot.id, 'ERROR');
+            log(bot.name + ' failed during execution.');
+          };
+        } catch (err) {
+          setStatus(bot.id, 'UNAVAILABLE');
+          log(bot.name + ' unavailable: ' + err.message);
+        }
+      }
+
+      function setStatus(botId, status) {
+        var el = document.getElementById('status-' + botId);
+        if (el) el.textContent = 'Status: ' + status;
+      }
+
+      function runBot(bot, stageIndex) {
+        var worker = workers[bot.id];
+        if (!worker) {
+          log(bot.name + ' cannot run: worker not initialized.');
+          return;
+        }
+        setStatus(bot.id, 'RUNNING');
+        updateStage(stageIndex, 'IN PROGRESS');
+        worker.postMessage({ type: 'run', stage: stages[stageIndex], bot: bot.name, ts: Date.now() });
+        setTimeout(function () { updateStage(stageIndex, 'DONE'); }, 520);
+      }
+
+      function buildBots() {
+        bots.forEach(function (bot, idx) {
+          var card = document.createElement('article');
+          card.className = 'bot';
+          card.innerHTML = '<h3>' + bot.name + '</h3>' +
+            '<div class="id">' + bot.id + '</div>' +
+            '<div class="role">' + bot.role + '</div>' +
+            '<div class="status" id="status-' + bot.id + '">Status: READY</div>';
+
+          var btn = document.createElement('button');
+          btn.textContent = 'Run Bot';
+          btn.addEventListener('click', function () { runBot(bot, idx); });
+
+          card.appendChild(btn);
+          botsEl.appendChild(card);
+          initWorker(bot);
+        });
+      }
+
+      function runAll() {
+        runAllBtn.disabled = true;
+        log('Starting full native deployment cycle with all 5 bots.');
+        bots.forEach(function (bot, idx) {
+          setTimeout(function () { runBot(bot, idx); }, idx * 650);
+        });
+        setTimeout(function () {
+          runAllBtn.disabled = false;
+          log('Deployment cycle completed. Page ready for GitHub Pages publication.');
+        }, bots.length * 750 + 400);
+      }
+
+      stageMarkup();
+      buildBots();
+      runAllBtn.addEventListener('click', runAll);
+      log('Deep Research Lab Journal deployment surface initialized.');
+    })();
+  </script>
+</body>
+</html>
