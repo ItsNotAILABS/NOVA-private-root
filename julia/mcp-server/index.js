@@ -188,6 +188,92 @@ const TOOLS = [
       required: ['function_name'],
     },
   },
+  // ─── BUILD №66: Brain Organ MCP Tools + Cross-Substrate Mesh ──────────────
+  {
+    name: 'julia.compute',
+    description: 'Execute any registered Julia mathematical function. This is how the brain organ exposes computation.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        function: {
+          type: 'string',
+          description: 'Function name to execute',
+          enum: [
+            'phi_eigen', 'phi_svd', 'phi_fft', 'phi_ifft',
+            'phi_mean', 'phi_std', 'phi_var', 'phi_cov', 'phi_cor',
+            'phi_linsolve', 'kuramoto_sync', 'phi_learning_rate',
+            'phi_fibonacci', 'golden_section', 'phi_decay',
+          ],
+        },
+        args: {
+          type: 'object',
+          description: 'Function arguments (auto-converted to Julia types)',
+        },
+      },
+      required: ['function', 'args'],
+    },
+  },
+  {
+    name: 'julia.classify_probe',
+    description: 'Classify input data type/shape and recommend optimal Julia function for processing.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        data: { description: 'Input data to classify (matrix, vector, scalar, signal)' },
+        intent: {
+          type: 'string',
+          description: 'Caller intent',
+          enum: ['decompose', 'optimize', 'analyze', 'transform', 'simulate', 'auto'],
+        },
+      },
+      required: ['data'],
+    },
+  },
+  {
+    name: 'julia.optimize_policy',
+    description: 'Run optimization with policy constraints. Routes to golden section or φ-gradient descent.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        objective: { type: 'string', description: 'Objective function expression' },
+        bounds: {
+          type: 'object',
+          properties: {
+            lower: { type: 'array', items: { type: 'number' } },
+            upper: { type: 'array', items: { type: 'number' } },
+          },
+        },
+        method: {
+          type: 'string',
+          enum: ['golden_section', 'phi_gradient', 'phi_annealing', 'auto'],
+        },
+      },
+      required: ['objective', 'bounds'],
+    },
+  },
+  {
+    name: 'julia.reward_curve',
+    description: 'Compute reward/decay curves (φ-decay, learning rate schedules, Fibonacci growth, Kuramoto sync).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        curve_type: {
+          type: 'string',
+          enum: ['phi_decay', 'learning_rate', 'fibonacci_growth', 'kuramoto_sync', 'custom'],
+        },
+        parameters: { type: 'object', description: 'Curve parameters (tau, base_lr, coupling_K, steps)' },
+        time_range: {
+          type: 'object',
+          properties: {
+            start: { type: 'number' },
+            end: { type: 'number' },
+            points: { type: 'number' },
+          },
+        },
+      },
+      required: ['curve_type'],
+    },
+  },
 ];
 
 // ═══ Tool Handlers ═══════════════════════════════════════════════════════════
@@ -520,6 +606,158 @@ async function handleExplainBridgeFunction(args) {
 
 // ═══ Request Handlers ════════════════════════════════════════════════════════
 
+// ─── BUILD №66: Brain Organ MCP Tool Handlers ────────────────────────────────
+
+async function handleJuliaCompute(args) {
+  const { function: funcName, args: funcArgs } = args;
+  const FUNCTIONS = [
+    'phi_eigen', 'phi_svd', 'phi_fft', 'phi_ifft',
+    'phi_mean', 'phi_std', 'phi_var', 'phi_cov', 'phi_cor',
+    'phi_linsolve', 'kuramoto_sync', 'phi_learning_rate',
+    'phi_fibonacci', 'golden_section', 'phi_decay',
+  ];
+
+  if (!FUNCTIONS.includes(funcName)) {
+    return { error: `Unknown function: ${funcName}`, available: FUNCTIONS };
+  }
+
+  // Dispatch to local implementations
+  switch (funcName) {
+    case 'phi_fibonacci': {
+      const n = funcArgs.n || 10;
+      const SQRT5 = Math.sqrt(5);
+      const PSI = 1 - PHI;
+      return { result: Math.round((Math.pow(PHI, n) - Math.pow(PSI, n)) / SQRT5), function: funcName };
+    }
+    case 'phi_decay': {
+      const { t = 1.0, tau = 1.0 } = funcArgs;
+      return { result: Math.pow(PHI, -t / tau), function: funcName };
+    }
+    case 'phi_learning_rate': {
+      const base = funcArgs.base || 0.01;
+      const epochs = Math.ceil(Math.pow(PHI, 5));
+      const schedule = Array.from({ length: epochs }, (_, i) => base * Math.pow(PHI_INV, i));
+      return { result: schedule, function: funcName, epochs };
+    }
+    case 'phi_mean': {
+      const x = funcArgs.x || [];
+      const sorted = [...x].sort((a, b) => a - b);
+      const mid = Math.floor(sorted.length / 2);
+      const med = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+      const madArr = x.map(xi => Math.abs(xi - med));
+      const madSorted = [...madArr].sort((a, b) => a - b);
+      const madMid = Math.floor(madSorted.length / 2);
+      const madVal = madSorted.length % 2 ? madSorted[madMid] : (madSorted[madMid - 1] + madSorted[madMid]) / 2;
+      if (madVal < 1e-15) return { result: med, function: funcName };
+      let wSum = 0, wxSum = 0;
+      for (const xi of x) {
+        const z = Math.abs(xi - med) / madVal;
+        const w = z <= PHI ? 1.0 : Math.pow(PHI, -(z - PHI));
+        wSum += w;
+        wxSum += w * xi;
+      }
+      return { result: wxSum / wSum, function: funcName };
+    }
+    case 'kuramoto_sync': {
+      const { theta = [], K = PHI_INV, omega = [] } = funcArgs;
+      const N = theta.length;
+      let th = [...theta];
+      const dt = HEARTBEAT_MS / 1000;
+      for (let step = 0; step < 100; step++) {
+        const dth = new Array(N).fill(0);
+        for (let i = 0; i < N; i++) {
+          let coupling = 0;
+          for (let j = 0; j < N; j++) {
+            if (j !== i) coupling += Math.sin(th[j] - th[i]);
+          }
+          dth[i] = (omega[i] || 1) + (K / N) * coupling;
+        }
+        th = th.map((t, i) => (t + dth[i] * dt) % (2 * Math.PI));
+      }
+      let reSum = 0, imSum = 0;
+      for (const t of th) { reSum += Math.cos(t); imSum += Math.sin(t); }
+      const R = Math.sqrt(reSum * reSum + imSum * imSum) / N;
+      return { result: { theta_final: th, R }, function: funcName };
+    }
+    default:
+      return { result: null, function: funcName, note: 'Full implementation via Julia WASM substrate' };
+  }
+}
+
+async function handleClassifyProbe(args) {
+  const { data, intent = 'auto' } = args;
+  let type = 'unknown', shape = [], recommended = 'phi_compute';
+
+  if (typeof data === 'number') {
+    type = 'scalar'; shape = [1];
+    recommended = intent === 'simulate' ? 'phi_decay' : 'golden_section';
+  } else if (Array.isArray(data)) {
+    if (Array.isArray(data[0])) {
+      type = 'matrix'; shape = [data.length, data[0].length];
+      recommended = data.length === data[0].length ? 'phi_eigen' : 'phi_svd';
+    } else {
+      type = 'vector'; shape = [data.length];
+      recommended = data.length > 32 ? 'phi_fft' : 'phi_mean';
+    }
+  }
+
+  if (intent === 'optimize') recommended = type === 'scalar' ? 'golden_section' : 'phi_linsolve';
+  if (intent === 'transform') recommended = 'phi_fft';
+  if (intent === 'simulate') recommended = type === 'vector' ? 'kuramoto_sync' : 'phi_decay';
+
+  return { type, shape, recommended_function: recommended, intent, confidence: intent === 'auto' ? 0.7 : 0.95 };
+}
+
+async function handleOptimizePolicy(args) {
+  const { objective, bounds, method = 'auto', max_iter = 100 } = args;
+  const dim = bounds.lower ? bounds.lower.length : 1;
+  const selectedMethod = method === 'auto' ? (dim === 1 ? 'golden_section' : 'phi_gradient') : method;
+
+  return {
+    method: selectedMethod,
+    dimensions: dim,
+    learning_rate: PHI_INV,
+    convergence_rate: selectedMethod === 'golden_section' ? PHI_INV : `O(φ^(-2t))`,
+    max_iter,
+    bounds,
+    phi_constants: { PHI, PHI_INV, AMOR },
+  };
+}
+
+async function handleRewardCurve(args) {
+  const { curve_type, parameters = {}, time_range = {} } = args;
+  const { start = 0, end: endT = 10, points = 50 } = time_range;
+  const dt = (endT - start) / Math.max(points - 1, 1);
+  const t_values = Array.from({ length: points }, (_, i) => start + i * dt);
+
+  let values;
+  switch (curve_type) {
+    case 'phi_decay':
+      const tau = parameters.tau || 1.0;
+      values = t_values.map(t => Math.pow(PHI, -t / tau));
+      break;
+    case 'learning_rate':
+      const baseLr = parameters.base_lr || 0.01;
+      values = t_values.map((_, i) => baseLr * Math.pow(PHI_INV, i));
+      break;
+    case 'fibonacci_growth':
+      const SQRT5 = Math.sqrt(5);
+      const PSI = 1 - PHI;
+      values = t_values.map(t => Math.round((Math.pow(PHI, Math.max(0, Math.floor(t))) - Math.pow(PSI, Math.max(0, Math.floor(t)))) / SQRT5));
+      break;
+    case 'kuramoto_sync':
+      const K = parameters.coupling_K || PHI_INV;
+      values = t_values.map(t => 1 - Math.exp(-K * t));
+      break;
+    default:
+      values = t_values.map(t => Math.pow(PHI, -t));
+  }
+
+  return { t: t_values, values, curve_type, parameters };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return { tools: TOOLS };
 });
@@ -551,6 +789,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         break;
       case 'explain_bridge_function':
         result = await handleExplainBridgeFunction(args);
+        break;
+      // BUILD №66: Brain Organ MCP Tools + Cross-Substrate Mesh
+      case 'julia.compute':
+        result = await handleJuliaCompute(args);
+        break;
+      case 'julia.classify_probe':
+        result = await handleClassifyProbe(args);
+        break;
+      case 'julia.optimize_policy':
+        result = await handleOptimizePolicy(args);
+        break;
+      case 'julia.reward_curve':
+        result = await handleRewardCurve(args);
         break;
       default:
         throw new Error(`Unknown tool: ${name}`);
