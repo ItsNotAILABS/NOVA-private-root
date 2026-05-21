@@ -405,6 +405,233 @@ println("Converged: ", result.converged)
     Invoke-Julia $code
 }
 
+# ─── Motoko Canister Functions via Julia ──────────────────────────────────────
+
+function Invoke-MotokoFunction {
+    <#
+    .SYNOPSIS
+    Defines and calls a @motoko_canister Julia function via PowerShell→Julia subprocess.
+    
+    .DESCRIPTION
+    Solves the error: "The splatting operator '@' cannot be used..."
+    Julia's @motoko_canister decorator is handled by routing through Julia subprocess.
+    
+    .PARAMETER Name
+    Function name (e.g., "compute_phi").
+    
+    .PARAMETER Body
+    Function body as Julia code (e.g., "x * 1.618033988749").
+    
+    .PARAMETER Args
+    Arguments to pass when calling the function.
+    
+    .PARAMETER Params
+    Parameter list (e.g., "x" or "x, y").
+    
+    .EXAMPLE
+    Invoke-MotokoFunction -Name "compute_phi" -Params "x" -Body "x * 1.618033988749" -Args @("5.0")
+    
+    .EXAMPLE
+    Invoke-MotokoFunction -Name "phi_multiply" -Params "a, b" -Body "a * b * 1.618033988749" -Args @("3.0", "7.0")
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$Name,
+        
+        [Parameter(Mandatory=$true)]
+        [string]$Body,
+        
+        [Parameter()]
+        [string]$Params = "x",
+        
+        [Parameter()]
+        [string[]]$Args = @()
+    )
+    
+    $argsStr = ($Args -join ", ")
+    $code = @"
+# @motoko_canister annotation (processed for ICP deployment)
+function ${Name}(${Params})
+    return ${Body}
+end
+result = ${Name}(${argsStr})
+println("@motoko_canister ${Name}(${argsStr}) = ", result)
+"@
+    Invoke-Julia $code
+}
+
+function Invoke-JuliaBlock {
+    <#
+    .SYNOPSIS
+    Executes a multi-line block of Julia code via subprocess.
+    
+    .DESCRIPTION
+    Use PowerShell here-strings to pass multi-line Julia code.
+    Handles @motoko_canister decorators, using statements, and all Julia syntax.
+    
+    .PARAMETER Code
+    Multi-line Julia code block.
+    
+    .EXAMPLE
+    Invoke-JuliaBlock @"
+    using LinearAlgebra
+    
+    @motoko_canister function compute_phi(x)
+        return x * 1.618033988749
+    end
+    
+    println(compute_phi(5.0))
+    "@
+    
+    .EXAMPLE
+    $code = @"
+    function lorenz(x, y, z; σ=10.0, ρ=28.0, β=8/3)
+        dx = σ * (y - x)
+        dy = x * (ρ - z) - y
+        dz = x * y - β * z
+        return (dx, dy, dz)
+    end
+    println(lorenz(1.0, 1.0, 1.0))
+    "@
+    Invoke-JuliaBlock $code
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true, Position=0, ValueFromPipeline=$true)]
+        [string]$Code
+    )
+    
+    # Strip @motoko_canister decorator (it's a Julia macro for ICP deployment)
+    # Julia will just treat the function as a normal function when run locally
+    $processedCode = $Code -replace '@motoko_canister\s+', ''
+    
+    Invoke-Julia $processedCode
+}
+
+function ConvertFrom-JuliaCode {
+    <#
+    .SYNOPSIS
+    Converts Julia code into the correct PowerShell command to execute it.
+    
+    .DESCRIPTION
+    If you accidentally paste Julia code into PowerShell and get errors like:
+      "The term 'const' is not recognized..."
+      "Missing using directive..."
+      "The splatting operator '@' cannot be used..."
+    
+    This function shows you the correct PowerShell command to run that Julia code.
+    
+    .PARAMETER JuliaCode
+    The Julia code that was pasted incorrectly.
+    
+    .EXAMPLE
+    ConvertFrom-JuliaCode "using MotokoBinding"
+    # Output: Invoke-Julia "using MotokoBinding"
+    
+    .EXAMPLE
+    ConvertFrom-JuliaCode '@motoko_canister function compute_phi(x) return x * 1.618033988749 end'
+    # Output: Invoke-JuliaBlock @"
+    #   @motoko_canister function compute_phi(x)
+    #       return x * 1.618033988749
+    #   end
+    # "@
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true, Position=0, ValueFromPipeline=$true)]
+        [string]$JuliaCode
+    )
+    
+    Write-Host ""
+    Write-Host "═══ JULIA CODE DETECTED ═══" -ForegroundColor Yellow
+    Write-Host "  Julia code cannot run directly in PowerShell." -ForegroundColor Red
+    Write-Host "  Use one of these methods:" -ForegroundColor White
+    Write-Host ""
+    
+    # Method 1: Single expression
+    Write-Host "  METHOD 1 — Single expression:" -ForegroundColor Cyan
+    Write-Host "    Invoke-Julia `"$JuliaCode`"" -ForegroundColor Green
+    Write-Host ""
+    
+    # Method 2: Multi-line here-string
+    Write-Host "  METHOD 2 — Multi-line block:" -ForegroundColor Cyan
+    Write-Host '    Invoke-JuliaBlock @"' -ForegroundColor Green
+    Write-Host "    $JuliaCode" -ForegroundColor Green
+    Write-Host '    "@' -ForegroundColor Green
+    Write-Host ""
+    
+    # Method 3: If it has @motoko_canister
+    if ($JuliaCode -match '@motoko_canister') {
+        Write-Host "  METHOD 3 — Motoko function (detected @motoko_canister):" -ForegroundColor Cyan
+        Write-Host '    Invoke-MotokoFunction -Name "compute_phi" -Params "x" -Body "x * 1.618033988749" -Args @("5.0")' -ForegroundColor Green
+        Write-Host ""
+    }
+    
+    # Method 4: Interactive REPL
+    Write-Host "  METHOD 4 — Julia REPL (interactive):" -ForegroundColor Cyan
+    Write-Host "    julia" -ForegroundColor Green
+    Write-Host "    # Then paste your Julia code directly in the Julia REPL" -ForegroundColor DarkGray
+    Write-Host ""
+}
+
+function Show-JuliaQuickStart {
+    <#
+    .SYNOPSIS
+    Shows how to properly run Julia code from PowerShell (solves common errors).
+    #>
+    Write-Host @"
+
+╔═══════════════════════════════════════════════════════════════════════════╗
+║  NOVA Julia ↔ PowerShell — Quick Start Guide                            ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+  ⚠️  COMMON ERROR: Pasting Julia code directly into PowerShell
+  
+  ❌ WRONG (produces errors):
+     PS> using MotokoBinding
+     PS> @motoko_canister function compute_phi(x)
+     PS> return x * 1.618033988749
+
+  ✅ CORRECT — Use Invoke-Julia or Invoke-JuliaBlock:
+
+  ── Single Expression ─────────────────────────────────────────────
+  PS> Invoke-Julia "println(5.0 * 1.618033988749)"
+
+  ── Multi-Line Julia Block ────────────────────────────────────────
+  PS> Invoke-JuliaBlock @`"
+      function compute_phi(x)
+          return x * 1.618033988749
+      end
+      println(compute_phi(5.0))
+  `"@
+
+  ── @motoko_canister Function ─────────────────────────────────────
+  PS> Invoke-MotokoFunction -Name "compute_phi" -Params "x" -Body "x * 1.618033988749" -Args @("5.0")
+
+  ── Eigenvalues ───────────────────────────────────────────────────
+  PS> Invoke-Eigen "[1 2; 3 4]"
+
+  ── Kuramoto Oscillators ──────────────────────────────────────────
+  PS> Invoke-Kuramoto -Phases "[0.1, 0.5, 1.2, 2.0]" -Frequencies "[1.0, 1.1, 0.9, 1.05]"
+
+  ── φ-Optimal Gradient Descent ────────────────────────────────────
+  PS> Invoke-PhiGradientDescent -Objective "x -> (x[1]-1.618)^2" -Start "[0.0]"
+
+  ── Julia REPL (Interactive) ──────────────────────────────────────
+  PS> .\run-julia.ps1 -Interactive
+  PS> .\run-julia.ps1 -Interactive -LoadNova   # with NovaJulia.jl preloaded
+
+  ── Run a .jl File ────────────────────────────────────────────────
+  PS> Invoke-Julia -File ".\my_script.jl"
+
+  ── Browse 110+ Math Models ───────────────────────────────────────
+  PS> Get-MathModels | Format-Table
+  PS> Get-MathModels -Domain "optimization" | Format-Table
+
+"@ -ForegroundColor DarkYellow
+}
+
 # ─── Module Exports ───────────────────────────────────────────────────────────
 
 Export-ModuleMember -Function @(
@@ -419,7 +646,11 @@ Export-ModuleMember -Function @(
     'Invoke-SVD',
     'Invoke-FFT',
     'Invoke-Kuramoto',
-    'Invoke-PhiGradientDescent'
+    'Invoke-PhiGradientDescent',
+    'Invoke-MotokoFunction',
+    'Invoke-JuliaBlock',
+    'ConvertFrom-JuliaCode',
+    'Show-JuliaQuickStart'
 )
 
 # ─── Module Load Message ──────────────────────────────────────────────────────
