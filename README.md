@@ -46,3 +46,4 @@ _(After merge: [main branch link](https://htmlpreview.github.io/?https://github.
 | Products Catalog | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/copilot/add-canonical-architecture-codex/organism/web/products.html) | Product catalog |
 | ANIMA Micro | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/copilot/add-canonical-architecture-codex/organism/web/index.html) | 5 AI products, 7 autonomous workers |
 | Deep Research Lab Journal | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/main/organism/web/deep-research-lab-journal.html) | Professional native deployment page with 5 named efficiency bots |
+| Mathematical API Explorer | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/main/organism/web/math-api-explorer.html) | 110+ sovereign math models, 8 domains, Julia/Python/Motoko |

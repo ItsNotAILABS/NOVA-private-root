@@ -21,3 +21,4 @@ canister_ids.json
 *.pem
 identity.pem
 src/frontend/dist/
+julia/python/__pycache__/
