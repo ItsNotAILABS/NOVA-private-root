@@ -307,8 +307,8 @@
    Blueprint dispatch → autonomous builder pipeline → live progress
 ═══════════════════════════════════════════════════════════════════════════ */
 
-var bldWorker = new Worker('./buildings-worker.js');
-var hosWorker = new Worker('./hospital-worker.js');
+var bldWorker = new Worker('../economy/buildings-worker.js');
+var hosWorker = new Worker('../economy/hospital-worker.js');
 
 /* ── State ──────────────────────────────────────────────────────────────── */
 var bldBeat = 0, hosBeat = 0;

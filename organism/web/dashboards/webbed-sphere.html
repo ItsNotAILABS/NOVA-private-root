@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOVA — Webbed Sphere Network</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  background: #0a0a0f;
+  color: #e0e0e0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+.header {
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+  border-bottom: 1px solid #30363d;
+}
+.header h1 {
+  font-size: 1.6rem;
+  color: #58a6ff;
+  letter-spacing: 2px;
+}
+.header .subtitle {
+  color: #8b949e;
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+.main {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 16px;
+  padding: 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+canvas {
+  width: 100%;
+  height: 600px;
+  background: #0d1117;
+  border-radius: 8px;
+  border: 1px solid #30363d;
+  cursor: grab;
+}
+canvas:active { cursor: grabbing; }
+.panel {
+  background: #161b22;
+  border-radius: 8px;
+  border: 1px solid #30363d;
+  padding: 16px;
+  max-height: 640px;
+  overflow-y: auto;
+}
+.panel h2 {
+  font-size: 0.9rem;
+  color: #58a6ff;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #21262d;
+  padding-bottom: 8px;
+}
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 0.8rem;
+}
+.stat-row .label { color: #8b949e; }
+.stat-row .value { color: #7ee787; font-weight: bold; }
+.stat-row .value.warn { color: #f0883e; }
+.controls {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.controls button {
+  background: #21262d;
+  border: 1px solid #30363d;
+  color: #c9d1d9;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.2s;
+}
+.controls button:hover { background: #30363d; }
+.controls button.active { background: #1f6feb; border-color: #58a6ff; }
+.route-info {
+  margin-top: 12px;
+  padding: 8px;
+  background: #0d1117;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #8b949e;
+  min-height: 60px;
+}
+.coherence-bar {
+  margin-top: 12px;
+  height: 6px;
+  background: #21262d;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.coherence-bar .fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f85149, #f0883e, #7ee787);
+  transition: width 0.5s ease;
+}
+.sector-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  margin-top: 8px;
+}
+.sector-cell {
+  width: 100%;
+  aspect-ratio: 1;
+  background: #21262d;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  color: #58a6ff;
+}
+@media (max-width: 900px) {
+  .main { grid-template-columns: 1fr; }
+  canvas { height: 400px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>⬡ WEBBED SPHERE NETWORK</h1>
+  <div class="subtitle">PROTOCOL-WEBBED-SPHERE · Geodesic φ-Mesh · Fibonacci Lattice · Kuramoto Sync</div>
+</div>
+
+<div class="main">
+  <canvas id="sphere-canvas"></canvas>
+
+  <div class="panel">
+    <h2>◈ MESH TELEMETRY</h2>
+    <div class="stat-row"><span class="label">Nodes</span><span class="value" id="stat-nodes">—</span></div>
+    <div class="stat-row"><span class="label">Edges</span><span class="value" id="stat-edges">—</span></div>
+    <div class="stat-row"><span class="label">Avg Degree</span><span class="value" id="stat-degree">—</span></div>
+    <div class="stat-row"><span class="label">Sectors</span><span class="value" id="stat-sectors">20</span></div>
+    <div class="stat-row"><span class="label">Coherence R</span><span class="value" id="stat-coherence">—</span></div>
+    <div class="stat-row"><span class="label">Heartbeats</span><span class="value" id="stat-beats">0</span></div>
+    <div class="stat-row"><span class="label">Routes</span><span class="value" id="stat-routes">0</span></div>
+
+    <div class="coherence-bar"><div class="fill" id="coherence-fill" style="width: 50%"></div></div>
+
+    <h2 style="margin-top:16px">◈ SECTORS (20 Icosahedral)</h2>
+    <div class="sector-grid" id="sector-grid"></div>
+
+    <h2 style="margin-top:16px">◈ CONTROLS</h2>
+    <div class="controls">
+      <button id="btn-rotate" class="active">Auto-Rotate</button>
+      <button id="btn-route">Random Route</button>
+      <button id="btn-heal">Simulate Failure</button>
+      <button id="btn-reset">Reset Mesh</button>
+    </div>
+
+    <div class="route-info" id="route-info">Click "Random Route" to see geodesic path…</div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ─── CONSTANTS ─────────────────────────────────────────────────────────────────
+const PHI = 1.6180339887498948482;
+const PHI_INV = 0.6180339887498948482;
+const TAU = 6.283185307179586;
+const GOLDEN_ANGLE = TAU * PHI_INV;
+const HEARTBEAT_MS = 873;
+const SPHERE_SIZE = 64;
+const ICOSA_FACES = 20;
+const MIN_DEGREE = 5;
+const MAX_DEGREE = 6;
+const MAX_HOPS = 8;
+
+// ─── SPHERE GEOMETRY ────────────────────────────────────────────────────────────
+
+function sphericalToCartesian(theta, phi) {
+  const sinT = Math.sin(theta);
+  return { x: sinT * Math.cos(phi), y: sinT * Math.sin(phi), z: Math.cos(theta) };
+}
+
+function geodesicDistance(p1, p2) {
+  const dx = p2.x - p1.x, dy = p2.y - p1.y, dz = p2.z - p1.z;
+  return 2 * Math.asin(Math.min(1, Math.sqrt(dx*dx + dy*dy + dz*dz) / 2));
+}
+
+function icosahedralSector(point) {
+  const phi = Math.atan2(point.y, point.x);
+  const phiNorm = (phi + Math.PI) / TAU;
+  if (point.z > 0.7) return Math.floor(phiNorm * 5);
+  if (point.z < -0.7) return 15 + Math.floor(phiNorm * 5);
+  return 5 + Math.floor(phiNorm * 10) % 10;
+}
+
+// ─── FIBONACCI LATTICE ──────────────────────────────────────────────────────────
+
+function fibonacciLattice(n) {
+  const points = [];
+  for (let i = 0; i < n; i++) {
+    const theta = Math.acos(1 - (2 * i) / (n - 1 || 1));
+    const phi = GOLDEN_ANGLE * i;
+    const pos = sphericalToCartesian(theta, phi);
+    pos.index = i;
+    pos.sector = icosahedralSector(pos);
+    points.push(pos);
+  }
+  return points;
+}
+
+// ─── BUILD MESH ─────────────────────────────────────────────────────────────────
+
+let meshPoints = [];
+let meshEdges = new Map();
+let sectorCounts = new Array(ICOSA_FACES).fill(0);
+
+function buildMesh(n) {
+  meshPoints = fibonacciLattice(n);
+  meshEdges = new Map();
+  sectorCounts = new Array(ICOSA_FACES).fill(0);
+
+  for (let i = 0; i < n; i++) meshEdges.set(i, new Set());
+  for (const p of meshPoints) sectorCounts[p.sector]++;
+
+  for (let i = 0; i < n; i++) {
+    const p = meshPoints[i];
+    const dists = [];
+    for (let j = 0; j < n; j++) {
+      if (j === i) continue;
+      dists.push({ idx: j, dist: geodesicDistance(p, meshPoints[j]) });
+    }
+    dists.sort((a, b) => a.dist - b.dist);
+    const k = Math.min(i < 12 ? MIN_DEGREE : MAX_DEGREE, dists.length);
+    for (let c = 0; c < k; c++) {
+      meshEdges.get(i).add(dists[c].idx);
+      meshEdges.get(dists[c].idx).add(i);
+    }
+  }
+}
+
+// ─── KURAMOTO ───────────────────────────────────────────────────────────────────
+
+let phases = [];
+let orderParameter = 0;
+
+function initKuramoto(n) {
+  phases = new Array(n);
+  for (let i = 0; i < n; i++) phases[i] = (GOLDEN_ANGLE * i) % TAU;
+}
+
+function stepKuramoto() {
+  const n = meshPoints.length;
+  const dt = 0.01;
+  const K = PHI_INV;
+  const omega = TAU / HEARTBEAT_MS;
+  const dPhases = new Array(n).fill(0);
+
+  for (let i = 0; i < n; i++) {
+    let coupling = 0;
+    const neighbors = meshEdges.get(i);
+    if (!neighbors) continue;
+    for (const j of neighbors) {
+      coupling += Math.sin(phases[j] - phases[i]);
+    }
+    dPhases[i] = omega + K * (neighbors.size > 0 ? coupling / neighbors.size : 0);
+  }
+  for (let i = 0; i < n; i++) {
+    phases[i] = (phases[i] + dPhases[i] * dt) % TAU;
+    if (phases[i] < 0) phases[i] += TAU;
+  }
+
+  let sumCos = 0, sumSin = 0;
+  for (let i = 0; i < n; i++) { sumCos += Math.cos(phases[i]); sumSin += Math.sin(phases[i]); }
+  orderParameter = Math.sqrt(sumCos * sumCos + sumSin * sumSin) / n;
+}
+
+// ─── ROUTING ────────────────────────────────────────────────────────────────────
+
+function routeMessage(src, dst) {
+  if (src === dst) return [src];
+  const dstPos = meshPoints[dst];
+  const path = [src];
+  const visited = new Set([src]);
+  let current = src;
+  for (let hop = 0; hop < MAX_HOPS; hop++) {
+    if (current === dst) break;
+    const neighbors = meshEdges.get(current);
+    if (!neighbors) break;
+    let bestIdx = -1, bestDist = Infinity;
+    for (const n of neighbors) {
+      if (visited.has(n)) continue;
+      const dist = geodesicDistance(meshPoints[n], dstPos);
+      if (dist < bestDist) { bestDist = dist; bestIdx = n; }
+    }
+    if (bestIdx === -1) break;
+    visited.add(bestIdx);
+    path.push(bestIdx);
+    current = bestIdx;
+  }
+  return path;
+}
+
+// ─── 3D PROJECTION ──────────────────────────────────────────────────────────────
+
+let rotY = 0, rotX = 0.3;
+let autoRotate = true;
+let highlightPath = [];
+let highlightFailed = -1;
+let heartbeats = 0;
+let routeCount = 0;
+
+const canvas = document.getElementById('sphere-canvas');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  canvas.width = canvas.clientWidth * devicePixelRatio;
+  canvas.height = canvas.clientHeight * devicePixelRatio;
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+}
+resize();
+window.addEventListener('resize', resize);
+
+function project(p) {
+  // Rotate around Y then X
+  const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+  const x1 = p.x * cosY - p.z * sinY;
+  const z1 = p.x * sinY + p.z * cosY;
+  const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+  const y1 = p.y * cosX - z1 * sinX;
+  const z2 = p.y * sinX + z1 * cosX;
+
+  const scale = canvas.clientWidth * 0.32;
+  const cx = canvas.clientWidth / 2;
+  const cy = canvas.clientHeight / 2;
+  return {
+    x: cx + x1 * scale,
+    y: cy + y1 * scale,
+    z: z2,
+    visible: z2 > -0.3,
+  };
+}
+
+function draw() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  ctx.clearRect(0, 0, w, h);
+
+  // Draw edges (back first, then front)
+  const edgesArr = [];
+  const seen = new Set();
+  for (const [i, ns] of meshEdges) {
+    for (const j of ns) {
+      const key = Math.min(i, j) + '-' + Math.max(i, j);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const pi = project(meshPoints[i]);
+      const pj = project(meshPoints[j]);
+      edgesArr.push({ pi, pj, i, j, z: (pi.z + pj.z) / 2 });
+    }
+  }
+  edgesArr.sort((a, b) => a.z - b.z);
+
+  for (const e of edgesArr) {
+    const isHighlight = highlightPath.includes(e.i) && highlightPath.includes(e.j) &&
+      Math.abs(highlightPath.indexOf(e.i) - highlightPath.indexOf(e.j)) === 1;
+    ctx.beginPath();
+    ctx.moveTo(e.pi.x, e.pi.y);
+    ctx.lineTo(e.pj.x, e.pj.y);
+    if (isHighlight) {
+      ctx.strokeStyle = '#f0883e';
+      ctx.lineWidth = 2;
+    } else {
+      const alpha = Math.max(0.05, Math.min(0.3, (e.z + 1) * 0.2));
+      ctx.strokeStyle = `rgba(88, 166, 255, ${alpha})`;
+      ctx.lineWidth = 0.5;
+    }
+    ctx.stroke();
+  }
+
+  // Draw nodes
+  const projected = meshPoints.map((p, i) => ({ ...project(p), i, sector: p.sector }));
+  projected.sort((a, b) => a.z - b.z);
+
+  for (const pp of projected) {
+    if (!pp.visible) continue;
+    const size = 2 + (pp.z + 1) * 1.5;
+    const isPath = highlightPath.includes(pp.i);
+    const isFailed = pp.i === highlightFailed;
+    const phase = phases[pp.i] || 0;
+
+    ctx.beginPath();
+    ctx.arc(pp.x, pp.y, size, 0, TAU);
+    if (isFailed) {
+      ctx.fillStyle = '#f85149';
+    } else if (isPath) {
+      ctx.fillStyle = '#f0883e';
+    } else {
+      const hue = (pp.sector / ICOSA_FACES) * 360;
+      const lightness = 40 + Math.sin(phase) * 15;
+      ctx.fillStyle = `hsl(${hue}, 70%, ${lightness}%)`;
+    }
+    ctx.fill();
+  }
+
+  // Draw route arrows
+  if (highlightPath.length >= 2) {
+    const start = project(meshPoints[highlightPath[0]]);
+    const end = project(meshPoints[highlightPath[highlightPath.length - 1]]);
+    // Start indicator
+    ctx.beginPath();
+    ctx.arc(start.x, start.y, 8, 0, TAU);
+    ctx.strokeStyle = '#7ee787';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // End indicator
+    ctx.beginPath();
+    ctx.arc(end.x, end.y, 8, 0, TAU);
+    ctx.strokeStyle = '#f85149';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+}
+
+// ─── INTERACTION ────────────────────────────────────────────────────────────────
+
+let dragging = false, lastMX = 0, lastMY = 0;
+canvas.addEventListener('mousedown', (e) => { dragging = true; lastMX = e.clientX; lastMY = e.clientY; autoRotate = false; document.getElementById('btn-rotate').classList.remove('active'); });
+canvas.addEventListener('mousemove', (e) => { if (!dragging) return; rotY += (e.clientX - lastMX) * 0.01; rotX += (e.clientY - lastMY) * 0.01; lastMX = e.clientX; lastMY = e.clientY; });
+canvas.addEventListener('mouseup', () => { dragging = false; });
+canvas.addEventListener('mouseleave', () => { dragging = false; });
+
+document.getElementById('btn-rotate').addEventListener('click', () => {
+  autoRotate = !autoRotate;
+  document.getElementById('btn-rotate').classList.toggle('active', autoRotate);
+});
+
+document.getElementById('btn-route').addEventListener('click', () => {
+  const src = Math.floor(Math.random() * SPHERE_SIZE);
+  let dst = Math.floor(Math.random() * SPHERE_SIZE);
+  while (dst === src) dst = Math.floor(Math.random() * SPHERE_SIZE);
+  highlightPath = routeMessage(src, dst);
+  routeCount++;
+  const reached = highlightPath[highlightPath.length - 1] === dst;
+  document.getElementById('route-info').innerHTML =
+    `<b>Route:</b> ${src} → ${dst}<br>` +
+    `<b>Hops:</b> ${highlightPath.length - 1}<br>` +
+    `<b>Path:</b> [${highlightPath.join(' → ')}]<br>` +
+    `<b>Delivered:</b> ${reached ? '✓ YES' : '✗ NO (partial)'}`;
+  document.getElementById('stat-routes').textContent = routeCount;
+});
+
+document.getElementById('btn-heal').addEventListener('click', () => {
+  const victim = Math.floor(Math.random() * SPHERE_SIZE);
+  highlightFailed = victim;
+  // Remove all edges to this node
+  const neighbors = meshEdges.get(victim);
+  if (neighbors) {
+    for (const n of neighbors) meshEdges.get(n).delete(victim);
+    meshEdges.set(victim, new Set());
+  }
+  document.getElementById('route-info').innerHTML =
+    `<b>Node ${victim} FAILED</b><br>Edges removed. Adjacent nodes will re-mesh on next heal cycle.`;
+  setTimeout(() => { highlightFailed = -1; }, 3000);
+});
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  buildMesh(SPHERE_SIZE);
+  initKuramoto(SPHERE_SIZE);
+  highlightPath = [];
+  highlightFailed = -1;
+  heartbeats = 0;
+  routeCount = 0;
+  document.getElementById('route-info').textContent = 'Mesh reset. Click "Random Route" to see geodesic path…';
+});
+
+// ─── SECTOR GRID ────────────────────────────────────────────────────────────────
+
+function buildSectorGrid() {
+  const grid = document.getElementById('sector-grid');
+  grid.innerHTML = '';
+  for (let i = 0; i < ICOSA_FACES; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'sector-cell';
+    cell.textContent = sectorCounts[i] || 0;
+    cell.title = `Sector ${i}`;
+    grid.appendChild(cell);
+  }
+}
+
+// ─── MAIN LOOP ──────────────────────────────────────────────────────────────────
+
+function updateStats() {
+  let edgeCount = 0;
+  let totalDeg = 0;
+  for (const [, ns] of meshEdges) { edgeCount += ns.size; totalDeg += ns.size; }
+  document.getElementById('stat-nodes').textContent = SPHERE_SIZE;
+  document.getElementById('stat-edges').textContent = Math.floor(edgeCount / 2);
+  document.getElementById('stat-degree').textContent = (totalDeg / SPHERE_SIZE).toFixed(1);
+  document.getElementById('stat-coherence').textContent = orderParameter.toFixed(4);
+  document.getElementById('stat-beats').textContent = heartbeats;
+  document.getElementById('coherence-fill').style.width = (orderParameter * 100) + '%';
+}
+
+function loop() {
+  if (autoRotate) rotY += 0.003;
+  stepKuramoto();
+  heartbeats++;
+  draw();
+  updateStats();
+  requestAnimationFrame(loop);
+}
+
+// ─── INIT ───────────────────────────────────────────────────────────────────────
+
+buildMesh(SPHERE_SIZE);
+initKuramoto(SPHERE_SIZE);
+buildSectorGrid();
+loop();
+</script>
+</body>
+</html>

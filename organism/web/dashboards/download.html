@@ -1414,7 +1414,7 @@
     function startWorker() {
       // Try to load external worker file first, fall back to inline
       try {
-        worker = new Worker('download-worker.js');
+        worker = new Worker('../infrastructure/download-worker.js');
       } catch (e) {
         // Inline kernel AI as fallback — sovereign archive builder
         var code = document.getElementById('workerScript').textContent;
