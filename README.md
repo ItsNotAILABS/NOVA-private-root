@@ -46,3 +46,15 @@ Open on your phone browser — tap **Add to Home Screen** to install:
 | Deep Research Lab Journal | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/main/organism/web/dashboards/deep-research-lab-journal.html) | Professional native deployment page with 5 named efficiency bots |
 | Mathematical API Explorer | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/main/organism/web/dashboards/math-api-explorer.html) | 110+ sovereign math models, 8 domains, Julia/Python/Motoko |
 | Webbed Sphere Network | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/main/organism/web/dashboards/webbed-sphere.html) | Geodesic φ-mesh, Fibonacci lattice, Kuramoto sync, 3D visualization |
+
+### 🌐 Mainnet Deployment — 10 Alpha AGIs
+
+Deploy all 10 Sovereign Alpha AGIs (43 canisters) to IC mainnet:
+
+```bash
+./scripts/deploy-mainnet.sh --check   # Pre-flight verification
+./scripts/deploy-mainnet.sh           # Full mainnet deployment
+./scripts/deploy-mainnet.sh --status  # Query deployment status
+```
+
+See [`docs/deployment/MAINNET_ALPHA_DEPLOYMENT.md`](docs/deployment/MAINNET_ALPHA_DEPLOYMENT.md) for full guide.
