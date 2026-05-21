@@ -7,6 +7,12 @@ dist/
 src/frontend/node_modules/
 src/frontend/dist/
 
+# Environment files (contain canister IDs / secrets)
+.env
+.env.local
+src/frontend/.env
+src/frontend/.env.local
+
 # NOVA sovereign build cache
 .nova/build/
 .nova/moc/

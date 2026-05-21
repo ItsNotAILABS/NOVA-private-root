@@ -1,0 +1,260 @@
+#!/usr/bin/env bash
+# ═══════════════════════════════════════════════════════════════════════════════
+# NOVA LOCAL DEV DEPLOY — Full cycle: start replica → deploy canisters → serve frontend
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+# COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ. ALL RIGHTS RESERVED.
+# Medina Tech | Dallas, Texas, USA | MedinaSITech@outlook.com
+#
+# This script runs the FULL local ICP development cycle:
+#   1. Start local dfx replica (if not running)
+#   2. Deploy backend canisters (Motoko → WASM)
+#   3. Build frontend (Vite → dist/)
+#   4. Deploy frontend asset canister
+#   5. Print URLs to access the app
+#
+# USAGE:
+#   ./scripts/nova-deploy-local                — Deploy all
+#   ./scripts/nova-deploy-local --backend      — Backend canisters only
+#   ./scripts/nova-deploy-local --frontend     — Frontend only (assumes backend deployed)
+#   ./scripts/nova-deploy-local --builder      — Deploy just nova_builder + frontend
+#   ./scripts/nova-deploy-local --status       — Show canister IDs and status
+#
+# PRE-REQUISITES:
+#   - dfx installed: sh -ci "$(curl -fsSL https://internetcomputer.org/install.sh)"
+#   - Node.js >= 18 (for frontend build)
+#   - npm install done in src/frontend/
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+FRONTEND_DIR="$PROJECT_ROOT/src/frontend"
+
+# ── Colors ────────────────────────────────────────────────────────────────────
+if [ -t 1 ]; then
+  RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
+  CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
+else
+  RED=''; GREEN=''; YELLOW=''; CYAN=''; BOLD=''; RESET=''
+fi
+
+log()  { echo -e "${CYAN}[NOVA-LOCAL]${RESET} $*"; }
+ok()   { echo -e "${GREEN}[     ✓    ]${RESET} $*"; }
+warn() { echo -e "${YELLOW}[    !!    ]${RESET} $*"; }
+err()  { echo -e "${RED}[   FAIL   ]${RESET} $*" >&2; }
+
+# ── Defaults ──────────────────────────────────────────────────────────────────
+MODE="all"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --backend)  MODE="backend";  shift ;;
+    --frontend) MODE="frontend"; shift ;;
+    --builder)  MODE="builder";  shift ;;
+    --status)   MODE="status";   shift ;;
+    --help|-h)
+      echo "Usage: $0 [--backend|--frontend|--builder|--status|--help]"
+      exit 0
+      ;;
+    *) err "Unknown option: $1"; exit 1 ;;
+  esac
+done
+
+# ── Check dfx ─────────────────────────────────────────────────────────────────
+check_dfx() {
+  if ! command -v dfx &>/dev/null; then
+    err "dfx not found. Install with:"
+    echo '  sh -ci "$(curl -fsSL https://internetcomputer.org/install.sh)"'
+    exit 1
+  fi
+  ok "dfx found: $(dfx --version 2>/dev/null | head -1)"
+}
+
+# ── Ensure local replica is running ──────────────────────────────────────────
+ensure_replica() {
+  if dfx ping &>/dev/null 2>&1; then
+    ok "Local replica already running"
+  else
+    log "Starting local dfx replica (background)..."
+    dfx start --background --clean 2>/dev/null || dfx start --background 2>/dev/null
+    sleep 2
+    if dfx ping &>/dev/null 2>&1; then
+      ok "Local replica started"
+    else
+      err "Could not start local replica. Try: dfx start --clean"
+      exit 1
+    fi
+  fi
+}
+
+# ── Deploy backend canisters ─────────────────────────────────────────────────
+deploy_backend() {
+  log "Deploying backend canisters..."
+
+  # Core canisters that the frontend talks to
+  local CORE_CANISTERS=(
+    swarm_brain
+    swarm_organism
+    nova_builder
+    parallax
+    nova_protocol
+    phantom_transfer
+  )
+
+  for canister in "${CORE_CANISTERS[@]}"; do
+    log "  Deploying $canister..."
+    if dfx deploy "$canister" 2>/dev/null; then
+      ok "  $canister deployed"
+    else
+      warn "  $canister failed (may have import deps — continuing)"
+    fi
+  done
+
+  ok "Backend deployment complete"
+}
+
+# ── Deploy just nova_builder ─────────────────────────────────────────────────
+deploy_builder() {
+  log "Deploying nova_builder canister..."
+  dfx deploy nova_builder
+  ok "nova_builder deployed"
+}
+
+# ── Build & deploy frontend ──────────────────────────────────────────────────
+deploy_frontend() {
+  log "Building frontend..."
+
+  # Generate .env with local canister IDs
+  generate_local_env
+
+  cd "$FRONTEND_DIR"
+
+  if [ ! -d "node_modules" ]; then
+    log "Installing frontend dependencies..."
+    npm install
+  fi
+
+  log "Running Vite build..."
+  npm run build
+  ok "Frontend built → dist/"
+
+  cd "$PROJECT_ROOT"
+  log "Deploying frontend asset canister..."
+  dfx deploy frontend
+  ok "Frontend deployed"
+
+  # Print the URL
+  local FRONTEND_ID
+  FRONTEND_ID=$(dfx canister id frontend 2>/dev/null || echo "unknown")
+  echo ""
+  ok "═══════════════════════════════════════════════════════════"
+  ok "  YOUR APP IS LIVE AT:"
+  ok "  http://${FRONTEND_ID}.localhost:8000"
+  ok "═══════════════════════════════════════════════════════════"
+  echo ""
+}
+
+# ── Generate .env with local canister IDs ────────────────────────────────────
+generate_local_env() {
+  log "Generating .env with local canister IDs..."
+
+  local ENV_FILE="$FRONTEND_DIR/.env"
+
+  # Get canister IDs (may not all exist yet)
+  local SWARM_BRAIN_ID=$(dfx canister id swarm_brain 2>/dev/null || echo "")
+  local PARALLAX_ID=$(dfx canister id parallax 2>/dev/null || echo "")
+  local BUILDER_ID=$(dfx canister id nova_builder 2>/dev/null || echo "")
+  local STUDENT_ID=$(dfx canister id nova_student 2>/dev/null || echo "")
+  local DISD_ID=$(dfx canister id dallas_isd 2>/dev/null || echo "")
+  local SKYHI_ID=$(dfx canister id skyhi_group 2>/dev/null || echo "")
+
+  cat > "$ENV_FILE" << ENVEOF
+# Auto-generated by nova-deploy-local — $(date -Iseconds)
+VITE_IC_HOST=http://127.0.0.1:8000
+VITE_SWARM_BRAIN_CANISTER_ID=${SWARM_BRAIN_ID}
+VITE_PARALLAX_CANISTER_ID=${PARALLAX_ID}
+VITE_NOVA_BUILDER_CANISTER_ID=${BUILDER_ID}
+VITE_NOVA_STUDENT_CANISTER_ID=${STUDENT_ID}
+VITE_DALLAS_ISD_CANISTER_ID=${DISD_ID}
+VITE_SKYHI_CANISTER_ID=${SKYHI_ID}
+VITE_AURO_API_BASE=http://127.0.0.1:8787
+VITE_AURO_BRIDGE_TOKEN=
+ENVEOF
+
+  ok "Generated $ENV_FILE"
+}
+
+# ── Show status ──────────────────────────────────────────────────────────────
+show_status() {
+  echo ""
+  log "Canister Status:"
+  echo ""
+
+  local CANISTERS=(
+    swarm_brain swarm_organism nova_builder nova_protocol
+    parallax phantom_transfer sovereign_factory frontend
+  )
+
+  printf "  %-20s %-30s %s\n" "CANISTER" "ID" "STATUS"
+  printf "  %-20s %-30s %s\n" "────────" "──" "──────"
+
+  for canister in "${CANISTERS[@]}"; do
+    local id=$(dfx canister id "$canister" 2>/dev/null || echo "NOT DEPLOYED")
+    local status="—"
+    if [[ "$id" != "NOT DEPLOYED" ]]; then
+      status="✓ deployed"
+    fi
+    printf "  %-20s %-30s %s\n" "$canister" "$id" "$status"
+  done
+
+  echo ""
+
+  # Frontend URL
+  local FRONTEND_ID=$(dfx canister id frontend 2>/dev/null || echo "")
+  if [[ -n "$FRONTEND_ID" ]]; then
+    ok "Frontend URL: http://${FRONTEND_ID}.localhost:8000"
+  fi
+  echo ""
+}
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+main() {
+  echo ""
+  echo -e "${BOLD}${CYAN}╔══════════════════════════════════════════════════╗${RESET}"
+  echo -e "${BOLD}${CYAN}║  NOVA LOCAL ICP DEPLOY                           ║${RESET}"
+  echo -e "${BOLD}${CYAN}║  Full cycle: replica → canisters → frontend      ║${RESET}"
+  echo -e "${BOLD}${CYAN}╚══════════════════════════════════════════════════╝${RESET}"
+  echo ""
+
+  check_dfx
+
+  case "$MODE" in
+    all)
+      ensure_replica
+      deploy_backend
+      deploy_frontend
+      show_status
+      ;;
+    backend)
+      ensure_replica
+      deploy_backend
+      show_status
+      ;;
+    frontend)
+      deploy_frontend
+      ;;
+    builder)
+      ensure_replica
+      deploy_builder
+      deploy_frontend
+      ;;
+    status)
+      show_status
+      ;;
+  esac
+}
+
+main "$@"
