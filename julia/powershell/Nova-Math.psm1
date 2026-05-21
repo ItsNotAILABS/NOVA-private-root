@@ -7,10 +7,25 @@
 #
 # ═══════════════════════════════════════════════════════════════════════════════
 # USAGE:
-#   Import-Module ./Nova-Math.psm1
+#   # Import (must cd to NOVA repo root OR use full path):
+#   Import-Module ./julia/powershell/Nova-Math.psm1
+#   Import-Module C:\path\to\NOVA\julia\powershell\Nova-Math.psm1
+#
+#   # Basic Julia execution:
 #   Invoke-Julia "eigen([1 2; 3 4])"
 #   Invoke-NovaMath -Function "phi_gradient_descent" -Args @("x -> (x-1.618)^2", "0.0")
 #   Get-MathModels -Domain "linear_algebra"
+#
+#   # Motoko-annotated functions (handles @motoko_canister decorator):
+#   Invoke-MotokoFunction -Name "compute_phi" -Params "x" -Body "x * 1.618033988749" -Args @("5.0")
+#
+#   # Multi-line Julia blocks:
+#   Invoke-JuliaBlock @"
+#   function compute_phi(x)
+#       return x * 1.618033988749
+#   end
+#   println(compute_phi(5.0))
+#   "@
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # ─── Constants ────────────────────────────────────────────────────────────────
@@ -451,12 +466,11 @@ function Invoke-MotokoFunction {
     
     $argsStr = ($Args -join ", ")
     $code = @"
-# @motoko_canister annotation (processed for ICP deployment)
 function ${Name}(${Params})
     return ${Body}
 end
 result = ${Name}(${argsStr})
-println("@motoko_canister ${Name}(${argsStr}) = ", result)
+println(result)
 "@
     Invoke-Julia $code
 }
