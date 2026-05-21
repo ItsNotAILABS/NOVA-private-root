@@ -37,6 +37,7 @@ import { NECDashboard }   from './components/nec/NECDashboard';
 
 // ── NOVA Landing — Sovereign Organism Showcase ─────────────────────────────
 import { NovaLanding } from './components/NovaLanding';
+import { SystemsOverview } from './components/SystemsOverview';
 
 // ── PARALLAX Clearinghouse PWA ────────────────────────────────────────────
 import { ParallaxApp }       from './parallax/ParallaxApp';
@@ -63,6 +64,7 @@ import { TerminalHub }    from './terminals/TerminalHub';
 // ── Navigation ────────────────────────────────────────────────────────────────
 type NavView =
   | 'LANDING'        // NOVA Landing — sovereign organism showcase
+  | 'SYSTEMS'        // Systems Overview — all intelligence, engines, meshes, AI connected
   | 'PHANTOM_WALLET'  // Phantom Wallet — first consumer product · Powered by PARALLAX
   | 'NOVA_BUILDER'   // NOVA BUILDER — sovereign CaffeineAI replacement · Build №42
   | 'DALLAS_ISD'     // DALLAS ISD — sovereign AI classroom platform · Build №43
@@ -90,6 +92,7 @@ type NavView =
 
 const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
   { id: 'LANDING', label: 'NOVA', icon: '◊' },
+  { id: 'SYSTEMS', label: 'Systems', icon: '⊗' },
   { id: 'PHANTOM_WALLET', label: 'Phantom Wallet', icon: '⬡' },
   { id: 'NOVA_BUILDER',  label: 'NOVA Builder',  icon: '⊕' },
   { id: 'DALLAS_ISD',    label: 'DISD Classroom', icon: '🎓' },
@@ -321,6 +324,12 @@ export default function App() {
         {view === 'LANDING' && (
           <div style={{ width: '100%', height: '100%', overflow: 'auto' }}>
             <NovaLanding onNavigate={(v) => setView(v as NavView)} />
+          </div>
+        )}
+
+        {view === 'SYSTEMS' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'auto' }}>
+            <SystemsOverview />
           </div>
         )}
 
