@@ -942,9 +942,10 @@
             <ul class="nav-links">
                 <li><a href="#features">Features</a></li>
                 <li><a href="#architecture">Architecture</a></li>
-                <li><a href="#code">Code</a></li>
+                <li><a href="#code">Four Doors</a></li>
                 <li><a href="#functions">Functions</a></li>
                 <li><a href="#stats">Stats</a></li>
+                <li><a href="./">← Lab Home</a></li>
             </ul>
             <a href="https://github.com/ItsNotAILABS/NOVA" class="nav-cta" target="_blank">View on GitHub</a>
             <div class="nav-mobile-toggle" onclick="toggleNav()">
@@ -987,7 +988,7 @@
 
         <div class="hero-badge">
             <span class="badge-dot"></span>
-            <span>BUILD №62 · WORLD'S FIRST</span>
+            <span>BUILD №64 · FOUR DOORS ARCHITECTURE</span>
         </div>
 
         <h1>
@@ -998,8 +999,9 @@
         <p class="subtitle">φ-Optimized Scientific Computing on Internet Computer</p>
 
         <p class="tagline">
-            The first bridge connecting Julia's high-performance numerical computing 
-            with Motoko smart contracts. Golden ratio optimization built-in.
+            The Julia-Motoko Bridge lets developers and AI agents expose Julia scientific-computing 
+            functions as typed Motoko/Candid smart-contract interfaces, with JavaScript/WASM execution, 
+            type-safe conversion, wrapper generation, and round-trip validation.
         </p>
 
         <div class="hero-buttons">
@@ -1009,8 +1011,8 @@
             <a href="https://github.com/ItsNotAILABS/NOVA/blob/main/docs/charters/JULIA_MOTOKO_ISOMORPHISM_CHARTER.md" class="btn btn-secondary" target="_blank">
                 <span>📜</span> Read Charter
             </a>
-            <a href="#code" class="btn btn-ghost">
-                <span>⚡</span> See Code
+            <a href="https://github.com/ItsNotAILABS/NOVA/blob/main/julia/llms.txt" class="btn btn-ghost" target="_blank">
+                <span>🤖</span> llms.txt
             </a>
         </div>
 
@@ -1018,6 +1020,10 @@
             <div class="hero-stat">
                 <div class="hero-stat-value">15+</div>
                 <div class="hero-stat-label">Math Functions</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-value">4</div>
+                <div class="hero-stat-label">Call Doors</div>
             </div>
             <div class="hero-stat">
                 <div class="hero-stat-value">φ⁻¹</div>
@@ -1135,27 +1141,168 @@
     <!-- Code Examples Section -->
     <section id="code" class="code-section">
         <div class="section-header reveal">
-            <span class="section-label">Examples</span>
-            <h2 class="section-title">See It In <span class="highlight">Action</span></h2>
+            <span class="section-label">How to Call This</span>
+            <h2 class="section-title">Four <span class="highlight">Doors</span></h2>
             <p class="section-desc">
-                Clean, expressive APIs designed for both Julia and JavaScript developers.
+                Different intelligences enter through different doors. Choose yours.
             </p>
         </div>
 
         <div class="code-tabs reveal">
-            <button class="code-tab active" onclick="showCode('julia')">Julia</button>
-            <button class="code-tab" onclick="showCode('js')">JavaScript</button>
-            <button class="code-tab" onclick="showCode('motoko')">Motoko</button>
+            <button class="code-tab active" onclick="showCode('js')">Door 1 — JavaScript</button>
+            <button class="code-tab" onclick="showCode('motoko')">Door 2 — Motoko</button>
+            <button class="code-tab" onclick="showCode('cli')">Door 3 — CLI</button>
+            <button class="code-tab" onclick="showCode('ai')">Door 4 — AI</button>
+            <button class="code-tab" onclick="showCode('julia')">Julia Substrate</button>
         </div>
 
-        <div class="code-block reveal" id="code-julia">
+        <div class="code-block reveal" id="code-js">
             <div class="code-header">
                 <div class="code-header-dots">
                     <span class="code-header-dot red"></span>
                     <span class="code-header-dot yellow"></span>
                     <span class="code-header-dot green"></span>
                 </div>
-                <span class="code-filename">NovaJulia.jl</span>
+                <span class="code-filename">app.js — Door 1: JavaScript SDK</span>
+                <button class="code-copy" onclick="copyCode('js')">Copy</button>
+            </div>
+            <div class="code-content">
+<pre><span class="code-comment">// Door 1: JavaScript / TypeScript / Frontend</span>
+<span class="code-keyword">import</span> { <span class="code-function">getJuliaCompute</span> } <span class="code-keyword">from</span> <span class="code-string">'./protocols/PROTOCOL-JULIA.js'</span>;
+
+<span class="code-keyword">const</span> julia = <span class="code-function">getJuliaCompute</span>();
+<span class="code-keyword">await</span> julia.<span class="code-function">initialize</span>();
+
+<span class="code-keyword">const</span> matrix = [
+  [<span class="code-number">2</span>, <span class="code-number">1</span>, <span class="code-number">0</span>],
+  [<span class="code-number">1</span>, <span class="code-number">2</span>, <span class="code-number">1</span>],
+  [<span class="code-number">0</span>, <span class="code-number">1</span>, <span class="code-number">2</span>],
+];
+
+<span class="code-keyword">const</span> result = <span class="code-keyword">await</span> julia.<span class="code-function">eigen</span>(matrix);
+
+console.<span class="code-function">log</span>(result.eigenvalues);   <span class="code-comment">// φ-weighted eigenvalues</span>
+console.<span class="code-function">log</span>(result.eigenvectors);  <span class="code-comment">// eigenvector matrix</span>
+
+<span class="code-comment">// Generate Motoko + Candid + TypeScript wrappers</span>
+<span class="code-keyword">const</span> motoko = julia.<span class="code-function">generateMotokoModule</span>([<span class="code-string">'eigen'</span>, <span class="code-string">'svd'</span>]);
+<span class="code-keyword">const</span> candid = julia.<span class="code-function">generateCandidInterface</span>([<span class="code-string">'eigen'</span>, <span class="code-string">'svd'</span>]);
+<span class="code-keyword">const</span> client = julia.<span class="code-function">generateTypeScriptClient</span>([<span class="code-string">'eigen'</span>, <span class="code-string">'svd'</span>]);</pre>
+            </div>
+        </div>
+
+        <div class="code-block reveal" id="code-motoko" style="display: none;">
+            <div class="code-header">
+                <div class="code-header-dots">
+                    <span class="code-header-dot red"></span>
+                    <span class="code-header-dot yellow"></span>
+                    <span class="code-header-dot green"></span>
+                </div>
+                <span class="code-filename">JuliaCompute.mo — Door 2: Motoko Smart Contract</span>
+                <button class="code-copy" onclick="copyCode('motoko')">Copy</button>
+            </div>
+            <div class="code-content">
+<pre><span class="code-comment">// Door 2: Motoko / Candid — Smart Contract Interface</span>
+<span class="code-keyword">import</span> JuliaCompute <span class="code-string">"JuliaCompute"</span>;
+<span class="code-keyword">import</span> Float <span class="code-string">"mo:base/Float"</span>;
+
+<span class="code-keyword">actor</span> MyCanister {
+    <span class="code-comment">// Typed call to Julia bridge</span>
+    <span class="code-keyword">public shared func</span> <span class="code-function">computeSpectrum</span>(
+        matrix: [[<span class="code-type">Float</span>]]
+    ) : <span class="code-keyword">async</span> <span class="code-type">JuliaCompute.EigenResult</span> {
+        <span class="code-keyword">await</span> JuliaCompute.<span class="code-function">linalg_eigen</span>(matrix)
+    };
+
+    <span class="code-comment">// Kuramoto coherence check</span>
+    <span class="code-keyword">public shared func</span> <span class="code-function">checkCoherence</span>(
+        oscillators: [<span class="code-type">JuliaCompute.Oscillator</span>]
+    ) : <span class="code-keyword">async</span> <span class="code-type">Bool</span> {
+        <span class="code-keyword">let</span> R = <span class="code-keyword">await</span> JuliaCompute.<span class="code-function">order_parameter</span>(oscillators);
+        R > JuliaCompute.PHI_INV  <span class="code-comment">// φ⁻¹ threshold</span>
+    };
+}</pre>
+            </div>
+        </div>
+
+        <div class="code-block reveal" id="code-cli" style="display: none;">
+            <div class="code-header">
+                <div class="code-header-dots">
+                    <span class="code-header-dot red"></span>
+                    <span class="code-header-dot yellow"></span>
+                    <span class="code-header-dot green"></span>
+                </div>
+                <span class="code-filename">terminal — Door 3: CLI / Automation</span>
+                <button class="code-copy" onclick="copyCode('cli')">Copy</button>
+            </div>
+            <div class="code-content">
+<pre><span class="code-comment"># Door 3: CLI — For CI, testing, local dev, GitHub Actions</span>
+
+<span class="code-comment"># List available bridge functions</span>
+$ <span class="code-function">nova-julia</span> list
+
+<span class="code-comment"># Call a function directly</span>
+$ <span class="code-function">nova-julia</span> call linalg.eigen --args <span class="code-string">'{"matrix": [[2,1,0],[1,2,1],[0,1,2]]}'</span>
+
+<span class="code-comment"># Generate Motoko + Candid + TypeScript from Julia source</span>
+$ <span class="code-function">nova-julia</span> generate motoko src/NovaJulia.jl --out ./generated
+$ <span class="code-function">nova-julia</span> generate candid src/NovaJulia.jl --out ./generated
+
+<span class="code-comment"># Validate round-trip type conversion</span>
+$ <span class="code-function">nova-julia</span> validate Float64 --value <span class="code-number">1.618033988749894</span>
+
+<span class="code-comment"># Run all type round-trip tests</span>
+$ <span class="code-function">nova-julia</span> test-roundtrip
+
+<span class="code-comment"># Benchmark φ-optimization vs standard</span>
+$ <span class="code-function">nova-julia</span> benchmark gradient_descent</pre>
+            </div>
+        </div>
+
+        <div class="code-block reveal" id="code-ai" style="display: none;">
+            <div class="code-header">
+                <div class="code-header-dots">
+                    <span class="code-header-dot red"></span>
+                    <span class="code-header-dot yellow"></span>
+                    <span class="code-header-dot green"></span>
+                </div>
+                <span class="code-filename">bridge.manifest.json — Door 4: AI / MCP</span>
+                <button class="code-copy" onclick="copyCode('ai')">Copy</button>
+            </div>
+            <div class="code-content">
+<pre><span class="code-comment">// Door 4: AI Agent — Structured manifests and MCP tools</span>
+
+<span class="code-comment">// Function card (julia/ai/function_cards/phi_eigen.json)</span>
+{
+  <span class="code-string">"name"</span>: <span class="code-string">"linalg.eigen"</span>,
+  <span class="code-string">"julia"</span>: <span class="code-string">"eigen(A::Matrix{Float64})"</span>,
+  <span class="code-string">"motoko"</span>: <span class="code-string">"linalg_eigen(A: [[Float]]) : async ([Float], [[Float]])"</span>,
+  <span class="code-string">"candid"</span>: <span class="code-string">"linalg_eigen : (vec vec float64) -> (record { ... })"</span>,
+  <span class="code-string">"deterministic"</span>: <span class="code-number">true</span>,
+  <span class="code-string">"canister_safe"</span>: <span class="code-number">true</span>,
+  <span class="code-string">"round_trip_tested"</span>: <span class="code-number">true</span>
+}
+
+<span class="code-comment">// MCP tool call</span>
+{
+  <span class="code-string">"tool"</span>: <span class="code-string">"julia_motoko_bridge.generate_wrapper"</span>,
+  <span class="code-string">"input"</span>: {
+    <span class="code-string">"julia_function"</span>: <span class="code-string">"phi_eigen"</span>,
+    <span class="code-string">"input_type"</span>: <span class="code-string">"Matrix{Float64}"</span>,
+    <span class="code-string">"target"</span>: [<span class="code-string">"Motoko"</span>, <span class="code-string">"Candid"</span>, <span class="code-string">"TypeScript"</span>]
+  }
+}</pre>
+            </div>
+        </div>
+
+        <div class="code-block reveal" id="code-julia" style="display: none;">
+            <div class="code-header">
+                <div class="code-header-dots">
+                    <span class="code-header-dot red"></span>
+                    <span class="code-header-dot yellow"></span>
+                    <span class="code-header-dot green"></span>
+                </div>
+                <span class="code-filename">NovaJulia.jl — Julia Mathematical Substrate</span>
                 <button class="code-copy" onclick="copyCode('julia')">Copy</button>
             </div>
             <div class="code-content">
@@ -1182,77 +1329,6 @@
     dθ = ω .+ (K * R / N) .* <span class="code-function">sin</span>.(<span class="code-function">mean</span>(θ) .- θ)
     <span class="code-keyword">return</span> dθ .* PHI_INV  <span class="code-comment"># φ-damped</span>
 <span class="code-keyword">end</span></pre>
-            </div>
-        </div>
-
-        <div class="code-block reveal" id="code-js" style="display: none;">
-            <div class="code-header">
-                <div class="code-header-dots">
-                    <span class="code-header-dot red"></span>
-                    <span class="code-header-dot yellow"></span>
-                    <span class="code-header-dot green"></span>
-                </div>
-                <span class="code-filename">PROTOCOL-JULIA.js</span>
-                <button class="code-copy" onclick="copyCode('js')">Copy</button>
-            </div>
-            <div class="code-content">
-<pre><span class="code-comment">// PROTOCOL-JULIA: Julia-Motoko Bridge</span>
-<span class="code-keyword">import</span> { NovaJuliaBridge } <span class="code-keyword">from</span> <span class="code-string">'./PROTOCOL-JULIA.js'</span>;
-
-<span class="code-comment">// Initialize the bridge</span>
-<span class="code-keyword">const</span> bridge = <span class="code-keyword">new</span> <span class="code-function">NovaJuliaBridge</span>();
-
-<span class="code-comment">// Call Julia eigenvalue function</span>
-<span class="code-keyword">const</span> matrix = [[<span class="code-number">1</span>, <span class="code-number">2</span>], [<span class="code-number">3</span>, <span class="code-number">4</span>]];
-<span class="code-keyword">const</span> result = <span class="code-keyword">await</span> bridge.<span class="code-function">eigen</span>(matrix);
-
-<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'Eigenvalues:'</span>, result.values);
-<span class="code-function">console</span>.<span class="code-function">log</span>(<span class="code-string">'Eigenvectors:'</span>, result.vectors);
-
-<span class="code-comment">// Generate Motoko wrapper code</span>
-<span class="code-keyword">const</span> motokoCode = bridge.<span class="code-function">generateMotokoWrapper</span>(<span class="code-string">'eigen'</span>, {
-    input: <span class="code-string">'[[Float]]'</span>,
-    output: <span class="code-string">'{ values: [Float], vectors: [[Float]] }'</span>
-});
-
-<span class="code-comment">// Use φ-optimized learning rate</span>
-<span class="code-keyword">const</span> lr = bridge.<span class="code-function">phiLearningRate</span>(<span class="code-number">0.01</span>);  <span class="code-comment">// 0.00618...</span></pre>
-            </div>
-        </div>
-
-        <div class="code-block reveal" id="code-motoko" style="display: none;">
-            <div class="code-header">
-                <div class="code-header-dots">
-                    <span class="code-header-dot red"></span>
-                    <span class="code-header-dot yellow"></span>
-                    <span class="code-header-dot green"></span>
-                </div>
-                <span class="code-filename">generated_wrapper.mo</span>
-                <button class="code-copy" onclick="copyCode('motoko')">Copy</button>
-            </div>
-            <div class="code-content">
-<pre><span class="code-comment">// Auto-generated Motoko wrapper for Julia eigen function</span>
-<span class="code-keyword">import</span> Float <span class="code-string">"mo:base/Float"</span>;
-<span class="code-keyword">import</span> Array <span class="code-string">"mo:base/Array"</span>;
-
-<span class="code-keyword">module</span> JuliaBridge {
-    <span class="code-comment">// Golden ratio constants</span>
-    <span class="code-keyword">public let</span> PHI : <span class="code-type">Float</span> = <span class="code-number">1.618033988749894</span>;
-    <span class="code-keyword">public let</span> PHI_INV : <span class="code-type">Float</span> = <span class="code-number">0.6180339887498949</span>;
-
-    <span class="code-comment">// Type definitions matching Julia</span>
-    <span class="code-keyword">public type</span> <span class="code-type">EigenResult</span> = {
-        values: [<span class="code-type">Float</span>];
-        vectors: [[<span class="code-type">Float</span>]];
-    };
-
-    <span class="code-comment">// Wrapper for phi_eigen</span>
-    <span class="code-keyword">public func</span> <span class="code-function">phiEigen</span>(matrix: [[<span class="code-type">Float</span>]]) : <span class="code-keyword">async</span> <span class="code-type">EigenResult</span> {
-        <span class="code-comment">// Calls Julia via HTTP outcall or local compute</span>
-        <span class="code-keyword">let</span> result = <span class="code-keyword">await</span> <span class="code-function">juliaCompute</span>(<span class="code-string">"phi_eigen"</span>, matrix);
-        <span class="code-keyword">return</span> result;
-    };
-}</pre>
             </div>
         </div>
     </section>
@@ -1344,15 +1420,15 @@
                 <div class="stat-label">Math Functions</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value">φ</div>
-                <div class="stat-label">Golden Ratio Core</div>
+                <div class="stat-value">4</div>
+                <div class="stat-label">Call Doors</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value" data-target="3">0</div>
                 <div class="stat-label">Type Layers</div>
             </div>
             <div class="stat-item">
-                <div class="stat-value" data-target="62">0</div>
+                <div class="stat-value" data-target="64">0</div>
                 <div class="stat-label">Build Number</div>
             </div>
         </div>
@@ -1392,24 +1468,36 @@
                     <li><a href="https://github.com/ItsNotAILABS/NOVA/blob/main/protocols/PROTOCOL-JULIA.js" target="_blank">PROTOCOL-JULIA.js</a></li>
                     <li><a href="https://github.com/ItsNotAILABS/NOVA/blob/main/julia/NovaJulia.jl" target="_blank">NovaJulia.jl</a></li>
                     <li><a href="https://github.com/ItsNotAILABS/NOVA/blob/main/docs/charters/JULIA_MOTOKO_ISOMORPHISM_CHARTER.md" target="_blank">Charter</a></li>
+                    <li><a href="https://github.com/ItsNotAILABS/NOVA/blob/main/julia/llms.txt" target="_blank">llms.txt</a></li>
                 </ul>
             </div>
 
             <div class="footer-section">
-                <h4>Resources</h4>
+                <h4>Generated (Door 2)</h4>
                 <ul class="footer-links">
+                    <li><a href="https://github.com/ItsNotAILABS/NOVA/blob/main/julia/generated/JuliaCompute.mo" target="_blank">JuliaCompute.mo</a></li>
+                    <li><a href="https://github.com/ItsNotAILABS/NOVA/blob/main/julia/generated/julia_compute.did" target="_blank">julia_compute.did</a></li>
+                    <li><a href="https://github.com/ItsNotAILABS/NOVA/blob/main/julia/generated/julia_compute_client.ts" target="_blank">julia_compute_client.ts</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>AI / MCP (Door 4)</h4>
+                <ul class="footer-links">
+                    <li><a href="https://github.com/ItsNotAILABS/NOVA/blob/main/julia/bridge.manifest.json" target="_blank">bridge.manifest.json</a></li>
+                    <li><a href="https://github.com/ItsNotAILABS/NOVA/blob/main/julia/type-map.json" target="_blank">type-map.json</a></li>
+                    <li><a href="https://github.com/ItsNotAILABS/NOVA/blob/main/julia/mcp-server/index.js" target="_blank">MCP Server</a></li>
+                    <li><a href="https://github.com/ItsNotAILABS/NOVA/tree/main/julia/ai/function_cards" target="_blank">Function Cards</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>NOVA Lab</h4>
+                <ul class="footer-links">
+                    <li><a href="./">Lab Home</a></li>
                     <li><a href="https://github.com/ItsNotAILABS/NOVA" target="_blank">GitHub</a></li>
-                    <li><a href="https://julialang.org/" target="_blank">Julia Language</a></li>
-                    <li><a href="https://internetcomputer.org/docs/current/motoko/main/motoko" target="_blank">Motoko Docs</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-section">
-                <h4>NOVA Ecosystem</h4>
-                <ul class="footer-links">
                     <li><a href="https://github.com/ItsNotAILABS/NOVA/tree/main/production-apps" target="_blank">Production Apps</a></li>
-                    <li><a href="https://github.com/ItsNotAILABS/NOVA/tree/main/protocols" target="_blank">All Protocols</a></li>
-                    <li><a href="https://github.com/ItsNotAILABS/NOVA/tree/main/docs/charters" target="_blank">Charters</a></li>
+                    <li><a href="https://github.com/ItsNotAILABS/NOVA/tree/main/docs/papers/arxiv" target="_blank">arXiv Papers</a></li>
                 </ul>
             </div>
         </div>
