@@ -45,3 +45,4 @@ Open on your phone browser — tap **Add to Home Screen** to install:
 | ANIMA Micro | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/main/organism/web/index.html) | 5 AI products, 7 autonomous workers |
 | Deep Research Lab Journal | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/main/organism/web/dashboards/deep-research-lab-journal.html) | Professional native deployment page with 5 named efficiency bots |
 | Mathematical API Explorer | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/main/organism/web/dashboards/math-api-explorer.html) | 110+ sovereign math models, 8 domains, Julia/Python/Motoko |
+| Webbed Sphere Network | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/main/organism/web/dashboards/webbed-sphere.html) | Geodesic φ-mesh, Fibonacci lattice, Kuramoto sync, 3D visualization |
