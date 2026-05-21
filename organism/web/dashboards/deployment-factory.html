@@ -555,7 +555,7 @@ function filterProducts(query) {
    ═══════════════════════════════════════════════════════════ */
 function spawnWorker() {
   try {
-    worker = new Worker('deployment-worker.js');
+    worker = new Worker('../infrastructure/deployment-worker.js');
   } catch (e) {
     // Inline fallback — minimal
     console.warn('Worker load failed, using inline stub');

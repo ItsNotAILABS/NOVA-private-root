@@ -346,13 +346,17 @@ App.tsx                       Root CPL application entry
 
 ### CPL-F Workers (`organism/web/`)
 ```
-omnia-fleet.html              Master fleet dashboard (24+ SERVITORES)
-agr-solver-worker.js          GOL-AGR-001 · AMOR_PERPETUA
-fusion-worker.js              GOL-FUSIO-001 · FUSIO_AETERNA
-species-research-solver-worker.js   GOL-SPECIES-001 · SPECIES_AETERNA
-civ-repair-solver-worker.js   GOL-CIVREPAIR-001 · SANATIO_AETERNA
-defense-canister-solver-worker.js   GOL-DEFPROM-001 · DEFENSIO_AETERNA
-... 65+ more sovereign workers
+index.html                    Fleet entry point
+latin-protocols.js            Shared protocol definitions
+dashboards/                   HTML fleet dashboards (omnia-fleet, blueprints, deployment-factory, etc.)
+solvers/                      Solver workers (agr-solver, species-research, civ-repair, defense-canister)
+servitores/                   26 SERVITOR workers (memoriae, computationis, custodiae, etc.)
+bots/                         Bot workers (deploya-orchestra, observa-prima, scriptor-nexus, etc.)
+core/                         Core workers (heartbeat, fusion, protocol, wiring, evolution, engine)
+intelligence/                 Intelligence workers (reasoning, quantum-consciousness, learning, math)
+economy/                      Economy workers (marketplace, crypto, contract, product, buildings)
+defense/                      Defense workers (guardian, security, sentinel)
+infrastructure/               Infrastructure workers (cache, config, deployment, edge, routing, scheduler)
 ```
 
 ### Build & Config
@@ -364,4 +368,11 @@ tests/motoko/                 Motoko test suites
 .github/workflows/            CI (motoko-check.yml)
 docs/charters/                Binding protocol charters (PARALLAX, PHANTOM_WALLET, PHANTOM_TRANSFER)
 docs/papers/arxiv/            5 LaTeX arXiv papers
+docs/builds/                  Build completion reports
+docs/audits/                  Audit findings and summaries
+docs/registers/               CSV registers (AI Protocols, Organism Marketplace)
+docs/architecture/            Architecture documentation
+docs/deployment/              Deployment guides and blueprints
+docs/guides/                  Reading guides, glossary, reuse kit
+production-apps/              NOVA consciousness + sovereign AGIs + platforms + travel
 ```

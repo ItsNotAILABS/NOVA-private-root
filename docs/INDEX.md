@@ -34,14 +34,14 @@
  ## 2) Core constitutional artifacts
 
  - `docs/NOVA_BUILD_CONSTITUTION.md`
- - `docs/NOVA_FULL_SPHERE_ARCHITECTURE.md`
+ - `docs/architecture/NOVA_FULL_SPHERE_ARCHITECTURE.md`
  - `docs/NOVA_MACRO_PROCESS_AND_MODEL_DIRECTORIES.md`
  - `docs/NOVA_RESONANCE_ARTIFACT_SYSTEM.md`
- - `docs/NOVA_ACCESS_TIERS_AND_READING_POLICY.md`
+ - `docs/guides/NOVA_ACCESS_TIERS_AND_READING_POLICY.md`
  - `docs/NOVA_ARTIFACT_CATALOG.md`
- - `docs/NOVA_REUSE_KIT.md`
+ - `docs/guides/NOVA_REUSE_KIT.md`
  - `docs/consciousness-core/NOVA_MAIN_BASE_ARCHITECTURE_CODEX.md`
- - `docs/NOVA_V1_MAX_ENTERPRISE_RELEASE_PROMPT.md`
+ - `docs/deployment/NOVA_V1_MAX_ENTERPRISE_RELEASE_PROMPT.md`
 
  ---
 
@@ -104,7 +104,7 @@
 - Consciousness Core Main-Base Architecture Codex: `docs/consciousness-core/NOVA_MAIN_BASE_ARCHITECTURE_CODEX.md`
 - Internal AI Teams: `docs/internal-ai-teams/README_INTERNAL_AI_TEAMS.md`
 - External Products: `docs/external-products/README_EXTERNAL_PRODUCTS.md`
-- Max Enterprise Release Prompt: `docs/NOVA_V1_MAX_ENTERPRISE_RELEASE_PROMPT.md`
+- Max Enterprise Release Prompt: `docs/deployment/NOVA_V1_MAX_ENTERPRISE_RELEASE_PROMPT.md`
 
 ---
 
