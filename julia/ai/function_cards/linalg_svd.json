@@ -1,0 +1,68 @@
+{
+  "function": "linalg_svd",
+  "version": "0.1.0",
+  "purpose": "Singular Value Decomposition with φ-weighted singular values",
+  "description": "Computes the SVD of a matrix (A = UΣV^T), then weights singular values by φ^(-i) to emphasize dominant components with golden ratio decay.",
+  "signatures": {
+    "julia": "phi_svd(A::Matrix{Float64}) -> (Matrix{Float64}, Vector{Float64}, Matrix{Float64})",
+    "motoko": "linalg_svd(A: [[Float]]) : async ([[Float]], [Float], [[Float]])",
+    "candid": "linalg_svd : (vec vec float64) -> (record { U: vec vec float64; S: vec float64; V: vec vec float64 })",
+    "javascript": "async svd(matrix: number[][]) -> { U: number[][], S: number[], V: number[][] }"
+  },
+  "input_types": [
+    {
+      "name": "A",
+      "type": "Matrix{Float64}",
+      "description": "Input matrix (m × n)",
+      "constraints": "Any matrix. Does not need to be square.",
+      "example": "[[1, 2], [3, 4], [5, 6]]"
+    }
+  ],
+  "output_type": {
+    "type": "SvdResult",
+    "description": "U (m × m), S (min(m,n) φ-weighted), V (n × n)",
+    "fields": [
+      { "name": "U", "type": "Matrix{Float64}", "description": "Left singular vectors (m × m orthogonal)" },
+      { "name": "S", "type": "Vector{Float64}", "description": "φ-weighted singular values (Σᵢ × φ^(-i))" },
+      { "name": "V", "type": "Matrix{Float64}", "description": "Right singular vectors (n × n orthogonal)" }
+    ]
+  },
+  "properties": {
+    "deterministic": true,
+    "supports_wasm": true,
+    "canister_safe": true,
+    "round_trip_tested": true,
+    "complexity": "O(mn²) for m×n matrix (m ≥ n)"
+  },
+  "numerical_caveats": [
+    "Singular vectors may differ by sign convention",
+    "For rank-deficient matrices, some singular values will be zero",
+    "φ-weighting emphasizes first singular values more strongly"
+  ],
+  "ai_usage": {
+    "when_to_use": [
+      "Dimensionality reduction",
+      "Matrix rank computation",
+      "Pseudoinverse calculation",
+      "Data compression",
+      "Noise reduction",
+      "Latent semantic analysis"
+    ],
+    "when_not_to_use": [
+      "Square matrices where eigen decomposition suffices",
+      "Very large sparse matrices (use specialized sparse SVD)"
+    ],
+    "related_functions": ["phi_eigen", "linalg_inv", "linalg_norm"]
+  },
+  "examples": [
+    {
+      "description": "3×2 matrix SVD",
+      "input": "[[1, 2], [3, 4], [5, 6]]",
+      "output": {
+        "U": "3×3 orthogonal matrix",
+        "S": "2 φ-weighted singular values",
+        "V": "2×2 orthogonal matrix"
+      }
+    }
+  ]
+}

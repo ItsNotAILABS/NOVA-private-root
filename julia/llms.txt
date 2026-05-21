@@ -1,0 +1,153 @@
+# NOVA Julia-Motoko Bridge
+
+> A typed scientific-computing membrane for smart-contract systems.
+
+The Julia-Motoko Bridge lets developers and AI agents expose Julia scientific-computing 
+functions as typed Motoko/Candid smart-contract interfaces, with JavaScript/WASM execution, 
+type-safe conversion, wrapper generation, and round-trip validation.
+
+BUILD №64 — FOUR DOORS ARCHITECTURE
+
+## How to Call This Bridge (Four Doors)
+
+### Door 1 — JavaScript/TypeScript
+```javascript
+import { getJuliaCompute } from './protocols/PROTOCOL-JULIA.js';
+
+const julia = getJuliaCompute();
+await julia.initialize();
+const result = await julia.eigen(matrix);
+```
+Use when: Browser apps, Node.js, AI dashboards, frontends.
+
+### Door 2 — Motoko Smart Contract
+```motoko
+import JuliaCompute "JuliaCompute";
+
+let matrix = [[2.0, 1.0, 0.0], [1.0, 2.0, 1.0], [0.0, 1.0, 2.0]];
+let result = await JuliaCompute.linalg_eigen(matrix);
+```
+Use when: ICP canisters need typed scientific computing.
+
+### Door 3 — CLI (Command Line)
+```bash
+nova-julia call linalg.eigen --args '{"matrix": [[2,1,0],[1,2,1],[0,1,2]]}'
+nova-julia generate motoko --out ./generated
+nova-julia validate Float64 --value 1.618
+nova-julia test-roundtrip
+```
+Use when: Automation, testing, CI/CD, local development.
+
+### Door 4 — AI Manifest/MCP
+```json
+{
+  "name": "linalg.eigen",
+  "julia": "eigen(A::Matrix{Float64})",
+  "motoko": "linalg_eigen(A: [[Float]]) : async ([Float], [[Float]])",
+  "candid": "linalg_eigen : (vec vec float64) -> (record { eigenvalues: vec float64; eigenvectors: vec vec float64 })"
+}
+```
+Use when: AI agents need to understand, generate, or call bridge functions.
+
+## Important Files
+
+### Core Bridge
+- `/protocols/PROTOCOL-JULIA.js` — JavaScript bridge protocol (Door 1)
+- `/julia/NovaJulia.jl` — Julia numerical substrate module
+
+### Generated Wrappers (Door 2)
+- `/julia/generated/JuliaCompute.mo` — Motoko module
+- `/julia/generated/julia_compute.did` — Candid interface
+- `/julia/generated/julia_compute_client.ts` — TypeScript client
+
+### CLI (Door 3)
+- `/julia/cli/nova-julia.js` — Command-line tool
+
+### AI Affordances (Door 4)
+- `/julia/bridge.manifest.json` — Machine-readable function manifest
+- `/julia/type-map.json` — Complete type mapping specification
+- `/julia/mcp-server/index.js` — MCP server for AI agents
+- `/julia/ai/function_cards/*.json` — Function cards for AI
+- `/julia/ai/prompts/*.md` — Prompt templates
+- `/julia/openapi.json` — OpenAPI spec for HTTP bridge
+
+### Documentation
+- `/docs/charters/JULIA_MOTOKO_ISOMORPHISM_CHARTER.md` — Architecture charter
+
+## Available functions:
+
+### Linear Algebra
+- `phi_eigen` — Eigenvalue decomposition with φ-weighting
+- `phi_svd` — Singular Value Decomposition with φ-weighting
+- `linalg_inv` — Matrix inverse
+- `linalg_det` — Matrix determinant
+- `linalg_norm` — Vector norm (L2)
+
+### Optimization
+- `phi_gradient_descent` — Gradient descent with φ⁻¹ learning rate
+- `phi_monte_carlo` — Monte Carlo sampling with φ-based sample count
+
+### Statistics
+- `phi_mean` — Arithmetic mean
+- `phi_std` — Standard deviation
+- `phi_cor` — Correlation coefficient
+
+### Signal Processing
+- `phi_fft` — Fast Fourier Transform
+- `phi_ifft` — Inverse FFT
+
+### Synchronization
+- `kuramoto_step` — Kuramoto oscillator step
+- `order_parameter` — Coherence measure (R ∈ [0, 1])
+
+## Type mappings:
+
+| Julia | Motoko | JavaScript | Candid |
+|-------|--------|------------|--------|
+| Float64 | Float | number | float64 |
+| Int64 | Int | bigint | int64 |
+| Vector{Float64} | [Float] | number[] | vec float64 |
+| Matrix{Float64} | [[Float]] | number[][] | vec vec float64 |
+| Complex{Float64} | { re: Float; im: Float } | { re, im } | record { re; im } |
+| Tuple{A, B} | (A, B) | [a, b] | record { _0; _1 } |
+| Union{T, Nothing} | ?T | T \| null | opt T |
+
+## φ-constants:
+
+- PHI = 1.6180339887498948482 (golden ratio)
+- PHI_INV = 0.6180339887498948482 (1/φ, optimal learning rate)
+- AMOR = 0.3819660112501051518 (φ⁻², convergence threshold)
+- HEARTBEAT_MS = 873 (Earth frequency heartbeat)
+
+## Quick start:
+
+```javascript
+import { getJuliaCompute } from './protocols/PROTOCOL-JULIA.js';
+
+const julia = getJuliaCompute();
+await julia.initialize();
+
+// Eigenvalue decomposition
+const matrix = [[2, 1, 0], [1, 2, 1], [0, 1, 2]];
+const { eigenvalues, eigenvectors } = await julia.eigen(matrix);
+
+// φ-optimized gradient descent
+const objective = ([x, y]) => (x - PHI)**2 + (y - AMOR)**2;
+const result = await julia.phiGradientDescent(objective, [0, 0]);
+// result.optimum ≈ [1.618, 0.382]
+```
+
+## For AI agents:
+
+- MCP server: `/julia/mcp-server/index.js`
+- Function cards: `/julia/ai/function_cards/*.json`
+- Prompts: `/julia/ai/prompts/*.md`
+- Examples: `/julia/ai/examples/*.md`
+
+## Bridge manifest:
+
+See `/julia/bridge.manifest.json` for complete machine-readable specification of all functions, types, and capabilities.
+
+## Copyright:
+
+COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ

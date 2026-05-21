@@ -423,6 +423,147 @@ module {
 
     return module;
   }
+
+  // ═══ Candid Generation ══════════════════════════════════════════════════════
+
+  // Julia type to Candid type mapping
+  _toCandidType(juliaType) {
+    const candidMappings = {
+      'Float64': 'float64',
+      'Float32': 'float32',
+      'Int64': 'int64',
+      'Int32': 'int32',
+      'UInt64': 'nat64',
+      'Bool': 'bool',
+      'String': 'text',
+      'Vector{Float64}': 'vec float64',
+      'Vector{Int64}': 'vec int64',
+      'Matrix{Float64}': 'vec vec float64',
+      'Complex{Float64}': 'record { re: float64; im: float64 }',
+      'Tuple{Float64, Float64}': 'record { _0: float64; _1: float64 }',
+      'Tuple{Float64, Float64, Float64}': 'record { _0: float64; _1: float64; _2: float64 }',
+    };
+    return candidMappings[juliaType] || 'blob';
+  }
+
+  // Generate Candid type definition for complex return types
+  _generateCandidTypeDefinition(functionName, returnType) {
+    const typeMap = {
+      '(Vector{Float64}, Matrix{Float64})': {
+        name: 'EigenResult',
+        definition: 'type EigenResult = record { eigenvalues: vec float64; eigenvectors: vec vec float64 };',
+      },
+      '(Matrix{Float64}, Vector{Float64}, Matrix{Float64})': {
+        name: 'SvdResult',
+        definition: 'type SvdResult = record { U: vec vec float64; S: vec float64; V: vec vec float64 };',
+      },
+      '(Vector{Float64}, Vector{Vector{Float64}}, Int64)': {
+        name: 'OptimResult',
+        definition: 'type OptimResult = record { optimum: vec float64; history: vec vec float64; iterations: nat64 };',
+      },
+    };
+
+    return typeMap[returnType] || null;
+  }
+
+  // Generate Candid method signature
+  generateCandidMethod(functionName) {
+    const funcMeta = JULIA_FUNCTIONS[functionName];
+    if (!funcMeta) {
+      throw new Error(`Unknown Julia function: ${functionName}`);
+    }
+
+    const [argTypes, returnType] = this._parseSignature(funcMeta.signature);
+    const candidArgs = argTypes.map(t => this._toCandidType(t)).join(', ');
+    const candidReturn = this._toCandidType(returnType);
+    const methodName = functionName.replace('.', '_');
+
+    return `  ${methodName} : (${candidArgs}) -> (${candidReturn});`;
+  }
+
+  // Generate complete Candid interface
+  generateCandidInterface(functionNames) {
+    const typeDefs = new Set();
+    const methods = [];
+
+    for (const name of functionNames) {
+      const funcMeta = JULIA_FUNCTIONS[name];
+      if (!funcMeta) continue;
+
+      const [, returnType] = this._parseSignature(funcMeta.signature);
+      const typeDef = this._generateCandidTypeDefinition(name, returnType);
+      if (typeDef) {
+        typeDefs.add(typeDef.definition);
+      }
+
+      methods.push(this.generateCandidMethod(name));
+    }
+
+    const typeDefsStr = Array.from(typeDefs).join('\n');
+
+    return `
+// ═══════════════════════════════════════════════════════════════════════════════
+// NOVA Julia-Motoko Bridge — Auto-generated Candid Interface
+// Generated: ${new Date().toISOString()}
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Type definitions
+type Complex = record { re: float64; im: float64 };
+type Oscillator = record { phase: float64; frequency: float64 };
+${typeDefsStr}
+
+service : {
+${methods.join('\n')}
+}
+`.trim();
+  }
+
+  // Generate TypeScript client from Candid
+  generateTypeScriptClient(functionNames) {
+    const imports = `
+import { Actor, HttpAgent } from '@dfinity/agent';
+import { idlFactory } from './declarations/julia_compute';
+`.trim();
+
+    const functions = functionNames.map(name => {
+      const funcMeta = JULIA_FUNCTIONS[name];
+      if (!funcMeta) return '';
+
+      const [argTypes, returnType] = this._parseSignature(funcMeta.signature);
+      const tsMethodName = name.replace('.', '_');
+      const tsArgs = argTypes.map((t, i) => `arg${i}: ${this._toTypeScriptType(t)}`).join(', ');
+      const tsReturn = this._toTypeScriptType(returnType);
+
+      return `
+export async function ${tsMethodName}(${tsArgs}): Promise<${tsReturn}> {
+  return await juliaCompute.${tsMethodName}(${argTypes.map((_, i) => `arg${i}`).join(', ')});
+}`;
+    }).filter(Boolean);
+
+    return `
+${imports}
+
+const agent = new HttpAgent({ host: 'https://ic0.app' });
+const juliaCompute = Actor.createActor(idlFactory, {
+  agent,
+  canisterId: process.env.JULIA_COMPUTE_CANISTER_ID || 'your-canister-id',
+});
+${functions.join('\n')}
+`.trim();
+  }
+
+  _toTypeScriptType(juliaType) {
+    const tsMap = {
+      'Float64': 'number',
+      'Int64': 'bigint',
+      'Bool': 'boolean',
+      'String': 'string',
+      'Vector{Float64}': 'number[]',
+      'Matrix{Float64}': 'number[][]',
+      'Complex{Float64}': '{ re: number; im: number }',
+    };
+    return tsMap[juliaType] || 'unknown';
+  }
 }
 
 // ═══ Section 6: φ-Optimized Numerical Methods ════════════════════════════════
@@ -563,6 +704,37 @@ export class JuliaComputeAPI {
   // Generate Motoko bridge code
   generateMotokoModule(functionNames) {
     return this.bridge.generateMotokoModule(functionNames);
+  }
+
+  // Generate Candid interface (BUILD №63)
+  generateCandidInterface(functionNames) {
+    return this.bridge.generateCandidInterface(functionNames);
+  }
+
+  // Generate TypeScript client (BUILD №63)
+  generateTypeScriptClient(functionNames) {
+    return this.bridge.generateTypeScriptClient(functionNames);
+  }
+
+  // Get function metadata for AI tools (BUILD №63)
+  getFunctionMetadata(functionName) {
+    const funcMeta = JULIA_FUNCTIONS[functionName];
+    if (!funcMeta) return null;
+    return {
+      name: functionName,
+      ...funcMeta,
+      motokoType: this.bridge._toMotokoType,
+      candidType: this.bridge._toCandidType,
+    };
+  }
+
+  // List all available functions (BUILD №63)
+  listFunctions() {
+    return Object.entries(JULIA_FUNCTIONS).map(([name, meta]) => ({
+      name,
+      description: meta.description,
+      signature: meta.signature,
+    }));
   }
 
   // Metrics

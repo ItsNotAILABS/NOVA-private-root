@@ -1,0 +1,209 @@
+{
+  "name": "NOVA Julia-Motoko Type Mappings",
+  "version": "0.1.0",
+  "description": "Complete type isomorphism between Julia, Motoko, JavaScript, and Candid",
+  "primitives": [
+    {
+      "julia": "Float64",
+      "motoko": "Float",
+      "javascript": "number",
+      "candid": "float64",
+      "bytes": 8,
+      "precision": "IEEE 754 double precision",
+      "range": "±1.7976931348623157E+308",
+      "round_trip_safe": true,
+      "notes": "Direct mapping. No precision loss."
+    },
+    {
+      "julia": "Float32",
+      "motoko": "Float",
+      "javascript": "number",
+      "candid": "float32",
+      "bytes": 4,
+      "precision": "IEEE 754 single precision",
+      "range": "±3.4028235E+38",
+      "round_trip_safe": true,
+      "notes": "Motoko Float is 64-bit, so Float32 → Float → Float32 may have precision gain."
+    },
+    {
+      "julia": "Int64",
+      "motoko": "Int",
+      "javascript": "bigint",
+      "candid": "int64",
+      "bytes": 8,
+      "precision": "Exact integer",
+      "range": "-9223372036854775808 to 9223372036854775807",
+      "round_trip_safe": true,
+      "notes": "Motoko Int is arbitrary precision. JavaScript bigint is safe."
+    },
+    {
+      "julia": "Int32",
+      "motoko": "Int32",
+      "javascript": "number",
+      "candid": "int32",
+      "bytes": 4,
+      "precision": "Exact integer",
+      "range": "-2147483648 to 2147483647",
+      "round_trip_safe": true,
+      "notes": "JavaScript number can safely represent 32-bit integers."
+    },
+    {
+      "julia": "UInt64",
+      "motoko": "Nat",
+      "javascript": "bigint",
+      "candid": "nat64",
+      "bytes": 8,
+      "precision": "Exact unsigned integer",
+      "range": "0 to 18446744073709551615",
+      "round_trip_safe": true,
+      "notes": "Motoko Nat is arbitrary precision. Use bigint in JavaScript."
+    },
+    {
+      "julia": "Bool",
+      "motoko": "Bool",
+      "javascript": "boolean",
+      "candid": "bool",
+      "bytes": 1,
+      "precision": "Exact",
+      "range": "true/false",
+      "round_trip_safe": true,
+      "notes": "Direct mapping."
+    },
+    {
+      "julia": "String",
+      "motoko": "Text",
+      "javascript": "string",
+      "candid": "text",
+      "bytes": "variable",
+      "precision": "UTF-8",
+      "range": "unlimited",
+      "round_trip_safe": true,
+      "notes": "UTF-8 encoding across all languages."
+    }
+  ],
+  "composites": [
+    {
+      "julia": "Vector{Float64}",
+      "motoko": "[Float]",
+      "javascript": "number[]",
+      "candid": "vec float64",
+      "round_trip_safe": true,
+      "notes": "1D array of floats. Use Float64Array in JavaScript for performance."
+    },
+    {
+      "julia": "Vector{Int64}",
+      "motoko": "[Int]",
+      "javascript": "bigint[]",
+      "candid": "vec int64",
+      "round_trip_safe": true,
+      "notes": "1D array of integers."
+    },
+    {
+      "julia": "Matrix{Float64}",
+      "motoko": "[[Float]]",
+      "javascript": "number[][]",
+      "candid": "vec vec float64",
+      "round_trip_safe": true,
+      "notes": "2D array (matrix). Row-major in JavaScript, column-major in Julia (transpose if needed)."
+    },
+    {
+      "julia": "Complex{Float64}",
+      "motoko": "{ re: Float; im: Float }",
+      "javascript": "{ re: number, im: number }",
+      "candid": "record { re: float64; im: float64 }",
+      "round_trip_safe": true,
+      "notes": "Complex numbers represented as records with real and imaginary parts."
+    },
+    {
+      "julia": "Tuple{Float64, Float64}",
+      "motoko": "(Float, Float)",
+      "javascript": "[number, number]",
+      "candid": "record { _0: float64; _1: float64 }",
+      "round_trip_safe": true,
+      "notes": "Fixed-size tuples. Candid uses positional field names."
+    },
+    {
+      "julia": "Tuple{Float64, Float64, Float64}",
+      "motoko": "(Float, Float, Float)",
+      "javascript": "[number, number, number]",
+      "candid": "record { _0: float64; _1: float64; _2: float64 }",
+      "round_trip_safe": true,
+      "notes": "3-element tuple."
+    },
+    {
+      "julia": "Dict{String, Float64}",
+      "motoko": "HashMap<Text, Float>",
+      "javascript": "Map<string, number>",
+      "candid": "vec record { key: text; value: float64 }",
+      "round_trip_safe": true,
+      "notes": "Key-value map. Candid does not have native maps, use vec of records."
+    },
+    {
+      "julia": "NamedTuple{(:a, :b), Tuple{Float64, Int64}}",
+      "motoko": "{ a: Float; b: Int }",
+      "javascript": "{ a: number, b: bigint }",
+      "candid": "record { a: float64; b: int64 }",
+      "round_trip_safe": true,
+      "notes": "Named tuples map directly to records."
+    },
+    {
+      "julia": "Union{Float64, Nothing}",
+      "motoko": "?Float",
+      "javascript": "number | null",
+      "candid": "opt float64",
+      "round_trip_safe": true,
+      "notes": "Optional/nullable values. Julia Nothing = Motoko null = JavaScript null."
+    },
+    {
+      "julia": "Vector{Union{Float64, Nothing}}",
+      "motoko": "[?Float]",
+      "javascript": "(number | null)[]",
+      "candid": "vec opt float64",
+      "round_trip_safe": true,
+      "notes": "Array of optional values."
+    }
+  ],
+  "special_types": [
+    {
+      "julia": "SparseMatrixCSC{Float64}",
+      "motoko": "{ rows: [Nat]; cols: [Nat]; values: [Float]; shape: (Nat, Nat) }",
+      "javascript": "{ rows: number[], cols: number[], values: number[], shape: [number, number] }",
+      "candid": "record { rows: vec nat64; cols: vec nat64; values: vec float64; shape: record { _0: nat64; _1: nat64 } }",
+      "round_trip_safe": true,
+      "notes": "Compressed Sparse Column format. Non-zero entries only."
+    },
+    {
+      "julia": "Diagonal{Float64}",
+      "motoko": "[Float]",
+      "javascript": "number[]",
+      "candid": "vec float64",
+      "round_trip_safe": true,
+      "notes": "Diagonal matrix stored as vector of diagonal elements."
+    },
+    {
+      "julia": "Symbol",
+      "motoko": "variant { ... }",
+      "javascript": "string",
+      "candid": "variant { ... }",
+      "round_trip_safe": true,
+      "notes": "Julia symbols map to Motoko variants. Define variants explicitly."
+    }
+  ],
+  "conversion_functions": {
+    "julia_to_motoko": "protocols/PROTOCOL-JULIA.js:_toMotokoType()",
+    "motoko_to_julia": "protocols/PROTOCOL-JULIA.js:_toJuliaType()",
+    "javascript_to_motoko": "Candid IDL encoding",
+    "motoko_to_javascript": "Candid IDL decoding"
+  },
+  "round_trip_tests": {
+    "test_file": "julia/tests/round-trip.test.js",
+    "test_cases": [
+      "Float64 → Float → number → Float → Float64",
+      "Vector{Float64} → [Float] → number[] → [Float] → Vector{Float64}",
+      "Matrix{Float64} → [[Float]] → number[][] → [[Float]] → Matrix{Float64}",
+      "Complex{Float64} → { re; im } → { re, im } → { re; im } → Complex{Float64}",
+      "Tuple{Float64,Float64} → (Float, Float) → [number, number] → (Float, Float) → Tuple{Float64,Float64}",
+      "Union{Float64, Nothing} → ?Float → number | null → ?Float → Union{Float64, Nothing}"
+    ]
+  }
+}

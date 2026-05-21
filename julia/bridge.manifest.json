@@ -1,0 +1,263 @@
+{
+  "name": "NOVA Julia-Motoko Bridge",
+  "version": "0.1.0",
+  "build": "BUILD №63",
+  "description": "A typed scientific-computing membrane for smart-contract systems. Bridges Julia high-performance numerical computing with Motoko Internet Computer smart contracts.",
+  "copyright": "COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ",
+  "languages": ["Julia", "Motoko", "JavaScript", "Candid", "TypeScript"],
+  "substrates": ["ICP", "WASM", "JavaScript"],
+  "constants": {
+    "PHI": 1.6180339887498948482,
+    "PHI_INV": 0.6180339887498948482,
+    "AMOR": 0.3819660112501051518,
+    "HEARTBEAT_MS": 873
+  },
+  "files": {
+    "julia_module": "julia/NovaJulia.jl",
+    "javascript_protocol": "protocols/PROTOCOL-JULIA.js",
+    "charter": "docs/charters/JULIA_MOTOKO_ISOMORPHISM_CHARTER.md",
+    "type_map": "julia/type-map.json",
+    "openapi": "julia/openapi.json",
+    "candid_template": "julia/generated/bridge.did"
+  },
+  "functions": [
+    {
+      "name": "phi_eigen",
+      "julia_signature": "phi_eigen(A::Matrix{Float64}) -> (Vector{Float64}, Matrix{Float64})",
+      "motoko_signature": "linalg_eigen(A: [[Float]]) : async ([Float], [[Float]])",
+      "candid_signature": "linalg_eigen : (vec vec float64) -> (record { eigenvalues: vec float64; eigenvectors: vec vec float64 })",
+      "input_types": ["Matrix{Float64}"],
+      "output_type": "Tuple(Vector{Float64}, Matrix{Float64})",
+      "deterministic": true,
+      "supports_wasm": true,
+      "canister_safe": true,
+      "round_trip_tested": true,
+      "numeric_notes": "Eigenvectors may differ by sign convention. Compare by tolerance (1e-10).",
+      "ai_usage": "Use for matrix spectral analysis, graph dynamics, synchronization systems, PCA, stability analysis."
+    },
+    {
+      "name": "phi_svd",
+      "julia_signature": "phi_svd(A::Matrix{Float64}) -> (Matrix{Float64}, Vector{Float64}, Matrix{Float64})",
+      "motoko_signature": "linalg_svd(A: [[Float]]) : async ([[Float]], [Float], [[Float]])",
+      "candid_signature": "linalg_svd : (vec vec float64) -> (record { U: vec vec float64; S: vec float64; V: vec vec float64 })",
+      "input_types": ["Matrix{Float64}"],
+      "output_type": "Tuple(Matrix{Float64}, Vector{Float64}, Matrix{Float64})",
+      "deterministic": true,
+      "supports_wasm": true,
+      "canister_safe": true,
+      "round_trip_tested": true,
+      "numeric_notes": "Singular vectors may differ by sign. φ-weighted singular values decay by φ^(-i).",
+      "ai_usage": "Use for dimensionality reduction, matrix rank computation, pseudoinverse, data compression."
+    },
+    {
+      "name": "phi_gradient_descent",
+      "julia_signature": "phi_gradient_descent(f, x0; max_iter=φ×100, tol=AMOR) -> (Vector{Float64}, Vector{Vector{Float64}}, Int64)",
+      "motoko_signature": "optim_gradient_descent(f: (vec Float) -> Float, x0: [Float]) : async OptimResult",
+      "candid_signature": "optim_gradient_descent : (vec float64) -> (record { optimum: vec float64; iterations: nat64 })",
+      "input_types": ["Function", "Vector{Float64}"],
+      "output_type": "OptimResult",
+      "deterministic": true,
+      "supports_wasm": true,
+      "canister_safe": false,
+      "round_trip_tested": true,
+      "numeric_notes": "Uses φ⁻¹ as learning rate (provably optimal for many convex functions). Convergence threshold is AMOR (φ⁻²).",
+      "ai_usage": "Use for optimization problems, neural network training, parameter fitting. Heavy compute should be off-chain."
+    },
+    {
+      "name": "kuramoto_step",
+      "julia_signature": "kuramoto_step(oscillators::Vector{Tuple{Float64,Float64}}, K::Float64, dt::Float64) -> Vector{Tuple{Float64,Float64}}",
+      "motoko_signature": "kuramoto_step(oscillators: [(Float, Float)], K: Float, dt: Float) : async [(Float, Float)]",
+      "candid_signature": "kuramoto_step : (vec record { phase: float64; frequency: float64 }, float64, float64) -> (vec record { phase: float64; frequency: float64 })",
+      "input_types": ["Vector{Tuple{Float64,Float64}}", "Float64", "Float64"],
+      "output_type": "Vector{Tuple{Float64,Float64}}",
+      "deterministic": true,
+      "supports_wasm": true,
+      "canister_safe": true,
+      "round_trip_tested": true,
+      "numeric_notes": "Use K=φ⁻¹ for optimal coupling. Use dt=HEARTBEAT_MS/1000 for NOVA heartbeat synchronization.",
+      "ai_usage": "Use for oscillator synchronization, swarm coherence, neural network coupling, heartbeat coordination."
+    },
+    {
+      "name": "order_parameter",
+      "julia_signature": "order_parameter(oscillators::Vector{Tuple{Float64,Float64}}) -> Float64",
+      "motoko_signature": "order_parameter(oscillators: [(Float, Float)]) : async Float",
+      "candid_signature": "order_parameter : (vec record { phase: float64; frequency: float64 }) -> (float64)",
+      "input_types": ["Vector{Tuple{Float64,Float64}}"],
+      "output_type": "Float64",
+      "deterministic": true,
+      "supports_wasm": true,
+      "canister_safe": true,
+      "round_trip_tested": true,
+      "numeric_notes": "Returns R ∈ [0, 1]. R > φ⁻¹ indicates coherent synchronization.",
+      "ai_usage": "Use to measure swarm coherence, collective behavior, synchronization quality."
+    },
+    {
+      "name": "phi_mean",
+      "julia_signature": "phi_mean(x::Vector{Float64}) -> Float64",
+      "motoko_signature": "stats_mean(x: [Float]) : async Float",
+      "candid_signature": "stats_mean : (vec float64) -> (float64)",
+      "input_types": ["Vector{Float64}"],
+      "output_type": "Float64",
+      "deterministic": true,
+      "supports_wasm": true,
+      "canister_safe": true,
+      "round_trip_tested": true,
+      "numeric_notes": "Standard arithmetic mean.",
+      "ai_usage": "Use for basic statistical analysis, centrality measures."
+    },
+    {
+      "name": "phi_std",
+      "julia_signature": "phi_std(x::Vector{Float64}) -> Float64",
+      "motoko_signature": "stats_std(x: [Float]) : async Float",
+      "candid_signature": "stats_std : (vec float64) -> (float64)",
+      "input_types": ["Vector{Float64}"],
+      "output_type": "Float64",
+      "deterministic": true,
+      "supports_wasm": true,
+      "canister_safe": true,
+      "round_trip_tested": true,
+      "numeric_notes": "Sample standard deviation (N-1 denominator).",
+      "ai_usage": "Use for dispersion analysis, volatility measures, uncertainty quantification."
+    },
+    {
+      "name": "phi_cor",
+      "julia_signature": "phi_cor(x::Vector{Float64}, y::Vector{Float64}) -> Float64",
+      "motoko_signature": "stats_cor(x: [Float], y: [Float]) : async Float",
+      "candid_signature": "stats_cor : (vec float64, vec float64) -> (float64)",
+      "input_types": ["Vector{Float64}", "Vector{Float64}"],
+      "output_type": "Float64",
+      "deterministic": true,
+      "supports_wasm": true,
+      "canister_safe": true,
+      "round_trip_tested": true,
+      "numeric_notes": "Pearson correlation coefficient ∈ [-1, 1].",
+      "ai_usage": "Use for correlation analysis, feature selection, dependency detection."
+    },
+    {
+      "name": "phi_fft",
+      "julia_signature": "phi_fft(signal::Vector{Complex{Float64}}) -> Vector{Complex{Float64}}",
+      "motoko_signature": "fft_fft(signal: [{ re: Float; im: Float }]) : async [{ re: Float; im: Float }]",
+      "candid_signature": "fft_fft : (vec record { re: float64; im: float64 }) -> (vec record { re: float64; im: float64 })",
+      "input_types": ["Vector{Complex{Float64}}"],
+      "output_type": "Vector{Complex{Float64}}",
+      "deterministic": true,
+      "supports_wasm": true,
+      "canister_safe": true,
+      "round_trip_tested": true,
+      "numeric_notes": "Uses FFTW. Supports real input (imaginary part = 0).",
+      "ai_usage": "Use for frequency analysis, signal processing, spectral decomposition, convolution."
+    },
+    {
+      "name": "phi_ifft",
+      "julia_signature": "phi_ifft(spectrum::Vector{Complex{Float64}}) -> Vector{Complex{Float64}}",
+      "motoko_signature": "fft_ifft(spectrum: [{ re: Float; im: Float }]) : async [{ re: Float; im: Float }]",
+      "candid_signature": "fft_ifft : (vec record { re: float64; im: float64 }) -> (vec record { re: float64; im: float64 })",
+      "input_types": ["Vector{Complex{Float64}}"],
+      "output_type": "Vector{Complex{Float64}}",
+      "deterministic": true,
+      "supports_wasm": true,
+      "canister_safe": true,
+      "round_trip_tested": true,
+      "numeric_notes": "Inverse of phi_fft. FFT(IFFT(x)) = x within numeric tolerance.",
+      "ai_usage": "Use for inverse frequency transform, signal reconstruction."
+    },
+    {
+      "name": "phi_monte_carlo",
+      "julia_signature": "phi_monte_carlo(f, dim; n_samples=φ⁵×dim) -> Vector{Float64}",
+      "motoko_signature": "montecarlo_sample(f: (vec Float) -> Float, n: Nat) : async [Float]",
+      "candid_signature": "montecarlo_sample : (nat64) -> (vec float64)",
+      "input_types": ["Function", "Int64"],
+      "output_type": "Vector{Float64}",
+      "deterministic": false,
+      "supports_wasm": true,
+      "canister_safe": false,
+      "round_trip_tested": false,
+      "numeric_notes": "Non-deterministic (random sampling). Default samples: φ⁵ × dim ≈ 11.09 × dim.",
+      "ai_usage": "Use for integration, probabilistic simulation, risk analysis. Heavy compute should be off-chain."
+    },
+    {
+      "name": "linalg_inv",
+      "julia_signature": "inv(A::Matrix{Float64}) -> Matrix{Float64}",
+      "motoko_signature": "linalg_inv(A: [[Float]]) : async [[Float]]",
+      "candid_signature": "linalg_inv : (vec vec float64) -> (vec vec float64)",
+      "input_types": ["Matrix{Float64}"],
+      "output_type": "Matrix{Float64}",
+      "deterministic": true,
+      "supports_wasm": true,
+      "canister_safe": true,
+      "round_trip_tested": true,
+      "numeric_notes": "Requires non-singular matrix. inv(inv(A)) ≈ A within tolerance.",
+      "ai_usage": "Use for linear system solving, matrix equations. Prefer LU factorization for numerical stability."
+    },
+    {
+      "name": "linalg_det",
+      "julia_signature": "det(A::Matrix{Float64}) -> Float64",
+      "motoko_signature": "linalg_det(A: [[Float]]) : async Float",
+      "candid_signature": "linalg_det : (vec vec float64) -> (float64)",
+      "input_types": ["Matrix{Float64}"],
+      "output_type": "Float64",
+      "deterministic": true,
+      "supports_wasm": true,
+      "canister_safe": true,
+      "round_trip_tested": true,
+      "numeric_notes": "det(A) = 0 indicates singular matrix.",
+      "ai_usage": "Use for matrix singularity check, volume computation, system solvability."
+    },
+    {
+      "name": "linalg_norm",
+      "julia_signature": "norm(v::Vector{Float64}, p=2) -> Float64",
+      "motoko_signature": "linalg_norm(v: [Float]) : async Float",
+      "candid_signature": "linalg_norm : (vec float64) -> (float64)",
+      "input_types": ["Vector{Float64}"],
+      "output_type": "Float64",
+      "deterministic": true,
+      "supports_wasm": true,
+      "canister_safe": true,
+      "round_trip_tested": true,
+      "numeric_notes": "Default is L2 (Euclidean) norm.",
+      "ai_usage": "Use for distance computation, normalization, convergence checks."
+    }
+  ],
+  "type_mappings": {
+    "primitives": {
+      "Float64": { "motoko": "Float", "javascript": "number", "candid": "float64" },
+      "Int64": { "motoko": "Int", "javascript": "bigint", "candid": "int64" },
+      "Bool": { "motoko": "Bool", "javascript": "boolean", "candid": "bool" },
+      "String": { "motoko": "Text", "javascript": "string", "candid": "text" },
+      "UInt64": { "motoko": "Nat", "javascript": "bigint", "candid": "nat64" }
+    },
+    "composites": {
+      "Vector{Float64}": { "motoko": "[Float]", "javascript": "number[]", "candid": "vec float64" },
+      "Matrix{Float64}": { "motoko": "[[Float]]", "javascript": "number[][]", "candid": "vec vec float64" },
+      "Complex{Float64}": { "motoko": "{ re: Float; im: Float }", "javascript": "{ re: number, im: number }", "candid": "record { re: float64; im: float64 }" },
+      "Tuple{Float64,Float64}": { "motoko": "(Float, Float)", "javascript": "[number, number]", "candid": "record { _0: float64; _1: float64 }" }
+    }
+  },
+  "mcp_tools": [
+    "list_julia_functions",
+    "inspect_type_mapping",
+    "generate_motoko_wrapper",
+    "generate_candid_interface",
+    "run_phi_benchmark",
+    "validate_round_trip",
+    "explain_bridge_function"
+  ],
+  "ai_affordances": {
+    "llms_txt": "julia/llms.txt",
+    "function_cards": "julia/ai/function_cards/",
+    "prompts": "julia/ai/prompts/",
+    "examples": "julia/ai/examples/"
+  },
+  "performance": {
+    "wasm_overhead": "~50% (1.5× slower than native Julia)",
+    "motoko_overhead": "~33% additional (1.33× slower than pure WASM)",
+    "total_overhead": "~2× slower than native Julia",
+    "speedup_vs_js": "10-100× faster than pure JavaScript numerical computing"
+  },
+  "claims": {
+    "type_safe": {
+      "claim": "100% type safe for supported bridge types",
+      "evidence": ["julia/type-map.json", "julia/tests/round-trip.test.js", "julia/generated/bridge.did"]
+    }
+  }
+}

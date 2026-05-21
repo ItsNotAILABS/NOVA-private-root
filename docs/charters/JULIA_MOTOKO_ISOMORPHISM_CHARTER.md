@@ -1,5 +1,5 @@
 # JULIA-MOTOKO ISOMORPHISM CHARTER
-## BUILD №62 — High-Performance Numerical Computing Bridge
+## BUILD №64 — Four Doors Architecture
 ### COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ | CONFIDENTIAL
 
 ---
@@ -7,6 +7,7 @@
 ```
 ╔══════════════════════════════════════════════════════════════════════════════════╗
 ║                    JULIA-MOTOKO EMBEDDING LAYER                                  ║
+║                         FOUR DOORS ARCHITECTURE                                  ║
 ║                                                                                  ║
 ║   "Julia provides the mathematical muscle. Motoko provides the sovereign mind.  ║
 ║    Together, they form a complete computational organism — high-performance     ║
@@ -22,6 +23,21 @@
 This charter documents the **JULIA-MOTOKO EMBEDDING LAYER** — the bridge that
 combines Julia's high-performance numerical computing with Motoko's Internet
 Computer smart contract capabilities.
+
+**The Julia-Motoko Bridge lets developers and AI agents expose Julia scientific-computing 
+functions as typed Motoko/Candid smart-contract interfaces, with JavaScript/WASM execution, 
+type-safe conversion, wrapper generation, and round-trip validation.**
+
+### §1.1 — Four Doors Architecture (BUILD №64)
+
+The bridge provides four official entry points:
+
+| Door | User | Entry Point | Use Case |
+|------|------|-------------|----------|
+| **1** | JavaScript Developer | `getJuliaCompute()` | Browser, Node.js, frontends |
+| **2** | Motoko Developer | `JuliaCompute.linalg_eigen()` | ICP canisters |
+| **3** | CLI / Automation | `nova-julia call` | CI/CD, testing, scripting |
+| **4** | AI Agent | `bridge.manifest.json` | AI code generation, MCP |
 
 **Julia** is for:
 - Linear algebra (eigenvalues, SVD, matrix operations)
@@ -542,15 +558,165 @@ console.log(`Mean: ${mean}, Std: ${std}`);
 - [x] Implement type mappings (Julia ↔ Motoko)
 - [x] Auto-generate Motoko wrappers
 - [x] Implement φ-optimized algorithms
+- [x] Create AI-readable bridge manifest (BUILD №63)
+- [x] Implement Candid generation (BUILD №63)
+- [x] Create round-trip type test suite (BUILD №63)
+- [x] Create MCP server for AI agents (BUILD №63)
+- [x] Add llms.txt and OpenAPI spec (BUILD №63)
+- [x] Create function cards for AI (BUILD №63)
 - [ ] Compile Julia to WASM
 - [ ] Deploy WASM bridge on IC
 - [ ] Create JuliaCompute.mo canister
-- [ ] Write integration tests
 - [ ] Benchmark performance
-- [ ] Document best practices
+
+---
+
+## APPENDIX C — AI AFFORDANCES (BUILD №63)
+
+### §C.1 — Bridge Manifest
+
+The bridge is now self-describing via `/julia/bridge.manifest.json`:
+
+```json
+{
+  "name": "NOVA Julia-Motoko Bridge",
+  "version": "0.1.0",
+  "functions": [...],
+  "type_mappings": {...},
+  "mcp_tools": [...],
+  "ai_affordances": {...}
+}
+```
+
+### §C.2 — MCP Server Tools
+
+The MCP server (`/julia/mcp-server/index.js`) exposes:
+
+| Tool | Description |
+|------|-------------|
+| `list_julia_functions` | List all available Julia functions |
+| `inspect_type_mapping` | Get type mapping for a Julia type |
+| `generate_motoko_wrapper` | Generate Motoko wrapper code |
+| `generate_candid_interface` | Generate Candid interface |
+| `run_phi_benchmark` | Run φ-optimized benchmarks |
+| `validate_round_trip` | Validate type round-trip |
+| `explain_bridge_function` | Get detailed function explanation |
+
+### §C.3 — Function Cards
+
+Each major function has a JSON card at `/julia/ai/function_cards/*.json`:
+
+```
+julia/ai/function_cards/
+├── phi_eigen.json
+├── phi_gradient_descent.json
+└── kuramoto_step.json
+```
+
+### §C.4 — AI Prompts
+
+Prompt templates at `/julia/ai/prompts/`:
+
+- `generate_motoko_wrapper.md` — Generate Motoko code
+- `debug_type_mapping.md` — Debug type conversion issues
+- `create_candid_interface.md` — Create Candid interfaces
+
+### §C.5 — Round-Trip Type Tests
+
+The test suite at `/julia/tests/round-trip.test.js` validates:
+
+- 32 test cases covering all type mappings
+- Primitive types (Float64, Int64, Bool, String)
+- Composite types (Vector, Matrix, Complex, Tuple)
+- Optional types (Union with Nothing)
+- φ-constant precision preservation
+- Edge cases (Infinity, NaN, large matrices)
+
+---
+
+## APPENDIX D — FOUR DOORS IMPLEMENTATION (BUILD №64)
+
+### §D.1 — Door 1: JavaScript SDK
+
+```javascript
+// DOOR 1: JavaScript/TypeScript entry point
+import { getJuliaCompute } from './protocols/PROTOCOL-JULIA.js';
+
+const julia = getJuliaCompute();
+await julia.initialize();
+
+const matrix = [[2, 1, 0], [1, 2, 1], [0, 1, 2]];
+const result = await julia.eigen(matrix);
+
+console.log(result.eigenvalues);  // φ-weighted eigenvalues
+console.log(result.eigenvectors);
+```
+
+**Use when:** Browser apps, Node.js servers, AI dashboards, frontends.
+
+### §D.2 — Door 2: Motoko Smart Contract
+
+```motoko
+// DOOR 2: Motoko canister entry point
+import JuliaCompute "JuliaCompute";
+
+actor MyCanister {
+  public shared func computeSpectrum(matrix : [[Float]]) : async JuliaCompute.EigenResult {
+    await JuliaCompute.linalg_eigen(matrix)
+  };
+}
+```
+
+**Files generated:**
+- `/julia/generated/JuliaCompute.mo` — Motoko module
+- `/julia/generated/julia_compute.did` — Candid interface
+- `/julia/generated/julia_compute_client.ts` — TypeScript client
+
+**Use when:** ICP canisters need typed scientific computing.
+
+### §D.3 — Door 3: CLI (Command Line)
+
+```bash
+# DOOR 3: CLI entry point
+nova-julia list                              # List available functions
+nova-julia inspect linalg.eigen              # Inspect function details
+nova-julia call linalg.eigen --args '{...}'  # Call function
+nova-julia generate motoko --out ./generated # Generate wrappers
+nova-julia validate Float64 --value 1.618    # Validate round-trip
+nova-julia benchmark gradient_descent        # Run φ-benchmark
+nova-julia test-roundtrip                    # Run all type tests
+```
+
+**Location:** `/julia/cli/nova-julia.js`
+
+**Use when:** Automation, CI/CD, testing, local development, GitHub Actions.
+
+### §D.4 — Door 4: AI Manifest/MCP
+
+```json
+// DOOR 4: AI-readable entry point (bridge.manifest.json)
+{
+  "name": "linalg.eigen",
+  "julia_signature": "phi_eigen(A::Matrix{Float64}) -> (Vector{Float64}, Matrix{Float64})",
+  "motoko_signature": "linalg_eigen(A: [[Float]]) : async ([Float], [[Float]])",
+  "candid_signature": "linalg_eigen : (vec vec float64) -> (record { eigenvalues: vec float64; eigenvectors: vec vec float64 })",
+  "deterministic": true,
+  "canister_safe": true,
+  "ai_usage": "Use for matrix spectral analysis, graph dynamics, PCA."
+}
+```
+
+**Files:**
+- `/julia/bridge.manifest.json` — Machine-readable function registry
+- `/julia/type-map.json` — Type isomorphism specification
+- `/julia/mcp-server/index.js` — MCP server (7 tools)
+- `/julia/ai/function_cards/*.json` — Per-function AI cards
+- `/julia/openapi.json` — HTTP API spec
+
+**Use when:** AI agents need to understand, generate, or call bridge functions.
 
 ---
 
 **COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ**
-**JULIA-MOTOKO ISOMORPHISM — BUILD №62**
-**HIGH-PERFORMANCE NUMERICAL COMPUTING MEETS DECENTRALIZED SMART CONTRACTS**
+**JULIA-MOTOKO ISOMORPHISM — BUILD №64**
+**FOUR DOORS ARCHITECTURE — HIGH-PERFORMANCE NUMERICAL COMPUTING MEETS DECENTRALIZED SMART CONTRACTS**

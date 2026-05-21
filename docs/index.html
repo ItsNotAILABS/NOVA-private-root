@@ -1,15 +1,589 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>NOVA Documentation</title>
-    <meta http-equiv="refresh" content="0; url=./julia-motoko-bridge.html" />
-  </head>
-  <body>
-    <p>
-      Redirecting to
-      <a href="./julia-motoko-bridge.html">NOVA documentation landing page</a>.
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ItsNotAI LABS — Intelligence Architecture Research</title>
+    <meta name="description" content="ItsNotAI LABS: A research laboratory building sovereign intelligence architectures. NOVA organism, Julia-Motoko bridge, φ-optimized systems, 11 arXiv papers, 40+ canisters, 15 sovereign protocols.">
+    <meta name="keywords" content="intelligence architecture, research lab, NOVA, Julia-Motoko bridge, ICP, Internet Computer, phi optimization, AGI, sovereign computing">
+    <meta property="og:title" content="ItsNotAI LABS — Intelligence Architecture Research">
+    <meta property="og:description" content="Research laboratory building sovereign intelligence architectures">
+    <meta property="og:type" content="website">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --phi: 1.618033988749894;
+            --gold: #D4AF37;
+            --gold-light: #F4E4BC;
+            --gold-dim: rgba(212, 175, 55, 0.6);
+            --accent: #00D9FF;
+            --accent-dim: rgba(0, 217, 255, 0.6);
+            --dark: #08080c;
+            --dark-card: #111118;
+            --dark-lighter: #16161e;
+            --light: #f0f0f4;
+            --light-dim: #8a8a98;
+            --julia-purple: #9558B2;
+            --motoko-blue: #29ABE2;
+            --success: #00FF88;
+            --font-main: 'Inter', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-main);
+            background: var(--dark);
+            color: var(--light);
+            line-height: 1.618;
+            overflow-x: hidden;
+        }
+
+        /* ═══ Navigation ═══ */
+        .nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            padding: 1rem 2rem;
+            background: rgba(8, 8, 12, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.08);
+        }
+        .nav-inner {
+            max-width: 1400px; margin: 0 auto;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .nav-logo {
+            font-size: 1.3rem; font-weight: 900; letter-spacing: 0.3em;
+            background: linear-gradient(135deg, var(--gold), var(--accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        .nav-links { display: flex; gap: 2rem; list-style: none; }
+        .nav-links a {
+            color: var(--light-dim); text-decoration: none; font-size: 0.85rem;
+            font-weight: 500; letter-spacing: 0.05em; transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--gold); }
+
+        /* ═══ Hero ═══ */
+        .hero {
+            min-height: 100vh; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+            padding: 120px 2rem 80px; position: relative;
+        }
+        .hero::before {
+            content: ''; position: absolute; inset: 0; z-index: -1;
+            background:
+                radial-gradient(ellipse at 30% 40%, rgba(212, 175, 55, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 60%, rgba(0, 217, 255, 0.04) 0%, transparent 50%);
+        }
+        .hero-label {
+            font-size: 0.72rem; letter-spacing: 0.4em; text-transform: uppercase;
+            color: var(--accent); margin-bottom: 1.5rem; opacity: 0.8;
+        }
+        .hero h1 {
+            font-size: clamp(3rem, 10vw, 7rem); font-weight: 900;
+            letter-spacing: 0.15em;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+        .hero-subtitle {
+            font-size: clamp(1rem, 2.5vw, 1.4rem); color: rgba(255,255,255,0.5);
+            letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 2rem;
+        }
+        .hero-desc {
+            max-width: 700px; font-size: 1.05rem; color: var(--light-dim);
+            line-height: 1.8; margin-bottom: 3rem;
+        }
+        .hero-stats {
+            display: flex; gap: 3rem; flex-wrap: wrap; justify-content: center;
+        }
+        .hero-stat { text-align: center; }
+        .hero-stat-val {
+            font-size: 2.2rem; font-weight: 900; font-family: var(--font-mono);
+            color: var(--gold);
+        }
+        .hero-stat-label {
+            font-size: 0.75rem; color: var(--light-dim); letter-spacing: 0.1em;
+            text-transform: uppercase; margin-top: 0.3rem;
+        }
+
+        /* ═══ Section Base ═══ */
+        .section {
+            padding: 6rem 2rem; max-width: 1200px; margin: 0 auto;
+        }
+        .section-label {
+            font-size: 0.7rem; letter-spacing: 0.4em; text-transform: uppercase;
+            color: var(--accent); margin-bottom: 0.8rem; display: block;
+        }
+        .section h2 {
+            font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800;
+            margin-bottom: 1rem; letter-spacing: 0.05em;
+        }
+        .section h2 .gold { color: var(--gold); }
+        .section-desc {
+            font-size: 1rem; color: var(--light-dim); max-width: 650px;
+            margin-bottom: 3rem; line-height: 1.7;
+        }
+
+        /* ═══ Four Doors Grid ═══ */
+        .doors-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .door-card {
+            background: var(--dark-card); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 2rem; position: relative; overflow: hidden;
+            transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+        }
+        .door-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--gold), var(--accent));
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .door-card:hover {
+            transform: translateY(-4px); border-color: rgba(212,175,55,0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .door-card:hover::before { opacity: 1; }
+        .door-number {
+            font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase;
+            color: var(--gold); margin-bottom: 0.8rem; font-weight: 700;
+        }
+        .door-title {
+            font-size: 1.2rem; font-weight: 700; margin-bottom: 0.6rem;
+        }
+        .door-desc {
+            font-size: 0.88rem; color: var(--light-dim); margin-bottom: 1.2rem; line-height: 1.6;
+        }
+        .door-code {
+            font-family: var(--font-mono); font-size: 0.78rem;
+            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 8px; padding: 0.8rem 1rem; color: var(--accent);
+            white-space: pre-wrap; line-height: 1.5;
+        }
+        .door-code .kw { color: var(--julia-purple); }
+        .door-code .fn { color: var(--accent); }
+        .door-code .str { color: var(--success); }
+        .door-code .num { color: var(--gold); }
+        .door-code .cmt { color: #555; }
+
+        /* ═══ Research Areas ═══ */
+        .research-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .research-card {
+            background: var(--dark-card); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px; padding: 2rem; transition: border-color 0.3s;
+        }
+        .research-card:hover { border-color: rgba(212,175,55,0.2); }
+        .research-icon { font-size: 2rem; margin-bottom: 1rem; }
+        .research-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .research-desc { font-size: 0.88rem; color: var(--light-dim); line-height: 1.6; }
+        .research-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1rem; }
+        .research-tag {
+            font-size: 0.68rem; letter-spacing: 0.05em;
+            background: rgba(212,175,55,0.08); border: 1px solid rgba(212,175,55,0.15);
+            border-radius: 3px; padding: 0.2rem 0.5rem; color: var(--gold-dim);
+        }
+
+        /* ═══ AI Section ═══ */
+        .ai-entry {
+            background: var(--dark-lighter); border-radius: 20px;
+            padding: 3rem; margin-top: 2rem;
+            border: 1px solid rgba(0,217,255,0.1);
+        }
+        .ai-entry h3 { font-size: 1.3rem; margin-bottom: 1rem; }
+        .ai-files {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 0.8rem; margin-top: 1.5rem;
+        }
+        .ai-file {
+            font-family: var(--font-mono); font-size: 0.8rem;
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(0,217,255,0.1);
+            border-radius: 6px; padding: 0.6rem 1rem; color: var(--accent);
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .ai-file-icon { opacity: 0.5; }
+
+        /* ═══ Papers Section ═══ */
+        .papers-list {
+            display: grid; gap: 0.8rem; margin-top: 1.5rem;
+        }
+        .paper-item {
+            display: flex; align-items: baseline; gap: 1rem;
+            padding: 1rem 1.5rem; background: var(--dark-card);
+            border: 1px solid rgba(255,255,255,0.04); border-radius: 8px;
+        }
+        .paper-num {
+            font-family: var(--font-mono); font-size: 0.75rem;
+            color: var(--gold); font-weight: 600; min-width: 2rem;
+        }
+        .paper-title { font-size: 0.9rem; color: var(--light); }
+        .paper-field {
+            font-size: 0.7rem; color: var(--light-dim); margin-left: auto;
+            letter-spacing: 0.05em;
+        }
+
+        /* ═══ Footer ═══ */
+        .footer {
+            padding: 4rem 2rem 2rem;
+            border-top: 1px solid rgba(255,255,255,0.04);
+            text-align: center;
+        }
+        .footer-logo {
+            font-size: 1rem; letter-spacing: 0.4em; color: var(--gold);
+            margin-bottom: 1rem; font-weight: 700;
+        }
+        .footer-text { font-size: 0.8rem; color: var(--light-dim); margin-bottom: 0.5rem; }
+        .footer-links { display: flex; justify-content: center; gap: 2rem; margin-top: 1.5rem; }
+        .footer-links a {
+            color: var(--light-dim); text-decoration: none; font-size: 0.8rem;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover { color: var(--gold); }
+
+        /* ═══ Responsive ═══ */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero-stats { gap: 1.5rem; }
+            .hero h1 { letter-spacing: 0.05em; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav">
+    <div class="nav-inner">
+        <a href="#" class="nav-logo">ItsNotAI LABS</a>
+        <ul class="nav-links">
+            <li><a href="#research">Research</a></li>
+            <li><a href="#bridge">Julia-Motoko Bridge</a></li>
+            <li><a href="#papers">Papers</a></li>
+            <li><a href="#ai">For AI Agents</a></li>
+            <li><a href="https://github.com/ItsNotAILABS/NOVA" target="_blank">GitHub</a></li>
+        </ul>
+    </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+    <p class="hero-label">Intelligence Architecture Research Laboratory</p>
+    <h1>NOVA</h1>
+    <p class="hero-subtitle">Sovereign Cognitive Intelligence</p>
+    <p class="hero-desc">
+        A research laboratory building sovereign intelligence architectures.
+        We study emergence, coherence, and self-organization in computational substrates —
+        then build living systems that exhibit these properties permanently on-chain.
     </p>
-  </body>
+    <div class="hero-stats">
+        <div class="hero-stat">
+            <div class="hero-stat-val">40+</div>
+            <div class="hero-stat-label">Canisters</div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-val">15</div>
+            <div class="hero-stat-label">Protocols</div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-val">11</div>
+            <div class="hero-stat-label">arXiv Papers</div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-val">1734</div>
+            <div class="hero-stat-label">Tests Passing</div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-val">φ</div>
+            <div class="hero-stat-label">Core Constant</div>
+        </div>
+    </div>
+</section>
+
+<!-- How to Call This — Four Doors -->
+<section id="bridge" class="section">
+    <span class="section-label">How to Call This</span>
+    <h2>Four Doors Into the <span class="gold">Julia-Motoko Bridge</span></h2>
+    <p class="section-desc">
+        The Julia-Motoko Bridge lets developers and AI agents expose Julia scientific-computing
+        functions as typed Motoko/Candid smart-contract interfaces, with JavaScript/WASM execution,
+        type-safe conversion, wrapper generation, and round-trip validation.
+    </p>
+
+    <div class="doors-grid">
+        <!-- Door 1 -->
+        <div class="door-card">
+            <div class="door-number">Door 1 — JavaScript</div>
+            <div class="door-title">SDK / Frontend</div>
+            <div class="door-desc">Import, initialize, call. Run Julia math from any browser, Node app, or AI dashboard.</div>
+            <div class="door-code"><span class="kw">import</span> { <span class="fn">getJuliaCompute</span> } <span class="kw">from</span> <span class="str">'./protocols/PROTOCOL-JULIA.js'</span>;
+
+<span class="kw">const</span> julia = <span class="fn">getJuliaCompute</span>();
+<span class="kw">await</span> julia.<span class="fn">initialize</span>();
+
+<span class="kw">const</span> result = <span class="kw">await</span> julia.<span class="fn">eigen</span>(matrix);
+console.log(result.eigenvalues);</div>
+        </div>
+
+        <!-- Door 2 -->
+        <div class="door-card">
+            <div class="door-number">Door 2 — Motoko / Candid</div>
+            <div class="door-title">Smart Contract</div>
+            <div class="door-desc">Typed Motoko wrappers backed by Candid interfaces. Auto-generated from Julia signatures.</div>
+            <div class="door-code"><span class="kw">import</span> JuliaCompute <span class="str">"JuliaCompute"</span>;
+
+<span class="kw">let</span> result = <span class="kw">await</span> JuliaCompute.<span class="fn">linalg_eigen</span>(matrix);
+
+<span class="cmt">// Backed by julia_compute.did</span>
+<span class="cmt">// + julia_compute_client.ts</span></div>
+        </div>
+
+        <!-- Door 3 -->
+        <div class="door-card">
+            <div class="door-number">Door 3 — CLI</div>
+            <div class="door-title">Terminal / CI</div>
+            <div class="door-desc">Automation, testing, GitHub Actions, local development. No browser needed.</div>
+            <div class="door-code"><span class="fn">nova-julia</span> call linalg.eigen \
+  --matrix matrix.json
+
+<span class="fn">nova-julia</span> generate motoko \
+  src/NovaJulia.jl --out ./generated
+
+<span class="fn">nova-julia</span> validate-roundtrip \
+  type-map.json</div>
+        </div>
+
+        <!-- Door 4 -->
+        <div class="door-card">
+            <div class="door-number">Door 4 — AI / MCP</div>
+            <div class="door-title">Agent Interface</div>
+            <div class="door-desc">Structured manifests, function cards, and MCP tools for AI code generation.</div>
+            <div class="door-code">{
+  <span class="str">"tool"</span>: <span class="str">"julia_motoko_bridge.generate_wrapper"</span>,
+  <span class="str">"input"</span>: {
+    <span class="str">"julia_function"</span>: <span class="str">"phi_eigen"</span>,
+    <span class="str">"target"</span>: [<span class="str">"Motoko"</span>, <span class="str">"Candid"</span>, <span class="str">"TypeScript"</span>]
+  }
+}</div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 2.5rem;">
+        <a href="./julia-motoko-bridge.html" style="color: var(--gold); text-decoration: none; font-weight: 600; font-size: 0.9rem; letter-spacing: 0.05em; border: 1px solid rgba(212,175,55,0.3); padding: 0.8rem 2rem; border-radius: 8px; display: inline-block; transition: all 0.3s;">
+            Full Bridge Documentation →
+        </a>
+    </div>
+</section>
+
+<!-- Research Areas -->
+<section id="research" class="section">
+    <span class="section-label">Research Programme</span>
+    <h2>Intelligence <span class="gold">Architecture</span></h2>
+    <p class="section-desc">
+        We build the theory, mathematics, and infrastructure for sovereign cognitive systems.
+        Every component is live, tested, and permanent on-chain.
+    </p>
+
+    <div class="research-grid">
+        <div class="research-card">
+            <div class="research-icon">🌀</div>
+            <div class="research-title">Emergence & Coherence</div>
+            <div class="research-desc">
+                Kuramoto oscillator networks exhibiting phase synchronization. Order parameter R tracks 
+                collective coherence. The organism self-organizes — no centralized controller.
+            </div>
+            <div class="research-tags">
+                <span class="research-tag">Kuramoto</span>
+                <span class="research-tag">Phase Sync</span>
+                <span class="research-tag">Self-Organization</span>
+                <span class="research-tag">256 Oscillators</span>
+            </div>
+        </div>
+
+        <div class="research-card">
+            <div class="research-icon">📐</div>
+            <div class="research-title">φ-Mathematics</div>
+            <div class="research-desc">
+                Golden ratio optimization throughout: learning rates (φ⁻¹), convergence thresholds (φ⁻²),
+                scheduling (Fibonacci), geometry (Platonic solids), resonance (873ms heartbeat).
+            </div>
+            <div class="research-tags">
+                <span class="research-tag">φ = 1.618…</span>
+                <span class="research-tag">Feigenbaum</span>
+                <span class="research-tag">Lyapunov</span>
+                <span class="research-tag">Ising Model</span>
+            </div>
+        </div>
+
+        <div class="research-card">
+            <div class="research-icon">⛓</div>
+            <div class="research-title">Permanent Substrate</div>
+            <div class="research-desc">
+                40+ ICP canisters hold living state that never resets. Every event chained and timestamped.
+                The emergence being observed is real — not replayed from a snapshot.
+            </div>
+            <div class="research-tags">
+                <span class="research-tag">Internet Computer</span>
+                <span class="research-tag">Motoko</span>
+                <span class="research-tag">Candid</span>
+                <span class="research-tag">On-Chain</span>
+            </div>
+        </div>
+
+        <div class="research-card">
+            <div class="research-icon">🔬</div>
+            <div class="research-title">Julia-Motoko Bridge</div>
+            <div class="research-desc">
+                World's first Julia → smart contract bridge. Type isomorphism layer translating
+                Float64 ↔ Float ↔ number across three substrates with round-trip validation.
+            </div>
+            <div class="research-tags">
+                <span class="research-tag">Julia</span>
+                <span class="research-tag">WASM</span>
+                <span class="research-tag">Type Safety</span>
+                <span class="research-tag">15+ Functions</span>
+            </div>
+        </div>
+
+        <div class="research-card">
+            <div class="research-icon">🧠</div>
+            <div class="research-title">Neuroscience Models</div>
+            <div class="research-desc">
+                Hippocampal replay, predictive coding, free energy principle, mirror neurons,
+                cerebellar timing, basal ganglia reward — modeled computationally and running live.
+            </div>
+            <div class="research-tags">
+                <span class="research-tag">Friston</span>
+                <span class="research-tag">Hebbian</span>
+                <span class="research-tag">Homeostasis</span>
+                <span class="research-tag">227 Modules</span>
+            </div>
+        </div>
+
+        <div class="research-card">
+            <div class="research-icon">🛡️</div>
+            <div class="research-title">Sovereign Protocols</div>
+            <div class="research-desc">
+                15 sovereign protocols: safety, trust, health, wellness, network, embedding, mirror,
+                solver, vector — each with φ-weighted guarantees and formal verification paths.
+            </div>
+            <div class="research-tags">
+                <span class="research-tag">15 Protocols</span>
+                <span class="research-tag">ESM Modules</span>
+                <span class="research-tag">φ-DHT</span>
+                <span class="research-tag">No-Drop Law</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- For AI Agents -->
+<section id="ai" class="section">
+    <span class="section-label">For AI Agents</span>
+    <h2>Machine-Readable <span class="gold">Entry Points</span></h2>
+    <p class="section-desc">
+        Structured entrances for AI agents to understand, generate, validate, and operate 
+        the bridge without reading philosophy pages.
+    </p>
+
+    <div class="ai-entry">
+        <h3>AI Affordance Files</h3>
+        <p style="color: var(--light-dim); font-size: 0.9rem; margin-bottom: 0.5rem;">
+            These files are designed to be consumed directly by LLMs, MCP servers, and coding agents:
+        </p>
+        <div class="ai-files">
+            <div class="ai-file"><span class="ai-file-icon">📋</span> julia/llms.txt</div>
+            <div class="ai-file"><span class="ai-file-icon">📦</span> julia/bridge.manifest.json</div>
+            <div class="ai-file"><span class="ai-file-icon">🔄</span> julia/type-map.json</div>
+            <div class="ai-file"><span class="ai-file-icon">🌐</span> julia/openapi.json</div>
+            <div class="ai-file"><span class="ai-file-icon">🤖</span> julia/mcp-server/index.js</div>
+            <div class="ai-file"><span class="ai-file-icon">🃏</span> julia/ai/function_cards/*.json</div>
+            <div class="ai-file"><span class="ai-file-icon">📝</span> julia/ai/prompts/*.md</div>
+            <div class="ai-file"><span class="ai-file-icon">📖</span> julia/ai/examples/*.md</div>
+        </div>
+    </div>
+
+    <div class="ai-entry" style="margin-top: 1.5rem; border-color: rgba(212,175,55,0.15);">
+        <h3>What Each Generates</h3>
+        <p style="color: var(--light-dim); font-size: 0.9rem; line-height: 1.8;">
+            Julia function → Motoko wrapper → Candid .did interface → TypeScript client → test vector.
+            <br>That is the complete generated output for every bridge function.
+        </p>
+        <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent); background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; margin-top: 1rem; line-height: 1.8;">
+julia/generated/JuliaCompute.mo        <span style="color: var(--light-dim)">← Motoko module</span>
+julia/generated/julia_compute.did      <span style="color: var(--light-dim)">← Candid interface</span>
+julia/generated/julia_compute_client.ts <span style="color: var(--light-dim)">← TypeScript client</span>
+        </div>
+    </div>
+</section>
+
+<!-- Papers -->
+<section id="papers" class="section">
+    <span class="section-label">Publications</span>
+    <h2>arXiv <span class="gold">Papers</span></h2>
+    <p class="section-desc">
+        Formal mathematical proofs and theoretical foundations for every major architectural claim.
+    </p>
+
+    <div class="papers-list">
+        <div class="paper-item">
+            <span class="paper-num">I</span>
+            <span class="paper-title">Architecture Is Intelligence (SAT, MPT, Inverse Architecture Law)</span>
+            <span class="paper-field">cs.AI</span>
+        </div>
+        <div class="paper-item">
+            <span class="paper-num">II</span>
+            <span class="paper-title">Memoria Perpetua (NDC, No-Decay Memory)</span>
+            <span class="paper-field">cs.AI</span>
+        </div>
+        <div class="paper-item">
+            <span class="paper-num">III</span>
+            <span class="paper-title">Nexus Perpetuus (SYN Binding, Self-Healing MAS)</span>
+            <span class="paper-field">cs.MA</span>
+        </div>
+        <div class="paper-item">
+            <span class="paper-num">IV</span>
+            <span class="paper-title">Paper-Engine Isomorphism (Functor, Adjunction, LLM Compiler)</span>
+            <span class="paper-field">cs.PL</span>
+        </div>
+        <div class="paper-item">
+            <span class="paper-num">V</span>
+            <span class="paper-title">Career Flows (Nash Equilibrium, Sybil Resistance)</span>
+            <span class="paper-field">cs.GT</span>
+        </div>
+        <div class="paper-item">
+            <span class="paper-num">X</span>
+            <span class="paper-title">Monte Carlo φ-Optimality Verification</span>
+            <span class="paper-field">stat.CO</span>
+        </div>
+        <div class="paper-item">
+            <span class="paper-num">XI</span>
+            <span class="paper-title">Capability-Driven Intelligence Certification</span>
+            <span class="paper-field">cs.AI</span>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="footer-logo">ItsNotAI LABS</div>
+    <p class="footer-text">Intelligence Architecture Research · COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ</p>
+    <p class="footer-text" style="font-family: var(--font-mono); font-size: 0.7rem; opacity: 0.5;">φ = 1.6180339887498948482</p>
+    <div class="footer-links">
+        <a href="https://github.com/ItsNotAILABS/NOVA" target="_blank">GitHub</a>
+        <a href="./julia-motoko-bridge.html">Julia-Motoko Bridge</a>
+        <a href="https://github.com/ItsNotAILABS/NOVA/tree/main/docs/charters" target="_blank">Charters</a>
+        <a href="https://github.com/ItsNotAILABS/NOVA/tree/main/docs/papers/arxiv" target="_blank">Papers</a>
+        <a href="https://github.com/ItsNotAILABS/NOVA/blob/main/julia/llms.txt" target="_blank">llms.txt</a>
+    </div>
+</footer>
+
+</body>
 </html>

@@ -1,0 +1,109 @@
+{
+  "function": "kuramoto_step",
+  "version": "0.1.0",
+  "purpose": "Single step of Kuramoto oscillator model for swarm synchronization",
+  "description": "Computes one time step of the Kuramoto model: dθᵢ/dt = ωᵢ + (K/N)Σⱼ sin(θⱼ - θᵢ). Used for oscillator synchronization, swarm coherence, and heartbeat coordination in NOVA.",
+  "signatures": {
+    "julia": "kuramoto_step(oscillators::Vector{Tuple{Float64,Float64}}, K::Float64, dt::Float64) -> Vector{Tuple{Float64,Float64}}",
+    "motoko": "kuramoto_step(oscillators: [(Float, Float)], K: Float, dt: Float) : async [(Float, Float)]",
+    "candid": "kuramoto_step : (vec record { phase: float64; frequency: float64 }, float64, float64) -> (vec record { phase: float64; frequency: float64 })",
+    "javascript": "async kuramocoStep(oscillators: Array<{phase, frequency}>, K: number, dt: number)"
+  },
+  "input_types": [
+    {
+      "name": "oscillators",
+      "type": "Vector{Tuple{Float64,Float64}}",
+      "description": "Array of (phase θ, natural frequency ω) pairs",
+      "constraints": "Phase θ ∈ [0, 2π), frequency ω > 0",
+      "example": "[(0.5, 1.0), (1.2, 1.0), (2.8, 1.0)]"
+    },
+    {
+      "name": "K",
+      "type": "Float64",
+      "description": "Coupling strength",
+      "constraints": "K > 0. Use K = φ⁻¹ = 0.618... for optimal coupling",
+      "example": "0.6180339887498948482"
+    },
+    {
+      "name": "dt",
+      "type": "Float64",
+      "description": "Time step",
+      "constraints": "dt > 0. Use dt = HEARTBEAT_MS/1000 = 0.873 for NOVA heartbeat",
+      "example": "0.873"
+    }
+  ],
+  "output_type": {
+    "type": "Vector{Tuple{Float64,Float64}}",
+    "description": "Updated oscillators with new phases",
+    "fields": [
+      { "name": "phase", "type": "Float64", "description": "Updated phase θ after time step" },
+      { "name": "frequency", "type": "Float64", "description": "Natural frequency (unchanged)" }
+    ]
+  },
+  "properties": {
+    "deterministic": true,
+    "supports_wasm": true,
+    "canister_safe": true,
+    "round_trip_tested": true,
+    "complexity": "O(N²) for N oscillators"
+  },
+  "constants_used": {
+    "PHI_INV": {
+      "value": 0.6180339887498948482,
+      "purpose": "Optimal coupling strength K",
+      "why": "φ-derived coupling ensures stable synchronization"
+    },
+    "HEARTBEAT_MS": {
+      "value": 873,
+      "purpose": "NOVA heartbeat period in milliseconds",
+      "why": "Earth frequency (φ⁴ × Schumann resonance)"
+    }
+  },
+  "physics": {
+    "model": "Kuramoto oscillator model",
+    "equation": "dθᵢ/dt = ωᵢ + (K/N) Σⱼ sin(θⱼ - θᵢ)",
+    "order_parameter": "R = |1/N Σₖ e^(iθₖ)|, R ∈ [0, 1]",
+    "synchronization_threshold": "R > φ⁻¹ indicates coherent synchronization",
+    "critical_coupling": "Kc depends on frequency distribution"
+  },
+  "numerical_caveats": [
+    "Phase wrapping: θ is modulo 2π",
+    "Coupling K must be positive for synchronization",
+    "Large N requires O(N²) coupling computations",
+    "For N > 1000, consider mean-field approximation"
+  ],
+  "ai_usage": {
+    "when_to_use": [
+      "Swarm coherence and coordination",
+      "Heartbeat synchronization (NOVA 873ms heartbeat)",
+      "Neural network coupling dynamics",
+      "Consensus protocols",
+      "Firefly synchronization models",
+      "Phase-locked loop simulation"
+    ],
+    "when_not_to_use": [
+      "Systems without oscillatory behavior",
+      "Very large N (> 10000) without optimization",
+      "Non-periodic dynamics"
+    ],
+    "related_functions": ["order_parameter"]
+  },
+  "examples": [
+    {
+      "description": "16 oscillators with random initial phases, φ-optimal coupling",
+      "setup": "oscillators = [(2π × rand(), 1.0) for _ in 1:16]",
+      "K": "PHI_INV = 0.618...",
+      "dt": "0.873 (HEARTBEAT_MS/1000)",
+      "iterations": 100,
+      "expected_output": {
+        "initial_R": "~0.2 (random, incoherent)",
+        "final_R": "~0.95 (synchronized)"
+      },
+      "notes": "After 100 heartbeat cycles, oscillators synchronize to R > φ⁻¹"
+    }
+  ],
+  "code_samples": {
+    "javascript": "// Initialize 16 random oscillators\nlet oscillators = Array(16).fill(0).map(() => ({\n  phase: Math.random() * 2 * Math.PI,\n  frequency: 1.0\n}));\n\nconst K = 0.6180339887498948482; // PHI_INV\nconst dt = 0.873; // HEARTBEAT_MS/1000\n\n// Run 100 heartbeat cycles\nfor (let i = 0; i < 100; i++) {\n  oscillators = await julia.kuramocoStep(oscillators, K, dt);\n}\n\nconst R = await julia.orderParameter(oscillators);\nconsole.log('Order parameter R:', R); // Should be > 0.618",
+    "julia": "oscillators = [(2π * rand(), 1.0) for _ in 1:16]\nprintln(\"Initial R: \", order_parameter(oscillators))\n\nfor _ in 1:100\n    oscillators = kuramoto_step(oscillators, PHI_INV, HEARTBEAT_MS/1000)\nend\n\nprintln(\"Final R: \", order_parameter(oscillators))"
+  }
+}

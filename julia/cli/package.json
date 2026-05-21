@@ -1,0 +1,27 @@
+{
+  "name": "nova-julia-cli",
+  "version": "0.1.0",
+  "description": "CLI for NOVA Julia-Motoko Bridge - Door 3 of Four Doors Architecture",
+  "type": "module",
+  "bin": {
+    "nova-julia": "./nova-julia.js"
+  },
+  "main": "nova-julia.js",
+  "scripts": {
+    "start": "node nova-julia.js",
+    "help": "node nova-julia.js help",
+    "list": "node nova-julia.js list",
+    "test": "node nova-julia.js test-roundtrip"
+  },
+  "keywords": [
+    "julia",
+    "motoko",
+    "bridge",
+    "cli",
+    "icp",
+    "internet-computer",
+    "nova"
+  ],
+  "author": "Alfredo Medina Hernandez",
+  "license": "PROPRIETARY"
+}
