@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOVA · Mathematical API Explorer — 110+ Sovereign Models</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --gold: #D4AF37; --dark: #0a0a0f; --darker: #050508;
+            --purple: #6B46C1; --cyan: #00D4FF; --green: #4ade80;
+            --red: #ef4444; --dim: #6b7280;
+        }
+        body {
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            background: var(--darker); color: #e5e7eb;
+            min-height: 100vh; padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center; padding: 30px 0 20px;
+            border-bottom: 1px solid rgba(212,175,55,0.2);
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2rem; color: var(--gold);
+            letter-spacing: 0.15em; margin-bottom: 8px;
+        }
+        .header .subtitle {
+            color: var(--dim); font-size: 0.85rem;
+            letter-spacing: 0.1em;
+        }
+        .stats-bar {
+            display: flex; justify-content: center; gap: 30px;
+            margin-top: 15px; flex-wrap: wrap;
+        }
+        .stat { text-align: center; }
+        .stat-value { font-size: 1.5rem; color: var(--gold); font-weight: 700; }
+        .stat-label { font-size: 0.7rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.1em; }
+        
+        /* Layout */
+        .container { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 250px 1fr; gap: 20px; }
+        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
+        
+        /* Sidebar */
+        .sidebar {
+            background: rgba(10,10,15,0.8); border: 1px solid rgba(212,175,55,0.15);
+            border-radius: 8px; padding: 15px; position: sticky; top: 20px; height: fit-content;
+        }
+        .sidebar h3 { color: var(--gold); font-size: 0.8rem; letter-spacing: 0.1em; margin-bottom: 12px; }
+        .domain-btn {
+            display: block; width: 100%; padding: 8px 12px; margin-bottom: 4px;
+            background: transparent; border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 4px; color: #9ca3af; font-size: 0.75rem;
+            cursor: pointer; text-align: left; transition: all 0.2s;
+            font-family: inherit;
+        }
+        .domain-btn:hover { border-color: rgba(212,175,55,0.3); color: #fff; }
+        .domain-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(212,175,55,0.05); }
+        .domain-count { float: right; color: var(--dim); font-size: 0.65rem; }
+        
+        /* Search */
+        .search-box {
+            width: 100%; padding: 8px 12px; margin-bottom: 15px;
+            background: rgba(0,0,0,0.3); border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 4px; color: #fff; font-family: inherit; font-size: 0.8rem;
+        }
+        .search-box:focus { outline: none; border-color: var(--gold); }
+        .search-box::placeholder { color: var(--dim); }
+        
+        /* Main content */
+        .main { min-height: 70vh; }
+        .models-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 12px;
+        }
+        
+        /* Model Card */
+        .model-card {
+            background: rgba(10,10,15,0.9); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 6px; padding: 14px; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .model-card:hover { border-color: rgba(212,175,55,0.3); transform: translateY(-1px); }
+        .model-card.expanded { border-color: var(--gold); }
+        .model-name { color: var(--cyan); font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
+        .model-desc { color: #9ca3af; font-size: 0.75rem; margin-bottom: 6px; }
+        .model-sig { color: var(--green); font-size: 0.7rem; opacity: 0.7; font-style: italic; }
+        .model-domain-tag {
+            display: inline-block; padding: 2px 6px; border-radius: 3px;
+            font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em;
+            margin-top: 6px;
+        }
+        .tag-linear_algebra { background: rgba(107,70,193,0.2); color: var(--purple); }
+        .tag-statistics { background: rgba(0,212,255,0.1); color: var(--cyan); }
+        .tag-signal { background: rgba(74,222,128,0.1); color: var(--green); }
+        .tag-diffeq { background: rgba(212,175,55,0.1); color: var(--gold); }
+        .tag-optimization { background: rgba(239,68,68,0.1); color: var(--red); }
+        .tag-quantum { background: rgba(168,85,247,0.15); color: #a855f7; }
+        .tag-graph { background: rgba(34,211,238,0.1); color: #22d3ee; }
+        .tag-numerical { background: rgba(251,191,36,0.1); color: #fbbf24; }
+        
+        /* Expanded detail */
+        .model-detail {
+            display: none; margin-top: 10px; padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .model-card.expanded .model-detail { display: block; }
+        .code-block {
+            background: rgba(0,0,0,0.4); border-radius: 4px; padding: 8px 10px;
+            margin: 4px 0; font-size: 0.7rem; overflow-x: auto;
+        }
+        .code-label { color: var(--dim); font-size: 0.6rem; text-transform: uppercase; margin-top: 8px; }
+        .code-julia { color: #a78bfa; }
+        .code-python { color: #60a5fa; }
+        .code-motoko { color: var(--gold); }
+        .complexity { color: var(--dim); font-size: 0.65rem; margin-top: 6px; }
+        
+        /* Footer */
+        .footer {
+            text-align: center; padding: 30px 0; margin-top: 40px;
+            border-top: 1px solid rgba(212,175,55,0.1);
+            color: var(--dim); font-size: 0.7rem;
+        }
+        .footer a { color: var(--gold); text-decoration: none; }
+        
+        /* Language toggle */
+        .lang-toggles {
+            display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap;
+        }
+        .lang-toggle {
+            padding: 4px 10px; border-radius: 3px; font-size: 0.65rem;
+            border: 1px solid rgba(255,255,255,0.1); background: transparent;
+            color: #9ca3af; cursor: pointer; font-family: inherit;
+        }
+        .lang-toggle.active { border-color: var(--gold); color: var(--gold); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>NOVA · MATHEMATICAL API EXPLORER</h1>
+        <div class="subtitle">110+ Sovereign Mathematical Models · Julia · Python · Rust · Go · R · Motoko</div>
+        <div class="stats-bar">
+            <div class="stat"><div class="stat-value" id="total-count">110</div><div class="stat-label">Models</div></div>
+            <div class="stat"><div class="stat-value">8</div><div class="stat-label">Domains</div></div>
+            <div class="stat"><div class="stat-value">6</div><div class="stat-label">Languages</div></div>
+            <div class="stat"><div class="stat-value">φ</div><div class="stat-label">Optimized</div></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <aside class="sidebar">
+            <input type="text" class="search-box" id="search" placeholder="Search models...">
+            <h3>DOMAINS</h3>
+            <button class="domain-btn active" data-domain="all">All Models <span class="domain-count" id="count-all">110</span></button>
+            <button class="domain-btn" data-domain="linear_algebra">Linear Algebra <span class="domain-count">25</span></button>
+            <button class="domain-btn" data-domain="statistics">Statistics <span class="domain-count">20</span></button>
+            <button class="domain-btn" data-domain="signal">Signal Processing <span class="domain-count">15</span></button>
+            <button class="domain-btn" data-domain="diffeq">Differential Equations <span class="domain-count">15</span></button>
+            <button class="domain-btn" data-domain="optimization">Optimization <span class="domain-count">15</span></button>
+            <button class="domain-btn" data-domain="quantum">Quantum / Physics <span class="domain-count">10</span></button>
+            <button class="domain-btn" data-domain="graph">Graph Theory <span class="domain-count">5</span></button>
+            <button class="domain-btn" data-domain="numerical">Numerical Methods <span class="domain-count">5</span></button>
+            
+            <h3 style="margin-top:20px;">LANGUAGES</h3>
+            <div class="lang-toggles">
+                <button class="lang-toggle active" data-lang="julia">Julia</button>
+                <button class="lang-toggle active" data-lang="python">Python</button>
+                <button class="lang-toggle active" data-lang="motoko">Motoko</button>
+            </div>
+            
+            <h3 style="margin-top:20px;">φ CONSTANTS</h3>
+            <div style="font-size:0.7rem; color:#9ca3af; line-height:1.8;">
+                φ = 1.6180339887...<br>
+                φ⁻¹ = 0.6180339887...<br>
+                AMOR = 0.3819660112...<br>
+                δ<sub>F</sub> = 4.6692016091...<br>
+                873ms heartbeat
+            </div>
+        </aside>
+
+        <main class="main">
+            <div class="models-grid" id="models-grid"></div>
+        </main>
+    </div>
+
+    <div class="footer">
+        <p>NOVA Sovereign Mathematical API · BUILD №65 · Copyright © 2024-2026 Alfredo Medina Hernandez</p>
+        <p style="margin-top:4px;"><a href="https://github.com/ItsNotAILABS/NOVA">GitHub</a> · φ-optimized across all substrates</p>
+    </div>
+
+    <script>
+    // ═══ Mathematical Models Data ═══════════════════════════════════════════════
+    const MODELS = [
+        // ─── LINEAR ALGEBRA (25) ─────────────────────────────────────────────
+        { id:1, name:'linalg.eigen', domain:'linear_algebra', sig:'Matrix → (Λ, V)', desc:'Eigenvalue decomposition A = VΛV⁻¹', julia:'LinearAlgebra.eigen(A)', python:'numpy.linalg.eig(A)', motoko:'PhiLA.eigen(matrix)', complexity:'O(n³)' },
+        { id:2, name:'linalg.svd', domain:'linear_algebra', sig:'Matrix → (U, Σ, Vᵀ)', desc:'Singular Value Decomposition A = UΣVᵀ', julia:'LinearAlgebra.svd(A)', python:'numpy.linalg.svd(A)', motoko:'PhiLA.svd(matrix)', complexity:'O(mn²)' },
+        { id:3, name:'linalg.qr', domain:'linear_algebra', sig:'Matrix → (Q, R)', desc:'QR factorization A = QR', julia:'LinearAlgebra.qr(A)', python:'numpy.linalg.qr(A)', motoko:'PhiLA.qr(matrix)', complexity:'O(mn²)' },
+        { id:4, name:'linalg.lu', domain:'linear_algebra', sig:'Matrix → (L, U, P)', desc:'LU factorization PA = LU', julia:'LinearAlgebra.lu(A)', python:'scipy.linalg.lu(A)', motoko:'PhiLA.lu(matrix)', complexity:'O(n³)' },
+        { id:5, name:'linalg.cholesky', domain:'linear_algebra', sig:'Matrix → L', desc:'Cholesky decomposition A = LLᵀ (positive definite)', julia:'LinearAlgebra.cholesky(A)', python:'numpy.linalg.cholesky(A)', motoko:'PhiLA.cholesky(matrix)', complexity:'O(n³/3)' },
+        { id:6, name:'linalg.inv', domain:'linear_algebra', sig:'Matrix → Matrix', desc:'Matrix inverse A⁻¹', julia:'inv(A)', python:'numpy.linalg.inv(A)', motoko:'PhiLA.inv(matrix)', complexity:'O(n³)' },
+        { id:7, name:'linalg.det', domain:'linear_algebra', sig:'Matrix → Scalar', desc:'Determinant det(A)', julia:'det(A)', python:'numpy.linalg.det(A)', motoko:'PhiLA.det(matrix)', complexity:'O(n³)' },
+        { id:8, name:'linalg.trace', domain:'linear_algebra', sig:'Matrix → Scalar', desc:'Matrix trace tr(A) = Σᵢ aᵢᵢ', julia:'tr(A)', python:'numpy.trace(A)', motoko:'PhiLA.trace(matrix)', complexity:'O(n)' },
+        { id:9, name:'linalg.norm', domain:'linear_algebra', sig:'Matrix|Vector → Scalar', desc:'Matrix/vector norm ‖A‖', julia:'norm(A)', python:'numpy.linalg.norm(A)', motoko:'PhiLA.norm(matrix)', complexity:'O(n²)' },
+        { id:10, name:'linalg.rank', domain:'linear_algebra', sig:'Matrix → Int', desc:'Matrix rank', julia:'rank(A)', python:'numpy.linalg.matrix_rank(A)', motoko:'PhiLA.rank(matrix)', complexity:'O(mn²)' },
+        { id:11, name:'linalg.expm', domain:'linear_algebra', sig:'Matrix → Matrix', desc:'Matrix exponential e^A', julia:'exp(A)', python:'scipy.linalg.expm(A)', motoko:'PhiLA.expm(matrix)', complexity:'O(n³)' },
+        { id:12, name:'linalg.logm', domain:'linear_algebra', sig:'Matrix → Matrix', desc:'Matrix logarithm log(A)', julia:'log(A)', python:'scipy.linalg.logm(A)', motoko:'PhiLA.logm(matrix)', complexity:'O(n³)' },
+        { id:13, name:'linalg.sqrtm', domain:'linear_algebra', sig:'Matrix → Matrix', desc:'Matrix square root √A', julia:'sqrt(A)', python:'scipy.linalg.sqrtm(A)', motoko:'PhiLA.sqrtm(matrix)', complexity:'O(n³)' },
+        { id:14, name:'linalg.cross', domain:'linear_algebra', sig:'(Vec³, Vec³) → Vec³', desc:'Cross product a × b', julia:'cross(a,b)', python:'numpy.cross(a,b)', motoko:'PhiLA.cross(a,b)', complexity:'O(1)' },
+        { id:15, name:'linalg.dot', domain:'linear_algebra', sig:'(Vec, Vec) → Scalar', desc:'Dot product a · b', julia:'dot(a,b)', python:'numpy.dot(a,b)', motoko:'PhiLA.dot(a,b)', complexity:'O(n)' },
+        { id:16, name:'linalg.kron', domain:'linear_algebra', sig:'(Matrix, Matrix) → Matrix', desc:'Kronecker product A ⊗ B', julia:'kron(A,B)', python:'numpy.kron(A,B)', motoko:'PhiLA.kron(A,B)', complexity:'O(m²n²)' },
+        { id:17, name:'linalg.pinv', domain:'linear_algebra', sig:'Matrix → Matrix', desc:'Moore-Penrose pseudo-inverse A⁺', julia:'pinv(A)', python:'numpy.linalg.pinv(A)', motoko:'PhiLA.pinv(matrix)', complexity:'O(mn²)' },
+        { id:18, name:'linalg.nullspace', domain:'linear_algebra', sig:'Matrix → Matrix', desc:'Null space basis', julia:'nullspace(A)', python:'scipy.linalg.null_space(A)', motoko:'PhiLA.nullspace(matrix)', complexity:'O(mn²)' },
+        { id:19, name:'linalg.schur', domain:'linear_algebra', sig:'Matrix → (T, Z)', desc:'Schur decomposition A = ZTZ*', julia:'schur(A)', python:'scipy.linalg.schur(A)', motoko:'PhiLA.schur(matrix)', complexity:'O(n³)' },
+        { id:20, name:'linalg.hessenberg', domain:'linear_algebra', sig:'Matrix → (H, Q)', desc:'Hessenberg form', julia:'hessenberg(A)', python:'scipy.linalg.hessenberg(A)', motoko:'PhiLA.hessenberg(matrix)', complexity:'O(n³)' },
+        { id:21, name:'linalg.cond', domain:'linear_algebra', sig:'Matrix → Scalar', desc:'Condition number κ(A)', julia:'cond(A)', python:'numpy.linalg.cond(A)', motoko:'PhiLA.cond(matrix)', complexity:'O(n³)' },
+        { id:22, name:'linalg.solve', domain:'linear_algebra', sig:'(Matrix, Vector) → Vector', desc:'Linear solve Ax = b', julia:'A \\ b', python:'numpy.linalg.solve(A,b)', motoko:'PhiLA.solve(A,b)', complexity:'O(n³)' },
+        { id:23, name:'linalg.lyap', domain:'linear_algebra', sig:'(Matrix, Matrix) → Matrix', desc:'Lyapunov equation AX + XAᵀ = -Q', julia:'lyap(A,Q)', python:'scipy.linalg.solve_lyapunov(A,Q)', motoko:'PhiLA.lyap(A,Q)', complexity:'O(n³)' },
+        { id:24, name:'linalg.sylvester', domain:'linear_algebra', sig:'(A, B, C) → X', desc:'Sylvester equation AX + XB = C', julia:'sylvester(A,B,C)', python:'scipy.linalg.solve_sylvester(A,B,C)', motoko:'PhiLA.sylvester(A,B,C)', complexity:'O(n³)' },
+        { id:25, name:'linalg.phi_eigen', domain:'linear_algebra', sig:'Matrix → (Λ×φ, V)', desc:'φ-weighted eigenvalues (NOVA sovereign)', julia:'phi_eigen(A)', python:'nova.phi_eigen(A)', motoko:'PhiLA.phiEigen(matrix)', complexity:'O(n³)' },
+
+        // ─── STATISTICS (20) ─────────────────────────────────────────────────
+        { id:26, name:'stats.mean', domain:'statistics', sig:'Vector → Scalar', desc:'Arithmetic mean μ = (1/n)Σxᵢ', julia:'mean(x)', python:'numpy.mean(x)', motoko:'PhiStats.mean(x)', complexity:'O(n)' },
+        { id:27, name:'stats.std', domain:'statistics', sig:'Vector → Scalar', desc:'Standard deviation σ', julia:'std(x)', python:'numpy.std(x)', motoko:'PhiStats.std(x)', complexity:'O(n)' },
+        { id:28, name:'stats.var', domain:'statistics', sig:'Vector → Scalar', desc:'Variance σ²', julia:'var(x)', python:'numpy.var(x)', motoko:'PhiStats.var(x)', complexity:'O(n)' },
+        { id:29, name:'stats.median', domain:'statistics', sig:'Vector → Scalar', desc:'Median (50th percentile)', julia:'median(x)', python:'numpy.median(x)', motoko:'PhiStats.median(x)', complexity:'O(n log n)' },
+        { id:30, name:'stats.cor', domain:'statistics', sig:'(Vec, Vec) → Scalar', desc:'Pearson correlation ρ(x,y)', julia:'cor(x,y)', python:'numpy.corrcoef(x,y)', motoko:'PhiStats.cor(x,y)', complexity:'O(n)' },
+        { id:31, name:'stats.cov', domain:'statistics', sig:'(Vec, Vec) → Matrix', desc:'Covariance matrix', julia:'cov(x,y)', python:'numpy.cov(x,y)', motoko:'PhiStats.cov(x,y)', complexity:'O(n)' },
+        { id:32, name:'stats.quantile', domain:'statistics', sig:'(Vec, p) → Scalar', desc:'Quantile at probability p', julia:'quantile(x,p)', python:'numpy.quantile(x,p)', motoko:'PhiStats.quantile(x,p)', complexity:'O(n log n)' },
+        { id:33, name:'stats.histogram', domain:'statistics', sig:'Vector → Histogram', desc:'Frequency histogram', julia:'fit(Histogram,x)', python:'numpy.histogram(x)', motoko:'PhiStats.histogram(x)', complexity:'O(n)' },
+        { id:34, name:'stats.kde', domain:'statistics', sig:'Vector → Density', desc:'Kernel density estimation', julia:'kde(x)', python:'scipy.stats.gaussian_kde(x)', motoko:'PhiStats.kde(x)', complexity:'O(n²)' },
+        { id:35, name:'stats.ttest', domain:'statistics', sig:'(Vec, μ₀) → (t, p)', desc:'Student t-test', julia:'OneSampleTTest(x,μ)', python:'scipy.stats.ttest_1samp(x,μ)', motoko:'PhiStats.ttest(x,mu)', complexity:'O(n)' },
+        { id:36, name:'stats.chi2', domain:'statistics', sig:'(Obs, Exp) → (χ², p)', desc:'Chi-squared test', julia:'ChisqTest(obs,exp)', python:'scipy.stats.chisquare(obs,exp)', motoko:'PhiStats.chi2(obs,exp)', complexity:'O(n)' },
+        { id:37, name:'stats.anova', domain:'statistics', sig:'Groups → (F, p)', desc:'One-way ANOVA', julia:'OneWayANOVA(groups...)', python:'scipy.stats.f_oneway(*groups)', motoko:'PhiStats.anova(groups)', complexity:'O(kn)' },
+        { id:38, name:'stats.bootstrap', domain:'statistics', sig:'(Vec, stat, B) → CI', desc:'Bootstrap confidence interval', julia:'bootstrap(x,stat,B)', python:'scipy.stats.bootstrap(x,stat)', motoko:'PhiStats.bootstrap(x,stat,B)', complexity:'O(Bn)' },
+        { id:39, name:'stats.pca', domain:'statistics', sig:'Matrix → (Scores, Loadings)', desc:'Principal Component Analysis', julia:'pca(X)', python:'sklearn.decomposition.PCA()', motoko:'PhiStats.pca(X)', complexity:'O(min(mn²,m²n))' },
+        { id:40, name:'stats.regression', domain:'statistics', sig:'(X, y) → β', desc:'Linear regression OLS', julia:'X \\ y', python:'sklearn.linear_model.LinearRegression()', motoko:'PhiStats.regression(X,y)', complexity:'O(mn²)' },
+        { id:41, name:'stats.kmeans', domain:'statistics', sig:'(Data, k) → Clusters', desc:'K-means clustering', julia:'kmeans(X,k)', python:'sklearn.cluster.KMeans(k)', motoko:'PhiStats.kmeans(X,k)', complexity:'O(nkdi)' },
+        { id:42, name:'stats.entropy', domain:'statistics', sig:'Vector → Scalar', desc:'Shannon entropy H = -Σ pᵢ log pᵢ', julia:'entropy(p)', python:'scipy.stats.entropy(p)', motoko:'PhiStats.entropy(p)', complexity:'O(n)' },
+        { id:43, name:'stats.mutual_info', domain:'statistics', sig:'(Vec, Vec) → Scalar', desc:'Mutual information I(X;Y)', julia:'mutualinfo(x,y)', python:'sklearn.metrics.mutual_info_score(x,y)', motoko:'PhiStats.mutualInfo(x,y)', complexity:'O(n)' },
+        { id:44, name:'stats.wasserstein', domain:'statistics', sig:'(Vec, Vec) → Scalar', desc:'Wasserstein (Earth Mover) distance', julia:'wasserstein(p,q)', python:'scipy.stats.wasserstein_distance(p,q)', motoko:'PhiStats.wasserstein(p,q)', complexity:'O(n log n)' },
+        { id:45, name:'stats.phi_coherence', domain:'statistics', sig:'(Oscillators) → r', desc:'Kuramoto order parameter r = |⟨e^{iθ}⟩|', julia:'phi_coherence(θ)', python:'nova.phi_coherence(theta)', motoko:'PhiStats.phiCoherence(theta)', complexity:'O(n)' },
+
+        // ─── SIGNAL PROCESSING (15) ──────────────────────────────────────────
+        { id:46, name:'signal.fft', domain:'signal', sig:'Vector → Vector{Complex}', desc:'Fast Fourier Transform', julia:'fft(x)', python:'numpy.fft.fft(x)', motoko:'PhiSignal.fft(x)', complexity:'O(n log n)' },
+        { id:47, name:'signal.ifft', domain:'signal', sig:'Vector{Complex} → Vector', desc:'Inverse FFT', julia:'ifft(X)', python:'numpy.fft.ifft(X)', motoko:'PhiSignal.ifft(X)', complexity:'O(n log n)' },
+        { id:48, name:'signal.rfft', domain:'signal', sig:'Vector{Real} → Vector{Complex}', desc:'Real-valued FFT (half-spectrum)', julia:'rfft(x)', python:'numpy.fft.rfft(x)', motoko:'PhiSignal.rfft(x)', complexity:'O(n log n)' },
+        { id:49, name:'signal.conv', domain:'signal', sig:'(Vec, Vec) → Vec', desc:'Discrete convolution x * h', julia:'conv(x,h)', python:'numpy.convolve(x,h)', motoko:'PhiSignal.conv(x,h)', complexity:'O(n log n)' },
+        { id:50, name:'signal.xcorr', domain:'signal', sig:'(Vec, Vec) → Vec', desc:'Cross-correlation Rₓᵧ(τ)', julia:'xcorr(x,y)', python:'numpy.correlate(x,y,"full")', motoko:'PhiSignal.xcorr(x,y)', complexity:'O(n log n)' },
+        { id:51, name:'signal.acf', domain:'signal', sig:'Vec → Vec', desc:'Autocorrelation function', julia:'autocor(x)', python:'numpy.correlate(x,x,"full")', motoko:'PhiSignal.acf(x)', complexity:'O(n log n)' },
+        { id:52, name:'signal.welch', domain:'signal', sig:'Vec → (freq, psd)', desc:'Welch power spectral density', julia:'welch_pgram(x)', python:'scipy.signal.welch(x)', motoko:'PhiSignal.welch(x)', complexity:'O(n log n)' },
+        { id:53, name:'signal.filter', domain:'signal', sig:'(b, a, x) → Vec', desc:'IIR/FIR digital filter', julia:'filt(b,a,x)', python:'scipy.signal.lfilter(b,a,x)', motoko:'PhiSignal.filter(b,a,x)', complexity:'O(n)' },
+        { id:54, name:'signal.hilbert', domain:'signal', sig:'Vec → Vec{Complex}', desc:'Hilbert transform (analytic signal)', julia:'hilbert(x)', python:'scipy.signal.hilbert(x)', motoko:'PhiSignal.hilbert(x)', complexity:'O(n log n)' },
+        { id:55, name:'signal.stft', domain:'signal', sig:'Vec → Matrix{Complex}', desc:'Short-time Fourier Transform', julia:'stft(x)', python:'scipy.signal.stft(x)', motoko:'PhiSignal.stft(x)', complexity:'O(n log n)' },
+        { id:56, name:'signal.cwt', domain:'signal', sig:'(Vec, wavelet) → Matrix', desc:'Continuous Wavelet Transform', julia:'cwt(x,wavelet)', python:'pywt.cwt(x,scales,wavelet)', motoko:'PhiSignal.cwt(x,wavelet)', complexity:'O(n·s)' },
+        { id:57, name:'signal.resample', domain:'signal', sig:'(Vec, n) → Vec', desc:'Resample signal to n points', julia:'resample(x,n)', python:'scipy.signal.resample(x,n)', motoko:'PhiSignal.resample(x,n)', complexity:'O(n log n)' },
+        { id:58, name:'signal.envelope', domain:'signal', sig:'Vec → Vec', desc:'Signal envelope |analytic(x)|', julia:'abs.(hilbert(x))', python:'numpy.abs(scipy.signal.hilbert(x))', motoko:'PhiSignal.envelope(x)', complexity:'O(n log n)' },
+        { id:59, name:'signal.spectrogram', domain:'signal', sig:'Vec → (t, f, S)', desc:'Spectrogram (time-frequency)', julia:'spectrogram(x)', python:'scipy.signal.spectrogram(x)', motoko:'PhiSignal.spectrogram(x)', complexity:'O(n log n)' },
+        { id:60, name:'signal.phi_resonance', domain:'signal', sig:'Vec → (f_φ, amp)', desc:'φ-resonance detection at 873ms harmonic', julia:'phi_resonance(x)', python:'nova.phi_resonance(x)', motoko:'PhiSignal.phiResonance(x)', complexity:'O(n log n)' },
+
+        // ─── DIFFERENTIAL EQUATIONS (15) ─────────────────────────────────────
+        { id:61, name:'diffeq.euler', domain:'diffeq', sig:'(f, y₀, t) → y', desc:'Euler forward method', julia:'euler_step(f,y,t,dt)', python:'nova.euler(f,y0,t)', motoko:'PhiDE.euler(f,y0,t)', complexity:'O(n)' },
+        { id:62, name:'diffeq.rk4', domain:'diffeq', sig:'(f, y₀, t) → y', desc:'Runge-Kutta 4th order', julia:'rk4_step(f,y,t,dt)', python:'nova.rk4(f,y0,t)', motoko:'PhiDE.rk4(f,y0,t)', complexity:'O(4n)' },
+        { id:63, name:'diffeq.rk45', domain:'diffeq', sig:'(f, y₀, tspan) → sol', desc:'Dormand-Prince adaptive RK', julia:'solve(prob,Tsit5())', python:'scipy.integrate.solve_ivp(f,tspan,y0)', motoko:'PhiDE.rk45(f,y0,tspan)', complexity:'O(n·tol⁻¹)' },
+        { id:64, name:'diffeq.lorenz', domain:'diffeq', sig:'(σ,ρ,β, x₀) → trajectory', desc:'Lorenz chaotic attractor', julia:'lorenz(σ,ρ,β)', python:'nova.lorenz(sigma,rho,beta)', motoko:'PhiDE.lorenz(sigma,rho,beta)', complexity:'O(steps)' },
+        { id:65, name:'diffeq.vanderpol', domain:'diffeq', sig:'(μ, x₀) → trajectory', desc:'Van der Pol oscillator', julia:'vanderpol(μ)', python:'nova.vanderpol(mu)', motoko:'PhiDE.vanderpol(mu)', complexity:'O(steps)' },
+        { id:66, name:'diffeq.fitzhugh_nagumo', domain:'diffeq', sig:'(a,b,I) → (v,w)', desc:'FitzHugh-Nagumo neuron model', julia:'fitzhugh_nagumo(a,b,I)', python:'nova.fitzhugh_nagumo(a,b,I)', motoko:'PhiDE.fitzhughNagumo(a,b,I)', complexity:'O(steps)' },
+        { id:67, name:'diffeq.kuramoto', domain:'diffeq', sig:'(θ,ω,K) → θ_new', desc:'Kuramoto phase synchronization', julia:'kuramoto_step(θ,ω,K,dt)', python:'nova.kuramoto(theta,omega,K,dt)', motoko:'PhiDE.kuramoto(theta,omega,K,dt)', complexity:'O(N²)' },
+        { id:68, name:'diffeq.heat', domain:'diffeq', sig:'(u₀, α, dx, dt) → u', desc:'Heat equation ∂u/∂t = α∇²u', julia:'heat_equation(u0,α,dx,dt,steps)', python:'nova.heat_equation(u0,alpha,dx,dt)', motoko:'PhiDE.heat(u0,alpha,dx,dt)', complexity:'O(n·steps)' },
+        { id:69, name:'diffeq.wave', domain:'diffeq', sig:'(u₀, c, dx, dt) → u', desc:'Wave equation ∂²u/∂t² = c²∇²u', julia:'wave_equation(u0,c,dx,dt,steps)', python:'nova.wave_equation(u0,c,dx,dt)', motoko:'PhiDE.wave(u0,c,dx,dt)', complexity:'O(n·steps)' },
+        { id:70, name:'diffeq.pendulum', domain:'diffeq', sig:'(θ₀, ω₀, g, L) → (θ,ω)', desc:'Simple pendulum θ̈ + (g/L)sinθ = 0', julia:'pendulum(θ0,ω0,g,L)', python:'nova.pendulum(theta0,omega0)', motoko:'PhiDE.pendulum(theta0,omega0)', complexity:'O(steps)' },
+        { id:71, name:'diffeq.sir', domain:'diffeq', sig:'(S₀,I₀,R₀,β,γ) → (S,I,R)', desc:'SIR epidemic model', julia:'sir_model(S0,I0,R0,β,γ)', python:'nova.sir(S0,I0,R0,beta,gamma)', motoko:'PhiDE.sir(S0,I0,R0,beta,gamma)', complexity:'O(steps)' },
+        { id:72, name:'diffeq.rossler', domain:'diffeq', sig:'(a,b,c, x₀) → trajectory', desc:'Rössler attractor', julia:'rossler(a,b,c)', python:'nova.rossler(a,b,c)', motoko:'PhiDE.rossler(a,b,c)', complexity:'O(steps)' },
+        { id:73, name:'diffeq.brusselator', domain:'diffeq', sig:'(A, B, x₀) → (x,y)', desc:'Brusselator reaction-diffusion', julia:'brusselator(A,B)', python:'nova.brusselator(A,B)', motoko:'PhiDE.brusselator(A,B)', complexity:'O(steps)' },
+        { id:74, name:'diffeq.duffing', domain:'diffeq', sig:'(α,β,δ,γ,ω) → x', desc:'Duffing oscillator (chaos)', julia:'duffing(α,β,δ,γ,ω)', python:'nova.duffing(alpha,beta,delta)', motoko:'PhiDE.duffing(alpha,beta,delta)', complexity:'O(steps)' },
+        { id:75, name:'diffeq.phi_oscillator', domain:'diffeq', sig:'(θ₀, N) → (θ, r)', desc:'φ-coupled oscillator ensemble (NOVA heartbeat)', julia:'phi_oscillator(θ0,N)', python:'nova.phi_oscillator(theta0,N)', motoko:'PhiDE.phiOscillator(theta0,N)', complexity:'O(N²·steps)' },
+
+        // ─── OPTIMIZATION (15) ───────────────────────────────────────────────
+        { id:76, name:'optim.gradient_descent', domain:'optimization', sig:'(f, ∇f, x₀, α) → x*', desc:'Gradient descent', julia:'gradient_descent(f,∇f,x0,α)', python:'nova.gradient_descent(f,grad,x0)', motoko:'PhiOpt.gd(f,grad,x0)', complexity:'O(iter·n)' },
+        { id:77, name:'optim.phi_gd', domain:'optimization', sig:'(f, ∇f, x₀) → x*', desc:'φ⁻¹ learning rate gradient descent (provably optimal)', julia:'phi_gradient_descent(f,∇f,x0)', python:'nova.phi_gd(f,grad,x0)', motoko:'PhiOpt.phiGD(f,grad,x0)', complexity:'O(iter·n)' },
+        { id:78, name:'optim.bfgs', domain:'optimization', sig:'(f, ∇f, x₀) → x*', desc:'BFGS quasi-Newton method', julia:'bfgs(f,∇f,x0)', python:'scipy.optimize.minimize(f,x0,method="BFGS")', motoko:'PhiOpt.bfgs(f,grad,x0)', complexity:'O(iter·n²)' },
+        { id:79, name:'optim.lbfgs', domain:'optimization', sig:'(f, ∇f, x₀) → x*', desc:'Limited-memory BFGS', julia:'lbfgs(f,∇f,x0)', python:'scipy.optimize.minimize(f,x0,method="L-BFGS-B")', motoko:'PhiOpt.lbfgs(f,grad,x0)', complexity:'O(iter·mn)' },
+        { id:80, name:'optim.golden', domain:'optimization', sig:'(f, a, b) → x*', desc:'Golden section search (φ-based!)', julia:'golden_section(f,a,b)', python:'nova.golden_section(f,a,b)', motoko:'PhiOpt.golden(f,a,b)', complexity:'O(log(1/ε))' },
+        { id:81, name:'optim.nelder_mead', domain:'optimization', sig:'(f, x₀) → x*', desc:'Nelder-Mead simplex (derivative-free)', julia:'nelder_mead(f,x0)', python:'scipy.optimize.minimize(f,x0,method="Nelder-Mead")', motoko:'PhiOpt.nelderMead(f,x0)', complexity:'O(iter·n²)' },
+        { id:82, name:'optim.conjugate_gradient', domain:'optimization', sig:'(f, ∇f, x₀) → x*', desc:'Conjugate gradient method', julia:'cg_optimize(f,∇f,x0)', python:'scipy.optimize.minimize(f,x0,method="CG")', motoko:'PhiOpt.cg(f,grad,x0)', complexity:'O(iter·n)' },
+        { id:83, name:'optim.adam', domain:'optimization', sig:'(f, ∇f, x₀, lr) → x*', desc:'Adam optimizer (adaptive moments)', julia:'adam(f,∇f,x0)', python:'torch.optim.Adam(params,lr)', motoko:'PhiOpt.adam(f,grad,x0,lr)', complexity:'O(iter·n)' },
+        { id:84, name:'optim.simulated_annealing', domain:'optimization', sig:'(f, x₀, T₀) → x*', desc:'Simulated annealing (global)', julia:'simulated_annealing(f,x0,T0)', python:'scipy.optimize.dual_annealing(f,bounds)', motoko:'PhiOpt.sa(f,x0,T0)', complexity:'O(iter·n)' },
+        { id:85, name:'optim.particle_swarm', domain:'optimization', sig:'(f, bounds, N) → x*', desc:'Particle swarm optimization', julia:'pso(f,bounds,N)', python:'pyswarm.pso(f,lb,ub)', motoko:'PhiOpt.pso(f,bounds,N)', complexity:'O(iter·N·n)' },
+        { id:86, name:'optim.genetic', domain:'optimization', sig:'(fitness, pop, gen) → best', desc:'Genetic algorithm', julia:'genetic_algorithm(fitness,pop_size,gens)', python:'deap.algorithms.eaSimple(pop)', motoko:'PhiOpt.genetic(fitness,pop,gens)', complexity:'O(gen·pop·n)' },
+        { id:87, name:'optim.bayesian', domain:'optimization', sig:'(f, bounds, n) → x*', desc:'Bayesian optimization (GP surrogate)', julia:'bayesian_opt(f,bounds,n_iter)', python:'skopt.gp_minimize(f,bounds)', motoko:'PhiOpt.bayesian(f,bounds,n)', complexity:'O(n³)' },
+        { id:88, name:'optim.trust_region', domain:'optimization', sig:'(f, ∇f, H, x₀) → x*', desc:'Trust-region Newton', julia:'trust_region(f,∇f,H,x0)', python:'scipy.optimize.minimize(f,x0,method="trust-ncg")', motoko:'PhiOpt.trustRegion(f,grad,H,x0)', complexity:'O(iter·n³)' },
+        { id:89, name:'optim.linear_program', domain:'optimization', sig:'(c, A, b) → x*', desc:'Linear programming min cᵀx s.t. Ax≤b', julia:'linprog(c,A,b)', python:'scipy.optimize.linprog(c,A,b)', motoko:'PhiOpt.lp(c,A,b)', complexity:'O(n³·m)' },
+        { id:90, name:'optim.phi_anneal', domain:'optimization', sig:'(f, x₀) → x*', desc:'φ-cooled annealing (T_k = T₀·φ⁻ᵏ)', julia:'phi_anneal(f,x0)', python:'nova.phi_anneal(f,x0)', motoko:'PhiOpt.phiAnneal(f,x0)', complexity:'O(iter·n)' },
+
+        // ─── QUANTUM / PHYSICS (10) ──────────────────────────────────────────
+        { id:91, name:'quantum.ising', domain:'quantum', sig:'(σ, J, h) → E', desc:'Ising model energy E = -Σ Jᵢⱼσᵢσⱼ - Σ hᵢσᵢ', julia:'ising_energy(σ,J,h)', python:'nova.ising_energy(sigma,J,h)', motoko:'PhiQM.ising(sigma,J,h)', complexity:'O(n²)' },
+        { id:92, name:'quantum.boltzmann', domain:'quantum', sig:'(E, T) → P', desc:'Boltzmann distribution P ∝ e^{-E/kT}', julia:'boltzmann_dist(E,T)', python:'nova.boltzmann(E,T)', motoko:'PhiQM.boltzmann(E,T)', complexity:'O(n)' },
+        { id:93, name:'quantum.metropolis', domain:'quantum', sig:'(E_fn, config, T, steps) → configs', desc:'Metropolis-Hastings MCMC', julia:'metropolis(E,config,T,steps)', python:'nova.metropolis(E,config,T,steps)', motoko:'PhiQM.metropolis(E,config,T,steps)', complexity:'O(steps·n)' },
+        { id:94, name:'quantum.schrodinger', domain:'quantum', sig:'(V, dx, N) → (E, ψ)', desc:'1D Schrödinger equation (time-independent)', julia:'schrodinger_1d(V,dx,N)', python:'nova.schrodinger_1d(V,dx,N)', motoko:'PhiQM.schrodinger(V,dx,N)', complexity:'O(N³)' },
+        { id:95, name:'quantum.hydrogen', domain:'quantum', sig:'(n,l,m,r,θ,φ) → ψ', desc:'Hydrogen atom wavefunctions', julia:'hydrogen_wavefunction(n,l,m,r,θ,φ)', python:'nova.hydrogen_wf(n,l,m,r,theta,phi)', motoko:'PhiQM.hydrogen(n,l,m,r,theta,phi)', complexity:'O(1)' },
+        { id:96, name:'quantum.harmonic', domain:'quantum', sig:'(n, x, m, ω) → ψₙ', desc:'Quantum harmonic oscillator', julia:'harmonic_oscillator(n,x,m,ω)', python:'nova.qho(n,x,m,omega)', motoko:'PhiQM.harmonic(n,x,m,omega)', complexity:'O(n)' },
+        { id:97, name:'quantum.tunnel', domain:'quantum', sig:'(E, V₀, a) → T', desc:'Quantum tunneling coefficient', julia:'tunnel_probability(E,V0,a)', python:'nova.tunnel(E,V0,a)', motoko:'PhiQM.tunnel(E,V0,a)', complexity:'O(1)' },
+        { id:98, name:'quantum.density_matrix', domain:'quantum', sig:'ψ → ρ', desc:'Density matrix ρ = |ψ⟩⟨ψ|', julia:'density_matrix(ψ)', python:'nova.density_matrix(psi)', motoko:'PhiQM.densityMatrix(psi)', complexity:'O(n²)' },
+        { id:99, name:'quantum.entanglement', domain:'quantum', sig:'ρ → S', desc:'Von Neumann entanglement entropy', julia:'entanglement_entropy(ρ)', python:'nova.entanglement_entropy(rho)', motoko:'PhiQM.entanglement(rho)', complexity:'O(n³)' },
+        { id:100, name:'quantum.phi_partition', domain:'quantum', sig:'(E, T=φ) → Z', desc:'φ-temperature partition function (NOVA)', julia:'phi_partition(E)', python:'nova.phi_partition(E)', motoko:'PhiQM.phiPartition(E)', complexity:'O(n)' },
+
+        // ─── GRAPH THEORY (5) ────────────────────────────────────────────────
+        { id:101, name:'graph.pagerank', domain:'graph', sig:'(A, d) → r', desc:'PageRank r = d·A·r + (1-d)/n', julia:'pagerank(A,d)', python:'networkx.pagerank(G)', motoko:'PhiGraph.pagerank(A,d)', complexity:'O(iter·n²)' },
+        { id:102, name:'graph.laplacian', domain:'graph', sig:'A → L', desc:'Graph Laplacian L = D - A', julia:'laplacian(A)', python:'networkx.laplacian_matrix(G)', motoko:'PhiGraph.laplacian(A)', complexity:'O(n²)' },
+        { id:103, name:'graph.dijkstra', domain:'graph', sig:'(G, s) → distances', desc:'Dijkstra shortest paths', julia:'dijkstra(G,s)', python:'networkx.single_source_dijkstra(G,s)', motoko:'PhiGraph.dijkstra(G,s)', complexity:'O((V+E)log V)' },
+        { id:104, name:'graph.clustering', domain:'graph', sig:'A → c', desc:'Clustering coefficient', julia:'clustering_coeff(A)', python:'networkx.clustering(G)', motoko:'PhiGraph.clustering(A)', complexity:'O(n·d²)' },
+        { id:105, name:'graph.phi_centrality', domain:'graph', sig:'A → c_φ', desc:'φ-weighted eigenvector centrality (NOVA)', julia:'phi_centrality(A)', python:'nova.phi_centrality(A)', motoko:'PhiGraph.phiCentrality(A)', complexity:'O(n³)' },
+
+        // ─── NUMERICAL METHODS (5) ───────────────────────────────────────────
+        { id:106, name:'numerical.quadrature', domain:'numerical', sig:'(f, a, b, n) → ∫f', desc:'Gaussian quadrature ∫ₐᵇ f(x)dx', julia:'gauss_legendre(f,a,b,n)', python:'scipy.integrate.quad(f,a,b)', motoko:'PhiNum.quadrature(f,a,b,n)', complexity:'O(n)' },
+        { id:107, name:'numerical.newton', domain:'numerical', sig:'(f, f′, x₀) → x*', desc:'Newton-Raphson root finding', julia:'newton_raphson(f,f′,x0)', python:'scipy.optimize.newton(f,x0)', motoko:'PhiNum.newton(f,fprime,x0)', complexity:'O(iter)' },
+        { id:108, name:'numerical.bisection', domain:'numerical', sig:'(f, a, b) → x*', desc:'Bisection method f(x)=0', julia:'bisection(f,a,b)', python:'scipy.optimize.bisect(f,a,b)', motoko:'PhiNum.bisection(f,a,b)', complexity:'O(log(1/ε))' },
+        { id:109, name:'numerical.interpolate', domain:'numerical', sig:'(x, y, x_new) → y_new', desc:'Cubic spline interpolation', julia:'interpolate(x,y,x_new)', python:'scipy.interpolate.CubicSpline(x,y)', motoko:'PhiNum.interpolate(x,y,xNew)', complexity:'O(n)' },
+        { id:110, name:'numerical.phi_quadrature', domain:'numerical', sig:'(f, a, b) → ∫f', desc:'φ-node Gaussian quadrature (NOVA optimal)', julia:'phi_quadrature(f,a,b)', python:'nova.phi_quadrature(f,a,b)', motoko:'PhiNum.phiQuadrature(f,a,b)', complexity:'O(φ⁵)' },
+    ];
+
+    // ═══ Rendering ═══════════════════════════════════════════════════════════════
+
+    let currentDomain = 'all';
+    let searchQuery = '';
+    let activeLangs = new Set(['julia', 'python', 'motoko']);
+
+    function renderModels() {
+        const grid = document.getElementById('models-grid');
+        const filtered = MODELS.filter(m => {
+            if (currentDomain !== 'all' && m.domain !== currentDomain) return false;
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                return m.name.toLowerCase().includes(q) || m.desc.toLowerCase().includes(q);
+            }
+            return true;
+        });
+
+        document.getElementById('total-count').textContent = filtered.length;
+
+        grid.innerHTML = filtered.map(m => `
+            <div class="model-card" onclick="this.classList.toggle('expanded')">
+                <div class="model-name">${m.name}</div>
+                <div class="model-desc">${m.desc}</div>
+                <div class="model-sig">${m.sig}</div>
+                <span class="model-domain-tag tag-${m.domain}">${m.domain.replace('_',' ')}</span>
+                <div class="model-detail">
+                    ${activeLangs.has('julia') ? `<div class="code-label">JULIA</div><div class="code-block code-julia">${m.julia}</div>` : ''}
+                    ${activeLangs.has('python') ? `<div class="code-label">PYTHON</div><div class="code-block code-python">${m.python}</div>` : ''}
+                    ${activeLangs.has('motoko') ? `<div class="code-label">MOTOKO (ICP)</div><div class="code-block code-motoko">${m.motoko}</div>` : ''}
+                    <div class="complexity">Complexity: ${m.complexity}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Domain buttons
+    document.querySelectorAll('.domain-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.domain-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentDomain = btn.dataset.domain;
+            renderModels();
+        });
+    });
+
+    // Search
+    document.getElementById('search').addEventListener('input', e => {
+        searchQuery = e.target.value;
+        renderModels();
+    });
+
+    // Language toggles
+    document.querySelectorAll('.lang-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+            btn.classList.toggle('active');
+            const lang = btn.dataset.lang;
+            if (activeLangs.has(lang)) activeLangs.delete(lang);
+            else activeLangs.add(lang);
+            renderModels();
+        });
+    });
+
+    // Initial render
+    renderModels();
+    </script>
+</body>
+</html>
