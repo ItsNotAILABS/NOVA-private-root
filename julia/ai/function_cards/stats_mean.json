@@ -1,0 +1,51 @@
+{
+  "function": "stats_mean",
+  "version": "0.1.0",
+  "purpose": "Arithmetic mean of a vector",
+  "description": "Computes the arithmetic mean of a vector of floating-point numbers.",
+  "signatures": {
+    "julia": "phi_mean(x::Vector{Float64}) -> Float64",
+    "motoko": "stats_mean(x: [Float]) : async Float",
+    "candid": "stats_mean : (vec float64) -> (float64)",
+    "javascript": "async mean(values: number[]) -> number"
+  },
+  "input_types": [
+    {
+      "name": "x",
+      "type": "Vector{Float64}",
+      "description": "Input vector",
+      "constraints": "Must have at least one element",
+      "example": "[1.0, 2.0, 3.0, 4.0, 5.0]"
+    }
+  ],
+  "output_type": {
+    "type": "Float64",
+    "description": "Arithmetic mean = Σxᵢ / n"
+  },
+  "properties": {
+    "deterministic": true,
+    "supports_wasm": true,
+    "canister_safe": true,
+    "round_trip_tested": true,
+    "complexity": "O(n)"
+  },
+  "numerical_caveats": [
+    "For very large sums, consider Kahan summation for precision",
+    "NaN values will propagate to result"
+  ],
+  "ai_usage": {
+    "when_to_use": [
+      "Central tendency measurement",
+      "Data preprocessing",
+      "Baseline statistics"
+    ],
+    "related_functions": ["stats_std", "stats_cor"]
+  },
+  "examples": [
+    {
+      "description": "Mean of [1, 2, 3, 4, 5]",
+      "input": "[1.0, 2.0, 3.0, 4.0, 5.0]",
+      "output": 3.0
+    }
+  ]
+}

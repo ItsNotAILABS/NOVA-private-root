@@ -1,0 +1,69 @@
+{
+  "function": "order_parameter",
+  "version": "0.1.0",
+  "purpose": "Compute Kuramoto order parameter R for measuring oscillator coherence",
+  "description": "Computes R = |1/N Σₖ e^(iθₖ)|, the Kuramoto order parameter that measures the coherence of a population of oscillators. R ∈ [0, 1] where R = 0 is fully incoherent and R = 1 is fully synchronized.",
+  "signatures": {
+    "julia": "order_parameter(oscillators::Vector{Tuple{Float64,Float64}}) -> Float64",
+    "motoko": "order_parameter(oscillators: [(Float, Float)]) : async Float",
+    "candid": "order_parameter : (vec record { phase: float64; frequency: float64 }) -> (float64)",
+    "javascript": "async orderParameter(oscillators: Oscillator[]) -> number"
+  },
+  "input_types": [
+    {
+      "name": "oscillators",
+      "type": "Vector{Oscillator}",
+      "description": "Array of (phase θ, natural frequency ω) pairs",
+      "constraints": "Must have at least one oscillator",
+      "example": "[{phase: 0.5, frequency: 1.0}, {phase: 0.6, frequency: 1.0}]"
+    }
+  ],
+  "output_type": {
+    "type": "Float64",
+    "description": "Order parameter R ∈ [0, 1]"
+  },
+  "properties": {
+    "deterministic": true,
+    "supports_wasm": true,
+    "canister_safe": true,
+    "round_trip_tested": true,
+    "complexity": "O(N) for N oscillators"
+  },
+  "thresholds": {
+    "phi_coherent": {
+      "value": 0.6180339887498948482,
+      "meaning": "R > φ⁻¹ indicates coherent synchronization"
+    },
+    "amor_threshold": {
+      "value": 0.3819660112501051518,
+      "meaning": "R < AMOR indicates near-incoherent state"
+    }
+  },
+  "numerical_caveats": [
+    "R = 0 for uniformly distributed phases",
+    "R = 1 when all phases are identical",
+    "R approaches 0 for large N with random phases"
+  ],
+  "ai_usage": {
+    "when_to_use": [
+      "Measuring swarm coherence",
+      "Synchronization quality assessment",
+      "Collective behavior analysis",
+      "NOVA heartbeat coordination",
+      "Fleet synchronization monitoring"
+    ],
+    "related_functions": ["kuramoto_step"]
+  },
+  "examples": [
+    {
+      "description": "Synchronized oscillators",
+      "input": "[{phase: 0.0, frequency: 1.0}, {phase: 0.1, frequency: 1.0}, {phase: 0.0, frequency: 1.0}]",
+      "output": "~0.97 (highly coherent)"
+    },
+    {
+      "description": "Random phases",
+      "input": "[{phase: 0.0, frequency: 1.0}, {phase: π/2, frequency: 1.0}, {phase: π, frequency: 1.0}, {phase: 3π/2, frequency: 1.0}]",
+      "output": "~0.0 (incoherent)"
+    }
+  ]
+}
