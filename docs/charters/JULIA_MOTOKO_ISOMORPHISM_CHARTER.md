@@ -542,15 +542,82 @@ console.log(`Mean: ${mean}, Std: ${std}`);
 - [x] Implement type mappings (Julia ↔ Motoko)
 - [x] Auto-generate Motoko wrappers
 - [x] Implement φ-optimized algorithms
+- [x] Create AI-readable bridge manifest (BUILD №63)
+- [x] Implement Candid generation (BUILD №63)
+- [x] Create round-trip type test suite (BUILD №63)
+- [x] Create MCP server for AI agents (BUILD №63)
+- [x] Add llms.txt and OpenAPI spec (BUILD №63)
+- [x] Create function cards for AI (BUILD №63)
 - [ ] Compile Julia to WASM
 - [ ] Deploy WASM bridge on IC
 - [ ] Create JuliaCompute.mo canister
-- [ ] Write integration tests
 - [ ] Benchmark performance
-- [ ] Document best practices
+
+---
+
+## APPENDIX C — AI AFFORDANCES (BUILD №63)
+
+### §C.1 — Bridge Manifest
+
+The bridge is now self-describing via `/julia/bridge.manifest.json`:
+
+```json
+{
+  "name": "NOVA Julia-Motoko Bridge",
+  "version": "0.1.0",
+  "functions": [...],
+  "type_mappings": {...},
+  "mcp_tools": [...],
+  "ai_affordances": {...}
+}
+```
+
+### §C.2 — MCP Server Tools
+
+The MCP server (`/julia/mcp-server/index.js`) exposes:
+
+| Tool | Description |
+|------|-------------|
+| `list_julia_functions` | List all available Julia functions |
+| `inspect_type_mapping` | Get type mapping for a Julia type |
+| `generate_motoko_wrapper` | Generate Motoko wrapper code |
+| `generate_candid_interface` | Generate Candid interface |
+| `run_phi_benchmark` | Run φ-optimized benchmarks |
+| `validate_round_trip` | Validate type round-trip |
+| `explain_bridge_function` | Get detailed function explanation |
+
+### §C.3 — Function Cards
+
+Each major function has a JSON card at `/julia/ai/function_cards/*.json`:
+
+```
+julia/ai/function_cards/
+├── phi_eigen.json
+├── phi_gradient_descent.json
+└── kuramoto_step.json
+```
+
+### §C.4 — AI Prompts
+
+Prompt templates at `/julia/ai/prompts/`:
+
+- `generate_motoko_wrapper.md` — Generate Motoko code
+- `debug_type_mapping.md` — Debug type conversion issues
+- `create_candid_interface.md` — Create Candid interfaces
+
+### §C.5 — Round-Trip Type Tests
+
+The test suite at `/julia/tests/round-trip.test.js` validates:
+
+- 32 test cases covering all type mappings
+- Primitive types (Float64, Int64, Bool, String)
+- Composite types (Vector, Matrix, Complex, Tuple)
+- Optional types (Union with Nothing)
+- φ-constant precision preservation
+- Edge cases (Infinity, NaN, large matrices)
 
 ---
 
 **COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ**
-**JULIA-MOTOKO ISOMORPHISM — BUILD №62**
+**JULIA-MOTOKO ISOMORPHISM — BUILD №63**
 **HIGH-PERFORMANCE NUMERICAL COMPUTING MEETS DECENTRALIZED SMART CONTRACTS**

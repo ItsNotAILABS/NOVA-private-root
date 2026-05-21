@@ -1,0 +1,596 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "NOVA Julia-Motoko Bridge API",
+    "version": "0.1.0",
+    "description": "HTTP API for the NOVA Julia-Motoko computational bridge. Provides high-performance numerical computing via Julia, exposed through a REST interface for integration with ICP canisters, CI pipelines, and AI agents.",
+    "contact": {
+      "name": "Medina Tech",
+      "email": "contact@medintech.com"
+    },
+    "license": {
+      "name": "Proprietary",
+      "identifier": "PROPRIETARY"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:7700",
+      "description": "Local development server"
+    },
+    {
+      "url": "https://julia-bridge.nova.network",
+      "description": "Production server (ICP substrate)"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "description": "Returns health status of the Julia bridge service",
+        "operationId": "healthCheck",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "healthy" },
+                    "julia_initialized": { "type": "boolean" },
+                    "wasm_loaded": { "type": "boolean" },
+                    "version": { "type": "string", "example": "0.1.0" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compute/eigen": {
+      "post": {
+        "summary": "Eigenvalue decomposition",
+        "description": "Compute eigenvalues and eigenvectors with φ-weighting",
+        "operationId": "computeEigen",
+        "tags": ["Linear Algebra"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["matrix"],
+                "properties": {
+                  "matrix": {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "items": { "type": "number" }
+                    },
+                    "description": "Square matrix (n × n)",
+                    "example": [[2, 1, 0], [1, 2, 1], [0, 1, 2]]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Eigendecomposition result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EigenResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input (non-square matrix)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compute/svd": {
+      "post": {
+        "summary": "Singular Value Decomposition",
+        "description": "Compute SVD with φ-weighted singular values",
+        "operationId": "computeSvd",
+        "tags": ["Linear Algebra"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["matrix"],
+                "properties": {
+                  "matrix": {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "items": { "type": "number" }
+                    },
+                    "description": "Any matrix (m × n)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SVD result",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SvdResult" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compute/fft": {
+      "post": {
+        "summary": "Fast Fourier Transform",
+        "description": "Compute FFT of a signal",
+        "operationId": "computeFft",
+        "tags": ["Signal Processing"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["signal"],
+                "properties": {
+                  "signal": {
+                    "type": "array",
+                    "items": { "$ref": "#/components/schemas/Complex" },
+                    "description": "Input signal (complex values)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "FFT result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "spectrum": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Complex" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compute/stats/mean": {
+      "post": {
+        "summary": "Arithmetic mean",
+        "operationId": "computeMean",
+        "tags": ["Statistics"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["values"],
+                "properties": {
+                  "values": {
+                    "type": "array",
+                    "items": { "type": "number" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mean value",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mean": { "type": "number" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compute/stats/correlation": {
+      "post": {
+        "summary": "Pearson correlation",
+        "operationId": "computeCorrelation",
+        "tags": ["Statistics"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["x", "y"],
+                "properties": {
+                  "x": { "type": "array", "items": { "type": "number" } },
+                  "y": { "type": "array", "items": { "type": "number" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Correlation coefficient",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "correlation": { "type": "number", "minimum": -1, "maximum": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compute/kuramoto/step": {
+      "post": {
+        "summary": "Kuramoto oscillator step",
+        "description": "Compute one time step of Kuramoto model",
+        "operationId": "kuramocoStep",
+        "tags": ["Synchronization"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["oscillators", "K", "dt"],
+                "properties": {
+                  "oscillators": {
+                    "type": "array",
+                    "items": { "$ref": "#/components/schemas/Oscillator" }
+                  },
+                  "K": {
+                    "type": "number",
+                    "description": "Coupling strength (use 0.618 for φ-optimal)",
+                    "example": 0.6180339887498948482
+                  },
+                  "dt": {
+                    "type": "number",
+                    "description": "Time step (use 0.873 for NOVA heartbeat)",
+                    "example": 0.873
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated oscillators",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "oscillators": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Oscillator" }
+                    },
+                    "order_parameter": { "type": "number" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bridge/generate/motoko": {
+      "post": {
+        "summary": "Generate Motoko wrapper",
+        "description": "Generate Motoko wrapper code for a Julia function",
+        "operationId": "generateMotoko",
+        "tags": ["Code Generation"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["function_name"],
+                "properties": {
+                  "function_name": {
+                    "type": "string",
+                    "description": "Name of Julia function to wrap",
+                    "example": "linalg.eigen"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated Motoko code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "motoko_code": { "type": "string" },
+                    "function_name": { "type": "string" },
+                    "input_types": { "type": "array", "items": { "type": "string" } },
+                    "output_type": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bridge/generate/candid": {
+      "post": {
+        "summary": "Generate Candid interface",
+        "description": "Generate Candid interface definition for specified functions",
+        "operationId": "generateCandid",
+        "tags": ["Code Generation"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["function_names"],
+                "properties": {
+                  "function_names": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "example": ["linalg.eigen", "linalg.svd", "stats.mean"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated Candid interface",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "candid": { "type": "string" },
+                    "types": { "type": "array", "items": { "type": "string" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bridge/validate/roundtrip": {
+      "post": {
+        "summary": "Validate round-trip type conversion",
+        "description": "Test that a value can round-trip through Julia → JS → Motoko → JS → Julia",
+        "operationId": "validateRoundtrip",
+        "tags": ["Validation"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["type", "value"],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["Float64", "Int64", "Vector", "Matrix", "Complex"],
+                    "description": "Julia type to test"
+                  },
+                  "value": {
+                    "description": "Value to round-trip test"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Round-trip validation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "passed": { "type": "boolean" },
+                    "original": {},
+                    "result": {},
+                    "difference": { "type": "number" },
+                    "tolerance": { "type": "number" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bridge/manifest": {
+      "get": {
+        "summary": "Get bridge manifest",
+        "description": "Returns the complete bridge manifest with all functions and type mappings",
+        "operationId": "getManifest",
+        "tags": ["Metadata"],
+        "responses": {
+          "200": {
+            "description": "Bridge manifest",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bridge/functions": {
+      "get": {
+        "summary": "List available functions",
+        "description": "Returns list of all Julia functions available through the bridge",
+        "operationId": "listFunctions",
+        "tags": ["Metadata"],
+        "responses": {
+          "200": {
+            "description": "Function list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "functions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": { "type": "string" },
+                          "description": { "type": "string" },
+                          "signature": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bridge/types": {
+      "get": {
+        "summary": "Get type mappings",
+        "description": "Returns complete type mapping table",
+        "operationId": "getTypeMappings",
+        "tags": ["Metadata"],
+        "responses": {
+          "200": {
+            "description": "Type mappings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Complex": {
+        "type": "object",
+        "required": ["re", "im"],
+        "properties": {
+          "re": { "type": "number", "description": "Real part" },
+          "im": { "type": "number", "description": "Imaginary part" }
+        }
+      },
+      "Oscillator": {
+        "type": "object",
+        "required": ["phase", "frequency"],
+        "properties": {
+          "phase": { "type": "number", "description": "Phase θ ∈ [0, 2π)" },
+          "frequency": { "type": "number", "description": "Natural frequency ω" }
+        }
+      },
+      "EigenResult": {
+        "type": "object",
+        "properties": {
+          "eigenvalues": {
+            "type": "array",
+            "items": { "type": "number" },
+            "description": "φ-weighted eigenvalues"
+          },
+          "eigenvectors": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": { "type": "number" }
+            },
+            "description": "Eigenvector matrix (columns are eigenvectors)"
+          }
+        }
+      },
+      "SvdResult": {
+        "type": "object",
+        "properties": {
+          "U": {
+            "type": "array",
+            "items": { "type": "array", "items": { "type": "number" } }
+          },
+          "S": {
+            "type": "array",
+            "items": { "type": "number" },
+            "description": "φ-weighted singular values"
+          },
+          "V": {
+            "type": "array",
+            "items": { "type": "array", "items": { "type": "number" } }
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" },
+          "message": { "type": "string" },
+          "code": { "type": "integer" }
+        }
+      }
+    }
+  },
+  "tags": [
+    { "name": "Linear Algebra", "description": "Matrix operations and decompositions" },
+    { "name": "Statistics", "description": "Statistical functions" },
+    { "name": "Signal Processing", "description": "FFT and signal analysis" },
+    { "name": "Synchronization", "description": "Kuramoto oscillator model" },
+    { "name": "Code Generation", "description": "Generate Motoko and Candid code" },
+    { "name": "Validation", "description": "Type validation and testing" },
+    { "name": "Metadata", "description": "Bridge information and configuration" }
+  ]
+}

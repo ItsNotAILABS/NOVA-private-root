@@ -1,0 +1,73 @@
+{
+  "function": "phi_eigen",
+  "version": "0.1.0",
+  "purpose": "Eigenvalue/eigenvector decomposition with φ-scaled output",
+  "description": "Computes eigenvalues and eigenvectors of a square matrix, then weights eigenvalues by φ^(-i) to emphasize dominant eigenvalues with golden ratio decay.",
+  "signatures": {
+    "julia": "phi_eigen(A::Matrix{Float64}) -> (Vector{Float64}, Matrix{Float64})",
+    "motoko": "linalg_eigen(A: [[Float]]) : async ([Float], [[Float]])",
+    "candid": "linalg_eigen : (vec vec float64) -> (record { eigenvalues: vec float64; eigenvectors: vec vec float64 })",
+    "javascript": "async eigen(matrix: number[][]) -> { eigenvalues: number[], eigenvectors: number[][] }"
+  },
+  "input_types": [
+    {
+      "name": "A",
+      "type": "Matrix{Float64}",
+      "description": "Square matrix to decompose",
+      "constraints": "Must be square (n × n). Symmetric matrices have real eigenvalues.",
+      "example": "[[2, 1, 0], [1, 2, 1], [0, 1, 2]]"
+    }
+  ],
+  "output_type": {
+    "type": "Tuple(Vector{Float64}, Matrix{Float64})",
+    "description": "φ-weighted eigenvalues and eigenvector matrix",
+    "fields": [
+      { "name": "eigenvalues", "type": "Vector{Float64}", "description": "φ-weighted eigenvalues (λᵢ × φ^(-i))" },
+      { "name": "eigenvectors", "type": "Matrix{Float64}", "description": "Eigenvector matrix (columns are eigenvectors)" }
+    ]
+  },
+  "properties": {
+    "deterministic": true,
+    "supports_wasm": true,
+    "canister_safe": true,
+    "round_trip_tested": true,
+    "complexity": "O(n³) for n×n matrix"
+  },
+  "numerical_caveats": [
+    "Eigenvectors may differ by sign convention between implementations",
+    "For repeated eigenvalues, eigenvector basis is not unique",
+    "Compare eigenvectors by angle or correlation, not exact equality",
+    "Use tolerance of 1e-10 for numerical comparison"
+  ],
+  "ai_usage": {
+    "when_to_use": [
+      "Matrix spectral analysis",
+      "Principal Component Analysis (PCA)",
+      "Graph dynamics and centrality",
+      "Synchronization system stability",
+      "Quantum state analysis",
+      "Markov chain steady state"
+    ],
+    "when_not_to_use": [
+      "Non-square matrices (use SVD instead)",
+      "Sparse matrices (use specialized sparse eigensolvers)",
+      "Only need largest eigenvalue (use power iteration)"
+    ],
+    "related_functions": ["phi_svd", "linalg_det", "linalg_inv"]
+  },
+  "examples": [
+    {
+      "description": "3×3 symmetric matrix eigendecomposition",
+      "input": "[[2, 1, 0], [1, 2, 1], [0, 1, 2]]",
+      "output": {
+        "eigenvalues": [2.11, 0.76, 0.14],
+        "eigenvectors": "3×3 orthogonal matrix"
+      },
+      "notes": "Original eigenvalues [3.414, 2.0, 0.586] weighted by [φ⁻¹, φ⁻², φ⁻³]"
+    }
+  ],
+  "code_samples": {
+    "javascript": "const julia = getJuliaCompute();\nawait julia.initialize();\nconst { eigenvalues, eigenvectors } = await julia.eigen([[2,1,0],[1,2,1],[0,1,2]]);",
+    "motoko": "let A = [[2.0, 1.0, 0.0], [1.0, 2.0, 1.0], [0.0, 1.0, 2.0]];\nlet (eigenvalues, eigenvectors) = await JuliaCompute.linalg_eigen(A);"
+  }
+}
