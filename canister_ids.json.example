@@ -1,0 +1,12 @@
+{
+  "_README": "Copy this to canister_ids.json after first mainnet deploy. dfx writes IDs here automatically with --network ic.",
+  "swarm_brain": { "ic": "YOUR_CANISTER_ID_HERE" },
+  "swarm_organism": { "ic": "YOUR_CANISTER_ID_HERE" },
+  "nova_builder": { "ic": "YOUR_CANISTER_ID_HERE" },
+  "nova_protocol": { "ic": "YOUR_CANISTER_ID_HERE" },
+  "parallax": { "ic": "YOUR_CANISTER_ID_HERE" },
+  "phantom_transfer": { "ic": "YOUR_CANISTER_ID_HERE" },
+  "sovereign_factory": { "ic": "YOUR_CANISTER_ID_HERE" },
+  "agi_main": { "ic": "YOUR_CANISTER_ID_HERE" },
+  "frontend": { "ic": "YOUR_CANISTER_ID_HERE" }
+}
