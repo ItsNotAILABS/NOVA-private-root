@@ -35,6 +35,10 @@ import { DroneRealWorld }       from './components/CommandCenter/DroneRealWorld'
 // ── Neural Emergence Core ─────────────────────────────────────────────────────
 import { NECDashboard }   from './components/nec/NECDashboard';
 
+// ── NOVA Landing — Sovereign Organism Showcase ─────────────────────────────
+import { NovaLanding } from './components/NovaLanding';
+import { SystemsOverview } from './components/SystemsOverview';
+
 // ── PARALLAX Clearinghouse PWA ────────────────────────────────────────────
 import { ParallaxApp }       from './parallax/ParallaxApp';
 
@@ -59,6 +63,8 @@ import { TerminalHub }    from './terminals/TerminalHub';
 
 // ── Navigation ────────────────────────────────────────────────────────────────
 type NavView =
+  | 'LANDING'        // NOVA Landing — sovereign organism showcase
+  | 'SYSTEMS'        // Systems Overview — all intelligence, engines, meshes, AI connected
   | 'PHANTOM_WALLET'  // Phantom Wallet — first consumer product · Powered by PARALLAX
   | 'NOVA_BUILDER'   // NOVA BUILDER — sovereign CaffeineAI replacement · Build №42
   | 'DALLAS_ISD'     // DALLAS ISD — sovereign AI classroom platform · Build №43
@@ -85,6 +91,8 @@ type NavView =
 
 
 const NAV_ITEMS: Array<{ id: NavView; label: string; icon: string }> = [
+  { id: 'LANDING', label: 'NOVA', icon: '◊' },
+  { id: 'SYSTEMS', label: 'Systems', icon: '⊗' },
   { id: 'PHANTOM_WALLET', label: 'Phantom Wallet', icon: '⬡' },
   { id: 'NOVA_BUILDER',  label: 'NOVA Builder',  icon: '⊕' },
   { id: 'DALLAS_ISD',    label: 'DISD Classroom', icon: '🎓' },
@@ -116,41 +124,48 @@ const S = {
   root: {
     width: '100vw',
     height: '100vh',
-    background: '#050a14',
+    background: '#06080f',
     display: 'flex',
     flexDirection: 'column' as const,
     overflow: 'hidden',
   },
   topBar: {
-    height: 36,
-    background: '#070e1e',
-    borderBottom: '1px solid #1a3a5c',
+    height: 44,
+    background: 'rgba(6,8,15,0.85)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    borderBottom: '1px solid rgba(68,170,255,0.12)',
     display: 'flex',
     alignItems: 'center',
-    padding: '0 12px',
-    gap: 4,
+    padding: '0 16px',
+    gap: 6,
     flexShrink: 0,
   },
   brand: {
-    fontSize: 10,
-    color: '#4af',
-    letterSpacing: '0.18em',
+    fontSize: 11,
+    color: '#fff',
+    letterSpacing: '0.22em',
     textTransform: 'uppercase' as const,
-    marginRight: 16,
+    marginRight: 20,
+    fontWeight: 700,
+    fontFamily: 'system-ui, -apple-system, sans-serif',
   },
   navBtn: (active: boolean) => ({
-    padding: '3px 10px',
-    fontSize: 9,
-    background:  active ? '#1a3a5c' : 'transparent',
-    color:       active ? '#4af'    : '#3a6080',
-    border:      `1px solid ${active ? '#4af' : 'transparent'}`,
-    borderRadius: 3,
+    padding: '5px 12px',
+    fontSize: 10,
+    background: active ? 'rgba(68,170,255,0.15)' : 'transparent',
+    color: active ? '#fff' : '#5080a0',
+    border: active ? '1px solid rgba(68,170,255,0.3)' : '1px solid transparent',
+    borderRadius: 6,
     cursor: 'pointer',
-    letterSpacing: '0.06em',
+    letterSpacing: '0.05em',
     textTransform: 'uppercase' as const,
     display: 'flex',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    fontWeight: active ? 600 : 400,
+    transition: 'all 0.2s ease',
   }),
   statusRow: {
     marginLeft: 'auto',
@@ -262,7 +277,7 @@ function adaptToSwarmShape(organism: ReturnType<typeof useOrganismState>) {
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 export default function App() {
-  const [view, setView] = useState<NavView>('PHANTOM_WALLET'); // Default: Phantom Wallet consumer product
+  const [view, setView] = useState<NavView>('LANDING');
   const organism = useOrganismState();
   const swarm = adaptToSwarmShape(organism);
 
@@ -305,6 +320,19 @@ export default function App() {
 
       {/* ── Content area ─────────────────────────────────────────────────── */}
       <div style={S.content}>
+        {/* ── NOVA LANDING — Sovereign Organism Showcase ─────────────────────── */}
+        {view === 'LANDING' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'auto' }}>
+            <NovaLanding onNavigate={(v) => setView(v as NavView)} />
+          </div>
+        )}
+
+        {view === 'SYSTEMS' && (
+          <div style={{ width: '100%', height: '100%', overflow: 'auto' }}>
+            <SystemsOverview />
+          </div>
+        )}
+
         {/* ── PHANTOM WALLET — First Consumer Product · Powered by PARALLAX ─── */}
         {view === 'PHANTOM_WALLET' && (
           <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
