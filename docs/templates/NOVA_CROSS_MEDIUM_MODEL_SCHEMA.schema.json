@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nova.local/schemas/nova.cross_medium_model.v1.json",
+  "title": "NOVA Cross-Medium Model Schema v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "model_id",
+    "version",
+    "created_at",
+    "updated_at",
+    "owner_domain",
+    "invariant",
+    "authority_weights",
+    "forms",
+    "consistency",
+    "runtime",
+    "proof_state",
+    "gates"
+  ],
+  "properties": {
+    "schema": { "const": "nova.cross_medium_model.v1" },
+    "model_id": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "owner_domain": { "type": "string", "minLength": 1 },
+    "invariant": {
+      "type": "object",
+      "required": ["L_m", "S_m", "I_m", "R_m", "T_m", "P_m"],
+      "properties": {
+        "L_m": { "type": "object" },
+        "S_m": { "type": "object" },
+        "I_m": { "type": "string", "minLength": 1 },
+        "R_m": { "type": "object" },
+        "T_m": { "type": "object" },
+        "P_m": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "authority_weights": {
+      "type": "object",
+      "required": [
+        "substrate_motoko",
+        "doctrine_docs",
+        "projection_cpl_f",
+        "synthesis_python",
+        "transport_wasm",
+        "interface_candid"
+      ],
+      "properties": {
+        "substrate_motoko": { "type": "number", "minimum": 0, "maximum": 1 },
+        "doctrine_docs": { "type": "number", "minimum": 0, "maximum": 1 },
+        "projection_cpl_f": { "type": "number", "minimum": 0, "maximum": 1 },
+        "synthesis_python": { "type": "number", "minimum": 0, "maximum": 1 },
+        "transport_wasm": { "type": "number", "minimum": 0, "maximum": 1 },
+        "interface_candid": { "type": "number", "minimum": 0, "maximum": 1 },
+        "constraints": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "forms": {
+      "type": "object",
+      "required": [
+        "substrate_form",
+        "document_form",
+        "projection_form",
+        "synthesis_form",
+        "transport_form",
+        "interface_treaty"
+      ],
+      "properties": {
+        "substrate_form": {
+          "type": "object",
+          "required": ["location", "operator_ref", "state_schema_ref", "access_control_ref"]
+        },
+        "document_form": {
+          "type": "object",
+          "required": ["doctrine_refs", "meaning_hash", "exposure_class"]
+        },
+        "projection_form": {
+          "type": "object",
+          "required": ["cpl_f_refs", "ui_bindings_ref", "surface_state_schema_ref"]
+        },
+        "synthesis_form": {
+          "type": "object",
+          "required": ["enabled", "refs", "transform_contract_ref"]
+        },
+        "transport_form": {
+          "type": "object",
+          "required": ["enabled", "artifact_refs", "build_contract_ref"]
+        },
+        "interface_treaty": {
+          "type": "object",
+          "required": ["candid_refs", "compatibility_version"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "consistency": {
+      "type": "object",
+      "required": ["edges", "Xi_m", "drift"],
+      "properties": {
+        "edges": {
+          "type": "object",
+          "required": ["sub_doc", "doc_exe", "exe_proj", "proj_sub"]
+        },
+        "Xi_m": { "type": "number" },
+        "drift": {
+          "type": "object",
+          "required": ["D_m", "drift_budget", "status"],
+          "properties": {
+            "D_m": { "type": "number" },
+            "drift_budget": { "type": "number", "minimum": 0 },
+            "status": { "enum": ["stable", "warning", "breach"] }
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "runtime": {
+      "type": "object",
+      "required": ["heartbeat", "coherence", "immune", "memory"],
+      "properties": {
+        "heartbeat": {
+          "type": "object",
+          "required": ["H_t", "cadence_ms"]
+        },
+        "coherence": {
+          "type": "object",
+          "required": ["K_f_t", "quorum_Q_m_t"]
+        },
+        "immune": {
+          "type": "object",
+          "required": ["jasmine_J_m_t", "correction_events"]
+        },
+        "memory": {
+          "type": "object",
+          "required": ["M_m_t_ref"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "proof_state": {
+      "type": "object",
+      "required": [
+        "audit_status",
+        "evidence_refs",
+        "last_verified_at",
+        "verifier",
+        "runtime_truth_class"
+      ],
+      "properties": {
+        "audit_status": { "enum": ["pending", "partial", "verified", "rejected"] },
+        "evidence_refs": { "type": "array", "items": { "type": "string" } },
+        "last_verified_at": { "type": "string", "format": "date-time" },
+        "verifier": { "type": "string" },
+        "runtime_truth_class": { "enum": ["declared", "implemented", "runtime_live"] }
+      },
+      "additionalProperties": true
+    },
+    "gates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "rule"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "rule": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}
