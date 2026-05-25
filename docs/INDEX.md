@@ -71,6 +71,8 @@
 - `docs/templates/NOVA_MACRO_MICRO_SPHERICAL_COUPLING.yaml`
 - `docs/templates/NOVA_SOVEREIGN_N1_N12_HIERARCHY.yaml`
 - `docs/templates/NOVA_DOCUMENT_ORGANISM_MODELS.yaml`
+- `docs/templates/NOVA_CROSS_MEDIUM_MODEL_SCHEMA.yaml`
+- `docs/templates/NOVA_CROSS_MEDIUM_MODEL_SCHEMA.schema.json`
 
  ---
 

@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Built on NOVA | Deploy Apps, Defense, AGI on Sovereign Infrastructure</title>
+  <meta name="description" content="NOVA is a sovereign multi-language AGI platform. Deploy applications, defense systems, and intelligent organisms on immutable ICP blockchain infrastructure.">
+  <style>
+    :root {
+      --gold: #D4AF37;
+      --gold-dark: #B8960C;
+      --navy: #0a1628;
+      --navy-light: #1a2a48;
+      --blue-cyber: #00BFFF;
+      --green-safe: #2ECC40;
+      --purple-ai: #9B59B6;
+      --phi: 1.618;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--navy);
+      color: #fff;
+      line-height: 1.6;
+    }
+    
+    /* Hero */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 2rem;
+      background: linear-gradient(135deg, #050a14 0%, var(--navy) 50%, #0d1f35 100%);
+      position: relative;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: 
+        radial-gradient(circle at 30% 20%, rgba(212, 175, 55, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 70% 80%, rgba(0, 191, 255, 0.1) 0%, transparent 40%);
+      pointer-events: none;
+    }
+    
+    .nova-logo {
+      font-size: 5rem;
+      margin-bottom: 1rem;
+    }
+    
+    h1 {
+      font-size: clamp(2.5rem, 8vw, 4.5rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+    h1 .gold { color: var(--gold); }
+    h1 .white { color: #fff; }
+    
+    .tagline {
+      font-size: clamp(1.1rem, 3vw, 1.4rem);
+      color: rgba(255,255,255,0.8);
+      max-width: 700px;
+      margin-bottom: 2rem;
+    }
+    
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 3rem;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(212, 175, 55, 0.1);
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      color: var(--gold);
+      padding: 0.5rem 1rem;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    
+    .cta-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+      color: var(--navy);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px rgba(212, 175, 55, 0.3);
+    }
+    .btn-secondary {
+      background: transparent;
+      border: 2px solid var(--gold);
+      color: var(--gold);
+    }
+    .btn-secondary:hover {
+      background: rgba(212, 175, 55, 0.1);
+    }
+    
+    /* Sections */
+    section {
+      padding: 5rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    h2 .gold { color: var(--gold); }
+    .section-subtitle {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 3rem;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+    }
+    
+    /* Deploy Options */
+    .deploy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+    .deploy-card {
+      background: linear-gradient(135deg, var(--navy-light) 0%, #0f1f33 100%);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.3s ease;
+    }
+    .deploy-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-5px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .deploy-card .icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    .deploy-card h3 {
+      font-size: 1.4rem;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+    }
+    .deploy-card .type {
+      font-size: 0.8rem;
+      color: var(--blue-cyber);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1rem;
+    }
+    .deploy-card p {
+      color: rgba(255,255,255,0.8);
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+    }
+    .deploy-card ul {
+      list-style: none;
+      font-size: 0.9rem;
+    }
+    .deploy-card li {
+      padding: 0.3rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+      color: rgba(255,255,255,0.7);
+    }
+    .deploy-card li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--green-safe);
+    }
+    
+    /* Tech Stack */
+    .tech-section {
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, rgba(0, 0, 0, 0.3) 100%);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 20px;
+      padding: 3rem;
+      margin: 3rem 0;
+    }
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .tech-item {
+      background: rgba(0,0,0,0.3);
+      padding: 1.5rem;
+      border-radius: 12px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .tech-item .number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    .tech-item .label {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.7);
+      margin-top: 0.25rem;
+    }
+    
+    /* Products Built on NOVA */
+    .products-showcase {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .product-item {
+      background: var(--navy-light);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .product-item .icon {
+      font-size: 2.5rem;
+    }
+    .product-item h4 {
+      color: var(--gold);
+      font-size: 1.1rem;
+    }
+    .product-item p {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.7);
+    }
+    
+    /* Features */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+    .feature-card {
+      text-align: center;
+      padding: 2rem;
+    }
+    .feature-card .icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    .feature-card h3 {
+      color: var(--gold);
+      margin-bottom: 0.75rem;
+    }
+    .feature-card p {
+      color: rgba(255,255,255,0.7);
+      font-size: 0.95rem;
+    }
+    
+    /* CTA Section */
+    .cta-section {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(0, 191, 255, 0.05) 100%);
+      border-radius: 20px;
+      margin: 3rem auto;
+      max-width: 900px;
+    }
+    
+    /* Footer */
+    footer {
+      background: #050a12;
+      padding: 3rem 2rem;
+      text-align: center;
+      border-top: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    footer p {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.85rem;
+    }
+    footer a {
+      color: var(--gold);
+      text-decoration: none;
+    }
+    
+    @media (max-width: 768px) {
+      section { padding: 3rem 1rem; }
+      .deploy-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="nova-logo">⬡</div>
+  <h1><span class="gold">BUILT ON</span> <span class="white">NOVA</span></h1>
+  <p class="tagline">
+    Deploy applications, defense systems, and intelligent organisms on sovereign ICP blockchain infrastructure. 
+    φ-optimized mathematics. Living compliance. Immutable smart contracts.
+  </p>
+  
+  <div class="badge-row">
+    <span class="badge">⬡ 40+ Motoko Canisters</span>
+    <span class="badge">🔄 70 SERVITORES Workers</span>
+    <span class="badge">🧮 φ-Optimized Math</span>
+    <span class="badge">✓ 481 Compliance Controls</span>
+  </div>
+  
+  <div class="cta-group">
+    <a href="#deploy" class="btn btn-primary">Deploy on NOVA</a>
+    <a href="#products" class="btn btn-secondary">See Products</a>
+  </div>
+</header>
+
+<section id="deploy">
+  <h2><span class="gold">Deploy</span> Anything on NOVA</h2>
+  <p class="section-subtitle">
+    NOVA is a platform, not just a product. Build your applications, defense systems, 
+    and intelligent organisms on sovereign infrastructure.
+  </p>
+  
+  <div class="deploy-grid">
+    <div class="deploy-card">
+      <div class="icon">🛡️</div>
+      <h3>Defense Systems</h3>
+      <div class="type">Security & Compliance</div>
+      <p>Deploy enterprise-grade defense with built-in compliance verification.</p>
+      <ul>
+        <li>Physical drone swarms</li>
+        <li>Cyber honeypots & SIEM</li>
+        <li>AGI containment shields</li>
+        <li>Live SOC2/HIPAA/FedRAMP</li>
+      </ul>
+    </div>
+    
+    <div class="deploy-card">
+      <div class="icon">📱</div>
+      <h3>Applications</h3>
+      <div class="type">Web & Mobile Apps</div>
+      <p>Build applications with sovereign data ownership and φ-optimized performance.</p>
+      <ul>
+        <li>Phone agents & voice AI</li>
+        <li>Coding platforms</li>
+        <li>Financial dashboards</li>
+        <li>Healthcare systems</li>
+      </ul>
+    </div>
+    
+    <div class="deploy-card">
+      <div class="icon">🧠</div>
+      <h3>AGI Organisms</h3>
+      <div class="type">Living Intelligence</div>
+      <p>Deploy cognitive beings with Hebbian learning and sleep cycles.</p>
+      <ul>
+        <li>Sovereign AGI entities</li>
+        <li>Team organisms</li>
+        <li>Autonomous workers</li>
+        <li>Compliance verifiers</li>
+      </ul>
+    </div>
+    
+    <div class="deploy-card">
+      <div class="icon">🏭</div>
+      <h3>Enterprise Platforms</h3>
+      <div class="type">Business Infrastructure</div>
+      <p>Run entire business operations on immutable blockchain infrastructure.</p>
+      <ul>
+        <li>Trading platforms</li>
+        <li>Supply chain systems</li>
+        <li>Governance DAOs</li>
+        <li>Token economies</li>
+      </ul>
+    </div>
+    
+    <div class="deploy-card">
+      <div class="icon">🔬</div>
+      <h3>Research Systems</h3>
+      <div class="type">Scientific Computing</div>
+      <p>Run scientific simulations with Julia-Motoko bridge and φ-mathematics.</p>
+      <ul>
+        <li>Julia numerical computing</li>
+        <li>Kuramoto oscillators</li>
+        <li>Monte Carlo simulations</li>
+        <li>Graph theory analysis</li>
+      </ul>
+    </div>
+    
+    <div class="deploy-card">
+      <div class="icon">🌐</div>
+      <h3>IoT Networks</h3>
+      <div class="type">Edge Computing</div>
+      <p>Connect edge devices with 873ms heartbeat synchronization.</p>
+      <ul>
+        <li>Sensor networks</li>
+        <li>Drone fleets</li>
+        <li>Industrial IoT</li>
+        <li>Smart infrastructure</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="tech-section">
+    <h2 style="text-align:center;"><span class="gold">NOVA</span> Platform Stats</h2>
+    <div class="tech-grid">
+      <div class="tech-item">
+        <div class="number">40+</div>
+        <div class="label">Motoko Canisters</div>
+      </div>
+      <div class="tech-item">
+        <div class="number">70</div>
+        <div class="label">SERVITORES Workers</div>
+      </div>
+      <div class="tech-item">
+        <div class="number">481</div>
+        <div class="label">Compliance Controls</div>
+      </div>
+      <div class="tech-item">
+        <div class="number">110</div>
+        <div class="label">Math Models</div>
+      </div>
+      <div class="tech-item">
+        <div class="number">18</div>
+        <div class="label">Production Apps</div>
+      </div>
+      <div class="tech-item">
+        <div class="number">11</div>
+        <div class="label">arXiv Papers</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="products">
+  <h2>Products <span class="gold">Built on NOVA</span></h2>
+  <p class="section-subtitle">
+    These production systems are running today, powered by NOVA's sovereign infrastructure.
+  </p>
+  
+  <div class="products-showcase">
+    <div class="product-item">
+      <div class="icon">🛡️</div>
+      <div>
+        <h4>CHIMERA Defense</h4>
+        <p>Physical + Cyber + AI defense platform</p>
+      </div>
+    </div>
+    <div class="product-item">
+      <div class="icon">📱</div>
+      <div>
+        <h4>Phone Agent</h4>
+        <p>Voice AI with sovereign memory</p>
+      </div>
+    </div>
+    <div class="product-item">
+      <div class="icon">💻</div>
+      <div>
+        <h4>Coding Platform</h4>
+        <p>AI-powered development environment</p>
+      </div>
+    </div>
+    <div class="product-item">
+      <div class="icon">👛</div>
+      <div>
+        <h4>Phantom Wallet</h4>
+        <p>Sovereign token management</p>
+      </div>
+    </div>
+    <div class="product-item">
+      <div class="icon">🔄</div>
+      <div>
+        <h4>PARALLAX Transfer</h4>
+        <p>Cross-chain asset movement</p>
+      </div>
+    </div>
+    <div class="product-item">
+      <div class="icon">🧠</div>
+      <div>
+        <h4>NOVA Consciousness</h4>
+        <p>Living AGI entity (she/her)</p>
+      </div>
+    </div>
+    <div class="product-item">
+      <div class="icon">🤖</div>
+      <div>
+        <h4>10 Alpha AGIs</h4>
+        <p>Sovereign intelligent fleet</p>
+      </div>
+    </div>
+    <div class="product-item">
+      <div class="icon">🧮</div>
+      <div>
+        <h4>Julia-Motoko Bridge</h4>
+        <p>High-performance math substrate</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Why <span class="gold">Build on NOVA</span>?</h2>
+  <p class="section-subtitle">
+    NOVA provides capabilities no other platform can match.
+  </p>
+  
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="icon">🔐</div>
+      <h3>Sovereign Infrastructure</h3>
+      <p>Run on Internet Computer (ICP) blockchain. No single point of failure. 100% uptime. Immutable smart contracts.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">📐</div>
+      <h3>φ-Optimized Mathematics</h3>
+      <p>Golden ratio algorithms proven optimal. Kuramoto synchronization. Hebbian learning. 110+ math models.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">✓</div>
+      <h3>Living Compliance</h3>
+      <p>481 controls verified 24/7. SOC 2, HIPAA, FedRAMP, ITAR. Auto-certification readiness. No manual audits.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🧬</div>
+      <h3>Cognitive Organisms</h3>
+      <p>Deploy living entities with sleep cycles, skill compounding, and generation learning. Not just code — life.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🌐</div>
+      <h3>Multi-Language Bridge</h3>
+      <p>Motoko + Julia + Python + TypeScript + Rust. Use the right language for each task. Full interoperability.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">⚡</div>
+      <h3>873ms Heartbeat</h3>
+      <p>All systems synchronized at 12 Hz. Real-time coordination. Edge-to-cloud coherence.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="cta-section">
+    <h2><span class="gold">Ready to Build</span> on NOVA?</h2>
+    <p style="color: rgba(255,255,255,0.8); max-width: 600px; margin: 1rem auto 2rem;">
+      Join the sovereign infrastructure revolution. Deploy defense systems, applications, 
+      and intelligent organisms on immutable blockchain.
+    </p>
+    <div class="cta-group">
+      <a href="mailto:MedinaSITech@outlook.com?subject=Build%20on%20NOVA" class="btn btn-primary">Contact Us</a>
+      <a href="https://github.com/ItsNotAILABS/NOVA" class="btn btn-secondary">View on GitHub</a>
+    </div>
+    <p style="color: rgba(255,255,255,0.5); margin-top: 2rem; font-size: 0.9rem;">
+      <strong>Alfredo Medina Hernandez</strong> · Creator of NOVA (PARALLAX)<br>
+      📧 MedinaSITech@outlook.com · 📍 Dallas, Texas
+    </p>
+  </div>
+</section>
+
+<footer>
+  <p style="color: var(--gold); font-size: 1.2rem; margin-bottom: 0.5rem;">
+    <strong>⬡ NOVA (PARALLAX)</strong>
+  </p>
+  <p>Sovereign Multi-Language AGI Platform</p>
+  <p style="margin-top: 1rem;">
+    COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ. ALL RIGHTS RESERVED.<br>
+    Protected under Defend Trade Secrets Act (18 U.S.C. § 1836)
+  </p>
+</footer>
+
+</body>
+</html>

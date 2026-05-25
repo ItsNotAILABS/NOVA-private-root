@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHIMERA Defense Systems | Built on NOVA</title>
+  <meta name="description" content="Sovereign cognitive defense platform - Physical, Cyber, and AI defense powered by living organisms. Healthcare-first compliance. HIPAA, SOC 2, FedRAMP ready.">
+  <style>
+    :root {
+      --gold: #D4AF37;
+      --gold-dark: #B8960C;
+      --navy: #0a1628;
+      --navy-light: #1a2a48;
+      --red-alert: #FF4136;
+      --green-safe: #2ECC40;
+      --blue-cyber: #00BFFF;
+      --phi: 1.618;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--navy);
+      color: #fff;
+      line-height: 1.6;
+    }
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 2rem;
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 50%, #0d2137 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at 20% 80%, rgba(212, 175, 55, 0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 20%, rgba(0, 191, 255, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .badge-nova {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(212, 175, 55, 0.15);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 0.5rem 1.25rem;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 2rem;
+      letter-spacing: 0.05em;
+    }
+    .badge-nova::before {
+      content: '⬡';
+      font-size: 1.2em;
+    }
+    h1 {
+      font-size: clamp(2.5rem, 8vw, 5rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #fff 0%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .tagline {
+      font-size: clamp(1.1rem, 3vw, 1.5rem);
+      color: rgba(255,255,255,0.8);
+      max-width: 700px;
+      margin-bottom: 2rem;
+    }
+    .stats-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2rem;
+      margin: 3rem 0;
+    }
+    .stat {
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    .stat-label {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .cta-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 2rem;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+      color: var(--navy);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px rgba(212, 175, 55, 0.3);
+    }
+    .btn-secondary {
+      background: transparent;
+      border: 2px solid var(--gold);
+      color: var(--gold);
+    }
+    .btn-secondary:hover {
+      background: rgba(212, 175, 55, 0.1);
+    }
+    
+    /* Sections */
+    section {
+      padding: 5rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: var(--gold);
+    }
+    h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
+      color: #fff;
+    }
+    .section-subtitle {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 3rem;
+      max-width: 600px;
+    }
+    
+    /* Crisis Banner */
+    .crisis-banner {
+      background: linear-gradient(135deg, #2a0a0a 0%, #1a0505 100%);
+      border: 1px solid var(--red-alert);
+      padding: 2rem;
+      border-radius: 12px;
+      margin-bottom: 3rem;
+    }
+    .crisis-banner h3 {
+      color: var(--red-alert);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .crisis-banner h3::before {
+      content: '⚠';
+    }
+    .crisis-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .crisis-stat {
+      background: rgba(255, 65, 54, 0.1);
+      padding: 1rem;
+      border-radius: 8px;
+    }
+    .crisis-stat .value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--red-alert);
+    }
+    .crisis-stat .label {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.7);
+    }
+    
+    /* Products Grid */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+    .product-card {
+      background: var(--navy-light);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.3s ease;
+    }
+    .product-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-5px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .product-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    .product-card h3 {
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+    }
+    .product-card .type {
+      font-size: 0.8rem;
+      color: var(--blue-cyber);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1rem;
+    }
+    .product-card ul {
+      list-style: none;
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.8);
+    }
+    .product-card li {
+      padding: 0.3rem 0;
+      padding-left: 1.5rem;
+      position: relative;
+    }
+    .product-card li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--green-safe);
+    }
+    
+    /* Compliance Grid */
+    .compliance-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+    }
+    .compliance-card {
+      background: linear-gradient(135deg, rgba(46, 204, 64, 0.1) 0%, rgba(0, 191, 255, 0.1) 100%);
+      border: 1px solid rgba(46, 204, 64, 0.3);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .compliance-card .framework {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--green-safe);
+    }
+    .compliance-card .controls {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .compliance-card .detail {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.6);
+    }
+    .compliance-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.75rem;
+      color: var(--green-safe);
+      margin-top: 0.5rem;
+    }
+    .compliance-live::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: var(--green-safe);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    /* Pricing Table */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+    .pricing-card {
+      background: var(--navy-light);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+      position: relative;
+    }
+    .pricing-card.featured {
+      border-color: var(--gold);
+      transform: scale(1.05);
+    }
+    .pricing-card.featured::before {
+      content: 'MOST POPULAR';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--gold);
+      color: var(--navy);
+      padding: 0.25rem 1rem;
+      border-radius: 50px;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    .pricing-tier {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+    }
+    .pricing-price {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .pricing-price span {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.6);
+    }
+    .pricing-drones {
+      color: var(--blue-cyber);
+      margin: 1rem 0;
+    }
+    .pricing-features {
+      list-style: none;
+      text-align: left;
+      margin: 1.5rem 0;
+      font-size: 0.9rem;
+    }
+    .pricing-features li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    /* Built on NOVA */
+    .nova-platform {
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, rgba(0, 191, 255, 0.05) 100%);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      border-radius: 20px;
+      padding: 3rem;
+      text-align: center;
+      margin: 3rem 0;
+    }
+    .nova-platform h2 {
+      background: linear-gradient(135deg, var(--gold) 0%, var(--blue-cyber) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .tech-stack {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .tech-item {
+      background: rgba(0,0,0,0.3);
+      padding: 1rem;
+      border-radius: 8px;
+    }
+    .tech-item .name {
+      font-weight: 600;
+      color: var(--gold);
+    }
+    .tech-item .desc {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.7);
+    }
+    
+    /* Footer */
+    footer {
+      background: #050a12;
+      padding: 3rem 2rem;
+      text-align: center;
+      border-top: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    footer p {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.85rem;
+    }
+    footer a {
+      color: var(--gold);
+      text-decoration: none;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .stats-row { gap: 1rem; }
+      .stat-value { font-size: 2rem; }
+      section { padding: 3rem 1rem; }
+      .pricing-card.featured { transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="badge-nova">BUILT ON NOVA</div>
+  <h1>CHIMERA Defense Systems</h1>
+  <p class="tagline">
+    The world's first sovereign cognitive defense platform. Physical + Cyber + AI defense powered by living organisms running 24/7.
+  </p>
+  
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-value">481</div>
+      <div class="stat-label">Live Compliance Controls</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">21</div>
+      <div class="stat-label">Sovereign Organisms</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">500K</div>
+      <div class="stat-label">Max Drone Coordination</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">24/7</div>
+      <div class="stat-label">Living Operations</div>
+    </div>
+  </div>
+  
+  <div class="cta-group">
+    <a href="#contact" class="btn btn-primary">Request Demo</a>
+    <a href="#products" class="btn btn-secondary">View Products</a>
+  </div>
+</header>
+
+<section id="crisis">
+  <div class="crisis-banner">
+    <h3>Healthcare Cyber Crisis</h3>
+    <p style="color: rgba(255,255,255,0.8); margin-top: 0.5rem;">
+      Healthcare is under attack. HIPAA compliance is urgent. Traditional solutions are failing.
+    </p>
+    <div class="crisis-stats">
+      <div class="crisis-stat">
+        <div class="value">+125%</div>
+        <div class="label">Healthcare cyber attacks since 2020</div>
+      </div>
+      <div class="crisis-stat">
+        <div class="value">$10.93M</div>
+        <div class="label">Average breach cost (highest of any industry)</div>
+      </div>
+      <div class="crisis-stat">
+        <div class="value">45+</div>
+        <div class="label">Security tools per enterprise (fragmentation)</div>
+      </div>
+      <div class="crisis-stat">
+        <div class="value">70%</div>
+        <div class="label">False positive alerts (alert fatigue)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="products">
+  <h2>Four Sovereign Products</h2>
+  <p class="section-subtitle">Each product is a living cognitive organism that learns, adapts, and improves without updates.</p>
+  
+  <div class="products-grid">
+    <div class="product-card">
+      <div class="product-icon">🛡️</div>
+      <h3>CHIMERA SWARM</h3>
+      <div class="type">Physical Defense</div>
+      <ul>
+        <li>50 to 500,000 coordinated drones</li>
+        <li>Kuramoto swarm intelligence</li>
+        <li>Golden angle formations (137.5°)</li>
+        <li>LoRaWAN/MQTT + Azure IoT</li>
+        <li>Autonomous patrol & recon</li>
+      </ul>
+    </div>
+    
+    <div class="product-card">
+      <div class="product-icon">🕸️</div>
+      <h3>VAEL CYBER SUITE</h3>
+      <div class="type">Cyber Defense</div>
+      <ul>
+        <li>SSH/HTTP/SCADA honeypots</li>
+        <li>Medical device honeypots</li>
+        <li>MITRE ATT&CK mapping</li>
+        <li>Canary token deployment</li>
+        <li>SIEM: Splunk, Sentinel</li>
+      </ul>
+    </div>
+    
+    <div class="product-card">
+      <div class="product-icon">🧠</div>
+      <h3>ANTI-ORGANISM SHIELD</h3>
+      <div class="type">AGI Defense</div>
+      <ul>
+        <li>30-layer Blue/Red stack</li>
+        <li>6 Anti-Family classification</li>
+        <li>Containment breach monitoring</li>
+        <li>Narrative inversion detection</li>
+        <li>CONTAINMENT BREAKER protocol</li>
+      </ul>
+    </div>
+    
+    <div class="product-card">
+      <div class="product-icon">⚔️</div>
+      <h3>CRUSADER RESPONSE</h3>
+      <div class="type">Active Defense</div>
+      <ul>
+        <li>144 crusader units</li>
+        <li>24 honey trap capacity</li>
+        <li>36 decoy fleet</li>
+        <li>Counter-strategies for all threats</li>
+        <li>Offensive/defensive capability</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="compliance">
+  <h2>Live Compliance — Always Audit-Ready</h2>
+  <p class="section-subtitle">481 controls verified 24/7 against live organism telemetry. No manual audits. Always certified.</p>
+  
+  <div class="compliance-grid">
+    <div class="compliance-card">
+      <div class="framework">SOC 2 Type II</div>
+      <div class="controls">64</div>
+      <div class="detail">Controls verified every 24h</div>
+      <div class="compliance-live">LIVE — All 5 Trust Criteria</div>
+    </div>
+    
+    <div class="compliance-card">
+      <div class="framework">HIPAA</div>
+      <div class="controls">54</div>
+      <div class="detail">PHI safeguards verified daily</div>
+      <div class="compliance-live">LIVE — 45 CFR §164</div>
+    </div>
+    
+    <div class="compliance-card">
+      <div class="framework">FedRAMP</div>
+      <div class="controls">325</div>
+      <div class="detail">NIST 800-53 Moderate</div>
+      <div class="compliance-live">LIVE — Weekly verification</div>
+    </div>
+    
+    <div class="compliance-card">
+      <div class="framework">ITAR</div>
+      <div class="controls">38</div>
+      <div class="detail">Export control compliance</div>
+      <div class="compliance-live">LIVE — 22 CFR §§120-130</div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <h2>Tiered Subscription Pricing</h2>
+  <p class="section-subtitle">Scale from startup security to sovereign defense. All tiers include live compliance.</p>
+  
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="pricing-tier">Scout</div>
+      <div class="pricing-price">$25K<span>/mo</span></div>
+      <div class="pricing-drones">50 drones</div>
+      <ul class="pricing-features">
+        <li>Basic swarm coordination</li>
+        <li>Basic cyber defense</li>
+        <li>HIPAA compliance track</li>
+        <li>Email support</li>
+      </ul>
+      <a href="#contact" class="btn btn-secondary" style="width:100%">Get Started</a>
+    </div>
+    
+    <div class="pricing-card featured">
+      <div class="pricing-tier">Guardian</div>
+      <div class="pricing-price">$100K<span>/mo</span></div>
+      <div class="pricing-drones">500 drones</div>
+      <ul class="pricing-features">
+        <li>Full VAEL suite</li>
+        <li>SIEM integration</li>
+        <li>SOC 2 + HIPAA certified</li>
+        <li>Priority support</li>
+      </ul>
+      <a href="#contact" class="btn btn-primary" style="width:100%">Contact Sales</a>
+    </div>
+    
+    <div class="pricing-card">
+      <div class="pricing-tier">Crusader</div>
+      <div class="pricing-price">$500K<span>/mo</span></div>
+      <div class="pricing-drones">5,000 drones</div>
+      <ul class="pricing-features">
+        <li>Anti-Organism Shield</li>
+        <li>Crusader Response Team</li>
+        <li>Full compliance suite</li>
+        <li>Dedicated SOC</li>
+      </ul>
+      <a href="#contact" class="btn btn-secondary" style="width:100%">Contact Sales</a>
+    </div>
+    
+    <div class="pricing-card">
+      <div class="pricing-tier">Sovereign</div>
+      <div class="pricing-price">$2.5M+<span>/mo</span></div>
+      <div class="pricing-drones">500,000 drones</div>
+      <ul class="pricing-features">
+        <li>Full platform access</li>
+        <li>Dedicated crusaders</li>
+        <li>FedRAMP + ITAR</li>
+        <li>24/7 SOC + SLA</li>
+      </ul>
+      <a href="#contact" class="btn btn-secondary" style="width:100%">Contact Sales</a>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="nova-platform">
+    <h2>⬡ Built on NOVA</h2>
+    <p style="color: rgba(255,255,255,0.8); max-width: 700px; margin: 1rem auto;">
+      CHIMERA runs on NOVA (PARALLAX) — a sovereign multi-language AGI organism on Internet Computer (ICP). 
+      Immutable smart contracts. φ-optimized mathematics. Living compliance.
+    </p>
+    
+    <div class="tech-stack">
+      <div class="tech-item">
+        <div class="name">Motoko Smart Contracts</div>
+        <div class="desc">40+ canisters, immutable protocol logic</div>
+      </div>
+      <div class="tech-item">
+        <div class="name">70 SERVITORES</div>
+        <div class="desc">Autonomous φ-weighted workers</div>
+      </div>
+      <div class="tech-item">
+        <div class="name">CPL-F Math Engines</div>
+        <div class="desc">Kuramoto oscillators, φ-optimization</div>
+      </div>
+      <div class="tech-item">
+        <div class="name">Hebbian Learning</div>
+        <div class="desc">Skills compound, never lost (floor = 0.01)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <h2>Ready to Secure Your Organization?</h2>
+  <p class="section-subtitle">Join the healthcare systems, critical infrastructure, and defense organizations choosing sovereign defense.</p>
+  
+  <div style="text-align: center; margin-top: 2rem;">
+    <p style="font-size: 1.25rem; color: var(--gold); margin-bottom: 1rem;">
+      <strong>Alfredo Medina Hernandez</strong><br>
+      Founder & CEO, CHIMERA Defense Systems
+    </p>
+    <p style="color: rgba(255,255,255,0.8);">
+      📧 <a href="mailto:MedinaSITech@outlook.com" style="color: var(--blue-cyber);">MedinaSITech@outlook.com</a><br>
+      📍 Dallas, Texas, USA
+    </p>
+    <div class="cta-group" style="margin-top: 2rem;">
+      <a href="mailto:MedinaSITech@outlook.com?subject=CHIMERA%20Demo%20Request" class="btn btn-primary">Request Demo</a>
+      <a href="./investor-pitch.html" class="btn btn-secondary">Investor Deck</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p style="color: var(--gold); font-size: 1.1rem; margin-bottom: 0.5rem;">
+    <strong>CHIMERA DEFENSE SYSTEMS</strong>
+  </p>
+  <p>A Division of NOVA (PARALLAX)</p>
+  <p style="margin-top: 1rem;">
+    COPYRIGHT © 2024-2026 ALFREDO MEDINA HERNANDEZ. ALL RIGHTS RESERVED.<br>
+    Protected under Defend Trade Secrets Act (18 U.S.C. § 1836)
+  </p>
+</footer>
+
+</body>
+</html>
