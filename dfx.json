@@ -229,6 +229,18 @@
       "main": "src/nova_builder/main.mo",
       "dependencies": []
     },
+    "learning_core": {
+      "type": "motoko",
+      "main": "src/learning_core/main.mo",
+      "dependencies": []
+    },
+    "agent_orchestrator": {
+      "type": "motoko",
+      "main": "src/agent_orchestrator/main.mo",
+      "dependencies": [
+        "learning_core"
+      ]
+    },
     "frontend": {
       "type": "assets",
       "source": [
@@ -237,7 +249,9 @@
       "dependencies": [
         "swarm_brain",
         "swarm_organism",
-        "nova_builder"
+        "nova_builder",
+        "learning_core",
+        "agent_orchestrator"
       ]
     },
     "nova_student": {
