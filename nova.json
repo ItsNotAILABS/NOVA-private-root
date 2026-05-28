@@ -277,6 +277,20 @@
       "dependencies": [],
       "description": "NOVA BUILDER — Sovereign CaffeineAI Replacement (BUILD №42): Non-profit, permissionless, on-chain AI-assisted canister builder. Intent intake → swarm_brain code generation → sovereign_factory deploy. Cycles subsidy pool funded by donations/grants/protocol fees. Rate-limited by pool balance only — zero account-based limits ever. Every build burns ICP cycles → direct deflationary pressure. Stream-publishes all events to nova_stream (BUILDER_INTAKE/BUILDER_GENERATE/BUILDER_DEPLOY/BUILDER_CYCLES_BURN). Community-governed via nova_governance."
     },
+    "learning_core": {
+      "type": "motoko",
+      "main": "src/learning_core/main.mo",
+      "dependencies": [],
+      "description": "LEARNING CORE — Shared sovereign learning canister for all NOVA agents: universal learning record contract with provenance/quality/policy gates, trusted promotion workflow, training dataset export, RAG retrieval context index, benchmark case + score telemetry, and quota/retention/cost governance."
+    },
+    "agent_orchestrator": {
+      "type": "motoko",
+      "main": "src/agent_orchestrator/main.mo",
+      "dependencies": [
+        "learning_core"
+      ],
+      "description": "AGENT ORCHESTRATOR — Autonomous control-plane canister for agent lifecycle: registration, job spawn/run/complete, reputation and yield tracking, learning-core routing via inter-canister calls, and Chain Fusion intent/policy lane with auditable status transitions."
+    },
     "test_core_001": {
       "type": "motoko",
       "main": "src/test_core_001/main.mo",
@@ -303,7 +317,9 @@
       ],
       "dependencies": [
         "swarm_brain",
-        "swarm_organism"
+        "swarm_organism",
+        "learning_core",
+        "agent_orchestrator"
       ],
       "description": "Sovereign web UI (Vite + React)"
     },

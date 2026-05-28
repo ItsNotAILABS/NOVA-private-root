@@ -1273,6 +1273,120 @@ class MCPServer {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// §10 — INTERNAL AI IDENTITY REGISTRY
+// Provides persistent identity + emoji signatures for commits, reports, and
+// generic agent actions.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const DEFAULT_INTERNAL_AI_EMOJI = '🤖';
+
+class InternalAIIdentityRegistry {
+  constructor(config = {}) {
+    this.defaultEmoji = config.defaultEmoji || DEFAULT_INTERNAL_AI_EMOJI;
+    this._identities = new Map();
+  }
+
+  register(identity = {}) {
+    if (!identity.agentId) {
+      throw new Error('Identity must include agentId');
+    }
+    if (!identity.name) {
+      throw new Error('Identity must include name');
+    }
+
+    const record = {
+      agentId: identity.agentId,
+      name: identity.name,
+      emoji: identity.emoji || this.defaultEmoji,
+      role: identity.role || 'internal_ai',
+      createdAt: identity.createdAt || Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    this._identities.set(record.agentId, record);
+    return { ...record };
+  }
+
+  registerMany(identities = []) {
+    return identities.map(identity => this.register(identity));
+  }
+
+  setEmoji(agentId, emoji) {
+    const current = this._identities.get(agentId);
+    if (!current) {
+      throw new Error(`Identity not found for agent: ${agentId}`);
+    }
+    current.emoji = emoji || this.defaultEmoji;
+    current.updatedAt = Date.now();
+    this._identities.set(agentId, current);
+    return { ...current };
+  }
+
+  get(agentId) {
+    const identity = this._identities.get(agentId);
+    return identity ? { ...identity } : null;
+  }
+
+  list() {
+    return Array.from(this._identities.values()).map(identity => ({ ...identity }));
+  }
+
+  _resolveIdentity(agentId, fallbackName = 'Internal AI') {
+    return this.get(agentId) || {
+      agentId,
+      name: fallbackName,
+      emoji: this.defaultEmoji,
+      role: 'internal_ai',
+    };
+  }
+
+  signAction(agentId, actionType, details = {}) {
+    const identity = this._resolveIdentity(agentId);
+    return {
+      actionType,
+      details,
+      signedBy: identity.name,
+      agentId: identity.agentId,
+      emoji: identity.emoji,
+      signature: `${identity.name} ${identity.emoji}`,
+      signedAt: Date.now(),
+    };
+  }
+
+  signCommit(agentId, commitMessage, metadata = {}) {
+    const signed = this.signAction(agentId, 'commit', {
+      message: commitMessage,
+      ...metadata,
+    });
+
+    return {
+      ...signed,
+      commitMessage,
+      signedCommitMessage: `${commitMessage}\n\nSigned-by: ${signed.signature}`,
+    };
+  }
+
+  signReport(agentId, reportTitle, metadata = {}) {
+    const signed = this.signAction(agentId, 'report', {
+      title: reportTitle,
+      ...metadata,
+    });
+
+    return {
+      ...signed,
+      reportTitle,
+      reportFooter: `Signed by ${signed.signature}`,
+    };
+  }
+}
+
+function createInternalAIIdentityRegistry(config = {}) {
+  return new InternalAIIdentityRegistry(config);
+}
+
+const globalInternalAIIdentityRegistry = createInternalAIIdentityRegistry();
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // §10 — EXPORTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -1297,6 +1411,10 @@ export {
   AgentScheduler,
   AgentRPCBus,
   MCPServer,
+  InternalAIIdentityRegistry,
+  DEFAULT_INTERNAL_AI_EMOJI,
+  createInternalAIIdentityRegistry,
+  globalInternalAIIdentityRegistry,
 };
 
 export default {
@@ -1312,6 +1430,10 @@ export default {
   AgentScheduler,
   AgentRPCBus,
   MCPServer,
+  InternalAIIdentityRegistry,
+  DEFAULT_INTERNAL_AI_EMOJI,
+  createInternalAIIdentityRegistry,
+  globalInternalAIIdentityRegistry,
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
