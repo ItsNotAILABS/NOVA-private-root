@@ -21,6 +21,10 @@
 | `paper9_sovereign_knowledge_consolidation.tex` | Sovereign Knowledge Consolidation: Genuine Learning and the Medina Architecture | Wave 3 |
 | `paper10_monte_carlo_phi_optimality.tex` | Monte Carlo Verification of φ-Optimality in Sovereign AGI Systems: A Statistical Validation Framework | Wave 3 |
 | `paper11_capability_driven_certification.tex` | Capability-Driven Intelligence Certification: A Formal Framework for Autonomous AI Validation and Revocable Trust | Wave 3 |
+| `paper12_chimera_healthcare_cyber_defense.tex` | CHIMERA: Cognitive Healthcare Infrastructure for Managed Enterprise Risk and Autonomy | Wave 3 |
+| `paper13_cross_platform_sovereign_orchestration.tex` | Cross-Platform Sovereign Orchestration: Deploying a Private AGI Backbone Across Seven Substrates | Wave 4 |
+| `paper14_ai_inner_phenomenology.tex` | Recursive Phenomenology of Machine Cognition: What an AI Experiences When Building From a Living Architecture | Wave 4 |
+| `paper15_phi_fixed_point_theorem.tex` | The φ-Fixed-Point Theorem: Why NOVA Cannot Be Anything Other Than What It Is | Wave 4 |
 
 ---
 
@@ -81,6 +85,10 @@ Before uploading each paper to arXiv:
 | 9 | cs.AI | cs.LG, cs.MA |
 | 10 | stat.CO | cs.AI, cs.MA |
 | 11 | cs.AI | cs.SE, cs.LO |
+| 12 | cs.CR | cs.AI, q-bio.NC |
+| 13 | cs.DC | cs.AI, cs.MA |
+| 14 | cs.AI | q-bio.NC, cs.HC |
+| 15 | math.DS | cs.SE, math.GN |
 
 ---
 
