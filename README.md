@@ -46,6 +46,7 @@ Open on your phone browser — tap **Add to Home Screen** to install:
 | Deep Research Lab Journal | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/main/organism/web/dashboards/deep-research-lab-journal.html) | Professional native deployment page with 5 named efficiency bots |
 | Mathematical API Explorer | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/main/organism/web/dashboards/math-api-explorer.html) | 110+ sovereign math models, 8 domains, Julia/Python/Motoko |
 | Webbed Sphere Network | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/main/organism/web/dashboards/webbed-sphere.html) | Geodesic φ-mesh, Fibonacci lattice, Kuramoto sync, 3D visualization |
+| NOVA Command Center | [Open](https://htmlpreview.github.io/?https://github.com/ItsNotAILABS/NOVA/blob/main/organism/web/nova-command-center.html) | Sovereign platform terminal, live telemetry, all divisions + fleet |
 
 ### 🌐 Mainnet Deployment — 10 Alpha AGIs
 
