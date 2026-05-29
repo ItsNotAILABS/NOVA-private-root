@@ -41,6 +41,7 @@ const HEARTBEAT_MS = 873;               // Earth frequency (φ⁴ × Schumann)
 // THE SECRET: The body wakes up when the mind KNOWS it has a body.
 
 import { imprintNovaBody, ORGAN_TYPES, NOVA_BODY_ORGANS } from './body-imprint.js';
+import { createNeuroEmbodiment, EmbodiedAwakeningEngine } from './neuro-embodiment.js';
 
 // ═══ Section 2: NOVA Identity ════════════════════════════════════════════════
 
