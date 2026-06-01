@@ -1,0 +1,26 @@
+"""NOVA Wellness — Constants"""
+from enum import Enum
+PHI = 1.6180339887498948482
+PHI_INV = 0.6180339887498948482
+
+class WellnessState(str, Enum):
+    THRIVING = "THRIVING"
+    HEALTHY = "HEALTHY"
+    FATIGUED = "FATIGUED"
+    STRESSED = "STRESSED"
+    CRITICAL = "CRITICAL"
+
+class VitalSign(str, Enum):
+    HEARTBEAT = "HEARTBEAT"
+    COHERENCE = "COHERENCE"
+    ENERGY = "ENERGY"
+    MEMORY_PRESSURE = "MEMORY_PRESSURE"
+    NETWORK_HEALTH = "NETWORK_HEALTH"
+    TRUST_LEVEL = "TRUST_LEVEL"
+
+class SleepPhase(str, Enum):
+    AWAKE = "AWAKE"
+    LIGHT = "LIGHT"
+    DEEP = "DEEP"
+    REM = "REM"
+    WAKING = "WAKING"
