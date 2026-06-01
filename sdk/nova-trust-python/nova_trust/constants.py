@@ -1,0 +1,24 @@
+"""NOVA Trust — Constants"""
+from enum import Enum
+PHI = 1.6180339887498948482
+PHI_INV = 0.6180339887498948482
+
+class TrustLevel(str, Enum):
+    UNTRUSTED = "UNTRUSTED"
+    PROVISIONAL = "PROVISIONAL"
+    TRUSTED = "TRUSTED"
+    VERIFIED = "VERIFIED"
+    SOVEREIGN = "SOVEREIGN"
+
+class AttestationType(str, Enum):
+    SELF = "SELF"
+    PEER = "PEER"
+    AUTHORITY = "AUTHORITY"
+    CONSENSUS = "CONSENSUS"
+    CRYPTOGRAPHIC = "CRYPTOGRAPHIC"
+
+class DecayMode(str, Enum):
+    LINEAR = "LINEAR"
+    EXPONENTIAL = "EXPONENTIAL"
+    PHI_WEIGHTED = "PHI_WEIGHTED"
+    NONE = "NONE"

@@ -1,0 +1,24 @@
+"""NOVA Phantom — Constants"""
+from enum import Enum
+PHI = 1.6180339887498948482
+PHI_INV = 0.6180339887498948482
+
+class EnvelopeState(str, Enum):
+    OPEN = "OPEN"
+    SEALED = "SEALED"
+    DELIVERED = "DELIVERED"
+    EXPIRED = "EXPIRED"
+    TAMPERED = "TAMPERED"
+
+class KeyType(str, Enum):
+    SYMMETRIC = "SYMMETRIC"
+    ASYMMETRIC = "ASYMMETRIC"
+    EPHEMERAL = "EPHEMERAL"
+    SOVEREIGN = "SOVEREIGN"
+
+class TransferState(str, Enum):
+    PENDING = "PENDING"
+    IN_TRANSIT = "IN_TRANSIT"
+    DELIVERED = "DELIVERED"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"

@@ -1,0 +1,32 @@
+"""NOVA Sovereignty — Constants"""
+from enum import Enum
+PHI = 1.6180339887498948482
+PHI_INV = 0.6180339887498948482
+CERT_THRESHOLD = PHI_INV
+REVOKE_THRESHOLD = PHI_INV ** 2
+
+class ClaimType(str, Enum):
+    VERIFIABLE = "V"
+    SUBJECTIVE = "S"
+    HYBRID = "H"
+    TEMPORAL = "T"
+
+class ClaimState(str, Enum):
+    SUBMITTED = "SUBMITTED"
+    UNDER_REVIEW = "UNDER_REVIEW"
+    CERTIFIED = "CERTIFIED"
+    REVOKED = "REVOKED"
+    EXPIRED = "EXPIRED"
+
+class CertState(str, Enum):
+    ACTIVE = "ACTIVE"
+    SUSPENDED = "SUSPENDED"
+    REVOKED = "REVOKED"
+    EXPIRED = "EXPIRED"
+
+class EvidenceGrade(str, Enum):
+    FORMAL_PROOF = "FORMAL_PROOF"
+    EMPIRICAL = "EMPIRICAL"
+    TESTIMONIAL = "TESTIMONIAL"
+    SELF_REPORT = "SELF_REPORT"
+    NONE = "NONE"

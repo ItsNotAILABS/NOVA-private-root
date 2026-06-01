@@ -1,0 +1,26 @@
+"""NOVA AI Bridge — Constants"""
+from enum import Enum
+PHI = 1.6180339887498948482
+PHI_INV = 0.6180339887498948482
+
+class ModelType(str, Enum):
+    LLM = "LLM"
+    EMBEDDING = "EMBEDDING"
+    VISION = "VISION"
+    AUDIO = "AUDIO"
+    MULTIMODAL = "MULTIMODAL"
+    REASONING = "REASONING"
+
+class InferenceState(str, Enum):
+    IDLE = "IDLE"
+    PROCESSING = "PROCESSING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+    TIMEOUT = "TIMEOUT"
+
+class RoutingStrategy(str, Enum):
+    ROUND_ROBIN = "ROUND_ROBIN"
+    LEAST_LOADED = "LEAST_LOADED"
+    PHI_WEIGHTED = "PHI_WEIGHTED"
+    CAPABILITY = "CAPABILITY"
+    COST_OPTIMIZED = "COST_OPTIMIZED"

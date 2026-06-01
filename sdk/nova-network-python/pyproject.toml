@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nova-network"
+version = "1.0.0"
+description = "NOVA Sovereign Network SDK — φ-weighted peer-to-peer overlay network"
+readme = "README.md"
+license = {text = "PROPRIETARY"}
+requires-python = ">=3.9"
+authors = [
+    {name = "Alfredo Medina Hernandez", email = "alfredo@medinatech.io"}
+]
+keywords = ["nova", "sovereign", "network", "p2p", "phi", "dht"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Networking",
+    "Private :: Do Not Upload",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0", "pytest-cov>=4.0"]
+
+[tool.setuptools.packages.find]
+include = ["nova_network*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
