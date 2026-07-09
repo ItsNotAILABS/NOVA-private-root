@@ -1,0 +1,27 @@
+name: nova-native-cpp-interface
+
+on:
+  push:
+    paths:
+      - 'interfaces/cpp/**'
+      - '.github/workflows/cpp-interface-ci.yml'
+  pull_request:
+    paths:
+      - 'interfaces/cpp/**'
+      - '.github/workflows/cpp-interface-ci.yml'
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S interfaces/cpp -B build/nova-cpp
+      - name: Build
+        run: cmake --build build/nova-cpp --config Release
+      - name: Test
+        run: ctest --test-dir build/nova-cpp --output-on-failure -C Release
