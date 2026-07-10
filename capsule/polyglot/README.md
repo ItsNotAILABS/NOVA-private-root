@@ -1,6 +1,6 @@
 # NOVA Polyglot Coding Capsule
 
-The NOVA polyglot coding capsule turns a coding session into a local governed runtime that can compile, run, preview, receipt, and hand off artifacts to GitHub.
+The NOVA polyglot coding capsule turns a coding session into a local governed runtime that can compile, run, preview, receipt, scale into isolated sessions, generate project templates, create hash manifests, and hand off artifacts to GitHub/local deploy lanes.
 
 It is designed for the live coding playground described in the NOVA stack:
 
@@ -13,6 +13,9 @@ It is designed for the live coding playground described in the NOVA stack:
 - Rust / Go lanes
 - shell lanes under governed boundaries
 - future WASM capsule packaging
+- scaled session/project workspaces
+- local preview dashboard
+- deploy packet handoff
 
 ## What comes online during a session
 
@@ -26,18 +29,28 @@ Default routes:
 
 | Route | Purpose |
 |---|---|
-| `GET /health` | confirms live session server |
+| `GET /health` | confirms live scaled session server |
 | `GET /languages` | supported language registry |
+| `GET /sessions` | active session records |
+| `POST /sessions` | create a new isolated session workspace |
+| `POST /init-project` | initialize web/python/cpp/java project templates |
 | `POST /run` | compile/run a workspace file |
+| `GET /manifest?workspace=...` | generate hash manifest |
 | `GET /preview/<file>` | frontend preview route |
-| `GET /deploy/packet` | deploy/GitHub handoff packet |
+| `GET /deploy/packet?workspace=...` | deploy/GitHub handoff packet |
 
 ## CLI
 
 ```bash
 python3 capsule/polyglot/capsule_cli.py languages
-python3 capsule/polyglot/capsule_cli.py init-demo
+python3 capsule/polyglot/capsule_cli.py create-session --project client-playground
+python3 capsule/polyglot/capsule_cli.py sessions
+python3 capsule/polyglot/capsule_cli.py init-project --kind web
+python3 capsule/polyglot/capsule_cli.py init-project --kind cpp --workspace capsule/polyglot/workspace/cpp-demo
 python3 capsule/polyglot/capsule_cli.py run hello.py
+python3 capsule/polyglot/capsule_cli.py run index.html
+python3 capsule/polyglot/capsule_cli.py manifest
+python3 capsule/polyglot/capsule_cli.py deploy-packet --target github-handoff
 python3 capsule/polyglot/capsule_cli.py server --host 127.0.0.1 --port 8787
 ```
 
@@ -54,6 +67,60 @@ The server emits a preview receipt with:
 ```text
 /preview/index.html
 ```
+
+A polished local dashboard also exists at:
+
+```text
+capsule/polyglot/dashboard/index.html
+```
+
+## Scaled sessions
+
+Create isolated sessions:
+
+```bash
+python3 capsule/polyglot/capsule_cli.py create-session --project chemineer-playground
+python3 capsule/polyglot/capsule_cli.py create-session --project jeremi-platform
+python3 capsule/polyglot/capsule_cli.py create-session --project self-runtime
+```
+
+Each session gets:
+
+- session id
+- project slug
+- workspace path
+- preview URL
+- status
+- timestamps
+
+## Project templates
+
+Supported starter templates:
+
+| Kind | Files |
+|---|---|
+| `web` | `index.html`, `styles.css`, `app.js`, `README.md` |
+| `python` | `hello.py`, `README.md` |
+| `cpp` | `main.cpp`, `README.md` |
+| `java` | `Main.java`, `README.md` |
+
+## Hash manifests and deploy packets
+
+Generate proof artifacts:
+
+```bash
+python3 capsule/polyglot/capsule_cli.py manifest
+python3 capsule/polyglot/capsule_cli.py deploy-packet --target github-handoff
+```
+
+Outputs:
+
+```text
+.nova/hash-manifest.json
+.nova/deploy-packet.json
+```
+
+These are the bridge to GitHub commits, local deploys, WASM packaging, and release receipts.
 
 ## WASM capsule strategy
 
@@ -77,7 +144,7 @@ Every run writes a JSON receipt under:
 capsule/polyglot/workspace/.nova/receipts/
 ```
 
-Receipts are the bridge to deployment and GitHub handoff. They record:
+Receipts record:
 
 - language
 - action
@@ -89,4 +156,4 @@ Receipts are the bridge to deployment and GitHub handoff. They record:
 
 ## Boundary
 
-This is a local runtime. It binds to `127.0.0.1` by default, denies unbounded public server exposure, and records compile/run activity through receipts. External deployment is a later bridge, not silently assumed.
+This is a local runtime. It binds to `127.0.0.1` by default, denies unbounded public server exposure, and records compile/run/preview/deploy handoff activity through receipts. External deployment is a later bridge, not silently assumed.
