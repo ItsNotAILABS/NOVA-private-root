@@ -2,6 +2,7 @@ import json
 import pathlib
 import tempfile
 
+from capsule.polyglot.scaler import build_deploy_packet, build_hash_manifest, create_session, init_project, list_sessions
 from capsule.polyglot.session_server import compile_and_run, language_for_filename, load_registry
 
 
@@ -37,3 +38,28 @@ def test_missing_file_denied_with_receipt():
         assert result["ok"] is False
         assert result["message"] == "file not found"
         assert list((pathlib.Path(tmp) / ".nova" / "receipts").glob("*.json"))
+
+
+def test_scaled_session_and_templates():
+    with tempfile.TemporaryDirectory() as tmp:
+        session = create_session("Client Playground", tmp)
+        assert session["status"] == "active"
+        assert "client-playground" in session["workspace"]
+        assert list_sessions(tmp)[0]["session_id"] == session["session_id"]
+        project = init_project(session["workspace"], "web")
+        assert project["ok"] is True
+        assert "index.html" in project["files"]
+        assert pathlib.Path(session["workspace"], "index.html").exists()
+
+
+def test_hash_manifest_and_deploy_packet():
+    with tempfile.TemporaryDirectory() as tmp:
+        workspace = pathlib.Path(tmp)
+        (workspace / "hello.py").write_text("print('hi')\n", encoding="utf-8")
+        manifest = build_hash_manifest(str(workspace))
+        assert manifest["file_count"] >= 1
+        assert manifest["files"][0]["sha256"]
+        packet = build_deploy_packet(str(workspace), "github-handoff")
+        assert packet["status"] == "ready-for-handoff"
+        assert packet["target"] == "github-handoff"
+        assert (workspace / ".nova" / "deploy-packet.json").exists()
