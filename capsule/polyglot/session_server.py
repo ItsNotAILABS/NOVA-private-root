@@ -1,15 +1,9 @@
 #!/usr/bin/env python3
 """NOVA polyglot coding capsule session server.
 
-Local-first server for live coding sessions. It exposes health, language
-inventory, governed run/compile requests, frontend preview, deploy receipts,
-and GitHub handoff packets.
-
-Security boundary:
-- binds to 127.0.0.1 by default
-- uses explicit workspace roots
-- blocks shell metacharacter command construction by using argv lists
-- treats unsupported compilers as capability gaps, not silent success
+Scaled local-first server for live coding sessions. It exposes language
+inventory, governed run/compile requests, frontend preview, session records,
+project templates, hash manifests, deploy packets, and GitHub handoff lanes.
 """
 
 from __future__ import annotations
@@ -17,16 +11,20 @@ from __future__ import annotations
 import argparse
 import http.server
 import json
-import os
 import pathlib
 import shutil
 import subprocess
 import tempfile
 import time
 import uuid
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import Any
 from urllib.parse import parse_qs, urlparse
+
+try:
+    from .scaler import build_deploy_packet, build_hash_manifest, create_session, init_project, list_sessions
+except ImportError:  # pragma: no cover - direct script execution
+    from scaler import build_deploy_packet, build_hash_manifest, create_session, init_project, list_sessions
 
 ROOT = pathlib.Path(__file__).resolve().parent
 LANGUAGE_REGISTRY = ROOT / "languages.json"
@@ -162,19 +160,27 @@ def compile_and_run(filename: str, workspace_path: str | None = None, timeout: i
 
 
 class CapsuleHandler(http.server.SimpleHTTPRequestHandler):
-    server_version = "NovaPolyglotCapsule/0.1"
+    server_version = "NovaPolyglotCapsule/0.2"
 
     def do_GET(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/") or "/"
+        query = parse_qs(parsed.query)
         if path == "/":
-            return self.send_json({"service": "NOVA polyglot coding capsule", "routes": ["/health", "/languages", "/preview/<file>", "/deploy/packet"]})
+            return self.send_json({"service": "NOVA polyglot coding capsule", "routes": ["/health", "/languages", "/sessions", "/manifest?workspace=...", "/preview/<file>", "/deploy/packet?workspace=..."]})
         if path == "/health":
-            return self.send_json({"ok": True, "service": "nova-polyglot-capsule", "server": "live", "preview": True, "deploy_packet": True})
+            return self.send_json({"ok": True, "service": "nova-polyglot-capsule", "server": "live", "scaled": True, "preview": True, "deploy_packet": True, "sessions": True})
         if path == "/languages":
             return self.send_json(load_registry())
+        if path == "/sessions":
+            return self.send_json({"sessions": list_sessions(query.get("workspace_root", [None])[0])})
+        if path == "/manifest":
+            workspace = query.get("workspace", [str(DEFAULT_WORKSPACE)])[0]
+            return self.send_json(build_hash_manifest(workspace))
         if path == "/deploy/packet":
-            return self.send_json({"ok": True, "target": "github-handoff", "message": "local deploy packet ready; use receipts under .nova/receipts for commit/deploy handoff"})
+            workspace = query.get("workspace", [str(DEFAULT_WORKSPACE)])[0]
+            target = query.get("target", ["github-handoff"])[0]
+            return self.send_json(build_deploy_packet(workspace, target))
         if path.startswith("/preview"):
             preview_root = DEFAULT_PREVIEW.resolve()
             rel = path.replace("/preview", "", 1).lstrip("/") or "index.html"
@@ -192,13 +198,20 @@ class CapsuleHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_POST(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
-        if parsed.path.rstrip("/") != "/run":
-            return self.send_json({"ok": False, "error": "not_found"}, status=404)
+        path = parsed.path.rstrip("/")
         length = int(self.headers.get("Content-Length", "0"))
         body = self.rfile.read(length).decode("utf-8") if length else "{}"
         payload = json.loads(body)
-        result = compile_and_run(payload.get("file", ""), payload.get("workspace"), payload.get("timeout"))
-        return self.send_json(result, status=200 if result.get("ok") else 400)
+        if path == "/run":
+            result = compile_and_run(payload.get("file", ""), payload.get("workspace"), payload.get("timeout"))
+            return self.send_json(result, status=200 if result.get("ok") else 400)
+        if path == "/sessions":
+            result = create_session(payload.get("project", "nova-project"), payload.get("workspace_root"))
+            return self.send_json(result)
+        if path == "/init-project":
+            result = init_project(payload.get("workspace", str(DEFAULT_WORKSPACE)), payload.get("kind", "web"))
+            return self.send_json(result)
+        return self.send_json({"ok": False, "error": "not_found"}, status=404)
 
     def send_json(self, payload: dict[str, Any], status: int = 200) -> None:
         body = json.dumps(payload, indent=2, sort_keys=True).encode("utf-8")
