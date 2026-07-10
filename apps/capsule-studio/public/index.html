@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NOVA Capsule Studio</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">NOVA Production App</p>
+        <h1>Capsule Studio</h1>
+        <p class="lede">Create polyglot coding workspaces, run code, preview frontend projects, generate manifests, and deploy local websites from one production surface.</p>
+        <div class="actions">
+          <button id="createWeb">Create Web Workspace</button>
+          <button id="createPython">Create Python Workspace</button>
+          <button id="refresh">Refresh</button>
+        </div>
+      </div>
+      <div class="status card">
+        <span>Server</span>
+        <strong id="serverStatus">checking...</strong>
+        <p id="serverMeta">Connecting to runtime.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Workspaces</h2>
+      <div id="workspaces" class="workspaceGrid"></div>
+    </section>
+
+    <section class="panel two">
+      <div>
+        <h2>Languages</h2>
+        <div id="languages" class="chips"></div>
+      </div>
+      <div>
+        <h2>Operator Log</h2>
+        <pre id="log">ready</pre>
+      </div>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
