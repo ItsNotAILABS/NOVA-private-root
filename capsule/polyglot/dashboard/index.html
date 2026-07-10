@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NOVA Polyglot Capsule Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">NOVA Runtime · Polyglot Capsule · WASM Handoff</p>
+        <h1>Scaled Coding Session</h1>
+        <p class="lede">A local virtual coding environment for Python, MATLAB/Octave, Java, C/C++, frontend websites, JavaScript, TypeScript, Rust, Go, and future WASM capsules.</p>
+      </div>
+      <div class="card live">
+        <span>server</span>
+        <strong>http://127.0.0.1:8787</strong>
+        <p>Start the session server and use the preview/deploy packet routes for governed coding capsules.</p>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article><h3>Sessions</h3><p>Create isolated session workspaces with project identity and preview lanes.</p><code>POST /sessions</code></article>
+      <article><h3>Run</h3><p>Compile or run files through governed local runners with receipts.</p><code>POST /run</code></article>
+      <article><h3>Preview</h3><p>Render HTML/CSS/JS projects as local browser previews.</p><code>GET /preview/index.html</code></article>
+      <article><h3>Deploy Packet</h3><p>Generate GitHub/local deploy handoff packets and hash manifests.</p><code>GET /deploy/packet</code></article>
+    </section>
+
+    <section class="panel">
+      <h2>Operator Flow</h2>
+      <pre>python3 capsule/polyglot/capsule_cli.py create-session --project demo
+python3 capsule/polyglot/capsule_cli.py init-project --kind web
+python3 capsule/polyglot/capsule_cli.py run index.html
+python3 capsule/polyglot/capsule_cli.py manifest
+python3 capsule/polyglot/capsule_cli.py deploy-packet
+python3 capsule/polyglot/capsule_cli.py server --host 127.0.0.1 --port 8787</pre>
+    </section>
+
+    <section class="grid wide">
+      <article><h3>WASM Capsule Road</h3><p>C/C++ and Rust route toward WASI, frontend routes to browser-native capsules, Python to Pyodide/MicroPython lanes, Java to host/TeaVM lanes.</p></article>
+      <article><h3>Governed Daemons</h3><p>Preview server, runner, artifact watcher, and GitHub handoff are declared in the daemon manifest and are session-scoped.</p></article>
+    </section>
+  </main>
+</body>
+</html>

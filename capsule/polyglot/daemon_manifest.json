@@ -1,0 +1,49 @@
+{
+  "schema": "nova.polyglot.daemons.v1",
+  "description": "Session-scoped daemon and background process manifest for NOVA coding capsules.",
+  "session_mode": "start-with-coding-session",
+  "shutdown_mode": "stop-on-session-close-or-explicit-stop",
+  "daemons": [
+    {
+      "id": "preview-server",
+      "label": "Frontend preview server",
+      "command": "python3 -m capsule.polyglot.session_server --host 127.0.0.1 --port 8787",
+      "port": 8787,
+      "health": "http://127.0.0.1:8787/health",
+      "public": false
+    },
+    {
+      "id": "capsule-runner",
+      "label": "Governed compile/run bridge",
+      "command": "internal:runner",
+      "port": null,
+      "health": "internal:runner/status",
+      "public": false
+    },
+    {
+      "id": "artifact-watcher",
+      "label": "Artifact and preview watcher",
+      "command": "internal:watcher",
+      "port": null,
+      "health": "internal:watcher/status",
+      "public": false
+    },
+    {
+      "id": "github-sync",
+      "label": "GitHub deployment handoff lane",
+      "command": "internal:github-sync",
+      "port": null,
+      "health": "internal:github-sync/status",
+      "public": false
+    }
+  ],
+  "operator_boundary": {
+    "allow_servers": true,
+    "allow_frontend_preview": true,
+    "allow_local_deploy": true,
+    "allow_github_handoff": true,
+    "deny_unbounded_background_processes": true,
+    "deny_public_network_binding_by_default": true,
+    "default_bind_host": "127.0.0.1"
+  }
+}

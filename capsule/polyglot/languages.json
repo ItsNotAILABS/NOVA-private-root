@@ -1,0 +1,106 @@
+{
+  "schema": "nova.polyglot.languages.v1",
+  "wasm_target": "capsule-wasm-runtime",
+  "default_timeout_seconds": 30,
+  "languages": [
+    {
+      "id": "python",
+      "label": "Python",
+      "extensions": [".py"],
+      "runner": "python3 {file}",
+      "compile": null,
+      "wasm_strategy": "pyodide-or-micro-python-capsule",
+      "preview": false
+    },
+    {
+      "id": "matlab",
+      "label": "MATLAB / Octave",
+      "extensions": [".m"],
+      "runner": "octave --quiet {file}",
+      "compile": null,
+      "wasm_strategy": "octave-compatible-runtime-or-host-bridge",
+      "preview": false
+    },
+    {
+      "id": "java",
+      "label": "Java",
+      "extensions": [".java"],
+      "runner": "java {main_class}",
+      "compile": "javac {file}",
+      "wasm_strategy": "jvm-host-bridge-or-teavm-lane",
+      "preview": false
+    },
+    {
+      "id": "cpp",
+      "label": "C++",
+      "extensions": [".cpp", ".cc", ".cxx", ".hpp", ".hxx"],
+      "runner": "{binary}",
+      "compile": "c++ -std=c++17 -O2 {file} -o {binary}",
+      "wasm_strategy": "clang-emscripten-wasi",
+      "preview": false
+    },
+    {
+      "id": "c",
+      "label": "C",
+      "extensions": [".c", ".h"],
+      "runner": "{binary}",
+      "compile": "cc -std=c11 -O2 {file} -o {binary}",
+      "wasm_strategy": "clang-emscripten-wasi",
+      "preview": false
+    },
+    {
+      "id": "javascript",
+      "label": "JavaScript",
+      "extensions": [".js", ".mjs"],
+      "runner": "node {file}",
+      "compile": null,
+      "wasm_strategy": "node-or-browser-runtime",
+      "preview": true
+    },
+    {
+      "id": "typescript",
+      "label": "TypeScript",
+      "extensions": [".ts", ".tsx"],
+      "runner": "node {compiled_file}",
+      "compile": "tsc {file} --outDir {build_dir}",
+      "wasm_strategy": "typescript-to-js-browser-runtime",
+      "preview": true
+    },
+    {
+      "id": "html",
+      "label": "HTML / CSS / Frontend",
+      "extensions": [".html", ".css"],
+      "runner": "static-preview",
+      "compile": null,
+      "wasm_strategy": "browser-native-preview",
+      "preview": true
+    },
+    {
+      "id": "rust",
+      "label": "Rust",
+      "extensions": [".rs"],
+      "runner": "{binary}",
+      "compile": "rustc {file} -O -o {binary}",
+      "wasm_strategy": "wasm32-wasi-or-wasm-bindgen",
+      "preview": false
+    },
+    {
+      "id": "go",
+      "label": "Go",
+      "extensions": [".go"],
+      "runner": "{binary}",
+      "compile": "go build -o {binary} {file}",
+      "wasm_strategy": "tinygo-or-go-wasm",
+      "preview": false
+    },
+    {
+      "id": "shell",
+      "label": "Shell",
+      "extensions": [".sh"],
+      "runner": "bash {file}",
+      "compile": null,
+      "wasm_strategy": "host-governed-only",
+      "preview": false
+    }
+  ]
+}
