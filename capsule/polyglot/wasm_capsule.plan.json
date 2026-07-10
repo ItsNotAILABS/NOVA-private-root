@@ -1,0 +1,36 @@
+{
+  "schema": "nova.polyglot.wasm-capsule-plan.v1",
+  "goal": "Compile or package coding-session artifacts into governed WASM-compatible capsules when a language/runtime supports it.",
+  "phases": [
+    {
+      "id": "phase-1-local-host-runners",
+      "status": "implemented-scaffold",
+      "description": "Run languages through local governed host runners and emit receipts."
+    },
+    {
+      "id": "phase-2-wasi-toolchains",
+      "status": "planned",
+      "description": "Add clang/wasmtime lanes for C/C++ and Rust wasm32-wasi outputs."
+    },
+    {
+      "id": "phase-3-browser-runtime-capsules",
+      "status": "planned",
+      "description": "Package HTML/CSS/JS/TypeScript frontends into previewable static capsules."
+    },
+    {
+      "id": "phase-4-language-runtime-capsules",
+      "status": "planned",
+      "description": "Add Pyodide/MicroPython, TeaVM, TinyGo, and Octave-compatible host bridge support."
+    },
+    {
+      "id": "phase-5-deploy-handoff",
+      "status": "planned",
+      "description": "Convert receipts into GitHub commits, release assets, local deploys, and governed publication lanes."
+    }
+  ],
+  "capsule_contract": {
+    "inputs": ["source files", "language registry", "daemon manifest", "operator boundary"],
+    "outputs": ["compiled artifact", "preview artifact", "receipt", "deploy packet", "hash manifest"],
+    "denials": ["missing compiler", "file escapes workspace", "timeout", "unsupported language", "public bind denied"]
+  }
+}
