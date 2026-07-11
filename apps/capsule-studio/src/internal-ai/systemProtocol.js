@@ -1,16 +1,24 @@
 import { organismSummary } from './organisms.js';
-import { listGates } from './gates.js';
+import { gateSummary, listGates } from './gates.js';
+import { listUserLanes } from './userLanes.js';
+import { capabilityGraph } from './capabilityGraph.js';
+import { alphaProtocolStatus } from './alphaProtocolBus.js';
 
-export const SYSTEM_PROTOCOL_VERSION = 'medina-nova-cain-internal-ai-system/1.0.0';
+export const SYSTEM_PROTOCOL_VERSION = 'medina-nova-cain-oro-internal-ai-system/2.0.0-alpha';
 
 export function systemProtocolManifest() {
   return {
-    schema: 'medina.nova-cain.internal-ai-system.v1',
+    schema: 'medina.nova-cain-oro.internal-ai-system.v2.alpha',
     version: SYSTEM_PROTOCOL_VERSION,
     generatedAt: new Date().toISOString(),
+    stack: ['NOVA', 'CAIN', 'ORO'],
     planes: [
       'identity',
+      'users',
       'intent',
+      'capability',
+      'resource',
+      'artifact',
       'cyber',
       'execution',
       'containment',
@@ -19,7 +27,10 @@ export function systemProtocolManifest() {
       'operator'
     ],
     organisms: organismSummary(),
-    gates: listGates(),
+    gates: gateSummary(),
+    userLanes: listUserLanes(),
+    capabilityGraph: capabilityGraph(),
+    alphaProtocol: alphaProtocolStatus(),
     cyberTechBoundary: {
       allowed: [
         'secure architecture review',
@@ -27,22 +38,25 @@ export function systemProtocolManifest() {
         'incident response tabletop',
         'detection engineering plan',
         'governance and compliance control mapping',
-        'internal cyber product readiness review'
+        'internal cyber product readiness review',
+        'control gap analysis',
+        'safe adversarial challenge review'
       ],
       denied: [
         'exploit instructions',
         'malware, persistence, or evasion guidance',
         'credential theft workflows',
         'unauthorized access steps',
-        'private trunk disclosure'
+        'private trunk disclosure',
+        'operational bypass instructions'
       ]
     },
-    releaseBoundary: 'Internal private platform protocol. Public release must use a separate sanitized manifest and proof packet.'
+    releaseBoundary: 'Internal private alpha protocol. Public release must use a separate sanitized manifest and proof packet.'
   };
 }
 
 export function gateChecklist() {
-  return systemProtocolManifest().gates.map(gate => ({
+  return listGates().map(gate => ({
     gate: gate.id,
     plane: gate.plane,
     requires: gate.requires,
