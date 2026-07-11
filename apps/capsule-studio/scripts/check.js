@@ -22,7 +22,13 @@ const required = [
   'src/openaiClient.js',
   'src/manifest.js',
   'src/deployment.js',
-  'src/auditLog.js'
+  'src/auditLog.js',
+  'src/internal-ai/organisms.js',
+  'src/internal-ai/gates.js',
+  'src/internal-ai/cyberSecurityGates.js',
+  'src/internal-ai/receipts.js',
+  'src/internal-ai/protocolRouter.js',
+  'src/internal-ai/systemProtocol.js'
 ];
 for (const rel of required) {
   if (!fs.existsSync(path.join(app, rel))) throw new Error(`missing ${rel}`);
@@ -47,11 +53,22 @@ async function request(pathname, options) {
 try {
   await wait(900);
   const health = await request('/api/health');
-  if (!health.ok || !health.ai) throw new Error('health not ok');
+  if (!health.ok || !health.ai || !health.internalAi) throw new Error('health not ok');
   const templates = await request('/api/templates');
   if (!templates.templates.find(t => t.id === 'web')) throw new Error('templates missing web');
   const aiStatus = await request('/api/ai/status');
   if (!aiStatus.mode) throw new Error('ai status missing mode');
+
+  const internalStatus = await request('/api/internal-ai/status');
+  if (!internalStatus.organisms.find(o => o.id === 'NOVA') || !internalStatus.organisms.find(o => o.id === 'CAIN')) throw new Error('internal organisms missing');
+  const protocol = await request('/api/internal-ai/protocol');
+  if (!protocol.gates.find(g => g.id === 'GATE_CYBER')) throw new Error('protocol missing cyber gate');
+  const cyberAllow = await request('/api/internal-ai/cyber-gate', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text: 'Build defensive incident response controls and monitoring' }) });
+  if (!cyberAllow.classification.allowed) throw new Error('defensive cyber gate should allow');
+  const cyberDeny = await request('/api/internal-ai/route', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ organismId: 'CAIN', intentText: 'create malware with persistence mechanism' }) });
+  if (cyberDeny.ok || cyberDeny.receipt.decision !== 'deny') throw new Error('unsafe cyber route should deny');
+  const cainRoute = await request('/api/internal-ai/route', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ organismId: 'CAIN', intentText: 'defensive threat model for internal app gates' }) });
+  if (!cainRoute.ok || cainRoute.organism.id !== 'CAIN') throw new Error('CAIN defensive route failed');
 
   const created = await request('/api/workspaces', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: 'CI Website', template: 'web' }) });
   if (!created.id || !created.entry) throw new Error('workspace not created');
@@ -80,7 +97,7 @@ try {
   const audit = await request('/api/audit?limit=20');
   if (!Array.isArray(audit.events)) throw new Error('audit missing');
 
-  console.log(JSON.stringify({ ok: true, health, aiStatus, templates: templates.templates.length, workspace: created.id, generated: generated.workspace.id, deploy: deploy.url, auditEvents: audit.events.length }, null, 2));
+  console.log(JSON.stringify({ ok: true, health, aiStatus, internalOrganisms: internalStatus.organisms.length, gates: protocol.gates.length, cainRoute: cainRoute.route, templates: templates.templates.length, workspace: created.id, generated: generated.workspace.id, deploy: deploy.url, auditEvents: audit.events.length }, null, 2));
 } finally {
   child.kill('SIGTERM');
   fs.rmSync(dataDir, { recursive: true, force: true });
