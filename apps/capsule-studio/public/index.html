@@ -27,6 +27,23 @@
       </div>
     </section>
 
+    <section class="panel two">
+      <div>
+        <p class="eyebrow">NOVA App Platform</p>
+        <h2>Platform Link</h2>
+        <p id="platformStatus">Checking local platform at 127.0.0.1:8899.</p>
+        <div class="actions">
+          <input id="operatorToken" type="password" placeholder="Operator token for platform session" />
+          <button id="connectPlatform" class="secondary">Connect Platform</button>
+          <button id="sendPlatformReceipt" class="secondary">Send Receipt</button>
+        </div>
+      </div>
+      <div>
+        <p class="eyebrow">Platform Dashboard</p>
+        <pre id="platformLog">waiting for bridge</pre>
+      </div>
+    </section>
+
     <section class="panel builder">
       <div>
         <p class="eyebrow">AI App Builder</p>
@@ -78,6 +95,7 @@
       </div>
     </section>
   </main>
+  <script src="http://127.0.0.1:8899/public/platform-bridge.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

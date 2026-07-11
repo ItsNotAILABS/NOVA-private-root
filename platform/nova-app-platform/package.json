@@ -1,0 +1,18 @@
+{
+  "name": "nova-app-platform",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local-first NOVA application platform with app registry, operator console, OpenAI-ready gateway, receipts, auth gate, and vault storage.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "test": "node tests/platform.test.js && node tests/surface-integration.test.js",
+    "validate": "node tests/platform.test.js && node tests/surface-integration.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {}
+}

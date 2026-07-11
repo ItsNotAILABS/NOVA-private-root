@@ -1,0 +1,11 @@
+<!-- NOVA Phone -> NOVA App Platform integration snippet -->
+<script>
+  window.NOVA_PLATFORM_URL = window.NOVA_PLATFORM_URL || "http://127.0.0.1:8899";
+</script>
+<script src="http://127.0.0.1:8899/public/platform-bridge.js"></script>
+<section id="nova-platform-panel" style="border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:16px;margin:16px;background:rgba(10,20,35,.72);color:#f8fbff;font-family:system-ui,sans-serif;">
+  <h2 style="margin:0 0 8px;">NOVA App Platform</h2>
+  <p style="opacity:.78;margin:0 0 12px;">Live platform status, app registry, and operator gateway connection.</p>
+  <button onclick="NOVAPlatformBridge.mountStatus('#nova-platform-status')">Refresh Platform</button>
+  <pre id="nova-platform-status" style="white-space:pre-wrap;overflow:auto;max-height:280px;">Platform bridge ready.</pre>
+</section>

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NOVA Platform Surfaces</title>
+  <link rel="stylesheet" href="/public/styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <p class="eyebrow">NOVA Platform Bridge</p>
+      <h1>Connected Surfaces</h1>
+      <p class="lede">Launch NOVA Phone, Capsule Studio, and the operator platform from one local control point.</p>
+    </section>
+    <section class="grid">
+      <article class="card"><h2>NOVA Phone</h2><p>Mobile PWA surface.</p><a href="/api/launch/nova-phone">Open launch contract</a></article>
+      <article class="card"><h2>Capsule Studio</h2><p>App builder and capsule workspace.</p><a href="/api/launch/capsule-studio">Open launch contract</a></article>
+      <article class="card wide"><h2>Platform Status</h2><pre id="status">Loading...</pre></article>
+    </section>
+  </main>
+  <script src="/public/platform-bridge.js"></script>
+  <script>NOVAPlatformBridge.mountStatus('#status');</script>
+</body>
+</html>

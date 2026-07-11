@@ -1,0 +1,25 @@
+name: nova-app-platform
+
+on:
+  push:
+    paths:
+      - "platform/nova-app-platform/**"
+      - ".github/workflows/nova-app-platform-ci.yml"
+  pull_request:
+    paths:
+      - "platform/nova-app-platform/**"
+      - ".github/workflows/nova-app-platform-ci.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: platform/nova-app-platform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm test
