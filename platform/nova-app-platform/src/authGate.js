@@ -18,7 +18,7 @@ function timingSafeEqualHex(a, b) {
   return crypto.timingSafeEqual(left, right);
 }
 
-function bearer(req) {
+function readBearer(req) {
   const value = req.headers.authorization || "";
   return value.startsWith("Bearer ") ? value.slice(7).trim() : "";
 }
@@ -43,4 +43,45 @@ export function createAuthGate({ operatorToken = readOperatorToken(), sessionTtl
       tokenHash: hashToken(sessionId)
     };
     sessions.set(session.tokenHash, session);
-    return { ok: true, session: { id: session.id, label: session.label, createdAt: session.createdAt, expiresAt
+    return {
+      ok: true,
+      session: {
+        id: session.id,
+        label: session.label,
+        createdAt: session.createdAt,
+        expiresAt: session.expiresAt
+      }
+    };
+  }
+
+  function authorize(req) {
+    const directToken = req.headers["x-nova-operator-token"] || "";
+    if (directToken && tokenValid(directToken)) {
+      return { ok: true, operator: "local-operator", mode: "operator_token", reason: null };
+    }
+
+    const sessionId = req.headers["x-nova-session"] || readBearer(req);
+    const session = sessions.get(hashToken(sessionId));
+    if (session && Date.parse(session.expiresAt) > Date.now()) {
+      return { ok: true, operator: session.label, mode: "session", reason: null, sessionId: session.id };
+    }
+
+    return { ok: false, operator: null, mode: null, reason: "missing_or_invalid_operator_token" };
+  }
+
+  function revokeSession(sessionId) {
+    return sessions.delete(hashToken(sessionId));
+  }
+
+  function publicStatus() {
+    return {
+      enabled: true,
+      mode: operatorToken === DEFAULT_OPERATOR_TOKEN ? "local_default_token" : "environment_token",
+      acceptedHeaders: ["x-nova-operator-token", "x-nova-session", "authorization"],
+      sessionTtlMs,
+      activeSessions: sessions.size
+    };
+  }
+
+  return { authorize, createSession, revokeSession, publicStatus, tokenValid };
+}
