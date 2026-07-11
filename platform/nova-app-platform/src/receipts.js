@@ -1,18 +1,24 @@
-import crypto from "node:crypto";
-import { appendRecord } from "./storage.js";
+import { appendRecord, readRecords, verifyRecordChain, sha256 } from "./storage.js";
 
-export function sha256(value) {
-  return crypto.createHash("sha256").update(JSON.stringify(value)).digest("hex");
+export async function writeReceipt(type, payload, options = {}) {
+  if (!/^[a-z0-9][a-z0-9_.:-]{1,80}$/i.test(String(type || ""))) throw new Error("invalid_receipt_type");
+  const receipt = {
+    schema: "nova-platform-receipt-v0.2",
+    type,
+    payload,
+    actor: options.actor || "local-operator",
+    surface: options.surface || "nova-app-platform",
+    payloadHash: sha256(payload),
+    createdAt: new Date().toISOString()
+  };
+  return appendRecord("receipts", receipt);
 }
 
-export async function writeReceipt(type, payload) {
-  const receipt = {
-    id: `nova_receipt_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`,
-    type,
-    createdAt: new Date().toISOString(),
-    payload,
-    hash: sha256({ type, payload })
-  };
-  await appendRecord("receipts", receipt);
-  return receipt;
+export async function listReceipts({ limit = 100 } = {}) {
+  return readRecords("receipts", { limit });
+}
+
+export async function receiptChainStatus() {
+  const records = await readRecords("receipts", { limit: 10000 });
+  return verifyRecordChain(records);
 }
