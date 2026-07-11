@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { createNovaPlatform } from "../src/platform.js";
 import { normalizeApp } from "../src/appRegistry.js";
 import { createAuthGate, hashToken } from "../src/authGate.js";
 import { gatewayStatus } from "../src/openaiGateway.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const appRoot = path.resolve(__dirname, "..");
 
 const platform = createNovaPlatform();
 assert.equal(platform.status().name, "NOVA App Platform");
@@ -25,7 +29,7 @@ const status = gatewayStatus();
 assert.equal(status.provider, "openai");
 assert.equal(typeof status.configured, "boolean");
 
-const publicDir = path.join(process.cwd(), "public");
+const publicDir = path.join(appRoot, "public");
 assert.ok(fs.existsSync(path.join(publicDir, "index.html")));
 assert.ok(fs.existsSync(path.join(publicDir, "app.js")));
 
