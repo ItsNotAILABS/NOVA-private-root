@@ -12,7 +12,7 @@
       <div>
         <p class="eyebrow">NOVA Production App</p>
         <h1>Capsule Studio</h1>
-        <p class="lede">Create polyglot coding workspaces, run code, preview frontend projects, generate manifests, and deploy local websites from one production surface.</p>
+        <p class="lede">Open this app, describe what you want, generate a working app, preview it, deploy it locally, and show it on web or mobile.</p>
         <div class="actions">
           <button id="createWeb">Create Web Workspace</button>
           <button id="createPython">Create Python Workspace</button>
@@ -23,6 +23,20 @@
         <span>Server</span>
         <strong id="serverStatus">checking...</strong>
         <p id="serverMeta">Connecting to runtime.</p>
+        <p id="aiMeta">AI: checking...</p>
+      </div>
+    </section>
+
+    <section class="panel builder">
+      <div>
+        <p class="eyebrow">AI App Builder</p>
+        <h2>Make an app inside the system</h2>
+        <p>Type the app you want. Capsule Studio will create a workspace, generate files, deploy locally, and give you preview buttons.</p>
+      </div>
+      <textarea id="aiPrompt" placeholder="Example: Build a landing page for a luxury construction AI dashboard with cards, metrics, and a contact button."></textarea>
+      <div class="actions">
+        <button id="buildAiApp">Build App</button>
+        <button id="samplePrompt" class="secondary">Use Sample</button>
       </div>
     </section>
 
