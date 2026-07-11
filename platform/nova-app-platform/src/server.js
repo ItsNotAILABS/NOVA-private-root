@@ -6,6 +6,7 @@ import { createNovaPlatform } from "./platform.js";
 import { createAuthGate } from "./authGate.js";
 import { callOpenAI, gatewayStatus } from "./openaiGateway.js";
 import { writeReceipt } from "./receipts.js";
+import { surfaceRegistry, launchContract } from "./surfaceLinks.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const publicRoot = path.join(__dirname, "..", "public");
@@ -13,9 +14,15 @@ const platform = createNovaPlatform();
 const authGate = createAuthGate();
 const port = Number(process.env.PORT || process.env.NOVA_PLATFORM_PORT || 8899);
 
+const corsHeaders = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "GET,POST,OPTIONS",
+  "access-control-allow-headers": "content-type,x-nova-operator-token"
+};
+
 function send(res, status, body, headers = {}) {
   const text = typeof body === "string" ? body : JSON.stringify(body, null, 2);
-  res.writeHead(status, { "content-type": "application/json; charset=utf-8", ...headers });
+  res.writeHead(status, { "content-type": "application/json; charset=utf-8", ...corsHeaders, ...headers });
   res.end(text);
 }
 
@@ -24,7 +31,7 @@ function sendStatic(res, filePath) {
   const contentType = ext === ".html" ? "text/html; charset=utf-8" : ext === ".css" ? "text/css; charset=utf-8" : ext === ".js" ? "application/javascript; charset=utf-8" : "text/plain; charset=utf-8";
   fs.readFile(filePath, (err, data) => {
     if (err) return send(res, 404, { error: "not_found" });
-    res.writeHead(200, { "content-type": contentType });
+    res.writeHead(200, { "content-type": contentType, ...corsHeaders });
     res.end(data);
   });
 }
@@ -38,9 +45,11 @@ async function readJson(req) {
 
 const server = http.createServer(async (req, res) => {
   try {
+    if (req.method === "OPTIONS") return send(res, 204, "");
     const url = new URL(req.url, `http://${req.headers.host}`);
 
     if (req.method === "GET" && url.pathname === "/") return sendStatic(res, path.join(publicRoot, "index.html"));
+    if (req.method === "GET" && url.pathname === "/surfaces") return sendStatic(res, path.join(publicRoot, "surfaces.html"));
     if (req.method === "GET" && url.pathname.startsWith("/public/")) return sendStatic(res, path.join(publicRoot, url.pathname.replace("/public/", "")));
 
     if (req.method === "GET" && url.pathname === "/api/health") {
@@ -48,7 +57,14 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === "GET" && url.pathname === "/api/apps") return send(res, 200, platform.listApps());
-    if (req.method === "GET" && url.pathname === "/api/dashboard") return send(res, 200, platform.dashboard());
+    if (req.method === "GET" && url.pathname === "/api/dashboard") return send(res, 200, { ...platform.dashboard(), surfaces: surfaceRegistry() });
+    if (req.method === "GET" && url.pathname === "/api/surfaces") return send(res, 200, surfaceRegistry());
+
+    if (req.method === "GET" && url.pathname.startsWith("/api/launch/")) {
+      const id = url.pathname.split("/").pop();
+      const contract = launchContract(id);
+      return send(res, contract ? 200 : 404, contract || { ok: false, error: "surface_not_found" });
+    }
 
     if (url.pathname.startsWith("/api/operator") || url.pathname === "/api/ai/respond") {
       const auth = authGate.authorize(req);
