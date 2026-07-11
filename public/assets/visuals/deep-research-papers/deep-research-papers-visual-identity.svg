@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="2000" viewBox="0 0 1600 2000" role="img" aria-labelledby="title desc">
+  <title id="title">Deep Research Papers Visual Identity</title>
+  <desc id="desc">Official Runtime Medina AI research-memory visual identity surface: paper stack, protocol graph, ledger rings, QWorkers, and governed execution infrastructure.</desc>
+  <defs>
+    <radialGradient id="core" cx="50%" cy="39%" r="42%">
+      <stop offset="0" stop-color="#9fd7ff" stop-opacity="0.95"/>
+      <stop offset="0.38" stop-color="#174a6c" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#02060b" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="paper" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#f1f4f7"/>
+      <stop offset="0.55" stop-color="#c7ced7"/>
+      <stop offset="1" stop-color="#78818d"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" x2="1">
+      <stop offset="0" stop-color="#c8942e"/>
+      <stop offset="0.5" stop-color="#ffe0a0"/>
+      <stop offset="1" stop-color="#9f6b19"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#1d2f3e" stroke-width="1" opacity="0.35"/>
+    </pattern>
+  </defs>
+  <rect width="1600" height="2000" fill="#03070d"/>
+  <rect width="1600" height="2000" fill="url(#grid)" opacity="0.9"/>
+  <circle cx="800" cy="720" r="560" fill="url(#core)"/>
+  <g opacity="0.65" stroke="#6fb8ea" stroke-width="2" fill="none">
+    <circle cx="800" cy="710" r="245"/>
+    <circle cx="800" cy="710" r="335" opacity="0.45"/>
+    <circle cx="800" cy="710" r="430" opacity="0.25"/>
+    <path d="M470 710H1130M800 380V1040M570 480l460 460M1030 480L570 940" opacity="0.32"/>
+  </g>
+  <g filter="url(#glow)">
+    <circle cx="800" cy="710" r="9" fill="#d7f0ff"/>
+    <circle cx="690" cy="585" r="7" fill="#ffc85c"/>
+    <circle cx="940" cy="612" r="7" fill="#8fd7ff"/>
+    <circle cx="1010" cy="808" r="6" fill="#ffc85c"/>
+    <circle cx="655" cy="840" r="6" fill="#8fd7ff"/>
+    <path d="M690 585L800 710L940 612L1010 808L655 840L690 585L940 612L655 840" stroke="#cfeeff" stroke-width="2" fill="none" opacity="0.8"/>
+  </g>
+  <g transform="translate(290 1180)">
+    <path d="M50 130 C300 35 720 30 1000 120 L1000 520 C730 625 290 622 50 530 Z" fill="#101820" opacity="0.85"/>
+    <path d="M0 30 C300 -25 740 -25 1020 35 L1020 455 C725 525 290 520 0 455 Z" fill="url(#paper)"/>
+    <path d="M0 455 C290 520 725 525 1020 455 L1020 500 C720 590 290 585 0 520 Z" fill="#6e7682"/>
+    <path d="M125 95 C370 45 670 45 900 95" stroke="#192b39" stroke-width="3" fill="none" opacity="0.65"/>
+    <path d="M330 180 C470 120 620 130 750 200 C630 265 470 255 330 180Z" fill="none" stroke="#153047" stroke-width="3"/>
+    <g stroke="#0c4d78" stroke-width="3" fill="#0c4d78">
+      <circle cx="390" cy="176" r="5"/><circle cx="488" cy="135" r="5"/><circle cx="604" cy="148" r="5"/><circle cx="715" cy="201" r="5"/><circle cx="565" cy="240" r="5"/><circle cx="447" cy="222" r="5"/>
+      <path d="M390 176L488 135L604 148L715 201L565 240L447 222L390 176M488 135L565 240M604 148L447 222" fill="none"/>
+    </g>
+    <rect x="742" y="23" width="92" height="505" rx="8" fill="#0b0f16"/>
+    <g transform="translate(788 270)" stroke="url(#gold)" fill="none" stroke-width="3">
+      <polygon points="0,-45 39,-22 39,22 0,45 -39,22 -39,-22"/>
+      <polygon points="0,-62 54,-31 54,31 0,62 -54,31 -54,-31" opacity="0.55"/>
+      <path d="M0 -45V45M-39 -22L39 22M39 -22L-39 22"/>
+    </g>
+  </g>
+  <g opacity="0.72" font-family="Inter,Segoe UI,Arial,sans-serif" fill="#d8e8f7">
+    <text x="96" y="120" font-size="38" letter-spacing="4">RUNTIME MEDINA AI</text>
+    <text x="96" y="170" font-size="22" fill="#8fb2c9">Research Memory · Governed Execution · Protocol Servers · QWorkers</text>
+  </g>
+  <g transform="translate(90 260)" opacity="0.74" stroke="#78c7ff" fill="none">
+    <rect x="0" y="0" width="420" height="310" rx="24" stroke-width="2"/>
+    <path d="M48 246H370M48 196H330M48 146H285M48 96H350" opacity="0.45"/>
+    <circle cx="90" cy="80" r="7" fill="#ffc85c" stroke="none"/><circle cx="180" cy="135" r="7" fill="#8fd7ff" stroke="none"/><circle cx="310" cy="70" r="7" fill="#ffc85c" stroke="none"/><circle cx="330" cy="220" r="7" fill="#8fd7ff" stroke="none"/>
+    <path d="M90 80L180 135L310 70L330 220L180 135"/>
+  </g>
+  <g transform="translate(1070 250)" opacity="0.74" stroke="#cda34e" fill="none">
+    <rect x="0" y="0" width="430" height="360" rx="24" stroke-width="2"/>
+    <circle cx="215" cy="175" r="120"/><circle cx="215" cy="175" r="78"/><circle cx="215" cy="175" r="38"/>
+    <path d="M95 175H335M215 55V295M130 90L300 260M300 90L130 260" opacity="0.55"/>
+  </g>
+  <g transform="translate(1070 720)" font-family="Inter,Segoe UI,Arial,sans-serif" fill="#cfeeff" opacity="0.72">
+    <text x="0" y="0" font-size="22" fill="#ffc85c">QWORKERS</text>
+    <text x="0" y="46" font-size="18">AEGIS · ARGOS · FORMA · CHANDRA</text>
+    <text x="0" y="82" font-size="18">NEXUS · MESIE · TERMINALIS · NOVA</text>
+    <text x="0" y="140" font-size="16" fill="#8fb2c9">Every packet becomes memory.</text>
+    <text x="0" y="172" font-size="16" fill="#8fb2c9">Every execution becomes receipt.</text>
+  </g>
+  <g transform="translate(96 1760)" font-family="Inter,Segoe UI,Arial,sans-serif" fill="#8fb2c9">
+    <text font-size="18">Asset lane: public/assets/visuals/deep-research-papers · SHA-256 source PNG: eac288fcbd5a61af16be3f0030828aa94e011c96cc49bd32304040fd55d20050</text>
+  </g>
+</svg>
