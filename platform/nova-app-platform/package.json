@@ -1,0 +1,18 @@
+{
+  "name": "nova-app-platform",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "NOVA application platform shell with OpenAI-ready server gateway, app registry, operator console, and local-first storage.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js",
+    "test": "node tests/platform.test.js",
+    "validate": "node tests/platform.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {}
+}
