@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NOVA App Platform</title>
+  <link rel="stylesheet" href="/public/styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <p class="eyebrow">NOVA / ItsNotAILabs</p>
+      <h1>App Platform</h1>
+      <p class="lede">Operator console, app registry, OpenAI gateway, local vault, and receipt stream for NOVA applications.</p>
+      <div class="actions">
+        <button id="refresh">Refresh Platform</button>
+        <button id="ask">Ask Gateway</button>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card"><h2>Status</h2><pre id="status">Loading...</pre></article>
+      <article class="card"><h2>Apps</h2><div id="apps"></div></article>
+      <article class="card wide"><h2>Operator AI Gateway</h2><textarea id="prompt" placeholder="Ask NOVA to inspect an app, explain a platform decision, or generate an operator note."></textarea><pre id="gateway">Operator token required.</pre></article>
+    </section>
+  </main>
+  <script src="/public/app.js"></script>
+</body>
+</html>
