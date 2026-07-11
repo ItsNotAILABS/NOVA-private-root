@@ -12,7 +12,7 @@
       <div>
         <p class="eyebrow">NOVA Production App</p>
         <h1>Capsule Studio</h1>
-        <p class="lede">Open this app, describe what you want, generate a working app, preview it, deploy it locally, and show it on web or mobile.</p>
+        <p class="lede">Open this app, describe what you want, generate a working app, inspect/edit files, run code, preview, deploy locally, and show it on web or mobile.</p>
         <div class="actions">
           <button id="createWeb">Create Web Workspace</button>
           <button id="createPython">Create Python Workspace</button>
@@ -31,7 +31,7 @@
       <div>
         <p class="eyebrow">AI App Builder</p>
         <h2>Make an app inside the system</h2>
-        <p>Type the app you want. Capsule Studio will create a workspace, generate files, deploy locally, and give you preview buttons.</p>
+        <p>Type the app you want. Capsule Studio creates a workspace, writes files, deploys locally, and gives you preview buttons.</p>
       </div>
       <textarea id="aiPrompt" placeholder="Example: Build a landing page for a luxury construction AI dashboard with cards, metrics, and a contact button."></textarea>
       <div class="actions">
@@ -45,10 +45,32 @@
       <div id="workspaces" class="workspaceGrid"></div>
     </section>
 
+    <section class="panel editorPanel">
+      <div>
+        <p class="eyebrow">Workspace Editor</p>
+        <h2 id="editorTitle">Select a workspace</h2>
+        <p id="editorMeta">Open files, edit generated code, save, run, deploy, and inspect receipts.</p>
+      </div>
+      <div class="editorGrid">
+        <aside class="fileList" id="fileList">No workspace selected.</aside>
+        <section class="codeEditor">
+          <div class="row">
+            <input id="activeFile" placeholder="index.html" />
+            <button id="loadFile" class="secondary">Load</button>
+            <button id="saveFile">Save</button>
+            <button id="runActive" class="secondary">Run</button>
+          </div>
+          <textarea id="fileContent" spellcheck="false" placeholder="Select a file to edit."></textarea>
+        </section>
+      </div>
+    </section>
+
     <section class="panel two">
       <div>
         <h2>Languages</h2>
         <div id="languages" class="chips"></div>
+        <h2>Templates</h2>
+        <div id="templates" class="chips"></div>
       </div>
       <div>
         <h2>Operator Log</h2>
