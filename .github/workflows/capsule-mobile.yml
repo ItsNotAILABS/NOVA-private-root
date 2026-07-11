@@ -1,0 +1,18 @@
+name: NOVA Capsule Mobile
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  mobile-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate Expo mobile app files
+        working-directory: apps/capsule-mobile
+        run: node scripts/check.js
