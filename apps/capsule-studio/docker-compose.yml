@@ -1,0 +1,16 @@
+services:
+  capsule-studio:
+    build:
+      context: ../..
+      dockerfile: apps/capsule-studio/Dockerfile
+    image: nova-capsule-studio:local
+    ports:
+      - "8787:8787"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8787
+      NOVA_CAPSULE_DATA: /data
+    volumes:
+      - capsule-studio-data:/data
+volumes:
+  capsule-studio-data:
