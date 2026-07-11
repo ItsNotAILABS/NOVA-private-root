@@ -8,8 +8,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node src/server.js",
-    "test": "node tests/platform.test.js",
-    "validate": "node tests/platform.test.js"
+    "test": "node tests/platform.test.js && node tests/surface-integration.test.js",
+    "validate": "node tests/platform.test.js && node tests/surface-integration.test.js"
   },
   "engines": {
     "node": ">=18"
