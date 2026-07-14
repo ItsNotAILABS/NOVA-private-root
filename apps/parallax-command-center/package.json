@@ -1,0 +1,26 @@
+{
+  "name": "@nova/parallax-command-center",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first agentic trading, strategy, workflow, governance, and receipt command center for the PARALLAX platform.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "check": "node scripts/check.js",
+    "test": "node --test tests/smoke.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "parallax",
+    "agentic-trading",
+    "strategy-studio",
+    "workflow-builder",
+    "paper-trading",
+    "governance",
+    "receipts",
+    "nova"
+  ]
+}
