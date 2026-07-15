@@ -8,7 +8,7 @@ const id = (prefix) => `${prefix}_${crypto.randomUUID().replaceAll('-', '').slic
 const hash = (value) => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
 const seedState = () => ({
-  schema: 'parallax.command-center.state.v2',
+  schema: 'parallax.command-center.state.v3',
   created_at: now(),
   updated_at: now(),
   environment: 'local-paper-testnet',
@@ -42,21 +42,14 @@ const seedState = () => ({
     { id: 'workflow_signal_to_receipt', name: 'Signal to Receipt', status: 'active', stages: ['market-data', 'signal-agent', 'risk-gate', 'paper-order', 'clearing', 'receipt'], created_at: now() }
   ],
   automation_runs: [],
+  ecosystem_events: [],
   signals: [],
   risk_decisions: [],
   orders: [],
   fills: [],
   backtests: [],
   receipts: [],
-  tokenomics: {
-    PXAI: 0,
-    PXGPU: 0,
-    PXCRED: 0,
-    PXBYTE: 0,
-    PXNOVA: 0,
-    PXRCPT: 0,
-    PXTEAM: 0
-  },
+  tokenomics: { PXAI: 0, PXGPU: 0, PXCRED: 0, PXBYTE: 0, PXNOVA: 0, PXRCPT: 0, PXTEAM: 0 },
   governance: {
     mode: 'paper-testnet-internal-credit',
     human_approval_threshold_usd: 25_000,
@@ -75,6 +68,7 @@ export async function ensureState() {
   try {
     state = JSON.parse(await fs.readFile(config.stateFile, 'utf8'));
     state.automation_runs ||= [];
+    state.ecosystem_events ||= [];
     state.signals ||= [];
     state.risk_decisions ||= [];
     state.fills ||= [];
@@ -107,15 +101,7 @@ export async function mutate(type, payload, operation) {
 
 function appendReceipt(type, input, output) {
   const previous = state.receipts.at(-1)?.hash || 'GENESIS';
-  const body = {
-    id: id('rcpt'),
-    type,
-    timestamp: now(),
-    previous_hash: previous,
-    input_hash: hash(input),
-    output_hash: hash(output),
-    environment: state.environment
-  };
+  const body = { id: id('rcpt'), type, timestamp: now(), previous_hash: previous, input_hash: hash(input), output_hash: hash(output), environment: state.environment };
   body.hash = hash(body);
   state.receipts.push(body);
   state.tokenomics.PXRCPT += 1;
@@ -130,9 +116,7 @@ function applyAccounting(input, receipt, output) {
   state.tokenomics.PXAI += 1;
 }
 
-export function createId(prefix) {
-  return id(prefix);
-}
+export function createId(prefix) { return id(prefix); }
 
 export function verifyReceiptChain() {
   let previous = 'GENESIS';
