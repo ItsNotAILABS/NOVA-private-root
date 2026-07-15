@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NOVA IDE</title>
+  <link rel="stylesheet" href="ide.css">
+</head>
+<body>
+  <header>
+    <div><strong>NOVA IDE</strong><span>App Factory Runtime</span></div>
+    <button id="refresh">Refresh</button>
+  </header>
+  <main class="shell">
+    <section class="panel narrow">
+      <h2>Workspaces</h2>
+      <button id="newWorkspace">New Workspace</button>
+      <div id="workspaces"></div>
+    </section>
+    <section class="panel wide">
+      <h2>Generate App</h2>
+      <textarea id="prompt" placeholder="Build an OIS project dashboard with rooms, status, punch list, and receipts."></textarea>
+      <div class="row"><select id="template"></select><button id="generate">Generate Working App</button></div>
+      <h2>Files</h2>
+      <div id="files"></div>
+      <textarea id="editor" placeholder="Select a file"></textarea>
+      <div class="row"><button id="saveFile">Save File</button><button id="quality">Quality Gate</button><button id="package">Package</button></div>
+    </section>
+    <section class="panel narrow">
+      <h2>Preview / Proof</h2>
+      <pre id="output">Booting...</pre>
+    </section>
+  </main>
+  <script src="ide.js"></script>
+</body>
+</html>
