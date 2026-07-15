@@ -1,23 +1,52 @@
 # PARALLAX Agentic Command Center
 
-A local-first operator surface for the three-agent PARALLAX platform:
+PARALLAX is a local-first agentic trading operations platform for designing strategies, creating AI agents, running governed automation workflows, producing paper-market decisions, clearing simulated fills, and recording tamper-evident receipts.
 
-- `ARGOS-CLEAR` — clearing, settlement, receipts, proof room, tokenomics gates
-- `NOVA-HFT` — market intelligence, strategy, signal, backtest, paper-order proposals
-- `PLAX-SNS-GOV` — token law, governance proposals, upgrade boundaries, notary preparation
+The command center coordinates three runtime agents:
 
-## Included surfaces
+- `NOVA-HFT` — market interpretation, strategy selection, signal generation, backtests, and paper-order proposals.
+- `ARGOS-CLEAR` — risk-aware clearing, simulated fills, receipt chaining, settlement records, and runtime accounting.
+- `PLAX-SNS-GOV` — token-policy boundaries, governance review, proposal control, and notary preparation.
+
+## Operational application surfaces
 
 - command overview and market board
 - portfolio and paper P&L
 - AI agent creation dashboard
-- strategy creation and deterministic backtest lane
-- visual workflow composition
+- strategy creation and deterministic backtesting
+- workflow composition
+- automated signal-to-receipt execution
 - governed paper-order ticket
+- human approval lane for larger notionals
 - runtime tokenomics accounting
 - governance decision console
 - hash-chained receipt ledger
 - three-repository federation configuration
+
+## Working automation loop
+
+The application now executes the complete bounded workflow instead of only storing workflow definitions:
+
+```text
+market snapshot
+→ NOVA-HFT signal evaluation
+→ strategy and notional risk evaluation
+→ paper-order creation or denial
+→ optional human approval
+→ ARGOS-CLEAR simulated fill
+→ receipt-chain append
+→ PXAI / PXGPU / PXCRED / PXBYTE / PXNOVA / PXRCPT accounting
+```
+
+Run one workflow:
+
+```bash
+curl -X POST http://127.0.0.1:8940/api/automation/run \
+  -H "content-type: application/json" \
+  -d '{"strategy_id":"strategy_momentum_alpha","symbol":"BTC-USD","notional":10000,"mode":"paper"}'
+```
+
+The result contains the generated signal, risk decision, paper order, optional simulated fill, participating agents, completed stages, runtime status, token accounting, and receipt hash.
 
 ## Run
 
@@ -35,18 +64,7 @@ npm run check
 npm test
 ```
 
-## Federation
-
-Set these when the sibling runtimes expose reachable APIs:
-
-```bash
-PARALLAX_CLEARINGHOUSE_URL=http://127.0.0.1:8950
-PARALLAX_HFT_URL=http://127.0.0.1:8951
-PARALLAX_SNS_URL=http://127.0.0.1:8952
-npm start
-```
-
-The command center reports configured federation endpoints through `/api/health`. Until those runtimes are reachable, this application operates as a persistent local paper/testnet command surface.
+The smoke test boots the application, creates a strategy, runs the three-agent automation workflow, verifies receipt creation, confirms order-notional enforcement, and confirms live-mode rejection.
 
 ## API
 
@@ -60,22 +78,63 @@ GET  /api/strategies
 POST /api/strategies
 GET  /api/workflows
 POST /api/workflows
+GET  /api/automation/runs
+POST /api/automation/run
 POST /api/orders
+POST /api/orders/:id/approve
 POST /api/backtests
 POST /api/governance/evaluate
 GET  /api/receipts
 ```
 
-## Production boundary
+## Federation
 
-The application is operational local software, but its financial execution boundary remains intentionally constrained:
+Set these variables when sibling runtimes expose reachable authenticated APIs:
 
-- paper trading only
-- testnet and internal-credit accounting only
-- no private-key custody
-- no broker routing
-- no autonomous live trading
-- no public token sale or redeemability claim
-- no regulated fund, exchange, bank, broker, or custodian claim
+```bash
+PARALLAX_CLEARINGHOUSE_URL=http://127.0.0.1:8950
+PARALLAX_HFT_URL=http://127.0.0.1:8951
+PARALLAX_SNS_URL=http://127.0.0.1:8952
+npm start
+```
 
-The next deployment gate is to connect the three repo agents through authenticated runtime adapters and verify each external action with receipts.
+The command center remains the operator-level orchestration surface. The Clearinghouse repo is the settlement and proof authority, the AIHFT repo is the strategy and market-runtime lane, and SNS---TOKEN is the governance and token-law lane.
+
+## Release status
+
+Implemented and locally executable:
+
+- persistent agent, strategy, workflow, order, fill, and receipt state
+- deterministic signal agent
+- governance-aware risk agent
+- paper-order construction
+- approval threshold routing
+- paper-ledger clearing
+- receipt-chain verification
+- runtime accounting
+- API and browser dashboard
+
+Still requiring external integration and audited deployment work:
+
+- authenticated federation adapters between the three repositories
+- live market-data adapter verification
+- broker sandbox adapters
+- exchange-specific paper accounts
+- identity and tenant separation
+- secrets management
+- observability and alerting
+- backup and recovery
+- legal and compliance review before any live financial activity
+
+## Hard production boundary
+
+This code does not activate or claim:
+
+- private-key custody
+- live broker routing
+- autonomous live trading
+- public token sales or redeemability
+- regulated exchange, fund, broker, bank, or custodian operation
+- guaranteed trading returns
+
+The release target is a professional agentic paper-trading and research platform first. Live financial execution remains a separately authorized, integrated, tested, and audited gate.
