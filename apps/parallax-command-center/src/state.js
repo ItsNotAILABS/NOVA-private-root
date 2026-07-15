@@ -8,7 +8,7 @@ const id = (prefix) => `${prefix}_${crypto.randomUUID().replaceAll('-', '').slic
 const hash = (value) => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
 const seedState = () => ({
-  schema: 'parallax.command-center.state.v1',
+  schema: 'parallax.command-center.state.v2',
   created_at: now(),
   updated_at: now(),
   environment: 'local-paper-testnet',
@@ -30,18 +30,22 @@ const seedState = () => ({
     ]
   },
   agents: [
-    { id: 'agent_nova_hft', name: 'NOVA HFT', role: 'strategy-execution', status: 'ready', model: 'polyglot-runtime', risk: 'medium', capabilities: ['signal', 'backtest', 'paper-order'], created_at: now() },
-    { id: 'agent_argos_clear', name: 'ARGOS-CLEAR', role: 'clearing-receipts', status: 'ready', model: 'policy-runtime', risk: 'low', capabilities: ['settlement', 'receipt', 'accounting'], created_at: now() },
+    { id: 'agent_nova_hft', name: 'NOVA HFT', role: 'strategy-execution', status: 'ready', model: 'polyglot-runtime', risk: 'medium', capabilities: ['signal', 'risk-evaluation', 'backtest', 'paper-order', 'workflow-run'], created_at: now() },
+    { id: 'agent_argos_clear', name: 'ARGOS-CLEAR', role: 'clearing-receipts', status: 'ready', model: 'policy-runtime', risk: 'low', capabilities: ['settlement', 'fill', 'receipt', 'accounting'], created_at: now() },
     { id: 'agent_plax_sns', name: 'PLAX-SNS-GOV', role: 'token-governance', status: 'ready', model: 'governance-runtime', risk: 'high', capabilities: ['proposal', 'policy', 'notary-prep'], created_at: now() }
   ],
   strategies: [
-    { id: 'strategy_momentum_alpha', name: 'Momentum Alpha', market: 'BTC-USD', timeframe: '15m', signal: 'ema-cross', risk_limit: 0.01, status: 'paper', created_at: now() },
-    { id: 'strategy_mean_reversion', name: 'Mean Reversion Grid', market: 'ETH-USD', timeframe: '5m', signal: 'z-score', risk_limit: 0.008, status: 'paper', created_at: now() }
+    { id: 'strategy_momentum_alpha', name: 'Momentum Alpha', market: 'BTC-USD', timeframe: '15m', signal: 'ema-cross', risk_limit: 0.01, default_notional: 10000, status: 'paper', created_at: now() },
+    { id: 'strategy_mean_reversion', name: 'Mean Reversion Grid', market: 'ETH-USD', timeframe: '5m', signal: 'z-score', risk_limit: 0.008, default_notional: 7500, status: 'paper', created_at: now() }
   ],
   workflows: [
     { id: 'workflow_signal_to_receipt', name: 'Signal to Receipt', status: 'active', stages: ['market-data', 'signal-agent', 'risk-gate', 'paper-order', 'clearing', 'receipt'], created_at: now() }
   ],
+  automation_runs: [],
+  signals: [],
+  risk_decisions: [],
   orders: [],
+  fills: [],
   backtests: [],
   receipts: [],
   tokenomics: {
@@ -70,6 +74,10 @@ export async function ensureState() {
   await fs.mkdir(config.dataDir, { recursive: true });
   try {
     state = JSON.parse(await fs.readFile(config.stateFile, 'utf8'));
+    state.automation_runs ||= [];
+    state.signals ||= [];
+    state.risk_decisions ||= [];
+    state.fills ||= [];
   } catch {
     state = seedState();
     await persist();
