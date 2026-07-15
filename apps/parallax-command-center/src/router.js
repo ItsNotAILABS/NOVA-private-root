@@ -3,6 +3,8 @@ import { extname, join, normalize } from 'node:path';
 import { config } from './config.js';
 import { ensureState, getState, mutate, createId, verifyReceiptChain } from './state.js';
 import { evaluateSignal, evaluateRisk, buildPaperOrder, settlePaperOrder } from './agentRuntime.js';
+import { resolveEcosystem } from './ecosystemRegistry.js';
+import { probeEcosystem, dispatchFederatedAction } from './federationRuntime.js';
 
 const json = (res, status, body) => { res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }); res.end(JSON.stringify(body)); };
 
@@ -32,7 +34,7 @@ export async function route(req, res) {
   const url = new URL(req.url, 'http://local');
   const s = getState();
 
-  if (req.method === 'GET' && url.pathname === '/api/health') return json(res, 200, { ok:true, app:config.appName, version:config.version, environment:s.environment, receipt_chain_valid:verifyReceiptChain(), federation:config.federation, automation:{ runs:s.automation_runs.length, signals:s.signals.length, fills:s.fills.length } });
+  if (req.method === 'GET' && url.pathname === '/api/health') return json(res, 200, { ok:true, app:config.appName, version:config.version, environment:s.environment, receipt_chain_valid:verifyReceiptChain(), federation:config.federation, automation:{ runs:s.automation_runs.length, signals:s.signals.length, fills:s.fills.length }, ecosystem:{ services:resolveEcosystem(config).length } });
   if (req.method === 'GET' && url.pathname === '/api/state') return json(res, 200, { ok:true, state:s });
   if (req.method === 'GET' && url.pathname === '/api/markets') return json(res, 200, { ok:true, markets:s.markets });
   if (req.method === 'GET' && url.pathname === '/api/agents') return json(res, 200, { ok:true, agents:s.agents });
@@ -40,6 +42,20 @@ export async function route(req, res) {
   if (req.method === 'GET' && url.pathname === '/api/workflows') return json(res, 200, { ok:true, workflows:s.workflows });
   if (req.method === 'GET' && url.pathname === '/api/automation/runs') return json(res, 200, { ok:true, runs:s.automation_runs.slice().reverse() });
   if (req.method === 'GET' && url.pathname === '/api/receipts') return json(res, 200, { ok:true, valid:verifyReceiptChain(), receipts:s.receipts.slice().reverse() });
+  if (req.method === 'GET' && url.pathname === '/api/ecosystem') return json(res, 200, { ok:true, services:resolveEcosystem(config) });
+  if (req.method === 'GET' && url.pathname === '/api/ecosystem/status') return json(res, 200, { ok:true, services:await probeEcosystem(config) });
+
+  if (req.method === 'POST' && url.pathname === '/api/ecosystem/actions') {
+    const input = await body(req); requirePaperMode(input);
+    const result = await dispatchFederatedAction(config, input);
+    const out = await mutate('ecosystem.action.dispatched', input, (state) => {
+      state.ecosystem_events ||= [];
+      const event = { id:createId('eco'), ...result, created_at:new Date().toISOString() };
+      state.ecosystem_events.push(event);
+      return event;
+    });
+    return json(res, result.delivered ? 200 : 502, { ok:result.delivered, ...out });
+  }
 
   if (req.method === 'POST' && url.pathname === '/api/agents') {
     const input = await body(req); requirePaperMode(input);
@@ -89,10 +105,7 @@ export async function route(req, res) {
         strategy_id:strategy.id,
         agents:['agent_nova_hft','agent_argos_clear','agent_plax_sns'],
         stages:['market-data','signal-agent','risk-gate',order ? 'paper-order' : 'order-skipped',fill ? 'clearing' : 'clearing-pending','receipt'],
-        signal,
-        risk,
-        order,
-        fill,
+        signal, risk, order, fill,
         status:fill ? 'settled-paper' : order?.status === 'pending-approval' ? 'pending-human-approval' : 'no-trade',
         created_at:new Date().toISOString()
       };
