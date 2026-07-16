@@ -12,6 +12,8 @@ const { createAppFactory } = await import("../src/ide/appFactory.js");
 const { createQualityGate } = await import("../src/ide/qualityGate.js");
 const { createDeploymentPlanner } = await import("../src/ide/deploymentPlanner.js");
 const { createIDERuntime } = await import("../src/ide/ideRuntime.js");
+const { createAuditLog } = await import("../src/ide/auditLog.js");
+const { createCommercialReadinessGate } = await import("../src/ide/commercialReadiness.js");
 
 assert.throws(() => assertSafeFile("../secret"), /invalid_file_path/);
 
@@ -45,12 +47,31 @@ assert.ok(packaged.manifest.manifestHash);
 const blocked = planner.plan({ app: generated, lane: "icp-package" });
 assert.equal(blocked.status, "approval_required");
 
-const runtime = await createIDERuntime({ workspaceManager: manager });
+const auditLog = createAuditLog();
+const auditEvent = await auditLog.write("test_event", { ok: true }, { workspaceId: workspace.id });
+assert.ok(auditEvent.recordHash);
+assert.equal((await auditLog.list({ workspaceId: workspace.id })).length >= 1, true);
+
+const runtime = await createIDERuntime({ workspaceManager: manager, auditLog });
+assert.equal(runtime.status().commercialGrade, true);
 const appResult = await runtime.generateApp({ prompt: "Build a static field report app" });
 assert.ok(appResult.workspace.id);
 const check = await runtime.qualityCheck(appResult.workspace.id);
 assert.equal(check.report.ok, true);
+
+const run = await runtime.runCommand(appResult.workspace.id, "node-test");
+assert.equal(run.run.ok, true);
+assert.ok(run.run.outputHash);
+
 const pkg = await runtime.packageWorkspace(appResult.workspace.id, "local-preview");
 assert.equal(pkg.plan.ok, true);
+const readiness = await runtime.commercialReadiness(appResult.workspace.id);
+assert.equal(readiness.report.ok, true);
+assert.ok(readiness.report.score >= 75);
 
-console.log("NOVA IDE runtime tests passed");
+const standaloneReadiness = createCommercialReadinessGate().evaluate({ files: generated.files, commandRuns: [run.run], packagePlan: packaged });
+assert.equal(standaloneReadiness.ok, true);
+
+await assert.rejects(() => runtime.runCommand(appResult.workspace.id, "rm-rf"), /command_not_allowed/);
+
+console.log("NOVA IDE commercial runtime tests passed");
