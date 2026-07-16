@@ -44,7 +44,8 @@ function securityHeaders() {
   return {
     "x-content-type-options": "nosniff",
     "referrer-policy": "no-referrer",
-    "cache-control": "no-store"
+    "cache-control": "no-store",
+    "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:8899 http://localhost:8899"
   };
 }
 
@@ -61,7 +62,8 @@ function send(req, res, status, body, headers = {}) {
 
 function sendStatic(req, res, requestedPath) {
   const resolved = path.resolve(requestedPath);
-  if (!resolved.startsWith(publicRoot + path.sep) && resolved !== path.join(publicRoot, "index.html") && resolved !== path.join(publicRoot, "surfaces.html")) {
+  const allowedPages = ["index.html", "surfaces.html", "ide.html"].map((file) => path.join(publicRoot, file));
+  if (!resolved.startsWith(publicRoot + path.sep) && !allowedPages.includes(resolved)) {
     return send(req, res, 403, { ok: false, error: "static_path_forbidden" });
   }
   const ext = path.extname(resolved);
@@ -147,7 +149,11 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "GET" && url.pathname === "/api/ide/status") return send(req, res, 200, { ok: true, ...ideRuntime.status() });
     if (req.method === "GET" && url.pathname === "/api/ide/workspaces") return send(req, res, 200, { ok: true, workspaces: ideRuntime.workspaceManager.listWorkspaces() });
+    if (req.method === "GET" && url.pathname === "/api/ide/commands") return send(req, res, 200, { ok: true, commands: ideRuntime.commandRunner.commands() });
+    if (req.method === "GET" && url.pathname === "/api/apps/templates") return send(req, res, 200, { ok: true, templates: ideRuntime.appFactory.templates() });
+
     if (req.method === "POST" && url.pathname === "/api/ide/workspaces") {
+      const auth = requireOperator(req, res); if (!auth) return;
       const body = await readJson(req);
       const result = await ideRuntime.createWorkspace(body);
       return send(req, res, 200, { ok: true, ...result });
@@ -162,27 +168,47 @@ const server = http.createServer(async (req, res) => {
       return send(req, res, 200, { ok: true, ...ideRuntime.workspaceManager.readFile(workspaceId, file) });
     }
     if (req.method === "PUT" && /^\/api\/ide\/workspace\/[^/]+\/file$/.test(url.pathname)) {
+      const auth = requireOperator(req, res); if (!auth) return;
       const workspaceId = decodeURIComponent(url.pathname.split("/")[4]);
       const body = await readJson(req);
       const meta = await ideRuntime.workspaceManager.writeFile(workspaceId, body.file, body.content || "");
+      await ideRuntime.auditLog.write("file_saved", { file: meta.file, hash: meta.hash }, { workspaceId, actor: auth.operator, requestId: req.novaRequestId });
       const receipt = await writeReceipt("ide_file_saved", { workspaceId, file: meta.file, hash: meta.hash });
       return send(req, res, 200, { ok: true, meta, receipt });
     }
     if (req.method === "POST" && url.pathname === "/api/apps/generate") {
+      const auth = requireOperator(req, res); if (!auth) return;
       const body = await readJson(req);
       const result = await ideRuntime.generateApp(body);
       return send(req, res, 200, { ok: true, ...result });
     }
-    if (req.method === "GET" && url.pathname === "/api/apps/templates") return send(req, res, 200, { ok: true, templates: ideRuntime.appFactory.templates() });
     if (req.method === "POST" && url.pathname === "/api/quality/check-workspace") {
       const body = await readJson(req);
       const result = await ideRuntime.qualityCheck(body.workspaceId);
       return send(req, res, 200, { ok: true, ...result });
     }
+    if (req.method === "POST" && /^\/api\/ide\/workspace\/[^/]+\/run$/.test(url.pathname)) {
+      const auth = requireOperator(req, res); if (!auth) return;
+      const workspaceId = decodeURIComponent(url.pathname.split("/")[4]);
+      const body = await readJson(req);
+      const result = await ideRuntime.runCommand(workspaceId, body.commandId, { approved: Boolean(body.approved), requestId: req.novaRequestId });
+      return send(req, res, result.run.ok ? 200 : 422, { ok: result.run.ok, ...result });
+    }
     if (req.method === "POST" && url.pathname === "/api/apps/package") {
+      const auth = requireOperator(req, res); if (!auth) return;
       const body = await readJson(req);
       const result = await ideRuntime.packageWorkspace(body.workspaceId, body.lane || "local-preview", Boolean(body.approved));
       return send(req, res, result.plan.ok ? 200 : 409, { ok: result.plan.ok, ...result });
+    }
+    if (req.method === "POST" && url.pathname === "/api/commercial/readiness") {
+      const body = await readJson(req);
+      const result = await ideRuntime.commercialReadiness(body.workspaceId);
+      return send(req, res, result.report.ok ? 200 : 422, { ok: result.report.ok, ...result });
+    }
+    if (req.method === "GET" && url.pathname === "/api/ide/audit") {
+      const auth = requireOperator(req, res); if (!auth) return;
+      const result = await ideRuntime.audit({ limit: url.searchParams.get("limit") || 100, workspaceId: url.searchParams.get("workspaceId") || null });
+      return send(req, res, 200, { ok: true, ...result });
     }
 
     if (url.pathname.startsWith("/api/operator") || url.pathname === "/api/ai/respond" || url.pathname === "/api/receipts") {
@@ -217,7 +243,7 @@ const server = http.createServer(async (req, res) => {
 
     return send(req, res, 404, { ok: false, error: "route_not_found" });
   } catch (error) {
-    const exposed = ["body_too_large", "invalid_app_id", "app_id_and_name_required", "invalid_receipt_type", "invalid_file_path", "workspace_not_found", "file_not_found", "invalid_deployment_lane", "files_must_be_array"].includes(error.message) ? error.message : "internal_error";
+    const exposed = ["body_too_large", "invalid_app_id", "app_id_and_name_required", "invalid_receipt_type", "invalid_file_path", "workspace_not_found", "file_not_found", "invalid_deployment_lane", "files_must_be_array", "command_not_allowed", "command_required_file_missing", "command_approval_required", "invalid_audit_event_type"].includes(error.message) ? error.message : "internal_error";
     return send(req, res, exposed === "internal_error" ? 500 : 400, { ok: false, error: exposed });
   }
 });
