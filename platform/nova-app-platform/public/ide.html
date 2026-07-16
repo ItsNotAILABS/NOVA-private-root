@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>NOVA IDE</title>
-  <link rel="stylesheet" href="ide.css">
+  <link rel="stylesheet" href="/public/ide.css">
 </head>
 <body>
   <header>
-    <div><strong>NOVA IDE</strong><span>App Factory Runtime</span></div>
-    <button id="refresh">Refresh</button>
+    <div><strong>NOVA IDE</strong><span>Commercial App Factory Runtime</span></div>
+    <div class="row compact"><input id="operatorToken" type="password" placeholder="Operator token"><button id="connect">Connect</button><button id="refresh">Refresh</button></div>
   </header>
   <main class="shell">
     <section class="panel narrow">
@@ -24,13 +24,14 @@
       <h2>Files</h2>
       <div id="files"></div>
       <textarea id="editor" placeholder="Select a file"></textarea>
-      <div class="row"><button id="saveFile">Save File</button><button id="quality">Quality Gate</button><button id="package">Package</button></div>
+      <div class="row"><button id="saveFile">Save File</button><button id="quality">Quality Gate</button><button id="runTest">Run Test</button><button id="package">Package</button><button id="readiness">Commercial Readiness</button></div>
     </section>
     <section class="panel narrow">
-      <h2>Preview / Proof</h2>
+      <h2>Proof / Audit</h2>
+      <button id="audit">Audit Log</button>
       <pre id="output">Booting...</pre>
     </section>
   </main>
-  <script src="ide.js"></script>
+  <script src="/public/ide.js"></script>
 </body>
 </html>
