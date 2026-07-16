@@ -3,13 +3,25 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { setTimeout as sleep } from 'node:timers/promises';
 
-test('PARALLAX command center serves UI and executes governed agent workflow', async () => {
-  const child = spawn(process.execPath, ['server.js'], { cwd: new URL('..', import.meta.url), env: { ...process.env, PARALLAX_PORT: '8942' }, stdio: 'ignore' });
+test('PARALLAX command center serves UI and executes governed ecosystem workflow', async () => {
+  const child = spawn(process.execPath, ['server.js'], { cwd: new URL('..', import.meta.url), env: { ...process.env, PARALLAX_PORT: '8942', PARALLAX_AUTOMATION_ENABLED: 'false' }, stdio: 'ignore' });
   try {
     await sleep(700);
     const base = 'http://127.0.0.1:8942';
     const health = await fetch(`${base}/api/health`).then(r => r.json());
     assert.equal(health.ok, true);
+    assert.equal(health.ecosystem.services, 4);
+
+    const ecosystem = await fetch(`${base}/api/ecosystem`).then(r => r.json());
+    assert.equal(ecosystem.ok, true);
+    assert.equal(ecosystem.services.length, 4);
+    assert.equal(ecosystem.services[0].id, 'parallax-command-center');
+
+    const status = await fetch(`${base}/api/ecosystem/status`).then(r => r.json());
+    assert.equal(status.ok, true);
+    assert.equal(status.services[0].reachable, true);
+    assert.equal(status.services.filter(service => service.state === 'not-configured').length, 3);
+
     const ui = await fetch(base).then(r => r.text());
     assert.match(ui, /PARALLAX Agentic Command Center/);
 
