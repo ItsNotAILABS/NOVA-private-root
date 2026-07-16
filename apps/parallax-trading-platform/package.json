@@ -1,0 +1,15 @@
+{
+  "name": "@nova/parallax-trading-platform",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Trader-facing PARALLAX platform with TradingView webhooks, bot studio, paper execution, wallet registry, receipts, and MCP access.",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "check": "node scripts/check.mjs",
+    "test": "node --test tests/platform.test.mjs",
+    "mcp": "node mcp/server.mjs"
+  },
+  "engines": { "node": ">=20" }
+}
