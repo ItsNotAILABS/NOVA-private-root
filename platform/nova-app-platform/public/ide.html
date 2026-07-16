@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NOVA IDE</title>
+  <link rel="stylesheet" href="/public/ide.css">
+</head>
+<body>
+  <header>
+    <div><strong>NOVA IDE</strong><span>Commercial App Factory Runtime</span></div>
+    <div class="row compact"><input id="operatorToken" type="password" placeholder="Operator token"><button id="connect">Connect</button><button id="refresh">Refresh</button></div>
+  </header>
+  <main class="shell">
+    <section class="panel narrow">
+      <h2>Workspaces</h2>
+      <button id="newWorkspace">New Workspace</button>
+      <div id="workspaces"></div>
+    </section>
+    <section class="panel wide">
+      <h2>Generate App</h2>
+      <textarea id="prompt" placeholder="Build an OIS project dashboard with rooms, status, punch list, and receipts."></textarea>
+      <div class="row"><select id="template"></select><button id="generate">Generate Working App</button></div>
+      <h2>Files</h2>
+      <div id="files"></div>
+      <textarea id="editor" placeholder="Select a file"></textarea>
+      <div class="row"><button id="saveFile">Save File</button><button id="quality">Quality Gate</button><button id="runTest">Run Test</button><button id="package">Package</button><button id="readiness">Commercial Readiness</button></div>
+    </section>
+    <section class="panel narrow">
+      <h2>Proof / Audit</h2>
+      <button id="audit">Audit Log</button>
+      <pre id="output">Booting...</pre>
+    </section>
+  </main>
+  <script src="/public/ide.js"></script>
+</body>
+</html>
