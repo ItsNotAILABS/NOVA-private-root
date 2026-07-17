@@ -40,6 +40,8 @@ jobs:
       - name: Install Auro and benchmark runtime
         run: |
           git clone --depth 1 https://github.com/ItsNotAILABS/Auro14B.git vendor/Auro14B
+          git -C vendor/Auro14B fetch --depth 1 origin ae430ca139bf829eaf0888a9c7c46600a8738b97
+          git -C vendor/Auro14B checkout ae430ca139bf829eaf0888a9c7c46600a8738b97
           python -m pip install --upgrade pip
           python -m pip install -e "vendor/Auro14B[foundry,dev]"
           python -m pip install "lm_eval @ git+https://github.com/EleutherAI/lm-evaluation-harness.git"
@@ -122,6 +124,7 @@ jobs:
         id: official
         continue-on-error: true
         run: |
+          set -o pipefail
           LIMIT="${{ inputs.benchmark_limit || '2' }}"
           python integrations/auro14b/real_run/run_benchmarks.py \
             --checkpoint "$RELEASE/model/final.pt" \
@@ -132,12 +135,14 @@ jobs:
         id: coding
         continue-on-error: true
         run: |
+          set -o pipefail
           python integrations/auro14b/real_run/run_coding_benchmark.py \
             --checkpoint "$RELEASE/model/final.pt" \
             --output "$RELEASE/benchmarks" 2>&1 | tee "$RELEASE/benchmarks/coding.log"
 
       - name: Smoke test delivered checkpoint
         run: |
+          set -o pipefail
           auro-foundry generate \
             --checkpoint "$RELEASE/model/final.pt" \
             --prompt "Auro system status:" \
@@ -154,7 +159,8 @@ jobs:
             "official_benchmarks": "${{ steps.official.outcome }}",
             "coding_benchmark": "${{ steps.coding.outcome }}",
             "workflow_sha": "${{ github.sha }}",
-            "workflow_run_id": "${{ github.run_id }}"
+            "workflow_run_id": "${{ github.run_id }}",
+            "auro_runtime_sha": "ae430ca139bf829eaf0888a9c7c46600a8738b97"
           }
           JSON
 
