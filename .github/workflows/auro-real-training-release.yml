@@ -62,16 +62,30 @@ jobs:
             [ -d "$directory" ] && roots+=(--local-root "$directory")
           done
           auro-foundry build-corpus "${roots[@]}" --output "$WORKSPACE/corpus"
+          python - <<'PY'
+          from pathlib import Path
+          source = Path("artifacts/auro-real/corpus/corpus.jsonl")
+          target = Path("artifacts/auro-real/corpus/training-corpus.jsonl")
+          budget = 4 * 1024 * 1024
+          written = 0
+          with source.open("rb") as src, target.open("wb") as dst:
+              for line in src:
+                  if written and written + len(line) > budget:
+                      break
+                  dst.write(line)
+                  written += len(line)
+          print({"training_corpus_bytes": written, "path": str(target)})
+          PY
 
       - name: Train tokenizer and prepare dataset
         run: |
           auro-foundry train-tokenizer \
-            --corpus "$WORKSPACE/corpus/corpus.jsonl" \
+            --corpus "$WORKSPACE/corpus/training-corpus.jsonl" \
             --output "$WORKSPACE/tokenizer.json" \
-            --vocab-size 1024 \
-            --max-bytes 16777216
+            --vocab-size 320 \
+            --max-bytes 2097152
           auro-foundry prepare-dataset \
-            --corpus "$WORKSPACE/corpus/corpus.jsonl" \
+            --corpus "$WORKSPACE/corpus/training-corpus.jsonl" \
             --tokenizer "$WORKSPACE/tokenizer.json" \
             --output "$WORKSPACE/dataset" \
             --validation-fraction 0.02
