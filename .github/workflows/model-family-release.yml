@@ -1,0 +1,26 @@
+name: NOVA Model Family Release
+
+on:
+  pull_request:
+    paths:
+      - 'docs/wiki/**'
+      - 'docs/releases/model-family/**'
+      - 'scripts/validate-model-family-release.mjs'
+      - '.github/workflows/model-family-release.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'docs/wiki/**'
+      - 'docs/releases/model-family/**'
+      - 'scripts/validate-model-family-release.mjs'
+
+jobs:
+  validate-model-family-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate model family release package
+        run: node scripts/validate-model-family-release.mjs
