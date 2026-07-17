@@ -1,0 +1,35 @@
+{
+  "schema": "nova-model-family-release-manifest-v1",
+  "release": "nova-model-family-v1.0.0",
+  "status": "candidate",
+  "date": "2026-07-16",
+  "repository": "ItsNotAILABS/NOVA-private-root",
+  "wikiRoot": "docs/wiki",
+  "models": [
+    "nova-origo-v1.0.0",
+    "nova-sensus-v1.0.0",
+    "nova-corpus-v1.0.0",
+    "nova-codex-v1.0.0",
+    "nova-tasking-v1.0.0",
+    "nova-creation-v1.0.0",
+    "nova-orchestration-v1.0.0",
+    "nova-voice-v1.0.0",
+    "mathesis-v1.0.0",
+    "nova-eval-v1.0.0",
+    "nova-governance-v1.0.0",
+    "nova-port-v1.0.0"
+  ],
+  "promotion": {
+    "requiresMerge": true,
+    "requiresTag": true,
+    "requiresGitHubRelease": true,
+    "connectorNote": "The current GitHub connector exposed in this chat can create files, branches, PRs, issues, and comments, but it does not expose a GitHub Releases creation endpoint. This manifest is promotion-ready."
+  },
+  "boundaries": [
+    "operator-controlled",
+    "proof-first",
+    "no-secret-leakage",
+    "no-unapproved-live-deployments",
+    "no-consciousness-claim"
+  ]
+}
