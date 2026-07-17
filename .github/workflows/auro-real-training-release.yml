@@ -1,0 +1,154 @@
+name: Auro Real Training Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      train_steps:
+        description: CPU optimization steps
+        required: false
+        default: "30"
+      benchmark_limit:
+        description: Samples per official benchmark task
+        required: false
+        default: "2"
+  pull_request:
+    paths:
+      - "integrations/auro14b/real_run/**"
+      - ".github/workflows/auro-real-training-release.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  train-benchmark-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      PYTHONUNBUFFERED: "1"
+      TOKENIZERS_PARALLELISM: "false"
+      HF_HUB_DISABLE_XET: "1"
+      WORKSPACE: artifacts/auro-real
+      RELEASE: dist/Auro-Real-Checkpoint
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Auro and benchmark runtime
+        run: |
+          git clone --depth 1 https://github.com/ItsNotAILABS/Auro14B.git vendor/Auro14B
+          python -m pip install --upgrade pip
+          python -m pip install -e "vendor/Auro14B[foundry,dev]"
+          python -m pip install "lm_eval @ git+https://github.com/EleutherAI/lm-evaluation-harness.git"
+
+      - name: Clone Medina public corpus lanes
+        run: |
+          mkdir -p vendor/repos
+          for repo in \
+            MedinaMemorySystems NEUROSWARMAI FABLEBREAKER \
+            LOOM-Memoria-De-Intelligencia- CyberSecurity-AI CAPSULA \
+            AURO MatDaemon nova-intelligence organism-bots-mcp-server \
+            x-mcp-skills nexus; do
+            git clone --depth 1 "https://github.com/ItsNotAILABS/${repo}.git" "vendor/repos/${repo}" || true
+          done
+
+      - name: Build repository corpus
+        run: |
+          roots=(--local-root . --local-root vendor/Auro14B)
+          for directory in vendor/repos/*; do
+            [ -d "$directory" ] && roots+=(--local-root "$directory")
+          done
+          auro-foundry build-corpus "${roots[@]}" --output "$WORKSPACE/corpus"
+
+      - name: Train tokenizer and prepare dataset
+        run: |
+          auro-foundry train-tokenizer \
+            --corpus "$WORKSPACE/corpus/corpus.jsonl" \
+            --output "$WORKSPACE/tokenizer.json" \
+            --vocab-size 1024 \
+            --max-bytes 16777216
+          auro-foundry prepare-dataset \
+            --corpus "$WORKSPACE/corpus/corpus.jsonl" \
+            --tokenizer "$WORKSPACE/tokenizer.json" \
+            --output "$WORKSPACE/dataset" \
+            --validation-fraction 0.02
+
+      - name: Configure and train real checkpoint
+        run: |
+          STEPS="${{ inputs.train_steps || '30' }}"
+          auro-foundry init-config \
+            --preset micro \
+            --tokenizer "$WORKSPACE/tokenizer.json" \
+            --dataset "$WORKSPACE/dataset" \
+            --runs "$WORKSPACE/runs" \
+            --run-name auro-real-run \
+            --output "$WORKSPACE/train-config.json" \
+            --sequence-length 64 \
+            --batch-size 2 \
+            --accumulation 1 \
+            --steps "$STEPS" \
+            --eval-interval 10 \
+            --checkpoint-interval 10 \
+            --device cpu \
+            --precision fp32
+          auro-foundry train --config "$WORKSPACE/train-config.json"
+
+      - name: Package checkpoint before evaluation
+        run: |
+          python integrations/auro14b/real_run/package_release.py --workspace "$WORKSPACE" --release "$RELEASE"
+          cp integrations/auro14b/real_run/GET_STARTED.md "$RELEASE/GET_STARTED.md"
+          cp integrations/auro14b/real_run/start-auro.sh "$RELEASE/start-auro.sh"
+          cp integrations/auro14b/real_run/start-auro.ps1 "$RELEASE/start-auro.ps1"
+          mkdir -p "$RELEASE/benchmarks"
+
+      - name: Run official sampled benchmarks
+        id: official
+        continue-on-error: true
+        run: |
+          LIMIT="${{ inputs.benchmark_limit || '2' }}"
+          python integrations/auro14b/real_run/run_benchmarks.py \
+            --checkpoint "$RELEASE/model/final.pt" \
+            --output "$RELEASE/benchmarks" \
+            --limit "$LIMIT" 2>&1 | tee "$RELEASE/benchmarks/lm-eval.log"
+
+      - name: Run coding execution benchmark
+        id: coding
+        continue-on-error: true
+        run: |
+          python integrations/auro14b/real_run/run_coding_benchmark.py \
+            --checkpoint "$RELEASE/model/final.pt" \
+            --output "$RELEASE/benchmarks" 2>&1 | tee "$RELEASE/benchmarks/coding.log"
+
+      - name: Smoke test delivered checkpoint
+        run: |
+          auro-foundry generate \
+            --checkpoint "$RELEASE/model/final.pt" \
+            --prompt "Auro system status:" \
+            --max-new-tokens 16 | tee "$RELEASE/evidence/generation-smoke.txt"
+          python -m compileall -q integrations/auro14b/real_run
+
+      - name: Write run status
+        if: always()
+        run: |
+          mkdir -p "$RELEASE/evidence"
+          cat > "$RELEASE/evidence/workflow-status.json" <<JSON
+          {
+            "schema": "medina.auro.workflow_status.v1",
+            "official_benchmarks": "${{ steps.official.outcome }}",
+            "coding_benchmark": "${{ steps.coding.outcome }}",
+            "workflow_sha": "${{ github.sha }}",
+            "workflow_run_id": "${{ github.run_id }}"
+          }
+          JSON
+
+      - name: Upload usable Auro checkpoint
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Auro-Real-Checkpoint-${{ github.run_id }}
+          path: dist/Auro-Real-Checkpoint
+          if-no-files-found: error
+          retention-days: 30
