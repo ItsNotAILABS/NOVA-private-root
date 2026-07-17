@@ -1,0 +1,39 @@
+name: MESIE Model Promotion Gate
+
+on:
+  pull_request:
+    paths:
+      - "integrations/auro14b/promotion/**"
+      - ".github/workflows/mesie-model-promotion.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile promotion modules
+        run: python -m compileall -q integrations/auro14b/promotion
+      - name: Run promotion tests
+        run: python -m unittest -v integrations/auro14b/promotion/test_readiness_gate.py
+      - name: Verify current baseline remains blocked
+        run: |
+          set +e
+          python integrations/auro14b/promotion/readiness_gate.py \
+            integrations/auro14b/promotion/baseline-readiness.json \
+            --output artifacts/mesie-readiness.json
+          status=$?
+          set -e
+          test "$status" -eq 2
+      - name: Upload readiness receipt
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesie-readiness-${{ github.run_id }}
+          path: artifacts/mesie-readiness.json
+          if-no-files-found: error
