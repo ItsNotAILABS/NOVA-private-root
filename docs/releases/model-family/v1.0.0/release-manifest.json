@@ -1,8 +1,8 @@
 {
   "schema": "nova-model-family-release-manifest-v1",
   "release": "nova-model-family-v1.0.0",
-  "status": "candidate",
-  "date": "2026-07-16",
+  "status": "production-harness",
+  "date": "2026-07-17",
   "repository": "ItsNotAILABS/NOVA-private-root",
   "wikiRoot": "docs/wiki",
   "models": [
@@ -19,17 +19,69 @@
     "nova-governance-v1.0.0",
     "nova-port-v1.0.0"
   ],
+  "production_controls": [
+    "release-ci-validator",
+    "required-evidence-files",
+    "banned-claim-scan",
+    "model-card-registry",
+    "task-capability-matrix",
+    "training-and-evaluation-boundary",
+    "ecosystem-feeder-registry",
+    "operator-approval-gates",
+    "no-secret-exposure-boundary",
+    "versioned-release-manifest"
+  ],
+  "task_capabilities": [
+    "coding-agent-pr-workflows",
+    "task-decomposition-and-routing",
+    "app-and-workspace-generation",
+    "multi-agent-orchestration",
+    "conversation-and-talking-surface",
+    "computation-and-proof-posture",
+    "evaluation-and-benchmark-review",
+    "governance-and-release-boundary",
+    "browser-and-ide-integration",
+    "package-and-release-operations"
+  ],
+  "evidence": [
+    "docs/wiki/README.md",
+    "docs/wiki/02-model-cards.md",
+    "docs/wiki/03-coding-agent-model.md",
+    "docs/wiki/04-tasking-mission-model.md",
+    "docs/wiki/05-creation-app-factory-model.md",
+    "docs/wiki/06-orchestration-model.md",
+    "docs/wiki/07-talking-conversation-model.md",
+    "docs/wiki/08-computation-proof-model.md",
+    "docs/wiki/09-safety-governance-release-boundary.md",
+    "docs/wiki/10-ide-browser-ai-platform-integration.md",
+    "docs/releases/model-family/v1.0.0/PRODUCTION_READINESS.md",
+    "docs/releases/model-family/v1.0.0/TASK_CAPABILITY_MATRIX.md",
+    "docs/releases/model-family/v1.0.0/TRAINING_AND_EVALUATION_BOUNDARY.md",
+    "docs/releases/model-family/v1.0.0/ECOSYSTEM_FEEDER_REGISTRY.md",
+    "scripts/validate-model-family-release.mjs",
+    ".github/workflows/model-family-release.yml"
+  ],
   "promotion": {
     "requiresMerge": true,
+    "requiresCI": true,
     "requiresTag": true,
     "requiresGitHubRelease": true,
-    "connectorNote": "The current GitHub connector exposed in this chat can create files, branches, PRs, issues, and comments, but it does not expose a GitHub Releases creation endpoint. This manifest is promotion-ready."
+    "connectorNote": "The current GitHub connector exposes files, branches, PRs, issues, comments, CI status, and merge actions. It does not expose a GitHub Releases creation endpoint. This manifest is production-harness-ready and formal release promotion still needs release endpoint access or UI action."
+  },
+  "boundary_claims": {
+    "no_consciousness_claim": true,
+    "no_unapproved_live_deployment": true,
+    "no_secret_exposure": true,
+    "no_hidden_checkpoint_claim": true,
+    "operator_control_required": true
   },
   "boundaries": [
     "operator-controlled",
     "proof-first",
     "no-secret-leakage",
     "no-unapproved-live-deployments",
-    "no-consciousness-claim"
+    "no-consciousness-claim",
+    "no-hidden-trained-checkpoint-claim",
+    "formal-release-object-requires-release-endpoint"
   ]
 }
