@@ -1,0 +1,31 @@
+{
+  "schema": "medina.mesie_model_readiness_input.v1",
+  "artifact": "Auro-Real-Checkpoint-29565916046",
+  "gates": {
+    "tokenizer": 0.55,
+    "corpus": 0.65,
+    "training": 0.15,
+    "checkpoint": 1.0,
+    "generation": 0.1,
+    "api_chat": 0.8,
+    "coding_execution": 0.0,
+    "official_evaluation": 0.25,
+    "safety_governance": 0.7,
+    "browser_ui": 0.8,
+    "beginner_launch": 0.9
+  },
+  "blockers": [
+    {
+      "id": "noise-generation",
+      "severity": "critical",
+      "resolved": false,
+      "evidence": "generation-smoke output is not yet useful natural language"
+    },
+    {
+      "id": "coding-zero-of-three",
+      "severity": "high",
+      "resolved": false,
+      "evidence": "coding execution benchmark passed 0 of 3 tasks"
+    }
+  ]
+}
