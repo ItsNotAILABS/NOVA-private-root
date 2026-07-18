@@ -34,11 +34,11 @@ jobs:
         run: python -m compileall -q integrations/chrome-runtime/bridge
       - name: Smoke test bridge health
         run: |
-          HIM_BRIDGE_PORT=8092 python integrations/chrome-runtime/bridge/server.py > /tmp/him-bridge.log 2>&1 &
+          HIM_BRIDGE_TOKEN=ci-test-token HIM_BRIDGE_PORT=8092 python integrations/chrome-runtime/bridge/server.py > /tmp/him-bridge.log 2>&1 &
           BRIDGE_PID=$!
           trap 'kill $BRIDGE_PID' EXIT
           python - <<'PY'
-          import json, time, urllib.request
+          import json, time, urllib.error, urllib.request
           for _ in range(20):
               try:
                   with urllib.request.urlopen('http://127.0.0.1:8092/health') as response:
