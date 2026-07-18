@@ -82,14 +82,14 @@ export class BrainCoordinator {
     const url = new URL(request.url);
     try {
       if (request.method === 'GET' && url.pathname.endsWith('/health')) return this.health();
+      if (request.method === 'POST' && url.pathname.match(/\/brains\/[^/]+\/heartbeat$/)) return this.heartbeat(request);
+      if (request.method === 'POST' && url.pathname.endsWith('/tasks/claim')) return this.claim(request);
+      if (request.method === 'POST' && url.pathname.match(/\/tasks\/[^/]+\/complete$/)) return this.complete(request);
       const auth = requireToken(request, this.env);
       if (!auth.ok) return auth.response;
       if (request.method === 'POST' && url.pathname.endsWith('/brains/register')) return this.register(request, auth.actor);
-      if (request.method === 'POST' && url.pathname.match(/\/brains\/[^/]+\/heartbeat$/)) return this.heartbeat(request, auth.actor);
       if (request.method === 'GET' && url.pathname.endsWith('/brains')) return this.listBrains();
       if (request.method === 'POST' && url.pathname.endsWith('/tasks')) return this.enqueue(request, auth.actor);
-      if (request.method === 'POST' && url.pathname.endsWith('/tasks/claim')) return this.claim(request, auth.actor);
-      if (request.method === 'POST' && url.pathname.match(/\/tasks\/[^/]+\/complete$/)) return this.complete(request, auth.actor);
       if (request.method === 'GET' && url.pathname.endsWith('/tasks')) return this.listTasks();
       if (request.method === 'GET' && url.pathname.endsWith('/receipts')) return this.receipts();
       return notFound();
@@ -125,14 +125,14 @@ export class BrainCoordinator {
     return json({ ok: true, brain: publicBrain(brain), brainToken });
   }
 
-  async heartbeat(request, actor) {
+  async heartbeat(request) {
     const id = new URL(request.url).pathname.split('/').at(-2);
     const brain = await this.state.storage.get(`brain:${id}`);
     if (!brain) return json({ ok: false, error: 'brain_not_registered' }, 404);
     if (!(await requireBrain(request, brain))) return json({ ok: false, error: 'brain_unauthorized' }, 401);
     brain.lastHeartbeatAt = new Date().toISOString();
     await this.state.storage.put(`brain:${id}`, brain);
-    await this.receipt('brain.heartbeat', actor, { id });
+    await this.receipt('brain.heartbeat', `brain:${id}`, { id });
     return json({ ok: true, brain: publicBrain(brain) });
   }
 
@@ -164,7 +164,7 @@ export class BrainCoordinator {
     return json({ ok: true, task });
   }
 
-  async claim(request, actor) {
+  async claim(request) {
     const body = await readJson(request);
     const brainId = String(body.brainId || '').slice(0, 80);
     const brain = await this.state.storage.get(`brain:${brainId}`);
@@ -184,11 +184,11 @@ export class BrainCoordinator {
     task.leaseExpiresAt = new Date(Date.now() + Number(body.leaseMs || DEFAULT_LEASE_MS)).toISOString();
     task.leaseHash = await sha256({ id: task.id, leasedBy: brainId, leaseExpiresAt: task.leaseExpiresAt, attempts: task.attempts });
     await this.state.storage.put(`task:${task.id}`, task);
-    await this.receipt('task.claimed', actor, { id: task.id, brainId, leaseHash: task.leaseHash });
+    await this.receipt('task.claimed', `brain:${brainId}`, { id: task.id, brainId, leaseHash: task.leaseHash });
     return json({ ok: true, task });
   }
 
-  async complete(request, actor) {
+  async complete(request) {
     const id = new URL(request.url).pathname.split('/').at(-2);
     const body = await readJson(request);
     const task = await this.state.storage.get(`task:${id}`);
@@ -203,7 +203,7 @@ export class BrainCoordinator {
     task.result = body.result || {};
     task.resultHash = await sha256(task.result);
     await this.state.storage.put(`task:${id}`, task);
-    await this.receipt('task.completed', actor, { id, status: task.status, resultHash: task.resultHash });
+    await this.receipt('task.completed', `brain:${brainId}`, { id, status: task.status, resultHash: task.resultHash });
     return json({ ok: true, task });
   }
 
