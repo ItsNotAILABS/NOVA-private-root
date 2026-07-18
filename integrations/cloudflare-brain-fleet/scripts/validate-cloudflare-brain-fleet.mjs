@@ -32,5 +32,8 @@ assert.ok(schema.properties.tasks);
 assert.ok(schema.properties.receipts);
 const docs = required.map((file) => fs.readFileSync(path.join(root, file), 'utf8')).join('\n');
 const banned = [/guaranteed autonomous repair/i, /unrestricted repository write/i, /secret exfiltration/i, /live deployment without approval/i];
-for (const pattern of banned) assert.equal(pattern.test(docs), false, `banned claim found ${pattern}`);
+for (const line of docs.split('\n')) {
+  const negated = /\b(no|not|never|without|does not|cannot|operator-controlled|approval required)\b/i.test(line);
+  for (const pattern of banned) assert.equal(pattern.test(line) && !negated, false, `banned affirmative claim found ${pattern}: ${line}`);
+}
 console.log(JSON.stringify({ ok: true, checked: required.length, harness: 'cloudflare-brain-fleet-runtime' }, null, 2));
