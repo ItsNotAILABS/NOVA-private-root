@@ -1,0 +1,53 @@
+name: Chrome WebGPU Runtime
+
+on:
+  pull_request:
+    paths:
+      - "integrations/chrome-runtime/**"
+      - ".github/workflows/chrome-webgpu-runtime.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: integrations/chrome-runtime/package.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install and typecheck browser runtime
+        working-directory: integrations/chrome-runtime
+        run: |
+          npm install
+          npm run typecheck
+          npm run build
+      - name: Compile Python bridge
+        run: python -m compileall -q integrations/chrome-runtime/bridge
+      - name: Smoke test bridge health
+        run: |
+          HIM_BRIDGE_PORT=8092 python integrations/chrome-runtime/bridge/server.py > /tmp/him-bridge.log 2>&1 &
+          BRIDGE_PID=$!
+          trap 'kill $BRIDGE_PID' EXIT
+          python - <<'PY'
+          import json, time, urllib.request
+          for _ in range(20):
+              try:
+                  with urllib.request.urlopen('http://127.0.0.1:8092/health') as response:
+                      payload=json.load(response)
+                      assert payload['ok'] is True
+                      assert 'capsula' in payload['capabilities']
+                      break
+              except Exception:
+                  time.sleep(.25)
+          else:
+              raise SystemExit('bridge health check failed')
+          PY

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1200" viewBox="0 0 1920 1200" role="img" aria-labelledby="title desc">
+  <title id="title">HIM Chrome Runtime architecture</title>
+  <desc id="desc">Four-layer browser architecture connecting WebGPU inference, multi-tab coordination, persistent workflows, and a governed Python execution plane.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#050916"/><stop offset="1" stop-color="#0b1022"/></linearGradient>
+    <linearGradient id="cyan" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#46ddff"/><stop offset="1" stop-color="#6b8cff"/></linearGradient>
+    <linearGradient id="violet" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7c67ff"/><stop offset="1" stop-color="#c06cff"/></linearGradient>
+    <linearGradient id="green" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#48e2a4"/><stop offset="1" stop-color="#5fe4ff"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000" flood-opacity="0.38"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7299c9"/></marker>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="#8db4ff" stroke-opacity="0.04"/></pattern>
+  </defs>
+  <rect width="1920" height="1200" fill="url(#bg)"/><rect width="1920" height="1200" fill="url(#grid)"/>
+  <g font-family="Inter,Segoe UI,Arial,sans-serif">
+    <text x="110" y="112" fill="#7cecff" font-size="22" font-weight="700" letter-spacing="6">HIM CHROME RUNTIME</text>
+    <text x="110" y="182" fill="#fff" font-size="58" font-weight="800">Execution architecture</text>
+    <text x="110" y="228" fill="#9cafce" font-size="23">Browser intelligence stays local-first. Privileged actions cross an explicit governed boundary.</text>
+    <g transform="translate(110 290)" filter="url(#shadow)">
+      <rect width="1700" height="180" rx="28" fill="#0d1830" stroke="#4edfff" stroke-opacity="0.35"/><rect width="16" height="180" rx="8" fill="url(#cyan)"/>
+      <text x="52" y="54" fill="#79eaff" font-size="18" font-weight="800" letter-spacing="3">LAYER 01</text><text x="52" y="96" fill="#fff" font-size="34" font-weight="800">Browser inference plane</text><text x="52" y="132" fill="#8fa4c7" font-size="18">WebGPU-first Transformers.js • quantized local models • WASM fallback • backend and latency receipts</text>
+      <g transform="translate(1120 40)"><rect width="160" height="100" rx="20" fill="#10223f"/><text x="80" y="44" text-anchor="middle" fill="#73e9ff" font-size="18" font-weight="800">WEBGPU</text><text x="80" y="72" text-anchor="middle" fill="#8fa4c7" font-size="14">primary</text><rect x="188" width="160" height="100" rx="20" fill="#10223f"/><text x="268" y="44" text-anchor="middle" fill="#b58dff" font-size="18" font-weight="800">WASM</text><text x="268" y="72" text-anchor="middle" fill="#8fa4c7" font-size="14">fallback</text><rect x="376" width="160" height="100" rx="20" fill="#10223f"/><text x="456" y="44" text-anchor="middle" fill="#73e9ff" font-size="18" font-weight="800">TENSOR</text><text x="456" y="72" text-anchor="middle" fill="#8fa4c7" font-size="14">eligible work</text></g>
+    </g>
+    <path d="M960 470V515" stroke="#7299c9" stroke-width="3" marker-end="url(#arrow)"/>
+    <g transform="translate(110 535)" filter="url(#shadow)">
+      <rect width="1700" height="180" rx="28" fill="#0d1830" stroke="#9b72ff" stroke-opacity="0.35"/><rect width="16" height="180" rx="8" fill="url(#violet)"/>
+      <text x="52" y="54" fill="#b597ff" font-size="18" font-weight="800" letter-spacing="3">LAYER 02</text><text x="52" y="96" fill="#fff" font-size="34" font-weight="800">Decentralized multi-tab mesh</text><text x="52" y="132" fill="#8fa4c7" font-size="18">BroadcastChannel discovery • capability advertisement • task claims • completion propagation • stale-peer pruning</text>
+      <g transform="translate(1120 28)" stroke="#9a7aff" stroke-width="2" fill="#101c34"><line x1="80" y1="62" x2="255" y2="40"/><line x1="80" y1="62" x2="255" y2="118"/><line x1="255" y1="40" x2="450" y2="78"/><line x1="255" y1="118" x2="450" y2="78"/><circle cx="80" cy="62" r="28"/><circle cx="255" cy="40" r="28"/><circle cx="255" cy="118" r="28"/><circle cx="450" cy="78" r="28"/><g fill="#d8ccff" stroke="none" font-size="13" font-weight="800" text-anchor="middle"><text x="80" y="67">01</text><text x="255" y="45">02</text><text x="255" y="123">03</text><text x="450" y="83">04</text></g></g>
+    </g>
+    <path d="M960 715V760" stroke="#7299c9" stroke-width="3" marker-end="url(#arrow)"/>
+    <g transform="translate(110 780)" filter="url(#shadow)">
+      <rect width="820" height="270" rx="28" fill="#0d1830" stroke="#7d8cff" stroke-opacity="0.3"/><rect width="16" height="270" rx="8" fill="url(#cyan)"/>
+      <text x="52" y="54" fill="#8fa8ff" font-size="18" font-weight="800" letter-spacing="3">LAYER 03</text><text x="52" y="96" fill="#fff" font-size="32" font-weight="800">Persistent workflow memory</text><text x="52" y="132" fill="#8fa4c7" font-size="18">IndexedDB queue with priorities, leases, retries, and recovery.</text>
+      <g transform="translate(52 166)"><rect width="150" height="58" rx="14" fill="#152646"/><text x="75" y="36" text-anchor="middle" fill="#c7d7f2" font-size="15" font-weight="700">QUEUED</text><path d="M160 29H205" stroke="#7299c9" stroke-width="2" marker-end="url(#arrow)"/><rect x="220" width="150" height="58" rx="14" fill="#152646"/><text x="295" y="36" text-anchor="middle" fill="#c7d7f2" font-size="15" font-weight="700">LEASED</text><path d="M380 29H425" stroke="#7299c9" stroke-width="2" marker-end="url(#arrow)"/><rect x="440" width="150" height="58" rx="14" fill="#152646"/><text x="515" y="36" text-anchor="middle" fill="#c7d7f2" font-size="15" font-weight="700">RUNNING</text><path d="M600 29H645" stroke="#7299c9" stroke-width="2" marker-end="url(#arrow)"/><rect x="660" width="108" height="58" rx="14" fill="#123044"/><text x="714" y="36" text-anchor="middle" fill="#6ee9bd" font-size="15" font-weight="700">SEALED</text></g>
+    </g>
+    <g transform="translate(990 780)" filter="url(#shadow)">
+      <rect width="820" height="270" rx="28" fill="#0d1830" stroke="#4ee1a0" stroke-opacity="0.34"/><rect width="16" height="270" rx="8" fill="url(#green)"/>
+      <text x="52" y="54" fill="#68e7b6" font-size="18" font-weight="800" letter-spacing="3">LAYER 04</text><text x="52" y="96" fill="#fff" font-size="32" font-weight="800">Governed Python execution plane</text><text x="52" y="132" fill="#8fa4c7" font-size="18">Authentication, capability allowlists, engine adapters, request/result hashes.</text>
+      <g transform="translate(52 164)" font-size="15" font-weight="700"><rect width="118" height="58" rx="14" fill="#123044"/><text x="59" y="36" text-anchor="middle" fill="#72e9bf">CAPSULA</text><rect x="132" width="132" height="58" rx="14" fill="#123044"/><text x="198" y="36" text-anchor="middle" fill="#72e9bf">MATDAEMON</text><rect x="278" width="110" height="58" rx="14" fill="#123044"/><text x="333" y="36" text-anchor="middle" fill="#72e9bf">OFFICE</text><rect x="402" width="110" height="58" rx="14" fill="#123044"/><text x="457" y="36" text-anchor="middle" fill="#72e9bf">WALLET</text><rect x="526" width="130" height="58" rx="14" fill="#123044"/><text x="591" y="36" text-anchor="middle" fill="#72e9bf">RECEIPTS</text></g>
+    </g>
+    <g transform="translate(110 1110)"><rect width="1700" height="54" rx="18" fill="#0d1830" stroke="#8fa4c7" stroke-opacity="0.18"/><text x="34" y="35" fill="#88a0c5" font-size="16" font-weight="700">TRUST RULE</text><text x="176" y="35" fill="#dce7f8" font-size="16">No browser peer may cross into privileged execution without explicit authorization and a hash-bearing receipt.</text></g>
+  </g>
+</svg>
