@@ -50,4 +50,34 @@ jobs:
                   time.sleep(.25)
           else:
               raise SystemExit('bridge health check failed')
+
+          body=json.dumps({
+              'task_id': 'ci-auth-gate',
+              'capability': 'capsula',
+              'payload': {'command': 'validate'}
+          }).encode()
+          unauthenticated=urllib.request.Request(
+              'http://127.0.0.1:8092/v1/tasks/execute',
+              data=body,
+              headers={'content-type': 'application/json'},
+          )
+          try:
+              urllib.request.urlopen(unauthenticated)
+              raise SystemExit('unauthenticated execution was accepted')
+          except urllib.error.HTTPError as error:
+              assert error.code == 401
+
+          authenticated=urllib.request.Request(
+              'http://127.0.0.1:8092/v1/tasks/execute',
+              data=body,
+              headers={
+                  'content-type': 'application/json',
+                  'authorization': 'Bearer ci-test-token',
+              },
+          )
+          with urllib.request.urlopen(authenticated) as response:
+              payload=json.load(response)
+              assert payload['status'] == 'completed'
+              assert payload['result']['engine'] == 'CAPSULA'
+              assert len(payload['receipt']['request_hash']) == 64
           PY
