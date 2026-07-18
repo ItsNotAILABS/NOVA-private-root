@@ -43,10 +43,29 @@ async function sha256(value) {
 
 function requireToken(request, env) {
   const expected = env.NOVA_BRAIN_FLEET_TOKEN;
-  if (!expected) return { ok: true, actor: 'local-dev' };
-  const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') || request.headers.get('x-nova-brain-token');
-  if (token !== expected) return { ok: false, response: json({ ok: false, error: 'unauthorized' }, 401) };
-  return { ok: true, actor: request.headers.get('x-nova-actor') || 'operator' };
+  const url = new URL(request.url);
+  const localDev = env.NOVA_BRAIN_FLEET_MODE === 'local-dev' &&
+    (url.hostname === '127.0.0.1' || url.hostname === 'localhost');
+  if (!expected && !localDev) {
+    return { ok: false, response: json({ ok: false, error: 'fleet_token_not_configured' }, 503) };
+  }
+  const token = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ||
+    request.headers.get('x-nova-operator-token');
+  if (!localDev && token !== expected) {
+    return { ok: false, response: json({ ok: false, error: 'unauthorized' }, 401) };
+  }
+  return { ok: true, actor: request.headers.get('x-nova-actor') || (localDev ? 'local-dev' : 'operator') };
+}
+
+async function requireBrain(request, brain) {
+  const supplied = request.headers.get('x-nova-brain-token') || '';
+  if (!brain?.credentialHash || !supplied) return false;
+  return (await sha256(supplied)) === brain.credentialHash;
+}
+
+function publicBrain(brain) {
+  const { credentialHash, ...visible } = brain;
+  return visible;
 }
 
 function normalizeCapabilities(input = []) {
@@ -87,6 +106,7 @@ export class BrainCoordinator {
     const body = await readJson(request);
     const id = String(body.id || crypto.randomUUID()).slice(0, 80);
     const now = new Date().toISOString();
+    const brainToken = `${crypto.randomUUID()}.${crypto.randomUUID()}`;
     const brain = {
       schema: 'nova.edge.brain.v1',
       id,
@@ -97,26 +117,28 @@ export class BrainCoordinator {
       repo: String(body.repo || '').slice(0, 120),
       registeredAt: now,
       lastHeartbeatAt: now,
-      heartbeatMs: Number(body.heartbeatMs || DEFAULT_HEARTBEAT_MS)
+      heartbeatMs: Math.max(5_000, Math.min(Number(body.heartbeatMs || DEFAULT_HEARTBEAT_MS), 300_000)),
+      credentialHash: await sha256(brainToken)
     };
     await this.state.storage.put(`brain:${id}`, brain);
-    await this.receipt('brain.registered', actor, { brain });
-    return json({ ok: true, brain });
+    await this.receipt('brain.registered', actor, { brain: publicBrain(brain) });
+    return json({ ok: true, brain: publicBrain(brain), brainToken });
   }
 
   async heartbeat(request, actor) {
     const id = new URL(request.url).pathname.split('/').at(-2);
     const brain = await this.state.storage.get(`brain:${id}`);
     if (!brain) return json({ ok: false, error: 'brain_not_registered' }, 404);
+    if (!(await requireBrain(request, brain))) return json({ ok: false, error: 'brain_unauthorized' }, 401);
     brain.lastHeartbeatAt = new Date().toISOString();
     await this.state.storage.put(`brain:${id}`, brain);
     await this.receipt('brain.heartbeat', actor, { id });
-    return json({ ok: true, brain });
+    return json({ ok: true, brain: publicBrain(brain) });
   }
 
   async listBrains() {
     const list = await this.state.storage.list({ prefix: 'brain:' });
-    return json({ ok: true, brains: [...list.values()] });
+    return json({ ok: true, brains: [...list.values()].map(publicBrain) });
   }
 
   async enqueue(request, actor) {
@@ -147,6 +169,9 @@ export class BrainCoordinator {
     const brainId = String(body.brainId || '').slice(0, 80);
     const brain = await this.state.storage.get(`brain:${brainId}`);
     if (!brain) return json({ ok: false, error: 'brain_not_registered' }, 404);
+    if (!(await requireBrain(request, brain))) return json({ ok: false, error: 'brain_unauthorized' }, 401);
+    const staleAfter = Date.now() - Math.max(brain.heartbeatMs * 3, 60_000);
+    if (Date.parse(brain.lastHeartbeatAt) < staleAfter) return json({ ok: false, error: 'brain_stale' }, 409);
     const tasks = [...(await this.state.storage.list({ prefix: 'task:' })).values()]
       .filter((task) => task.status === 'queued' || (task.status === 'leased' && Date.parse(task.leaseExpiresAt) < Date.now()))
       .filter((task) => brain.capabilities.includes(task.type))
@@ -168,6 +193,11 @@ export class BrainCoordinator {
     const body = await readJson(request);
     const task = await this.state.storage.get(`task:${id}`);
     if (!task) return json({ ok: false, error: 'task_not_found' }, 404);
+    const brainId = String(body.brainId || '').slice(0, 80);
+    const brain = await this.state.storage.get(`brain:${brainId}`);
+    if (!brain || !(await requireBrain(request, brain))) return json({ ok: false, error: 'brain_unauthorized' }, 401);
+    if (task.status !== 'leased' || task.leasedBy !== brainId) return json({ ok: false, error: 'lease_owner_mismatch' }, 409);
+    if (!task.leaseExpiresAt || Date.parse(task.leaseExpiresAt) < Date.now()) return json({ ok: false, error: 'lease_expired' }, 409);
     task.status = body.ok === false ? 'failed' : 'completed';
     task.completedAt = new Date().toISOString();
     task.result = body.result || {};
@@ -183,16 +213,19 @@ export class BrainCoordinator {
   }
 
   async receipt(type, actor, detail) {
+    const previousHash = await this.state.storage.get('meta:receipt_head') || '0'.repeat(64);
     const receipt = {
       schema: 'nova.edge.brain_receipt.v1',
       id: crypto.randomUUID(),
       type,
       actor,
       detail,
+      previousHash,
       createdAt: new Date().toISOString()
     };
     receipt.hash = await sha256(receipt);
     await this.state.storage.put(`receipt:${receipt.createdAt}:${receipt.id}`, receipt);
+    await this.state.storage.put('meta:receipt_head', receipt.hash);
     return receipt;
   }
 
