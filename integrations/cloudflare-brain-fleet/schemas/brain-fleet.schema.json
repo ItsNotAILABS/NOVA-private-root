@@ -1,21 +1,49 @@
 {
   "$id": "nova.edge.brain_fleet.schema.v1",
   "type": "object",
-  "required": ["schema", "brains", "tasks", "receipts"],
+  "required": [
+    "schema",
+    "brains",
+    "tasks",
+    "receipts"
+  ],
   "properties": {
-    "schema": { "const": "nova.edge.brain_fleet.v1" },
+    "schema": {
+      "const": "nova.edge.brain_fleet.v1"
+    },
     "brains": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "role", "capabilities", "lastHeartbeatAt"],
+        "required": [
+          "id",
+          "role",
+          "capabilities",
+          "lastHeartbeatAt"
+        ],
         "properties": {
-          "id": { "type": "string", "minLength": 1 },
-          "role": { "type": "string" },
-          "repo": { "type": "string" },
-          "region": { "type": "string" },
-          "capabilities": { "type": "array", "items": { "type": "string" } },
-          "lastHeartbeatAt": { "type": "string" }
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "type": "string"
+          },
+          "repo": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lastHeartbeatAt": {
+            "type": "string"
+          }
         }
       }
     },
@@ -23,15 +51,44 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "type", "repo", "status", "hash"],
+        "required": [
+          "id",
+          "type",
+          "repo",
+          "status",
+          "hash"
+        ],
         "properties": {
-          "id": { "type": "string" },
-          "type": { "type": "string" },
-          "repo": { "type": "string" },
-          "status": { "enum": ["queued", "leased", "completed", "failed", "denied"] },
-          "hash": { "type": "string" },
-          "leasedBy": { "type": ["string", "null"] },
-          "attempts": { "type": "number" }
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "repo": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "leased",
+              "completed",
+              "failed",
+              "denied"
+            ]
+          },
+          "hash": {
+            "type": "string"
+          },
+          "leasedBy": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "attempts": {
+            "type": "number"
+          }
         }
       }
     },
@@ -39,13 +96,35 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["schema", "id", "type", "hash", "createdAt"],
+        "required": [
+          "schema",
+          "id",
+          "type",
+          "hash",
+          "createdAt",
+          "previousHash"
+        ],
         "properties": {
-          "schema": { "const": "nova.edge.brain_receipt.v1" },
-          "id": { "type": "string" },
-          "type": { "type": "string" },
-          "hash": { "type": "string" },
-          "createdAt": { "type": "string" }
+          "schema": {
+            "const": "nova.edge.brain_receipt.v1"
+          },
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "previousHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
         }
       }
     }
