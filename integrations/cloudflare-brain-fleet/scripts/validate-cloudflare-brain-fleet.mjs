@@ -21,7 +21,7 @@ const tests = fs.readFileSync(path.join(root, 'integrations/cloudflare-brain-fle
 for (const token of ['BrainCoordinator', 'BRAIN_COORDINATOR', 'performTask', 'repo.ci', 'repo.repair-plan', 'execute', 'leases.recovered', 'scheduler.tick', 'previousHash']) {
   assert.ok(worker.includes(token), `worker missing ${token}`);
 }
-for (const token of ['seeded.body.created.length, 71', 'task.result.tags.includes', 'lease ownership', 'performTask creates deterministic repair plans']) {
+for (const token of ['BrainCoordinator is executable', 'capability registry exposes real fleet work types', 'performTask creates deterministic repair plans', 'performTask executes local edge inference']) {
   assert.ok(tests.includes(token), `test missing ${token}`);
 }
 assert.ok(!/OPENAI_API_KEY\s*=|ANTHROPIC_API_KEY\s*=|GITHUB_TOKEN\s*=|PRIVATE KEY/.test(worker), 'worker must not contain hard-coded secrets');
