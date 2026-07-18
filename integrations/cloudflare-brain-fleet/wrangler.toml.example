@@ -1,0 +1,18 @@
+name = "nova-brain-fleet"
+main = "src/index.js"
+compatibility_date = "2026-07-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+NOVA_BRAIN_FLEET_MODE = "operator-controlled"
+
+[[durable_objects.bindings]]
+name = "BRAIN_COORDINATOR"
+class_name = "BrainCoordinator"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["BrainCoordinator"]
+
+# Set the token outside source control:
+# wrangler secret put NOVA_BRAIN_FLEET_TOKEN
