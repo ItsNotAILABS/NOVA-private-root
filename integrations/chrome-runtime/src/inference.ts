@@ -2,16 +2,18 @@ import type { InferenceRequest, InferenceResult } from './types.js';
 
 export class WebGPUInference {
   private pipeline: any;
+  private backend: 'webgpu' | 'wasm' = 'wasm';
 
   async initialize(modelId: string): Promise<'webgpu' | 'wasm'> {
-    const { pipeline, env } = await import('@xenova/transformers');
+    const { pipeline, env } = await import('@huggingface/transformers');
     env.allowLocalModels = true;
     const hasWebGPU = 'gpu' in navigator;
+    this.backend = hasWebGPU ? 'webgpu' : 'wasm';
     this.pipeline = await pipeline('text-generation', modelId, {
-      device: hasWebGPU ? 'webgpu' : 'wasm',
+      device: this.backend,
       dtype: hasWebGPU ? 'q4' : 'q8'
     });
-    return hasWebGPU ? 'webgpu' : 'wasm';
+    return this.backend;
   }
 
   async generate(request: InferenceRequest): Promise<InferenceResult> {
@@ -24,7 +26,7 @@ export class WebGPUInference {
     });
     const text = Array.isArray(output) ? String(output[0]?.generated_text ?? '') : String(output);
     return {
-      backend: 'gpu' in navigator ? 'webgpu' : 'wasm',
+      backend: this.backend,
       text,
       latencyMs: performance.now() - started,
       modelId: request.modelId
