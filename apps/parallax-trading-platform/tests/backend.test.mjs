@@ -18,7 +18,7 @@ async function request(path, options = {}) {
 test('backend-first API wires connections jobs events and reconciliation', async () => {
   const child = spawn(process.execPath, ['server.js'], {
     cwd:new URL('..', import.meta.url),
-    env:{ ...process.env, PARALLAX_PORT:String(port), PARALLAX_HOST:'127.0.0.1', PARALLAX_API_KEY:'test-owner-key', PARALLAX_DATA_DIR:`data-test-${process.pid}` },
+    env:{ ...process.env, PARALLAX_PORT:String(port), PARALLAX_HOST:'127.0.0.1', PARALLAX_API_KEY:'test-owner-key' },
     stdio:'ignore'
   });
 
