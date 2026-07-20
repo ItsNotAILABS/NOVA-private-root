@@ -1,0 +1,14 @@
+{
+  "name": "@nova/cloudflare-brain-fleet",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check src/index.js",
+    "test": "node --test tests/brain-fleet.test.mjs",
+    "validate": "node scripts/validate-cloudflare-brain-fleet.mjs && npm run check && npm test"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -7,7 +7,7 @@ const id = (prefix) => `${prefix}_${crypto.randomUUID().replaceAll('-', '').slic
 const hash = (value) => crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
 const seed = () => ({
-  schema: 'parallax.trading.platform.v1',
+  schema: 'parallax.trading.platform.v2',
   created_at: now(),
   updated_at: now(),
   users: [{ id:'usr_founder', name:'Alfredo Medina', role:'owner', status:'active', created_at:now() }],
@@ -21,6 +21,7 @@ const seed = () => ({
     kraken: { status:'not-configured', mode:'paper' },
     mt5: { status:'not-configured', mode:'paper' }
   },
+  connection_profiles: [],
   markets: [
     { symbol:'BTCUSD', exchange:'COINBASE', asset_class:'crypto', price:64250.20, change_pct:1.82, volume:934000000, updated_at:now() },
     { symbol:'ETHUSD', exchange:'COINBASE', asset_class:'crypto', price:3510.14, change_pct:-0.34, volume:512000000, updated_at:now() },
@@ -38,45 +39,50 @@ const seed = () => ({
   bots: [
     { id:'bot_alpha', workspace_id:'ws_primary', name:'Alpha Momentum Agent', strategy_id:'strat_momentum', trigger:'tradingview', symbols:['BTCUSD'], status:'active', mode:'paper', risk_profile:'balanced', max_notional:5000, allowed_actions:['signal','risk-check','paper-order','receipt'], runs:0, created_at:now(), updated_at:now() }
   ],
-  alerts: [],
-  signals: [],
-  risk_decisions: [],
-  orders: [],
-  fills: [],
-  wallets: [],
-  wallet_intents: [],
-  activity: [],
-  receipts: [],
+  jobs: [],
+  job_runs: [],
+  events: [],
+  reconciliations: [],
+  dead_letters: [],
+  idempotency: {},
+  alerts: [], signals: [], risk_decisions: [], orders: [], fills: [], wallets: [], wallet_intents: [], activity: [], receipts: [],
   settings: {
-    execution_mode:'paper',
-    require_human_approval_above:10000,
-    max_order_notional:25000,
-    max_daily_loss:2500,
-    max_open_positions:10,
-    live_enabled:false,
-    custody_enabled:false
+    execution_mode:'paper', require_human_approval_above:10000, max_order_notional:25000,
+    max_daily_loss:2500, max_open_positions:10, live_enabled:false, custody_enabled:false
   }
 });
 
 let state;
+let writeQueue = Promise.resolve();
 
-async function persist() {
+async function persistNow() {
   state.updated_at = now();
-  const tmp = `${config.stateFile}.tmp`;
+  const tmp = `${config.stateFile}.${process.pid}.${Date.now()}.tmp`;
   await fs.mkdir(config.dataDir, { recursive:true });
   await fs.writeFile(tmp, `${JSON.stringify(state, null, 2)}\n`, 'utf8');
   await fs.rename(tmp, config.stateFile);
 }
 
+async function persist() {
+  writeQueue = writeQueue.then(persistNow, persistNow);
+  return writeQueue;
+}
+
+function migrate(value) {
+  value.schema = 'parallax.trading.platform.v2';
+  for (const key of ['sessions','connection_profiles','jobs','job_runs','events','reconciliations','dead_letters','alerts','signals','risk_decisions','orders','fills','wallets','wallet_intents','activity','receipts']) value[key] ||= [];
+  value.idempotency ||= {};
+  value.settings ||= {};
+  value.settings.live_enabled = false;
+  value.settings.custody_enabled = false;
+  return value;
+}
+
 export async function initStore() {
   await fs.mkdir(config.dataDir, { recursive:true });
-  try {
-    state = JSON.parse(await fs.readFile(config.stateFile, 'utf8'));
-  } catch {
-    state = seed();
-    await persist();
-  }
-  for (const key of ['sessions','alerts','signals','risk_decisions','orders','fills','wallets','wallet_intents','activity','receipts']) state[key] ||= [];
+  try { state = migrate(JSON.parse(await fs.readFile(config.stateFile, 'utf8'))); }
+  catch { state = seed(); }
+  await persist();
   return state;
 }
 
@@ -87,9 +93,9 @@ export function getState() {
 
 export function makeId(prefix) { return id(prefix); }
 
-function appendReceipt(type, input, output, actor='system') {
+function appendReceipt(type, input, output, actor='system', requestId=null) {
   const previous_hash = state.receipts.at(-1)?.hash || 'GENESIS';
-  const body = { id:id('rcpt'), type, actor, timestamp:now(), previous_hash, input_hash:hash(input), output_hash:hash(output) };
+  const body = { id:id('rcpt'), type, actor, request_id:requestId, timestamp:now(), previous_hash, input_hash:hash(input), output_hash:hash(output) };
   body.hash = hash(body);
   state.receipts.push(body);
   return body;
@@ -105,12 +111,18 @@ export function verifyReceiptChain() {
   return true;
 }
 
-export async function transact(type, input, fn, actor='system') {
+export async function transact(type, input, fn, actor='system', requestId=null) {
+  const key = requestId && state.idempotency[requestId];
+  if (key) return key;
   const result = await fn(state);
-  const receipt = appendReceipt(type, input, result, actor);
-  state.activity.push({ id:id('evt'), type, actor, result_ref:result?.id || null, created_at:now() });
+  const receipt = appendReceipt(type, input, result, actor, requestId);
+  state.activity.push({ id:id('evt'), type, actor, request_id:requestId, result_ref:result?.id || null, created_at:now() });
+  const response = { result, receipt };
+  if (requestId) state.idempotency[requestId] = response;
+  const ids = Object.keys(state.idempotency);
+  if (ids.length > 5000) for (const old of ids.slice(0, ids.length - 5000)) delete state.idempotency[old];
   await persist();
-  return { result, receipt };
+  return response;
 }
 
 export async function save() { await persist(); }

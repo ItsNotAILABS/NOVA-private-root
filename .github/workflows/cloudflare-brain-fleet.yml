@@ -15,12 +15,17 @@ on:
 jobs:
   validate-cloudflare-brain-fleet:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: integrations/cloudflare-brain-fleet
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Validate Cloudflare brain fleet package
-        run: node integrations/cloudflare-brain-fleet/scripts/validate-cloudflare-brain-fleet.mjs
+      - name: Validate production surface
+        run: node scripts/validate-cloudflare-brain-fleet.mjs
       - name: Worker syntax check
-        run: node --check integrations/cloudflare-brain-fleet/src/index.js
+        run: node --check src/index.js
+      - name: Executable runtime tests
+        run: node --test tests/brain-fleet.test.mjs
