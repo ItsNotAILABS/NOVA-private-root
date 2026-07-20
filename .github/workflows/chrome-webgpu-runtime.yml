@@ -34,11 +34,11 @@ jobs:
         run: python -m compileall -q integrations/chrome-runtime/bridge
       - name: Smoke test bridge health
         run: |
-          HIM_BRIDGE_PORT=8092 python integrations/chrome-runtime/bridge/server.py > /tmp/him-bridge.log 2>&1 &
+          HIM_BRIDGE_TOKEN=ci-test-token HIM_BRIDGE_PORT=8092 python integrations/chrome-runtime/bridge/server.py > /tmp/him-bridge.log 2>&1 &
           BRIDGE_PID=$!
           trap 'kill $BRIDGE_PID' EXIT
           python - <<'PY'
-          import json, time, urllib.request
+          import json, time, urllib.error, urllib.request
           for _ in range(20):
               try:
                   with urllib.request.urlopen('http://127.0.0.1:8092/health') as response:
@@ -50,4 +50,34 @@ jobs:
                   time.sleep(.25)
           else:
               raise SystemExit('bridge health check failed')
+
+          body=json.dumps({
+              'task_id': 'ci-auth-gate',
+              'capability': 'capsula',
+              'payload': {'command': 'validate'}
+          }).encode()
+          unauthenticated=urllib.request.Request(
+              'http://127.0.0.1:8092/v1/tasks/execute',
+              data=body,
+              headers={'content-type': 'application/json'},
+          )
+          try:
+              urllib.request.urlopen(unauthenticated)
+              raise SystemExit('unauthenticated execution was accepted')
+          except urllib.error.HTTPError as error:
+              assert error.code == 401
+
+          authenticated=urllib.request.Request(
+              'http://127.0.0.1:8092/v1/tasks/execute',
+              data=body,
+              headers={
+                  'content-type': 'application/json',
+                  'authorization': 'Bearer ci-test-token',
+              },
+          )
+          with urllib.request.urlopen(authenticated) as response:
+              payload=json.load(response)
+              assert payload['status'] == 'completed'
+              assert payload['result']['engine'] == 'CAPSULA'
+              assert len(payload['receipt']['request_hash']) == 64
           PY

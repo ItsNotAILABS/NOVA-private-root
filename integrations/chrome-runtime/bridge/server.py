@@ -8,6 +8,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 ALLOWED = {"python", "capsula", "matdaemon", "office", "wallet", "receipt"}
 TOKEN = os.environ.get("HIM_BRIDGE_TOKEN", "")
+ALLOW_INSECURE_LOCAL = os.environ.get("HIM_BRIDGE_ALLOW_INSECURE_LOCAL", "") == "1"
+MAX_BODY_BYTES = 64 * 1024
 
 
 def digest(value: object) -> str:
@@ -43,10 +45,16 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         if self.path != "/v1/tasks/execute":
             return self.send_json(404, {"error": "not_found"})
+        loopback = self.client_address[0] in {"127.0.0.1", "::1"}
+        if not TOKEN and not (ALLOW_INSECURE_LOCAL and loopback):
+            return self.send_json(503, {"status": "denied_configuration", "error": "HIM_BRIDGE_TOKEN is required"})
         if TOKEN and self.headers.get("authorization") != f"Bearer {TOKEN}":
             return self.send_json(401, {"status": "denied_auth"})
         try:
-            request = json.loads(self.rfile.read(int(self.headers.get("content-length", "0"))) or b"{}")
+            content_length = int(self.headers.get("content-length", "0"))
+            if content_length < 0 or content_length > MAX_BODY_BYTES:
+                return self.send_json(413, {"status": "denied_size"})
+            request = json.loads(self.rfile.read(content_length) or b"{}")
             capability = str(request.get("capability", ""))
             if capability not in ALLOWED:
                 return self.send_json(403, {"status": "denied_capability"})
@@ -70,5 +78,9 @@ class Handler(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     host = os.environ.get("HIM_BRIDGE_HOST", "127.0.0.1")
     port = int(os.environ.get("HIM_BRIDGE_PORT", "8092"))
-    print(json.dumps({"ready": True, "url": f"http://{host}:{port}"}))
+    if host not in {"127.0.0.1", "::1", "localhost"} and not TOKEN:
+        raise SystemExit("HIM_BRIDGE_TOKEN is required for non-loopback binding")
+    if not TOKEN and not ALLOW_INSECURE_LOCAL:
+        raise SystemExit("Set HIM_BRIDGE_TOKEN or explicitly enable HIM_BRIDGE_ALLOW_INSECURE_LOCAL=1 on loopback")
+    print(json.dumps({"ready": True, "url": f"http://{host}:{port}", "authenticated": bool(TOKEN)}))
     ThreadingHTTPServer((host, port), Handler).serve_forever()

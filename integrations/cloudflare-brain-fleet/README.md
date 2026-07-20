@@ -62,3 +62,7 @@ Use this as the edge coordination layer around NOVA, not as the whole brain. The
 ## Scale posture
 
 The target pattern is many small specialized brains, not one monolith. A repo can have CI brains, release brains, doc brains, memory brains, browser-context brains, and benchmark brains all claiming work from the same coordinator. Multiple repos can share the same schema and publish receipts back into the main NOVA model-family registry.
+
+## Constitutional identity and custody
+
+Production startup fails closed unless `NOVA_BRAIN_FLEET_TOKEN` is configured. The only tokenless mode is explicit `local-dev` on localhost. Registration returns a one-time brain credential; only its SHA-256 digest is stored. Heartbeat, claim, and completion require that credential, and completion is rejected unless the brain owns an unexpired lease. Fleet receipts carry `previousHash` and advance a persistent Durable Object chain head.
