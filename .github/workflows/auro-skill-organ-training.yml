@@ -1,0 +1,190 @@
+name: Auro Skill Organ Training
+
+on:
+  workflow_dispatch:
+    inputs:
+      train_steps:
+        description: CPU optimization steps for the development checkpoint
+        required: false
+        default: "400"
+      benchmark_limit:
+        description: Samples per official task
+        required: false
+        default: "4"
+  pull_request:
+    paths:
+      - "integrations/auro14b/skill_runtime/**"
+      - ".github/workflows/auro-skill-organ-training.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-train-evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      PYTHONUNBUFFERED: "1"
+      HF_HUB_DISABLE_XET: "1"
+      WORKSPACE: artifacts/auro-skill-organ
+      RELEASE: dist/Auro-Skill-Organ-Checkpoint
+      PYTHONPATH: integrations/auro14b/skill_runtime
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Auro and benchmark runtime
+        run: |
+          git clone --depth 1 https://github.com/ItsNotAILABS/Auro14B.git vendor/Auro14B
+          git -C vendor/Auro14B fetch --depth 1 origin ae430ca139bf829eaf0888a9c7c46600a8738b97
+          git -C vendor/Auro14B checkout ae430ca139bf829eaf0888a9c7c46600a8738b97
+          python -m pip install --upgrade pip
+          python -m pip install -e "vendor/Auro14B[foundry,dev]"
+          python -m pip install "lm_eval @ git+https://github.com/EleutherAI/lm-evaluation-harness.git"
+
+      - name: Clone model-organ feeder repositories
+        run: |
+          mkdir -p vendor/repos
+          git clone --depth 1 https://github.com/ItsNotAILABS/MatDaemon.git vendor/repos/MatDaemon
+          git clone --depth 1 https://github.com/ItsNotAILABS/CAPSULA.git vendor/repos/CAPSULA
+          git clone --depth 1 https://github.com/FreddyCreates/BRAIN-AI-.git vendor/repos/BRAIN-AI
+
+      - name: Compile and test skill runtime
+        run: |
+          python -m compileall -q integrations/auro14b/skill_runtime
+          python -m unittest -v integrations/auro14b/skill_runtime/test_core.py | tee skill-runtime-tests.log
+
+      - name: Build and validate embedded skill library
+        run: |
+          python integrations/auro14b/skill_runtime/forge.py build \
+            --repo ItsNotAILABS/MatDaemon=vendor/repos/MatDaemon \
+            --repo ItsNotAILABS/CAPSULA=vendor/repos/CAPSULA \
+            --repo FreddyCreates/BRAIN-AI-=vendor/repos/BRAIN-AI \
+            --repo ItsNotAILABS/NOVA-private-root=. \
+            --repo ItsNotAILABS/Auro14B=vendor/Auro14B \
+            --output "$WORKSPACE/skills"
+          python integrations/auro14b/skill_runtime/forge.py evaluate \
+            --library "$WORKSPACE/skills/skill-library.json" \
+            --output "$WORKSPACE/skill-router-eval.json" \
+            --threshold 0.85
+          python integrations/auro14b/skill_runtime/forge.py corpus \
+            --library "$WORKSPACE/skills/skill-library.json" \
+            --output "$WORKSPACE/skill-training"
+
+      - name: Build skill-first corpus
+        run: |
+          auro-foundry build-corpus --local-root "$WORKSPACE/skill-training" --output "$WORKSPACE/skill-corpus"
+          auro-foundry build-corpus \
+            --local-root . \
+            --local-root vendor/Auro14B \
+            --local-root vendor/repos/MatDaemon \
+            --local-root vendor/repos/CAPSULA \
+            --local-root vendor/repos/BRAIN-AI \
+            --output "$WORKSPACE/repository-corpus"
+          python - <<'PY'
+          from pathlib import Path
+          skill=Path('artifacts/auro-skill-organ/skill-corpus/corpus.jsonl')
+          general=Path('artifacts/auro-skill-organ/repository-corpus/corpus.jsonl')
+          target=Path('artifacts/auro-skill-organ/training-corpus.jsonl')
+          budget=24*1024*1024; written=0; skill_lines=0
+          with target.open('wb') as dst:
+              for src,is_skill in ((skill,True),(general,False)):
+                  with src.open('rb') as handle:
+                      for line in handle:
+                          if written and written+len(line)>budget: break
+                          dst.write(line); written+=len(line); skill_lines+=int(is_skill)
+                  if written>=budget: break
+          print({'bytes':written,'skill_records_first':skill_lines})
+          if skill_lines<50: raise SystemExit('skill records missing from mixture')
+          PY
+
+      - name: Train expanded tokenizer and checkpoint
+        run: |
+          auro-foundry train-tokenizer \
+            --corpus "$WORKSPACE/training-corpus.jsonl" \
+            --output "$WORKSPACE/tokenizer.json" \
+            --vocab-size 1024 \
+            --max-bytes 4194304
+          auro-foundry prepare-dataset \
+            --corpus "$WORKSPACE/training-corpus.jsonl" \
+            --tokenizer "$WORKSPACE/tokenizer.json" \
+            --output "$WORKSPACE/dataset" \
+            --validation-fraction 0.03
+          STEPS="${{ inputs.train_steps || '400' }}"
+          auro-foundry init-config \
+            --preset micro \
+            --tokenizer "$WORKSPACE/tokenizer.json" \
+            --dataset "$WORKSPACE/dataset" \
+            --runs "$WORKSPACE/runs" \
+            --run-name auro-real-run \
+            --output "$WORKSPACE/train-config.json" \
+            --sequence-length 128 \
+            --batch-size 2 \
+            --accumulation 2 \
+            --steps "$STEPS" \
+            --eval-interval 50 \
+            --checkpoint-interval 100 \
+            --device cpu \
+            --precision fp32
+          auro-foundry train --config "$WORKSPACE/train-config.json"
+
+      - name: Package checkpoint and skills
+        run: |
+          python integrations/auro14b/real_run/package_release.py --workspace "$WORKSPACE" --release "$RELEASE"
+          mkdir -p "$RELEASE/skills" "$RELEASE/runtime" "$RELEASE/benchmarks" "$RELEASE/evidence"
+          cp -r "$WORKSPACE/skills/." "$RELEASE/skills/"
+          cp "$WORKSPACE/skill-router-eval.json" "$RELEASE/evidence/"
+          cp "$WORKSPACE/skill-training/training-corpus-receipt.json" "$RELEASE/evidence/"
+          cp skill-runtime-tests.log "$RELEASE/evidence/"
+          cp integrations/auro14b/skill_runtime/core.py "$RELEASE/runtime/"
+          cp integrations/auro14b/skill_runtime/server.py "$RELEASE/runtime/"
+
+      - name: Run official sampled benchmarks
+        id: official
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python integrations/auro14b/real_run/run_benchmarks.py \
+            --checkpoint "$RELEASE/model/final.pt" \
+            --output "$RELEASE/benchmarks" \
+            --limit "${{ inputs.benchmark_limit || '4' }}" 2>&1 | tee "$RELEASE/benchmarks/lm-eval.log"
+
+      - name: Run coding execution benchmark
+        id: coding
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python integrations/auro14b/real_run/run_coding_benchmark.py \
+            --checkpoint "$RELEASE/model/final.pt" \
+            --output "$RELEASE/benchmarks" 2>&1 | tee "$RELEASE/benchmarks/coding.log"
+
+      - name: Smoke test routed exact checkpoint
+        run: |
+          python - <<'PY' | tee "$RELEASE/evidence/routed-generation-smoke.txt"
+          from pathlib import Path
+          from auro_foundry.generation import TextGenerator
+          from core import Hooks,Library
+          lib=Library.load(Path('dist/Auro-Skill-Organ-Checkpoint/skills/skill-library.json'))
+          prompt,decision=Hooks(lib).before('Use MatDaemon and CAPSULA to validate and execute a Python benchmark.',4,6000)
+          text=TextGenerator('dist/Auro-Skill-Organ-Checkpoint/model/final.pt',device='cpu').generate(prompt,max_new_tokens=64,temperature=.2,top_k=20,top_p=.9)
+          print({'skills':[m.name for m in decision.matches],'output':text})
+          PY
+
+      - name: Write status and upload release
+        if: always()
+        run: |
+          mkdir -p "$RELEASE/evidence"
+          cat > "$RELEASE/evidence/workflow-status.json" <<JSON
+          {"schema":"medina.auro.skill_organ_workflow.v1","official":"${{ steps.official.outcome }}","coding":"${{ steps.coding.outcome }}","workflow_sha":"${{ github.sha }}","run_id":"${{ github.run_id }}"}
+          JSON
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Auro-Skill-Organ-Checkpoint-${{ github.run_id }}
+          path: dist/Auro-Skill-Organ-Checkpoint
+          if-no-files-found: error
+          retention-days: 30

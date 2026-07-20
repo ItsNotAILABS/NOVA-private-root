@@ -1,1 +1,29 @@
-{"expo":{"name":"NOVA Capsule Mobile","slug":"nova-capsule-mobile","scheme":"novacapsule","version":"0.1.0","orientation":"portrait","icon":"./assets/icon.png","userInterfaceStyle":"dark","newArchEnabled":true,"splash":{"backgroundColor":"#020617"},"ios":{"supportsTablet":true,"bundleIdentifier":"com.itsnotailabs.novacapsulemobile"},"android":{"package":"com.itsnotailabs.novacapsulemobile","adaptiveIcon":{"backgroundColor":"#020617"}},"web":{"bundler":"metro","output":"static"},"extra":{"capsuleStudioDefaultUrl":"http://127.0.0.1:8787"},"plugins":["expo-router"]}}
+{
+  "expo": {
+    "name": "NOVA Capsule Mobile",
+    "slug": "nova-capsule-mobile",
+    "scheme": "novacapsule",
+    "version": "0.2.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#020617"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.itsnotailabs.novacapsulemobile"
+    },
+    "android": {
+      "package": "com.itsnotailabs.novacapsulemobile"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "extra": {
+      "capsuleStudioDefaultUrl": "http://127.0.0.1:8787"
+    },
+    "plugins": ["expo-router"]
+  }
+}

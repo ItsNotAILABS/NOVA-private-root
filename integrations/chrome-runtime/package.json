@@ -1,0 +1,17 @@
+{
+  "name": "@itsnotai/chrome-runtime",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --test dist/runtime.test.js",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "4.2.0"
+  },
+  "devDependencies": {
+    "typescript": "5.8.3"
+  }
+}

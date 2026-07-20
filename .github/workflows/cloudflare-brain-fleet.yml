@@ -1,0 +1,31 @@
+name: Cloudflare Brain Fleet
+
+on:
+  pull_request:
+    paths:
+      - 'integrations/cloudflare-brain-fleet/**'
+      - 'docs/CLOUDFLARE_BRAIN_FLEET.md'
+      - '.github/workflows/cloudflare-brain-fleet.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'integrations/cloudflare-brain-fleet/**'
+      - 'docs/CLOUDFLARE_BRAIN_FLEET.md'
+
+jobs:
+  validate-cloudflare-brain-fleet:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: integrations/cloudflare-brain-fleet
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate production surface
+        run: node scripts/validate-cloudflare-brain-fleet.mjs
+      - name: Worker syntax check
+        run: node --check src/index.js
+      - name: Executable runtime tests
+        run: node --test tests/brain-fleet.test.mjs

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PARALLAX Trading Platform</title>
+  <meta name="description" content="PARALLAX agentic trading workspace with TradingView, bot studio, portfolio, wallets, risk, receipts, and backend operations.">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="logo">PX</div><div><strong>PARALLAX</strong><span>Trading Platform</span></div></div>
+      <nav id="nav"></nav>
+      <div class="sidebar-foot">
+        <div class="mode-badge">PAPER MODE</div>
+        <div class="tiny">TradingView connected surface<br>Receipt-backed operations</div>
+      </div>
+    </aside>
+    <main class="main">
+      <header class="topbar">
+        <div><div class="eyebrow">AGENTIC MARKET OPERATIONS</div><h1 id="pageTitle">Overview</h1></div>
+        <div class="top-actions"><button id="refreshBtn" class="ghost">Refresh</button><div class="health"><span class="health-dot"></span><span id="healthText">Connecting</span></div></div>
+      </header>
+      <section id="content" class="content"></section>
+    </main>
+  </div>
+  <dialog id="modal"><div class="modal-head"><h2 id="modalTitle"></h2><button id="closeModal" class="icon-btn">×</button></div><div id="modalBody"></div></dialog>
+  <div id="toast" class="toast"></div>
+  <script type="module" src="/app.js"></script>
+  <script type="module" src="/backend-console.js"></script>
+</body>
+</html>

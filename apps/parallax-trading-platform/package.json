@@ -1,0 +1,15 @@
+{
+  "name": "@nova/parallax-trading-platform",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Backend-first PARALLAX trading platform with TradingView, bot automation, adapter registry, reconciliation, wallets, receipts, and operator UI.",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "check": "node scripts/check.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "mcp": "node mcp/server.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

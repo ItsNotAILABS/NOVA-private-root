@@ -1,0 +1,51 @@
+{
+  "schema": "medina.nova.root-feeder-registry.v1",
+  "version": "1.1.0-alpha",
+  "rootRepository": "ItsNotAILABS/NOVA-private-root",
+  "status": "internal-alpha",
+  "routing": {
+    "NOVA": ["runtime_import", "workspace_connection", "manifest_registration", "release_proof", "model_feed_registration"],
+    "CAIN": ["defensive_review", "cyber_boundary", "unsafe_claim_rejection", "control_gap_detection", "model_claim_boundary"],
+    "ORO": ["user_lanes", "demo_lanes", "resource_map", "public_release_handoff", "model_resource_planning"]
+  },
+  "feeders": [
+    {
+      "id": "auro14b",
+      "repository": "ItsNotAILABS/Auro14B",
+      "visibility": "public",
+      "priority": "critical-model-feed",
+      "status": "connected-native-llm-scaffold",
+      "purpose": "Auro native LLM model feed built on the MESIE spectral intelligence substrate, with 14B development and 200B target architecture lanes.",
+      "rootDestinations": [
+        "integrations/feeder-repos/auro14b/",
+        "models/auro/native-llm/",
+        "protocols/model-feeds/auro14b/"
+      ],
+      "allowedFeedTypes": ["model_config", "tokenizer_config", "data_mixture_manifest", "training_plan", "evaluation_contract", "serving_contract", "model_card", "operator_receipts"],
+      "deniedFeedTypes": ["fake_checkpoint_claims", "unlicensed_training_data", "secrets", "private_keys", "unsafe_weight_release", "benchmark_scores_without_receipts"],
+      "requiredGates": ["GATE_IDENTITY", "GATE_CAPABILITY", "GATE_MODEL_EVAL", "GATE_CONTAINMENT", "GATE_PROOF"]
+    },
+    {
+      "id": "sns-token",
+      "repository": "ItsNotAILABS/SNS---TOKEN",
+      "visibility": "private",
+      "status": "connected-candidate",
+      "purpose": "SNS/token/governance subsystem feed candidate for root orchestration, token documentation, and governed release planning.",
+      "rootDestinations": ["integrations/feeder-repos/sns-token/", "protocols/feeder-imports/sns-token/", "docs/integrations/sns-token/"],
+      "allowedFeedTypes": ["manifest", "governance_summary", "token_release_notes", "safe_architecture_docs", "operator_receipts"],
+      "deniedFeedTypes": ["secrets", "private_keys", "unverified_financial_claims", "unsafe_token_promises", "unguarded_execution_paths"],
+      "requiredGates": ["GATE_IDENTITY", "GATE_USER_LANE", "GATE_CAPABILITY", "GATE_PROOF"]
+    },
+    {
+      "id": "potential-succotash",
+      "repository": "FreddyCreates/potential-succotash",
+      "visibility": "public",
+      "status": "inspectable-write-blocked",
+      "purpose": "Public browser-intelligence product surface feeding public-safe documentation, install guides, marketing copy, and browser intelligence roadmap into root.",
+      "rootDestinations": ["public-release/potential-succotash/", "docs/release-papers/PUBLIC_SAFE_BROWSER_INTELLIGENCE_BRIDGE.md"],
+      "allowedFeedTypes": ["public_docs", "install_guides", "marketing_copy", "browser_intelligence_manifest", "roadmap"],
+      "deniedFeedTypes": ["private_internal_protocols", "unsupported_security_claims", "offensive_cyber_content", "secrets"],
+      "requiredGates": ["GATE_IDENTITY", "GATE_CYBER", "GATE_CONTAINMENT", "GATE_PROOF"]
+    }
+  ]
+}

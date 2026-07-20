@@ -1,0 +1,24 @@
+name = "nova-brain-fleet"
+main = "src/index.js"
+compatibility_date = "2026-07-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+NOVA_BRAIN_FLEET_MODE = "operator-controlled"
+NOVA_BRAIN_FLEET_NAME = "global"
+NOVA_FLEET_REPOS = "ItsNotAILABS/NOVA-private-root,ItsNotAILABS/SNS---TOKEN,ItsNotAILABS/FABLEBREAKER"
+
+[[durable_objects.bindings]]
+name = "BRAIN_COORDINATOR"
+class_name = "BrainCoordinator"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["BrainCoordinator"]
+
+[triggers]
+crons = ["*/10 * * * *"]
+
+# Set secrets outside source control:
+# wrangler secret put NOVA_BRAIN_FLEET_TOKEN
+# wrangler secret put GITHUB_TOKEN

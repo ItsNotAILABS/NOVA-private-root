@@ -1,9 +1,10 @@
 {
   "name": "nova-app-platform",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "Local-first NOVA application platform with app registry, operator console, OpenAI-ready gateway, browser AI, receipts, auth gate, and vault storage.",
+  "description": "Commercial-grade local-first NOVA application platform with app registry, operator console, OpenAI gateway, receipts, auth gate, Browser AI, IDE, app factory, command boundary, audit, and readiness gates.",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
