@@ -1,0 +1,47 @@
+name = "nova-builder"
+main = "src/index.ts"
+compatibility_date = "2026-07-20"
+workers_dev = true
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "nova-builder"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+[[kv_namespaces]]
+binding = "CONFIG"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+[[r2_buckets]]
+binding = "ARTIFACTS"
+bucket_name = "nova-builder-artifacts"
+
+[[durable_objects.bindings]]
+name = "BUILD_COORDINATOR"
+class_name = "BuildCoordinator"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["BuildCoordinator"]
+
+[[queues.producers]]
+binding = "BUILD_QUEUE"
+queue = "nova-builder-builds"
+
+[[queues.consumers]]
+queue = "nova-builder-builds"
+max_batch_size = 5
+max_batch_timeout = 5
+
+[triggers]
+crons = ["*/5 * * * *"]
+
+[vars]
+APP_ENV = "development"
+EXTENDED_RUNTIME_URL = ""
+ICP_GATEWAY_URL = "https://icp-api.io"
