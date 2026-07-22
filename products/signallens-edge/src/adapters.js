@@ -11,10 +11,14 @@ export function normalizeLimit(limit) {
 }
 
 export async function sha256(value) {
-  const encoder = new TextEncoder();
-  const bytes = encoder.encode(typeof value === 'string' ? value : JSON.stringify(value));
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
-  return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  const text = typeof value === 'string' ? value : JSON.stringify(value);
+  const data = new TextEncoder().encode(text);
+  if (globalThis.crypto?.subtle) {
+    const digest = await globalThis.crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+  const { createHash } = await import('node:crypto');
+  return createHash('sha256').update(text).digest('hex');
 }
 
 function stripHtml(value = '') {
