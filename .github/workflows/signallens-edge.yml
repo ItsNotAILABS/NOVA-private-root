@@ -14,14 +14,17 @@ on:
 jobs:
   validate-signallens-edge:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: products/signallens-edge
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Check, validate, and test SignalLens Edge
-        working-directory: products/signallens-edge
-        run: |
-          npm run check
-          npm run validate
-          npm test
+      - name: Syntax check SignalLens Edge
+        run: npm run check
+      - name: Validate product surface
+        run: npm run validate
+      - name: Execute runtime tests
+        run: npm test
