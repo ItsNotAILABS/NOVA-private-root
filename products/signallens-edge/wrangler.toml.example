@@ -1,0 +1,17 @@
+name = "signallens-edge"
+main = "src/index.js"
+compatibility_date = "2026-07-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+SIGNALLENS_MODE = "public-source-intelligence"
+SIGNALLENS_DEFAULT_SOURCES = "hackernews,github"
+
+# Secrets are set outside source control:
+# wrangler secret put SIGNALLENS_TOKEN
+# wrangler secret put GITHUB_TOKEN
+
+# Optional production routes:
+# routes = [
+#   { pattern = "api.signallens.ai/*", zone_name = "signallens.ai" }
+# ]
