@@ -1,0 +1,27 @@
+name: SignalLens Edge
+
+on:
+  pull_request:
+    paths:
+      - 'products/signallens-edge/**'
+      - '.github/workflows/signallens-edge.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'products/signallens-edge/**'
+      - '.github/workflows/signallens-edge.yml'
+
+jobs:
+  validate-signallens-edge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check, validate, and test SignalLens Edge
+        working-directory: products/signallens-edge
+        run: |
+          npm run check
+          npm run validate
+          npm test
