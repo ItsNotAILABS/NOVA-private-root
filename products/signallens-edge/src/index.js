@@ -115,6 +115,7 @@ async function runSearch(body, env, fetcher = fetch) {
 export async function handleRequest(request, env = {}, ctx = {}) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
   const url = new URL(request.url);
+  const fetcher = ctx.fetch || fetch;
   try {
     if (request.method === 'GET' && url.pathname === '/health') return json({ ok: true, service: 'signallens-edge', schema: 'signallens.health.v1' });
     if (request.method === 'GET' && url.pathname === '/v1/catalog') return json(catalog());
@@ -123,15 +124,15 @@ export async function handleRequest(request, env = {}, ctx = {}) {
     const auth = requireToken(request, env);
     if (!auth.ok) return auth.response;
     if (request.method === 'POST' && url.pathname === '/v1/quote') return json({ ok: true, quote: quoteRequest(await readJson(request)) });
-    if (request.method === 'POST' && url.pathname === '/v1/search') return json(await runSearch(await readJson(request), env));
+    if (request.method === 'POST' && url.pathname === '/v1/search') return json(await runSearch(await readJson(request), env, fetcher));
     if (request.method === 'POST' && url.pathname === '/v1/brief') {
       const body = await readJson(request);
-      const result = await runSearch(body, env);
+      const result = await runSearch(body, env, fetcher);
       return json({ ...result, schema: 'signallens.brief_response.v1', brief: buildBrief(body.query, result.items), verticalBrief: buildVerticalBrief(body.query, result.items, result.vertical.id) });
     }
     if (request.method === 'POST' && url.pathname === '/v1/vertical-brief') {
       const body = await readJson(request);
-      const result = await runSearch(body, env);
+      const result = await runSearch(body, env, fetcher);
       return json({ ...result, schema: 'signallens.vertical_brief_response.v1', brief: buildVerticalBrief(body.query, result.items, result.vertical.id) });
     }
     return json({ ok: false, error: 'not_found' }, 404);
