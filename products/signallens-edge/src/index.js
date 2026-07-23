@@ -1,5 +1,6 @@
 import { buildBrief, fetchWebMetadata, normalizeLimit, normalizeQuery, rankAndDedupe, searchGitHub, searchHackerNews, searchRss, sha256 } from './adapters.js';
 import { quoteRequest, SOURCE_PRICES } from './pricing.js';
+import { applyVerticalRanking, buildVerticalBrief, getVertical, listVerticals } from './verticals.js';
 
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' };
 const CORS_HEADERS = {
@@ -35,14 +36,17 @@ function catalog() {
     ok: true,
     schema: 'signallens.catalog.v1',
     product: 'SignalLens Edge',
-    tagline: 'Pay-per-request public-source intelligence API for AI agents.',
+    tagline: 'Verticalized pay-per-request public-source intelligence API for AI agents.',
     tools: [
       { name: 'quote', method: 'POST', path: '/v1/quote', description: 'Estimate request cost before execution.' },
       { name: 'search_public_signals', method: 'POST', path: '/v1/search', description: 'Search and normalize public or operator-supplied sources.' },
       { name: 'brief_public_signals', method: 'POST', path: '/v1/brief', description: 'Return ranked items plus a sourced brief.' },
+      { name: 'list_verticals', method: 'GET', path: '/v1/verticals', description: 'List specialized intelligence modes for business, physics, compute, enterprise, developer, finance, and construction workflows.' },
+      { name: 'vertical_brief', method: 'POST', path: '/v1/vertical-brief', description: 'Run a search and return a vertical-specific ranked brief.' },
       { name: 'mcp_manifest', method: 'GET', path: '/mcp/manifest', description: 'Expose agent-tool metadata for MCP/skill clients.' }
     ],
     sources: SOURCE_PRICES,
+    verticals: listVerticals(),
     boundary: 'SignalLens does not bypass logins, paywalls, robots, platform rate limits, or private data boundaries.'
   };
 }
@@ -52,25 +56,31 @@ function mcpManifest(request) {
   return {
     schema: 'signallens.mcp_manifest.v1',
     name: 'SignalLens Edge',
-    description: 'Agent-ready public-source intelligence router with quotes, receipts, normalized results, and briefs.',
+    description: 'Agent-ready public-source intelligence router with quotes, receipts, normalized results, vertical specialization, and briefs.',
     baseUrl: origin,
     tools: [
       {
         name: 'signallens_quote',
         endpoint: `${origin}/v1/quote`,
-        inputSchema: { type: 'object', properties: { sources: { type: 'array', items: { type: 'string' } }, limit: { type: 'number' } } }
+        inputSchema: { type: 'object', properties: { sources: { type: 'array', items: { type: 'string' } }, limit: { type: 'number' }, vertical: { type: 'string' } } }
       },
       {
         name: 'signallens_search',
         endpoint: `${origin}/v1/search`,
-        inputSchema: { type: 'object', required: ['query'], properties: { query: { type: 'string' }, sources: { type: 'array', items: { type: 'string' } }, limit: { type: 'number' }, rssUrls: { type: 'array', items: { type: 'string' } }, urls: { type: 'array', items: { type: 'string' } } } }
+        inputSchema: { type: 'object', required: ['query'], properties: { query: { type: 'string' }, vertical: { type: 'string' }, sources: { type: 'array', items: { type: 'string' } }, limit: { type: 'number' }, rssUrls: { type: 'array', items: { type: 'string' } }, urls: { type: 'array', items: { type: 'string' } } } }
       },
       {
         name: 'signallens_brief',
         endpoint: `${origin}/v1/brief`,
-        inputSchema: { type: 'object', required: ['query'], properties: { query: { type: 'string' }, sources: { type: 'array', items: { type: 'string' } }, limit: { type: 'number' }, rssUrls: { type: 'array', items: { type: 'string' } }, urls: { type: 'array', items: { type: 'string' } } } }
+        inputSchema: { type: 'object', required: ['query'], properties: { query: { type: 'string' }, vertical: { type: 'string' }, sources: { type: 'array', items: { type: 'string' } }, limit: { type: 'number' }, rssUrls: { type: 'array', items: { type: 'string' } }, urls: { type: 'array', items: { type: 'string' } } } }
+      },
+      {
+        name: 'signallens_vertical_brief',
+        endpoint: `${origin}/v1/vertical-brief`,
+        inputSchema: { type: 'object', required: ['query'], properties: { query: { type: 'string' }, vertical: { enum: listVerticals().map((v) => v.id) }, limit: { type: 'number' }, rssUrls: { type: 'array', items: { type: 'string' } }, urls: { type: 'array', items: { type: 'string' } } } }
       }
-    ]
+    ],
+    verticals: listVerticals()
   };
 }
 
@@ -78,16 +88,20 @@ async function runSearch(body, env, fetcher = fetch) {
   const query = normalizeQuery(body.query);
   if (!query && !Array.isArray(body.urls)) throw Object.assign(new Error('query_required'), { status: 400 });
   const limit = normalizeLimit(body.limit || 10);
-  const sources = [...new Set((Array.isArray(body.sources) && body.sources.length ? body.sources : ['hackernews', 'github']).map(String))];
+  const vertical = getVertical(body.vertical);
+  const requestedSources = Array.isArray(body.sources) && body.sources.length ? body.sources : vertical.defaultSources;
+  const sources = [...new Set(requestedSources.map(String))];
   const groups = [];
   if (sources.includes('hackernews')) groups.push(await searchHackerNews(fetcher, query, limit));
   if (sources.includes('github')) groups.push(await searchGitHub(fetcher, query, limit, env.GITHUB_TOKEN || ''));
-  if (sources.includes('rss')) groups.push(await searchRss(fetcher, body.rssUrls || [], query, limit));
+  if (sources.includes('rss')) groups.push(await searchRss(fetcher, body.rssUrls || vertical.defaultRssUrls || [], query, limit));
   if (sources.includes('web')) groups.push(await fetchWebMetadata(fetcher, body.urls || [], limit));
-  const items = rankAndDedupe(groups, limit);
+  const baseItems = rankAndDedupe(groups, Math.max(limit, 10));
+  const items = applyVerticalRanking(baseItems, vertical.id, limit);
   const receipt = {
     schema: 'signallens.receipt.v1',
     query,
+    vertical: vertical.id,
     sources,
     limit,
     itemCount: items.length,
@@ -95,7 +109,7 @@ async function runSearch(body, env, fetcher = fetch) {
     createdAt: new Date().toISOString()
   };
   receipt.hash = await sha256(receipt);
-  return { ok: true, schema: 'signallens.search.v1', query, quote: quoteRequest({ sources, limit, providerQuotes: body.providerQuotes || [] }), receipt, items };
+  return { ok: true, schema: 'signallens.search.v1', query, vertical, quote: quoteRequest({ sources, limit, providerQuotes: body.providerQuotes || [] }), receipt, items };
 }
 
 export async function handleRequest(request, env = {}, ctx = {}) {
@@ -104,6 +118,7 @@ export async function handleRequest(request, env = {}, ctx = {}) {
   try {
     if (request.method === 'GET' && url.pathname === '/health') return json({ ok: true, service: 'signallens-edge', schema: 'signallens.health.v1' });
     if (request.method === 'GET' && url.pathname === '/v1/catalog') return json(catalog());
+    if (request.method === 'GET' && url.pathname === '/v1/verticals') return json({ ok: true, schema: 'signallens.verticals.v1', verticals: listVerticals() });
     if (request.method === 'GET' && url.pathname === '/mcp/manifest') return json(mcpManifest(request));
     const auth = requireToken(request, env);
     if (!auth.ok) return auth.response;
@@ -112,7 +127,12 @@ export async function handleRequest(request, env = {}, ctx = {}) {
     if (request.method === 'POST' && url.pathname === '/v1/brief') {
       const body = await readJson(request);
       const result = await runSearch(body, env);
-      return json({ ...result, schema: 'signallens.brief_response.v1', brief: buildBrief(body.query, result.items) });
+      return json({ ...result, schema: 'signallens.brief_response.v1', brief: buildBrief(body.query, result.items), verticalBrief: buildVerticalBrief(body.query, result.items, result.vertical.id) });
+    }
+    if (request.method === 'POST' && url.pathname === '/v1/vertical-brief') {
+      const body = await readJson(request);
+      const result = await runSearch(body, env);
+      return json({ ...result, schema: 'signallens.vertical_brief_response.v1', brief: buildVerticalBrief(body.query, result.items, result.vertical.id) });
     }
     return json({ ok: false, error: 'not_found' }, 404);
   } catch (error) {
@@ -121,4 +141,4 @@ export async function handleRequest(request, env = {}, ctx = {}) {
 }
 
 export default { fetch: handleRequest };
-export { runSearch, catalog, mcpManifest, quoteRequest };
+export { runSearch, catalog, mcpManifest, quoteRequest, listVerticals, getVertical };
