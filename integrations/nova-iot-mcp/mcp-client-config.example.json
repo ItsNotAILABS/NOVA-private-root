@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "nova-iot": {
+      "command": "python",
+      "args": [
+        "C:/path/to/NOVA-private-root/integrations/nova-iot-mcp/mcp_server.py"
+      ]
+    }
+  }
+}
