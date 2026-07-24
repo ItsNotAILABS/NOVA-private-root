@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildBrief, rankAndDedupe, searchGitHub, searchHackerNews, searchRss } from '../src/adapters.js';
-import { handleRequest, runSearch, quoteRequest, listVerticals } from '../src/index.js';
+import { handleRequest, runSearch, quoteRequest, listVerticals, ingestRelayReceipt } from '../src/index.js';
 import { buildVerticalBrief, getVertical, applyVerticalRanking } from '../src/verticals.js';
 
 function responseJson(body, status = 200) {
@@ -65,19 +65,42 @@ test('vertical ranking and brief specialize the same items for different audienc
   assert.ok(Object.keys(physicsBrief.sections).includes('research_claims'));
 });
 
-test('worker exposes catalog, quote, verticals, vertical brief, and auth boundary', async () => {
+test('SignalLens ingests Relay receipts and optionally persists them', async () => {
+  const receipt = {
+    source: 'nexus-relay',
+    event: 'relay.fetch.completed',
+    request_id: 'relay-1',
+    receipt_sha256: 'a'.repeat(64),
+    content_sha256: 'b'.repeat(64),
+    vertical: 'compute'
+  };
+  const kv = new Map();
+  const env = { SIGNALLENS_RECEIPTS: { put: async (key, value) => kv.set(key, value), get: async (key) => JSON.parse(kv.get(key)) } };
+  const ack = await ingestRelayReceipt({ receipt }, env, 'relay-agent');
+  assert.equal(ack.ok, true);
+  assert.equal(ack.storage, 'kv');
+  assert.equal(ack.source, 'nexus-relay');
+  assert.equal(typeof ack.hash, 'string');
+  const stored = await handleRequest(new Request(`https://signallens.test/v1/receipts/${ack.hash}`, { headers: { authorization: 'Bearer secret' } }), { ...env, SIGNALLENS_TOKEN: 'secret' });
+  assert.equal((await stored.json()).receipt.hash, ack.hash);
+});
+
+test('worker exposes catalog, quote, verticals, vertical brief, receipts, and auth boundary', async () => {
   const health = await handleRequest(new Request('https://signallens.test/health'));
   assert.equal((await health.json()).ok, true);
   const catalog = await handleRequest(new Request('https://signallens.test/v1/catalog'));
   const catalogBody = await catalog.json();
   assert.equal(catalogBody.product, 'SignalLens Edge');
   assert.ok(catalogBody.verticals.length >= 7);
+  assert.equal(catalogBody.receipts.ingest, '/v1/receipts');
   const verticals = await handleRequest(new Request('https://signallens.test/v1/verticals'));
   assert.ok((await verticals.json()).verticals.find((vertical) => vertical.id === 'enterprise'));
   const denied = await handleRequest(new Request('https://signallens.test/v1/quote', { method: 'POST', body: '{}' }), { SIGNALLENS_TOKEN: 'secret' });
   assert.equal(denied.status, 401);
   const quote = await handleRequest(new Request('https://signallens.test/v1/quote', { method: 'POST', headers: { authorization: 'Bearer secret' }, body: JSON.stringify({ sources: ['github'], vertical: 'business' }) }), { SIGNALLENS_TOKEN: 'secret' });
   assert.equal((await quote.json()).quote.estimatedTotalUsd, 0);
+  const receipt = await handleRequest(new Request('https://signallens.test/v1/receipts', { method: 'POST', headers: { authorization: 'Bearer secret' }, body: JSON.stringify({ receipt: { source: 'nexus-relay', event: 'relay.run', receipt_sha256: 'c'.repeat(64) } }) }), { SIGNALLENS_TOKEN: 'secret' });
+  assert.equal((await receipt.json()).ok, true);
   const brief = await handleRequest(new Request('https://signallens.test/v1/vertical-brief', { method: 'POST', body: JSON.stringify({ query: 'agent APIs', vertical: 'developer', sources: ['hackernews', 'github'] }) }), {}, { fetch: mockFetch });
   assert.equal((await brief.json()).brief.vertical.id, 'developer');
 });
