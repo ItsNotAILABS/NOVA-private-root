@@ -5,14 +5,21 @@ on:
     paths:
       - 'integrations/nova-iot-mcp/robot_access.py'
       - 'integrations/nova-iot-mcp/robot_mcp_server.py'
+      - 'integrations/nova-iot-mcp/robot_secure_mcp_server.py'
+      - 'integrations/nova-iot-mcp/robot_trust.py'
       - 'integrations/nova-iot-mcp/test_robot_mcp_server.py'
+      - 'integrations/nova-iot-mcp/test_robot_secure_mcp_server.py'
+      - 'integrations/nova-iot-mcp/robot-mcp-client-config.example.json'
       - '.github/workflows/nova-robot-access.yml'
   push:
     branches: [main]
     paths:
       - 'integrations/nova-iot-mcp/robot_access.py'
       - 'integrations/nova-iot-mcp/robot_mcp_server.py'
+      - 'integrations/nova-iot-mcp/robot_secure_mcp_server.py'
+      - 'integrations/nova-iot-mcp/robot_trust.py'
       - 'integrations/nova-iot-mcp/test_robot_mcp_server.py'
+      - 'integrations/nova-iot-mcp/test_robot_secure_mcp_server.py'
 
 permissions:
   contents: read
@@ -21,6 +28,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      NOVA_ROBOT_AGENT_ID: agent-test
+      NOVA_ROBOT_AGENT_TOKEN: agent-secret
+      NOVA_ROBOT_APPROVER_ID: operator-test
+      NOVA_ROBOT_OPERATOR_TOKEN: operator-secret
+      NOVA_ROBOT_APPROVAL_SECRET: approval-signing-secret
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -28,7 +41,31 @@ jobs:
           python-version: '3.12'
       - name: Compile
         working-directory: integrations/nova-iot-mcp
-        run: python -m py_compile robot_access.py robot_mcp_server.py test_robot_mcp_server.py
-      - name: Test
+        run: >-
+          python -m py_compile
+          robot_access.py
+          robot_mcp_server.py
+          robot_secure_mcp_server.py
+          robot_trust.py
+          test_robot_mcp_server.py
+          test_robot_secure_mcp_server.py
+      - name: Test baseline access contracts
         working-directory: integrations/nova-iot-mcp
         run: python -m unittest -v test_robot_mcp_server.py
+      - name: Test authenticated durable trust boundary
+        working-directory: integrations/nova-iot-mcp
+        run: python -m unittest -v test_robot_secure_mcp_server.py
+      - name: Verify fail-closed configuration
+        working-directory: integrations/nova-iot-mcp
+        run: |
+          env -u NOVA_ROBOT_AGENT_TOKEN python - <<'PY'
+          import tempfile
+          from robot_trust import RobotTrustStore
+          store = RobotTrustStore(tempfile.NamedTemporaryFile(suffix='.db').name)
+          try:
+              store.authenticate_agent('agent-test', 'agent-secret')
+          except PermissionError:
+              print('fail-closed agent authentication verified')
+          else:
+              raise SystemExit('agent authentication unexpectedly passed')
+          PY
