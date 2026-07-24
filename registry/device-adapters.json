@@ -1,0 +1,95 @@
+{
+  "schema": "nova.device-adapter-registry.v1",
+  "generated_at": "2026-07-24",
+  "default_execution_policy": "observe-only",
+  "adapters": [
+    {
+      "id": "ros2-gateway",
+      "priority": 1,
+      "status": "PLANNED",
+      "device_classes": ["mobile-robot", "manipulator", "drone", "custom-robot"],
+      "targets": ["TurtleBot 4", "Create 3 class", "custom ROS 2 robots"],
+      "transport": ["ROS 2 DDS"],
+      "first_capabilities": ["discover", "telemetry", "pose", "map", "navigate-plan", "safe-stop"],
+      "physical_execution_default": false,
+      "simulator_first": true
+    },
+    {
+      "id": "mqtt-gateway",
+      "priority": 1,
+      "status": "PLANNED",
+      "device_classes": ["sensor", "relay", "esp32-robot", "raspberry-pi-robot", "lab-device"],
+      "targets": ["ESP32", "Raspberry Pi", "custom MQTT devices"],
+      "transport": ["MQTT over TLS"],
+      "first_capabilities": ["read-telemetry", "publish-command", "command-acknowledgement"],
+      "physical_execution_default": false,
+      "simulator_first": false
+    },
+    {
+      "id": "local-edge-gateway",
+      "priority": 1,
+      "status": "PLANNED",
+      "device_classes": ["computer", "edge-computer", "gateway"],
+      "targets": ["Windows workstation", "Linux workstation", "Raspberry Pi", "NVIDIA Jetson"],
+      "transport": ["authenticated LAN", "local IPC"],
+      "first_capabilities": ["status", "services", "approved-command", "files", "screenshot", "camera-bridge", "serial-bridge"],
+      "physical_execution_default": false,
+      "simulator_first": false
+    },
+    {
+      "id": "camera-gateway",
+      "priority": 1,
+      "status": "PLANNED",
+      "device_classes": ["camera"],
+      "targets": ["RTSP camera", "ONVIF camera", "USB camera"],
+      "transport": ["RTSP", "ONVIF", "local gateway"],
+      "first_capabilities": ["snapshot", "stream-metadata", "event-handoff"],
+      "physical_execution_default": false,
+      "simulator_first": false
+    },
+    {
+      "id": "matter-home-gateway",
+      "priority": 1,
+      "status": "PLANNED",
+      "device_classes": ["smart-home", "building-device"],
+      "targets": ["Matter devices", "Home Assistant exposed devices"],
+      "transport": ["Matter", "authenticated Home Assistant API"],
+      "first_capabilities": ["read-state", "switch", "scene", "climate-setpoint"],
+      "physical_execution_default": false,
+      "simulator_first": false
+    },
+    {
+      "id": "unitree-gateway",
+      "priority": 2,
+      "status": "RESEARCH",
+      "device_classes": ["quadruped", "humanoid"],
+      "targets": ["Unitree Go2", "Unitree B2", "Unitree G1", "Unitree H1"],
+      "transport": ["vendor SDK", "ROS 2 normalization"],
+      "first_capabilities": ["telemetry", "posture-state", "safe-stop"],
+      "physical_execution_default": false,
+      "simulator_first": true
+    },
+    {
+      "id": "spot-gateway",
+      "priority": 2,
+      "status": "RESEARCH",
+      "device_classes": ["quadruped"],
+      "targets": ["Boston Dynamics Spot"],
+      "transport": ["Spot SDK"],
+      "first_capabilities": ["telemetry", "image-capture", "lease-state", "estop-state"],
+      "physical_execution_default": false,
+      "simulator_first": true
+    },
+    {
+      "id": "industrial-gateway",
+      "priority": 3,
+      "status": "PLANNED",
+      "device_classes": ["plc", "meter", "drive", "building-controller", "lab-instrument"],
+      "targets": ["OPC UA systems", "Modbus systems", "BACnet systems", "SCPI instruments"],
+      "transport": ["OPC UA", "Modbus TCP/RTU", "BACnet/IP", "SCPI"],
+      "first_capabilities": ["browse", "read", "subscribe", "identify"],
+      "physical_execution_default": false,
+      "simulator_first": true
+    }
+  ]
+}
