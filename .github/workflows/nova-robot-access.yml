@@ -1,0 +1,34 @@
+name: NOVA Robot Access MCP
+
+on:
+  pull_request:
+    paths:
+      - 'integrations/nova-iot-mcp/robot_access.py'
+      - 'integrations/nova-iot-mcp/robot_mcp_server.py'
+      - 'integrations/nova-iot-mcp/test_robot_mcp_server.py'
+      - '.github/workflows/nova-robot-access.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'integrations/nova-iot-mcp/robot_access.py'
+      - 'integrations/nova-iot-mcp/robot_mcp_server.py'
+      - 'integrations/nova-iot-mcp/test_robot_mcp_server.py'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile
+        working-directory: integrations/nova-iot-mcp
+        run: python -m py_compile robot_access.py robot_mcp_server.py test_robot_mcp_server.py
+      - name: Test
+        working-directory: integrations/nova-iot-mcp
+        run: python -m unittest -v test_robot_mcp_server.py
