@@ -1,5 +1,6 @@
 import { buildBrief, fetchWebMetadata, normalizeLimit, normalizeQuery, rankAndDedupe, searchGitHub, searchHackerNews, searchRss, sha256 } from './adapters.js';
 import { quoteRequest, SOURCE_PRICES } from './pricing.js';
+import { ingestRelayReceipt, getStoredReceipt } from './receipts.js';
 import { applyVerticalRanking, buildVerticalBrief, getVertical, listVerticals } from './verticals.js';
 
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' };
@@ -43,10 +44,13 @@ function catalog() {
       { name: 'brief_public_signals', method: 'POST', path: '/v1/brief', description: 'Return ranked items plus a sourced brief.' },
       { name: 'list_verticals', method: 'GET', path: '/v1/verticals', description: 'List specialized intelligence modes for business, physics, compute, enterprise, developer, finance, and construction workflows.' },
       { name: 'vertical_brief', method: 'POST', path: '/v1/vertical-brief', description: 'Run a search and return a vertical-specific ranked brief.' },
+      { name: 'ingest_relay_receipt', method: 'POST', path: '/v1/receipts', description: 'Accept normalized Relay/AURO receipts and return SignalLens receipt acknowledgments.' },
+      { name: 'get_relay_receipt', method: 'GET', path: '/v1/receipts/:hash', description: 'Read a stored receipt when SIGNALLENS_RECEIPTS KV is configured.' },
       { name: 'mcp_manifest', method: 'GET', path: '/mcp/manifest', description: 'Expose agent-tool metadata for MCP/skill clients.' }
     ],
     sources: SOURCE_PRICES,
     verticals: listVerticals(),
+    receipts: { ingest: '/v1/receipts', storage: 'optional SIGNALLENS_RECEIPTS KV; otherwise ack-only' },
     boundary: 'SignalLens does not bypass logins, paywalls, robots, platform rate limits, or private data boundaries.'
   };
 }
@@ -78,6 +82,11 @@ function mcpManifest(request) {
         name: 'signallens_vertical_brief',
         endpoint: `${origin}/v1/vertical-brief`,
         inputSchema: { type: 'object', required: ['query'], properties: { query: { type: 'string' }, vertical: { enum: listVerticals().map((v) => v.id) }, limit: { type: 'number' }, rssUrls: { type: 'array', items: { type: 'string' } }, urls: { type: 'array', items: { type: 'string' } } } }
+      },
+      {
+        name: 'signallens_ingest_relay_receipt',
+        endpoint: `${origin}/v1/receipts`,
+        inputSchema: { type: 'object', properties: { receipt: { type: 'object' }, vertical: { type: 'string' } } }
       }
     ],
     verticals: listVerticals()
@@ -123,6 +132,11 @@ export async function handleRequest(request, env = {}, ctx = {}) {
     if (request.method === 'GET' && url.pathname === '/mcp/manifest') return json(mcpManifest(request));
     const auth = requireToken(request, env);
     if (!auth.ok) return auth.response;
+    if (request.method === 'GET' && url.pathname.startsWith('/v1/receipts/')) {
+      const stored = await getStoredReceipt(url.pathname.split('/').pop(), env);
+      return stored ? json({ ok: true, schema: 'signallens.stored_receipt.v1', receipt: stored }) : json({ ok: false, error: 'receipt_not_found_or_storage_not_configured' }, 404);
+    }
+    if (request.method === 'POST' && url.pathname === '/v1/receipts') return json(await ingestRelayReceipt(await readJson(request), env, auth.actor));
     if (request.method === 'POST' && url.pathname === '/v1/quote') return json({ ok: true, quote: quoteRequest(await readJson(request)) });
     if (request.method === 'POST' && url.pathname === '/v1/search') return json(await runSearch(await readJson(request), env, fetcher));
     if (request.method === 'POST' && url.pathname === '/v1/brief') {
@@ -142,4 +156,4 @@ export async function handleRequest(request, env = {}, ctx = {}) {
 }
 
 export default { fetch: handleRequest };
-export { runSearch, catalog, mcpManifest, quoteRequest, listVerticals, getVertical };
+export { runSearch, catalog, mcpManifest, quoteRequest, listVerticals, getVertical, ingestRelayReceipt, getStoredReceipt };
