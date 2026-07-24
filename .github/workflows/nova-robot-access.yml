@@ -39,7 +39,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Compile
+      - name: Compile all robot access modules
         working-directory: integrations/nova-iot-mcp
         run: >-
           python -m py_compile
@@ -49,23 +49,25 @@ jobs:
           robot_trust.py
           test_robot_mcp_server.py
           test_robot_secure_mcp_server.py
-      - name: Test baseline access contracts
-        working-directory: integrations/nova-iot-mcp
-        run: python -m unittest -v test_robot_mcp_server.py
-      - name: Test authenticated durable trust boundary
+      - name: Test canonical authenticated durable trust boundary
         working-directory: integrations/nova-iot-mcp
         run: python -m unittest -v test_robot_secure_mcp_server.py
       - name: Verify fail-closed configuration
         working-directory: integrations/nova-iot-mcp
         run: |
           env -u NOVA_ROBOT_AGENT_TOKEN python - <<'PY'
+          import os
           import tempfile
           from robot_trust import RobotTrustStore
-          store = RobotTrustStore(tempfile.NamedTemporaryFile(suffix='.db').name)
+          path = tempfile.NamedTemporaryFile(suffix='.db', delete=False).name
+          store = RobotTrustStore(path)
           try:
               store.authenticate_agent('agent-test', 'agent-secret')
           except PermissionError:
               print('fail-closed agent authentication verified')
           else:
               raise SystemExit('agent authentication unexpectedly passed')
+          finally:
+              store._conn.close()
+              os.unlink(path)
           PY
