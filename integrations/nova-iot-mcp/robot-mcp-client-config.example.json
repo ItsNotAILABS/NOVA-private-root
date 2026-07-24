@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "nova-robot-access": {
+      "command": "python",
+      "args": [
+        "C:/path/to/NOVA-private-root/integrations/nova-iot-mcp/robot_mcp_server.py"
+      ],
+      "env": {
+        "NOVA_ROS2_GATEWAY_URL": "http://127.0.0.1:8110",
+        "NOVA_MQTT_GATEWAY_URL": "http://127.0.0.1:8111",
+        "NOVA_EDGE_GATEWAY_URL": "http://127.0.0.1:8112"
+      }
+    }
+  }
+}
