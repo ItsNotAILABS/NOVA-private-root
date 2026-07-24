@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "nova-robot-access": {
+      "command": "python",
+      "args": [
+        "C:/path/to/NOVA-private-root/integrations/nova-iot-mcp/robot_secure_mcp_server.py"
+      ],
+      "env": {
+        "NOVA_ROBOT_TRUST_DB": "C:/path/to/state/nova_robot_trust.db",
+        "NOVA_ROBOT_AGENT_ID": "nova-local-agent",
+        "NOVA_ROBOT_AGENT_TOKEN": "replace-with-secret",
+        "NOVA_ROBOT_APPROVER_ID": "nova-local-operator",
+        "NOVA_ROBOT_OPERATOR_TOKEN": "replace-with-separate-secret",
+        "NOVA_ROBOT_APPROVAL_SECRET": "replace-with-random-signing-secret",
+        "NOVA_ROS2_GATEWAY_URL": "http://127.0.0.1:8110",
+        "NOVA_MQTT_GATEWAY_URL": "http://127.0.0.1:8111",
+        "NOVA_EDGE_GATEWAY_URL": "http://127.0.0.1:8112"
+      }
+    }
+  }
+}
