@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0.0",
+  "generated_from": "initial manual planning pass",
+  "status_classes": ["LIVE", "ALPHA", "PROTOTYPE", "RESEARCH", "PLANNED", "DEPRECATED"],
+  "repositories": [
+    {"name":"NOVA-private-root","family":"core-intelligence","role":"canonical private integration root and system envelope","visibility":"private","status":"ALPHA","canonical":true},
+    {"name":"AURO","family":"model-runtime","role":"public model runtime and serving research","visibility":"public","status":"ALPHA","canonical":true},
+    {"name":"Auro14B","family":"model-runtime","role":"large-model implementation and evaluation lane","visibility":"public","status":"PROTOTYPE","canonical":false},
+    {"name":"Chimeria","family":"cognition","role":"persistent cognition and organism architecture","visibility":"private","status":"RESEARCH","canonical":true},
+    {"name":"MedinaMemorySystems","family":"memory","role":"memory, lineage, consensus, retrieval and continuity infrastructure","visibility":"public","status":"ALPHA","canonical":true},
+    {"name":"NATIVE-NOVA-PROTOCOL","family":"protocol","role":"canonical NOVA state and runtime protocol","visibility":"private","status":"ALPHA","canonical":true},
+    {"name":"PhoneAI","family":"operator-surface","role":"mobile operator, approval and remote-control surface","visibility":"private","status":"PROTOTYPE","canonical":true},
+    {"name":"ForgeBridge-MCP","family":"mcp","role":"governed MCP bridge family","visibility":"private","status":"PROTOTYPE","canonical":true},
+    {"name":"nova-connector-control-plane","family":"connectors","role":"connector registry, policy and routing control plane","visibility":"public","status":"PROTOTYPE","canonical":true},
+    {"name":"organism-bots-mcp-server","family":"mcp","role":"public agent MCP server experiments","visibility":"public","status":"PROTOTYPE","canonical":false},
+    {"name":"x-mcp-skills","family":"skills","role":"installable skills and distribution lane","visibility":"public","status":"PROTOTYPE","canonical":true},
+    {"name":"MESIE","family":"scientific-intelligence","role":"spectral intelligence engine and scientific AI stack","visibility":"public","status":"ALPHA","canonical":true,"repository_alias":"FreddyCreates/Multi-Element-Spectral-Intelligence-Engine-MESIE-"},
+    {"name":"OnChain","family":"verifiable-compute","role":"on-chain application, agent and receipt infrastructure","visibility":"public","status":"ALPHA","canonical":true},
+    {"name":"CAPSULA","family":"deployment","role":"portable sealed application and memory capsule format","visibility":"public","status":"ALPHA","canonical":true},
+    {"name":"CapsulaBuilder","family":"deployment","role":"capsule build and deployment tooling","visibility":"public","status":"ALPHA","canonical":true},
+    {"name":"containers-nova-APPS","family":"applications","role":"deployable NOVA application containers","visibility":"private","status":"PROTOTYPE","canonical":true},
+    {"name":"PARALLAX-Exchange-Clearinghouse","family":"financial-infrastructure","role":"clearing, synchronization, audit and evidence infrastructure","visibility":"public","status":"ALPHA","canonical":true},
+    {"name":"PARRALAX-AIHFTFUND","family":"financial-research","role":"AI-native trading and execution research","visibility":"public","status":"RESEARCH","canonical":true},
+    {"name":"CyberSecurity-AI","family":"security","role":"defensive security and governance capabilities","visibility":"public","status":"ALPHA","canonical":true},
+    {"name":"LOOM-Memoria-De-Intelligencia-","family":"memory","role":"memory books, lineage and long-form intelligence artifacts","visibility":"public","status":"RESEARCH","canonical":false},
+    {"name":"NEUROSWARMAI","family":"agents","role":"coordinated agent and swarm research","visibility":"public","status":"RESEARCH","canonical":false},
+    {"name":"specforge-launch-studio","family":"showcase","role":"technical specification and product showcase studio","visibility":"public","status":"PROTOTYPE","canonical":true},
+    {"name":"mercatus-launch-studio","family":"commercialization","role":"commercial packaging and launch studio","visibility":"public","status":"PROTOTYPE","canonical":true},
+    {"name":"SNS---TOKEN","family":"governance","role":"ecosystem governance and token support","visibility":"private","status":"RESEARCH","canonical":false}
+  ],
+  "notes": [
+    "Statuses are provisional until CI, deployment and evidence audits are complete.",
+    "Stale and zero-byte repositories are intentionally omitted and should be archived after verification.",
+    "No status in this registry implies production readiness."
+  ]
+}

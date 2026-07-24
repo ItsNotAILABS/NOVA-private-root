@@ -1,0 +1,51 @@
+flowchart LR
+  Phone[PhoneAI\nOperator + Approval Surface]
+  MCP[ForgeBridge / NOVA MCP\nCanonical Tool Surface]
+  Control[nova-connector-control-plane\nPolicy + Routing]
+  NOVA[NOVA-private-root\nSystem Envelope]
+  Chimeria[Chimeria\nPersistent Cognition]
+  Memory[MedinaMemorySystems\nMemory + Lineage]
+  AURO[AURO / Auro14B\nModel Runtime]
+  MESIE[MESIE\nScientific Intelligence]
+  Security[CyberSecurity-AI\nTrust + Security]
+  Evidence[Receipt + Evidence Layer]
+  OnChain[OnChain\nVerification + Agents]
+  Capsula[CAPSULA / CapsulaBuilder\nPackage + Deploy]
+  Apps[containers-nova-APPS\nProduct Surfaces]
+  Parallax[PARALLAX\nClearing + Audit]
+  Skills[x-mcp-skills\nSkill Distribution]
+  Studios[SpecForge + Mercatus\nShowcase + Launch]
+
+  Phone -->|initialize / tools/list / tools/call| MCP
+  MCP --> Control
+  Control --> NOVA
+  NOVA --> Chimeria
+  NOVA --> Memory
+  NOVA --> AURO
+  NOVA --> MESIE
+  Security -.policy gates.-> MCP
+  Security -.identity + approvals.-> Control
+  Memory --> AURO
+  Chimeria --> Memory
+  AURO --> Evidence
+  MESIE --> Evidence
+  MCP --> Evidence
+  Evidence --> OnChain
+  Evidence --> Parallax
+  Capsula --> Apps
+  NOVA --> Capsula
+  Skills --> MCP
+  Apps --> Studios
+  Evidence --> Studios
+
+  classDef core fill:#101d35,stroke:#39d7ff,color:#e8f4ff;
+  classDef memory fill:#231438,stroke:#b785ff,color:#f1e8ff;
+  classDef evidence fill:#0d2a20,stroke:#31f39b,color:#eafff5;
+  classDef security fill:#35111b,stroke:#ff6482,color:#ffe8ed;
+  classDef product fill:#30250b,stroke:#ffc857,color:#fff6d8;
+
+  class NOVA,AURO,Chimeria,MCP,Control core;
+  class Memory memory;
+  class Evidence,OnChain,Parallax evidence;
+  class Security security;
+  class Phone,MESIE,Capsula,Apps,Skills,Studios product;
