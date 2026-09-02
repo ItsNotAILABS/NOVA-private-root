@@ -26,8 +26,8 @@ jobs:
           python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
       - name: Compile native architecture
         run: python -m compileall -q integrations/auro14b/native_architecture
-      - name: Validate delta transformer
-        run: python -m unittest -v integrations.auro14b.native_architecture.test_model
+      - name: Validate delta transformer and fast decoder
+        run: python -m unittest discover -v integrations/auro14b/native_architecture -p 'test_*.py'
       - name: Emit architecture receipt
         run: |
           python - <<'PY'
