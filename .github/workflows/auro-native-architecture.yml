@@ -1,0 +1,59 @@
+name: Auro Native Delta Architecture
+
+on:
+  pull_request:
+    paths:
+      - "integrations/auro14b/native_architecture/**"
+      - ".github/workflows/auro-native-architecture.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-native-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install CPU model runtime
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Compile native architecture
+        run: python -m compileall -q integrations/auro14b/native_architecture
+      - name: Validate delta transformer and fast decoder
+        run: python -m unittest discover -v integrations/auro14b/native_architecture -p 'test_*.py'
+      - name: Emit architecture receipt
+        run: |
+          python - <<'PY'
+          import json
+          from integrations.auro14b.native_architecture.model import NativeConfig
+          from integrations.auro14b.native_architecture.training import NativeTrainingTransformer
+          config=NativeConfig(vocab_size=4096,d_model=256,n_heads=8,n_layers=6,ff_mult=3,memory_slots=128,top_k=16)
+          model=NativeTrainingTransformer(config,window=64)
+          payload={
+              'schema':'medina.auro.native_architecture_receipt.v1',
+              'parameters':model.parameter_count(),
+              'memory_slots_per_layer':config.memory_slots,
+              'decode_top_k':config.top_k,
+              'training_window':64,
+              'sequence_4k':model.efficiency_receipt(4096),
+              'sequence_32k':model.efficiency_receipt(32768),
+          }
+          print(json.dumps(payload,indent=2))
+          with open('native-architecture-receipt.json','w') as handle: json.dump(payload,handle,indent=2)
+          PY
+      - name: Benchmark bounded decode crossover
+        run: python -m integrations.auro14b.native_architecture.benchmark_decode --output native-decode-benchmark.json --iterations 50
+      - uses: actions/upload-artifact@v4
+        with:
+          name: auro-native-architecture-evidence
+          path: |
+            native-architecture-receipt.json
+            native-decode-benchmark.json
+          retention-days: 30
