@@ -24,12 +24,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install and typecheck browser runtime
+      - name: Install, typecheck, build, and test browser runtime
         working-directory: integrations/chrome-runtime
         run: |
           npm install
           npm run typecheck
           npm run build
+          npm test
       - name: Compile Python bridge
         run: python -m compileall -q integrations/chrome-runtime/bridge
       - name: Smoke test bridge health
