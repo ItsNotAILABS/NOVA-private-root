@@ -3,14 +3,22 @@ export * from './queue.js';
 export * from './mesh.js';
 export * from './inference.js';
 export * from './bridge.js';
+export * from './delta_attention.js';
+export * from './residual_engine.js';
+export * from './mesie_multimodal.js';
+export * from './device_fabric.js';
+export * from './horizon_memory.js';
+export * from './native_engine.js';
 
 import { GovernedPythonBridge } from './bridge.js';
 import { WebGPUInference } from './inference.js';
 import { WorkerMesh } from './mesh.js';
+import { NativeCognitionEngine } from './native_engine.js';
 
 export class ChromeRuntime {
   readonly mesh = new WorkerMesh(['inference','tensor','python','capsula','matdaemon','office','wallet','receipt']);
   readonly inference = new WebGPUInference();
+  readonly cognition = new NativeCognitionEngine();
   readonly bridge: GovernedPythonBridge;
 
   constructor(endpoint = 'http://127.0.0.1:8092', token?: string) {
