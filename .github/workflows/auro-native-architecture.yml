@@ -48,8 +48,12 @@ jobs:
           print(json.dumps(payload,indent=2))
           with open('native-architecture-receipt.json','w') as handle: json.dump(payload,handle,indent=2)
           PY
+      - name: Benchmark bounded decode crossover
+        run: python -m integrations.auro14b.native_architecture.benchmark_decode --output native-decode-benchmark.json --iterations 50
       - uses: actions/upload-artifact@v4
         with:
-          name: auro-native-architecture-receipt
-          path: native-architecture-receipt.json
+          name: auro-native-architecture-evidence
+          path: |
+            native-architecture-receipt.json
+            native-decode-benchmark.json
           retention-days: 30
