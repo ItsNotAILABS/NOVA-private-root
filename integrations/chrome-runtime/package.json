@@ -1,6 +1,6 @@
 {
   "name": "@itsnotai/chrome-runtime",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,6 +12,7 @@
     "@huggingface/transformers": "4.2.0"
   },
   "devDependencies": {
+    "@types/node": "^24.0.0",
     "typescript": "5.8.3"
   }
 }
